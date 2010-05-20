@@ -7,7 +7,7 @@ T. Guild2,(1 ONERA-DESP, Toulouse France; 2 Aerospace Corporation,
 Washington DC, USA), ONERA-DESP library V4.2, Toulouse-France, 2004-2008
 """
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:44 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 19:27:26 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -----------------------------------------------
@@ -58,7 +58,6 @@ def get_Bfield(ticktock, spaco, extMag='T01STORM', options=[1,0,0,0,0], omnivals
 	
 	import numpy as n
 	import spacepy.onerapylib as oplib
-	import spacepy.spacetime as st
 	import spacepy.toolbox as tb
 	
 	# prepare input values for onera_desp call
@@ -230,7 +229,6 @@ def find_magequator(ticktock, spaco, extMag='T01STORM', options=[1,0,0,0,0], omn
 	import numpy as n
 	import spacepy.onerapylib as oplib
 	import spacepy.toolbox as tb
-	import spacepy.spacetime as st
 	
 	# prepare input values for onera_desp call
 	d = prep_onera(ticktock, spaco, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
