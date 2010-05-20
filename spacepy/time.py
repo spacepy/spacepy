@@ -1,467 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Implementation of TickTock class and SpaCo class functions
+Implementation of Ticktock class functions
 
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:44 $"
-__log__ = """
-$Log: spacetime.py,v $
-Revision 1.1  2010/05/20 17:19:44  smorley
-Initial revision
-
-Revision 1.19  2010/05/20 16:27:31  jkoller
-moved testing routines into the specific modules
-
-Revision 1.18  2010/05/19 22:30:50  smorley
-Regenerated documentation
-
-Revision 1.16  2010/05/19 00:27:28  smorley
-Further mods to fix sub-second support - not yet complete
-
-Revision 1.15  2010/05/18 18:44:15  smorley
-Added sub-second support for spacetime class
-
-Revision 1.14  2010/05/17 17:38:51  smorley
-General updates
-
-Revision 1.13  2010/05/11 15:54:20  smorley
-Fixed cvs markup from previous version conflict
-
-Revision 1.12  2010/05/11 15:53:12  smorley
-Updated SpaCo class for smarter coordinate system handling
-
-Revision 1.11  2010/05/10 22:03:58  balarsen
-Missed a leap lear conversion, fixed and should be correct.
-
-Revision 1.10  2010/05/10 21:57:33  balarsen
-added GPS epoch to spacetime, also changed a few numpy.arange to the much faster and built-in xrange.
-
-Revision 1.9  2010/04/28 20:55:26  smorley
-Updates to radbelt documentation, spacetime, __init__ and setup
-
-Revision 1.8  2010/04/20 23:17:06  jkoller
-fixed a little bug in eDOY
-
-Revision 1.7  2010/04/20 18:06:55  jkoller
-added routine for elapsed DOY, called eDOY; DOY itself will return integer number according to convention
-
-Revision 1.6  2010/04/12 17:54:55  smorley
-Updated doy2date for datetime output and readepoch in seapy to accept any format
-
-Revision 1.5  2010/04/02 23:55:41  smorley
-Added datetime object output to doy2date in spacetime [SKM]
-
-Revision 1.4  2010/03/16 15:14:09  jkoller
-fixed floating point precision bug in tickrange and added __mul__ to TickDelta
-
-Revision 1.3  2010/03/11 20:58:53  jkoller
-fixed problem with timedelta; won't allow numpy.dtype('int64') numbers
-
-Revision 1.2  2010/03/10 22:01:41  jkoller
-added a tickrange function
-
-Revision 1.1  2010/03/05 23:46:24  jkoller
-First version of spacetime.py providing classes: SpaCo, TickTock, etc
-
-"""
+__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 18:08:30 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
-
-# -----------------------------------------------
-# space coordinate class
-# -----------------------------------------------    
-class SpaCo(object):
-    """
-    a = Spaco( data, dtype, carsph, [units, ticktock] )
-    
-    A class holding spatial coordinates in cartesian/spherical
-    in units of Re and degrees
-        
-    Input:
-    ======
-        - data (list or ndarray, dim = (n,3) ) : coordinate points 
-        - dtype (string) :coordinate system, possible are GDZ, GEO, GSM, GSE, SM, GEI
-                MAG, SPH, RLL
-        - carsph (string) : cartesian or spherical, 'car' or 'sph'
-        - optional units (list of strings) : standard are  ['Re', 'Re', 'Re'] or 
-            ['Re', 'deg', 'deg'] depending on the carsph content
-        - optional ticktock (TickTock instance) : used for coordinate transformations (see a.convert)    
-        
-    Returns:
-    ========
-        - instance with a.data, a.carsph, etc.
-    
-    Example:
-    ========  
-    >>> coord = SpaCo([[1,2,4],[1,2,2]], 'GEO', 'car')
-    >>> coord.x  # returns all x coordinates
-    array([1, 1])
-    >>> coord.ticktock = TickTock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
-    >>> newcoord = coord.convert('GSM', 'sph')
-    >>> newcoord
-    
-       
-    See Also:
-    =========
-    spacetime.TickTock class
-    
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
-    Version:
-    ========
-    V1: 05-Mar-2010 (JK)
-    
-    """
-    
-    def __init__(self, data, dtype, carsph, units=None, ticktock=None):
-        import numpy as n
-        import onerapy as op
-        if isinstance(data[0], (float, int)):
-            self.data = n.array([data])
-        else:
-            self.data = n.array(data)
-        
-        typedict = {'GDZ': {'sph': 0, 'car': 10},
-            'GEO': {'sph': 11, 'car': 1}, 'GSM': {'sph': 22, 'car': 2},
-            'GSE': {'sph': 23, 'car': 3}, 'SM': {'sph': 24, 'car': 4},
-            'GEI': {'sph': 25, 'car': 5}, 'MAG': {'sph': 26, 'car': 6},
-            'SPH': {'sph': 7, 'car': 17}, 'RLL': {'sph': 8, 'car': 18}}
-        assert dtype in typedict.keys(), 'This dtype='+dtype+' is not supported. Only '+str(typedict.keys())
-        assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
-        onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
-        
-        # add ticktock
-        if ticktock: assert len(ticktock) == len(data), 'TickTock dimensions seem off'
-        self.ticktock = ticktock
-        
-        self.sysaxes = typedict[dtype][carsph]
-        if self.sysaxes >= 10 and self.sysaxes < 20: #need sph2car
-            try:
-                self.data = op.sph2car(self.data)
-                self.sysaxes -= 10
-            except:
-                print onerawarn
-                self.sysaxes = None
-        if self.sysaxes >= 20: #need car2sph
-            try:
-                self.data = op.car2sph(self.data)
-                self.sysaxes -= 20
-            except:
-                print onerawarn
-                self.sysaxes = None
-                
-        self.dtype = dtype
-        self.carsph = carsph
-        # setup units
-        self.Re = 6371000.0 #metres
-        if units==None and carsph=='car':
-            # use standard units
-            self.units = ['Re', 'Re', 'Re']
-        elif units==None and carsph=='sph':
-            self.units = ['Re', 'deg', 'deg']
-        else:
-            self.units = units
-        if dtype == 'GDZ' and carsph == 'sph':
-            self.units = ['km', 'deg', 'deg']
-        # setup x,y,z etc
-        if carsph == 'car':
-            self.x = self.data[:,0]
-            self.y = self.data[:,1]
-            self.z = self.data[:,2]
-        else:
-            self.radi = self.data[:,0]
-            self.lati = self.data[:,1]
-            self.long = self.data[:,2]
-        ## setup list for onera compatibility
-        #self.sysaxes = op.get_sysaxes(dtype, carsph)
-        
-        return None
-        
-    # -----------------------------------------------    
-    def __str__(self):
-        """
-        a.__str__() or a
-        
-        Will be called when printing SpaCo instance a
-        
-        Input:
-        ======
-            - a SpaCo class instance
- 
-        Returns:
-        ========
-            - output (string)          
-
-        Example:
-        ========
-        >>> y = SpaCo([[1,2,4],[1,2,2]], 'GEO', 'car')
-        >>> y
-        SpaCo( [[1 2 4]
-         [1 2 2]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
-
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
-        Version:
-        ========
-        V1: 05-Mar-2010 (JK)
-        """
- 
-        return 'SpaCo( '+str(self.data) + ' ), dtype='+self.dtype+','+self.carsph+', units='+\
-            str(self.units)
-    __repr__ = __str__
-    
-    # -----------------------------------------------    
-    def __getitem__(self, idx):
-        """
-        a.__getitem__(idx) or a[idx]
-        
-        Will be called when requesting items in this instance 
-        
-        Input:
-        ======
-            - a SpaCo class instance
-            - idx (int) : interger numbers as index
-
-        Returns:
-        ========
-            - vals (numpy array) : new values         
-
-        Example:
-        ========
-        >>> y = SpaCo([[1,2,4],[1,2,2]], 'GEO', 'car')
-        >>> y[0] 
-        array([1, 2, 4])
- 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
-        Version:
-        ========
-        V1: 05-Mar-2010 (JK)
-        V1.1: 19-Apr-2010: now returns a SpaCo instance
- 
-        """
-        import numpy as n
-        
-        arr = n.array(self.data)
-        
-        return SpaCo(arr[idx].tolist(), self.dtype, self.carsph, self.units, self.ticktock)   
-        
-    # -----------------------------------------------    
-    def __setitem__(self, idx, vals):
-        """
-        a.__setitem__(idx, vals) or a[idx] = vals
-        
-        Will be called setting items in this instance 
-        
-        Input:
-        ======
-            - a SpaCo class instance
-            - idx (int) : interger numbers as index
-            - vals (numpy array or list) : new values
-            
-        Example:
-        ========
-        >>> y = SpaCo([[1,2,4],[1,2,2]], 'GEO', 'car')
-        >>> y[1] = [9,9,9]
-        >>> y
-        SpaCo( [[1 2 4]
-         [9 9 9]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
-
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
-        Version:
-        ========
-        V1: 05-Mar-2010 (JK)
- 
-        """
-        self.data[idx] = vals
-        return
-        
-    # -----------------------------------------------    
-    def __len__(self):
-        """
-        a.__len__() or len(a)
-        
-        Will be called when requesting the length, i.e. number of items 
-        
-        Input:
-        ======
-            - a SpaCo class instance
-            
-        Returns:
-        ========
-            - length (int number)
-
-        Example:
-        ========
-        >>> y = SpaCo([[1,2,4],[1,2,2]], 'GEO', 'car')
-        >>> len(y)
-        2
-
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
-        Version:
-        ========
-        V1: 05-Mar-2010 (JK)
- 
-        """
-         
-        from numpy import ndarray 
-        if isinstance(self.data, (list, ndarray)):
-            return len(self.data)
-        else:
-            return 1
-        return  
-               
-    # -----------------------------------------------    
-    def convert(self, returntype, returncarsph):
-        """
-        a.convert( returntype, returncarsph )
-        
-        Can be used to create a new SpaCo instance with new coordinate types
-        
-        Input:
-        ======
-            - a SpaCo class instance
-            - returntype (string) : coordinate system, possible are GDZ, GEO, GSM, GSE, SM, GEI
-                MAG, SPH, RLL
-            - returncarsph (string) : coordinate type, possible 'car' for cartesian and 
-                'sph' for spherical
- 
-        Returns:
-        ========
-            - a SpaCo object          
-
-        Example:
-        ========
-        >>> y = SpaCo([[1,2,4],[1,2,2]], 'GEO', 'car')
-        >>> y.ticktock = TickTock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
-        >>> x = y.convert('SM','car')
-        >>> x
-        SpaCo( [[ 0.81134097  2.6493305   3.6500375 ]
-         [ 0.92060408  2.30678864  1.68262126]] ), dtype=SM,car, units=['Re', 'Re', 'Re']
-
-
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
-        Version:
-        ========
-        V1: 05-Mar-2010 (JK)
-        
-        """
-        
-        import numpy as n
-        import onerapy as op
-
-        # no change necessary
-        if (self.dtype is returntype) and (self.carsph is returncarsph):
-            return self
-            
-        # only car2sph or sph2car is needed
-        if (self.dtype is returntype) and (self.carsph is not returncarsph):
-            if returncarsph == 'car':
-                carsph = 'car'
-                units = [self.units[0]]*3
-                data = op.sph2car(self.data)
-            else:
-                carsph = 'sph'
-                units =  [self.units[0], 'deg','deg']
-                data = op.car2sph(self.data)
-            return SpaCo(data, self.dtype, carsph, units, self.ticktock)
-
-        # check the length of ticktock and do the more complex convertions
-        if self.ticktock: 
-            assert len(self.ticktock) == len(self), 'ticktock dimension does not match SpaCo dimensions'
-        
-        # check if car2sph is needed first for oneralib compatibility
-        if (self.sysaxes is None) : # a car2sph or sph2car is needed            
-            if self.carsph == 'sph':
-                carsph = 'car'
-                units = [self.units[0]]*3
-                data = op.sph2car(self.data)
-            else:
-                carsph = 'sph'
-                units =  [self.units[0], 'deg','deg']
-                data = op.car2sph(self.data)
-        else:
-            data = self.data
-            units = self.units
-            carsph = self.carsph
-        
-        spaco = SpaCo(data, self.dtype, carsph, units, self.ticktock)
-        
-        # now convert to other coordinate system
-        if (self.dtype is not returntype) : 
-            assert spaco.ticktock, "Time information required; add a.ticktock attribute"
-            spaco.data = op.coord_trans( spaco, returntype, returncarsph)
-            spaco.dtype = returntype
-            spaco.carsph = returncarsph
-            spaco.sysaxes = op.get_sysaxes(returntype, returncarsph)
-
-        # fix corresponding attributes         
-        if returncarsph == 'sph':
-            spaco.units = [units[0], 'deg','deg']
-            if spaco.__dict__.has_key('x'): spaco.__delattr__('x')
-            if spaco.__dict__.has_key('y'): spaco.__delattr__('y')
-            if spaco.__dict__.has_key('z'): spaco.__delattr__('z')
-            spaco.radi = spaco.data[:,0]
-            spaco.lati = spaco.data[:,1]
-            spaco.long = spaco.data[:,2]
-        else: # 'car'
-            spaco.units =  [units[0]]*3
-            if spaco.__dict__.has_key('radi'): spaco.__delattr__('radi')
-            if spaco.__dict__.has_key('lati'): spaco.__delattr__('lati')
-            if spaco.__dict__.has_key('long'): spaco.__delattr__('long')
-            spaco.x = spaco.data[:,0]
-            spaco.y = spaco.data[:,1]
-            spaco.z = spaco.data[:,2]
-       
-        return spaco
-
-    # -----------------------------------------------    
-    def __getstate__(self):
-        """
-        Is called when pickling
-        Author: J. Koller
-        See Also: http://docs.python.org/library/pickle.html
-        """
-        odict = self.__dict__.copy() # copy the dict since we change it
-        return odict
-
-    def __setstate__(self, dict):
-        """
-        Is called when unpickling
-        Author: J. Koller
-        See Also: http://docs.python.org/library/pickle.html
-        """
-        self.__dict__.update(dict)
-        return
-        
     
 # -----------------------------------------------
-# TickDelta class
+# Tickdelta class
 # -----------------------------------------------    
-class TickDelta(object):
+class Tickdelta(object):
     """
-    TickDelta( **kwargs )
+    Tickdelta( **kwargs )
     
-    TickDelta class holding timedelta similar to datetime.timedelta
-    This can be used to add/substract from TickTock objects
+    Tickdelta class holding timedelta similar to datetime.timedelta
+    This can be used to add/substract from Ticktock objects
     
     Input:
     ======
@@ -473,13 +30,13 @@ class TickDelta(object):
     
     Example:
     ========  
-    >>> dt = TickDelta(days=3.5, hours=12)
+    >>> dt = Tickdelta(days=3.5, hours=12)
     >>> dt
-    TickDelta( days=4.0 )
+    Tickdelta( days=4.0 )
        
     See Also:
     =========
-    spacetime.TickTock class
+    spacepy.time.Ticktock class
     
     Author:
     =======
@@ -509,11 +66,11 @@ class TickDelta(object):
         """
         dt.__str__() or dt
         
-        Will be called when printing TickDelta instance dt
+        Will be called when printing Tickdelta instance dt
         
         Input:
         ======
-            - a TickDelta class instance
+            - a Tickdelta class instance
  
         Returns:
         ========
@@ -521,9 +78,9 @@ class TickDelta(object):
 
         Example:
         ========
-        >>> dt = TickDelta(3)
+        >>> dt = Tickdelta(3)
         >>> dt
-        TickDelta( days=3 )
+        Tickdelta( days=3 )
         
         Author:
         =======
@@ -535,39 +92,39 @@ class TickDelta(object):
  
         """
 
-        return 'TickDelta( days='+str(self.days) + ' )'  
+        return 'Tickdelta( days='+str(self.days) + ' )'  
     __repr__ = __str__
     
     # -----------------------------------------------    
     def __add__(self, other):
         """
-        see TickTock.__add__
+        see Ticktock.__add__
         
         """
-        # call add routine from TickTock
-        newobj = TickTock.__add__(other, self)
+        # call add routine from Ticktock
+        newobj = Ticktock.__add__(other, self)
         return newobj
 
     # -----------------------------------------------    
     def __sub__(self, other):
         """
-        see TickTock.__sub__
+        see Ticktock.__sub__
         
         """
-        # call add routine from TickTock
-        newobj = TickTock.__sub__(other, self)
+        # call add routine from Ticktock
+        newobj = Ticktock.__sub__(other, self)
         return newobj
      
     # -----------------------------------------------    
     def __mul__(self, other):
         """
-        see TickTock.__sub__
+        see Ticktock.__sub__
         
         """
-        # call add routine from TickTock
+        # call add routine from Ticktock
         newobj = self.timedelta.__mul__(other)
         days = newobj.days + newobj.seconds/86400.
-        return TickDelta(days)
+        return Tickdelta(days)
       
     # -----------------------------------------------    
     def __getstate__(self):
@@ -590,13 +147,13 @@ class TickDelta(object):
 
  
 # -----------------------------------------------
-# TickTock class
+# Ticktock class
 # -----------------------------------------------    
-class TickTock(object):
+class Ticktock(object):
     """
-    TickTock( data, dtype )
+    Ticktock( data, dtype )
     
-    TickTock class holding various time coordinate systems 
+    Ticktock class holding various time coordinate systems 
     (TAI, UTC, ISO, JD, MJD, UNX, RDT, CDF, DOY, eDOY)
     
     Possible data types:
@@ -622,7 +179,7 @@ class TickTock(object):
     Example:
     ========
     
-    >>> x=TickTock(2452331.0142361112, 'JD')
+    >>> x=Ticktock(2452331.0142361112, 'JD')
     >>> x.ISO
     '2002-02-25T12:20:30'
     >>> x.DOY # Day of year
@@ -671,11 +228,11 @@ class TickTock(object):
         """
         a.__str__() or a
         
-        Will be called when printing TickTock instance a
+        Will be called when printing Ticktock instance a
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
  
         Returns:
         ========
@@ -683,9 +240,9 @@ class TickTock(object):
 
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:03', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a
-        TickTock( ['2002-02-02T12:00:00'] ), dtype=ISO
+        Ticktock( ['2002-02-02T12:00:00'] ), dtype=ISO
 
         Author:
         =======
@@ -697,7 +254,7 @@ class TickTock(object):
  
         """
 
-        return 'TickTock( '+str(self.data) + ' ), dtype='+str(self.dtype)  
+        return 'Ticktock( '+str(self.data) + ' ), dtype='+str(self.dtype)  
     __repr__ = __str__
     
     # -----------------------------------------------    
@@ -728,16 +285,16 @@ class TickTock(object):
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             - idx (int) : interger numbers as index
 
         Returns:
         ========
-            - TickTock instance with requested values
+            - Ticktock instance with requested values
 
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:03', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a[0]
         '2002-02-02T12:00:00'
         
@@ -752,13 +309,13 @@ class TickTock(object):
         Version:
         ========
         V1.0: 03-Mar-2010 (JK)
-        V1.1: 23-Mar-2010: now returns TickTock instance and can be indexed with arrays (JK)
+        V1.1: 23-Mar-2010: now returns Ticktock instance and can be indexed with arrays (JK)
  
         """
         import numpy as n
         
         arr = n.array(self.data)
-        return TickTock(arr[idx].tolist(), self.dtype)   
+        return Ticktock(arr[idx].tolist(), self.dtype)   
     
     # -----------------------------------------------    
     def __setitem__(self, idx, vals):
@@ -769,14 +326,14 @@ class TickTock(object):
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             - idx (int) : integer numbers as index
             - vals (float, string, datetime) : new values
             
 
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:03', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a[0] = '2003-03-03T00:00:00'
         
         See Also:
@@ -806,7 +363,7 @@ class TickTock(object):
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -814,7 +371,7 @@ class TickTock(object):
 
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:03', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a.len
         1
 
@@ -840,12 +397,12 @@ class TickTock(object):
         """
         a.__cmp__(other)
         
-        Will be called when two TickTock instances are compared
+        Will be called when two Ticktock instances are compared
         
         Input:
         ======
-            - a TickTock class instance
-            - other (TickTock instance) 
+            - a Ticktock class instance
+            - other (Ticktock instance) 
             
         Returns:
         ========
@@ -853,8 +410,8 @@ class TickTock(object):
 
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:03', 'ISO')
-        >>> b = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
+        >>> b = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a > b
         True
         
@@ -897,20 +454,20 @@ class TickTock(object):
         """
         a.__sub__(other)
         
-        Will be called if a TickDelta object is substracted to this instance and
-        returns a new TickTock instance
+        Will be called if a Tickdelta object is substracted to this instance and
+        returns a new Ticktock instance
 
         Input:
         ======
-            - a TickTock class instance
-            - other (TickDelta instance) 
+            - a Ticktock class instance
+            - other (Tickdelta instance) 
       
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
-        >>> dt = TickDelta(3)
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
+        >>> dt = Tickdelta(3)
         >>> a - dt
-        TickTock( ['2002-02-05T12:00:00'] ), dtype=ISO
+        Ticktock( ['2002-02-05T12:00:00'] ), dtype=ISO
 
 
         See Also:
@@ -930,7 +487,7 @@ class TickTock(object):
         newUTC = ['']*nTAI
         for i in range(nTAI):
             newUTC[i] = self.UTC[i] - other.timedelta
-        newobj = TickTock(newUTC, 'UTC')
+        newobj = Ticktock(newUTC, 'UTC')
         newobj.data = eval('newobj.get'+self.dtype+'()')
         newobj.dtype = self.dtype
         newobj.update_items(self, 'data')
@@ -942,20 +499,20 @@ class TickTock(object):
         """
         a.__add__(other)
         
-        Will be called if a TickDelta object is added to this instance and
-        returns a new TickTock instance
+        Will be called if a Tickdelta object is added to this instance and
+        returns a new Ticktock instance
 
         Input:
         ======
-            - a TickTock class instance
-            - other (TickDelta instance) 
+            - a Ticktock class instance
+            - other (Tickdelta instance) 
       
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
-        >>> dt = TickDelta(3)
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
+        >>> dt = Tickdelta(3)
         >>> a + dt
-        TickTock( ['2002-02-05T12:00:00'] ), dtype=ISO
+        Ticktock( ['2002-02-05T12:00:00'] ), dtype=ISO
 
 
         See Also:
@@ -976,7 +533,7 @@ class TickTock(object):
         newUTC = ['']*nTAI
         for i in range(nTAI):
             newUTC[i] = self.UTC[i] + other.timedelta
-        newobj = TickTock(newUTC, 'UTC')
+        newobj = Ticktock(newUTC, 'UTC')
         newobj.data = eval('newobj.get'+self.dtype+'()')
         newobj.dtype = self.dtype
         newobj.update_items(self, 'data')
@@ -987,12 +544,12 @@ class TickTock(object):
         """
         a.__getattr__(name)
         
-        Will be called if attribute "name" is not found in TickTock class instance.
+        Will be called if attribute "name" is not found in Ticktock class instance.
         It will add TAI, RDT, etc
 
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             - name (string) : a string from the list of time systems
                     'UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'DOY', 'eDOY', 'leaps'
         Returns:
@@ -1035,7 +592,7 @@ class TickTock(object):
 
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
     
         Author:
         =======
@@ -1070,7 +627,7 @@ class TickTock(object):
 
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
       
         See Also:
         =========
@@ -1112,26 +669,26 @@ class TickTock(object):
         """
         a.convert(dtype)
         
-        convert a TickTock instance into a new time coordinate system provided in dtype
+        convert a Ticktock instance into a new time coordinate system provided in dtype
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             - dtype (string) : data type for new system, possible values are
                 CDF, ISO, UTC, TAI, UNX, JD, MJD, RDT
 
         Returns:
         ========
-            - newobj (TickTock instance) with new time coordinates
+            - newobj (Ticktock instance) with new time coordinates
             
         Example:
         ========
-        >>> a = TickTock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        >>> a = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         >>> s = a.convert('TAI')
         >>> type(s)
-        <class 'spacetime.TickTock'>
+        <class 'time.Ticktock'>
         >>> s
-        TickTock( [1391342432 1391342432] ), dtype=TAI
+        Ticktock( [1391342432 1391342432] ), dtype=TAI
 
         See Also:
         =========
@@ -1147,19 +704,19 @@ class TickTock(object):
         
         """
         newdat = eval('self.'+dtype)        
-        return TickTock(newdat, dtype)
+        return Ticktock(newdat, dtype)
 
     # -----------------------------------------------    
     def append(self, other):
         """
         a.append(other)
         
-        Will be called when another TickTock instance has to be appended to the current one
+        Will be called when another Ticktock instance has to be appended to the current one
 
         Input:
         ======
-            - a TickTock class instance
-            - other (TickTock instance) 
+            - a Ticktock class instance
+            - other (Ticktock instance) 
       
         Example:
         ========
@@ -1176,7 +733,7 @@ class TickTock(object):
         import numpy as n
         
         otherdata = eval('other.'+self.dtype)       
-        newobj = TickTock(n.append(self.data, otherdata), dtype=self.dtype)
+        newobj = Ticktock(n.append(self.data, otherdata), dtype=self.dtype)
         return newobj
     
     # -----------------------------------------------
@@ -1192,7 +749,7 @@ class TickTock(object):
 
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
       
         Returns:
         ========
@@ -1200,7 +757,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.CDF
         array([  6.31798704e+13])
     
@@ -1233,7 +790,7 @@ class TickTock(object):
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1241,7 +798,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.DOY
         array([ 33])
     
@@ -1280,7 +837,7 @@ class TickTock(object):
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1288,7 +845,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.eDOY
         array([ 32.5])
     
@@ -1330,7 +887,7 @@ class TickTock(object):
     
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1338,7 +895,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.JD
         array([ 2452308.])
 
@@ -1420,7 +977,7 @@ class TickTock(object):
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1429,7 +986,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.MJD
         array([ 52307.5])
 
@@ -1468,7 +1025,7 @@ class TickTock(object):
     
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1477,7 +1034,7 @@ class TickTock(object):
         Example:
         ========
     
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.UNX
         array([  1.01265120e+09])
     
@@ -1520,7 +1077,7 @@ class TickTock(object):
     
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1529,7 +1086,7 @@ class TickTock(object):
         Example:
         ========
     
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.RDT
         array([ 730883.5])
 
@@ -1572,7 +1129,7 @@ class TickTock(object):
     
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1580,7 +1137,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.UTC
         [datetime.datetime(2002, 2, 2, 12, 0)]
     
@@ -1729,7 +1286,7 @@ class TickTock(object):
     
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1737,7 +1294,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.GPS
         array([])
     
@@ -1785,7 +1342,7 @@ class TickTock(object):
     
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1794,7 +1351,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.TAI
         array([1391342432])
     
@@ -1842,7 +1399,7 @@ class TickTock(object):
         
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
             
         Returns:
         ========
@@ -1850,7 +1407,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.ISO
         ['2002-02-02T12:00:00']
     
@@ -1890,7 +1447,7 @@ class TickTock(object):
     
         Input:
         ======
-            - a TickTock class instance
+            - a Ticktock class instance
     
         Returns:
         ========
@@ -1898,7 +1455,7 @@ class TickTock(object):
     
         Example:
         ========
-        >>> a = TickTock('2002-02-02T12:00:00', 'ISO')
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.leaps
         array([32])
     
@@ -1976,7 +1533,7 @@ class TickTock(object):
             return self.leaps
         
 # -----------------------------------------------
-# End of TickTock class
+# End of Ticktock class
 # -----------------------------------------------
 
 
@@ -2049,7 +1606,7 @@ def doy2date(year,doy, dtobj=False):
 # -----------------------------------------------
 def tickrange(start, end, deltadays, dtype='ISO'):
     """
-    return a TickTock range given the start, end, and delta
+    return a Ticktock range given the start, end, and delta
 
     Input:
     ======
@@ -2057,22 +1614,22 @@ def tickrange(start, end, deltadays, dtype='ISO'):
         - end (string or number) : end time (inclusive)
         - deltadays: step in units of days (float); or datetime timedelta object
         - (optional) dtype (string) : data type for start, end; e.g. ISO, UTC, RTD, etc.
-            see TickTock for all options
+            see Ticktock for all options
 
     Returns:
     ========
-        - ticks (TickTock instance)
+        - ticks (Ticktock instance)
         
     Example:
     ========
     >>> ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays = 1)
     >>> ticks
-    TickTock( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00', 
+    Ticktock( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00', 
     '2002-02-04T00:00:00'] ), dtype=ISO
 
     See Also:
     =========
-    TickTock
+    Ticktock
 
     Author:
     =======
@@ -2087,8 +1644,8 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     
     import datetime as dt
 
-    Tstart = TickTock(start, dtype)
-    Tend = TickTock(end, dtype)
+    Tstart = Ticktock(start, dtype)
+    Tend = Ticktock(end, dtype)
     diff = Tend.UTC[0] - Tstart.UTC[0]
     dmusec, dsec = diff.microseconds/86400000000., diff.seconds/86400.
     try:
@@ -2100,8 +1657,8 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     except:
         nticks = int((dmusec + dsec + diff.days)/float(deltadays) + 1)
         trange = [Tstart.UTC[0] + dt.timedelta(days=deltadays)*n for n in range(nticks)]
-    ticks = TickTock(trange, 'UTC')
-    ticks = eval('TickTock(ticks.'+dtype+',"'+dtype+'")')
+    ticks = Ticktock(trange, 'UTC')
+    ticks = eval('Ticktock(ticks.'+dtype+',"'+dtype+'")')
     return ticks
     
 # -----------------------------------------------
@@ -2129,7 +1686,7 @@ def test():
     ========
     V1: 20-Jan-2010
     """
-    import spacetime as st
+    import time as st
     import toolbox as tb
     import numpy as n
     import sys, datetime
@@ -2149,7 +1706,7 @@ def test():
     # pick a start time
     data = '2002-02-25T12:20:30.1'
     dtype = 'ISO'
-    t = st.TickTock(data,dtype)
+    t = st.Ticktock(data,dtype)
     
     out = ['']*(len(alldtypes))
     back = ['']*(len(alldtypes))
@@ -2166,13 +1723,13 @@ def test():
     # compare all to UTC (datetime format)
     for i, datatype in enumerate(alldtypes):
         back[i] = t.getUTC()[0]
-    comp = [st.TickTock(data,'ISO').getUTC()[0]]*len(alldtypes)
+    comp = [st.Ticktock(data,'ISO').getUTC()[0]]*len(alldtypes)
     #
     if back == comp and tb.feq(round(out[2],5),2452331.01424) and \
     tb.feq(out[0],1014639630.1):  
-        print "testing TickTock: PASSED TEST simple"
+        print "testing Ticktock: PASSED TEST simple"
     else:
-        print "testing TickTock: FAILED TEST simple"
+        print "testing Ticktock: FAILED TEST simple"
         nFAIL =+ 1
 
     # now test the class
@@ -2187,7 +1744,7 @@ def test():
     ISO = ['']*(len(alldtypes))   
     CDF = ['']*(len(alldtypes))
     for i, dtype in enumerate(alldtypes):
-        foo[i] = st.TickTock(out[i], dtype)
+        foo[i] = st.Ticktock(out[i], dtype)
         foo[i].isoformat('microseconds')
 
     # now compare and make sure they are all the same
@@ -2220,27 +1777,27 @@ def test():
         assert len(testCDF[0]) == len(alldtypes)
         assert len(n.unique1d(ISO)) == 1
 
-        print "testing TickTock: PASSED TEST all combinations"
+        print "testing Ticktock: PASSED TEST all combinations"
     except AssertionError:
-        print "testing TickTock: FAILED TEST all combinations"
+        print "testing Ticktock: FAILED TEST all combinations"
         nFAIL =+ 1
 
     # test with arrays 
     import numpy as n
     try:
         for i, dtype in enumerate(alldtypes):
-            foo = st.TickTock( n.array([out[i], out[i], out[i]]), dtype)
-        print "testing TickTock: PASSED TEST arrays"
+            foo = st.Ticktock( n.array([out[i], out[i], out[i]]), dtype)
+        print "testing Ticktock: PASSED TEST arrays"
     except:
-        print "testing TickTock: FAILED TEST arrays"
+        print "testing Ticktock: FAILED TEST arrays"
         nFAIL =+ 1
         
     # test DOY
     try:
         foo.DOY
-        print "testing TickTock: PASSED TEST DOY"
+        print "testing Ticktock: PASSED TEST DOY"
     except:
-        print "testing TickTock: FAILED TEST DOY"
+        print "testing Ticktock: FAILED TEST DOY"
         nFAIL =+ 1
         
     return nFAIL
