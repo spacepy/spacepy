@@ -6,11 +6,11 @@ Implementation of TickTock class and SpaCo class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:44 $"
+__version__ = "$Revision: 1.1.1.1 $, $Date: 2010/05/20 17:19:44 $"
 __log__ = """
 $Log: spacetime.py,v $
-Revision 1.1  2010/05/20 17:19:44  smorley
-Initial revision
+Revision 1.1.1.1  2010/05/20 17:19:44  smorley
+Pre-release repo import for SpacePy
 
 Revision 1.19  2010/05/20 16:27:31  jkoller
 moved testing routines into the specific modules

@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:45 $"
+__version__ = "$Revision: 1.1.1.1 $, $Date: 2010/05/20 17:19:45 $"
 __author__ = 'S. Morley and J. Koller'
 
 

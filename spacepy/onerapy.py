@@ -7,7 +7,7 @@ T. Guild2,(1 ONERA-DESP, Toulouse France; 2 Aerospace Corporation,
 Washington DC, USA), ONERA-DESP library V4.2, Toulouse-France, 2004-2008
 """
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:44 $"
+__version__ = "$Revision: 1.1.1.1 $, $Date: 2010/05/20 17:19:44 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -----------------------------------------------
