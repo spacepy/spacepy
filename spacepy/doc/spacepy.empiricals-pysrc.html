@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>spacepy.empiricals</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
+        Module&nbsp;empiricals
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="spacepy.empiricals-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="spacepy.empiricals-module.html">Module spacepy.empiricals</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment">#!/usr/bin/env python</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-docstring">empirical models</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package spacepy=spacepy-module.html"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-0', 'spacepy', 'link-0');">spacepy</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Function spacepy.help()=spacepy-module.html#help"><a title="spacepy.help" class="py-name" href="#" onclick="return doclink('link-1', 'help', 'link-1');">help</a></tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-name">__version__</tt> <tt class="py-op">=</tt> <tt class="py-string">"$Revision: 1.1 $, $Date: 2010/05/20 17:19:45 $"</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'</tt><tt class="py-op">,</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-string">'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)'</tt><tt class="py-op">]</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt id="link-2" class="py-name" targets="Variable spacepy.empiricals.__log__=spacepy.empiricals-module.html#__log__,Variable spacepy.omni.__log__=spacepy.omni-module.html#__log__,Variable spacepy.onerapy.__log__=spacepy.onerapy-module.html#__log__,Variable spacepy.radbelt.__log__=spacepy.radbelt-module.html#__log__,Variable spacepy.satdata.__log__=spacepy.satdata-module.html#__log__,Variable spacepy.setup.__log__=spacepy.setup-module.html#__log__,Variable spacepy.spacetime.__log__=spacepy.spacetime-module.html#__log__,Variable spacepy.testing.__log__=spacepy.testing-module.html#__log__,Variable spacepy.toolbox.__log__=spacepy.toolbox-module.html#__log__"><a title="spacepy.empiricals.__log__
+spacepy.omni.__log__
+spacepy.onerapy.__log__
+spacepy.radbelt.__log__
+spacepy.satdata.__log__
+spacepy.setup.__log__
+spacepy.spacetime.__log__
+spacepy.testing.__log__
+spacepy.toolbox.__log__" class="py-name" href="#" onclick="return doclink('link-2', '__log__', 'link-2');">__log__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"""</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-string">$Log: spacepy.empiricals-pysrc.html,v $
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-string">Revision 1.1  2010/05/20 17:19:45  smorley
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-string">Initial revision
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-string">
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-string">Revision 1.3  2010/05/19 22:30:51  smorley
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-string">Regenerated documentation
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-string">Revision 1.3  2010/05/17 17:38:51  smorley</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-string">General updates</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-string">Revision 1.1  2010/04/28 00:14:53  jkoller</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-string">added empiricals.py to repository</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-comment"># Last Closed Drift Shell - Lmax</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------    </tt> </tt>
+<a name="get_Lmax"></a><div id="get_Lmax-def"><a name="L25"></a><tt class="py-lineno"> 25</tt> <a class="py-toggle" href="#" id="get_Lmax-toggle" onclick="return toggle('get_Lmax');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.empiricals-module.html#get_Lmax">get_Lmax</a><tt class="py-op">(</tt><tt class="py-param">ticks</tt><tt class="py-op">,</tt> <tt class="py-param">Lmax_model</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="get_Lmax-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_Lmax-expanded"><a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring">    calculate a simple empirical model for Lmax</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">numpy</tt> <tt class="py-keyword">as</tt> <tt class="py-name">n</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-3', 'spacepy', 'link-0');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Module spacepy.omni=spacepy.omni-module.html"><a title="spacepy.omni" class="py-name" href="#" onclick="return doclink('link-4', 'omni', 'link-4');">omni</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">om</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">         </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">    <tt id="link-5" class="py-name"><a title="spacepy.omni" class="py-name" href="#" onclick="return doclink('link-5', 'omni', 'link-4');">omni</a></tt> <tt class="py-op">=</tt> <tt class="py-name">om</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Function spacepy.omni.getomni()=spacepy.omni-module.html#getomni"><a title="spacepy.omni.getomni" class="py-name" href="#" onclick="return doclink('link-6', 'getomni', 'link-6');">getomni</a></tt><tt class="py-op">(</tt><tt class="py-name">ticks</tt><tt class="py-op">)</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">    <tt class="py-name">Dst</tt> <tt class="py-op">=</tt> <tt id="link-7" class="py-name"><a title="spacepy.omni" class="py-name" href="#" onclick="return doclink('link-7', 'omni', 'link-4');">omni</a></tt><tt class="py-op">[</tt><tt class="py-string">'Dst'</tt><tt class="py-op">]</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">     </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">    <tt class="py-name">Lmax</tt> <tt class="py-op">=</tt> <tt class="py-name">n</tt><tt class="py-op">.</tt><tt class="py-name">zeros</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">Dst</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">     </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">Lmax_model</tt> <tt class="py-keyword">is</tt> <tt class="py-string">'JKemp'</tt><tt class="py-op">:</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">i</tt><tt class="py-op">,</tt> <tt class="py-name">iDst</tt> <tt class="py-keyword">in</tt> <tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">Dst</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">            <tt class="py-name">Lmax</tt><tt class="py-op">[</tt><tt class="py-name">i</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-number">6.7e-5</tt><tt class="py-op">*</tt><tt class="py-name">iDst</tt><tt class="py-op">*</tt><tt class="py-name">iDst</tt> <tt class="py-op">+</tt> <tt class="py-number">0.0421</tt><tt class="py-op">*</tt><tt class="py-name">iDst</tt> <tt class="py-op">+</tt> <tt class="py-number">8.945</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">         </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">Lmax</tt> </tt>
+</div><a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-comment"># Plasmapause Location</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------       </tt> </tt>
+<a name="get_plasma_pause"></a><div id="get_plasma_pause-def"><a name="L47"></a><tt class="py-lineno"> 47</tt> <a class="py-toggle" href="#" id="get_plasma_pause-toggle" onclick="return toggle('get_plasma_pause');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.empiricals-module.html#get_plasma_pause">get_plasma_pause</a><tt class="py-op">(</tt><tt class="py-param">ticks</tt><tt class="py-op">,</tt> <tt class="py-param">Lpp_model</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="get_plasma_pause-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_plasma_pause-expanded"><a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">    Plasmapause location model(s) </tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">     </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">numpy</tt> <tt class="py-keyword">as</tt> <tt class="py-name">np</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">datetime</tt> <tt class="py-keyword">as</tt> <tt class="py-name">dt</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt id="link-8" class="py-name"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-8', 'spacepy', 'link-0');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="spacepy.omni" class="py-name" href="#" onclick="return doclink('link-9', 'omni', 'link-4');">omni</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">om</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt id="link-10" class="py-name"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-10', 'spacepy', 'link-0');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Module spacepy.spacetime=spacepy.spacetime-module.html"><a title="spacepy.spacetime" class="py-name" href="#" onclick="return doclink('link-11', 'spacetime', 'link-11');">spacetime</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">spt</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">     </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">Lpp_model</tt> <tt class="py-op">==</tt> <tt class="py-string">'CA2000'</tt><tt class="py-op">:</tt> <tt class="py-comment">#Carpenter &amp; Anderson (2000)</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt id="link-12" class="py-name"><a title="spacepy.omni" class="py-name" href="#" onclick="return doclink('link-12', 'omni', 'link-4');">omni</a></tt> <tt class="py-op">=</tt> <tt class="py-name">om</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="spacepy.omni.getomni" class="py-name" href="#" onclick="return doclink('link-13', 'getomni', 'link-6');">getomni</a></tt><tt class="py-op">(</tt><tt class="py-name">ticks</tt><tt class="py-op">)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-name">Kp</tt> <tt class="py-op">=</tt> <tt id="link-14" class="py-name"><a title="spacepy.omni" class="py-name" href="#" onclick="return doclink('link-14', 'omni', 'link-4');">omni</a></tt><tt class="py-op">[</tt><tt class="py-string">'Kp'</tt><tt class="py-op">]</tt>     </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-name">Lpp</tt> <tt class="py-op">=</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">zeros</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">Kp</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">i</tt><tt class="py-op">,</tt> <tt class="py-name">iKp</tt> <tt class="py-keyword">in</tt> <tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">Kp</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">            <tt class="py-name">Lpp</tt><tt class="py-op">[</tt><tt class="py-name">i</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-number">5.6</tt> <tt class="py-op">-</tt> <tt class="py-number">0.48</tt><tt class="py-op">*</tt><tt class="py-name">iKp</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">     </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">Lpp_model</tt> <tt class="py-op">==</tt> <tt class="py-string">'M2002'</tt><tt class="py-op">:</tt> <tt class="py-comment">#Moldwin et al. (2002)</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-name">ticksplus</tt> <tt class="py-op">=</tt> <tt class="py-name">spt</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Function spacepy.spacetime.tickrange()=spacepy.spacetime-module.html#tickrange"><a title="spacepy.spacetime.tickrange" class="py-name" href="#" onclick="return doclink('link-15', 'tickrange', 'link-15');">tickrange</a></tt><tt class="py-op">(</tt><tt class="py-name">ticks</tt><tt class="py-op">.</tt><tt class="py-name">UTC</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">-</tt><tt class="py-name">dt</tt><tt class="py-op">.</tt><tt class="py-name">timedelta</tt><tt class="py-op">(</tt><tt class="py-name">hours</tt><tt class="py-op">=</tt><tt class="py-number">12</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">ticks</tt><tt class="py-op">.</tt><tt class="py-name">UTC</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">dt</tt><tt class="py-op">.</tt><tt class="py-name">timedelta</tt><tt class="py-op">(</tt><tt class="py-name">hours</tt><tt class="py-op">=</tt><tt class="py-number">3</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">        <tt class="py-name">ticks</tt> <tt class="py-op">=</tt> <tt class="py-name">spt</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Class spacepy.spacetime.TickTock=spacepy.spacetime.TickTock-class.html"><a title="spacepy.spacetime.TickTock" class="py-name" href="#" onclick="return doclink('link-16', 'TickTock', 'link-16');">TickTock</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt id="link-17" class="py-name"><a title="spacepy.omni" class="py-name" href="#" onclick="return doclink('link-17', 'omni', 'link-4');">omni</a></tt> <tt class="py-op">=</tt> <tt class="py-name">om</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="spacepy.omni.getomni" class="py-name" href="#" onclick="return doclink('link-18', 'getomni', 'link-6');">getomni</a></tt><tt class="py-op">(</tt><tt class="py-name">ticks</tt><tt class="py-op">)</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-name">prev3</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">nan</tt><tt class="py-op">,</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">nan</tt><tt class="py-op">,</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">nan</tt><tt class="py-op">]</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">        <tt class="py-name">Lpp</tt> <tt class="py-op">=</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">zeros</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">Kp</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">i</tt><tt class="py-op">,</tt> <tt class="py-name">iKp</tt> <tt class="py-keyword">in</tt> <tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">Kp</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">            <tt class="py-name">prev3</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Method spacepy.spacetime.TickTock.append()=spacepy.spacetime.TickTock-class.html#append"><a title="spacepy.spacetime.TickTock.append" class="py-name" href="#" onclick="return doclink('link-19', 'append', 'link-19');">append</a></tt><tt class="py-op">(</tt><tt class="py-name">iKp</tt><tt class="py-op">)</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">            <tt class="py-name">Kpmax</tt> <tt class="py-op">=</tt> <tt class="py-name">max</tt><tt class="py-op">(</tt><tt class="py-name">prev3</tt><tt class="py-op">)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">            <tt class="py-name">Lpp</tt><tt class="py-op">[</tt><tt class="py-name">i</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-number">5.99</tt> <tt class="py-op">-</tt> <tt class="py-number">0.382</tt><tt class="py-op">*</tt><tt class="py-name">Kpmax</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">            <tt class="py-name">prev3</tt> <tt class="py-op">=</tt> <tt class="py-name">prev3</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">:</tt><tt class="py-op">]</tt>  </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">         </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">Lpp</tt> </tt>
+</div><a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-comment"># Magnetopause Location</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------    </tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">     </tt>
+<a name="ShueMP"></a><div id="ShueMP-def"><a name="L82"></a><tt class="py-lineno"> 82</tt> <a class="py-toggle" href="#" id="ShueMP-toggle" onclick="return toggle('ShueMP');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.empiricals-module.html#ShueMP">ShueMP</a><tt class="py-op">(</tt><tt class="py-param">P</tt><tt class="py-op">,</tt><tt class="py-param">Bz</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ShueMP-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ShueMP-expanded"><a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">    <tt class="py-docstring">"""Calculates the Shue et al. (1997) subsolar magnetopause radius</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-docstring">    Ported from Drew Turner's (LASP) MatLab script</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-docstring">    Inputs:</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-docstring">    =======</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-docstring">    SW ram pressure [nPa], IMF Bz (GSM) [nT]</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">    Output:</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring">    =======</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring">    Magnetopause (sub-solar point) standoff distance [Re]</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">     </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">numpy</tt> <tt class="py-keyword">as</tt> <tt class="py-name">np</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">     </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">    <tt class="py-comment"># Initialize r0 and make P and Bz numpy arrays</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">    <tt class="py-name">r0</tt> <tt class="py-op">=</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">zeros</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">P</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-name">dtype</tt><tt class="py-op">=</tt><tt class="py-name">float</tt><tt class="py-op">)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">    <tt class="py-name">Bz</tt> <tt class="py-op">=</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">array</tt><tt class="py-op">(</tt><tt class="py-name">Bz</tt><tt class="py-op">)</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">    <tt class="py-name">P</tt> <tt class="py-op">=</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">array</tt><tt class="py-op">(</tt><tt class="py-name">P</tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">     </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">    <tt class="py-comment"># Find where Bz &gt;= 0 and where it is &lt; 0</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">    <tt class="py-name">iBzPos</tt> <tt class="py-op">=</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">where</tt><tt class="py-op">(</tt><tt class="py-name">Bz</tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">    <tt class="py-name">iBzNeg</tt> <tt class="py-op">=</tt> <tt class="py-name">np</tt><tt class="py-op">.</tt><tt class="py-name">where</tt><tt class="py-op">(</tt><tt class="py-name">Bz</tt> <tt class="py-op">&lt;</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">     </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">    <tt class="py-comment"># Calculate r0</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">    <tt class="py-name">r0</tt><tt class="py-op">[</tt><tt class="py-name">iBzPos</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-number">11.4</tt> <tt class="py-op">+</tt> <tt class="py-number">0.013</tt><tt class="py-op">*</tt><tt class="py-name">Bz</tt><tt class="py-op">[</tt><tt class="py-name">iBzPos</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">*</tt><tt class="py-name">P</tt><tt class="py-op">[</tt><tt class="py-name">iBzPos</tt><tt class="py-op">]</tt><tt class="py-op">**</tt><tt class="py-op">(</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">/</tt><tt class="py-number">6.6</tt><tt class="py-op">)</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">    <tt class="py-name">r0</tt><tt class="py-op">[</tt><tt class="py-name">iBzNeg</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-number">11.4</tt> <tt class="py-op">+</tt> <tt class="py-number">0.140</tt><tt class="py-op">*</tt><tt class="py-name">Bz</tt><tt class="py-op">[</tt><tt class="py-name">iBzNeg</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">*</tt><tt class="py-name">P</tt><tt class="py-op">[</tt><tt class="py-name">iBzNeg</tt><tt class="py-op">]</tt><tt class="py-op">**</tt><tt class="py-op">(</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">/</tt><tt class="py-number">6.6</tt><tt class="py-op">)</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">     </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">r0</tt> </tt>
+</div><a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed May 19 16:29:50 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

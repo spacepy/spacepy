@@ -1,0 +1,69 @@
+\contentsline {section}{Contents}{1}{section*.2}
+\contentsline {section}{\numberline {1}Package spacepy}{3}{section.1}
+\contentsline {subsection}{\numberline {1.1}Modules}{3}{subsection.1.1}
+\contentsline {section}{\numberline {2}Module spacepy.constants}{5}{section.2}
+\contentsline {subsection}{\numberline {2.1}Functions}{5}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Variables}{5}{subsection.2.2}
+\contentsline {section}{\numberline {3}Module spacepy.empiricals}{6}{section.3}
+\contentsline {subsection}{\numberline {3.1}Functions}{6}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Variables}{6}{subsection.3.2}
+\contentsline {section}{\numberline {4}Module spacepy.omni}{7}{section.4}
+\contentsline {subsection}{\numberline {4.1}Functions}{7}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Variables}{8}{subsection.4.2}
+\contentsline {section}{\numberline {5}Module spacepy.onerapy}{9}{section.5}
+\contentsline {subsection}{\numberline {5.1}Functions}{9}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Variables}{18}{subsection.5.2}
+\contentsline {section}{\numberline {6}Module spacepy.onerapylib}{19}{section.6}
+\contentsline {subsection}{\numberline {6.1}Variables}{19}{subsection.6.1}
+\contentsline {section}{\numberline {7}Module spacepy.poppy}{20}{section.7}
+\contentsline {subsection}{\numberline {7.1}Functions}{21}{subsection.7.1}
+\contentsline {subsection}{\numberline {7.2}Variables}{21}{subsection.7.2}
+\contentsline {subsection}{\numberline {7.3}Class PPro}{21}{subsection.7.3}
+\contentsline {subsubsection}{\numberline {7.3.1}Methods}{22}{subsubsection.7.3.1}
+\contentsline {subsubsection}{\numberline {7.3.2}Properties}{23}{subsubsection.7.3.2}
+\contentsline {section}{\numberline {8}Module spacepy.radbelt}{24}{section.8}
+\contentsline {subsection}{\numberline {8.1}Functions}{24}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.2}Variables}{24}{subsection.8.2}
+\contentsline {subsection}{\numberline {8.3}Class RBmodel}{24}{subsection.8.3}
+\contentsline {subsubsection}{\numberline {8.3.1}Methods}{25}{subsubsection.8.3.1}
+\contentsline {subsubsection}{\numberline {8.3.2}Properties}{27}{subsubsection.8.3.2}
+\contentsline {section}{\numberline {9}Module spacepy.satdata}{28}{section.9}
+\contentsline {subsection}{\numberline {9.1}Functions}{28}{subsection.9.1}
+\contentsline {subsection}{\numberline {9.2}Variables}{28}{subsection.9.2}
+\contentsline {subsection}{\numberline {9.3}Class PSDdataClass}{28}{subsection.9.3}
+\contentsline {subsubsection}{\numberline {9.3.1}Methods}{29}{subsubsection.9.3.1}
+\contentsline {subsubsection}{\numberline {9.3.2}Properties}{29}{subsubsection.9.3.2}
+\contentsline {section}{\numberline {10}Module spacepy.seapy}{30}{section.10}
+\contentsline {subsection}{\numberline {10.1}Functions}{30}{subsection.10.1}
+\contentsline {subsection}{\numberline {10.2}Variables}{31}{subsection.10.2}
+\contentsline {subsection}{\numberline {10.3}Class Sea}{31}{subsection.10.3}
+\contentsline {subsubsection}{\numberline {10.3.1}Methods}{32}{subsubsection.10.3.1}
+\contentsline {subsubsection}{\numberline {10.3.2}Properties}{33}{subsubsection.10.3.2}
+\contentsline {subsection}{\numberline {10.4}Class Sea2d}{34}{subsection.10.4}
+\contentsline {subsubsection}{\numberline {10.4.1}Methods}{34}{subsubsection.10.4.1}
+\contentsline {subsubsection}{\numberline {10.4.2}Properties}{35}{subsubsection.10.4.2}
+\contentsline {section}{\numberline {11}Module spacepy.setup}{37}{section.11}
+\contentsline {subsection}{\numberline {11.1}Functions}{37}{subsection.11.1}
+\contentsline {subsection}{\numberline {11.2}Variables}{37}{subsection.11.2}
+\contentsline {section}{\numberline {12}Module spacepy.spacetime}{38}{section.12}
+\contentsline {subsection}{\numberline {12.1}Functions}{38}{subsection.12.1}
+\contentsline {subsection}{\numberline {12.2}Variables}{39}{subsection.12.2}
+\contentsline {subsection}{\numberline {12.3}Class SpaCo}{40}{subsection.12.3}
+\contentsline {subsubsection}{\numberline {12.3.1}Methods}{41}{subsubsection.12.3.1}
+\contentsline {subsubsection}{\numberline {12.3.2}Properties}{47}{subsubsection.12.3.2}
+\contentsline {subsection}{\numberline {12.4}Class TickDelta}{47}{subsection.12.4}
+\contentsline {subsubsection}{\numberline {12.4.1}Methods}{48}{subsubsection.12.4.1}
+\contentsline {subsubsection}{\numberline {12.4.2}Properties}{50}{subsubsection.12.4.2}
+\contentsline {subsection}{\numberline {12.5}Class TickTock}{50}{subsection.12.5}
+\contentsline {subsubsection}{\numberline {12.5.1}Methods}{51}{subsubsection.12.5.1}
+\contentsline {subsubsection}{\numberline {12.5.2}Properties}{74}{subsubsection.12.5.2}
+\contentsline {section}{\numberline {13}Module spacepy.testing}{75}{section.13}
+\contentsline {subsection}{\numberline {13.1}Functions}{75}{subsection.13.1}
+\contentsline {subsection}{\numberline {13.2}Variables}{76}{subsection.13.2}
+\contentsline {section}{\numberline {14}Module spacepy.toolbox}{78}{section.14}
+\contentsline {subsection}{\numberline {14.1}Functions}{78}{subsection.14.1}
+\contentsline {subsection}{\numberline {14.2}Variables}{97}{subsection.14.2}
+\contentsline {section}{\numberline {15}Module spacepy.utils}{98}{section.15}
+\contentsline {subsection}{\numberline {15.1}Functions}{98}{subsection.15.1}
+\contentsline {subsection}{\numberline {15.2}Variables}{101}{subsection.15.2}
+\contentsline {section}{Index}{102}{section*.4}

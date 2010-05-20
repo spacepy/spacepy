@@ -1,0 +1,69 @@
+\BOOKMARK [1][-]{section*.2}{Contents}{}
+\BOOKMARK [1][-]{section.1}{Package spacepy}{}
+\BOOKMARK [2][-]{subsection.1.1}{Modules}{section.1}
+\BOOKMARK [1][-]{section.2}{Module spacepy.constants}{}
+\BOOKMARK [2][-]{subsection.2.1}{Functions}{section.2}
+\BOOKMARK [2][-]{subsection.2.2}{Variables}{section.2}
+\BOOKMARK [1][-]{section.3}{Module spacepy.empiricals}{}
+\BOOKMARK [2][-]{subsection.3.1}{Functions}{section.3}
+\BOOKMARK [2][-]{subsection.3.2}{Variables}{section.3}
+\BOOKMARK [1][-]{section.4}{Module spacepy.omni}{}
+\BOOKMARK [2][-]{subsection.4.1}{Functions}{section.4}
+\BOOKMARK [2][-]{subsection.4.2}{Variables}{section.4}
+\BOOKMARK [1][-]{section.5}{Module spacepy.onerapy}{}
+\BOOKMARK [2][-]{subsection.5.1}{Functions}{section.5}
+\BOOKMARK [2][-]{subsection.5.2}{Variables}{section.5}
+\BOOKMARK [1][-]{section.6}{Module spacepy.onerapylib}{}
+\BOOKMARK [2][-]{subsection.6.1}{Variables}{section.6}
+\BOOKMARK [1][-]{section.7}{Module spacepy.poppy}{}
+\BOOKMARK [2][-]{subsection.7.1}{Functions}{section.7}
+\BOOKMARK [2][-]{subsection.7.2}{Variables}{section.7}
+\BOOKMARK [2][-]{subsection.7.3}{Class PPro}{section.7}
+\BOOKMARK [3][-]{subsubsection.7.3.1}{Methods}{subsection.7.3}
+\BOOKMARK [3][-]{subsubsection.7.3.2}{Properties}{subsection.7.3}
+\BOOKMARK [1][-]{section.8}{Module spacepy.radbelt}{}
+\BOOKMARK [2][-]{subsection.8.1}{Functions}{section.8}
+\BOOKMARK [2][-]{subsection.8.2}{Variables}{section.8}
+\BOOKMARK [2][-]{subsection.8.3}{Class RBmodel}{section.8}
+\BOOKMARK [3][-]{subsubsection.8.3.1}{Methods}{subsection.8.3}
+\BOOKMARK [3][-]{subsubsection.8.3.2}{Properties}{subsection.8.3}
+\BOOKMARK [1][-]{section.9}{Module spacepy.satdata}{}
+\BOOKMARK [2][-]{subsection.9.1}{Functions}{section.9}
+\BOOKMARK [2][-]{subsection.9.2}{Variables}{section.9}
+\BOOKMARK [2][-]{subsection.9.3}{Class PSDdataClass}{section.9}
+\BOOKMARK [3][-]{subsubsection.9.3.1}{Methods}{subsection.9.3}
+\BOOKMARK [3][-]{subsubsection.9.3.2}{Properties}{subsection.9.3}
+\BOOKMARK [1][-]{section.10}{Module spacepy.seapy}{}
+\BOOKMARK [2][-]{subsection.10.1}{Functions}{section.10}
+\BOOKMARK [2][-]{subsection.10.2}{Variables}{section.10}
+\BOOKMARK [2][-]{subsection.10.3}{Class Sea}{section.10}
+\BOOKMARK [3][-]{subsubsection.10.3.1}{Methods}{subsection.10.3}
+\BOOKMARK [3][-]{subsubsection.10.3.2}{Properties}{subsection.10.3}
+\BOOKMARK [2][-]{subsection.10.4}{Class Sea2d}{section.10}
+\BOOKMARK [3][-]{subsubsection.10.4.1}{Methods}{subsection.10.4}
+\BOOKMARK [3][-]{subsubsection.10.4.2}{Properties}{subsection.10.4}
+\BOOKMARK [1][-]{section.11}{Module spacepy.setup}{}
+\BOOKMARK [2][-]{subsection.11.1}{Functions}{section.11}
+\BOOKMARK [2][-]{subsection.11.2}{Variables}{section.11}
+\BOOKMARK [1][-]{section.12}{Module spacepy.spacetime}{}
+\BOOKMARK [2][-]{subsection.12.1}{Functions}{section.12}
+\BOOKMARK [2][-]{subsection.12.2}{Variables}{section.12}
+\BOOKMARK [2][-]{subsection.12.3}{Class SpaCo}{section.12}
+\BOOKMARK [3][-]{subsubsection.12.3.1}{Methods}{subsection.12.3}
+\BOOKMARK [3][-]{subsubsection.12.3.2}{Properties}{subsection.12.3}
+\BOOKMARK [2][-]{subsection.12.4}{Class TickDelta}{section.12}
+\BOOKMARK [3][-]{subsubsection.12.4.1}{Methods}{subsection.12.4}
+\BOOKMARK [3][-]{subsubsection.12.4.2}{Properties}{subsection.12.4}
+\BOOKMARK [2][-]{subsection.12.5}{Class TickTock}{section.12}
+\BOOKMARK [3][-]{subsubsection.12.5.1}{Methods}{subsection.12.5}
+\BOOKMARK [3][-]{subsubsection.12.5.2}{Properties}{subsection.12.5}
+\BOOKMARK [1][-]{section.13}{Module spacepy.testing}{}
+\BOOKMARK [2][-]{subsection.13.1}{Functions}{section.13}
+\BOOKMARK [2][-]{subsection.13.2}{Variables}{section.13}
+\BOOKMARK [1][-]{section.14}{Module spacepy.toolbox}{}
+\BOOKMARK [2][-]{subsection.14.1}{Functions}{section.14}
+\BOOKMARK [2][-]{subsection.14.2}{Variables}{section.14}
+\BOOKMARK [1][-]{section.15}{Module spacepy.utils}{}
+\BOOKMARK [2][-]{subsection.15.1}{Functions}{section.15}
+\BOOKMARK [2][-]{subsection.15.2}{Variables}{section.15}
+\BOOKMARK [1][-]{section*.4}{Index}{}

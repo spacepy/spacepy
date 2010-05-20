@@ -1,0 +1,8 @@
+*.aux
+*.log
+*.pyc
+*.pyf
+WGhour-v2.d.zip
+omni_intp.dat
+omnidata.dat
+.DS_Store

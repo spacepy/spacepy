@@ -1,0 +1,183 @@
+\begin{theindex}
+
+  \item spacepy \textit{(package)}, \hyperpage{2--3}
+    \subitem spacepy.constants \textit{(module)}, \hyperpage{4}
+      \subsubitem spacepy.constants.eIon \textit{(function)}, 
+		\hyperpage{4}
+      \subsubitem spacepy.constants.vAlfven \textit{(function)}, 
+		\hyperpage{4}
+      \subsubitem spacepy.constants.vIon \textit{(function)}, 
+		\hyperpage{4}
+    \subitem spacepy.empiricals \textit{(module)}, \hyperpage{5}
+      \subsubitem spacepy.empiricals.get\_Lmax \textit{(function)}, 
+		\hyperpage{5}
+      \subsubitem spacepy.empiricals.get\_plasma\_pause \textit{(function)}, 
+		\hyperpage{5}
+      \subsubitem spacepy.empiricals.ShueMP \textit{(function)}, 
+		\hyperpage{5}
+    \subitem spacepy.omni \textit{(module)}, \hyperpage{6--7}
+      \subsubitem spacepy.omni.getG123 \textit{(function)}, 
+		\hyperpage{7}
+      \subsubitem spacepy.omni.getomni \textit{(function)}, 
+		\hyperpage{6}
+      \subsubitem spacepy.omni.pickleomni \textit{(function)}, 
+		\hyperpage{6}
+    \subitem spacepy.onerapy \textit{(module)}, \hyperpage{8--17}
+      \subsubitem spacepy.onerapy.car2sph \textit{(function)}, 
+		\hyperpage{11}
+      \subsubitem spacepy.onerapy.coord\_trans \textit{(function)}, 
+		\hyperpage{10}
+      \subsubitem spacepy.onerapy.find\_Bmirror \textit{(function)}, 
+		\hyperpage{8}
+      \subsubitem spacepy.onerapy.find\_magequator \textit{(function)}, 
+		\hyperpage{9}
+      \subsubitem spacepy.onerapy.get\_Bfield \textit{(function)}, 
+		\hyperpage{8}
+      \subsubitem spacepy.onerapy.get\_dtype \textit{(function)}, 
+		\hyperpage{14}
+      \subsubitem spacepy.onerapy.get\_Lstar \textit{(function)}, 
+		\hyperpage{15}
+      \subsubitem spacepy.onerapy.get\_sysaxes \textit{(function)}, 
+		\hyperpage{13}
+      \subsubitem spacepy.onerapy.prep\_onera \textit{(function)}, 
+		\hyperpage{16}
+      \subsubitem spacepy.onerapy.sph2car \textit{(function)}, 
+		\hyperpage{12}
+    \subitem spacepy.onerapylib \textit{(module)}, \hyperpage{18}
+    \subitem spacepy.poppy \textit{(module)}, \hyperpage{19--22}
+      \subsubitem spacepy.poppy.boots\_ci \textit{(function)}, 
+		\hyperpage{20}
+      \subsubitem spacepy.poppy.PPro \textit{(class)}, 
+		\hyperpage{20--22}
+    \subitem spacepy.radbelt \textit{(module)}, \hyperpage{23--26}
+      \subsubitem spacepy.radbelt.diff\_LL \textit{(function)}, 
+		\hyperpage{23}
+      \subsubitem spacepy.radbelt.get\_DLL \textit{(function)}, 
+		\hyperpage{23}
+      \subsubitem spacepy.radbelt.get\_local\_accel \textit{(function)}, 
+		\hyperpage{23}
+      \subsubitem spacepy.radbelt.get\_modelop\_L \textit{(function)}, 
+		\hyperpage{23}
+      \subsubitem spacepy.radbelt.RBmodel \textit{(class)}, 
+		\hyperpage{23--26}
+    \subitem spacepy.satdata \textit{(module)}, \hyperpage{27--28}
+      \subsubitem spacepy.satdata.convert2PSDclass \textit{(function)}, 
+		\hyperpage{27}
+      \subsubitem spacepy.satdata.get\_obs \textit{(function)}, 
+		\hyperpage{27}
+      \subsubitem spacepy.satdata.PSDdataClass \textit{(class)}, 
+		\hyperpage{27--28}
+      \subsubitem spacepy.satdata.updatePSDdb \textit{(function)}, 
+		\hyperpage{27}
+    \subitem spacepy.seapy \textit{(module)}, \hyperpage{29--35}
+      \subsubitem spacepy.seapy.multisea \textit{(function)}, 
+		\hyperpage{29}
+      \subsubitem spacepy.seapy.readepochs \textit{(function)}, 
+		\hyperpage{30}
+      \subsubitem spacepy.seapy.Sea \textit{(class)}, 
+		\hyperpage{30--32}
+      \subsubitem spacepy.seapy.Sea2d \textit{(class)}, 
+		\hyperpage{32--35}
+      \subsubitem spacepy.seapy.seadict \textit{(function)}, 
+		\hyperpage{29}
+    \subitem spacepy.setup \textit{(module)}, \hyperpage{36}
+      \subsubitem spacepy.setup.compile\_oneralib \textit{(function)}, 
+		\hyperpage{36}
+      \subsubitem spacepy.setup.subst \textit{(function)}, 
+		\hyperpage{36}
+    \subitem spacepy.spacetime \textit{(module)}, \hyperpage{37--73}
+      \subsubitem spacepy.spacetime.doy2date \textit{(function)}, 
+		\hyperpage{37}
+      \subsubitem spacepy.spacetime.SpaCo \textit{(class)}, 
+		\hyperpage{39--46}
+      \subsubitem spacepy.spacetime.TickDelta \textit{(class)}, 
+		\hyperpage{46--49}
+      \subsubitem spacepy.spacetime.tickrange \textit{(function)}, 
+		\hyperpage{37}
+      \subsubitem spacepy.spacetime.TickTock \textit{(class)}, 
+		\hyperpage{49--73}
+    \subitem spacepy.testing \textit{(module)}, \hyperpage{74--76}
+      \subsubitem spacepy.testing.all \textit{(function)}, 
+		\hyperpage{74}
+      \subsubitem spacepy.testing.ticktock \textit{(function)}, 
+		\hyperpage{74}
+      \subsubitem spacepy.testing.toolbox \textit{(function)}, 
+		\hyperpage{75}
+    \subitem spacepy.toolbox \textit{(module)}, \hyperpage{77--96}
+      \subsubitem spacepy.toolbox.arraybin \textit{(function)}, 
+		\hyperpage{91}
+      \subsubitem spacepy.toolbox.assemble \textit{(function)}, 
+		\hyperpage{81}
+      \subsubitem spacepy.toolbox.binHisto \textit{(function)}, 
+		\hyperpage{87}
+      \subsubitem spacepy.toolbox.dictree \textit{(function)}, 
+		\hyperpage{83}
+      \subsubitem spacepy.toolbox.doy2md \textit{(function)}, 
+		\hyperpage{77}
+      \subsubitem spacepy.toolbox.feq \textit{(function)}, 
+		\hyperpage{82}
+      \subsubitem spacepy.toolbox.leap\_year \textit{(function)}, 
+		\hyperpage{93}
+      \subsubitem spacepy.toolbox.loadpickle \textit{(function)}, 
+		\hyperpage{79}
+      \subsubitem spacepy.toolbox.logspace \textit{(function)}, 
+		\hyperpage{91}
+      \subsubitem spacepy.toolbox.makePoly \textit{(function)}, 
+		\hyperpage{87}
+      \subsubitem spacepy.toolbox.medAbsDev \textit{(function)}, 
+		\hyperpage{86}
+      \subsubitem spacepy.toolbox.mlt2rad \textit{(function)}, 
+		\hyperpage{92}
+      \subsubitem spacepy.toolbox.pmm \textit{(function)}, 
+		\hyperpage{94}
+      \subsubitem spacepy.toolbox.printfig \textit{(function)}, 
+		\hyperpage{84}
+      \subsubitem spacepy.toolbox.query\_yes\_no \textit{(function)}, 
+		\hyperpage{95}
+      \subsubitem spacepy.toolbox.rad2mlt \textit{(function)}, 
+		\hyperpage{93}
+      \subsubitem spacepy.toolbox.savepickle \textit{(function)}, 
+		\hyperpage{80}
+      \subsubitem spacepy.toolbox.sec2hms \textit{(function)}, 
+		\hyperpage{77}
+      \subsubitem spacepy.toolbox.smartTimeTicks \textit{(function)}, 
+		\hyperpage{88}, \hyperpage{90}
+      \subsubitem spacepy.toolbox.tCommon \textit{(function)}, 
+		\hyperpage{79}, \hyperpage{89}
+      \subsubitem spacepy.toolbox.timestamp \textit{(function)}, 
+		\hyperpage{94}
+      \subsubitem spacepy.toolbox.tOverlap \textit{(function)}, 
+		\hyperpage{78}, \hyperpage{89}
+      \subsubitem spacepy.toolbox.update \textit{(function)}, 
+		\hyperpage{85}
+      \subsubitem spacepy.toolbox.windowMean \textit{(function)}, 
+		\hyperpage{86}
+    \subitem spacepy.utils \textit{(module)}, \hyperpage{97--100}
+      \subsubitem spacepy.utils.binHisto \textit{(function)}, 
+		\hyperpage{100}
+      \subsubitem spacepy.utils.dm\_ll \textit{(function)}, 
+		\hyperpage{99}
+      \subsubitem spacepy.utils.doy2md \textit{(function)}, 
+		\hyperpage{97}
+      \subsubitem spacepy.utils.makePoly \textit{(function)}, 
+		\hyperpage{100}
+      \subsubitem spacepy.utils.medabsdev \textit{(function)}, 
+		\hyperpage{99}
+      \subsubitem spacepy.utils.MoldwinPP \textit{(function)}, 
+		\hyperpage{98}
+      \subsubitem spacepy.utils.mu\_ai \textit{(function)}, 
+		\hyperpage{98}
+      \subsubitem spacepy.utils.readOMNI \textit{(function)}, 
+		\hyperpage{98}
+      \subsubitem spacepy.utils.readOMNIhi \textit{(function)}, 
+		\hyperpage{98}
+      \subsubitem spacepy.utils.ShueMP \textit{(function)}, 
+		\hyperpage{98}
+      \subsubitem spacepy.utils.t\_common \textit{(function)}, 
+		\hyperpage{97}
+      \subsubitem spacepy.utils.t\_overlap \textit{(function)}, 
+		\hyperpage{97}
+      \subsubitem spacepy.utils.windowmean \textit{(function)}, 
+		\hyperpage{99}
+
+\end{theindex}
