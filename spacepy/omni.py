@@ -3,18 +3,19 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:44 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
 # load omni file during import
-from spacepy import __path__
+import os
+dotfln = os.environ['HOME']+'/.spacepy'
 from spacepy import loadpickle
-omnifln = __path__[0]+'/data/omnidata.pbin'
+omnifln = dotfln+'/data/omnidata.pbin'
 omnidata = loadpickle(omnifln)
 
 # -----------------------------------------------
-def getomni(ticktock):
+def get_omni(ticktock):
     """
     will load the pickled omni file, interpolate to the given ticktock time
     and return the omni values as dictionary with 
@@ -40,7 +41,7 @@ def getomni(ticktock):
     Example:
     ========
     >>> tick = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> d = getomni(tick)
+    >>> d = get_omni(tick)
     
     
     Author:
@@ -50,7 +51,7 @@ def getomni(ticktock):
     Version:
     ========
     V1: 26-Jan-2010 (JK)
-    V1.1: 11-Mar-2010: fixed bug in getomni; will now return the correct 6_status, 8_status (JK)
+    V1.1: 11-Mar-2010: fixed bug in get_omni; will now return the correct 6_status, 8_status (JK)
     """
 
     import numpy as n
@@ -196,7 +197,7 @@ def pickleomni(fln='', overwrite=True, data=None):
 
 
 # -----------------------------------------------
-def getG123(TAI, omnidata):
+def get_G123(TAI, omnidata):
 
     """
     get specific G1, G2, G3 for this TAI

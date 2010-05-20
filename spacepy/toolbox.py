@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:45 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -564,17 +564,17 @@ def update(all=True, omni=False, leapsecs=False):
     import urllib as u
     import os
     import zipfile
-    from spacepy import __path__
     import spacepy.omni
 
+    dotfln = os.environ['HOME']+'/.spacepy'
     # define location for getting leap seconds
     leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
-    leapsec_fname = __path__[0]+'/data/tai-utc.dat'
+    leapsec_fname = dotfln+'/data/tai-utc.dat'
     
     # define location for getting omni
-    omni_url = 'ftp://virbo.org/QinDenton/hour/merged/WGhour-v2.d.zip'
-    omni_fname_zip = __path__[0]+'/data/WGhour-v2.d.zip'
-    omni_fname_dat = __path__[0]+'/data/omnidata.dat'
+    omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
+    omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
+    omni_fname_dat = dotfln+'/data/omnidata.dat'
 
     if all == True:
         omni = True

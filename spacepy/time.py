@@ -6,7 +6,7 @@ Implementation of Ticktock class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 18:08:30 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
     
@@ -1472,12 +1472,12 @@ class Ticktock(object):
         V1: 20-Jan-2010: includes array support (JK)
         """
     
-        from spacepy import __path__
+    	import os
         import numpy as n
         import datetime
     
         tup = self.UTC
-        
+        dotfln = os.environ['HOME']+'/.spacepy'
         # so you don't have to read the file every single time
         global secs, year, mon, day
         
@@ -1486,7 +1486,7 @@ class Ticktock(object):
     
         except:  # then we are calling this routine the 1st time
            # load current file
-           fname = __path__[0]+'/data/tai-utc.dat'
+           fname = dotfln+'/data/tai-utc.dat'
            fh = open(fname)
            text = fh.readlines()
     

@@ -3,13 +3,14 @@
 Spacecraft data functions
 """
 
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:44 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # load omni file during import
-from spacepy import __path__
+import os
+dotfln = os.environ['HOME']+'/.spacepy'
 from spacepy import loadpickle
-PSDfln = __path__[0]+'/data/PSDdb.pbin'
+PSDfln = dotfln+'/data/PSDdb.pbin'
 PSDdb = loadpickle(PSDfln)
 
 # -----------------------------------------------

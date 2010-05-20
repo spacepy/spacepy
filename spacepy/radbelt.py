@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 17:19:44 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -114,7 +114,7 @@ class RBmodel(object):
         import spacepy.omni as om
 
         assert self.__dict__.has_key('ticktock') , "Provide tick range with 'setup_ticks'"
-        omni = om.getomni(self.ticktock)
+        omni = om.get_omni(self.ticktock)
         
         if not self.__dict__.has_key('params'):           
             self.params = {}

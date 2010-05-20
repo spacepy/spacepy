@@ -65,6 +65,11 @@ try: #if in iPython interactive shell, print licence notice
 except: #otherwise print single line notice
     print "SpacePy is released under GPL v3.0. See __licence__ for details, and help() for HTML help."
 
+
+# -----------------------------------------------
+# some settings
+NCPUS = 1
+
 # -----------------------------------------------
 def test_all():
     """
