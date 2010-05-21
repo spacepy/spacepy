@@ -3,36 +3,8 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.3 $, $Date: 2010/05/21 19:13:22 $"
-__log__ = """
-$Log: setup.py,v $
-Revision 1.3  2010/05/21 19:13:22  smorley
-Fixed update and save location of OMNI
-
-Revision 1.2  2010/05/20 17:36:48  smorley
-Updated setup.py for install of oneralib
-
-Revision 1.12  2010/05/14 21:02:27  jkoller
-removed conflict on package_data line
-
-Revision 1.11  2010/04/28 20:55:26  smorley
-Updates to radbelt documentation, spacetime, __init__ and setup
-
-Revision 1.10  2010/04/14 18:56:24  jkoller
-fixed libtool and f2py compiler flag required for MacOS
-
-Revision 1.9  2010/03/11 22:40:12  smorley
-Updates to Toolbox, __init__ and updated documentation.
-Dan Welling's first function in SpacePy -- Now Available!
-(While stocks last)
-
-Revision 1.8  2010/03/11 20:21:14  jkoller
-fixed entry
-
-"""
+__version__ = "$Revision: 1.4 $, $Date: 2010/05/21 21:01:40 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
-
-
 
 # -------------------------------------
 def compile_oneralib():
@@ -41,7 +13,7 @@ def compile_oneralib():
 	import os, sys
 	
 	
-	os.chdir('spacepy/oneralib')
+	os.chdir('spacepy/onerapy/onera_desp_lib_V41')
 	
 	F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f']
 	functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
@@ -95,7 +67,7 @@ def compile_oneralib():
 		sys.exit(1)
 	
 	os.system('mv -f onerapylib.so ../')
-	os.chdir('../..')
+	os.chdir('../../..')
 	
 	return
 
@@ -123,12 +95,26 @@ def subst(pattern, replacement, filestr,
 	
 # -------------------------------------
 from distutils.core import setup
-import os, sys, glob, re
+import os, shutil
 
 # run compile for onera_desp_lib first
 compile_oneralib()
-pkg_files = ['oneralib/onerapylib.so', 'data/tai-utc.dat',
-         'data/PSDdb.pbin', 'doc/*.*']
+
+# create .spacepy in $HOME and move data
+HOME = os.environ['HOME']
+dotfln = HOME+'/.spacepy'
+if os.path.exists(dotfln+'.bak'):
+	shutil.rmtree(dotfln+'.bak', ignore_errors=True)
+if os.path.exists(dotfln):
+	shutil.move(dotfln, dotfln+'.bak')
+
+os.mkdir(dotfln)
+os.mkdir(dotfln+'/data')
+shutil.copy('spacepy/data/spacepy.rc', dotfln+'/')
+shutil.copy('spacepy/data/PSDdb.pbin', dotfln+'/data')
+shutil.copy('spacepy/data/tai-utc.dat', dotfln+'/data')
+
+pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*']
 
 # run setup from distutil
 setup(name='spacepy',
