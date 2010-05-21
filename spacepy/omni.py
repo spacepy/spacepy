@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.3 $, $Date: 2010/05/21 19:13:23 $"
+__version__ = "$Revision: 1.4 $, $Date: 2010/05/21 19:37:44 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -243,6 +243,7 @@ except:
         pickleomni(fln=omni_fname_dat)
         # delete left-overs
         os.remove(omni_fname_zip)
+        omnidata = loadpickle(omnifln)
     else:
         raise ImportError("Cannot use spacepy.omni without valid data")
         
