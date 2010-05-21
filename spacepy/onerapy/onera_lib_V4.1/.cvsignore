@@ -1,0 +1,5 @@
+*.aux
+*.log
+*.pyc
+*.pyf
+.DS_Store
