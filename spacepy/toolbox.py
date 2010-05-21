@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.3 $, $Date: 2010/05/21 19:13:23 $"
+__version__ = "$Revision: 1.4 $, $Date: 2010/05/21 19:30:17 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -564,49 +564,54 @@ def update(all=True, omni=False, leapsecs=False, callfromOMNI=False):
     import urllib as u
     import os
     import zipfile
+    oflag = 1
     if not callfromOMNI:
+        oflag += 1
         import spacepy.omni as om
-
-    dotfln = os.environ['HOME']+'/.spacepy'
-    #check directory exists, if not, create
-    if not os.path.isdir(dotfln):
-        os.mkdir(dotfln)
-        os.mkdir(dotfln+'/data')
-    # define location for getting leap seconds
-    leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
-    leapsec_fname = dotfln+'/data/tai-utc.dat'
     
-    # define location for getting omni
-    omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
-    omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
-    omni_fname_dat = dotfln+'/data/omnidata.pkl'
-
-    if all == True:
-        omni = True
-        leapsecs = True
-
-    if omni == True:
-        # retrieve omni, unzip and save as table
-        print "Retrieving omni file ..."
-        u.urlretrieve(omni_url, omni_fname_zip)
-        fh_zip = zipfile.ZipFile(omni_fname_zip)
-        data = fh_zip.read(fh_zip.namelist()[0])
-        #dd = data.split('\n')
-        # save data as ascii file
-        fh = open(omni_fname_dat, 'w')
-        fh.writelines(data)
-        fh.flush()
-        fh.close
-        print "Now pickling (this will take a few minutes) ..."
-        if not callfromOMNI:
-            om.pickleomni(fln=omni_fname_dat)
+    if oflag <= 1:
+        dotfln = os.environ['HOME']+'/.spacepy'
+        #check directory exists, if not, create
+        if not os.path.isdir(dotfln):
+            os.mkdir(dotfln)
+            os.mkdir(dotfln+'/data')
+        # define location for getting leap seconds
+        leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
+        leapsec_fname = dotfln+'/data/tai-utc.dat'
         
-            # delete left-overs
-            os.remove(omni_fname_zip)
+        # define location for getting omni
+        omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
+        omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
+        omni_fname_dat = dotfln+'/data/omnidata.pkl'
 
-    if leapsecs == True:
-        print "Retrieving leapseconds file ... "
-        u.urlretrieve(leapsec_url, leapsec_fname)
+        if all == True:
+            omni = True
+            leapsecs = True
+
+        if omni == True:
+            # retrieve omni, unzip and save as table
+            print "Retrieving omni file ..."
+            u.urlretrieve(omni_url, omni_fname_zip)
+            fh_zip = zipfile.ZipFile(omni_fname_zip)
+            data = fh_zip.read(fh_zip.namelist()[0])
+            #dd = data.split('\n')
+            # save data as ascii file
+            fh = open(omni_fname_dat, 'w')
+            fh.writelines(data)
+            fh.flush()
+            fh.close
+            print "Now pickling (this will take a few minutes) ..."
+            if not callfromOMNI:
+                om.pickleomni(fln=omni_fname_dat)
+                # delete left-overs
+                os.remove(omni_fname_zip)
+
+        if leapsecs == True:
+            print "Retrieving leapseconds file ... "
+            u.urlretrieve(leapsec_url, leapsec_fname)
+        
+    if callfromOMNI:
+        oflag += 1
 
     return
 
