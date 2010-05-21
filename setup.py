@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.4 $, $Date: 2010/05/21 21:01:40 $"
+__version__ = "$Revision: 1.5 $, $Date: 2010/05/21 21:34:05 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -13,7 +13,7 @@ def compile_oneralib():
 	import os, sys
 	
 	
-	os.chdir('spacepy/onerapy/onera_desp_lib_V41')
+	os.chdir('spacepy/onerapy/onera_lib_V4.1')
 	
 	F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f']
 	functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
@@ -95,6 +95,7 @@ def subst(pattern, replacement, filestr,
 	
 # -------------------------------------
 from distutils.core import setup
+import spacepy.toolbox as tb
 import os, shutil
 
 # run compile for onera_desp_lib first
@@ -126,3 +127,11 @@ setup(name='spacepy',
       packages=['spacepy','spacepy.sandbox'],
       package_data={'spacepy': pkg_files}
       ) 
+
+# update/download packages
+ans = tb.query_yes_no("""SpacePy requires an OMNI database and leap seconds information for full 
+functionality. Would you like to download these packages? (Internet connection required) """, default="yes")
+if ans=='yes':
+	tb.update()
+else:
+	print "WARNING: SpacePy will have limited functionality, unless you run spacepy.toolbox.update()"

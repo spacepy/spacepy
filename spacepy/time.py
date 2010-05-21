@@ -6,10 +6,10 @@ Implementation of Ticktock class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/05/21 21:34:05 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
-    
+
 # -----------------------------------------------
 # Tickdelta class
 # -----------------------------------------------    
