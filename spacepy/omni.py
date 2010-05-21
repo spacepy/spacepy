@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.4 $, $Date: 2010/05/21 19:37:44 $"
+__version__ = "$Revision: 1.5 $, $Date: 2010/05/21 22:01:55 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -12,7 +12,11 @@ import os
 dotfln = os.environ['HOME']+'/.spacepy'
 from spacepy import loadpickle
 omnifln = dotfln+'/data/omnidata.pkl'
-
+try:
+    omnidata = loadpickle(omnifln)
+except:
+	print "No omni data found. This module has limited functionality"
+	
 # -----------------------------------------------
 def pickleomni(fln='', overwrite=True, data=None):
     """
@@ -231,21 +235,21 @@ def get_G123(TAI, omnidata):
 
 # -----------------------------------------------
 # Test whether data file exists in correct location, if not, offer to fetch.
-try:
-    omnidata = loadpickle(omnifln)
-except:
-    import spacepy.toolbox as tb
-    ans = tb.query_yes_no('Hourly OMNI not found. Update OMNI from ViRBO now? (Internet connection required) ', default="yes")
-    if ans=='yes':
-        omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
-        omni_fname_dat = dotfln+'/data/omnidata.pkl'
-        tb.update(all=False, omni=True, callfromOMNI=True)
-        pickleomni(fln=omni_fname_dat)
-        # delete left-overs
-        os.remove(omni_fname_zip)
-        omnidata = loadpickle(omnifln)
-    else:
-        raise ImportError("Cannot use spacepy.omni without valid data")
+#try:
+#    omnidata = loadpickle(omnifln)
+#except:
+#    import spacepy.toolbox as tb
+#    ans = tb.query_yes_no('Hourly OMNI not found. Update OMNI from ViRBO now? (Internet connection required) ', default="yes")
+#    if ans=='yes':
+#        omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
+#        omni_fname_dat = dotfln+'/data/omnidata.pkl'
+#        tb.update(all=False, omni=True, callfromOMNI=True)
+#        pickleomni(fln=omni_fname_dat)
+#        # delete left-overs
+#        os.remove(omni_fname_zip)
+#        omnidata = loadpickle(omnifln)
+#    else:
+#        raise ImportError("Cannot use spacepy.omni without valid data")
         
 
         

@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.5 $, $Date: 2010/05/21 21:34:05 $"
+__version__ = "$Revision: 1.6 $, $Date: 2010/05/21 22:01:55 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -95,6 +95,7 @@ def subst(pattern, replacement, filestr,
 	
 # -------------------------------------
 from distutils.core import setup
+import spacepy
 import spacepy.toolbox as tb
 import os, shutil
 
@@ -129,9 +130,17 @@ setup(name='spacepy',
       ) 
 
 # update/download packages
-ans = tb.query_yes_no("""SpacePy requires an OMNI database and leap seconds information for full 
+ans = tb.query_yes_no("""\n\nSpacePy requires an OMNI database and leap seconds information for full 
 functionality. Would you like to download these packages? (Internet connection required) """, default="yes")
 if ans=='yes':
 	tb.update()
 else:
 	print "WARNING: SpacePy will have limited functionality, unless you run spacepy.toolbox.update()"
+	
+# offer testing routine
+ans = tb.query_yes_no("\nDo you want to test your SpacePy installation", default="no")
+if ans=='yes':
+	spacepy.test_all()
+
+print "\nThanks for installing SpacePy."
+	
