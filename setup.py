@@ -3,9 +3,12 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 17:36:48 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/05/21 19:13:22 $"
 __log__ = """
 $Log: setup.py,v $
+Revision 1.3  2010/05/21 19:13:22  smorley
+Fixed update and save location of OMNI
+
 Revision 1.2  2010/05/20 17:36:48  smorley
 Updated setup.py for install of oneralib
 
@@ -124,7 +127,7 @@ import os, sys, glob, re
 
 # run compile for onera_desp_lib first
 compile_oneralib()
-pkg_files = ['oneralib/onerapylib.so','data/omnidata.pbin', 'data/tai-utc.dat',
+pkg_files = ['oneralib/onerapylib.so', 'data/tai-utc.dat',
          'data/PSDdb.pbin', 'doc/*.*']
 
 # run setup from distutil

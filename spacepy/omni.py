@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/05/21 19:13:23 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -11,82 +11,7 @@ __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 import os
 dotfln = os.environ['HOME']+'/.spacepy'
 from spacepy import loadpickle
-omnifln = dotfln+'/data/omnidata.pbin'
-omnidata = loadpickle(omnifln)
-
-# -----------------------------------------------
-def get_omni(ticktock):
-    """
-    will load the pickled omni file, interpolate to the given ticktock time
-    and return the omni values as dictionary with 
-    Kp, Dst, dens, velo, Pdyn, ByIMF, BzIMF, G1, G2, G3, etc.
-    (see also http://www.dartmouth.edu/~rdenton/magpar/index.html and
-    http://www.agu.org/pubs/crossref/2007/2006SW000296.shtml )
-    
-    Note carefully: If the status variable is 2, the quantity you are using is fairly well 
-    determined. If it is 1, the value has some connection to measured values, but is not directly 
-    measured. These values are still better than just using an average value, but not as good 
-    as those with the status variable equal to 2. If the status variable is 0, the quantity is 
-    based on average quantities, and the values listed are no better than an average value. The 
-    lower the status variable, the less confident you should be in the value.
-
-    Input:
-    ======
-        - ticktock (Ticktock class) : containing time information
-        
-    Returns:
-    ========
-        - omnival (dictionary) : containing all omni values as a dictionary
-
-    Example:
-    ========
-    >>> tick = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> d = get_omni(tick)
-    
-    
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
-    Version:
-    ========
-    V1: 26-Jan-2010 (JK)
-    V1.1: 11-Mar-2010: fixed bug in get_omni; will now return the correct 6_status, 8_status (JK)
-    """
-
-    import numpy as n
-
-    # extract RTD from ticktock
-    RDTvals = ticktock.RDT
-    nRDT = len(ticktock)
-
-    nRDT = len(RDTvals)
-    omnikeys = omnidata.keys()
-    omnikeys.remove('6_status') # remove this item because it is a string (cannot interpolate)
-    omnikeys.remove('8_status')
-    omnikeys.remove('UTC')
-    omnikeys.remove('ticktock')
-
-    omnival = {}
-    for key in omnikeys:
-        omnival[key] = n.zeros(nRDT)
-        omnival[key] = n.interp(RDTvals, omnidata['RDT'], omnidata[key], left=n.NaN, right=n.NaN)
-        
-    # add time information back in
-    omnival['UTC'] = ticktock.UTC
-    # add interpolation parameters back in
-    for key in ['6_status','8_status']:
-        omnival[key] = ['']*nRDT
-        for iRDT, RDT in zip( n.arange(nRDT), RDTvals):
-            idx = n.argmin( abs(omnidata['RDT']-RDT) )
-            omnival[key][iRDT] = omnidata[key][idx]
-
-    # return warning if values outside of omni data range
-    if n.any(n.isnan(omnival['Kp'])): print "Warning: time is outside of omni data range"
-    
-    
-    return omnival
-
+omnifln = dotfln+'/data/omnidata.pkl'
 
 # -----------------------------------------------
 def pickleomni(fln='', overwrite=True, data=None):
@@ -191,9 +116,82 @@ def pickleomni(fln='', overwrite=True, data=None):
         spacepy.savepickle(omnifln, omnidata)
     else:
         # save in current working directory
-        spacepy.savepickle('omnidata.pbin', omnidata)
+        spacepy.savepickle('omnidata.pkl', omnidata)
 
     return 
+
+# -----------------------------------------------
+def get_omni(ticktock):
+    """
+    will load the pickled omni file, interpolate to the given ticktock time
+    and return the omni values as dictionary with 
+    Kp, Dst, dens, velo, Pdyn, ByIMF, BzIMF, G1, G2, G3, etc.
+    (see also http://www.dartmouth.edu/~rdenton/magpar/index.html and
+    http://www.agu.org/pubs/crossref/2007/2006SW000296.shtml )
+    
+    Note carefully: If the status variable is 2, the quantity you are using is fairly well 
+    determined. If it is 1, the value has some connection to measured values, but is not directly 
+    measured. These values are still better than just using an average value, but not as good 
+    as those with the status variable equal to 2. If the status variable is 0, the quantity is 
+    based on average quantities, and the values listed are no better than an average value. The 
+    lower the status variable, the less confident you should be in the value.
+
+    Input:
+    ======
+        - ticktock (Ticktock class) : containing time information
+        
+    Returns:
+    ========
+        - omnival (dictionary) : containing all omni values as a dictionary
+
+    Example:
+    ========
+    >>> tick = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
+    >>> d = get_omni(tick)
+    
+    
+    Author:
+    =======
+    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
+
+    Version:
+    ========
+    V1: 26-Jan-2010 (JK)
+    V1.1: 11-Mar-2010: fixed bug in get_omni; will now return the correct 6_status, 8_status (JK)
+    """
+
+    import numpy as n
+
+    # extract RTD from ticktock
+    RDTvals = ticktock.RDT
+    nRDT = len(ticktock)
+
+    nRDT = len(RDTvals)
+    omnikeys = omnidata.keys()
+    omnikeys.remove('6_status') # remove this item because it is a string (cannot interpolate)
+    omnikeys.remove('8_status')
+    omnikeys.remove('UTC')
+    omnikeys.remove('ticktock')
+
+    omnival = {}
+    for key in omnikeys:
+        omnival[key] = n.zeros(nRDT)
+        omnival[key] = n.interp(RDTvals, omnidata['RDT'], omnidata[key], left=n.NaN, right=n.NaN)
+        
+    # add time information back in
+    omnival['UTC'] = ticktock.UTC
+    # add interpolation parameters back in
+    for key in ['6_status','8_status']:
+        omnival[key] = ['']*nRDT
+        for iRDT, RDT in zip( n.arange(nRDT), RDTvals):
+            idx = n.argmin( abs(omnidata['RDT']-RDT) )
+            omnival[key][iRDT] = omnidata[key][idx]
+
+    # return warning if values outside of omni data range
+    if n.any(n.isnan(omnival['Kp'])): print "Warning: time is outside of omni data range"
+    
+    
+    return omnival
 
 
 # -----------------------------------------------
@@ -231,6 +229,22 @@ def get_G123(TAI, omnidata):
     return G1, G2, G3
     
 
+# -----------------------------------------------
+# Test whether data file exists in correct location, if not, offer to fetch.
+try:
+    omnidata = loadpickle(omnifln)
+except:
+    import spacepy.toolbox as tb
+    ans = tb.query_yes_no('Hourly OMNI not found. Update OMNI from ViRBO now? (Internet connection required) ', default="yes")
+    if ans=='yes':
+        omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
+        omni_fname_dat = dotfln+'/data/omnidata.pkl'
+        tb.update(all=False, omni=True, callfromOMNI=True)
+        pickleomni(fln=omni_fname_dat)
+        # delete left-overs
+        os.remove(omni_fname_zip)
+    else:
+        raise ImportError("Cannot use spacepy.omni without valid data")
         
 
         

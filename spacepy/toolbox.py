@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/05/21 19:13:23 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -537,7 +537,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False):
    return
 
 # -----------------------------------------------
-def update(all=True, omni=False, leapsecs=False):
+def update(all=True, omni=False, leapsecs=False, callfromOMNI=False):
     """
     Download and update local database for omni, leapsecs etc
 
@@ -564,9 +564,14 @@ def update(all=True, omni=False, leapsecs=False):
     import urllib as u
     import os
     import zipfile
-    import spacepy.omni
+    if not callfromOMNI:
+        import spacepy.omni as om
 
     dotfln = os.environ['HOME']+'/.spacepy'
+    #check directory exists, if not, create
+    if not os.path.isdir(dotfln):
+        os.mkdir(dotfln)
+        os.mkdir(dotfln+'/data')
     # define location for getting leap seconds
     leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
     leapsec_fname = dotfln+'/data/tai-utc.dat'
@@ -574,7 +579,7 @@ def update(all=True, omni=False, leapsecs=False):
     # define location for getting omni
     omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
     omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
-    omni_fname_dat = dotfln+'/data/omnidata.dat'
+    omni_fname_dat = dotfln+'/data/omnidata.pkl'
 
     if all == True:
         omni = True
@@ -593,10 +598,11 @@ def update(all=True, omni=False, leapsecs=False):
         fh.flush()
         fh.close
         print "Now pickling (this will take a few minutes) ..."
-        spacepy.omni.pickleomni(fln=omni_fname_dat)
+        if not callfromOMNI:
+            om.pickleomni(fln=omni_fname_dat)
         
-        # delete left-overs
-        os.remove(omni_fname_zip)
+            # delete left-overs
+            os.remove(omni_fname_zip)
 
     if leapsecs == True:
         print "Retrieving leapseconds file ... "
