@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/05/22 19:56:54 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -77,14 +77,12 @@ class RBmodel(object):
                 # initialize PSD
                 self.PSDinit = n.zeros(self.NL) 
                 self.PSDinit[int(self.NL/2)] = 1.0
-        return
         
     # -----------------------------------------------    
     def __str__(self):
-        """
-        """
- 
-        return '<RBmodel Instance>'
+        return '<RB Model; mu=%f, k=%f, DLL_model=%s >' % \
+            (self.MU, self.K, self.DLL_model)
+
     __repr__ = __str__
 
     # -----------------------------------------------    
@@ -97,13 +95,20 @@ class RBmodel(object):
     # -----------------------------------------------    
     def setup_ticks(self, start, end, delta, dtype='ISO'):
         """
-        add time Ticktock information to class instance
+        Add time information to the simulation by specifying
+        a start and end time, timestep, and time type (optional).
+
+        Example:
+
+        >>> start = datetime.datetime(2003,10,14)
+        >>> end = datetime.datetime(2003,12,26)
+        >>> delta = datetime.timedelta(hours=1)
+        >>> rmod.setup_ticks(start, end, delta, dtype='UTC')
         """
+
         import spacepy.time as st
         
         self.ticktock = st.tickrange(start, end, delta, dtype)
-        
-        return
         
     # -----------------------------------------------    
     def add_omni(self, keylist=None):
@@ -113,7 +118,8 @@ class RBmodel(object):
         """
         import spacepy.omni as om
 
-        assert self.__dict__.has_key('ticktock') , "Provide tick range with 'setup_ticks'"
+        assert self.__dict__.has_key('ticktock') , \
+            "Provide tick range with 'setup_ticks'"
         omni = om.get_omni(self.ticktock)
         
         if not self.__dict__.has_key('params'):           
@@ -126,8 +132,6 @@ class RBmodel(object):
             # just add requested keys
             for key in keylist:
                 self.params[key] = omni[key]
-        
-        return
         
     # -----------------------------------------------    
     def add_Lmax(self, Lmax_model):
@@ -142,8 +146,6 @@ class RBmodel(object):
             
         assert self.ticktock, "Provide tick range with 'setup_ticks'"
         self.params['Lmax'] = em.get_Lmax(self.ticktock, Lmax_model)
-        
-        return
                 
     # -----------------------------------------------    
     def add_Lpp(self, Lpp_model):
@@ -158,8 +160,6 @@ class RBmodel(object):
         
         assert self.ticktock, "Provide tick range with 'setup_ticks'"
         self.params['Lpp'] = em.get_plasma_pause(self.ticktock, Lpp_model)
-        
-        return
 
     # -----------------------------------------------    
     def add_obs(self, satlist=None):
@@ -171,16 +171,14 @@ class RBmodel(object):
         import numpy as n
         import spacepy.satdata as sat
         
-        assert self.__dict__.has_key('ticktock') , "Provide tick range with 'setup_ticks'"
+        assert self.__dict__.has_key('ticktock') , \
+            "Provide tick range with 'setup_ticks'"
         Tgrid = self.ticktock
         nTAI = len(Tgrid)
         
         self.PSDdata = ['']*(nTAI-1)
         for i, Tnow, Tfut in zip(n.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
             self.PSDdata[i] = sat.get_obs(Tnow, Tfut, self.MU, self.K, satlist)
-            
-        return
-                
         
     # -----------------------------------------------
     def evolve(self):
@@ -191,7 +189,8 @@ class RBmodel(object):
         import numpy as n
         import copy as c
         
-        assert self.__dict__.has_key('ticktock') , "Provide tick range with 'setup_ticks'"
+        assert self.__dict__.has_key('ticktock') , \
+            "Provide tick range with 'setup_ticks'"
         
         f = self.PSDinit
         Tgrid = self.ticktock.TAI
@@ -221,14 +220,13 @@ class RBmodel(object):
         # start with the first one since 0 is the initial condition
         for i, Tnow, Tfut in zip(n.arange(nTAI-1)+1, Tgrid[:-1], Tgrid[1:]):
             Tdelta = Tfut - Tnow
+            Telapse= Tnow - Tgrid[0]
             # copy over parameter list
             for key in keylist:
                 params[key] = self.params[key][i]
             # now integrate from Tnow to Tfut
-            f = rb.diff_LL(Lgrid, f, Tdelta, params)
+            f = rb.diff_LL(Lgrid, f, Tdelta, Telapse, params)
             self.PSD[:,i] = c.copy(f)
-            
-        return self
 
     # -----------------------------------------------
     def assimilate(self, method='enKF'):
@@ -243,8 +241,6 @@ class RBmodel(object):
             filter = assimilate.enKF
                 
         filter(self, method)
-        
-        return 
         
     # -----------------------------------------------
     def plot(self, Lmax=True, Lpp=False, Kp=True, Dst=True, 
@@ -310,7 +306,8 @@ class RBmodel(object):
                           format=LogFormatterMathtext())
         cbar.set_label('Phase Space Density')
         # add Lmax line
-        p.plot(self.ticktock.eDOY, self.params['Lmax'], 'w')
+        if Lmax:
+            p.plot(self.ticktock.eDOY, self.params['Lmax'], 'w')
         # Minimize time range.
         ax1.set_xlim([self.ticktock.eDOY[0], self.ticktock.eDOY[-1]])
         # Finally, save the position of the plot to make next plot match.
@@ -349,7 +346,7 @@ class RBmodel(object):
         return fig, ax1, ax2, ax3
         
 # -----------------------------------------------
-def diff_LL(grid, f, Tdelta, params=None):
+def diff_LL(grid, f, Tdelta, Telapsed, params=None):
     """
     calculate the diffusion in L at constant mu,K coordinates
     time units
@@ -372,7 +369,7 @@ def diff_LL(grid, f, Tdelta, params=None):
     dL = Lgrid[1]-Lgrid[0]
     
     # get DLL and model operator 
-    DLL = get_DLL(Lgrid, params, DLL_model)
+    (DLL, alpha, beta) = get_DLL(Lgrid, params, DLL_model)
     DLL = DLL/86400.
     C = get_modelop_L(Lgrid, Tdelta, DLL)
 
@@ -402,6 +399,14 @@ def diff_LL(grid, f, Tdelta, params=None):
         LSS = n.zeros(NL)
         LSS[n.where(Lgrid<params['Lpp'])] = -1./params['PPloss'].seconds
         f = f*n.exp(LSS*Tdelta)
+
+    # Add artificial sources
+    if params.has_key('SRCartif'):
+        # Call the artificial source function, sending info as 
+        # key word arguments.  Note that such functions should be
+        # able to handle extra kwargs through the use of **kwargs!
+        f = f + params['SRCartif'](Telapsed, Lgrid, dll=DLL, 
+                                   alpha=alpha, beta=beta)
 
     return f
 
@@ -468,34 +473,45 @@ def get_modelop_L(Lgrid, Tdelta, DLL):
     
     return C
 
-
-
 # -----------------------------------------------
 def get_DLL(Lgrid, params, DLL_model='BA2000'):
     """
-    calculate the diffusion coefficient D_LL
+    Calculate DLL as a simple power law function (alpha*L**Bbta)
+    using alpha/beta values from popular models found in the 
+    literature and chosen with the kwarg "DLL_model".
+
+    The calculated DLL is returned, as is the alpha and beta
+    values used in the calculation. 
+
+    The output DLL is in units of units/day.
     """
 
     import numpy as n
 
     if DLL_model is 'BA2000': # Brautigam and Albert (2000)
         Kp = params['Kp']
-        DLL = 10.0**(0.506*Kp-9.325)*Lgrid**10.0  # units /day
-        
+        alpha = 10.0**(0.506*Kp-9.325)
+        beta = 10.0
+
     elif DLL_model is 'FC2006': # Fei and Chan (2006)
-        DLL = 1.5e-6*Lgrid**8.5 # units /day
+        alpha = 1.5e-6
+        beta  = 8.5
         
     elif DLL_model is 'U2008': # Ukhorskiy (2008)
-        DLL = 7.7e-6*Lgrid**6 # units /day
+        alpha = 7.7e-6
+        beta  = 6.0
         
     elif DLL_model is 'S1997': # Selesnick (1997)
-        DLL = 1.9e-10*Lgrid**11.7 # units /day
+        alpha = 1.9e-10
+        beta  = 11.7
         
     else:
-        DLL = False
-        print "Radial diffusion model not implemented"
+        raise ValueError, \
+            "Radial diffusion model %s not implemented" % DLL_model
         
-    return DLL
+
+    DLL = alpha * Lgrid ** beta
+    return DLL, alpha, beta
     
 # -----------------------------------------------
 def get_local_accel(Lgrid, params, SRC_model='JK1'):
