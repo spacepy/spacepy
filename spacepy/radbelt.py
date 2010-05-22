@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.3 $, $Date: 2010/05/22 19:56:54 $"
+__version__ = "$Revision: 1.4 $, $Date: 2010/05/22 20:21:48 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -57,9 +57,7 @@ class RBmodel(object):
         import spacepy.time as st
         
         grid = grid.upper()
-        print grid.split()
         for type in grid.split():
-            print type
             if type == 'L':
                 self.MU = 2083
                 self.K = 0.03
@@ -68,7 +66,7 @@ class RBmodel(object):
                 self.Lpp_model = 'CA2000'
                 self.SRC_model = 'JK1'
                 self.SRCmagn = st.Tickdelta(days=1e-1) # relative acceleration per day
-                self.MPloss = st.Tickdelta(minutes=0.5) # minutes time scale
+                self.MPloss = st.Tickdelta(minutes=0.1) # minutes time scale
                 self.PPloss = st.Tickdelta(days=10.) # days time scale
                 self.NL = 91
                 self.Lgrid = n.linspace(1,10,self.NL)
@@ -76,8 +74,7 @@ class RBmodel(object):
                 self.MIN_PSD = 1e-99
                 # initialize PSD
                 self.PSDinit = n.zeros(self.NL) 
-                self.PSDinit[int(self.NL/2)] = 1.0
-        
+                        
     # -----------------------------------------------    
     def __str__(self):
         return '<RB Model; mu=%f, k=%f, DLL_model=%s >' % \
