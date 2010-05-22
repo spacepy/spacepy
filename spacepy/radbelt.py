@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.4 $, $Date: 2010/05/22 20:21:48 $"
+__version__ = "$Revision: 1.5 $, $Date: 2010/05/22 22:48:17 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -212,6 +212,8 @@ class RBmodel(object):
         params['SRCmagn'] = self.SRCmagn
         params['MPloss'] = self.MPloss
         params['PPloss'] = self.PPloss
+        if self.__dict__.has_key('SRCartif'):
+            params['SRCartif'] = self.SRCartif
         keylist = ['Kp', 'Dst', 'Lmax', 'Lpp']
                 
         # start with the first one since 0 is the initial condition
