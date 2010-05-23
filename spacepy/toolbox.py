@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.5 $, $Date: 2010/05/21 22:01:55 $"
+__version__ = "$Revision: 1.6 $, $Date: 2010/05/23 23:06:02 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -310,7 +310,7 @@ def assemble(fln_pattern, outfln):
 
     import glob
     import numpy as n
-    import ticktock as t
+    import time as t
 
     filelist = glob.glob(fln_pattern)
 

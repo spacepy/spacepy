@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.6 $, $Date: 2010/05/21 22:01:55 $"
+__version__ = "$Revision: 1.7 $, $Date: 2010/05/23 23:06:02 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -100,7 +100,12 @@ import spacepy.toolbox as tb
 import os, shutil
 
 # run compile for onera_desp_lib first
-compile_oneralib()
+if os.path.exists('spacepy/onerapy/onerapylib.so'):
+	ans = tb.query_yes_no('\nDo you want to recompile the ONERA-DESP library?', default="no")
+	if ans=='yes':
+		compile_oneralib()
+else:
+	compile_oneralib()
 
 # create .spacepy in $HOME and move data
 HOME = os.environ['HOME']
