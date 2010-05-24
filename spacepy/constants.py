@@ -3,6 +3,7 @@
 
 from __future__ import division
 from spacepy import help
+from spacepy.toolbox import dictree
 import numpy as np
 
 ##Physical constants (SI units))
@@ -22,11 +23,12 @@ class Ion():
         
         self.vel = vel
         self.temp = temp
-        self.units = units
+        self.units = {'Temp': None, 'Vel': None}
         self.Z = Z
         self.verbose = verbose
+        #at least one property must be calculable
         try:
-            assert self.units
+            assert units
             assert self.vel or self.temp
         except AssertionError:
             raise AssertionError
@@ -34,56 +36,63 @@ class Ion():
         #check for units for temp
         temp_units = ['eV', 'K']
         vel_units = ['m/s']
-
-
-def vIon(temp, units='eV', Z=1, verbose=False):
-    """Calculate ion velocity [m/s] from temperature
-    
-    Inputs:
-    temp - Temperature in eV or Kelvin
-    units (default is 'eV') - 'eV' or 'K'
-    Z (default is 1) - ratio of ion mass to proton
-    
-    Returns:
-    v1 - ion velocity in metres per second
-    """
-    try:
-        assert type(units.lower()) == str
-    except:
-        print 'vIon error: units keyword not valid'
-        return None
-    if units.lower() == 'ev':
-        v1 = np.sqrt(2*temp*k_b/(Z*mp*eVtoK))
-        if verbose:
-            print 'if E = %g eV, then v = %g km/s   for Z = %d mp' % (temp, v1*1e-3, Z)
-    if units.lower() == 'k':
-        v1 = np.sqrt(2*temp*k_b/(Z*mp))
-        if verbose:
-            print 'if E = %g K, then v = %g km/s   for Z = %d mp' % (temp, v1*1e-3, Z)
-    return v1
-
-def eIon(vel, units='both', Z=1, verbose=False):
-    """Calculate ion energy [eV or K] from velocity
-    
-    Inputs:
-    vel - ion velocity in m/s
-    units (for output; default is 'both') - 'eV' or 'K'
-    Z (default is 1) - ratio of ion mass to proton
-    
-    Returns:
-    energy - tuple of energy in eV and K.
-    Single values, in a tuple, are returned for non-default units
-    """
-    e1 = 0.5*mp*Z*vel**2/(k_b)
-    if verbose:
-        print 'if v = %g km/s, then E = %g K ~ %g keV  for Z = %d mp' % (vel*1e-3, e1, e1*eVtoK*1e-3, Z)
         
-    if units.lower() == 'both':
-        return (e1, e1*eVtoK)
-    if units.lower() == 'ev':
-        return (e1)
-    if units.lower() == 'k':
-        return (e1*eVtoK)
+        if units in temp_units:
+            self.units['Temp'] = units
+            self.vel = self.vIon()
+    
+    def __str__(self):
+        return 'Ion instance: %s' % self.__dict__
+        
+    __repr__ = __str__
+
+
+    def vIon(self):
+        """Calculate ion velocity [m/s] from temperature
+        
+        Inputs:
+        temp - Temperature in eV or Kelvin
+        units (default is 'eV') - 'eV' or 'K'
+        Z (default is 1) - ratio of ion mass to proton
+        
+        Returns:
+        v1 - ion velocity in metres per second
+        """
+        if self.units['Temp'].lower() == 'ev':
+            self.vel = np.sqrt(2*self.temp*k_b/(self.Z*mp*eVtoK))
+            if self.verbose:
+                print 'if E = %g eV, then v = %g km/s   for Z = %d mp' % (self.temp, self.vel*1e-3, self.Z)
+        if self.units['Temp'].lower() == 'k':
+            self.vel = np.sqrt(2*self.temp*k_b/(self.Z*mp))
+            if self.verbose:
+                print 'if E = %g K, then v = %g km/s   for Z = %d mp' % (self.temp, self.vel*1e-3, self.Z)
+                
+        self.units['Vel'] = 'm/s'
+        
+        return self.vel
+
+    def eIon(vel, units='both', Z=1, verbose=False):
+        """Calculate ion energy [eV or K] from velocity
+        
+        Inputs:
+        vel - ion velocity in m/s
+        units (for output; default is 'both') - 'eV' or 'K'
+        Z (default is 1) - ratio of ion mass to proton
+        
+        Returns:
+        energy - tuple of energy in eV and K.
+        Single values, in a tuple, are returned for non-default units
+        """
+        e1 = 0.5*mp*Z*vel**2/(k_b)
+        if verbose:
+            print 'if v = %g km/s, then E = %g K ~ %g keV  for Z = %d mp' % (vel*1e-3, e1, e1*eVtoK*1e-3, Z)
+            
+        if units.lower() == 'both':
+            return (e1, e1*eVtoK)
+        if units.lower() == 'ev':
+            return (e1)
+        if units.lower() == 'k':
+            return (e1*eVtoK)
 
 def vAlfven(B, n, Z=1, verbose=False):
     """Calculate Alfven velocity [m/s] for input plasma paramters
