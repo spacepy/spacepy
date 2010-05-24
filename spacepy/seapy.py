@@ -366,7 +366,7 @@ class Sea(object):
         
         from spacepy.utils import makePoly
         import matplotlib as mpl
-        import matplotlib.pylab as plt
+        import matplotlib.pyplot as plt
         
         if len(xunits)<1:
             xlstr = '%s' % xquan
@@ -413,7 +413,7 @@ class Sea(object):
             ax0.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
             plt.ylim(yr)
         
-        plt.show()
+        plt.draw()
         return None
 
     seplot = plot  #keep for backwards compatibility 
@@ -551,7 +551,7 @@ class Sea2d(Sea):
             return 'Error: No superposed epoch results to plot'
         
         import matplotlib as mpl
-        import matplotlib.pylab as plt
+        import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
         
         if len(xunits)<1:
@@ -607,7 +607,7 @@ class Sea2d(Sea):
             hc1.set_label(zunits)
             
         if show:
-            plt.show()	
+            plt.draw()	
             return None
         else:
             return fig
@@ -662,7 +662,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     If keyword 'show' is False, output is a plot object.
     """
     import matplotlib.ticker as tik
-    import matplotlib.pylab as plt
+    import matplotlib.pyplot as plt
     
     keys = dictobj.keys()
     pld, ply, plx, ylab = [], [], [], []
@@ -741,7 +741,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         ax.yaxis.set_major_locator(majorticky)
             
     if show:
-        plt.show()	
+        plt.draw()	
         return None
     else:
         return fig
