@@ -15,7 +15,7 @@ To perform a superposed epoch analysis
 
 To plot
  
->>> obj.seplot()
+>>> obj.plot()
 
 If multiple SeaPy objects exist, these can be combined into a single object
 
@@ -23,16 +23,16 @@ If multiple SeaPy objects exist, these can be combined into a single object
 
 and then used to create a multipanel plot
 
->>> seamulti(objdict)
+>>> multisea(objdict)
 
 
 For two-dimensional superposed epoch analyses, initialize an Sea2d() instance
 
 >>> obj = se.Sea2d(data, times, epochs, y=[4., 12.])
 
-All object methods are the same as for the 1D object. Also, the seamulti()
+All object methods are the same as for the 1D object. Also, the multisea()
 function should accept both 1D and 2D objects, even mixed together. Currently,
-the seplot() method is recommended for 2D SEA. 
+the plot() method is recommended for 2D SEA. 
 
 
 --++-- By Steve Morley --++--
@@ -55,7 +55,7 @@ class Sea(object):
     'times' and epochs should be in some useful format
     Includes method to perform superposed epoch analysis of input data series
 
-    Output can be nicely plotted with seaplot method, or for multiple objects
+    Output can be nicely plotted with plot method, or for multiple objects
     use the seamulti function
     """
     def __init__(self, data, times, epochs, window=3., delta=1.):
@@ -173,7 +173,7 @@ class Sea(object):
         mad will use +/- the median absolute deviation for the bounds;
         ci_quan can be set to 'median' or 'mean'
         
-        A basic plot can be raised with the obj.seplot() method
+        A basic plot can be raised with the obj.plot() method
         """
         import numpy.ma as ma
         
@@ -344,7 +344,8 @@ class Sea(object):
         #return 'Superposed epoch analysis complete'
         
     def plot(self, xquan = 'Time Since Epoch', yquan='', xunits='',
-                yunits='', epochline=False, usrlimy=[], figsize=None, dpi=300):
+                yunits='', epochline=False, usrlimy=[], show=True, 
+                figsize=None, dpi=None):
         """Method called to create basic plot of superposed epoch analysis.
         
         Inputs:
@@ -378,6 +379,11 @@ class Sea(object):
             ylstr = '%s' % yquan
         else:
             ylstr = ''
+        
+        if show==True and dpi==None:
+            dpi=80
+        elif show==False and dpi==None:
+            dpi=300
         
         fig = plt.figure(figsize=figsize, dpi=dpi)
         ax0 = fig.add_subplot(111)
@@ -413,8 +419,11 @@ class Sea(object):
             ax0.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
             plt.ylim(yr)
         
-        plt.draw()
-        return None
+        if show:
+            plt.draw()
+            return None
+        else:
+            return fig
 
     seplot = plot  #keep for backwards compatibility 
 
@@ -427,7 +436,7 @@ class Sea2d(Sea):
     'times' and epochs should be in some useful format
     Includes method to perform superposed epoch analysis of input data series
             
-    Output can be nicely plotted with seplot method, or for multiple
+    Output can be nicely plotted with plot method, or for multiple
     objects use the seamulti function
     """
     def __init__(self, data, times, epochs, window=3., delta=1., y=[]):
@@ -461,6 +470,7 @@ class Sea2d(Sea):
         Inputs:
         Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
         all of which must be available on instatiation.
+        
         Optional keyword(s):
         storedata (default = False) - saves matrix of epoch windows as obj.datacube
         quartiles calculates the interquartile range to show the spread (and is default);
@@ -468,7 +478,7 @@ class Sea2d(Sea):
         mad will use the median absolute deviation for the spread;
         ci_quan can be set to 'median' or 'mean'
         
-        A basic plot can be raised with the obj.seplot() method
+        A basic plot can be raised with the obj.plot() method
         """
         
         import numpy.ma as ma
@@ -575,6 +585,11 @@ class Sea2d(Sea):
             usry = self.y[st:en+1]
             #ax0.set_ylim(usrlimy)
         
+        if show==True and dpi==None:
+            dpi=80
+        elif show==False and dpi==None:
+            dpi=300
+            
         fig = plt.figure(figsize=figsize, dpi=dpi)
         ax0 = fig.add_subplot(111)
         if zlog:
@@ -677,6 +692,11 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         ylab.append(key) #ylab (Y-axis LABel)
         if tmp.ndim==2:
             ply.append(dictobj[key].y) #ply (Plot Y)
+
+    if show==True and dpi==None:
+        dpi=80
+    elif show==False and dpi==None:
+        dpi=300
     
     if n_cols > 1:
         print 'multisea(): Multiple column output not yet implemented'
