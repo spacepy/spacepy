@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.6 $, $Date: 2010/05/23 23:06:02 $"
+__version__ = "$Revision: 1.7 $, $Date: 2010/05/24 21:18:09 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -16,13 +16,22 @@ def doy2md(year, doy):
     
     Inputs:
     =======
-    Year, Day of year (Jan 1 = 001)
+    Year, Day of year (Jan 1 = 001) (can be arrays or lists)
     
     Returns:
     ========
     Month, Day (e.g. Oct 11 = 10, 11)
     
     Note: Implements full and correct leap year rules.
+
+    Example:
+    =========
+    In [15]: doy2md(2000, 123)
+    Out[15]: [array([5]), array([ 2.])]
+
+    In [16]: doy2md([2000, 2001], [123, 123])
+    Out[16]: [(array([5]), array([5])), (array([ 2.]), array([ 3.]))]
+    
     
     Author:
     =======
@@ -30,25 +39,97 @@ def doy2md(year, doy):
     
     Modification history:
     ====================
-    Created by Steve Morley in July '05, rewritten for
+    V1: Created by Steve Morley in July '05, rewritten for
     Python in October 2009
+    V2: 24May2010 - Modified to make work on array input, and use toolbox leap_year (BAL)
     """
     
     import numpy as np
     year, doy = np.array(year, dtype=float), np.array(doy, dtype=float)
+
+    ## make recursive to work on arrays
+    try:
+        if len(year) != len(doy):
+            raise(Exception("Inputs must be the same length"))
+    except:
+        pass  # this means it is a scalar
+    try:
+        if len(year) > 1:
+            ans = []
+            for i, val in enumerate(year):
+                ans.append(doy2md(val, doy[i]))
+            return zip(*ans)
+    except:
+        pass
     
     mn_arr = np.array([1,32,60,91,121,152,182,213,244,274,305,335], dtype=float)
-    leapyr = (year % 4) == 0
+    leapyr = leap_year(year)
     if leapyr == True:
-        if (year % 100 == 0) and (year % 400) != 0:
-            pass
-        else:
-            mn_arr[2:] = mn_arr[2:]+1
+        mn_arr[2:] = mn_arr[2:]+1
     [a] = np.where(doy >= mn_arr)
     month = a[-1:]+1
-    day = (doy-mn_arr[a[-1:]])+1
+    day = ((doy-mn_arr[a[-1:]])+1).astype('int')
     
     return [month,day]
+
+
+# -----------------------------------------------
+def md2doy(month, day, year):
+    """Convert month, day, year to a day-of-year
+    
+    Inputs:
+    =======
+    Month, Day, Year,  (Jan = 1) (can be arrays or lists)
+    
+    Returns:
+    ========
+    Day-of-year (DOY) 
+    
+    Note: Implements full and correct leap year rules.
+
+    Example:
+    =========
+    In [27]: md2doy(7, 3, 2001)
+    Out[27]: [array(184)]
+    
+    In [28]: md2doy([7,7], [3,3], [2001,2000])
+    Out[28]: [(array(184), array(185))]
+
+    Author:
+    =======
+    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
+    
+    Modification history:
+    ====================
+    V1: 24May2010 - Created using dpy2md as a template (BAL)
+    """
+    
+    import numpy as np
+    month, day, year = np.array(month, dtype=int), np.array(day, dtype=int), np.array(year, dtype=int)
+
+    ## make recursive to work on arrays
+    try:
+        if (len(year) != len(day)) != len(month):
+            raise(Exception("Inputs must be the same length"))
+    except:
+        pass  # this means it is a scalar
+    try:
+        if len(month) > 1:
+            ans = []
+            for i, val in enumerate(month):
+                ans.append(md2doy(val, day[i], year[i]))
+            return zip(*ans)
+    except:
+        pass
+    # days start at 1 so this is one less than on doy2md
+    mn_arr = np.array([0,31,28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], dtype=float)
+    leapyr = leap_year(year)
+    if leapyr == True:
+        mn_arr[2] = mn_arr[2]+1
+    doy = np.array(sum(mn_arr[:month]) + day, dtype='int')  
+    
+    return [doy]
+
 
 def sec2hms(sec, rounding=True, days=False, dtobj=False):
     """Convert seconds of day to hours, minutes, seconds
