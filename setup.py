@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.7 $, $Date: 2010/05/23 23:06:02 $"
+__version__ = "$Revision: 1.8 $, $Date: 2010/05/24 22:15:59 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -135,10 +135,12 @@ setup(name='spacepy',
       ) 
 
 # update/download packages
+
 ans = tb.query_yes_no("""\n\nSpacePy requires an OMNI database and leap seconds information for full 
 functionality. Would you like to download these packages? (Internet connection required) """, default="yes")
 if ans=='yes':
-	tb.update()
+	dir = tb.update()
+	print("Data installed to " + dir)
 else:
 	print "WARNING: SpacePy will have limited functionality, unless you run spacepy.toolbox.update()"
 	

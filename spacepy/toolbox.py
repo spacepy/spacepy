@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.7 $, $Date: 2010/05/24 21:18:09 $"
+__version__ = "$Revision: 1.8 $, $Date: 2010/05/24 22:16:00 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -640,6 +640,7 @@ def update(all=True, omni=False, leapsecs=False):
      Version:
      ========
      V1: 20-Jan-2010
+     V2: 24-May-2010 Minor modification to return data directory (BAL)
      """
 
     import urllib as u
@@ -652,6 +653,7 @@ def update(all=True, omni=False, leapsecs=False):
     if not os.path.isdir(dotfln):
 		os.mkdir(dotfln)
 		os.mkdir(dotfln+'/data')
+    datadir = dotfln+'/data'
 	# define location for getting leap seconds
     leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
     leapsec_fname = dotfln+'/data/tai-utc.dat'
@@ -686,7 +688,7 @@ def update(all=True, omni=False, leapsecs=False):
         print "Retrieving leapseconds file ... "
         u.urlretrieve(leapsec_url, leapsec_fname)
 
-    return
+    return datadir
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     """Windowing mean function, window overlap is user defined
