@@ -6,7 +6,7 @@ Implementation of Ticktock class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.3 $, $Date: 2010/05/21 21:34:05 $"
+__version__ = "$Revision: 1.4 $, $Date: 2010/05/24 16:32:17 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1531,6 +1531,33 @@ class Ticktock(object):
         else:
             self.leaps = n.array(leaps, dtype=int)
             return self.leaps
+
+    # -----------------------------------------------
+    @classmethod
+    def now(self):
+        """
+        tt = Ticktock.now()
+    
+        Creates a Ticktock object with the current time, equivalent to dattime.now()
+        
+        Input:
+        ======
+        - None
+        
+        Author:
+        =======
+        Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)
+        
+        Version:
+        ========
+        V1: 24-May-2010 (BAL)
+        
+        """
+        from datetime import datetime
+        dt = datetime.now()
+        return Ticktock(dt, 'utc')
+
+
         
 # -----------------------------------------------
 # End of Ticktock class
