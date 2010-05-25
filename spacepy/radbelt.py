@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.6 $, $Date: 2010/05/25 15:53:05 $"
+__version__ = "$Revision: 1.7 $, $Date: 2010/05/25 15:57:32 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -302,10 +302,10 @@ class RBmodel(object):
         else:
             ax1 = p.subplot(1,1,1)
         # Plot phase space density, masking out values of 0.
-        map = p.pcolorfast(self.ticktock.eDOY, self.Lgrid, 
-                           n.where(self.PSD > 0.0, self.PSD, 10.0**-39),
-                           vmin=10.0**clims[0], vmax=10.0**clims[1], 
-                           norm=LogNorm())
+        map = ax1.pcolorfast(self.ticktock.eDOY, self.Lgrid, 
+                             n.where(self.PSD > 0.0, self.PSD, 10.0**-39),
+                             vmin=10.0**clims[0], vmax=10.0**clims[1], 
+                             norm=LogNorm())
         ax1.set_ylabel('L*')
         ax1.set_title(title)
         # Add color bar.
