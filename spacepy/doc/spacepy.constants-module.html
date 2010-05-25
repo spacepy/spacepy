@@ -61,6 +61,31 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module constants</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.constants-pysrc.html">source&nbsp;code</a></span></p>
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="spacepy.constants.Ion-class.html" class="summary-name">Ion</a>
+    </td>
+  </tr>
+</table>
 <!-- ==================== FUNCTIONS ==================== -->
 <a name="section-Functions"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -78,46 +103,6 @@
     </table>
   </td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.constants-module.html#vIon" class="summary-sig-name">vIon</a>(<span class="summary-sig-arg">temp</span>,
-        <span class="summary-sig-arg">units</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">eV</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">Z</span>=<span class="summary-sig-default">1</span>,
-        <span class="summary-sig-arg">verbose</span>=<span class="summary-sig-default">False</span>)</span><br />
-      Calculate ion velocity [m/s] from temperature</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.constants-pysrc.html#vIon">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.constants-module.html#eIon" class="summary-sig-name">eIon</a>(<span class="summary-sig-arg">vel</span>,
-        <span class="summary-sig-arg">units</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">both</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">Z</span>=<span class="summary-sig-default">1</span>,
-        <span class="summary-sig-arg">verbose</span>=<span class="summary-sig-default">False</span>)</span><br />
-      Calculate ion energy [eV or K] from velocity</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.constants-pysrc.html#eIon">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -245,57 +230,6 @@
   </td>
 </tr>
 </table>
-<a name="vIon"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">vIon</span>(<span class="sig-arg">temp</span>,
-        <span class="sig-arg">units</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">eV</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">Z</span>=<span class="sig-default">1</span>,
-        <span class="sig-arg">verbose</span>=<span class="sig-default">False</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.constants-pysrc.html#vIon">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Calculate ion velocity [m/s] from temperature</p>
-  <p>Inputs: temp - Temperature in eV or Kelvin units (default is 'eV') - 
-  'eV' or 'K' Z (default is 1) - ratio of ion mass to proton</p>
-  <p>Returns: v1 - ion velocity in metres per second</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="eIon"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">eIon</span>(<span class="sig-arg">vel</span>,
-        <span class="sig-arg">units</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">both</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">Z</span>=<span class="sig-default">1</span>,
-        <span class="sig-arg">verbose</span>=<span class="sig-default">False</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.constants-pysrc.html#eIon">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Calculate ion energy [eV or K] from velocity</p>
-  <p>Inputs: vel - ion velocity in m/s units (for output; default is 
-  'both') - 'eV' or 'K' Z (default is 1) - ratio of ion mass to proton</p>
-  <p>Returns: energy - tuple of energy in eV and K. Single values, in a 
-  tuple, are returned for non-default units</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
 <a name="vAlfven"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -353,7 +287,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed May 19 16:29:50 2010
+    Generated by Epydoc 3.0.1 on Mon May 24 18:11:52 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

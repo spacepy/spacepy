@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>spacepy.sandbox.my_logger</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
+        <a href="spacepy.sandbox-module.html">Package&nbsp;sandbox</a> ::
+        Module&nbsp;my_logger
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="spacepy.sandbox.my_logger-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="spacepy.sandbox.my_logger-module.html">Module spacepy.sandbox.my_logger</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># my_logger.py</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-docstring">"""This is 'my_logger' module, which is imported into all</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-docstring">the other modules of my application."""</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">handlers</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">functools</tt> <tt class="py-keyword">import</tt> <tt class="py-name">wraps</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># Create a global logger</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt id="link-0" class="py-name" targets="Variable spacepy.sandbox.my_logger._vs_logger=spacepy.sandbox.my_logger-module.html#_vs_logger"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-0', '_vs_logger', 'link-0');">_vs_logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"># Set default DEBUG_ON True - in which case debug messages</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># are saved to the log file. Or set it to False - in which</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># case only INFO and ERROR messages are saved to the log file</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt id="link-1" class="py-name" targets="Variable spacepy.sandbox.my_logger._DEBUG_ON=spacepy.sandbox.my_logger-module.html#_DEBUG_ON"><a title="spacepy.sandbox.my_logger._DEBUG_ON" class="py-name" href="#" onclick="return doclink('link-1', '_DEBUG_ON', 'link-1');">_DEBUG_ON</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="set_logger"></a><div id="set_logger-def"><a name="L13"></a><tt class="py-lineno">13</tt> <a class="py-toggle" href="#" id="set_logger-toggle" onclick="return toggle('set_logger');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.sandbox.my_logger-module.html#set_logger">set_logger</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="set_logger-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="set_logger-expanded"><a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line">    <tt class="py-docstring">"Set up the logger"</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line">    <tt class="py-keyword">global</tt> <tt id="link-2" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-2', '_vs_logger', 'link-0');">_vs_logger</a></tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line">    <tt id="link-3" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-3', '_vs_logger', 'link-0');">_vs_logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">getLogger</tt><tt class="py-op">(</tt><tt class="py-string">"my_logger"</tt><tt class="py-op">)</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line">    <tt class="py-comment"># Set the logger level</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-4" class="py-name"><a title="spacepy.sandbox.my_logger._DEBUG_ON" class="py-name" href="#" onclick="return doclink('link-4', '_DEBUG_ON', 'link-1');">_DEBUG_ON</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line">        <tt id="link-5" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-5', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">.</tt><tt class="py-name">setLevel</tt><tt class="py-op">(</tt><tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">DEBUG</tt><tt class="py-op">)</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line">        <tt id="link-6" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-6', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">.</tt><tt class="py-name">setLevel</tt><tt class="py-op">(</tt><tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">INFO</tt><tt class="py-op">)</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line">    <tt class="py-comment"># Set the format</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line">    <tt class="py-name">form</tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">Formatter</tt><tt class="py-op">(</tt><tt class="py-string">"%(asctime)s - %(levelname)s - %(message)s"</tt><tt class="py-op">)</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line">        <tt class="py-comment"># Add the log message handler to the logger</tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line">        <tt class="py-comment"># The location of the logfile is given here as 'logfile.txt'</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line">        <tt class="py-comment"># in an actual application I would take a bit of care</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line">        <tt class="py-comment"># where this is located</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">    <tt class="py-name">handler</tt> <tt class="py-op">=</tt> <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">handlers</tt><tt class="py-op">.</tt><tt class="py-name">RotatingFileHandler</tt><tt class="py-op">(</tt><tt class="py-string">"logfile.txt"</tt><tt class="py-op">,</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line">                                                       <tt class="py-name">maxBytes</tt><tt class="py-op">=</tt><tt class="py-number">20000</tt><tt class="py-op">,</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">                                                       <tt class="py-name">backupCount</tt><tt class="py-op">=</tt><tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">    <tt class="py-name">handler</tt><tt class="py-op">.</tt><tt class="py-name">setFormatter</tt><tt class="py-op">(</tt><tt class="py-name">form</tt><tt class="py-op">)</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">    <tt id="link-7" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-7', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">.</tt><tt class="py-name">addHandler</tt><tt class="py-op">(</tt><tt class="py-name">handler</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">         </tt>
+<a name="info_log"></a><div id="info_log-def"><a name="L34"></a><tt class="py-lineno">34</tt> <a class="py-toggle" href="#" id="info_log-toggle" onclick="return toggle('info_log');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.sandbox.my_logger-module.html#info_log">info_log</a><tt class="py-op">(</tt><tt class="py-param">message</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="info_log-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="info_log-expanded"><a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">    <tt class="py-docstring">"Log message with level info"</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-8" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-8', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">        <tt id="link-9" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-9', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">message</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="debug_log"></a><div id="debug_log-def"><a name="L38"></a><tt class="py-lineno">38</tt> <a class="py-toggle" href="#" id="debug_log-toggle" onclick="return toggle('debug_log');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.sandbox.my_logger-module.html#debug_log">debug_log</a><tt class="py-op">(</tt><tt class="py-param">message</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="debug_log-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="debug_log-expanded"><a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">    <tt class="py-docstring">"Log message with level debug"</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-10" class="py-name"><a title="spacepy.sandbox.my_logger._DEBUG_ON" class="py-name" href="#" onclick="return doclink('link-10', '_DEBUG_ON', 'link-1');">_DEBUG_ON</a></tt> <tt class="py-keyword">and</tt> <tt id="link-11" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-11', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">        <tt id="link-12" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-12', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">message</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="logmethod"></a><div id="logmethod-def"><a name="L42"></a><tt class="py-lineno">42</tt> <a class="py-toggle" href="#" id="logmethod-toggle" onclick="return toggle('logmethod');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.sandbox.my_logger-module.html#logmethod">logmethod</a><tt class="py-op">(</tt><tt class="py-param">f</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="logmethod-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="logmethod-expanded"><a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line">    <tt class="py-docstring">"Creates a decorator to log a method"</tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">wraps</tt><tt class="py-op">(</tt><tt class="py-name">f</tt><tt class="py-op">)</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line">    <tt class="py-keyword">def</tt> <tt class="py-def-name">wrapper</tt><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-op">*</tt><tt class="py-param">args</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwds</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">        <tt id="link-13" class="py-name" targets="Function spacepy.sandbox.my_logger.debug_log()=spacepy.sandbox.my_logger-module.html#debug_log"><a title="spacepy.sandbox.my_logger.debug_log" class="py-name" href="#" onclick="return doclink('link-13', 'debug_log', 'link-13');">debug_log</a></tt><tt class="py-op">(</tt><tt class="py-string">"%s in %s called"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">f</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">f</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwds</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">wrapper</tt> </tt>
+</div><a name="exception_log"></a><div id="exception_log-def"><a name="L49"></a><tt class="py-lineno">49</tt> <a class="py-toggle" href="#" id="exception_log-toggle" onclick="return toggle('exception_log');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.sandbox.my_logger-module.html#exception_log">exception_log</a><tt class="py-op">(</tt><tt class="py-param">message</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="exception_log-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="exception_log-expanded"><a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">    <tt class="py-docstring">"Log message with level error plus exception traceback"</tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-14" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-14', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">        <tt id="link-15" class="py-name"><a title="spacepy.sandbox.my_logger._vs_logger" class="py-name" href="#" onclick="return doclink('link-15', '_vs_logger', 'link-0');">_vs_logger</a></tt><tt class="py-op">.</tt><tt class="py-name">exception</tt><tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">message</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line"> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line"> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-16" class="py-name" targets="Module spacepy.sandbox.my_logger=spacepy.sandbox.my_logger-module.html"><a title="spacepy.sandbox.my_logger" class="py-name" href="#" onclick="return doclink('link-16', 'my_logger', 'link-16');">my_logger</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line"><tt class="py-comment"># set up the logger</tt> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line"><tt id="link-17" class="py-name" targets="Function spacepy.sandbox.my_logger.set_logger()=spacepy.sandbox.my_logger-module.html#set_logger"><a title="spacepy.sandbox.my_logger.set_logger" class="py-name" href="#" onclick="return doclink('link-17', 'set_logger', 'link-17');">set_logger</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line"><tt class="py-comment"># now, in any part of my program I can record</tt> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line"><tt class="py-comment"># a 'debug' message - if the global _DEBUG_ON</tt> </tt>
+<a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line"><tt class="py-comment"># is True - otherwise nothing will be recorded</tt> </tt>
+<a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line"><tt id="link-18" class="py-name"><a title="spacepy.sandbox.my_logger.debug_log" class="py-name" href="#" onclick="return doclink('link-18', 'debug_log', 'link-13');">debug_log</a></tt><tt class="py-op">(</tt><tt class="py-string">"my program has reached this point"</tt><tt class="py-op">)</tt> </tt>
+<a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line"><tt class="py-comment"># I can also record an 'info' message - which is</tt> </tt>
+<a name="L63"></a><tt class="py-lineno">63</tt>  <tt class="py-line"><tt class="py-comment"># recorded whether _DEBUG_ON is True or False</tt> </tt>
+<a name="L64"></a><tt class="py-lineno">64</tt>  <tt class="py-line"><tt class="py-comment"># presumably because more important information</tt> </tt>
+<a name="L65"></a><tt class="py-lineno">65</tt>  <tt class="py-line"><tt class="py-comment"># is needed to be saved</tt> </tt>
+<a name="L66"></a><tt class="py-lineno">66</tt>  <tt class="py-line"><tt id="link-19" class="py-name" targets="Function spacepy.sandbox.my_logger.info_log()=spacepy.sandbox.my_logger-module.html#info_log"><a title="spacepy.sandbox.my_logger.info_log" class="py-name" href="#" onclick="return doclink('link-19', 'info_log', 'link-19');">info_log</a></tt><tt class="py-op">(</tt><tt class="py-string">"This is important"</tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno">67</tt>  <tt class="py-line"><tt class="py-comment"># I also like to record exceptions</tt> </tt>
+<a name="L68"></a><tt class="py-lineno">68</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L69"></a><tt class="py-lineno">69</tt>  <tt class="py-line">    <tt class="py-comment"># a block of code which may cause an error</tt> </tt>
+<a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line">    <tt id="link-20" class="py-name" targets="Variable spacepy.sandbox.my_logger.x=spacepy.sandbox.my_logger-module.html#x"><a title="spacepy.sandbox.my_logger.x" class="py-name" href="#" onclick="return doclink('link-20', 'x', 'link-20');">x</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt><tt class="py-op">/</tt><tt class="py-number">0</tt> </tt>
+<a name="L71"></a><tt class="py-lineno">71</tt>  <tt class="py-line">    <tt class="py-comment"># That usually does it!</tt> </tt>
+<a name="L72"></a><tt class="py-lineno">72</tt>  <tt class="py-line"><tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt><tt class="py-op">,</tt> <tt id="link-21" class="py-name" targets="Variable spacepy.sandbox.my_logger.e=spacepy.sandbox.my_logger-module.html#e"><a title="spacepy.sandbox.my_logger.e" class="py-name" href="#" onclick="return doclink('link-21', 'e', 'link-21');">e</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno">73</tt>  <tt class="py-line">    <tt class="py-comment"># handle the error</tt> </tt>
+<a name="L74"></a><tt class="py-lineno">74</tt>  <tt class="py-line">    <tt class="py-comment"># and record it</tt> </tt>
+<a name="L75"></a><tt class="py-lineno">75</tt>  <tt class="py-line">    <tt id="link-22" class="py-name" targets="Function spacepy.sandbox.my_logger.exception_log()=spacepy.sandbox.my_logger-module.html#exception_log"><a title="spacepy.sandbox.my_logger.exception_log" class="py-name" href="#" onclick="return doclink('link-22', 'exception_log', 'link-22');">exception_log</a></tt><tt class="py-op">(</tt><tt id="link-23" class="py-name"><a title="spacepy.sandbox.my_logger.e" class="py-name" href="#" onclick="return doclink('link-23', 'e', 'link-21');">e</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L76"></a><tt class="py-lineno">76</tt>  <tt class="py-line"> </tt>
+<a name="L77"></a><tt class="py-lineno">77</tt>  <tt class="py-line"><tt id="link-24" class="py-name"><a title="spacepy.sandbox.my_logger.info_log" class="py-name" href="#" onclick="return doclink('link-24', 'info_log', 'link-19');">info_log</a></tt><tt class="py-op">(</tt><tt class="py-string">"so - we are now past the exception"</tt><tt class="py-op">)</tt> </tt>
+<a name="MyClass"></a><div id="MyClass-def"><a name="L78"></a><tt class="py-lineno">78</tt>  <tt class="py-line"><tt class="py-comment"># as a final example, I sometimes like</tt> </tt>
+<a name="L79"></a><tt class="py-lineno">79</tt>  <tt class="py-line"><tt class="py-comment"># to record if a method</tt> </tt>
+<a name="L80"></a><tt class="py-lineno">80</tt>  <tt class="py-line"><tt class="py-comment"># in a class has been called</tt> </tt>
+<a name="L81"></a><tt class="py-lineno">81</tt>  <tt class="py-line"> </tt>
+<a name="L82"></a><tt class="py-lineno">82</tt> <a class="py-toggle" href="#" id="MyClass-toggle" onclick="return toggle('MyClass');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="spacepy.sandbox.my_logger.MyClass-class.html">MyClass</a><tt class="py-op">:</tt> </tt>
+</div><div id="MyClass-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="MyClass-expanded"><a name="L83"></a><tt class="py-lineno">83</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">logmethod</tt> </tt>
+<a name="MyClass.mymethod"></a><div id="MyClass.mymethod-def"><a name="L84"></a><tt class="py-lineno">84</tt> <a class="py-toggle" href="#" id="MyClass.mymethod-toggle" onclick="return toggle('MyClass.mymethod');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.sandbox.my_logger.MyClass-class.html#mymethod">mymethod</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MyClass.mymethod-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="MyClass.mymethod-expanded"><a name="L85"></a><tt class="py-lineno">85</tt>  <tt class="py-line">        <tt class="py-keyword">pass</tt> </tt>
+</div></div><a name="L86"></a><tt class="py-lineno">86</tt>  <tt class="py-line"> </tt>
+<a name="L87"></a><tt class="py-lineno">87</tt>  <tt class="py-line"><tt id="link-25" class="py-name"><a title="spacepy.sandbox.my_logger.x" class="py-name" href="#" onclick="return doclink('link-25', 'x', 'link-20');">x</a></tt> <tt class="py-op">=</tt> <tt id="link-26" class="py-name" targets="Class spacepy.sandbox.my_logger.MyClass=spacepy.sandbox.my_logger.MyClass-class.html"><a title="spacepy.sandbox.my_logger.MyClass" class="py-name" href="#" onclick="return doclink('link-26', 'MyClass', 'link-26');">MyClass</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L88"></a><tt class="py-lineno">88</tt>  <tt class="py-line"><tt class="py-comment"># and calling its method should</tt> </tt>
+<a name="L89"></a><tt class="py-lineno">89</tt>  <tt class="py-line"><tt class="py-comment"># create a log if _DEBUG_ON is True</tt> </tt>
+<a name="L90"></a><tt class="py-lineno">90</tt>  <tt class="py-line"><tt id="link-27" class="py-name"><a title="spacepy.sandbox.my_logger.x" class="py-name" href="#" onclick="return doclink('link-27', 'x', 'link-20');">x</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Method spacepy.sandbox.my_logger.MyClass.mymethod()=spacepy.sandbox.my_logger.MyClass-class.html#mymethod"><a title="spacepy.sandbox.my_logger.MyClass.mymethod" class="py-name" href="#" onclick="return doclink('link-28', 'mymethod', 'link-28');">mymethod</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L91"></a><tt class="py-lineno">91</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 24 18:11:53 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

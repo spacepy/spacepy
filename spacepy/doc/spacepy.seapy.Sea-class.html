@@ -80,8 +80,8 @@ object --+
   delta (optional). 'times' and epochs should be in some useful format 
   Includes method to perform superposed epoch analysis of input data 
   series</p>
-  <p>Output can be nicely plotted with seaplot method, or for multiple 
-  objects use the seamulti function</p>
+  <p>Output can be nicely plotted with plot method, or for multiple objects
+  use the seamulti function</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -242,8 +242,9 @@ object --+
         <span class="summary-sig-arg">yunits</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">epochline</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">usrlimy</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">show</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">figsize</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">dpi</span>=<span class="summary-sig-default">300</span>)</span><br />
+        <span class="summary-sig-arg">dpi</span>=<span class="summary-sig-default">None</span>)</span><br />
       Method called to create basic plot of superposed epoch analysis.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.seapy-pysrc.html#Sea.plot">source&nbsp;code</a></span>
@@ -267,8 +268,9 @@ object --+
         <span class="summary-sig-arg">yunits</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">epochline</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">usrlimy</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">show</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">figsize</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">dpi</span>=<span class="summary-sig-default">300</span>)</span><br />
+        <span class="summary-sig-arg">dpi</span>=<span class="summary-sig-default">None</span>)</span><br />
       Method called to create basic plot of superposed epoch analysis.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.seapy-pysrc.html#Sea.plot">source&nbsp;code</a></span>
@@ -465,7 +467,7 @@ object --+
   confidence intervals (and requires ci_quan to be set); mad will use +/- 
   the median absolute deviation for the bounds; ci_quan can be set to 
   'median' or 'mean'</p>
-  <p>A basic plot can be raised with the obj.seplot() method</p>
+  <p>A basic plot can be raised with the obj.plot() method</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -484,8 +486,9 @@ object --+
         <span class="sig-arg">yunits</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">epochline</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">usrlimy</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="sig-arg">show</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">figsize</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">dpi</span>=<span class="sig-default">300</span>)</span>
+        <span class="sig-arg">dpi</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.seapy-pysrc.html#Sea.plot">source&nbsp;code</a></span>&nbsp;
@@ -518,8 +521,9 @@ object --+
         <span class="sig-arg">yunits</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">epochline</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">usrlimy</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="sig-arg">show</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">figsize</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">dpi</span>=<span class="sig-default">300</span>)</span>
+        <span class="sig-arg">dpi</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.seapy-pysrc.html#Sea.plot">source&nbsp;code</a></span>&nbsp;
@@ -570,7 +574,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed May 19 16:29:50 2010
+    Generated by Epydoc 3.0.1 on Mon May 24 18:11:52 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
