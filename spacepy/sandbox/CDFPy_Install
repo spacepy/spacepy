@@ -1,0 +1,36 @@
+Currently, the CDFPy module has very limited functionality. All that really works yet (as of 16/03/2010) is the opening of a CDF file and querying the contents. So, as long as you don't want data, but just the names, scopes, etc. of attributes and variables, then it's fine.
+
+First, you'll need to install the CDF3.3 library.
+Second, you'll need to install SWIG and the Python development headers.
+Third, because I'm lazy you'll need to go into the cdfpy_interface.i file and change the location of the cdf headers.
+Then, issue the following commands (on linux):
+$ swig -python cdfpy_interface.i
+$ gcc -fPIC -I/your/path/include/python2.6 -c cdfpy_interface_wrap.c
+$ ld -shared cdfpy_interface_wrap.o /your/path/lib/libcdf.so -o _cdfpy_interface.so
+
+(The last can be done with gcc instead of ld, if you so desire)
+If you're on mac, this won't work as written. The mac versions of ld and gcc don't have a -shared option, and I'm fuzzy on whether gcc for mac has the -fPIC option.
+When someone gets it to compile and import into Python, post instructions!
+
+There will at some point also be a setup.py for this module. Far more convenient will probably be the building of packages for select platforms and leaving only those developing with the hassle of building.
+
+-Steve
+
+
+
+On my mac there are the commands that worked:
+
+swig -python cdfpy_interface.i
+/Applications/cdf33_0-dist/include/cdf.h:1558: Warning(305): Bad constant value (ignored).
+/Applications/cdf33_0-dist/include/cdf.h:1561: Warning(305): Bad constant value (ignored).
+gcc -c cdfpy_interface_wrap.c -I/Library/Frameworks/Python.framework/Versions/6.1/include/python2.6 -arch x86_64
+ld -bundle -flat_namespace -undefined suppress -arch x86_64  cdfpy_interface_wrap.o /Applications/cdf33_0-dist/lib/libcdf.a -o _cdfpy_interface.so
+
+
+-Brian
+
+
+
+
+
+
