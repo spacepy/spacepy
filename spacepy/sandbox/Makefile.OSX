@@ -1,0 +1,34 @@
+# Brian Larsen
+# balarsen@lanl.gov
+# 25May2010
+# 
+# this is only going to work on a mac!!!  (maybe just my mac)
+
+TARGET = cdfpy_interface
+INTERFACE = $(TARGET)_interface.i
+OBJS = $(TARGET).o $(TARGET)_wrap.o
+SWIG = swig
+CC = gcc
+CFLAGS = -I/Library/Frameworks/Python.framework/Versions/Current/include -I/Library/Frameworks/Python.framework/Versions/Current/lib -I/Library/Frameworks/Python.framework/Versions/6.1/include/python2.6 -arch i386
+LDFLAGS = -bundle -flat_namespace -undefined suppress -arch i386
+LD = ld
+LDLIBS = /Applications/cdf33_0-dist/lib/libcdf.a
+
+#all: $(TARGET)
+
+ _$(TARGET).a : cdfpy_interface_wrap.o
+	 $(LD) $(LDFLAGS) -o _$(TARGET).so $(LDLIBS)
+
+cdfpy_interface_wrap.o: $(TARGET)_wrap.c
+	$(CC) -c cdfpy_interface_wrap.c $(CFLAGS)
+
+$(TARGET)_wrap.c $(TARGET).py : $(TARGET).i Makefile.OSX
+	 $(SWIG) -python $(TARGET).i
+
+clean: 
+	-rm cdfpy_interface.pyc cdfpy_interface_wrap.c cdfpy_interface.py _cdfpy_interface.a cdfpy_interface_wrap.o
+
+
+
+
+
