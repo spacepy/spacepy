@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.5 $, $Date: 2010/05/22 22:48:17 $"
+__version__ = "$Revision: 1.6 $, $Date: 2010/05/25 15:53:05 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -49,7 +49,7 @@ class RBmodel(object):
     
     """
     
-    def __init__(self, grid='L'):
+    def __init__(self, grid='L', NL=91):
         """
         format for grid e.g., L-PA-E
         """
@@ -68,12 +68,9 @@ class RBmodel(object):
                 self.SRCmagn = st.Tickdelta(days=1e-1) # relative acceleration per day
                 self.MPloss = st.Tickdelta(minutes=0.1) # minutes time scale
                 self.PPloss = st.Tickdelta(days=10.) # days time scale
-                self.NL = 91
-                self.Lgrid = n.linspace(1,10,self.NL)
+                self.set_lgrid(NL)
                 self.MODerr = 5. # relative factor * PSD
                 self.MIN_PSD = 1e-99
-                # initialize PSD
-                self.PSDinit = n.zeros(self.NL) 
                         
     # -----------------------------------------------    
     def __str__(self):
@@ -88,7 +85,18 @@ class RBmodel(object):
         """
 
         return self.PSD[:,idx]   
-    
+
+    # -----------------------------------------------     
+    def set_lgrid(self, NL=91):
+        '''
+        Using NL grid points, create grid in L.
+        Default number of points is 91 (dL=0.1). 
+        '''
+        from numpy import linspace, zeros
+        self.NL = NL
+        self.Lgrid = linspace(1,10,self.NL)
+        self.PSDinit = zeros(self.NL)
+
     # -----------------------------------------------    
     def setup_ticks(self, start, end, delta, dtype='ISO'):
         """
@@ -294,10 +302,10 @@ class RBmodel(object):
         else:
             ax1 = p.subplot(1,1,1)
         # Plot phase space density, masking out values of 0.
-        map = p.pcolor(self.ticktock.eDOY, self.Lgrid, 
-                       n.where(self.PSD > 0.0, self.PSD, 10.0**-39),
-                       vmin=10.0**clims[0], vmax=10.0**clims[1], 
-                       norm=LogNorm())
+        map = p.pcolorfast(self.ticktock.eDOY, self.Lgrid, 
+                           n.where(self.PSD > 0.0, self.PSD, 10.0**-39),
+                           vmin=10.0**clims[0], vmax=10.0**clims[1], 
+                           norm=LogNorm())
         ax1.set_ylabel('L*')
         ax1.set_title(title)
         # Add color bar.
