@@ -6,7 +6,7 @@ Implementation of Ticktock class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.4 $, $Date: 2010/05/24 16:32:17 $"
+__version__ = "$Revision: 1.5 $, $Date: 2010/05/25 00:09:44 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1688,6 +1688,57 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     ticks = eval('Ticktock(ticks.'+dtype+',"'+dtype+'")')
     return ticks
     
+    
+def sec2hms(sec, rounding=True, days=False, dtobj=False):
+    """Convert seconds of day to hours, minutes, seconds
+    
+    Inputs:
+    =======
+    Seconds of day
+    Keyword arguments:
+        rounding (True|False) - set for integer seconds
+        days (True|False) - set to wrap around day (i.e. modulo 86400)
+        dtobj (True|False) - set to return a timedelta object
+    
+    Returns:
+    ========
+    [hours, minutes, seconds] or datetime.timedelta
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
+    
+    Modification history:
+    ====================
+    v1. Created by Steve Morley in March 2010
+    v1.1 Datetime timedelta output added; 17-May-2010 (SM)
+    """
+    
+    import datetime as dt
+    
+    if not days:
+        try:
+            assert sec <= 86400
+        except:
+            print "Warning: Number of seconds > seconds in day. Try days keyword."
+    else:
+        sec %= 86400
+    
+    hours = int(sec)//3600
+    try:
+        minutes = int((sec - hours*3600) // 60) % 60
+    except ZeroDivisionError:
+        minutes = 0
+    seconds = sec % 60
+    if rounding:
+        seconds = int(round(seconds))
+    
+    if dtobj:
+        return dt.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    else:
+        return [hours, minutes, seconds]
+        
+    
 # -----------------------------------------------
 def test():
     """
@@ -1802,7 +1853,7 @@ def test():
         assert len(testRDT[0]) == len(alldtypes)
         assert False not in testUTC
         assert len(testCDF[0]) == len(alldtypes)
-        assert len(n.unique1d(ISO)) == 1
+        assert len(n.unique(ISO)) == 1
 
         print "testing Ticktock: PASSED TEST all combinations"
     except AssertionError:
