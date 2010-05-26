@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.5 $, $Date: 2010/05/21 22:01:55 $"
+__version__ = "$Revision: 1.6 $, $Date: 2010/05/26 22:00:01 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -15,8 +15,9 @@ omnifln = dotfln+'/data/omnidata.pkl'
 try:
     omnidata = loadpickle(omnifln)
 except:
-	print "No omni data found. This module has limited functionality"
-	
+    print "No omni data found. This module has limited functionality."
+    __nodataflag = True
+
 # -----------------------------------------------
 def pickleomni(fln='', overwrite=True, data=None):
     """
@@ -233,24 +234,19 @@ def get_G123(TAI, omnidata):
     return G1, G2, G3
     
 
-# -----------------------------------------------
-# Test whether data file exists in correct location, if not, offer to fetch.
-#try:
-#    omnidata = loadpickle(omnifln)
-#except:
-#    import spacepy.toolbox as tb
-#    ans = tb.query_yes_no('Hourly OMNI not found. Update OMNI from ViRBO now? (Internet connection required) ', default="yes")
-#    if ans=='yes':
-#        omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
-#        omni_fname_dat = dotfln+'/data/omnidata.pkl'
-#        tb.update(all=False, omni=True, callfromOMNI=True)
-#        pickleomni(fln=omni_fname_dat)
-#        # delete left-overs
-#        os.remove(omni_fname_zip)
-#        omnidata = loadpickle(omnifln)
-#    else:
-#        raise ImportError("Cannot use spacepy.omni without valid data")
-        
-
-        
-    
+#-----------------------------------------------
+#Test whether data file exists in correct location, if not, offer to fetch.
+if __nodataflag:
+    import spacepy.toolbox as tb
+    ans = tb.query_yes_no('Update OMNI from ViRBO now? (Internet connection required) ', default="yes")
+    if ans=='yes':
+        omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
+        omni_fname_dat = dotfln+'/data/omnidata.pkl'
+        tb.update(all=False, omni=True, callfromOMNI=True)
+        pickleomni(fln=omni_fname_dat)
+        # delete left-overs
+        os.remove(omni_fname_zip)
+        omnidata = loadpickle(omnifln)
+    else:
+        raise ImportError("No OMNI data downloaded. This module has limited functionality.")
+   

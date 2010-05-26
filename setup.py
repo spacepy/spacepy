@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.8 $, $Date: 2010/05/24 22:15:59 $"
+__version__ = "$Revision: 1.9 $, $Date: 2010/05/26 22:00:01 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -116,7 +116,9 @@ if os.path.exists(dotfln):
 	shutil.move(dotfln, dotfln+'.bak')
 
 os.mkdir(dotfln)
+os.chmod(dotfln, 0777)
 os.mkdir(dotfln+'/data')
+os.chmod(dotfln+'/data', 0777)
 shutil.copy('spacepy/data/spacepy.rc', dotfln+'/')
 shutil.copy('spacepy/data/PSDdb.pbin', dotfln+'/data')
 shutil.copy('spacepy/data/tai-utc.dat', dotfln+'/data')
