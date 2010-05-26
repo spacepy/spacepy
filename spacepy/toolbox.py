@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.10 $, $Date: 2010/05/25 00:09:44 $"
+__version__ = "$Revision: 1.11 $, $Date: 2010/05/26 21:31:18 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -650,7 +650,7 @@ def medAbsDev(series):
     >>> data = numpy.random.lognormal(mean=5.1458, sigma=0.302313, size=30)
     >>> print data
     array([ 181.28078923,  131.18152745, ... , 141.15455416, 160.88972791])
-    >>> utils.medabsdev(data)
+    >>> toolbox.medabsdev(data)
     28.346646721370192
     
     Author:

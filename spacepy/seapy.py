@@ -195,9 +195,7 @@ class Sea(object):
         y_sea = np.zeros((n,m), dtype=float)
         for i in range(n):
             dif = np.abs(time-t_epoch[i])
-            #print 'len(time) %s' % len(time), 'dif %s ' % dif
             j = np.where(dif == np.min(dif))
-            #print '''j[0][0] %s''' % j[0][0], '''wind %s''' % wind, '''len(y) %s''' % len(y)
             sea_slice = y[j[0][0]-wind:j[0][0]+wind+1]
             y_sea[i,0:] = sea_slice
         
@@ -329,7 +327,7 @@ class Sea(object):
                 #outobj.bound_low[i], outobj.bound_high[i] = \
                     #boots_ci(dum, 800, 95, ci_func)
         #elif mad: #median absolute deviation
-            #from spacepy.utils import medabsdev
+            #from spacepy.toolbox import medabsdev
             #for i in range(m):
                 #dum = np.sort(y_sea_m[:,i].compressed())
                 #spread_mad = medabsdev(data)
@@ -365,7 +363,7 @@ class Sea(object):
         except AttributeError:
             return 'Error: No superposed epoch results to plot'
         
-        from spacepy.utils import makePoly
+        from spacepy.toolbox import makePoly
         import matplotlib as mpl
         import matplotlib.pyplot as plt
         
@@ -420,7 +418,7 @@ class Sea(object):
             plt.ylim(yr)
         
         if show:
-            plt.draw()
+            plt.show()
             return None
         else:
             return fig
