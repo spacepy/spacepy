@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.12 $, $Date: 2010/05/26 22:00:01 $"
+__version__ = "$Revision: 1.13 $, $Date: 2010/05/27 21:46:11 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -480,17 +480,17 @@ def update(all=True, omni=False, leapsecs=False, callfromOMNI=False):
         oflag += 1
         import spacepy.omni as om
     
-    if oflag <= 1:
-        dotfln = os.environ['HOME']+'/.spacepy'
-        #check directory exists, if not, create
-        if not os.path.isdir(dotfln):
-            os.mkdir(dotfln)
-            os.mkdir(dotfln+'/data')
-        datadir = dotfln+'/data'
-        # define location for getting leap seconds
-        leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
-        leapsec_fname = dotfln+'/data/tai-utc.dat'
+    dotfln = os.environ['HOME']+'/.spacepy'
+    #check directory exists, if not, create
+    if not os.path.isdir(dotfln):
+        os.mkdir(dotfln)
+        os.mkdir(dotfln+'/data')
+    datadir = dotfln+'/data'
+    # define location for getting leap seconds
+    leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
+    leapsec_fname = dotfln+'/data/tai-utc.dat'
 
+    if oflag <= 1:
         # define location for getting omni
         omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
         omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
@@ -524,7 +524,7 @@ def update(all=True, omni=False, leapsecs=False, callfromOMNI=False):
         
     if callfromOMNI:
         oflag += 1
-
+    
     return datadir
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):

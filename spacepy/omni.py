@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.6 $, $Date: 2010/05/26 22:00:01 $"
+__version__ = "$Revision: 1.7 $, $Date: 2010/05/27 21:46:11 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -14,6 +14,7 @@ from spacepy import loadpickle
 omnifln = dotfln+'/data/omnidata.pkl'
 try:
     omnidata = loadpickle(omnifln)
+    __nodataflag = False
 except:
     print "No omni data found. This module has limited functionality."
     __nodataflag = True
