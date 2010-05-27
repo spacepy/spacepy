@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Implementation of Ticktock class and Coords class functions
+Implementation of Coords class functions
 
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 18:08:30 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/05/27 22:02:08 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 

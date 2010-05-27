@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.13 $, $Date: 2010/05/27 21:46:11 $"
+__version__ = "$Revision: 1.14 $, $Date: 2010/05/27 22:02:08 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -839,7 +839,7 @@ def arraybin(array, bins):
     Outputs:
     ========
     list of indices 
-         first element is less than fisrt bin and last bin is larger than last bin
+    first element is less than fisrt bin and last bin is larger than last bin
 
     Example:
     ========
@@ -952,7 +952,7 @@ def leap_year(year, numdays=False, nobool=False):
     leap_year(arange(15)+1998)
     Out[10]: 
     array([False, False,  True, False, False, False,  True, False, False,
-       False,  True, False, False, False,  True], dtype=bool)
+    ... False,  True, False, False, False,  True], dtype=bool)
 
     Author:
     =======
@@ -1042,8 +1042,8 @@ def query_yes_no(question, default="yes"):
     
     "question" is a string that is presented to the user.
     "default" is the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
+    It must be "yes" (the default), "no" or None (meaning
+    an answer is required of the user).
 
     The "answer" return value is one of "yes" or "no".
 

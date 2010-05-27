@@ -61,11 +61,67 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module time</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.time-pysrc.html">source&nbsp;code</a></span></p>
-<p>Implementation of Ticktock class functions</p>
+<p>Time conversion, manipulation and implementation of Ticktock class</p>
+  <h1 class="heading">Examples:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> spacepy.time <span class="py-keyword">as</span> spt
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> datetime <span class="py-keyword">as</span> dt</pre>
+    <p>Day of year calculations</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts = spt.doy2date([2002]*4, range(186,190), dtobj=True)
+<span class="py-prompt">&gt;&gt;&gt; </span>dts
+<span class="py-output">[datetime.datetime(2002, 7, 5, 0, 0),</span>
+<span class="py-output">datetime.datetime(2002, 7, 6, 0, 0),</span>
+<span class="py-output">datetime.datetime(2002, 7, 7, 0, 0),</span>
+<span class="py-output">datetime.datetime(2002, 7, 8, 0, 0)]</span></pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts = spt.Ticktock(dts,<span class="py-string">'UTC'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>dts.DOY
+<span class="py-output">array([ 186.,  187.,  188.,  189.])</span></pre>
+    <p>ISO time formatting</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts = spt.tickrange(<span class="py-string">'2009-12-01T12:00:00'</span>,<span class="py-string">'2009-12-06T12:00:00'</span>,2.5)
+<span class="py-output">OR</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>dts = spt.tickrange(dt.datetime(2009,12,1,12),dt.datetime(2009,12,6,12),     dt.timedelta(days=2, hours=12))</pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts
+<span class="py-output">Ticktock( ['2009-12-01T12:00:00', '2009-12-04T00:00:00', '2009-12-06T12:00:00'] ), dtype=ISO</span></pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts.isoformat()
+<span class="py-output">Current ISO output format is %Y-%m-%dT%H:%M:%S</span>
+<span class="py-output">Options are: [('seconds', '%Y-%m-%dT%H:%M:%S'), ('microseconds', '%Y-%m-%dT%H:%M:%S.%f')]</span></pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts.isoformat(<span class="py-string">'microseconds'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>dts.ISO
+<span class="py-output">['2009-12-01T12:00:00.000000',</span>
+<span class="py-output"> '2009-12-04T00:00:00.000000',</span>
+<span class="py-output"> '2009-12-06T12:00:00.000000']</span></pre>
+    <p>Time manipulation</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>tdelt  = spt.Tickdelta(days=1, hours=6)
+<span class="py-prompt">&gt;&gt;&gt; </span>tdelt
+<span class="py-output">Tickdelta( days=1.25 )</span></pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>new_dts = dts + tdelt
+<span class="py-prompt">&gt;&gt;&gt; </span>new_dts.UTC
+<span class="py-output">[datetime.datetime(2009, 12, 2, 18, 0),</span>
+<span class="py-output"> datetime.datetime(2009, 12, 5, 6, 0),</span>
+<span class="py-output"> datetime.datetime(2009, 12, 7, 18, 0)]</span></pre>
+    <p>Other time formats</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts.RDT  <span class="py-comment"># Gregorian ordinal time</span>
+<span class="py-output">array([ 733742.5,  733745. ,  733747.5])</span></pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts.GPS <span class="py-comment"># GPS time</span>
+<span class="py-output">array([  9.43704015e+08,   9.43920015e+08,   9.44136015e+08])</span></pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>dts.JD <span class="py-comment"># Julian day</span>
+<span class="py-output">array([ 2455167. ,  2455169.5,  2455172. ])</span></pre>
+    <p>And so on.</p>
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.1 $, $Date: 2010/05/25 00:13:47 $
+        $Revision: 1.2 $, $Date: 2010/05/27 22:02:08 $
       </p>
       <p><strong>Author:</strong>
         Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
@@ -370,31 +426,19 @@
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Convert seconds of day to hours, minutes, seconds
-
-Inputs:
-=======
-Seconds of day
-Keyword arguments:
-    rounding (True|False) - set for integer seconds
-    days (True|False) - set to wrap around day (i.e. modulo 86400)
-    dtobj (True|False) - set to return a timedelta object
-
-Returns:
-========
-[hours, minutes, seconds] or datetime.timedelta
-
-Author:
-=======
-Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
-
-Modification history:
-====================
-v1. Created by Steve Morley in March 2010
-v1.1 Datetime timedelta output added; 17-May-2010 (SM)
-
-</pre>
+  <p>Convert seconds of day to hours, minutes, seconds</p>
+  <h1 class="heading">Inputs:</h1>
+    <p>Seconds of day Keyword arguments: rounding (True|False) - set for 
+    integer seconds days (True|False) - set to wrap around day (i.e. modulo
+    86400) dtobj (True|False) - set to return a timedelta object</p>
+  <h1 class="heading">Returns:</h1>
+    <p>[hours, minutes, seconds] or datetime.timedelta</p>
+  <h1 class="heading">Author:</h1>
+    <p>Steve Morley, Los Alamos National Lab, 
+    smorley@lanl.gov/morley_steve@hotmail.com</p>
+  <h1 class="heading">Modification history:</h1>
+    <p>v1. Created by Steve Morley in March 2010 v1.1 Datetime timedelta 
+    output added; 17-May-2010 (SM)</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -466,7 +510,7 @@ v1.1 Datetime timedelta output added; 17-May-2010 (SM)
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 24 18:11:52 2010
+    Generated by Epydoc 3.0.1 on Thu May 27 15:56:04 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

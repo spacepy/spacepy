@@ -65,7 +65,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.2 $, $Date: 2010/05/25 00:13:47 $
+        $Revision: 1.3 $, $Date: 2010/05/27 22:02:08 $
       </p>
       <p><strong>Author:</strong>
         Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
@@ -176,11 +176,48 @@
         <a name="omnifln"></a><span class="summary-name">omnifln</span> = <code title="'/home/smorley/.spacepy/data/omnidata.pkl'"><code class="variable-quote">'</code><code class="variable-string">/home/smorley/.spacepy/data/omnidata.pkl</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__nodataflag"></a><span class="summary-name">__nodataflag</span> = <code title="False">False</code>
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="omnidata"></a><span class="summary-name">omnidata</span> = <code title="loadpickle(omnifln)">loadpickle(omnifln)</code>
+        <a href="spacepy.omni-module.html#ans" class="summary-name">ans</a> = <code title="tb.query_yes_no('Update OMNI from ViRBO now? (Internet connection requ\
+ired) ', default= &quot;yes&quot;)">tb.query_yes_no('Update OMNI from ViRBO now? (Internet c<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="omni_fname_zip"></a><span class="summary-name">omni_fname_zip</span> = <code title="dotfln+ '/data/WGhour-latest.d.zip'">dotfln+ '/data/WGhour-latest.d.zip'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="omni_fname_dat"></a><span class="summary-name">omni_fname_dat</span> = <code title="dotfln+ '/data/omnidata.pkl'">dotfln+ '/data/omnidata.pkl'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="spacepy.omni-module.html#omnidata" class="summary-name">omnidata</a> = <code title="{'6_status': array(['000000', '000000', '000000', ..., '000000', '0000\
+00', '000000'], 
+      dtype='|S6'),
+ '8_status': array(['00000000', '00000000', '00000000', ..., '10111111\
+', '11111111',
+       '11111111'], 
+      dtype='|S8'),
+ 'ByIMF': array([ 0.09,  0.09,  0.9 , ..., -0.09, -0.03,  0.  ]),
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">6_status</code><code class="variable-quote">'</code><code class="variable-op">: </code>array(['000000', '000000', '000000', .<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -303,6 +340,70 @@
 </td></tr></table>
 </div>
 <br />
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="ans"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">ans</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+tb.query_yes_no('Update OMNI from ViRBO now? (Internet connection requ<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ired) ', default= &quot;yes&quot;)
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="omnidata"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">omnidata</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">6_status</code><code class="variable-quote">'</code><code class="variable-op">: </code>array(['000000', '000000', '000000', ..., '000000', '0000<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+00', '000000'], 
+      dtype='|S6')<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">8_status</code><code class="variable-quote">'</code><code class="variable-op">: </code>array(['00000000', '00000000', '00000000', ..., '10111111<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+', '11111111',
+       '11111111'], 
+      dtype='|S8')<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">ByIMF</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([ 0.09,  0.09,  0.9 , ..., -0.09, -0.03,  0.  ])<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -334,7 +435,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 24 18:11:52 2010
+    Generated by Epydoc 3.0.1 on Thu May 27 15:56:04 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

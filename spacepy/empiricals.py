@@ -5,7 +5,7 @@ empirical models
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.2 $, $Date: 2010/05/20 21:32:04 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/05/27 22:02:08 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -35,7 +35,7 @@ def get_Lmax(ticks, Lmax_model):
 # -----------------------------------------------
 # Plasmapause Location
 # -----------------------------------------------       
-def get_plasma_pause(ticks, Lpp_model):
+def get_plasma_pause(ticks, Lpp_model='CA2000'):
     """
     Plasmapause location model(s) 
     """

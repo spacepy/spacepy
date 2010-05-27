@@ -65,7 +65,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.2 $, $Date: 2010/05/25 00:13:47 $
+        $Revision: 1.3 $, $Date: 2010/05/27 22:02:09 $
       </p>
       <p><strong>Author:</strong>
         S. Morley and J. Koller
@@ -247,7 +247,8 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#update" class="summary-sig-name">update</a>(<span class="summary-sig-arg">all</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">omni</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">leapsecs</span>=<span class="summary-sig-default">False</span>)</span><br />
+        <span class="summary-sig-arg">leapsecs</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">callfromOMNI</span>=<span class="summary-sig-default">False</span>)</span><br />
       Download and update local database for omni, leapsecs etc</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.toolbox-pysrc.html#update">source&nbsp;code</a></span>
@@ -434,9 +435,9 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#arraybin" class="summary-sig-name">arraybin</a>(<span class="summary-sig-arg">array</span>,
         <span class="summary-sig-arg">bins</span>)</span><br />
-      Given an array and a set of bins return the indices that are less than the 
-smallest bin between each set and larger than the largest bin
-bins should be sorted</td>
+      Given an array and a set of bins return the indices that are less 
+      than the smallest bin between each set and larger than the largest 
+      bin bins should be sorted</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.toolbox-pysrc.html#arraybin">source&nbsp;code</a></span>
             
@@ -492,8 +493,8 @@ bins should be sorted</td>
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#leap_year" class="summary-sig-name">leap_year</a>(<span class="summary-sig-arg">year</span>,
         <span class="summary-sig-arg">numdays</span>=<span class="summary-sig-default">False</span>)</span><br />
-      return an array of boolean leap year, 
-a lot faster than the mod method that is normally seen</td>
+      return an array of boolean leap year, a lot faster than the mod 
+      method that is normally seen</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.toolbox-pysrc.html#leap_year">source&nbsp;code</a></span>
             
@@ -1003,7 +1004,8 @@ a lot faster than the mod method that is normally seen</td>
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">update</span>(<span class="sig-arg">all</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">omni</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">leapsecs</span>=<span class="sig-default">False</span>)</span>
+        <span class="sig-arg">leapsecs</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">callfromOMNI</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#update">source&nbsp;code</a></span>&nbsp;
@@ -1014,13 +1016,13 @@ a lot faster than the mod method that is normally seen</td>
   <h1 class="heading">Input:</h1>
     <ul>
       <li>
-        all (bol) : if True, update all of them
+        all (bool) : if True, update all of them
       </li>
       <li>
-        omni (bol) : if True. update only onmi
+        omni (bool) : if True. update only onmi
       </li>
       <li>
-        leapsecs (bol) : if True, update only leapseconds
+        leapsecs (bool) : if True, update only leapseconds
       </li>
     </ul>
   <h1 class="heading">Example:</h1>
@@ -1103,7 +1105,7 @@ a lot faster than the mod method that is normally seen</td>
 <span class="py-prompt">&gt;&gt;&gt; </span>data = numpy.random.lognormal(mean=5.1458, sigma=0.302313, size=30)
 <span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">print</span> data
 <span class="py-output">array([ 181.28078923,  131.18152745, ... , 141.15455416, 160.88972791])</span>
-<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>utils.medabsdev(data)
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>toolbox.medabsdev(data)
 <span class="py-output">28.346646721370192</span></pre>
   <h1 class="heading">Author:</h1>
     <p>Steve Morley, Los Alamos National Lab, 
@@ -1368,31 +1370,20 @@ a lot faster than the mod method that is normally seen</td>
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Given an array and a set of bins return the indices that are less than the 
-smallest bin between each set and larger than the largest bin
-bins should be sorted
-
-Inputs:
-=======
-array - the input array to slice
-bins - the bins to slice along (may be array or list)
-
-Outputs:
-========
-list of indices 
-     first element is less than fisrt bin and last bin is larger than last bin
-
-Example:
-========
-arraybin(arange(10), [4.2])
-Out[4]: [(array([0, 1, 2, 3, 4]),), (array([5, 6, 7, 8, 9]),)]
-
-Author:
-=======
-Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
-
-</pre>
+  <p>Given an array and a set of bins return the indices that are less than
+  the smallest bin between each set and larger than the largest bin bins 
+  should be sorted</p>
+  <h1 class="heading">Inputs:</h1>
+    <p>array - the input array to slice bins - the bins to slice along (may
+    be array or list)</p>
+  <h1 class="heading">Outputs:</h1>
+    <p>list of indices first element is less than fisrt bin and last bin is
+    larger than last bin</p>
+  <h1 class="heading">Example:</h1>
+    <p>arraybin(arange(10), [4.2]) Out[4]: [(array([0, 1, 2, 3, 4]),), 
+    (array([5, 6, 7, 8, 9]),)]</p>
+  <h1 class="heading">Author:</h1>
+    <p>Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1473,31 +1464,19 @@ Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-return an array of boolean leap year, 
-a lot faster than the mod method that is normally seen
-
-Inputs:
-=======
-year - array of years
-numdays=False - optionally return the number of days in the year
-
-Outputs:
-========
-an array of boolean leap year, or array of number of days
-
-Example:
-========
-leap_year(arange(15)+1998)
-Out[10]: 
-array([False, False,  True, False, False, False,  True, False, False,
-   False,  True, False, False, False,  True], dtype=bool)
-
-Author:
-=======
-Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
-
-</pre>
+  <p>return an array of boolean leap year, a lot faster than the mod method
+  that is normally seen</p>
+  <h1 class="heading">Inputs:</h1>
+    <p>year - array of years numdays=False - optionally return the number 
+    of days in the year</p>
+  <h1 class="heading">Outputs:</h1>
+    <p>an array of boolean leap year, or array of number of days</p>
+  <h1 class="heading">Example:</h1>
+    <p>leap_year(arange(15)+1998) Out[10]: array([False, False,  True, 
+    False, False, False,  True, False, False, ... False,  True, False, 
+    False, False,  True], dtype=bool)</p>
+  <h1 class="heading">Author:</h1>
+    <p>Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1578,37 +1557,22 @@ Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Ask a yes/no question via raw_input() and return their answer.
-
-&quot;question&quot; is a string that is presented to the user.
-&quot;default&quot; is the presumed answer if the user just hits &lt;Enter&gt;.
-    It must be &quot;yes&quot; (the default), &quot;no&quot; or None (meaning
-    an answer is required of the user).
-
-The &quot;answer&quot; return value is one of &quot;yes&quot; or &quot;no&quot;.
-
-Inputs:
-=======
-question - string that is the question to ask
-default - the default answer (yes)
-
-Outputs:
-========
-answer ('yes' or 'no')
-
-Example:
-======== 
-query_yes_no('Ready to go?')
-Ready to go? [Y/n] y
-Out[17]: 'yes'
-
-
-Author:
-=======
-Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
-
-</pre>
+  <p>Ask a yes/no question via raw_input() and return their answer.</p>
+  <p>&quot;question&quot; is a string that is presented to the user. 
+  &quot;default&quot; is the presumed answer if the user just hits 
+  &lt;Enter&gt;. It must be &quot;yes&quot; (the default), &quot;no&quot; 
+  or None (meaning an answer is required of the user).</p>
+  <p>The &quot;answer&quot; return value is one of &quot;yes&quot; or 
+  &quot;no&quot;.</p>
+  <h1 class="heading">Inputs:</h1>
+    <p>question - string that is the question to ask default - the default 
+    answer (yes)</p>
+  <h1 class="heading">Outputs:</h1>
+    <p>answer ('yes' or 'no')</p>
+  <h1 class="heading">Example:</h1>
+    <p>query_yes_no('Ready to go?') Ready to go? [Y/n] y Out[17]: 'yes'</p>
+  <h1 class="heading">Author:</h1>
+    <p>Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1680,7 +1644,7 @@ Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 24 18:11:52 2010
+    Generated by Epydoc 3.0.1 on Thu May 27 15:56:04 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -71,7 +71,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.6 $, $Date: 2010/05/25 16:02:48 $"
+__version__ = "$Revision: 1.7 $, $Date: 2010/05/27 22:02:08 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1600,9 +1600,7 @@ class Ticktock(object):
     # -----------------------------------------------
     @classmethod
     def now(self):
-        """
-        tt = Ticktock.now()
-    
+        """    
         Creates a Ticktock object with the current time, equivalent to dattime.now()
         
         Input:
@@ -1762,9 +1760,9 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
     
     Seconds of day
     Keyword arguments:
-        rounding (True|False) - set for integer seconds
-        days (True|False) - set to wrap around day (i.e. modulo 86400)
-        dtobj (True|False) - set to return a timedelta object
+    rounding (True|False) - set for integer seconds
+    days (True|False) - set to wrap around day (i.e. modulo 86400)
+    dtobj (True|False) - set to return a timedelta object
     
     Returns:
     ========
@@ -1777,7 +1775,7 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
     
     Modification history:
-    ====================
+    =====================
     
     v1. Created by Steve Morley in March 2010
     v1.1 Datetime timedelta output added; 17-May-2010 (SM)
