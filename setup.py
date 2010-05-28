@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.9 $, $Date: 2010/05/26 22:00:01 $"
+__version__ = "$Revision: 1.10 $, $Date: 2010/05/28 18:00:38 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -97,7 +97,15 @@ def subst(pattern, replacement, filestr,
 from distutils.core import setup
 import spacepy
 import spacepy.toolbox as tb
-import os, shutil
+import os, sys, shutil
+
+#test for python version 2.x where x>=5
+try:
+    dum = sys.version_info
+    assert dum[0]==2
+    assert dum[1]>=5
+except:
+    raise Exception("SpacePy requires Python 2.X, where X>=5. Please install a suitable version.")
 
 # run compile for onera_desp_lib first
 if os.path.exists('spacepy/onerapy/onerapylib.so'):
@@ -132,9 +140,10 @@ setup(name='spacepy',
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen',
       author_email='spacepy_mail@lanl.gov',
       url='http://spacepy.lanl.gov',
+      requires=['numpy','scipy','matplotlib (>=0.99)'],
       packages=['spacepy','spacepy.sandbox'],
       package_data={'spacepy': pkg_files}
-      ) 
+      )
 
 # update/download packages
 
