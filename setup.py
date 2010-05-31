@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.10 $, $Date: 2010/05/28 18:00:38 $"
+__version__ = "$Revision: 1.11 $, $Date: 2010/05/31 21:27:32 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -142,7 +142,17 @@ setup(name='spacepy',
       url='http://spacepy.lanl.gov',
       requires=['numpy','scipy','matplotlib (>=0.99)'],
       packages=['spacepy','spacepy.sandbox'],
-      package_data={'spacepy': pkg_files}
+      package_data={'spacepy': pkg_files},
+      classifiers=[
+          'Development Status :: 4 - Beta',
+          'Intended Audience :: Science/Research',
+          'License :: OSI Approved :: GNU General Public License (GPL)',
+          'Operating System :: MacOS :: MacOS X',
+          'Operating System :: POSIX',
+          'Programming Language :: Python',
+          'Topic :: Scientific/Engineering :: Physics',
+          'Topic :: Software Development :: Libraries :: Python Modules'
+          ]
       )
 
 # update/download packages
