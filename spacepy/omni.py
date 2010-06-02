@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.7 $, $Date: 2010/05/27 21:46:11 $"
+__version__ = "$Revision: 1.8 $, $Date: 2010/06/02 16:07:14 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -239,7 +239,7 @@ def get_G123(TAI, omnidata):
 #Test whether data file exists in correct location, if not, offer to fetch.
 if __nodataflag:
     import spacepy.toolbox as tb
-    ans = tb.query_yes_no('Update OMNI from ViRBO now? (Internet connection required) ', default="yes")
+    ans = tb.query_yes_no('\nUpdate OMNI from ViRBO now? (Internet connection required) ', default="yes")
     if ans=='yes':
         omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
         omni_fname_dat = dotfln+'/data/omnidata.pkl'
@@ -249,5 +249,6 @@ if __nodataflag:
         os.remove(omni_fname_zip)
         omnidata = loadpickle(omnifln)
     else:
-        raise ImportError("No OMNI data downloaded. This module has limited functionality.")
+        #raise ImportError("No OMNI data downloaded. This module has limited functionality.")
+        print "\nNo OMNI data downloaded. This module has limited functionality."
    

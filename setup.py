@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.12 $, $Date: 2010/06/02 15:44:51 $"
+__version__ = "$Revision: 1.13 $, $Date: 2010/06/02 16:07:14 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -128,7 +128,7 @@ if os.path.exists(dotfln):
 		fresh_install = True
 		i = 0
 		while 1:
-			if os.path.exists(dotfln+'.bak'):
+			if os.path.exists(dotfln+'.bak') or os.path.exists(dotfln+'.bak.'+str(i)):
 				i = i+1
 			else:
 				shutil.move(dotfln, dotfln+'.bak.'+str(i))
@@ -152,8 +152,8 @@ setup(name='spacepy',
       version='0.1',
       description='SpacePy: Tools for Space Science Applications',
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen',
-      author_email='spacepy_mail@lanl.gov',
-      url='http://spacepy.lanl.gov',
+      author_email='spacepy@lanl.gov',
+      url='http://www.spacepy.lanl.gov',
       requires=['numpy','scipy','matplotlib (>=0.99)'],
       packages=['spacepy','spacepy.sandbox'],
       package_data={'spacepy': pkg_files},
