@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.11 $, $Date: 2010/05/31 21:27:32 $"
+__version__ = "$Revision: 1.12 $, $Date: 2010/06/02 15:44:51 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -118,18 +118,32 @@ else:
 # create .spacepy in $HOME and move data
 HOME = os.environ['HOME']
 dotfln = HOME+'/.spacepy'
-if os.path.exists(dotfln+'.bak'):
-	shutil.rmtree(dotfln+'.bak', ignore_errors=True)
-if os.path.exists(dotfln):
-	shutil.move(dotfln, dotfln+'.bak')
 
-os.mkdir(dotfln)
-os.chmod(dotfln, 0777)
-os.mkdir(dotfln+'/data')
-os.chmod(dotfln+'/data', 0777)
-shutil.copy('spacepy/data/spacepy.rc', dotfln+'/')
-shutil.copy('spacepy/data/PSDdb.pbin', dotfln+'/data')
-shutil.copy('spacepy/data/tai-utc.dat', dotfln+'/data')
+
+if os.path.exists(dotfln):
+	ans = tb.query_yes_no('\n'+dotfln+' already exists. Do you want to start fresh?', default="no")
+	if ans=='no':
+		fresh_install = False
+	else:
+		fresh_install = True
+		i = 0
+		while 1:
+			if os.path.exists(dotfln+'.bak'):
+				i = i+1
+			else:
+				shutil.move(dotfln, dotfln+'.bak.'+str(i))
+				break
+else:
+	fresh_install = True
+	
+if fresh_install:
+	os.mkdir(dotfln)
+	os.chmod(dotfln, 0777)
+	os.mkdir(dotfln+'/data')
+	os.chmod(dotfln+'/data', 0777)
+	shutil.copy('spacepy/data/spacepy.rc', dotfln+'/')
+	shutil.copy('spacepy/data/PSDdb.pbin', dotfln+'/data')
+	shutil.copy('spacepy/data/tai-utc.dat', dotfln+'/data')
 
 pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*']
 
@@ -156,14 +170,16 @@ setup(name='spacepy',
       )
 
 # update/download packages
-
-ans = tb.query_yes_no("""\n\nSpacePy requires an OMNI database and leap seconds information for full 
-functionality. Would you like to download these packages? (Internet connection required) """, default="yes")
-if ans=='yes':
-	dir = tb.update()
-	print("Data installed to " + dir)
+if fresh_install:
+		dir = tb.update()
+		print("Data installed to " + dir)
 else:
-	print "WARNING: SpacePy will have limited functionality, unless you run spacepy.toolbox.update()"
+	ans = tb.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no")
+	if ans=='yes':
+		dir = tb.update()
+	else:
+		print "\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()"
+
 	
 # offer testing routine
 ans = tb.query_yes_no("\nDo you want to test your SpacePy installation", default="no")
