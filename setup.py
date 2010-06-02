@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.13 $, $Date: 2010/06/02 16:07:14 $"
+__version__ = "$Revision: 1.14 $, $Date: 2010/06/02 16:16:06 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -------------------------------------
@@ -128,7 +128,7 @@ if os.path.exists(dotfln):
 		fresh_install = True
 		i = 0
 		while 1:
-			if os.path.exists(dotfln+'.bak') or os.path.exists(dotfln+'.bak.'+str(i)):
+			if os.path.exists(dotfln+'.bak.'+str(i)):
 				i = i+1
 			else:
 				shutil.move(dotfln, dotfln+'.bak.'+str(i))
