@@ -1,10 +1,10 @@
 
 
-def get_PSD(dates, mu=1051, k=0.005,
+def get_PSD(ticks, MU=1051, K=0.005,
             sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A'],
             _query=None):
     """
-    get_PSD(dates, mu, k, sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A'])
+    get_PSD(ticks, mu, k, sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A'])
     
     Get the PSD from an input mu, k, date range, and list of sats from the psd database
 
@@ -13,15 +13,15 @@ def get_PSD(dates, mu=1051, k=0.005,
     
     Input:
     ======
-    - dates - a list of start and stop dates exclusive (Ticktock objects)
-    - mu (optional) - a single mu value (default 1051)
-    - k (optional) - a single k value (default 0.005)
+    - ticks - a list of start and stop ticks exclusive (Ticktock objects)
+    - MU (optional) - a single mu value (default 1051)
+    - K (optional) - a single k value (default 0.005)
     - sats (optional) - a list of sats to returen data from **Currently not implemented**
     - _query (optional) - specify the query to take place (for the helper functions)
     
     Returns:
     ========
-    - a dictionary of the form {'time':time, 'lstar':lstar, 'psd':psd, 'sat':sats}
+    - a dictionary of the form {'Ticks':time, 'Lstar':lstar, 'PSD':psd, 'Sat':sats}
     
     Example:
     ========
@@ -53,16 +53,17 @@ def get_PSD(dates, mu=1051, k=0.005,
     import subprocess      
     import os
     import spacepy.toolbox as tb
+    import spacepy.time
 
     #####################################
     ###  Input checking #################
     #####################################
-    # dates a ticktock object with 2 elements?
+    # ticks a ticktock object with 2 elements?
     try:
-        if len(dates) != 2:
-            raise(ValueError('Dates must be 2 element list of start stop dates'))
+        if len(ticks) != 2:
+            raise(ValueError('ticks must be 2 element list of start stop ticks'))
     except:
-        raise(ValueError('Dates must be 2 element list of start stop dates')) 
+        raise(ValueError('ticks must be 2 element list of start stop dates')) 
   
     ## check to see if the db exists
     file_local = os.path.isfile("psd_dat.sqlite")
@@ -121,46 +122,46 @@ def get_PSD(dates, mu=1051, k=0.005,
 
 
     if _query == 'availablesats':
-        s = select([func.distinct(Psd.sat)], dates[1] > Psd.time > dates[0])
+        s = select([func.distinct(Psd.sat)], ticks.UTC[1] > Psd.time > ticks.UTC[0])
         ans = s.execute()
         for val in ans:
             sats_l.append(val)
     if _query == 'availablemu':
-        s = select([func.distinct(Psd.mu)], dates[1] > Psd.time > dates[0])
+        s = select([func.distinct(Psd.mu)], ticks.UTC[1] > Psd.time > ticks.UTC[0])
         ans = s.execute()
         for val in ans:
             mu_l.append(val)
     if _query == 'availablek':
-        s = select([func.distinct(Psd.k)], dates[1] > Psd.time > dates[0])
+        s = select([func.distinct(Psd.k)], ticks.UTC[1] > Psd.time > ticks.UTC[0])
         ans = s.execute()
         for val in ans:
             k_l.append(val)
     if _query == None:
         ## session.query is what does the query
-        ans = session.query(Psd.time, Psd.lstar, Psd.psd, Psd.sat).filter_by(mu = mu).filter_by(k=k).filter(Psd.time > dates[0]).filter(Psd.time < dates[1]).order_by(Psd.time).all()    
+        ans = session.query(Psd.time, Psd.lstar, Psd.psd, Psd.sat).filter_by(mu = MU).filter_by(k=K).filter(Psd.time > ticks.UTC[0]).filter(Psd.time < ticks.UTC[1]).order_by(Psd.time).all()    
         for val in ans:
             time.append(val[0])
             lstar.append(val[1])
             psd.append(val[2])
             sats_l.append(val[3])
-            mu_l.append(mu)
-            k_l.append(k)
+            mu_l.append(MU)
+            k_l.append(K)
 
     ## annoyingly in the interest of getting this done not sure how to select on the sats specified so do that on this dict
     
-    ret = {'time':time, 'lstar':lstar, 'psd':psd, 'sat':sats_l, 'mu':mu_l, 'k':k_l}
+    ret = {'Ticks':time, 'Lstar':lstar, 'PSD':psd, 'sat':sats_l, 'MU':mu_l, 'K':k_l}
     return ret
 
-def get_PSD_availablesats(dates):
+def get_PSD_availablesats(ticks):
     """
-    get_PSD_availablesats(dates)
+    get_PSD_availablesats(ticks)
     
     Get a list of sats with data for the given time range
     (Databease created 2-Jun-2010 by Brian Larsen)
     
     Input:
     ======
-    - dates - a list of start and stop dates (datetime objects)
+    - ticks - start and stop dates as a Ticktock object of len=2
     
     Returns:
     ========
@@ -181,19 +182,19 @@ def get_PSD_availablesats(dates):
     V1: 02-Jun-2010 (BAL)
     """
     import numpy as np
-    ans = get_PSD(dates, _query='availablesats')
+    ans = get_PSD(ticks, _query='availablesats')
     return ans['sat']
 
-def get_PSD_availablemu(dates):
+def get_PSD_availablemu(ticks):
     """
-    get_PSD_availablemu(dates)
+    get_PSD_availablemu(ticks)
     
     Get a list of mu values with data for the given time range
     (Databease created 2-Jun-2010 by Brian Larsen)
     
     Input:
     ======
-    - dates - a list of start and stop dates (datetime objects)
+    - ticks - start and stop dates as a Ticktock object of len=2
     
     Returns:
     ========
@@ -214,19 +215,19 @@ def get_PSD_availablemu(dates):
     V1: 02-Jun-2010 (BAL)
     """
     import numpy as np
-    ans = get_PSD(dates, _query='availablemu')
-    return ans['mu']
+    ans = get_PSD(ticks, _query='availablemu')
+    return ans['MU']
 
-def get_PSD_availablek(dates):
+def get_PSD_availablek(ticks):
     """
-    get_PSD_availablek(dates)
+    get_PSD_availablek(ticks)
     
     Get a list of k values with data for the given time range
     (Databease created 2-Jun-2010 by Brian Larsen)
     
     Input:
     ======
-    - dates - a list of start and stop dates (datetime objects)
+    - ticks - start and stop dates as a Ticktock object of len=2
     
     Returns:
     ========
@@ -247,28 +248,29 @@ def get_PSD_availablek(dates):
     V1: 02-Jun-2010 (BAL)
     """
     import numpy as np
-    ans = get_PSD(dates, _query='availablek')
-    return ans['k']
+    ans = get_PSD(ticks, _query='availablek')
+    return ans['K']
 
 
 if __name__ == "__main__":
     from datetime import datetime
+    import spacepy.time
     from pylab import *
     import numpy as np
-    dates = [datetime(2005, 1, 1), datetime(2005, 7, 1)]
+    ticks = spacepy.time.Ticktock([datetime(2005, 1, 1), datetime(2005, 7, 1)], 'UTC')
     mu = 462
     k = 0.03
     ## sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A']
-    ans = get_PSD_availablek(dates)
+    ans = get_PSD_availablek(ticks)
     print ans
-    ans = get_PSD_availablemu(dates)
+    ans = get_PSD_availablemu(ticks)
     print ans
-    ans = get_PSD_availablesats(dates)
+    ans = get_PSD_availablesats(ticks)
     print ans
     
-    ans = get_PSD(dates, mu, k)
+    ans = get_PSD(ticks, mu, k)
 
-    semilogy(ans['time'], ans['psd'])
+    semilogy(ans['Ticks'], ans['PSD'])
     ax = gca()
     ax.set_ylabel('PSD')
     print('Data from these sats:')
