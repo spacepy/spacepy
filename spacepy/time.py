@@ -71,7 +71,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.7 $, $Date: 2010/05/27 22:02:08 $"
+__version__ = "$Revision: 1.8 $, $Date: 2010/06/02 22:51:14 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -380,7 +380,11 @@ class Ticktock(object):
         import numpy as n
         
         arr = n.array(self.data)
-        return Ticktock(arr[idx].tolist(), self.dtype)   
+        
+        if isinstance(idx, int):
+        	return Ticktock(arr[idx], self.dtype) 
+        else:
+	        return Ticktock(arr[idx].tolist(), self.dtype)   
     
     # -----------------------------------------------    
     def __setitem__(self, idx, vals):
