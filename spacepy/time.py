@@ -71,7 +71,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.8 $, $Date: 2010/06/02 22:51:14 $"
+__version__ = "$Revision: 1.9 $, $Date: 2010/06/03 19:46:05 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -650,7 +650,36 @@ class Ticktock(object):
         #if name == 'isoformat': self.__isofmt = self.isoformat()
         if name == 'leaps': self.leaps = self.getleapsecs()
         return eval('self.'+name)
+
+    # -----------------------------------------------
+    def sort(self):
+        """
+        a.sort()
+        
+        This will sort the Ticktock values in place
+        
+        Input:
+        ======
+            - a Ticktock class instance
     
+        Author:
+        =======
+        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
+    
+        Version:
+        ========
+        V1: 03-Jun-2010 (JK)
+       
+        """    
+        
+        import numpy as n
+        
+        RDT = self.RDT
+        RDTsorted = n.sort(RDT)
+        self = Ticktock(RDTsorted, 'RDT').convert(self.dtype)
+        
+        return
+        
     # -----------------------------------------------
     def isoformat(self, fmt=None):
         """
