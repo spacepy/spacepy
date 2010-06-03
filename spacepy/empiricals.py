@@ -5,7 +5,7 @@ empirical models
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.4 $, $Date: 2010/06/03 17:26:55 $"
+__version__ = "$Revision: 1.5 $, $Date: 2010/06/03 17:54:52 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -45,6 +45,10 @@ def get_plasma_pause(ticks, Lpp_model='M2002'):
     - Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
     CA1992 returns the Carpenter and Anderson model,
     M2002 returns the Moldwin et al. model
+    
+    Returns:
+    ========
+    - Lpp: Plasmapause radius in Earth radii
     
     Authors:
     =======
@@ -93,33 +97,73 @@ def get_plasma_pause(ticks, Lpp_model='M2002'):
 # Magnetopause Location
 # -----------------------------------------------    
     
-def ShueMP(P,Bz):
+def ShueMP(ticks):
     """Calculates the Shue et al. (1997) subsolar magnetopause radius
-    
-    Ported from Drew Turner's (LASP) MatLab script
     
     Inputs:
     =======
-    SW ram pressure [nPa], IMF Bz (GSM) [nT]
+    - ticks: TickTock object of desired times
+    (will be interpolated from hourly OMNI data)
+    OR
+    - dictionary of form {'P': [], 'Bz': []}
+    Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]
     
-    Output:
+    Returns:
     =======
     Magnetopause (sub-solar point) standoff distance [Re]
+    
+    Example:
+    =========
+    >>> import spacepy.time as spt
+    >>> import spacepy.empiricals as emp
+    >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
+    >>> emp.ShueMP(ticks)
+    array([ 10.57319532,  10.91327759,  10.75086872,  10.77577211,
+         9.7818026 ,  11.03744739,  11.4065    ,  11.27555453,
+        11.47988569,  11.82025823,  11.23834817])
+    >>> data = data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
+    >>> emp.ShueMP(data)
+    array([ 10.29156018,   8.96790412])
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
     """
     
     import numpy as np
+    import datetime as dt
+    import spacepy.omni as om
+    import spacepy.time as spt
+    import spacepy.toolbox as tb
     
-    # Initialize r0 and make P and Bz numpy arrays
-    r0 = np.zeros((len(P)),dtype=float)
-    Bz = np.array(Bz)
-    P = np.array(P)
+    if type(ticks) == spt.Ticktock:
+        omni = om.get_omni(ticks)
+        P, Bz = omni['Pdyn'], omni['BzIMF']
+    elif type(ticks) == dict:
+        P, Bz = ticks['P'], ticks['Bz']
+        try:
+            len(P)
+        except TypeError:
+            P = [P]
+        try:
+            len(Bz)
+        except TypeError:
+            Bz = [Bz]
     
-    # Find where Bz >= 0 and where it is < 0
-    iBzPos = np.where(Bz >= 0)
-    iBzNeg = np.where(Bz < 0)
-    
-    # Calculate r0
-    r0[iBzPos] = (11.4 + 0.013*Bz[iBzPos])*P[iBzPos]**(-1/6.6)
-    r0[iBzNeg] = (11.4 + 0.140*Bz[iBzNeg])*P[iBzNeg]**(-1/6.6)
-    
-    return r0
+    try:
+        # Initialize r0 and make P and Bz numpy arrays
+        r0 = np.zeros((len(P)),dtype=float)
+        Bz = np.array(Bz)
+        P = np.array(P)
+        
+        # Find where Bz >= 0 and where it is < 0
+        iBzPos = np.where(Bz >= 0)
+        iBzNeg = np.where(Bz < 0)
+        
+        # Calculate r0
+        r0[iBzPos] = (11.4 + 0.013*Bz[iBzPos])*P[iBzPos]**(-1/6.6)
+        r0[iBzNeg] = (11.4 + 0.140*Bz[iBzNeg])*P[iBzNeg]**(-1/6.6)
+        
+        return r0
+    except TypeError:
+        raise TypeError("Please check for valid input types")
