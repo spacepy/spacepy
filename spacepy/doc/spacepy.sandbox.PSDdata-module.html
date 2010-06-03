@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>spacepy.sandbox.cdfpy.CDF</title>
+  <title>spacepy.sandbox.PSDdata</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 </head>
@@ -44,8 +44,7 @@
       <span class="breadcrumbs">
         <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
         <a href="spacepy.sandbox-module.html">Package&nbsp;sandbox</a> ::
-        <a href="spacepy.sandbox.cdfpy-module.html">Module&nbsp;cdfpy</a> ::
-        Class&nbsp;CDF
+        Module&nbsp;PSDdata
       </span>
     </td>
     <td>
@@ -55,299 +54,344 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="spacepy.sandbox.cdfpy.CDF-class.html"
+            >]&nbsp;|&nbsp;<a href="spacepy.sandbox.PSDdata-module.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
-<!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class CDF</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF">source&nbsp;code</a></span></p>
-<pre class="base-tree">
-object --+
-         |
-        <strong class="uidshort">CDF</strong>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module PSDdata</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html">source&nbsp;code</a></span></p>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.sandbox.PSDdata-module.html#get_PSD" class="summary-sig-name">get_PSD</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">mu</span>=<span class="summary-sig-default">1051</span>,
+        <span class="summary-sig-arg">k</span>=<span class="summary-sig-default">0.005</span>,
+        <span class="summary-sig-arg">sats</span>=<span class="summary-sig-default">'1990-095'</span>,
+        <span class="summary-sig-arg">'1991-080'</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">'GPS-ns41'</span>,
+        <span class="summary-sig-arg">'LANL-01A'</span>,
+        <span class="summary-sig-arg">'LANL-02A'</span>,
+        <span class="summary-sig-arg">'LANL-97A'</span>)</span><br />
+      Get the PSD from an input mu, k, date range, and list of sats from the psd database</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html#get_PSD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.sandbox.PSDdata-module.html#get_PSD_availablesats" class="summary-sig-name">get_PSD_availablesats</a>(<span class="summary-sig-arg">ticks</span>)</span><br />
+      Get a list of sats with data for the given time range
+(Databease created 2-Jun-2010 by Brian Larsen)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html#get_PSD_availablesats">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.sandbox.PSDdata-module.html#get_PSD_availablemu" class="summary-sig-name">get_PSD_availablemu</a>(<span class="summary-sig-arg">ticks</span>)</span><br />
+      Get a list of mu values with data for the given time range
+(Databease created 2-Jun-2010 by Brian Larsen)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html#get_PSD_availablemu">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.sandbox.PSDdata-module.html#get_PSD_availablek" class="summary-sig-name">get_PSD_availablek</a>(<span class="summary-sig-arg">ticks</span>)</span><br />
+      Get a list of k values with data for the given time range
+(Databease created 2-Jun-2010 by Brian Larsen)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html#get_PSD_availablek">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="None">None</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="get_PSD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_PSD</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">mu</span>=<span class="sig-default">1051</span>,
+        <span class="sig-arg">k</span>=<span class="sig-default">0.005</span>,
+        <span class="sig-arg">sats</span>=<span class="sig-default">'1990-095'</span>,
+        <span class="sig-arg">'1991-080'</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">'GPS-ns41'</span>,
+        <span class="sig-arg">'LANL-01A'</span>,
+        <span class="sig-arg">'LANL-02A'</span>,
+        <span class="sig-arg">'LANL-97A'</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html#get_PSD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Get the PSD from an input mu, k, date range, and list of sats from the psd database
+
+** Warning ** With the sqlite backend this is not screaming fast.  Be a little patient
+(Databease created 2-Jun-2010 by Brian Larsen)
+
+Input:
+======
+- ticks - a list of start and stop ticks exclusive (Ticktock objects)
+- MU (optional) - a single mu value (default 1051)
+- K (optional) - a single k value (default 0.005)
+- sats (optional) - a list of sats to returen data from **Currently not implemented**
+- _query (optional) - specify the query to take place (for the helper functions)
+
+Returns:
+========
+- a dictionary of the form {'Ticks':time, 'Lstar':lstar, 'PSD':psd, 'Sat':sats}
+
+Example:
+========
+
+See Also:
+=========
+
+Author:
+=======
+Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)
+
+Version:
+========
+V1: 02-Jun-2010 (BAL)
+
 </pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_PSD_availablesats"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_PSD_availablesats</span>(<span class="sig-arg">ticks</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html#get_PSD_availablesats">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Get a list of sats with data for the given time range
+(Databease created 2-Jun-2010 by Brian Larsen)
 
-<hr />
-<p>CDF file class</p>
-  <p>Not nearly complete... To Do: import (some) more functionality, 
-  including actually reading in values!</p>
+Input:
+======
+- ticks - start and stop dates as a Ticktock object of len=2
 
-<!-- ==================== INSTANCE METHODS ==================== -->
-<a name="section-InstanceMethods"></a>
-<table class="summary" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td colspan="2" class="table-header">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr valign="top">
-        <td align="left"><span class="table-header">Instance Methods</span></td>
-        <td align="right" valign="top"
-         ><span class="options">[<a href="#section-InstanceMethods"
-         class="privatelink" onclick="toggle_private();"
-         >hide private</a>]</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.sandbox.cdfpy.CDF-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">verbose</span>=<span class="summary-sig-default">True</span>)</span><br />
-      x.__init__(...) initializes x; see x.__class__.__doc__ for signature</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.__init__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.sandbox.cdfpy.CDF-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Define String Representation of Sea object</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.__str__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.sandbox.cdfpy.CDF-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Define String Representation of Sea object</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.__str__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.sandbox.cdfpy.CDF-class.html#open" class="summary-sig-name">open</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">fname</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">load</span>=<span class="summary-sig-default">True</span>)</span><br />
-      Opens and reads a CDF file into an object</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.open">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="close"></a><span class="summary-sig-name">close</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Closes a previously opened CDF file</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.close">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="index"></a><span class="summary-sig-name">index</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Prints variables in CDF data store</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.index">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
-      <code>__delattr__</code>,
-      <code>__format__</code>,
-      <code>__getattribute__</code>,
-      <code>__hash__</code>,
-      <code>__new__</code>,
-      <code>__reduce__</code>,
-      <code>__reduce_ex__</code>,
-      <code>__setattr__</code>,
-      <code>__sizeof__</code>,
-      <code>__subclasshook__</code>
-      </p>
-    </td>
-  </tr>
-</table>
-<!-- ==================== PROPERTIES ==================== -->
-<a name="section-Properties"></a>
-<table class="summary" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td colspan="2" class="table-header">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr valign="top">
-        <td align="left"><span class="table-header">Properties</span></td>
-        <td align="right" valign="top"
-         ><span class="options">[<a href="#section-Properties"
-         class="privatelink" onclick="toggle_private();"
-         >hide private</a>]</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
-  <tr>
-    <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
-      <code>__class__</code>
-      </p>
-    </td>
-  </tr>
-</table>
-<!-- ==================== METHOD DETAILS ==================== -->
-<a name="section-MethodDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td colspan="2" class="table-header">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr valign="top">
-        <td align="left"><span class="table-header">Method Details</span></td>
-        <td align="right" valign="top"
-         ><span class="options">[<a href="#section-MethodDetails"
-         class="privatelink" onclick="toggle_private();"
-         >hide private</a>]</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
-</table>
-<a name="__init__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">verbose</span>=<span class="sig-default">True</span>)</span>
-    <br /><em class="fname">(Constructor)</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.__init__">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>x.__init__(...) initializes x; see x.__class__.__doc__ for 
-  signature</p>
+Returns:
+========
+- a list of the sats that have data for thje gioven time period
+
+Example:
+========
+
+See Also:
+=========
+
+Author:
+=======
+Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)
+
+Version:
+========
+V1: 02-Jun-2010 (BAL)
+
+</pre>
   <dl class="fields">
-    <dt>Overrides:
-        object.__init__
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
   </dl>
 </td></tr></table>
 </div>
-<a name="__str__"></a>
+<a name="get_PSD_availablemu"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
-    <br /><em class="fname">(Informal representation operator)</em>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_PSD_availablemu</span>(<span class="sig-arg">ticks</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.__str__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html#get_PSD_availablemu">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Define String Representation of Sea object</p>
+  <pre class="literalblock">
+Get a list of mu values with data for the given time range
+(Databease created 2-Jun-2010 by Brian Larsen)
+
+Input:
+======
+- ticks - start and stop dates as a Ticktock object of len=2
+
+Returns:
+========
+- a list of the mu values that have data for the given time period
+
+Example:
+========
+
+See Also:
+=========
+
+Author:
+=======
+Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)
+
+Version:
+========
+V1: 02-Jun-2010 (BAL)
+
+</pre>
   <dl class="fields">
-    <dt>Overrides:
-        object.__str__
-    </dt>
   </dl>
 </td></tr></table>
 </div>
-<a name="__repr__"></a>
+<a name="get_PSD_availablek"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__repr__</span>(<span class="sig-arg">self</span>)</span>
-    <br /><em class="fname">(Representation operator)</em>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_PSD_availablek</span>(<span class="sig-arg">ticks</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.__str__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="spacepy.sandbox.PSDdata-pysrc.html#get_PSD_availablek">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Define String Representation of Sea object</p>
-  <dl class="fields">
-    <dt>Overrides:
-        object.__repr__
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="open"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">open</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">fname</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">load</span>=<span class="sig-default">True</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.sandbox.cdfpy-pysrc.html#CDF.open">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Opens and reads a CDF file into an object</p>
-  <p>Optional arguments: fname - input filename. If not supplied will read 
-  from fname attribute (if set). load - (Default: True) Load all attributes
-  and variables on open</p>
+  <pre class="literalblock">
+Get a list of k values with data for the given time range
+(Databease created 2-Jun-2010 by Brian Larsen)
+
+Input:
+======
+- ticks - start and stop dates as a Ticktock object of len=2
+
+Returns:
+========
+- a list of the k values that have data for the given time period
+
+Example:
+========
+
+See Also:
+=========
+
+Author:
+=======
+Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)
+
+Version:
+========
+V1: 02-Jun-2010 (BAL)
+
+</pre>
   <dl class="fields">
   </dl>
 </td></tr></table>

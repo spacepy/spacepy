@@ -65,7 +65,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.3 $, $Date: 2010/05/27 22:02:08 $
+        $Revision: 1.4 $, $Date: 2010/06/03 23:47:47 $
       </p>
       <dl><dt>Authors:</dt>
         <dd>
@@ -96,11 +96,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="get_Lmax"></a><span class="summary-sig-name">get_Lmax</span>(<span class="summary-sig-arg">ticks</span>,
-        <span class="summary-sig-arg">Lmax_model</span>)</span><br />
-      calculate a simple empirical model for Lmax</td>
+          <td><span class="summary-sig"><a href="spacepy.empiricals-module.html#getLmax" class="summary-sig-name">getLmax</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">Lmax_model</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">JKemp</code><code class="variable-quote">'</code></span>)</span><br />
+      calculate a simple empirical model for Lmax - last closed drift-shell</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#get_Lmax">source&nbsp;code</a></span>
+            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#getLmax">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -114,11 +114,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="get_plasma_pause"></a><span class="summary-sig-name">get_plasma_pause</span>(<span class="summary-sig-arg">ticks</span>,
-        <span class="summary-sig-arg">Lpp_model</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">CA2000</code><code class="variable-quote">'</code></span>)</span><br />
+          <td><span class="summary-sig"><a href="spacepy.empiricals-module.html#getPlasmaPause" class="summary-sig-name">getPlasmaPause</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">Lpp_model</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">M2002</code><code class="variable-quote">'</code></span>)</span><br />
       Plasmapause location model(s)</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#get_plasma_pause">source&nbsp;code</a></span>
+            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#getPlasmaPause">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -132,11 +132,63 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.empiricals-module.html#ShueMP" class="summary-sig-name">ShueMP</a>(<span class="summary-sig-arg">P</span>,
-        <span class="summary-sig-arg">Bz</span>)</span><br />
+          <td><span class="summary-sig"><a href="spacepy.empiricals-module.html#getMPstandoff" class="summary-sig-name">getMPstandoff</a>(<span class="summary-sig-arg">ticks</span>)</span><br />
       Calculates the Shue et al.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#ShueMP">source&nbsp;code</a></span>
+            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#getMPstandoff">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.empiricals-module.html#ShueMP" class="summary-sig-name">ShueMP</a>(<span class="summary-sig-arg">ticks</span>)</span><br />
+      Calculates the Shue et al.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#getMPstandoff">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.empiricals-module.html#get_plasma_pause" class="summary-sig-name">get_plasma_pause</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">Lpp_model</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">M2002</code><code class="variable-quote">'</code></span>)</span><br />
+      Plasmapause location model(s)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#getPlasmaPause">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.empiricals-module.html#get_Lmax" class="summary-sig-name">get_Lmax</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">Lmax_model</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">JKemp</code><code class="variable-quote">'</code></span>)</span><br />
+      calculate a simple empirical model for Lmax - last closed drift-shell</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.empiricals-pysrc.html#getLmax">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -188,6 +240,134 @@
   </td>
 </tr>
 </table>
+<a name="getLmax"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getLmax</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">Lmax_model</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">JKemp</code><code class="variable-quote">'</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.empiricals-pysrc.html#getLmax">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+calculate a simple empirical model for Lmax - last closed drift-shell
+
+Input:
+======
+- ticks: TickTock object of desired times
+- Lpp_model (kwarg): 'JKemp' (default)
+JKemp returns the empirical model of J. Koller
+
+Returns:
+========
+- Lmax: L* of last closed drift shell
+
+Authors:
+=======
+Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getPlasmaPause"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getPlasmaPause</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">Lpp_model</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">M2002</code><code class="variable-quote">'</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.empiricals-pysrc.html#getPlasmaPause">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Plasmapause location model(s)
+
+Input:
+======
+- ticks: TickTock object of desired times
+- Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
+CA1992 returns the Carpenter and Anderson model,
+M2002 returns the Moldwin et al. model
+
+Returns:
+========
+- Lpp: Plasmapause radius in Earth radii
+
+Authors:
+=======
+Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getMPstandoff"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getMPstandoff</span>(<span class="sig-arg">ticks</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.empiricals-pysrc.html#getMPstandoff">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Calculates the Shue et al. (1997) subsolar magnetopause radius
+
+Inputs:
+=======
+- ticks: TickTock object of desired times
+(will be interpolated from hourly OMNI data)
+OR
+- dictionary of form {'P': [], 'Bz': []}
+Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]
+
+Returns:
+=======
+Magnetopause (sub-solar point) standoff distance [Re]
+
+Example:
+=========
+&gt;&gt;&gt; import spacepy.time as spt
+&gt;&gt;&gt; import spacepy.empiricals as emp
+&gt;&gt;&gt; ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
+&gt;&gt;&gt; emp.ShueMP(ticks)
+array([ 10.57319532,  10.91327759,  10.75086872,  10.77577211,
+     9.7818026 ,  11.03744739,  11.4065    ,  11.27555453,
+    11.47988569,  11.82025823,  11.23834817])
+&gt;&gt;&gt; data = data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
+&gt;&gt;&gt; emp.ShueMP(data)
+array([ 10.29156018,   8.96790412])
+
+Author:
+=======
+Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="ShueMP"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -195,20 +375,123 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ShueMP</span>(<span class="sig-arg">P</span>,
-        <span class="sig-arg">Bz</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ShueMP</span>(<span class="sig-arg">ticks</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.empiricals-pysrc.html#ShueMP">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="spacepy.empiricals-pysrc.html#getMPstandoff">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Calculates the Shue et al. (1997) subsolar magnetopause radius</p>
-  <p>Ported from Drew Turner's (LASP) MatLab script</p>
-  <h1 class="heading">Inputs:</h1>
-    <p>SW ram pressure [nPa], IMF Bz (GSM) [nT]</p>
-  <h1 class="heading">Output:</h1>
-    <p>Magnetopause (sub-solar point) standoff distance [Re]</p>
+  <pre class="literalblock">
+Calculates the Shue et al. (1997) subsolar magnetopause radius
+
+Inputs:
+=======
+- ticks: TickTock object of desired times
+(will be interpolated from hourly OMNI data)
+OR
+- dictionary of form {'P': [], 'Bz': []}
+Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]
+
+Returns:
+=======
+Magnetopause (sub-solar point) standoff distance [Re]
+
+Example:
+=========
+&gt;&gt;&gt; import spacepy.time as spt
+&gt;&gt;&gt; import spacepy.empiricals as emp
+&gt;&gt;&gt; ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
+&gt;&gt;&gt; emp.ShueMP(ticks)
+array([ 10.57319532,  10.91327759,  10.75086872,  10.77577211,
+     9.7818026 ,  11.03744739,  11.4065    ,  11.27555453,
+    11.47988569,  11.82025823,  11.23834817])
+&gt;&gt;&gt; data = data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
+&gt;&gt;&gt; emp.ShueMP(data)
+array([ 10.29156018,   8.96790412])
+
+Author:
+=======
+Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_plasma_pause"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_plasma_pause</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">Lpp_model</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">M2002</code><code class="variable-quote">'</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.empiricals-pysrc.html#getPlasmaPause">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Plasmapause location model(s)
+
+Input:
+======
+- ticks: TickTock object of desired times
+- Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
+CA1992 returns the Carpenter and Anderson model,
+M2002 returns the Moldwin et al. model
+
+Returns:
+========
+- Lpp: Plasmapause radius in Earth radii
+
+Authors:
+=======
+Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_Lmax"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Lmax</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">Lmax_model</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">JKemp</code><code class="variable-quote">'</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.empiricals-pysrc.html#getLmax">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+calculate a simple empirical model for Lmax - last closed drift-shell
+
+Input:
+======
+- ticks: TickTock object of desired times
+- Lpp_model (kwarg): 'JKemp' (default)
+JKemp returns the empirical model of J. Koller
+
+Returns:
+========
+- Lmax: L* of last closed drift shell
+
+Authors:
+=======
+Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
+
+</pre>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -245,7 +528,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu May 27 15:56:04 2010
+    Generated by Epydoc 3.0.1 on Thu Jun  3 17:47:54 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

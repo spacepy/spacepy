@@ -30,11 +30,14 @@ spacepy.coordinates	spacepy.coordinates-module.html
 spacepy.coordinates.help	spacepy-module.html#help
 spacepy.coordinates.__package__	spacepy.coordinates-module.html#__package__
 spacepy.empiricals	spacepy.empiricals-module.html
+spacepy.empiricals.getMPstandoff	spacepy.empiricals-module.html#getMPstandoff
 spacepy.empiricals.help	spacepy-module.html#help
-spacepy.empiricals.get_plasma_pause	spacepy.empiricals-module.html#get_plasma_pause
+spacepy.empiricals.getPlasmaPause	spacepy.empiricals-module.html#getPlasmaPause
+spacepy.empiricals.getLmax	spacepy.empiricals-module.html#getLmax
 spacepy.empiricals.ShueMP	spacepy.empiricals-module.html#ShueMP
 spacepy.empiricals.__package__	spacepy.empiricals-module.html#__package__
 spacepy.empiricals.get_Lmax	spacepy.empiricals-module.html#get_Lmax
+spacepy.empiricals.get_plasma_pause	spacepy.empiricals-module.html#get_plasma_pause
 spacepy.omni	spacepy.omni-module.html
 spacepy.omni.__nodataflag	spacepy.omni-module.html#__nodataflag
 spacepy.omni.get_G123	spacepy.omni-module.html#get_G123
@@ -118,6 +121,12 @@ spacepy.radbelt.diff_LL	spacepy.radbelt-module.html#diff_LL
 spacepy.radbelt.get_DLL	spacepy.radbelt-module.html#get_DLL
 spacepy.sandbox	spacepy.sandbox-module.html
 spacepy.sandbox.__package__	spacepy.sandbox-module.html#__package__
+spacepy.sandbox.PSDdata	spacepy.sandbox.PSDdata-module.html
+spacepy.sandbox.PSDdata.get_PSD_availablemu	spacepy.sandbox.PSDdata-module.html#get_PSD_availablemu
+spacepy.sandbox.PSDdata.get_PSD	spacepy.sandbox.PSDdata-module.html#get_PSD
+spacepy.sandbox.PSDdata.get_PSD_availablek	spacepy.sandbox.PSDdata-module.html#get_PSD_availablek
+spacepy.sandbox.PSDdata.get_PSD_availablesats	spacepy.sandbox.PSDdata-module.html#get_PSD_availablesats
+spacepy.sandbox.PSDdata.__package__	spacepy.sandbox.PSDdata-module.html#__package__
 spacepy.sandbox._cdfpy_interface	spacepy.sandbox._cdfpy_interface-module.html
 spacepy.sandbox._cdfpy_interface.zVAR_SPARSEARRAYS_	spacepy.sandbox._cdfpy_interface-module.html#zVAR_SPARSEARRAYS_
 spacepy.sandbox._cdfpy_interface.CDFsetAttrEntryDataSpec	spacepy.sandbox._cdfpy_interface-module.html#CDFsetAttrEntryDataSpec
@@ -1039,6 +1048,7 @@ spacepy.time.Ticktock.getDOY	spacepy.time.Ticktock-class.html#getDOY
 spacepy.time.Ticktock.__init__	spacepy.time.Ticktock-class.html#__init__
 spacepy.time.Ticktock.__getstate__	spacepy.time.Ticktock-class.html#__getstate__
 spacepy.time.Ticktock.__len__	spacepy.time.Ticktock-class.html#__len__
+spacepy.time.Ticktock.sort	spacepy.time.Ticktock-class.html#sort
 spacepy.time.Ticktock.__ne__	spacepy.time.Ticktock-class.html#__ne__
 spacepy.time.Ticktock.__getitem__	spacepy.time.Ticktock-class.html#__getitem__
 spacepy.time.Ticktock.__setstate__	spacepy.time.Ticktock-class.html#__setstate__
@@ -1050,6 +1060,7 @@ spacepy.time.Ticktock.__gt__	spacepy.time.Ticktock-class.html#__gt__
 spacepy.time.Ticktock.now	spacepy.time.Ticktock-class.html#now
 spacepy.time.Ticktock.__eq__	spacepy.time.Ticktock-class.html#__eq__
 spacepy.time.Ticktock.convert	spacepy.time.Ticktock-class.html#convert
+spacepy.time.Ticktock.argsort	spacepy.time.Ticktock-class.html#argsort
 spacepy.time.Ticktock.update_items	spacepy.time.Ticktock-class.html#update_items
 spacepy.time.Ticktock.__le__	spacepy.time.Ticktock-class.html#__le__
 spacepy.time.Ticktock.__repr__	spacepy.time.Ticktock-class.html#__repr__

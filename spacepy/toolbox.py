@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.15 $, $Date: 2010/06/02 16:20:06 $"
+__version__ = "$Revision: 1.16 $, $Date: 2010/06/03 23:47:47 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1036,36 +1036,7 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, **kwargs)
     if draw:
         draw()
-
-
-def round_to_n(x, n):
-    """
-    round the value x to n significant figures
-
-    code modified from python.org mailing list
-
-    Inputs:
-    ===========
-    - x, the value to round
-    - n, the number of significant figures to round to
-
-    Outputs:
-    ============
-    the number x rounded to n significant figures
-
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
-
-    Version:
-    =========
-    V1: 2-Jun-2010 (BAL)
-    """
-    if n < 1:
-        raise ValueError("number of significant digits must be >= 1")
-    ## the "*" in the format tells pythion to get the number from the argument also
-    return "%.*e" % (n-1, x)
-
+        
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
     

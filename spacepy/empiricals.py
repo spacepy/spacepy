@@ -5,7 +5,7 @@ empirical models
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.6 $, $Date: 2010/06/03 23:30:35 $"
+__version__ = "$Revision: 1.7 $, $Date: 2010/06/03 23:47:47 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -13,11 +13,25 @@ __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 # -----------------------------------------------
 # Last Closed Drift Shell - Lmax
 # -----------------------------------------------    
-def get_Lmax(ticks, Lmax_model):
+def getLmax(ticks, Lmax_model='JKemp'):
     """
-    calculate a simple empirical model for Lmax
+    calculate a simple empirical model for Lmax - last closed drift-shell
     
+    Input:
+    ======
+    - ticks: TickTock object of desired times
+    - Lpp_model (kwarg): 'JKemp' (default)
+    JKemp returns the empirical model of J. Koller
+    
+    Returns:
+    ========
+    - Lmax: L* of last closed drift shell
+    
+    Authors:
+    =======
+    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     """
+    
     import numpy as n
     import spacepy.omni as om
         
@@ -35,7 +49,7 @@ def get_Lmax(ticks, Lmax_model):
 # -----------------------------------------------
 # Plasmapause Location
 # -----------------------------------------------       
-def get_plasma_pause(ticks, Lpp_model='M2002'):
+def getPlasmaPause(ticks, Lpp_model='M2002'):
     """
     Plasmapause location model(s)
     
@@ -95,7 +109,7 @@ def get_plasma_pause(ticks, Lpp_model='M2002'):
 # Magnetopause Location
 # -----------------------------------------------    
     
-def ShueMP(ticks):
+def getMPstandoff(ticks):
     """Calculates the Shue et al. (1997) subsolar magnetopause radius
     
     Inputs:
@@ -165,3 +179,8 @@ def ShueMP(ticks):
         return r0
     except TypeError:
         raise TypeError("Please check for valid input types")
+    
+    
+ShueMP = getMPstandoff
+get_plasma_pause = getPlasmaPause
+get_Lmax = getLmax
