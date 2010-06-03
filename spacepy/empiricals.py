@@ -5,7 +5,7 @@ empirical models
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.3 $, $Date: 2010/05/27 22:02:08 $"
+__version__ = "$Revision: 1.4 $, $Date: 2010/06/03 17:26:55 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -35,36 +35,59 @@ def get_Lmax(ticks, Lmax_model):
 # -----------------------------------------------
 # Plasmapause Location
 # -----------------------------------------------       
-def get_plasma_pause(ticks, Lpp_model='CA2000'):
+def get_plasma_pause(ticks, Lpp_model='M2002'):
     """
-    Plasmapause location model(s) 
+    Plasmapause location model(s)
+    
+    Input:
+    ======
+    - ticks: TickTock object of desired times
+    - Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
+    CA1992 returns the Carpenter and Anderson model,
+    M2002 returns the Moldwin et al. model
+    
+    Authors:
+    =======
+    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
+    Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
+    
     """
     
     import numpy as np
     import datetime as dt
     import spacepy.omni as om
     import spacepy.time as spt
+    import spacepy.toolbox as tb
     
-    if Lpp_model == 'CA2000': #Carpenter & Anderson (2000)
-        omni = om.get_omni(ticks)
-        Kp = omni['Kp']    
+    if Lpp_model == 'CA1992': #Carpenter & Anderson (1992)
+        ticksplus = spt.tickrange(ticks.UTC[0]-dt.timedelta(hours=24), 
+            ticks.UTC[-1], dt.timedelta(hours=3), 'UTC')
+        omni = om.get_omni(ticksplus)
+        Kp = omni['Kp']
+        prev6 = [np.nan]*6
         Lpp = np.zeros(len(Kp))
         for i, iKp in enumerate(Kp):
-            Lpp[i] = 5.6 - 0.48*iKp
+            prev6.append(iKp)
+            Kpmax = max(prev6)
+            Lpp[i] = 5.6 - 0.46*Kpmax
+            prev6 = prev6[1:]
+        [tpint, tintp] = tb.tCommon(ticksplus.UTC, ticks.UTC)
     
     if Lpp_model == 'M2002': #Moldwin et al. (2002)
-        ticksplus = spt.tickrange(ticks.UTC[0]-dt.timedelta(hours=12), ticks.UTC[0], dt.timedelta(hours=3))
-        ticks = spt.Ticktock()
-        omni = om.get_omni(ticks)
-        prev3 = [np.nan, np.nan, np.nan]
+        ticksplus = spt.tickrange(ticks.UTC[0]-dt.timedelta(hours=12), 
+            ticks.UTC[-1], dt.timedelta(hours=3), 'UTC')
+        omni = om.get_omni(ticksplus)
+        Kp = omni['Kp']
+        prev3 = [np.nan]*3
         Lpp = np.zeros(len(Kp))
         for i, iKp in enumerate(Kp):
             prev3.append(iKp)
             Kpmax = max(prev3)
             Lpp[i] = 5.99 - 0.382*Kpmax
-            prev3 = prev3[1:] 
+            prev3 = prev3[1:]
+        [tpint, tintp] = tb.tCommon(ticksplus.UTC, ticks.UTC)
         
-    return Lpp
+    return Lpp[tpint]
 
 # -----------------------------------------------
 # Magnetopause Location
