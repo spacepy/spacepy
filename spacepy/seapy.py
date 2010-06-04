@@ -164,14 +164,17 @@ class Sea(object):
         """Method called to perform superposed epoch analysis on data in object.
         
         Inputs:
+        =======
         Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
         all of which must be available on instatiation.
+        
         Optional keyword(s):
-        storedata (default = False) - saves matrix of epoch windows as obj.datacube
-        quartiles calculates the quartiles as the upper and lower bounds (and is default);
-        ci will find the bootstrapped confidence intervals (and requires ci_quan to be set);
-        mad will use +/- the median absolute deviation for the bounds;
-        ci_quan can be set to 'median' or 'mean'
+        ====================
+            - storedata (default = False) - saves matrix of epoch windows as obj.datacube
+            - quartiles calculates the quartiles as the upper and lower bounds (and is default);
+            - ci will find the bootstrapped confidence intervals (and requires ci_quan to be set);
+            - mad will use +/- the median absolute deviation for the bounds;
+            - ci_quan can be set to 'median' or 'mean'
         
         A basic plot can be raised with the obj.plot() method
         """
@@ -347,13 +350,15 @@ class Sea(object):
         """Method called to create basic plot of superposed epoch analysis.
         
         Inputs:
+        =======
         Uses object attributes created by the obj.sea() method.
         
         Optional keyword(s):
-        x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
-        x(y)units (default = None (None)) - x(y)-axis units.
-        epochline (default = False) - put vertical line at zero epoch.
-        usrlimy (default = []) - override automatic y-limits on plot.
+        ====================
+            - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
+            - x(y)units (default = None (None)) - x(y)-axis units.
+            - epochline (default = False) - put vertical line at zero epoch.
+            - usrlimy (default = []) - override automatic y-limits on plot.
         
         If both ?quan and ?units are supplied, axis label will read
         'Quantity Entered By User [Units]'
@@ -423,8 +428,6 @@ class Sea(object):
         else:
             return fig
 
-    seplot = plot  #keep for backwards compatibility 
-
 
 class Sea2d(Sea):
     """SeaPy 2D Superposed epoch analysis object
@@ -466,15 +469,17 @@ class Sea2d(Sea):
         """Method called to perform 2D superposed epoch analysis on data in object.
         
         Inputs:
+        =======
         Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
         all of which must be available on instatiation.
         
         Optional keyword(s):
-        storedata (default = False) - saves matrix of epoch windows as obj.datacube
-        quartiles calculates the interquartile range to show the spread (and is default);
-        ci will find the bootstrapped confidence interval (and requires ci_quan to be set);
-        mad will use the median absolute deviation for the spread;
-        ci_quan can be set to 'median' or 'mean'
+        ====================
+            - storedata (default = False) - saves matrix of epoch windows as obj.datacube
+            - quartiles calculates the interquartile range to show the spread (and is default);
+            - ci will find the bootstrapped confidence interval (and requires ci_quan to be set);
+            - mad will use the median absolute deviation for the spread;
+            - ci_quan can be set to 'median' or 'mean'
         
         A basic plot can be raised with the obj.plot() method
         """
@@ -541,15 +546,19 @@ class Sea2d(Sea):
         """Method called to create basic plot of 2D superposed epoch analysis.
         
         Inputs:
+        =======
         Uses object attributes created by the obj.sea() method.
+        
         Optional keyword(s):
-        x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
-        x(y/z)units (default = None (None)) - x(y/z)-axis units.
-        epochline (default = False) - put vertical line at zero epoch.
-        usrlimy (default = []) - override automatic y-limits on plot.
-        show (default = True) - shows plot; set to false to output plot object to variable
-        figsize - tuple of (width, height) in inches
-        dpi (default=300) - figure resolution in dots per inch
+        ====================
+            - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
+            - x(y/z)units (default = None (None)) - x(y/z)-axis units.
+            - epochline (default = False) - put vertical line at zero epoch.
+            - usrlimy (default = []) - override automatic y-limits on plot.
+            - show (default = True) - shows plot; set to false to output plot object to variable
+            - figsize - tuple of (width, height) in inches
+            - dpi (default=300) - figure resolution in dots per inch
+            
         If both ?quan and ?units are supplied, axis label will read
         'Quantity Entered By User [Units]'
         """
@@ -625,17 +634,19 @@ class Sea2d(Sea):
         else:
             return fig
 
-    seplot = plot  #keep for backwards compatibility 
-
 
 def seadict(objlist, namelist):
     """Function to create dictionary of SeaPy.Sea objects.
     
     Inputs:
-    objlist - List of Sea objects.
-    namelist - List of variable labels for input objects.
+    =======
+        - objlist: List of Sea objects.
+        - namelist: List of variable labels for input objects.
+        
     Optional keyword(s):
+    ====================
     namelist = List containing names for y-axes.
+    
     """
     try:
         assert type(objlist) == \
@@ -661,17 +672,22 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     """Function to create multipanel plot of superposed epoch analyses.
     
     Inputs:
+    =======
     Dictionary of Sea objects (from superposedepoch.seadict()).
-    Optional keyword(s):
-    epochline (default = False) - put vertical line at zero epoch.
-    usrlimy (default = []) - override automatic y-limits on plot (same for all plots).
-    show (default = True) - shows plot; set to false to output plot object to variable
-    x/zunits - Units for labelling x and z axes, if required
-    figsize - tuple of (width, height) in inches
-    dpi (default=300) - figure resolution in dots per inch
-    n_cols - Number of columns: not yet implemented.
     
-    Output: Plot of input object median and bounds (ci, mad, quartiles - see sea()).
+    Optional keyword(s):
+    ====================
+        - epochline (default = False) - put vertical line at zero epoch.
+        - usrlimy (default = []) - override automatic y-limits on plot (same for all plots).
+        - show (default = True) - shows plot; set to false to output plot object to variable
+        - x/zunits - Units for labelling x and z axes, if required
+        - figsize - tuple of (width, height) in inches
+        - dpi (default=300) - figure resolution in dots per inch
+        - n_cols - Number of columns: not yet implemented.
+    
+    Output:
+    =======
+    Plot of input object median and bounds (ci, mad, quartiles - see sea()).
     If keyword 'show' is False, output is a plot object.
     """
     import matplotlib.ticker as tik
@@ -768,10 +784,18 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
 def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
     """Read epochs from text file assuming YYYY MM DD hh mm ss format
     
-    Input: Filename (include path)
-    Optional inputs: iso (default = False), read in ISO date format
+    Input:
+    ======
+    Filename (include path)
+    
+    Optional inputs:
+    ================
+    iso (default = False), read in ISO date format
     isofmt (default is YYYY-mm-ddTHH:MM:SS, code is %Y-%m-%dT%H:%M:%S)
-    Output: epochs (type=list)
+    
+    Output:
+    =======
+    epochs (type=list)
     """
     import datetime as dt
     

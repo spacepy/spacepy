@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-empirical models
+Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.7 $, $Date: 2010/06/03 23:47:47 $"
+__version__ = "$Revision: 1.8 $, $Date: 2010/06/04 00:39:16 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -27,7 +27,7 @@ def getLmax(ticks, Lmax_model='JKemp'):
     ========
     - Lmax: L* of last closed drift shell
     
-    Authors:
+    Author:
     =======
     Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     """
@@ -55,14 +55,23 @@ def getPlasmaPause(ticks, Lpp_model='M2002'):
     
     Input:
     ======
-    - ticks: TickTock object of desired times
-    - Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
+        - ticks: TickTock object of desired times
+        - Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
     CA1992 returns the Carpenter and Anderson model,
     M2002 returns the Moldwin et al. model
     
     Returns:
     ========
-    - Lpp: Plasmapause radius in Earth radii
+        - Lpp: Plasmapause radius in Earth radii
+    
+    Example:
+    ========
+    >>> import spacepy.time as spt
+    >>> import spacepy.empiricals as emp
+    >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
+    >>> emp.getPlasmaPause(ticks)
+    array([ 4.9586,  4.9586,  4.9586,  4.9586,  4.9586,  4.9586,  4.9586,
+        5.1114,  5.608 ,  5.7226,  5.7226])
     
     Authors:
     =======
@@ -114,18 +123,18 @@ def getMPstandoff(ticks):
     
     Inputs:
     =======
-    - ticks: TickTock object of desired times
+        - ticks: TickTock object of desired times
     (will be interpolated from hourly OMNI data)
     OR
-    - dictionary of form {'P': [], 'Bz': []}
+        - dictionary of form {'P': [], 'Bz': []}
     Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]
     
     Returns:
-    =======
+    ========
     Magnetopause (sub-solar point) standoff distance [Re]
     
     Example:
-    =========
+    ========
     >>> import spacepy.time as spt
     >>> import spacepy.empiricals as emp
     >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)

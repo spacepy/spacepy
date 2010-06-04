@@ -3,8 +3,8 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.14 $, $Date: 2010/06/02 16:16:06 $"
-__author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
+__version__ = "$Revision: 1.15 $, $Date: 2010/06/04 00:39:16 $"
+__author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
 def compile_oneralib():
@@ -104,8 +104,13 @@ try:
     dum = sys.version_info
     assert dum[0]==2
     assert dum[1]>=5
+    import numpy
+    import scipy
+    import matplotlib
 except:
-    raise Exception("SpacePy requires Python 2.X, where X>=5. Please install a suitable version.")
+    raise Exception("""SpacePy requires Python 2.X, where X>=5.\n
+    Numpy, Scipy and Matplotlib(>=0.99) are also required\n
+    Please install suitable versions.""")
 
 # run compile for onera_desp_lib first
 if os.path.exists('spacepy/onerapy/onerapylib.so'):
@@ -151,7 +156,7 @@ pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*']
 setup(name='spacepy',
       version='0.1',
       description='SpacePy: Tools for Space Science Applications',
-      author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen',
+      author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',
       requires=['numpy','scipy','matplotlib (>=0.99)'],

@@ -18,6 +18,8 @@ eps0 = 8.85418782e-12 #permittivity of free space
 amu = 1.6605e-27 #atomic mass unit
 
 
+#Would-be 'convenience class'
+
 class Ion():
     def __init__(self, vel=None, temp=None, units=None, Z=1, verbose=False):
         

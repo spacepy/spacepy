@@ -23,11 +23,12 @@ def help():
     webbrowser.open(path+'index.html')
 
 # put modules here that you want to be accessible through 'from spacepy import *'
-__all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", "onerapy"]
+__all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 
+    "onerapy", "constants", "empiricals", "radbelt"]
 
 # Expose definitions from modules in this package.
 from toolbox import loadpickle, savepickle, dictree, printfig
-from time import tickrange, doy2date
+import time, coordinates, constants
 
 #package info
 __version__ = '0.1dev'

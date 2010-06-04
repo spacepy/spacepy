@@ -61,11 +61,12 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module empiricals</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.empiricals-pysrc.html">source&nbsp;code</a></span></p>
-<p>empirical models</p>
+<p>Module with some useful empirical models (plasmapause, magnetopause, 
+  Lmax)</p>
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.5 $, $Date: 2010/06/03 23:52:20 $
+        $Revision: 1.6 $, $Date: 2010/06/04 00:39:16 $
       </p>
       <dl><dt>Authors:</dt>
         <dd>
@@ -269,7 +270,7 @@ Returns:
 ========
 - Lmax: L* of last closed drift shell
 
-Authors:
+Author:
 =======
 Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
 
@@ -293,26 +294,26 @@ Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-
-Plasmapause location model(s)
-
-Input:
-======
-- ticks: TickTock object of desired times
-- Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
-CA1992 returns the Carpenter and Anderson model,
-M2002 returns the Moldwin et al. model
-
-Returns:
-========
-- Lpp: Plasmapause radius in Earth radii
-
-Authors:
-=======
-Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
-
-</pre>
+  <p>Plasmapause location model(s)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        ticks: TickTock object of desired times
+      </li>
+      <li>
+        Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
+      </li>
+    </ul>
+    <p>CA1992 returns the Carpenter and Anderson model, M2002 returns the 
+    Moldwin et al. model</p>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        Lpp: Plasmapause radius in Earth radii
+      </li>
+    </ul>
+    <p>Authors: ======= Steve Morley, Los Alamos National Lab 
+    (smorley@lanl.gov)</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -331,39 +332,36 @@ Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Calculates the Shue et al. (1997) subsolar magnetopause radius
-
-Inputs:
-=======
-- ticks: TickTock object of desired times
-(will be interpolated from hourly OMNI data)
-OR
-- dictionary of form {'P': [], 'Bz': []}
-Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]
-
-Returns:
-=======
-Magnetopause (sub-solar point) standoff distance [Re]
-
-Example:
-=========
-&gt;&gt;&gt; import spacepy.time as spt
-&gt;&gt;&gt; import spacepy.empiricals as emp
-&gt;&gt;&gt; ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
-&gt;&gt;&gt; emp.ShueMP(ticks)
-array([ 10.57319532,  10.91327759,  10.75086872,  10.77577211,
-     9.7818026 ,  11.03744739,  11.4065    ,  11.27555453,
-    11.47988569,  11.82025823,  11.23834817])
-&gt;&gt;&gt; data = data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
-&gt;&gt;&gt; emp.ShueMP(data)
-array([ 10.29156018,   8.96790412])
-
-Author:
-=======
-Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
-
-</pre>
+  <p>Calculates the Shue et al. (1997) subsolar magnetopause radius</p>
+  <h1 class="heading">Inputs:</h1>
+    <ul>
+      <li>
+        ticks: TickTock object of desired times
+      </li>
+    </ul>
+    <p>(will be interpolated from hourly OMNI data) OR</p>
+    <ul>
+      <li>
+        dictionary of form {'P': [], 'Bz': []}
+      </li>
+    </ul>
+    <p>Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]</p>
+  <h1 class="heading">Returns:</h1>
+    <p>Magnetopause (sub-solar point) standoff distance [Re]</p>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> spacepy.time <span class="py-keyword">as</span> spt
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> spacepy.empiricals <span class="py-keyword">as</span> emp
+<span class="py-prompt">&gt;&gt;&gt; </span>ticks = spt.tickrange(<span class="py-string">'2002-01-01T12:00:00'</span>,<span class="py-string">'2002-01-04T00:00:00'</span>,.25)
+<span class="py-prompt">&gt;&gt;&gt; </span>emp.ShueMP(ticks)
+<span class="py-output">array([ 10.57319532,  10.91327759,  10.75086872,  10.77577211,</span>
+<span class="py-output">     9.7818026 ,  11.03744739,  11.4065    ,  11.27555453,</span>
+<span class="py-output">    11.47988569,  11.82025823,  11.23834817])</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>data = data = {<span class="py-string">'P'</span>: [2,4], <span class="py-string">'Bz'</span>: [-2.4, -2.4]}
+<span class="py-prompt">&gt;&gt;&gt; </span>emp.ShueMP(data)
+<span class="py-output">array([ 10.29156018,   8.96790412])</span></pre>
+  <h1 class="heading">Author:</h1>
+    <p>Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -382,39 +380,36 @@ Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Calculates the Shue et al. (1997) subsolar magnetopause radius
-
-Inputs:
-=======
-- ticks: TickTock object of desired times
-(will be interpolated from hourly OMNI data)
-OR
-- dictionary of form {'P': [], 'Bz': []}
-Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]
-
-Returns:
-=======
-Magnetopause (sub-solar point) standoff distance [Re]
-
-Example:
-=========
-&gt;&gt;&gt; import spacepy.time as spt
-&gt;&gt;&gt; import spacepy.empiricals as emp
-&gt;&gt;&gt; ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
-&gt;&gt;&gt; emp.ShueMP(ticks)
-array([ 10.57319532,  10.91327759,  10.75086872,  10.77577211,
-     9.7818026 ,  11.03744739,  11.4065    ,  11.27555453,
-    11.47988569,  11.82025823,  11.23834817])
-&gt;&gt;&gt; data = data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
-&gt;&gt;&gt; emp.ShueMP(data)
-array([ 10.29156018,   8.96790412])
-
-Author:
-=======
-Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
-
-</pre>
+  <p>Calculates the Shue et al. (1997) subsolar magnetopause radius</p>
+  <h1 class="heading">Inputs:</h1>
+    <ul>
+      <li>
+        ticks: TickTock object of desired times
+      </li>
+    </ul>
+    <p>(will be interpolated from hourly OMNI data) OR</p>
+    <ul>
+      <li>
+        dictionary of form {'P': [], 'Bz': []}
+      </li>
+    </ul>
+    <p>Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]</p>
+  <h1 class="heading">Returns:</h1>
+    <p>Magnetopause (sub-solar point) standoff distance [Re]</p>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> spacepy.time <span class="py-keyword">as</span> spt
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> spacepy.empiricals <span class="py-keyword">as</span> emp
+<span class="py-prompt">&gt;&gt;&gt; </span>ticks = spt.tickrange(<span class="py-string">'2002-01-01T12:00:00'</span>,<span class="py-string">'2002-01-04T00:00:00'</span>,.25)
+<span class="py-prompt">&gt;&gt;&gt; </span>emp.ShueMP(ticks)
+<span class="py-output">array([ 10.57319532,  10.91327759,  10.75086872,  10.77577211,</span>
+<span class="py-output">     9.7818026 ,  11.03744739,  11.4065    ,  11.27555453,</span>
+<span class="py-output">    11.47988569,  11.82025823,  11.23834817])</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>data = data = {<span class="py-string">'P'</span>: [2,4], <span class="py-string">'Bz'</span>: [-2.4, -2.4]}
+<span class="py-prompt">&gt;&gt;&gt; </span>emp.ShueMP(data)
+<span class="py-output">array([ 10.29156018,   8.96790412])</span></pre>
+  <h1 class="heading">Author:</h1>
+    <p>Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -434,26 +429,26 @@ Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-
-Plasmapause location model(s)
-
-Input:
-======
-- ticks: TickTock object of desired times
-- Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
-CA1992 returns the Carpenter and Anderson model,
-M2002 returns the Moldwin et al. model
-
-Returns:
-========
-- Lpp: Plasmapause radius in Earth radii
-
-Authors:
-=======
-Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
-
-</pre>
+  <p>Plasmapause location model(s)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        ticks: TickTock object of desired times
+      </li>
+      <li>
+        Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
+      </li>
+    </ul>
+    <p>CA1992 returns the Carpenter and Anderson model, M2002 returns the 
+    Moldwin et al. model</p>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        Lpp: Plasmapause radius in Earth radii
+      </li>
+    </ul>
+    <p>Authors: ======= Steve Morley, Los Alamos National Lab 
+    (smorley@lanl.gov)</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -487,7 +482,7 @@ Returns:
 ========
 - Lmax: L* of last closed drift shell
 
-Authors:
+Author:
 =======
 Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
 
@@ -528,7 +523,7 @@ Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun  3 17:51:34 2010
+    Generated by Epydoc 3.0.1 on Thu Jun  3 18:04:33 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

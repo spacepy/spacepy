@@ -113,9 +113,11 @@ class PPro(object):
         """Method called to create basic plot of association analysis.
         
         Inputs:
+        =======
         Uses object attributes created by the obj.assoc() method.
         
         Optional keyword(s):
+        ====================
         usrlimy (default = []) - override automatic y-limits on plot.
         """
         try:
@@ -170,7 +172,6 @@ class PPro(object):
         """Get bootstrap confidence intervals for association number
         
         Requires input of desired confidence interval, e.g.,
-        
         >>> obj.aa_ci(95)
         
         Upper and lower confidence limits are added to the ci attribute
@@ -189,13 +190,15 @@ class PPro(object):
 def boots_ci(data, n, inter, func):
     """Construct bootstrap confidence interval - caution: slow!
     
-    Input: n is number of surrogates;
-    data is data array (1D);
-    inter is desired confidence interval (e.g. 95%);
-    func is a user-defined function (lambda)
+    Input:
+    ======
+        - n is number of surrogates;
+        - data is data array (1D);
+        - inter is desired confidence interval (e.g. 95%);
+        - func is a user-defined function (lambda)
     
     Example:
-    
+    ========
     >>> data, n = numpy.random.lognormal(mean=5.1, sigma=0.3, size=3000), 4000.
     >>> myfunc = lambda x: numpy.median(x)
     >>> ci_low, ci_high = poppy.boots_ci(data, n, 95, myfunc)
@@ -205,14 +208,14 @@ def boots_ci(data, n, inter, func):
     (162.50379144492726, 164.15218265100233, 165.42840588032755) iter. 2
     
     For comparison:
-    
+    ===============
     >>> data = numpy.random.lognormal(mean=5.1, sigma=0.3, size=90000)
     >>> numpy.median(data)
     163.83888237895815
     
     Note that the true value of the desired quantity may lie outside the
     95% confidence interval one time in 20 realizations. This occurred
-    for the first iteration - please feel free to play with this.
+    for the first iteration here.
     """
     
     import numpy as np
