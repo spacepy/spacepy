@@ -1,10 +1,8 @@
 
 
-def get_PSD(ticks, MU=1051, K=0.005,
-            sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A'],
-            _query=None):
+def get_PSD(ticks, MU=1051, K=0.005, sats=None, _query=None):
     """
-    get_PSD(ticks, mu, k, sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A'])
+    get_PSD(ticks, mu, k, sats)
     
     Get the PSD from an input mu, k, date range, and list of sats from the psd database
 
@@ -16,7 +14,8 @@ def get_PSD(ticks, MU=1051, K=0.005,
     - ticks - a list of start and stop ticks exclusive (Ticktock objects)
     - MU (optional) - a single mu value (default 1051)
     - K (optional) - a single k value (default 0.005)
-    - sats (optional) - a list of sats to returen data from **Currently not implemented**
+    - sats (optional) - a list of sats to return data from 
+        possible values: =['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A']
     - _query (optional) - specify the query to take place (for the helper functions)
     
     Returns:
@@ -54,11 +53,13 @@ def get_PSD(ticks, MU=1051, K=0.005,
     import os
     import spacepy.toolbox as tb
     import spacepy.time
+    import numpy as n
 
     #####################################
     ###  Input checking #################
     #####################################
     # ticks a ticktock object with 2 elements?
+    
     try:
         if len(ticks) != 2:
             raise(ValueError('ticks must be 2 element list of start stop ticks'))
@@ -70,7 +71,9 @@ def get_PSD(ticks, MU=1051, K=0.005,
     file_dot = os.path.isfile(os.environ['HOME']+'/.spacepy/data/psd_dat.sqlite')
     
     if not (file_local or file_dot):
-        raise(Exception("Must have the database either in the current directory or your ~/.spacepy/data directory"))
+        raise(Exception("Must have the database either in the current directory or your ~/.spacepy/data directory. \n \
+        If you are at LANL, you can download a version of the database on the LANL only site:\n \
+        https://sf4.lanl.gov/sf/docman/do/downloadDocument/projects.spacepy/docman.root/doc142771/1"))
 
     if file_local:
         db_loc = 'psd_dat.sqlite'
@@ -126,19 +129,27 @@ def get_PSD(ticks, MU=1051, K=0.005,
         ans = s.execute()
         for val in ans:
             sats_l.append(val)
+        ret = {'sat': sats_l}
+        
     if _query == 'availablemu':
         s = select([func.distinct(Psd.mu)], ticks.UTC[1] > Psd.time > ticks.UTC[0])
         ans = s.execute()
         for val in ans:
             mu_l.append(val)
+        ret = {'MU': mu_l}
+        
     if _query == 'availablek':
         s = select([func.distinct(Psd.k)], ticks.UTC[1] > Psd.time > ticks.UTC[0])
         ans = s.execute()
         for val in ans:
             k_l.append(val)
+        ret = {'K': k_l}
+            
     if _query == None:
         ## session.query is what does the query
-        ans = session.query(Psd.time, Psd.lstar, Psd.psd, Psd.sat).filter_by(mu = MU).filter_by(k=K).filter(Psd.time > ticks.UTC[0]).filter(Psd.time < ticks.UTC[1]).order_by(Psd.time).all()    
+        ans = session.query(Psd.time, Psd.lstar, Psd.psd, Psd.sat).filter_by(mu = MU) \
+            .filter_by(k=K).filter(Psd.time > ticks.UTC[0]).filter(Psd.time < ticks.UTC[1]) \
+            .order_by(Psd.time).all()
         for val in ans:
             time.append(val[0])
             lstar.append(val[1])
@@ -146,10 +157,26 @@ def get_PSD(ticks, MU=1051, K=0.005,
             sats_l.append(val[3])
             mu_l.append(MU)
             k_l.append(K)
-
-    ## annoyingly in the interest of getting this done not sure how to select on the sats specified so do that on this dict
     
-    ret = {'Ticks':time, 'Lstar':lstar, 'PSD':psd, 'sat':sats_l, 'MU':mu_l, 'K':k_l}
+        Ticks = spacepy.time.Ticktock(time, 'UTC')
+        ret = {'Ticks':Ticks, 'Lstar':n.array(lstar), 'PSD':n.array(psd), \
+            'sat':n.array(sats_l), 'MU':n.array(mu_l), 'K':n.array(k_l)}
+
+        # filter out unwanted s/c
+        if sats: # then specific s/c provided, remove unwanted ones
+            idx = n.array([], dtype='int')
+            for satid in sats:
+                idx = n.append(idx, n.where(ret['sat'] == satid)[0])
+
+            for key in ret.keys():
+                ret[key] = ret[key][idx]
+
+        # sort in time
+        idx = ret['Ticks'].argsort()
+        for key in ret.keys():
+            ret[key] = ret[key][idx]
+    
+    ## annoyingly in the interest of getting this done not sure how to select on the sats specified so do that on this dict
     return ret
 
 def get_PSD_availablesats(ticks):
@@ -260,7 +287,7 @@ if __name__ == "__main__":
     ticks = spacepy.time.Ticktock([datetime(2005, 1, 1), datetime(2005, 7, 1)], 'UTC')
     mu = 462
     k = 0.03
-    ## sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A']
+    # sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A']
     ans = get_PSD_availablek(ticks)
     print ans
     ans = get_PSD_availablemu(ticks)
@@ -268,9 +295,9 @@ if __name__ == "__main__":
     ans = get_PSD_availablesats(ticks)
     print ans
     
-    ans = get_PSD(ticks, mu, k)
-
-    semilogy(ans['Ticks'], ans['PSD'])
+    ans = get_PSD(ticks, mu, k, sats=['GPS-ns41', 'LANL-02A'])
+    
+    semilogy(ans['Ticks'].UTC, ans['PSD'])
     ax = gca()
     ax.set_ylabel('PSD')
     print('Data from these sats:')
