@@ -85,90 +85,91 @@
 <a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">    <tt class="py-name">webbrowser</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Method spacepy.sandbox.cdfpy.CDF.open()=spacepy.sandbox.cdfpy.CDF-class.html#open"><a title="spacepy.sandbox.cdfpy.CDF.open" class="py-name" href="#" onclick="return doclink('link-0', 'open', 'link-0');">open</a></tt><tt class="py-op">(</tt><tt class="py-name">path</tt><tt class="py-op">+</tt><tt class="py-string">'index.html'</tt><tt class="py-op">)</tt> </tt>
 </div><a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
 <a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-comment"># put modules here that you want to be accessible through 'from spacepy import *'</tt> </tt>
-<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-name">__all__</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"seapy"</tt><tt class="py-op">,</tt> <tt class="py-string">"toolbox"</tt><tt class="py-op">,</tt> <tt class="py-string">"poppy"</tt><tt class="py-op">,</tt> <tt class="py-string">"coordinates"</tt><tt class="py-op">,</tt> <tt class="py-string">"time"</tt><tt class="py-op">,</tt> <tt class="py-string">"omni"</tt><tt class="py-op">,</tt> <tt class="py-string">"onerapy"</tt><tt class="py-op">]</tt> </tt>
-<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"> </tt>
-<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-comment"># Expose definitions from modules in this package.</tt> </tt>
-<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Module spacepy.toolbox=spacepy.toolbox-module.html"><a title="spacepy.toolbox" class="py-name" href="#" onclick="return doclink('link-1', 'toolbox', 'link-1');">toolbox</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Function spacepy.toolbox.loadpickle()=spacepy.toolbox-module.html#loadpickle"><a title="spacepy.toolbox.loadpickle" class="py-name" href="#" onclick="return doclink('link-2', 'loadpickle', 'link-2');">loadpickle</a></tt><tt class="py-op">,</tt> <tt id="link-3" class="py-name" targets="Function spacepy.toolbox.savepickle()=spacepy.toolbox-module.html#savepickle"><a title="spacepy.toolbox.savepickle" class="py-name" href="#" onclick="return doclink('link-3', 'savepickle', 'link-3');">savepickle</a></tt><tt class="py-op">,</tt> <tt id="link-4" class="py-name" targets="Function spacepy.toolbox.dictree()=spacepy.toolbox-module.html#dictree"><a title="spacepy.toolbox.dictree" class="py-name" href="#" onclick="return doclink('link-4', 'dictree', 'link-4');">dictree</a></tt><tt class="py-op">,</tt> <tt id="link-5" class="py-name" targets="Function spacepy.toolbox.printfig()=spacepy.toolbox-module.html#printfig"><a title="spacepy.toolbox.printfig" class="py-name" href="#" onclick="return doclink('link-5', 'printfig', 'link-5');">printfig</a></tt> </tt>
-<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-6" class="py-name" targets="Module spacepy.time=spacepy.time-module.html"><a title="spacepy.time" class="py-name" href="#" onclick="return doclink('link-6', 'time', 'link-6');">time</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Function spacepy.time.tickrange()=spacepy.time-module.html#tickrange"><a title="spacepy.time.tickrange" class="py-name" href="#" onclick="return doclink('link-7', 'tickrange', 'link-7');">tickrange</a></tt><tt class="py-op">,</tt> <tt id="link-8" class="py-name" targets="Function spacepy.time.doy2date()=spacepy.time-module.html#doy2date"><a title="spacepy.time.doy2date" class="py-name" href="#" onclick="return doclink('link-8', 'doy2date', 'link-8');">doy2date</a></tt> </tt>
-<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
-<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-comment">#package info</tt> </tt>
-<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-name">__version__</tt> <tt class="py-op">=</tt> <tt class="py-string">'0.1dev'</tt> </tt>
-<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">'The SpacePy Team'</tt> </tt>
-<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt id="link-9" class="py-name" targets="Variable spacepy.__team__=spacepy-module.html#__team__"><a title="spacepy.__team__" class="py-name" href="#" onclick="return doclink('link-9', '__team__', 'link-9');">__team__</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'Steve Morley (smorley@lanl.com/morley_steve@hotmail.com)'</tt><tt class="py-op">,</tt> </tt>
-<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-string">'Josef Koller (jkoller@lanl.gov )'</tt><tt class="py-op">]</tt> </tt>
-<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-name">__license__</tt> <tt class="py-op">=</tt> <tt class="py-string">"""SpacePy: Space Science Tools for Python</tt> </tt>
-<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
-<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-string">SpacePy is a package of tools primarily aimed at the space science community.</tt> </tt>
-<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-string">Copyright (C) 2010  Steven Morley, Josef Koller</tt> </tt>
-<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
-<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-string">SpacePy is released under GPL v3.0:</tt> </tt>
-<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-string">This program is free software: you can redistribute it and/or modify</tt> </tt>
-<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-string">it under the terms of the GNU General Public License as published by</tt> </tt>
-<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-string">the Free Software Foundation, either version 3 of the License, or</tt> </tt>
-<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-string">(at your option) any later version.</tt> </tt>
-<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
-<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-string">This program is distributed in the hope that it will be useful,</tt> </tt>
-<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-string">but WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
-<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-string">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</tt> </tt>
-<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-string">GNU General Public License for more details.</tt> </tt>
-<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
-<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-string">You should have received a copy of the GNU General Public License</tt> </tt>
-<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-string">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</tt> </tt>
-<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
-<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"> </tt>
-<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt id="link-10" class="py-name" targets="Variable spacepy.__notice__=spacepy-module.html#__notice__"><a title="spacepy.__notice__" class="py-name" href="#" onclick="return doclink('link-10', '__notice__', 'link-10');">__notice__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"""SpacePy: Space Science Tools for Python</tt> </tt>
-<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-string">SpacePy is released under GPL v3.0. See __licence__ for details, and help() for HTML help."""</tt> </tt>
-<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"> </tt>
-<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt id="link-11" class="py-name" targets="Variable spacepy.__licence__=spacepy-module.html#__licence__,Variable spacepy.sandbox.cdfpy.__licence__=spacepy.sandbox.cdfpy-module.html#__licence__"><a title="spacepy.__licence__
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-name">__all__</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"seapy"</tt><tt class="py-op">,</tt> <tt class="py-string">"toolbox"</tt><tt class="py-op">,</tt> <tt class="py-string">"poppy"</tt><tt class="py-op">,</tt> <tt class="py-string">"coordinates"</tt><tt class="py-op">,</tt> <tt class="py-string">"time"</tt><tt class="py-op">,</tt> <tt class="py-string">"omni"</tt><tt class="py-op">,</tt>  </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">    <tt class="py-string">"onerapy"</tt><tt class="py-op">,</tt> <tt class="py-string">"constants"</tt><tt class="py-op">,</tt> <tt class="py-string">"empiricals"</tt><tt class="py-op">,</tt> <tt class="py-string">"radbelt"</tt><tt class="py-op">]</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-comment"># Expose definitions from modules in this package.</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Module spacepy.toolbox=spacepy.toolbox-module.html"><a title="spacepy.toolbox" class="py-name" href="#" onclick="return doclink('link-1', 'toolbox', 'link-1');">toolbox</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Function spacepy.toolbox.loadpickle()=spacepy.toolbox-module.html#loadpickle"><a title="spacepy.toolbox.loadpickle" class="py-name" href="#" onclick="return doclink('link-2', 'loadpickle', 'link-2');">loadpickle</a></tt><tt class="py-op">,</tt> <tt id="link-3" class="py-name" targets="Function spacepy.toolbox.savepickle()=spacepy.toolbox-module.html#savepickle"><a title="spacepy.toolbox.savepickle" class="py-name" href="#" onclick="return doclink('link-3', 'savepickle', 'link-3');">savepickle</a></tt><tt class="py-op">,</tt> <tt id="link-4" class="py-name" targets="Function spacepy.toolbox.dictree()=spacepy.toolbox-module.html#dictree"><a title="spacepy.toolbox.dictree" class="py-name" href="#" onclick="return doclink('link-4', 'dictree', 'link-4');">dictree</a></tt><tt class="py-op">,</tt> <tt id="link-5" class="py-name" targets="Function spacepy.toolbox.printfig()=spacepy.toolbox-module.html#printfig"><a title="spacepy.toolbox.printfig" class="py-name" href="#" onclick="return doclink('link-5', 'printfig', 'link-5');">printfig</a></tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-6" class="py-name" targets="Module spacepy.time=spacepy.time-module.html"><a title="spacepy.time" class="py-name" href="#" onclick="return doclink('link-6', 'time', 'link-6');">time</a></tt><tt class="py-op">,</tt> <tt id="link-7" class="py-name" targets="Module spacepy.coordinates=spacepy.coordinates-module.html"><a title="spacepy.coordinates" class="py-name" href="#" onclick="return doclink('link-7', 'coordinates', 'link-7');">coordinates</a></tt><tt class="py-op">,</tt> <tt id="link-8" class="py-name" targets="Module spacepy.constants=spacepy.constants-module.html"><a title="spacepy.constants" class="py-name" href="#" onclick="return doclink('link-8', 'constants', 'link-8');">constants</a></tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-comment">#package info</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-name">__version__</tt> <tt class="py-op">=</tt> <tt class="py-string">'0.1dev'</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">'The SpacePy Team'</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt id="link-9" class="py-name" targets="Variable spacepy.__team__=spacepy-module.html#__team__"><a title="spacepy.__team__" class="py-name" href="#" onclick="return doclink('link-9', '__team__', 'link-9');">__team__</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'Steve Morley (smorley@lanl.com/morley_steve@hotmail.com)'</tt><tt class="py-op">,</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-string">'Josef Koller (jkoller@lanl.gov )'</tt><tt class="py-op">]</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-name">__license__</tt> <tt class="py-op">=</tt> <tt class="py-string">"""SpacePy: Space Science Tools for Python</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-string">SpacePy is a package of tools primarily aimed at the space science community.</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-string">Copyright (C) 2010  Steven Morley, Josef Koller</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-string">SpacePy is released under GPL v3.0:</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-string">This program is free software: you can redistribute it and/or modify</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-string">it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-string">the Free Software Foundation, either version 3 of the License, or</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-string">(at your option) any later version.</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-string">This program is distributed in the hope that it will be useful,</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-string">but WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-string">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-string">GNU General Public License for more details.</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-string">You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-string">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt id="link-10" class="py-name" targets="Variable spacepy.__notice__=spacepy-module.html#__notice__"><a title="spacepy.__notice__" class="py-name" href="#" onclick="return doclink('link-10', '__notice__', 'link-10');">__notice__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"""SpacePy: Space Science Tools for Python</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-string">SpacePy is released under GPL v3.0. See __licence__ for details, and help() for HTML help."""</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt id="link-11" class="py-name" targets="Variable spacepy.__licence__=spacepy-module.html#__licence__,Variable spacepy.sandbox.cdfpy.__licence__=spacepy.sandbox.cdfpy-module.html#__licence__"><a title="spacepy.__licence__
 spacepy.sandbox.cdfpy.__licence__" class="py-name" href="#" onclick="return doclink('link-11', '__licence__', 'link-11');">__licence__</a></tt> <tt class="py-op">=</tt> <tt class="py-name">__license__</tt> <tt class="py-comment">#for those who speak English, rather than an odd dialect</tt> </tt>
-<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"> </tt>
-<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> <tt class="py-comment">#if in iPython interactive shell, print licence notice</tt> </tt>
-<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">    <tt class="py-keyword">assert</tt> <tt class="py-name">__IPYTHON__active</tt> </tt>
-<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt id="link-12" class="py-name"><a title="spacepy.__notice__" class="py-name" href="#" onclick="return doclink('link-12', '__notice__', 'link-10');">__notice__</a></tt> </tt>
-<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> <tt class="py-comment">#otherwise print single line notice</tt> </tt>
-<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"SpacePy is released under GPL v3.0. See __licence__ for details, and help() for HTML help."</tt> </tt>
-<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> <tt class="py-comment">#if in iPython interactive shell, print licence notice</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">    <tt class="py-keyword">assert</tt> <tt class="py-name">__IPYTHON__active</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt id="link-12" class="py-name"><a title="spacepy.__notice__" class="py-name" href="#" onclick="return doclink('link-12', '__notice__', 'link-10');">__notice__</a></tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> <tt class="py-comment">#otherwise print single line notice</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"SpacePy is released under GPL v3.0. See __licence__ for details, and help() for HTML help."</tt> </tt>
 <a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"> </tt>
-<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
-<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-comment"># some settings</tt> </tt>
-<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt id="link-13" class="py-name" targets="Variable spacepy.NCPUS=spacepy-module.html#NCPUS"><a title="spacepy.NCPUS" class="py-name" href="#" onclick="return doclink('link-13', 'NCPUS', 'link-13');">NCPUS</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
-<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
-<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
-<a name="test_all"></a><div id="test_all-def"><a name="L74"></a><tt class="py-lineno"> 74</tt> <a class="py-toggle" href="#" id="test_all-toggle" onclick="return toggle('test_all');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy-module.html#test_all">test_all</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="test_all-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="test_all-expanded"><a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"><tt class="py-docstring">    test all spacepy routines</tt> </tt>
-<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-docstring">    Returns:</tt> </tt>
-<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-docstring">    ========</tt> </tt>
-<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-docstring">        - nFAIL (int) : number of failures</tt> </tt>
-<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring">    Example:</tt> </tt>
-<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring">    ========</tt> </tt>
-<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; spacepy.test()</tt> </tt>
-<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-docstring">    test_ticktock: PASSED TEST 1</tt> </tt>
-<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-docstring">    test_ticktock: PASSED TEST 2</tt> </tt>
-<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-docstring">    0</tt> </tt>
-<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-docstring">    Author:</tt> </tt>
-<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">    =======</tt> </tt>
-<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</tt> </tt>
-<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring">    Version:</tt> </tt>
-<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">    ========</tt> </tt>
-<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">    V1: 24-Jan-2010</tt> </tt>
-<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
-<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">     </tt>
-<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt id="link-14" class="py-name" targets="Package spacepy=spacepy-module.html"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-14', 'spacepy', 'link-14');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="spacepy.time" class="py-name" href="#" onclick="return doclink('link-15', 'time', 'link-6');">time</a></tt> </tt>
-<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"> </tt>
-<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">    <tt class="py-name">nFAIL</tt> <tt class="py-op">=</tt> <tt id="link-16" class="py-name"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-16', 'spacepy', 'link-14');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="spacepy.time" class="py-name" href="#" onclick="return doclink('link-17', 'time', 'link-6');">time</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Function spacepy.time.test()=spacepy.time-module.html#test,Function spacepy.toolbox.test()=spacepy.toolbox-module.html#test"><a title="spacepy.time.test
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt class="py-comment"># some settings</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"><tt id="link-13" class="py-name" targets="Variable spacepy.NCPUS=spacepy-module.html#NCPUS"><a title="spacepy.NCPUS" class="py-name" href="#" onclick="return doclink('link-13', 'NCPUS', 'link-13');">NCPUS</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
+<a name="test_all"></a><div id="test_all-def"><a name="L75"></a><tt class="py-lineno"> 75</tt> <a class="py-toggle" href="#" id="test_all-toggle" onclick="return toggle('test_all');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy-module.html#test_all">test_all</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="test_all-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="test_all-expanded"><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"><tt class="py-docstring">    test all spacepy routines</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-docstring">    Returns:</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-docstring">    ========</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-docstring">        - nFAIL (int) : number of failures</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring">    Example:</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">    ========</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-docstring">    &gt;&gt;&gt; spacepy.test()</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-docstring">    test_ticktock: PASSED TEST 1</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-docstring">    test_ticktock: PASSED TEST 2</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-docstring">    0</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">    Author:</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">    =======</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring">    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">    Version:</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">    ========</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"><tt class="py-docstring">    V1: 24-Jan-2010</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">     </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt id="link-14" class="py-name" targets="Package spacepy=spacepy-module.html"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-14', 'spacepy', 'link-14');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="spacepy.time" class="py-name" href="#" onclick="return doclink('link-15', 'time', 'link-6');">time</a></tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">    <tt class="py-name">nFAIL</tt> <tt class="py-op">=</tt> <tt id="link-16" class="py-name"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-16', 'spacepy', 'link-14');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="spacepy.time" class="py-name" href="#" onclick="return doclink('link-17', 'time', 'link-6');">time</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Function spacepy.time.test()=spacepy.time-module.html#test,Function spacepy.toolbox.test()=spacepy.toolbox-module.html#test"><a title="spacepy.time.test
 spacepy.toolbox.test" class="py-name" href="#" onclick="return doclink('link-18', 'test', 'link-18');">test</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
-<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">    <tt class="py-name">nFAIL</tt> <tt class="py-op">=</tt><tt class="py-op">+</tt> <tt id="link-19" class="py-name"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-19', 'spacepy', 'link-14');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="spacepy.toolbox" class="py-name" href="#" onclick="return doclink('link-20', 'toolbox', 'link-1');">toolbox</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="spacepy.time.test
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">    <tt class="py-name">nFAIL</tt> <tt class="py-op">=</tt><tt class="py-op">+</tt> <tt id="link-19" class="py-name"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-19', 'spacepy', 'link-14');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="spacepy.toolbox" class="py-name" href="#" onclick="return doclink('link-20', 'toolbox', 'link-1');">toolbox</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="spacepy.time.test
 spacepy.toolbox.test" class="py-name" href="#" onclick="return doclink('link-21', 'test', 'link-18');">test</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
-<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
-<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">     </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"> </tt>
 <a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">     </tt>
-<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">nFAIL</tt> </tt>
-</div><a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">     </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">nFAIL</tt> </tt>
+</div><a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -206,7 +207,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun  3 18:04:34 2010
+    Generated by Epydoc 3.0.1 on Wed Jun  9 11:02:34 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

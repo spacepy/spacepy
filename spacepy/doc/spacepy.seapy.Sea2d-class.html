@@ -171,34 +171,6 @@ object --+
       
     </td>
   </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.seapy.Sea2d-class.html#seplot" class="summary-sig-name">seplot</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">xquan</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">Time Since Epoch</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">yquan</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">xunits</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">yunits</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">zunits</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">epochline</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">usrlimy</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
-        <span class="summary-sig-arg">show</span>=<span class="summary-sig-default">True</span>,
-        <span class="summary-sig-arg">zlog</span>=<span class="summary-sig-default">True</span>,
-        <span class="summary-sig-arg">figsize</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">dpi</span>=<span class="summary-sig-default">300</span>)</span><br />
-      Method called to create basic plot of 2D superposed epoch analysis.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.seapy-pysrc.html#Sea2d.plot">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code><a href="spacepy.seapy.Sea-class.html">Sea</a></code></b>:
@@ -321,16 +293,31 @@ object --+
   
   <p>Method called to perform 2D superposed epoch analysis on data in 
   object.</p>
-  <p>Inputs: Uses object attributes obj.data, obj.times, obj.epochs, 
-  obj.delta, obj.window, all of which must be available on 
-  instatiation.</p>
-  <p>Optional keyword(s): storedata (default = False) - saves matrix of 
-  epoch windows as obj.datacube quartiles calculates the interquartile 
-  range to show the spread (and is default); ci will find the bootstrapped 
-  confidence interval (and requires ci_quan to be set); mad will use the 
-  median absolute deviation for the spread; ci_quan can be set to 'median' 
-  or 'mean'</p>
-  <p>A basic plot can be raised with the obj.plot() method</p>
+  <h1 class="heading">Inputs:</h1>
+    <p>Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, 
+    obj.window, all of which must be available on instatiation.</p>
+  <h1 class="heading">Optional keyword(s):</h1>
+    <ul>
+      <li>
+        storedata (default = False) - saves matrix of epoch windows as 
+        obj.datacube
+      </li>
+      <li>
+        quartiles calculates the interquartile range to show the spread 
+        (and is default);
+      </li>
+      <li>
+        ci will find the bootstrapped confidence interval (and requires 
+        ci_quan to be set);
+      </li>
+      <li>
+        mad will use the median absolute deviation for the spread;
+      </li>
+      <li>
+        ci_quan can be set to 'median' or 'mean'
+      </li>
+    </ul>
+    <p>A basic plot can be raised with the obj.plot() method</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="spacepy.seapy.Sea-class.html#sea">Sea.sea</a>
@@ -365,58 +352,35 @@ object --+
   
   <p>Method called to create basic plot of 2D superposed epoch 
   analysis.</p>
-  <p>Inputs: Uses object attributes created by the obj.sea() method. 
-  Optional keyword(s): x(y)quan (default = 'Time since epoch' (None)) - 
-  x(y)-axis label. x(y/z)units (default = None (None)) - x(y/z)-axis units.
-  epochline (default = False) - put vertical line at zero epoch. usrlimy 
-  (default = []) - override automatic y-limits on plot. show (default = 
-  True) - shows plot; set to false to output plot object to variable 
-  figsize - tuple of (width, height) in inches dpi (default=300) - figure 
-  resolution in dots per inch If both ?quan and ?units are supplied, axis 
-  label will read 'Quantity Entered By User [Units]'</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="spacepy.seapy.Sea-class.html#plot">Sea.plot</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="seplot"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">seplot</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">xquan</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">Time Since Epoch</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">yquan</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">xunits</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">yunits</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">zunits</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">epochline</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">usrlimy</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
-        <span class="sig-arg">show</span>=<span class="sig-default">True</span>,
-        <span class="sig-arg">zlog</span>=<span class="sig-default">True</span>,
-        <span class="sig-arg">figsize</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">dpi</span>=<span class="sig-default">300</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.seapy-pysrc.html#Sea2d.plot">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Method called to create basic plot of 2D superposed epoch 
-  analysis.</p>
-  <p>Inputs: Uses object attributes created by the obj.sea() method. 
-  Optional keyword(s): x(y)quan (default = 'Time since epoch' (None)) - 
-  x(y)-axis label. x(y/z)units (default = None (None)) - x(y/z)-axis units.
-  epochline (default = False) - put vertical line at zero epoch. usrlimy 
-  (default = []) - override automatic y-limits on plot. show (default = 
-  True) - shows plot; set to false to output plot object to variable 
-  figsize - tuple of (width, height) in inches dpi (default=300) - figure 
-  resolution in dots per inch If both ?quan and ?units are supplied, axis 
-  label will read 'Quantity Entered By User [Units]'</p>
+  <h1 class="heading">Inputs:</h1>
+    <p>Uses object attributes created by the obj.sea() method.</p>
+  <h1 class="heading">Optional keyword(s):</h1>
+    <ul>
+      <li>
+        x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
+      </li>
+      <li>
+        x(y/z)units (default = None (None)) - x(y/z)-axis units.
+      </li>
+      <li>
+        epochline (default = False) - put vertical line at zero epoch.
+      </li>
+      <li>
+        usrlimy (default = []) - override automatic y-limits on plot.
+      </li>
+      <li>
+        show (default = True) - shows plot; set to false to output plot 
+        object to variable
+      </li>
+      <li>
+        figsize - tuple of (width, height) in inches
+      </li>
+      <li>
+        dpi (default=300) - figure resolution in dots per inch
+      </li>
+    </ul>
+    <p>If both ?quan and ?units are supplied, axis label will read 
+    'Quantity Entered By User [Units]'</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="spacepy.seapy.Sea-class.html#plot">Sea.plot</a>
@@ -456,7 +420,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun  3 18:04:34 2010
+    Generated by Epydoc 3.0.1 on Wed Jun  9 11:02:34 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
