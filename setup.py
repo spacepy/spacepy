@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.15 $, $Date: 2010/06/04 00:39:16 $"
+__version__ = "$Revision: 1.16 $, $Date: 2010/06/09 19:28:43 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -147,7 +147,6 @@ if fresh_install:
 	os.mkdir(dotfln+'/data')
 	os.chmod(dotfln+'/data', 0777)
 	shutil.copy('spacepy/data/spacepy.rc', dotfln+'/')
-	shutil.copy('spacepy/data/PSDdb.pbin', dotfln+'/data')
 	shutil.copy('spacepy/data/tai-utc.dat', dotfln+'/data')
 
 pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*']
