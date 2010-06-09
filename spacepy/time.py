@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.11 $, $Date: 2010/06/09 16:40:23 $"
+__version__ = "$Revision: 1.12 $, $Date: 2010/06/09 16:51:35 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -252,11 +252,11 @@ class Ticktock(object):
     Example:
     ========
     
-    >>> x=Ticktock(2452331.0142361112, 'JD')
+    >>> x=Ticktock([2452331.0142361112, 2452332.0142361112], 'JD')
     >>> x.ISO
-    '2002-02-25T12:20:30'
+    ['2002-02-25T12:20:30', '2002-02-26T12:20:30']
     >>> x.DOY # Day of year
-    56
+    array([ 56.,  57.])
     
     See Also:
     =========
