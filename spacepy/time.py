@@ -23,6 +23,14 @@ datetime.datetime(2002, 7, 8, 0, 0)]
 >>> dts.DOY
 array([ 186.,  187.,  188.,  189.]) 
 
+Ticktock object creation
+
+>>> isodates = ['2009-12-01T12:00:00', '2009-12-04T00:00:00', '2009-12-06T12:00:00'] 
+>>> dts = spt.Ticktock(isodates, 'ISO')
+OR
+>>> dtdates = [dt.datetime(2009,12,1,12), dt.datetime(2009,12,4), dt.datetime(2009,12,6,12)]
+>>> dts = spt.Ticktock(dtdates, 'UTC')
+
 ISO time formatting
 
 >>> dts = spt.tickrange('2009-12-01T12:00:00','2009-12-06T12:00:00',2.5)
@@ -71,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.10 $, $Date: 2010/06/03 22:32:48 $"
+__version__ = "$Revision: 1.11 $, $Date: 2010/06/09 16:40:23 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
