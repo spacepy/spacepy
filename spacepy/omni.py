@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.8 $, $Date: 2010/06/02 16:07:14 $"
+__version__ = "$Revision: 1.9 $, $Date: 2010/06/10 17:25:12 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -164,6 +164,7 @@ def get_omni(ticktock):
     ========
     V1: 26-Jan-2010 (JK)
     V1.1: 11-Mar-2010: fixed bug in get_omni; will now return the correct 6_status, 8_status (JK)
+    V1.2: 10-Jun-2010: took out 6_status etc b/c it's too slow (JK)
     """
 
     import numpy as n
@@ -172,7 +173,6 @@ def get_omni(ticktock):
     RDTvals = ticktock.RDT
     nRDT = len(ticktock)
 
-    nRDT = len(RDTvals)
     omnikeys = omnidata.keys()
     omnikeys.remove('6_status') # remove this item because it is a string (cannot interpolate)
     omnikeys.remove('8_status')
@@ -187,11 +187,11 @@ def get_omni(ticktock):
     # add time information back in
     omnival['UTC'] = ticktock.UTC
     # add interpolation parameters back in
-    for key in ['6_status','8_status']:
-        omnival[key] = ['']*nRDT
-        for iRDT, RDT in zip( n.arange(nRDT), RDTvals):
-            idx = n.argmin( abs(omnidata['RDT']-RDT) )
-            omnival[key][iRDT] = omnidata[key][idx]
+    #for key in ['6_status','8_status']:
+    #    omnival[key] = ['']*nRDT
+    #    for iRDT, RDT in zip( n.arange(nRDT), RDTvals):
+    #        idx = n.argmin( abs(omnidata['RDT']-RDT) )
+    #        omnival[key][iRDT] = omnidata[key][idx]
 
     # return warning if values outside of omni data range
     if n.any(n.isnan(omnival['Kp'])): print "Warning: time is outside of omni data range"
