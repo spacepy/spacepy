@@ -22,7 +22,7 @@ To perform association analysis
 
 To plot
  
->>> obj.aaplot()
+>>> obj.plot()
 
 
 --++-- By Steve Morley --++--
@@ -84,22 +84,28 @@ class PPro(object):
         
         #check for existence of lags and winhalf
         try:
+            if u:
+                self.lags = u
             assert self.lags
+            if h:
+                self.winhalf = h
             assert self.winhalf
+            print 'calculating association for series of length %s at %d lags' \
+                % ([len(self.process1), len(self.process2)], len(self.lags))
         except:
             return 'assoc error: attributes lags and winhalf must be populated'
         
         import numpy as np
         import spacepy.toolbox as tb
         
+        ##Method 1 - use tb.tOverlap
         self.n_assoc=np.zeros((len(self.process1),len(self.lags))) #create list for association number
         
         for ilag,lag in enumerate(self.lags): #loop for each lag
             for nss, tp1 in enumerate(self.process1): #loop for each member of series1
                 t_lower = tp1+lag-self.winhalf
                 t_upper = tp1+lag+self.winhalf
-                [inds1,inds2] = tb.tOverlap([t_lower, t_upper], self.process2)
-
+                inds1, inds2 = tb.tOverlap([t_lower, t_upper], self.process2)
                 if inds2 == None:
                     numby = 0
                 else:
@@ -131,17 +137,6 @@ class PPro(object):
         import matplotlib.pylab as plt
         from spacepy.toolbox import makePoly
         
-        #if len(xunits)<1:
-            #xlstr = '%s' % xquan
-        #else:
-            #xlstr = '%s [%s]' % (xquan, xunits)
-        #if len(yquan)>=1 and len(yunits)>=1:
-            #ylstr = '%s [%s]' % (yquan, yunits)
-        #elif len(yquan)>=1 and len(yunits)<1:
-            #ylstr = '%s' % yquan
-        #else:
-            #ylstr = ''
-        
         fig = plt.figure(figsize=figsize, dpi=dpi)
         ax0 = fig.add_subplot(111)
         
@@ -159,11 +154,11 @@ class PPro(object):
         except AttributeError:
             print 'Error: No confidence intervals to plot - skipping'
 
-        #plt.xlabel(xlstr)
-        #plt.ylabel(ylstr)
-        
-        if usrlimy:
-            ax0.set_ylim(usrlimy)
+        try:
+            if usrlimy:
+                ax0.set_ylim(usrlimy)
+        except:
+            pass
         
         plt.show()
         return None
