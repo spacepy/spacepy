@@ -11,29 +11,56 @@ intended for application to discrete time series of events to assess
 statistical association between the series and to calculate confidence limits.
 Any mis-application or mis-interpretation by the user is the user's own fault.
 
+>>> import datetime as dt
+>>> import spacepy.time as spt
 
-Each instance must be initialized with:
+Since association analysis is rather computationally expensive, this example
+shows timing.
+
+>>> t0 = dt.datetime.now()
+>>> onsets = spt.Ticktock(onset_epochs, 'CDF')
+>>> ticksR1 = spt.Ticktock(tr_list, 'CDF')
+
+Each instance must be initialized
         
->>> obj = poppy.PPro(series1, series2)
+>>> lags = [dt.timedelta(minutes=n) for n in xrange(-400,401,2)]
+>>> halfwindow = dt.timedelta(minutes=10)
+>>> pp1 = poppy.PPro(onsets.UTC, ticksR1.UTC, lags, halfwindow)
 
 To perform association analysis
 
->>> obj.assoc(u=lags, h=halfwindow)
+>>> pp1.assoc()
+Starting association analysis                     
+calculating association for series of length [3494, 1323] at 401 lags
+>>> t1 = dt.datetime.now()
+>>> print "Elapsed:  " + str(t1-t0)
+Elapsed:  0:35:46.927138
+
+Note that for calculating associations between long series at a large number of
+lags is SLOW!!
 
 To plot
- 
->>> obj.plot()
+
+>>> pp1.plot(dpi=80)
+Error: No confidence intervals to plot - skipping
+
+To add 95% confidence limits (using 4000 bootstrap samples)
+
+>>> pp1.aa_ci(95, n_boots=4000)
+
+The plot method will then add the 95% confidence intervals as a semi-
+transparent patch.
 
 
 --++-- By Steve Morley --++--
 
-smorley@lanl.gov/morley_steve@hotmail.com,
+smorley@lanl.gov,
 Los Alamos National Laboratory, ISR-1,
-PO Box 1663, Los Alamos, NM 87545
+PO Box 1663, MS D466, Los Alamos, NM 87545
 """
 
 from spacepy import help
-__author__ = 'Steve Morley (smorley@lanl.com/morley_steve@hotmail.com)'
+__author__ = 'Steve Morley, Los Alamos National Lab (smorley@lanl.gov)'
     
 class PPro(object):
     """PoPPy point process object
@@ -171,11 +198,12 @@ class PPro(object):
         
         Upper and lower confidence limits are added to the ci attribute
         """
+        import numpy as np
         
         aa_fun = lambda x: np.add.reduce(x)
         ci_low, ci_high = np.array([len(self.lags)]), np.array([len(self.lags)])
-        for i in range(self.lags):
-            ci_low[i], ci_high[i] = boots_ci(self.assoc, n_boots, inter, aa_fun)
+        for i in range(len(self.lags)):
+            ci_low[i], ci_high[i] = boots_ci(self.n_assoc[:,i], n_boots, inter, aa_fun)
     
         self.ci = [ci_low, ci_high]
     
