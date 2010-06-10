@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.16 $, $Date: 2010/06/03 23:47:47 $"
+__version__ = "$Revision: 1.17 $, $Date: 2010/06/10 14:50:27 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -34,45 +34,30 @@ def tOverlap(ts1,ts2):
     
     Modifications:
     ==============
-    Apr-2010: Add sanity check so when there are no overlapping elements, returns tuple of Nones
-    Apr-2010: Additional sanity check for data equidistant from st and end pts
-    
-    Notes:
-    ======
-    Can probably be rewritten to explicitly use datetime objects and keep method...
+    09-Jun-2010: Total rewrite for clarity, efficiency and brevity.
     """
     
-    import datetime as dt
-    import numpy as np
-    from matplotlib.dates import date2num
+    #elements of ts2 within bounds of ts1
+    t_lower, t_upper = min(ts1), max(ts1)
+    bool1 = [v > t_lower for v in ts2]
+    bool2 = [v < t_upper for v in ts2]
+    mask2in1 = [b1 and b2 for b1,b2 in zip(bool1,bool2)]
+    inds2in1 = [i for i, val in enumerate(mask2in1) if val==True]
     
-    tn1, tn2 = date2num(ts1),date2num(ts2)
+    #elements of ts1 within bounds of ts2
+    t_lower, t_upper = min(ts2), max(ts2)
+    bool1 = [v > t_lower for v in ts1]
+    bool2 = [v < t_upper for v in ts1]
+    mask1in2 = [b1 and b2 for b1,b2 in zip(bool1,bool2)]
+    inds1in2 = [i for i, val in enumerate(mask1in2) if val==True]
     
-    dum = abs(tn1-tn2[0])
-    in1st = np.where(min(dum) == dum)
-    dum = abs(tn1-tn2[-1])
-    in1en = np.where(min(dum) == dum)
-    if len(in1st[0])>1:
-        if tn1[in1st[0][0]] < tn2[0]:
-            stpt = int(in1st[0][-1])
-    else:
-        stpt = int(in1st[0][0])
-    inds1 = range(stpt,int(in1en[0][0])+1)
+    if len(inds2in1) == 0:
+        inds2in1 = None
+    if len(inds1in2) == 0:
+        inds1in2 = None
     
-    dum = abs(tn2-tn1[0])
-    in2st = np.where(dum == min(dum))
-    dum = abs(tn2-tn1[-1])
-    in2en = np.where(dum == min(dum))
-    inds2 = range(int(in2st[0][0]),int(in2en[0][0])+1)
+    return inds1in2, inds2in1
     
-    #sanity check for out-of-range
-    if len(inds1)==1 and len(inds2)==1:
-        if inds1[0]==len(tn1)-1 and inds2[0]==0:
-            inds1, inds2 = None, None
-        elif inds2[0]==len(tn2)-1 and inds1[0]==0:
-            inds1, inds2 = None, None
-
-    return inds1, inds2
 
 def tCommon(ts1, ts2, mask_only=True):
     """Finds the elements in a list of datetime objects present in another
