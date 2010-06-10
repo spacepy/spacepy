@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.12 $, $Date: 2010/06/09 16:51:35 $"
+__version__ = "$Revision: 1.13 $, $Date: 2010/06/10 16:26:24 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1312,11 +1312,10 @@ class Ticktock(object):
                 else:
                     UTC[i] = datetime.datetime.strptime(self.data[i], fmt2)
             
-        elif self.dtype.upper() == 'TAI':   
+        elif self.dtype.upper() == 'TAI':
+            TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
             for i in n.arange(nTAI):
-                TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-                for i in n.arange(nTAI):
-                    UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + TAI0                 
+                UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + TAI0                 
              # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
@@ -1324,10 +1323,9 @@ class Ticktock(object):
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i]))
 
         elif self.dtype.upper() == 'GPS':   
+            GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
             for i in n.arange(nTAI):
-                GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
-                for i in xrange(nTAI):
-                    UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + GPS0                 
+                UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + GPS0                 
              # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
