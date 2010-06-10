@@ -201,8 +201,8 @@ class PPro(object):
         import numpy as np
         
         aa_fun = lambda x: np.add.reduce(x)
-        ci_low, ci_high = np.array([len(self.lags)]), np.array([len(self.lags)])
-        for i in range(len(self.lags)):
+        ci_low, ci_high = np.zeros([len(self.lags)]), np.zeros([len(self.lags)])
+        for i in xrange(len(self.lags)):
             ci_low[i], ci_high[i] = boots_ci(self.n_assoc[:,i], n_boots, inter, aa_fun)
     
         self.ci = [ci_low, ci_high]
