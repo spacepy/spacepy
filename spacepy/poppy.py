@@ -70,6 +70,10 @@ class PPro(object):
     Includes method to perform association analysis of input series
 
     Output can be nicely plotted with plot method
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     
     def __init__(self, process1, process2, lags=None, winhalf=None):
@@ -82,8 +86,19 @@ class PPro(object):
     def __str__(self):
         """String Representation of PoPPy object"""
         
+        try:
+            pk = max(self.assoc_total)
+        except:
+            pk = 'N/A'
+            
+        try:
+            asy = self.asympt_assoc
+        except:
+            asy = 'N/A'
+        
         return """Point Process Object:
         Points in process #1 - %d ; Points in process #1 - %d
+        Peak association number - %s ; Asymptotic association - %s
         """ % (len(self.process1), len(self.process2))
     
     __repr__ = __str__
@@ -123,6 +138,7 @@ class PPro(object):
             return 'assoc error: attributes lags and winhalf must be populated'
         
         import numpy as np
+        import matplotlib as mpl
         import spacepy.toolbox as tb
         
         ##Method 1 - use tb.tOverlap
@@ -139,10 +155,16 @@ class PPro(object):
                     numby = len(inds2)
                     
                 self.n_assoc[nss,ilag] = numby
-                
+        
+        self.assoc_total = np.sum(self.n_assoc, axis=0)
+        pul = mpl.mlab.prctile_rank(self.x, p=(20,80))
+        valsL = self.assoc_total[pul==0]
+        valsR = self.assoc_total[pul==2]
+        self.asympt_assoc = np.mean([np.mean(valsL), np.mean(valsR)])
+        
         return None
     
-    def plot(self, figsize=None, dpi=300):
+    def plot(self, figsize=None, dpi=300, asympt=True):
         """Method called to create basic plot of association analysis.
         
         Inputs:
@@ -151,7 +173,11 @@ class PPro(object):
         
         Optional keyword(s):
         ====================
-        usrlimy (default = []) - override automatic y-limits on plot.
+        asympt (default = True) - add line of asymptotic assoc. number
+        
+        To Do:
+        ======
+        Add normalization keyword for plotting as n(u,h)/n_asympt
         """
         try:
             dum = self.n_assoc
@@ -161,7 +187,7 @@ class PPro(object):
         import numpy as np
         import datetime as dt
         import matplotlib as mpl
-        import matplotlib.pylab as plt
+        import matplotlib.pyplot as plt
         from spacepy.toolbox import makePoly
         
         fig = plt.figure(figsize=figsize, dpi=dpi)
@@ -172,20 +198,17 @@ class PPro(object):
             self.x = [i.seconds/60 + i.days*1440. for i in self.lags]
         else:
             self.x = self.lags
-        ax0.plot(self.x, np.sum(self.n_assoc, axis=0), 'b-', lw=1.5)
+        
+        if asympt:
+            ax0.plot(self.x, self.asympt_assoc, 'r--', lw=1.5)
         try:
             dum = self.ci
-            plt.hold(True)
             polyci = makePoly(self.x, self.ci[0], self.ci[1])
-            ax0.add_patch(poly0qc)
+            ax0.add_patch(polyci)
         except AttributeError:
             print 'Error: No confidence intervals to plot - skipping'
-
-        try:
-            if usrlimy:
-                ax0.set_ylim(usrlimy)
-        except:
-            pass
+        
+        ax0.plot(self.x, assoc_total, 'b-', lw=1.5)
         
         plt.show()
         return None
@@ -239,6 +262,10 @@ def boots_ci(data, n, inter, func):
     Note that the true value of the desired quantity may lie outside the
     95% confidence interval one time in 20 realizations. This occurred
     for the first iteration here.
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     
     import numpy as np
