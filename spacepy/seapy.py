@@ -57,6 +57,10 @@ class Sea(object):
 
     Output can be nicely plotted with plot method, or for multiple objects
     use the seamulti function
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, window=3., delta=1.):
         import datetime as dt
@@ -439,6 +443,10 @@ class Sea2d(Sea):
             
     Output can be nicely plotted with plot method, or for multiple
     objects use the seamulti function
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, window=3., delta=1., y=[]):
         import datetime as dt
@@ -512,8 +520,8 @@ class Sea2d(Sea):
         #now get SEA quantities
         self.semean, self.semedian, self.countmask = np.empty((l,m)), np.empty((l,m)), np.empty((l,m))
         yj=0
-        for ti in range(int(m)):
-            for yj in range(l):
+        for ti in xrange(int(m)):
+            for yj in xrange(l):
                 self.semean[yj,ti] = np.mean(y_sea_m[yj,ti,:].compressed()) #np.mean(y_sea_m, axis=2)
                 self.semedian[yj,ti] = np.median(y_sea_m[yj,ti,:].compressed())
                 self.countmask[yj,ti] = len(y_sea_m[yj,ti,:].compressed())
@@ -629,7 +637,7 @@ class Sea2d(Sea):
             hc1.set_label(zunits)
             
         if show:
-            plt.draw()	
+            plt.show()	
             return None
         else:
             return fig
@@ -647,6 +655,9 @@ def seadict(objlist, namelist):
     ====================
     namelist = List containing names for y-axes.
     
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     try:
         assert type(objlist) == \
@@ -661,7 +672,7 @@ def seadict(objlist, namelist):
         pass
     
     outdict = {}
-    for i  in range(nobj):
+    for i  in xrange(nobj):
         outdict[namelist[i]] = objlist[i]
             
     return outdict
@@ -689,6 +700,10 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     =======
     Plot of input object median and bounds (ci, mad, quartiles - see sea()).
     If keyword 'show' is False, output is a plot object.
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     import matplotlib.ticker as tik
     import matplotlib.pyplot as plt
@@ -722,7 +737,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         fignum = range(1,n_fig+1)
         fig = plt.figure(figsize=figsize, dpi=dpi)
     
-    for i in range(n_fig):
+    for i in xrange(n_fig):
         #loop over each subplot
         #create subplot panel number
         dum = str(n_fig)+'1'+str(fignum[i])
@@ -775,7 +790,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         ax.yaxis.set_major_locator(majorticky)
             
     if show:
-        plt.draw()	
+        plt.show()	
         return None
     else:
         return fig
@@ -796,6 +811,10 @@ def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
     Output:
     =======
     epochs (type=list)
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     import datetime as dt
     
@@ -804,11 +823,11 @@ def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
 
         intime = loadtxt(fname)
         dum = zeros([intime.shape[0],6])
-        for i in range(intime.shape[1]):
+        for i in xrange(intime.shape[1]):
             dum[:,i] = intime[:,i]
         
         epochs=[]
-        for i in range(dum.shape[0]):
+        for i in xrange(dum.shape[0]):
             dtobj = dt.datetime(int(dum[i,0]), int(dum[i,1]), \
             int(dum[i,2]), int(dum[i,3]), int(dum[i,4]), int(dum[i,5]))
             epochs.append(dtobj)
@@ -822,8 +841,121 @@ def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
             epochs.append(dtobj)
     return epochs
 
-#def seaSignif(obj1, obj2, show=True):
-    #"""Test for similarity between distributions at each lag in two SEAs
-    #"""
-    #try:
-      #pass
+def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch', 
+        yquan='', xunits='', yunits='', epochline=True, usrlimy=[]):
+    """Test for similarity between distributions at each lag in two 1-D SEAs
+    
+    Inputs:
+    =======
+    Two seapy.Sea() instances for comparison
+    
+    Optional keyword(s):
+    ====================
+        - show (default = True)
+        - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
+        - x(y)units (default = None (None)) - x(y)-axis units.
+        - epochline (default = True) - put vertical line at zero epoch.
+        - usrlimy (default = []) - override automatic y-limits on plot.
+    
+    Example:
+    ========
+    >>> obj1 = seapy.Sea(data1, times1, epochs1)
+    >>> obj2 = seapy.Sea(data2, times2, epochs2)
+    >>> obj1.sea(storedata=True)
+    >>> obj2.sea(storedata=True)
+    >>> D, probH0 = seapy.sea_signif(obj1, obj2)
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
+    """
+    try:
+        assert isinstance(obj1, Sea)
+        assert isinstance(obj2, Sea)
+    except:
+        raise Exception("Inputs must both be seapy.Sea() instances of same length")
+    
+    keylist, S, prob = ['KS','U'], [], []
+    try:
+        assert test.upper() in keylist
+    except:
+        raise TypeError("Test "+self.dtype+" not implemented, only "+str(keylist))
+    
+    from scipy.stats import ks_2samp, mannwhitneyu
+    
+    if test.upper() == 'KS':
+        try:
+            for x in xrange(obj1.datacube.shape[0]):
+                tD, tprobKS2 = ks_2samp(obj1.datacube[:,x].compressed(), 
+                    obj2.datacube[:,x].compressed())
+                S.append(tD)
+                prob.append(tprobKS2)        
+        except:
+            raise Exception('''KS significance testing requires datacube attribute\n
+                Run sea() with kwarg storedata''')
+    
+    if test.upper() == 'U':
+        for x,y in zip(obj1.semedian, obj2.semedian):
+            tU, tprobU = mannwhitneyu(x, y)
+            S.append(tU)
+            prob.append(tprobU*2)
+    
+    def add_epochline(ax):
+        yr = ax.get_ylim()
+        if yr[0] < 0:
+            yrlo = yr[0]+yr[0]
+        else:
+            yrlo = yr[0]-yr[0]
+        if yr[1] < 0:
+            yrhi = yr[1]-yr[1]
+        else:
+            yrhi = yr[1]+yr[1]
+        
+        return (yr, yrlo, yrhi)
+    
+    if show:
+        if len(xunits)<1:
+            xlstr = '%s' % xquan
+        else:
+            xlstr = '%s [%s]' % (xquan, xunits)
+        if len(yquan)>=1 and len(yunits)>=1:
+            ylstr = '%s [%s]' % (yquan, yunits)
+        elif len(yquan)>=1 and len(yunits)<1:
+            ylstr = '%s' % yquan
+        else:
+            ylstr = ''
+            
+        import matplotlib.pyplot as plt
+        #set up plot panels
+        fig = plt.figure()
+        ax0 = fig.add_subplot(211)
+        pos = ax0.get_position()
+        ax0.set_position([pos.bounds[0], 0.4, pos.bounds[2], 0.55])
+        ax1 = fig.add_subplot(212, position=[pos.bounds[0], 0.1, pos.bounds[2], 0.25])
+        #overlay superposed epochs
+        ax0.plot(obj1.x, obj1.semedian, 'b-', lw=1.5)
+        plt.hold(True)
+        ax0.plot(obj1.x, obj1.bound_high, 'b--')
+        ax0.plot(obj1.x, obj1.bound_low, 'b--')
+        ax0.plot(obj2.x, obj2.semedian, 'r-', lw=1.5)
+        ax0.plot(obj2.x, obj2.bound_high, 'r--')
+        ax0.plot(obj2.x, obj2.bound_low, 'r--')
+        if epochline:
+            yr, yrlo, yrhi = add_epochline(ax0)
+            ax0.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
+            ax0.set_ylim(yr)
+        ax0.set_ylabel(ylstr)
+        #plot prob in lower panel
+        ax1.plot(obj.x, prob, 'r-', lw=1.5, drawstyle='steps-mid')
+        ax1.plot([obj.x[0], obj.x[-1]], [0.05, 0.05], 'b-')
+        if epochline:
+            yr, yrlo, yrhi = add_epochline(ax1)
+            ax1.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
+            ax1.set_ylim(yr)
+        ax1.set_xlabel(xlstr)
+        ax1.set_ylabel('Prob. of H0')
+        
+        plt.show()
+        
+    return S, prob
+    
