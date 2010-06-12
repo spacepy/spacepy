@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.17 $, $Date: 2010/06/10 14:50:27 $"
+__version__ = "$Revision: 1.18 $, $Date: 2010/06/12 01:59:16 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -432,7 +432,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False):
    return
 
 # -----------------------------------------------
-def update(all=True, omni=False, leapsecs=False, callfromOMNI=False):
+def update(all=True, omni=False, leapsecs=False):
     """
     Download and update local database for omni, leapsecs etc
 
@@ -454,62 +454,135 @@ def update(all=True, omni=False, leapsecs=False, callfromOMNI=False):
      Version:
      ========
      V1: 20-Jan-2010
-     V2: 24-May-2010 Minor modification to return data directory (BAL)
+     V1.1: 24-May-2010 Minor modification to return data directory (BAL)
+     V1.2: 11-Jun-2010 moved pickle_omni in here and added Qbits (JK)
      """
 
     import urllib as u
     import os
     import zipfile
-    oflag = 1
-    if not callfromOMNI:
-        oflag += 1
-        import spacepy.omni as om
+    import re
+    import datetime
+    import spacepy.time as st
+    import spacepy as s
+    import numpy as n
+    #import time
     
     dotfln = os.environ['HOME']+'/.spacepy'
-    #check directory exists, if not, create
-    if not os.path.isdir(dotfln):
-        os.mkdir(dotfln)
-        os.mkdir(dotfln+'/data')
     datadir = dotfln+'/data'
-    # define location for getting leap seconds
+    
     leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
     leapsec_fname = dotfln+'/data/tai-utc.dat'
 
-    if oflag <= 1:
-        # define location for getting omni
-        omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
-        omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
-        omni_fname_dat = dotfln+'/data/omnidata.pkl'
+    # define location for getting omni
+    omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
+    omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
+    omni_fname_pkl = dotfln+'/data/omnidata.pkl'
 
-        if all == True:
-            omni = True
-            leapsecs = True
+    if all == True:
+        omni = True
+        leapsecs = True
 
-        if omni == True:
-            # retrieve omni, unzip and save as table
-            print "Retrieving omni file ..."
-            u.urlretrieve(omni_url, omni_fname_zip)
-            fh_zip = zipfile.ZipFile(omni_fname_zip)
-            data = fh_zip.read(fh_zip.namelist()[0])
-            #dd = data.split('\n')
-            # save data as ascii file
-            fh = open(omni_fname_dat, 'w')
-            fh.writelines(data)
-            fh.flush()
-            fh.close
-            print "Now pickling (this will take a few minutes) ..."
-            if not callfromOMNI:
-                om.pickleomni(fln=omni_fname_dat)
-                # delete left-overs
-                os.remove(omni_fname_zip)
-
-        if leapsecs == True:
-            print "Retrieving leapseconds file ... "
-            u.urlretrieve(leapsec_url, leapsec_fname)
+    if omni == True:
+        # retrieve omni, unzip and save as table
+        print "Retrieving omni file ..."
+        u.urlretrieve(omni_url, omni_fname_zip)
+        fh_zip = zipfile.ZipFile(omni_fname_zip)
+        data = fh_zip.read(fh_zip.namelist()[0])
+        A = n.array(data.split('\n'))
+        #dd = data.split('\n')
+        # save data as ascii file
+        #fh = open(omni_fname_pkl, 'w')
+        #fh.writelines(data)
+        #fh.flush()
+        #fh.close
+        print "Now pickling (this will take a few minutes) ..."
         
-    if callfromOMNI:
-        oflag += 1
+        # create a keylist
+        keys = A[0].split()
+        keys.remove('8')
+        keys.remove('6')
+        keys[keys.index('status')] = '8_status'
+        keys[keys.index('stat')] = '6_status'
+        keys[keys.index('dst')] = 'Dst'
+        keys[keys.index('kp')] = 'Kp'
+        #keys[keys.index('Hr')] = 'Hr'
+        keys[keys.index('V_SW')] = 'velo'
+        keys[keys.index('Den_P')] = 'dens'
+        keys[keys.index('Day')] = 'DOY'
+        keys[keys.index('Year')] = 'Year'
+        
+        # remove keyword lines and empty lines as well
+        idx = n.where(A != '')[0]
+        A = A[idx[1:]]
+        
+        # put it into a 2D table
+        tab = n.zeros((len(A),len(keys)))
+        stat8 = ['']*(len(A))
+        stat6 = ['']*(len(A))
+        for i in n.arange(len(A)):
+            tab[i,:] = A[i].split()
+            stat8[i] = A[i].split()[11]
+            stat6[i] = A[i].split()[27]
     
+        tab = n.reshape(tab, n.shape(tab))
+        # take out where Dst not available ( = 99999) or year == 0
+        idx = n.where((tab[:,12] !=99.0) & (tab[:,0] != 0))[0]
+        tab = tab[idx,:]
+        stat8 = n.array(stat8)[idx]
+        stat6 = n.array(stat6)[idx]
+        
+        omnidata = {} 
+        # sort through and make an omni dictionary
+        # extract keys from line above
+        for ikey, i  in zip(keys,range(len(keys))):
+            omnidata[ikey] = tab[:,i]
+        
+        # add TAI to omnidata
+        nTAI = len(omnidata['DOY'])
+        omnidata['UTC'] = ['']*nTAI
+        omnidata['RDT'] = n.zeros(nTAI)
+        
+        
+        #t1 = time.time()
+        # add interpolation quality flags
+        omnidata['Qbits'] = {}
+        for ik, key in enumerate(['ByIMF', 'BzIMF', 'velo', 'dens', 'Pdyn', 'G1', 'G2', 'G3']):
+            arr = n.array(list(n.array(stat8).tostring()), dtype=int).reshape((8,nTAI))
+            omnidata['Qbits'][key] = arr[ik,:]
+        for ik, key in enumerate(['W1', 'W2', 'W3', 'W4', 'W5', 'W6']):
+            arr = n.array(list(n.array(stat6).tostring()), dtype=int).reshape((6,nTAI))
+            omnidata['Qbits'][key] = arr[ik,:]
+            
+        #remove string status keys
+        foo = omnidata.pop('6_status')
+        foo = omnidata.pop('8_status')
+        
+        # add time information to omni pickle (long loop)
+        for i in range(nTAI):
+            year = int(omnidata['Year'][i])
+            doy = int(omnidata['DOY'][i])
+            month, day = st.doy2date(year,doy)
+            UT_hr = omnidata['Hr'][i]
+            hour, minute = divmod(UT_hr*60., 60)
+            minute, second = divmod(minute*60., 60)  
+            omnidata['UTC'][i] = datetime.datetime(year, month, day, int(hour), int(minute), int(second))
+        
+        omnidata['ticktock'] = st.Ticktock(omnidata['UTC'], 'UTC')
+        omnidata['RDT'] = omnidata['ticktock'].RDT
+        
+        #t2 = time.time()
+        #print t2-t1
+        # save as pickle
+        s.savepickle(omni_fname_pkl, omnidata)
+            
+        # delete left-overs
+        os.remove(omni_fname_zip)
+
+    if leapsecs == True:
+        print "Retrieving leapseconds file ... "
+        u.urlretrieve(leapsec_url, leapsec_fname)
+        
     return datadir
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
