@@ -66,10 +66,12 @@ try: #if in iPython interactive shell, print licence notice
 except: #otherwise print single line notice
     print "SpacePy is released under GPL v3.0. See __licence__ for details, and help() for HTML help."
 
+# import some settings
+from os import environ as ENVIRON
+execfile(ENVIRON['HOME']+'/.spacepy/spacepy.rc')
+if DOT_FLN[:2] == '~/': DOT_FLN = ENVIRON['HOME']+'/'+DOT_FLN[2:]
+if DOT_FLN[-1] == '/': DOT_FLN = DOT_FLN[:-1]
 
-# -----------------------------------------------
-# some settings
-NCPUS = 1
 
 # -----------------------------------------------
 def test_all():
@@ -104,3 +106,4 @@ def test_all():
     
     
     return nFAIL
+

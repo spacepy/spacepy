@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.13 $, $Date: 2010/06/10 16:26:24 $"
+__version__ = "$Revision: 1.14 $, $Date: 2010/06/12 16:14:07 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1611,9 +1611,9 @@ class Ticktock(object):
     	import os
         import numpy as n
         import datetime
+        from spacepy import DOT_FLN
     
         tup = self.UTC
-        dotfln = os.environ['HOME']+'/.spacepy'
         # so you don't have to read the file every single time
         global secs, year, mon, day
         
@@ -1622,7 +1622,7 @@ class Ticktock(object):
     
         except:  # then we are calling this routine the 1st time
            # load current file
-           fname = dotfln+'/data/tai-utc.dat'
+           fname = DOT_FLN+'/data/tai-utc.dat'
            fh = open(fname)
            text = fh.readlines()
     

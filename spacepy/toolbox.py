@@ -6,7 +6,7 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 from spacepy import help
-__version__ = "$Revision: 1.18 $, $Date: 2010/06/12 01:59:16 $"
+__version__ = "$Revision: 1.19 $, $Date: 2010/06/12 16:14:07 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -464,20 +464,19 @@ def update(all=True, omni=False, leapsecs=False):
     import re
     import datetime
     import spacepy.time as st
-    import spacepy as s
+    from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL
     import numpy as n
     #import time
     
-    dotfln = os.environ['HOME']+'/.spacepy'
-    datadir = dotfln+'/data'
+    datadir = DOT_FLN+'/data'
     
-    leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
-    leapsec_fname = dotfln+'/data/tai-utc.dat'
+    #leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
+    leapsec_fname = DOT_FLN+'/data/tai-utc.dat'
 
     # define location for getting omni
-    omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
-    omni_fname_zip = dotfln+'/data/WGhour-latest.d.zip'
-    omni_fname_pkl = dotfln+'/data/omnidata.pkl'
+    #omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
+    omni_fname_zip = DOT_FLN+'/data/WGhour-latest.d.zip'
+    omni_fname_pkl = DOT_FLN+'/data/omnidata.pkl'
 
     if all == True:
         omni = True
@@ -486,7 +485,7 @@ def update(all=True, omni=False, leapsecs=False):
     if omni == True:
         # retrieve omni, unzip and save as table
         print "Retrieving omni file ..."
-        u.urlretrieve(omni_url, omni_fname_zip)
+        u.urlretrieve(OMNI_URL, omni_fname_zip)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         A = n.array(data.split('\n'))
@@ -574,14 +573,14 @@ def update(all=True, omni=False, leapsecs=False):
         #t2 = time.time()
         #print t2-t1
         # save as pickle
-        s.savepickle(omni_fname_pkl, omnidata)
+        savepickle(omni_fname_pkl, omnidata)
             
         # delete left-overs
         os.remove(omni_fname_zip)
 
     if leapsecs == True:
         print "Retrieving leapseconds file ... "
-        u.urlretrieve(leapsec_url, leapsec_fname)
+        u.urlretrieve(LEAPSEC_URL, leapsec_fname)
         
     return datadir
 

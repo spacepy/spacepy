@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.10 $, $Date: 2010/06/12 01:59:16 $"
+__version__ = "$Revision: 1.11 $, $Date: 2010/06/12 16:14:07 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -123,10 +123,10 @@ def get_G123(TAI, omnidata):
 #-----------------------------------------------
 
 # load omni file during import
+from spacepy import DOT_FLN, loadpickle
 import os
-dotfln = os.environ['HOME']+'/.spacepy'
-from spacepy import loadpickle
-omnifln = dotfln+'/data/omnidata.pkl'
+#dotfln = os.environ['HOME']+'/.spacepy'
+omnifln = DOT_FLN+'/data/omnidata.pkl'
 try:
     omnidata = loadpickle(omnifln)
 except:

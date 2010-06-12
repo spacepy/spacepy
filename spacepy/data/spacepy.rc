@@ -1,2 +1,26 @@
-# settings file for spacepy
-# NCPUS etc
+# ----------------------------------------------
+# settings file for spacepy install and import
+# 
+# Author: Josef Koller (Los Alamos National Lab)
+# Email:  jkoller@lanl.gov
+# $Revision: 1.2 $, $Date: 2010/06/12 16:14:08 $
+# ----------------------------------------------
+#
+# location of .spacepy (only used during setup)
+#
+DOT_FLN = '~/.spacepy'
+
+# set number of CPUs used for multi-core processing
+# only number => 1 are allowed; if NCPUS = 1 then only
+# single CPU will used
+#
+NCPUS = 1
+
+# ----------------------------
+# pointer to OMNI data file on virbo.org and tai-utc.dat
+#
+OMNI_URL = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
+LEAPSEC_URL = 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
+
+
+
