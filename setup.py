@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.16 $, $Date: 2010/06/09 19:28:43 $"
+__version__ = "$Revision: 1.17 $, $Date: 2010/06/14 20:59:10 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -94,9 +94,61 @@ def subst(pattern, replacement, filestr,
     return filestr
 	
 # -------------------------------------
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+    
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+    It must be "yes" (the default), "no" or None (meaning
+    an answer is required of the user).
+
+    The "answer" return value is one of "yes" or "no".
+
+    Inputs:
+    =======
+    question - string that is the question to ask
+    default - the default answer (yes)
+
+    Outputs:
+    ========
+    answer ('yes' or 'no')
+    
+    Example:
+    ======== 
+    query_yes_no('Ready to go?')
+    Ready to go? [Y/n] y
+    Out[17]: 'yes'
+
+
+    Author:
+    =======
+    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
+    """
+    import sys
+    valid = {"yes":"yes",   "y":"yes",  "ye":"yes",
+             "no":"no",     "n":"no"}
+    if default == None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while 1:
+        sys.stdout.write(question + prompt)
+        choice = raw_input().lower()
+        if default is not None and choice == '':
+            return default
+        elif choice in valid.keys():
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "\
+                             "(or 'y' or 'n').\n")
+	
+# -------------------------------------
 from distutils.core import setup
-import spacepy
-import spacepy.toolbox as tb
 import os, sys, shutil
 
 #test for python version 2.x where x>=5
@@ -114,40 +166,41 @@ except:
 
 # run compile for onera_desp_lib first
 if os.path.exists('spacepy/onerapy/onerapylib.so'):
-	ans = tb.query_yes_no('\nDo you want to recompile the ONERA-DESP library?', default="no")
+	ans = query_yes_no('\nDo you want to recompile the ONERA-DESP library?', default="no")
 	if ans=='yes':
 		compile_oneralib()
 else:
 	compile_oneralib()
 
 # create .spacepy in $HOME and move data
-HOME = os.environ['HOME']
-dotfln = HOME+'/.spacepy'
+execfile('spacepy/data/spacepy.rc')
+if DOT_FLN[:2] == '~/': DOT_FLN = os.environ['HOME']+'/'+DOT_FLN[2:]
+if DOT_FLN[-1] == '/': DOT_FLN = DOT_FLN[:-1]
 
 
-if os.path.exists(dotfln):
-	ans = tb.query_yes_no('\n'+dotfln+' already exists. Do you want to start fresh?', default="no")
+if os.path.exists(DOT_FLN):
+	ans = query_yes_no('\n'+DOT_FLN+' already exists. Do you want to start fresh?', default="no")
 	if ans=='no':
 		fresh_install = False
 	else:
 		fresh_install = True
 		i = 0
 		while 1:
-			if os.path.exists(dotfln+'.bak.'+str(i)):
+			if os.path.exists(DOT_FLN+'.bak.'+str(i)):
 				i = i+1
 			else:
-				shutil.move(dotfln, dotfln+'.bak.'+str(i))
+				shutil.move(DOT_FLN, DOT_FLN+'.bak.'+str(i))
 				break
 else:
 	fresh_install = True
 	
 if fresh_install:
-	os.mkdir(dotfln)
-	os.chmod(dotfln, 0777)
-	os.mkdir(dotfln+'/data')
-	os.chmod(dotfln+'/data', 0777)
-	shutil.copy('spacepy/data/spacepy.rc', dotfln+'/')
-	shutil.copy('spacepy/data/tai-utc.dat', dotfln+'/data')
+	os.mkdir(DOT_FLN)
+	os.chmod(DOT_FLN, 0777)
+	os.mkdir(DOT_FLN+'/data')
+	os.chmod(DOT_FLN+'/data', 0777)
+	shutil.copy('spacepy/data/spacepy.rc', DOT_FLN+'/')
+	shutil.copy('spacepy/data/tai-utc.dat', DOT_FLN+'/data')
 
 pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*']
 
@@ -175,19 +228,22 @@ setup(name='spacepy',
 
 # update/download packages
 if fresh_install:
+		import spacepy.toolbox as tb
 		dir = tb.update()
 		print("Data installed to " + dir)
 else:
-	ans = tb.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no")
+	ans = query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no")
 	if ans=='yes':
+		import spacepy.toolbox as tb
 		dir = tb.update()
 	else:
 		print "\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()"
 
 	
 # offer testing routine
-ans = tb.query_yes_no("\nDo you want to test your SpacePy installation", default="no")
+ans = query_yes_no("\nDo you want to test your SpacePy installation", default="no")
 if ans=='yes':
+	import spacepy
 	spacepy.test_all()
 
 print "\nThanks for installing SpacePy."
