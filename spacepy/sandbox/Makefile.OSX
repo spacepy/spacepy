@@ -9,15 +9,16 @@ INTERFACE = $(TARGET)_interface.i
 OBJS = $(TARGET).o $(TARGET)_wrap.o
 SWIG = swig
 CC = gcc
-CFLAGS = -I/Library/Frameworks/Python.framework/Versions/Current/include -I/Library/Frameworks/Python.framework/Versions/Current/lib -I/Library/Frameworks/Python.framework/Versions/6.1/include/python2.6 -arch i386
-LDFLAGS = -bundle -flat_namespace -undefined suppress -arch i386
+CFLAGS = -I/Library/Frameworks/Python.framework/Versions/6.1/include/python2.6 -arch x86_64 -Wall -fPIC
+LDFLAGS = -bundle -flat_namespace -undefined suppress -arch x86_64
+#i386
 LD = ld
 LDLIBS = /Applications/cdf33_0-dist/lib/libcdf.a
 
 #all: $(TARGET)
 
  _$(TARGET).a : cdfpy_interface_wrap.o
-	 $(LD) $(LDFLAGS) -o _$(TARGET).so $(LDLIBS)
+	 $(LD) $(LDFLAGS)  cdfpy_interface_wrap.o $(LDLIBS) -o _$(TARGET).so
 
 cdfpy_interface_wrap.o: $(TARGET)_wrap.c
 	$(CC) -c cdfpy_interface_wrap.c $(CFLAGS)
