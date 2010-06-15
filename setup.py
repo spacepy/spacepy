@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.17 $, $Date: 2010/06/14 20:59:10 $"
+__version__ = "$Revision: 1.18 $, $Date: 2010/06/15 16:30:37 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -94,62 +94,12 @@ def subst(pattern, replacement, filestr,
     return filestr
 	
 # -------------------------------------
-def query_yes_no(question, default="yes"):
-    """Ask a yes/no question via raw_input() and return their answer.
-    
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-    It must be "yes" (the default), "no" or None (meaning
-    an answer is required of the user).
-
-    The "answer" return value is one of "yes" or "no".
-
-    Inputs:
-    =======
-    question - string that is the question to ask
-    default - the default answer (yes)
-
-    Outputs:
-    ========
-    answer ('yes' or 'no')
-    
-    Example:
-    ======== 
-    query_yes_no('Ready to go?')
-    Ready to go? [Y/n] y
-    Out[17]: 'yes'
-
-
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
-    """
-    import sys
-    valid = {"yes":"yes",   "y":"yes",  "ye":"yes",
-             "no":"no",     "n":"no"}
-    if default == None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while 1:
-        sys.stdout.write(question + prompt)
-        choice = raw_input().lower()
-        if default is not None and choice == '':
-            return default
-        elif choice in valid.keys():
-            return valid[choice]
-        else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "\
-                             "(or 'y' or 'n').\n")
-	
-# -------------------------------------
 from distutils.core import setup
 import os, sys, shutil
+
+#import tooblox by reading file from repository
+# this will provide mostly the query_yes_no function
+execfile('spacepy/toolbox.py')
 
 #test for python version 2.x where x>=5
 try:
@@ -173,6 +123,7 @@ else:
 	compile_oneralib()
 
 # create .spacepy in $HOME and move data
+# read-in .rc file first
 execfile('spacepy/data/spacepy.rc')
 if DOT_FLN[:2] == '~/': DOT_FLN = os.environ['HOME']+'/'+DOT_FLN[2:]
 if DOT_FLN[-1] == '/': DOT_FLN = DOT_FLN[:-1]

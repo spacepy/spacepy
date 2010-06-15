@@ -5,8 +5,8 @@ Toolbox of various functions and generic utilities.
 
 """
 from __future__ import division
-from spacepy import help
-__version__ = "$Revision: 1.19 $, $Date: 2010/06/12 16:14:07 $"
+#from spacepy import help # not needed b/c help() is already defined in __init__.py 
+__version__ = "$Revision: 1.20 $, $Date: 2010/06/15 16:30:37 $"
 __author__ = 'S. Morley and J. Koller'
 
 
