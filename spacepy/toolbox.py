@@ -5,8 +5,11 @@ Toolbox of various functions and generic utilities.
 
 """
 from __future__ import division
-#from spacepy import help # not needed b/c help() is already defined in __init__.py 
-__version__ = "$Revision: 1.20 $, $Date: 2010/06/15 16:30:37 $"
+try:
+    from spacepy import help
+except ImportError:
+    pass
+__version__ = "$Revision: 1.21 $, $Date: 2010/06/18 23:51:13 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -386,50 +389,50 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False):
    V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
    """
 
-   import pylab, os, sys, re, glob, datetime
+    import pylab, os, sys, re, glob, datetime
 
-   try:
-   		nfigs = len(fignum)
-   except:
-   		nfigs = 1
-   		fignum = [fignum]
-   
-   for ifig in fignum:
-   		# active this figure
-   		pylab.figure(ifig)
+    try:
+        nfigs = len(fignum)
+    except:
+        nfigs = 1
+        fignum = [fignum]
 
-   		# create a filename for the figure
-   		cwd = os.getcwd()
-   		num = len(glob.glob('*.png'))
-   		fln = cwd+'/figure_'+str(num)
-   		# truncate fln if too long
-   		if len(fln) > 60: 
-   			flnstamp = '[...]'+fln[-60:]
-   		else:
-   			flnstamp = fln
+    for ifig in fignum:
+        # active this figure
+        pylab.figure(ifig)
 
-	    # save a clean figure without timestamps
-   		if clean == True:
-	   		pylab.savefig(fln+'_clean.png')
+        # create a filename for the figure
+        cwd = os.getcwd()
+        num = len(glob.glob('*.png'))
+        fln = cwd+'/figure_'+str(num)
+        # truncate fln if too long
+        if len(fln) > 60: 
+            flnstamp = '[...]'+fln[-60:]
+        else:
+            flnstamp = fln
 
-   		timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
-   		# add the filename to the figure for reference
-   		pylab.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', size=8)
+        # save a clean figure without timestamps
+        if clean == True:
+            pylab.savefig(fln+'_clean.png')
 
-   		# now save the figure to this filename
-   		if pngonly == False:
-	   		pylab.savefig(fln+'.ps')
-	   
-   		pylab.savefig(fln+'.png')
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
+        # add the filename to the figure for reference
+        pylab.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', size=8)
 
-   		# send it to the printer
-   		if saveonly != True:
-   			if pngonly == False:
-   				os.popen('lpr '+fln+'.ps')
-   			else:
-   				os.popen('lpr '+fln+'.png')
-       		
-   return
+        # now save the figure to this filename
+        if pngonly == False:
+            pylab.savefig(fln+'.ps')
+        
+        pylab.savefig(fln+'.png')
+
+        # send it to the printer
+        if saveonly != True:
+            if pngonly == False:
+                os.popen('lpr '+fln+'.ps')
+            else:
+                os.popen('lpr '+fln+'.png')
+            
+    return
 
 # -----------------------------------------------
 def update(all=True, omni=False, leapsecs=False):
@@ -844,13 +847,6 @@ def smartTimeTicks(time):
 
     return (Mtick, mtick, fmt) 
 
-
-#function aliases to maintain compatibility with existing scripts using Toolbox
-t_common = tCommon
-t_overlap = tOverlap
-smart_timeticks = smartTimeTicks
-
-
 def logspace(min, max, num, **kwargs):
     """Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max 
     not log10(min) and log10(max)
@@ -986,7 +982,6 @@ def rad2mlt(rad, midnight=False):
         rad_arr = rad
     mlt_arr=rad_arr*(12/np.pi) + 12
     return mlt_arr
-
 
 def leap_year(year, numdays=False, nobool=False):
     """
