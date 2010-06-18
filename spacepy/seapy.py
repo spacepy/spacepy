@@ -99,8 +99,7 @@ class Sea(object):
     
     def restoreepochs(self):
         """Replaces epoch times stored in obj.badepochs in the epochs attribute
-        
-        Quite why you'd want this feature I don't know.
+
         """
         
         try:
@@ -840,6 +839,7 @@ def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
             dtobj = dt.datetime.strptime(d, isofmt)
             epochs.append(dtobj)
     return epochs
+
 
 def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch', 
         yquan='', xunits='', yunits='', epochline=True, usrlimy=[]):

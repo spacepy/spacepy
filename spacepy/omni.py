@@ -3,9 +3,8 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.11 $, $Date: 2010/06/12 16:14:07 $"
+__version__ = "$Revision: 1.12 $, $Date: 2010/06/18 23:50:22 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
-
 
 # -----------------------------------------------
 def get_omni(ticktock):
@@ -123,7 +122,7 @@ def get_G123(TAI, omnidata):
 #-----------------------------------------------
 
 # load omni file during import
-from spacepy import DOT_FLN, loadpickle
+from spacepy import DOT_FLN, loadpickle, help
 import os
 #dotfln = os.environ['HOME']+'/.spacepy'
 omnifln = DOT_FLN+'/data/omnidata.pkl'

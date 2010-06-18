@@ -97,7 +97,7 @@ class PPro(object):
             asy = 'N/A'
         
         return """Point Process Object:
-        Points in process #1 - %d ; Points in process #1 - %d
+        Points in process #1 - %d ; Points in process #2 - %d
         Peak association number - %s ; Asymptotic association - %s
         """ % (len(self.process1), len(self.process2))
     
@@ -157,14 +157,14 @@ class PPro(object):
                 self.n_assoc[nss,ilag] = numby
         
         self.assoc_total = np.sum(self.n_assoc, axis=0)
-        pul = mpl.mlab.prctile_rank(self.x, p=(20,80))
+        pul = mpl.mlab.prctile_rank(self.lags, p=(20,80))
         valsL = self.assoc_total[pul==0]
         valsR = self.assoc_total[pul==2]
         self.asympt_assoc = np.mean([np.mean(valsL), np.mean(valsR)])
         
         return None
     
-    def plot(self, figsize=None, dpi=300, asympt=True):
+    def plot(self, figsize=None, dpi=80, asympt=True, show=True):
         """Method called to create basic plot of association analysis.
         
         Inputs:
@@ -200,7 +200,7 @@ class PPro(object):
             self.x = self.lags
         
         if asympt:
-            ax0.plot(self.x, self.asympt_assoc, 'r--', lw=1.5)
+            ax0.plot([self.x[0], self.x[-1]], [self.asympt_assoc]*2, 'r--', lw=1.5)
         try:
             dum = self.ci
             polyci = makePoly(self.x, self.ci[0], self.ci[1])
@@ -208,10 +208,13 @@ class PPro(object):
         except AttributeError:
             print 'Error: No confidence intervals to plot - skipping'
         
-        ax0.plot(self.x, assoc_total, 'b-', lw=1.5)
+        ax0.plot(self.x, self.assoc_total, 'b-', lw=1.5)
         
-        plt.show()
-        return None
+        if show:
+            plt.show()
+            return None
+        else:
+            return fig
     
     def aa_ci(self, inter, n_boots=1000):
         """Get bootstrap confidence intervals for association number
@@ -284,7 +287,7 @@ def boots_ci(data, n, inter, func):
             data_copy[el] = rec #put data in dictionary
         surr_quan = np.empty([n])
         ran_el = randint(0, n_els, size=[n_els,n])
-        for i in range(int(n)): #compute n bootstrapped series
+        for i in xrange(int(n)): #compute n bootstrapped series
             #surr_ser = data[ran_el[:,i]] #NumPy_resample with replacement
             for el, rec in enumerate(ran_el[:,i]): #loop over dictionary for access speed
                 surr_ser[el] = data_copy[rec] #dict_resample with replacement
