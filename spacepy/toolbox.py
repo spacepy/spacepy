@@ -9,7 +9,7 @@ try:
     from spacepy import help
 except ImportError:
     pass
-__version__ = "$Revision: 1.21 $, $Date: 2010/06/18 23:51:13 $"
+__version__ = "$Revision: 1.22 $, $Date: 2010/07/06 17:22:35 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -763,7 +763,9 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     return madePoly
     
 def binHisto(data):
-    """Calculates bin width and number of bins for histogram using Freedman-Diaconis rule
+    """
+    Calculates bin width and number of bins for histogram using Freedman-Diaconis rule
+    if rule fails, defaults to square-root method
     
     Inputs:
     =======
@@ -784,7 +786,8 @@ def binHisto(data):
     
     Author:
     =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
+    V1: Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
+    V2: 6Jul2010 Steve Morley added fallback rule
     """
     import numpy as np
     from matplotlib.mlab import prctile
@@ -793,7 +796,9 @@ def binHisto(data):
     iqr = qu-ql
     binw = 2.*iqr/(len(data)**(1./3.))
     nbins = round((np.max(data)-np.min(data))/binw)
-    
+    if nbins == 0 or nbins == np.inf:
+        nbins = round(np.sqrt(len(data)))
+        binw = len(data)/nbins
     return (binw, nbins)
     
 def smartTimeTicks(time):
