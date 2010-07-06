@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.18 $, $Date: 2010/06/15 16:30:37 $"
+__version__ = "$Revision: 1.19 $, $Date: 2010/07/06 23:41:53 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -116,11 +116,11 @@ except:
 
 # run compile for onera_desp_lib first
 if os.path.exists('spacepy/onerapy/onerapylib.so'):
-	ans = query_yes_no('\nDo you want to recompile the ONERA-DESP library?', default="no")
-	if ans=='yes':
-		compile_oneralib()
+    ans = query_yes_no('\nDo you want to recompile the ONERA-DESP library?', default="no")
+    if ans=='yes':
+        compile_oneralib()
 else:
-	compile_oneralib()
+    compile_oneralib()
 
 # create .spacepy in $HOME and move data
 # read-in .rc file first
@@ -130,28 +130,28 @@ if DOT_FLN[-1] == '/': DOT_FLN = DOT_FLN[:-1]
 
 
 if os.path.exists(DOT_FLN):
-	ans = query_yes_no('\n'+DOT_FLN+' already exists. Do you want to start fresh?', default="no")
-	if ans=='no':
-		fresh_install = False
-	else:
-		fresh_install = True
-		i = 0
-		while 1:
-			if os.path.exists(DOT_FLN+'.bak.'+str(i)):
-				i = i+1
-			else:
-				shutil.move(DOT_FLN, DOT_FLN+'.bak.'+str(i))
-				break
+    ans = query_yes_no('\n'+DOT_FLN+' already exists. Do you want to start fresh?', default="no")
+    if ans=='no':
+        fresh_install = False
+    else:
+        fresh_install = True
+        i = 0
+        while 1:
+            if os.path.exists(DOT_FLN+'.bak.'+str(i)):
+                i = i+1
+            else:
+                shutil.move(DOT_FLN, DOT_FLN+'.bak.'+str(i))
+                break
 else:
-	fresh_install = True
-	
+    fresh_install = True
+
 if fresh_install:
-	os.mkdir(DOT_FLN)
-	os.chmod(DOT_FLN, 0777)
-	os.mkdir(DOT_FLN+'/data')
-	os.chmod(DOT_FLN+'/data', 0777)
-	shutil.copy('spacepy/data/spacepy.rc', DOT_FLN+'/')
-	shutil.copy('spacepy/data/tai-utc.dat', DOT_FLN+'/data')
+    os.mkdir(DOT_FLN)
+    os.chmod(DOT_FLN, 0777)
+    os.mkdir(DOT_FLN+'/data')
+    os.chmod(DOT_FLN+'/data', 0777)
+    shutil.copy('spacepy/data/spacepy.rc', DOT_FLN+'/')
+    shutil.copy('spacepy/data/tai-utc.dat', DOT_FLN+'/data')
 
 pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*']
 
@@ -179,23 +179,20 @@ setup(name='spacepy',
 
 # update/download packages
 if fresh_install:
-		import spacepy.toolbox as tb
-		dir = tb.update()
-		print("Data installed to " + dir)
+    dir = update()
+    print("Data installed to " + dir)
 else:
-	ans = query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no")
-	if ans=='yes':
-		import spacepy.toolbox as tb
-		dir = tb.update()
-	else:
-		print "\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()"
+    ans = query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no")
+    if ans=='yes':
+        dir = update()
+    else:
+        print "\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()"
 
-	
+
 # offer testing routine
 ans = query_yes_no("\nDo you want to test your SpacePy installation", default="no")
 if ans=='yes':
-	import spacepy
-	spacepy.test_all()
+    import spacepy
+    spacepy.test_all()
 
 print "\nThanks for installing SpacePy."
-	

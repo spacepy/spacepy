@@ -9,7 +9,9 @@ try:
     from spacepy import help
 except ImportError:
     pass
-__version__ = "$Revision: 1.22 $, $Date: 2010/07/06 17:22:35 $"
+except:
+    pass
+__version__ = "$Revision: 1.23 $, $Date: 2010/07/06 23:41:52 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -355,39 +357,39 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
 
 # -----------------------------------------------
 def printfig(fignum, saveonly=False, pngonly=False, clean=False):
-   """save current figure to file and call lpr (print).
-   
-   This routine will create a total of 3 files (png, ps and c.png) in the 
-   current working directory with a sequence number attached. Also, a time 
-   stamp and the location of the file will be imprinted on the figure. The 
-   file ending with c.png is clean and no directory or time stamp are 
-   attached (good for powerpoint presentations).
+    """save current figure to file and call lpr (print).
 
-   Input:
-   ======
-       - fignum (integer or array/list of integer) : matplotlib figure number
-       - optional 
-           - saveonly (boolean) : True (don't print and save only to file)
-                                 False (print and save)
-           - pngonly (boolean) : True (only save png files and print png directly)
-           	                     False (print ps file, and generate png, ps; can be slow)
-           - clean (boolean) : True (print and save only clean files without directory info)
-                               False (print and save directory location as well)
+    This routine will create a total of 3 files (png, ps and c.png) in the 
+    current working directory with a sequence number attached. Also, a time 
+    stamp and the location of the file will be imprinted on the figure. The 
+    file ending with c.png is clean and no directory or time stamp are 
+    attached (good for powerpoint presentations).
 
-   Example:
-   ========
-   >>> pylab.plot([1,2,3],[2,3,2])
-   >>> spacepy.printfig(1)
+    Input:
+    ======
+        - fignum (integer or array/list of integer) : matplotlib figure number
+        - optional 
+            - saveonly (boolean) : True (don't print and save only to file)
+                                    False (print and save)
+            - pngonly (boolean) : True (only save png files and print png directly)
+                                    False (print ps file, and generate png, ps; can be slow)
+            - clean (boolean) : True (print and save only clean files without directory info)
+                                False (print and save directory location as well)
 
-   Author:
-   =======
-   Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
+    Example:
+    ========
+    >>> pylab.plot([1,2,3],[2,3,2])
+    >>> spacepy.printfig(1)
 
-   Version:
-   ========
-   V1: 20-Jan-2010
-   V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
-   """
+    Author:
+    =======
+    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
+
+    Version:
+    ========
+    V1: 20-Jan-2010
+    V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
+    """
 
     import pylab, os, sys, re, glob, datetime
 
