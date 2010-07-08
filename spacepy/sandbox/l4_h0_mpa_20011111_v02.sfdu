@@ -1,0 +1,18 @@
+CCSD1Z00000100001004NSSD1K00006000000358
+Project="ISTP>International Solar-Terrestrial Physics";
+Discipline="Space Physics>Magnetospheric Studies";
+Source_name="LANL1994_084";
+Descriptor="MPA>Magnetospheric Particle Analyzer";
+Data_type="H0>High Resolution";
+Start_date=2001-11-11T00:02:18.516Z;
+Stop_date=2001-11-11T23:57:20.776Z;
+Generation_date=2001-11-11T21:14:59.0Z;
+Data_version=2;
+CCSD1R00000300000606
+REFERENCETYPE=($CCSDS2);
+LABEL=NSSD3IE0009900000001;
+                                   
+
+REFERENCE=(l4_h0_mpa_20011111_v02.cdf);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+

@@ -4,17 +4,15 @@
 """CDFPy -- Interface to NASA CDF in Python.
 
 
---++-- By Steve Morley --++--
+--++-- By Steve Morley and Brian Larsen--++--
 
 smorley@lanl.gov/morley_steve@hotmail.com,
-Los Alamos National Laboratory, ISR-1,
+balarsen@lanl.gov
+Los Alamos National Laboratory, ISR-1, MS D466
 PO Box 1663, Los Alamos, NM 87545
 """
 
-from spacepy import help
 import cdfpy_interface as pcdfi #imports swig-wrapped shared library
-from cdfpy_interface import new_longp, new_charp, longp_value
-import spacepy
 
 __license__ = """Python Interface to NASA CDF, Copyright (C) 2010  Steven Morley
 
@@ -62,7 +60,7 @@ class CDF(object):
     
     __repr__ = __str__
     
-    def open(self, fname=None, load=True):
+    def open(self, fname=None, verbose=False, load=True):
         """Opens and reads a CDF file into an object
         
         Optional arguments:
@@ -84,81 +82,15 @@ class CDF(object):
                 pass
             n_id = pcdfi.new_CDFidp()
             a = pcdfi.PyCDFopen(fname, n_id)
-            self._id = pcdfi.CDFidp_value(n_id)
+            _id = pcdfi.CDFidp_value(n_id)
+            self._id = _id
         except:
             return 'File open failed'
         
         if a==0: #to be replaced by CDFstatus handler
-            print "File opened successfully. Querying file..."
+            print "File opened successfully. "
         else:
             return 'File open failed for some reason...'
-        #stuff to read attrs and vars goes here
-        #put data from vars into attribute data (a dictionary)
-        numDims, dimSizes = new_longp(), new_longp()
-        encoding, majority = new_longp(), new_longp()
-        maxrRec, numrVars = new_longp(), new_longp()
-        maxzRec, numzVars  = new_longp(), new_longp()
-        numAttrs = new_longp()
-        a = pcdfi.PyCDFinquire(self._id, numDims, dimSizes, encoding, majority, \
-            maxrRec, numrVars, maxzRec, numzVars, numAttrs)
-        if a!=0: #to be replaced by CDFstatus handler
-            return 'File inquiry failed... CDFstatus code: %d' % a
-        if self.verbose:
-            print 'Majority: %s' % self.returncodes['Majority'][longp_value(majority)-1]
-            print 'Number of dimensions: %d' % longp_value(numDims)
-            print 'Number of Attributes: %d' % longp_value(numAttrs)
-            print 'Number of zVariables: %d' % longp_value(numzVars)
-            print 'Number of rVariables: %d' % longp_value(numrVars)
-            print 'Maximum r-record: %d' % longp_value(maxrRec)
-
-        #get attribute info
-        for i in range(longp_value(numAttrs)):
-            attrScope, maxEntry = new_longp(), new_longp()
-            a, attrName = pcdfi.PyCDFinquireAttr(self._id, long(i), attrScope, maxEntry)
-            print 'Max Entry: %d' % longp_value(maxEntry)
-            if pcdfi.longp_value(attrScope) == 1:
-                self.data['GlobalAttr'][attrName]=[]
-            else:
-                self.data['LocalAttr'][attrName]=[]
-
-            if load: #load data
-                #if i==0:
-                    #attrEntry = new_charp()
-                attrEntry = pcdfi.PyCDFgetAttr(self._id, long(i), long(1))
-                print ''
-                if pcdfi.longp_value(attrScope) == 1:
-                    self.data['GlobalAttr'][attrName].append(pcdfi.charp_value(attrEntry))
-                else:
-                    self.data['LocalAttr'][attrName].append(pcdfi.charp_value(attrEntry))
-                #else:
-                    #pass
-
-        #get z-variable info
-        for i in range(longp_value(numzVars)):
-            dataType, numElements = new_longp(), new_longp()
-            numDims, dimSizes = new_longp(), new_longp()
-            recVary, dimVarys = new_longp(), new_longp()
-            a, varName = pcdfi.PyCDFinquirezVar(self._id, long(i), dataType, numElements, \
-                numDims, dimSizes, recVary, dimVarys)
-            self.data['zVars'][varName]=[]
-            if load:
-                pass
-        #get r-variable info
-        for i in range(longp_value(numrVars)):
-            dataType, numElements = new_longp(), new_longp()
-            recVary, dimVarys = new_longp(), new_longp()
-            a, varName = pcdfi.PyCDFinquirerVar(self._id, long(i), dataType, numElements, \
-                recVary, dimVarys)
-            print 'r-variable name: %s - num elements: %d' % (varName, pcdfi.longp_value(numElements))
-            print 'r-variable dimVarys: %d - recVary: %d' % (pcdfi.longp_value(dimVarys), pcdfi.longp_value(recVary))
-            self.data['rVars'][varName]=[]
-            if load:
-                pass
-
-        print 'Data Structure'
-        spacepy.toolbox.dictree(self.data)
-
-        pcdfi.delete_CDFidp(n_id) #necessary?
         return None
 
     def close(self):
@@ -171,6 +103,7 @@ class CDF(object):
         self._id = None #del pointer ref.
         del self.fname
         return None
+
     
     def index(self):
         """Prints variables in CDF data store"""
@@ -182,27 +115,10 @@ class CDF(object):
         return None
 
 
-#End class. Begin namespace accessible functions
-def computeEpoch(year, month, day, hour=0, minute=0, second=0, msec=0):
-    """Find CDF epoch to nearest millisecond"""
-    #set up inputs (must be long-int)
-    if year % int(year) != 0 or month % int(month) != 0 or day % int(day) != 0:
-        return 'Year, month and day must be integer'
-    if hour != 0 or minute != 0:
-        if hour % int(hour) != 0 or minute % int(minute) != 0:
-            return 'Hour and minute must be integer'
-    if second != 0 and second % int(second) != 0:
-        msec = round((second % int(second))*1000)
-    year, month, day, hour, minute, second, msec = \
-        int(year), int(month), int(day), int(hour), int(minute), int(second), int(msec)
-    CDFepoch = pcdfi.computeEPOCH(year, month, day, hour, minute, second, msec)
-    return CDFepoch
+    def listzVars(self):
+        """List the z-variables in the CDF file """
+        
 
-def epochBreakdown(CDFepoch):
-    #use spacetime module rather than call CDF library
-    import spacepy.spacetime as spt
-    dum = TickTock(CDFepoch, 'CDF')
-    dtobj = dum.UTC
-    #dtobj = spacepy.getUTC(CDFepoch, 'CDF') #replace this line when ticktock is renamed/fixed
-    
-    return dtobj
+
+#End class. Begin namespace accessible functions
+

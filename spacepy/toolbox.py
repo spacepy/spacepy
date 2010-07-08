@@ -11,20 +11,27 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.23 $, $Date: 2010/07/06 23:41:52 $"
+__version__ = "$Revision: 1.24 $, $Date: 2010/07/08 20:07:38 $"
 __author__ = 'S. Morley and J. Koller'
 
 
 def tOverlap(ts1,ts2):
     """Finds the overlapping elements in two lists of datetime objects
+
+    @param ts1: first set of datetime object
+    @type ts1: datetime
+    @param ts2: datatime object
+    @type ts2: datetime
+    @return: indices of ts1 within interval of ts2, & vice versa
+    @rtype: list
     
-    Returns:
-    ========
-     - indices of 1 within interval of 2, & vice versa
+    @author: Steve Morley
+    @organization: Los Alamos National Lab
+    @contact: smorley@lanl.gov/morley_steve@hotmail.com
     
-    Example:
-    ========
-     - Given two series of datetime objects, event_dates and omni['Time']:
+    @version: 09-Jun-2010: Total rewrite for clarity, efficiency and brevity.
+        
+    Given two series of datetime objects, event_dates and omni['Time']:
     
     >>> import spacepy.toolbox as tb
     >>> [einds,oinds] = tb.tOverlap(event_dates, omni['Time'])
@@ -33,13 +40,6 @@ def tOverlap(ts1,ts2):
     [datetime.datetime(2007, 5, 5, 17, 57, 30), datetime.datetime(2007, 5, 5, 18, 2, 30),
     ... , datetime.datetime(2007, 5, 10, 4, 57, 30)]
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
-    
-    Modifications:
-    ==============
-    09-Jun-2010: Total rewrite for clarity, efficiency and brevity.
     """
     
     #elements of ts2 within bounds of ts1
@@ -66,14 +66,18 @@ def tOverlap(ts1,ts2):
 
 def tCommon(ts1, ts2, mask_only=True):
     """Finds the elements in a list of datetime objects present in another
+
+    @param ts1: first set of datetime object
+    @type ts1: datetime
+    @param ts2: datatime object
+    @type ts2: datetime
+    @return: Two element tuple of truth tables (of 1 present in 2, & vice versa)
+    @rtype: tuple
+
+    @author: Steve Morley
+    @organization: Los Alamos National Lab
+    @contact: smorley@lanl.gov/morley_steve@hotmail.com
     
-    Returns:
-    ========
-     - Two element tuple of truth tables (of 1 present in 2, & vice versa)
-    
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
     """
     
     import datetime as dt
@@ -104,30 +108,20 @@ def loadpickle(fln):
     """
     load a pickle and return content as dictionary
 
-    Input:
-    ======
-        - fln (string) : filename
+    @param fln: filename
+    @type fln: string
+    @return: dictionary with content from file
+    @rtype: dictionary
+    
+    @see: savepickle
 
-    Returns:
-    ========
-        - d (dictionary) : dictionary with content from file
-
-    Example:
-    ========
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
+    
+    @version: V1: 20-Jan-2010
 
     >>> d = loadpickle('test.pbin')
-
-    See also:
-    =========
-    savepickle
-
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
-    Version:
-    ========
-    V1: 20-Jan-2010
     """
     import cPickle
 
@@ -142,29 +136,23 @@ def loadpickle(fln):
 def savepickle(fln, dict):
     """
     save dictionary variable dict to a pickle with filename fln 
-    Author: Josef Koller, jkoller@lanl.gov
 
-    Inputs:
-    =======
-        - fln (string) : filename
-        - dict (dictionary) : container with stuff
+    @param fln: filename
+    @type fln: string
+    @param dict:  container with stuff
+    @type dict: dictionary
+    
+    @see: loadpickle
 
-    Example:
-    ========
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
+    
+    @version: V1: 20-Jan-2010
+    
     >>> d = {'grade':[1,2,3], 'name':['Mary', 'John', 'Chris']}
     >>> savepickle('test.pbin', d)
-
-    See also:
-    =========
-    loadpickle
-
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-
-    Version:
-    ========
-    V1: 20-Jan-2010
+    
     """
 
     import cPickle
@@ -174,6 +162,7 @@ def savepickle(fln, dict):
     fh.close()
 
     return
+
 # -----------------------------------------------
 def assemble(fln_pattern, outfln):
     """
@@ -181,31 +170,24 @@ def assemble(fln_pattern, outfln):
     save as outfln. Pattern may contain simple shell-style wildcards *? a la fnmatch
     file will be assembled along time axis TAI, etc in dictionary
 
-    Inputs:
-    =======
-        - fln_pattern (string) : pattern to match filenames
-        - outfln (string) : filename to save combined files to
-
-    Outputs:
-    ========
-        - dcomb (dict) : dictionary with combined values
-
-    Example:
-    ========
+    @param fln_pattern: pattern to match filenames
+    @type fln_pattern: string
+    @param outfln: filename to save combined files to
+    @type outfln: string
+    @return: dcomb - dictionary with combined values
+    @rtype: dict
     
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
+    
+    @version: V1: 20-Jan-2010
+
     >>> assemble('input_files_*.pbin', 'combined_input.pbin')
     adding input_files_2001.pbin
     adding input_files_2002.pbin
     adding input_files_2004.pbin
     writing: combined_input.pbin
-
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
-    Version:
-    ========
-    V1: 20-Jan-2010
     """
 
     import glob
@@ -252,32 +234,29 @@ def feq(x,y, precision=0.0000005):
     after: http://www.lahey.com/float.htm
     
     further info at::
-        http://docs.python.org/tut/node16.html
-        http://www.velocityreviews.com/forums/t351983-precision-for-equality-of-two-floats.html
-        http://www.boost.org/libs/test/doc/components/test_tools/floating_point_comparison.html
-        http://howto.wikia.com/wiki/Howto_compare_float_numbers_in_the_C_programming_language
+        - http://docs.python.org/tut/node16.html
+        - http://www.velocityreviews.com/forums/t351983-precision-for-equality-of-two-floats.html
+        - http://www.boost.org/libs/test/doc/components/test_tools/floating_point_comparison.html
+        - http://howto.wikia.com/wiki/Howto_compare_float_numbers_in_the_C_programming_language
 
-    Input:
-    ======
-        - x (float) : a number
-        - y (array of floats) : float value or array of floats
+    @param x: a number
+    @type x: float
+    @param y: float  or array of floats
+    @type y: float
+    @keyword precision: precision for equal (default 0.0000005)
+    @type precision: float
+    @return: True (equal) or False (not equal)
+    @rtype: boolean
 
-    Returns:
-    ========
-        - boolean value: True or False
-
-    Example:
-    ========
-    >>> index = where( feq(Lpos,Lgrid) ) # use float point comparison
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
     
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
-    Version:
-    ========
-    V1: 20-Jan-2010
-    V2: 18-May-2010: User-specified precision added
+    @version: V1: 20-Jan-2010
+    @version: V2: 18-May-2010: User-specified precision added
+       
+    >>> index = where( feq(Lpos,Lgrid) ) # use float point comparison
+ 
     """
 
     boolean = abs(x-y) <= (abs(x+y)*precision)
@@ -289,15 +268,23 @@ def feq(x,y, precision=0.0000005):
 def dictree(in_dict, verbose=False, spaces=None, levels=True):
     """ pretty print a dictionary tree
 
-    Input:
-    ======
-        - in_dict (dictionary) : a complex dictionary (with substructures)
-        - spaces (string) : string will added for every line
-        - levels (default False) : number of levels to recurse through (True means all)
-        - boolean value: True or False
+    @param in_dict: a complex dictionary (with substructures)
+    @type in_dict: dict
+    @keyword verbose: print more info
+    @type verbose: boolean
+    @keyword spaces: string will added for every line
+    @type spaces: string
+    @keyword levels: number of levels to recurse through (True means all)
+    @type levels: integer
+    
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
+    
+    @version: V1: 20-Jan-2010
+    @version: V1.1: 24-Feb-2010 S. Morley, added verbose option
+    @version: v1.2: 17-May-2010 S. Morley, added levels option
 
-    Example:
-    ========
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
     >>> dictree(d)
     +
@@ -306,16 +293,6 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
         |____level2
     |____name
 
-    
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
-    Version:
-    ========
-    V1: 20-Jan-2010
-    V1.1: 24-Feb-2010 S. Morley, added verbose option
-    v1.2: 17-May-2010 S. Morley, added levels option
     """
 
     import numpy as n
@@ -365,30 +342,25 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False):
     file ending with c.png is clean and no directory or time stamp are 
     attached (good for powerpoint presentations).
 
-    Input:
-    ======
-        - fignum (integer or array/list of integer) : matplotlib figure number
-        - optional 
-            - saveonly (boolean) : True (don't print and save only to file)
-                                    False (print and save)
-            - pngonly (boolean) : True (only save png files and print png directly)
-                                    False (print ps file, and generate png, ps; can be slow)
-            - clean (boolean) : True (print and save only clean files without directory info)
-                                False (print and save directory location as well)
+    @param fignum: matplotlib figure number
+    @type fignum: integer
+    @keyword saveonly:  True (don't print and save only to file)  False (print and save)
+    @type saveonly: boolean
+    @keyword pngolny: True (only save png files and print png directly) False (print ps file, and generate png, ps; can be slow)
+    @type pngonly: boolean
+    @keyword clean: True (print and save only clean files without directory info) False (print and save directory location as well)
+    @type clean: boolean
+    
 
-    Example:
-    ========
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
+    
+    @version: V1: 20-Jan-2010
+    @version: V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
+
     >>> pylab.plot([1,2,3],[2,3,2])
     >>> spacepy.printfig(1)
-
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
-    Version:
-    ========
-    V1: 20-Jan-2010
-    V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
     """
 
     import pylab, os, sys, re, glob, datetime
@@ -441,26 +413,25 @@ def update(all=True, omni=False, leapsecs=False):
     """
     Download and update local database for omni, leapsecs etc
 
-    Input:
-    ======
-       - all (bool) : if True, update all of them
-       - omni (bool) : if True. update only onmi
-       - leapsecs (bool) : if True, update only leapseconds
+    @keyword all: if True, update all of them
+    @type all: boolean
+    @keyword omni: if True. update only onmi
+    @type omni: boolean 
+    @keyword leapsecs:  if True, update only leapseconds
+    @type leapsecs: boolean
+    @return: data directory where things are saved
+    @rtype: string
 
 
-     Example:
-     ========
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
+    
+    @version: V1: 20-Jan-2010
+    @version: V1.1: 24-May-2010 Minor modification to return data directory (BAL)
+    @version: V1.2: 11-Jun-2010 moved pickle_omni in here and added Qbits (JK)
+
      >>> update(omni=True)
-
-     Author:
-     =======
-     Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
-     Version:
-     ========
-     V1: 20-Jan-2010
-     V1.1: 24-May-2010 Minor modification to return data directory (BAL)
-     V1.2: 11-Jun-2010 moved pickle_omni in here and added Qbits (JK)
      """
 
     import urllib as u
@@ -591,25 +562,40 @@ def update(all=True, omni=False, leapsecs=False):
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     """Windowing mean function, window overlap is user defined
+
+    @param data: 1D series of points;
+    @type data: 
+    @keyword time:  series of timestamps, optional (format as numeric or datetime)
+       For non-overlapping windows set overlap to zero.
+    @type time: 
+    @keyword winsize: window size
+    @type winsize: 
+    @keyword overlap: amout of window overlap
+    @type overlap: 
+    @keyword st_time: TODO document me
+    @type st_time:
+    @return: the window mean of the data
     
-    Inputs:
-    data - 1D series of points;
-    time - series of timestamps, optional (format as numeric or datetime);
+    @todo: Finish documentation
+
+    @author: Steve Morley
+    @organization: Los Alamos National Lab
+    @contact: smorley@lanl.gov/morley_steve@hotmail.com
+
+    @version: V1 pre 8-Jul-2010
+
+
     For non-overlapping windows set overlap to zero.
     e.g.,
     
     >>> wsize, olap = datetime.timedelta(1), datetime.timedelta(0,3600)
-    
     >>> outdata, outtime = windowmean(data, time, winsize=wsize, overlap=olap)
     
     where the time, winsize and overlap are either numberic or datetime objects,
     in this example the window size is 1 day and the overlap is 1 hour.
     
-    Caveats: This is a quick and dirty function - it is NOT optimised, at all.
-    
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
+    @note: This is a quick and dirty function - it is NOT optimised, at all.
+
     """
     import numpy as np
     import datetime as dt
@@ -710,9 +696,19 @@ def medAbsDev(series):
     remains robust and resistant. See e.g. Wilks, Statistical methods
     for the Atmospheric Sciences, 1995, Ch. 3.
     
-    This implementation is robust to presence of NaNs
+    @param series: the input data series
+    @type series: TODO
+    @return: the median absolute deviation
+    @rtype: float
+
+    @todo: finish documentation
+        
+    @author: Steve Morley
+    @organization: Los Alamos National Lab
+    @contact: smorley@lanl.gov/morley_steve@hotmail.com
     
-    Example:
+    @version: V1 pre 8-Jul-2010
+
     Find the median absolute deviation of a data set. Here we use the log-
     normal distribution fitted to the population of sawtooth intervals, see
     Morley and Henderson, Comment, Geophysical Research Letters, 2009.
@@ -722,12 +718,9 @@ def medAbsDev(series):
     array([ 181.28078923,  131.18152745, ... , 141.15455416, 160.88972791])
     >>> toolbox.medabsdev(data)
     28.346646721370192
-    
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
+
+    @note: This implementation is robust to presence of NaNs
     """
-    
     import numpy as np
     #ensure input is numpy array (and make 1-D)
     series = (np.array(series, dtype=float)).ravel()
@@ -742,15 +735,21 @@ def medAbsDev(series):
     
 def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     """Make filled polygon for plotting
-    
-    Equivalent functionality to built-in matplotlib function fill_between
-    
+
+    @param x: List of x start and stop values
+    @param y1: List of y lower bounds for fill
+    @param y2: List of y upper bounds for fill
+    @keyword face: color of the fill (default blue)
+    @keyword alpha: alpha of the fill (default 0.5)
+
+    @deprecated: Equivalent functionality to built-in matplotlib function fill_between
+
+    @author: Steve Morley
+    @organization: Los Alamos National Lab
+    @contact: smorley@lanl.gov/morley_steve@hotmail.com
+
     >>> poly0c = makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
     >>> ax0.add_patch(poly0qc)
-    
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
     """
     
     import numpy as np
@@ -768,28 +767,24 @@ def binHisto(data):
     """
     Calculates bin width and number of bins for histogram using Freedman-Diaconis rule
     if rule fails, defaults to square-root method
+
+    @param data: list/array of data values
+    @type data: arraylike
+    @return: calculated width of bins using F-D rule, number of bins (nearest integer) to use for histogram
+    @rtype: tuple
     
-    Inputs:
-    =======
-    data - list/array of data values
-    
-    Outputs:
-    ========
-    binw - calculated width of bins using F-D rule
-    nbins - number of bins (nearest integer) to use for histogram
-    
-    Example:
-    ========
+    @author: Steve Morley
+    @organization: Los Alamos National Lab
+    @contact: smorley@lanl.gov/morley_steve@hotmail.com
+    @version: V1 SM
+    @version: V2: 6Jul2010 Steve Morley added fallback rule
+
     >>> import numpy, spacepy
     >>> import matplotlib.pyplot as plt
     >>> data = numpy.random.randn(100)
     >>> binw, nbins = spacepy.toolbox.binHisto(data)
     >>> plt.hist(data, bins=nbins, histtype='step', normed=True)
-    
-    Author:
-    =======
-    V1: Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
-    V2: 6Jul2010 Steve Morley added fallback rule
+
     """
     import numpy as np
     from matplotlib.mlab import prctile
@@ -808,24 +803,15 @@ def smartTimeTicks(time):
     
     smartTimeTicks takes a list of datetime objects and uses the range
     to calculate the best tick spacing and format.
-    
-    Inputs:
-    =======
-    time - list of datetime objects
-    
-    Outputs:
-    ========
-    Mtick - major ticks
-    mtick - minor ticks
-    fmt - format
-    
-    Example:
-    ========
-    ? Meh.
-    
-    Author:
-    =======
-    Dan Welling, Los Alamos National Lab, dwelling@lanl.gov/dantwelling@gmail.com
+
+    @param time: list of datetime objects
+    @type time: list
+    @return: tuple of Mtick - major ticks, mtick - minor ticks, fmt - format
+    @rtype: tuple
+
+    @author: Dan Welling
+    @organization: Los Alamos National Lab
+    @contact: dwelling@lanl.gov/dantwelling@gmail.com
     """
     from matplotlib.dates import MinuteLocator, HourLocator, DayLocator, DateFormatter
     
@@ -858,26 +844,21 @@ def logspace(min, max, num, **kwargs):
     """Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max 
     not log10(min) and log10(max)
 
-    logspace(min, max, num)
+    @param min: minimum value 
+    @param max: maximum value
+    @param num: number of log spaced bins
+    @return: log spaced bins from min to max in a numpy array
+    @rtype: numpy.array
 
-    Inputs:
-    =======
-    min - minimum value 
-    max - maximum value
-    num - number of log spaced bins
-
-    Outputs:
-    ========
-    num log spaced bins from min to max in a numpy array
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
     
-    Example:
-    ========
-    logspace(1, 100, 5)
+    @version: V1: 14-Jun-2010 (BAL)
+
+    >>> logspace(1, 100, 5)
     Out[2]: array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
-    
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
+
     """
     
     from numpy import logspace, log10
@@ -885,30 +866,26 @@ def logspace(min, max, num, **kwargs):
 
 def arraybin(array, bins):
     """
-    arraybin(array, bins)
-
     Given an array and a set of bins return the indices that are less than the 
     smallest bin between each set and larger than the largest bin
     bins should be sorted
 
-    Inputs:
-    =======
-    array - the input array to slice
-    bins - the bins to slice along (may be array or list)
+    @param array: the input array to slice
+    @type array: numpy.array
+    @param bins: the bins to slice along (may be array or list)
+    @type bins: numpy.array
+    @return: list of indices 
+       first element is less than fisrt bin and last bin is larger than last bin
+    @rtype: list
 
-    Outputs:
-    ========
-    list of indices 
-    first element is less than fisrt bin and last bin is larger than last bin
-
-    Example:
-    ========
-    arraybin(arange(10), [4.2])
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
+    
+    @version: V1: 14-Jun-2010 (BAL)
+   
+    >>> arraybin(arange(10), [4.2])
     Out[4]: [(array([0, 1, 2, 3, 4]),), (array([5, 6, 7, 8, 9]),)]
- 
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     """
     from pylab import where
     bin_ind=[]
@@ -924,29 +901,25 @@ def arraybin(array, bins):
 
 def mlt2rad(mlt, midnight=False):
     """
-    mlt2rad(mlt, midnight=False)
-
     Convert mlt values to radians for polar plotting
     transform mlt angles to radians from -pi to pi
     referenced from noon by default
 
-    Inputs:
-    =======
-    mlt - array of mlt values
-    midnight=False - reference to midnioght instead of noon
+    @param mlt:  array of mlt values
+    @type mlt: numpy.array
+    @keyword midnight: reference to midnioght instead of noon
+    @type midnight: boolean
+    @return: array of radians
+    @rtype: numpy.array
 
-    Outputs:
-    ========
-    array of radians 
-
-    Example:
-    ========
-    mlt2rad(array([3,6,9,14,22]))
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
+    
+    @version: V1: 14-Jun-2010 (BAL)
+    
+    >>> mlt2rad(array([3,6,9,14,22]))
     Out[9]: array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
-
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     """
     import numpy as np
     if midnight:
@@ -958,29 +931,25 @@ def mlt2rad(mlt, midnight=False):
 
 def rad2mlt(rad, midnight=False):
     """
-    rad2mlt(rad, midnight=False)
-
     Convert radian values to mlt 
     transform radians from -pi to pi to mlt
     referenced from noon by default
 
-    Inputs:
-    =======
-    rad - array of rad values
-    midnight=False - reference to midnioght instead of noon
+    @param rad:  array of radian values
+    @type rad: numpy.array
+    @keyword midnight: reference to midnioght instead of noon
+    @type midnight: boolean
+    @return: array of mlt values
+    @rtype: numpy.array
 
-    Outputs:
-    ========
-    array of mlt 
- 
-    Example:
-    ========
-    rad2mlt(array([0,pi, pi/2.]))
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
+    
+    @version: V1: 14-Jun-2010 (BAL)
+
+    >>> rad2mlt(array([0,pi, pi/2.]))
     Out[8]: array([ 12.,  24.,  18.])
-
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     """
     import numpy as np
     if midnight:
@@ -992,30 +961,26 @@ def rad2mlt(rad, midnight=False):
 
 def leap_year(year, numdays=False, nobool=False):
     """
-    leap_year(year, numdays=False)
-
     return an array of boolean leap year, 
     a lot faster than the mod method that is normally seen
-    
-    Inputs:
-    =======
-    year - array of years
-    numdays=False - optionally return the number of days in the year
-    
-    Outputs:
-    ========
-    an array of boolean leap year, or array of number of days
 
-    Example:
-    ========
-    leap_year(arange(15)+1998)
+    @param year: array of years
+    @type year: numpy.array
+    @keyword numdays: optionally return the number of days in the year
+    @type numdays: boolean
+    @return: an array of boolean leap year, or array of number of days
+    @rtype: numpy.array
+
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
+    
+    @version: V1: 14-Jun-2010 (BAL)
+
+    >>> leap_year(arange(15)+1998)
     Out[10]: 
     array([False, False,  True, False, False, False,  True, False, False,
     ... False,  True, False, False, False,  True], dtype=bool)
-
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     """
     mask400 = (year % 400) == 0   # this is a leap year
     mask100 = (year % 100) == 0   # these are not leap years
@@ -1030,27 +995,23 @@ def leap_year(year, numdays=False, nobool=False):
     
 def pmm(a, *b):
     """
-    pmm(a, *b)
-
     print min and max of input arrays
 
-    Inputs:
-    =======
-    a - input array
-    *b - some additional number of arrays
+    @param a: input array
+    @type a: numpy.array
+    @keyword *b: some additional number of arrays
+    @type *b: numpy.array
+    @return: list of min, max for each array
+    @rtype: list
 
-    Outputs:
-    ========
-    list of min, max for each array
-
-    Example:
-    ======== 
-    pmm(arange(10), arange(10)+3)
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
+    
+    @version: V1: 14-Jun-2010 (BAL)
+    
+    >>> pmm(arange(10), arange(10)+3)
     Out[12]: [(0, 9), (3, 12)]
-
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     """
     import numpy as np
     ans=[]
@@ -1061,31 +1022,26 @@ def pmm(a, *b):
 
 def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     """
-    timestamp(position=[1., 0.01], size='xx-small', **kwargs)
-
     print a timestamp on the current plot, vertical lower right 
 
-    Inputs:
-    =======
-    (all optional)
-    position - position for the timestamp
-    size - text size
-    draw - call draw to make sure it appears
-    kwargs - other keywords to axis.annotate
+    @keyword position: position for the timestamp
+    @type position: list
+    @keyword size: text size
+    @type size: string
+    @keyword draw: call draw to make sure it appears
+    @type draw: boolean
+    @keyword kwargs: other keywords to axis.annotate
+    @type kwargs: keywords
 
-    Outputs:
-    ========
-    timestamp written to the current plot
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
+    
+    @version: V1: 14-Jun-2010 (BAL)
 
-    Example:
-    ======== 
-    plot(arange(11))
+    >>> plot(arange(11))
     Out[13]: [<matplotlib.lines.Line2D object at 0x49072b0>]
     timestamp()
-
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     """
     from datetime import datetime
     from matplotlib.pyplot import annotate, gca, draw
@@ -1106,25 +1062,22 @@ def query_yes_no(question, default="yes"):
 
     The "answer" return value is one of "yes" or "no".
 
-    Inputs:
-    =======
-    question - string that is the question to ask
-    default - the default answer (yes)
+    @param question: string that is the question to ask
+    @type question: string
+    @keyword default: the default answer (yes)
+    @type default: string
+    @return: answer ('yes' or 'no')
+    @rtype: string
 
-    Outputs:
-    ========
-    answer ('yes' or 'no')
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
     
-    Example:
-    ======== 
-    query_yes_no('Ready to go?')
+    @version: V1: 14-Jun-2010 (BAL)
+
+    >>> query_yes_no('Ready to go?')
     Ready to go? [Y/n] y
     Out[17]: 'yes'
-
-
-    Author:
-    =======
-    Brian Larsen, Los Alamos National Lab, balarsen@lanl.gov
     """
     import sys
     valid = {"yes":"yes",   "y":"yes",  "ye":"yes",
@@ -1155,25 +1108,19 @@ def test():
     """
     test all spacepy routines
 
-    Returns:
-    ========
-        - nFAIL (int) : number of failures
+    @return: number of failures
+    @rtype: int
 
-    Example:
-    ========
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
+    
+    @version: V1: 24-Jan-2010
 
     >>> test()
     test_ticktock: PASSED TEST 1
     test_ticktock: PASSED TEST 2
     0
-
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-
-    Version:
-    ========
-    V1: 24-Jan-2010
     """
     
     import os

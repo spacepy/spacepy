@@ -20,11 +20,9 @@ There will at some point also be a setup.py for this module. Far more convenient
 
 On my mac there are the commands that worked:
 
-swig -python cdfpy_interface.i
-/Applications/cdf33_0-dist/include/cdf.h:1558: Warning(305): Bad constant value (ignored).
-/Applications/cdf33_0-dist/include/cdf.h:1561: Warning(305): Bad constant value (ignored).
-gcc -c cdfpy_interface_wrap.c -I/Library/Frameworks/Python.framework/Versions/6.1/include/python2.6 -arch x86_64
-ld -bundle -flat_namespace -undefined suppress -arch x86_64  cdfpy_interface_wrap.o /Applications/cdf33_0-dist/lib/libcdf.a -o _cdfpy_interface.so
+$  swig -python cdfpy_interface.i
+$  gcc -c cdfpy_interface_wrap.c -I/Library/Frameworks/Python.framework/Versions/6.1/include/python2.6 -arch x86_64
+$  ld -bundle -flat_namespace -undefined suppress -arch x86_64  cdfpy_interface_wrap.o /Applications/cdf33_0-dist/lib/libcdf.a -o _cdfpy_interface.so
 
 
 -Brian
