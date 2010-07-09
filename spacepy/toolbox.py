@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.26 $, $Date: 2010/07/09 16:14:13 $"
+__version__ = "$Revision: 1.27 $, $Date: 2010/07/09 17:15:16 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1105,6 +1105,9 @@ def query_yes_no(question, default="yes"):
 def interpol(newx, x, y, **kwargs):
     """1-D linear interpolation with interpolation of hours/longitude
     
+    @return: interpolated data values for new abscissa values
+    @rtype: numpy.array
+    
     @keyword hour: wraps interpolation at 24 (e.g. for local times)
     @type hour: string
     @keyword long: wraps interpolation at 360 (e.g. longitude)
@@ -1121,37 +1124,45 @@ def interpol(newx, x, y, **kwargs):
     import numpy as np
     
     if 'baddata' in kwargs:
-        x = np.ma.masked_where(y==kwargs['baddata'], x)
-        y = np.ma.masked_where(y==kwargs['baddata'], y)
+        x = np.ma.masked_where(y==kwargs['baddata'], x).compressed()
+        y = np.ma.masked_where(y==kwargs['baddata'], y).compressed()
+    else:
+        if type(x)!=np.ndarray or type(y)!=np.ndarray or type(newx)!=np.ndarray:
+            x = np.array(x)
+            y = np.array(y)
+            newx = np.array(newx)
     
     def wrap_interp(xout, xin, yin, sect):
         dpsect=360/sect
-        yc = np.cos(np.deg2rad(y.compressed()*dpsect))
-        ys = np.sin(np.deg2rad(y.compressed()*dpsect))
-        new_yc = sci.interpol(newx, x.compressed(), yc, **kwargs)
-        new_ys = sci.interpol(newx, x.compressed(), ys, **kwargs)
-        newy = np.rad2deg(np.arctan2(new_y/new_x))/dpsect
+        yc = np.cos(np.deg2rad(y*dpsect))
+        ys = np.sin(np.deg2rad(y*dpsect))
+        new_yc = sci.interp(newx, x, yc, **kwargs)
+        new_ys = sci.interp(newx, x, ys, **kwargs)
+        newy = np.rad2deg(np.arctan(new_ys/new_yc))/dpsect
         #1st quadrant is O.K
         #2nd quadrant
-        idx = np.where((new_yc < 0) and (new_ys > 0))
+        idx = [n for n in xrange(len(new_yc)) if new_yc[n]<0 and new_ys[n]>0]
         newy[idx] = sect/2 + newy[idx]
         #3rd quadrant
-        idx = np.where((new_yc < 0) and (new_ys < 0))
+        idx = [n for n in xrange(len(new_yc)) if new_yc[n]<0 and new_ys[n]<0]
         newy[idx] = sect/2 + newy[idx]
         #4th quadrant
-        idx = np.where((new_yc > 0) and (new_ys < 0))
+        idx = [n for n in xrange(len(new_yc)) if new_yc[n]>0 and new_ys[n]<0]
         newy[idx] = sect + newy[idx]
         
         return newy
     
     if 'hour' in kwargs:
-        newy = wrap_interp(newx, x.compressed(), y.compressed(), 24)
+        kwargs.__delitem__('hour')
+        newy = wrap_interp(newx, x, y, 24)
     elif 'long' in kwargs:
-        newy = wrap_interp(newx, x.compressed(), y.compressed(), 360)
+        kwargs.__delitem__('long')
+        newy = wrap_interp(newx, x, y, 360)
     elif 'sect' in kwargs:
-        newy = wrap_interp(newx, x.compressed(), y.compressed(), sect)
+        kwargs.__delitem__('sect')
+        newy = wrap_interp(newx, x, y, sect)
     else:
-        newy = sci.interpol(newx, x.compressed(), y.compressed(), **kwargs)
+        newy = sci.interp(newx, x, y, **kwargs)
         
     return newy
 
