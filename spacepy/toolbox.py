@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.25 $, $Date: 2010/07/09 16:07:51 $"
+__version__ = "$Revision: 1.26 $, $Date: 2010/07/09 16:14:13 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1141,6 +1141,8 @@ def interpol(newx, x, y, **kwargs):
         #4th quadrant
         idx = np.where((new_yc > 0) and (new_ys < 0))
         newy[idx] = sect + newy[idx]
+        
+        return newy
     
     if 'hour' in kwargs:
         newy = wrap_interp(newx, x.compressed(), y.compressed(), 24)
