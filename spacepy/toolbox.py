@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.24 $, $Date: 2010/07/08 20:07:38 $"
+__version__ = "$Revision: 1.25 $, $Date: 2010/07/09 16:07:51 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1102,6 +1102,56 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "\
                              "(or 'y' or 'n').\n")
 
+def interpol(newx, x, y, **kwargs):
+    """1-D linear interpolation with interpolation of hours/longitude
+    
+    @keyword hour: wraps interpolation at 24 (e.g. for local times)
+    @type hour: string
+    @keyword long: wraps interpolation at 360 (e.g. longitude)
+    @type long: string
+    @keyword sect: wraps interpolation based on user specified max    
+    i.e. days=True is equivalent to sect=24
+    @type sect: integer
+    
+    @author: Steve Morley
+    @organization: Los Alamos National Lab
+    @contact: smorley@lanl.gov
+    """
+    import scipy as sci
+    import numpy as np
+    
+    if 'baddata' in kwargs:
+        x = np.ma.masked_where(y==kwargs['baddata'], x)
+        y = np.ma.masked_where(y==kwargs['baddata'], y)
+    
+    def wrap_interp(xout, xin, yin, sect):
+        dpsect=360/sect
+        yc = np.cos(np.deg2rad(y.compressed()*dpsect))
+        ys = np.sin(np.deg2rad(y.compressed()*dpsect))
+        new_yc = sci.interpol(newx, x.compressed(), yc, **kwargs)
+        new_ys = sci.interpol(newx, x.compressed(), ys, **kwargs)
+        newy = np.rad2deg(np.arctan2(new_y/new_x))/dpsect
+        #1st quadrant is O.K
+        #2nd quadrant
+        idx = np.where((new_yc < 0) and (new_ys > 0))
+        newy[idx] = sect/2 + newy[idx]
+        #3rd quadrant
+        idx = np.where((new_yc < 0) and (new_ys < 0))
+        newy[idx] = sect/2 + newy[idx]
+        #4th quadrant
+        idx = np.where((new_yc > 0) and (new_ys < 0))
+        newy[idx] = sect + newy[idx]
+    
+    if 'hour' in kwargs:
+        newy = wrap_interp(newx, x.compressed(), y.compressed(), 24)
+    elif 'long' in kwargs:
+        newy = wrap_interp(newx, x.compressed(), y.compressed(), 360)
+    elif 'sect' in kwargs:
+        newy = wrap_interp(newx, x.compressed(), y.compressed(), sect)
+    else:
+        newy = sci.interpol(newx, x.compressed(), y.compressed(), **kwargs)
+        
+    return newy
 
 # -----------------------------------------------
 def test():
