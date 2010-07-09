@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.7 $, $Date: 2010/05/25 15:57:32 $"
+__version__ = "$Revision: 1.8 $, $Date: 2010/07/09 17:34:14 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -413,7 +413,7 @@ def diff_LL(grid, f, Tdelta, Telapsed, params=None):
         # key word arguments.  Note that such functions should be
         # able to handle extra kwargs through the use of **kwargs!
         f = f + params['SRCartif'](Telapsed, Lgrid, dll=DLL, 
-                                   alpha=alpha, beta=beta)
+                                   alpha=alpha, beta=beta) * Tdelta
 
     return f
 
