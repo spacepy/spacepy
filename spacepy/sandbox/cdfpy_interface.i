@@ -9,63 +9,6 @@
  %include "cdata.i" 
 
 
-  /* void *malloc(unsigned nbytes);
-     void free(void *);   */
-/* %malloc(int);
- %free(int);
-
- %malloc(char);
- %free(char);
-
- %malloc(int *, intp);
- %free(int *, intp);
-
- %malloc(void *, voidp);
- %free(void *, voidp);
-
- %malloc(char *, charp);
- %free(char *, charp);
-*/
-/*  %array_class(int, intArray); */
-/* /\* should not do the char here *\/ */
-/*  %array_class(char, charArray); */
-/*  %array_class(long, longArray); */
-/*  %array_class(float, floatArray); */
-
-/*  %array_class(short, CDF_INT2Array); */
-/*  %array_class(float, CDF_REAL4Array); */
-/*  %array_class(float, CDF_FLOATArray); */
-/*  %array_class(int, CDF_INT4Array); */
-/*  %array_class(double, CDF_EPOCHArray); */
-/*  %array_class(double, CDF_REAL8Array); */
-/*  %array_class(double, CDF_DOUBLEArray); */
-/* /\* should not do the char here *\/ */
-/*  %array_class(char, CDF_BYTEArray); */
-/* /\* should not do the char here *\/ */
-/*  %array_class(char, CDF_CHARArray); */
-/* /\* should not do the char here *\/ */
-/*  %array_class(unsigned char, CDF_UCHARArray); */
-
-
-  /* THESE ARE OK but tring other 
- %pointer_functions(int, intArray);
- %pointer_functions(char, charArray);
- %pointer_functions(long, longArray);
- %pointer_functions(float, floatArray);
-
- %pointer_functions(short, CDF_INT2Array);
- %pointer_functions(float, CDF_REAL4Array);
- %pointer_functions(float, CDF_FLOATArray);
- %pointer_functions(int, CDF_INT4Array);
- %pointer_functions(double, CDF_EPOCHArray);
- %pointer_functions(double, CDF_REAL8Array);
- %pointer_functions(double, CDF_DOUBLEArray);
- %pointer_functions(char, CDF_BYTEArray);
- %pointer_functions(char, CDF_CHARArray);
- %pointer_functions(unsigned char, CDF_UCHARArray);
- %array_functions(double, doubleArray);
-  */
-
  %array_functions(int, intArray);
  %array_functions(char, charArray);
  %array_functions(long, longArray);
@@ -85,29 +28,6 @@
 
  %calloc(void, void);
  %free(void, void);
-
-/* DONT USE THIS */
-/*
- %cdata(float, float);
-
- %pointer_cast(int *, unsigned int *, int_to_uint);
- %pointer_cast(void *, float *, void_to_float);
-
- %pointer_cast(void *, float *, void_to_CDF_REAL4);
- %pointer_cast(void *, long *, void_to_CDF_INT4);
- %pointer_cast(void *, double *, void_to_CDF_EPOCH);
- %pointer_cast(void *, double *, void_to_CDF_REAL8);
- %pointer_cast(void *, unsigned char *, void_to_CDF_BYTE);
- %pointer_cast(void *, char *, void_to_CDF_INT1);
- %pointer_cast(void *, unsigned char *, void_to_CDF_UINT1);
- %pointer_cast(void *, int *, void_to_CDF_INT2);
- %pointer_cast(void *, unsigned long *, void_to_CDF_UINT4);
-
-
-
- %allocators(double);
-*/
-
 
  %{
  /* Put header files here or function declarations like below */
