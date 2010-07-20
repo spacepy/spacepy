@@ -136,6 +136,20 @@ class cdfpy(object):
             return
 
     def _open(self, verbose=False):
+        """
+        open a cdf file for reading
+        
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        """
         if self.filename == None:
             print("must specify a filename")
             return False
@@ -152,6 +166,20 @@ class cdfpy(object):
         return True
 
     def _readCDFInfo(self, verbose=False):
+        """
+        read info about the open CDF file
+        
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        """
         try: self.n_id
         except:
             print("CDF is not open")
@@ -202,6 +230,20 @@ class cdfpy(object):
 
             
     def _readGlobalAttributes(self, verbose=False):
+        """
+        read the global attributes from the open CDF file
+        
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        """
         try: self.n_id
         except:
             print("CDF is not open")
@@ -273,6 +315,20 @@ class cdfpy(object):
 ## a = pcdfi.PyCDFgetCompression(_id, compressionType, compressionParams, compressionPercentage)
 
     def _getzVarInfo(self, verbose=False):
+        """
+        read info about the zVars in the open CDF file
+        
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        """
         try: self.n_id
         except:
             print("CDF is not open")
@@ -339,11 +395,20 @@ class cdfpy(object):
     
     def _readzVar(self, zname_in, verbose=False):
         """
+        read in the data and remaining metadata about a zVar
+
+        @param zname_in: zVar name or number (or a list/tiple of names and/or numbers)
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
         @todo: test more throurghly on row majority CDF files
-        @bug: char tpye data fields are skipped, they caused some issues
-            this is a SWIG problem, from the SWIG docs for 2.0
-             Note: %array_functions() and %array_class()  should not be used with 
-             types of char or char *.
         """
         import struct
         try: self.n_id
@@ -528,6 +593,20 @@ class cdfpy(object):
         return True  # iguess it worked if we get here
 
     def _readAllzVars(self, verbose=False):
+        """
+        read data and metadata from all zVars in the open CDF file
+        
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        """
         try: self.n_id
         except:
             print("CDF is not open")
@@ -536,10 +615,24 @@ class cdfpy(object):
         for val in xrange(self._data['GlobalAttr']['numzVars']):
             print('Reading zVar %d of %d' % (val, self._data['GlobalAttr']['numzVars']-1))
             self._readzVar(val, verbose=verbose)
-        
+        return True # TODO needs some error checking
 
 
     def _close(self, verbose=False):
+        """
+        close the open CDF file
+        
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        """
         try: self._id
         except AttributeError:
             print("No cdf file open, cannot close")
@@ -552,6 +645,21 @@ class cdfpy(object):
 
 
     def _getzVarDepend(self, var_in, verbose=False):
+        """
+        read in the zVar data and metadata for the specified zVar's dependencies
+
+        @param var_in: variable name or list/tuple of variable names
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        """
         if not isinstance(var_in, list) and not isinstance(var_in, tuple):
             var_in = [var_in]
         for val in var_in:
@@ -594,6 +702,39 @@ class cdfpy(object):
             
 
     def getGlobalAttr(self, verbose=False):
+        """
+        read Global attributes from the CDF file, they are saved in cdf.GlobalAttr
+        
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        >>> cdf = cdfpy.cdfpy('l4_h0_mpa_20011111_v02.cdf')
+        >>> cdf.getGlobalAttr()
+        >>> cdf.GlobalAttr
+        {'ADID_ref': {'attrNum': 8,
+        'attrScope': 1,
+        'dataType': 'CDF_CHAR',
+        'numElements': 8,
+        'value': 'NSSD0099'},
+        'Data_type': {'attrNum': 5,
+        'attrScope': 1,
+        'dataType': 'CDF_CHAR',
+        'numElements': 18,
+        'value': 'H0>High Resolution'},
+        'Data_version': {'attrNum': 6,
+        'attrScope': 1,
+        'dataType': 'CDF_CHAR',
+        'numElements': 1,
+        'value': ' '},
+        
+        """
         self._open(verbose=verbose)
         self._readCDFInfo(verbose=verbose)
         self._readGlobalAttributes(verbose=verbose)
@@ -602,6 +743,50 @@ class cdfpy(object):
         return True
 
     def listzVars(self, verbose=False):
+        """
+        list the zVars contained in the CDF file, they are saved in cdf.GlobalAttr
+        
+        @keyword verbose: be verbose to the screen 
+        @return: list of zVars
+        @rtype: list
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        >>> cdf = cdfpy.cdfpy('l4_h0_mpa_20011111_v02.cdf')
+        >>> cdf.listzVars() 
+        ['etimesg',
+        'Theta_l',
+        'Pcounts',
+        'Ecounts',
+        'Theta_u',
+        'thetaphi_hip',
+        'Poten',
+        'backgrd',
+        'vel_lop',
+        'dens_hip',
+        'ece',
+        'temp_e',
+        'effecp',
+        'Flags',
+        'ecp',
+        'temp_hip',
+        'xyzgeo',
+        'effece',
+        'thetaphi_e',
+        'Azanglp',
+        'Epoch',
+        'Uthours',
+        'dens_lop',
+        'dens_e',
+        'Azangle',
+        'Inval_mf']
+
+        
+        """
         self._open(verbose=verbose)
         self._readCDFInfo(verbose=verbose)
         self._readGlobalAttributes(verbose=verbose)
@@ -612,6 +797,29 @@ class cdfpy(object):
         return self.zVars
 
     def getzVar(self, var_in, retval=False, depend=False, keepEpoch=False, verbose=False):
+        """
+        get the contents of a zVar (or list of zVars) from the CDF file, they are saved in cdf.data
+
+        @param var_in: name of varialbe to read (or list/tuple of names)
+        @type var_in: str
+        @keyword retval: return the data dont just add it to the dict
+        @keyword depend: also get the dependent zVars
+        @keyword keepEpoch: keep the cdf epoch, dont change it to Ticktock
+        @keyword verbose: be verbose to the screen 
+        @return: True for success
+        @rtype: bool
+        
+        @author: Brian Larsen
+        @organization: Los Alamos National Lab
+        @contact: balarsen@lanl.gov
+        
+        @version: V1: 20-Jul-2010 (BAL)
+
+        >>> cdf = cdfpy.cdfpy('l4_h0_mpa_20011111_v02.cdf')
+        >>> cdf.getzVar('temp_e', depend=True)
+
+        
+        """
         self._open(verbose=verbose)
         self._readCDFInfo(verbose=verbose)
         self._readGlobalAttributes(verbose=verbose)
