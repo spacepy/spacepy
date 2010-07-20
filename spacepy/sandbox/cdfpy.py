@@ -1,124 +1,693 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+import cdfpy_interface as pcdfi
+import spacepy
+import numpy as np
 
-"""CDFPy -- Interface to NASA CDF in Python.
-
-
---++-- By Steve Morley and Brian Larsen--++--
-
-smorley@lanl.gov/morley_steve@hotmail.com,
-balarsen@lanl.gov
-Los Alamos National Laboratory, ISR-1, MS D466
-PO Box 1663, Los Alamos, NM 87545
-"""
-
-import cdfpy_interface as pcdfi #imports swig-wrapped shared library
-
-__license__ = """Python Interface to NASA CDF, Copyright (C) 2010  Steven Morley
-
-This interface to the NASA CDF library is released under GPL v3.0:
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
-__licence__ = __license__ #for those who speak English, rather than an odd dialect
-
-class CDF(object):
-    """CDF file class
-    
-    Not nearly complete...
-    To Do: import (some) more functionality, including actually reading in values!
-
+class cdfpy(object):
     """
-    def __init__(self, verbose=True):
-        self.data = {'GlobalAttr': {}, 'LocalAttr': {}, 'zVars': {}, 'rVars': {}}
-        self.verbose = verbose
-        self.returncodes = {
+    I need docs
+    """
+    # a few constants needed for the code
+    
+
+    def epoch2Ticktock(self, epoch):
+        """
+        I need docs
+        I change the epoch to Ticktock
+        """
+        from spacepy.time import Ticktock
+        from datetime import datetime
+        year = pcdfi.new_longArray(1)
+        month = pcdfi.new_longArray(1)
+        day = pcdfi.new_longArray(1)
+        hour = pcdfi.new_longArray(1)
+        minute = pcdfi.new_longArray(1)
+        second = pcdfi.new_longArray(1)
+        msec = pcdfi.new_longArray(1)
+        dt = np.array([])
+        epoch = self._data['zVars']['Epoch']['data']
+        for val in epoch:
+            pcdfi.EPOCHbreakdown(val, year, month, day, hour, minute, second, msec)
+            dt = np.append(dt, datetime(pcdfi.longArray_getitem(year, 0),
+                                        pcdfi.longArray_getitem(month, 0),
+                                        pcdfi.longArray_getitem(day, 0),
+                                        pcdfi.longArray_getitem(hour, 0), 
+                                        pcdfi.longArray_getitem(minute, 0),
+                                        pcdfi.longArray_getitem(second, 0),
+                                        pcdfi.longArray_getitem(msec, 0)*1000))
+        return Ticktock(dt, 'UTC')
+
+    def __init__(self, filename = None, verbose = True):
+        _data = {'GlobalAttr': {}, 'zVars': {}, 'rVars': {}}
+        self._data = _data
+
+        self.__CDF_MAX_DIMS = 10
+
+        self.__datatypes = { '1':'CDF_INT1',
+                             '2':'CDF_INT2',
+                             '4':'CDF_INT4',
+                             '11':'CDF_UINT1',
+                             '12':'CDF_UINT2',
+                             '14':'CDF_UINT4',
+                             '21':'CDF_REAL4',
+                             '22':'CDF_REAL8',
+                             '31':'CDF_EPOCH',
+                             '32':'CDF_EPOCH16',
+                             '41':'CDF_BYTE',
+                             '44':'CDF_FLOAT',
+                             '45':'CDF_DOUBLE',
+                             '51':'CDF_CHAR',
+                             '52':'CDF_UCHAR' }
+        
+        self.__returncodes = {
             'Encoding': ['Network', 'Sun', 'VAX', 'Dec', 'SGi', 'IBMPC',
-                'IBMRS', 'Host', 'PPC', 'HP', 'NeXT', 'AlphaOSF1', 'AlphaVMSd'
-                , 'AlphaVMSg', 'AlphaVMSi'],
+                         'IBMRS', 'Host', 'PPC', 'HP', 'NeXT', 'AlphaOSF1', 'AlphaVMSd'
+                         , 'AlphaVMSg', 'AlphaVMSi'],
             'Majority': ['Row', 'Column'],
             'Scope': ['Global', 'Variable']}
-    
-    def __str__(self):
-        """Define String Representation of Sea object"""
-        try:
-            return """CDF Object - Filename:  %s 
-            For file contents use the index method""" % (self.fname)
-        except:
-            return """Object not in use"""
-    
-    __repr__ = __str__
-    
-    def open(self, fname=None, verbose=False, load=True):
-        """Opens and reads a CDF file into an object
+
+        self.__formatCodes = {
+            'CDF_INT2':'h',
+            'CDF_INT4':'i',
+            'CDF_UINT1':'B',
+            'CDF_UINT2':'H',
+            'CDF_UINT4':'L',
+            'CDF_REAL4':'f',
+            'CDF_REAL8':'d',
+            'CDF_EPOCH':'d',
+            'CDF_EPOCH16':None,
+            'CDF_BYTE':'b',
+            'CDF_FLOAT':'f',
+            'CDF_DOUBLE':'d',
+            'CDF_CHAR':'c',
+            'CDF_UCHAR':'B' }
+
+
+        self.__dtypeSize = {
+            '1':1,
+            '2':2,
+            '4':4,
+            '11':1,
+            '12':2,
+            '14':4,
+            '21':4,
+            '22':8,
+            '31':8,
+            '32':16,
+            '41':1,
+            '44':4,
+            '45':8,
+            '51':1,
+            '52':1,
+            'CDF_INT2':2,
+            'CDF_INT4':4,
+            'CDF_UINT1':1,
+            'CDF_UINT2':2,
+            'CDF_UINT4':4,
+            'CDF_REAL4':4,
+            'CDF_REAL8':8,
+            'CDF_EPOCH':8,
+            'CDF_EPOCH16':16,
+            'CDF_BYTE':1,
+            'CDF_FLOAT':4,
+            'CDF_DOUBLE':8,
+            'CDF_CHAR':1,
+            'CDF_UCHAR':1 }
+
+
+       
         
-        Optional arguments:
-        fname - input filename. If not supplied will read from fname attribute (if set).
-        load - (Default: True) Load all attributes and variables on open
+
+        self.filename = filename
+        
+
+    def __repr__(self):
+        st = 'CDF: ' + self.filename
+        return st
+
+    def _errorHandle(self, code, verbose=False):
         """
-        if not fname:
-            try:
-                fname = self.fname
-            except AttributeError:
-                return 'Specify a filename'
+        I need docs
+        I need code
+        """
+        if code == 0:
+            return
         else:
-            self.fname = fname
-        try:
-            try:
-                assert self._id
-                return 'File already open. Create a new CDF object...'
-            except:
-                pass
+            print("Error code %d" % (code))
+            return
+
+    def _open(self, verbose=False):
+        if self.filename == None:
+            print("must specify a filename")
+            return False
+        try: self.n_id
+        except AttributeError:
             n_id = pcdfi.new_CDFidp()
-            a = pcdfi.PyCDFopen(fname, n_id)
+            self.n_id = n_id
+            a = pcdfi.PyCDFopen(self.filename, n_id)
             _id = pcdfi.CDFidp_value(n_id)
             self._id = _id
+            self._errorHandle(a)
+            return True
+        print("CDF already opened, not reopening")
+        return True
+
+    def _readCDFInfo(self, verbose=False):
+        try: self.n_id
         except:
-            return 'File open failed'
+            print("CDF is not open")
+            return False
+        #stuff to read attrs and vars goes here
+        #put data from vars into attribute data (a dictionary)
+        numDims = pcdfi.new_longArray(1)
+        dimSizes = pcdfi.new_longArray(1)
+        encoding = pcdfi.new_longArray(1)
+        majority = pcdfi.new_longArray(1)
+        maxrRec = pcdfi.new_longArray(1)
+        numrVars = pcdfi.new_longArray(1)
+        maxzRec = pcdfi.new_longArray(1)
+        numzVars = pcdfi.new_longArray(1)
+        numAttrs = pcdfi.new_longArray(1)
+        a = pcdfi.PyCDFinquireCDF(self._id, numDims, dimSizes, encoding, majority, \
+                                  maxrRec, numrVars, maxzRec, numzVars, numAttrs)
+        self._errorHandle(a)
+        if verbose:
+            print 'Majority: %s' % self.__returncodes['Majority'][pcdfi.longArray_getitem(majority, 0)-1]
+            print 'Number of dimensions: %d' % pcdfi.longArray_getitem(numDims, 0)
+            print 'Number of Attributes: %d' % pcdfi.longArray_getitem(numAttrs, 0)
+            print 'Number of zVariables: %d' % pcdfi.longArray_getitem(numzVars, 0)
+            print 'Number of rVariables: %d' % pcdfi.longArray_getitem(numrVars, 0)
+            print 'Maximum r-record: %d' % pcdfi.longArray_getitem(maxrRec, 0)
+        if pcdfi.longArray_getitem(numrVars, 0) != 0:
+            raise(Exception("**** CDF has R-variables, they are not yet supported ****"))
+        # lets add all these to the dict in 'GlobalAttr'
+        self._data['GlobalAttr']['Majority'] = self.__returncodes['Majority'][pcdfi.longArray_getitem(majority, 0)-1]
+        self._data['GlobalAttr']['numDims'] = pcdfi.longArray_getitem(numDims, 0)
+        self._data['GlobalAttr']['numAttrs'] = pcdfi.longArray_getitem(numAttrs, 0)
+        self._data['GlobalAttr']['numzVars'] = pcdfi.longArray_getitem(numzVars, 0)
+        self._data['GlobalAttr']['numrVars'] = pcdfi.longArray_getitem(numrVars, 0)
+        self._data['GlobalAttr']['maxrRec'] = pcdfi.longArray_getitem(maxrRec, 0)
+
+        # free them
+        pcdfi.delete_longArray(numDims)
+        pcdfi.delete_longArray(dimSizes)
+        pcdfi.delete_longArray(encoding)
+        pcdfi.delete_longArray(majority)
+        pcdfi.delete_longArray(maxrRec) 
+        pcdfi.delete_longArray(numrVars)
+        pcdfi.delete_longArray(maxzRec) 
+        pcdfi.delete_longArray(numzVars)
+        pcdfi.delete_longArray(numAttrs)
         
-        if a==0: #to be replaced by CDFstatus handler
-            print "File opened successfully. "
+        return True 
+
+            
+    def _readGlobalAttributes(self, verbose=False):
+        try: self.n_id
+        except:
+            print("CDF is not open")
+            return False
+
+        try: self._data['GlobalAttr']['Majority']
+        except (NameError, KeyError): self._readCDFInfo(verbose=verbose)
+
+        #get global attribute info
+        if verbose:
+            print("Getting global attributes")
+        attrScope = pcdfi.new_longArray(1)
+        maxgEntry = pcdfi.new_longArray(1)
+        maxrEntry = pcdfi.new_longArray(1)
+        maxzEntry = pcdfi.new_longArray(1)
+        dataType = pcdfi.new_longArray(1)
+        numElements = pcdfi.new_longArray(1)
+        attrName = ''
+
+        for i in xrange(self._data['GlobalAttr']['numAttrs']): 
+            a, attrName = pcdfi.PyCDFinquireAttr(self._id,
+                                                 long(i),
+                                                 attrScope,
+                                                 maxgEntry,
+                                                 maxrEntry,
+                                                 maxzEntry )
+            self._errorHandle(a)
+
+            
+            a = pcdfi.PyCDFinquireAttrgEntry (self._id,
+                                              long(i),
+                                              long(0),  # i bet this shouldnt be a zero TODO
+                                              dataType,
+                                              numElements )
+            
+            
+            if a == 0:  ## this means that it gpt a global, if gets a local a = -2076
+                self._data['GlobalAttr'][attrName]= {}
+                self._data['GlobalAttr'][attrName]['dataType'] = self.__datatypes[str(pcdfi.longArray_getitem(dataType,0))]
+                self._data['GlobalAttr'][attrName]['numElements'] = pcdfi.longArray_getitem(numElements, 0)
+                
+                value = ' '*  pcdfi.longArray_getitem(numElements, 0) # might need a +1 here TODO
+
+    
+                a = pcdfi.PyCDFgetAttrgEntry(self._id,
+                                             long(i),
+                                             long(0),
+                                             value)  # this only gets global vars
+                self._errorHandle(a)
+                self._data['GlobalAttr'][attrName]['value'] = value
+                self._data['GlobalAttr'][attrName]['attrNum'] = i
+                self._data['GlobalAttr'][attrName]['attrScope'] = pcdfi.longArray_getitem(attrScope, 0)
+                if verbose:
+                    print(attrName + ' = ' +  self._data['GlobalAttr'][attrName]['value'])
+                    attrScope = pcdfi.new_longArray(1)
+        pcdfi.delete_longArray(maxgEntry)
+        pcdfi.delete_longArray(maxrEntry)
+        pcdfi.delete_longArray(maxzEntry)
+        pcdfi.delete_longArray(dataType) 
+        pcdfi.delete_longArray(numElements)
+        return True
+
+            
+## get and add compression info to the data['GlobalAttr']
+        ## malloc error for some reason
+## compressionType = pcdfi.longArray(1)m
+## compressionParams = pcdfi.longArray(pcdfi.CDF_MAX_PARMS)
+## compressionPercentage = pcdfi.longArray(1)
+## a = pcdfi.PyCDFgetCompression(_id, compressionType, compressionParams, compressionPercentage)
+
+    def _getzVarInfo(self, verbose=False):
+        try: self.n_id
+        except:
+            print("CDF is not open")
+            return False
+
+        try: self._data['GlobalAttr']['numzVars']
+        except  (NameError, KeyError): self._readGlobalAttributes(verbose=verbose)
+        #get z-variable info
+        if verbose:
+            print("Getting zVariable info")
+        zvarnum = {}
+        # step through each zVar
+        dimSizes = pcdfi.new_longArray(self.__CDF_MAX_DIMS)
+        recVary  = pcdfi.new_longArray(1) 
+        dimVarys = pcdfi.new_longArray(self.__CDF_MAX_DIMS)
+        dataType = pcdfi.new_longArray(1)
+        numElements = pcdfi.new_longArray(1)
+        numDims = pcdfi.new_longArray(1)
+
+        for i in xrange( self._data['GlobalAttr']['numzVars']):
+            # get its name
+            a, varName = pcdfi.PyCDFinquirezVar(self._id,
+                                                long(i),
+                                                dataType,
+                                                numElements, 
+                                                numDims,
+                                                dimSizes,
+                                                recVary,
+                                                dimVarys)
+            if verbose:
+                print("Found zVar number %d: %s "  % (i, varName))
+            # and create a dict with that name 
+            try: self._data['zVars'][varName]
+            except: self._data['zVars'][varName]={}
+            self._data['zVars'][varName]['dataType'] = self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))]
+            self._data['zVars'][varName]['numElements'] = pcdfi.longArray_getitem(numElements, 0)
+            self._data['zVars'][varName]['numDims'] = pcdfi.longArray_getitem(numDims, 0)
+            self._data['zVars'][varName]['dimSizes'] = np.array([], dtype=long)
+            for ii in xrange(self._data['zVars'][varName]['numDims']):
+                self._data['zVars'][varName]['dimSizes'] = np.append(self._data['zVars'][varName]['dimSizes'], pcdfi.longArray_getitem(dimSizes, ii))
+            self._data['zVars'][varName]['dimVarys'] = np.array([], dtype=long)
+            for ii in xrange(self._data['zVars'][varName]['numDims']):
+                self._data['zVars'][varName]['dimVarys'] = np.append(self._data['zVars'][varName]['dimVarys'], pcdfi.longArray_getitem(dimVarys, ii ))
+            self._data['zVars'][varName]['recVary'] = pcdfi.longArray_getitem(recVary, 0)
+            self._data['zVars'][varName]['zVarnum'] = i
+            self._data['zVars'][varName]['formatCode'] = self.__formatCodes[self._data['zVars'][varName]['dataType'] ]
+    
+            # how many records are there for each variable?
+        numRecs =  pcdfi.new_longArray(1)
+        for val in self._data['zVars']:
+            a = pcdfi.PyCDFgetzVarAllocRecords(self._id,
+                                               self._data['zVars'][val]['zVarnum'],
+                                               numRecs)
+            self._data['zVars'][val]['numRecs'] = pcdfi.longArray_getitem(numRecs, 0)
+        pcdfi.delete_longArray(dimSizes)
+        pcdfi.delete_longArray(recVary)                                                            
+        pcdfi.delete_longArray(dimVarys)
+        pcdfi.delete_longArray(dataType)
+        pcdfi.delete_longArray(numElements)
+        pcdfi.delete_longArray(numDims)
+        pcdfi.delete_longArray(numRecs)                                            
+        return True # add some error checking
+
+    
+    def _readzVar(self, zname_in, verbose=False):
+        """
+        @todo: test more throurghly on row majority CDF files
+        @bug: char tpye data fields are skipped, they caused some issues
+            this is a SWIG problem, from the SWIG docs for 2.0
+             Note: %array_functions() and %array_class()  should not be used with 
+             types of char or char *.
+        """
+        import struct
+        try: self.n_id
+        except:
+            print("CDF is not open")
+            return False
+
+        # quick and dirty hack here
+        if not isinstance(zname_in, list) and not isinstance(zname_in, tuple):
+            zname_in = [zname_in]
+        for zname in zname_in:
+            # this works for zvar names or numbers (based on string or not)
+            if not isinstance(zname, str):
+                # we were handed a zvar number get the associated name
+                # this can probably be cleaned nicely, TODO
+                found = False
+                for zvarval in self._data['zVars']:
+                    if self._data['zVars'][zvarval]['zVarnum'] == zname:
+                        zname = zvarval
+                        found = True
+                        # they are unique so we can move on
+                        break
+            
+            # TODO need some error checkoing here 
+
+            # if we already have the data dont read it again
+            try:
+                self._data['zVars'][zvarval]['data']
+                if verbose:
+                    print("zVar %s already read, skipping" %(zvarval))
+            except:
+                # this works for Column majority, will need testing for row (but should work)
+                if verbose:
+                    print("\tReading data for: %s" % (zname))
+                numRecs = self._data['zVars'][zname]['numRecs']
+                dimSizes = self._data['zVars'][zname]['dimSizes']
+                numDims = self._data['zVars'][zname]['numDims']
+                dimSizes2 = 1
+                indices = pcdfi.new_longArray(numDims)
+                counts = pcdfi.new_longArray(numDims)
+                intervals = pcdfi.new_longArray(numDims)
+        
+                for valii in dimSizes:
+                    dimSizes2 = dimSizes2 * valii
+
+                if  self._data['zVars'][zname]['dataType'] == 'CDF_CHAR' or \
+                       self._data['zVars'][zname]['dataType'] == 'CDF_UCHAR':
+                    buf = ' '*numRecs*dimSizes2
+                    dataChar = True
+                else:
+                    # create the right kind of array
+                    # buf = eval('pcdfi.new_%sArray(%d)' % ( self._data['zVars'][zname]['dataType'], numRecs*dimSizes2))
+                    memSize = long(numRecs*dimSizes2*self.__dtypeSize[self._data['zVars'][zname]['dataType']])
+                    buf = pcdfi.calloc_void(memSize)                    
+                    dataChar = False
+
+                                            
+
+                    
+                for ii in xrange(numDims):
+                    pcdfi.longArray_setitem(indices, ii, 0) # start reading at the start of the variable
+                    pcdfi.longArray_setitem(counts, ii, long(dimSizes[ii]))  # get the sizes
+                    pcdfi.longArray_setitem(intervals, ii, 1)  ## read every entry
+
+                a = pcdfi.PyCDFhyperGetzVarData(self._id,
+                                                self._data['zVars'][zname]['zVarnum'],
+                                                0,
+                                                self._data['zVars'][zname]['numRecs'],
+                                                1,
+                                                indices,
+                                                counts,
+                                                intervals,
+                                                buf)
+                self._errorHandle(a)
+
+
+                tmp = pcdfi.cdata(buf, memSize)
+                        
+                            
+                if self._data['zVars'][zname]['dataType'] != 'CDF_CHAR' and \
+                       self._data['zVars'][zname]['dataType'] != 'CDF_UCHAR' :
+                    tmp = struct.unpack( self.__formatCodes[ \
+                        self._data['zVars'][zname]['dataType']]*
+                                         numRecs*dimSizes2,
+                                         tmp)
+                value = np.array(tmp)
+
+
+            
+                ## value = np.array([eval('pcdfi.%sArray_getitem(buf, %d)' % ( self._data['zVars'][zname]['dataType'], ic)) \
+                ##                   for ic in xrange(numRecs*dimSizes2)])
+
+                if self._data['GlobalAttr']['Majority'] == 'Column':
+                    order = 'F'   # Fortran is Colum major
+                    newShape = dimSizes
+                    newShape = np.append(newShape, -1)
+                else:
+                    order = 'C'   # C is Row major
+                    newShape = [-1]
+                    newShape.extend(dimSizes)
+                value = np.reshape(value, newShape, order=order)
+                self._data['zVars'][zname]['data'] = value
+
+                if verbose:
+                    print("\t\tGetting local attributes")
+
+                attrScope = pcdfi.new_longArray(1)
+                maxgEntry = pcdfi.new_longArray(1)
+                maxrEntry = pcdfi.new_longArray(1)
+                maxzEntry = pcdfi.new_longArray(1)
+                dataType = pcdfi.new_longArray(1)
+                numElements = pcdfi.new_longArray(1)
+
+                for i in xrange(self._data['GlobalAttr']['numAttrs']):
+                    a, attrName = pcdfi.PyCDFinquireAttr(self._id,
+                                                         long(i),
+                                                         attrScope,
+                                                         maxgEntry,
+                                                         maxrEntry,
+                                                         maxzEntry)
+                    a = pcdfi.PyCDFinquireAttrzEntry (self._id,
+                                                      i,
+                                                      self._data['zVars'][zname]['zVarnum'],
+                                                      dataType,
+                                                      numElements)
+                    if a != 0:  ## this means that it got a local, if gets a global a = -2076
+                        continue
+                    else:
+                        # create a place to put the answer
+                        memSize = pcdfi.longArray_getitem(numElements, 0)*self.__dtypeSize[str(pcdfi.longArray_getitem(dataType, 0))]
+                        value = pcdfi.calloc_void(memSize)
+                        a = pcdfi.PyCDFgetAttrzEntry(self._id,
+                                                     long(i),
+                                                     self._data['zVars'][zname]['zVarnum'],
+                                                     value)
+                        ## self._data['zVars'][zname][attrName] = pcdfi.cdata(value, memSize)
+                        ## if self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))] == 'CDF_REAL4' or \
+                        ##       self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))] == 'CDF_FLOAT' :
+                        ##     self._data['zVars'][zname][attrName] = struct.unpack('f'* pcdfi.longArray_getitem(numElements, 0),
+                        ##                                                         self._data['zVars'][zname][attrName])
+                        ## if self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))] == 'CDF_REAL8' or \
+                        ##    self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))] == 'CDF_DOUBLE' or \
+                        ##    self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))] == 'CDF_EPOCH':
+                        ##     self._data['zVars'][zname][attrName] = struct.unpack('d'* pcdfi.longArray_getitem(numElements, 0),
+                        ##                                                         self._data['zVars'][zname][attrName])
+
+                        self._data['zVars'][zname][attrName] = pcdfi.cdata(value, memSize)
+                        
+                        if verbose:
+                            print("\t\t\t%s %s %s %s %d" % (zname,
+                                                            attrName,
+                                                            pcdfi.cdata(value, memSize),
+                                                            self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))],
+                                                            pcdfi.longArray_getitem(numElements, 0)  ))
+                            
+                        if self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))] != 'CDF_CHAR' and \
+                        self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))] != 'CDF_UCHAR' :
+                            self._data['zVars'][zname][attrName] = struct.unpack( self.__formatCodes[ \
+                                self.__datatypes[str(pcdfi.longArray_getitem(dataType, 0))]]*
+                                                                                 pcdfi.longArray_getitem(numElements, 0),
+                                                                                 self._data['zVars'][zname][attrName])
+
+
+
+
+                            
+                    
+                try: # dont delete them if they dont exist
+                    attrScope
+        
+                    pcdfi.delete_longArray(attrScope)
+                    pcdfi.delete_longArray(maxgEntry)
+                    pcdfi.delete_longArray(maxrEntry)
+                    pcdfi.delete_longArray(maxzEntry)
+                    pcdfi.delete_longArray(dataType)
+                    pcdfi.delete_longArray(numElements)
+                    pcdfi.free_void(value)
+                    if not dataChar: pcdfi.free_void(buf)
+
+                except:
+                    pass
+        return True  # iguess it worked if we get here
+
+    def _readAllzVars(self, verbose=False):
+        try: self.n_id
+        except:
+            print("CDF is not open")
+            return False
+
+        for val in xrange(self._data['GlobalAttr']['numzVars']):
+            print('Reading zVar %d of %d' % (val, self._data['GlobalAttr']['numzVars']-1))
+            self._readzVar(val, verbose=verbose)
+        
+
+
+    def _close(self, verbose=False):
+        try: self._id
+        except AttributeError:
+            print("No cdf file open, cannot close")
+            return False
+        pcdfi.PyCDFcloseCDF(self._id)
+        # clean up a few variables  so what we know the file is closed
+        del self._id
+        del self.n_id
+        return True
+
+
+    def _getzVarDepend(self, var_in, verbose=False):
+        if not isinstance(var_in, list) and not isinstance(var_in, tuple):
+            var_in = [var_in]
+        for val in var_in:
+            try:
+                self.getzVar(self._data['zVars'][val]['DEPEND_0'], verbose=verbose)
+                if verbose: print("found a DEPEND_0 = %s" % (self._data['zVars'][val]['DEPEND_0']))
+            except:
+                pass
+            try:
+                self.getzVar(self._data['zVars'][val]['DEPEND_1'])
+                if verbose: print("found a DEPEND_1 = %s" % (self._data['zVars'][val]['DEPEND_1']))
+            except:
+                pass
+            try:
+                self.getzVar(self._data['zVars'][val]['DEPEND_2'])
+                if verbose: print("found a DEPEND_2 = %s" % (self._data['zVars'][val]['DEPEND_2']))
+            except:
+                pass
+            try:
+                self.getzVar(self._data['zVars'][val]['DEPEND_3'])
+                if verbose: print("found a DEPEND_3 = %s" % (self._data['zVars'][val]['DEPEND_3']))
+            except:
+                pass
+            try:
+                self.getzVar(self._data['zVars'][val]['DEPEND_4'])
+                if verbose: print("found a DEPEND_4 = %s" % (self._data['zVars'][val]['DEPEND_4']))
+            except:
+                pass
+            try:
+                self.getzVar(self._data['zVars'][val]['DEPEND_5'])
+                if verbose: print("found a DEPEND_5 = %s" % (self._data['zVars'][val]['DEPEND_5']))
+            except:
+                pass
+            try:
+                self.getzVar(self._data['zVars'][val]['DEPEND_6'])
+                if verbose: print("found a DEPEND_6 = %s" % (self._data['zVars'][val]['DEPEND_6']))
+            except:
+                pass
+        return True
+            
+
+    def getGlobalAttr(self, verbose=False):
+        self._open(verbose=verbose)
+        self._readCDFInfo(verbose=verbose)
+        self._readGlobalAttributes(verbose=verbose)
+        self._close(verbose=verbose)
+        self.GlobalAttr = self._data['GlobalAttr']
+        return True
+
+    def listzVars(self, verbose=False):
+        self._open(verbose=verbose)
+        self._readCDFInfo(verbose=verbose)
+        self._readGlobalAttributes(verbose=verbose)
+        self._getzVarInfo(verbose=verbose)
+        self._close(verbose=verbose)
+        zvars = [val for val in self._data['zVars']]
+        self.zVars = zvars
+        return self.zVars
+
+    def getzVar(self, var_in, retval=False, depend=False, keepEpoch=False, verbose=False):
+        self._open(verbose=verbose)
+        self._readCDFInfo(verbose=verbose)
+        self._readGlobalAttributes(verbose=verbose)
+        self._getzVarInfo(verbose=verbose)
+        self._readzVar(var_in, verbose=verbose)
+        self._close(verbose=verbose)
+        # TODO fix this up nbut I cant figure it out to work woth both
+        # var names and numbers
+        if not isinstance(var_in, list) and not isinstance(var_in, tuple):
+            var_in = [var_in]
+        for val in var_in:
+            try: self.data
+            except: self.data = {}
+            self.data[val] = self._data['zVars'][val]
+            if depend:
+                self._getzVarDepend(val, verbose=verbose)
+            if val == 'Epoch':
+                tt = self.epoch2Ticktock(self.data['Epoch']['data'])
+                if keepEpoch:
+                    self.data['Epoch']['Ticktock'] = tt
+                else:
+                    self.data['Epoch']['data'] = tt
+                self.epoch = tt
+        if retval:
+            return self._data['zVars'][val]
         else:
-            return 'File open failed for some reason...'
-        return None
-
-    def close(self):
-        """Closes a previously opened CDF file"""
-        try:
-            dum = self._id
-        except AttributeError:
-            return 'File not open'
-        pcdfi.PyCDFclose(self._id)
-        self._id = None #del pointer ref.
-        del self.fname
-        return None
-
+            return True
     
-    def index(self):
-        """Prints variables in CDF data store"""
-        try:
-            return spacepy.toolbox.dictree(self.data, verbose=True)
-        except AttributeError:
-            return 'No data'
-    
-        return None
-
-
-    def listzVars(self):
-        """List the z-variables in the CDF file """
+            
+        
+        
+        
+                                   
         
 
+if __name__ == "__main__":
 
-#End class. Begin namespace accessible functions
 
+    import cdfpy
+    fname = 'l4_h0_mpa_20011111_v02.cdf'
+    # initialize the class
+    cdf = cdfpy.cdfpy(fname)
+
+    # list the zVars so we know which to grab
+    cdf.listzVars()
+
+    
+    # get dens_e and its dependencies
+    cdf.getzVar('dens_e', depend=True)
+    
+    # epoch was also grabbed as this was a cdf that was put together right
+
+    # also get the global attr so we have more info for the plot
+    cdf.getGlobalAttr()
+
+
+
+    # plot dens_e versus time
+    import matplotlib.pyplot as plt
+    fig=plt.figure(1)
+    ax=fig.add_subplot(111)
+    pp = ax.plot(cdf.epoch.UTC, cdf.data['dens_e']['data'], lw=2)
+
+
+    ax.set_xlabel(cdf.data['Epoch']['LABLAXIS'] )
+    ax.set_ylabel(cdf.data['dens_e']['LABLAXIS'] + ' (' + cdf.data['dens_e']['UNITS'] + ')')
+    ax.set_title(cdf._data['GlobalAttr']['TITLE']['value'] + '\n' + cdf.epoch[0].ISO[0] )
+    Mt, mt, fmt = spacepy.toolbox.smartTimeTicks(cdf.epoch.UTC)
+
+    ax.xaxis.set_major_locator(Mt)
+    ax.xaxis.set_minor_locator(mt)
+    ax.xaxis.set_major_formatter(fmt)
+
+    plt.draw()
+
+
+
+
+    

@@ -4,8 +4,8 @@
  %include "cstring.i"
 
  %include "cpointer.i"
-  /* %include "typemaps.i"
- %include "cmalloc.i"*/
+  /* %include "typemaps.i" */
+ %include "cmalloc.i"
  %include "cdata.i" 
 
 
@@ -26,23 +26,67 @@
  %malloc(char *, charp);
  %free(char *, charp);
 */
- %array_class(int, intArray);
- %array_class(char, charArray);
- %array_class(long, longArray);
- %array_class(float, floatArray);
+/*  %array_class(int, intArray); */
+/* /\* should not do the char here *\/ */
+/*  %array_class(char, charArray); */
+/*  %array_class(long, longArray); */
+/*  %array_class(float, floatArray); */
 
- %array_class(short, CDF_INT2Array);
- %array_class(float, CDF_REAL4Array);
- %array_class(float, CDF_FLOATArray);
- %array_class(int, CDF_INT4Array);
- %array_class(double, CDF_EPOCHArray);
- %array_class(double, CDF_REAL8Array);
- %array_class(double, CDF_DOUBLEArray);
- %array_class(char, CDF_BYTEArray);
- %array_class(char, CDF_CHARArray);
- %array_class(unsigned char, CDF_UCHARArray);
+/*  %array_class(short, CDF_INT2Array); */
+/*  %array_class(float, CDF_REAL4Array); */
+/*  %array_class(float, CDF_FLOATArray); */
+/*  %array_class(int, CDF_INT4Array); */
+/*  %array_class(double, CDF_EPOCHArray); */
+/*  %array_class(double, CDF_REAL8Array); */
+/*  %array_class(double, CDF_DOUBLEArray); */
+/* /\* should not do the char here *\/ */
+/*  %array_class(char, CDF_BYTEArray); */
+/* /\* should not do the char here *\/ */
+/*  %array_class(char, CDF_CHARArray); */
+/* /\* should not do the char here *\/ */
+/*  %array_class(unsigned char, CDF_UCHARArray); */
 
 
+  /* THESE ARE OK but tring other 
+ %pointer_functions(int, intArray);
+ %pointer_functions(char, charArray);
+ %pointer_functions(long, longArray);
+ %pointer_functions(float, floatArray);
+
+ %pointer_functions(short, CDF_INT2Array);
+ %pointer_functions(float, CDF_REAL4Array);
+ %pointer_functions(float, CDF_FLOATArray);
+ %pointer_functions(int, CDF_INT4Array);
+ %pointer_functions(double, CDF_EPOCHArray);
+ %pointer_functions(double, CDF_REAL8Array);
+ %pointer_functions(double, CDF_DOUBLEArray);
+ %pointer_functions(char, CDF_BYTEArray);
+ %pointer_functions(char, CDF_CHARArray);
+ %pointer_functions(unsigned char, CDF_UCHARArray);
+ %array_functions(double, doubleArray);
+  */
+
+ %array_functions(int, intArray);
+ %array_functions(char, charArray);
+ %array_functions(long, longArray);
+ %array_functions(float, floatArray);
+
+ %array_functions(short, CDF_INT2Array);
+ %array_functions(float, CDF_REAL4Array);
+ %array_functions(float, CDF_FLOATArray);
+ %array_functions(int, CDF_INT4Array);
+ %array_functions(double, CDF_EPOCHArray);
+ %array_functions(double, CDF_REAL8Array);
+ %array_functions(double, CDF_DOUBLEArray);
+ %array_functions(char, CDF_BYTEArray);
+ %array_functions(char, CDF_CHARArray);
+ %array_functions(unsigned char, CDF_UCHARArray);
+
+
+ %calloc(void, void);
+ %free(void, void);
+
+/* DONT USE THIS */
 /*
  %cdata(float, float);
 
