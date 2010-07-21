@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.31 $, $Date: 2010/07/21 23:11:18 $"
+__version__ = "$Revision: 1.32 $, $Date: 2010/07/21 23:13:38 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -381,13 +381,14 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
             cwd = os.getcwd()
             num = len(glob.glob('*.png'))
             fln = cwd+'/figure_'+str(num)
-            # truncate fln if too long
-            if len(fln) > 60: 
-                flnstamp = '[...]'+fln[-60:]
-            else:
-                flnstamp = fln
         else:
-            flnstamp = filename
+            fln = filename
+        # truncate fln if too long
+        if len(fln) > 60: 
+            flnstamp = '[...]'+fln[-60:]
+        else:
+            flnstamp = fln
+
 
         # save a clean figure without timestamps
         if clean == True:
