@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.29 $, $Date: 2010/07/21 14:49:36 $"
+__version__ = "$Revision: 1.30 $, $Date: 2010/07/21 23:07:48 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -333,7 +333,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
     return None
 
 # -----------------------------------------------
-def printfig(fignum, saveonly=False, pngonly=False, clean=False):
+def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     """save current figure to file and call lpr (print).
 
     This routine will create a total of 3 files (png, ps and c.png) in the 
@@ -350,7 +350,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False):
     @type pngonly: boolean
     @keyword clean: True (print and save only clean files without directory info) False (print and save directory location as well)
     @type clean: boolean
-    
+    @keyword filename: None (If specified then the filename is set and code does not use the sequence number)
 
     @author: Josef Koller
     @organization: Los Alamos National Lab
@@ -358,6 +358,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False):
     
     @version: V1: 20-Jan-2010
     @version: V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
+    @version: V3: 21-Jul-2010: added filename keyword (BAL)
 
     >>> pylab.plot([1,2,3],[2,3,2])
     >>> spacepy.printfig(1)
@@ -375,15 +376,18 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False):
         # active this figure
         pylab.figure(ifig)
 
-        # create a filename for the figure
-        cwd = os.getcwd()
-        num = len(glob.glob('*.png'))
-        fln = cwd+'/figure_'+str(num)
-        # truncate fln if too long
-        if len(fln) > 60: 
-            flnstamp = '[...]'+fln[-60:]
+        if filename == None:
+            # create a filename for the figure
+            cwd = os.getcwd()
+            num = len(glob.glob('*.png'))
+            fln = cwd+'/figure_'+str(num)
+            # truncate fln if too long
+            if len(fln) > 60: 
+                flnstamp = '[...]'+fln[-60:]
+            else:
+                flnstamp = fln
         else:
-            flnstamp = fln
+            fln = filename
 
         # save a clean figure without timestamps
         if clean == True:

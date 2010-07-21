@@ -139,7 +139,9 @@ class cdfpy(object):
         """
         open a cdf file for reading
         
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+
         @return: True for success
         @rtype: bool
         
@@ -169,7 +171,9 @@ class cdfpy(object):
         """
         read info about the open CDF file
         
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: True for success
         @rtype: bool
         
@@ -233,7 +237,9 @@ class cdfpy(object):
         """
         read the global attributes from the open CDF file
         
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: True for success
         @rtype: bool
         
@@ -318,7 +324,9 @@ class cdfpy(object):
         """
         read info about the zVars in the open CDF file
         
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: True for success
         @rtype: bool
         
@@ -398,7 +406,9 @@ class cdfpy(object):
         read in the data and remaining metadata about a zVar
 
         @param zname_in: zVar name or number (or a list/tiple of names and/or numbers)
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: True for success
         @rtype: bool
         
@@ -596,7 +606,9 @@ class cdfpy(object):
         """
         read data and metadata from all zVars in the open CDF file
         
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: True for success
         @rtype: bool
         
@@ -622,7 +634,9 @@ class cdfpy(object):
         """
         close the open CDF file
         
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: True for success
         @rtype: bool
         
@@ -649,7 +663,9 @@ class cdfpy(object):
         read in the zVar data and metadata for the specified zVar's dependencies
 
         @param var_in: variable name or list/tuple of variable names
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: True for success
         @rtype: bool
         
@@ -705,7 +721,9 @@ class cdfpy(object):
         """
         read Global attributes from the CDF file, they are saved in cdf.GlobalAttr
         
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: True for success
         @rtype: bool
         
@@ -746,7 +764,9 @@ class cdfpy(object):
         """
         list the zVars contained in the CDF file, they are saved in cdf.GlobalAttr
         
-        @keyword verbose: be verbose to the screen 
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
+ 
         @return: list of zVars
         @rtype: list
         
@@ -803,9 +823,13 @@ class cdfpy(object):
         @param var_in: name of varialbe to read (or list/tuple of names)
         @type var_in: str
         @keyword retval: return the data dont just add it to the dict
+        @type retval: bool
         @keyword depend: also get the dependent zVars
+        @type depend: bool
         @keyword keepEpoch: keep the cdf epoch, dont change it to Ticktock
-        @keyword verbose: be verbose to the screen 
+        @type keepEpoch: bool
+        @keyword verbose: be verbose to the screen
+        @type verbose: bool
         @return: True for success
         @rtype: bool
         
