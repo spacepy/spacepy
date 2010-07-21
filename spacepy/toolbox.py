@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.32 $, $Date: 2010/07/21 23:13:38 $"
+__version__ = "$Revision: 1.33 $, $Date: 2010/07/21 23:31:46 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -396,7 +396,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
         # add the filename to the figure for reference
-        pylab.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', size=8)
+        pylab.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
 
         # now save the figure to this filename
         if pngonly == False:
@@ -1099,7 +1099,7 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     now = datetime.now()
     strnow = now.strftime("%d%b%Y %H:%M")
     ax=gca()
-    ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, **kwargs)
+    ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
     if draw:
         draw()
         
