@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.27 $, $Date: 2010/07/09 17:15:16 $"
+__version__ = "$Revision: 1.28 $, $Date: 2010/07/21 14:24:42 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -802,7 +802,13 @@ def smartTimeTicks(time):
     """Returns major ticks, minor ticks and format for time-based plots
     
     smartTimeTicks takes a list of datetime objects and uses the range
-    to calculate the best tick spacing and format.
+    to calculate the best tick spacing and format.  Returned to the user
+    is a tuple containing the major tick locator, minor tick locator, and
+    a format string -- all necessary to apply the ticks to an axis.
+
+    It is suggested that, unless the user explicitly needs this info,
+    to use the convenience function applySmartTimeTicks to place the
+    ticks directly on a given axis.
 
     @param time: list of datetime objects
     @type time: list
@@ -813,7 +819,8 @@ def smartTimeTicks(time):
     @organization: Los Alamos National Lab
     @contact: dwelling@lanl.gov/dantwelling@gmail.com
     """
-    from matplotlib.dates import MinuteLocator, HourLocator, DayLocator, DateFormatter
+    from matplotlib.dates import (MinuteLocator, HourLocator, 
+                                  DayLocator, DateFormatter)
     
     deltaT = time[-1] - time[0]
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
@@ -829,6 +836,10 @@ def smartTimeTicks(time):
         Mtick=HourLocator(byhour=range(24), interval=2)
         mtick=MinuteLocator(byminute=[0,15,30,45])
         fmt = DateFormatter('%H:%M UT')
+    elif nHours < 24:
+        Mtick=HourLocator(byhour=[0,3,6,9,12,15,18,21])
+        mtick=HourLocator(byhour=range(24))
+        fmt = DateFormatter('%H:%M UT')
     elif nHours < 48:
         Mtick=HourLocator(byhour=[0,6,12,18])
         mtick=HourLocator(byhour=range(24))
@@ -839,6 +850,38 @@ def smartTimeTicks(time):
         fmt = DateFormatter('%d %b')
 
     return (Mtick, mtick, fmt) 
+
+def applySmartTimeTicks(ax, time, dolimit=True):
+    '''
+    Given an axis 'ax' and a list/array of datetime objects, 'time', 
+    use the smartTimeTicks function to build smart time ticks and
+    then immediately apply them to the given axis.  The first and
+    last elements of the time list will be used as bounds for the
+    x-axis range.
+
+    The range of the 'time' input value will be used to set the limits
+    of the x-axis as well.  Set kwarg 'dolimit' to False to override 
+    this behavior.
+
+    @param ax: A matplotlib Axis object.
+    @type ax: matplotlib.pyplot.Axes
+    @param time: list of datetime objects
+    @type time: list
+    @return: None
+    @rtype: None
+
+    @author: Dan Welling
+    @organization: Los Alamos National Lab
+    @contact: dwelling@lanl.gov/dantwelling@gmail.com
+    '''
+
+    Mtick, mtick, fmt = smartTimeTicks(time)
+    ax.xaxis.set_major_locator(Mtick)
+    ax.xaxis.set_minor_locator(mtick)
+    ax.xaxis.set_major_formatter(fmt)
+    if dolimit:
+        ax.set_xlim([time[0], time[-1]])
+
 
 def logspace(min, max, num, **kwargs):
     """Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max 
