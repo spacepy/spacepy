@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.28 $, $Date: 2010/07/21 14:24:42 $"
+__version__ = "$Revision: 1.29 $, $Date: 2010/07/21 14:49:36 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -867,6 +867,9 @@ def applySmartTimeTicks(ax, time, dolimit=True):
     @type ax: matplotlib.pyplot.Axes
     @param time: list of datetime objects
     @type time: list
+    @keyword dolimit: The range of the 'time' input value will be used to set the limits
+        of the x-axis as well. Setting this overrides this behavior.
+    @type dolimit: bool
     @return: None
     @rtype: None
 
