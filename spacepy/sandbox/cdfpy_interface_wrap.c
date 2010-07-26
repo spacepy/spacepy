@@ -3623,12 +3623,7 @@ SWIG_AsVal_unsigned_SS_char (PyObject * obj, unsigned char *val)
  }
 
  CDFstatus PyCDFgetzVarRecordData(CDFid id, long varNum, long recNum, void * buffer) {
-   float *val;
-   CDFstatus tmp = CDFgetzVarRecordData(id, varNum, recNum, buffer);
-   val = (float*)(buffer);
-   /*  printf("buffer:%f    %f", *val, 3.14159);  */
-   return tmp;
-
+   return CDFgetzVarRecordData(id, varNum, recNum, buffer);
  }
 
 
@@ -8072,44 +8067,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_PyCDFcreate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  char *arg1 = (char *) 0 ;
-  CDFid *arg2 = (CDFid *) 0 ;
-  char temp1 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  CDFstatus result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:PyCDFcreate",&obj0,&obj1)) SWIG_fail;
-  if (!(SWIG_IsOK((res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1),SWIGTYPE_p_char,0))))) {
-    char val; 
-    int ecode = SWIG_AsVal_char(obj0, &val);
-    if (!SWIG_IsOK(ecode)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode), "in method '" "PyCDFcreate" "', argument " "1"" of type '" "char""'");
-    }
-    temp1 = (char)(val);
-    arg1 = &temp1;
-    res1 = SWIG_AddTmpMask(ecode);
-  }
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_p_void, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "PyCDFcreate" "', argument " "2"" of type '" "CDFid *""'"); 
-  }
-  arg2 = (CDFid *)(argp2);
-  result = (CDFstatus)PyCDFcreate(arg1,arg2);
-  resultobj = SWIG_From_long((long)(result));
-  if (SWIG_IsNewObj(res1)) free((char*)arg1);
-  return resultobj;
-fail:
-  if (SWIG_IsNewObj(res1)) free((char*)arg1);
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_int_array(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   int arg1 ;
@@ -8128,6 +8085,40 @@ SWIGINTERN PyObject *_wrap_int_array(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_int, 0 |  0 );
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_PyCDFcreate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char *arg1 = (char *) 0 ;
+  CDFid *arg2 = (CDFid *) 0 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  CDFstatus result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:PyCDFcreate",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "PyCDFcreate" "', argument " "1"" of type '" "char *""'");
+  }
+  arg1 = (char *)(buf1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_p_void, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "PyCDFcreate" "', argument " "2"" of type '" "CDFid *""'"); 
+  }
+  arg2 = (CDFid *)(argp2);
+  result = (CDFstatus)PyCDFcreate(arg1,arg2);
+  resultobj = SWIG_From_long((long)(result));
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+  return resultobj;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
   return NULL;
 }
 
@@ -9378,8 +9369,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_CDFidp", _wrap_delete_CDFidp, METH_VARARGS, NULL},
 	 { (char *)"CDFidp_assign", _wrap_CDFidp_assign, METH_VARARGS, NULL},
 	 { (char *)"CDFidp_value", _wrap_CDFidp_value, METH_VARARGS, NULL},
-	 { (char *)"PyCDFcreate", _wrap_PyCDFcreate, METH_VARARGS, NULL},
 	 { (char *)"int_array", _wrap_int_array, METH_VARARGS, NULL},
+	 { (char *)"PyCDFcreate", _wrap_PyCDFcreate, METH_VARARGS, NULL},
 	 { (char *)"PyCDFopen", _wrap_PyCDFopen, METH_VARARGS, NULL},
 	 { (char *)"PyCDFcloseCDF", _wrap_PyCDFcloseCDF, METH_VARARGS, NULL},
 	 { (char *)"PyCDFinquire", _wrap_PyCDFinquire, METH_VARARGS, NULL},

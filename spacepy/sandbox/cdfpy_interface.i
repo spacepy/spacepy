@@ -48,8 +48,6 @@
  %pointer_functions(long, longp);
  %pointer_functions(CDFid, CDFidp);
 /* %newobject PyCDFgetAttr;  */
-/* void PyCDFgetAttr(CDFid id, long attrNum, long entryNum, char *OUTPUT);  */
- extern CDFstatus PyCDFcreate(char *INPUT, CDFid *INOUT);
  
   %inline %{
   /* Create any sort of [size] array */
@@ -151,12 +149,7 @@
  }
 
  CDFstatus PyCDFgetzVarRecordData(CDFid id, long varNum, long recNum, void * buffer) {
-   float *val;
-   CDFstatus tmp = CDFgetzVarRecordData(id, varNum, recNum, buffer);
-   val = (float*)(buffer);
-   /*  printf("buffer:%f    %f", *val, 3.14159);  */
-   return tmp;
-
+   return CDFgetzVarRecordData(id, varNum, recNum, buffer);
  }
 
 

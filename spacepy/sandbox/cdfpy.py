@@ -129,16 +129,145 @@ class cdfpy(object):
         I need docs
         I need code
         """
+        # Error codes < CDF WARN < Warning codes < CDF OK < Informational codes
+        status_codes = {
+            # informational codes
+            1001: 'VIRTUAL_RECORD_DATA',
+            1002: 'DID_NOT_COMPRESS',
+            1003: 'VAR_ALREADY_CLOSED',
+            1004: 'SINGLE_FILE_FORMAT',
+            1005: 'NO_PADVALUE_SPECIFIED',   
+            1006: 'NO_VARS_IN_CDF',      
+            1007: 'MULTI_FILE_FORMAT',
+            1008: 'SOME_ALREADY_ALLOCATED',
+            1009: 'PRECEEDING_RECORDS_ALLOCATED',
+            0: 'CDF_OK',                       
+            # warning codes
+            -1001: 'ATTR_NAME_TRUNC',         
+            -1002: 'CDF_NAME_TRUNC',          
+            -1003: 'VAR_NAME_TRUNC',          
+            -1004: 'NEGATIVE_FP_ZERO',
+            -1006: 'FORCED_PARAMETER',
+            -1007: 'NA_FOR_VARIABLE',
+            -2000: 'CDF_WARN',
+            # Error codes
+            -2001: 'ATTR_EXISTS',
+            -2002: 'BAD_CDF_ID', 
+            -2003: 'BAD_DATA_TYPE',
+            -2004: 'BAD_DIM_SIZE', 
+            -2005: 'BAD_DIM_INDEX',
+            -2006: 'BAD_ENCODING', 
+            -2007: 'BAD_MAJORITY', 
+            -2008: 'BAD_NUM_DIMS', 
+            -2009: 'BAD_REC_NUM', 
+            -2010: 'BAD_SCOPE',  
+            -2011: 'BAD_NUM_ELEMS',
+            -2012: 'CDF_OPEN_ERROR',
+            -2013: 'CDF_EXISTS',  
+            -2014: 'BAD_FORMAT',  
+            -2015: 'BAD_ALLOCATE_RECS',
+            -2016: 'BAD_CDF_EXTENSION',
+            -2017: 'NO_SUCH_ATTR', 
+            -2018: 'NO_SUCH_ENTRY',
+            -2019: 'NO_SUCH_VAR', 
+            -2020: 'VAR_READ_ERROR',
+            -2021: 'VAR_WRITE_ERROR',
+            -2022: 'BAD_ARGUMENT',  
+            -2023: 'IBM_PC_OVERFLOW',
+            -2024: 'TOO_MANY_VARS', 
+            -2025: 'VAR_EXISTS',  
+            -2026: 'BAD_MALLOC', 
+            -2027: 'NOT_A_CDF', 
+            -2028: 'CORRUPTED_V2_CDF',
+            -2029: 'VAR_OPEN_ERROR', 
+            -2030: 'BAD_INITIAL_RECS',
+            -2031: 'BAD_BLOCKING_FACTOR',
+            -2032: 'END_OF_VAR',
+            -2034: 'BAD_CDFSTATUS', 
+            -2035: 'CDF_INTERNAL_ERROR',
+            -2036: 'BAD_NUM_VARS',
+            -2037: 'BAD_REC_COUNT',
+            -2038: 'BAD_REC_INTERVAL',
+            -2039: 'BAD_DIM_COUNT', 
+            -2040: 'BAD_DIM_INTERVAL',
+            -2041: 'BAD_VAR_NUM',
+            -2042: 'BAD_ATTR_NUM',
+            -2043: 'BAD_ENTRY_NUM',
+            -2044: 'BAD_ATTR_NAME', 
+            -2045: 'BAD_VAR_NAME',
+            -2046: 'NO_ATTR_SELECTED',
+            -2047: 'NO_ENTRY_SELECTED', 
+            -2048: 'NO_VAR_SELECTED', 
+            -2049: 'BAD_CDF_NAME',
+            -2051: 'CANNOT_CHANGE',
+            -2052: 'NO_STATUS_SELECTED',
+            -2053: 'NO_CDF_SELECTED',
+            -2054: 'READ_ONLY_DISTRIBUTION',
+            -2055: 'CDF_CLOSE_ERROR',
+            -2056: 'VAR_CLOSE_ERROR',
+            -2058: 'BAD_FNC_OR_ITEM',
+            -2060: 'ILLEGAL_ON_V1_CDF',
+            -2063: 'BAD_CACHE_SIZE', 
+            -2066: 'CDF_CREATE_ERROR', 
+            -2067: 'NO_SUCH_CDF',
+            -2068: 'VAR_CREATE_ERROR', 
+            -2070: 'READ_ONLY_MODE',
+            -2071: 'ILLEGAL_IN_zMODE', 
+            -2072: 'BAD_zMODE',
+            -2073: 'BAD_READONLY_MODE',
+            -2074: 'CDF_READ_ERROR',
+            -2075: 'CDF_WRITE_ERROR',
+            -2076: 'ILLEGAL_FOR_SCOPE',
+            -2077: 'NO_MORE_ACCESS', 
+            -2079: 'BAD_DECODING',
+            -2081: 'BAD_NEGtoPOSfp0_MODE',
+            -2082: 'UNSUPPORTED_OPERATION',
+            -2083: 'CDF_SAVE_ERROR',
+            -2084: 'VAR_SAVE_ERROR',
+            -2086: 'NO_WRITE_ACCESS',
+            -2087: 'NO_DELETE_ACCESS',
+            -2088: 'CDF_DELETE_ERROR',
+            -2089: 'VAR_DELETE_ERROR',
+            -2090: 'UNKNOWN_COMPRESSION',
+            -2091: 'CANNOT_COMPRESS',
+            -2092: 'DECOMPRESSION_ERROR',
+            -2093: 'COMPRESSION_ERROR',
+            -2096: 'EMPTY_COMPRESSED_CDF',
+            -2097: 'BAD_COMPRESSION_PARM',
+            -2098: 'UNKNOWN_SPARSENESS',
+            -2099: 'CANNOT_SPARSERECORDS',
+            -2100: 'CANNOT_SPARSEARRAYS',
+            -2101: 'TOO_MANY_PARMS',
+            -2102: 'NO_SUCH_RECORD',
+            -2103: 'CANNOT_ALLOCATE_RECORDS',
+            -2106: 'SCRATCH_DELETE_ERROR',
+            -2107: 'SCRATCH_CREATE_ERROR',
+            -2108: 'SCRATCH_READ_ERROR',
+            -2109: 'SCRATCH_WRITE_ERROR',
+            -2110: 'BAD_SPARSEARRAYS_PARM',
+            -2111: 'BAD_SCRATCH_DIR',
+            -2113: 'NOT_A_CDF_OR_NOT_SUPPORTED',
+            -2123: 'CORRUPTED_V3_CDF',
+            -2124: 'ILLEGAL_EPOCH_FIELD',
+            -2125: 'BAD_CHECKSUM',
+            -2126: 'CHECKSUM_ERROR',
+            -2127: 'CHECKSUM_NOT_ALLOWED',
+            -2128: 'ZLIB_DECOMPRESSION_ERROR' }
+            
         if code == 0:
+            if verbose:
+                print(status_codes[code])
             return
         else:
-            print("Error code %d" % (code))
+            print("Error code %d: %s" % (code, status_codes[code]))
             return
 
-    def _open(self, verbose=False):
+    def _open(self, mode='r', verbose=False):
         """
         open a cdf file for reading
-        
+
+        @keyword mode: mode the open the file, r or w
+        @type mode: string
         @keyword verbose: be verbose to the screen
         @type verbose: bool
 
@@ -159,10 +288,16 @@ class cdfpy(object):
         except AttributeError:
             n_id = pcdfi.new_CDFidp()
             self.n_id = n_id
-            a = pcdfi.PyCDFopen(self.filename, n_id)
+            if mode.lower() == 'r':
+                a = pcdfi.PyCDFopen(self.filename, n_id)
+            elif mode.lower() == 'w':
+                a = pcdfi.PyCDFcreate(self.filename, n_id)
+            else:
+                print("did not understand CDF file mode (r/w)")
+                return False
+            self._errorHandle(a)
             _id = pcdfi.CDFidp_value(n_id)
             self._id = _id
-            self._errorHandle(a)
             return True
         print("CDF already opened, not reopening")
         return True

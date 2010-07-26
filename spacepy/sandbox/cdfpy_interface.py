@@ -938,13 +938,13 @@ def CDFidp_value(*args):
   return _cdfpy_interface.CDFidp_value(*args)
 CDFidp_value = _cdfpy_interface.CDFidp_value
 
-def PyCDFcreate(*args):
-  return _cdfpy_interface.PyCDFcreate(*args)
-PyCDFcreate = _cdfpy_interface.PyCDFcreate
-
 def int_array(*args):
   return _cdfpy_interface.int_array(*args)
 int_array = _cdfpy_interface.int_array
+
+def PyCDFcreate(*args):
+  return _cdfpy_interface.PyCDFcreate(*args)
+PyCDFcreate = _cdfpy_interface.PyCDFcreate
 
 def PyCDFopen(*args):
   return _cdfpy_interface.PyCDFopen(*args)
