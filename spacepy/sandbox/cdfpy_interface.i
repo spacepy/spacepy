@@ -26,13 +26,13 @@
  %array_functions(unsigned char, CDF_UCHARArray);
 
 
- %calloc(void, void);
- %free(void, void);
+ %allocators(void, void);
+ %allocators(void *, voidp);
 
  %{
  /* Put header files here or function declarations like below */
  #include "/Applications/cdf33_0-dist/include/cdf.h"
- #include <stdlib.h>
+ #include "/usr/include/stdlib.h"
 
  %}
  
@@ -42,6 +42,7 @@
  %cstring_output_allocate(char *buffer, free(*$1));
 */
  %include "/Applications/cdf33_0-dist/include/cdf.h"
+
  %pointer_functions(int, intp);
  %pointer_functions(double, doublep);
  %pointer_functions(char, charp);
@@ -117,8 +118,8 @@
 
 
 
- CDFstatus PyCDFcreateAttr(CDFid id, char *attrName, long attrScope, long *attrNum) {
-    return CDFattrCreate(id, attrName, attrScope, attrNum);
+ CDFstatus PyCDFcreateAttr(CDFid id, char *attrNameIN, long attrScope, long *attrNum) {
+    return CDFattrCreate(id, attrNameIN, attrScope, attrNum);
  }
  
  CDFstatus PyCDFinquireAttrzEntry(CDFid id, long attrNum, long entryNum, long *dataType, long *numElements) {
@@ -162,6 +163,10 @@
 
  CDFstatus PyCDFgetCompression(CDFid id, long *compressionType, long *compressionParams, long *compressionPercentage) {
    return CDFgetCompression(id, *compressionType, *compressionParams, *compressionPercentage);
+ }
+
+ CDFstatus PyCDFputAttrgEntry(CDFid id, long attrNum, long entryNum, long dataType, long numElements, void *value) {
+   return CDFputAttrgEntry(id, attrNum, entryNum, dataType, numElements, value);
  }
 
 

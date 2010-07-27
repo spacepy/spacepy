@@ -34,6 +34,7 @@ class cdfpy(object):
                                         pcdfi.longArray_getitem(minute, 0),
                                         pcdfi.longArray_getitem(second, 0),
                                         pcdfi.longArray_getitem(msec, 0)*1000))
+        # free these pointers!!!! 
         return Ticktock(dt, 'UTC')
 
     def __init__(self, filename = None, verbose = True):
@@ -57,6 +58,8 @@ class cdfpy(object):
                              '45':'CDF_DOUBLE',
                              '51':'CDF_CHAR',
                              '52':'CDF_UCHAR' }
+
+        self.__datatypesReverse = dict((v,k) for k, v in self.__datatypes.iteritems())
         
         self.__returncodes = {
             'Encoding': ['Network', 'Sun', 'VAX', 'Dec', 'SGi', 'IBMPC',
@@ -74,7 +77,7 @@ class cdfpy(object):
             'CDF_REAL4':'f',
             'CDF_REAL8':'d',
             'CDF_EPOCH':'d',
-            'CDF_EPOCH16':None,
+            'CDF_EPOCH16':None,  # need to figure this out
             'CDF_BYTE':'b',
             'CDF_FLOAT':'f',
             'CDF_DOUBLE':'d',
@@ -279,6 +282,7 @@ class cdfpy(object):
         @contact: balarsen@lanl.gov
         
         @version: V1: 20-Jul-2010 (BAL)
+        @version: V2: 26-Jul-2010 (BAL) added mode keyword and 'w' functionality
 
         """
         if self.filename == None:
@@ -287,7 +291,6 @@ class cdfpy(object):
         try: self.n_id
         except AttributeError:
             n_id = pcdfi.new_CDFidp()
-            self.n_id = n_id
             if mode.lower() == 'r':
                 a = pcdfi.PyCDFopen(self.filename, n_id)
             elif mode.lower() == 'w':
@@ -295,9 +298,10 @@ class cdfpy(object):
             else:
                 print("did not understand CDF file mode (r/w)")
                 return False
-            self._errorHandle(a)
+            self._errorHandle(a, verbose=verbose)
             _id = pcdfi.CDFidp_value(n_id)
             self._id = _id
+            self.n_id = n_id
             return True
         print("CDF already opened, not reopening")
         return True
@@ -412,34 +416,47 @@ class cdfpy(object):
                                                  maxrEntry,
                                                  maxzEntry )
             self._errorHandle(a)
+            if verbose:
+                print("\tFound attr: %d - %s it has scope %s" % (i, attrName,  self.__returncodes['Scope'][pcdfi.longArray_getitem(attrScope, 0)-1]))
+                print("\t\tg:%d r:%d z:%d"  % (pcdfi.longArray_getitem(maxgEntry,0), pcdfi.longArray_getitem(maxrEntry,0), pcdfi.longArray_getitem(maxzEntry,0)))
 
+            if verbose:
+                print("\t\tFound %d entries" % (pcdfi.longArray_getitem(maxgEntry, 0)+1))
+
+            if a ==0: ## this means that it gpt a global, if gets a local a = -2076
+                self._data['GlobalAttr'][attrName] = {}
+                self._data['GlobalAttr'][attrName]['value'] = []
+
+            for ii in xrange(pcdfi.longArray_getitem(maxgEntry, 0)+1):
+            # for ii in xrange(0+1):
+
+                a = pcdfi.PyCDFinquireAttrgEntry (self._id,
+                                                  long(i),
+                                                  long(ii), 
+                                                  dataType,
+                                                  numElements )
+                if verbose:
+                    self._errorHandle(a)
             
-            a = pcdfi.PyCDFinquireAttrgEntry (self._id,
-                                              long(i),
-                                              long(0),  # i bet this shouldnt be a zero TODO
-                                              dataType,
-                                              numElements )
-            
-            
-            if a == 0:  ## this means that it gpt a global, if gets a local a = -2076
-                self._data['GlobalAttr'][attrName]= {}
-                self._data['GlobalAttr'][attrName]['dataType'] = self.__datatypes[str(pcdfi.longArray_getitem(dataType,0))]
-                self._data['GlobalAttr'][attrName]['numElements'] = pcdfi.longArray_getitem(numElements, 0)
+                if a == 0:  ## this means that it gpt a global, if gets a local a = -2076
+                    self._data['GlobalAttr'][attrName]['attrNum'] = i
+                    self._data['GlobalAttr'][attrName]['dataType'] = self.__datatypes[str(pcdfi.longArray_getitem(dataType,0))]
+                    self._data['GlobalAttr'][attrName]['numElements'] = pcdfi.longArray_getitem(numElements, 0)
                 
-                value = ' '*  pcdfi.longArray_getitem(numElements, 0) # might need a +1 here TODO
+                    value = ' '*  (pcdfi.longArray_getitem(numElements, 0) + 1) # need the +1 here 
 
     
-                a = pcdfi.PyCDFgetAttrgEntry(self._id,
-                                             long(i),
-                                             long(0),
-                                             value)  # this only gets global vars
-                self._errorHandle(a)
-                self._data['GlobalAttr'][attrName]['value'] = value
-                self._data['GlobalAttr'][attrName]['attrNum'] = i
-                self._data['GlobalAttr'][attrName]['attrScope'] = pcdfi.longArray_getitem(attrScope, 0)
-                if verbose:
-                    print(attrName + ' = ' +  self._data['GlobalAttr'][attrName]['value'])
-                    attrScope = pcdfi.new_longArray(1)
+                    a = pcdfi.PyCDFgetAttrgEntry(self._id,
+                                                 long(i),
+                                                 long(ii),
+                                                 value)  # this only gets global vars
+                    self._errorHandle(a)
+                    self._data['GlobalAttr'][attrName]['value'].append(value)
+                    self._data['GlobalAttr'][attrName]['attrNum'] = i
+                    self._data['GlobalAttr'][attrName]['attrScope'] = pcdfi.longArray_getitem(attrScope, 0)
+
+                    if verbose:
+                        print("\t\t\t" + attrName + ' = ' +  self._data['GlobalAttr'][attrName]['value'][ii])
         pcdfi.delete_longArray(maxgEntry)
         pcdfi.delete_longArray(maxrEntry)
         pcdfi.delete_longArray(maxzEntry)
@@ -852,6 +869,61 @@ class cdfpy(object):
         return True
             
 
+    def _createAttr(self, attrName, scope=pcdfi.GLOBAL_SCOPE, valNum=None, verbose=False):
+        """
+        I need docs
+        """
+        attrNum = pcdfi.new_longArray(1)
+        a = pcdfi.PyCDFcreateAttr(self._id, attrName, scope, attrNum)
+        self._errorHandle(a)  # maybe a strickerror in _errorHandle
+        self._data['GlobalAttr'][attrName] = {}
+        self._data['GlobalAttr'][attrName]['attrNum'] = pcdfi.longArray_getitem(attrNum, 0)
+        self._data['GlobalAttr'][attrName]['value'] = None
+
+        pcdfi.delete_longArray(attrNum)
+        
+        return True # add some error checking here
+
+    def _putAttrVal(self, attrNameIN, attrValue, valNum=None, verbose=False):
+        """
+        I need docs
+        """
+        ## self._readGlobalAttributes(verbose=verbose)
+        ## try:
+        ##     self._data['GlobalAttr'][attrName]
+        ## except:
+        ##     print("attrName %s doesnt exist, must create it first with _createAttr()" % (attrName))
+        ##     return False
+        if isinstance(attrValue, str):
+            dataType = self.__datatypesReverse['CDF_CHAR']
+            if valNum == None:
+                valNum = 0 # this si placeholder for search for the right answer
+            # allocate memory for the void * input
+            tmp = pcdfi.calloc_void(len(attrValue))  # do I need a +1 for a trailing null?
+            # move the data to the location of the pointer
+            pcdfi.memmove(tmp, attrValue)
+            # make the call
+            a = pcdfi.PyCDFputAttrgEntry(self._id,
+                                         self._data['GlobalAttr'][attrNameIN]['attrNum'],
+                                         0,
+                                         long(dataType),
+                                         len(attrValue),
+                                         tmp)
+        # add some elif here
+        else:
+            print("Only string supported now, sorry")
+            return False
+
+        self._errorHandle(a)
+        pcdfi.free_void(tmp)
+
+        # add the new info to the dict
+        self._data['GlobalAttr'][attrNameIN]['numElements'] = len(attrValue)
+        self._data['GlobalAttr'][attrNameIN]['value'] = attrValue
+        
+        return True
+        
+        
     def getGlobalAttr(self, verbose=False):
         """
         read Global attributes from the CDF file, they are saved in cdf.GlobalAttr

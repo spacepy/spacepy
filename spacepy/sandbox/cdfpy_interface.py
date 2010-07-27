@@ -299,13 +299,38 @@ def CDF_UCHARArray_setitem(*args):
   return _cdfpy_interface.CDF_UCHARArray_setitem(*args)
 CDF_UCHARArray_setitem = _cdfpy_interface.CDF_UCHARArray_setitem
 
+def malloc_void(*args):
+  return _cdfpy_interface.malloc_void(*args)
+malloc_void = _cdfpy_interface.malloc_void
+
 def calloc_void(*args):
   return _cdfpy_interface.calloc_void(*args)
 calloc_void = _cdfpy_interface.calloc_void
 
+def realloc_void(*args):
+  return _cdfpy_interface.realloc_void(*args)
+realloc_void = _cdfpy_interface.realloc_void
+
 def free_void(*args):
   return _cdfpy_interface.free_void(*args)
 free_void = _cdfpy_interface.free_void
+
+def malloc_voidp(*args):
+  return _cdfpy_interface.malloc_voidp(*args)
+malloc_voidp = _cdfpy_interface.malloc_voidp
+
+def calloc_voidp(*args):
+  return _cdfpy_interface.calloc_voidp(*args)
+calloc_voidp = _cdfpy_interface.calloc_voidp
+
+def realloc_voidp(*args):
+  return _cdfpy_interface.realloc_voidp(*args)
+realloc_voidp = _cdfpy_interface.realloc_voidp
+
+def free_voidp(*args):
+  return _cdfpy_interface.free_voidp(*args)
+free_voidp = _cdfpy_interface.free_voidp
+sizeof_voidp = _cdfpy_interface.sizeof_voidp
 CDF_MIN_DIMS = _cdfpy_interface.CDF_MIN_DIMS
 CDF_MAX_DIMS = _cdfpy_interface.CDF_MAX_DIMS
 CDF_VAR_NAME_LEN = _cdfpy_interface.CDF_VAR_NAME_LEN
@@ -1025,5 +1050,9 @@ PyCDFhyperGetzVarData = _cdfpy_interface.PyCDFhyperGetzVarData
 def PyCDFgetCompression(*args):
   return _cdfpy_interface.PyCDFgetCompression(*args)
 PyCDFgetCompression = _cdfpy_interface.PyCDFgetCompression
+
+def PyCDFputAttrgEntry(*args):
+  return _cdfpy_interface.PyCDFputAttrgEntry(*args)
+PyCDFputAttrgEntry = _cdfpy_interface.PyCDFputAttrgEntry
 
 
