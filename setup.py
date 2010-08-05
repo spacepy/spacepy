@@ -3,10 +3,15 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.19 $, $Date: 2010/07/06 23:41:53 $"
+__version__ = "$Revision: 1.20 $, $Date: 2010/08/05 21:52:07 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
+def compile_pybats():
+     import os
+
+     os.system('f2py -c ctrace2d.pyf trace2d.c')
+
 def compile_oneralib():
 	
 	# compile oneralib
@@ -122,6 +127,9 @@ if os.path.exists('spacepy/onerapy/onerapylib.so'):
 else:
     compile_oneralib()
 
+# Compile PyBats
+compile_pybats()
+
 # create .spacepy in $HOME and move data
 # read-in .rc file first
 execfile('spacepy/data/spacepy.rc')
@@ -153,7 +161,7 @@ if fresh_install:
     shutil.copy('spacepy/data/spacepy.rc', DOT_FLN+'/')
     shutil.copy('spacepy/data/tai-utc.dat', DOT_FLN+'/data')
 
-pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*']
+pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so']
 
 # run setup from distutil
 setup(name='spacepy',
