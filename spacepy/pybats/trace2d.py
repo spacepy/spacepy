@@ -135,7 +135,7 @@ def test_dipole():
     '''
     import numpy as np
     import matplotlib.pyplot as plt
-    from pybats.dipole import (b_hat, b_line)
+    from spacepy.pybats.dipole import (b_hat, b_line)
 
     # Now do dipole magnetic field.
     # Start by creating a field of unit vectors...

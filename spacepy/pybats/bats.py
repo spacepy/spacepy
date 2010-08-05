@@ -4,7 +4,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 '''
 
 import numpy as np
-import pybats
+import spacepy.pybats
 
 class Stream(object):
     '''
@@ -73,9 +73,9 @@ class Stream(object):
         '''
         from numpy import array, sqrt
         if self.method == 'euler':
-            from pybats.trace2d import trace2d_eul as trc
+            from spacepy.pybats.trace2d import trace2d_eul as trc
         elif self.method == 'rk4':
-            from pybats.trace2d import trace2d_rk4 as trc
+            from spacepy.pybats.trace2d import trace2d_rk4 as trc
         
         # Get name of dimensions in order.
         grid = bats.grid.keys()
@@ -106,7 +106,7 @@ class Stream(object):
         '''
         ax.plot(self.x, self.y, self.style)
 
-class Bats2d(pybats.IdlBin):
+class Bats2d(spacepy.pybats.IdlBin):
     '''
     An object class of parent pybats.idlbin taylored to BATS-R-US output.
     This function requires the Matplotlib griddata function.
