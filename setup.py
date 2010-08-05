@@ -3,14 +3,14 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.20 $, $Date: 2010/08/05 21:52:07 $"
+__version__ = "$Revision: 1.21 $, $Date: 2010/08/05 22:38:51 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
 def compile_pybats():
      import os
 
-     os.system('f2py -c ctrace2d.pyf trace2d.c')
+     os.system('f2py -c spacepy/pybats/ctrace2d.pyf spacepy/pybats/trace2d.c')
 
 def compile_oneralib():
 	
