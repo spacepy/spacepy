@@ -73,8 +73,8 @@ for option in sys.argv[1:]:
 # Imports:
 import math
 
-import pybats.bats as pb
-from pybats import save, load
+import spacepy.pybats.bats as pb
+from spacepy.pybats import save, load
 
 import matplotlib.pyplot as plt
 import numpy as np

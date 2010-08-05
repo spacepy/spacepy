@@ -9,9 +9,9 @@ import sys
 import glob
 
 from rampy import apply_smart_timeticks
-import pybats.bats as pb
-import pybats.rim as rim
-from pybats import ImfInput
+import spacepy.pybats.bats as pb
+import spacepy.pybats.rim as rim
+from spacepy.pybats import ImfInput
 
 import datetime as dt
 import numpy as np

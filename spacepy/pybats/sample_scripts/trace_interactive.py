@@ -42,9 +42,9 @@ for option in sys.argv[1:]:
 
 import math
 
-import pybats.bats as pb
-import pybats.interact as int
-from pybats import load
+import spacepy.pybats.bats as pb
+import spacepy.pybats.interact as int
+from spacepy.pybats import load
 
 import matplotlib.pyplot as plt
 import numpy as np
