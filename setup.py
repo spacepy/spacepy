@@ -3,78 +3,78 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.21 $, $Date: 2010/08/05 22:38:51 $"
+__version__ = "$Revision: 1.22 $, $Date: 2010/08/06 16:02:25 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
 def compile_pybats():
-     import os
-
-     os.system('f2py -c spacepy/pybats/ctrace2d.pyf spacepy/pybats/trace2d.c')
+    import os
+    os.chdir('spacepy/pybats')
+    os.system('f2py -c ctrace2d.pyf trace2d.c')
+    os.chdir('../..')
 
 def compile_oneralib():
-	
-	# compile oneralib
-	import os, sys
-	
-	
-	os.chdir('spacepy/onerapy/onera_lib_V4.1')
-	
-	F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f']
-	functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
-		'coord_trans1 find_magequator1', 'find_mirror_point1', 
-		'get_field1']
-	
-	# call f2py
-	os.system('f2py --overwrite-signature -m onerapylib -h onerapylib.pyf '+' '.join(F90files) \
-			+' only: ' + ' '.join(functions) + ' :')
-	
-	# intent(out) substitute list
-	outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
-			'xgeo', 'bmir', 'bl', 'bxgeo']
-	
-	inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
-	
-	fln = 'onerapylib.pyf'
-	
-	print 'Substituting fortran intent(in/out) statements'
-	f = open(fln, 'r')
-	filestr = f.read()
-	f.close()
-        
-	for item in inlist:
-		filestr = subst( ':: '+item, ', intent(in) :: '+item, filestr)
-		
-	for item in outlist:
-		filestr = subst( ':: '+item, ', intent(out) :: '+item, filestr)
-	
-	f = open(fln, 'w')
-	f.write(filestr)
-	f.close()
 
-	
-	# compile (platform dependent)
-	os.chdir('source')
-	if sys.platform == 'darwin': # then mac OS
-   		os.system('gfortran -c -w -O2 -fPIC *.f')
-   		os.system('libtool -static -o libBL2.a *.o')
-   		os.chdir('..')
-   		os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
-   		
-	elif sys.platform == 'linux2': # then linux   	
-		os.system('gfortran -c -w -O2 -fPIC *.f')
-		os.system('ar -r libBL2.a *.o')
-		os.system('ranlib libBL2.a')
-		os.chdir('..')
-		os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
-	else:
-		print sys.platform, ' not supported at this time'
-		sys.exit(1)
-	
-	os.system('mv -f onerapylib.so ../')
-	os.chdir('../../..')
-	
-	return
+    # compile oneralib
+    import os, sys
+
+    os.chdir('spacepy/onerapy/onera_lib_V4.1')
+
+    F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f']
+    functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
+        'coord_trans1 find_magequator1', 'find_mirror_point1', 
+        'get_field1']
+
+    # call f2py
+    os.system('f2py --overwrite-signature -m onerapylib -h onerapylib.pyf '+' '.join(F90files) \
+            +' only: ' + ' '.join(functions) + ' :')
+
+    # intent(out) substitute list
+    outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
+            'xgeo', 'bmir', 'bl', 'bxgeo']
+
+    inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
+
+    fln = 'onerapylib.pyf'
+
+    print 'Substituting fortran intent(in/out) statements'
+    f = open(fln, 'r')
+    filestr = f.read()
+    f.close()
+        
+    for item in inlist:
+        filestr = subst( ':: '+item, ', intent(in) :: '+item, filestr)
+        
+    for item in outlist:
+        filestr = subst( ':: '+item, ', intent(out) :: '+item, filestr)
+
+    f = open(fln, 'w')
+    f.write(filestr)
+    f.close()
+
+
+    # compile (platform dependent)
+    os.chdir('source')
+    if sys.platform == 'darwin': # then mac OS
+        os.system('gfortran -c -w -O2 -fPIC *.f')
+        os.system('libtool -static -o libBL2.a *.o')
+        os.chdir('..')
+        os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
+        
+    elif sys.platform == 'linux2': # then linux   	
+        os.system('gfortran -c -w -O2 -fPIC *.f')
+        os.system('ar -r libBL2.a *.o')
+        os.system('ranlib libBL2.a')
+        os.chdir('..')
+        os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
+    else:
+        print sys.platform, ' not supported at this time'
+        sys.exit(1)
+
+    os.system('mv -f onerapylib.so ../')
+    os.chdir('../../..')
+
+    return
 
 # -------------------------------------
 def subst(pattern, replacement, filestr,
