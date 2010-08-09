@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.34 $, $Date: 2010/08/09 20:56:00 $"
+__version__ = "$Revision: 1.35 $, $Date: 2010/08/09 21:23:35 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1220,27 +1220,23 @@ def interpol(newx, x, y, **kwargs):
 # -----------------------------------------------
 
 
-def scale_vector(vec, lo=0, high=1):
+def normalize(vec):
     """
-    Given an input vector scape that vectpor to the range lo-high
+    Given an input vector normalize the vector
 
-    @param vec: input vector to scale
+    @param vec: input vector to normalize
     @type vec: listlike
-    @keyword lo: low limit to scale the vector to
-    @type lo: float
-    @keyword high: high limit to scale the vector to
-    @type high: float
-    @return: scaled vector
+    @return: normalized vector
     @rtype: listlike
     """
     import numpy as N
     # check to see if vec is numpy array, this is fastest
     if isinstance(vec, N.ndarray):
-        out = (vec - (vec.min()-lo)) / (vec.max() - (vec.min()-lo)) * high
+        out = (vec - vec.min())/N.ptp(vec)
     else:
         vecmin = N.min(vec)
-        vecmax = N.max(vec)
-        out = [(val - (vecmin - lo)) / (vecmax - (vecmin-lo)) * high for val in vec]
+        ptp = N.ptp(vec)
+        out = [(val -  vecmin)/ptp for val in vec]
     return out
     
 
