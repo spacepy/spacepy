@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.33 $, $Date: 2010/07/21 23:31:46 $"
+__version__ = "$Revision: 1.34 $, $Date: 2010/08/09 20:56:00 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1218,6 +1218,36 @@ def interpol(newx, x, y, **kwargs):
     return newy
 
 # -----------------------------------------------
+
+
+def scale_vector(vec, lo=0, high=1):
+    """
+    Given an input vector scape that vectpor to the range lo-high
+
+    @param vec: input vector to scale
+    @type vec: listlike
+    @keyword lo: low limit to scale the vector to
+    @type lo: float
+    @keyword high: high limit to scale the vector to
+    @type high: float
+    @return: scaled vector
+    @rtype: listlike
+    """
+    import numpy as N
+    # check to see if vec is numpy array, this is fastest
+    if isinstance(vec, N.ndarray):
+        out = (vec - (vec.min()-lo)) / (vec.max() - (vec.min()-lo)) * high
+    else:
+        vecmin = N.min(vec)
+        vecmax = N.max(vec)
+        out = [(val - (vecmin - lo)) / (vecmax - (vecmin-lo)) * high for val in vec]
+    return out
+    
+
+
+
+# -----------------------------------------------
+
 def test():
     """
     test all spacepy routines
@@ -1299,9 +1329,4 @@ def test():
     #    nFAIL =+ 1
 
     return nFAIL
-
-
-
-
-
 
