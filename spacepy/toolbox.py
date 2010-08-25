@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.35 $, $Date: 2010/08/09 21:23:35 $"
+__version__ = "$Revision: 1.36 $, $Date: 2010/08/25 18:52:05 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1268,17 +1268,17 @@ def test():
     import pylab as p
     nFAIL = 0
 
-    # savepickle
-    D = {}
-    D['names'] = ['John', 'Joe', 'Joyce']
-    D['TAI'] = [1,2,3]
-    tb.savepickle('test_pickle_1.pbin', D)
+    ## # savepickle
+    ## D = {}
+    ## D['names'] = ['John', 'Joe', 'Joyce']
+    ## D['TAI'] = [1,2,3]
+    ## tb.savepickle('test_pickle_1.pbin', D)
 
-    # loadpickle
-    DD = tb.loadpickle('test_pickle_1.pbin')
-    if DD != D:
-        print "test_toolbox: FAILED TEST load/save pickle"
-        nFAIL =+ 1
+    ## # loadpickle
+    ## DD = tb.loadpickle('test_pickle_1.pbin')
+    ## if DD != D:
+    ##     print "test_toolbox: FAILED TEST load/save pickle"
+    ##     nFAIL =+ 1
 
     # assemble
     D2 = {}
@@ -1294,10 +1294,10 @@ def test():
         print "test_toolbox: FAILED TEST assemble"
         nFAIL =+ 1
     
-    # feq
-    if not tb.feq(1.2, 1.2):
-        print "test_toolbox: FAILED TEST assemble"
-        nFAIL =+ 1
+    ## # feq
+    ## if not tb.feq(1.2, 1.2):
+    ##     print "test_toolbox: FAILED TEST assemble"
+    ##     nFAIL =+ 1
 
     # dictree
     try:
