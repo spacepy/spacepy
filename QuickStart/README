@@ -1,0 +1,9 @@
+README for for to make "Quickstart"
+
+create html output:
+> make html
+
+create latex output:
+> make latex
+
+look at output, goto _build/html or _build/latex
