@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.22 $, $Date: 2010/08/06 16:02:25 $"
+__version__ = "$Revision: 1.23 $, $Date: 2010/09/03 19:09:46 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -13,7 +13,7 @@ def compile_pybats():
     os.system('f2py -c ctrace2d.pyf trace2d.c')
     os.chdir('../..')
 
-def compile_oneralib():
+def compile_oneralib(fcompiler):
 
     # compile oneralib
     import os, sys
@@ -56,17 +56,30 @@ def compile_oneralib():
     # compile (platform dependent)
     os.chdir('source')
     if sys.platform == 'darwin': # then mac OS
-        os.system('gfortran -c -w -O2 -fPIC *.f')
-        os.system('libtool -static -o libBL2.a *.o')
-        os.chdir('..')
-        os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
+        if fcompiler == 'pg':
+            os.system('pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f')
+            os.system('libtool -static -o libBL2.a *.o')
+            os.chdir('..')
+            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')    		
+        else:
+            os.system('gfortran -c -w -O2 -fPIC *.f')
+            os.system('libtool -static -o libBL2.a *.o')
+            os.chdir('..')
+            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
         
-    elif sys.platform == 'linux2': # then linux   	
-        os.system('gfortran -c -w -O2 -fPIC *.f')
-        os.system('ar -r libBL2.a *.o')
-        os.system('ranlib libBL2.a')
-        os.chdir('..')
-        os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
+    elif sys.platform == 'linux2': # then linux
+        if fcompiler == 'pg':
+            os.system('pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f')
+            os.system('ar -r libBL2.a *.o')
+            os.system('ranlib libBL2.a')
+            os.chdir('..')
+            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')    		
+        else:
+            os.system('gfortran -c -w -O2 -fPIC *.f')
+            os.system('ar -r libBL2.a *.o')
+            os.system('ranlib libBL2.a')
+            os.chdir('..')
+            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
     else:
         print sys.platform, ' not supported at this time'
         sys.exit(1)
@@ -100,8 +113,25 @@ def subst(pattern, replacement, filestr,
 	
 # -------------------------------------
 from distutils.core import setup
-import os, sys, shutil
+import os, sys, shutil, getopt
 
+# check for compiler flags
+fcompiler = 'gfortran' # standard compiler flag
+if len(sys.argv) > 2:
+	for i in range(len(sys.argv)):
+		if sys.argv[i] == '--fcompiler=pg':
+			fcompiler = 'pg'
+			
+try:
+	sys.argv.remove('--fcompiler=pg')
+except:
+	pass
+
+try:
+	sys.argv.remove('--fcompiler=gfortran')
+except:
+	pass	
+	
 #import tooblox by reading file from repository
 # this will provide mostly the query_yes_no function
 execfile('spacepy/toolbox.py')
@@ -123,9 +153,9 @@ except:
 if os.path.exists('spacepy/onerapy/onerapylib.so'):
     ans = query_yes_no('\nDo you want to recompile the ONERA-DESP library?', default="no")
     if ans=='yes':
-        compile_oneralib()
+        compile_oneralib(fcompiler)
 else:
-    compile_oneralib()
+    compile_oneralib(fcompiler)
 
 # Compile PyBats
 compile_pybats()

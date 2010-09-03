@@ -8,3 +8,8 @@ Option 1) to install it in the standard loction (depending on your system)
 Option 2) to install in custom location
 
 >>> python setup.py install --home=/n/packages/lib/python
+
+It is also possible to select a specific compiler for installing the ONERA library. Currently only
+'gfortran' and 'pgf' are supported with 'gfortran' being the default. You can select a compiler by e.g. 
+
+>>> python setup.py install --fcompiler=pg
