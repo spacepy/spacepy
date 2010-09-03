@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.2 $, $Date: 2010/05/27 22:02:08 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/09/03 17:12:10 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -59,18 +59,16 @@ class Coords(object):
     """
     
     def __init__(self, data, dtype, carsph, units=None, ticktock=None):
+        
         import numpy as n
         import onerapy as op
+        from spacepy.onerapy import SYSAXES_TYPES as typedict
+        
         if isinstance(data[0], (float, int)):
             self.data = n.array([data])
         else:
             self.data = n.array(data)
         
-        typedict = {'GDZ': {'sph': 0, 'car': 10},
-            'GEO': {'sph': 11, 'car': 1}, 'GSM': {'sph': 22, 'car': 2},
-            'GSE': {'sph': 23, 'car': 3}, 'SM': {'sph': 24, 'car': 4},
-            'GEI': {'sph': 25, 'car': 5}, 'MAG': {'sph': 26, 'car': 6},
-            'SPH': {'sph': 7, 'car': 17}, 'RLL': {'sph': 8, 'car': 18}}
         assert dtype in typedict.keys(), 'This dtype='+dtype+' is not supported. Only '+str(typedict.keys())
         assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
         onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
@@ -79,21 +77,25 @@ class Coords(object):
         if ticktock: assert len(ticktock) == len(data), 'Ticktock dimensions seem off'
         self.ticktock = ticktock
         
+        # GEO,sph and SPH,sph are the same
+        if dtype == 'GEO' and carsph == 'sph':
+        	dtype = 'SPH'
         self.sysaxes = typedict[dtype][carsph]
-        if self.sysaxes >= 10 and self.sysaxes < 20: #need sph2car
-            try:
-                self.data = op.sph2car(self.data)
-                self.sysaxes -= 10
-            except:
-                print onerawarn
-                self.sysaxes = None
-        if self.sysaxes >= 20: #need car2sph
-            try:
-                self.data = op.car2sph(self.data)
-                self.sysaxes -= 20
-            except:
-                print onerawarn
-                self.sysaxes = None
+        
+        #if self.sysaxes >= 10 and self.sysaxes < 20: #need sph2car
+        #    try:
+        #        self.data = op.sph2car(self.data)
+        #        self.sysaxes -= 10
+        #    except:
+        #        print onerawarn
+        #        self.sysaxes = None
+        #if self.sysaxes >= 20: #need car2sph
+        #    try:
+        #        self.data = op.car2sph(self.data)
+        #        self.sysaxes -= 20
+        #    except:
+        #        print onerawarn
+        #        self.sysaxes = None
                 
         self.dtype = dtype
         self.carsph = carsph
@@ -307,6 +309,7 @@ class Coords(object):
         
         import numpy as n
         import onerapy as op
+        import spacepy, spacepy.coordinates
 
         # no change necessary
         if (self.dtype is returntype) and (self.carsph is returncarsph):
@@ -343,7 +346,7 @@ class Coords(object):
             units = self.units
             carsph = self.carsph
         
-        Coords = Coords(data, self.dtype, carsph, units, self.ticktock)
+        Coords = spacepy.coordinates.Coords(data, self.dtype, carsph, units, self.ticktock)
         
         # now convert to other coordinate system
         if (self.dtype is not returntype) : 

@@ -7,8 +7,14 @@ T. Guild2,(1 ONERA-DESP, Toulouse France; 2 Aerospace Corporation,
 Washington DC, USA), ONERA-DESP library V4.2, Toulouse-France, 2004-2008
 """
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/05/20 21:34:58 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/09/03 17:12:10 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
+
+SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
+	'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
+	'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
+	'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': None, 'car': 6},
+	'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car': None}}
 
 # -----------------------------------------------
 def get_Bfield(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
@@ -326,7 +332,7 @@ def coord_trans( Coords, returntype, returncarsph ):
 		secs = Coords.ticktock.UTC[i].hour*3600. + Coords.ticktock.UTC[i].minute*60. + \
 			Coords.ticktock.UTC[i].second
 			
-		xout[i,:] = onerapy.onerapylib.coord_trans1(sysaxesin, sysaxesout, \
+		xout[i,:] = spacepy.onerapy.onerapylib.coord_trans1(sysaxesin, sysaxesout, \
 			iyear, idoy, secs, Coords.data[i])
 		
 	# add  sph to car or v/v convertion if initial sysaxesout was None
@@ -489,12 +495,6 @@ def get_sysaxes(dtype, carsph):
     V2: 10-May-2010 (SM)
     """
 
-    typedict = {'GDZ': {'sph': 0, 'car': None},
-        'GEO': {'sph': 1, 'car': None}, 'GSM': {'sph': None, 'car': 2},
-        'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
-        'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': None, 'car': 6},
-        'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car': None}}
-    
     #typedict = {'GDZ': {'sph': 0, 'car': 10},
         #'GEO': {'sph': 1, 'car': 11}, 'GSM': {'sph': 22, 'car': 2},
         #'GSE': {'sph': 23, 'car': 3}, 'SM': {'sph': 24, 'car': 4},
@@ -502,7 +502,7 @@ def get_sysaxes(dtype, carsph):
         #'SPH': {'sph': 7, 'car': 17}, 'RLL': {'sph': 8, 'car': 18}}
         
     
-    sysaxes = typedict[dtype][carsph]
+    sysaxes = SYSAXES_TYPES[dtype][carsph]
 
     return sysaxes
     
