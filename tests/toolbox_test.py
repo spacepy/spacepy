@@ -1,6 +1,6 @@
 
 import unittest
-import toolbox as tb
+import spacepy.toolbox as tb
 import glob
 import os
 import datetime
@@ -135,11 +135,14 @@ class tFunctionTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    ## suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
+    ## unittest.TextTestRunner(verbosity=2).run(suite)
+
+    ## suite = unittest.TestLoader().loadTestsFromTestCase(tFunctionTests)
+    ## unittest.TextTestRunner(verbosity=2).run(suite)
 
 
-#	unittest.main()
+    unittest.main()
 
 
 
