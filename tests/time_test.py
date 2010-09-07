@@ -66,6 +66,36 @@ class tFunctionTests(unittest.TestCase):
             ans = t.sec2hms(*val)
             self.assertEqual(real_ans[i], ans)
 
+class classTests(unittest.TestCase):
+    def setUp(self):
+        #super(tFunctionTests, self).setUp()
+        pass
+
+    def tearDown(self):
+        #super(tFunctionTests, self).tearDown()
+        pass
+
+    def test_Tickdelta(self):
+        """Tickdelta should function"""
+        tst = t.Tickdelta(hours=12)
+        self.assertEqual(43200.0, tst.seconds)
+
+    def test_subTicktock(self):
+        """a ticktock minus a ticktock is a tickdelta"""
+        n1 = t.Ticktock('2002-03-01T11:23:11', 'ISO')
+        n2 = t.Ticktock('2002-02-01T00:00:00', 'ISO')
+        self.assertTrue(isinstance(n2 - n1, list))
+        self.assertTrue(isinstance((n2 - n1)[0], t.Tickdelta))
+        self.assertAlmostEqual(28.47443287, (n1-n2)[0].days, 8)
+
+    def test_subTickdelta(self):
+        """a ticktock minus a Tickdelta is a ticktock"""
+        n1 = t.Ticktock('2002-03-01T11:23:11', 'ISO')
+        de = t.Tickdelta(hours=12, seconds=2)
+        self.assertEqual(t.Ticktock( '2002-02-28T23:23:09', 'ISO'), n1-de)
+
+
+
 
 if __name__ == "__main__":
     ## suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)

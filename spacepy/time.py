@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.15 $, $Date: 2010/07/07 21:01:50 $"
+__version__ = "$Revision: 1.16 $, $Date: 2010/09/07 17:59:12 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -537,7 +537,7 @@ class Ticktock(object):
         Input:
         ======
             - a Ticktock class instance
-            - other (Tickdelta instance) 
+            - other (Tickdelta instance, or Ticktock class instance) 
       
         Example:
         ========
@@ -558,17 +558,30 @@ class Ticktock(object):
         Version:
         ========
         V1: 03-Mar-2010 (JK)
+        V2: 07-Sep-2010 (BAL) - added Ticktock-Ticktock functionality
+
        
         """
+        import spacepy
         nTAI = len(self.data)
-        newUTC = ['']*nTAI
-        for i in range(nTAI):
-            newUTC[i] = self.UTC[i] - other.timedelta
-        newobj = Ticktock(newUTC, 'UTC')
-        newobj.data = eval('newobj.get'+self.dtype+'()')
-        newobj.dtype = self.dtype
-        newobj.update_items(self, 'data')
-        return newobj
+        if isinstance(other, spacepy.time.Tickdelta):
+            newUTC = ['']*nTAI
+            for i in range(nTAI):
+                newUTC[i] = self.UTC[i] - other.timedelta
+            newobj = Ticktock(newUTC, 'UTC')
+            newobj.data = eval('newobj.get'+self.dtype+'()')
+            newobj.dtype = self.dtype
+            newobj.update_items(self, 'data')
+            return newobj
+
+        elif isinstance(other, spacepy.time.Ticktock):
+            newTAI = ['']*nTAI
+            for i in range(nTAI):
+                newTAI[i] = self.TAI[i] - other.TAI
+            deltas = [Tickdelta(seconds=val) for val in newTAI ]
+            return deltas
+
+
 
     
     # -----------------------------------------------    
@@ -603,19 +616,29 @@ class Ticktock(object):
         Version:
         ========
         V1: 03-Mar-2010 (JK)
-       
+        V2: 07-Sep-2010 (BAL) - added Ticktock-Ticktock functionality
+
         """
 
+        import spacepy
         nTAI = len(self.data)
-        newUTC = ['']*nTAI
-        for i in range(nTAI):
-            newUTC[i] = self.UTC[i] + other.timedelta
-        newobj = Ticktock(newUTC, 'UTC')
-        newobj.data = eval('newobj.get'+self.dtype+'()')
-        newobj.dtype = self.dtype
-        newobj.update_items(self, 'data')
-        return newobj
-       
+        if isinstance(other, spacepy.time.Tickdelta):
+            newUTC = ['']*nTAI
+            for i in range(nTAI):
+                newUTC[i] = self.UTC[i] + other.timedelta
+            newobj = Ticktock(newUTC, 'UTC')
+            newobj.data = eval('newobj.get'+self.dtype+'()')
+            newobj.dtype = self.dtype
+            newobj.update_items(self, 'data')
+            return newobj
+
+        elif isinstance(other, spacepy.time.Ticktock):
+            newTAI = ['']*nTAI
+            for i in range(nTAI):
+                newTAI[i] = self.TAI[i] + other.TAI
+            deltas = [Tickdelta(seconds=val) for val in newTAI ]
+            return deltas
+      
     # -----------------------------------------------    
     def __getattr__(self, name):
         """
