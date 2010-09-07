@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.38 $, $Date: 2010/09/07 23:01:28 $"
+__version__ = "$Revision: 1.39 $, $Date: 2010/09/07 23:15:25 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1074,10 +1074,9 @@ def pmm(a, *b):
     Out[12]: [(0, 9), (3, 12)]
     """
     import numpy as np
-    ans=[]
-    ans.append( (min(a), min(b)) )
+    ans= [[ np.min(a), np.max(a) ]]
     for val in b:
-        ans.append( (min(val), max(val)) )
+        ans.append( [np.min(val), np.max(val)] )
     return ans
 
 def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):

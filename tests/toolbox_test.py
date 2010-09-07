@@ -87,6 +87,16 @@ class SimpleFunctionTests(unittest.TestCase):
             self.assertTrue( (ans[i][0] == real_ans[i][0]).all()) 
         
 
+    def test_pmm(self):
+        """pmm should give known output for known input"""
+        data = [[1,3,5,2,5,6,2], array([5,9,23,24,6]), [6,23,12,67.34] ]
+        real_ans = [[[1,6]], [[5, 24]], [[6, 67.34]]] 
+        for i, val in enumerate(real_ans):
+            self.assertEqual(val, tb.pmm(data[i]))
+        self.assertEqual([[1, 6], [5, 24], [6.0, 67.340000000000003]], tb.pmm(*data) )
+
+
+
 class tFunctionTests(unittest.TestCase):
     def setUp(self):
         super(tFunctionTests, self).setUp()
