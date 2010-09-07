@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.36 $, $Date: 2010/08/25 18:52:05 $"
+__version__ = "$Revision: 1.37 $, $Date: 2010/09/07 17:13:06 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -768,13 +768,15 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     
     return madePoly
     
-def binHisto(data):
+def binHisto(data, verbose=False):
     """
     Calculates bin width and number of bins for histogram using Freedman-Diaconis rule
     if rule fails, defaults to square-root method
 
     @param data: list/array of data values
     @type data: arraylike
+    @keyword verbose: print out some more information
+    @type verbose: boolean
     @return: calculated width of bins using F-D rule, number of bins (nearest integer) to use for histogram
     @rtype: tuple
     
@@ -798,9 +800,15 @@ def binHisto(data):
     iqr = qu-ql
     binw = 2.*iqr/(len(data)**(1./3.))
     nbins = round((np.max(data)-np.min(data))/binw)
+    # if nbins is 0 or inf dont use the F-D rule just use sqrt(num) rule
     if nbins == 0 or nbins == np.inf:
         nbins = round(np.sqrt(len(data)))
         binw = len(data)/nbins
+        if verbose:
+            print("Used sqrt rule")
+    else:
+        if verbose:
+            print("Used F-D rule")
     return (binw, nbins)
     
 def smartTimeTicks(time):
