@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.23 $, $Date: 2010/09/03 19:09:46 $"
+__version__ = "$Revision: 1.24 $, $Date: 2010/09/07 16:57:52 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -191,7 +191,7 @@ if fresh_install:
     shutil.copy('spacepy/data/spacepy.rc', DOT_FLN+'/')
     shutil.copy('spacepy/data/tai-utc.dat', DOT_FLN+'/data')
 
-pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so']
+pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pycdf/*.py']
 
 # run setup from distutil
 setup(name='spacepy',
