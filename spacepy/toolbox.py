@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.39 $, $Date: 2010/09/07 23:15:25 $"
+__version__ = "$Revision: 1.40 $, $Date: 2010/09/08 15:14:20 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -497,15 +497,16 @@ def update(all=True, omni=False, leapsecs=False):
         A = A[idx[1:]]
         
         # put it into a 2D table
-        tab = n.zeros((len(A),len(keys)))
+        #tab = n.zeros((len(A),len(keys)))
+        tab = [['']*len(keys)]*len(A)
         stat8 = ['']*(len(A))
         stat6 = ['']*(len(A))
         for i in n.arange(len(A)):
-            tab[i,:] = A[i].split()
+            tab[i] = A[i].split()
             stat8[i] = A[i].split()[11]
             stat6[i] = A[i].split()[27]
-    
-        tab = n.reshape(tab, n.shape(tab))
+        
+	tab = n.array(tab, dtype='float') 
         # take out where Dst not available ( = 99999) or year == 0
         idx = n.where((tab[:,12] !=99.0) & (tab[:,0] != 0))[0]
         tab = tab[idx,:]
