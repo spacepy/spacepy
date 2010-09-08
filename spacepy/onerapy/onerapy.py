@@ -7,7 +7,7 @@ T. Guild2,(1 ONERA-DESP, Toulouse France; 2 Aerospace Corporation,
 Washington DC, USA), ONERA-DESP library V4.2, Toulouse-France, 2004-2008
 """
 from spacepy import help
-__version__ = "$Revision: 1.3 $, $Date: 2010/09/08 17:00:18 $"
+__version__ = "$Revision: 1.4 $, $Date: 2010/09/08 23:27:36 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
@@ -679,9 +679,7 @@ def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0
 	nTAI = len(ticktock)
 	nalpha = len(alpha)
 	d = prep_onera(ticktock, coords, alpha, extMag, options, omnivals)
-	
-	print d['sysaxes']
-	
+		
 	if nalpha == 0: # no drift shell splitting
 		lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], d['sysaxes'],\
 					d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], d['xin3'], d['magin'])

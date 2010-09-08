@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.25 $, $Date: 2010/09/08 16:40:09 $"
+__version__ = "$Revision: 1.26 $, $Date: 2010/09/08 23:27:35 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -57,10 +57,15 @@ def compile_oneralib(fcompiler):
     os.chdir('source')
     if sys.platform == 'darwin': # then mac OS
         if fcompiler == 'pg':
-            os.system('pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f')
+            os.system('pgf77 -c -Mnosecond_underscore -w -fastsse *.f')
             os.system('libtool -static -o libBL2.a *.o')
             os.chdir('..')
-            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')    		
+            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
+        elif fcompiler == 'gnu':
+            os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
+            os.system('libtool -static -o libBL2.a *.o')
+            os.chdir('..')
+            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore ')
         else:
             os.system('gfortran -c -w -O2 -fPIC *.f')
             os.system('libtool -static -o libBL2.a *.o')
@@ -73,7 +78,13 @@ def compile_oneralib(fcompiler):
             os.system('ar -r libBL2.a *.o')
             os.system('ranlib libBL2.a')
             os.chdir('..')
-            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')    		
+            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
+        elif fcompiler == 'gnu':
+            os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
+            os.system('ar -r libBL2.a *.o')
+            os.system('ranlib libBL2.a')
+            os.chdir('..')
+            os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore')
         else:
             os.system('gfortran -c -w -O2 -fPIC *.f')
             os.system('ar -r libBL2.a *.o')
@@ -121,16 +132,14 @@ if len(sys.argv) > 2:
 	for i in range(len(sys.argv)):
 		if sys.argv[i] == '--fcompiler=pg':
 			fcompiler = 'pg'
+		if sys.argv[i] == '--fcompiler=gnu':
+			fcompiler = 'gnu'
 			
-try:
-	sys.argv.remove('--fcompiler=pg')
-except:
-	pass
-
-try:
-	sys.argv.remove('--fcompiler=gfortran')
-except:
-	pass	
+for ff in ['pg', 'gfortran', 'gnu']:
+	try:
+		sys.argv.remove('--fcompiler='+ff)
+	except:
+		pass
 	
 #import tooblox by reading file from repository
 # this will provide mostly the query_yes_no function
