@@ -3,13 +3,9 @@
 # 
 # Author: Josef Koller (Los Alamos National Lab)
 # Email:  jkoller@lanl.gov
-# $Revision: 1.2 $, $Date: 2010/06/12 16:14:08 $
+# $Revision: 1.3 $, $Date: 2010/09/08 16:40:09 $
 # ----------------------------------------------
 #
-# location of .spacepy (only used during setup)
-#
-DOT_FLN = '~/.spacepy'
-
 # set number of CPUs used for multi-core processing
 # only number => 1 are allowed; if NCPUS = 1 then only
 # single CPU will used

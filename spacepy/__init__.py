@@ -68,9 +68,12 @@ except: #otherwise print single line notice
 
 # import some settings
 from os import environ as ENVIRON
-execfile(ENVIRON['HOME']+'/.spacepy/spacepy.rc')
-if DOT_FLN[:2] == '~/': DOT_FLN = ENVIRON['HOME']+'/'+DOT_FLN[2:]
-if DOT_FLN[-1] == '/': DOT_FLN = DOT_FLN[:-1]
+if ENVIRON.has_key('SPACEPY'):
+	execfile(ENVIRON['SPACEPY']+'/.spacepy/spacepy.rc')
+	DOT_FLN = ENVIRON['SPACEPY']+'/.spacepy'
+else:
+	execfile(ENVIRON['HOME']+'/.spacepy/spacepy.rc')
+	DOT_FLN = ENVIRON['HOME']+'/.spacepy'
 
 
 # -----------------------------------------------

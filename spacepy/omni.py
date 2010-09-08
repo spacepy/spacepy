@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.12 $, $Date: 2010/06/18 23:50:22 $"
+__version__ = "$Revision: 1.13 $, $Date: 2010/09/08 16:40:09 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -----------------------------------------------
@@ -130,4 +130,4 @@ try:
     omnidata = loadpickle(omnifln)
 except:
     print "No OMNI data found. This module has limited functionality."
-    print "Run spacepy.update(omni=True) to download OMNI data"
+    print "Run spacepy.toolbox.update(omni=True) to download OMNI data"

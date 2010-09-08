@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.24 $, $Date: 2010/09/07 16:57:52 $"
+__version__ = "$Revision: 1.25 $, $Date: 2010/09/08 16:40:09 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -163,9 +163,11 @@ compile_pybats()
 # create .spacepy in $HOME and move data
 # read-in .rc file first
 execfile('spacepy/data/spacepy.rc')
-if DOT_FLN[:2] == '~/': DOT_FLN = os.environ['HOME']+'/'+DOT_FLN[2:]
-if DOT_FLN[-1] == '/': DOT_FLN = DOT_FLN[:-1]
-
+from os import environ as ENVIRON
+if ENVIRON.has_key('SPACEPY'):
+    DOT_FLN = ENVIRON['SPACEPY']+'/.spacepy'
+else:
+    DOT_FLN = ENVIRON['HOME']+'/.spacepy'
 
 if os.path.exists(DOT_FLN):
     ans = query_yes_no('\n'+DOT_FLN+' already exists. Do you want to start fresh?', default="no")
