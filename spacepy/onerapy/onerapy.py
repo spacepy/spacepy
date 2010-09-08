@@ -7,7 +7,7 @@ T. Guild2,(1 ONERA-DESP, Toulouse France; 2 Aerospace Corporation,
 Washington DC, USA), ONERA-DESP library V4.2, Toulouse-France, 2004-2008
 """
 from spacepy import help
-__version__ = "$Revision: 1.2 $, $Date: 2010/09/03 17:12:10 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/09/08 17:00:18 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
@@ -680,7 +680,8 @@ def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0
 	nalpha = len(alpha)
 	d = prep_onera(ticktock, coords, alpha, extMag, options, omnivals)
 	
-
+	print d['sysaxes']
+	
 	if nalpha == 0: # no drift shell splitting
 		lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], d['sysaxes'],\
 					d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], d['xin3'], d['magin'])
@@ -855,7 +856,7 @@ def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], o
 
         for ijob in range(ncpus):
             ppidx = range(ijob, ncalc, ncpus)
-            jobs.append(server.submit(_get_Lstar, (ticktock[ppidx], Coords[ppidx], alpha, \
+            jobs.append(server.submit(_get_Lstar, (ticktock[ppidx], coords[ppidx], alpha, \
                 extMag, options, omnivals), depfuncs=(prep_onera,), modules=() ))
             
         # retrieve results from all jobs
@@ -882,7 +883,7 @@ def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], o
 
     # single NCPU
     else:
-        DALL = _get_Lstar(ticktock, Coords, alpha, extMag, options, omnivals)
+        DALL = _get_Lstar(ticktock, coords, alpha, extMag, options, omnivals)
 
     return DALL
 	
@@ -941,7 +942,7 @@ def prep_onera(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=
 	xin1 = n.zeros(ntime_max, dtype=float)
 	xin2 = n.zeros(ntime_max, dtype=float)
 	xin3 = n.zeros(ntime_max, dtype=float) 
-	if Coords.carsph == 'sph':
+	if coords.carsph == 'sph':
 		xin1[0:nTAI] = coords.radi[:]
 		xin2[0:nTAI] = coords.lati[:]
 		xin3[0:nTAI] = coords.long[:]
