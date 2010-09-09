@@ -13,12 +13,22 @@ class documentation. Accessing data within the variables is via the L{Var}
 class.
 
 The base CDF library must be properly installed in order to use this package.
-L{Library} provides details on how the library is found.
+pycdf will search for the library in this order:
+  1. A directory named by the environment variable CDF_LIB (which should be
+     set if using the definitions file provided with the CDF library).
+  2. A subdirectory C{lib} in a directory named by the environment variable
+     CDF_BASE.
+  3. The standard system library search path.
+If pycdf has trouble finding the library, try setting CDF_LIB before importing
+the module, e.g. if the library is in CDF/lib in the user's home directory::
+  import os
+  os.putenv("CDF_LIB", "~/CDF/lib")
+  import pycdf
 
 The L{const} module contains constants useful for accessing the underlying library.
 """
 
-__version__ = "0.2"
+__version__ = "0.3pre"
 __author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 from ._pycdf import *

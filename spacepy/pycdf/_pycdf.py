@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.2'
+__version__ = '0.3pre'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -44,23 +44,20 @@ class Library(object):
         """Load the CDF C library.
 
         Searches for the library in the order:
-            1. Standard library search path
-            2. Appropriately-named file in CDF_LIB
-            3. Appropriately-named file in CDF_BASE
+            1. Appropriately-named file in CDF_LIB
+            2. Appropriately-named file in CDF_BASE
+            3. Standard library search path
         @raise CDFError: BAD_DATA_TYPE if can't map types properly
         """
         
-        if sys.platform == 'win32':
-            libpath = ctypes.util.find_library('cdf.dll')
+        if 'CDF_LIB' in os.environ:
+            libdir = os.environ['CDF_LIB']
+        elif 'CDF_BASE' in os.environ:
+            libdir = os.path.join(os.environ['CDF_BASE'], 'lib')
         else:
-            libpath = ctypes.util.find_library('cdf')
-        if libpath == None:
-            if 'CDF_LIB' in os.environ:
-                libdir = os.environ['CDF_LIB']
-            elif 'CDF_BASE' in os.environ:
-                libdir = os.path.join(os.environ['CDF_BASE'], 'lib')
-            else:
-                raise Exception('Unable to locate CDF library directory')
+            libdir = None
+            libpath = None
+        if libdir:
             if sys.platform == 'win32':
                 libpath = os.path.join(libdir, 'cdf.dll')
             elif sys.platform == 'darwin':
@@ -69,10 +66,19 @@ class Library(object):
                     libpath = os.path.join(libdir, 'cdf.dylib')
             else:
                 libpath = os.path.join(libdir, 'libcdf.so')
-
             if not os.path.exists(libpath):
-                raise Exception('Unable to locate CDF library in directory' +
-                                libdir)
+                libpath = None
+
+        if libpath == None:
+            if sys.platform == 'win32':
+                libpath = ctypes.util.find_library('cdf.dll')
+            else:
+                libpath = ctypes.util.find_library('cdf')
+            if not libpath:
+                raise Exception('Cannot find CDF C library. ' + \
+                                'Try os.putenv("CDF_LIB", library_directory) ' + \
+                                'before import.')
+            
         if sys.platform == 'win32':
             self._library = ctypes.WinDLL(libpath)
         else:
@@ -735,7 +741,8 @@ class Var(collections.Sequence):
     @note: Not intended to be created directly; use methods of L{CDF}
            to gain access to a variable.
     @note: Although this interface only directly supports zVariables, zMode is
-           set on opening the CDF so rVars appear as zVars.
+           set on opening the CDF so rVars appear as zVars. See p.24 of the
+           CDF user's guide; pyCDF uses zMode 2.
     """
 
     def __init__(self, cdf_file, var_name, *args):
