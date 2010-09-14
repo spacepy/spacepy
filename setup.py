@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.28 $, $Date: 2010/09/14 19:04:11 $"
+__version__ = "$Revision: 1.29 $, $Date: 2010/09/14 23:24:38 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -58,17 +58,16 @@ def compile_irbempy(fcompiler):
     os.chdir('source')
     if sys.platform == 'darwin': # then mac OS
         if fcompiler == 'pg':
-            print 'not implemented'
+            raise NotImplementedError('Portland Group compiler option "pg" is not supported on Mac OS with f2py')
             #os.system('pgf77 -c -Mnosecond_underscore -w -fastsse *.f')
             #os.system('libtool -static -o libBL2.a *.o')
             #os.chdir('..')
-            #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
+            #os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
         elif fcompiler == 'gnu':
-            print 'not implemented'
-            #os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
-            #os.system('libtool -static -o libBL2.a *.o')
-            #os.chdir('..')
-            #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore ')
+            os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
+            os.system('libtool -static -o libBL2.a *.o')
+            os.chdir('..')
+            os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore ')
         else:
             os.system('gfortran -c -w -O2 -fPIC -ffixed-line-length-none *.f')
             os.system('libtool -static -o libBL2.a *.o')
@@ -77,19 +76,17 @@ def compile_irbempy(fcompiler):
         
     elif sys.platform == 'linux2': # then linux
         if fcompiler == 'pg':
-            print 'not implemented'
-            #os.system('pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f')
-            #os.system('ar -r libBL2.a *.o')
-            #os.system('ranlib libBL2.a')
-            #os.chdir('..')
-            #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
-        elif fcompiler == 'gnu':
-            print 'not implemented'
-            #os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
-            #os.system('ar -r libBL2.a *.o')
-            #os.system('ranlib libBL2.a')
-            #os.chdir('..')
-            #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore')
+            os.system('pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f')
+            os.system('ar -r libBL2.a *.o')
+            os.system('ranlib libBL2.a')
+            os.chdir('..')
+            os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
+        elif fcompiler == 'gnu':           
+            os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
+            os.system('ar -r libBL2.a *.o')
+            os.system('ranlib libBL2.a')
+            os.chdir('..')
+            os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore')
         else:
             os.system('gfortran -c -w -O2 -fPIC -ffixed-line-length-none *.f')
             os.system('ar -r libBL2.a *.o')
@@ -100,7 +97,9 @@ def compile_irbempy(fcompiler):
         print sys.platform, ' not supported at this time'
         sys.exit(1)
 
-    os.system('mv -f irbempylib.so ../')
+    err = os.system('mv -f irbempylib.so ../')
+    if err:
+        raise Exception('Something went wrong with this compiler option ...')
     os.chdir('../../..')
 
     return
