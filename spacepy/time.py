@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.19 $, $Date: 2010/09/14 21:14:29 $"
+__version__ = "$Revision: 1.20 $, $Date: 2010/09/14 21:39:35 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -299,8 +299,7 @@ class Ticktock(object):
                     self.data[i] = self.data[i].split('Z')[0]
             if self.data[0].find('T') == -1: # then assume midnight
                 for i in xrange(len(self.data)):
-                    self.data[i] = self.data[i]+'T00:00:00'
-                    print self.data[i]
+                    self.data[i] = self.data[i]+'T00:00:00'                    
             self.ISO = self.data
             self.update_items(self, 'data')
         if dtype.upper() == 'TAI': self.TAI = self.data
@@ -1775,15 +1774,14 @@ def doy2date(year,doy, dtobj=False):
     import datetime
     import numpy as n
 
-    # check if array:
-    try:
+    if isinstance(year, (list, n.ndarray)):
         nTAI = len(year)
         year = n.array(year, dtype=int)
-    except:
+    else:
+        nTAI = 1
         year = n.array([year], dtype=int)
         doy = n.array([doy], dtype=int)
-        nTAI = 1 # flag is the values need to be returned as singles
-        
+                
     month = n.zeros(nTAI, dtype=int)
     day = n.zeros(nTAI, dtype=int)
     dateobj = ['']*nTAI
