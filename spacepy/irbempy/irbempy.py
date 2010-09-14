@@ -8,7 +8,7 @@ D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.2 $, $Date: 2010/09/14 16:08:12 $"
+__version__ = "$Revision: 1.3 $, $Date: 2010/09/14 19:04:11 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
@@ -236,6 +236,7 @@ def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], om
 	import numpy as n
 	import spacepy.irbempy.irbempylib as oplib
 	import spacepy.toolbox as tb
+	import spacepy
 	
 	# prepare input values for irbem call
 	d = prep_irbem(ticktock, Coords, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
@@ -265,7 +266,7 @@ def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], om
 		results['Bmin'][i] = bmin
 		results['GEOcar'][i] = GEOcoord
 	
-	results['GEOcar'] = c.Coords(results['GEOcar'], 'GEO', 'car')
+	results['GEOcar'] = spacepy.coordinates.Coords(results['GEOcar'], 'GEO', 'car')
 	
 	return results
 
@@ -535,23 +536,14 @@ def get_dtype(sysaxes):
     Version:
     ========
     V1: 05-Mar-2010 (JK)
+    V2: 14-Sep-2010 (JK)
     """
 
-    irbemlist_sph = ['GDZ', 'SPH', 'RLL']
-    irbemlist_sphidx = [0, 7, 8]
-    irbemlist_car = ['GEO', 'GSM', 'GSE', 'SM', 'GEI', 'MAG']
-    irbemlist_caridx = [1,2,3,4,5,6]
-    if sysaxes in irbemlist_caridx:
-        dtype = irbemlist_car[irbemlist_caridx.index(sysaxes)]
-        carsph = 'car'
-    elif sysaxes in onerlist_sphidx:
-        dtype = irbemlist_sph[irbemlist_sphidx.index(sysaxes)]
-        carsph = 'sph'
-    # or None after irbem library
-    else:
-        print "sysaxes="+str(sysaxes)+" not supported"
-        dtype = None
-        carsph = None
+    for key in SYSAXES_TYPES:
+        for subkey in SYSAXES_TYPES[key]:
+            if SYSAXES_TYPES[key][subkey] == sysaxes:
+                dtype = key
+                carsph = subkey
 
     return dtype, carsph
 
@@ -916,6 +908,11 @@ def prep_irbem(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=
 	# get omni values
 	if omnivals is None: # nothing provided so use lookup table
 		omnivals = omni.get_omni(ticktock)
+		
+	# multiply Kp*10 to look like omni database
+	# this is what irbem lib is looking for
+	omnivals['Kp'] = omnivals['Kp']*10.
+
 	for iTAI in n.arange(nTAI):
 		for ikey, key in enumerate(magkeys):
 			magin[ikey, iTAI] = omnivals[key][iTAI]
@@ -967,7 +964,7 @@ def prep_irbem(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=
 	if nalpha > 0:
 		degalpha[0:nalpha] = alpha
 	d['degalpha'] = degalpha
-	
+		
 	return d
 	
    

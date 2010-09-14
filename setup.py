@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.27 $, $Date: 2010/09/14 15:16:47 $"
+__version__ = "$Revision: 1.28 $, $Date: 2010/09/14 19:04:11 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -91,7 +91,7 @@ def compile_irbempy(fcompiler):
             #os.chdir('..')
             #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore')
         else:
-            os.system('gfortran -c -w -O2 -fPIC -ffixed-line-length-none*.f')
+            os.system('gfortran -c -w -O2 -fPIC -ffixed-line-length-none *.f')
             os.system('ar -r libBL2.a *.o')
             os.system('ranlib libBL2.a')
             os.chdir('..')
