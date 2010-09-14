@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.16 $, $Date: 2010/09/07 17:59:12 $"
+__version__ = "$Revision: 1.17 $, $Date: 2010/09/14 20:49:29 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -286,6 +286,9 @@ class Ticktock(object):
             self.data = [data]
         if dtype.upper() == 'TAI': self.TAI = self.data
         if dtype.upper() == 'ISO':
+            if self.data[0].find('Z'):
+                for i in xrange(len(self.data)):
+                    self.data[i] = self.data[i].split('Z')[0]            
             self.ISO = self.data
             self.update_items(self, 'data')
         if dtype.upper() == 'JD': self.JD = self.data
