@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.9 $, $Date: 2010/07/28 16:15:20 $"
+__version__ = "$Revision: 1.10 $, $Date: 2010/09/14 15:16:48 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -70,6 +70,7 @@ class RBmodel(object):
                 self.PPloss = st.Tickdelta(days=10.) # days time scale
                 self.set_lgrid(NL)
                 self.MODerr = 5. # relative factor * PSD
+                self.PSDerr = 0.3 # relative observational error
                 self.MIN_PSD = 1e-99
                         
     # -----------------------------------------------    
@@ -167,14 +168,15 @@ class RBmodel(object):
         self.params['Lpp'] = em.get_plasma_pause(self.ticktock, Lpp_model)
 
     # -----------------------------------------------    
-    def add_obs(self, satlist=None):
+    def add_PSD(self, satlist=None):
         
         """
-        add observations from PSDdb using the ticktock list        
+        add observations from PSD database using the ticktock list        
         """
         
         import numpy as n
-        import spacepy.satdata as sat
+        import spacepy.sandbox.PSDdata as PD
+        import spacepy.time
         
         assert self.__dict__.has_key('ticktock') , \
             "Provide tick range with 'setup_ticks'"
@@ -183,7 +185,14 @@ class RBmodel(object):
         
         self.PSDdata = ['']*(nTAI-1)
         for i, Tnow, Tfut in zip(n.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
-            self.PSDdata[i] = sat.get_obs(Tnow, Tfut, self.MU, self.K, satlist)
+            start_end = spacepy.time.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
+            self.PSDdata[i] = PD.get_PSD(start_end, self.MU, self.K, satlist)
+            
+        # adjust initial conditions to these PSD values
+        mval = n.mean(self.PSDdata[0]['PSD'])
+        self.PSDinit = mval*n.exp(-(self.Lgrid - 5.5)**2/0.2)
+        
+        return
         
     # -----------------------------------------------
     def evolve(self):
@@ -240,15 +249,86 @@ class RBmodel(object):
         """
         call data assimilation function in assimilate.py
         """
-        import assimilate
+        import spacepy.borg
+        import spacepy.sandbox.PSDdata as PD
+        import spacepy.time as st
+        import numpy as n
+        import copy as c
         
         # setup method
         assert method in ['enKF'], 'DA method='+method+' not implemented'
-        if method == 'enKF':
-            filter = assimilate.enKF
-                
-        filter(self, method)
+
+        nTAI = len(self.ticktock)
         
+
+        # enKF method
+        if method == 'enKF':
+            da = spacepy.borg.enKF()
+            # initialize A with initial condition
+            A = n.ones( (self.NL, da.Nens) )*self.PSDinit[:,n.newaxis]
+            self.PSDf = n.zeros( (self.PSDinit.shape[0], nTAI) )
+            self.PSDa = n.zeros( (self.PSDinit.shape[0], nTAI) )
+            self.PSDa[:,0] = self.PSDinit
+            self.PSDf[:,0] = self.PSDinit
+
+            # time loop
+            for i, Tnow, Tfut in zip(n.arange(nTAI-1)+1, self.ticktock[:-1], self.ticktock[1:]):
+                    
+                # make forcast and add model error
+                # make forecast using all ensembles in A
+                iens = 0
+                for f in A.T:
+                    # create temporary RB class instance
+                    rbtemp = c.copy(self)
+                    rbtemp.ticktock = st.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
+                    rbtemp.PSDinit = f
+                    rbtemp.evolve()
+                    #rbtemp.PSDdata = self.PSDdata[i-1]
+                    A[:,iens] = rbtemp.PSD[:,1]
+                    iens += 1
+        
+                # save result in ff
+                Tnow = Tfut
+                self.PSDf[:,i] = n.mean(A, axis=1)
+        
+                # add model error 
+                A = da.add_model_error(self, A, self.PSDdata[i-1])
+                A[n.where(A < self.MIN_PSD)] = self.MIN_PSD
+                
+                # get observations for time window ]Tnow-Twindow,Tnow]
+                Lobs, y = borg.average_window(PSDdata[i-1], self.Lgrid)
+                
+                #Lobs = n.array(self.PSDdata[i-1]['Lstar'])
+                #y = n.array(self.PSDdata[i-1]['PSD'])
+                print Lobs, y
+                
+                if len(y) > 1:  # then assimilate otherwise do another forcast
+        
+                    # prepare assimilation analysis
+                    HA = da.getHA(self, Lobs, A) # project ensemble states to obs. grid
+                    Psi = da.getperturb(self, y) # measurement perturbations ensemble
+                    Inn = da.getInnovation(y, Psi, HA) # ensemble of innovation vectors
+                    HAp = da.getHAprime(HA) # calculate ensemble perturbation HA' = HA-HA_mean 
+                    # now call the main analysis routine
+                    A = da.analysis(A, Psi, Inn, HAp)
+                
+                    # check for minimum PSD values
+                    A[n.where(A<self.MIN_PSD)] = self.MIN_PSD
+                
+                    # average A from analysis step and save in results dictionary
+                    self.PSDa[:,i] = n.mean(A, axis=1)            
+                    
+                elif len(y) == 0:
+                
+                    self.PSDa[:,i] = n.mean(A, axis=1)
+                    # save average innovation vector
+                    self.Inn[i] = 0.0
+                    continue # 
+                    
+                # print message
+                print 'Tnow: ', self.ticktock[i].ISO
+
+
     # -----------------------------------------------
     def plot(self, Lmax=True, Lpp=False, Kp=True, Dst=True, 
              clims=[0,10], title='Summary Plot'):
@@ -387,12 +467,12 @@ def diff_LL(grid, f, Tdelta, Telapsed, params=None):
     # apply diffusion to f
     f = n.dot(C,f)
     
-   # add source according to values in SRC...
-    if params['SRCmagn'].seconds > 0.0:
+    # add source according to values in SRC...
+    if params['SRC_model']:
         # setup source vector
         S = get_local_accel(Lgrid, params, SRC_model='JK1')
         f = f + S*Tdelta
-     
+
     # add losses through magnetopause shadowing, time scale taken from MPloss
     if params['MPloss'].seconds > 0.0:
         # setup loss vector

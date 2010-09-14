@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.26 $, $Date: 2010/09/08 23:27:35 $"
+__version__ = "$Revision: 1.27 $, $Date: 2010/09/14 15:16:47 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -12,6 +12,99 @@ def compile_pybats():
     os.chdir('spacepy/pybats')
     os.system('f2py -c ctrace2d.pyf trace2d.c')
     os.chdir('../..')
+    
+# -------------------------------------
+def compile_irbempy(fcompiler):
+
+    # compile irbemlib
+    import os, sys
+
+    os.chdir('spacepy/irbempy/irbem-lib-2010-09-14-rev189')
+
+    F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f']
+    functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
+        'coord_trans1 find_magequator1', 'find_mirror_point1', 
+        'get_field1']
+
+    # call f2py
+    os.system('f2py --overwrite-signature -m irbempylib -h irbempylib.pyf '+' '.join(F90files) \
+            +' only: ' + ' '.join(functions) + ' :')
+
+    # intent(out) substitute list
+    outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
+            'xgeo', 'bmir', 'bl', 'bxgeo']
+
+    inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
+
+    fln = 'irbempylib.pyf'
+
+    print 'Substituting fortran intent(in/out) statements'
+    f = open(fln, 'r')
+    filestr = f.read()
+    f.close()
+        
+    for item in inlist:
+        filestr = subst( ':: '+item, ', intent(in) :: '+item, filestr)
+        
+    for item in outlist:
+        filestr = subst( ':: '+item, ', intent(out) :: '+item, filestr)
+
+    f = open(fln, 'w')
+    f.write(filestr)
+    f.close()
+
+
+    # compile (platform dependent)
+    os.chdir('source')
+    if sys.platform == 'darwin': # then mac OS
+        if fcompiler == 'pg':
+            print 'not implemented'
+            #os.system('pgf77 -c -Mnosecond_underscore -w -fastsse *.f')
+            #os.system('libtool -static -o libBL2.a *.o')
+            #os.chdir('..')
+            #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
+        elif fcompiler == 'gnu':
+            print 'not implemented'
+            #os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
+            #os.system('libtool -static -o libBL2.a *.o')
+            #os.chdir('..')
+            #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore ')
+        else:
+            os.system('gfortran -c -w -O2 -fPIC -ffixed-line-length-none *.f')
+            os.system('libtool -static -o libBL2.a *.o')
+            os.chdir('..')
+            os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
+        
+    elif sys.platform == 'linux2': # then linux
+        if fcompiler == 'pg':
+            print 'not implemented'
+            #os.system('pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f')
+            #os.system('ar -r libBL2.a *.o')
+            #os.system('ranlib libBL2.a')
+            #os.chdir('..')
+            #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
+        elif fcompiler == 'gnu':
+            print 'not implemented'
+            #os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
+            #os.system('ar -r libBL2.a *.o')
+            #os.system('ranlib libBL2.a')
+            #os.chdir('..')
+            #os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore')
+        else:
+            os.system('gfortran -c -w -O2 -fPIC -ffixed-line-length-none*.f')
+            os.system('ar -r libBL2.a *.o')
+            os.system('ranlib libBL2.a')
+            os.chdir('..')
+            os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
+    else:
+        print sys.platform, ' not supported at this time'
+        sys.exit(1)
+
+    os.system('mv -f irbempylib.so ../')
+    os.chdir('../../..')
+
+    return
+
 
 def compile_oneralib(fcompiler):
 
@@ -127,7 +220,7 @@ from distutils.core import setup
 import os, sys, shutil, getopt
 
 # check for compiler flags
-fcompiler = 'gfortran' # standard compiler flag
+fcompiler = 'gnu95' # standard compiler flag
 if len(sys.argv) > 2:
 	for i in range(len(sys.argv)):
 		if sys.argv[i] == '--fcompiler=pg':
@@ -135,7 +228,7 @@ if len(sys.argv) > 2:
 		if sys.argv[i] == '--fcompiler=gnu':
 			fcompiler = 'gnu'
 			
-for ff in ['pg', 'gfortran', 'gnu']:
+for ff in ['pg', 'gnu95', 'gnu']:
 	try:
 		sys.argv.remove('--fcompiler='+ff)
 	except:
@@ -158,13 +251,22 @@ except:
     Numpy, Scipy and Matplotlib(>=0.99) are also required\n
     Please install suitable versions.""")
 
-# run compile for onera_desp_lib first
-if os.path.exists('spacepy/onerapy/onerapylib.so'):
-    ans = query_yes_no('\nDo you want to recompile the ONERA-DESP library?', default="no")
+# run compile for irbem-lib first
+if os.path.exists('spacepy/irbempy/irbempylib.so'):
+    ans = query_yes_no('\nDo you want to recompile the IRBEM library?', default="no")
     if ans=='yes':
-        compile_oneralib(fcompiler)
+        compile_irbempy(fcompiler)
 else:
-    compile_oneralib(fcompiler)
+    compile_irbempy(fcompiler)
+    
+# run compile for onera_desp_lib first
+#if os.path.exists('spacepy/onerapy/onerapylib.so'):
+#    ans = query_yes_no('\nDo you want to recompile the ONERA-DESP library?', default="no")
+#    if ans=='yes':
+#        compile_oneralib(fcompiler)
+#else:
+#    compile_oneralib(fcompiler)
+
 
 # Compile PyBats
 compile_pybats()
@@ -202,7 +304,8 @@ if fresh_install:
     shutil.copy('spacepy/data/spacepy.rc', DOT_FLN+'/')
     shutil.copy('spacepy/data/tai-utc.dat', DOT_FLN+'/data')
 
-pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pycdf/*.py']
+pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pycdf/*.py']
+#pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pycdf/*.py']
 
 # run setup from distutil
 setup(name='spacepy',

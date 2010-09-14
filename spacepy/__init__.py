@@ -24,7 +24,7 @@ def help():
 
 # put modules here that you want to be accessible through 'from spacepy import *'
 __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 
-    "onerapy", "constants", "empiricals", "radbelt"]
+    "irbempy", "constants", "empiricals", "radbelt"]
 
 # Expose definitions from modules in this package.
 from toolbox import loadpickle, savepickle, dictree, printfig
