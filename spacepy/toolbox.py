@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.40 $, $Date: 2010/09/08 15:14:20 $"
+__version__ = "$Revision: 1.41 $, $Date: 2010/09/14 21:49:26 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1162,11 +1162,11 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "\
                              "(or 'y' or 'n').\n")
 
-def interpol(newx, x, y, **kwargs):
+def interpol(newx, x, y, wrap=None, **kwargs):
     """1-D linear interpolation with interpolation of hours/longitude
     
     @return: interpolated data values for new abscissa values
-    @rtype: numpy.array
+    @rtype: numpy.masked_array
     
     @keyword hour: wraps interpolation at 24 (e.g. for local times)
     @type hour: string
@@ -1184,46 +1184,58 @@ def interpol(newx, x, y, **kwargs):
     import numpy as np
     
     if 'baddata' in kwargs:
-        x = np.ma.masked_where(y==kwargs['baddata'], x).compressed()
-        y = np.ma.masked_where(y==kwargs['baddata'], y).compressed()
+        x = np.ma.masked_where(y==kwargs['baddata'], x)
+        y = np.ma.masked_where(y==kwargs['baddata'], y)
+        kwargs.__delitem__('baddata')
     else:
-        if type(x)!=np.ndarray or type(y)!=np.ndarray or type(newx)!=np.ndarray:
-            x = np.array(x)
-            y = np.array(y)
-            newx = np.array(newx)
+        tst = np.ma.core.MaskedArray
+        if type(x)!=tst or type(y)!=tst or type(newx)!=tst:
+            x = np.ma.masked_array(x)
+            y = np.ma.masked_array(y)
+            newx = np.ma.masked_array(newx)
     
     def wrap_interp(xout, xin, yin, sect):
         dpsect=360/sect
         yc = np.cos(np.deg2rad(y*dpsect))
         ys = np.sin(np.deg2rad(y*dpsect))
-        new_yc = sci.interp(newx, x, yc, **kwargs)
-        new_ys = sci.interp(newx, x, ys, **kwargs)
+        new_yc = sci.interp(newx, x.compressed(), yc.compressed(), **kwargs)
+        new_ys = sci.interp(newx, x.compressed(), ys.compressed(), **kwargs)
+        try:
+            new_bad = sci.interp(newx, x, y.mask)
+        except ValueError:
+            new_bad = np.zeros((len(newx)))
         newy = np.rad2deg(np.arctan(new_ys/new_yc))/dpsect
         #1st quadrant is O.K
         #2nd quadrant
         idx = [n for n in xrange(len(new_yc)) if new_yc[n]<0 and new_ys[n]>0]
         newy[idx] = sect/2 + newy[idx]
+        #print('Sector 2 inds: %s' % idx)
         #3rd quadrant
         idx = [n for n in xrange(len(new_yc)) if new_yc[n]<0 and new_ys[n]<0]
         newy[idx] = sect/2 + newy[idx]
+        #print('Sector 3 inds: %s' % idx)
         #4th quadrant
         idx = [n for n in xrange(len(new_yc)) if new_yc[n]>0 and new_ys[n]<0]
         newy[idx] = sect + newy[idx]
-        
+        #print('Sector 4 inds: %s' % idx)
+        new_bad = np.ma.make_mask(new_bad)
+        newy = np.ma.masked_array(newy, mask=new_bad)
         return newy
     
-    if 'hour' in kwargs:
-        kwargs.__delitem__('hour')
-        newy = wrap_interp(newx, x, y, 24)
-    elif 'long' in kwargs:
-        kwargs.__delitem__('long')
-        newy = wrap_interp(newx, x, y, 360)
-    elif 'sect' in kwargs:
-        kwargs.__delitem__('sect')
-        newy = wrap_interp(newx, x, y, sect)
+    if wrap=='hour':
+        newy = wrap_interp(newx, x.compressed(), y.compressed(), 24)
+    elif wrap=='lon':
+        newy = wrap_interp(newx, x.compressed(), y.compressed(), 360)
+    elif type(wrap)==int:
+        newy = wrap_interp(newx, x.compressed(), y.compressed(), wrap)
     else:
-        newy = sci.interp(newx, x, y, **kwargs)
-        
+        newy = sci.interp(newx, x.compressed(), y.compressed(), **kwargs)
+        try:
+            new_bad = sci.interp(newx, x, y.mask)
+            new_bad = np.ma.make_mask(new_bad)
+            newy = np.ma.masked_array(newy, mask=new_bad)
+        except:
+            pass
     return newy
 
 # -----------------------------------------------
