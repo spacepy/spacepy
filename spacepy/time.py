@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.17 $, $Date: 2010/09/14 20:49:29 $"
+__version__ = "$Revision: 1.18 $, $Date: 2010/09/14 21:02:45 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -273,24 +273,33 @@ class Ticktock(object):
     V3: 25-feb-2010: pulled functions into class (JK)
     V4: 19-May-2010: ISO format support (SM)
     """
-    def __init__(self, data, dtype):
+    def __init__(self, data, dtype=None):
         from numpy import ndarray
+        from datetime import datetime
+        if isinstance(data, (list, ndarray)):
+           self.data = data
+        else:
+           self.data = [data]
+        # make some educated guess on the format if dtype not provided
+        if isinstance(self.data[0], str):
+            dtype = 'ISO'
+        elif isinstance(self.data[0], datetime): 
+            dtype = 'UTC'
+        elif self.data[0] > 1e13:
+            dtype = 'CDF' 
         keylist = ['UTC','TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS']
         assert dtype.upper() in keylist, "data type "+self.dtype+" not provided, only "+str(keylist)
         self.dtype = dtype.upper()
         self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
         self.__isofmt = self.__isoformatstr['seconds']
-        if isinstance(data, (list, ndarray)):
-           self.data = data
-        else:
-            self.data = [data]
-        if dtype.upper() == 'TAI': self.TAI = self.data
+        
         if dtype.upper() == 'ISO':
             if self.data[0].find('Z'):
                 for i in xrange(len(self.data)):
                     self.data[i] = self.data[i].split('Z')[0]            
             self.ISO = self.data
             self.update_items(self, 'data')
+        if dtype.upper() == 'TAI': self.TAI = self.data
         if dtype.upper() == 'JD': self.JD = self.data
         if dtype.upper() == 'MJD': self.MJD = self.data
         if dtype.upper() == 'UNX': self.UNX = self.data
