@@ -623,7 +623,7 @@ C
 C     
 C     calcul du sens du depart
 C     (compute hemisphere)
- 10   
+ 10   CONTINUE
       CALL sksyst(-dsreb,xx0,x1,Bl,Ifail)
       IF (Ifail.LT.0) THEN
          Ilflag = 0
