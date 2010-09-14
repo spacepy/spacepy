@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.3 $, $Date: 2010/09/03 17:12:10 $"
+__version__ = "$Revision: 1.4 $, $Date: 2010/09/14 22:47:20 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -61,8 +61,8 @@ class Coords(object):
     def __init__(self, data, dtype, carsph, units=None, ticktock=None):
         
         import numpy as n
-        import onerapy as op
-        from spacepy.onerapy import SYSAXES_TYPES as typedict
+        import irbempy as op
+        from spacepy.irbempy import SYSAXES_TYPES as typedict
         
         if isinstance(data[0], (float, int)):
             self.data = n.array([data])
@@ -308,7 +308,7 @@ class Coords(object):
         """
         
         import numpy as n
-        import onerapy as op
+        import irbempy as op
         import spacepy, spacepy.coordinates
 
         # no change necessary
