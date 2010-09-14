@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-module wrapper for onera_desp_lib
-Reference: D. Boscher1, S. Bourdarie1, P. O'Brien2, 
-T. Guild2,(1 ONERA-DESP, Toulouse France; 2 Aerospace Corporation, 
-Washington DC, USA), ONERA-DESP library V4.2, Toulouse-France, 2004-2008
+module wrapper for irbem_lib
+Reference for this library
+https://sourceforge.net/projects/irbem/
+D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 """
+
 from spacepy import help
-__version__ = "$Revision: 1.1 $, $Date: 2010/09/14 15:16:48 $"
+__version__ = "$Revision: 1.2 $, $Date: 2010/09/14 16:08:12 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
@@ -19,7 +20,7 @@ SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
 # -----------------------------------------------
 def get_Bfield(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
 	"""
-	call get_bfield in onera_desp lib and return a dictionary with the B-field vector and 
+	call get_bfield in irbem lib and return a dictionary with the B-field vector and 
 	strenght.
 	
 	Input:
@@ -64,11 +65,10 @@ def get_Bfield(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnival
 	
 	import numpy as n
 	import spacepy.irbempy.irbempylib as oplib
-	import spacepy.spacetime as st
 	import spacepy.toolbox as tb
 	
-	# prepare input values for onera_desp call
-	d = prep_onera(ticktock, Coords, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
+	# prepare input values for irbem call
+	d = prep_irbem(ticktock, Coords, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
 	nTAI = len(ticktock)
 	badval = d['badval']
 	kext = d['kext']
@@ -101,7 +101,7 @@ def get_Bfield(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnival
 # -----------------------------------------------
 def find_Bmirror(ticktock, Coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
 	"""
-	call find_mirror_point from onera_desp library and return a dictionary with values for 
+	call find_mirror_point from irbem library and return a dictionary with values for 
 	Blocal, Bmirr and the GEO (cartesian) coordinates of the mirror point
 	
 	Input:
@@ -150,8 +150,8 @@ def find_Bmirror(ticktock, Coords, alpha, extMag='T01STORM', options=[1,0,0,0,0]
 	import spacepy.coordinates as c
 	import spacepy.toolbox as tb
 	
-	# prepare input values for onera_desp call
-	d = prep_onera(ticktock, Coords, alpha, extMag=extMag, options=options, omnivals=omnivals)
+	# prepare input values for irbem call
+	d = prep_irbem(ticktock, Coords, alpha, extMag=extMag, options=options, omnivals=omnivals)
 	nTAI = len(ticktock)
 	badval = d['badval']
 	kext = d['kext']
@@ -191,7 +191,7 @@ def find_Bmirror(ticktock, Coords, alpha, extMag='T01STORM', options=[1,0,0,0,0]
 # -----------------------------------------------
 def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
 	"""
-	call find_magequator from onera_desp library and return a dictionary with values for
+	call find_magequator from irbem library and return a dictionary with values for
 	Bmin and the GEO (cartesian) coordinates of the magnetic equator
 	
 	Input:
@@ -236,10 +236,9 @@ def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], om
 	import numpy as n
 	import spacepy.irbempy.irbempylib as oplib
 	import spacepy.toolbox as tb
-	import spacepy.spacetime as st
 	
-	# prepare input values for onera_desp call
-	d = prep_onera(ticktock, Coords, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
+	# prepare input values for irbem call
+	d = prep_irbem(ticktock, Coords, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
 	nTAI = len(ticktock)
 	badval = d['badval']
 	kext = d['kext']
@@ -274,7 +273,7 @@ def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], om
 # -----------------------------------------------
 def coord_trans( Coords, returntype, returncarsph ):
 	"""
-	thin layer to call coor_trans1 from onera_desp lib
+	thin layer to call coor_trans1 from irbem lib
 	this will convert between systems GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
 	
 	Input:
@@ -463,7 +462,7 @@ def sph2car(SPHin):
 # -----------------------------------------------    
 def get_sysaxes(dtype, carsph):
     """
-    will return the sysaxes according to the onera_desp library
+    will return the sysaxes according to the irbem library
 
     Input:
     ======
@@ -513,7 +512,7 @@ def get_dtype(sysaxes):
 
     Input:
     ======
-        - sysaxes (int) : number according to the onera_desp_lib, possible values: 0-8
+        - sysaxes (int) : number according to the irbem, possible values: 0-8
         
     Returns:
     ========
@@ -538,17 +537,17 @@ def get_dtype(sysaxes):
     V1: 05-Mar-2010 (JK)
     """
 
-    oneralist_sph = ['GDZ', 'SPH', 'RLL']
-    oneralist_sphidx = [0, 7, 8]
-    oneralist_car = ['GEO', 'GSM', 'GSE', 'SM', 'GEI', 'MAG']
-    oneralist_caridx = [1,2,3,4,5,6]
-    if sysaxes in oneralist_caridx:
-        dtype = oneralist_car[oneralist_caridx.index(sysaxes)]
+    irbemlist_sph = ['GDZ', 'SPH', 'RLL']
+    irbemlist_sphidx = [0, 7, 8]
+    irbemlist_car = ['GEO', 'GSM', 'GSE', 'SM', 'GEI', 'MAG']
+    irbemlist_caridx = [1,2,3,4,5,6]
+    if sysaxes in irbemlist_caridx:
+        dtype = irbemlist_car[irbemlist_caridx.index(sysaxes)]
         carsph = 'car'
     elif sysaxes in onerlist_sphidx:
-        dtype = oneralist_sph[oneralist_sphidx.index(sysaxes)]
+        dtype = irbemlist_sph[irbemlist_sphidx.index(sysaxes)]
         carsph = 'sph'
-    # or None after onera library
+    # or None after irbem library
     else:
         print "sysaxes="+str(sysaxes)+" not supported"
         dtype = None
@@ -559,7 +558,7 @@ def get_dtype(sysaxes):
 # -----------------------------------------------
 def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
 	"""
-	This will call make_lstar1 or make_lstar_shell_splitting_1 from the onera library
+	This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
 	and will lookup omni values for given time if not provided (optional). If pitch angles
 	are provided, drift shell splitting will be calculated and "Bmirr" will be returned. If they
 	are not provided, then no drift shell splitting is calculated and "Blocal" is returned.
@@ -678,7 +677,7 @@ def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0
 
 	nTAI = len(ticktock)
 	nalpha = len(alpha)
-	d = prep_onera(ticktock, coords, alpha, extMag, options, omnivals)
+	d = prep_irbem(ticktock, coords, alpha, extMag, options, omnivals)
 		
 	if nalpha == 0: # no drift shell splitting
 		lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], d['sysaxes'],\
@@ -722,7 +721,7 @@ def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0
 # -----------------------------------------------
 def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
-    This will call make_lstar1 or make_lstar_shell_splitting_1 from the onera library
+    This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
     and will lookup omni values for given time if not provided (optional). If pitch angles
     are provided, drift shell splitting will be calculated and "Bmirr" will be returned. If they
     are not provided, then no drift shell splitting is calculated and "Blocal" is returned.
@@ -855,7 +854,7 @@ def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], o
         for ijob in range(ncpus):
             ppidx = range(ijob, ncalc, ncpus)
             jobs.append(server.submit(_get_Lstar, (ticktock[ppidx], coords[ppidx], alpha, \
-                extMag, options, omnivals), depfuncs=(prep_onera,), modules=() ))
+                extMag, options, omnivals), depfuncs=(prep_irbem,), modules=() ))
             
         # retrieve results from all jobs
         RES = []
@@ -886,13 +885,13 @@ def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], o
     return DALL
 	
 # -----------------------------------------------
-def prep_onera(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
+def prep_irbem(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
 	"""
 	"""
 	import numpy as n
 	import spacepy.omni as omni
 
-	# setup dictionary to return input values for onera
+	# setup dictionary to return input values for irbem
 	d= {}
 	d['badval'] = -1e31
 	d['nalp_max'] = 25

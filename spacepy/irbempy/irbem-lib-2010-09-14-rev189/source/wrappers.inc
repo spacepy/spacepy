@@ -16,4 +16,4 @@
 !    You should have received a copy of the GNU Lesser General Public License
 !    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
 !
-        INTEGER*8 argc, argv(*)                      ! Argc and Argv are integers
+        INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
