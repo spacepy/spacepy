@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.29 $, $Date: 2010/09/14 23:24:38 $"
+__version__ = "$Revision: 1.30 $, $Date: 2010/09/15 22:29:17 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -339,11 +339,5 @@ else:
     else:
         print "\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()"
 
-
-# offer testing routine
-ans = query_yes_no("\nDo you want to test your SpacePy installation", default="no")
-if ans=='yes':
-    import spacepy
-    spacepy.test_all()
 
 print "\nThanks for installing SpacePy."
