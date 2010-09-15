@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.21 $, $Date: 2010/09/15 16:33:28 $"
+__version__ = "$Revision: 1.22 $, $Date: 2010/09/15 16:38:54 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -272,19 +272,21 @@ class Ticktock(object):
     V2: 25-Jan-2010: includes array support (JK)
     V3: 25-feb-2010: pulled functions into class (JK)
     V4: 19-May-2010: ISO format support (SM)
-    V5: 15-Sep-2010: added format guessing 'ISO', 'UTC', 'CDF' and xrange support (JK)
+    V5: 15-Sep-2010: added format guessing 'ISO', 'UTC', 'CDF' (JK)
+    V6: 15-Sep-2010: data can be any iterable (JN)
     """
     def __init__(self, data, dtype=None):
         from numpy import ndarray
         from datetime import datetime
-        if isinstance(data, (list, ndarray)):
-           self.data = data
-        elif isinstance(data, xrange):
-           self.data = ['']*len(data)
-           for i in xrange(len(data)):
-               self.data[i] = data[i]
+        if isinstance(data, ndarray):
+            self.data = data
+        elif isinstance(data, (bytes, str)):
+            self.data = [data]
         else:
-           self.data = [data]
+            try:
+                self.data = list(data)
+            except TypeError:
+                self.data = [data]
         # make some educated guess on the format if dtype not provided
         if isinstance(self.data[0], str):
             dtype = 'ISO'
