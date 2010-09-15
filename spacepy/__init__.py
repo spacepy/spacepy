@@ -40,23 +40,11 @@ __license__ = """SpacePy: Space Science Tools for Python
 SpacePy is a package of tools primarily aimed at the space science community.
 Copyright (C) 2010  Steven Morley, Josef Koller
 
-SpacePy is released under GPL v3.0:
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 __notice__ = """SpacePy: Space Science Tools for Python
-SpacePy is released under GPL v3.0. See __licence__ for details, and help() for HTML help."""
+SpacePy is released under PSF license. See __licence__ for details, and help() for HTML help."""
 
 __licence__ = __license__ #for those who speak English, rather than an odd dialect
 
