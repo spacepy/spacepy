@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.41 $, $Date: 2010/09/14 21:49:26 $"
+__version__ = "$Revision: 1.42 $, $Date: 2010/09/15 15:33:37 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -659,7 +659,6 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
             datwin = np.ma.masked_where(np.isnan(data[startpt:startpt+winsize]), \
                 data[startpt:startpt+winsize])
             getmean = np.mean(datwin.compressed()) #mean of window, excl. NaNs
-            print len(time),startpt,winsize
             gettime = (time[startpt+winsize] - time[startpt])/2. \
                 + time[startpt]#new timestamp
             startpt = startpt+winsize-overlap
@@ -668,7 +667,6 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
             outtime.append(gettime)
     else:
         #loop with time-based window
-        print '''time-based averaging'''
         lastpt = time[0] + winsize
         if st_time:
             startpt = st_time
