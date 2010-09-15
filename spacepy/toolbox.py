@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.42 $, $Date: 2010/09/15 15:33:37 $"
+__version__ = "$Revision: 1.43 $, $Date: 2010/09/15 15:41:44 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -578,9 +578,10 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     @type winsize: 
     @keyword overlap: amout of window overlap
     @type overlap: 
-    @keyword st_time: TODO document me
+    @keyword st_time: for time-based averaging, a start-time other than the first 
+        point can be specified
     @type st_time:
-    @return: the window mean of the data
+    @return: the windowed mean of the data, and an associated reference time vector
     
     @todo: Finish documentation
 
@@ -592,13 +593,21 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
 
 
     For non-overlapping windows set overlap to zero.
-    e.g.,
+    e.g. (time-based averaging),
     
     >>> wsize, olap = datetime.timedelta(1), datetime.timedelta(0,3600)
     >>> outdata, outtime = windowmean(data, time, winsize=wsize, overlap=olap)
     
-    where the time, winsize and overlap are either numberic or datetime objects,
     in this example the window size is 1 day and the overlap is 1 hour.
+    
+    e.g. (pointwise averaging),
+    
+    >>> outdata, outtime = windowmean(data, winsize=10, overlap=9)
+    
+    where winsize and overlap are numberic,
+    in this example the window size is 10 points and the overlap is 9 points.
+    The output vectors start at winsize/2 and end at N-(winsize/2), the output time vector
+    is basically a reference to the nth point in the original series.
     
     @note: This is a quick and dirty function - it is NOT optimised, at all.
 
