@@ -94,8 +94,11 @@ class classTests(unittest.TestCase):
         de = t.Tickdelta(hours=12, seconds=2)
         self.assertEqual(t.Ticktock( '2002-02-28T23:23:09', 'ISO'), n1-de)
 
-
-
+    def test_TickTock_with_xrange(self):
+        t0 = 1663236947
+        iter_ex = xrange(t0, t0+5000, 500)
+        range_ex = range(t0, t0+5000, 500) 
+        self.assertEqual(t.Ticktock(iter_ex, 'TAI').TAI, t.Ticktock(range_ex, 'TAI').TAI)
 
 if __name__ == "__main__":
     ## suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
