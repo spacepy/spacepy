@@ -65,7 +65,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.7 $, $Date: 2010/06/09 17:06:20 $
+        $Revision: 1.8 $, $Date: 2010/09/15 18:04:50 $
       </p>
       <p><strong>Author:</strong>
         Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
@@ -87,26 +87,6 @@
     </table>
   </td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.omni-module.html#pickleomni" class="summary-sig-name">pickleomni</a>(<span class="summary-sig-arg">fln</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">overwrite</span>=<span class="summary-sig-default">True</span>,
-        <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">None</span>)</span><br />
-      read in fln='omni_intp.dat'  file from Qin and Denton and save as 
-      pickle.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.omni-pysrc.html#pickleomni">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -166,58 +146,22 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="dotfln"></a><span class="summary-name">dotfln</span> = <code title="'/home/smorley/.spacepy'"><code class="variable-quote">'</code><code class="variable-string">/home/smorley/.spacepy</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a name="omnifln"></a><span class="summary-name">omnifln</span> = <code title="'/home/smorley/.spacepy/data/omnidata.pkl'"><code class="variable-quote">'</code><code class="variable-string">/home/smorley/.spacepy/data/omnidata.pkl</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="__nodataflag"></a><span class="summary-name">__nodataflag</span> = <code title="False">False</code>
-    </td>
-  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="spacepy.omni-module.html#ans" class="summary-name">ans</a> = <code title="tb.query_yes_no('\nUpdate OMNI from ViRBO now? (Internet connection re\
-quired) ', default= &quot;yes&quot;)">tb.query_yes_no('\nUpdate OMNI from ViRBO now? (Internet<code class="variable-ellipsis">...</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="omni_fname_zip"></a><span class="summary-name">omni_fname_zip</span> = <code title="dotfln+ '/data/WGhour-latest.d.zip'">dotfln+ '/data/WGhour-latest.d.zip'</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="omni_fname_dat"></a><span class="summary-name">omni_fname_dat</span> = <code title="dotfln+ '/data/omnidata.pkl'">dotfln+ '/data/omnidata.pkl'</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="spacepy.omni-module.html#omnidata" class="summary-name">omnidata</a> = <code title="{'6_status': array(['000000', '000000', '000000', ..., '000000', '0000\
-00', '000000'], 
-      dtype='|S6'),
- '8_status': array(['00000000', '00000000', '00000000', ..., '10111111\
-', '11111111',
-       '11111111'], 
-      dtype='|S8'),
- 'ByIMF': array([ 0.09,  0.09,  0.9 , ..., -0.09, -0.03,  0.  ]),
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">6_status</code><code class="variable-quote">'</code><code class="variable-op">: </code>array(['000000', '000000', '000000', .<code class="variable-ellipsis">...</code></code>
+        <a href="spacepy.omni-module.html#omnidata" class="summary-name">omnidata</a> = <code title="{'ByIMF': array([ 0.09,  0.09,  0.9 , ...,  0.2 ,  0.4 ,  0.3 ]),
+ 'Bz1': array([-0.73, -0.22,  1.64, ..., -1.6 , -2.  , -1.8 ]),
+ 'Bz2': array([-0.54,  0.39,  3.82, ..., -1.6 , -2.  , -1.8 ]),
+ 'Bz3': array([-1.09, -0.52,  1.6 , ..., -1.6 , -2.  , -1.8 ]),
+ 'Bz4': array([-1.07, -0.04,  3.75, ..., -1.6 , -2.  , -1.8 ]),
+ 'Bz5': array([-0.56, -0.08,  1.67, ..., -1.6 , -2.  , -1.8 ]),
+ 'Bz6': array([-0.39,  0.51,  3.84, ..., -1.6 , -2.  , -1.8 ]),
+ 'BzIMF': array([ 0.05,  0.41,  1.75, ..., -1.6 , -2.  , -1.8 ]),
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ByIMF</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([ 0.09,  0.09,  0.9 , ...,  0.2 ,  <code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -246,47 +190,6 @@ quired) ', default= &quot;yes&quot;)">tb.query_yes_no('\nUpdate OMNI from ViRBO 
   </td>
 </tr>
 </table>
-<a name="pickleomni"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">pickleomni</span>(<span class="sig-arg">fln</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">overwrite</span>=<span class="sig-default">True</span>,
-        <span class="sig-arg">data</span>=<span class="sig-default">None</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.omni-pysrc.html#pickleomni">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>read in fln='omni_intp.dat'  file from Qin and Denton and save as 
-  pickle. The pickle will replace the current data file in the package, or 
-  provide data as strings</p>
-  <h1 class="heading">Input:</h1>
-    <ul>
-      <li>
-        fln (string) : filename of the original ASCII file
-      </li>
-      <li>
-        overwrite (optional boolean) : If true -&gt; overwrite data file in
-        package if false -&gt; save in current working directory
-      </li>
-      <li>
-        data (string) : container with data read-in from file
-      </li>
-    </ul>
-  <h1 class="heading">Example:</h1>
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>pickleomni(<span class="py-string">'omnidata.dat'</span>)</pre>
-  <h1 class="heading">Author:</h1>
-    <p>Josef Koller, Los Alamos National Lab, jkoller@lanl.gov</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
 <a name="get_omni"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -306,8 +209,8 @@ quired) ', default= &quot;yes&quot;)">tb.query_yes_no('\nUpdate OMNI from ViRBO 
   Pdyn, ByIMF, BzIMF, G1, G2, G3, etc. (see also 
   http://www.dartmouth.edu/~rdenton/magpar/index.html and 
   http://www.agu.org/pubs/crossref/2007/2006SW000296.shtml )</p>
-  <p>Note carefully: If the status variable is 2, the quantity you are 
-  using is fairly well determined. If it is 1, the value has some 
+  <p>Note carefully about Qbits: If the status variable is 2, the quantity 
+  you are using is fairly well determined. If it is 1, the value has some 
   connection to measured values, but is not directly measured. These values
   are still better than just using an average value, but not as good as 
   those with the status variable equal to 2. If the status variable is 0, 
@@ -334,7 +237,8 @@ quired) ', default= &quot;yes&quot;)">tb.query_yes_no('\nUpdate OMNI from ViRBO 
     <p>Josef Koller, Los Alamos National Lab, jkoller@lanl.gov</p>
   <h1 class="heading">Version:</h1>
     <p>V1: 26-Jan-2010 (JK) V1.1: 11-Mar-2010: fixed bug in get_omni; will 
-    now return the correct 6_status, 8_status (JK)</p>
+    now return the correct 6_status, 8_status (JK) V1.2: 11-Jun-2010: 
+    rewrote status information and put into 'Qbits' (JK)</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -358,25 +262,6 @@ quired) ', default= &quot;yes&quot;)">tb.query_yes_no('\nUpdate OMNI from ViRBO 
   </td>
 </tr>
 </table>
-<a name="ans"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">ans</h3>
-  
-  <dl class="fields">
-  </dl>
-  <dl class="fields">
-    <dt>Value:</dt>
-      <dd><table><tr><td><pre class="variable">
-tb.query_yes_no('\nUpdate OMNI from ViRBO now? (Internet connection re<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-quired) ', default= &quot;yes&quot;)
-</pre></td></tr></table>
-</dd>
-  </dl>
-</td></tr></table>
-</div>
 <a name="omnidata"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -389,14 +274,14 @@ quired) ', default= &quot;yes&quot;)
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">6_status</code><code class="variable-quote">'</code><code class="variable-op">: </code>array(['000000', '000000', '000000', ..., '000000', '0000<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-00', '000000'], 
-      dtype='|S6')<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">8_status</code><code class="variable-quote">'</code><code class="variable-op">: </code>array(['00000000', '00000000', '00000000', ..., '10111111<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-', '11111111',
-       '11111111'], 
-      dtype='|S8')<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">ByIMF</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([ 0.09,  0.09,  0.9 , ..., -0.09, -0.03,  0.  ])<code class="variable-op">,</code>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ByIMF</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([ 0.09,  0.09,  0.9 , ...,  0.2 ,  0.4 ,  0.3 ])<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">Bz1</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([-0.73, -0.22,  1.64, ..., -1.6 , -2.  , -1.8 ])<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">Bz2</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([-0.54,  0.39,  3.82, ..., -1.6 , -2.  , -1.8 ])<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">Bz3</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([-1.09, -0.52,  1.6 , ..., -1.6 , -2.  , -1.8 ])<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">Bz4</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([-1.07, -0.04,  3.75, ..., -1.6 , -2.  , -1.8 ])<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">Bz5</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([-0.56, -0.08,  1.67, ..., -1.6 , -2.  , -1.8 ])<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">Bz6</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([-0.39,  0.51,  3.84, ..., -1.6 , -2.  , -1.8 ])<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">BzIMF</code><code class="variable-quote">'</code><code class="variable-op">: </code>array([ 0.05,  0.41,  1.75, ..., -1.6 , -2.  , -1.8 ])<code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -435,7 +320,7 @@ quired) ', default= &quot;yes&quot;)
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Jun  9 11:02:34 2010
+    Generated by Epydoc 3.0.1 on Wed Sep 15 12:00:46 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
