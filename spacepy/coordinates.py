@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.4 $, $Date: 2010/09/14 22:47:20 $"
+__version__ = "$Revision: 1.5 $, $Date: 2010/09/16 18:57:50 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -312,11 +312,11 @@ class Coords(object):
         import spacepy, spacepy.coordinates
 
         # no change necessary
-        if (self.dtype is returntype) and (self.carsph is returncarsph):
+        if (self.dtype == returntype) and (self.carsph == returncarsph):
             return self
             
         # only car2sph or sph2car is needed
-        if (self.dtype is returntype) and (self.carsph is not returncarsph):
+        if (self.dtype == returntype) and (self.carsph != returncarsph):
             if returncarsph == 'car':
                 carsph = 'car'
                 units = [self.units[0]]*3
@@ -332,7 +332,7 @@ class Coords(object):
             assert len(self.ticktock) == len(self), 'ticktock dimension does not match Coords dimensions'
         
         # check if car2sph is needed first for oneralib compatibility
-        if (self.sysaxes is None) : # a car2sph or sph2car is needed            
+        if (self.sysaxes == None) : # a car2sph or sph2car is needed            
             if self.carsph == 'sph':
                 carsph = 'car'
                 units = [self.units[0]]*3
@@ -349,7 +349,7 @@ class Coords(object):
         Coords = spacepy.coordinates.Coords(data, self.dtype, carsph, units, self.ticktock)
         
         # now convert to other coordinate system
-        if (self.dtype is not returntype) : 
+        if (self.dtype != returntype) : 
             assert Coords.ticktock, "Time information required; add a.ticktock attribute"
             Coords.data = op.coord_trans( Coords, returntype, returncarsph)
             Coords.dtype = returntype
@@ -394,4 +394,36 @@ class Coords(object):
         """
         self.__dict__.update(dict)
         return
+    
+    # -----------------------------------------------    
+    def append(self, other):
+        """
+        a.append(other)
         
+        Will be called when another Coords instance has to be appended to the current one
+
+        Input:
+        ======
+            - a Coords class instance
+            - other (Coords instance) 
+      
+        Example:
+        ========
+      
+        Author:
+        =======
+        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
+    
+        Version:
+        ========
+        V1: 15-Sep-2010 (JK)
+       
+        """
+        
+        import numpy as n
+        data = list(self.data)
+        otherdata = other.convert(self.dtype, self.carsph)               
+        data.extend(list(otherdata.data))
+        newobj = Coords(data, dtype=self.dtype, carsph=self.carsph)
+        return newobj
+    

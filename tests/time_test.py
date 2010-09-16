@@ -99,7 +99,16 @@ class classTests(unittest.TestCase):
         iter_ex = xrange(t0, t0+5000, 500)
         range_ex = range(t0, t0+5000, 500) 
         self.assertEqual(t.Ticktock(iter_ex, 'TAI').TAI, t.Ticktock(range_ex, 'TAI').TAI)
-
+        
+    def test_append(self):
+        t1 = t.Ticktock(['2002-01-01', '2002-01-02'])
+        t2 = t.Ticktock(['2002-01-03', '2002-01-04'])
+        expected = t.Ticktock(['2002-01-01', '2002-01-02', '2002-01-03', '2002-01-04'])
+        actual_1 = t1.append(t2)
+        actual_2 = t1.append(t2.convert('UTC'))
+        numpy.testing.assert_equal(expected.RDT, actual_1.RDT)
+        numpy.testing.assert_equal(expected.RDT, actual_2.RDT)
+        
 if __name__ == "__main__":
     ## suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
     ## unittest.TextTestRunner(verbosity=2).run(suite)
