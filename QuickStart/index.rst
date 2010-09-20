@@ -154,6 +154,54 @@ ONERA-DESP Module
 
 bla bla
 
+
+pycdf - Python access to NASA CDF library
+=========================================
+
+pycdf provides a "pythonic" interface to the NASA CDF library (currently
+read-only). It requires that the base C library be properly installed.
+The module can then be imported, e.g.::
+
+	import spacepy.pycdf as cdf
+
+Extensive documentation is provided in epydoc format in docstrings.
+
+To open and close a CDF file::
+
+	cdf_file = cdf.CDF('filename.cdf')
+	cdf_file.close()
+
+CDF files, like standard Python files, act as context managers::
+
+       with cdf.CDF('filename.cdf') as cdf_file:
+	    #do brilliant things with cdf_file
+       #cdf_file is automatically closed here
+
+CDF files act as Python dictionaries, holding CDF variables keyed
+by the variable name::
+
+       var_names = keys(cdf_file) #list of all variables
+       for var_name in cdf_file:
+	   print(len(cdf_file[var_name])) #number of records in each variable
+       #list comprehensions work, too
+       lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
+
+Each CDF variable acts as a Python list, one element per record.
+Multidimensional CDF variables are represented as nested lists and can be
+subscripted using a multidimensional slice notation similar to numpy. Creating
+a Python Var object does not read the data from disc; data are only read as
+they are accessed::
+
+       epoch = cdf_file['Epoch'] #Python object created, nothing read from disc
+       epoch[0] #time of first record in CDF (datetime object)
+       a = epoch[...] #copy all times to list a
+       a = epoch[-5:] #copy last five times to list a
+       b_gse = cdf_file['B_GSE'] #B_GSE is a 1D, three-element array
+       bz = b_gse[0,2] #Z component of first record
+       bx = b_gse[:,0] #copy X component of all records to bx
+       bx = cdf_file['B_GSE'][:,0] #same as above
+
+
 The testing.py module
 =====================
 
