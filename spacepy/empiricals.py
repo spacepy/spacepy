@@ -5,31 +5,26 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.8 $, $Date: 2010/06/04 00:39:16 $"
+__version__ = "$Revision: 1.9 $, $Date: 2010/09/21 21:38:42 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
 
-# -----------------------------------------------
-# Last Closed Drift Shell - Lmax
-# -----------------------------------------------    
 def getLmax(ticks, Lmax_model='JKemp'):
     """
     calculate a simple empirical model for Lmax - last closed drift-shell
     
-    Input:
-    ======
-    - ticks: TickTock object of desired times
-    - Lpp_model (kwarg): 'JKemp' (default)
-    JKemp returns the empirical model of J. Koller
+    @param ticks: Ticktock object of desired times
+    @type ticks: spacepy.time.Ticktock
     
-    Returns:
-    ========
-    - Lmax: L* of last closed drift shell
+    @keyword Lpp_model: 'JKemp' (default - empirical model of J. Koller)
     
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
+    @return: Lmax - L* of last closed drift shell
+    @rtype: numpy.ndarray
+    
+    @author: Josef Koller
+    @organization: Los Alamos National Lab
+    @contact: jkoller@lanl.gov
     """
     
     import numpy as n
@@ -45,10 +40,7 @@ def getLmax(ticks, Lmax_model='JKemp'):
             Lmax[i] = 6.7e-5*iDst*iDst + 0.0421*iDst + 8.945
         
     return Lmax
-
-# -----------------------------------------------
-# Plasmapause Location
-# -----------------------------------------------       
+    
 def getPlasmaPause(ticks, Lpp_model='M2002'):
     """
     Plasmapause location model(s)
@@ -112,11 +104,7 @@ def getPlasmaPause(ticks, Lpp_model='M2002'):
         else:
             Lpp[i] = np.nan
 
-    return Lpp
-
-# -----------------------------------------------
-# Magnetopause Location
-# -----------------------------------------------    
+    return Lpp  
     
 def getMPstandoff(ticks):
     """Calculates the Shue et al. (1997) subsolar magnetopause radius

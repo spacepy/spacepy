@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.30 $, $Date: 2010/09/15 22:29:17 $"
+__version__ = "$Revision: 1.31 $, $Date: 2010/09/21 21:38:42 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 # -------------------------------------
@@ -303,7 +303,8 @@ if fresh_install:
     shutil.copy('spacepy/data/spacepy.rc', DOT_FLN+'/')
     shutil.copy('spacepy/data/tai-utc.dat', DOT_FLN+'/data')
 
-pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pycdf/*.py']
+pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so'
+    'pybats/*.out', 'pycdf/*.py']
 #pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pycdf/*.py']
 
 # run setup from distutil

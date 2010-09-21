@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Let's test some pybats goodness.
 ################################
 # TEMPORARY USE ONLY.
@@ -6,12 +7,10 @@
 # USE AS SANDBOX BUT DON'T SAVE.
 ################################
 
-import pybats.bats as pb
+import spacepy.pybats.bats as pb
 import pylab as plt
 import numpy as np
 from matplotlib.colors import LogNorm
-
-reload(pb)
 
 infile = 'y=0_mhd_1_t00070000_n0872925.out'
 mhd1 = pb.Bats2d(infile)
