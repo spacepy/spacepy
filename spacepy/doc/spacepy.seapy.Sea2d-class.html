@@ -108,9 +108,9 @@ object --+
         <span class="summary-sig-arg">data</span>,
         <span class="summary-sig-arg">times</span>,
         <span class="summary-sig-arg">epochs</span>,
-        <span class="summary-sig-arg">window</span>=<span class="summary-sig-default">3.0</span>,
-        <span class="summary-sig-arg">delta</span>=<span class="summary-sig-default">1.0</span>,
-        <span class="summary-sig-arg">y</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>)</span><br />
+        <span class="summary-sig-arg">window</span>=<span class="summary-sig-default">3.</span>,
+        <span class="summary-sig-arg">delta</span>=<span class="summary-sig-default">1.</span>,
+        <span class="summary-sig-arg">y</span>=<span class="summary-sig-default">[]</span>)</span><br />
       x.__init__(...) initializes x; see x.__class__.__doc__ for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.seapy-pysrc.html#Sea2d.__init__">source&nbsp;code</a></span>
@@ -132,7 +132,7 @@ object --+
         <span class="summary-sig-arg">quartiles</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">ci</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">mad</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">ci_quan</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">median</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">ci_quan</span>=<span class="summary-sig-default">'median'</span>,
         <span class="summary-sig-arg">nmask</span>=<span class="summary-sig-default">1</span>)</span><br />
       Method called to perform 2D superposed epoch analysis on data in 
       object.</td>
@@ -152,13 +152,13 @@ object --+
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.seapy.Sea2d-class.html#plot" class="summary-sig-name">plot</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">xquan</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">Time Since Epoch</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">yquan</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">xunits</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">yunits</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">zunits</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">xquan</span>=<span class="summary-sig-default">'Time Since Epoch'</span>,
+        <span class="summary-sig-arg">yquan</span>=<span class="summary-sig-default">''</span>,
+        <span class="summary-sig-arg">xunits</span>=<span class="summary-sig-default">''</span>,
+        <span class="summary-sig-arg">yunits</span>=<span class="summary-sig-default">''</span>,
+        <span class="summary-sig-arg">zunits</span>=<span class="summary-sig-default">''</span>,
         <span class="summary-sig-arg">epochline</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">usrlimy</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">usrlimy</span>=<span class="summary-sig-default">[]</span>,
         <span class="summary-sig-arg">show</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">zlog</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">figsize</span>=<span class="summary-sig-default">None</span>,
@@ -253,9 +253,9 @@ object --+
         <span class="sig-arg">data</span>,
         <span class="sig-arg">times</span>,
         <span class="sig-arg">epochs</span>,
-        <span class="sig-arg">window</span>=<span class="sig-default">3.0</span>,
-        <span class="sig-arg">delta</span>=<span class="sig-default">1.0</span>,
-        <span class="sig-arg">y</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>)</span>
+        <span class="sig-arg">window</span>=<span class="sig-default">3.</span>,
+        <span class="sig-arg">delta</span>=<span class="sig-default">1.</span>,
+        <span class="sig-arg">y</span>=<span class="sig-default">[]</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -285,7 +285,7 @@ object --+
         <span class="sig-arg">quartiles</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">ci</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">mad</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">ci_quan</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">median</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">ci_quan</span>=<span class="sig-default">'median'</span>,
         <span class="sig-arg">nmask</span>=<span class="sig-default">1</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -335,13 +335,13 @@ object --+
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">plot</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">xquan</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">Time Since Epoch</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">yquan</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">xunits</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">yunits</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">zunits</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">xquan</span>=<span class="sig-default">'Time Since Epoch'</span>,
+        <span class="sig-arg">yquan</span>=<span class="sig-default">''</span>,
+        <span class="sig-arg">xunits</span>=<span class="sig-default">''</span>,
+        <span class="sig-arg">yunits</span>=<span class="sig-default">''</span>,
+        <span class="sig-arg">zunits</span>=<span class="sig-default">''</span>,
         <span class="sig-arg">epochline</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">usrlimy</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="sig-arg">usrlimy</span>=<span class="sig-default">[]</span>,
         <span class="sig-arg">show</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">zlog</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">figsize</span>=<span class="sig-default">None</span>,
@@ -422,7 +422,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Sep 15 12:00:46 2010
+    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:42 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

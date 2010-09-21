@@ -65,7 +65,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.8 $, $Date: 2010/09/15 18:04:50 $
+        $Revision: 1.9 $, $Date: 2010/09/21 23:57:28 $
       </p>
       <p><strong>Author:</strong>
         S. Morley and J. Koller
@@ -186,7 +186,7 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#feq" class="summary-sig-name">feq</a>(<span class="summary-sig-arg">x</span>,
         <span class="summary-sig-arg">y</span>,
-        <span class="summary-sig-arg">precision</span>=<span class="summary-sig-default">5e-07</span>)</span><br />
+        <span class="summary-sig-arg">precision</span>=<span class="summary-sig-default">0.0000005</span>)</span><br />
       compare two floating point values if they are equal after: 
       http://www.lahey.com/float.htm</td>
           <td align="right" valign="top">
@@ -265,7 +265,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#windowMean" class="summary-sig-name">windowMean</a>(<span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">time</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">time</span>=<span class="summary-sig-default">[]</span>,
         <span class="summary-sig-arg">winsize</span>=<span class="summary-sig-default">0</span>,
         <span class="summary-sig-arg">overlap</span>=<span class="summary-sig-default">0</span>,
         <span class="summary-sig-arg">st_time</span>=<span class="summary-sig-default">None</span>)</span><br />
@@ -305,7 +305,7 @@
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#makePoly" class="summary-sig-name">makePoly</a>(<span class="summary-sig-arg">x</span>,
         <span class="summary-sig-arg">y1</span>,
         <span class="summary-sig-arg">y2</span>,
-        <span class="summary-sig-arg">face</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">blue</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">face</span>=<span class="summary-sig-default">'blue'</span>,
         <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default">0.5</span>)</span><br />
       Make filled polygon for plotting</td>
           <td align="right" valign="top">
@@ -496,8 +496,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#timestamp" class="summary-sig-name">timestamp</a>(<span class="summary-sig-arg">position</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1.003<code class="variable-op">, </code>0.01<code class="variable-group">]</code></span>,
-        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">xx-small</code><code class="variable-quote">'</code></span>,
+          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#timestamp" class="summary-sig-name">timestamp</a>(<span class="summary-sig-arg">position</span>=<span class="summary-sig-default">[1.003,0.01]</span>,
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">'xx-small'</span>,
         <span class="summary-sig-arg">draw</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       print a timestamp on the current plot, vertical lower right</td>
@@ -517,7 +517,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#query_yes_no" class="summary-sig-name">query_yes_no</a>(<span class="summary-sig-arg">question</span>,
-        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">yes</code><code class="variable-quote">'</code></span>)</span><br />
+        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">&quot;yes&quot;</span>)</span><br />
       Ask a yes/no question via raw_input() and return their answer.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.toolbox-pysrc.html#query_yes_no">source&nbsp;code</a></span>
@@ -581,31 +581,6 @@
         </tr>
       </table>
       
-    </td>
-  </tr>
-</table>
-<!-- ==================== VARIABLES ==================== -->
-<a name="section-Variables"></a>
-<table class="summary" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td colspan="2" class="table-header">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr valign="top">
-        <td align="left"><span class="table-header">Variables</span></td>
-        <td align="right" valign="top"
-         ><span class="options">[<a href="#section-Variables"
-         class="privatelink" onclick="toggle_private();"
-         >hide private</a>]</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'spacepy'"><code class="variable-quote">'</code><code class="variable-string">spacepy</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 </table>
@@ -855,7 +830,7 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">feq</span>(<span class="sig-arg">x</span>,
         <span class="sig-arg">y</span>,
-        <span class="sig-arg">precision</span>=<span class="sig-default">5e-07</span>)</span>
+        <span class="sig-arg">precision</span>=<span class="sig-default">0.0000005</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#feq">source&nbsp;code</a></span>&nbsp;
@@ -1086,7 +1061,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">windowMean</span>(<span class="sig-arg">data</span>,
-        <span class="sig-arg">time</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="sig-arg">time</span>=<span class="sig-default">[]</span>,
         <span class="sig-arg">winsize</span>=<span class="sig-default">0</span>,
         <span class="sig-arg">overlap</span>=<span class="sig-default">0</span>,
         <span class="sig-arg">st_time</span>=<span class="sig-default">None</span>)</span>
@@ -1216,7 +1191,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">makePoly</span>(<span class="sig-arg">x</span>,
         <span class="sig-arg">y1</span>,
         <span class="sig-arg">y2</span>,
-        <span class="sig-arg">face</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">blue</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">face</span>=<span class="sig-default">'blue'</span>,
         <span class="sig-arg">alpha</span>=<span class="sig-default">0.5</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -1671,8 +1646,8 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">timestamp</span>(<span class="sig-arg">position</span>=<span class="sig-default"><code class="variable-group">[</code>1.003<code class="variable-op">, </code>0.01<code class="variable-group">]</code></span>,
-        <span class="sig-arg">size</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">xx-small</code><code class="variable-quote">'</code></span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">timestamp</span>(<span class="sig-arg">position</span>=<span class="sig-default">[1.003,0.01]</span>,
+        <span class="sig-arg">size</span>=<span class="sig-default">'xx-small'</span>,
         <span class="sig-arg">draw</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">**kwargs</span>)</span>
   </h3>
@@ -1717,7 +1692,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">query_yes_no</span>(<span class="sig-arg">question</span>,
-        <span class="sig-arg">default</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">yes</code><code class="variable-quote">'</code></span>)</span>
+        <span class="sig-arg">default</span>=<span class="sig-default">&quot;yes&quot;</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#query_yes_no">source&nbsp;code</a></span>&nbsp;
@@ -1894,7 +1869,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Sep 15 12:00:46 2010
+    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:42 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

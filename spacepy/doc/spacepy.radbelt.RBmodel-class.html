@@ -118,7 +118,7 @@ object --+
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.radbelt.RBmodel-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">grid</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">L</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">grid</span>=<span class="summary-sig-default">'L'</span>,
         <span class="summary-sig-arg">NL</span>=<span class="summary-sig-default">91</span>)</span><br />
       format for grid e.g., L-PA-E</td>
           <td align="right" valign="top">
@@ -209,7 +209,7 @@ object --+
         <span class="summary-sig-arg">start</span>,
         <span class="summary-sig-arg">end</span>,
         <span class="summary-sig-arg">delta</span>,
-        <span class="summary-sig-arg">dtype</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">ISO</code><code class="variable-quote">'</code></span>)</span><br />
+        <span class="summary-sig-arg">dtype</span>=<span class="summary-sig-default">'ISO'</span>)</span><br />
       Add time information to the simulation by specifying a start and end 
       time, timestep, and time type (optional).</td>
           <td align="right" valign="top">
@@ -317,7 +317,7 @@ object --+
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="assimilate"></a><span class="summary-sig-name">assimilate</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">method</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">enKF</code><code class="variable-quote">'</code></span>)</span><br />
+        <span class="summary-sig-arg">method</span>=<span class="summary-sig-default">'enKF'</span>)</span><br />
       call data assimilation function in assimilate.py</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.radbelt-pysrc.html#RBmodel.assimilate">source&nbsp;code</a></span>
@@ -339,8 +339,8 @@ object --+
         <span class="summary-sig-arg">Lpp</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">Kp</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">Dst</span>=<span class="summary-sig-default">True</span>,
-        <span class="summary-sig-arg">clims</span>=<span class="summary-sig-default"><code class="variable-group">[</code>0<code class="variable-op">, </code>10<code class="variable-group">]</code></span>,
-        <span class="summary-sig-arg">title</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">Summary Plot</code><code class="variable-quote">'</code></span>)</span><br />
+        <span class="summary-sig-arg">clims</span>=<span class="summary-sig-default">[0,10]</span>,
+        <span class="summary-sig-arg">title</span>=<span class="summary-sig-default">'Summary Plot'</span>)</span><br />
       Create a summary plot of the RadBelt object distribution function.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.radbelt-pysrc.html#RBmodel.plot">source&nbsp;code</a></span>
@@ -419,7 +419,7 @@ object --+
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">grid</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">L</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">grid</span>=<span class="sig-default">'L'</span>,
         <span class="sig-arg">NL</span>=<span class="sig-default">91</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -516,7 +516,7 @@ object --+
         <span class="sig-arg">start</span>,
         <span class="sig-arg">end</span>,
         <span class="sig-arg">delta</span>,
-        <span class="sig-arg">dtype</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">ISO</code><code class="variable-quote">'</code></span>)</span>
+        <span class="sig-arg">dtype</span>=<span class="sig-default">'ISO'</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.radbelt-pysrc.html#RBmodel.setup_ticks">source&nbsp;code</a></span>&nbsp;
@@ -547,8 +547,8 @@ object --+
         <span class="sig-arg">Lpp</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">Kp</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">Dst</span>=<span class="sig-default">True</span>,
-        <span class="sig-arg">clims</span>=<span class="sig-default"><code class="variable-group">[</code>0<code class="variable-op">, </code>10<code class="variable-group">]</code></span>,
-        <span class="sig-arg">title</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">Summary Plot</code><code class="variable-quote">'</code></span>)</span>
+        <span class="sig-arg">clims</span>=<span class="sig-default">[0,10]</span>,
+        <span class="sig-arg">title</span>=<span class="sig-default">'Summary Plot'</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.radbelt-pysrc.html#RBmodel.plot">source&nbsp;code</a></span>&nbsp;
@@ -612,7 +612,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Sep 15 12:00:46 2010
+    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:42 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

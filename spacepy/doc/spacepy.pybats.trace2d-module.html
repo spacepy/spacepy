@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>spacepy.pybats.trace2d</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
+        <a href="spacepy.pybats-module.html">Package&nbsp;pybats</a> ::
+        Module&nbsp;trace2d
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="spacepy.pybats.trace2d-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module trace2d</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.pybats.trace2d-pysrc.html">source&nbsp;code</a></span></p>
+<p>A set of routines for fast field line tracing. &quot;Number 
+  crunching&quot; is performed in C for speed.</p>
+
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.trace2d-module.html#trace2d_eul" class="summary-sig-name">trace2d_eul</a>(<span class="summary-sig-arg">fieldx</span>,
+        <span class="summary-sig-arg">fieldy</span>,
+        <span class="summary-sig-arg">xstart</span>,
+        <span class="summary-sig-arg">ystart</span>,
+        <span class="summary-sig-arg">gridx</span>,
+        <span class="summary-sig-arg">gridy</span>,
+        <span class="summary-sig-arg">maxstep</span>=<span class="summary-sig-default">20000</span>,
+        <span class="summary-sig-arg">ds</span>=<span class="summary-sig-default">0.01</span>)</span><br />
+      Given a 2D vector field, trace a streamline from a given point to the
+      edge of the vector field.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.trace2d-pysrc.html#trace2d_eul">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.trace2d-module.html#trace2d_rk4" class="summary-sig-name">trace2d_rk4</a>(<span class="summary-sig-arg">fieldx</span>,
+        <span class="summary-sig-arg">fieldy</span>,
+        <span class="summary-sig-arg">xstart</span>,
+        <span class="summary-sig-arg">ystart</span>,
+        <span class="summary-sig-arg">gridx</span>,
+        <span class="summary-sig-arg">gridy</span>,
+        <span class="summary-sig-arg">maxstep</span>=<span class="summary-sig-default">20000</span>,
+        <span class="summary-sig-arg">ds</span>=<span class="summary-sig-default">0.01</span>)</span><br />
+      Given a 2D vector field, trace a streamline from a given point to the
+      edge of the vector field.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.trace2d-pysrc.html#trace2d_rk4">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="test_asymtote"></a><span class="summary-sig-name">test_asymtote</span>()</span><br />
+      Test streamline tracing by plotting vectors and associated 
+      streamlines through a simple velocity field where Vx=x, Vy=-y.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.trace2d-pysrc.html#test_asymtote">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="test_dipole"></a><span class="summary-sig-name">test_dipole</span>()</span><br />
+      Trace field lines through a dipole field to test the pybats.trace2d 
+      module.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.trace2d-pysrc.html#test_dipole">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="trace2d_eul"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">trace2d_eul</span>(<span class="sig-arg">fieldx</span>,
+        <span class="sig-arg">fieldy</span>,
+        <span class="sig-arg">xstart</span>,
+        <span class="sig-arg">ystart</span>,
+        <span class="sig-arg">gridx</span>,
+        <span class="sig-arg">gridy</span>,
+        <span class="sig-arg">maxstep</span>=<span class="sig-default">20000</span>,
+        <span class="sig-arg">ds</span>=<span class="sig-default">0.01</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.trace2d-pysrc.html#trace2d_eul">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given a 2D vector field, trace a streamline from a given point to the 
+  edge of the vector field.  The field is integrated using Euler's method.
+  While this is faster than rk4, it is less accurate.</p>
+  <p>Only valid for regular grid with coordinates gridx, gridy. If gridx 
+  and gridy are not given, assume that xstart and ystart are normalized 
+  coordinates (e.g., position in terms of array indices.)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="trace2d_rk4"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">trace2d_rk4</span>(<span class="sig-arg">fieldx</span>,
+        <span class="sig-arg">fieldy</span>,
+        <span class="sig-arg">xstart</span>,
+        <span class="sig-arg">ystart</span>,
+        <span class="sig-arg">gridx</span>,
+        <span class="sig-arg">gridy</span>,
+        <span class="sig-arg">maxstep</span>=<span class="sig-default">20000</span>,
+        <span class="sig-arg">ds</span>=<span class="sig-default">0.01</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.trace2d-pysrc.html#trace2d_rk4">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given a 2D vector field, trace a streamline from a given point to the 
+  edge of the vector field.  The field is integrated using Runge Kutta 4.  
+  Slower than Euler, but more accurate.  The higher accuracy allows for 
+  larger step sizes (ds kwarg).  For a demonstration of the improved 
+  accuracy, run test_asymtote and test_dipole, bouth found in the 
+  pybats.trace2d module.</p>
+  <p>Only valid for regular grid with coordinates gridx, gridy. If gridx 
+  and gridy are not given, assume that xstart and ystart are normalized 
+  coordinates (e.g., position in terms of array indices.)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:42 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

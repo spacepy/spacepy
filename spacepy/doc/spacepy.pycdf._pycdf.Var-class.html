@@ -1,0 +1,1275 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>spacepy.pycdf._pycdf.Var</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
+        <a href="spacepy.pycdf-module.html">Package&nbsp;pycdf</a> ::
+        <a href="spacepy.pycdf._pycdf-module.html" onclick="show_private();">Module&nbsp;_pycdf</a> ::
+        Class&nbsp;Var
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="spacepy.pycdf._pycdf.Var-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Var</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+       object --+        
+                |        
+    _abcoll.Sized --+    
+                    |    
+       object --+   |    
+                |   |    
+ _abcoll.Iterable --+    
+                    |    
+       object --+   |    
+                |   |    
+_abcoll.Container --+    
+                    |    
+     _abcoll.Sequence --+
+                        |
+                       <strong class="uidshort">Var</strong>
+</pre>
+
+<hr />
+<p>A CDF variable.</p>
+  <p>This object does not directly store the data from the CDF; rather, it 
+  provides access to the data in a format that looks like a Python list. 
+  General list information is available in the python docs: <a 
+  href="http://docs.python.org/tutorial/introduction.html#lists" 
+  target="_top">1</a>, <a 
+  href="http://docs.python.org/tutorial/datastructures.html#more-on-lists" 
+  target="_top">2</a>, <a 
+  href="http://docs.python.org/library/stdtypes.html#typesseq" 
+  target="_top">3</a>.</p>
+  <p>Variables can be subscripted by a multidimensional index to return the
+  data. Indices are in row-major order with the first dimension 
+  representing the record number. If the CDF is column major, the data are 
+  reordered to row major. Each dimension is specified by standard Python <a
+  href="http://docs.python.org/tutorial/introduction.html#strings" 
+  target="_top">slice</a> notation, with dimensions separated by commas. 
+  The ellipsis fills in any missing dimensions with full slices. The 
+  returned data are lists; Python represents multidimensional arrays as 
+  nested lists.</p>
+  <p>As a list type, variables are also <a 
+  href="http://docs.python.org/tutorial/classes.html#iterators" 
+  target="_top">iterable</a>; iterating over a variable returns a single 
+  complete record at a time.</p>
+  <p>This is all clearer with examples. Consider a variable B_GSM, with 
+  three elements per record (x, y, z components) and fifty records in the 
+  CDF. Then:</p>
+  <ol start="1">
+    <li>
+      <code>B_GSM[0, 1]</code> is the y component of the first record.
+    </li>
+    <li>
+      <code>B_GSM[10, :]</code> is a three-element list, containing x, y, 
+      and z components of the 11th record. As a shortcut, if only one 
+      dimension is specified, it is assumed to be the record number, so 
+      this could also be written <code>B_GSM[10]</code>.
+    </li>
+    <li>
+      <code>B_GSM[...]</code> reads all data for B_GSM and returns it as a 
+      fifty-element list, each element itself being a three-element list of
+      x, y, z components.
+    </li>
+  </ol>
+  <p>Multidimensional example: consider fluxes stored as a function of 
+  pitch angle and energy. Such a variable may be called Flux and stored as 
+  a two-dimensional array, with the first dimension representing (say) ten 
+  energy steps and the second, eighteen pitch angle bins (ten degrees wide,
+  centered from 5 to 175 degrees). Assume 100 records stored in the CDF 
+  (i.e. 100 different times).</p>
+  <ol start="1">
+    <li>
+      <code>Flux[4]</code> is a list of ten elements, one per energy step, 
+      each element being a list of 18 fluxes, one per pitch bin. All are 
+      taken from the fifth record in the CDF.
+    </li>
+    <li>
+      <code>Flux[4, :, 0:4]</code> is the same record, all energies, but 
+      only the first four pitch bins (roughly, field-aligned).
+    </li>
+    <li>
+      <code>Flux[..., 0:4]</code> is a 100-element list (one per record), 
+      each element being a ten-element list (one per energy step), each 
+      containing fluxes for the first four pitch bins.
+    </li>
+  </ol>
+  <p>This slicing notation is very flexible and allows reading specifically
+  the desired data from the CDF.</p>
+  <p>All data are, on read, converted to appropriate Python data types; 
+  EPOCH and EPOCH16 types are converted to <a 
+  href="http://docs.python.org/library/datetime.html" 
+  target="_top">datetime</a>.</p>
+  <p>Potentially useful list methods and related functions:</p>
+  <ul>
+    <li>
+      <a 
+      href="http://docs.python.org/tutorial/datastructures.html#more-on-lists"
+      target="_top">count</a>
+    </li>
+    <li>
+      <a href="http://docs.python.org/reference/expressions.html#in" 
+      target="_top">in</a>
+    </li>
+    <li>
+      <a 
+      href="http://docs.python.org/tutorial/datastructures.html#more-on-lists"
+      target="_top">index</a>
+    </li>
+    <li>
+      <a href="http://docs.python.org/library/functions.html#len" 
+      target="_top">len</a>
+    </li>
+    <li>
+      <a 
+      href="http://docs.python.org/tutorial/datastructures.html#list-comprehensions"
+      target="_top">list comprehensions</a>
+    </li>
+    <li>
+      <a href="http://docs.python.org/library/functions.html#sorted" 
+      target="_top">sorted</a>
+    </li>
+  </ul>
+  <p>The topic of array majority can be very confusing; good background 
+  material is available at <a 
+  href="http://www.dfanning.com/misc_tips/colrow_major.html" 
+  target="_top">IDL Array Storage and Indexing</a>. In brief, <i>regardless
+  of the majority stored in the CDF</i>, pycdf will always present the data
+  in the native Python majority, row-major order, also known as C order. 
+  This is the default order in <a 
+  href="http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#internal-memory-layout-of-an-ndarray"
+  target="_top">numPy</a>. However, packages that render image data may 
+  expect it in column-major order. If the axes seem 'swapped' this is 
+  likely the reason.</p>
+
+<hr />
+<div class="fields">      <strong>Notes:</strong>
+      <ul class="nomargin-top">
+        <li>
+        Not intended to be created directly; use methods of <a 
+        href="spacepy.pycdf._pycdf.CDF-class.html" class="link">CDF</a> to 
+        gain access to a variable.
+        </li>
+        <li>
+        Although this interface only directly supports zVariables, zMode is
+        set on opening the CDF so rVars appear as zVars. See p.24 of the 
+        CDF user's guide; pyCDF uses zMode 2.
+        </li>
+      </ul>
+</div><!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Nested Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-NestedClasses"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b>:
+      <code><a href="abc.ABCMeta-class.html">__metaclass__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">cdf_file</span>,
+        <span class="summary-sig-arg">var_name</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Create or locate a variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list-of-lists of appropriate type.</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#__getitem__" class="summary-sig-name">__getitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Returns a slice from the data array.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var.__getitem__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_create" class="summary-sig-name" onclick="show_private();">_create</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">var_name</span>,
+        <span class="summary-sig-arg">datatype</span>,
+        <span class="summary-sig-arg">n_elements</span>=<span class="summary-sig-default">1</span>,
+        <span class="summary-sig-arg">dims</span>=<span class="summary-sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>,
+        <span class="summary-sig-arg">recVary</span>=<span class="summary-sig-default">c_long(-1)</span>,
+        <span class="summary-sig-arg">dimVarys</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Creates a new zVariable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._create">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_delete" class="summary-sig-name" onclick="show_private();">_delete</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Removes this zVariable from the CDF</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._delete">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_get" class="summary-sig-name" onclick="show_private();">_get</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">var_name</span>)</span><br />
+      Gets an existing zVariable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._get">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_num" class="summary-sig-name" onclick="show_private();">_num</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the zVar number for this variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._num">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">long</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#__len__" class="summary-sig-name">__len__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Get number of records for this variable in this file</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var.__len__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">long</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_n_dims" class="summary-sig-name" onclick="show_private();">_n_dims</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Get number of dimensions for this variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._n_dims">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">sequence of long</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_dim_sizes" class="summary-sig-name" onclick="show_private();">_dim_sizes</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Get the dimension sizes for this variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._dim_sizes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">boolean</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_rec_vary" class="summary-sig-name" onclick="show_private();">_rec_vary</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Gets whether this variable has record variance</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._rec_vary">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_del_recs" class="summary-sig-name" onclick="show_private();">_del_recs</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">start</span>,
+        <span class="summary-sig-arg">count</span>)</span><br />
+      Delete a series of records from this variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._del_recs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">ctypes.c_long</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_call" class="summary-sig-name" onclick="show_private();">_call</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Select this CDF and variable and call the CDF internal interface</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._call">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">type</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_c_type" class="summary-sig-name" onclick="show_private();">_c_type</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the C type of this variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._c_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_cdf_type" class="summary-sig-name" onclick="show_private();">_cdf_type</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the CDF type of this variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._cdf_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#_nelems" class="summary-sig-name" onclick="show_private();">_nelems</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Number of elements for each value in this variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._nelems">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">string</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Var-class.html#name" class="summary-sig-name">name</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the name of this variable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var.name">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sequence</code></b>:
+      <code>__contains__</code>,
+      <code>__iter__</code>,
+      <code>__reversed__</code>,
+      <code>count</code>,
+      <code>index</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b>:
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_abc_negative_cache"></a><span class="summary-name">_abc_negative_cache</span> = <code title="set([])"><code class="variable-group">set([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_abc_negative_cache_version"></a><span class="summary-name">_abc_negative_cache_version</span> = <code title="15">15</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_abc_registry"></a><span class="summary-name">_abc_registry</span> = <code title="set([])"><code class="variable-group">set([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b> (private):
+      <code>_abc_cache</code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE VARIABLES ==================== -->
+<a name="section-InstanceVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">string</span>
+    </td><td class="summary">
+        <a name="_name"></a><span class="summary-name">_name</span><br />
+      name of this variable
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><a href="spacepy.pycdf._pycdf.CDF-class.html" class="link">CDF</a></span>
+    </td><td class="summary">
+        <a name="cdf_file"></a><span class="summary-name">cdf_file</span><br />
+      the CDF file containing this variable
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">cdf_file</span>,
+        <span class="sig-arg">var_name</span>,
+        <span class="sig-arg">*args</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create or locate a variable</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>cdf_file</code></strong> (<a href="spacepy.pycdf._pycdf.CDF-class.html" 
+          class="link">CDF</a>) - CDF file containing this variable</li>
+        <li><strong class="pname"><code>var_name</code></strong> (string) - name of this variable</li>
+        <li><strong class="pname"><code>args</code></strong> - additional arguments passed to <a 
+          href="spacepy.pycdf._pycdf.Var-class.html#_create" class="link" 
+          onclick="show_private();">_create</a>. If none, opens an existing
+          variable. If provided, creates a new one.</li>
+    </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+    </ul></dd>
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+    <br /><em class="fname">(Indexing operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var.__getitem__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns a slice from the data array.</p>
+  <p>The variable's data are viewed as a hypercube of dimensions n_dims+1 
+  and are indexed in row-major fashion, i.e. the last index changes most 
+  frequently / is contiguous in memory. If the CDF is column-major, the 
+  data are transformed to row-major before return.</p>
+  <p>The extra dimension is the record number, and is the first index.</p>
+  <p>This is implemented in the usual Python fashion of a list-of-lists, 
+  with the innermost set of lists being contiguous.</p>
+  <p>Degenerate dimensions are 'collapsed', i.e. no list of only one 
+  element will be returned if a single subscript is specified instead of a 
+  range. (To avoid this, specify a slice like 1:2, which starts with 1 and 
+  ends before 2).</p>
+  <p>Two special cases:</p>
+  <ol start="1">
+    <li>
+      requesting a single-dimension slice for a record-varying variable 
+      will return all data for that record number (or those record numbers)
+      for that variable.
+    </li>
+    <li>
+      Requests for non-rv variables may skip the record-number dimension 
+      and simply specify the slice on the array itself. If the record 
+      dimension is included, the non-rv record will be repeated as many 
+      times as necessary.
+    </li>
+  </ol>
+  <p>Otherwise, mismatch between the number of dimensions specified in the 
+  slice and the number of dimensions in the variable will cause an 
+  IndexError to be thrown.</p>
+  <p>This all sounds very complicated but it's essentially attempting to do
+  the 'right thing' for a range of slices.</p>
+  <dl class="fields">
+    <dt>Returns: list-of-lists of appropriate type.</dt>
+        <dd>The data from this variable</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>IndexError</strong></code> - TODO detail this</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - for errors from the CDF library</li>
+    </ul></dd>
+    <dt>Overrides:
+        _abcoll.Sequence.__getitem__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_create"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_create</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">var_name</span>,
+        <span class="sig-arg">datatype</span>,
+        <span class="sig-arg">n_elements</span>=<span class="sig-default">1</span>,
+        <span class="sig-arg">dims</span>=<span class="sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>,
+        <span class="sig-arg">recVary</span>=<span class="sig-default">c_long(-1)</span>,
+        <span class="sig-arg">dimVarys</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._create">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Creates a new zVariable</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>var_name</code></strong> (string) - name of this variable</li>
+        <li><strong class="pname"><code>datatype</code></strong> (ctypes.c_long) - CDF data type</li>
+        <li><strong class="pname"><code>n_elements</code></strong> (long) - number of elements (should be 1 except for CDF_CHAR variables).</li>
+        <li><strong class="pname"><code>dims</code></strong> (sequence of long) - size of each dimension for multi-dimensional variable, or empty 
+          for a zero-dimensional</li>
+        <li><strong class="pname"><code>recVary</code></strong> (long) - record variance for this variable (VARY/NOVARY)</li>
+        <li><strong class="pname"><code>dimVarys</code></strong> (sequence of long) - array of VARY or NOVARY, variance for each dimension</li>
+    </ul></dd>
+    <dt>Returns: <a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></dt>
+        <dd>new variable with this name</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Not intended to be used directly; use <a 
+        href="spacepy.pycdf._pycdf.CDF-class.html#_new_var" class="link" 
+        onclick="show_private();">CDF._new_var</a>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_delete"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_delete</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._delete">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Removes this zVariable from the CDF</p>
+  <dl class="fields">
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_get"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">var_name</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._get">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Gets an existing zVariable</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>var_name</code></strong> (string) - name of this variable</li>
+    </ul></dd>
+    <dt>Returns: <a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></dt>
+        <dd>variable with this name</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Not intended to be used directly; use <a 
+        href="spacepy.pycdf._pycdf.CDF-class.html#__getitem__" 
+        class="link">CDF.__getitem__</a>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_num"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_num</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._num">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns the zVar number for this variable</p>
+  <dl class="fields">
+    <dt>Returns: int</dt>
+        <dd>number of this zVar</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__len__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__len__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Length operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var.__len__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get number of records for this variable in this file</p>
+  <dl class="fields">
+    <dt>Returns: long</dt>
+        <dd>Number of records</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+    </ul></dd>
+    <dt>Overrides:
+        _abcoll.Sized.__len__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_n_dims"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_n_dims</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._n_dims">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get number of dimensions for this variable</p>
+  <dl class="fields">
+    <dt>Returns: long</dt>
+        <dd>the number of dimensions</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_dim_sizes"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_dim_sizes</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._dim_sizes">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get the dimension sizes for this variable</p>
+  <dl class="fields">
+    <dt>Returns: sequence of long</dt>
+        <dd>sequence of sizes</dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        This will always be in Python order (i.e. row major, last index 
+        iterates most quickly), <i>regardless</i> of the majority of the 
+        CDF.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_rec_vary"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_rec_vary</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._rec_vary">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Gets whether this variable has record variance</p>
+  <dl class="fields">
+    <dt>Returns: boolean</dt>
+        <dd>True if record variance, False if NRV</dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        If the variance is unknown, True is assumed (this replicates the 
+        apparent behaviour of the CDF library on variable creation).
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_del_recs"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_del_recs</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">start</span>,
+        <span class="sig-arg">count</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._del_recs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Delete a series of records from this variable</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>start</code></strong> (long) - zero-base index of first record to remove</li>
+        <li><strong class="pname"><code>count</code></strong> (long) - number of records to remove</li>
+    </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_call"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_call</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._call">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Select this CDF and variable and call the CDF internal interface</p>
+  <p>Adds call to select this CDF to <code class="link">args</code> and 
+  passes all parameters directly through to the CDFlib routine of the CDF 
+  library's C internal interface. Checks the return value with <a 
+  href="spacepy.pycdf._pycdf.Library-class.html#check_status" 
+  class="link">Library.check_status</a>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>args</code></strong> (various, see <code>ctypes</code>.) - Passed directly to the CDF library interface. Useful constants 
+          are defined in the <a href="spacepy.pycdf.const-module.html" 
+          class="link">const</a> module of this package.</li>
+    </ul></dd>
+    <dt>Returns: ctypes.c_long</dt>
+        <dd>CDF status from the library</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Terminal NULL_ is automatically added to <code 
+        class="link">args</code>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_c_type"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_c_type</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._c_type">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns the C type of this variable</p>
+  <dl class="fields">
+    <dt>Returns: type</dt>
+        <dd>ctypes type that will hold value from this variable</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - for library-reported error or failure to find C type</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_cdf_type"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_cdf_type</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._cdf_type">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns the CDF type of this variable</p>
+  <dl class="fields">
+    <dt>Returns: int</dt>
+        <dd>CDF type</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_nelems"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_nelems</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var._nelems">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Number of elements for each value in this variable</p>
+  <p>This is the length of strings for CHAR and UCHAR, should be 1 
+  otherwise.</p>
+  <dl class="fields">
+    <dt>Returns: int</dt>
+        <dd>length of strings</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="name"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">name</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Var.name">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns the name of this variable</p>
+  <dl class="fields">
+    <dt>Returns: string</dt>
+        <dd>variable's name</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Sep 15 12:00:46 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

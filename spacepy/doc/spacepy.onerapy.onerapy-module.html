@@ -69,7 +69,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.7 $, $Date: 2010/09/15 18:04:50 $
+        $Revision: 1.8 $, $Date: 2010/09/21 23:57:28 $
       </p>
       <p><strong>Author:</strong>
         Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
@@ -99,8 +99,8 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.onerapy.onerapy-module.html#get_Bfield" class="summary-sig-name">get_Bfield</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">Coords</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       call get_bfield in onera_desp lib and return a dictionary with the 
       B-field vector and strenght.</td>
@@ -122,8 +122,8 @@
           <td><span class="summary-sig"><a href="spacepy.onerapy.onerapy-module.html#find_Bmirror" class="summary-sig-name">find_Bmirror</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">Coords</span>,
         <span class="summary-sig-arg">alpha</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       call find_mirror_point from onera_desp library and return a 
       dictionary with values for Blocal, Bmirr and the GEO (cartesian) 
@@ -145,8 +145,8 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.onerapy.onerapy-module.html#find_magequator" class="summary-sig-name">find_magequator</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">Coords</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       call find_magequator from onera_desp library and return a dictionary 
       with values for Bmin and the GEO (cartesian) coordinates of the 
@@ -257,9 +257,9 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.onerapy.onerapy-module.html#_get_Lstar" class="summary-sig-name" onclick="show_private();">_get_Lstar</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">coords</span>,
-        <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       This will call make_lstar1 or make_lstar_shell_splitting_1 from the 
       onera library and will lookup omni values for given time if not 
@@ -282,8 +282,8 @@
           <td><span class="summary-sig"><a href="spacepy.onerapy.onerapy-module.html#get_Lstar" class="summary-sig-name">get_Lstar</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">coords</span>,
         <span class="summary-sig-arg">alpha</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       This will call make_lstar1 or make_lstar_shell_splitting_1 from the 
       onera library and will lookup omni values for given time if not 
@@ -305,9 +305,9 @@
         <tr>
           <td><span class="summary-sig"><a name="prep_onera"></a><span class="summary-sig-name">prep_onera</span>(<span class="summary-sig-arg">ticktock</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">coords</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.onerapy.onerapy-pysrc.html#prep_onera">source&nbsp;code</a></span>
@@ -340,22 +340,11 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="spacepy.onerapy.onerapy-module.html#SYSAXES_TYPES" class="summary-name">SYSAXES_TYPES</a> = <code title="{'GDZ': {'car': None, 'sph': 0},
- 'GEI': {'car': 5, 'sph': None},
- 'GEO': {'car': 1, 'sph': None},
- 'GSE': {'car': 3, 'sph': None},
- 'GSM': {'car': 2, 'sph': None},
- 'MAG': {'car': 6, 'sph': None},
- 'RLL': {'car': None, 'sph': 8},
- 'SM': {'car': 4, 'sph': None},
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">GDZ</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-group">}</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">GEI</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'spacepy.onerapy'"><code class="variable-quote">'</code><code class="variable-string">spacepy.onerapy</code><code class="variable-quote">'</code></code>
+        <a href="spacepy.onerapy.onerapy-module.html#SYSAXES_TYPES" class="summary-name">SYSAXES_TYPES</a> = <code title="{'GDZ': {'sph': 0, 'car': None}, 'GEO': {'sph': None, 'car': 1}, 'GSM'\
+: {'sph': None, 'car': 2}, 'GSE': {'sph': None, 'car': 3}, 'SM': {'sph\
+': None, 'car': 4}, 'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': Non\
+e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
+ None}}">{'GDZ': {'sph': 0, 'car': None}, 'GEO': {'sph'<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 </table>
@@ -386,8 +375,8 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Bfield</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">Coords</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
+        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -457,8 +446,8 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">find_Bmirror</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">Coords</span>,
         <span class="sig-arg">alpha</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
+        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -532,8 +521,8 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">find_magequator</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">Coords</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
+        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -842,9 +831,9 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_Lstar</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">coords</span>,
-        <span class="sig-arg">alpha</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="sig-arg">alpha</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
+        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -1073,8 +1062,8 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Lstar</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">coords</span>,
         <span class="sig-arg">alpha</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
+        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -1324,15 +1313,11 @@
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">GDZ</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-group">}</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">GEI</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>5<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">GEO</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>1<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">GSE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>3<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">GSM</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>2<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">MAG</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>6<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">RLL</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>8<code class="variable-group">}</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">SM</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>4<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
-<code class="variable-ellipsis">...</code>
+{'GDZ': {'sph': 0, 'car': None}, 'GEO': {'sph': None, 'car': 1}, 'GSM'<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+: {'sph': None, 'car': 2}, 'GSE': {'sph': None, 'car': 3}, 'SM': {'sph<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+': None, 'car': 4}, 'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': Non<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ None}}
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -1370,7 +1355,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Sep 15 12:00:46 2010
+    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:42 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
