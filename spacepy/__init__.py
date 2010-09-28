@@ -28,7 +28,7 @@ __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni",
 
 # Expose definitions from modules in this package.
 from toolbox import loadpickle, savepickle, dictree, printfig
-import time, coordinates, constants
+import time, coordinates
 
 #package info
 __version__ = '0.1dev'
