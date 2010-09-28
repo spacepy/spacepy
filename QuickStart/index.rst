@@ -3,7 +3,9 @@ SpacePy - A Quick Start Documentation
 *************************************
 
 
-Josef Koller and others
+The SpacePy Team
+(Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Jon Niehof, 
+Mike Henderson)
 
 
 Installation
@@ -11,35 +13,49 @@ Installation
 
 Option 1) to install it in the standard loction (depending on your system)::
 
-	python setup.py install
+    python setup.py install
+    
+or::
+    
+    sudo python setup.py install
 
 Option 2) to install in custom location, e.g.::
 
-	python setup.py install --home=/n/packages/lib/python
+    python setup.py install --home=/n/packages/lib/python
 
 
 Toolbox - a box full of tools
 =============================
 
 Contains tools that don't fit anywhere else but are, in general, quite 
-useful. The following function are implemented:
+useful. The following functions are a selection of those implemented:
 
-* item 1
+    * windowMean: windowing mean with variable window size and overlap
+    * dictree: pretty prints the contents of dictionaries (recursively)
+    * loadpickle: single line convenience routine for loading Python 
+        pickles
+    * savepickle: same as loadpickle, but for saving
+    * update: updates the OMNI database and the leap seconds database 
+        (internet connection required)
+    * tOverlap: find interval of overlap between two time series
+    * tCommon: find times common to two time series
+    * binHisto: calculate number of bins for a histogram
+    * medAbsDev: find the median absolute deviation of a data series
 
-* item 2
 
 Time and Coordinate Transformations
 ===================================
 
-Import the module as:: 
+Import the modules as:: 
 
-	import spacepy.spacetime as st
-	
+    >>> import spacepy.time as spt
+    >>> import spacepy.coords as spc
 
-TickTock class
+
+Ticktock class
 ==============
 
-The TickTock class provides as number of time conversion routines. 
+The Ticktock class provides as number of time conversion routines. 
 The following time coordinates are provided
 
 * UTC: Coordinated Universal Time implemented as a ``datetime.datetime`` class
@@ -54,46 +70,46 @@ The following time coordinates are provided
 * leaps: Leap seconds according to ftp://maia.usno.navy.mil/ser7/tai-utc.dat 
 
 To access these time coordinates, you'll create an instance of a 
-TickTock class, e.g.::
+Ticktock class, e.g.::
 
-	t = st.TickTock('2002-10-25T12:30:00', 'ISO')
+    >>> t = spt.Ticktock('2002-10-25T12:30:00', 'ISO')
 
 Instead of ISO you may use any of the formats listed above. You can also 
 use numpy arrays or lists of time points. ``t`` has now the class 
 attributes::
 
-	t.dtype = 'ISO'
-	t.data = '2002-10-25T12:30:00'
+    >>> t.dtype = 'ISO'
+    >>> t.data = '2002-10-25T12:30:00'
 
 FYI ``t.UTC`` is added automatically.
 
 If you want to convert/add a class attribute from the list above, 
 simply type e.g.::
 
-	t.RTD
-	
+    >>> t.RTD
+
 You can replace RTD with any from the list above.
 
 You can find out how many leap seconds were used by issuing the command::
 
-	t.getleapsecs()
+    >>> t.getleapsecs()
 
 
-TickDelta class
+Tickdelta class
 ===============
 
-You can add/substract time from a TickTock class instance by creating a 
-TickDelta instance first.::
+You can add/substract time from a Ticktock class instance by creating a 
+Tickdelta instance first.::
 
-	dt = st.TickDelta(days=2.3)
+    >>> dt = spt.Tickdelta(days=2.3)
 
 Then you can add by e.g.::
 
-	t+dt 
-	
-	
-SpaCo class
-===========
+    >>> t+dt 
+
+
+Coords class
+============
 
 The spatial coordinate class includes the following coordinate systems in 
 cartesian and sphericals. 
@@ -108,39 +124,39 @@ cartesian and sphericals.
 * SPH: same as GEO but in spherical
 * RLL: radial distance, latitude, longitude, Re, deg, deg.
 
-Create a SpaCo instance with spherical='sph' or cartesian='car' 
+Create a Coords instance with spherical='sph' or cartesian='car' 
 coordinates::
  
- coord = st.SpaCo([[1,2,4],[1,2,2]], 'GEO', 'car')
+    >>> coord = spc.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
  
 This will let you request for example all y-coordinates by ``coord.y`` 
 or if given in spherical coordinates by ``coord.lati``. One can transform 
 the coordinates by ``newcoord = coord.convert('GSM', 'sph')``. 
 This will return GSM coordinates in a spherical system. Since GSM 
-coordinates depend on time, you'll have to add first a TickTock 
-vector like ``coord.ticktock = st.TickTock(['2002-02-02T12:00:00', 
+coordinates depend on time, you'll have to add first a Ticktock 
+vector like ``coord.ticktock = spt.Ticktock(['2002-02-02T12:00:00', 
 '2002-02-02T12:00:00'], 'ISO')``
  
  
 RadBelt Module
 ==============
 
-The radiation belt module currently include a simple radial 
+The radiation belt module currently includes a simple radial 
 diffusion code as a class. Import the module and create a class::
 
-	import spacepy.radbelt as sprb
-	rb = sprb.RBmodel()
+    >>> import spacepy.radbelt as sprb
+    >>> rb = sprb.RBmodel()
 
 Add a time grid for a particular period that you are interested in::
 
-	rb.setup_ticks('2002-02-01T00:00:00', '2002-02-10T00:00:00', 0.25)
+    >>> rb.setup_ticks('2002-02-01T00:00:00', '2002-02-10T00:00:00', 0.25)
 
 This will automatically lookup required geomagnetic/solar wind conditions 
 for that period. Run the diffusion solver for that setup and plot the 
 results.::
 
-	rb.evolve()
-	rb.plot()
+    >>> rb.evolve()
+    >>> rb.plot()
 
 
 OMNI Module
@@ -162,29 +178,30 @@ pycdf provides a "pythonic" interface to the NASA CDF library (currently
 read-only). It requires that the base C library be properly installed.
 The module can then be imported, e.g.::
 
-	import spacepy.pycdf as cdf
+    >>> import spacepy.pycdf as cdf
 
 Extensive documentation is provided in epydoc format in docstrings.
 
 To open and close a CDF file::
 
-	cdf_file = cdf.CDF('filename.cdf')
-	cdf_file.close()
+    >>> cdf_file = cdf.CDF('filename.cdf')
+    >>> cdf_file.close()
 
 CDF files, like standard Python files, act as context managers::
 
-       with cdf.CDF('filename.cdf') as cdf_file:
-	    #do brilliant things with cdf_file
-       #cdf_file is automatically closed here
+    >>> with cdf.CDF('filename.cdf') as cdf_file:
+        #do brilliant things with cdf_file
+        #cdf_file is automatically closed here
 
 CDF files act as Python dictionaries, holding CDF variables keyed
 by the variable name::
 
-       var_names = keys(cdf_file) #list of all variables
-       for var_name in cdf_file:
-	   print(len(cdf_file[var_name])) #number of records in each variable
-       #list comprehensions work, too
-       lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
+        >>> var_names = keys(cdf_file) #list of all variables
+        >>> for var_name in cdf_file:
+        ...     print(len(cdf_file[var_name])) #number of records in each variable
+        
+            #list comprehensions work, too
+        >>> lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
 
 Each CDF variable acts as a Python list, one element per record.
 Multidimensional CDF variables are represented as nested lists and can be
@@ -192,14 +209,60 @@ subscripted using a multidimensional slice notation similar to numpy. Creating
 a Python Var object does not read the data from disc; data are only read as
 they are accessed::
 
-       epoch = cdf_file['Epoch'] #Python object created, nothing read from disc
-       epoch[0] #time of first record in CDF (datetime object)
-       a = epoch[...] #copy all times to list a
-       a = epoch[-5:] #copy last five times to list a
-       b_gse = cdf_file['B_GSE'] #B_GSE is a 1D, three-element array
-       bz = b_gse[0,2] #Z component of first record
-       bx = b_gse[:,0] #copy X component of all records to bx
-       bx = cdf_file['B_GSE'][:,0] #same as above
+       >>> epoch = cdf_file['Epoch'] #Python object created, nothing read from disc
+       >>> epoch[0] #time of first record in CDF (datetime object)
+       >>> a = epoch[...] #copy all times to list a
+       >>> a = epoch[-5:] #copy last five times to list a
+       >>> b_gse = cdf_file['B_GSE'] #B_GSE is a 1D, three-element array
+       >>> bz = b_gse[0,2] #Z component of first record
+       >>> bx = b_gse[:,0] #copy X component of all records to bx
+       >>> bx = cdf_file['B_GSE'][:,0] #same as above
+
+
+Empiricals module
+=================
+
+The empiricals module provides access to some useful empirical models.
+As of SpacePy 0.1.0, the models available are:
+    
+    * An empirical parametrization of the L* of the last closed drift shell 
+      (Lmax)
+    * The plasmapause location, following either Carpenter and Anderson 
+      (1992) or Moldwin et al. (2002)
+    * The magnetopause standoff location (i.e. the sub-solar point), using 
+      the Shue et al. (1997) model
+
+Each model is called by passing it a Ticktock object (see above) which then 
+calculates the model output using the 1-hour Qin-Denton OMNI data (from the 
+OMNI module; see above). For example::
+    
+    >>> import spacepy.time as spt
+    >>> import spacepy.empiricals as emp
+    >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
+
+calls the tickrange function from spacepy.time and makes a Ticktock object
+with times from midday on January 1st 2002 to midnight January 4th 2002, 
+incremented 6-hourly::
+    
+    >>> Lpp = emp.getPlasmaPause(ticks)
+
+then returns the model plasmapause location using the default setting of the
+Moldwin et al. (2002) model. The Carpenter and Anderson model can be used by
+setting the Lpp_model keyword to 'CA1992'.
+
+The magnetopause standoff location can be called using this syntax, or can be
+called for specific solar wind parameters (ram pressure, P, and IMF Bz) passed 
+through in a Python dictionary::
+    
+    >>> data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
+    >>> emp.getMPstandoff(data)
+    array([ 10.29156018,   8.96790412])
+
+
+SeaPy - Superposed Epoch Analysis in Python
+===========================================
+
+stuff
 
 
 The testing.py module
