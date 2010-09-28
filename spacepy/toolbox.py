@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.44 $, $Date: 2010/09/28 15:39:10 $"
+__version__ = "$Revision: 1.45 $, $Date: 2010/09/28 16:30:28 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -164,11 +164,12 @@ def savepickle(fln, dict):
     return
 
 # -----------------------------------------------
-def assemble(fln_pattern, outfln):
+def assemble(fln_pattern, outfln, sortkey='ticks'):
     """
     assembles all pickled files matching fln_pattern into single file and 
     save as outfln. Pattern may contain simple shell-style wildcards *? a la fnmatch
-    file will be assembled along time axis TAI, etc in dictionary
+    file will be assembled along time axis given by Ticktock (key: 'ticks') in dictionary
+    If sortkey = None, then nothing will be sorted
 
     @param fln_pattern: pattern to match filenames
     @type fln_pattern: string
@@ -183,16 +184,17 @@ def assemble(fln_pattern, outfln):
     
     @version: V1: 20-Jan-2010
 
-    >>> assemble('input_files_*.pbin', 'combined_input.pbin')
-    adding input_files_2001.pbin
-    adding input_files_2002.pbin
-    adding input_files_2004.pbin
-    writing: combined_input.pbin
+    >>> assemble('input_files_*.pkl', 'combined_input.pkl')
+    adding input_files_2001.pkl
+    adding input_files_2002.pkl
+    adding input_files_2004.pkl
+    writing: combined_input.pkl
     """
 
     import glob
     import numpy as n
     import time as t
+    import coordinates as c
 
     filelist = glob.glob(fln_pattern)
 
@@ -202,27 +204,45 @@ def assemble(fln_pattern, outfln):
        print("adding ", fln)
        d[fln] = loadpickle(fln)
     
+    
     # combine them
     dcomb = d[filelist[0]]  # copy the first file over
     for fln in filelist[1:]:
-       TAIcount = len(d[fln]['TAI'])
+       # check if sortkey is actually available
+       assert (sortkey in d[fln] or sortkey==None), 'provided sortkey ='+sortkey+' is not available'
+       
+       if sortkey:
+          TAIcount = len(d[fln][sortkey])
+       else:
+          TAIcount = len(d[fln][ d[fln].keys()[0] ])
        for key in d[fln].keys():
           #print fln, key
           dim = n.array(n.shape(d[fln][key]))
           ax = n.where(dim==TAIcount)[0]
-          if len(ax) == 1: # then match with TAI length is given (jump over otherwise)
-             dcomb[key] = n.append(dcomb[key], d[fln][key], axis=ax)
-             
-    # sort in time
-    idx = n.argsort(dcomb['TAI'])
-    TAIcount = len(dcomb['TAI'])
-    for key in dcomb.keys():
-       dim = n.array(n.shape(dcomb[key]))
-       ax = n.where(dim==TAIcount)[0]
-       if len(ax) == 1: # then match with length of TAI
-          dcomb[key] = dcomb[key][idx] # resort
+          if len(ax) == 1: # then match with TAI length is given (jump over otherwise like for 'parameters')
+             if isinstance(dcomb[key], t.Ticktock):
+                 dcomb[key] = dcomb[key].append(d[fln][key])
+             elif isinstance(dcomb[key], c.Coords):
+                 dcomb[key] = dcomb[key].append(d[fln][key])
+             else:
+                 dcomb[key] = n.append(dcomb[key], d[fln][key], axis=ax)
 
-    print('\n writing: ', outfln)
+    if sortkey:    #  then sort     
+        if isinstance(dcomb[sortkey], t.Ticktock):
+           idx = n.argsort(dcomb[sortkey].RDT)
+        else:
+           idx = n.argsort(dcomb[sortkey])
+        TAIcount = len(dcomb[sortkey])
+        for key in dcomb.keys():
+           dim = n.array(n.shape(dcomb[key]))
+           ax = n.where(dim==TAIcount)[0]
+           if len(ax) == 1: # then match with length of TAI
+              dcomb[key] = dcomb[key][idx] # resort
+    else:
+        # do nothing
+        pass
+    
+    print '\n writing: ', outfln
     savepickle(outfln, dcomb)
     
     return dcomb

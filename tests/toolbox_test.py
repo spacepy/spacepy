@@ -7,20 +7,39 @@ import datetime
 from numpy import array
 import numpy
 
-class PickleTests(unittest.TestCase):
+class PickleAssembleTests(unittest.TestCase):
 
     def setUp(self):
-        super(PickleTests, self).setUp()
+        super(PickleAssembleTests, self).setUp()
+                
+        D1 = {}
+        D1['names'] = ['John', 'Joe', 'Joyce']
+        D1['TAI'] = [1,2,3]
+        D2 = D1.copy()
+        D2['TAI'] = [4,5,6]
+        D3 = D1.copy()
+        D3['TAI'] = [7,8,9]
+        self.D1 = D1
+        self.D2 = D2
+        self.D3 = D3
+        self.all = {'names':['John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce'],
+                    'TAI':[1,2,3,4,5,6,7,8,9]}
+        
         try:  # make sure test file is gone before test
-            os.remove('test_pickle_1.pbin')
+            os.remove('test_pickle_1.pkl')
+            os.remove('test_pickle_2.pkl')
+            os.remove('test_pickle_3.pkl')
         except:
             pass
          
 
     def tearDown(self):
-        super(PickleTests, self).tearDown()
+        super(PickleAssembleTests, self).tearDown()
         try:  # make sure test file is gone before test
-            os.remove('test_pickle_1.pbin')
+            os.remove('test_pickle_1.pkl')
+            os.remove('test_pickle_2.pkl')
+            os.remove('test_pickle_3.pkl')
+            os.remove('test_all.pkl')
         except:
             pass
 
@@ -28,15 +47,23 @@ class PickleTests(unittest.TestCase):
     def testSaveLoadPickle(self):
         """savePickle should write a pickle to disk and loadPickle should load it"""
         
-        D = {}
-        D['names'] = ['John', 'Joe', 'Joyce']
-        D['TAI'] = [1,2,3]
-        self.D = D
-        tb.savepickle('test_pickle_1.pbin', D)
-        files = glob.glob('*.pbin')
-        self.assertTrue('test_pickle_1.pbin' in files)
-        DD = tb.loadpickle('test_pickle_1.pbin')
-        self.assertEqual(D, DD)
+        tb.savepickle('test_pickle_1.pkl', self.D1)
+        files = glob.glob('*.pkl')
+        self.assertTrue('test_pickle_1.pkl' in files)
+        DD = tb.loadpickle('test_pickle_1.pkl')
+        self.assertEqual(self.D1, DD)      
+
+    def test_assemble(self):
+        tb.savepickle('test_pickle_1.pkl', self.D1)
+        tb.savepickle('test_pickle_2.pkl', self.D2)
+        tb.savepickle('test_pickle_3.pkl', self.D3)
+        expected = self.all
+        result = tb.assemble('test_pickle*.pkl', 'test_all.pkl', sortkey=None)
+        for key in result:
+            result[key] = result[key].tolist()
+        
+        self.assertEqual(expected, result)
+
 
 
 class SimpleFunctionTests(unittest.TestCase):

@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.22 $, $Date: 2010/09/15 16:38:54 $"
+__version__ = "$Revision: 1.23 $, $Date: 2010/09/28 16:30:28 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -316,6 +316,7 @@ class Ticktock(object):
         if dtype.upper() == 'RDT': self.RDT = self.data
         if dtype.upper() == 'CDF': self.CDF = self.data
         self.UTC = self.getUTC()
+        self.shape = (len(self.data), )
         return
         
     # -----------------------------------------------    
@@ -412,9 +413,9 @@ class Ticktock(object):
         arr = n.array(self.data)
         
         if isinstance(idx, int):
-        	return Ticktock(arr[idx], self.dtype) 
+            return Ticktock(arr[idx], self.dtype) 
         else:
-	        return Ticktock(arr[idx].tolist(), self.dtype)   
+            return Ticktock(arr[idx].tolist(), self.dtype)   
     
     # -----------------------------------------------    
     def __setitem__(self, idx, vals):
@@ -490,7 +491,6 @@ class Ticktock(object):
         else:
             return 1
         return  
-    
     # -----------------------------------------------    
     def __cmp__(self, other):
         """

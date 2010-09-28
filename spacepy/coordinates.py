@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.5 $, $Date: 2010/09/16 18:57:50 $"
+__version__ = "$Revision: 1.6 $, $Date: 2010/09/28 16:30:28 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -121,7 +121,7 @@ class Coords(object):
             self.long = self.data[:,2]
         ## setup list for onera compatibility
         #self.sysaxes = op.get_sysaxes(dtype, carsph)
-        
+        self.shape = n.shape(self.data)
         return None
         
     # -----------------------------------------------    
