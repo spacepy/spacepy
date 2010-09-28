@@ -3,12 +3,15 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.31 $, $Date: 2010/09/21 21:38:42 $"
+__version__ = "$Revision: 1.32 $, $Date: 2010/09/28 15:39:10 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
+
+import os, sys, shutil, getopt
+from distutils.core import setup
+from os import environ as ENVIRON
 
 # -------------------------------------
 def compile_pybats():
-    import os
     os.chdir('spacepy/pybats')
     os.system('f2py -c ctrace2d.pyf trace2d.c')
     os.chdir('../..')
@@ -17,8 +20,6 @@ def compile_pybats():
 def compile_irbempy(fcompiler):
 
     # compile irbemlib
-    import os, sys
-
     os.chdir('spacepy/irbempy/irbem-lib-2010-09-14-rev189')
 
     F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f']
@@ -38,7 +39,7 @@ def compile_irbempy(fcompiler):
 
     fln = 'irbempylib.pyf'
 
-    print 'Substituting fortran intent(in/out) statements'
+    print('Substituting fortran intent(in/out) statements')
     f = open(fln, 'r')
     filestr = f.read()
     f.close()
@@ -94,7 +95,7 @@ def compile_irbempy(fcompiler):
             os.chdir('..')
             os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
     else:
-        print sys.platform, ' not supported at this time'
+        print('%s not supported at this time' % sys.platform)
         sys.exit(1)
 
     err = os.system('mv -f irbempylib.so ../')
@@ -108,8 +109,6 @@ def compile_irbempy(fcompiler):
 def compile_oneralib(fcompiler):
 
     # compile oneralib
-    import os, sys
-
     os.chdir('spacepy/onerapy/onera_lib_V4.1')
 
     F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f']
@@ -129,7 +128,7 @@ def compile_oneralib(fcompiler):
 
     fln = 'onerapylib.pyf'
 
-    print 'Substituting fortran intent(in/out) statements'
+    print('Substituting fortran intent(in/out) statements')
     f = open(fln, 'r')
     filestr = f.read()
     f.close()
@@ -184,7 +183,7 @@ def compile_oneralib(fcompiler):
             os.chdir('..')
             os.system('f2py -c onerapylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
     else:
-        print sys.platform, ' not supported at this time'
+        print('%s not supported at this time' % sys.platform)
         sys.exit(1)
 
     os.system('mv -f onerapylib.so ../')
@@ -201,41 +200,39 @@ def subst(pattern, replacement, filestr,
     pattern_matching_modifiers: re.DOTALL, re.MULTILINE, etc.
     """
     
-    import os, re, sys, shutil
+    import re, shutil
     
     
     if pattern_matching_modifiers is not None:
-    	cp = re.compile(pattern, pattern_matching_modifiers)
+        cp = re.compile(pattern, pattern_matching_modifiers)
     else:
-    	cp = re.compile(pattern)
-	
-	if cp.search(filestr):  # any occurence of pattern?
-		filestr = cp.sub(replacement, filestr)
-		
+        cp = re.compile(pattern)
+
+    if cp.search(filestr):  # any occurence of pattern?
+        filestr = cp.sub(replacement, filestr)
+        
     return filestr
-	
+
 # -------------------------------------
-from distutils.core import setup
-import os, sys, shutil, getopt
 
 # check for compiler flags
 fcompiler = 'gnu95' # standard compiler flag
 if len(sys.argv) > 2:
-	for i in range(len(sys.argv)):
-		if sys.argv[i] == '--fcompiler=pg':
-			fcompiler = 'pg'
-		if sys.argv[i] == '--fcompiler=gnu':
-			fcompiler = 'gnu'
-			
+    for i in range(len(sys.argv)):
+        if sys.argv[i] == '--fcompiler=pg':
+            fcompiler = 'pg'
+        if sys.argv[i] == '--fcompiler=gnu':
+            fcompiler = 'gnu'
+            
 for ff in ['pg', 'gnu95', 'gnu']:
-	try:
-		sys.argv.remove('--fcompiler='+ff)
-	except:
-		pass
-	
+    try:
+        sys.argv.remove('--fcompiler='+ff)
+    except:
+        pass
+
 #import tooblox by reading file from repository
 # this will provide mostly the query_yes_no function
-execfile('spacepy/toolbox.py')
+exec(compile(open('spacepy/toolbox.py').read(), 'spacepy/toolbox.py', 'exec'))
 
 #test for python version 2.x where x>=5
 try:
@@ -272,9 +269,8 @@ compile_pybats()
 
 # create .spacepy in $HOME and move data
 # read-in .rc file first
-execfile('spacepy/data/spacepy.rc')
-from os import environ as ENVIRON
-if ENVIRON.has_key('SPACEPY'):
+exec(compile(open('spacepy/data/spacepy.rc').read(), 'spacepy/data/spacepy.rc', 'exec'))
+if 'SPACEPY' in ENVIRON:
     DOT_FLN = ENVIRON['SPACEPY']+'/.spacepy'
 else:
     DOT_FLN = ENVIRON['HOME']+'/.spacepy'
@@ -297,9 +293,9 @@ else:
 
 if fresh_install:
     os.mkdir(DOT_FLN)
-    os.chmod(DOT_FLN, 0777)
+    os.chmod(DOT_FLN, 0o777)
     os.mkdir(DOT_FLN+'/data')
-    os.chmod(DOT_FLN+'/data', 0777)
+    os.chmod(DOT_FLN+'/data', 0o777)
     shutil.copy('spacepy/data/spacepy.rc', DOT_FLN+'/')
     shutil.copy('spacepy/data/tai-utc.dat', DOT_FLN+'/data')
 
@@ -338,7 +334,7 @@ else:
     if ans=='yes':
         dir = update()
     else:
-        print "\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()"
+        print("\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()")
 
 
-print "\nThanks for installing SpacePy."
+print("\nThanks for installing SpacePy.")

@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.43 $, $Date: 2010/09/15 15:41:44 $"
+__version__ = "$Revision: 1.44 $, $Date: 2010/09/28 15:39:10 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -199,7 +199,7 @@ def assemble(fln_pattern, outfln):
     # read all files
     d = {}
     for fln in filelist:
-       print "adding ", fln
+       print("adding ", fln)
        d[fln] = loadpickle(fln)
     
     # combine them
@@ -222,7 +222,7 @@ def assemble(fln_pattern, outfln):
        if len(ax) == 1: # then match with length of TAI
           dcomb[key] = dcomb[key][idx] # resort
 
-    print '\n writing: ', outfln
+    print('\n writing: ', outfln)
     savepickle(outfln, dcomb)
     
     return dcomb
@@ -299,7 +299,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
 
     if not spaces:
         spaces = ''
-        print '+'
+        print('+')
     
     if levels:
         try:
@@ -322,13 +322,13 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
                         dimstr = ' [' + str(dimstr) + ']'
                     except:
                         dimstr = ''
-                print spaces + '|____' + key + ' ('+ typestr + dimstr + ')'
+                print(spaces + '|____' + key + ' ('+ typestr + dimstr + ')')
             else:
-                print spaces + '|____' + key
+                print(spaces + '|____' + key)
         else:
-            print spaces + '|____' + key
+            print(spaces + '|____' + key)
         if type(in_dict[key]) == dict and levels:
-            dictree(in_dict[key], spaces = spaces+ '     ', verbose = verbose, levels = levels)
+            dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels)
 
     return None
 
@@ -465,7 +465,7 @@ def update(all=True, omni=False, leapsecs=False):
 
     if omni == True:
         # retrieve omni, unzip and save as table
-        print "Retrieving omni file ..."
+        print("Retrieving omni file ...")
         u.urlretrieve(OMNI_URL, omni_fname_zip)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
@@ -476,7 +476,7 @@ def update(all=True, omni=False, leapsecs=False):
         #fh.writelines(data)
         #fh.flush()
         #fh.close
-        print "Now pickling (this will take a few minutes) ..."
+        print("Now pickling (this will take a few minutes) ...")
         
         # create a keylist
         keys = A[0].split()
@@ -506,7 +506,7 @@ def update(all=True, omni=False, leapsecs=False):
             stat8[i] = A[i].split()[11]
             stat6[i] = A[i].split()[27]
         
-	tab = n.array(tab, dtype='float') 
+        tab = n.array(tab, dtype='float') 
         # take out where Dst not available ( = 99999) or year == 0
         idx = n.where((tab[:,12] !=99.0) & (tab[:,0] != 0))[0]
         tab = tab[idx,:]
@@ -561,7 +561,7 @@ def update(all=True, omni=False, leapsecs=False):
         os.remove(omni_fname_zip)
 
     if leapsecs == True:
-        print "Retrieving leapseconds file ... "
+        print("Retrieving leapseconds file ... ")
         u.urlretrieve(LEAPSEC_URL, leapsec_fname)
         
     return datadir
@@ -654,15 +654,15 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         #loop for fixed number of points in window
         if winsize % 1:
             winsize = round(winsize)
-            print 'windowmean error: non-integer windowsize, rounding to %d' \
-            % winsize
+            print('windowmean error: non-integer windowsize, rounding to %d' \
+            % winsize)
         if winsize < 1:
             winsize = 1
-            print 'windowmean error: window length < 1, defaulting to 1'
+            print ('windowmean error: window length < 1, defaulting to 1')
         if overlap >= winsize:
             overlap = winsize - 1
-            print '''windowmean error: overlap longer than window, truncated to
-            %d''' % overlap
+            print ('''windowmean error: overlap longer than window, truncated to
+            %d''' % overlap)
         lastpt = winsize-1 #set last point to end of window size
         while lastpt < len(data):
             datwin = np.ma.masked_where(np.isnan(data[startpt:startpt+winsize]), \
@@ -1319,7 +1319,7 @@ def test():
         os.remove('test_pickle_2.pbin')
         os.remove('test_pickle_assembled.pbin')
     except:
-        print "test_toolbox: FAILED TEST assemble"
+        print("test_toolbox: FAILED TEST assemble")
         nFAIL =+ 1
     
     ## # feq
@@ -1331,7 +1331,7 @@ def test():
     try:
         tb.dictree(Dcomb)
     except:
-        print "test_toolbox: FAILED TEST dictionary tree"
+        print("test_toolbox: FAILED TEST dictionary tree")
         nFAIL =+ 1
 
     # printfig
@@ -1342,7 +1342,7 @@ def test():
         os.remove('figure_0.png')
         os.remove('figure_0.ps')
     except:
-        print "testing toolbox: FAILED TEST printfig"
+        print("testing toolbox: FAILED TEST printfig")
         nFAIL =+ 1
 
     # update
