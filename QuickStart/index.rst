@@ -24,7 +24,7 @@ Option 2) to install in custom location, e.g.::
     python setup.py install --home=/n/packages/lib/python
 
 
-Toolbox - a box full of tools
+Toolbox - A Box Full of Tools
 =============================
 
 Contains tools that don't fit anywhere else but are, in general, quite 
@@ -41,6 +41,7 @@ useful. The following functions are a selection of those implemented:
     * tCommon: find times common to two time series
     * binHisto: calculate number of bins for a histogram
     * medAbsDev: find the median absolute deviation of a data series
+    * normalize: normalize a data series
 
 
 Time and Coordinate Transformations
@@ -52,8 +53,8 @@ Import the modules as::
     >>> import spacepy.coords as spc
 
 
-Ticktock class
-==============
+Ticktock Class
+--------------
 
 The Ticktock class provides as number of time conversion routines. 
 The following time coordinates are provided
@@ -95,8 +96,8 @@ You can find out how many leap seconds were used by issuing the command::
     >>> t.getleapsecs()
 
 
-Tickdelta class
-===============
+Tickdelta Class
+---------------
 
 You can add/substract time from a Ticktock class instance by creating a 
 Tickdelta instance first.::
@@ -108,8 +109,8 @@ Then you can add by e.g.::
     >>> t+dt 
 
 
-Coords class
-============
+Coords Class
+------------
 
 The spatial coordinate class includes the following coordinate systems in 
 cartesian and sphericals. 
@@ -162,16 +163,45 @@ results.::
 OMNI Module
 ===========
 
-bla bla
+The OMNI database is an hourly resolution, multi-source data set
+with coverage from November 1963; higher temporal resolution versions of 
+the OMNI database exist, but with coverage from 1995. The primary data are
+near-Earth solar wind, magnetic field and plasma parameters. However, a 
+number of modern magnetic field models require derived input parameters,
+and Qin and Denton (2007) have used the publicly-available OMNI database to provide
+a modified version of this database containing all parameters necessary 
+for these magnetic field models. These data are available through ViRBO  - the Virtual 
+Radiation Belt Observatory.
+
+In SpacePy this data is made available on request on install; if not downloaded
+when SpacePy is installed and attempt to import the omni module will 
+ask the user whether they wish to download the data. Should the user 
+require the latest data, the toolbox.update function can 
+be used to fetch the latest files from ViRBO.
+
+The following example fetches the OMNI data for the storms of 
+October and November, 2003.::
+    
+        >>> import spacepy.time as spt
+        >>> import spacepy.omni as om
+        >>> import datetime as dt
+        >>> st = dt.datetime(2003,10,20)
+        >>> en = dt.datetime(2003,12,5)
+        >>> delta = dt.timedelta(days=1)
+        >>> ticks = spt.tickrange(st, en, delta, 'UTC')
+        >>> data = om.get_omni(ticks)
+
+*data* is a dictionary containing all the OMNI data, by variable, for the timestamps
+contained within the ``Ticktock`` object *ticks*
 
 
-ONERA-DESP Module
+OneraPy Module
 =================
 
 bla bla
 
 
-pycdf - Python access to NASA CDF library
+Pycdf - Python Access to NASA CDF Library
 =========================================
 
 pycdf provides a "pythonic" interface to the NASA CDF library (currently
@@ -219,7 +249,7 @@ they are accessed::
        >>> bx = cdf_file['B_GSE'][:,0] #same as above
 
 
-Empiricals module
+Empiricals Module
 =================
 
 The empiricals module provides access to some useful empirical models.
@@ -265,8 +295,8 @@ SeaPy - Superposed Epoch Analysis in Python
 stuff
 
 
-The testing.py module
-=====================
+Testing Suite
+=============
 
 Is supposed to test the implementation of spacepy modules.
 
