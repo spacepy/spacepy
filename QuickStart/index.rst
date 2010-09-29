@@ -56,19 +56,20 @@ Import the modules as::
 Ticktock Class
 --------------
 
-The Ticktock class provides as number of time conversion routines. 
-The following time coordinates are provided
+The Ticktock class provides a number of time conversion routines and is 
+implemented as a container class built on the functionality of the Python
+datetime module. The following time coordinates are provided
 
-* UTC: Coordinated Universal Time implemented as a ``datetime.datetime`` class
-* ISO: standard ISO 8601 format like ``2002-10-25T14:33:59``
-* TAI: International Atomic Time in units of seconds since Jan 1, 1958 (midnight) and includes leap seconds, i.e. every second has the same length
-* JD:  Julian Day
-* MJD: Modified Julian Day
-* UNX: UNIX time in seconds since Jan 1, 1970
-* RDT: Rata Die Time (lat. fixed date) in days since Jan 1, 1 AD midnight
-* CDF: CDF Epoch time in milliseconds since Jan 1, 0 
-* DOY: Day of Year including fractions
-* leaps: Leap seconds according to ftp://maia.usno.navy.mil/ser7/tai-utc.dat 
+    * UTC: Coordinated Universal Time implemented as a ``datetime.datetime`` class
+    * ISO: standard ISO 8601 format like ``2002-10-25T14:33:59``
+    * TAI: International Atomic Time in units of seconds since Jan 1, 1958 (midnight) and includes leap seconds, i.e. every second has the same length
+    * JD:  Julian Day
+    * MJD: Modified Julian Day
+    * UNX: UNIX time in seconds since Jan 1, 1970
+    * RDT: Rata Die Time (Gregorian Ordinal Time) in days since Jan 1, 1 AD midnight
+    * CDF: CDF Epoch time in milliseconds since Jan 1, year 0 
+    * DOY: Day of Year including fractions
+    * leaps: Leap seconds according to ftp://maia.usno.navy.mil/ser7/tai-utc.dat 
 
 To access these time coordinates, you'll create an instance of a 
 Ticktock class, e.g.::
@@ -115,15 +116,15 @@ Coords Class
 The spatial coordinate class includes the following coordinate systems in 
 cartesian and sphericals. 
 
-* GZD:  (altitude, latitude, longitude in km, deg, deg
-* GEO: cartesian, Re
-* GSM: cartesian, Re
-* GSE: cartesian, Re
-* SM: cartesian, Re
-* GEI: cartesian, Re
-* MAG: cartesian, Re
-* SPH: same as GEO but in spherical
-* RLL: radial distance, latitude, longitude, Re, deg, deg.
+    * GZD:  (altitude, latitude, longitude in km, deg, deg
+    * GEO: cartesian, Re
+    * GSM: cartesian, Re
+    * GSE: cartesian, Re
+    * SM: cartesian, Re
+    * GEI: cartesian, Re
+    * MAG: cartesian, Re
+    * SPH: same as GEO but in spherical
+    * RLL: radial distance, latitude, longitude, Re, deg, deg.
 
 Create a Coords instance with spherical='sph' or cartesian='car' 
 coordinates::
@@ -182,14 +183,14 @@ be used to fetch the latest files from ViRBO.
 The following example fetches the OMNI data for the storms of 
 October and November, 2003.::
     
-        >>> import spacepy.time as spt
-        >>> import spacepy.omni as om
-        >>> import datetime as dt
-        >>> st = dt.datetime(2003,10,20)
-        >>> en = dt.datetime(2003,12,5)
-        >>> delta = dt.timedelta(days=1)
-        >>> ticks = spt.tickrange(st, en, delta, 'UTC')
-        >>> data = om.get_omni(ticks)
+    >>> import spacepy.time as spt
+    >>> import spacepy.omni as om
+    >>> import datetime as dt
+    >>> st = dt.datetime(2003,10,20)
+    >>> en = dt.datetime(2003,12,5)
+    >>> delta = dt.timedelta(days=1)
+    >>> ticks = spt.tickrange(st, en, delta, 'UTC')
+    >>> data = om.get_omni(ticks)
 
 *data* is a dictionary containing all the OMNI data, by variable, for the timestamps
 contained within the ``Ticktock`` object *ticks*
@@ -198,7 +199,23 @@ contained within the ``Ticktock`` object *ticks*
 OneraPy Module
 =================
 
-bla bla
+ONERA (Office National d'Etudes et Recherches Aerospatiales) maintain a 
+well-known FORTRAN library that provides routines to compute magnetic 
+coordinates for any location in the Earth's magnetic field, to perform 
+coordinate conversions, to compute magnetic field vectors in geospace for 
+a number of external field models, and to propagate satellite orbits in 
+time. The current iteration of this model is called IRBEM-LIB.
+
+A number of key routines in IRBEM-LIB have been made available through the 
+module *OneraPy*. Current functionality includes calls to calculate the local
+magnetic field vectors at any point in geospace, calculation of the magnetic
+mirror point for a particle of a given pitch angle (the angle between a 
+particle's velocity vector and the magnetic field line that it immediately 
+orbits such that a pitch angle of 90 degrees signifies gyration perpendicular 
+to the local field) anywhere in geospace, and calculation of electron drift 
+shells in the inner magnetosphere.::
+    
+    >>> example code goes here
 
 
 Pycdf - Python Access to NASA CDF Library
@@ -226,12 +243,12 @@ CDF files, like standard Python files, act as context managers::
 CDF files act as Python dictionaries, holding CDF variables keyed
 by the variable name::
 
-        >>> var_names = keys(cdf_file) #list of all variables
-        >>> for var_name in cdf_file:
-        ...     print(len(cdf_file[var_name])) #number of records in each variable
-        
-            #list comprehensions work, too
-        >>> lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
+    >>> var_names = keys(cdf_file) #list of all variables
+    >>> for var_name in cdf_file:
+    ...     print(len(cdf_file[var_name])) #number of records in each variable
+    
+        #list comprehensions work, too
+    >>> lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
 
 Each CDF variable acts as a Python list, one element per record.
 Multidimensional CDF variables are represented as nested lists and can be
@@ -239,14 +256,14 @@ subscripted using a multidimensional slice notation similar to numpy. Creating
 a Python Var object does not read the data from disc; data are only read as
 they are accessed::
 
-       >>> epoch = cdf_file['Epoch'] #Python object created, nothing read from disc
-       >>> epoch[0] #time of first record in CDF (datetime object)
-       >>> a = epoch[...] #copy all times to list a
-       >>> a = epoch[-5:] #copy last five times to list a
-       >>> b_gse = cdf_file['B_GSE'] #B_GSE is a 1D, three-element array
-       >>> bz = b_gse[0,2] #Z component of first record
-       >>> bx = b_gse[:,0] #copy X component of all records to bx
-       >>> bx = cdf_file['B_GSE'][:,0] #same as above
+    >>> epoch = cdf_file['Epoch'] #Python object created, nothing read from disc
+    >>> epoch[0] #time of first record in CDF (datetime object)
+    >>> a = epoch[...] #copy all times to list a
+    >>> a = epoch[-5:] #copy last five times to list a
+    >>> b_gse = cdf_file['B_GSE'] #B_GSE is a 1D, three-element array
+    >>> bz = b_gse[0,2] #Z component of first record
+    >>> bx = b_gse[:,0] #copy X component of all records to bx
+    >>> bx = cdf_file['B_GSE'][:,0] #same as above
 
 
 Empiricals Module
@@ -292,7 +309,47 @@ through in a Python dictionary::
 SeaPy - Superposed Epoch Analysis in Python
 ===========================================
 
-stuff
+Superposed epoch analysis is a technique used to reveal consistent responses,
+relative to some repeatable phenomenon, in noisy data . Time series of the variables
+under investigation are extracted from a window around the epoch and all data 
+at a given time relative to epoch forms the sample of events at that lag. The 
+data at each time lag are then averaged so that fluctuations not 
+consistent about the epoch cancel. In many superposed epoch analyses the mean of 
+the data at each time *u* relative to epoch, is used to 
+represent the central tendency. In SeaPy we calculate both the mean and the median, 
+since the median is a more robust measure of central tendency and is less affected 
+by departures from normality. SeaPy also calculates a measure of spread at each time 
+relative to epoch when performing the superposed epoch analysis; the interquartile 
+range is the default, but the median absolute deviation and bootstrapped confidence 
+intervals of the median (or mean) are also available.
+
+As an example we fetch OMNI data for 4 years and perform a superposed epoch analysis
+of the solar wind radial velocity, with a set of epoch times read from a text file::
+
+    >>> import spacepy.seapy as se
+    >>> import spacepy.omni as om
+    >>> import spacepy.toolbox as tb
+        #now read the epochs for the analysis
+    >>> epochs = se.readepochs('epochs_OMNI.txt', iso=True)
+    >>> st, en = datetime.datetime(2005,1,1), datetime.datetime(2009,1,1)
+    
+The readepochs function can handle multiple formats by a user-specified format code. 
+ISO 8601 format is directly supported. As an alternative to the getOMNI function used above, we
+can get the hourly data directly from the OMNI module using a toolbox function::
+    
+    >>> einds, oinds = tb.tOverlap([st, en], om.omnidata['UTC'])
+    >>> omni1hr = array(om.omnidata['UTC'])[oinds]
+    >>> omniVx = om.omnidata['velo'][oinds]
+    
+and these data are used for the superposed epoch analysis. 
+the temporal resolution is 1 hr and the window is +/- 3 days
+
+    >>> delta = datetime.timedelta(hours=1)
+    >>> window= datetime.timedelta(days=3)
+    >>> sevx = se.Sea(omniVx, omni1hr, epochs, window, delta)
+        #rather than quartiles, we calculate the 95% confidence interval on the median
+    >>> sevx.sea(ci=True)
+    >>> sevx.plot()
 
 
 Testing Suite
