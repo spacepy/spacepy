@@ -27,8 +27,8 @@ __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni",
     "irbempy", "empiricals", "radbelt"]
 
 # Expose definitions from modules in this package.
-from toolbox import loadpickle, savepickle, dictree, printfig
-import time, coordinates
+from .toolbox import loadpickle, savepickle, dictree, printfig
+import spacepy.time, spacepy.coordinates
 
 #package info
 __version__ = '0.1dev'
@@ -60,18 +60,18 @@ __licence__ = __license__ #for those who speak English, rather than an odd diale
 
 try: #if in iPython interactive shell, print licence notice
     assert __IPYTHON__active
-    print __notice__
+    print(__notice__)
 except: #otherwise print single line notice
-    print "SpacePy is released under license. See __licence__ for details, and help() for HTML help."
+    print("SpacePy is released under license. See __licence__ for details, and help() for HTML help.")
 
 # import some settings
 from os import environ as ENVIRON
-if ENVIRON.has_key('SPACEPY'):
-	execfile(ENVIRON['SPACEPY']+'/.spacepy/spacepy.rc')
-	DOT_FLN = ENVIRON['SPACEPY']+'/.spacepy'
+if 'SPACEPY' in ENVIRON:
+    exec(compile(open(ENVIRON['SPACEPY']+'/.spacepy/spacepy.rc').read(), ENVIRON['SPACEPY']+'/.spacepy/spacepy.rc', 'exec'))
+    DOT_FLN = ENVIRON['SPACEPY']+'/.spacepy'
 else:
-	execfile(ENVIRON['HOME']+'/.spacepy/spacepy.rc')
-	DOT_FLN = ENVIRON['HOME']+'/.spacepy'
+    exec(compile(open(ENVIRON['HOME']+'/.spacepy/spacepy.rc').read(), ENVIRON['HOME']+'/.spacepy/spacepy.rc', 'exec'))
+    DOT_FLN = ENVIRON['HOME']+'/.spacepy'
 
 
 # -----------------------------------------------

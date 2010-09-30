@@ -3,10 +3,10 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.32 $, $Date: 2010/09/28 15:39:10 $"
+__version__ = "$Revision: 1.33 $, $Date: 2010/09/30 20:13:21 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
-import os, sys, shutil, getopt
+import os, sys, shutil, getopt, warnings
 from distutils.core import setup
 from os import environ as ENVIRON
 
@@ -237,15 +237,19 @@ exec(compile(open('spacepy/toolbox.py').read(), 'spacepy/toolbox.py', 'exec'))
 #test for python version 2.x where x>=5
 try:
     dum = sys.version_info
-    assert dum[0]==2
-    assert dum[1]>=5
+    if dum[0]==2:
+        assert dum[1]>=5
     import numpy
-    import scipy
-    import matplotlib
 except:
     raise Exception("""SpacePy requires Python 2.X, where X>=5.\n
     Numpy, Scipy and Matplotlib(>=0.99) are also required\n
     Please install suitable versions.""")
+try:
+    import scipy
+    import matplotlib
+except:
+    warnings.warn('''Missing Packages: SciPy and MatPlotLib are 
+    required for large parts of this library.''')
 
 # run compile for irbem-lib first
 if os.path.exists('spacepy/irbempy/irbempylib.so'):
@@ -326,15 +330,17 @@ setup(name='spacepy',
       )
 
 # update/download packages
-if fresh_install:
-    dir = update()
-    print("Data installed to " + dir)
-else:
-    ans = query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no")
-    if ans=='yes':
+if sys.version_info[0]<3:
+    if fresh_install:
         dir = update()
+        print("Data installed to " + dir)
     else:
-        print("\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()")
-
+        ans = query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no")
+        if ans=='yes':
+            dir = update()
+        else:
+            print("\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()")
+else:
+    print('Updating OMNI and leap seconds on install is not currently supported for Python 3.X. Please update manually.')
 
 print("\nThanks for installing SpacePy.")

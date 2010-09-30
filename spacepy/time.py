@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.23 $, $Date: 2010/09/28 16:30:28 $"
+__version__ = "$Revision: 1.24 $, $Date: 2010/09/30 20:13:21 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -788,14 +788,14 @@ class Ticktock(object):
         """
         
         if not fmt:
-            print 'Current ISO output format is %s' % self.__isofmt
-            print 'Options are: %s' % [(k, self.__isoformatstr[k]) for k in self.__isoformatstr.keys()]
+            print('Current ISO output format is %s' % self.__isofmt)
+            print('Options are: %s' % [(k, self.__isoformatstr[k]) for k in self.__isoformatstr.keys()])
         else:
             try:
                 self.__isofmt = self.__isoformatstr[fmt]
                 self.update_items(self, 'data')
             except KeyError:
-                print 'Not a valid option: Use %s' % self.__isoformatstr.keys()
+                print('Not a valid option: Use %s' % self.__isoformatstr.keys())
 
         return
     
@@ -1105,8 +1105,8 @@ class Ticktock(object):
         UTCdata = self.UTC
 
         if UTCdata[0] < datetime.datetime(1582,10,15):
-            print "WARNING: Calendar date before the switch from Julian to Gregorian"
-            print "    Calendar 1582-Oct-15: Use Julian Calendar dates as input"
+            print("WARNING: Calendar date before the switch from Julian to Gregorian")
+            print("    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         # include offset if given
         JD = n.zeros(nTAI)
@@ -1190,8 +1190,8 @@ class Ticktock(object):
         import datetime
 
         if self.UTC[0] < datetime.datetime(1582,10,15):
-            print "WARNING: Calendar date before the switch from Julian to Gregorian"
-            print "Calendar 1582-Oct-15: Use Julian Calendar dates as input"
+            print("WARNING: Calendar date before the switch from Julian to Gregorian")
+            print("Calendar 1582-Oct-15: Use Julian Calendar dates as input")
             
         MJD = self.JD - 2400000.5
     
@@ -1448,11 +1448,11 @@ class Ticktock(object):
                 UTC[i] = datetime.datetime(year, month, day) + datetime.timedelta(hours=12) + \
                     datetime.timedelta(seconds = p*86400)
                 if UTC[i] < datetime.datetime(1582,10,15):
-                    print "WARNING: Calendar date before the switch from Julian to Gregorian"
-                    print "Calendar 1582-Oct-15: Use Julian Calendar dates as input"
+                    print("WARNING: Calendar date before the switch from Julian to Gregorian")
+                    print("Calendar 1582-Oct-15: Use Julian Calendar dates as input")
     
         else:
-            print "ERROR: Data type ", self.dtype, ' in getUTC() not supported'
+            print("ERROR: Data type ", self.dtype, ' in getUTC() not supported')
             return
     
         self.UTC = UTC
@@ -1653,7 +1653,7 @@ class Ticktock(object):
         V1: 20-Jan-2010: includes array support (JK)
         """
     
-    	import os
+        import os
         import numpy as n
         import datetime
         from spacepy import DOT_FLN
@@ -1902,7 +1902,7 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
         try:
             assert sec <= 86400
         except:
-            print "Warning: Number of seconds > seconds in day. Try days keyword."
+            print("Warning: Number of seconds > seconds in day. Try days keyword.")
     else:
         sec %= 86400
     
@@ -1987,9 +1987,9 @@ def test():
     #
     if back == comp and tb.feq(round(out[2],5),2452331.01424) and \
     tb.feq(out[0],1014639630.1):  
-        print "testing Ticktock: PASSED TEST simple"
+        print("testing Ticktock: PASSED TEST simple")
     else:
-        print "testing Ticktock: FAILED TEST simple"
+        print("testing Ticktock: FAILED TEST simple")
         nFAIL =+ 1
 
     # now test the class
@@ -2037,9 +2037,9 @@ def test():
         assert len(testCDF[0]) == len(alldtypes)
         #assert len(n.unique(ISO)) == 1
 
-        print "testing Ticktock: PASSED TEST all combinations"
+        print("testing Ticktock: PASSED TEST all combinations")
     except AssertionError:
-        print "testing Ticktock: FAILED TEST all combinations"
+        print("testing Ticktock: FAILED TEST all combinations")
         nFAIL =+ 1
 
     # test with arrays 
@@ -2047,17 +2047,17 @@ def test():
     try:
         for i, dtype in enumerate(alldtypes):
             foo = st.Ticktock( n.array([out[i], out[i], out[i]]), dtype)
-        print "testing Ticktock: PASSED TEST arrays"
+        print("testing Ticktock: PASSED TEST arrays")
     except:
-        print "testing Ticktock: FAILED TEST arrays"
+        print("testing Ticktock: FAILED TEST arrays")
         nFAIL =+ 1
         
     # test DOY
     try:
         foo.DOY
-        print "testing Ticktock: PASSED TEST DOY"
+        print("testing Ticktock: PASSED TEST DOY")
     except:
-        print "testing Ticktock: FAILED TEST DOY"
+        print("testing Ticktock: FAILED TEST DOY")
         nFAIL =+ 1
         
     return nFAIL

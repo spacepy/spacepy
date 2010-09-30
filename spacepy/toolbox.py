@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.46 $, $Date: 2010/09/30 20:08:56 $"
+__version__ = "$Revision: 1.47 $, $Date: 2010/09/30 20:13:21 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -242,7 +242,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
         # do nothing
         pass
     
-    print '\n writing: ', outfln
+    print('\n writing: ', outfln)
     savepickle(outfln, dcomb)
     
     return dcomb
@@ -341,7 +341,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
             if levels == 0:
                 levels = None
 
-    for key in n.sort(in_dict.keys()):
+    for key in sorted(in_dict.keys()):
         if verbose:
             typestr = str(type(in_dict[key])).split("'")[1]
             if type(in_dict[key]) != dict:
@@ -359,7 +359,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
                 print(spaces + '|____' + key)
         else:
             print(spaces + '|____' + key)
-        if type(in_dict[key]) == dict and levels:
+        if isinstance(in_dict[key], dict) and levels:
             dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels)
 
     return None
@@ -1192,7 +1192,10 @@ def query_yes_no(question, default="yes"):
 
     while 1:
         sys.stdout.write(question + prompt)
-        choice = raw_input().lower()
+        if sys.version_info[0]==2:
+            choice = raw_input().lower()
+        elif sys.version_info[0]>2:
+            choice = input().lower()
         if default is not None and choice == '':
             return default
         elif choice in valid.keys():

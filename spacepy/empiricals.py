@@ -5,7 +5,7 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.9 $, $Date: 2010/09/21 21:38:42 $"
+__version__ = "$Revision: 1.10 $, $Date: 2010/09/30 20:13:21 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -130,7 +130,7 @@ def getMPstandoff(ticks):
     array([ 10.57319532,  10.91327759,  10.75086872,  10.77577211,
          9.7818026 ,  11.03744739,  11.4065    ,  11.27555453,
         11.47988569,  11.82025823,  11.23834817])
-    >>> data = data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
+    >>> data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
     >>> emp.ShueMP(data)
     array([ 10.29156018,   8.96790412])
     
