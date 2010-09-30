@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.45 $, $Date: 2010/09/28 16:30:28 $"
+__version__ = "$Revision: 1.46 $, $Date: 2010/09/30 20:08:56 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -197,13 +197,13 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
     import coordinates as c
 
     filelist = glob.glob(fln_pattern)
-
+    filelist = human_sort(filelist)
+    
     # read all files
     d = {}
     for fln in filelist:
        print("adding ", fln)
        d[fln] = loadpickle(fln)
-    
     
     # combine them
     dcomb = d[filelist[0]]  # copy the first file over
@@ -246,6 +246,18 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
     savepickle(outfln, dcomb)
     
     return dcomb
+
+# -----------------------------------------------    
+def human_sort( l ): 
+    """ Sort the given list in the way that humans expect. 
+    http://www.codinghorror.com/blog/2007/12/sorting-for-humans-natural-sort-order.html
+    """ 
+    import re 
+    convert = lambda text: int(text) if text.isdigit() else text 
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+    l.sort( key=alphanum_key ) 
+
+    return l
 
 # -----------------------------------------------
 def feq(x,y, precision=0.0000005):
