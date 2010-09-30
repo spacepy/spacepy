@@ -37,11 +37,11 @@ the plot() method is recommended for 2D SEA.
 
 --++-- By Steve Morley --++--
 
-smorley@lanl.gov/morley_steve@hotmail.com,
+smorley@lanl.gov
 Los Alamos National Laboratory, ISR-1,
 PO Box 1663, Los Alamos, NM 87545
 """
-from __future__ import division
+
 import numpy as np
 import spacepy.toolbox as tb
 from spacepy import help
@@ -80,7 +80,7 @@ class Sea(object):
             self.window = window
         self.window = np.ceil(float(self.window)/float(self.delta))
         if window!=self.window:
-            print 'Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta
+            print('Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta)
         self.bound_type = None
     
     def __str__(self):
@@ -117,13 +117,13 @@ class Sea(object):
         #check type of time input and throw error message
         el1,ep1 = self.times[0], self.epochs[0]
         el1num = ((type(el1) == int) or (type(el1) == float) or \
-        (type(el1) == long) or (type(el1)==np.float64))
+        (type(el1) == int) or (type(el1)==np.float64))
         ep1num = ((type(ep1) == int) or (type(ep1) == float) or \
-        (type(ep1) == long) or (type(ep1)==np.float64))
+        (type(ep1) == int) or (type(ep1)==np.float64))
         if (type(el1) == dt.datetime) and (type(el1) == type(self.epochs[0])):
             #both time and epochs are datetime objects
             #convert to serial time
-            print '''converting to serial time'''
+            print('converting to serial time')
             dum = date2num(self.epochs)
             t_epoch = np.array(dum)
             dum = date2num(self.times)
@@ -131,7 +131,7 @@ class Sea(object):
             ser_flag=False
         elif el1num and ep1num:
             #time is serial, do nothing
-            print '''time is serial'''
+            print('time is serial')
             t_epoch = np.array(self.epochs, dtype=float)
             time = np.array(self.times, dtype=float)
             ser_flag=True
@@ -143,8 +143,8 @@ class Sea(object):
         if len(lose0)>0 and len(lose1)>0:
             linds = np.union1d(lose0[0],lose1[0])
             if len(linds)>0:
-                print 'sea(): %s out-of-range epochs moved to badepochs attribute'\
-                % len(linds)
+                print('sea(): %s out-of-range epochs moved to badepochs attribute'\
+                % len(linds))
             if ser_flag:
                 self.badepochs = t_epoch[linds]
             else:
@@ -152,7 +152,6 @@ class Sea(object):
             keep0 = np.where(t_epoch <= time[-1]-(self.window*self.delta))
             keep1 = np.where(t_epoch >= time[0]+(self.window*self.delta))
             kinds = np.intersect1d(keep0[0],keep1[0])
-            #print 'first %s' % time[0], 'lose %s ' % t_epoch[linds], 'keep %s ' % t_epoch[kinds]
             if ser_flag: #if serial transform flagged, output to datetime obj.
                 t_epoch = date2num(t_epoch[kinds])
                 time = date2num(self.times)
@@ -240,7 +239,7 @@ class Sea(object):
          len(self.semedian))
         if storedata:
             self.datacube = y_sea_m
-            print 'sea(): datacube added as new attribute'
+            print('sea(): datacube added as new attribute')
         
         return 'Superposed epoch analysis complete'
         
@@ -464,7 +463,7 @@ class Sea2d(Sea):
             self.window = window
         self.window = np.ceil(float(self.window)/float(self.delta))
         if window!=self.window:
-            print 'Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta
+            print('Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta)
 
         if y:
             self.y = np.linspace(y[0], y[1], data.shape[0]+1)
@@ -519,8 +518,8 @@ class Sea2d(Sea):
         #now get SEA quantities
         self.semean, self.semedian, self.countmask = np.empty((l,m)), np.empty((l,m)), np.empty((l,m))
         yj=0
-        for ti in xrange(int(m)):
-            for yj in xrange(l):
+        for ti in range(int(m)):
+            for yj in range(l):
                 self.semean[yj,ti] = np.mean(y_sea_m[yj,ti,:].compressed()) #np.mean(y_sea_m, axis=2)
                 self.semedian[yj,ti] = np.median(y_sea_m[yj,ti,:].compressed())
                 self.countmask[yj,ti] = len(y_sea_m[yj,ti,:].compressed())
@@ -543,7 +542,7 @@ class Sea2d(Sea):
         
         if storedata:
             self.datacube = y_sea_m
-            print 'sea(): datacube added as new attribute'
+            print('sea(): datacube added as new attribute')
         
         return 'Superposed epoch analysis complete'
             
@@ -661,7 +660,7 @@ def seadict(objlist, namelist):
     try:
         assert type(objlist) == \
         list, 'seadict(): Inputs must be in lists'
-    except AssertionError, args:
+    except AssertionError as args:
         return '%s -- %s' % (args.__class__.__name__, args)
     
     nobj, nname = len(objlist), len(namelist)
@@ -671,7 +670,7 @@ def seadict(objlist, namelist):
         pass
     
     outdict = {}
-    for i  in xrange(nobj):
+    for i  in range(nobj):
         outdict[namelist[i]] = objlist[i]
             
     return outdict
@@ -707,7 +706,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     import matplotlib.ticker as tik
     import matplotlib.pyplot as plt
     
-    keys = dictobj.keys()
+    keys = list(dictobj.keys())
     pld, ply, plx, ylab = [], [], [], []
     qup, qlo = [], []
     keylist = sorted(keys)
@@ -727,20 +726,19 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         dpi=300
     
     if n_cols > 1:
-        print 'multisea(): Multiple column output not yet implemented'
+        print('multisea(): Multiple column output not yet implemented')
         n_fig = len(dictobj) #force single column output for now
-        fignum = range(1,n_fig+1)
+        fignum = list(range(1,n_fig+1))
         fig = plt.figure()
     else:
         n_fig = len(dictobj)
-        fignum = range(1,n_fig+1)
+        fignum = list(range(1,n_fig+1))
         fig = plt.figure(figsize=figsize, dpi=dpi)
     
-    for i in xrange(n_fig):
+    for i in range(n_fig):
         #loop over each subplot
         #create subplot panel number
         dum = str(n_fig)+'1'+str(fignum[i])
-        #print dum
         ax = fig.add_subplot(dum)
         if pld[i].ndim==2: #if semean/median 2D, do colour-plot
             if zlog:
@@ -822,11 +820,11 @@ def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
 
         intime = loadtxt(fname)
         dum = zeros([intime.shape[0],6])
-        for i in xrange(intime.shape[1]):
+        for i in range(intime.shape[1]):
             dum[:,i] = intime[:,i]
         
         epochs=[]
-        for i in xrange(dum.shape[0]):
+        for i in range(dum.shape[0]):
             dtobj = dt.datetime(int(dum[i,0]), int(dum[i,1]), \
             int(dum[i,2]), int(dum[i,3]), int(dum[i,4]), int(dum[i,5]))
             epochs.append(dtobj)
@@ -885,7 +883,7 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
     
     if test.upper() == 'KS':
         try:
-            for x in xrange(obj1.datacube.shape[0]):
+            for x in range(obj1.datacube.shape[0]):
                 tD, tprobKS2 = ks_2samp(obj1.datacube[:,x].compressed(), 
                     obj2.datacube[:,x].compressed())
                 S.append(tD)

@@ -52,7 +52,7 @@ def exception_log(message):
         _vs_logger.exception(str(message))
 
 
-from my_logger import *
+from .my_logger import *
 # set up the logger
 set_logger()
 # now, in any part of my program I can record
@@ -69,7 +69,7 @@ try:
     # a block of code which may cause an error
     x = 1/0
     # That usually does it!
-except Exception, e:
+except Exception as e:
     # handle the error
     # and record it
     exception_log(e)

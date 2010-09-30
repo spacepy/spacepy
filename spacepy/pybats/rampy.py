@@ -247,26 +247,26 @@ def smart_timeticks(time):
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
     if nHours < 1:
         Mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
-        mtick=mdt.MinuteLocator(byminute=range(60), interval=5)
+        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 4:
         Mtick=mdt.MinuteLocator(byminute=[0,30])
-        mtick=mdt.MinuteLocator(byminute=range(60), interval=10)
+        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=10)
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 12:
-        Mtick=mdt.HourLocator(byhour=range(24), interval=2)
+        Mtick=mdt.HourLocator(byhour=list(range(24)), interval=2)
         mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 24:
         Mtick=mdt.HourLocator(byhour=[0,3,6,9,12,15,18,21])
-        mtick=mdt.HourLocator(byhour=range(24))
+        mtick=mdt.HourLocator(byhour=list(range(24)))
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 48:
         Mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        mtick=mdt.HourLocator(byhour=range(24))
+        mtick=mdt.HourLocator(byhour=list(range(24)))
         fmt = mdt.DateFormatter('%H:%M UT')
     else:
-        Mtick=mdt.DayLocator(bymonthday=range(1,32))
+        Mtick=mdt.DayLocator(bymonthday=list(range(1,32)))
         mtick=mdt.HourLocator(byhour=[0,6,12,18])
         fmt = mdt.DateFormatter('%d %b')
 
@@ -409,7 +409,7 @@ class ramsat(object):
         for i in range(1, len(self.time)):
             dT[i-1] = data.variables['Time'][i] - data.variables['Time'][i-1]
         # Do we have dT?  If not, generate it:
-        if not self.data.has_key('DtWrite'):
+        if 'DtWrite' not in self.data:
             self.dt = min(dT)
         else:
             self.dt = self.data['DtWrite']

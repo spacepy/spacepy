@@ -64,7 +64,7 @@ for option in sys.argv[1:]:
         if option[0:2] == '-f':
             format = option[2:].lower()
         if option == '-h' or option == '-help':
-            print __doc__
+            print(__doc__)
             exit()
     # Search for files that match option.
     else:
@@ -116,7 +116,7 @@ perlev = np.linspace(0.0, 100.0, 50)
 
 # Cycle through all files and plot them.
 for infile in files:
-    print 'Reading file %s' % infile
+    print('Reading file %s' % infile)
     # Read file.
     i = infile.rfind('.')
     if infile[i:] == '.pb':     #PyBats Save file
@@ -160,7 +160,7 @@ for infile in files:
     ax3.set_title('Temperature ($KeV$)')
     
     # Ox Plot
-    if mhd.data.has_key('rhoo'):
+    if 'rhoo' in mhd.data:
         mhd.data['comp'] = mhd.data['rhoo']/mhd.data['rho'] * 100.0
         ax4 = fig.add_subplot(224)
         cont4 = mhd.contourf(ax4, 'x', 'z', 'comp', perlev, crange=perrng,
@@ -186,7 +186,7 @@ for infile in files:
             outname = infile[0:loc] + '.' + format
         else:
             outname = infile + '.' + format
-        print 'Saving %s' % outname
+        print('Saving %s' % outname)
         fig.savefig(outname, format=format)
     
     # Close figure to save memory.

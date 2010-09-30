@@ -59,7 +59,7 @@ def tex_label(varname):
         }
 
 
-    if known.has_key(varname):
+    if varname in known:
         label = known[varname]
     else:
         label = varname
@@ -137,7 +137,7 @@ class Iono(object):
                 self.namevar.append(name)
                 self.units[name] = match.group(2).strip()
             else:
-                raise ValueError, 'Could not parse %s' % raw[j]
+                raise ValueError('Could not parse %s' % raw[j])
                 
             
         # Read all data.

@@ -34,7 +34,7 @@ for option in sys.argv[1:]:
             except ValueError:
                 res = eval(option[3:])
         if option == '-h' or option == '-help':
-            print __doc__
+            print(__doc__)
             exit()
     # Search for files that match option.
     else:
@@ -58,7 +58,7 @@ if infile[i:] == '.pb':     #PyBats Save file
     mhd = load(infile)
 elif infile[i:] == '.out':  #IDL binary file.
     mhd = pb.Bats2d(infile)
-    print 'Regridding to %.3f Earth Radii' % res
+    print('Regridding to %.3f Earth Radii' % res)
     mhd.regrid(res, [-35, 15], [-30,30])
 
 # Set up color scales.

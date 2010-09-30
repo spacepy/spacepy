@@ -16,7 +16,7 @@ def trace2d_eul(fieldx, fieldy, xstart, ystart, gridx, gridy,
     are normalized coordinates (e.g., position in terms of array
     indices.)
     '''
-    import ctrace2d as ct
+    from . import ctrace2d as ct
 
     out = ct.cEuler(maxstep, ds, xstart, ystart, gridx, gridy,
                     fieldx.transpose(), fieldy.transpose())
@@ -40,7 +40,7 @@ def trace2d_rk4(fieldx, fieldy, xstart, ystart, gridx, gridy,
     are normalized coordinates (e.g., position in terms of array
     indices.)
     '''
-    import ctrace2d as ct
+    from . import ctrace2d as ct
 
     out = ct.cRk4(maxstep, ds, xstart, ystart, gridx, gridy,
                     fieldx.transpose(), fieldy.transpose())

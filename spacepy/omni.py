@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.13 $, $Date: 2010/09/08 16:40:09 $"
+__version__ = "$Revision: 1.14 $, $Date: 2010/09/30 21:51:52 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -----------------------------------------------
@@ -78,7 +78,7 @@ def get_omni(ticktock):
     omnival['ticktock'] = ticktock
     
     # return warning if values outside of omni data range
-    if n.any(n.isnan(omnival['Kp'])): print "Warning: time is outside of omni data range"
+    if n.any(n.isnan(omnival['Kp'])): print("Warning: time is outside of omni data range")
     
     
     return omnival
@@ -129,5 +129,5 @@ omnifln = DOT_FLN+'/data/omnidata.pkl'
 try:
     omnidata = loadpickle(omnifln)
 except:
-    print "No OMNI data found. This module has limited functionality."
-    print "Run spacepy.toolbox.update(omni=True) to download OMNI data"
+    print("No OMNI data found. This module has limited functionality.")
+    print("Run spacepy.toolbox.update(omni=True) to download OMNI data")

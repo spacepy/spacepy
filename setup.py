@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.34 $, $Date: 2010/09/30 20:35:36 $"
+__version__ = "$Revision: 1.35 $, $Date: 2010/09/30 21:51:52 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -341,7 +341,6 @@ if sys.version_info[0]<3:
         else:
             print("\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()")
 else:
-    print('''Updating OMNI and leap seconds on install is not currently supported for Python 3.X.
-    Please update manually by running spacepy.toolbox.update().''')
+    print('''Updating OMNI and leap seconds on install is not currently supported for Python 3.X.''')
 
 print("\nThanks for installing SpacePy.")

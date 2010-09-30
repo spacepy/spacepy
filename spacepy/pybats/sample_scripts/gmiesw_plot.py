@@ -33,11 +33,11 @@ lev_exp = np.arange(np.log10(minlog), np.log10(maxlog), 0.1)
 levs = np.power(10, lev_exp)
 timerange = [dt.datetime(2005,8,31,9),dt.datetime(2005,9,2,1)]
 
-print "Found %d files to plot." % (len(bfiles))
+print("Found %d files to plot." % (len(bfiles)))
 
 # MAIN LOOP:
 for bfile in bfiles:
-    print 'Working on file ', bfile
+    print('Working on file ', bfile)
     # Open Batsfile
     mhd = pb.Bats2d(bfile)
     mhd.regrid(0.25, [-40, 15], [-30,30])
@@ -48,7 +48,7 @@ for bfile in bfiles:
     # Get corresponding Iono file
     ifile = 'IE/ionosphere/it05%02d%02d_%02d%02d00_000.idl' % (
         timenow.month, timenow.day, timenow.hour, timenow.minute)
-    print '\t...with iono file ', ifile
+    print('\t...with iono file ', ifile)
     iono = rim.Iono(ifile)
 
     # Start by creating a figure:

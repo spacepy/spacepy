@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 
 def get_PSD(ticks, MU=1051, K=0.005, sats=None, _query=None):
@@ -168,12 +170,12 @@ def get_PSD(ticks, MU=1051, K=0.005, sats=None, _query=None):
             for satid in sats:
                 idx = n.append(idx, n.where(ret['sat'] == satid)[0])
 
-            for key in ret.keys():
+            for key in list(ret.keys()):
                 ret[key] = ret[key][idx]
 
         # sort in time
         idx = ret['Ticks'].argsort()
-        for key in ret.keys():
+        for key in list(ret.keys()):
             ret[key] = ret[key][idx]
     
     ## annoyingly in the interest of getting this done not sure how to select on the sats specified so do that on this dict
@@ -289,11 +291,11 @@ if __name__ == "__main__":
     k = 0.03
     # sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A']
     ans = get_PSD_availablek(ticks)
-    print ans
+    print(ans)
     ans = get_PSD_availablemu(ticks)
-    print ans
+    print(ans)
     ans = get_PSD_availablesats(ticks)
-    print ans
+    print(ans)
     
     ans = get_PSD(ticks, mu, k, sats=['GPS-ns41', 'LANL-02A'])
     

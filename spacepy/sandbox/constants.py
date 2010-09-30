@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from __future__ import division
 from spacepy import help
 from spacepy.toolbox import dictree
 import numpy as np
@@ -63,11 +62,11 @@ class Ion():
         if self.units['Temp'].lower() == 'ev':
             self.vel = np.sqrt(2*self.temp*k_b/(self.Z*mp*eVtoK))
             if self.verbose:
-                print 'if E = %g eV, then v = %g km/s   for Z = %d mp' % (self.temp, self.vel*1e-3, self.Z)
+                print('if E = %g eV, then v = %g km/s   for Z = %d mp' % (self.temp, self.vel*1e-3, self.Z))
         if self.units['Temp'].lower() == 'k':
             self.vel = np.sqrt(2*self.temp*k_b/(self.Z*mp))
             if self.verbose:
-                print 'if E = %g K, then v = %g km/s   for Z = %d mp' % (self.temp, self.vel*1e-3, self.Z)
+                print('if E = %g K, then v = %g km/s   for Z = %d mp' % (self.temp, self.vel*1e-3, self.Z))
                 
         self.units['Vel'] = 'm/s'
         
@@ -87,7 +86,7 @@ class Ion():
         """
         e1 = 0.5*mp*Z*vel**2/(k_b)
         if verbose:
-            print 'if v = %g km/s, then E = %g K ~ %g keV  for Z = %d mp' % (vel*1e-3, e1, e1*eVtoK*1e-3, Z)
+            print('if v = %g km/s, then E = %g K ~ %g keV  for Z = %d mp' % (vel*1e-3, e1, e1*eVtoK*1e-3, Z))
             
         if units.lower() == 'both':
             return (e1, e1*eVtoK)
@@ -110,5 +109,5 @@ def vAlfven(B, n, Z=1, verbose=False):
     rho = Z*mp*n*100**3 #mass density [kg/m^3]
     vA = B/np.sqrt(rho*mu0)
     if verbose:
-        print 'vA = %g km/s    for B = %g nT, no = %d ions/cc, Z = %d mp' % (vA*1e-3, B*1e9, n, Z)
+        print('vA = %g km/s    for B = %g nT, no = %d ions/cc, Z = %d mp' % (vA*1e-3, B*1e9, n, Z))
     return vA

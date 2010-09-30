@@ -49,7 +49,7 @@ for option in sys.argv[1:]:
     # Handle options:
     if option[0] == '-':
         if option == '-h' or option == '-help':
-            print __doc__
+            print(__doc__)
             exit()
         if option[0:2] == '-r':
             loc = option.rfind('=')
@@ -74,7 +74,7 @@ for i, ifile in enumerate(files):
     shutil.copyfile(ifile, '%simg_%08d.png' % (tmp,i))
 
 # Make movie
-print 'ffmpeg -b 2400k -r %i -i %simg_%%08d.png %s' % (rate, tmp,  outfile)
+print('ffmpeg -b 2400k -r %i -i %simg_%%08d.png %s' % (rate, tmp,  outfile))
 os.system('ffmpeg -b 2400k -r %i -i %simg_%%08d.png %s'
           % (rate, tmp, outfile))
 

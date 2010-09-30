@@ -78,7 +78,7 @@ class Stream(object):
             from spacepy.pybats.trace2d import trace2d_rk4 as trc
         
         # Get name of dimensions in order.
-        grid = bats.grid.keys()
+        grid = list(bats.grid.keys())
 
         # Trace forward
         x1, y1 = trc(bats.data[self.xvar], bats.data[self.yvar], 
@@ -94,7 +94,7 @@ class Stream(object):
         self.y = array(y2[::-1].tolist() + y1[1:].tolist())
 
         # Check if line is closed to body.
-        if bats.para.has_key('rbody'):
+        if 'rbody' in bats.para:
             r1 = sqrt(self.x[0]**2.0  + self.y[0]**2.0)
             r2 = sqrt(self.x[-1]**2.0 + self.y[-1]**2.0)
             if (r1 < bats.para['rbody']) and (r2 < bats.para['rbody']):
@@ -131,12 +131,12 @@ class Bats2d(spacepy.pybats.IdlBin):
         try:
             self.namevar.index('rho')
         except ValueError:
-            raise AttributeError, "Number density not found."
+            raise AttributeError("Number density not found.")
 
         try:
             self.namevar.index('p')
         except ValueError:
-            raise AttributeError, "Pressure not found."
+            raise AttributeError("Pressure not found.")
         
         # Calculate value then adjust units.
         self.data['temp'] = self.data['p'] / self.data['rho']
@@ -158,8 +158,8 @@ class Bats2d(spacepy.pybats.IdlBin):
             if (command[0:5] == 'calc_') and (command != 'calc_all'):
                 try:
                     eval('self.'+command+'()')
-                except AttributeError, Error:
-                    print 'WARNING: Did not perform %s: %s' % (command, Error)
+                except AttributeError as Error:
+                    print('WARNING: Did not perform %s: %s' % (command, Error))
 
     def regrid(self, cellsize=1.0, dim1range=-1, dim2range=-1, debug=False):
         '''
@@ -175,7 +175,7 @@ class Bats2d(spacepy.pybats.IdlBin):
         dims = []
         for key in sorted(self.grid.keys()):
             dims.append(key)
-        if debug: print "Ordered dimensions: ", dims
+        if debug: print("Ordered dimensions: ", dims)
 
         # Check to see if dimranges are 2-element lists.
         # If not, either set defaults or raise exceptions.
@@ -184,25 +184,25 @@ class Bats2d(spacepy.pybats.IdlBin):
         else:
             if isinstance(dim1range, ( type(()), type([]) ) ):
                 if len(dim1range) != 2:
-                    raise ValueError, 'dim1range must have two elements!'
-            else: raise TypeError, 'dim1range must be a tuple or list!'
+                    raise ValueError('dim1range must have two elements!')
+            else: raise TypeError('dim1range must be a tuple or list!')
         if dim2range == -1:
             dim2range = [min(self.grid[dims[1]]), max(self.grid[dims[1]])]
         else:
             if isinstance(dim2range, ( type(()), type([]) ) ):
                 if len(dim2range) != 2:
-                    raise ValueError, 'dim2range must have two elements!'
-            else: raise TypeError, 'dim2range must be a tuple or list!'
+                    raise ValueError('dim2range must have two elements!')
+            else: raise TypeError('dim2range must be a tuple or list!')
 
         if debug:
-            print '%s range = %f, %f' % (dims[0], dim1range[0], dim1range[1])
-            print '%s range = %f, %f' % (dims[1], dim2range[0], dim2range[1])
+            print('%s range = %f, %f' % (dims[0], dim1range[0], dim1range[1]))
+            print('%s range = %f, %f' % (dims[1], dim2range[0], dim2range[1]))
 
         # Now, Regrid.
         grid1 = np.arange(dim1range[0], dim1range[1]+cellsize, cellsize)
         grid2 = np.arange(dim2range[0], dim2range[1]+cellsize, cellsize)
 
-        for key in self.data.keys():
+        for key in list(self.data.keys()):
             self.data[key] = griddata(self.grid[dims[0]], self.grid[dims[1]],
                                       self.data[key], grid1, grid2)
 
@@ -389,8 +389,8 @@ class Bats2d(spacepy.pybats.IdlBin):
         '''
         from matplotlib.patches import Ellipse
 
-        if not self.para.has_key('rbody'):
-            raise KeyError, 'rbody not found in self.para!'
+        if 'rbody' not in self.para:
+            raise KeyError('rbody not found in self.para!')
 
         dbody = 2.0 * self.para['rbody']
         body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=1000,
@@ -408,7 +408,7 @@ class Bats2d(spacepy.pybats.IdlBin):
             'Irregular grid cannot be contoured.  Use self.regrid() first.'
         
         if not isinstance(ax, plt.Axes):
-            raise TypeError, 'ax must be an Axes instance!'
+            raise TypeError('ax must be an Axes instance!')
         contour = ax.contourf(self.grid[dim1],self.grid[dim2], 
                               self.data[data], *extra_args, **extra_kwargs)
         return contour

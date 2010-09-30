@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 PyBats!  An open source Python-based interface for reading, manipulating,
 and visualizing BATS-R-US and SWMF output.
@@ -12,7 +13,10 @@ def load(pbfile):
     >>> pyobj = pybats.load('pybats_file.pb')
 
     '''
-    from cPickle import load
+    try:
+        from cPickle import load
+    except:
+        from pickle import load
     infile = open(pbfile, 'r')
     pbobj = load(infile)
     infile.close
@@ -28,7 +32,10 @@ def save(pbobj, filename=None):
     >>> pbobj = pybats.IdlBin('examplefile.out')
     >>> pybats.save(pbobj, 'newfilename.pb')
     '''
-    from cPickle import dump
+    try:
+        from cPickle import dump
+    except:
+        from pickle import dump
 
     if filename == None:
         i = pbobj.filename.rfind('.')
@@ -104,7 +111,7 @@ class IdlBin(object):
 
         RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
         if (RecLen > 10000) or (RecLen < 0):
-            print 'Confusing data (RecLen=%i), Switching Endian...' % RecLen
+            print('Confusing data (RecLen=%i), Switching Endian...' % RecLen)
             EndChar = '>'
             RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
 
@@ -180,7 +187,7 @@ class IdlBin(object):
                 for j in range(int(self.gridsize[i])):
                     self.grid[gridnames[i]][j] = tempgrid[j*int(prod[i])]
             else:
-                raise ValueError, 'Unknown grid type: %s'%self.gridtype
+                raise ValueError('Unknown grid type: %s'%self.gridtype)
 
 
                     
@@ -263,7 +270,7 @@ class LogFile(object):
         self.read(starttime)
 
     def __repr__(self):
-        print 'Yeah, working on that.'
+        print('Yeah, working on that.')
 
     def read(self, starttime):
         '''
@@ -421,7 +428,7 @@ class ImfInput(object):
         Returns a figure object containing the plots.
         '''
 
-        from rampy import apply_smart_timeticks
+        from .rampy import apply_smart_timeticks
         import matplotlib.pyplot as plt
         
         if not timerange:
@@ -512,7 +519,7 @@ class SatOrbit(object):
         # to the caller.
         try:
             infile = open(self.filename, 'r')
-        except IOError, reason:
+        except IOError as reason:
             raise
 
         # Slurp contents
@@ -556,7 +563,7 @@ class SatOrbit(object):
         try:
             outfile = open(self.filename, 'w')
         except:
-            print 'Could not open self.filename!'
+            print('Could not open self.filename!')
             raise
         
         # Start by writing header, coordinate system, and then #START.

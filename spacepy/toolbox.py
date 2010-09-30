@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.48 $, $Date: 2010/09/30 20:35:36 $"
+__version__ = "$Revision: 1.49 $, $Date: 2010/09/30 21:51:52 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -123,10 +123,13 @@ def loadpickle(fln):
 
     >>> d = loadpickle('test.pbin')
     """
-    import cPickle
+    try:
+        import cPickle as pickle
+    except:
+        import pickle
 
     fh = open(fln, 'rb')
-    content = cPickle.load(fh)
+    content = pickle.load(fh)
     fh.close()
 
     return content
@@ -154,11 +157,13 @@ def savepickle(fln, dict):
     >>> savepickle('test.pbin', d)
     
     """
-
-    import cPickle
+    try:
+        import cPickle as pickle
+    except:
+        import pickle
 
     fh = open(fln, 'wb')
-    cPickle.dump(dict, fh, 2) # 2 ... fast binary
+    pickle.dump(dict, fh, 2) # 2 ... fast binary
     fh.close()
 
     return
@@ -193,8 +198,8 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
 
     import glob
     import numpy as n
-    import time as t
-    import coordinates as c
+    from . import time as t
+    from . import coordinates as c
 
     filelist = glob.glob(fln_pattern)
     filelist = human_sort(filelist)
@@ -214,7 +219,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
           TAIcount = len(d[fln][sortkey])
        else:
           TAIcount = len(d[fln][ d[fln].keys()[0] ])
-       for key in d[fln].keys():
+       for key in d[fln]:
           #print fln, key
           dim = n.array(n.shape(d[fln][key]))
           ax = n.where(dim==TAIcount)[0]
@@ -469,15 +474,18 @@ def update(all=True, omni=False, leapsecs=False):
 
      >>> update(omni=True)
      """
-
-    import urllib as u
-    import os
+    
+    import os, sys
     import zipfile
     import re
     import datetime
     import spacepy.time as st
     from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL
     import numpy as n
+    if sys.version_info[0]<3:
+        import urllib as u
+    else:
+        import urllib.request as u
     #import time
     
     datadir = DOT_FLN+'/data'
@@ -651,7 +659,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     #Set resolution to 1 if no times supplied
     if len(time)==0:
         startpt, res = 0, 1
-        time = range(len(data))
+        time = list(range(len(data)))
         pts = True
     else:
         try:
@@ -878,26 +886,26 @@ def smartTimeTicks(time):
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
     if nHours < 1:
         Mtick=MinuteLocator(byminute=[0,15,30,45])
-        mtick=MinuteLocator(byminute=range(60), interval=5)
+        mtick=MinuteLocator(byminute=list(range(60)), interval=5)
         fmt = DateFormatter('%H:%M UT')
     elif nHours < 4:
         Mtick=MinuteLocator(byminute=[0,30])
-        mtick=MinuteLocator(byminute=range(60), interval=10)
+        mtick=MinuteLocator(byminute=list(range(60)), interval=10)
         fmt = DateFormatter('%H:%M UT')
     elif nHours < 12:
-        Mtick=HourLocator(byhour=range(24), interval=2)
+        Mtick=HourLocator(byhour=list(range(24)), interval=2)
         mtick=MinuteLocator(byminute=[0,15,30,45])
         fmt = DateFormatter('%H:%M UT')
     elif nHours < 24:
         Mtick=HourLocator(byhour=[0,3,6,9,12,15,18,21])
-        mtick=HourLocator(byhour=range(24))
+        mtick=HourLocator(byhour=list(range(24)))
         fmt = DateFormatter('%H:%M UT')
     elif nHours < 48:
         Mtick=HourLocator(byhour=[0,6,12,18])
-        mtick=HourLocator(byhour=range(24))
+        mtick=HourLocator(byhour=list(range(24)))
         fmt = DateFormatter('%H:%M UT')
     else:
-        Mtick=DayLocator(bymonthday=range(1,32))
+        Mtick=DayLocator(bymonthday=list(range(1,32)))
         mtick=HourLocator(byhour=[0,6,12,18])
         fmt = DateFormatter('%d %b')
 
@@ -1197,7 +1205,7 @@ def query_yes_no(question, default="yes"):
             choice = input().lower()
         if default is not None and choice == '':
             return default
-        elif choice in valid.keys():
+        elif choice in valid:
             return valid[choice]
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' "\
@@ -1248,15 +1256,15 @@ def interpol(newx, x, y, wrap=None, **kwargs):
         newy = np.rad2deg(np.arctan(new_ys/new_yc))/dpsect
         #1st quadrant is O.K
         #2nd quadrant
-        idx = [n for n in xrange(len(new_yc)) if new_yc[n]<0 and new_ys[n]>0]
+        idx = [n for n in range(len(new_yc)) if new_yc[n]<0 and new_ys[n]>0]
         newy[idx] = sect/2 + newy[idx]
         #print('Sector 2 inds: %s' % idx)
         #3rd quadrant
-        idx = [n for n in xrange(len(new_yc)) if new_yc[n]<0 and new_ys[n]<0]
+        idx = [n for n in range(len(new_yc)) if new_yc[n]<0 and new_ys[n]<0]
         newy[idx] = sect/2 + newy[idx]
         #print('Sector 3 inds: %s' % idx)
         #4th quadrant
-        idx = [n for n in xrange(len(new_yc)) if new_yc[n]>0 and new_ys[n]<0]
+        idx = [n for n in range(len(new_yc)) if new_yc[n]>0 and new_ys[n]<0]
         newy[idx] = sect + newy[idx]
         #print('Sector 4 inds: %s' % idx)
         new_bad = np.ma.make_mask(new_bad)

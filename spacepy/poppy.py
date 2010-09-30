@@ -33,7 +33,7 @@ To perform association analysis
 Starting association analysis                     
 calculating association for series of length [3494, 1323] at 401 lags
 >>> t1 = dt.datetime.now()
->>> print "Elapsed:  " + str(t1-t0)
+>>> print("Elapsed:  " + str(t1-t0))
 Elapsed:  0:35:46.927138
 
 Note that for calculating associations between long series at a large number of
@@ -132,8 +132,8 @@ class PPro(object):
             if h:
                 self.winhalf = h
             assert self.winhalf
-            print 'calculating association for series of length %s at %d lags' \
-                % ([len(self.process1), len(self.process2)], len(self.lags))
+            print('calculating association for series of length %s at %d lags' \
+                % ([len(self.process1), len(self.process2)], len(self.lags)))
         except:
             return 'assoc error: attributes lags and winhalf must be populated'
         
@@ -206,7 +206,7 @@ class PPro(object):
             polyci = makePoly(self.x, self.ci[0], self.ci[1])
             ax0.add_patch(polyci)
         except AttributeError:
-            print 'Error: No confidence intervals to plot - skipping'
+            print('Error: No confidence intervals to plot - skipping')
         
         ax0.plot(self.x, self.assoc_total, 'b-', lw=1.5)
         
@@ -228,7 +228,7 @@ class PPro(object):
         
         aa_fun = lambda x: np.add.reduce(x)
         ci_low, ci_high = np.zeros([len(self.lags)]), np.zeros([len(self.lags)])
-        for i in xrange(len(self.lags)):
+        for i in range(len(self.lags)):
             ci_low[i], ci_high[i] = boots_ci(self.n_assoc[:,i], n_boots, inter, aa_fun)
     
         self.ci = [ci_low, ci_high]
@@ -287,7 +287,7 @@ def boots_ci(data, n, inter, func):
             data_copy[el] = rec #put data in dictionary
         surr_quan = np.empty([n])
         ran_el = randint(0, n_els, size=[n_els,n])
-        for i in xrange(int(n)): #compute n bootstrapped series
+        for i in range(int(n)): #compute n bootstrapped series
             #surr_ser = data[ran_el[:,i]] #NumPy_resample with replacement
             for el, rec in enumerate(ran_el[:,i]): #loop over dictionary for access speed
                 surr_ser[el] = data_copy[rec] #dict_resample with replacement
