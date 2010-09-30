@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.47 $, $Date: 2010/09/30 20:13:21 $"
+__version__ = "$Revision: 1.48 $, $Date: 2010/09/30 20:35:36 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -198,7 +198,6 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
 
     filelist = glob.glob(fln_pattern)
     filelist = human_sort(filelist)
-    
     # read all files
     d = {}
     for fln in filelist:

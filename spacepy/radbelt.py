@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.10 $, $Date: 2010/09/14 15:16:48 $"
+__version__ = "$Revision: 1.11 $, $Date: 2010/09/30 20:35:36 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -124,11 +124,11 @@ class RBmodel(object):
         """
         import spacepy.omni as om
 
-        assert self.__dict__.has_key('ticktock') , \
+        assert 'ticktock' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
         omni = om.get_omni(self.ticktock)
         
-        if not self.__dict__.has_key('params'):           
+        if 'params' not in self.__dict__:           
             self.params = {}
             
         if keylist is None:
@@ -147,7 +147,7 @@ class RBmodel(object):
         """
         import spacepy.empiricals as em
         
-        if not self.__dict__.has_key('params'):           
+        if 'params' not in self.__dict__:           
             self.params = {}
             
         assert self.ticktock, "Provide tick range with 'setup_ticks'"
@@ -161,7 +161,7 @@ class RBmodel(object):
         """
         import spacepy.empiricals as em
  
-        if not self.__dict__.has_key('params'):           
+        if 'params' not in self.__dict__:           
             self.params = {}
         
         assert self.ticktock, "Provide tick range with 'setup_ticks'"
@@ -178,7 +178,7 @@ class RBmodel(object):
         import spacepy.sandbox.PSDdata as PD
         import spacepy.time
         
-        assert self.__dict__.has_key('ticktock') , \
+        assert 'ticktock' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
         Tgrid = self.ticktock
         nTAI = len(Tgrid)
@@ -199,11 +199,11 @@ class RBmodel(object):
         """
         calculate the diffusion in L at constant mu,K coordinates    
         """
-        import radbelt as rb
+        from . import radbelt as rb
         import numpy as n
         import copy as c
         
-        assert self.__dict__.has_key('ticktock') , \
+        assert 'ticktock' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
         
         f = self.PSDinit
@@ -214,7 +214,7 @@ class RBmodel(object):
         self.PSD[:,0] = c.copy(f)
         
         # add omni if not already given
-        if not self.__dict__.has_key('omni'):
+        if 'omni' not in self.__dict__:
             self.add_omni(keylist=['Kp', 'Dst'])
         
         # run Lmax model
@@ -229,7 +229,7 @@ class RBmodel(object):
         params['SRCmagn'] = self.SRCmagn
         params['MPloss'] = self.MPloss
         params['PPloss'] = self.PPloss
-        if self.__dict__.has_key('SRCartif'):
+        if 'SRCartif' in self.__dict__:
             params['SRCartif'] = self.SRCartif
         keylist = ['Kp', 'Dst', 'Lmax', 'Lpp']
                 
@@ -300,7 +300,7 @@ class RBmodel(object):
                 
                 #Lobs = n.array(self.PSDdata[i-1]['Lstar'])
                 #y = n.array(self.PSDdata[i-1]['PSD'])
-                print Lobs, y
+                print(Lobs, y)
                 
                 if len(y) > 1:  # then assimilate otherwise do another forcast
         
@@ -326,7 +326,7 @@ class RBmodel(object):
                     continue # 
                     
                 # print message
-                print 'Tnow: ', self.ticktock[i].ISO
+                print('Tnow: ', self.ticktock[i].ISO)
 
 
     # -----------------------------------------------
@@ -488,7 +488,7 @@ def diff_LL(grid, f, Tdelta, Telapsed, params=None):
         f = f*n.exp(LSS*Tdelta)
 
     # Add artificial sources
-    if params.has_key('SRCartif'):
+    if 'SRCartif' in params:
         # Call the artificial source function, sending info as 
         # key word arguments.  Note that such functions should be
         # able to handle extra kwargs through the use of **kwargs!
@@ -593,8 +593,7 @@ def get_DLL(Lgrid, params, DLL_model='BA2000'):
         beta  = 11.7
         
     else:
-        raise ValueError, \
-            "Radial diffusion model %s not implemented" % DLL_model
+        raise ValueError("Radial diffusion model %s not implemented" % DLL_model)
         
 
     DLL = alpha * Lgrid ** beta
