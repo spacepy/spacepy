@@ -79,7 +79,7 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.24 $, $Date: 2010/09/30 20:13:21 $"
+__version__ = "$Revision: 1.25 $, $Date: 2010/09/30 22:45:38 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -123,10 +123,10 @@ class Tickdelta(object):
     def __init__(self, **kwargs):
         import datetime as dt
         days, hours, minutes, seconds = [0,0,0,0]
-        if kwargs.has_key('days'):  days = kwargs['days'] 
-        if kwargs.has_key('hours'): hours = kwargs['hours']
-        if kwargs.has_key('minutes'): minutes = kwargs['minutes']
-        if kwargs.has_key('seconds'): seconds = kwargs['seconds']
+        if 'days' in kwargs:  days = kwargs['days'] 
+        if 'hours' in kwargs: hours = kwargs['hours']
+        if 'minutes' in kwargs: minutes = kwargs['minutes']
+        if 'seconds' in kwargs: seconds = kwargs['seconds']
         self.days = days + hours/24. + minutes/1440. + seconds/86400.
         self.hours = self.days*24.
         self.minutes = self.hours*60.
@@ -302,10 +302,10 @@ class Ticktock(object):
         
         if dtype.upper() == 'ISO':
             if self.data[0].find('Z'):
-                for i in xrange(len(self.data)):
+                for i in range(len(self.data)):
                     self.data[i] = self.data[i].split('Z')[0]
             if self.data[0].find('T') == -1: # then assume midnight
-                for i in xrange(len(self.data)):
+                for i in range(len(self.data)):
                     self.data[i] = self.data[i]+'T00:00:00'                    
             self.ISO = self.data
             self.update_items(self, 'data')
@@ -789,13 +789,13 @@ class Ticktock(object):
         
         if not fmt:
             print('Current ISO output format is %s' % self.__isofmt)
-            print('Options are: %s' % [(k, self.__isoformatstr[k]) for k in self.__isoformatstr.keys()])
+            print('Options are: %s' % [(k, self.__isoformatstr[k]) for k in list(self.__isoformatstr.keys())])
         else:
             try:
                 self.__isofmt = self.__isoformatstr[fmt]
                 self.update_items(self, 'data')
             except KeyError:
-                print('Not a valid option: Use %s' % self.__isoformatstr.keys())
+                print('Not a valid option: Use %s' % list(self.__isoformatstr.keys()))
 
         return
     
@@ -826,7 +826,7 @@ class Ticktock(object):
        
         """
         
-        keylist = cls.__dict__.keys()
+        keylist = list(cls.__dict__.keys())
         keylist.remove('dtype')
         keylist.remove('data')
         if attrib is not 'data': keylist.remove(attrib)
@@ -1132,11 +1132,11 @@ class Ticktock(object):
             else:
                 JY = Y-1
                 JM = M+13
-            JD[i] = long(365.25*JY) + long(30.6001*JM) + D + 1720995
+            JD[i] = int(365.25*JY) + int(30.6001*JM) + D + 1720995
             c_val = (D+31*(M+12*Y))
             if c_val >= igreg: # yes if date after the Gregorian Switch in 1582-Oct-15
-                JA = long(0.01*JY)
-                JD[i] = JD[i]+2-JA+long(0.25*JA)
+                JA = int(0.01*JY)
+                JD[i] = JD[i]+2-JA+int(0.25*JA)
 
             # add this to num.recipes to get fractional days
             twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
@@ -1493,7 +1493,7 @@ class Ticktock(object):
         V2: 17-May-2010: Added sub-second support (SM)
         """
     
-        import datetime, time
+        import datetime
         import numpy as np
     
         fmt = '%Y-%m-%dT%H:%M:%S'
@@ -1550,7 +1550,7 @@ class Ticktock(object):
         V2: 25-Jan-2010: include array support (JK)
         """
     
-        import datetime, time
+        import datetime
         import numpy as n
     
         fmt = '%Y-%m-%dT%H:%M:%S'
@@ -1608,12 +1608,12 @@ class Ticktock(object):
         V4: 17-May-2010: switched to native formatting so sub-second is displayed
         """
     
-        import datetime, time
+        import datetime
     
         nTAI = len(self.data)
         ISO = ['']*nTAI
         
-        for i in xrange(nTAI):
+        for i in range(nTAI):
             ISO[i] = self.UTC[i].strftime(self.__isofmt)
     
         self.ISO = ISO
@@ -1946,8 +1946,8 @@ def test():
     ========
     V1: 20-Jan-2010
     """
-    import time as st
-    import toolbox as tb
+    from . import time as st
+    from . import toolbox as tb
     import numpy as n
     import sys, datetime
     

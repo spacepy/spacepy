@@ -1,2 +1,3 @@
-from irbempy import *
+# -*- coding: utf-8 -*-
+from .irbempy import *
 

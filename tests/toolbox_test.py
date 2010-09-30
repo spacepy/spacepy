@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import unittest
 import spacepy.toolbox as tb
@@ -90,7 +91,7 @@ class SimpleFunctionTests(unittest.TestCase):
         data = numpy.random.normal(0, 1, 100000)
         real_ans = 0.7
         ans = tb.medAbsDev(data)
-        self.assertAlmostEqual(ans, real_ans, 1)
+        self.assertAlmostEqual(ans, real_ans, places=1)
         
     def test_binHisto(self):
         """binHisto should return know answer for known input"""
@@ -104,7 +105,7 @@ class SimpleFunctionTests(unittest.TestCase):
         real_ans = array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
         ans = tb.logspace(1, 100, 5)
         for i, val in enumerate(real_ans):
-            self.assertAlmostEqual(val, ans[i], 4)
+            self.assertAlmostEqual(val, ans[i], places=4)
 
     def test_arraybin(self):
         """arraybin should return know answer for known input"""

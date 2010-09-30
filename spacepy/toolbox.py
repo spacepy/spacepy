@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.49 $, $Date: 2010/09/30 21:51:52 $"
+__version__ = "$Revision: 1.50 $, $Date: 2010/09/30 22:45:38 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -218,7 +218,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
        if sortkey:
           TAIcount = len(d[fln][sortkey])
        else:
-          TAIcount = len(d[fln][ d[fln].keys()[0] ])
+          TAIcount = len(d[fln][ list(d[fln].keys())[0] ])
        for key in d[fln]:
           #print fln, key
           dim = n.array(n.shape(d[fln][key]))
@@ -396,11 +396,11 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     @version: V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
     @version: V3: 21-Jul-2010: added filename keyword (BAL)
 
-    >>> pylab.plot([1,2,3],[2,3,2])
+    >>> pyplot.plot([1,2,3],[2,3,2])
     >>> spacepy.printfig(1)
     """
 
-    import pylab, os, sys, re, glob, datetime
+    import pyplot, os, sys, re, glob, datetime
 
     try:
         nfigs = len(fignum)
@@ -410,7 +410,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
     for ifig in fignum:
         # active this figure
-        pylab.figure(ifig)
+        pyplot.figure(ifig)
 
         if filename == None:
             # create a filename for the figure
@@ -428,17 +428,17 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
         # save a clean figure without timestamps
         if clean == True:
-            pylab.savefig(fln+'_clean.png')
+            pyplot.savefig(fln+'_clean.png')
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
         # add the filename to the figure for reference
-        pylab.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
+        pyplot.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
 
         # now save the figure to this filename
         if pngonly == False:
-            pylab.savefig(fln+'.ps')
+            pyplot.savefig(fln+'.ps')
         
-        pylab.savefig(fln+'.png')
+        pyplot.savefig(fln+'.png')
 
         # send it to the printer
         if saveonly != True:
@@ -993,7 +993,7 @@ def arraybin(array, bins):
     >>> arraybin(arange(10), [4.2])
     Out[4]: [(array([0, 1, 2, 3, 4]),), (array([5, 6, 7, 8, 9]),)]
     """
-    from pylab import where
+    from numpy import where
     bin_ind=[]
     for i,b in enumerate(bins):
         if i == 0:
@@ -1313,86 +1313,3 @@ def normalize(vec):
 
 
 # -----------------------------------------------
-
-def test():
-    """
-    test all spacepy routines
-
-    @return: number of failures
-    @rtype: int
-
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
-    
-    @version: V1: 24-Jan-2010
-
-    >>> test()
-    test_ticktock: PASSED TEST 1
-    test_ticktock: PASSED TEST 2
-    0
-    """
-    
-    import os
-    import spacepy.toolbox as tb
-    import pylab as p
-    nFAIL = 0
-
-    ## # savepickle
-    ## D = {}
-    ## D['names'] = ['John', 'Joe', 'Joyce']
-    ## D['TAI'] = [1,2,3]
-    ## tb.savepickle('test_pickle_1.pbin', D)
-
-    ## # loadpickle
-    ## DD = tb.loadpickle('test_pickle_1.pbin')
-    ## if DD != D:
-    ##     print "test_toolbox: FAILED TEST load/save pickle"
-    ##     nFAIL =+ 1
-
-    # assemble
-    D2 = {}
-    D2['names'] = ['Harry', 'Hans']
-    D2['TAI'] = [4,5] 
-    tb.savepickle('test_pickle_2.pbin', D2)
-    try:
-        Dcomb = tb.assemble('test_pickle_*.pbin', 'test_pickle_assembled.pbin')
-        os.remove('test_pickle_1.pbin')
-        os.remove('test_pickle_2.pbin')
-        os.remove('test_pickle_assembled.pbin')
-    except:
-        print("test_toolbox: FAILED TEST assemble")
-        nFAIL =+ 1
-    
-    ## # feq
-    ## if not tb.feq(1.2, 1.2):
-    ##     print "test_toolbox: FAILED TEST assemble"
-    ##     nFAIL =+ 1
-
-    # dictree
-    try:
-        tb.dictree(Dcomb)
-    except:
-        print("test_toolbox: FAILED TEST dictionary tree")
-        nFAIL =+ 1
-
-    # printfig
-    p.plot(D['TAI'], D['TAI'])
-    try:
-        tb.printfig(1, saveonly=True)
-        p.close(1)
-        os.remove('figure_0.png')
-        os.remove('figure_0.ps')
-    except:
-        print("testing toolbox: FAILED TEST printfig")
-        nFAIL =+ 1
-
-    # update
-    #try:
-    #    tb.update()
-    #except:
-    #    print "testing toolbox: FAILED TEST update"
-    #    nFAIL =+ 1
-
-    return nFAIL
-

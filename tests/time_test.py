@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import unittest
 # import spacepy.toolbox as tb
@@ -86,7 +87,7 @@ class classTests(unittest.TestCase):
         n2 = t.Ticktock('2002-02-01T00:00:00', 'ISO')
         self.assertTrue(isinstance(n2 - n1, list))
         self.assertTrue(isinstance((n2 - n1)[0], t.Tickdelta))
-        self.assertAlmostEqual(28.47443287, (n1-n2)[0].days, 8)
+        self.assertAlmostEqual(28.47443287, (n1-n2)[0].days, places=8)
 
     def test_subTickdelta(self):
         """a ticktock minus a Tickdelta is a ticktock"""
@@ -96,8 +97,8 @@ class classTests(unittest.TestCase):
 
     def test_TickTock_with_xrange(self):
         t0 = 1663236947
-        iter_ex = xrange(t0, t0+5000, 500)
-        range_ex = range(t0, t0+5000, 500) 
+        iter_ex = range(t0, t0+5000, 500)
+        range_ex = list(range(t0, t0+5000, 500)) 
         self.assertEqual(t.Ticktock(iter_ex, 'TAI').TAI, t.Ticktock(range_ex, 'TAI').TAI)
         
     def test_append(self):
