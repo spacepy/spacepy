@@ -568,6 +568,11 @@ class ReadCDF(CDFTests):
         self.assertEqual(1.0,
                          self.cdf['SpinRateScalersCounts'][41, 2, 15])
 
+    def testIncompleteSubscript(self):
+        """Get data from a variable with a less-than-complete specification"""
+        chargedata = self.cdf['MeanCharge'][0] #Should be the first record
+        self.assertEqual(len(chargedata), 16)
+
     def testReadEpochs(self):
         """Read an Epoch16 value"""
         expected = datetime.datetime(1998, 1, 15, 0, 0, 5, 334662)
@@ -592,6 +597,29 @@ class ReadCDF(CDFTests):
                           '8 ', '9 ', '10', '11', '12', '13', '14', '15',
                           '16', '17'],
                          self.cdf['SpinNumbers'][:])
+
+    def testSubscriptIrregString(self):
+        """Refer to a variable-length string array by subscript"""
+        self.assertEqual(['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
+                          'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
+                          '3He', 'D', 'Molecules', 'Others'],
+                         self.cdf['RateScalerNames'][:])
+
+    def testGetAllNRV(self):
+        """Get an entire non record varying variable"""
+        self.assertEqual(['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
+                          '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+                          '16', '17'],
+                         self.cdf['SpinNumbers'][...])
+
+    def testGetsingleNRV(self):
+        """Get single element of non record varying variable"""
+        self.assertEqual('0 ',
+                         self.cdf['SpinNumbers'][0])
+
+    def testcharType(self):
+        """Get a CDF_CHAR variable and make sure it's a string"""
+        self.assertTrue(isinstance(self.cdf['SpinNumbers'][0], str))
 
     def testGetVarUnicode(self):
         name = 'ATC'
@@ -743,6 +771,20 @@ class ReadColCDF(ColCDFTests):
                          self.cdf['PhysRecNo'][-1:-5:-1])
         self.assertEqual(1.0,
                          self.cdf['SpinRateScalersCounts'][41, 2, 15])
+
+    def testColSubscriptString(self):
+        """Refer to a string array by subscript"""
+        self.assertEqual(['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
+                          '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+                          '16', '17'],
+                         self.cdf['SpinNumbers'][:])
+
+    def testColSubscriptIrregString(self):
+        """Refer to a variable-length string array by subscript"""
+        self.assertEqual(['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
+                          'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
+                          '3He', 'D', 'Molecules', 'Others'],
+                         self.cdf['RateScalerNames'][:])
 
     def testContains(self):
         """See if variable exists in CDF"""
