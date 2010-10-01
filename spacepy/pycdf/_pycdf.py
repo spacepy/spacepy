@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.3pre'
+__version__ = '0.3'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -664,6 +664,15 @@ class Var(collections.Sequence):
     U{2<http://docs.python.org/tutorial/datastructures.html#more-on-lists>},
     U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
 
+    A record-varying variable's data are viewed as a hypercube of dimensions
+    n_dims+1 and are indexed in row-major fashion, i.e. the last
+    index changes most frequently / is contiguous in memory. If
+    the CDF is column-major, the data are transformed to row-major
+    before return. The extra dimension is the record number.
+
+    Non record-varying variables are similar, but do not have the extra
+    dimension of record number.
+
     Variables can be subscripted by a multidimensional index to return the
     data. Indices are in row-major order with the first dimension
     representing the record number. If the CDF is column major,
@@ -673,6 +682,28 @@ class Var(collections.Sequence):
     notation, with dimensions separated by commas. The ellipsis fills in
     any missing dimensions with full slices. The returned data are
     lists; Python represents multidimensional arrays as nested lists.
+    The innermost set of lists represents contiguous data.
+
+    Degenerate dimensions are 'collapsed', i.e. no list of only one
+    element will be returned if a single subscript is specified
+    instead of a range. (To avoid this, specify a slice like 1:2,
+    which starts with 1 and ends before 2).
+
+    Two special cases:
+      1. requesting a single-dimension slice for a
+         record-varying variable will return all data for that
+         record number (or those record numbers) for that variable.
+      2. Requests for multi-dimensional variables may skip the record-number
+         dimension and simply specify the slice on the array itself. In that
+         case, the slice of the array will be returned for all records.
+    In the event of ambiguity (i.e. single-dimension slice on a one-dimensional
+    variable), case 1 takes priority.
+    Otherwise, mismatch between the number of dimensions specified in
+    the slice and the number of dimensions in the variable will cause
+    an IndexError to be thrown.
+
+    This all sounds very complicated but it's essentially attempting
+    to do the 'right thing' for a range of slices.
 
     As a list type, variables are also U{iterable
     <http://docs.python.org/tutorial/classes.html#iterators>}; iterating
@@ -767,38 +798,7 @@ class Var(collections.Sequence):
             self._create(var_name, *args)
 
     def __getitem__(self, key):
-        """Returns a slice from the data array.
-
-        The variable's data are viewed as a hypercube of dimensions
-        n_dims+1 and are indexed in row-major fashion, i.e. the last
-        index changes most frequently / is contiguous in memory. If
-        the CDF is column-major, the data are transformed to row-major
-        before return.
-
-        The extra dimension is the record number, and is the first index.
-
-        This is implemented in the usual Python fashion of a
-        list-of-lists, with the innermost set of lists being contiguous.
-
-        Degenerate dimensions are 'collapsed', i.e. no list of only one
-        element will be returned if a single subscript is specified
-        instead of a range. (To avoid this, specify a slice like 1:2,
-        which starts with 1 and ends before 2).
-
-        Two special cases:
-          1. requesting a single-dimension slice for a
-             record-varying variable will return all data for that
-             record number (or those record numbers) for that variable.
-          2. Requests for non-rv variables may skip the record-number
-             dimension and simply specify the slice on the array itself.
-             If the record dimension is included, the non-rv record
-             will be repeated as many times as necessary.
-        Otherwise, mismatch between the number of dimensions specified in
-        the slice and the number of dimensions in the variable will cause
-        an IndexError to be thrown.
-
-        This all sounds very complicated but it's essentially attempting
-        to do the 'right thing' for a range of slices.
+        """Returns a slice from the data array. Details under L{Var}.
 
         @return: The data from this variable
         @rtype: list-of-lists of appropriate type.
@@ -1133,6 +1133,7 @@ class _Hyperslice(object):
         """
 
         self.zvar = zvar
+        self.rv = self.zvar._rec_vary()
         self.dims = zvar._n_dims() + 1
         self.dimsizes = [len(zvar)] + \
                         zvar._dim_sizes()
@@ -1150,14 +1151,13 @@ class _Hyperslice(object):
         if not hasattr(key, '__len__'): #Not a container object, pack in tuple
             key = (key, )
         key = self.expand_ellipsis(key)
-        if len(key) == self.dims - 1:
+        if len(key) == 1 and self.rv: #get all data for this record(s)
+            key = self.expand_ellipsis(key + (Ellipsis, ))
+        elif len(key) == self.dims - 1 or not self.rv: #NRV is always rec 0
             if zvar._rec_vary(): #get all records
                 key = (slice(None, None, None), ) +key
             else: #NRV, so get 0th record (degenerate)
                 key = (0, ) + key
-        elif len(key) == 1 and \
-                 zvar._rec_vary(): #get all data for this record(s)
-            key = self.expand_ellipsis(key + (Ellipsis, ))
         if len(key) == self.dims:
             for i in range(self.dims):
                 idx = key[i]
@@ -1193,7 +1193,9 @@ class _Hyperslice(object):
             return slices
 
         size = len(slices)
-        extra = self.dims - size + 1 #Replacing ellipsis
+        extra = self.dims - size #how many dims to replace ellipsis
+        if self.rv:
+            extra += 1
         if extra < 0:
             raise IndexError('Too many dimensions specified to use ellipsis.')
         idx = slices.index(Ellipsis)
@@ -1287,10 +1289,11 @@ class _Hyperslice(object):
                 for i in range(len(flat)):
                     #NOT a list comprehension, changing values so they'll be
                     #different in result as well
-                    if isinstance(flat[i], bytes):
+                    if not isinstance(flat[i], str):
                         flat[i] = flat[i].decode()
             else:
-                buffer = buffer.decode()
+                if not isinstance(buffer, str):
+                    buffer = buffer.decode()
             return buffer
         else:
             return self.c_array_to_list(buffer)
@@ -1370,15 +1373,22 @@ class _Hyperslice(object):
         except TypeError:
             return array #scalar
 
+        try:
+            string_classes = (str, bytes, unicode)
+        except NameError:
+            string_classes = (str, bytes)            
+
         flat = array #this is progressively flattened (i.e. dims stripped off)
         while True:
             try:
+                if isinstance(flat[0], string_classes):
+                    break
                 lengths = [len(i) for i in flat]
             except TypeError: #Now completely flat
                 break
             if min(lengths) != max(lengths):
                 raise TypeError('Array dimensions not regular')
-            dims.append(min(lengths))
+            dims.append(lengths[0])
             flat = [item for sublist in flat for item in sublist]
 
         result = flat
