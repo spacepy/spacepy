@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.50 $, $Date: 2010/09/30 22:45:38 $"
+__version__ = "$Revision: 1.51 $, $Date: 2010/10/06 17:40:38 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -472,14 +472,23 @@ def update(all=True, omni=False, leapsecs=False):
     @version: V1.1: 24-May-2010 Minor modification to return data directory (BAL)
     @version: V1.2: 11-Jun-2010 moved pickle_omni in here and added Qbits (JK)
 
-     >>> update(omni=True)
-     """
+    >>> update(omni=True)
+    """
+    
+    try:
+        from spacepy.time import Ticktock, doy2date
+    except:
+        exec(open('spacepy/time.py').read())
+        #import sys
+        #sys.path.append('./spacepy')
+        #from spacepy import time as st
+        
     
     import os, sys
     import zipfile
     import re
     import datetime
-    import spacepy.time as st
+    #import spacepy.time as st
     from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL
     import numpy as n
     if sys.version_info[0]<3:
@@ -582,13 +591,13 @@ def update(all=True, omni=False, leapsecs=False):
         for i in range(nTAI):
             year = int(omnidata['Year'][i])
             doy = int(omnidata['DOY'][i])
-            month, day = st.doy2date(year,doy)
+            month, day = doy2date(year,doy)
             UT_hr = omnidata['Hr'][i]
             hour, minute = divmod(UT_hr*60., 60)
             minute, second = divmod(minute*60., 60)  
             omnidata['UTC'][i] = datetime.datetime(year, month, day, int(hour), int(minute), int(second))
         
-        omnidata['ticktock'] = st.Ticktock(omnidata['UTC'], 'UTC')
+        omnidata['ticktock'] = Ticktock(omnidata['UTC'], 'UTC')
         omnidata['RDT'] = omnidata['ticktock'].RDT
         
         #t2 = time.time()

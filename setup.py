@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.35 $, $Date: 2010/09/30 21:51:52 $"
+__version__ = "$Revision: 1.36 $, $Date: 2010/10/06 17:40:38 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -231,7 +231,7 @@ for ff in ['pg', 'gnu95', 'gnu']:
         pass
 
 #import tooblox by reading file from repository
-# this will provide mostly the query_yes_no function
+# this will provide mostly the query_yes_no function and update()
 exec(compile(open('spacepy/toolbox.py').read(), 'spacepy/toolbox.py', 'exec'))
 
 #test for python version 2.x where x>=5
