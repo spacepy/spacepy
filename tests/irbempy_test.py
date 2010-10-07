@@ -3,7 +3,7 @@
 """
 testing	the	irbempy	module
 """
-__version__	=	"$Revision: 1.3 $,	$Date: 2010/09/30 22:45:39 $"
+__version__	=	"$Revision: 1.4 $,	$Date: 2010/10/07 22:55:06 $"
 __author__	=	'Josef	Koller,	Los	Alamos	National	Lab	(jkoller@lanl.gov)'
 
 # -----------------------------------------------------------------------
@@ -54,7 +54,7 @@ class BigTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(expected, ib.car2sph(loc))
         
     def test_coord_trans(self):
-        self.loci.ticktock = self.ticks
+        self.loci.ticks = self.ticks
         expected = array([[ 2.86714166, -0.02178308,  0.88262348],
             [ 1.91462214,  0.06992421,  0.57387514]])
         numpy.testing.assert_almost_equal(expected, ib.coord_trans(self.loci, 'GSM', 'car'))
@@ -71,7 +71,7 @@ class BigTests(unittest.TestCase):
             [ 2.00291585, -0.00726614,  0.04502799]] 
         actual = ib.find_magequator(self.ticks, self.loci)
         numpy.testing.assert_almost_equal(expected['Bmin'], actual['Bmin'])
-        numpy.testing.assert_almost_equal(Bmin_loci, actual['GEOcar'].data) 			
+        numpy.testing.assert_almost_equal(Bmin_loci, actual['loci'].data)
             
     def test_get_Bfield(self):
         """test get_Bfield"""	

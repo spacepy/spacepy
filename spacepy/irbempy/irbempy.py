@@ -8,7 +8,7 @@ D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.4 $, $Date: 2010/09/30 21:51:52 $"
+__version__ = "$Revision: 1.5 $, $Date: 2010/10/07 22:55:06 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
@@ -18,15 +18,15 @@ SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
     'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car': None}}
 
 # -----------------------------------------------
-def get_Bfield(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
+def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
     call get_bfield in irbem lib and return a dictionary with the B-field vector and 
     strenght.
 
     Input:
     ======
-        - ticktock (Ticktock class) : containing time information
-        - Coords (Coords class) : containing spatial information
+        - ticks (Ticktock class) : containing time information
+        - loci (Coords class) : containing spatial information
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
@@ -68,8 +68,8 @@ def get_Bfield(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnival
     import spacepy.toolbox as tb
 
     # prepare input values for irbem call
-    d = prep_irbem(ticktock, Coords, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
-    nTAI = len(ticktock)
+    d = prep_irbem(ticks, loci, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
+    nTAI = len(ticks)
     badval = d['badval']
     kext = d['kext']
     sysaxes = d['sysaxes']
@@ -99,15 +99,15 @@ def get_Bfield(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnival
     return results
 
 # -----------------------------------------------
-def find_Bmirror(ticktock, Coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
+def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
     call find_mirror_point from irbem library and return a dictionary with values for 
     Blocal, Bmirr and the GEO (cartesian) coordinates of the mirror point
 
     Input:
     ======
-        - ticktock (Ticktock class) : containing time information
-        - Coords (Coords class) : containing spatial information
+        - ticks (Ticktock class) : containing time information
+        - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : containing the pitch angles
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
@@ -128,7 +128,7 @@ def find_Bmirror(ticktock, Coords, alpha, extMag='T01STORM', options=[1,0,0,0,0]
     >>> op.find_Bmirror(t,y,[90,80,60,10])
     {'Blocal': array([ 0.,  0.]),
         'Bmirr': array([ 0.,  0.]),
-        'GEOcar': Coords( [[ NaN  NaN  NaN]
+        'loci': Coords( [[ NaN  NaN  NaN]
         [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
 
     See Also:
@@ -151,8 +151,8 @@ def find_Bmirror(ticktock, Coords, alpha, extMag='T01STORM', options=[1,0,0,0,0]
     import spacepy.toolbox as tb
 
     # prepare input values for irbem call
-    d = prep_irbem(ticktock, Coords, alpha, extMag=extMag, options=options, omnivals=omnivals)
-    nTAI = len(ticktock)
+    d = prep_irbem(ticks, loci, alpha, extMag=extMag, options=options, omnivals=omnivals)
+    nTAI = len(ticks)
     badval = d['badval']
     kext = d['kext']
     sysaxes = d['sysaxes']
@@ -170,7 +170,7 @@ def find_Bmirror(ticktock, Coords, alpha, extMag='T01STORM', options=[1,0,0,0,0]
     results = {}
     results['Blocal'] = n.zeros(nTAI)
     results['Bmirr'] = n.zeros(nTAI)
-    results['GEOcar'] = ['']*nTAI
+    results['loci'] = ['']*nTAI
     for i in n.arange(nTAI):
         blocal, bmirr, GEOcoord = oplib.find_mirror_point1(kext,options,sysaxes, \
             iyearsat[i],idoysat[i],secs[i], xin1[i],xin2[i],xin3[i], alpha, magin[:,i])
@@ -182,22 +182,22 @@ def find_Bmirror(ticktock, Coords, alpha, extMag='T01STORM', options=[1,0,0,0,0]
 
         results['Blocal'][i] = blocal
         results['Bmirr'][i] = bmirr	
-        results['GEOcar'][i] = GEOcoord
+        results['loci'][i] = GEOcoord
 
-    results['GEOcar'] = c.Coords(results['GEOcar'], 'GEO', 'car')
+    results['loci'] = c.Coords(results['loci'], 'GEO', 'car')
 
     return results
 
 # -----------------------------------------------
-def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
+def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
     call find_magequator from irbem library and return a dictionary with values for
     Bmin and the GEO (cartesian) coordinates of the magnetic equator
 
     Input:
     ======
-        - ticktock (Ticktock class) : containing time information
-        - Coords (Coords class) : containing spatial information
+        - ticks (Ticktock class) : containing time information
+        - loci (Coords class) : containing spatial information
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
@@ -217,7 +217,7 @@ def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], om
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
     >>> op.find_magequator(t,y)
     {'Bmin': array([  945.63652413,  3373.64496167]),
-        'GEOcar': Coords( [[ 2.99938371  0.00534151 -0.03213603]
+        'loci': Coords( [[ 2.99938371  0.00534151 -0.03213603]
         [ 2.00298822 -0.0073077   0.04584859]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
 
     See Also:
@@ -239,8 +239,8 @@ def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], om
     import spacepy
 
     # prepare input values for irbem call
-    d = prep_irbem(ticktock, Coords, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
-    nTAI = len(ticktock)
+    d = prep_irbem(ticks, loci, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
+    nTAI = len(ticks)
     badval = d['badval']
     kext = d['kext']
     sysaxes = d['sysaxes']
@@ -254,7 +254,7 @@ def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], om
 
     results = {}
     results['Bmin'] = n.zeros(nTAI)
-    results['GEOcar'] = ['']*nTAI
+    results['loci'] = ['']*nTAI
     for i in n.arange(nTAI):
         bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
             iyearsat[i],idoysat[i],secs[i], xin1[i],xin2[i],xin3[i],magin[:,i])
@@ -264,22 +264,22 @@ def find_magequator(ticktock, Coords, extMag='T01STORM', options=[1,0,0,0,0], om
         GEOcoord[n.where( tb.feq(GEOcoord, badval)) ] = n.NaN
 
         results['Bmin'][i] = bmin
-        results['GEOcar'][i] = GEOcoord
+        results['loci'][i] = GEOcoord
 
-    results['GEOcar'] = spacepy.coordinates.Coords(results['GEOcar'], 'GEO', 'car')
+    results['loci'] = spacepy.coordinates.Coords(results['loci'], 'GEO', 'car')
 
     return results
 
 
 # -----------------------------------------------
-def coord_trans( Coords, returntype, returncarsph ):
+def coord_trans(loci, returntype, returncarsph ):
     """
     thin layer to call coor_trans1 from irbem lib
     this will convert between systems GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
 
     Input:
     ======
-        - Coords (Coords instance) : containing coordinate information, can contain n points
+        - loci (Coords instance) : containing coordinate information, can contain n points
         - returntype (str) : describing system as GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
         - returncarsph (str) : cartesian or spherical units 'car', 'sph'
         
@@ -289,9 +289,9 @@ def coord_trans( Coords, returntype, returncarsph ):
         
     Example:
     ========
-    >>> coord = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
-    >>> coord.ticktock = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> coord_trans(coord, 'GSM', 'car')
+    >>> c = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> c.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
+    >>> coord_trans(c, 'GSM', 'car')
     array([[ 2.8639301 , -0.01848784,  0.89306361],
     [ 1.9124434 ,  0.07209424,  0.58082929]])
 
@@ -312,7 +312,7 @@ def coord_trans( Coords, returntype, returncarsph ):
     import spacepy.irbempy.irbempylib
     import spacepy.irbempy as op
 
-    sysaxesin = get_sysaxes( Coords.dtype, Coords.carsph )
+    sysaxesin = get_sysaxes( loci.dtype, loci.carsph )
     sysaxesout = get_sysaxes( returntype, returncarsph )
 
     # swap carsph if sysaxesout is None
@@ -325,15 +325,15 @@ def coord_trans( Coords, returntype, returncarsph ):
     else:
         aflag = False
 
-    xout = n.zeros(n.shape(Coords.data))
-    for i in n.arange(len(Coords)):
-        iyear = Coords.ticktock.UTC[i].year
-        idoy = Coords.ticktock.DOY[i]
-        secs = Coords.ticktock.UTC[i].hour*3600. + Coords.ticktock.UTC[i].minute*60. + \
-            Coords.ticktock.UTC[i].second
+    xout = n.zeros(n.shape(loci.data))
+    for i in n.arange(len(loci)):
+        iyear = loci.ticks.UTC[i].year
+        idoy = loci.ticks.DOY[i]
+        secs = loci.ticks.UTC[i].hour*3600. + loci.ticks.UTC[i].minute*60. + \
+            loci.ticks.UTC[i].second
             
         xout[i,:] = spacepy.irbempy.irbempylib.coord_trans1(sysaxesin, sysaxesout, \
-            iyear, idoy, secs, Coords.data[i])
+            iyear, idoy, secs, loci.data[i])
         
     # add  sph to car or v/v convertion if initial sysaxesout was None
     if  aflag == True:
@@ -548,7 +548,7 @@ def get_dtype(sysaxes):
     return dtype, carsph
 
 # -----------------------------------------------
-def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
+def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
     """
     This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
     and will lookup omni values for given time if not provided (optional). If pitch angles
@@ -557,8 +557,8 @@ def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0
 
     Input:
     ======
-        - ticktock (Ticktock class) : containing time information
-        - Coords (Coords class) : containing spatial information
+        - ticks (Ticktock class) : containing time information
+        - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : optional pitch angles in degrees; if provided will 
             calculate shell splitting; max 25 values
         - extMag (string) : optional; will choose the external magnetic field model 
@@ -667,9 +667,9 @@ def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0
     import spacepy.irbempy.irbempylib as oplib
     import numpy as n
 
-    nTAI = len(ticktock)
+    nTAI = len(ticks)
     nalpha = len(alpha)
-    d = prep_irbem(ticktock, coords, alpha, extMag, options, omnivals)
+    d = prep_irbem(ticks, loci, alpha, extMag, options, omnivals)
         
     if nalpha == 0: # no drift shell splitting
         lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], d['sysaxes'],\
@@ -711,7 +711,7 @@ def _get_Lstar(ticktock, coords, alpha=[], extMag='T01STORM', options=[1,0,0,0,0
     return results
 
 # -----------------------------------------------
-def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
+def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
     This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
     and will lookup omni values for given time if not provided (optional). If pitch angles
@@ -720,8 +720,8 @@ def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], o
 
     Input:
     ======
-        - ticktock (Ticktock class) : containing time information
-        - coords (Coords class) : containing spatial information
+        - ticks (Ticktock class) : containing time information
+        - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : optional pitch angles in degrees; if provided will 
             calculate shell splitting; max 25 values
         - extMag (string) : optional; will choose the external magnetic field model 
@@ -834,18 +834,18 @@ def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], o
     assert len(alpha) is 1, 'len(alpha) needs to be 1'	
 
     ncpus = spacepy.NCPUS
-    ncalc = len(ticktock)
+    ncalc = len(ticks)
     nalpha = len(alpha)
 
     if ncpus > 1 and ncalc >= ncpus*2:
         import pp
         server = pp.Server(ncpus)
-        ncalc = len(ticktock)
+        ncalc = len(ticks)
         jobs = []
 
         for ijob in range(ncpus):
             ppidx = list(range(ijob, ncalc, ncpus))
-            jobs.append(server.submit(_get_Lstar, (ticktock[ppidx], coords[ppidx], alpha, \
+            jobs.append(server.submit(_get_Lstar, (ticks[ppidx], loci[ppidx], alpha, \
                 extMag, options, omnivals), depfuncs=(prep_irbem,), modules=() ))
             
         # retrieve results from all jobs
@@ -872,12 +872,12 @@ def get_Lstar(ticktock, coords, alpha, extMag='T01STORM', options=[1,0,0,0,0], o
 
     # single NCPU
     else:
-        DALL = _get_Lstar(ticktock, coords, alpha, extMag, options, omnivals)
+        DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals)
 
     return DALL
 	
 # -----------------------------------------------
-def prep_irbem(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
+def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
     """
     """
     import numpy as n
@@ -893,13 +893,13 @@ def prep_irbem(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=
     nalp_max = d['nalp_max']
     ntime_max = d['ntime_max']
 
-    if ticktock is None:
+    if ticks is None:
         return d
 
-    UTC = ticktock.UTC
-    DOY = ticktock.DOY
-    eDOY = ticktock.eDOY
-    nTAI = len(ticktock)
+    UTC = ticks.UTC
+    DOY = ticks.DOY
+    eDOY = ticks.eDOY
+    nTAI = len(ticks)
 
     # setup mag array and move omni values
     magin = n.zeros((nalp_max,ntime_max),float)	
@@ -907,7 +907,7 @@ def prep_irbem(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=
                     'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
     # get omni values
     if omnivals is None: # nothing provided so use lookup table
-        omnivals = omni.get_omni(ticktock)
+        omnivals = omni.get_omni(ticks)
         
     # multiply Kp*10 to look like omni database
     # this is what irbem lib is looking for
@@ -932,18 +932,18 @@ def prep_irbem(ticktock=None, coords=None, alpha=[], extMag='T01STORM', options=
 
     # copy coordinates into array
     # prepare coordinates
-    d['sysaxes'] = coords.sysaxes
+    d['sysaxes'] = loci.sysaxes
     xin1 = n.zeros(ntime_max, dtype=float)
     xin2 = n.zeros(ntime_max, dtype=float)
     xin3 = n.zeros(ntime_max, dtype=float) 
-    if coords.carsph == 'sph':
-        xin1[0:nTAI] = coords.radi[:]
-        xin2[0:nTAI] = coords.lati[:]
-        xin3[0:nTAI] = coords.long[:]
+    if loci.carsph == 'sph':
+        xin1[0:nTAI] = loci.radi[:]
+        xin2[0:nTAI] = loci.lati[:]
+        xin3[0:nTAI] = loci.long[:]
     else:
-        xin1[0:nTAI] = coords.x[:]
-        xin2[0:nTAI] = coords.y[:]
-        xin3[0:nTAI] = coords.z[:]
+        xin1[0:nTAI] = loci.x[:]
+        xin2[0:nTAI] = loci.y[:]
+        xin3[0:nTAI] = loci.z[:]
     d['xin1'] = xin1
     d['xin2'] = xin2
     d['xin3'] = xin3
