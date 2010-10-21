@@ -28,7 +28,7 @@ the module, e.g. if the library is in CDF/lib in the user's home directory::
 The L{const} module contains constants useful for accessing the underlying library.
 """
 
-__version__ = "0.3"
+__version__ = "0.4"
 __author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 from ._pycdf import *

@@ -10,7 +10,7 @@ import shutil
 import sys
 import unittest
 
-import pycdf as cdf
+import spacepy.pycdf as cdf
 
 
 class NoCDF(unittest.TestCase):
@@ -168,6 +168,30 @@ class NoCDF(unittest.TestCase):
                                  str(two_d[i][j]) + ' != ' +
                                  str(flipped[j][i]))
 
+    def testEpoch16ToDatetime(self):
+        epochs = [[63397987199.0, 999999999999.0],
+                  ]
+        dts = [datetime.datetime(2009, 1, 1),
+               ]
+        for (epoch, dt) in zip(epochs, dts):
+            self.assertEqual(dt, cdf.lib.epoch16_to_datetime(epoch))
+
+    def testUncheckedErrors(self):
+        """Call the library without checking result."""
+        nbytes = ctypes.c_long(0)
+        status = cdf.lib.call(cdf.const.GET_, cdf.const.DATATYPE_SIZE_,
+                              ctypes.c_long(100), ctypes.byref(nbytes),
+                              check=False)
+        self.assertEqual(cdf.const.BAD_DATA_TYPE, status)
+
+    def testIgnoreErrors(self):
+        """Call the library and ignore particular error"""
+        nbytes = ctypes.c_long(0)
+        status = cdf.lib.call(cdf.const.GET_, cdf.const.DATATYPE_SIZE_,
+                              ctypes.c_long(100), ctypes.byref(nbytes),
+                              ignore=cdf.const.BAD_DATA_TYPE)
+        self.assertEqual(cdf.const.BAD_DATA_TYPE, status)
+
 
 class MakeCDF(unittest.TestCase):
     def setUp(self):
@@ -207,9 +231,10 @@ class CreateVar(unittest.TestCase):
 
 class CDFTests(unittest.TestCase):
     """Tests that involve an existing CDF, read or write"""
+    testmaster = 'po_l1_cam_test.cdf'
+    testfile = 'test.cdf'
+
     def __init__(self, *args):
-        self.testmaster = 'po_l1_cam_test.cdf'
-        self.testfile = 'test.cdf'
         self.expected_digest = '4e78627e257ad2743387d3a7653b5e30'
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
         super(CDFTests, self).__init__(*args)
@@ -306,15 +331,38 @@ class OpenCDF(CDFTests):
 
 class ReadCDF(CDFTests):
     """Tests that read an existing CDF, but do not modify it."""
-    def __init__(self, *args):
-        super(ReadCDF, self).__init__(*args)
-        shutil.copy(self.testmaster, self.testfile)
+
+    def __init__(self, *args, **kwargs):
+        super(ReadCDF, self).__init__(*args, **kwargs)
+        if not hasattr(unittest.TestCase, 'setUpClass'):
+            self.class_fixture = False
+        else:
+            self.class_fixture = True
+
+    def setUp(self):
+        if not self.class_fixture:
+            self.setUpClass()
+        super(ReadCDF, self).setUp()
         self.cdf = cdf.CDF(self.testfile)
 
-    def __del__(self):
+    def tearDown(self):
+        self.cdf.close()
         del self.cdf
-        os.remove(self.testfile)
-    
+        super(ReadCDF, self).tearDown()
+        if not self.class_fixture:
+            self.tearDownClass()
+
+    @classmethod
+    def setUpClass(cls):
+        shutil.copy(cls.testmaster, cls.testfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.remove(cls.testfile)
+        except OSError:
+            pass
+            
     def testGetATC(self):
         """Get ATC zVar using subscripting"""
         atc = self.cdf['ATC']
@@ -665,6 +713,230 @@ class ReadCDF(CDFTests):
             self.assertEqual(str(val), message)
         else:
             self.fail('Should have raised CDFError: '+ message)
+
+    def testzEntryType(self):
+        """Get the type of a zEntry"""
+        names = ['DEPEND_0', 'VALIDMAX', ]
+        numbers = [1, 0, ]
+        types = [cdf.const.CDF_CHAR, cdf.const.CDF_EPOCH16, ]
+        for (name, number, cdf_type) in zip(names, numbers, types):
+            attribute = cdf.zAttr(self.cdf, name)
+            actual_type = attribute.entry_type(number)
+            self.assertEqual(actual_type, cdf_type.value,
+                             'zAttr ' + name + ' zEntry ' + str(number) +
+                             ' ' + str(cdf_type.value) + ' != ' + 
+                             str(actual_type))
+
+    def testgEntryType(self):
+        """Get the type of a gEntry"""
+        names = ['PI_name', 'Project', ]
+        numbers = [0, 0, ]
+        types = [cdf.const.CDF_CHAR, cdf.const.CDF_CHAR, ]
+        for (name, number, cdf_type) in zip(names, numbers, types):
+            attribute = cdf.gAttr(self.cdf, name)
+            actual_type = attribute.entry_type(number)
+            self.assertEqual(actual_type, cdf_type.value,
+                             'gAttr ' + name + ' gEntry ' + str(number) +
+                             ' ' + str(cdf_type.value) + ' != ' +
+                             str(actual_type))
+
+    def testzEntryNelems(self):
+        """Get number of elements of a zEntry"""
+        names = ['DEPEND_0', 'VALIDMAX', ]
+        numbers = [1, 0, ]
+        nelems = [3, 1, ]
+        for (name, number, nelem) in zip(names, numbers, nelems):
+            attribute = cdf.zAttr(self.cdf, name)
+            actual_number = attribute._entry_len(number)
+            self.assertEqual(actual_number, nelem,
+                             'zAttr ' + name + ' zEntry ' + str(number) +
+                             ' ' + str(nelem) + ' != ' + str(actual_number))
+
+    def testgEntryNelems(self):
+        """Get number of elements of a gEntry"""
+        names = ['PI_name', 'Project', ]
+        numbers = [0, 0, ]
+        nelems = [8, 44, ]
+        for (name, number, nelem) in zip(names, numbers, nelems):
+            attribute = cdf.gAttr(self.cdf, name)
+            actual_number = attribute._entry_len(number)
+            self.assertEqual(actual_number, nelem,
+                             'gAttr ' + name + ' gEntry ' + str(number) +
+                             ' ' + str(nelem) + ' != ' + str(actual_number))
+
+    def testzAttrLen(self):
+        """Get number of zEntries for a zAttr"""
+        names = ['DEPEND_0', 'VALIDMAX', ]
+        lengths = [6, 7, ]
+        for (name, length) in zip(names, lengths):
+            attribute = cdf.zAttr(self.cdf, name)
+            actual_length = len(attribute)
+            self.assertEqual(actual_length, length,
+                             'zAttr ' + name +
+                             ' ' + str(length) + ' != ' + str(actual_length))
+
+    def testgAttrLen(self):
+        """Get number of gEntries for a gAttr"""
+        names = ['PI_name', 'Project', ]
+        lengths = [1, 1, ]
+        for (name, length) in zip(names, lengths):
+            attribute = cdf.gAttr(self.cdf, name)
+            actual_length = len(attribute)
+            self.assertEqual(actual_length, length,
+                             'gAttr ' + name +
+                             ' ' + str(length) + ' != ' + str(actual_length))
+
+    def testzEntryValue(self):
+        """Get the value of a zEntry"""
+        names = ['DEPEND_0', 'VALIDMAX', ]
+        numbers = [1, 0]
+        values = ['ATC', datetime.datetime(2009, 1, 1)]
+        for (name, number, value) in zip(names, numbers, values):
+            attribute = cdf.zAttr(self.cdf, name)
+            entry = attribute._get_entry(number)
+            self.assertEqual(value, entry)
+
+    def testgEntryValue(self):
+        """Get the value of a gEntry"""
+        names = ['Project', 'TEXT', ]
+        numbers = [0, 0, ]
+        values = ['ISTP>International Solar-Terrestrial Physics',
+                  'Polar CAMMICE Level One intermediate files', ]
+        for (name, number, value) in zip(names, numbers, values):
+            attribute = cdf.gAttr(self.cdf, name)
+            entry = attribute._get_entry(number)
+            self.assertEqual(value, entry)
+
+    def testzAttrSlice(self):
+        """Slice a zAttribute"""
+        entries = cdf.zAttr(self.cdf, 'DEPEND_0')[6:10:2]
+        values = [entry for entry in entries]
+        self.assertEqual(['ATC', 'ATC'], values)
+
+    def testgAttrSlice(self):
+        """Slice a gAttribute"""
+        entry = cdf.gAttr(self.cdf, 'Instrument_type')[0]
+        value = entry
+        self.assertEqual('Particles (space)', value)
+
+    def testzAttrMaxIdx(self):
+        """Find max index of a zAttr"""
+        self.assertEqual(11,
+            cdf.zAttr(self.cdf, 'DEPEND_0').max_idx())
+
+    def testgAttrMaxIdx(self):
+        """Find max index of a gAttr"""
+        self.assertEqual(0,
+            cdf.gAttr(self.cdf, 'Mission_group').max_idx())
+        self.assertEqual(-1,
+            cdf.gAttr(self.cdf, 'HTTP_LINK').max_idx())
+
+    def testzEntryExists(self):
+        """Checks for existence of a zEntry"""
+        attribute = cdf.zAttr(self.cdf, 'DEPEND_0')
+        self.assertFalse(attribute.has_entry(0))
+        self.assertTrue(attribute.has_entry(6))
+
+    def testgEntryExists(self):
+        """Checks for existence of a gEntry"""
+        attribute = cdf.gAttr(self.cdf, 'TEXT')
+        self.assertTrue(attribute.has_entry(0))
+        self.assertFalse(attribute.has_entry(6))
+
+    def testzAttrIterator(self):
+        """Iterate through all zEntries of a zAttr"""
+        expected = ['ATC'] * 6
+        attrib = cdf.zAttr(self.cdf, 'DEPEND_0')
+        self.assertEqual(expected, [i for i in attrib])
+        a = attrib.__iter__()
+        a.send(None)
+        res = a.send(1)
+        self.assertEqual('ATC', res)
+        try:
+            res = a.next()
+        except AttributeError:
+            res = next(a)
+        self.assertEqual('ATC', res)
+
+    def testzAttrRevIterator(self):
+        """Iterate backwards through all zEntries of a zAttr"""
+        expected = ['ATC'] * 6
+        attrib = cdf.zAttr(self.cdf, 'DEPEND_0')
+        output = [entry for entry in reversed(attrib)]
+        self.assertEqual(expected, output)
+
+    def testgAttrIterator(self):
+        """Iterate through all gEntries of a gAttr"""
+        expected = ['ISTP>International Solar-Terrestrial Physics']
+        attrib = cdf.gAttr(self.cdf, 'Project')
+        self.assertEqual(expected, [i for i in attrib])
+
+    def testzAttribList(self):
+        """Get a zAttrib from the list on the CDF"""
+        attrlist = cdf.zAttrList(self.cdf['PhysRecNo'])
+        self.assertEqual(attrlist['DEPEND_0'], 'ATC')
+        self.assertRaises(KeyError, attrlist.__getitem__, 'Data_type')
+
+    def testgAttribList(self):
+        """Get a gAttrib from the list on the CDF"""
+        attrlist = cdf.gAttrList(self.cdf)
+        self.assertEqual(attrlist['Data_type'][0],
+                         'H0>High Time Resolution')
+        self.assertRaises(KeyError, attrlist.__getitem__, 'DEPEND_0')
+
+    def testAttribScope(self):
+        """Get the variable/global scope of an attribute"""
+        self.assertFalse(cdf.gAttr(self.cdf, 'CATDESC').global_scope())
+        self.assertFalse(cdf.gAttr(self.cdf, 'DEPEND_0').global_scope())
+        self.assertTrue(cdf.gAttr(self.cdf, 'Data_type').global_scope())
+
+    def testAttribNumber(self):
+        """Get the number of an attribute"""
+        self.assertEqual(25, cdf.zAttr(self.cdf, 'CATDESC').number())
+        self.assertEqual(26, cdf.zAttr(self.cdf, 'DEPEND_0').number())
+        self.assertEqual(3, cdf.gAttr(self.cdf, 'Data_type').number())
+
+    def testzAttribListLen(self):
+        """Number of zAttrib for a zVar"""
+        self.assertEqual(10, len(cdf.zAttrList(self.cdf['ATC'])))
+        self.assertEqual(8, len(cdf.zAttrList(self.cdf['PhysRecNo'])))
+
+    def testgAttribListLen(self):
+        """Number of gAttrib in a CDF"""
+        self.assertEqual(25, len(cdf.gAttrList(self.cdf)))
+
+    def testzAttribsonVar(self):
+        """Check zAttribs as an attribute of Var"""
+        self.assertEqual(10, len(self.cdf['ATC'].attrs))
+        self.assertEqual(8, len(self.cdf['PhysRecNo'].attrs))
+
+    def testgAttribsonCDF(self):
+        """Check gAttribs as an attribute of CDF"""
+        self.assertEqual(25, len(self.cdf.attrs))
+
+    def testzAttribListIt(self):
+        """Iterate over keys in a zAttrList"""
+        attrlist = cdf.zAttrList(self.cdf['PhysRecNo'])
+        self.assertEqual([b'CATDESC', b'DEPEND_0', b'FIELDNAM', b'FILLVAL',
+                          b'FORMAT', b'VALIDMIN', b'VALIDMAX', b'VAR_TYPE'],
+                         list(attrlist))
+        
+    def testgAttribListIt(self):
+        """Iterate over keys in a gAttrList"""
+        attrlist = cdf.gAttrList(self.cdf)
+        self.assertEqual([b'Project', b'Source_name', b'Discipline',
+                          b'Data_type', b'Descriptor',
+                          b'File_naming_convention', b'Data_version',
+                          b'PI_name', b'PI_affiliation', b'TEXT',
+                          b'Instrument_type', b'Mission_group',
+                          b'Logical_source',
+                          b'Logical_file_id', b'Logical_source_description',
+                          b'Time_resolution', b'Rules_of_use', b'Generated_by',
+                          b'Generation_date', b'Acknowledgement', b'MODS',
+                          b'ADID_ref', b'LINK_TEXT', b'LINK_TITLE',
+                          b'HTTP_LINK',
+                          ],
+                         list(attrlist))
 
 
 class ReadColCDF(ColCDFTests):
