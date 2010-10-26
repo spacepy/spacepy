@@ -11,11 +11,11 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.51 $, $Date: 2010/10/06 17:40:38 $"
+__version__ = "$Revision: 1.52 $, $Date: 2010/10/26 19:54:12 $"
 __author__ = 'S. Morley and J. Koller'
 
 
-def tOverlap(ts1,ts2):
+def tOverlap(ts1, ts2):
     """Finds the overlapping elements in two lists of datetime objects
 
     @param ts1: first set of datetime object
@@ -46,14 +46,14 @@ def tOverlap(ts1,ts2):
     t_lower, t_upper = min(ts1), max(ts1)
     bool1 = [v > t_lower for v in ts2]
     bool2 = [v < t_upper for v in ts2]
-    mask2in1 = [b1 and b2 for b1,b2 in zip(bool1,bool2)]
+    mask2in1 = [b1 and b2 for b1, b2 in zip(bool1, bool2)]
     inds2in1 = [i for i, val in enumerate(mask2in1) if val==True]
     
     #elements of ts1 within bounds of ts2
     t_lower, t_upper = min(ts2), max(ts2)
     bool1 = [v > t_lower for v in ts1]
     bool2 = [v < t_upper for v in ts1]
-    mask1in2 = [b1 and b2 for b1,b2 in zip(bool1,bool2)]
+    mask1in2 = [b1 and b2 for b1, b2 in zip(bool1, bool2)]
     inds1in2 = [i for i, val in enumerate(mask1in2) if val==True]
     
     if len(inds2in1) == 0:
@@ -86,8 +86,8 @@ def tCommon(ts1, ts2, mask_only=True):
     
     tn1, tn2 = date2num(ts1),date2num(ts2)
     
-    el1in2 = np.setmember1d(tn1,tn2) #makes mask of present/absent
-    el2in1 = np.setmember1d(tn2,tn1)
+    el1in2 = np.setmember1d(tn1, tn2) #makes mask of present/absent
+    el2in1 = np.setmember1d(tn2, tn1)
     
     if mask_only:
         return el1in2, el2in1
@@ -206,49 +206,49 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
     # read all files
     d = {}
     for fln in filelist:
-       print("adding ", fln)
-       d[fln] = loadpickle(fln)
+        print("adding ", fln)
+        d[fln] = loadpickle(fln)
     
     # combine them
     dcomb = d[filelist[0]]  # copy the first file over
     for fln in filelist[1:]:
        # check if sortkey is actually available
-       assert (sortkey in d[fln] or sortkey==None), 'provided sortkey ='+sortkey+' is not available'
-       
-       if sortkey:
-          TAIcount = len(d[fln][sortkey])
-       else:
-          TAIcount = len(d[fln][ list(d[fln].keys())[0] ])
-       for key in d[fln]:
-          #print fln, key
-          dim = n.array(n.shape(d[fln][key]))
-          ax = n.where(dim==TAIcount)[0]
-          if len(ax) == 1: # then match with TAI length is given (jump over otherwise like for 'parameters')
-             if isinstance(dcomb[key], t.Ticktock):
-                 dcomb[key] = dcomb[key].append(d[fln][key])
-             elif isinstance(dcomb[key], c.Coords):
-                 dcomb[key] = dcomb[key].append(d[fln][key])
-             else:
-                 dcomb[key] = n.append(dcomb[key], d[fln][key], axis=ax)
+        assert (sortkey in d[fln] or sortkey==None), 'provided sortkey ='+sortkey+' is not available'
+        
+        if sortkey:
+            TAIcount = len(d[fln][sortkey])
+        else:
+            TAIcount = len(d[fln][ list(d[fln].keys())[0] ])
+        for key in d[fln]:
+            #print fln, key
+            dim = n.array(n.shape(d[fln][key]))
+            ax = n.where(dim==TAIcount)[0]
+            if len(ax) == 1: # then match with TAI length is given (jump over otherwise like for 'parameters')
+                if isinstance(dcomb[key], t.Ticktock):
+                    dcomb[key] = dcomb[key].append(d[fln][key])
+                elif isinstance(dcomb[key], c.Coords):
+                    dcomb[key] = dcomb[key].append(d[fln][key])
+                else:
+                    dcomb[key] = n.append(dcomb[key], d[fln][key], axis=ax)
 
     if sortkey:    #  then sort     
         if isinstance(dcomb[sortkey], t.Ticktock):
-           idx = n.argsort(dcomb[sortkey].RDT)
+            idx = n.argsort(dcomb[sortkey].RDT)
         else:
-           idx = n.argsort(dcomb[sortkey])
+            idx = n.argsort(dcomb[sortkey])
         TAIcount = len(dcomb[sortkey])
         for key in dcomb.keys():
-           dim = n.array(n.shape(dcomb[key]))
-           ax = n.where(dim==TAIcount)[0]
-           if len(ax) == 1: # then match with length of TAI
-              dcomb[key] = dcomb[key][idx] # resort
+            dim = n.array(n.shape(dcomb[key]))
+            ax = n.where(dim==TAIcount)[0]
+            if len(ax) == 1: # then match with length of TAI
+                dcomb[key] = dcomb[key][idx] # resort
     else:
         # do nothing
         pass
-    
+
     print('\n writing: ', outfln)
     savepickle(outfln, dcomb)
-    
+
     return dcomb
 
 # -----------------------------------------------    

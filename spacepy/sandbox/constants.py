@@ -1,13 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+try:
+    from future import __division__
+except:
+    pass    
 from spacepy import help
 from spacepy.toolbox import dictree
 import numpy as np
 
 ##Physical constants (SI units))
 c = 2.99792458e8 #speed of light in m/s
-eVtoK = 1/11604 #eV to Kelvin
+eVtoK = 1.0/11604.0 #eV to Kelvin
 k_b = 1.38065812e-23 #boltzmann constant in J/K
 mp = 1.673623110e-27 #mass of proton in kg
 me = 9.109389754e-31 #mass of electron in kg

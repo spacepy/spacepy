@@ -68,7 +68,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.1 $, $Date: 2010/09/21 23:57:28 $
+        $Revision: 1.2 $, $Date: 2010/10/26 19:54:12 $
       </p>
       <p><strong>Author:</strong>
         Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
@@ -98,8 +98,8 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#get_Bfield" class="summary-sig-name">get_Bfield</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">Coords</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       call get_bfield in irbem lib and return a dictionary with the B-field
       vector and strenght.</td>
@@ -121,8 +121,8 @@
           <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#find_Bmirror" class="summary-sig-name">find_Bmirror</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">Coords</span>,
         <span class="summary-sig-arg">alpha</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       call find_mirror_point from irbem library and return a dictionary 
       with values for Blocal, Bmirr and the GEO (cartesian) coordinates of 
@@ -144,8 +144,8 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#find_magequator" class="summary-sig-name">find_magequator</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">Coords</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       call find_magequator from irbem library and return a dictionary with 
       values for Bmin and the GEO (cartesian) coordinates of the magnetic 
@@ -256,9 +256,9 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#_get_Lstar" class="summary-sig-name" onclick="show_private();">_get_Lstar</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">coords</span>,
-        <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default">[]</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
+        <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       This will call make_lstar1 or make_lstar_shell_splitting_1 from the 
       irbem library and will lookup omni values for given time if not 
@@ -281,8 +281,8 @@
           <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#get_Lstar" class="summary-sig-name">get_Lstar</a>(<span class="summary-sig-arg">ticktock</span>,
         <span class="summary-sig-arg">coords</span>,
         <span class="summary-sig-arg">alpha</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       This will call make_lstar1 or make_lstar_shell_splitting_1 from the 
       irbem library and will lookup omni values for given time if not 
@@ -304,9 +304,9 @@
         <tr>
           <td><span class="summary-sig"><a name="prep_irbem"></a><span class="summary-sig-name">prep_irbem</span>(<span class="summary-sig-arg">ticktock</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">coords</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default">[]</span>,
-        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default">'T01STORM'</span>,
-        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default">[1,0,0,0,0]</span>,
+        <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#prep_irbem">source&nbsp;code</a></span>
@@ -339,11 +339,22 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="spacepy.irbempy.irbempy-module.html#SYSAXES_TYPES" class="summary-name">SYSAXES_TYPES</a> = <code title="{'GDZ': {'sph': 0, 'car': None}, 'GEO': {'sph': None, 'car': 1}, 'GSM'\
-: {'sph': None, 'car': 2}, 'GSE': {'sph': None, 'car': 3}, 'SM': {'sph\
-': None, 'car': 4}, 'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': Non\
-e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
- None}}">{'GDZ': {'sph': 0, 'car': None}, 'GEO': {'sph'<code class="variable-ellipsis">...</code></code>
+        <a href="spacepy.irbempy.irbempy-module.html#SYSAXES_TYPES" class="summary-name">SYSAXES_TYPES</a> = <code title="{'GDZ': {'car': None, 'sph': 0},
+ 'GEI': {'car': 5, 'sph': None},
+ 'GEO': {'car': 1, 'sph': None},
+ 'GSE': {'car': 3, 'sph': None},
+ 'GSM': {'car': 2, 'sph': None},
+ 'MAG': {'car': 6, 'sph': None},
+ 'RLL': {'car': None, 'sph': 8},
+ 'SM': {'car': 4, 'sph': None},
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">GDZ</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-group">}</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">GEI</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'spacepy.irbempy'"><code class="variable-quote">'</code><code class="variable-string">spacepy.irbempy</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 </table>
@@ -374,8 +385,8 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Bfield</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">Coords</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
-        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -423,8 +434,8 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
 <span class="py-prompt">&gt;&gt;&gt; </span>y = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>op.get_Bfield(t,y)
 <span class="py-output">{'Blocal': array([  945.99989101,  3381.71633205]),</span>
-<span class="py-output">        'Bvec': array([[  8.05001055e-01,  -1.54645026e+02,   9.33273841e+02],</span>
-<span class="py-output">        [  3.36352963e+02,  -5.33658140e+02,   3.32236076e+03]])}</span></pre>
+<span class="py-output">    'Bvec': array([[  8.05001055e-01,  -1.54645026e+02,   9.33273841e+02],</span>
+<span class="py-output">    [  3.36352963e+02,  -5.33658140e+02,   3.32236076e+03]])}</span></pre>
   <h1 class="heading">See Also:</h1>
     <p>Lstar, find_Bmirror, find_magequator</p>
   <h1 class="heading">Author:</h1>
@@ -445,8 +456,8 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
   <h3 class="epydoc"><span class="sig"><span class="sig-name">find_Bmirror</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">Coords</span>,
         <span class="sig-arg">alpha</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
-        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -498,9 +509,9 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
 <span class="py-prompt">&gt;&gt;&gt; </span>y = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>op.find_Bmirror(t,y,[90,80,60,10])
 <span class="py-output">{'Blocal': array([ 0.,  0.]),</span>
-<span class="py-output"> 'Bmirr': array([ 0.,  0.]),</span>
-<span class="py-output"> 'GEOcar': Coords( [[ NaN  NaN  NaN]</span>
-<span class="py-output"> [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}</span></pre>
+<span class="py-output">    'Bmirr': array([ 0.,  0.]),</span>
+<span class="py-output">    'GEOcar': Coords( [[ NaN  NaN  NaN]</span>
+<span class="py-output">    [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}</span></pre>
   <h1 class="heading">See Also:</h1>
     <p>Lstar, get_Bfield, find_magequator</p>
   <h1 class="heading">Author:</h1>
@@ -520,8 +531,8 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">find_magequator</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">Coords</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
-        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -571,8 +582,8 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
 <span class="py-prompt">&gt;&gt;&gt; </span>y = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>op.find_magequator(t,y)
 <span class="py-output">{'Bmin': array([  945.63652413,  3373.64496167]),</span>
-<span class="py-output"> 'GEOcar': Coords( [[ 2.99938371  0.00534151 -0.03213603]</span>
-<span class="py-output"> [ 2.00298822 -0.0073077   0.04584859]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}</span></pre>
+<span class="py-output">    'GEOcar': Coords( [[ 2.99938371  0.00534151 -0.03213603]</span>
+<span class="py-output">    [ 2.00298822 -0.0073077   0.04584859]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}</span></pre>
   <h1 class="heading">See Also:</h1>
     <p>Lstar, get_Bfield, find_Bmirr</p>
   <h1 class="heading">Author:</h1>
@@ -829,9 +840,9 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_Lstar</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">coords</span>,
-        <span class="sig-arg">alpha</span>=<span class="sig-default">[]</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
-        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
+        <span class="sig-arg">alpha</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -887,11 +898,11 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
 <span class="py-prompt">&gt;&gt;&gt; </span>y = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>spacepy.irbempy.Lstar(t,y)
 <span class="py-output">{'Blocal': array([ 1020.40493286,  3446.08845227]),</span>
-<span class="py-output"> 'Bmin': array([ 1019.98404311,  3437.63865243]),</span>
-<span class="py-output"> 'Lm': array([ 3.08948304,  2.06022102]),</span>
-<span class="py-output"> 'Lstar': array([ 2.97684043,  1.97868577]),</span>
-<span class="py-output"> 'MLT': array([ 23.5728333 ,  23.57287944]),</span>
-<span class="py-output"> 'Xj': array([ 0.00112884,  0.00286955])}</span></pre>
+<span class="py-output">    'Bmin': array([ 1019.98404311,  3437.63865243]),</span>
+<span class="py-output">    'Lm': array([ 3.08948304,  2.06022102]),</span>
+<span class="py-output">    'Lstar': array([ 2.97684043,  1.97868577]),</span>
+<span class="py-output">    'MLT': array([ 23.5728333 ,  23.57287944]),</span>
+<span class="py-output">    'Xj': array([ 0.00112884,  0.00286955])}</span></pre>
   <h1 class="heading">External Magnetic Field:</h1>
     <ul>
       <li>
@@ -1060,8 +1071,8 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
   <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Lstar</span>(<span class="sig-arg">ticktock</span>,
         <span class="sig-arg">coords</span>,
         <span class="sig-arg">alpha</span>,
-        <span class="sig-arg">extMag</span>=<span class="sig-default">'T01STORM'</span>,
-        <span class="sig-arg">options</span>=<span class="sig-default">[1,0,0,0,0]</span>,
+        <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -1311,11 +1322,15 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':\
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-{'GDZ': {'sph': 0, 'car': None}, 'GEO': {'sph': None, 'car': 1}, 'GSM'<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-: {'sph': None, 'car': 2}, 'GSE': {'sph': None, 'car': 3}, 'SM': {'sph<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-': None, 'car': 4}, 'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': Non<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
- None}}
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">GDZ</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">GEI</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>5<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">GEO</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>1<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">GSE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>3<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">GSM</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>2<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">MAG</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>6<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">RLL</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>8<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">SM</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">car</code><code class="variable-quote">'</code><code class="variable-op">: </code>4<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">sph</code><code class="variable-quote">'</code><code class="variable-op">: </code>None<code class="variable-group">}</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -1353,7 +1368,7 @@ e, 'car': 6}, 'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car':<span clas
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:42 2010
+    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:42 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

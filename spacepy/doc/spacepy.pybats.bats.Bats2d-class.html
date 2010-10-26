@@ -66,7 +66,7 @@
 <pre class="base-tree">
 object --+    
          |    
-    IdlBin --+
+    <a href="spacepy.pybats.IdlBin-class.html">IdlBin</a> --+
              |
             <strong class="uidshort">Bats2d</strong>
 </pre>
@@ -99,7 +99,7 @@ object --+
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.pybats.bats.Bats2d-class.html#calc_temp" class="summary-sig-name">calc_temp</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">units</span>=<span class="summary-sig-default">'eV'</span>)</span><br />
+        <span class="summary-sig-arg">units</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">eV</code><code class="variable-quote">'</code></span>)</span><br />
       If pressure and number density are available, calculate temperature 
       for each species using P = nkT.</td>
           <td align="right" valign="top">
@@ -160,8 +160,8 @@ object --+
         <span class="summary-sig-arg">y</span>,
         <span class="summary-sig-arg">xvar</span>,
         <span class="summary-sig-arg">yvar</span>,
-        <span class="summary-sig-arg">method</span>=<span class="summary-sig-default">'rk4'</span>,
-        <span class="summary-sig-arg">style</span>=<span class="summary-sig-default">'mag'</span>)</span><br />
+        <span class="summary-sig-arg">method</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">rk4</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">style</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">mag</code><code class="variable-quote">'</code></span>)</span><br />
       Trace a 2D streamline through the domain, returning a Stream object 
       to the caller.</td>
           <td align="right" valign="top">
@@ -181,7 +181,7 @@ object --+
         <tr>
           <td><span class="summary-sig"><a href="spacepy.pybats.bats.Bats2d-class.html#planet_add_closed" class="summary-sig-name">planet_add_closed</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">ax</span>,
-        <span class="summary-sig-arg">style</span>=<span class="summary-sig-default">'mag'</span>,
+        <span class="summary-sig-arg">style</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">mag</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">DoImf</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">DoOpen</span>=<span class="summary-sig-default">False</span>)</span><br />
       Create an array of field lines closed to the central body in the 
@@ -203,7 +203,7 @@ object --+
         <tr>
           <td><span class="summary-sig"><a href="spacepy.pybats.bats.Bats2d-class.html#add_body" class="summary-sig-name">add_body</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">ax</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">facecolor</span>=<span class="summary-sig-default">'k'</span>,
+        <span class="summary-sig-arg">facecolor</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">k</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">**extra_kwargs</span>)</span><br />
       Creates a circle of radius=self.para['rbody'] and returns the 
       MatPlotLib Ellipse patch object for plotting.</td>
@@ -250,8 +250,8 @@ object --+
         <span class="summary-sig-arg">dim2</span>,
         <span class="summary-sig-arg">data</span>,
         <span class="summary-sig-arg">cellsize</span>=<span class="summary-sig-default">1.0</span>,
-        <span class="summary-sig-arg">dim1range</span>=<span class="summary-sig-default">[0,1]</span>,
-        <span class="summary-sig-arg">dim2range</span>=<span class="summary-sig-default">[0,1]</span>)</span><br />
+        <span class="summary-sig-arg">dim1range</span>=<span class="summary-sig-default"><code class="variable-group">[</code>0<code class="variable-op">, </code>1<code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">dim2range</span>=<span class="summary-sig-default"><code class="variable-group">[</code>0<code class="variable-op">, </code>1<code class="variable-group">]</code></span>)</span><br />
       For unstructured grids, matplotlib's contour function will not work.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.pybats.bats-pysrc.html#Bats2d.contouru">source&nbsp;code</a></span>
@@ -264,11 +264,11 @@ object --+
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>IdlBin</code></b>:
-      <code>__init__</code>,
-      <code>__repr__</code>,
-      <code>__str__</code>,
-      <code>read</code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="spacepy.pybats.IdlBin-class.html">IdlBin</a></code></b>:
+      <code><a href="spacepy.pybats.IdlBin-class.html#__init__">__init__</a></code>,
+      <code><a href="spacepy.pybats.IdlBin-class.html#__repr__">__repr__</a></code>,
+      <code><a href="spacepy.pybats.IdlBin-class.html#__str__">__str__</a></code>,
+      <code><a href="spacepy.pybats.IdlBin-class.html#read">read</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
@@ -336,7 +336,7 @@ object --+
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">calc_temp</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">units</span>=<span class="sig-default">'eV'</span>)</span>
+        <span class="sig-arg">units</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">eV</code><code class="variable-quote">'</code></span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.pybats.bats-pysrc.html#Bats2d.calc_temp">source&nbsp;code</a></span>&nbsp;
@@ -409,8 +409,8 @@ object --+
         <span class="sig-arg">y</span>,
         <span class="sig-arg">xvar</span>,
         <span class="sig-arg">yvar</span>,
-        <span class="sig-arg">method</span>=<span class="sig-default">'rk4'</span>,
-        <span class="sig-arg">style</span>=<span class="sig-default">'mag'</span>)</span>
+        <span class="sig-arg">method</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">rk4</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">style</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">mag</code><code class="variable-quote">'</code></span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.pybats.bats-pysrc.html#Bats2d.get_stream">source&nbsp;code</a></span>&nbsp;
@@ -437,7 +437,7 @@ object --+
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">planet_add_closed</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">ax</span>,
-        <span class="sig-arg">style</span>=<span class="sig-default">'mag'</span>,
+        <span class="sig-arg">style</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">mag</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">DoImf</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">DoOpen</span>=<span class="sig-default">False</span>)</span>
   </h3>
@@ -475,7 +475,7 @@ object --+
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">add_body</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">ax</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">facecolor</span>=<span class="sig-default">'k'</span>,
+        <span class="sig-arg">facecolor</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">k</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">**extra_kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -504,8 +504,8 @@ object --+
         <span class="sig-arg">dim2</span>,
         <span class="sig-arg">data</span>,
         <span class="sig-arg">cellsize</span>=<span class="sig-default">1.0</span>,
-        <span class="sig-arg">dim1range</span>=<span class="sig-default">[0,1]</span>,
-        <span class="sig-arg">dim2range</span>=<span class="sig-default">[0,1]</span>)</span>
+        <span class="sig-arg">dim1range</span>=<span class="sig-default"><code class="variable-group">[</code>0<code class="variable-op">, </code>1<code class="variable-group">]</code></span>,
+        <span class="sig-arg">dim2range</span>=<span class="sig-default"><code class="variable-group">[</code>0<code class="variable-op">, </code>1<code class="variable-group">]</code></span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.pybats.bats-pysrc.html#Bats2d.contouru">source&nbsp;code</a></span>&nbsp;
@@ -563,7 +563,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:42 2010
+    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:43 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

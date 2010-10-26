@@ -43,8 +43,11 @@ PO Box 1663, Los Alamos, NM 87545
 """
 
 import numpy as np
+import numpy.ma as ma
 import spacepy.toolbox as tb
 from spacepy import help
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 __author__ = 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)'
 
@@ -103,9 +106,9 @@ class Sea(object):
         """
         
         try:
-                dum = self.badepochs
+            dum = self.badepochs
         except AttributeError:
-                return 'No bad epochs to restore'
+            return 'No bad epochs to restore'
         
         from numpy import union1d
         self.epochs = union1d(self.badepochs,self.epochs)
@@ -180,7 +183,6 @@ class Sea(object):
         
         A basic plot can be raised with the obj.plot() method
         """
-        import numpy.ma as ma
         
         #ensure all input is np array
         delt = float(self.delta)
@@ -371,8 +373,6 @@ class Sea(object):
             return 'Error: No superposed epoch results to plot'
         
         from spacepy.toolbox import makePoly
-        import matplotlib as mpl
-        import matplotlib.pyplot as plt
         
         if len(xunits)<1:
             xlstr = '%s' % xquan
@@ -490,7 +490,6 @@ class Sea2d(Sea):
         A basic plot can be raised with the obj.plot() method
         """
         
-        import numpy.ma as ma
         import datetime as dt
         from matplotlib.dates import date2num
         
@@ -573,8 +572,6 @@ class Sea2d(Sea):
         except AttributeError:
             return 'Error: No superposed epoch results to plot'
         
-        import matplotlib as mpl
-        import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
         
         if len(xunits)<1:
@@ -704,7 +701,6 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     import matplotlib.ticker as tik
-    import matplotlib.pyplot as plt
     
     keys = list(dictobj.keys())
     pld, ply, plx, ylab = [], [], [], []
@@ -923,7 +919,6 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         else:
             ylstr = ''
             
-        import matplotlib.pyplot as plt
         #set up plot panels
         fig = plt.figure()
         ax0 = fig.add_subplot(211)

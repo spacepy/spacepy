@@ -66,7 +66,7 @@
 <a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
 <a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-docstring">tools to read and process omni data</tt> </tt>
 <a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
-<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-name">__version__</tt> <tt class="py-op">=</tt> <tt class="py-string">"$Revision: 1.9 $, $Date: 2010/09/21 23:57:28 $"</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-name">__version__</tt> <tt class="py-op">=</tt> <tt class="py-string">"$Revision: 1.10 $, $Date: 2010/10/26 19:54:12 $"</tt> </tt>
 <a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'</tt> </tt>
 <a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"> </tt>
 <a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
@@ -141,7 +141,7 @@
 <a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">    <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'ticktock'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">ticktock</tt> </tt>
 <a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">     </tt>
 <a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">    <tt class="py-comment"># return warning if values outside of omni data range</tt> </tt>
-<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">n</tt><tt class="py-op">.</tt><tt class="py-name">any</tt><tt class="py-op">(</tt><tt class="py-name">n</tt><tt class="py-op">.</tt><tt class="py-name">isnan</tt><tt class="py-op">(</tt><tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'Kp'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> <tt class="py-keyword">print</tt> <tt class="py-string">"Warning: time is outside of omni data range"</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">n</tt><tt class="py-op">.</tt><tt class="py-name">any</tt><tt class="py-op">(</tt><tt class="py-name">n</tt><tt class="py-op">.</tt><tt class="py-name">isnan</tt><tt class="py-op">(</tt><tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'Kp'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"Warning: time is outside of omni data range"</tt><tt class="py-op">)</tt> </tt>
 <a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">     </tt>
 <a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">     </tt>
 <a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">omnival</tt> </tt>
@@ -192,8 +192,8 @@
 <a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
 <a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">    <tt id="link-22" class="py-name"><a title="spacepy.omni.omnidata" class="py-name" href="#" onclick="return doclink('link-22', 'omnidata', 'link-2');">omnidata</a></tt> <tt class="py-op">=</tt> <tt id="link-23" class="py-name"><a title="spacepy.toolbox.loadpickle" class="py-name" href="#" onclick="return doclink('link-23', 'loadpickle', 'link-18');">loadpickle</a></tt><tt class="py-op">(</tt><tt id="link-24" class="py-name"><a title="spacepy.omni.omnifln" class="py-name" href="#" onclick="return doclink('link-24', 'omnifln', 'link-20');">omnifln</a></tt><tt class="py-op">)</tt> </tt>
 <a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"><tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
-<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"No OMNI data found. This module has limited functionality."</tt> </tt>
-<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Run spacepy.toolbox.update(omni=True) to download OMNI data"</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"No OMNI data found. This module has limited functionality."</tt><tt class="py-op">)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"Run spacepy.toolbox.update(omni=True) to download OMNI data"</tt><tt class="py-op">)</tt> </tt>
 <a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
@@ -232,7 +232,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:44 2010
+    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:44 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

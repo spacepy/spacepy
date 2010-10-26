@@ -65,7 +65,7 @@
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.9 $, $Date: 2010/09/21 23:57:28 $
+        $Revision: 1.10 $, $Date: 2010/10/26 19:54:13 $
       </p>
       <p><strong>Author:</strong>
         S. Morley and J. Koller
@@ -166,11 +166,29 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#assemble" class="summary-sig-name">assemble</a>(<span class="summary-sig-arg">fln_pattern</span>,
-        <span class="summary-sig-arg">outfln</span>)</span><br />
+        <span class="summary-sig-arg">outfln</span>,
+        <span class="summary-sig-arg">sortkey</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">ticks</code><code class="variable-quote">'</code></span>)</span><br />
       assembles all pickled files matching fln_pattern into single file and
       save as outfln.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.toolbox-pysrc.html#assemble">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#human_sort" class="summary-sig-name">human_sort</a>(<span class="summary-sig-arg">l</span>)</span><br />
+      Sort the given list in the way that humans expect.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#human_sort">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -186,7 +204,7 @@
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#feq" class="summary-sig-name">feq</a>(<span class="summary-sig-arg">x</span>,
         <span class="summary-sig-arg">y</span>,
-        <span class="summary-sig-arg">precision</span>=<span class="summary-sig-default">0.0000005</span>)</span><br />
+        <span class="summary-sig-arg">precision</span>=<span class="summary-sig-default">5e-07</span>)</span><br />
       compare two floating point values if they are equal after: 
       http://www.lahey.com/float.htm</td>
           <td align="right" valign="top">
@@ -265,7 +283,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#windowMean" class="summary-sig-name">windowMean</a>(<span class="summary-sig-arg">data</span>,
-        <span class="summary-sig-arg">time</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">time</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">winsize</span>=<span class="summary-sig-default">0</span>,
         <span class="summary-sig-arg">overlap</span>=<span class="summary-sig-default">0</span>,
         <span class="summary-sig-arg">st_time</span>=<span class="summary-sig-default">None</span>)</span><br />
@@ -305,7 +323,7 @@
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#makePoly" class="summary-sig-name">makePoly</a>(<span class="summary-sig-arg">x</span>,
         <span class="summary-sig-arg">y1</span>,
         <span class="summary-sig-arg">y2</span>,
-        <span class="summary-sig-arg">face</span>=<span class="summary-sig-default">'blue'</span>,
+        <span class="summary-sig-arg">face</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">blue</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default">0.5</span>)</span><br />
       Make filled polygon for plotting</td>
           <td align="right" valign="top">
@@ -496,8 +514,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#timestamp" class="summary-sig-name">timestamp</a>(<span class="summary-sig-arg">position</span>=<span class="summary-sig-default">[1.003,0.01]</span>,
-        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default">'xx-small'</span>,
+          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#timestamp" class="summary-sig-name">timestamp</a>(<span class="summary-sig-arg">position</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1.003<code class="variable-op">, </code>0.01<code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">size</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">xx-small</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">draw</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       print a timestamp on the current plot, vertical lower right</td>
@@ -517,7 +535,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#query_yes_no" class="summary-sig-name">query_yes_no</a>(<span class="summary-sig-arg">question</span>,
-        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">&quot;yes&quot;</span>)</span><br />
+        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">yes</code><code class="variable-quote">'</code></span>)</span><br />
       Ask a yes/no question via raw_input() and return their answer.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="spacepy.toolbox-pysrc.html#query_yes_no">source&nbsp;code</a></span>
@@ -566,21 +584,29 @@
       
     </td>
   </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">int</span>
+      <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#test" class="summary-sig-name">test</a>()</span><br />
-      test all spacepy routines</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#test">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'spacepy'"><code class="variable-quote">'</code><code class="variable-string">spacepy</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 </table>
@@ -782,7 +808,8 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">assemble</span>(<span class="sig-arg">fln_pattern</span>,
-        <span class="sig-arg">outfln</span>)</span>
+        <span class="sig-arg">outfln</span>,
+        <span class="sig-arg">sortkey</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">ticks</code><code class="variable-quote">'</code></span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#assemble">source&nbsp;code</a></span>&nbsp;
@@ -791,7 +818,8 @@
   
   <p>assembles all pickled files matching fln_pattern into single file and 
   save as outfln. Pattern may contain simple shell-style wildcards *? a la 
-  fnmatch file will be assembled along time axis TAI, etc in dictionary</p>
+  fnmatch file will be assembled along time axis given by Ticktock (key: 
+  'ticks') in dictionary If sortkey = None, then nothing will be sorted</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
@@ -813,13 +841,33 @@
       <p><strong>Version:</strong>
         V1: 20-Jan-2010
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>assemble(<span class="py-string">'input_files_*.pbin'</span>, <span class="py-string">'combined_input.pbin'</span>)
-<span class="py-output">adding input_files_2001.pbin</span>
-<span class="py-output">adding input_files_2002.pbin</span>
-<span class="py-output">adding input_files_2004.pbin</span>
-<span class="py-output">writing: combined_input.pbin</span></pre>
+<span class="py-prompt">&gt;&gt;&gt; </span>assemble(<span class="py-string">'input_files_*.pkl'</span>, <span class="py-string">'combined_input.pkl'</span>)
+<span class="py-output">adding input_files_2001.pkl</span>
+<span class="py-output">adding input_files_2002.pkl</span>
+<span class="py-output">adding input_files_2004.pkl</span>
+<span class="py-output">writing: combined_input.pkl</span></pre>
       </p>
 </div></td></tr></table>
+</div>
+<a name="human_sort"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">human_sort</span>(<span class="sig-arg">l</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#human_sort">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Sort the given list in the way that humans expect. 
+  http://www.codinghorror.com/blog/2007/12/sorting-for-humans-natural-sort-order.html</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
 </div>
 <a name="feq"></a>
 <div>
@@ -830,7 +878,7 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">feq</span>(<span class="sig-arg">x</span>,
         <span class="sig-arg">y</span>,
-        <span class="sig-arg">precision</span>=<span class="sig-default">0.0000005</span>)</span>
+        <span class="sig-arg">precision</span>=<span class="sig-default">5e-07</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#feq">source&nbsp;code</a></span>&nbsp;
@@ -995,7 +1043,7 @@
         <li>
         V3: 21-Jul-2010: added filename keyword (BAL)
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>pylab.plot([1,2,3],[2,3,2])
+<span class="py-prompt">&gt;&gt;&gt; </span>pyplot.plot([1,2,3],[2,3,2])
 <span class="py-prompt">&gt;&gt;&gt; </span>spacepy.printfig(1)</pre>
         </li>
       </ul>
@@ -1061,7 +1109,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">windowMean</span>(<span class="sig-arg">data</span>,
-        <span class="sig-arg">time</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">time</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
         <span class="sig-arg">winsize</span>=<span class="sig-default">0</span>,
         <span class="sig-arg">overlap</span>=<span class="sig-default">0</span>,
         <span class="sig-arg">st_time</span>=<span class="sig-default">None</span>)</span>
@@ -1191,7 +1239,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">makePoly</span>(<span class="sig-arg">x</span>,
         <span class="sig-arg">y1</span>,
         <span class="sig-arg">y2</span>,
-        <span class="sig-arg">face</span>=<span class="sig-default">'blue'</span>,
+        <span class="sig-arg">face</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">blue</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">alpha</span>=<span class="sig-default">0.5</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -1646,8 +1694,8 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">timestamp</span>(<span class="sig-arg">position</span>=<span class="sig-default">[1.003,0.01]</span>,
-        <span class="sig-arg">size</span>=<span class="sig-default">'xx-small'</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">timestamp</span>(<span class="sig-arg">position</span>=<span class="sig-default"><code class="variable-group">[</code>1.003<code class="variable-op">, </code>0.01<code class="variable-group">]</code></span>,
+        <span class="sig-arg">size</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">xx-small</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">draw</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">**kwargs</span>)</span>
   </h3>
@@ -1692,7 +1740,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">query_yes_no</span>(<span class="sig-arg">question</span>,
-        <span class="sig-arg">default</span>=<span class="sig-default">&quot;yes&quot;</span>)</span>
+        <span class="sig-arg">default</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">yes</code><code class="variable-quote">'</code></span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#query_yes_no">source&nbsp;code</a></span>&nbsp;
@@ -1799,44 +1847,6 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="test"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">test</span>()</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#test">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>test all spacepy routines</p>
-  <dl class="fields">
-    <dt>Returns: int</dt>
-        <dd>number of failures</dd>
-  </dl>
-<div class="fields">      <p><strong>Author:</strong>
-        Josef Koller
-      </p>
-      <p><strong>Organization:</strong>
-        Los Alamos National Lab
-      </p>
-      <p><strong>Contact:</strong>
-        jkoller@lanl.gov
-      </p>
-      <p><strong>Version:</strong>
-        V1: 24-Jan-2010
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>test()
-<span class="py-output">test_ticktock: PASSED TEST 1</span>
-<span class="py-output">test_ticktock: PASSED TEST 2</span>
-<span class="py-output">0</span></pre>
-      </p>
-</div></td></tr></table>
-</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
@@ -1869,7 +1879,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Sep 21 17:52:42 2010
+    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:43 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
