@@ -678,7 +678,7 @@ class ReadCDF(CDFTests):
         self.assertEqual(cdf.Var(self.cdf, name).name(), 'ATC')
 
     def testGetAllData(self):
-        data = self.cdf.all_data()
+        data = self.cdf.copy()
         expected = ['ATC', 'MajorNumbers', 'MeanCharge',
                     'PhysRecNo',
                     'RateScalerNames', 'SectorNumbers',
@@ -937,6 +937,52 @@ class ReadCDF(CDFTests):
                           b'HTTP_LINK',
                           ],
                          list(attrlist))
+
+    def testzAttribListCopy(self):
+        """Make a copy of a zAttr list"""
+        attrs = self.cdf['PhysRecNo'].attrs
+        attrcopy = attrs.copy()
+        self.assertEqual(attrs, attrcopy)
+        self.assertFalse(attrs is attrcopy)
+
+    def testgAttribListCopy(self):
+        """Copy a gAttr list"""
+        attrs = self.cdf.attrs
+        attrcopy = attrs.copy()
+        for key in attrs:
+            self.assertEqual(attrs[key][:], attrcopy[key])
+            self.assertFalse(attrs[key] is attrcopy[key])
+
+    def testzVarCopy(self):
+        """Make a copy of an entire zVar"""
+        zvar = self.cdf['PhysRecNo']
+        zvarcopy = zvar.copy()
+        self.assertNotEqual(zvar, zvarcopy)
+        for i in range(len(zvar)):
+            self.assertEqual(zvar[i], zvarcopy[i])
+        for i in zvarcopy.attrs:
+            self.assertEqual(zvar.attrs[i], zvarcopy.attrs[i])
+
+    def testCDFCopy(self):
+        """Make a copy of an entire CDF"""
+        cdfcopy = self.cdf.copy()
+        self.assertNotEqual(cdfcopy, self.cdf)
+        for key in self.cdf:
+            self.assertEqual(self.cdf[key][...], cdfcopy[key])
+            self.assertNotEqual(self.cdf[key], cdfcopy[key])
+        for key in self.cdf.attrs:
+            self.assertEqual(self.cdf.attrs[key][:], cdfcopy.attrs[key])
+            self.assertNotEqual(self.cdf.attrs[key], cdfcopy.attrs[key])
+
+    def testSliceCDFCopy(self):
+        """Slice a copy of a CDF"""
+        cdfcopy = self.cdf.copy()
+        self.assertEqual([3, 25, 47],
+                         cdfcopy['PhysRecNo'][0:5:2])
+        self.assertEqual([1094, 1083, 1072, 1061],
+                         cdfcopy['PhysRecNo'][-1:-5:-1])
+        self.assertEqual(1.0,
+                         cdfcopy['SpinRateScalersCounts'][41, 2, 15])
 
 
 class ReadColCDF(ColCDFTests):

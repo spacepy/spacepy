@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.4'
+__version__ = '0.5'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -266,10 +266,15 @@ class Library(object):
                                      micro)
         else:
             add_sec = int(micro / 1000000)
-            return datetime.datetime(yyyy.value, mm.value, dd.value,
-                                     hh.value, min.value, sec.value,
-                                     micro - add_sec * 1000000) + \
-                                     datetime.timedelta(seconds=add_sec)
+            try:
+                return datetime.datetime(yyyy.value, mm.value, dd.value,
+                                         hh.value, min.value, sec.value,
+                                         micro - add_sec * 1000000) + \
+                                         datetime.timedelta(seconds=add_sec)
+            except OverflowError:
+                return datetime.datetime(datetime.MAXYEAR, 12, 31,
+                                         23, 59, 59,
+                                         999999)
 
 
 lib = Library()
@@ -390,7 +395,7 @@ class CDF(collections.Mapping):
       5. Open the CDF named C{cdf_filename.cdf}, read I{all} the data from all
          variables into it, and close it when done or if an error occurs::
            with pycdf.CDF('cdf_filename.cdf') as cdffile:
-                data = cdffile.all_data()
+                data = cdffile.copy()
     This last example can be very inefficient as it reads the entire CDF.
     Normally it's better to treat the CDF as a dictionary and access only
     the data needed, which will be pulled transparently from disc. See
@@ -684,17 +689,34 @@ class CDF(collections.Mapping):
 
         self._call(const.SAVE_, const.CDF_)
 
-    def all_data(self):
-        """Returns all data from all zVariables in this CDF
+    def copy(self):
+        """Make a copy of all data and attributes in this CDF
 
-        Data are returned as lists keyed by the name of the zVar
-        @return: data from the zVars
-        @rtype: dict
+        @return: dict of all data
+        @rtype: L{CDFCopy}
         """
-        result = {}
-        for i in list(self.keys()):
-            result[i] = self[i][...]
-        return result
+        return CDFCopy(self)
+
+
+class CDFCopy(dict):
+    """A copy of all data and attributes in a L{CDF}
+
+    Data are L{VarCopy} objects, keyed by variable name (i.e.
+    data are accessed much like from a L{CDF}).
+
+    @ivar attrs: attributes for the CDF
+    @type attrs: dict
+    """
+
+    def __init__(self, cdf):
+        """Copies all data and attributes from a CDF
+
+        @param cdf: CDF to take data from
+        @type cdf: L{CDF}
+        """
+        self.attrs = cdf.attrs.copy()
+        super(CDFCopy, self).__init__((key, var.copy())
+                                      for (key, var) in cdf.items())
 
 
 class Var(collections.Sequence):
@@ -1128,6 +1150,72 @@ class Var(collections.Sequence):
             return self._name
         elif isinstance(self._name, bytes):
             return self._name.decode()
+
+    def copy(self):
+        """Copies all data and attributes from this variable
+
+        @return: list of all data in record order
+        @rtype: L{VarCopy}
+        """
+        return VarCopy(self)
+
+
+class VarCopy(list):
+    """A copy of the data and attributes in a L{Var}
+
+    Data are in the list elements, accessed much like L{Var}
+    
+    @ivar attrs: attributes for the variable
+    @type attrs: dict
+    @ivar _dims: dimensions of this variable
+    @type _dims: list
+    """
+
+    def __init__(self, zVar):
+        """Copies all data and attributes from a zVariable
+
+        @param zVar: variable to take data from
+        @type zVar: L{Var}
+        """
+        self.attrs = zVar.attrs.copy()
+        super(VarCopy, self).__init__(zVar[...])
+        self._dims = [len(zVar)] + zVar._dim_sizes()
+
+    def __getitem__(self, key):
+        """Returns a subset of the data in this copy"""
+        if not hasattr(key, '__len__') and key != Ellipsis:
+            return super(VarCopy, self).__getitem__(key)
+        key = self._expand_ellipsis(key)
+        result = super(VarCopy, self).__getitem__(key[0])
+        for subkey in key[1:]:
+            result = result[subkey]
+        return result
+
+    def _expand_ellipsis(self, slices):
+        """Expands ellipses into the correct number of full-sized slices
+
+        @param slices: tuple of slices, integers, or ellipse objects
+        @type slices: tuple
+        @return: key with ellipses replaced by appropriate number of blank
+                 slices
+        @rtype: tuple
+        @raise IndexError: if ellipses specified when already have enough
+                           dimensions
+        """
+        if not Ellipsis in slices:
+            return slices
+
+        size = len(slices)
+        extra = len(self._dims) - size
+        if extra < 0:
+            raise IndexError('Too many dimensions specified to use ellipsis.')
+        idx = slices.index(Ellipsis)
+        result = slices[0:idx] + \
+                 tuple([slice(None, None, None) for i in range(extra)]) + \
+                 slices[idx+1:]
+        if Ellipsis in result:
+            raise IndexError('Ellipses can only be used once per slice.')
+        return result
 
 
 class _Hyperslice(object):
@@ -1648,6 +1736,14 @@ class gAttrList(collections.Mapping):
                     current = self[value].number()
             current += 1
 
+    def copy(self):
+        """Create a copy of this attribute list
+
+        @return: copy of all entries for all attributes in this list
+        @rtype: dict of lists
+        """
+        return dict((key, value[:]) for (key, value) in self.items())
+
 
 class zAttrList(collections.Mapping):
     """Object representing I{all} the zAttributes in a zVariable.
@@ -1746,6 +1842,14 @@ class zAttrList(collections.Mapping):
                     if value != None:
                         current = self[value].number()
             current += 1
+
+    def copy(self):
+        """Create a copy of this attribute list
+
+        @return: copy of the entries for all attributes in this list
+        @rtype: dict
+        """
+        return dict((key, value) for (key, value) in self.items())
 
 
 class Attr(collections.Sequence):
