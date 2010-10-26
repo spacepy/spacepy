@@ -237,8 +237,8 @@ To open and close a CDF file::
 CDF files, like standard Python files, act as context managers::
 
     >>> with cdf.CDF('filename.cdf') as cdf_file:
-        #do brilliant things with cdf_file
-        #cdf_file is automatically closed here
+    ...     #do brilliant things with cdf_file
+    >>> #cdf_file is automatically closed here
 
 CDF files act as Python dictionaries, holding CDF variables keyed
 by the variable name::
