@@ -140,7 +140,7 @@ vector like ``coord.ticktock = spt.Ticktock(['2002-02-02T12:00:00',
 '2002-02-02T12:00:00'], 'ISO')``
  
  
-RadBelt Module
+radbelt Module
 ==============
 
 The radiation belt module currently includes a simple radial 
@@ -159,6 +159,27 @@ results.::
 
     >>> rb.evolve()
     >>> rb.plot()
+
+
+borg Module
+===========
+
+The borg module includes data assimilation functions as classes. It is automatically 
+imported within ``radbelt``.
+
+Similar to the ``radbelt`` module, import and create a class instance::
+
+    >>> import spacepy.radbelt as sprb
+    >>> rb = sprb.RBmodel()
+    >>> rb.setup_ticks('2002-09-01T00:00:00', '2002-09-10T00:00:00', 0.25)
+
+Before solving the diffusion equations, you need to add PSD data and then call the
+``assimilate`` function::
+
+    >>> rb.add_PSD() 
+    >>> rb.assimilate(method='enKF')
+    >>> rb.plot(values=rb.PSDa)
+
 
 
 OMNI Module

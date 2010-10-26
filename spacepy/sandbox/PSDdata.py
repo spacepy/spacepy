@@ -286,7 +286,7 @@ if __name__ == "__main__":
     import spacepy.time
     from pylab import *
     import numpy as np
-    ticks = spacepy.time.Ticktock([datetime(2005, 1, 1), datetime(2005, 7, 1)], 'UTC')
+    ticks = spacepy.time.Ticktock([datetime(2002, 8, 1), datetime(2002, 8, 2)], 'UTC')
     mu = 462
     k = 0.03
     # sats=['1990-095', '1991-080', 'GPS-ns41', 'LANL-01A', 'LANL-02A', 'LANL-97A']

@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.11 $, $Date: 2010/09/30 20:35:36 $"
+__version__ = "$Revision: 1.12 $, $Date: 2010/10/26 22:03:15 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -296,7 +296,7 @@ class RBmodel(object):
                 A[n.where(A < self.MIN_PSD)] = self.MIN_PSD
                 
                 # get observations for time window ]Tnow-Twindow,Tnow]
-                Lobs, y = borg.average_window(PSDdata[i-1], self.Lgrid)
+                Lobs, y = spacepy.borg.average_window(self.PSDdata[i-1], self.Lgrid)
                 
                 #Lobs = n.array(self.PSDdata[i-1]['Lstar'])
                 #y = n.array(self.PSDdata[i-1]['PSD'])
