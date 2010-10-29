@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.5'
+__version__ = '0.6'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -162,8 +162,6 @@ class Library(object):
         @return: L{status} (unchanged)
         @rtype: int
         """
-        if not hasattr(ignore, '__iter__'):
-            ignore = (ignore, )
         if status == const.CDF_OK or status in ignore:
             return status
         if status < const.CDF_WARN:
@@ -183,9 +181,6 @@ class Library(object):
         @param args: Passed directly to the CDF library interface. Useful
                      constants are defined in the L{const} module of this package.
         @type args: various, see C{ctypes}.
-        @keyword check: If True, check returned CDF status and raise exceptions
-                        or warnings as necessary (default).
-                        If False, do not check.
         @keyword ignore: sequence of CDF statuses to ignore. If any of these
                          is returned by CDF library, any related warnings or
                          exceptions will I{not} be raised.
@@ -198,17 +193,14 @@ class Library(object):
                            is set to error on warnings.
         """
 
-        if 'check' in kwargs and not kwargs['check']:
-            return self._library.CDFlib(*(args + (const.NULL_, )))
+        if 'ignore' in kwargs:
+            return self.check_status(self._library.CDFlib(
+                *(args + (const.NULL_, ))
+                ), kwargs['ignore'])
         else:
-            if 'ignore' in kwargs:
-                return self.check_status(self._library.CDFlib(
-                    *(args + (const.NULL_, ))
-                    ), kwargs['ignore'])
-            else:
-                return self.check_status(self._library.CDFlib(
-                    *(args + (const.NULL_, ))
-                    ))
+            return self.check_status(self._library.CDFlib(
+                *(args + (const.NULL_, ))
+                ))
 
     def epoch_to_datetime(self, epoch):
         """Converts a CDF epoch value to a datetime
@@ -408,6 +400,7 @@ class CDF(collections.Mapping):
       - U{list comprehensions
         <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>}
       - U{sorted<http://docs.python.org/library/functions.html#sorted>}
+    See also toolbox.dictree in SpacePy.
 
     The L{attrs} Python attribute acts as a dictionary referencing CDF
     attributes (do not confuse the two); all the dictionary methods above
@@ -533,6 +526,19 @@ class CDF(collections.Mapping):
             if str(value) == expected:
                 return False
             raise
+
+    def __str__(self):
+        """Displays a string representation of the CDF
+
+        This is an 'informal' representation in that it cannot be evaluated
+        directly to create a L{CDF}, but it can be evaluated to produce
+        a dict of all the data.
+
+        @return: all the data in this CDF
+        @rtype: string
+        """
+        return '{' + ', '.join([repr(key) + ': ' + str(self[key])
+                                for key in self]) + '}'
 
     def _open(self):
         """Opens the CDF file (called on init)
@@ -1023,6 +1029,18 @@ class Var(collections.Sequence):
         self._call(const.GET_, const.zVAR_MAXREC_, ctypes.byref(count))
         return (count.value + 1)
 
+    def __str__(self):
+        """Displays a string representation of the variable
+
+        This is an 'informal' representation in that it cannot be evaluated
+        directly to create a L{Var}, but it can be evaluated to produce
+        a list of all the data.
+
+        @return: all the data in this zVar
+        @rtype: string
+        """
+        return str(self[...])
+
     def _n_dims(self):
         """Get number of dimensions for this variable
 
@@ -1474,7 +1492,10 @@ class _Hyperslice(object):
 
         dims = [i for i in reversed(dimsizes)]
         if len(dims) == 1:
-            return [i.value if hasattr(i, 'value') else i for i in flat]
+            if hasattr(flat[0], 'value'):
+                return [i.value for i in flat]
+            else:
+                return [i for i in flat]
         
         for i in range(len(dims) - 1):
             size = dims[i]
@@ -1482,9 +1503,12 @@ class _Hyperslice(object):
             for j in dims[i + 1:]:
                 n_lists *= j
             if i == 0:
-                result = [[k.value if hasattr(k, 'value') else k
-                           for k in flat[j * size:(j + 1) * size]]
-                          for j in range(n_lists)]
+                if hasattr(flat[0], 'value'):
+                    result = [[k.value for k in flat[j * size:(j + 1) * size]]
+                              for j in range(n_lists)]
+                else:
+                    result = [[k for k in flat[j * size:(j + 1) * size]]
+                              for j in range(n_lists)]
             else:
                 result = [result[j * size:(j + 1) * size] for j in range(n_lists)]
         return result
@@ -1736,6 +1760,19 @@ class gAttrList(collections.Mapping):
                     current = self[value].number()
             current += 1
 
+    def __str__(self):
+        """Displays a string representation of the attribute list
+
+        This is an 'informal' representation in that it cannot be evaluated
+        directly to create a L{gAttrList}, but it can be evaluated to produce
+        a dict of all the data.
+
+        @return: all the data in this list of attributes
+        @rtype: string
+        """
+        return '{' + ', '.join([repr(key) + ': ' + str(value)
+                                for (key, value) in self.items()]) + '}'
+
     def copy(self):
         """Create a copy of this attribute list
 
@@ -1842,6 +1879,19 @@ class zAttrList(collections.Mapping):
                     if value != None:
                         current = self[value].number()
             current += 1
+
+    def __str__(self):
+        """Displays a string representation of the attribute list
+
+        This is an 'informal' representation in that it cannot be evaluated
+        directly to create a L{zAttrList}, but it can be evaluated to produce
+        a dict of all the data.
+
+        @return: all the data in this list of attributes
+        @rtype: string
+        """
+        return '{' + ', '.join([repr(key) + ': ' + repr(value)
+                                for (key, value) in self.items()]) + '}'
 
     def copy(self):
         """Create a copy of this attribute list
@@ -2101,7 +2151,7 @@ class zAttr(Attr):
         """
         status = self._call(const.CONFIRM_, const.zENTRY_EXISTENCE_,
                             ctypes.c_long(number),
-                            ignore=(const.NO_SUCH_ENTRY))
+                            ignore=(const.NO_SUCH_ENTRY, ))
         return not status == const.NO_SUCH_ENTRY
 
     def entry_type(self, number):
@@ -2198,6 +2248,18 @@ class gAttr(Attr):
             const.GET_, const.gENTRY_NUMELEMS_, ctypes.byref(count))
         return count.value
 
+    def __str__(self):
+        """Displays a string representation of the attribute
+
+        This is an 'informal' representation in that it cannot be evaluated
+        directly to create a L{gAttr}, but it can be evaluated to produce
+        a list of all the data.
+
+        @return: all the data in this attribute
+        @rtype: string
+        """
+        return str(self[:])
+
     def has_entry(self, number):
         """Check if this attribute has a particular Entry number
 
@@ -2208,7 +2270,7 @@ class gAttr(Attr):
         """
         status = self._call(const.CONFIRM_, const.gENTRY_EXISTENCE_,
                             ctypes.c_long(number),
-                            ignore=(const.NO_SUCH_ENTRY))
+                            ignore=(const.NO_SUCH_ENTRY, ))
         return not status == const.NO_SUCH_ENTRY
 
     def entry_type(self, number):

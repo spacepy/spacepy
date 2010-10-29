@@ -10,6 +10,13 @@ import shutil
 import sys
 import unittest
 
+try:
+    type(callable)
+except NameError:
+    import collections
+    def callable(obj):
+        return isinstance(obj, collections.Callable)
+
 import spacepy.pycdf as cdf
 
 
@@ -176,20 +183,20 @@ class NoCDF(unittest.TestCase):
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch16_to_datetime(epoch))
 
-    def testUncheckedErrors(self):
-        """Call the library without checking result."""
-        nbytes = ctypes.c_long(0)
-        status = cdf.lib.call(cdf.const.GET_, cdf.const.DATATYPE_SIZE_,
-                              ctypes.c_long(100), ctypes.byref(nbytes),
-                              check=False)
-        self.assertEqual(cdf.const.BAD_DATA_TYPE, status)
+    def testEpochToDatetime(self):
+        epochs = [63397987200000.0,
+                  ]
+        dts = [datetime.datetime(2009, 1, 1),
+               ]
+        for (epoch, dt) in zip(epochs, dts):
+            self.assertEqual(dt, cdf.lib.epoch_to_datetime(epoch))
 
     def testIgnoreErrors(self):
         """Call the library and ignore particular error"""
         nbytes = ctypes.c_long(0)
         status = cdf.lib.call(cdf.const.GET_, cdf.const.DATATYPE_SIZE_,
                               ctypes.c_long(100), ctypes.byref(nbytes),
-                              ignore=cdf.const.BAD_DATA_TYPE)
+                              ignore=(cdf.const.BAD_DATA_TYPE,))
         self.assertEqual(cdf.const.BAD_DATA_TYPE, status)
 
 
@@ -235,7 +242,7 @@ class CDFTests(unittest.TestCase):
     testfile = 'test.cdf'
 
     def __init__(self, *args):
-        self.expected_digest = '4e78627e257ad2743387d3a7653b5e30'
+        self.expected_digest = 'e00fd61cb96184271d698597daf6f87a'
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
         super(CDFTests, self).__init__(*args)
 
@@ -255,9 +262,10 @@ class CDFTests(unittest.TestCase):
 
 class ColCDFTests(unittest.TestCase):
     """Tests that involve an existing column-major CDF, read or write"""
+    testmaster = 'po_l1_cam_testc.cdf'
+    testfile = 'testc.cdf'
+
     def __init__(self, *args):
-        self.testmaster = 'po_l1_cam_testc.cdf'
-        self.testfile = 'testc.cdf'
         self.expected_digest = '7728439e20bece4c0962a125373345bf'
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
         super(ColCDFTests, self).__init__(*args)
@@ -322,7 +330,7 @@ class OpenCDF(CDFTests):
                     'RateScalerNames', 'SectorRateScalerNames',
                     'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
                     'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                    'MajorNumbers', 'MeanCharge']
+                    'MajorNumbers', 'MeanCharge', 'Epoch']
         with cdf.CDF(self.testfile) as f:
             names = list(f.keys())
         self.assertEqual(expected, names)
@@ -331,37 +339,29 @@ class OpenCDF(CDFTests):
 
 class ReadCDF(CDFTests):
     """Tests that read an existing CDF, but do not modify it."""
+    testfile = 'test_ro.cdf'
 
     def __init__(self, *args, **kwargs):
         super(ReadCDF, self).__init__(*args, **kwargs)
-        if not hasattr(unittest.TestCase, 'setUpClass'):
-            self.class_fixture = False
-        else:
-            self.class_fixture = True
+        #Unittest docs say 'the order in which the various test cases will be
+        #run is determined by sorting the test function names with the built-in
+        #cmp() function'
+        testnames = [name for name in dir(self)
+                     if name[0:4] == 'test' and callable(getattr(self,name))]
+        self.last_test = max(testnames)
 
     def setUp(self):
-        if not self.class_fixture:
-            self.setUpClass()
         super(ReadCDF, self).setUp()
+        if not os.path.exists(self.testfile):
+            shutil.copy(self.testmaster, self.testfile)
         self.cdf = cdf.CDF(self.testfile)
 
     def tearDown(self):
         self.cdf.close()
         del self.cdf
+        if self._testMethodName == self.last_test:
+            os.remove(self.testfile)
         super(ReadCDF, self).tearDown()
-        if not self.class_fixture:
-            self.tearDownClass()
-
-    @classmethod
-    def setUpClass(cls):
-        shutil.copy(cls.testmaster, cls.testfile)
-
-    @classmethod
-    def tearDownClass(cls):
-        try:
-            os.remove(cls.testfile)
-        except OSError:
-            pass
             
     def testGetATC(self):
         """Get ATC zVar using subscripting"""
@@ -376,15 +376,23 @@ class ReadCDF(CDFTests):
         
     def testGetAllzVars(self):
         """Check getting a list of zVars"""
-        expectedNames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers', 'RateScalerNames', 'SectorRateScalerNames', 'SectorRateScalersCounts', 'SectorRateScalersCountsSigma', 'SpinRateScalersCounts', 'SpinRateScalersCountsSigma', 'MajorNumbers', 'MeanCharge']
+        expectedNames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers',
+                         'RateScalerNames', 'SectorRateScalerNames',
+                         'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
+                         'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
+                         'MajorNumbers', 'MeanCharge', 'Epoch']
         names = [zVar.name() for zVar in self.cdf.values()]
         self.assertEqual(names, expectedNames)
 
     def testGetAllVarNames(self):
         """Getting a list of zVar names"""
-        expectedNames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers', 'RateScalerNames', 'SectorRateScalerNames', 'SectorRateScalersCounts', 'SectorRateScalersCountsSigma', 'SpinRateScalersCounts', 'SpinRateScalersCountsSigma', 'MajorNumbers', 'MeanCharge']
+        expectedNames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers',
+                         'RateScalerNames', 'SectorRateScalerNames',
+                         'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
+                         'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
+                         'MajorNumbers', 'MeanCharge', 'Epoch']
         names = list(self.cdf.keys())
-        self.assertEqual(names, expectedNames)
+        self.assertEqual(expectedNames, names)
 
     def testGetVarNum(self):
         self.assertEqual(0, self.cdf['ATC']._num())
@@ -394,7 +402,7 @@ class ReadCDF(CDFTests):
                     'RateScalerNames', 'SectorRateScalerNames',
                     'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
                     'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                    'MajorNumbers', 'MeanCharge']
+                    'MajorNumbers', 'MeanCharge', 'Epoch']
         self.assertEqual(expected, [i for i in self.cdf])
         a = self.cdf.__iter__()
         a.send(None)
@@ -568,6 +576,7 @@ class ReadCDF(CDFTests):
                     'PhysRecNo': cdf.const.CDF_INT4,
                     'SpinNumbers': cdf.const.CDF_CHAR,
                     'MeanCharge': cdf.const.CDF_FLOAT,
+                    'Epoch': cdf.const.CDF_EPOCH,
                     }
         for i in expected:
             self.assertEqual(expected[i].value,
@@ -579,6 +588,7 @@ class ReadCDF(CDFTests):
                     'PhysRecNo': ctypes.c_int,
                     'SpinNumbers': ctypes.c_char * 2,
                     'MeanCharge': ctypes.c_float,
+                    'Epoch': ctypes.c_double,
                     }
         for i in expected:
             self.assertEqual(expected[i],
@@ -634,6 +644,19 @@ class ReadCDF(CDFTests):
         self.assertEqual(expected,
                          self.cdf['ATC'][4:8])
 
+    def testReadEpoch8(self):
+        """Read an Epoch value"""
+        expected = datetime.datetime(1998, 1, 15, 0, 0, 0, 0)
+        self.assertEqual(expected,
+                         self.cdf['Epoch'][0])
+        expected = [datetime.datetime(1998, 1, 15, 0, 4, 0, 0),
+                    datetime.datetime(1998, 1, 15, 0, 5, 0, 0),
+                    datetime.datetime(1998, 1, 15, 0, 6, 0, 0),
+                    datetime.datetime(1998, 1, 15, 0, 7, 0, 0),
+                    ]
+        self.assertEqual(expected,
+                         self.cdf['Epoch'][4:8])
+
     def testnElems(self):
         """Read number of elements in a string variable"""
         self.assertEqual(2, self.cdf['SpinNumbers']._nelems())
@@ -679,7 +702,7 @@ class ReadCDF(CDFTests):
 
     def testGetAllData(self):
         data = self.cdf.copy()
-        expected = ['ATC', 'MajorNumbers', 'MeanCharge',
+        expected = ['ATC', 'Epoch', 'MajorNumbers', 'MeanCharge',
                     'PhysRecNo',
                     'RateScalerNames', 'SectorNumbers',
                     'SectorRateScalerNames',
@@ -701,7 +724,7 @@ class ReadCDF(CDFTests):
     def testCDFlen(self):
         """length of CDF (number of zVars)"""
         result = len(self.cdf)
-        self.assertEqual(12, result)
+        self.assertEqual(13, result)
 
     def testReadonlyDefault(self):
         """CDF should be opened RO by default"""
@@ -767,7 +790,7 @@ class ReadCDF(CDFTests):
     def testzAttrLen(self):
         """Get number of zEntries for a zAttr"""
         names = ['DEPEND_0', 'VALIDMAX', ]
-        lengths = [6, 7, ]
+        lengths = [6, 8, ]
         for (name, length) in zip(names, lengths):
             attribute = cdf.zAttr(self.cdf, name)
             actual_length = len(attribute)
@@ -795,6 +818,12 @@ class ReadCDF(CDFTests):
             attribute = cdf.zAttr(self.cdf, name)
             entry = attribute._get_entry(number)
             self.assertEqual(value, entry)
+
+    def testzEntryEpoch(self):
+        """Get the value of an Epoch zEntry"""
+        expected = datetime.datetime(2008, 12, 31, 23, 59, 59, 999000)
+        actual = self.cdf['Epoch'].attrs['VALIDMAX']
+        self.assertEqual(expected, actual)
 
     def testgEntryValue(self):
         """Get the value of a gEntry"""
@@ -984,17 +1013,56 @@ class ReadCDF(CDFTests):
         self.assertEqual(1.0,
                          cdfcopy['SpinRateScalersCounts'][41, 2, 15])
 
+    def testVarString(self):
+        """Convert a variable to a string representation"""
+        for varname in self.cdf:
+            var = self.cdf[varname]
+            varcopy = var.copy()
+            self.assertEqual(str(varcopy), str(var))
+
+    def testCDFString(self):
+        """Convert a CDF to a string representation"""
+        #a bit funky because the order of keys may be different
+        self.assertEqual(eval(str(self.cdf)), self.cdf.copy())
+
+    def testgAttrListString(self):
+        """Convert a list of gattributes to a string"""
+        self.assertEqual(self.cdf.copy().attrs, eval(str(self.cdf.attrs)))
+
+    def testzAttrListString(self):
+        """Convert a list of zAttributes to a string"""
+        for varname in self.cdf:
+            var = self.cdf[varname]
+            varcopy = var.copy()
+            self.assertEqual(varcopy.attrs, eval(str(var.attrs)))
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
+    testfile = 'testc_ro.cdf'
+
+    def __init__(self, *args, **kwargs):
+        super(ReadColCDF, self).__init__(*args, **kwargs)
+        #Unittest docs say 'the order in which the various test cases will be
+        #run is determined by sorting the test function names with the built-in
+        #cmp() function'
+        testnames = [name for name in dir(self)
+                     if name[0:4] == 'test' and callable(getattr(self,name))]
+        self.last_test = max(testnames)
+
     def setUp(self):
-        shutil.copy(self.testmaster, self.testfile)
+        super(ReadColCDF, self).setUp()
+        if not os.path.exists(self.testfile):
+            shutil.copy(self.testmaster, self.testfile)
         self.cdf = cdf.CDF(self.testfile)
 
     def tearDown(self):
+        self.cdf.close()
         del self.cdf
-        os.remove(self.testfile)
-    
+        if self._testMethodName == self.last_test:
+            os.remove(self.testfile)
+        super(ReadColCDF, self).tearDown()
+
     def testCMajority(self):
         """Get majority of the CDF"""
         self.assertEqual(self.cdf._majority().value, cdf.const.COLUMN_MAJOR.value)
