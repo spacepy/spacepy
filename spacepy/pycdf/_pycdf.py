@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.6'
+__version__ = '0.7'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -55,7 +55,7 @@ class Library(object):
             3. Standard library search path
         @raise CDFError: BAD_DATA_TYPE if can't map types properly
         """
-        
+
         if 'CDF_LIB' in os.environ:
             libdir = os.environ['CDF_LIB']
         elif 'CDF_BASE' in os.environ:
@@ -84,13 +84,18 @@ class Library(object):
                 raise Exception('Cannot find CDF C library. ' + \
                                 'Try os.putenv("CDF_LIB", library_directory) ' + \
                                 'before import.')
-            
+
         if sys.platform == 'win32':
             self._library = ctypes.WinDLL(libpath)
         else:
             self._library = ctypes.CDLL(libpath)
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long
+        self._library.computeEPOCH.restype = ctypes.c_double
+        self._library.computeEPOCH.argtypes = [ctypes.c_long] * 7
+        self._library.computeEPOCH16.restype = ctypes.c_double
+        self._library.computeEPOCH16.argtypes = [ctypes.c_long] * 10 + \
+            [ctypes.POINTER(ctypes.c_double * 2)]
 
         #Set up the dictionary for CDF type - ctypes lookup
         c_types = {}
@@ -125,7 +130,7 @@ class Library(object):
                          const.CDF_INT2.value: 2,
                          const.CDF_UINT2.value: 2,
                          const.CDF_INT4.value: 4,
-                         const.CDF_UINT4.value: 4, 
+                         const.CDF_UINT4.value: 4,
                          const.CDF_FLOAT.value: 4,
                          const.CDF_REAL4.value: 4,
                          const.CDF_DOUBLE.value: 8,
@@ -177,14 +182,13 @@ class Library(object):
         Passes all parameters directly through to the CDFlib routine of the
         CDF library's C internal interface. Checks the return value with
         L{check_status}.
-        
+
         @param args: Passed directly to the CDF library interface. Useful
                      constants are defined in the L{const} module of this package.
         @type args: various, see C{ctypes}.
         @keyword ignore: sequence of CDF statuses to ignore. If any of these
                          is returned by CDF library, any related warnings or
                          exceptions will I{not} be raised.
-        @type check: bool
         @return: CDF status from the library
         @rtype: int
         @note: Terminal NULL_ is automatically added to L{args}.
@@ -223,6 +227,24 @@ class Library(object):
         return datetime.datetime(yyyy.value, mm.value, dd.value,
                                  hh.value, min.value, sec.value,
                                  msec.value * 1000)
+
+    def datetime_to_epoch(self, dt):
+        """Converts a Python datetime to a CDF Epoch value
+
+        @param dt: date and time to convert
+        @type dt: datetime.datetime
+        @return: epoch corresponding to L{dt}
+        @rtype: float
+        """
+        if dt.tzinfo != None and dt.utcoffset() != None:
+            dt = dt - dt.utcoffset()
+        dt.replace(tzinfo=None)
+        micro = dt.microsecond % 1000
+        if micro >= 500:
+            dt += datetime.timedelta(microsecond=1000)
+        return self._library.computeEPOCH(dt.year, dt.month, dt.day, dt.hour,
+                                          dt.minute, dt.second,
+                                          int(dt.microsecond / 1000))
 
     def epoch16_to_datetime(self, epoch):
         """Converts a CDF epoch16 value to a datetime
@@ -268,6 +290,25 @@ class Library(object):
                                          23, 59, 59,
                                          999999)
 
+    def datetime_to_epoch16(self, dt):
+        """Converts a Python datetime to a CDF Epoch16 value
+
+        @param dt: date and time to convert
+        @type dt: datetime.datetime
+        @return: epoch16 corresponding to L{dt}
+        @rtype: list of float
+        """
+        if dt.tzinfo != None and dt.utcoffset() != None:
+            dt = dt - dt.utcoffset()
+        dt.replace(tzinfo=None)
+        epoch16 = (ctypes.c_double * 2)(0.0, 0.0)
+        self._library.computeEPOCH16(dt.year, dt.month, dt.day, dt.hour,
+                                     dt.minute, dt.second,
+                                     int(dt.microsecond / 1000),
+                                     dt.microsecond % 1000, 0, 0,
+                                     epoch16)
+        return [epoch16[0], epoch16[1]]
+
 
 lib = Library()
 """Module global library object.
@@ -284,7 +325,7 @@ class CDFException(Exception):
 
     Error messages provided by this class are looked up from the underlying
     C library.
-    
+
     @ivar status: CDF library status code
     @type status: ctypes.c_long
     @ivar string: CDF library error message for L{status}
@@ -295,7 +336,7 @@ class CDFException(Exception):
         """Create a CDF Exception
 
         Uses CDF C library to look up an appropriate error messsage.
-        
+
         @param status: CDF status
         @type status: ctypes.c_long
         """
@@ -314,7 +355,7 @@ class CDFException(Exception):
                     self.string = message.value.decode()
         except:
             pass
-        
+
     def __str__(self):
         """Error string associated with the library error.
 
@@ -413,8 +454,7 @@ class CDF(collections.Mapping):
     @type pathname: string
     @ivar attrs: All global attributes for this CDF
     @type attrs: L{gAttrList}
-    @note: Write support has not been implemented, so CDF is opened
-           read-only by default.
+    @note: CDF is opened read-only by default, see L{readonly} to change.
     """
 
     def __init__(self, pathname, masterpath = None):
@@ -440,7 +480,7 @@ class CDF(collections.Mapping):
         else:
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
-        self._readonly(True)
+        self.readonly(True)
         self.attrs = gAttrList(self)
 
     def __del__(self):
@@ -495,7 +535,7 @@ class CDF(collections.Mapping):
             else:
                 current = self[value]._num()
                 current += 1
-        
+
     def __len__(self):
         """Implements 'length' of CDF (number of zVars)
 
@@ -593,7 +633,7 @@ class CDF(collections.Mapping):
         Adds call to select this CDF to L{args} and passes all parameters
         directly through to the CDFlib routine of the CDF library's C internal
         interface. Checks the return value with L{Library.check_status}.
-        
+
         @param args: Passed directly to the CDF library interface. Useful
                      constants are defined in the L{const} module of this package.
         @type args: various, see C{ctypes}.
@@ -623,7 +663,7 @@ class CDF(collections.Mapping):
 
     def _new_var(self, var_name, *args):
         """Add a new zVariable to this CDF
-        
+
         @param var_name: Name of the variable.
         @type var_name: string
         @param args: Additional arguments passed to L{Var._create}
@@ -637,7 +677,7 @@ class CDF(collections.Mapping):
 
         return Var(self, var_name, *args)
 
-    def _readonly(self, ro = None):
+    def readonly(self, ro=None):
         """Sets or check the readonly status of this CDF
 
         @param ro: True to set the CDF readonly,
@@ -728,6 +768,8 @@ class CDFCopy(dict):
 class Var(collections.Sequence):
     """A CDF variable.
 
+    Reading
+    =======
     This object does not directly store the data from the CDF; rather,
     it provides access to the data in a format that looks like a Python
     list. General list information is available in the python docs:
@@ -838,6 +880,34 @@ class Var(collections.Sequence):
     also work on the attribute dictionary. See L{zAttrList} for more on the
     dictionary of global attributes.
 
+    Writing
+    =======
+    As with reading, every attempt has been made to match the behavior of
+    Python lists. You can write one record, many records, or even certain
+    elements of all records. There is one restriction: only the record
+    dimension (i.e. dimension 0) can be resized by write, as all records
+    in a variable must have the same dimensions. Similarly, only whole
+    records can be deleted.
+
+    For these examples, assume Flux has 100 records and dimensions [2, 3].
+      1. C{Flux[0] = [[1, 2, 3], [4, 5, 6]]} rewrites the first record
+         without changing the rest.
+      2. C{Flux[...] = [[1, 2, 3], [4, 5, 6]]} writes a new first record
+         and deletes all the rest.
+      3. C{Flux[99:] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]}
+         writes a new record in the last position and adds a new record after.
+      4. C{Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]}
+         inserts two new records between the current number 5 and 6. This
+         operation can be quite slow, as it requires reading and rewriting the
+         entire variable. (CDF does not directly support record insertion.)
+      5. C{Flux[0:2, 0, 0] = [1, 2]} changes the first element of the first
+         two records but leaves other elements alone.
+      6. C{del Flux[0]} removes the first record.
+      7. C{del Flux[5]} removes record 5 (the sixth). Due to the need to work
+         around a bug in the CDF library, this operation can be quite slow.
+      8. C{del Flux[...]} deletes I{all data} from C{Flux}, but leaves the
+         variable definition intact.
+
     @ivar cdf_file: the CDF file containing this variable
     @type cdf_file: L{CDF}
     @ivar attrs: All variable attributes for this variable
@@ -881,26 +951,16 @@ class Var(collections.Sequence):
 
         @return: The data from this variable
         @rtype: list-of-lists of appropriate type.
-        @raise IndexError: TODO detail this
+        @raise IndexError: if L{key} is out of range, mismatches dimensions,
+                           or simply unparseable.
         @raise CDFError: for errors from the CDF library
         """
         hslice = _Hyperslice(self, key)
-        self._call(const.SELECT_, const.zVAR_RECNUMBER_, ctypes.c_long(hslice.starts[0]),
-                  const.SELECT_, const.zVAR_RECCOUNT_, ctypes.c_long(hslice.counts[0]),
-                  const.SELECT_, const.zVAR_RECINTERVAL_,
-                  ctypes.c_long(hslice.intervals[0]))
-        if hslice.dims > 1:
-            dims = hslice.dims - 1
-            lib.call(const.SELECT_, const.zVAR_DIMINDICES_,
-                     (ctypes.c_long * dims)(*hslice.starts[1:]),
-                     const.SELECT_, const.zVAR_DIMCOUNTS_,
-                     (ctypes.c_long * dims)(*hslice.counts[1:]),
-                     const.SELECT_, const.zVAR_DIMINTERVALS_,
-                     (ctypes.c_long * dims)(*hslice.intervals[1:]))
         buffer = hslice.create_buffer()
+        hslice.select()
         lib.call(const.GET_, const.zVAR_HYPERDATA_, ctypes.byref(buffer))
         result = hslice.unpack_buffer(buffer)
-        
+
         if self._cdf_type() == const.CDF_EPOCH.value:
             flat = result
             while True:
@@ -925,8 +985,113 @@ class Var(collections.Sequence):
                     flat = [item for sublist in flat for item in sublist]
                 for i in range(len(flat)):
                     flat[i] = lib.epoch16_to_datetime(flat[i])
-            
+
         return hslice.convert_array(result)
+
+    def __delitem__(self, key):
+        """Removes a record (or set of records) from the CDF
+
+        Only whole records can be deleted, so the del call must either specify
+        only one dimension or it must specify all elements of the non-record
+        dimensions. This is I{not} a way to resize a variable!
+
+        Deleting records from the middle of a variable may be very slow in
+        some circumstances. To work around a bug in the CDF library, all the
+        date must be read in, the requested deletions done, and then all
+        written back out.
+
+        @param key: index or slice to delete
+        @type key: int or slice
+        @raise TypeError: if an attempt is made to delete from a non
+                          record-varying variable, or to delete below
+                          the record level
+        """
+        if not self._rec_vary():
+            raise TypeError('Cannot delete records from non-record-varying '
+                            'variable.')
+        hslice = _Hyperslice(self, key)
+        if hslice.dims > 1 and hslice.counts[1:] != hslice.dimsizes[1:]:
+            raise TypeError('Can only delete entire records.')
+        if hslice.counts[0] == 0:
+            return
+        start = hslice.starts[0]
+        count = hslice.counts[0]
+        interval = hslice.intervals[0]
+        dimsize = hslice.dimsizes[0]
+
+        self._call()
+        dangerous_delete = False
+        if interval != 1 or \
+           (start != 0 and start + count < dimsize):
+            #delete from middle is dangerous if only have one index entry
+            entries = ctypes.c_long(0)
+            lib.call(const.GET_, const.zVAR_nINDEXENTRIES_,
+                     ctypes.byref(entries))
+            dangerous_delete = (entries.value == 1)
+            
+        if dangerous_delete:
+            data = self[...]
+            del data[start:start + count * interval:interval]
+            self[0:dimsize - count] = data
+            first_rec = dimsize - count
+            last_rec = dimsize - 1
+            lib.call(const.DELETE_, const.zVAR_RECORDS_,
+                     ctypes.c_long(first_rec), ctypes.c_long(last_rec))
+        elif interval == 1:
+            first_rec = ctypes.c_long(start)
+            last_rec = ctypes.c_long(start + count - 1)
+            lib.call(const.DELETE_, const.zVAR_RECORDS_,
+                     first_rec, last_rec)
+        else:
+            self._call()
+            #delete from end to avoid renumbering of records
+            for recno in range(start +count - 1, start - 1, -1 * intervals):
+                lib.call(const.DELETE_, const.zVAR_RECORDS_,
+                         ctypes.c_long(recno), ctypes.c_long(recno))
+
+    def __setitem__(self, key, data):
+        """Puts a slice into the data array. Details under L{Var}.
+
+        @param key: index or slice to store
+        @type key: int or slice
+        @param data: data to store
+        @type data: list
+        @raise IndexError: if L{key} is out of range, mismatches dimensions,
+                           or simply unparseable. IndexError will 
+        @raise CDFError: for errors from the CDF library
+        """
+        hslice = _Hyperslice(self, key)
+        n_recs = hslice.counts[0]
+        hslice.expand(data)
+        buff = hslice.create_buffer()
+        try:
+            hslice.pack_buffer(buff, data)
+        except IndexError:
+            #Can be thrown if data isn't same size as slice
+            #This is an expensive check, so only do it if something went wrong
+            data_dims = _Hyperslice.dimensions(data)
+            expected = hslice.expected_dims()
+            if data_dims != expected:
+                raise ValueError('attempt to assign data of dimensions ' +
+                                 str(data_dims) + ' to slice of dimensions ' +
+                                 str(expected))
+            else: #Something else went wrong
+                raise
+        if hslice.counts[0] > n_recs and \
+               hslice.starts[0] + n_recs < hslice.dimsizes[0]:
+            #Specified slice ends before last record, so insert in middle
+            saved_data = self[hslice.starts[0] + n_recs:]
+        hslice.select()
+        lib.call(const.PUT_, const.zVAR_HYPERDATA_, ctypes.byref(buff))
+        if hslice.counts[0] < n_recs:
+            first_rec = hslice.starts[0] + hslice.counts[0]
+            last_rec = hslice.dimsizes[0] - 1
+            lib.call(const.DELETE_, const.zVAR_RECORDS_,
+                     ctypes.c_long(first_rec), ctypes.c_long(last_rec))
+        elif hslice.counts[0] > n_recs and \
+               hslice.starts[0] + n_recs < hslice.dimsizes[0]:
+            #Put saved data in after inserted data
+            self[hslice.starts[0] + hslice.counts[0]:] = saved_data
 
     def _create(self, var_name, datatype, n_elements = 1, dims = (),
                recVary = const.VARY, dimVarys = None):
@@ -953,7 +1118,7 @@ class Var(collections.Sequence):
                            is set to error on warnings.
         @note: Not intended to be used directly; use L{CDF._new_var}.
         """
-        
+
         dim_array = (ctypes.c_long * len(dims))(*dims)
         enc_name = var_name.encode('ascii')
         if dimVarys == None:
@@ -1084,29 +1249,13 @@ class Var(collections.Sequence):
         else:
             return True
 
-    def _del_recs(self, start, count):
-        """Delete a series of records from this variable
-
-        @param start: zero-base index of first record to remove
-        @type start: long
-        @param count: number of records to remove
-        @type count: long
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
-        """
-        #TODO: sanity-checking...
-        first = ctypes.c_long(start)
-        last = ctypes.c_long(start + count - 1)
-        self._call(const.DELETE_, const.zVAR_RECORDS_, first, last)
-
     def _call(self, *args, **kwargs):
         """Select this CDF and variable and call the CDF internal interface
 
         Adds call to select this CDF to L{args} and passes all parameters
         directly through to the CDFlib routine of the CDF library's C internal
         interface. Checks the return value with L{Library.check_status}.
-        
+
         @param args: Passed directly to the CDF library interface. Useful
                      constants are defined in the L{const} module of this package.
         @type args: various, see C{ctypes}.
@@ -1157,7 +1306,7 @@ class Var(collections.Sequence):
         nelems = ctypes.c_long(0)
         self._call(const.GET_, const.zVAR_NUMELEMS_, ctypes.byref(nelems))
         return nelems.value
-        
+
     def name(self):
         """Returns the name of this variable
 
@@ -1182,7 +1331,7 @@ class VarCopy(list):
     """A copy of the data and attributes in a L{Var}
 
     Data are in the list elements, accessed much like L{Var}
-    
+
     @ivar attrs: attributes for the variable
     @type attrs: dict
     @ivar _dims: dimensions of this variable
@@ -1220,6 +1369,9 @@ class VarCopy(list):
         @raise IndexError: if ellipses specified when already have enough
                            dimensions
         """
+        if slices == Ellipsis:
+            return tuple([slice(None, None, None)
+                          for i in range(len(self._dims))])
         if not Ellipsis in slices:
             return slices
 
@@ -1251,7 +1403,7 @@ class _Hyperslice(object):
     @ivar starts: index of the start value for each dimension
                   ('dimension indices' in CDF speak)
     @type starts: list of int
-    @ivar counts: number of values to get from each dimension
+    @ivar counts: number of values to get from each dimension.
                   Final result will be the product of everything
                   in counts.
                   ('dimension counts' in CDF speak)
@@ -1271,7 +1423,11 @@ class _Hyperslice(object):
     @type column: boolean
     @ivar zvar: what CDF variable this object slices on
     @type zvar: L{Var}
-    @note: All variables are stored in the majority of the CDF
+    @ivar expanded_key: fully-expanded version of the key passed to the
+                        constructor (all dimensions filled in)
+    @type expanded_key: tuple
+    @note: All dimension-related variables are stored row-major
+           (Python order)
     """
 
     def __init__(self, zvar, key):
@@ -1313,6 +1469,7 @@ class _Hyperslice(object):
                 key = (slice(None, None, None), ) +key
             else: #NRV, so get 0th record (degenerate)
                 key = (0, ) + key
+        self.expanded_key = key
         if len(key) == self.dims:
             for i in range(self.dims):
                 idx = key[i]
@@ -1331,9 +1488,45 @@ class _Hyperslice(object):
         else:
             raise IndexError('Slice does not match dimensions for zVar ' +
                              zvar._name)
-                
+
         self.column = (zvar.cdf_file._majority().value ==
                        const.COLUMN_MAJOR.value)
+
+    def expected_dims(self, data=None):
+        """Calculate size of non-degenerate dimensions
+
+        Figures out size, in each dimension, of expected input data
+
+        @return: size of each dimension for this slice, excluding degnerate
+        @rtype: list of int
+        """
+        return [self.counts[i] for i in range(self.dims) if not self.degen[i]]
+
+    def expand(self, data):
+        """Expands the record dimension of this slice to hold a set of data
+
+        If the length of data (outermost dimension) is larger than the record
+        count (counts[0]) for this slice, expand the slice to hold all the data.
+        This requires that the record dimension of the slice not be degenerate,
+        and also that it not have been completely specified when the hyperslice
+        was created (i.e. record dimension either ellipsis or no specified
+        stop.)
+
+        Does I{not} expand any other dimension, since that's Very Hard in CDF.
+
+        @param data: the data which are intended to be stored in this slice
+        @type data: list
+        """
+        rec_slice = self.expanded_key[0]
+        if isinstance(data, str_classes) or self.degen[0] or \
+               not hasattr(rec_slice, 'stop'):
+            return
+        if len(data) < self.counts[0]: #Truncate to fit data
+            if rec_slice.stop == None and rec_slice.step in (None, 1):
+                self.counts[0] = len(data)
+        elif len(data) > self.counts[0]: #Expand to fit data
+            if rec_slice.step in (None, 1):
+                self.counts[0] = len(data)            
 
     def expand_ellipsis(self, slices):
         """Expands ellipses into the correct number of full-size slices
@@ -1368,20 +1561,18 @@ class _Hyperslice(object):
                  this slice
         @rtype: instance of subclass of ctypes.Array
         """
+        counts = self.counts
+        degens = self.degen
+        if self.column:
+            counts = self.reorder(counts)
+            degens = self.reorder(degens)
         cdftype = self.zvar._cdf_type()
-        if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
-            buffsize = self.zvar._nelems()
-            for count, degen in zip(self.counts[-1::-1], self.degen[-1::-1]):
-                if not degen:
-                    buffsize *= count            
-            return ctypes.create_string_buffer(buffsize)
-        else:
-            constructor = self.zvar._c_type()
-            #Build array from innermost out
-            for count, degen in zip(self.counts[-1::-1], self.degen[-1::-1]):
-                if not degen:
-                    constructor *= count
-            return constructor()
+        constructor = self.zvar._c_type()
+        #Build array from innermost out
+        for count, degen in zip(counts[-1::-1], degens[-1::-1]):
+            if not degen:
+                constructor *= count
+        return constructor()
 
     def convert_array(self, array):
         """Converts a nested list-of-lists to format of this slice
@@ -1453,6 +1644,89 @@ class _Hyperslice(object):
         else:
             return self.c_array_to_list(buffer)
 
+    def pack_buffer(self, buff, data):
+        """Packs data in the form of this slice into a buffer
+
+
+        @param buff: ctypes object created by L{create_buffer}
+        @type buff: subclass of ctypes.Array
+        @param data: data to pack into L{buff}
+        @type data: list-of-lists
+        """
+        counts = self.counts
+        degen = self.degen
+        rev = self.rev
+        if self.column:
+            counts = self.reorder(counts)
+            degen = self.reorder(degen)
+            rev = self.reorder(rev)
+        cdf_type = self.zvar._cdf_type()
+
+        #Handle completely degenerate case, i.e. scalar
+        if min(degen):
+            if cdf_type == const.CDF_EPOCH16.value:
+                buff[:] = lib.datetime_to_epoch16(data)
+            elif cdf_type == const.CDF_EPOCH.value:
+                buff.value = lib.datetime_to_epoch(data)
+            else:
+                buff.value = data
+            return
+
+        cdf_counts = [] #non-degenerate no. of elements in each dim., CDF order
+        cdf_rev = [] #is this dimension reversed? CDF order
+        for i in range(len(counts)):
+            if not degen[i]:
+                cdf_counts.append(counts[i])
+                cdf_rev.append(rev[i])
+        lastdim = len(cdf_counts) - 1
+        record_degen = self.degen[0]
+        reordered = max(cdf_rev) or self.column #python and CDF order differ?
+
+        cdf_idx = [0 for i in range(len(cdf_counts))]
+        while cdf_idx[0] < cdf_counts[0]:
+            #Calculate the Python index
+            py_idx = cdf_idx[:]
+            if reordered:
+                for i in range(lastdim + 1):
+                    if self.column and (record_degen or i != 0):
+                        if cdf_rev[i]:
+                            py_idx[lastdim - i] = \
+                                           cdf_counts[i] - cdf_idx[i] - 1
+                        else:
+                            py_idx[lastdim - i] = cdf_idx[i]
+                    else:
+                        if cdf_rev[i]:
+                            py_idx[i] = cdf_counts[i] - cdf_idx[i] - 1
+                        else:
+                            py_idx[i] = cdf_idx[i]
+
+            py_obj = data
+            cdf_obj = buff
+            for i in range(lastdim):
+                py_obj = py_obj[py_idx[i]]
+                cdf_obj = cdf_obj[cdf_idx[i]]
+            if cdf_type == const.CDF_EPOCH16.value:
+                cdf_obj[cdf_idx[lastdim]][:] = lib.datetime_to_epoch16(
+                    py_obj[py_idx[lastdim]])
+            elif cdf_type == const.CDF_EPOCH.value:
+                cdf_obj[cdf_idx[lastdim]] = lib.datetime_to_epoch(
+                    py_obj[py_idx[lastdim]])
+            elif cdf_type == const.CDF_CHAR.value or \
+                     cdf_type == const.CDF_UCHAR.value:
+                cdf_obj[cdf_idx[lastdim]].value = py_obj[py_idx[lastdim]]
+            else:
+                cdf_obj[cdf_idx[lastdim]] = py_obj[py_idx[lastdim]]
+
+            #Switch to the next index
+            currdim = lastdim
+            while currdim >= 0:
+                cdf_idx[currdim] += 1
+                if cdf_idx[currdim] >= cdf_counts[currdim] and currdim > 0:
+                    cdf_idx[currdim] = 0
+                    currdim -= 1
+                else:
+                    break
+
     def c_array_to_list(self, array):
         """Converts a ctypes array type to a python nested list
 
@@ -1481,7 +1755,7 @@ class _Hyperslice(object):
             dimsizes.append(2)
         else:
             basetype = self.zvar._c_type()
-        
+
         n_elements = 1
         for j in dimsizes:
             n_elements *= j
@@ -1496,7 +1770,7 @@ class _Hyperslice(object):
                 return [i.value for i in flat]
             else:
                 return [i for i in flat]
-        
+
         for i in range(len(dims) - 1):
             size = dims[i]
             n_lists = 1
@@ -1512,6 +1786,26 @@ class _Hyperslice(object):
             else:
                 result = [result[j * size:(j + 1) * size] for j in range(n_lists)]
         return result
+
+    def select(self):
+        """Selects this hyperslice in the CDF
+
+        Calls the CDF library to select the CDF, variable, records, and
+        array elements corresponding to this slice.
+        """
+        args = (const.SELECT_, const.zVAR_RECNUMBER_, ctypes.c_long(self.starts[0]),
+                const.SELECT_, const.zVAR_RECCOUNT_, ctypes.c_long(self.counts[0]),
+                const.SELECT_, const.zVAR_RECINTERVAL_,
+                ctypes.c_long(self.intervals[0]))
+        if self.dims > 1:
+            dims = self.dims - 1
+            args += (const.SELECT_, const.zVAR_DIMINDICES_,
+                     (ctypes.c_long * dims)(*self.starts[1:]),
+                     const.SELECT_, const.zVAR_DIMCOUNTS_,
+                     (ctypes.c_long * dims)(*self.counts[1:]),
+                     const.SELECT_, const.zVAR_DIMINTERVALS_,
+                     (ctypes.c_long * dims)(*self.intervals[1:]))
+        self.zvar._call(*args)
 
     @staticmethod
     def flip_majority(array):
@@ -1534,15 +1828,10 @@ class _Hyperslice(object):
         except TypeError:
             return array #scalar
 
-        try:
-            string_classes = (str, bytes, unicode)
-        except NameError:
-            string_classes = (str, bytes)            
-
         flat = array #this is progressively flattened (i.e. dims stripped off)
         while True:
             try:
-                if isinstance(flat[0], string_classes):
+                if isinstance(flat[0], str_classes):
                     break
                 lengths = [len(i) for i in flat]
             except TypeError: #Now completely flat
@@ -1564,6 +1853,35 @@ class _Hyperslice(object):
         return result
 
     @staticmethod
+    def dimensions(data):
+        """Finds the dimensions of a nested list-of-lists
+
+        @param data: data of which dimensions are desired
+        @type data: list (of lists)
+        @return: dimensions of L{data}, in order outside-in
+        @rtype: list of int
+        @raise ValueError: if L{data} has irregular dimensions
+        """
+        try:
+            dims = [len(data)]
+        except TypeError:
+            return []
+        flat = data
+        while True:
+            try:
+                if isinstance(flat[0], str_classes):
+                    break
+                lengths = [len(i) for i in flat]
+            except TypeError: #Now completely flat
+                break
+            if min(lengths) != max(lengths):
+                raise ValueError('Data irregular in dimension ' +
+                                str(len(dims)))
+            dims.append(lengths[0])
+            flat = [item for sublist in flat for item in sublist]
+        return dims
+
+    @staticmethod
     def reorder(seq):
         """Reorders seq to switch array majority
 
@@ -1583,7 +1901,7 @@ class _Hyperslice(object):
 
     @staticmethod
     def convert_range(start, stop, step, size):
-        """Convertss a start/stop/step range to start/count/interval
+        """Converts a start/stop/step range to start/count/interval
 
         (i.e. changes from Python-style slice to CDF-style)
         @param start: index to start a slice at, may be none or negative
@@ -2088,7 +2406,7 @@ class Attr(collections.Sequence):
 
 class zAttr(Attr):
     """zAttribute for zVariables within a CDF.
-    
+
     Do not use directly.
     """
 
@@ -2171,7 +2489,7 @@ class zAttr(Attr):
 
 class gAttr(Attr):
     """Global Attribute for a CDF
-    
+
     Represents a CDF attribute, providing access to the Entries in a format
     that looks like a Python
     list. General list information is available in the python docs:

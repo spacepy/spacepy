@@ -9,6 +9,7 @@ import os, os.path
 import shutil
 import sys
 import unittest
+import time
 
 try:
     type(callable)
@@ -90,6 +91,30 @@ class NoCDF(unittest.TestCase):
             self.assertEqual(tuple(outp), result,
                              str(tuple(outp)) + ' != ' + str(result) +
                              ' for input ' + str(inp))
+
+    def testHypersliceDimensions(self):
+        """Find dimensions of an array"""
+        data = [[[2, 3], [4, 5], [6, 7]],
+                [[8, 9], [0, 1], [2, 3]],
+                [[4, 5], [6, 7], [8, 9]],
+                [[0, 1], [2, 3], [4, 5]],
+                ]
+        self.assertEqual(cdf._pycdf._Hyperslice.dimensions(data),
+                         [4, 3, 2])
+
+        data = [[[2, 3], [4, 5], [6, 7]],
+                [[8, 9], [0, 1], [2, 3]],
+                [[4, 5], [6, 7],],
+                [[0, 1], [2, 3], [4, 5]],
+                ]
+        message = 'Data irregular in dimension 1'
+        try:
+            cdf._pycdf._Hyperslice.dimensions(data)
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should raise ValueError: ' + message)
 
     def testFlipMajority(self):
         """Changes the majority of an array"""
@@ -191,6 +216,42 @@ class NoCDF(unittest.TestCase):
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch_to_datetime(epoch))
 
+    def testDatetimeToEpoch16(self):
+        epochs = [[63397987200.0, 0.0],
+                  ]
+        dts = [datetime.datetime(2009, 1, 1),
+               ]
+        for (epoch, dt) in zip(epochs, dts):
+            self.assertEqual(epoch, cdf.lib.datetime_to_epoch16(dt))
+
+    def testDatetimeToEpoch(self):
+        epochs = [63397987200000.0,
+                  ]
+        dts = [datetime.datetime(2009, 1, 1),
+               ]
+        for (epoch, dt) in zip(epochs, dts):
+            self.assertEqual(epoch, cdf.lib.datetime_to_epoch(dt))
+
+    def testDatetimeEpoch16RT(self):
+        """Roundtrip datetimes to epoch16s and back"""
+        dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
+               datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
+               datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
+               ]
+        for dt in dts:
+            self.assertEqual(dt, cdf.lib.epoch16_to_datetime(
+                cdf.lib.datetime_to_epoch16(dt)))
+
+    def testDatetimeEpochRT(self):
+        """Roundtrip datetimes to epochs and back"""
+        dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
+               datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
+               datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
+               ]
+        for dt in dts:
+            self.assertEqual(dt, cdf.lib.epoch_to_datetime(
+                cdf.lib.datetime_to_epoch(dt)))
+
     def testIgnoreErrors(self):
         """Call the library and ignore particular error"""
         nbytes = ctypes.c_long(0)
@@ -225,7 +286,7 @@ class MakeCDF(unittest.TestCase):
 class CreateVar(unittest.TestCase):
     def setUp(self):
         self.cdf = cdf.CDF('new.cdf', '')
-        self.cdf._readonly(False)
+        self.cdf.readonly(False)
         
     def tearDown(self):
         os.remove('new.cdf')
@@ -510,6 +571,80 @@ class ReadCDF(CDFTests):
                              '\n' + str(tuple(expected[i])) + '!=\n' +
                              str(actual) + ' variable ' + i)
 
+    def testHypersliceExpand(self):
+        """Expand a slice to store the data passed in"""
+        zvar = self.cdf['PhysRecNo']
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, None, 1))
+        self.assertEqual(100, sliced.counts[0])
+        sliced.expand(list(range(110)))
+        self.assertEqual(110, sliced.counts[0])
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, 100, 2))
+        sliced.expand(list(range(110)))
+        self.assertEqual(50, sliced.counts[0])
+
+    def testHypersliceExpectedDims(self):
+        """Find dimensions expected by a slice"""
+        zvar = self.cdf['PhysRecNo']
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, None, 1))
+        self.assertEqual([100], sliced.expected_dims())
+        sliced.expand(list(range(110)))
+        self.assertEqual([110], sliced.expected_dims())
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, 100, 2))
+        sliced.expand(list(range(110)))
+        self.assertEqual([50], sliced.expected_dims())
+
+        zvar = self.cdf['SpinRateScalersCounts']
+        sliced = cdf._pycdf._Hyperslice(zvar, (slice(None, None, None),
+                                               slice(None, None, 2),
+                                               slice(0, None, 3)))
+        self.assertEqual([100, 9, 6], sliced.expected_dims())
+
+    def testPackBuffer(self):
+        """Pack a buffer with data"""
+        zvar = self.cdf['PhysRecNo']
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, None, 1))
+        buff = sliced.create_buffer()
+        sliced.pack_buffer(buff, list(range(100)))
+        result = [buff[i] for i in range(100)]
+        self.assertEqual(list(range(100)), result)
+        
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(None, None, -1))
+        buff = sliced.create_buffer()
+        sliced.pack_buffer(buff, list(range(100)))
+        result = [buff[i] for i in range(100)]
+        self.assertEqual(list(reversed(range(100))), result)
+
+        zvar = self.cdf['SectorRateScalersCounts']
+        sliced = cdf._pycdf._Hyperslice(zvar, (0, slice(0, 3, 2),
+                                              slice(3, None, -1), 1))
+        buff = sliced.create_buffer()
+        data = [[1, 2, 3, 4],
+                [5, 6, 7, 8]]
+        expected = [[4, 3, 2, 1],
+                    [8, 7, 6, 5]]
+        sliced.pack_buffer(buff, data)
+        self.assertEqual(expected[0], list(buff[0]))
+        self.assertEqual(expected[1], list(buff[1]))
+
+        sliced = cdf._pycdf._Hyperslice(zvar, (0, 1, 1, 1))
+        buff = sliced.create_buffer()
+        sliced.pack_buffer(buff, 10)
+        self.assertEqual(10, buff.value)
+
+        zvar = self.cdf['ATC']
+        sliced = cdf._pycdf._Hyperslice(zvar, 10)
+        buff = sliced.create_buffer()
+        sliced.pack_buffer(buff, datetime.datetime(2009, 1, 1))
+        self.assertEqual(list(buff), [63397987200.0, 0.0])
+
+        zvar = self.cdf['SpinNumbers']
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, 3, None))
+        buff = sliced.create_buffer()
+        expected = [b'99', b'98', b'97']
+        sliced.pack_buffer(buff, expected)
+        for i in range(3):
+            self.assertEqual(expected[i], buff[i].value)
+
     def testArraytoList(self):
         """Converts a ctypes array to Python nested lists"""
         sliced = cdf._pycdf._Hyperslice(self.cdf['PhysRecNo'], slice(0, 4, None))
@@ -606,7 +741,7 @@ class ReadCDF(CDFTests):
                   } #Slice objects indexed by variable
         types = {'ATC': (ctypes.c_double * 2),
                  'PhysRecNo': (ctypes.c_int * 4),
-                 'SpinNumbers': (ctypes.c_char * 16), #degenerate
+                 'SpinNumbers': (ctypes.c_char * 2 * 8),
                  'SectorRateScalersCounts': (ctypes.c_float *
                                              9 * 32 * 3 * 100),
                  'SpinRateScalersCounts': (ctypes.c_float * 16 * 18 * 100),
@@ -630,6 +765,8 @@ class ReadCDF(CDFTests):
         """Get data from a variable with a less-than-complete specification"""
         chargedata = self.cdf['MeanCharge'][0] #Should be the first record
         self.assertEqual(len(chargedata), 16)
+        SpinRateScalersCounts = self.cdf['SpinRateScalersCounts'][...]
+        self.assertEqual(100, len(SpinRateScalersCounts))
 
     def testReadEpochs(self):
         """Read an Epoch16 value"""
@@ -991,6 +1128,7 @@ class ReadCDF(CDFTests):
             self.assertEqual(zvar[i], zvarcopy[i])
         for i in zvarcopy.attrs:
             self.assertEqual(zvar.attrs[i], zvarcopy.attrs[i])
+        self.assertEqual(zvar[...], zvarcopy[...])
 
     def testCDFCopy(self):
         """Make a copy of an entire CDF"""
@@ -1136,10 +1274,10 @@ class ReadColCDF(ColCDFTests):
                   } #Slice objects indexed by variable
         types = {'ATC': (ctypes.c_double * 2),
                  'PhysRecNo': (ctypes.c_int * 4),
-                 'SpinNumbers': (ctypes.c_char * 16), #degenerate
+                 'SpinNumbers': (ctypes.c_char * 2 * 8),
                  'SectorRateScalersCounts': (ctypes.c_float *
-                                             9 * 32 * 3 * 100),
-                 'SpinRateScalersCounts': (ctypes.c_float * 16 * 18 * 100),
+                                             3 * 32 * 9 * 100),
+                 'SpinRateScalersCounts': (ctypes.c_float * 18 * 16 * 100),
                  } #constructors, build inside out
         for i in types:
             zvar = self.cdf[i]
@@ -1177,6 +1315,32 @@ class ReadColCDF(ColCDFTests):
         self.assertTrue('ATC' in self.cdf)
         self.assertFalse('notthere' in self.cdf)
 
+    def testColPackBuffer(self):
+        """Pack a buffer with data"""
+        zvar = self.cdf['PhysRecNo']
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, None, 1))
+        buff = sliced.create_buffer()
+        sliced.pack_buffer(buff, list(range(100)))
+        result = [buff[i] for i in range(100)]
+        self.assertEqual(list(range(100)), result)
+        
+        sliced = cdf._pycdf._Hyperslice(zvar, slice(None, None, -1))
+        buff = sliced.create_buffer()
+        sliced.pack_buffer(buff, list(range(100)))
+        result = [buff[i] for i in range(100)]
+        self.assertEqual(list(reversed(range(100))), result)
+
+        zvar = self.cdf['SectorRateScalersCounts']
+        sliced = cdf._pycdf._Hyperslice(zvar, (0, slice(0, 3, 2),
+                                              slice(3, None, -1), 1))
+        buff = sliced.create_buffer()
+        data = [[1, 2, 3, 4],
+                [5, 6, 7, 8]]
+        expected = [[4, 8], [3, 7], [2, 6], [1, 5]]
+        sliced.pack_buffer(buff, data)
+        for i in range(4):
+            self.assertEqual(expected[i], list(buff[i]))
+
 
 class ChangeCDF(CDFTests):
     """Tests that modify an existing CDF"""
@@ -1184,13 +1348,16 @@ class ChangeCDF(CDFTests):
         super(ChangeCDF, self).__init__(*args)
         
     def setUp(self):
+        super(ChangeCDF, self).setUp()
         shutil.copy(self.testmaster, self.testfile)
         self.cdf = cdf.CDF(self.testfile)
-        self.cdf._readonly(False)
+        self.cdf.readonly(False)
 
     def tearDown(self):
+        self.cdf.close()
         del self.cdf
         os.remove(self.testfile)
+        super(ChangeCDF, self).tearDown()
 
     def testDeletezVar(self):
         """Delete a zVar"""
@@ -1205,16 +1372,10 @@ class ChangeCDF(CDFTests):
         self.assertTrue(self.cdf._handle)
         self.cdf['ATC']
 
-    def testDeleteCount(self):
-        """Verify correct number of records removed after deletion from zVar"""
-        start_count = len(self.cdf['MeanCharge'])
-        self.cdf['MeanCharge']._del_recs(50, 20)
-        self.assertEqual(len(self.cdf['MeanCharge']), start_count - 20)
-
     def testReadonlySettable(self):
         """Readonly mode should prevent changes"""
-        self.cdf._readonly(True)
-        self.assertTrue(self.cdf._readonly())
+        self.cdf.readonly(True)
+        self.assertTrue(self.cdf.readonly())
         message = 'READ_ONLY_MODE: CDF is in read-only mode.'
         try:
             self.cdf['PhysRecNo']._delete()
@@ -1226,14 +1387,151 @@ class ChangeCDF(CDFTests):
 
     def testReadonlyDisable(self):
         """Turn off readonly and try to change"""
-        self.cdf._readonly(True)
-        self.assertTrue(self.cdf._readonly())
-        self.cdf._readonly(False)
+        self.cdf.readonly(True)
+        self.assertTrue(self.cdf.readonly())
+        self.cdf.readonly(False)
         try:
             self.cdf['PhysRecNo']._delete()
         except:
             (type, val, traceback) = sys.exc_info()
             self.fail('Raised exception ' + str(val))
+
+    def testWriteSubscripted(self):
+        """Write data to a slice of a zVar"""
+        expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
+                    '8 ', '9 ']
+        self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
+        self.assertEqual(expected, self.cdf['SpinNumbers'][0:10])
+
+        expected = self.cdf['SectorRateScalersCounts'][...]
+        expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
+        self.cdf['SectorRateScalersCounts'][4, 5, 5, 8:3:-1] = \
+            [101.0, 102.0, 103.0, 104.0, 105.0]
+        self.assertEqual(expected, self.cdf['SectorRateScalersCounts'][...])
+
+    def testWriteExtend(self):
+        """Write off the end of the variable"""
+        additional = [2000 + i for i in range(20)]
+        expected = self.cdf['PhysRecNo'][0:95] + additional
+        self.cdf['PhysRecNo'][95:] = additional
+        self.assertEqual(115, len(self.cdf['PhysRecNo']))
+        self.assertEqual(expected, self.cdf['PhysRecNo'][:])
+
+    def testInsertRecord(self):
+        """Insert a record into the middle of a variable"""
+        PhysRecNoData = self.cdf['PhysRecNo'][...]
+        PhysRecNoData[5:6] = [-1, -2, -3, -4]
+        self.cdf['PhysRecNo'][5:6] = [-1, -2, -3, -4]
+        self.assertEqual(103, len(self.cdf['PhysRecNo']))
+        self.assertEqual(PhysRecNoData, self.cdf['PhysRecNo'][...])
+
+    def testWriteAndTruncate(self):
+        """Write with insufficient data to fill all existing records"""
+        expected = [-1 * i for i in range(20)] 
+        self.cdf['PhysRecNo'][:] = expected
+        self.assertEqual(expected, self.cdf['PhysRecNo'][:])
+
+    def testWriteWrongSizeData(self):
+        """Write with data sized or shaped differently from expected"""
+        message = 'attempt to assign data of dimensions [3] ' + \
+                  'to slice of dimensions [5]'
+        try:
+            self.cdf['SpinNumbers'][0:5] = [b'99', b'98', b'97']
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should have raised ValueError: ' + message)
+
+        message = 'attempt to assign data of dimensions [2, 6, 2] ' + \
+                  'to slice of dimensions [3, 6, 2]'
+        try:
+            self.cdf['SpinRateScalersCounts'][0:3, 12:, 0:4:2] = \
+                [[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [0, 1]],
+                 [[2, 3], [4, 5], [6, 7], [8, 9], [0, 1], [2, 3]],
+                 ]
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should have raised ValueError: ' + message)        
+
+    def testDeleteRecord(self):
+        """Delete records from a variable"""
+        oldlen = len(self.cdf['PhysRecNo'])
+        PhysRecCopy = self.cdf['PhysRecNo'].copy()
+        del self.cdf['PhysRecNo'][5]
+        del PhysRecCopy[5]
+        self.assertEqual(oldlen - 1, len(self.cdf['PhysRecNo']))
+        self.assertEqual(PhysRecCopy[0:15], self.cdf['PhysRecNo'][0:15])
+
+        oldlen = len(self.cdf['ATC'])
+        ATCCopy = self.cdf['ATC'].copy()
+        del self.cdf['ATC'][0::2]
+        self.assertEqual(int(oldlen / 2), len(self.cdf['ATC']))
+        self.assertEqual(ATCCopy[1::2], self.cdf['ATC'][...])
+
+        message = 'Cannot delete records from non-record-varying variable.'
+        try:
+            del self.cdf['SpinNumbers'][0]
+        except:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(t, TypeError)
+            self.assertEqual(str(v), message)
+        else:
+            self.fail('Should have raised TypeError: ' + message)
+
+        oldlen = len(self.cdf['SectorRateScalersCounts'])
+        SectorRateScalersCountsCopy = \
+                                    self.cdf['SectorRateScalersCounts'].copy()
+        del SectorRateScalersCountsCopy[-1:-5:-1]
+        del self.cdf['SectorRateScalersCounts'][-1:-5:-1]
+        self.assertEqual(oldlen - 4, len(self.cdf['SectorRateScalersCounts']))
+        self.assertEqual(SectorRateScalersCountsCopy[...],
+                         self.cdf['SectorRateScalersCounts'][...])
+
+        oldlen = len(self.cdf['SectorRateScalersCounts'])
+        del self.cdf['SectorRateScalersCounts'][-1:-5]
+        self.assertEqual(oldlen, len(self.cdf['SectorRateScalersCounts']))
+
+        message = 'Can only delete entire records.'
+        try:
+            del self.cdf['SpinRateScalersCounts'][0, 12, 0:5]
+        except:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(t, TypeError)
+            self.assertEqual(str(v), message)
+        else:
+            self.fail('Should have raised TypeError: ' + message)
+
+
+class ChangeColCDF(ColCDFTests):
+    """Tests that modify an existing colum-major CDF"""
+    def __init__(self, *args):
+        super(ChangeColCDF, self).__init__(*args)
+        
+    def setUp(self):
+        shutil.copy(self.testmaster, self.testfile)
+        self.cdf = cdf.CDF(self.testfile)
+        self.cdf.readonly(False)
+
+    def tearDown(self):
+        self.cdf.close()
+        del self.cdf
+        os.remove(self.testfile)
+
+    def testWriteColSubscripted(self):
+        """Write data to a slice of a zVar"""
+        expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
+                    '8 ', '9 ']
+        self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
+        self.assertEqual(expected, self.cdf['SpinNumbers'][0:10])
+
+        expected = self.cdf['SectorRateScalersCounts'][...]
+        expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
+        self.cdf['SectorRateScalersCounts'][4, 5, 5, 8:3:-1] = \
+            [101.0, 102.0, 103.0, 104.0, 105.0]
+        self.assertEqual(expected, self.cdf['SectorRateScalersCounts'][...])
 
 
 if __name__ == '__main__':

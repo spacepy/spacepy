@@ -4,7 +4,7 @@
 Various constants defined in cdf.h and used in pycdf
 """
 
-__version__ = "0.6"
+__version__ = "0.7"
 __author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 import ctypes
