@@ -18,7 +18,8 @@ except NameError:
     def callable(obj):
         return isinstance(obj, collections.Callable)
 
-import spacepy.pycdf as cdf
+import pycdf as cdf
+import spacepy.pycdf.const as const
 
 
 class NoCDF(unittest.TestCase):
@@ -115,6 +116,9 @@ class NoCDF(unittest.TestCase):
             self.assertEqual(message, str(v))
         else:
             self.fail('Should raise ValueError: ' + message)
+
+        self.assertEqual(cdf._pycdf._Hyperslice.dimensions('hi'),
+                         [])
 
     def testFlipMajority(self):
         """Changes the majority of an array"""
@@ -260,6 +264,40 @@ class NoCDF(unittest.TestCase):
                               ignore=(cdf.const.BAD_DATA_TYPE,))
         self.assertEqual(cdf.const.BAD_DATA_TYPE, status)
 
+    def testVersion(self):
+        """Check library's version"""
+        self.assertTrue(cdf.lib.version[0] in (2, 3))
+        self.assertTrue(cdf.lib.version[1] in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+        self.assertTrue(cdf.lib.version[2] in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+        self.assertTrue(cdf.lib.version[3] in (b'', b' ', b'a'))
+        if cdf.lib.version == (3, 3, 0, ' '):
+            self.assertTrue(cdf.lib._del_middle_rec_bug)
+        elif cdf.lib.version == (3, 3, 1, ' '):
+            self.assertFalse(cdf.lib._del_middle_rec_bug)
+
+    def testTypeGuessing(self):
+        """Guess CDF types based on input data"""
+        samples = [[1, 2, 3, 4],
+                   [[1.2, 1.3, 1.4], [2.2, 2.3, 2.4]],
+                   ['hello', 'there', 'everybody'],
+                   datetime.datetime(2009, 1, 1),
+                   datetime.datetime(2009, 1, 1, 12, 15, 12, 1),
+                   ]
+        types = [([4], [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                        const.CDF_INT2, const.CDF_UINT2,
+                        const.CDF_INT4, const.CDF_UINT4,
+                        const.CDF_FLOAT, const.CDF_REAL4,
+                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ([2, 3], [const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ([3], [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                 ([], [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
+                 ([], [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                 ]
+        for (s, t) in zip(samples, types):
+            t = (t[0], [i.value for i in t[1]], t[2])
+            self.assertEqual(t, cdf._pycdf._Hyperslice.types(s))
+
 
 class MakeCDF(unittest.TestCase):
     def setUp(self):
@@ -303,7 +341,7 @@ class CDFTests(unittest.TestCase):
     testfile = 'test.cdf'
 
     def __init__(self, *args):
-        self.expected_digest = 'e00fd61cb96184271d698597daf6f87a'
+        self.expected_digest = 'b31bffefd7a63de6ce9856f08dbae43d'
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
         super(CDFTests, self).__init__(*args)
 
@@ -1003,6 +1041,25 @@ class ReadCDF(CDFTests):
         self.assertFalse(attribute.has_entry(0))
         self.assertTrue(attribute.has_entry(6))
 
+    def testGetBadzEntry(self):
+        message = "'foobar: NO_SUCH_ATTR: Named attribute not found in this CDF.'"
+        try:
+            attrib = self.cdf['ATC'].attrs['foobar']
+        except KeyError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should raise KeyError: ' + message)
+
+        message = "'DEPEND_0: no such attribute for variable ATC'"
+        try:
+            attrib = self.cdf['ATC'].attrs['DEPEND_0']
+        except KeyError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should raise KeyError: ' + message)
+
     def testgEntryExists(self):
         """Checks for existence of a gEntry"""
         attribute = cdf.gAttr(self.cdf, 'TEXT')
@@ -1161,18 +1218,30 @@ class ReadCDF(CDFTests):
     def testCDFString(self):
         """Convert a CDF to a string representation"""
         #a bit funky because the order of keys may be different
-        self.assertEqual(eval(str(self.cdf)), self.cdf.copy())
+        #self.assertEqual(eval(str(self.cdf)), self.cdf.copy())
+        #a much cheaper way to do it; lengths different in py3k
+        self.assertTrue(len(str(self.cdf)) in (7523076, 7614589))
 
     def testgAttrListString(self):
         """Convert a list of gattributes to a string"""
-        self.assertEqual(self.cdf.copy().attrs, eval(str(self.cdf.attrs)))
+        #self.assertEqual(self.cdf.copy().attrs, eval(str(self.cdf.attrs)))
+        self.assertTrue(len(str(self.cdf.attrs)) in (983, 1008))
 
     def testzAttrListString(self):
         """Convert a list of zAttributes to a string"""
-        for varname in self.cdf:
-            var = self.cdf[varname]
-            varcopy = var.copy()
-            self.assertEqual(varcopy.attrs, eval(str(var.attrs)))
+        #for varname in self.cdf:
+        #    var = self.cdf[varname]
+        #    varcopy = var.copy()
+        #    self.assertEqual(varcopy.attrs, eval(str(var.attrs)))
+        expected = [[373, 210, 114, 131, 174, 192, 695, 561, 597, 493,
+                     128, 396, 317],
+                    [383, 218, 118, 135, 179, 197, 713, 573, 613, 504,
+                     132, 407, 325],
+                    [373, 210, 114, 131, 174, 192, 694, 560, 596,
+                     492, 128, 395, 317]
+                    ]
+        self.assertTrue([len(str(self.cdf[varname].attrs))
+                          for varname in self.cdf] in expected)
 
 
 class ReadColCDF(ColCDFTests):
@@ -1504,6 +1573,144 @@ class ChangeCDF(CDFTests):
         else:
             self.fail('Should have raised TypeError: ' + message)
 
+    def testRenameVar(self):
+        """Rename a variable"""
+        zvar = self.cdf['PhysRecNo']
+        zvardata = zvar[...]
+        zvar.rename('foobar')
+        self.assertEqual(zvardata, self.cdf['foobar'][...])
+        try:
+            zvar = self.cdf['PhysRecNo']
+        except KeyError:
+            pass
+        else:
+            self.fail('Should have raised KeyError')
+
+        try:
+            zvar.rename('a' * 300)
+        except cdf.CDFError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(v.status, cdf.const.BAD_VAR_NAME)
+        else:
+            self.fail('Should have raised CDFError')
+
+    def testChangezEntry(self):
+        """Write new or changed zEntry"""
+        zvar = self.cdf['PhysRecNo']
+        zvar.attrs['DEPEND_0'] = 'foobar'
+        self.assertEqual('foobar', zvar.attrs['DEPEND_0'])
+        self.assertEqual(const.CDF_CHAR.value,
+                         cdf.zAttr(self.cdf,
+                                   'DEPEND_0').entry_type(zvar._num()))
+
+        zvar.attrs['FILLVAL'] = [0, 1]
+        self.assertEqual([0,1], zvar.attrs['FILLVAL'])
+        self.assertEqual(const.CDF_INT4.value,
+                         cdf.zAttr(self.cdf,
+                                   'FILLVAL').entry_type(zvar._num()))
+
+        message = 'Entry strings must be scalar.'
+        try:
+            zvar.attrs['CATDESC'] = ['hi', 'there']
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should have raised ValueError: ' + message)
+
+        message = 'Entries must be scalar or 1D.'
+        try:
+            zvar.attrs['FILLVAL'] = [[1, 2], [3, 4]]
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should have raised ValueError: ' + message)
+
+    def testNewzAttr(self):
+        """Write a zEntry for a zAttribute that doesn't exist"""
+        zvar = self.cdf['PhysRecNo']
+        zvar.attrs['NEW_ATTRIBUTE'] = 1
+        self.assertTrue('NEW_ATTRIBUTE' in zvar.attrs)
+        self.assertEqual(1, zvar.attrs['NEW_ATTRIBUTE'])
+        self.assertEqual(const.CDF_INT4.value,
+                         cdf.zAttr(self.cdf,
+                                   'NEW_ATTRIBUTE').entry_type(zvar._num()))
+        
+        zvar.attrs['NEW_ATTRIBUTE2'] = [1, 2]
+        self.assertEqual([1, 2], zvar.attrs['NEW_ATTRIBUTE2'])
+        self.assertEqual(const.CDF_INT4.value,
+                         cdf.zAttr(self.cdf,
+                                   'NEW_ATTRIBUTE2').entry_type(zvar._num()))
+
+        zvar = self.cdf['SpinNumbers']
+        zvar.attrs['NEW_ATTRIBUTE3'] = 1
+        self.assertEqual(1, zvar.attrs['NEW_ATTRIBUTE3'])
+        self.assertEqual(const.CDF_BYTE.value,
+                         cdf.zAttr(self.cdf,
+                                   'NEW_ATTRIBUTE3').entry_type(zvar._num()))
+
+    def testDelzAttr(self):
+        """Delete a zEntry"""
+        del self.cdf['PhysRecNo'].attrs['DEPEND_0']
+        self.assertFalse('DEPEND_0' in self.cdf['PhysRecNo'].attrs)
+        #Make sure attribute still exists
+        attrib = cdf.zAttr(self.cdf, 'DEPEND_0')
+
+        del self.cdf['SectorRateScalersCounts'].attrs['DEPEND_3']
+        self.assertFalse('DEPEND_3' in
+                         self.cdf['SectorRateScalersCounts'].attrs)
+        try:
+            attrib = cdf.zAttr(self.cdf, 'DEPEND_3')
+        except cdf.CDFError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(const.NO_SUCH_ATTR, v.status)
+        else:
+            self.fail('Should have raised CDFError')
+
+    def testChangegAttr(self):
+        """Change an existing gEntry"""
+        self.cdf.attrs['Project'][0] = 'not much'
+        self.assertEqual('not much',
+                         self.cdf.attrs['Project'][0])
+
+        self.cdf.attrs['Source_name'][0] = datetime.datetime(2009, 1, 1)
+        self.assertEqual([datetime.datetime(2009, 1, 1)],
+                         self.cdf.attrs['Source_name'][:])
+
+        self.cdf.attrs['Data_type'] = 'stuff'
+        self.assertEqual('stuff',
+                         self.cdf.attrs['Data_type'][0])
+        self.cdf.attrs['Data_type'] = ['stuff', 'more stuff']
+        self.assertEqual(['stuff', 'more stuff'],
+                         self.cdf.attrs['Data_type'][:])
+
+    def testNewgAttr(self):
+        """Create a new gAttr by adding a gEntry"""
+        self.cdf.attrs['new_attr'] = 1.5
+        self.assertEqual([1.5],
+                         self.cdf.attrs['new_attr'][:])
+
+        self.cdf.attrs['new_attr2'] = []
+        self.assertTrue('new_attr2' in self.cdf.attrs)
+        self.cdf.attrs['new_attr2'][0:6:2] = [1, 2, 3]
+        self.assertEqual([1, None, 2, None, 3],
+                         self.cdf.attrs['new_attr2'][:])
+
+        self.cdf.attrs['new_attr3'] = ['hello', 'there']
+        self.assertEqual(['hello', 'there'],
+                         self.cdf.attrs['new_attr3'][:])
+
+    def testDelgAttr(self):
+        """Delete a gEntry"""
+        del self.cdf.attrs['TEXT'][0]
+        self.assertTrue('TEXT' in self.cdf.attrs)
+
+        del self.cdf.attrs['Project'][0]
+        self.assertTrue('Project' in self.cdf.attrs)
+
+        del self.cdf.attrs['PI_name']
+        self.assertFalse('PI_name' in self.cdf.attrs)
 
 class ChangeColCDF(ColCDFTests):
     """Tests that modify an existing colum-major CDF"""

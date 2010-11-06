@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.7'
+__version__ = '0.8'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -43,8 +43,15 @@ class Library(object):
     L{__init__} searches for and loads the C library; details on the
     search are documented there.
 
+    @ivar _del_middle_rec_bug: does this version of the library have a bug
+                               when deleting a record from the middle of a
+                               variable?
+    @type _del_middle_rec_bug: boolean
     @ivar _library: C{ctypes} connection to the library
     @type _library: ctypes.WinDLL or ctypes.CDLL
+    @ivar version: version of the CDF library, in order version, release,
+                   increment, subincrement
+    @type version: tuple
     """
     def __init__(self):
         """Load the CDF C library.
@@ -151,6 +158,24 @@ class Library(object):
         self.sizedict[const.CDF_EPOCH16.value] = 16
         self.ctypedict[const.CDF_EPOCH16.value] = self.ctypedict[
             const.CDF_EPOCH.value] * 2
+
+        #Get CDF version information
+        ver = ctypes.c_long(0)
+        rel = ctypes.c_long(0)
+        inc = ctypes.c_long(0)
+        sub = ctypes.c_char(' ')
+        self.call(const.GET_, const.LIB_VERSION_, ctypes.byref(ver),
+                  const.GET_, const.LIB_RELEASE_, ctypes.byref(rel),
+                  const.GET_, const.LIB_INCREMENT_, ctypes.byref(inc),
+                  const.GET_, const.LIB_subINCREMENT_, ctypes.byref(sub))
+        ver = ver.value
+        rel = rel.value
+        inc = inc.value
+        sub = sub.value
+        self.version = (ver, rel, inc, sub)
+        self._del_middle_rec_bug = ver < 3 or (ver == 3 and
+                                               (rel < 3 or
+                                                (rel == 3 and inc < 1)))
 
     def check_status(self, status, ignore=()):
         """Raise exception or warning based on return status of CDF call
@@ -996,9 +1021,9 @@ class Var(collections.Sequence):
         dimensions. This is I{not} a way to resize a variable!
 
         Deleting records from the middle of a variable may be very slow in
-        some circumstances. To work around a bug in the CDF library, all the
-        date must be read in, the requested deletions done, and then all
-        written back out.
+        some circumstances. To work around a bug in CDF library versions
+        before 3.3.1, all the data must be read in, the requested deletions
+        done, and then all written back out.
 
         @param key: index or slice to delete
         @type key: int or slice
@@ -1021,8 +1046,8 @@ class Var(collections.Sequence):
 
         self._call()
         dangerous_delete = False
-        if interval != 1 or \
-           (start != 0 and start + count < dimsize):
+        if lib._del_middle_rec_bug and \
+               (interval != 1 or (start != 0 and start + count < dimsize)):
             #delete from middle is dangerous if only have one index entry
             entries = ctypes.c_long(0)
             lib.call(const.GET_, const.zVAR_nINDEXENTRIES_,
@@ -1045,7 +1070,8 @@ class Var(collections.Sequence):
         else:
             self._call()
             #delete from end to avoid renumbering of records
-            for recno in range(start +count - 1, start - 1, -1 * intervals):
+            for recno in range(start + (count - 1) * interval,
+                               start - 1, -1 * interval):
                 lib.call(const.DELETE_, const.zVAR_RECORDS_,
                          ctypes.c_long(recno), ctypes.c_long(recno))
 
@@ -1325,6 +1351,21 @@ class Var(collections.Sequence):
         @rtype: L{VarCopy}
         """
         return VarCopy(self)
+
+    def rename(self, new_name):
+        """Renames this variable
+
+        @param new_name: the new name for this variable
+        @type new_name: str
+        """
+        try:
+            enc_name = new_name.encode('ascii')
+        except AttributeError:
+            enc_name = new_name
+        if len(enc_name) > const.CDF_VAR_NAME_LEN256:
+            raise CDFError(const.BAD_VAR_NAME)
+        self._call(const.PUT_, const.zVAR_NAME_, enc_name)
+        self._name = enc_name
 
 
 class VarCopy(list):
@@ -1862,11 +1903,57 @@ class _Hyperslice(object):
         @rtype: list of int
         @raise ValueError: if L{data} has irregular dimensions
         """
-        try:
-            dims = [len(data)]
-        except TypeError:
-            return []
-        flat = data
+        return _Hyperslice.types(data)[0]
+
+    @staticmethod
+    def types(data):
+        """Find dimensions and valid types of a nested list-of-lists
+
+        Any given data may be representable by a range of CDF types; infer
+        the CDF types which can represent this data. This breaks down to:
+          1. Proper kind (numerical, string, time)
+          2. Proper range (stores highest and lowest number)
+          3. Sufficient resolution (EPOCH16 required if datetime has
+             microseconds or below.)
+
+        If more than one value satisfies the requirements, types are returned
+        in preferred order:
+          1. Type that matches precision of data first, then
+          2. integer type before float type, then
+          3. Smallest type first, then
+          4. signed type first, then
+          5. specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
+        So for example, EPOCH_16 is preferred over EPOCH if L{data} specifies
+        below the millisecond level (rule 1), but otherwise EPOCH is preferred
+        (rule 2).
+
+        For floats, four-byte is preferred unless eight-byte is required:
+          1. absolute values between 0 and 3e-39
+          2. absolute values greater than 1.7e38
+        This will switch to an eight-byte double in some cases where four bytes
+        would be sufficient for IEEE 754 encoding, but where DEC formats would
+        require eight.
+
+        @param data: data for which dimensions and CDF types are desired
+        @type data: list (of lists)
+        @return: dimensions of L{data}, in order outside-in;
+                 CDF types which can represent this data;
+                 number of elements required (i.e. length of longest string)
+        @rtype: 3-tuple of lists ([int], [ctypes.c_long], [int])
+        @raise ValueError: if L{data} has irregular dimensions
+        """
+        if isinstance(data, str_classes):
+            dims = []
+        else:
+            try:
+                dims = [len(data)]
+            except TypeError:
+                dims = []
+        if dims:
+            flat = data
+        else:
+            flat = [data]
+
         while True:
             try:
                 if isinstance(flat[0], str_classes):
@@ -1879,7 +1966,45 @@ class _Hyperslice(object):
                                 str(len(dims)))
             dims.append(lengths[0])
             flat = [item for sublist in flat for item in sublist]
-        return dims
+
+        elements = 1
+        if isinstance(flat[0], str_classes):
+            types = [const.CDF_CHAR, const.CDF_UCHAR]
+            elements = max([len(s) for s in flat])
+        elif isinstance(flat[0], datetime.datetime):
+            if max([dt.microsecond % 1000 for dt in flat]) > 0:
+                types = [const.CDF_EPOCH16, const.CDF_EPOCH]
+            else:
+                types = [const.CDF_EPOCH, const.CDF_EPOCH16]
+        elif max([i % 1 for i in flat]) > 0:
+                absolutes = [abs(i) for i in flat if i != 0]
+                if max(absolutes) > 1.7e38 or min(absolutes) < 3e-39:
+                    types = [const.CDF_DOUBLE, const.CDF_REAL8]
+                else:
+                    types = [const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8]
+        else:
+            minval = min(flat)
+            maxval = max([abs(i) for i in flat])
+            if minval < 0:
+                types = [const.CDF_BYTE, const.CDF_INT1,
+                         const.CDF_INT2, const.CDF_INT4,
+                         const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8]
+                cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31,
+                           1.7e38, 1.7e38, 8e307, 8e307]
+            else:
+                types = [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                         const.CDF_INT2, const.CDF_UINT2,
+                         const.CDF_INT4, const.CDF_UINT4,
+                         const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8]
+                cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
+                           2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32,
+                           1.7e38, 1.7e38, 8e307, 8e307]
+            types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
+        types = [t.value for t in types]
+        return (dims, types, elements)
 
     @staticmethod
     def reorder(seq):
@@ -2005,50 +2130,107 @@ class _Hyperslice(object):
         return (start, count, step, rev)
 
 
-class gAttrList(collections.Mapping):
-    """Object representing I{all} the gAttributes in a CDF.
+class AttrList(collections.Mapping):
+    """Object representing a list of attributes.
 
-    Normally access as an attribute of an open L{CDF}::
-        global_attribs = cdffile.attrs
-
-    Appears as a dictionary: keys are attribute names, values are
-    L{gAttr} objects representing that attribute. Accessing the global
-    attribute TEXT::
-        text_attr = cdffile.attrs['TEXT']
+    Only used in its subclasses, L{gAttrList} and L{zAttrList}
 
     @ivar _cdf_file: CDF these attributes are in
     @type _cdf_file: L{CDF}
+    @ivar special_entry: callable which returns a "special"
+                         entry number, used to limit results
+                         for zAttrs to those which match the zVar
+    @type special_entry: callable
+    @ivar AttrType: type of attribute in this list, L{zAttr} or L{gAttr}
+    @type AttrType: type
+    @ivar attr_name: name of attribute type, zAttribute or gAttribute
+    @type attr_name: str
+    @ivar global_scope: is this list scoped global (True) or variable (False)
+    @type global_scope: bool
     """
 
-    def __init__(self, cdf_file):
+    def __init__(self, cdf_file, special_entry=None):
         """Initialize the attribute collection
 
         @param cdf_file: CDF these attributes are in
         @type cdf_file: L{CDF}
+        @param special_entry: callable which returns a "special"
+                              entry number, used to limit results
+                              for zAttrs to those which match the zVar
+        @type special_entry: callable
         """
         self._cdf_file = cdf_file
+        self.special_entry = special_entry
 
     def __getitem__(self, name):
-        """Find an gAttribute by name
+        """Find an Attribute by name
 
-        @param name: name of the gAttribute to return
+        @param name: name of the Attribute to return
         @type name: str
         @return: attribute named L{name}
-        @rtype: L{gAttr}
+        @rtype: L{Attr}
         @raise KeyError: if there is no attribute named L{name}
         @raise CDFError: other errors in CDF library
         """
         try:
-            attrib = gAttr(self._cdf_file, name)
+            attrib = self.AttrType(self._cdf_file, name)
         except CDFError:
             (t, v, tb) = sys.exc_info()
             if v.status == const.NO_SUCH_ATTR:
                 raise KeyError(name + ': ' + str(v))
             else:
                 raise
-        if not attrib.global_scope():
-            raise KeyError(name + ': no gAttribute by that name.')
+        if attrib.global_scope() != self.global_scope:
+            raise KeyError(name + ': no ' + self.attr_name + ' by that name.')
         return attrib
+
+    def __setitem__(self, name, data):
+        """Create a gAttribute or change its entries
+
+        @param name: name of gAttribute to change
+        @type name: str
+        @param data: gEntries to populate this gAttribute with.
+                     Any existing gEntries will be deleted!
+        @type data: scalar or list
+        """
+        attr = None
+        try:
+            attr = gAttr(self._cdf_file, name)
+        except CDFError:
+            (t, v, tb) = sys.exc_info()
+            if v.status != const.NO_SUCH_ATTR:
+                raise
+        if attr == None:
+            attr = gAttr(self._cdf_file, name, True)
+        elif not attr.global_scope():
+                raise KeyError(name + ': not gAttribute.')
+        if isinstance(data, str_classes):
+            data = [data]
+        else:
+            try:
+                junk = len(data)
+            except TypeError:
+                data = [data]
+        attr[:] = data
+        del attr[len(data):]
+
+    def __delitem__(self, name):
+        """Delete a gAttribute (and all its entries)
+
+        @param name: name of gAttribute to delete
+        @type name: str
+        """
+        try:
+            attr = gAttr(self._cdf_file, name)
+        except CDFError:
+            (t, v, tb) = sys.exc_info()
+            if v.status == const.NO_SUCH_ATTR:
+                raise KeyError(name + ': ' + str(v))
+            else:
+                raise
+            if not attr.global_scope():
+                raise KeyError(name + ': not gAttribute.')
+        attr._delete()
 
     def __len__(self):
         """Number of gAttributes in this CDF
@@ -2062,45 +2244,85 @@ class gAttrList(collections.Mapping):
         return count.value
 
     def __iter__(self, current=0):
-        """Iterates over all gAttr in this CDF
+        """Iterates over all Attr in this CDF or variable
 
-        Returns name of one L{gAttr} at a time until reaches the end.
+        Returns name of one L{Attr} at a time until reaches the end.
         @note: Returned in number order.
         """
         count = ctypes.c_long(0)
         self._cdf_file._call(const.GET_, const.CDF_NUMATTRS_,
                              ctypes.byref(count))
         while current < count.value:
-            candidate = gAttr(self._cdf_file, current)
-            if candidate.global_scope():
-                value = yield(candidate._name)
-                if value != None:
-                    current = self[value].number()
+            candidate = self.AttrType(self._cdf_file, current)
+            if candidate.global_scope() == self.global_scope:
+                if self.special_entry == None or \
+                        candidate.has_entry(self.special_entry()):
+                    value = yield(candidate._name)
+                    if value != None:
+                        current = self[value].number()
             current += 1
 
     def __str__(self):
         """Displays a string representation of the attribute list
 
         This is an 'informal' representation in that it cannot be evaluated
-        directly to create a L{gAttrList}, but it can be evaluated to produce
+        directly to create an L{AttrList}, but it can be evaluated to produce
         a dict of all the data.
 
         @return: all the data in this list of attributes
         @rtype: string
         """
-        return '{' + ', '.join([repr(key) + ': ' + str(value)
+        return '{' + ', '.join([repr(key) + ': ' +
+                                (str(value) if isinstance(value, Attr)
+                                 else repr(value))
                                 for (key, value) in self.items()]) + '}'
 
     def copy(self):
         """Create a copy of this attribute list
 
-        @return: copy of all entries for all attributes in this list
-        @rtype: dict of lists
+        @return: copy of the entries for all attributes in this list
+        @rtype: dict
         """
-        return dict((key, value[:]) for (key, value) in self.items())
+        return dict((key, value[:] if isinstance(value, Attr) else value)
+                    for (key, value) in self.items())
 
 
-class zAttrList(collections.Mapping):
+class gAttrList(AttrList):
+    """Object representing I{all} the gAttributes in a CDF.
+
+    Normally access as an attribute of an open L{CDF}::
+        global_attribs = cdffile.attrs
+
+    Appears as a dictionary: keys are attribute names, values are
+    L{gAttr} objects representing that attribute. Accessing the global
+    attribute TEXT::
+        text_attr = cdffile.attrs['TEXT']
+    """
+
+    def __init__(self, cdf_file):
+        """Initialize the attribute collection
+
+        @param cdf_file: CDF these attributes are in
+        @type cdf_file: L{CDF}
+        """
+        self.AttrType = gAttr
+        self.attr_name = 'gAttribute'
+        self.global_scope = True
+        super(gAttrList, self).__init__(cdf_file)
+
+    def __len__(self):
+        """Number of gAttributes in this CDF
+
+        @return: number of gAttributes in the CDF
+        @rtype: int
+        """
+        count = ctypes.c_long(0)
+        self._cdf_file._call(const.GET_, const.CDF_NUMgATTRS_,
+                             ctypes.byref(count))
+        return count.value
+
+
+class zAttrList(AttrList):
     """Object representing I{all} the zAttributes in a zVariable.
 
     Normally access as an attribute of a L{Var} in an open CDF::
@@ -2130,11 +2352,14 @@ class zAttrList(collections.Mapping):
         @param zvar: zVariable these attributes are in
         @param zvar: L{Var}
         """
-        self._cdf_file = zvar.cdf_file
+        self.AttrType = zAttr
+        self.attr_name = 'zAttribute'
+        self.global_scope = False
+        super(zAttrList, self).__init__(zvar.cdf_file, zvar._num)
         self._zvar = zvar
 
     def __getitem__(self, name):
-        """Find an zAttribute by name
+        """Find an zEntry by name
 
         @param name: name of the zAttribute to return
         @type name: str
@@ -2144,27 +2369,62 @@ class zAttrList(collections.Mapping):
                          with this zVariable
         @raise CDFError: other errors in CDF library
         """
-        try:
-            attrib = zAttr(self._cdf_file, name)
-        except CDFError:
-            (t, v, tb) = sys.exc_info()
-            if v.status == const.NO_SUCH_ATTR:
-                raise KeyError(name + ': ' + str(v))
-            else:
-                raise
-        if attrib.global_scope():
-            raise KeyError(str(name) + ': no zAttribute by that name.')
+        attrib = super(zAttrList, self).__getitem__(name)
         zvar_num = self._zvar._num()
         if attrib.has_entry(zvar_num):
             return attrib[zvar_num]
         else:
+            raise KeyError(name + ': no such attribute for variable ' +
+                           self._zvar.name())
+
+    def __delitem__(self, name):
+        """Delete an zEntry by name
+
+        @param name: name of the zEntry to delete
+        @type name: str
+        @raise KeyError: if there is no attribute named L{name} associated
+                         with this zVariable
+        @raise CDFError: other errors in CDF library
+        @note: If this is the only remaining entry, the Attribute will be
+               deleted.
+        """
+        attrib = super(zAttrList, self).__getitem__(name)
+        zvar_num = self._zvar._num()
+        if not attrib.has_entry(zvar_num):
             raise KeyError(str(name) + ': no such attribute for variable ' +
-                           self._zvar._name)
+                           str(self._zvar._name))
+        del attrib[zvar_num]
+        if len(attrib) == 0:
+            attrib._delete()
+
+    def __setitem__(self, name, data):
+        """Sets a zEntry by name
+
+        The type of the Entry is guessed from L{data}. The type must match
+        the data; subject to that constraint, it will try to match:
+          1. existing zEntry corresponding to this zVar
+          2. other zEntries in this zAttribute
+          3. the type of this zVar
+
+        @param name: name of zAttribute; zEntry for this zVariable will be set
+                     in zAttribute by this name
+        @type name: str
+        @raise CDFError: errors in CDF library
+        @raise ValueError: if unable to find a valid CDF type matching L{data},
+                           or if L{data} is the wrong dimensions.
+        """
+        try:
+            attr = super(zAttrList, self).__getitem__(name)
+        except KeyError:
+            attr = zAttr(self._cdf_file, name, True)
+        zvar_num = self._zvar._num()
+        attr[zvar_num] = data
 
     def __len__(self):
-        """Number of zAttributes in this CDF
+        """Number of zAttributes in this variable
 
         @return: number of zAttributes in the CDF
+                 which have entries for this variable.
         @rtype: int
         """
         length = 0
@@ -2179,45 +2439,6 @@ class zAttrList(collections.Mapping):
                     length += 1
             current += 1
         return length
-
-    def __iter__(self, current=0):
-        """Iterates over all zAttr in this CDF
-
-        Returns name of one L{zAttr} at a time until reaches the end.
-        @note: Returned in number order.
-        """
-        count = ctypes.c_long(0)
-        self._cdf_file._call(const.GET_, const.CDF_NUMATTRS_,
-                             ctypes.byref(count))
-        while current < count.value:
-            candidate = zAttr(self._cdf_file, current)
-            if not candidate.global_scope():
-                if candidate.has_entry(self._zvar._num()):
-                    value = yield(candidate._name)
-                    if value != None:
-                        current = self[value].number()
-            current += 1
-
-    def __str__(self):
-        """Displays a string representation of the attribute list
-
-        This is an 'informal' representation in that it cannot be evaluated
-        directly to create a L{zAttrList}, but it can be evaluated to produce
-        a dict of all the data.
-
-        @return: all the data in this list of attributes
-        @rtype: string
-        """
-        return '{' + ', '.join([repr(key) + ': ' + repr(value)
-                                for (key, value) in self.items()]) + '}'
-
-    def copy(self):
-        """Create a copy of this attribute list
-
-        @return: copy of the entries for all attributes in this list
-        @rtype: dict
-        """
-        return dict((key, value) for (key, value) in self.items())
 
 
 class Attr(collections.Sequence):
@@ -2247,13 +2468,16 @@ class Attr(collections.Sequence):
     @type _name: bytes
     """
 
-    def __init__(self, cdf_file, attr_name):
+    def __init__(self, cdf_file, attr_name, create=False):
         """Initialize this attribute
 
         @param cdf_file: CDF file containing this attribute
         @type cdf_file: L{CDF}
         @param attr_name: Name of this attribute
         @type attr_name: str
+        @param create: True to create attribute,
+                       False to look up existing.
+        @type create: bool
         """
         self._cdf_file = cdf_file
         if isinstance(attr_name, str_classes):
@@ -2261,8 +2485,14 @@ class Attr(collections.Sequence):
                 self._name = attr_name.encode('ascii')
             except AttributeError:
                 self._name = attr_name
-            self._cdf_file._call(const.CONFIRM_, const. ATTR_EXISTENCE_,
-                                 self._name)
+            if create:
+                attrno = ctypes.c_long(0)
+                self._cdf_file._call(const.CREATE_, const.ATTR_,
+                                     self._name, self.SCOPE,
+                                     ctypes.byref(attrno))
+            else:
+                self._cdf_file._call(const.CONFIRM_, const.ATTR_EXISTENCE_,
+                                     self._name)
         else:
             name = ctypes.create_string_buffer(const.CDF_ATTR_NAME_LEN256 + 1)
             self._cdf_file._call(const.SELECT_, const.ATTR_,
@@ -2291,6 +2521,134 @@ class Attr(collections.Sequence):
                 return self._get_entry(key)
             else:
                 raise IndexError('list index ' + str(key) + ' out of range.')
+
+    def __setitem__(self, key, data):
+        """Set a slice of Entries.
+
+        @param key: index or range of Entry numbers to return
+        @type key: slice or int
+        @param data: the data to set these entries to.
+                     Normally each entry should be a sequence; if
+                     a scalar is provided, it is treated as a single-element
+                     list.
+        @type data: scalar or list
+        @raise ValueError: if size of {data} does not match size of L{key}
+        @note: Attributes do not 'grow' or 'shrink' as entries are added
+               or removed. Indexes of entries never change and there is no
+               way to 'insert'.
+        """
+        if key == Ellipsis:
+            key = slice(None, None, None)
+        if not hasattr(key, 'indices'):
+            #Single value, promote everything a dimension
+            idx = (key, key + 1, 1)
+            data = [data]
+        else:
+            idx = key.indices(self.max_idx() + 1)
+            if key.step == None or key.step > 0:
+                #Iterating forward, extend slice to match data
+                if len(data) > len(range(*idx)):
+                    idx = (idx[0], idx[0] + idx[2] * len(data), idx[2])
+
+        #get, and check, types and sizes for all data
+        #checks first so don't have error after changing half the Entries
+        data_idx = -1
+        typelist = []
+        for i in range(*idx):
+            data_idx += 1
+            if data_idx >= len(data):
+                continue
+            datum = data[data_idx]
+            if datum == None:
+                typelist[i] = (None, None, None)
+                continue
+            (dims, types, elements) = _Hyperslice.types(datum)
+            if len(types) <= 0:
+                raise ValueError('Cannot find a matching CDF type.')
+            if len(dims) > 1:
+                raise ValueError('Entries must be scalar or 1D.')
+            elif len(dims) == 1 and isinstance(datum[0], str_classes):
+                raise ValueError('Entry strings must be scalar.')
+            entrytypes = []
+            if self.has_entry(i):
+                entrytype = self.entry_type(i)
+                if entrytype in types:
+                    entrytypes = [entrytype]
+            if not entrytypes:
+                for num in range(self.max_idx()):
+                    if self.has_entry(num):
+                        entrytype = self.entry_type(num)
+                        if entrytype in types:
+                            entrytypes.append(entrytype)
+            if entrytypes:
+                #Of those types in entrytypes, find the one which is earliest
+                # in types, i.e. the preferred type
+                entry_type = types[
+                    min([types.index(entrytype) for entrytype in entrytypes])
+                    ]
+            elif self.ENTRY_ == const.zENTRY_:
+                vartype = self._cdf_file[i]._cdf_type()
+                if vartype in types:
+                    entry_type = vartype
+                else:
+                    entry_type = types[0]
+            else:
+                entry_type = types[0]
+            if not entry_type in lib.ctypedict:
+                raise ValueError('Cannot find a matching ctypes type.')
+            typelist.append((dims, entry_type, elements))
+
+        data_idx = -1
+        for i in range(*idx):
+            data_idx += 1
+            if data_idx >= len(data) or data[data_idx] == None:
+                if self.has_entry(i):
+                    del self[i]
+                continue
+            datum = data[data_idx]
+            (dims, entry_type, elements) = typelist[data_idx]
+
+            if isinstance(datum, str_classes):
+                buff = ctypes.create_string_buffer(elements)
+                buff.value = datum
+            else:
+                if len(dims) == 0:
+                    elements = 1
+                    datum = [datum]
+                else:
+                    elements = dims[0]
+                buff = (lib.ctypedict[entry_type] * elements)()
+                if entry_type == const.CDF_EPOCH16.value:
+                    for j in range(elements):
+                        buff[j] = lib.datetime_to_epoch16(datum[j])
+                elif entry_type == const.CDF_EPOCH.value:
+                    for j in range(elements):
+                        buff[j] = lib.datetime_to_epoch(datum[j])
+                else:
+                    for j in range(elements):
+                        buff[j] = datum[j]
+            self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(i),
+                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(entry_type),
+                   ctypes.c_long(elements), ctypes.byref(buff))
+
+    def __delitem__(self, key):
+        """Delete a slice of Entries.
+
+        @param key: index or range of Entry numbers to delete
+        @type key: slice or int
+        @note: Attributes do not 'grow' or 'shrink' as entries are added
+               or removed. Indexes of entries never change and there is no
+               way to 'insert'.
+        """
+        if key == Ellipsis:
+            key = slice(None, None, None)
+        if not hasattr(key, 'indices'):
+            idx = (key, key + 1, 1)
+        else:
+            idx = key.indices(self.max_idx() + 1)
+        for i in range(*idx):
+            self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(i),
+                       const.DELETE_, self.ENTRY_)
 
     def __iter__(self, current=0):
         """Iterates over all entries in this Attribute
@@ -2321,6 +2679,28 @@ class Attr(collections.Sequence):
                     current = value
             current -= 1
 
+    def __str__(self):
+        """Displays a string representation of the attribute
+
+        This is an 'informal' representation in that it cannot be evaluated
+        directly to create an L{Attr}, but it can be evaluated to produce
+        a list of all the data.
+
+        @return: all the data in this attribute
+        @rtype: string
+        """
+        return str(self[:])
+
+    def __len__(self):
+        """Number of Entries for this Attr. NOT same as max Entry number.
+
+        @return: Number of Entries
+        @rtype: int
+        """
+        count = ctypes.c_long(0)
+        self._call(const.GET_, self.ATTR_NUMENTRIES_, ctypes.byref(count))
+        return count.value
+
     def _call(self, *args, **kwargs):
         """Select this CDF and Attr and call the CDF internal interface
 
@@ -2336,6 +2716,59 @@ class Attr(collections.Sequence):
         return self._cdf_file._call(
             const.SELECT_, const.ATTR_NAME_, self._name,
             *args, **kwargs)
+
+    def _entry_len(self, number):
+        """Number of elements in an Entry
+
+        @param number: number of Entry
+        @type number: int
+        @return: number of elements
+        @rtype: int
+        """
+        if not self.has_entry(number):
+            raise IndexError('list index ' + str(number) + ' out of range.')
+        count = ctypes.c_long(0)
+        self._call(
+            const.SELECT_, self.ENTRY_, number,
+            const.GET_, self.ENTRY_NUMELEMS_, ctypes.byref(count))
+        return count.value
+
+    def entry_type(self, number):
+        """Find the CDF type of a particular Entry number
+        @param number: number of Entry to check
+        @type number: int
+        @return: CDF variable type, see L{const}
+        @rtype: int
+        """
+        if not self.has_entry(number):
+            raise IndexError('list index ' + str(number) + ' out of range.')
+        cdftype = ctypes.c_long(0)
+        self._call(const.SELECT_, self.ENTRY_, number,
+                   const.GET_, self.ENTRY_DATATYPE_, ctypes.byref(cdftype))
+        return cdftype.value
+
+    def has_entry(self, number):
+        """Check if this attribute has a particular Entry number
+
+        @param number: number of Entry to check
+        @type number: int
+        @return: True if L{number} is a valid entry number; False if not
+        @rtype: bool
+        """
+        status = self._call(const.CONFIRM_, self.ENTRY_EXISTENCE_,
+                            ctypes.c_long(number),
+                            ignore=(const.NO_SUCH_ENTRY, ))
+        return not status == const.NO_SUCH_ENTRY
+
+    def max_idx(self):
+        """Maximum index of Entries for this Attr
+
+        @return: maximum Entry number
+        @rtype: int
+        """
+        count = ctypes.c_long(0)
+        self._call(const.GET_, self.ATTR_MAXENTRY_, ctypes.byref(count))
+        return count.value
 
     def number(self):
         """Find the attribute number for this attribute
@@ -2383,7 +2816,10 @@ class Attr(collections.Sequence):
             except KeyError:
                 raise CDFError(const.BAD_DATA_TYPE)
 
-        self._entry_data(number, buff)
+        if not self.has_entry(number):
+            raise IndexError('list index ' + str(number) + ' out of range.')
+        self._call(const.SELECT_, self.ENTRY_, number,
+                   const.GET_, self.ENTRY_DATA_, ctypes.byref(buff))
 
         #decode
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
@@ -2403,6 +2839,13 @@ class Attr(collections.Sequence):
 
         return result
 
+    def _delete(self):
+        """Delete this Attribute
+
+        Also deletes all Entries associated with it.
+        """
+        self._call(const.DELETE_, const.ATTR_)
+
 
 class zAttr(Attr):
     """zAttribute for zVariables within a CDF.
@@ -2410,81 +2853,17 @@ class zAttr(Attr):
     Do not use directly.
     """
 
-    def __len__(self):
-        """Number of zEntries for this zAttr. NOT same as max zEntry number.
-
-        @return: Number of zEntries
-        @rtype: int
-        """
-        count = ctypes.c_long(0)
-        self._call(const.GET_, const.ATTR_NUMzENTRIES_, ctypes.byref(count))
-        return count.value
-
-    def max_idx(self):
-        """Maximum index of zEntries for this zAttr
-
-        @return: maximum zEntry number
-        @rtype: int
-        """
-        count = ctypes.c_long(0)
-        self._call(const.GET_, const.ATTR_MAXzENTRY_, ctypes.byref(count))
-        return count.value
-
-    def _entry_data(self, number, buff):
-        """Reads all data from a zEntry in the CDF
-
-        @param number: number of zEntry to read
-        @type number: int
-        @param buff: buffer large enough to hold the data
-        @type buff: ctypes.Array
-        """
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
-        self._call(const.SELECT_, const.zENTRY_, number,
-                   const.GET_, const.zENTRY_DATA_, ctypes.byref(buff))
-
-    def _entry_len(self, number):
-        """Number of elements in a zEntry
-
-        @param number: number of zEntry
-        @type number: int
-        @return: number of elements
-        @rtype: int
-        """
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
-        count = ctypes.c_long(0)
-        self._call(
-            const.SELECT_, const.zENTRY_, number,
-            const.GET_, const.zENTRY_NUMELEMS_, ctypes.byref(count))
-        return count.value
-
-    def has_entry(self, number):
-        """Check if this attribute has a particular Entry number
-
-        @param number: number of zEntry to check
-        @type number: int
-        @return: True if L{number} is a valid entry number; False if not
-        @rtype: bool
-        """
-        status = self._call(const.CONFIRM_, const.zENTRY_EXISTENCE_,
-                            ctypes.c_long(number),
-                            ignore=(const.NO_SUCH_ENTRY, ))
-        return not status == const.NO_SUCH_ENTRY
-
-    def entry_type(self, number):
-        """Find the CDF type of a particular Entry number
-        @param number: number of zEntry to check
-        @type number: int
-        @return: CDF variable type, see L{const}
-        @rtype: int
-        """
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
-        cdftype = ctypes.c_long(0)
-        self._call(const.SELECT_, const.zENTRY_, number,
-                   const.GET_, const.zENTRY_DATATYPE_, ctypes.byref(cdftype))
-        return cdftype.value
+    def __init__(self, *args, **kwargs):
+        """Initialize this attribute"""
+        self.ENTRY_ = const.zENTRY_
+        self.ENTRY_DATA_ = const.zENTRY_DATA_
+        self.SCOPE = const.VARIABLE_SCOPE
+        self.ENTRY_EXISTENCE_ = const.zENTRY_EXISTENCE_
+        self.ATTR_NUMENTRIES_ = const.ATTR_NUMzENTRIES_
+        self.ATTR_MAXENTRY_ = const.ATTR_MAXzENTRY_
+        self.ENTRY_NUMELEMS_ = const.zENTRY_NUMELEMS_
+        self.ENTRY_DATATYPE_ = const.zENTRY_DATATYPE_
+        super(zAttr, self).__init__(*args, **kwargs)
 
 
 class gAttr(Attr):
@@ -2516,91 +2895,14 @@ class gAttr(Attr):
         first_three = attribute[5][0:3] #first three elements of 5th Entry
     """
 
-    def __len__(self):
-        """Number of gEntries for this zAttr. NOT same as max gEntry number.
-
-        @return: Number of gEntries
-        @rtype: int
-        """
-        count = ctypes.c_long(0)
-        self._call(const.GET_, const.ATTR_NUMgENTRIES_, ctypes.byref(count))
-        return count.value
-
-    def max_idx(self):
-        """Maximum index of gEntries for this gAttr
-
-        @return: maximum gEntry number
-        @rtype: int
-        """
-        count = ctypes.c_long(0)
-        self._call(const.GET_, const.ATTR_MAXgENTRY_, ctypes.byref(count))
-        return count.value
-
-    def _entry_data(self, number, buff):
-        """Reads all data from a gEntry in the CDF
-
-        @param number: number of gEntry to read
-        @type number: int
-        @param buff: buffer large enough to hold the data
-        @type buff: ctypes.Array
-        """
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
-        self._call(const.SELECT_, const.gENTRY_, number,
-                   const.GET_, const.gENTRY_DATA_, ctypes.byref(buff))
-
-
-    def _entry_len(self, number):
-        """Number of elements in a gEntry
-
-        @param number: number of gEntry
-        @type number: int
-        @return: number of elements
-        @rtype: int
-        """
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
-        count = ctypes.c_long(0)
-        self._call(
-            const.SELECT_, const.gENTRY_, number,
-            const.GET_, const.gENTRY_NUMELEMS_, ctypes.byref(count))
-        return count.value
-
-    def __str__(self):
-        """Displays a string representation of the attribute
-
-        This is an 'informal' representation in that it cannot be evaluated
-        directly to create a L{gAttr}, but it can be evaluated to produce
-        a list of all the data.
-
-        @return: all the data in this attribute
-        @rtype: string
-        """
-        return str(self[:])
-
-    def has_entry(self, number):
-        """Check if this attribute has a particular Entry number
-
-        @param number: number of gEntry to check
-        @type number: int
-        @return: True if L{number} is a valid entry number; False if not
-        @rtype: bool
-        """
-        status = self._call(const.CONFIRM_, const.gENTRY_EXISTENCE_,
-                            ctypes.c_long(number),
-                            ignore=(const.NO_SUCH_ENTRY, ))
-        return not status == const.NO_SUCH_ENTRY
-
-    def entry_type(self, number):
-        """Find the CDF type of a particular Entry number
-        @param number: number of gEntry to check
-        @type number: int
-        @return: CDF variable type, see L{const}
-        @rtype: int
-        """
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
-        cdftype = ctypes.c_long(0)
-        self._call(const.SELECT_, const.gENTRY_, number,
-                   const.GET_, const.gENTRY_DATATYPE_, ctypes.byref(cdftype))
-        return cdftype.value
+    def __init__(self, *args, **kwargs):
+        """Initialize this attribute"""
+        self.ENTRY_ = const.gENTRY_
+        self.ENTRY_DATA_ = const.gENTRY_DATA_
+        self.SCOPE = const.GLOBAL_SCOPE
+        self.ENTRY_EXISTENCE_ = const.gENTRY_EXISTENCE_
+        self.ATTR_NUMENTRIES_ = const.ATTR_NUMgENTRIES_
+        self.ATTR_MAXENTRY_ = const.ATTR_MAXgENTRY_
+        self.ENTRY_NUMELEMS_ = const.gENTRY_NUMELEMS_
+        self.ENTRY_DATATYPE_ = const.gENTRY_DATATYPE_
+        super(gAttr, self).__init__(*args, **kwargs)
