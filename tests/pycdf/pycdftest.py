@@ -1712,6 +1712,51 @@ class ChangeCDF(CDFTests):
         del self.cdf.attrs['PI_name']
         self.assertFalse('PI_name' in self.cdf.attrs)
 
+    def testRenamegAttr(self):
+        """Rename a gAttribute"""
+        textcopy = self.cdf.attrs['TEXT'][:]
+        self.cdf.attrs['TEXT'].rename('notTEXT')
+        self.assertTrue('notTEXT' in self.cdf.attrs)
+        self.assertFalse('TEXT' in self.cdf.attrs)
+        self.assertEqual(textcopy, self.cdf.attrs['notTEXT'][:])
+
+    def testRenamezAttr(self):
+        """Rename a zAttribute"""
+        prn_attrs = self.cdf['PhysRecNo'].attrs
+        prn_depend = prn_attrs['DEPEND_0']
+        mc_attrs = self.cdf['MeanCharge'].attrs
+        mc_depend = mc_attrs['DEPEND_0']
+        prn_attrs.rename('DEPEND_0', 'notDEPEND_0')
+        self.assertTrue('notDEPEND_0' in prn_attrs)
+        self.assertTrue('notDEPEND_0' in mc_attrs)
+        self.assertFalse('DEPEND_0' in prn_attrs)
+        self.assertFalse('DEPEND_0' in mc_attrs)
+        self.assertEqual(prn_depend, prn_attrs['notDEPEND_0'])
+        self.assertEqual(mc_depend, mc_attrs['notDEPEND_0'])
+
+    def testChangegEntryType(self):
+        """Change the type of a gEntry"""
+        attrs = self.cdf.attrs
+        attrs['new_attr'] = []
+        attrs['new_attr'][0] = [ord('a'), ord('b'), ord('c')]
+        attrs['new_attr'].entry_type(0, const.CDF_CHAR)
+        self.assertEqual(attrs['new_attr'][0], 'abc')
+        try:
+            attrs['new_attr'].entry_type(0, const.CDF_INT2)
+        except cdf.CDFError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(v.status, const.CANNOT_CHANGE)
+        else:
+            self.fail('Should have raised CDFError')
+
+    def testChangezEntryType(self):
+        """Change the type of a zEntry"""
+        attrs = self.cdf['ATC'].attrs
+        attrs['new_attr'] = [ord('a'), ord('b'), ord('c')]
+        attrs.entry_type('new_attr', const.CDF_CHAR)
+        self.assertEqual(attrs['new_attr'], 'abc')
+
+
 class ChangeColCDF(ColCDFTests):
     """Tests that modify an existing colum-major CDF"""
     def __init__(self, *args):

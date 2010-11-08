@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.8'
+__version__ = '0.9'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -2286,15 +2286,26 @@ class AttrList(collections.Mapping):
         return dict((key, value[:] if isinstance(value, Attr) else value)
                     for (key, value) in self.items())
 
+    def rename(self, old_name, new_name):
+        """Rename an attribute in this list
+
+        Renaming a zAttribute renames it for I{all} zVariables in this CDF!
+
+        @param old_name: the current name of the attribute
+        @type old_name: str
+        @param new_name: the new name of the attribute
+        @type new_name: str
+        """
+        AttrList.__getitem__(self, old_name).rename(new_name)
 
 class gAttrList(AttrList):
     """Object representing I{all} the gAttributes in a CDF.
 
-    Normally access as an attribute of an open L{CDF}::
+    Normally accessed as an attribute of an open L{CDF}::
         global_attribs = cdffile.attrs
 
-    Appears as a dictionary: keys are attribute names, values are
-    L{gAttr} objects representing that attribute. Accessing the global
+    Appears as a dictionary: keys are attribute names; each value is an
+    attribute represented by a L{gAttr} object. To access the global
     attribute TEXT::
         text_attr = cdffile.attrs['TEXT']
     """
@@ -2339,6 +2350,16 @@ class zAttrList(AttrList):
     Example: finding the first dependency of (ISTP-compliant) variable
     Flux::
         print cdffile['Flux'].attrs['DEPEND_0']
+
+    zAttributes are shared among zVariables, one zEntry allowed per zVariable.
+    (pyCDF hides this detail.) Deleting the last zEntry for a zAttribute will
+    delete the underlying zAttribute.
+
+    zEntries are created and destroyed by the usual dict methods on the
+    zAttrlist::
+        epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
+        del epoch_attribs['new_entry'] #delete the zEntry
+    L{__setitem__} describes how the type of an zEntry is determined.
 
     @ivar _zvar: zVariable these attributes are in
     @type _zvar: L{Var}
@@ -2400,11 +2421,13 @@ class zAttrList(AttrList):
     def __setitem__(self, name, data):
         """Sets a zEntry by name
 
-        The type of the Entry is guessed from L{data}. The type must match
-        the data; subject to that constraint, it will try to match:
+        The type of the zEntry is guessed from L{data}. The type is chosen to
+        match the data; subject to that constraint, it will try to match
+        (in order):
           1. existing zEntry corresponding to this zVar
           2. other zEntries in this zAttribute
           3. the type of this zVar
+          4. data-matching constraints described in L{_Hyperslice.types}
 
         @param name: name of zAttribute; zEntry for this zVariable will be set
                      in zAttribute by this name
@@ -2439,6 +2462,25 @@ class zAttrList(AttrList):
                     length += 1
             current += 1
         return length
+
+    def entry_type(self, name, new_type=None):
+        """Find or change the CDF type of a zEntry in this zVar
+
+        @param name: name of the zAttr to check or change
+        @type number: str
+        @param new_type: type to change it to, see L{const}
+        @type new_type: ctypes.c_long
+        @return: CDF variable type, see L{const}
+        @rtype: int
+        @note: If changing types, old and new must be equivalent, see CDF
+               User's Guide section 2.5.5 pg. 57
+        """
+        attrib = super(zAttrList, self).__getitem__(name)
+        zvar_num = self._zvar._num()
+        if not attrib.has_entry(zvar_num):
+            raise KeyError(name + ': no such attribute for variable ' +
+                           self._zvar.name())
+        attrib.entry_type(zvar_num, new_type)
 
 
 class Attr(collections.Sequence):
@@ -2733,15 +2775,26 @@ class Attr(collections.Sequence):
             const.GET_, self.ENTRY_NUMELEMS_, ctypes.byref(count))
         return count.value
 
-    def entry_type(self, number):
-        """Find the CDF type of a particular Entry number
-        @param number: number of Entry to check
+    def entry_type(self, number, new_type=None):
+        """Find or change the CDF type of a particular Entry number
+        
+        @param number: number of Entry to check or change
         @type number: int
+        @param new_type: type to change it to, see L{const}
+        @type new_type: ctypes.c_long
         @return: CDF variable type, see L{const}
         @rtype: int
+        @note: If changing types, old and new must be equivalent, see CDF
+               User's Guide section 2.5.5 pg. 57
         """
         if not self.has_entry(number):
             raise IndexError('list index ' + str(number) + ' out of range.')
+        if new_type != None:
+            if not hasattr(new_type, 'value'):
+                new_type = ctypes.c_long(new_type)
+            size = ctypes.c_long(len(self[number]))
+            self._call(const.SELECT_, self.ENTRY_, number,
+                       const.PUT_, self.ENTRY_DATASPEC_, new_type, size)
         cdftype = ctypes.c_long(0)
         self._call(const.SELECT_, self.ENTRY_, number,
                    const.GET_, self.ENTRY_DATATYPE_, ctypes.byref(cdftype))
@@ -2796,6 +2849,23 @@ class Attr(collections.Sequence):
             return False
         else:
             raise CDFError(const.BAD_SCOPE)
+
+    def rename(self, new_name):
+        """Rename this attribute
+
+        Renaming a zAttribute renames it for I{all} zVariables in this CDF!
+
+        @param new_name: the new name of the attribute
+        @type new_name: str
+        """
+        try:
+            enc_name = new_name.encode('ascii')
+        except AttributeError:
+            enc_name = new_name
+        if len(enc_name) > const.CDF_ATTR_NAME_LEN256:
+            raise CDFError(const.BAD_ATTR_NAME)
+        self._call(const.PUT_, const.ATTR_NAME_, enc_name)
+        self._name = enc_name
 
     def _get_entry(self, number):
         """Read an Entry associated with this L{Attr}
@@ -2863,13 +2933,14 @@ class zAttr(Attr):
         self.ATTR_MAXENTRY_ = const.ATTR_MAXzENTRY_
         self.ENTRY_NUMELEMS_ = const.zENTRY_NUMELEMS_
         self.ENTRY_DATATYPE_ = const.zENTRY_DATATYPE_
+        self.ENTRY_DATASPEC_ = const.zENTRY_DATASPEC_
         super(zAttr, self).__init__(*args, **kwargs)
 
 
 class gAttr(Attr):
     """Global Attribute for a CDF
 
-    Represents a CDF attribute, providing access to the Entries in a format
+    Represents a CDF attribute, providing access to the gEntries in a format
     that looks like a Python
     list. General list information is available in the python docs:
     U{1<http://docs.python.org/tutorial/introduction.html#lists>},
@@ -2878,12 +2949,14 @@ class gAttr(Attr):
 
     Normally accessed by providing a key to a L{gAttrList}, e.g.::
         attribute = cdffile.attrs['attribute_name']
+        first_gentry = attribute[0]
 
-    Each element of the list is a single entry of the appropriate type.
-    The index to the elements is the entry number.
+    Each element of the list is a single gEntry of the appropriate type.
+    The index to the elements is the gEntry number.
 
-    Entries of numerical type (i.e. everything but CDF_CHAR and CDF_UCHAR)
-    with a single element are returned as scalars; multiple element entries
+    A gEntry may be either a single string or a 1D array of numerical type.
+    Entries of numerical type (everything but CDF_CHAR and CDF_UCHAR)
+    with a single element are returned as scalars; multiple-element entries
     are returned as a list. No provision is made for accessing below
     the entry level; the whole list is returned at once (but Python's
     slicing syntax can be used to extract individual items from that list.)
@@ -2893,6 +2966,30 @@ class gAttr(Attr):
     Example::
         first_three = attribute[5, 0:3] #will fail
         first_three = attribute[5][0:3] #first three elements of 5th Entry
+
+    gEntries are I{not} necessarily contiguous; a gAttribute may have an
+    entry 0 and entry 2 without an entry 1. C{len} will return the I{number}
+    of gEntries; use L{max_idx} to find the highest defined gEntry number and
+    L{has_entry} to determine if a particular gEntry number exists. Iterating
+    over all entries is also supported::
+        entrylist = [entry for entry in attribute]
+
+    Deleting gEntries will leave a "hole"::
+        attribute[0:3] = [1, 2, 3]
+        del attribute[1]
+        attribute.has_entry(1) #False
+        attribute.has_entry(2) #True
+        print attribute[0:3] #[1, None, 3]
+
+    Multi-element slices over nonexistent gEntries will return None where
+    no entry exists. Single-element indices for nonexistent gEntries will
+    raise IndexError. Assigning None to a gEntry will delete it.
+
+    When assigning to a gEntry, the type is chosen to match the data; subject
+    to that constraint, it will try to match (in order):
+      1. existing gEntry of the same number in this gAttribute
+      2. other gEntries in this gAttribute
+      3. data-matching constraints described in L{_Hyperslice.types}
     """
 
     def __init__(self, *args, **kwargs):
@@ -2905,4 +3002,5 @@ class gAttr(Attr):
         self.ATTR_MAXENTRY_ = const.ATTR_MAXgENTRY_
         self.ENTRY_NUMELEMS_ = const.gENTRY_NUMELEMS_
         self.ENTRY_DATATYPE_ = const.gENTRY_DATATYPE_
+        self.ENTRY_DATASPEC_ = const.gENTRY_DATASPEC_
         super(gAttr, self).__init__(*args, **kwargs)
