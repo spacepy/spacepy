@@ -80,7 +80,7 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.26 $, $Date: 2010/11/09 17:38:58 $"
+__version__ = "$Revision: 1.27 $, $Date: 2010/11/09 18:39:34 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -735,6 +735,7 @@ class Ticktock(object):
         Version:
         ========
         V1: 03-Jun-2010 (JK)
+        V1.1: 09-Nov-2010: fixed a little bug; self only updated inside here (JK)
        
         """    
         
@@ -742,9 +743,11 @@ class Ticktock(object):
         
         RDT = self.RDT
         RDTsorted = n.sort(RDT)
-        self = Ticktock(RDTsorted, 'RDT').convert(self.dtype)
+        tmp = Ticktock(RDTsorted, 'RDT').convert(self.dtype)
+        self.data = tmp.data
+        self.update_items(self, 'data')
         
-        return
+        return 
         
     # -----------------------------------------------
     def argsort(self):

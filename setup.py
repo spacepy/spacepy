@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.36 $, $Date: 2010/10/06 17:40:38 $"
+__version__ = "$Revision: 1.37 $, $Date: 2010/11/09 18:39:33 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -97,10 +97,10 @@ def compile_irbempy(fcompiler):
     else:
         print('%s not supported at this time' % sys.platform)
         sys.exit(1)
-
+    os.system('rm -f irbempylib.so')
     err = os.system('mv -f irbempylib.so ../')
     if err:
-        raise Exception('Something went wrong with this compiler option ...')
+        print 'WARNING: Something went wrong with compiling irbemlib.'
     os.chdir('../../..')
 
     return

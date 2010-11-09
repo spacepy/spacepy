@@ -9,7 +9,7 @@ Option 2) to install in custom location
 
 >>> python setup.py install --home=/n/packages/lib/python
 
-It is also possible to select a specific compiler for installing the ONERA library. Currently the
+It is also possible to select a specific compiler for installing the IRBEM-LIB library. Currently the
 following flags are supported: gnu95, gnu, pg. You can invoke these by, e.g.
 
 >>> python setup.py install --fcompiler=pg    (will use pgi compiler suite)
