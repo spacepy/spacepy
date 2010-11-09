@@ -79,7 +79,8 @@ And so on.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.25 $, $Date: 2010/09/30 22:45:38 $"
+import datetime
+__version__ = "$Revision: 1.26 $, $Date: 2010/11/09 17:38:58 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -531,21 +532,33 @@ class Ticktock(object):
 
     # -----------------------------------------------    
     def __gt__(self, other):
+        if isinstance(other, datetime.datetime):
+            other = Ticktock(other, 'UTC')
         return self.UNX > other.UNX
         
     def __lt__(self, other):
+        if isinstance(other, datetime.datetime):
+            other = Ticktock(other, 'UTC')
         return self.UNX < other.UNX
         
     def __ge__(self, other):
+        if isinstance(other, datetime.datetime):
+            other = Ticktock(other, 'UTC')
         return self.UNX >= other.UNX
         
     def __le__(self, other):
+        if isinstance(other, datetime.datetime):
+            other = Ticktock(other, 'UTC')
         return self.UNX <= other.UNX
         
     def __eq__(self, other):
+        if isinstance(other, datetime.datetime):
+            other = Ticktock(other, 'UTC')
         return self.UNX == other.UNX
         
     def __ne__(self, other):
+        if isinstance(other, datetime.datetime):
+            other = Ticktock(other, 'UTC')
         return self.UNX != other.UNX
     
     # -----------------------------------------------    
