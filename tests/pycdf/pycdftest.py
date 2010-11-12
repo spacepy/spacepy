@@ -9,7 +9,7 @@ import os, os.path
 import shutil
 import sys
 import unittest
-import time
+import warnings
 
 try:
     type(callable)
@@ -20,6 +20,22 @@ except NameError:
 
 import pycdf as cdf
 import spacepy.pycdf.const as const
+
+
+class est_tz(datetime.tzinfo):
+    """Eastern Standard timezone (no daylight time"""
+        
+    def utcoffset(self, dt):
+        """Offset from UTC"""
+        return datetime.timedelta(hours=-5)
+    
+    def dst(self, dt):
+        """Minute offset for DST"""
+        return datetime.timedelta(0)
+    
+    def tzname(self, dt):
+        """Name of this time zone"""
+        return 'EST'
 
 
 class NoCDF(unittest.TestCase):
@@ -48,6 +64,7 @@ class NoCDF(unittest.TestCase):
         output = [[1, 5, 4, 3, 2], [3, 12, 6, -5], ]
         for (inp, outp) in zip(input, output):
             self.assertEqual(cdf._pycdf._Hyperslice.reorder(inp), outp)
+        self.assertEqual(1, cdf._pycdf._Hyperslice.reorder(1))
 
     def testHypersliceconvert(self):
         """Converts start/stop/step to CDF intervals"""
@@ -204,6 +221,20 @@ class NoCDF(unittest.TestCase):
                                  str(two_d[i][j]) + ' != ' +
                                  str(flipped[j][i]))
 
+    def testFlipMajorityBad(self):
+        """Changes the majority of an array, bad input"""
+        flip = cdf._pycdf._Hyperslice.flip_majority
+        input = [[1, 2, 3], [1, 2]]
+        message = 'Array dimensions not regular'
+        try:
+            flip(input)
+        except TypeError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(str(v), message)
+        else:
+            self.fail('Should have raised TypeError: ' + message)
+        input = [[[1, 2, 3], [4, 5, 6]], [7, 8]]
+
     def testEpoch16ToDatetime(self):
         epochs = [[63397987199.0, 999999999999.0],
                   ]
@@ -211,6 +242,8 @@ class NoCDF(unittest.TestCase):
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch16_to_datetime(epoch))
+        self.assertRaises(cdf.EpochError, cdf.lib.epoch16_to_datetime, 1.0)
+        self.assertRaises(cdf.EpochError, cdf.lib.epoch16_to_datetime, [1.0])
 
     def testEpochToDatetime(self):
         epochs = [63397987200000.0,
@@ -222,16 +255,22 @@ class NoCDF(unittest.TestCase):
 
     def testDatetimeToEpoch16(self):
         epochs = [[63397987200.0, 0.0],
+                  [63397987200.0, 0.0],
                   ]
         dts = [datetime.datetime(2009, 1, 1),
+               datetime.datetime(2008, 12, 31, 19, tzinfo=est_tz()),
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(epoch, cdf.lib.datetime_to_epoch16(dt))
 
     def testDatetimeToEpoch(self):
         epochs = [63397987200000.0,
+                  63397987200000.0,
+                  63397987200001.0,
                   ]
         dts = [datetime.datetime(2009, 1, 1),
+               datetime.datetime(2008, 12, 31, 19, tzinfo=est_tz()),
+               datetime.datetime(2009, 1, 1, 0, 0, 0, 501),
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(epoch, cdf.lib.datetime_to_epoch(dt))
@@ -282,6 +321,7 @@ class NoCDF(unittest.TestCase):
                    ['hello', 'there', 'everybody'],
                    datetime.datetime(2009, 1, 1),
                    datetime.datetime(2009, 1, 1, 12, 15, 12, 1),
+                   [1.0],
                    ]
         types = [([4], [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                         const.CDF_INT2, const.CDF_UINT2,
@@ -293,6 +333,8 @@ class NoCDF(unittest.TestCase):
                  ([3], [const.CDF_CHAR, const.CDF_UCHAR], 9),
                  ([], [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
                  ([], [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                 ([1], [const.CDF_FLOAT, const.CDF_REAL4,
+                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ]
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
@@ -302,12 +344,14 @@ class NoCDF(unittest.TestCase):
 class MakeCDF(unittest.TestCase):
     def setUp(self):
         self.testfspec='foo.cdf'
+        self.testmaster = 'po_l1_cam_testc.cdf'
     
     def testOpenCDFNew(self):
         """Create a new CDF"""
 
         new = cdf.CDF(self.testfspec, '')
         self.assertTrue(os.path.isfile(self.testfspec))
+        new.close()
         os.remove(self.testfspec)
 
     def testOpenCDFNonexistent(self):
@@ -319,6 +363,23 @@ class MakeCDF(unittest.TestCase):
         """Open a CDF from a master CDF which doesn't exist"""
 
         self.assertRaises(IOError, cdf.CDF, self.testfspec, 'nonexist.cdf')
+
+    def testCDFNewMajority(self):
+        """Creates a new CDF and changes majority"""
+        newcdf = cdf.CDF(self.testfspec, '')
+        newcdf.col_major(True)
+        self.assertTrue(newcdf.col_major())
+        newcdf.col_major(False)
+        self.assertFalse(newcdf.col_major())
+        newcdf.close()
+        os.remove(self.testfspec)
+
+    def testCreateCDFFromMaster(self):
+        """Create a CDF from a master"""
+        newcdf = cdf.CDF(self.testfspec, self.testmaster)
+        self.assertTrue('ATC' in newcdf)
+        newcdf.close()
+        os.remove(self.testfspec)
 
 
 class CreateVar(unittest.TestCase):
@@ -341,7 +402,7 @@ class CDFTests(unittest.TestCase):
     testfile = 'test.cdf'
 
     def __init__(self, *args):
-        self.expected_digest = 'b31bffefd7a63de6ce9856f08dbae43d'
+        self.expected_digest = '39833ef7046c10d001dd6f2cbd2a2ef5'
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
         super(CDFTests, self).__init__(*args)
 
@@ -429,7 +490,8 @@ class OpenCDF(CDFTests):
                     'RateScalerNames', 'SectorRateScalerNames',
                     'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
                     'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                    'MajorNumbers', 'MeanCharge', 'Epoch']
+                    'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
+                    'String1D']
         with cdf.CDF(self.testfile) as f:
             names = list(f.keys())
         self.assertEqual(expected, names)
@@ -479,7 +541,8 @@ class ReadCDF(CDFTests):
                          'RateScalerNames', 'SectorRateScalerNames',
                          'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
                          'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                         'MajorNumbers', 'MeanCharge', 'Epoch']
+                         'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
+                         'String1D']
         names = [zVar.name() for zVar in self.cdf.values()]
         self.assertEqual(names, expectedNames)
 
@@ -489,7 +552,8 @@ class ReadCDF(CDFTests):
                          'RateScalerNames', 'SectorRateScalerNames',
                          'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
                          'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                         'MajorNumbers', 'MeanCharge', 'Epoch']
+                         'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
+                         'String1D']
         names = list(self.cdf.keys())
         self.assertEqual(expectedNames, names)
 
@@ -501,7 +565,8 @@ class ReadCDF(CDFTests):
                     'RateScalerNames', 'SectorRateScalerNames',
                     'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
                     'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                    'MajorNumbers', 'MeanCharge', 'Epoch']
+                    'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
+                    'String1D']
         self.assertEqual(expected, [i for i in self.cdf])
         a = self.cdf.__iter__()
         a.send(None)
@@ -520,7 +585,7 @@ class ReadCDF(CDFTests):
 
     def testMajority(self):
         """Get majority of the CDF"""
-        self.assertEqual(self.cdf._majority().value, cdf.const.ROW_MAJOR.value)
+        self.assertFalse(self.cdf.col_major())
 
     def testgetndims(self):
         """Get number of dimensions in zVar"""
@@ -564,6 +629,7 @@ class ReadCDF(CDFTests):
                                               slice(None, None, None),
                                               slice(None, None, None)),
                   'SpinRateScalersCounts': (Ellipsis, slice(-1, None, -1)),
+                  'MeanCharge': (0, -1)
                   } #Slice objects indexed by variable
         #Expected results [dims, dimsizes, starts, counts, intervals, degen, rev]
         #indexed by variable
@@ -580,6 +646,8 @@ class ReadCDF(CDFTests):
                                               [0, 0, 0], [100, 18, 16],
                                               [1, 1, 1], [False, False, False],
                                               [False, False, True]],
+                    'MeanCharge': [2, [100, 16], [0, 15], [1, 1], [1, 1],
+                                   [True, True], [False, False]]
                     }
         for i in expected:
             zvar = self.cdf[i]
@@ -590,6 +658,12 @@ class ReadCDF(CDFTests):
             self.assertEqual(tuple(expected[i]), actual,
                              '\n' + str(tuple(expected[i])) + '!=\n' +
                              str(actual) + ' variable ' + i)
+        self.assertRaises(IndexError, cdf._pycdf._Hyperslice,
+                          self.cdf['ATC'], (1, 2))
+        self.assertRaises(IndexError, cdf._pycdf._Hyperslice,
+                          self.cdf['ATC'], 800)
+        self.assertRaises(IndexError, cdf._pycdf._Hyperslice,
+                          self.cdf['ATC'], -1000)
 
     def testHyperslices2(self):
         """Additional checks: converting python slices to CDF counts, etc."""
@@ -637,6 +711,10 @@ class ReadCDF(CDFTests):
                                                slice(0, None, 3)))
         self.assertEqual([100, 9, 6], sliced.expected_dims())
 
+        zvar = self.cdf['SpinNumbers']
+        sliced = cdf._pycdf._Hyperslice(zvar, 2)
+        self.assertEqual([1, 18], sliced.dimsizes)
+
     def testPackBuffer(self):
         """Pack a buffer with data"""
         zvar = self.cdf['PhysRecNo']
@@ -682,6 +760,29 @@ class ReadCDF(CDFTests):
         sliced.pack_buffer(buff, expected)
         for i in range(3):
             self.assertEqual(expected[i], buff[i].value)
+
+    def testHypersliceTransformEach(self):
+        """Apply the same function to every element in a hyperslice"""
+        sliced = cdf._pycdf._Hyperslice(self.cdf['SectorRateScalersCounts'],
+                                                 (0, Ellipsis))
+        #18 by 32 by 9
+        data = [[[(i * 32 + j) * 9 + k for k in range(9)]
+          for j in range(32)] for i in range(18)]
+        func = lambda x: x + 1
+        sliced.transform_each(data, func)
+        self.assertEqual([[[(i * 32 + j) * 9 + k + 1for k in range(9)]
+                           for j in range(32)] for i in range(18)],
+                         data)
+
+    def testConvertArray(self):
+        """Convert arrays to format of a slice"""
+        sliced = cdf._pycdf._Hyperslice(self.cdf['SpinRateScalersCounts'],
+                                        (slice(0, 2, 1), slice(5, 3, -1),
+                                         slice(1, 3, 1)))
+        input = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+        expected = [[[3, 4], [1, 2]], [[7, 8], [5, 6]]]
+        output = sliced.convert_array(input)
+        self.assertEqual(expected, output)
 
     def testArraytoList(self):
         """Converts a ctypes array to Python nested lists"""
@@ -753,7 +854,7 @@ class ReadCDF(CDFTests):
                     }
         for i in expected:
             self.assertEqual(expected[i].value,
-                             self.cdf[i]._cdf_type())
+                             self.cdf[i].type())
 
     def testCTypes(self):
         """Look up ctype to match variable"""
@@ -832,6 +933,22 @@ class ReadCDF(CDFTests):
         self.assertEqual(expected,
                          self.cdf['Epoch'][4:8])
 
+    def testRead2DEpoch(self):
+        """Read an Epoch16 variable with nonzero dimension"""
+        expected = [[datetime.datetime(2000, 1, 1),
+                     datetime.datetime(2000, 1, 1, 1)],
+                    [datetime.datetime(2000, 1, 2),
+                     datetime.datetime(2000, 1, 2, 1)],
+                    [datetime.datetime(2000, 1, 3),
+                     datetime.datetime(2000, 1, 3, 1)],
+                    ]
+        self.assertEqual(expected, self.cdf['Epoch2D'][...])
+
+    def testRead1DString(self):
+        """Read a string with nonzero dimension"""
+        expected = [['A', 'B', 'C'], ['D', 'E', 'F']]
+        self.assertEqual(expected, self.cdf['String1D'][...])
+
     def testnElems(self):
         """Read number of elements in a string variable"""
         self.assertEqual(2, self.cdf['SpinNumbers']._nelems())
@@ -877,7 +994,7 @@ class ReadCDF(CDFTests):
 
     def testGetAllData(self):
         data = self.cdf.copy()
-        expected = ['ATC', 'Epoch', 'MajorNumbers', 'MeanCharge',
+        expected = ['ATC', 'Epoch', 'Epoch2D', 'MajorNumbers', 'MeanCharge',
                     'PhysRecNo',
                     'RateScalerNames', 'SectorNumbers',
                     'SectorRateScalerNames',
@@ -886,6 +1003,7 @@ class ReadCDF(CDFTests):
                     'SpinNumbers',
                     'SpinRateScalersCounts',
                     'SpinRateScalersCountsSigma',
+                    'String1D'
                     ]
         self.assertEqual(expected,
                          sorted([i for i in data]))
@@ -899,7 +1017,7 @@ class ReadCDF(CDFTests):
     def testCDFlen(self):
         """length of CDF (number of zVars)"""
         result = len(self.cdf)
-        self.assertEqual(13, result)
+        self.assertEqual(15, result)
 
     def testReadonlyDefault(self):
         """CDF should be opened RO by default"""
@@ -924,6 +1042,8 @@ class ReadCDF(CDFTests):
                              'zAttr ' + name + ' zEntry ' + str(number) +
                              ' ' + str(cdf_type.value) + ' != ' + 
                              str(actual_type))
+        self.assertEqual(cdf.const.CDF_CHAR.value,
+                         self.cdf['PhysRecNo'].attrs.entry_type('DEPEND_0'))
 
     def testgEntryType(self):
         """Get the type of a gEntry"""
@@ -1140,24 +1260,24 @@ class ReadCDF(CDFTests):
     def testzAttribListIt(self):
         """Iterate over keys in a zAttrList"""
         attrlist = cdf.zAttrList(self.cdf['PhysRecNo'])
-        self.assertEqual([b'CATDESC', b'DEPEND_0', b'FIELDNAM', b'FILLVAL',
-                          b'FORMAT', b'VALIDMIN', b'VALIDMAX', b'VAR_TYPE'],
+        self.assertEqual(['CATDESC', 'DEPEND_0', 'FIELDNAM', 'FILLVAL',
+                          'FORMAT', 'VALIDMIN', 'VALIDMAX', 'VAR_TYPE'],
                          list(attrlist))
         
     def testgAttribListIt(self):
         """Iterate over keys in a gAttrList"""
         attrlist = cdf.gAttrList(self.cdf)
-        self.assertEqual([b'Project', b'Source_name', b'Discipline',
-                          b'Data_type', b'Descriptor',
-                          b'File_naming_convention', b'Data_version',
-                          b'PI_name', b'PI_affiliation', b'TEXT',
-                          b'Instrument_type', b'Mission_group',
-                          b'Logical_source',
-                          b'Logical_file_id', b'Logical_source_description',
-                          b'Time_resolution', b'Rules_of_use', b'Generated_by',
-                          b'Generation_date', b'Acknowledgement', b'MODS',
-                          b'ADID_ref', b'LINK_TEXT', b'LINK_TITLE',
-                          b'HTTP_LINK',
+        self.assertEqual(['Project', 'Source_name', 'Discipline',
+                          'Data_type', 'Descriptor',
+                          'File_naming_convention', 'Data_version',
+                          'PI_name', 'PI_affiliation', 'TEXT',
+                          'Instrument_type', 'Mission_group',
+                          'Logical_source',
+                          'Logical_file_id', 'Logical_source_description',
+                          'Time_resolution', 'Rules_of_use', 'Generated_by',
+                          'Generation_date', 'Acknowledgement', 'MODS',
+                          'ADID_ref', 'LINK_TEXT', 'LINK_TITLE',
+                          'HTTP_LINK',
                           ],
                          list(attrlist))
 
@@ -1210,40 +1330,41 @@ class ReadCDF(CDFTests):
 
     def testVarString(self):
         """Convert a variable to a string representation"""
-        for varname in self.cdf:
-            var = self.cdf[varname]
-            varcopy = var.copy()
-            self.assertEqual(str(varcopy), str(var))
+        expected = {'String1D': 'CDF_CHAR*1 [2, 3]', 'SectorRateScalerNames': 'CDF_CHAR*9 [9] NRV', 'PhysRecNo': 'CDF_INT4 [100]', 'RateScalerNames': 'CDF_CHAR*9 [16] NRV', 'SpinRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 16]', 'SectorRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 32, 9]', 'SpinRateScalersCounts': 'CDF_FLOAT [100, 18, 16]', 'SpinNumbers': 'CDF_CHAR*2 [18] NRV', 'Epoch': 'CDF_EPOCH [11]', 'SectorRateScalersCounts': 'CDF_FLOAT [100, 18, 32, 9]', 'MeanCharge': 'CDF_FLOAT [100, 16]', 'SectorNumbers': 'CDF_CHAR*2 [32] NRV', 'MajorNumbers': 'CDF_CHAR*2 [11] NRV', 'Epoch2D': 'CDF_EPOCH16 [3, 2]', 'ATC': 'CDF_EPOCH16 [747]'}
+        actual = dict([(varname, str(zVar))
+                       for (varname, zVar) in self.cdf.items()])
+        self.assertEqual(expected, actual)
 
     def testCDFString(self):
         """Convert a CDF to a string representation"""
-        #a bit funky because the order of keys may be different
-        #self.assertEqual(eval(str(self.cdf)), self.cdf.copy())
-        #a much cheaper way to do it; lengths different in py3k
-        self.assertTrue(len(str(self.cdf)) in (7523076, 7614589))
+        expected = 'ATC: CDF_EPOCH16 [747]\nPhysRecNo: CDF_INT4 [100]\nSpinNumbers: CDF_CHAR*2 [18] NRV\nSectorNumbers: CDF_CHAR*2 [32] NRV\nRateScalerNames: CDF_CHAR*9 [16] NRV\nSectorRateScalerNames: CDF_CHAR*9 [9] NRV\nSectorRateScalersCounts: CDF_FLOAT [100, 18, 32, 9]\nSectorRateScalersCountsSigma: CDF_FLOAT [100, 18, 32, 9]\nSpinRateScalersCounts: CDF_FLOAT [100, 18, 16]\nSpinRateScalersCountsSigma: CDF_FLOAT [100, 18, 16]\nMajorNumbers: CDF_CHAR*2 [11] NRV\nMeanCharge: CDF_FLOAT [100, 16]\nEpoch: CDF_EPOCH [11]\nEpoch2D: CDF_EPOCH16 [3, 2]\nString1D: CDF_CHAR*1 [2, 3]'
+        actual = str(self.cdf)
+        self.assertEqual(expected, actual)
 
     def testgAttrListString(self):
         """Convert a list of gattributes to a string"""
-        #self.assertEqual(self.cdf.copy().attrs, eval(str(self.cdf.attrs)))
-        self.assertTrue(len(str(self.cdf.attrs)) in (983, 1008))
+        expected = 'Project: ISTP>International Solar-Terrestrial Physics [CDF_CHAR]\nSource_name: POLAR>POLAR PLASMA LABORATORY [CDF_CHAR]\nDiscipline: Space Physics>Magnetospheric Science [CDF_CHAR]\nData_type: H0>High Time Resolution [CDF_CHAR]\nDescriptor: CAM>Charge and Mass Magnetospheric Ion Composition Experiment [CDF_CHAR]\nFile_naming_convention: source_datatype_descriptor [CDF_CHAR]\nData_version: 1 [CDF_CHAR]\nPI_name: T. Fritz [CDF_CHAR]\nPI_affiliation: Boston University [CDF_CHAR]\nTEXT: Polar CAMMICE Level One intermediate files [CDF_CHAR]\n      another entry to simply pad it out [CDF_CHAR]\nInstrument_type: Particles (space) [CDF_CHAR]\nMission_group: Polar [CDF_CHAR]\nLogical_source: polar_h0_cam [CDF_CHAR]\nLogical_file_id: polar_h0_cam_00000000_v01 [CDF_CHAR]\nLogical_source_description: PO_L1_CAM [CDF_CHAR]\nTime_resolution: millisecond [CDF_CHAR]\nRules_of_use: \nGenerated_by: BU Energetic Particle Group [CDF_CHAR]\nGeneration_date: 20100625 [CDF_CHAR]\nAcknowledgement: \nMODS: \nADID_ref: NSSD0241 [CDF_CHAR]\nLINK_TEXT: \nLINK_TITLE: \nHTTP_LINK: '
+        self.assertEqual(expected, str(self.cdf.attrs))
+        self.assertEqual('<gAttrList:\n' + expected + '\n>',
+                         repr(self.cdf.attrs))
 
     def testzAttrListString(self):
         """Convert a list of zAttributes to a string"""
-        #for varname in self.cdf:
-        #    var = self.cdf[varname]
-        #    varcopy = var.copy()
-        #    self.assertEqual(varcopy.attrs, eval(str(var.attrs)))
-        expected = [[373, 210, 114, 131, 174, 192, 695, 561, 597, 493,
-                     128, 396, 317],
-                    [383, 218, 118, 135, 179, 197, 713, 573, 613, 504,
-                     132, 407, 325],
-                    [373, 210, 114, 131, 174, 192, 694, 560, 596,
-                     492, 128, 395, 317]
-                    ]
-        self.assertTrue([len(str(self.cdf[varname].attrs))
-                          for varname in self.cdf] in expected)
+        expected = {'String1D': '', 'SectorRateScalerNames': 'CATDESC: Species found in each per-sector rate scaler [CDF_CHAR]\nFIELDNAM: Sector Rate Scaler Names [CDF_CHAR]\nFORMAT: A10 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]\nVAR_NOTES: From J. Fennell revision 1997/02/28 [CDF_CHAR]', 'PhysRecNo': 'CATDESC: LZ record number for first major in this master [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: physical record [CDF_CHAR]\nFILLVAL: -2147483648 [CDF_INT4]\nFORMAT: I8 [CDF_CHAR]\nVALIDMIN: 0 [CDF_INT4]\nVALIDMAX: 20000 [CDF_INT4]\nVAR_TYPE: metadata [CDF_CHAR]', 'RateScalerNames': 'CATDESC: Species found in each rate scaler [CDF_CHAR]\nFIELDNAM: Rate Scaler Names [CDF_CHAR]\nFORMAT: A10 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]\nVAR_NOTES: From J. Fennell revision 1997/02/28 [CDF_CHAR]', 'SpinRateScalersCountsSigma': 'CATDESC: Uncertainty in counts in the per-spin rate scalers. [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: Spin rate scaler uncertainty [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: E6.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: RateScalerNames [CDF_CHAR]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVALIDMAX: 1000000.0 [CDF_FLOAT]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Combines uncertainty from RS compression and Poisson stats. Total counts accumulated over one spin (divide by SectorLength*32-58ms for rate). [CDF_CHAR]', 'SectorRateScalersCountsSigma': 'CATDESC: Uncertainty in counts in the per-sector rate scalers. [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: Sector rate scaler uncertainty [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: E12.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: SectorNumbers [CDF_CHAR]\nLABL_PTR_3: SectorRateScalerNames [CDF_CHAR]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVALIDMAX: 9.99999995904e+11 [CDF_FLOAT]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Combines uncertainty from RS compression and Poisson stats. Total counts accumulated over one sector (divide by SectorLength for rate. Subtract 58ms for sector 0) [CDF_CHAR]', 'SpinRateScalersCounts': 'CATDESC: Counts in the per-spin rate scalers [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nDEPEND_1: SpinNumbers [CDF_CHAR]\nDEPEND_2: RateScalerNames [CDF_CHAR]\nDISPLAY_TYPE: time_series [CDF_CHAR]\nFIELDNAM: Spin rate scaler number counts [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: E6.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: RateScalerNames [CDF_CHAR]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVALIDMAX: 1000000.0 [CDF_FLOAT]\nVAR_TYPE: data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Total counts accumulated over one spin (divide by SectorLength*32-58ms for rate). [CDF_CHAR]\nDELTA_PLUS_VAR: SpinRateScalersCountsSigma [CDF_CHAR]\nDELTA_MINUS_VAR: SpinRateScalersCountsSigma [CDF_CHAR]', 'SpinNumbers': 'CATDESC: Spin number within the TM Master [CDF_CHAR]\nFIELDNAM: Spin Number [CDF_CHAR]\nFORMAT: A3 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]', 'Epoch': 'CATDESC: Standard CDF Epoch time (8 byte) [CDF_CHAR]\nFIELDNAM: UTC [CDF_CHAR]\nFILLVAL: 9999-12-31 23:59:59.999000 [CDF_EPOCH]\nVALIDMIN: 1996-01-01 00:00:00 [CDF_EPOCH]\nVALIDMAX: 2008-12-31 23:59:59.999000 [CDF_EPOCH]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nMONOTON: INCREASE [CDF_CHAR]', 'SectorRateScalersCounts': 'CATDESC: Counts in the per-sector rate scalers [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nDEPEND_1: SpinNumbers [CDF_CHAR]\nDEPEND_2: SectorNumbers [CDF_CHAR]\nDEPEND_3: SectorRateScalerNames [CDF_CHAR]\nDISPLAY_TYPE: time_series [CDF_CHAR]\nFIELDNAM: Sector rate scaler counts [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: E6.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: SectorNumbers [CDF_CHAR]\nLABL_PTR_3: SectorRateScalerNames [CDF_CHAR]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVALIDMAX: 1000000.0 [CDF_FLOAT]\nVAR_TYPE: data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Total counts accumulated over one sector (divide by SectorLength for rate, subtracting 58ms for sector 0). [CDF_CHAR]\nDELTA_PLUS_VAR: SectorRateScalersCountsSigma [CDF_CHAR]\nDELTA_MINUS_VAR: SectorRateScalersCountsSigma [CDF_CHAR]', 'MeanCharge': 'CATDESC: Mean charge state [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: avg charge [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: F3.1 [CDF_CHAR]\nLABL_PTR_1: RateScalerNames [CDF_CHAR]\nUNITS: e [CDF_CHAR]\nVALIDMIN: 1.0 [CDF_FLOAT]\nVALIDMAX: 8.0 [CDF_FLOAT]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Mean charge state in each rate scaler. For the ENTIRE master period (i.e. summed over all energies), based on COUNTS. [CDF_CHAR]', 'SectorNumbers': 'CATDESC: Data accumulation sector number within the spin [CDF_CHAR]\nFIELDNAM: Sector Number [CDF_CHAR]\nFORMAT: A3 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]', 'MajorNumbers': 'CATDESC: major frame number within the TM Master [CDF_CHAR]\nFIELDNAM: Major Frame Number [CDF_CHAR]\nFORMAT: A2 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]', 'Epoch2D': '', 'ATC': 'CATDESC: Absolute Time Code [CDF_CHAR]\nFIELDNAM: ATC [CDF_CHAR]\nFILLVAL: 9999-12-31 23:59:59.999999 [CDF_EPOCH16]\nLABLAXIS: UT [CDF_CHAR]\nVALIDMIN: 1996-01-01 00:00:00 [CDF_EPOCH16]\nVALIDMAX: 2009-01-01 00:00:00 [CDF_EPOCH16]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Time when data in this master started accumulating. [CDF_CHAR]\nMONOTON: INCREASE [CDF_CHAR]'}
+        actual = dict([(varname, str(zVar.attrs))
+                        for (varname, zVar) in self.cdf.items()])
+        #Py3k and 2k display the floats differently
+        del expected['SectorRateScalersCountsSigma']
+        del actual['SectorRateScalersCountsSigma']
+        self.assertEqual(expected, actual)
+        for idx in expected:
+            expected[idx] = '<zAttrList:\n' + expected[idx] + '\n>'
+        actual = dict([(varname, repr(zVar.attrs))
+                        for (varname, zVar) in self.cdf.items()])
+        del actual['SectorRateScalersCountsSigma']
+        self.assertEqual(expected, actual)
 
-
+        
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
     testfile = 'testc_ro.cdf'
@@ -1272,7 +1393,7 @@ class ReadColCDF(ColCDFTests):
 
     def testCMajority(self):
         """Get majority of the CDF"""
-        self.assertEqual(self.cdf._majority().value, cdf.const.COLUMN_MAJOR.value)
+        self.assertTrue(self.cdf.col_major())
 
     def testCgetndims(self):
         """Get number of dimensions in zVar"""
@@ -1379,6 +1500,19 @@ class ReadColCDF(ColCDFTests):
                           '3He', 'D', 'Molecules', 'Others'],
                          self.cdf['RateScalerNames'][:])
 
+    def testColReadEpochs(self):
+        """Read an Epoch16 value"""
+        expected = datetime.datetime(1998, 1, 15, 0, 0, 5, 334662)
+        self.assertEqual(expected,
+                         self.cdf['ATC'][0])
+        expected = [datetime.datetime(1998, 1, 15, 0, 6, 48, 231),
+                    datetime.datetime(1998, 1, 15, 0, 8, 30, 157015),
+                    datetime.datetime(1998, 1, 15, 0, 10, 12, 313815),
+                    datetime.datetime(1998, 1, 15, 0, 11, 54, 507400)
+                    ]
+        self.assertEqual(expected,
+                         self.cdf['ATC'][4:8])
+
     def testContains(self):
         """See if variable exists in CDF"""
         self.assertTrue('ATC' in self.cdf)
@@ -1410,6 +1544,18 @@ class ReadColCDF(ColCDFTests):
         for i in range(4):
             self.assertEqual(expected[i], list(buff[i]))
 
+    def testgetdimsizescol(self):
+        """Get size of dimensions in zVar, column-major"""
+        expected = {'ATC': [], 'PhysRecNo': [], 'SpinNumbers': [18],
+                    'SectorNumbers': [32], 'RateScalerNames': [16],
+                    'SectorRateScalerNames': [9],
+                    'SectorRateScalersCounts': [18, 32, 9],
+                    'SectorRateScalersCountsSigma': [18, 32, 9],
+                    'SpinRateScalersCounts': [18, 16],
+                    'SpinRateScalersCountsSigma': [18, 16]}
+        for i in expected:
+            self.assertEqual(self.cdf[i]._dim_sizes(), expected[i])
+
 
 class ChangeCDF(CDFTests):
     """Tests that modify an existing CDF"""
@@ -1432,6 +1578,8 @@ class ChangeCDF(CDFTests):
         """Delete a zVar"""
         self.cdf['PhysRecNo']._delete()
         self.assertRaises(KeyError, self.cdf.__getitem__, 'PhysRecNo')
+        del self.cdf['ATC']
+        self.assertFalse('ATC' in self.cdf)
 
     def testSaveCDF(self):
         """Save the CDF and make sure it's different"""
@@ -1477,6 +1625,9 @@ class ChangeCDF(CDFTests):
         self.cdf['SectorRateScalersCounts'][4, 5, 5, 8:3:-1] = \
             [101.0, 102.0, 103.0, 104.0, 105.0]
         self.assertEqual(expected, self.cdf['SectorRateScalersCounts'][...])
+
+        self.cdf['PhysRecNo'] = [1, 2, 3]
+        self.assertEqual([1, 2, 3], self.cdf['PhysRecNo'][...])
 
     def testWriteExtend(self):
         """Write off the end of the variable"""
@@ -1755,6 +1906,168 @@ class ChangeCDF(CDFTests):
         attrs['new_attr'] = [ord('a'), ord('b'), ord('c')]
         attrs.entry_type('new_attr', const.CDF_CHAR)
         self.assertEqual(attrs['new_attr'], 'abc')
+        self.assertEqual(const.CDF_CHAR.value,
+                         attrs.entry_type('new_attr'))
+
+    def testgAttrNewEntry(self):
+        """Create a new gEntry using Attr.new()"""
+        attr = self.cdf.attrs['Project']
+        #no type or number
+        attr.new([0, 1, 2, 3])
+        self.assertEqual(2, len(attr))
+        self.assertEqual([0, 1, 2, 3], attr[1])
+        self.assertEqual(const.CDF_BYTE.value, attr.entry_type(1))
+        #explicit number
+        attr.new('hello there', number=10)
+        self.assertEqual(3, len(attr))
+        self.assertEqual(10, attr.max_idx())
+        self.assertEqual('hello there', attr[10])
+        self.assertEqual(const.CDF_CHAR.value, attr.entry_type(10))
+        #explicit type and number
+        attr.new(10, const.CDF_INT4, 15)
+        self.assertEqual(4, len(attr))
+        self.assertEqual(15, attr.max_idx())
+        self.assertEqual(10, attr[15])
+        self.assertEqual(const.CDF_INT4.value, attr.entry_type(15))
+        #explicit type
+        attr.new([10, 11, 12, 13], const.CDF_REAL8)
+        self.assertEqual(5, len(attr))
+        self.assertEqual([10.0, 11.0, 12.0, 13.0], attr[2])
+        self.assertEqual(const.CDF_REAL8.value, attr.entry_type(2))
+
+    def testgAttrListNew(self):
+        """Create a new gAttr and/or gEntry using gAttrList.new"""
+        attrs = self.cdf.attrs
+        attrs.new('new')
+        self.assertTrue('new' in attrs)
+        attrs.new('new2', [1, 2, 3])
+        self.assertTrue('new2' in attrs)
+        self.assertEqual([1, 2, 3], attrs['new2'][0])
+        attrs.new('new3', [1, 2, 3], const.CDF_INT4)
+        self.assertTrue('new3' in attrs)
+        self.assertEqual([1, 2, 3], attrs['new3'][0])
+        self.assertEqual(const.CDF_INT4.value, attrs['new3'].entry_type(0))
+
+    def testzAttrListNew(self):
+        """Create a new zEntry using zAttrList.new"""
+        attrs = self.cdf['ATC'].attrs
+        attrs.new('new2', [1, 2, 3])
+        self.assertTrue('new2' in attrs)
+        self.assertEqual([1, 2, 3], attrs['new2'])
+        attrs.new('new3', [1, 2, 3], const.CDF_INT4)
+        self.assertTrue('new3' in attrs)
+        self.assertEqual([1, 2, 3], attrs['new3'])
+        self.assertEqual(const.CDF_INT4.value, attrs.entry_type('new3'))
+
+    def testNewVar(self):
+        """Create a new variable"""
+        self.cdf.new('newzVar', [[1, 2, 3], [4, 5, 6]],
+                     const.CDF_INT4)
+        self.assertTrue('newzVar' in self.cdf)
+        zvar = self.cdf['newzVar']
+        self.assertEqual([[1, 2, 3], [4, 5, 6]],
+                         zvar[...])
+        self.assertEqual(2, len(zvar))
+        self.assertEqual([3], zvar._dim_sizes())
+
+    def testNewVarAssign(self):
+        """Create a new variable by assigning to CDF element"""
+        self.cdf['newzVar'] = [[1, 2, 3], [4, 5, 6]]
+        self.assertTrue('newzVar' in self.cdf)
+        zvar = self.cdf['newzVar']
+        self.assertEqual([[1, 2, 3], [4, 5, 6]],
+                         zvar[...])
+        self.assertEqual(2, len(zvar))
+        self.assertEqual([3], zvar._dim_sizes())
+
+    def testBadDataSize(self):
+        """Attempt to assign data of the wrong size to a zVar"""
+        try:
+            self.cdf['MeanCharge'] = [1.0, 2.0, 3.0]
+        except ValueError:
+            pass
+        else:
+            self.fail('Should have raised ValueError')
+
+    def testChangeVarType(self):
+        """Change the type of a variable"""
+        self.cdf['new'] = [-1, -2, -3]
+        self.cdf['new'].type(const.CDF_UINT1)
+        self.assertEqual([255, 254, 253], self.cdf['new'][...])
+
+    def testNewVarNoData(self):
+        """Create a new variable without providing any data"""
+        self.assertRaises(ValueError, self.cdf.new, 'newvar')
+        self.assertRaises(ValueError, self.cdf.new,
+                          'newvar', None, const.CDF_INT4)
+        
+        self.cdf.new('newvar', None, const.CDF_CHAR, dims=[])
+        self.assertEqual(1, self.cdf['newvar']._nelems())
+
+    def testNewVarNRV(self):
+        """Create a new non-record-varying variable"""
+        self.cdf.new('newvar2', [1, 2, 3], recVary=False)
+        self.assertFalse(self.cdf['newvar2']._rec_vary())
+        self.assertEqual([3], self.cdf['newvar2']._dim_sizes())
+        self.assertEqual([1, 2, 3], self.cdf['newvar2'][...])
+
+    def testChecksum(self):
+        """Change checksumming on the CDF"""
+        self.cdf.checksum(True)
+        self.assertTrue(self.cdf.checksum())
+        self.cdf.checksum(False)
+        self.assertFalse(self.cdf.checksum())
+
+    def testCompress(self):
+        """Change compression on the CDF"""
+        self.cdf.compress(const.GZIP_COMPRESSION)
+        (comptype, parm) = self.cdf.compress()
+        self.assertEqual(const.GZIP_COMPRESSION, comptype),
+        self.assertEqual(5, parm)
+        self.cdf.compress(const.NO_COMPRESSION)
+        (comptype, parm) = self.cdf.compress()
+        self.assertEqual(const.NO_COMPRESSION, comptype),
+        self.assertEqual(0, parm)
+
+    def testVarCompress(self):
+        """Change compression on a variable"""
+        zvar = self.cdf.new('newvar', cdftype=const.CDF_INT4, dims=[])
+        zvar.compress(const.GZIP_COMPRESSION)
+        (comptype, parm) = zvar.compress()
+        self.assertEqual(const.GZIP_COMPRESSION, comptype),
+        self.assertEqual(5, parm)
+        zvar.compress(const.NO_COMPRESSION)
+        (comptype, parm) = zvar.compress()
+        self.assertEqual(const.NO_COMPRESSION, comptype),
+        self.assertEqual(0, parm)
+
+    def testWarnings(self):
+        """Bizarre way to force a warning"""
+        attrnum = ctypes.c_long(0)
+        with warnings.catch_warnings(record=True) as w:
+            self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_,
+                           'this is a very long string intended to get up to '
+                           '257 characters or so because the maximum length '
+                           'of an attribute name is 256 characters and '
+                           'attribute name truncated is just about the ONLY '
+                           'warning I can figure out how to raise in the CDF '
+                           'library and this is really a serious pain in just '
+                           'about every portion of the anatomy.',
+                           cdf.const.GLOBAL_SCOPE, ctypes.byref(attrnum))
+            for curr_warn in w:
+                self.assertTrue(isinstance(curr_warn.message, cdf.CDFWarning))
+                self.assertEqual('ATTR_NAME_TRUNC: Attribute name truncated.',
+                                 str(curr_warn.message))
+
+    def testAssignEmptyList(self):
+        """Assign an empty list to a variable"""
+        self.cdf['ATC'] = []
+        self.assertEqual(0, len(self.cdf['ATC']))
+
+    def testReadEmptyList(self):
+        """Read from an empty variable"""
+        self.cdf['ATC'] = []
+        self.assertEqual([], self.cdf['ATC'][...])
 
 
 class ChangeColCDF(ColCDFTests):

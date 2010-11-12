@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.9'
+__version__ = '0.10'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -158,6 +158,22 @@ class Library(object):
         self.sizedict[const.CDF_EPOCH16.value] = 16
         self.ctypedict[const.CDF_EPOCH16.value] = self.ctypedict[
             const.CDF_EPOCH.value] * 2
+        self.cdftypenames = {const.CDF_BYTE.value: 'CDF_BYTE',
+                             const.CDF_CHAR.value: 'CDF_CHAR',
+                             const.CDF_INT1.value: 'CDF_INT1',
+                             const.CDF_UCHAR.value: 'CDF_UCHAR',
+                             const.CDF_UINT1.value: 'CDF_UINT1',
+                             const.CDF_INT2.value: 'CDF_INT2',
+                             const.CDF_UINT2.value: 'CDF_UINT2',
+                             const.CDF_INT4.value: 'CDF_INT4',
+                             const.CDF_UINT4.value: 'CDF_UINT4', 
+                             const.CDF_FLOAT.value: 'CDF_FLOAT',
+                             const.CDF_REAL4.value: 'CDF_REAL4',
+                             const.CDF_DOUBLE.value: 'CDF_DOUBLE',
+                             const.CDF_REAL8.value: 'CDF_REAL8',
+                             const.CDF_EPOCH.value: 'CDF_EPOCH',
+                             const.CDF_EPOCH16.value: 'CDF_EPOCH16',
+                             }
 
         #Get CDF version information
         ver = ctypes.c_long(0)
@@ -266,7 +282,7 @@ class Library(object):
         dt.replace(tzinfo=None)
         micro = dt.microsecond % 1000
         if micro >= 500:
-            dt += datetime.timedelta(microsecond=1000)
+            dt += datetime.timedelta(0, 0, 1000)
         return self._library.computeEPOCH(dt.year, dt.month, dt.day, dt.hour,
                                           dt.minute, dt.second,
                                           int(dt.microsecond / 1000))
@@ -276,10 +292,13 @@ class Library(object):
 
         @param epoch: epoch16 value from CDF
         @type epoch: list of two floats
-        #raise EpochError: if input invalid
+        @raise EpochError: if input invalid
         """
-        if len(epoch) != 2:
-            raise EpochError
+        try:
+            if len(epoch) != 2:
+                raise EpochError('EPOCH16 values must be a pair of doubles.')
+        except TypeError:
+            raise EpochError('EPOCH16 values must be a pair of doubles.')
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
         dd = ctypes.c_long(0)
@@ -398,7 +417,7 @@ class CDFError(CDFException):
 class CDFWarning(CDFException, UserWarning):
     """Used for a warning in the CDF library."""
 
-    def warn(self, level = 3):
+    def warn(self, level=4):
         """Issues a warning based on the information stored in my exception
 
         Intended for use in check_status or similar wrapper function.
@@ -407,7 +426,7 @@ class CDFWarning(CDFException, UserWarning):
                       should be reported. Passed directly to C{warnings.warn}.
         @type level: int
         """
-        warnings.warn(self.__str__(), self.__class__, level)
+        warnings.warn(self, self.__class__, level)
 
 
 class EpochError(Exception):
@@ -415,9 +434,87 @@ class EpochError(Exception):
     pass
 
 
+def _compress(obj, comptype=None, param=None):
+    """Set or check the compression of a L{CDF} or L{Var}
+
+    @param obj: object on which to set or check compression
+    @type obj: L{CDF} or L{Var}
+    @param comptype: type of compression to change to, see CDF C reference
+                     manual section 4.10. Constants for this parameter
+                     are in L{const}. If not specified, will not change
+                     compression.
+    @type comptype: ctypes.c_long
+    @param param: Compression parameter, see CDF CRM 4.10 and L{const}.
+                  If not specified, will choose reasonable default (5 for
+                  gzip; other types have only one possible parameter.)
+    @type param: ctypes.c_long
+    @return: (comptype, param) currently in effect
+    @rtype: tuple
+    """
+    if isinstance(obj, CDF):
+        COMPRESSION_ = const.CDF_COMPRESSION_
+    elif isinstance(obj, Var):
+        COMPRESSION_ = const.zVAR_COMPRESSION_
+    else:
+        raise ValueError('Must specify a CDF or Var type.')
+
+    validparams = {const.NO_COMPRESSION.value: [ctypes.c_long(0)],
+                   const.RLE_COMPRESSION.value: [const.RLE_OF_ZEROs],
+                   const.HUFF_COMPRESSION.value:
+                       [const.OPTIMAL_ENCODING_TREES],
+                   const.AHUFF_COMPRESSION.value:
+                       [const.OPTIMAL_ENCODING_TREES],
+                   const.GZIP_COMPRESSION.value: [ctypes.c_long(5),
+                                                  ctypes.c_long(1),
+                                                  ctypes.c_long(2),
+                                                  ctypes.c_long(3),
+                                                  ctypes.c_long(4),
+                                                  ctypes.c_long(6),
+                                                  ctypes.c_long(7),
+                                                  ctypes.c_long(8),
+                                                  ctypes.c_long(9),
+                                                  ],
+                   }
+    comptypes = [const.NO_COMPRESSION, const.RLE_COMPRESSION,
+                 const.HUFF_COMPRESSION, const.AHUFF_COMPRESSION,
+                 const.GZIP_COMPRESSION]
+    comptypevalues = [i.value for i in comptypes]
+
+    if comptype != None:
+        if not hasattr(comptype, 'value'):
+            comptype = ctypes.c_long(comptype)
+        if param == None:
+            if not comptype.value in validparams:
+                raise CDFError(const.BAD_COMPRESSION)
+            param = validparams[comptype.value][0]
+        paramlist = (ctypes.c_long * 1)(param)
+        obj._call(const.PUT_, COMPRESSION_,
+                   comptype, paramlist)
+    params = (ctypes.c_long *
+              const.CDF_MAX_PARMS)(*([0] * const.CDF_MAX_PARMS))
+    comptype = ctypes.c_long(0)
+    percent = ctypes.c_long(0)
+    obj._call(const.GET_, COMPRESSION_,
+               ctypes.byref(comptype), ctypes.byref(params),
+               ctypes.byref(percent))
+    param = params[0]
+    if not comptype.value in comptypevalues:
+        raise CDFError(const.BAD_COMPRESSION)
+    validparamvalues = [i.value for i in validparams[comptype.value]]
+    if not param in validparamvalues:
+        raise CDFError(const.BAD_COMPRESSION_PARM)
+    comptype = comptypes[comptypevalues.index(comptype.value)]
+    if comptype in (const.RLE_COMPRESSION, const.HUFF_COMPRESSION,
+                    const.AHUFF_COMPRESSION):
+        param = validparams[comptype.value][validparamvalues.index(param)]
+    return (comptype, param)
+
+
 class CDF(collections.Mapping):
     """Python object representing a CDF file.
 
+    Opening existing
+    ================
     Open a CDF by creating a CDF object, e.g.:
     C{cdffile = pycdf.CDF('cdf_filename.cdf')}
     Be sure to L{close} or L{save} when done.
@@ -473,6 +570,26 @@ class CDF(collections.Mapping):
     also work on the attribute dictionary. See L{gAttrList} for more on the
     dictionary of global attributes.
 
+    Creating New
+    ============
+    Creating a new CDF from a master (skeleton) CDF has similar syntax to
+    opening one::
+      cdffile = pycdf.CDF('cdf_filename.cdf', 'master_cdf_filename.cdf')
+    This creates and opens C{cdf_filename.cdf} as a copy of
+    C{master_cdf_filename.cdf}
+
+    Using a skeleton CDF is recommended over making a CDF entirely from
+    scratch, but this is possible by specifying a blank master::
+      cdffile = pycdf.CDF('cdf_filename.cdf', '')
+
+    When CDFs are created in this way, they are opened read-write, see
+    L{readonly} to change.
+
+    Add variables by direct assignment, which will automatically set type
+    and dimension based on the data provided::
+      cdffile['new_variable_name'] = [1, 2, 3, 4]
+    or, if more control is needed over the type and dimensions, use L{new}.
+
     @ivar _handle: file handle returned from CDF library open functions.
     @type _handle: ctypes.c_void_p
     @ivar pathname: filename of the CDF file
@@ -482,7 +599,7 @@ class CDF(collections.Mapping):
     @note: CDF is opened read-only by default, see L{readonly} to change.
     """
 
-    def __init__(self, pathname, masterpath = None):
+    def __init__(self, pathname, masterpath=None):
         """Open or create a CDF file.
 
         @param pathname: name of the file to open or create
@@ -505,7 +622,6 @@ class CDF(collections.Mapping):
         else:
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
-        self.readonly(True)
         self.attrs = gAttrList(self)
 
     def __del__(self):
@@ -516,6 +632,15 @@ class CDF(collections.Mapping):
         """
         if self._handle:
             self.close()
+
+    def __delitem__(self, name):
+        """Delete a zVariable in this CDF, by name or number
+
+        @param name: Name or number of the CDF variable
+        @type name: string or int
+        @note: variable numbers may change if variables are added or removed.
+        """
+        self[name]._delete()
 
     def __enter__(self):
         """Context manager entrance function."""
@@ -545,6 +670,22 @@ class CDF(collections.Mapping):
         except CDFException:
             (type, value, traceback) = sys.exc_info()
             raise KeyError(name + ': ' + str(value))
+
+    def __setitem__(self, name, data):
+        """Writes data to a zVariable in this CDF
+
+        If the zVariable does not exist, will create one matching
+        L{data}. If it does exist, will attempt to write L{data}
+        to it without changing the type or dimensions.
+
+        @param name: name or number of the variable to write
+        @type name: str or int
+        @param data: data to write
+        """
+        if name in self:
+            self[name][...] = data
+        else:
+            self.new(name, data)
 
     def __iter__(self, current = 0):
         """Iterates over zVars in CDF
@@ -592,18 +733,28 @@ class CDF(collections.Mapping):
                 return False
             raise
 
+    def __repr__(self):
+        """Returns representation of CDF
+
+        Cannot return anything that can be eval'd to create a copy of the
+        CDF, so just wrap the informal representation in angle brackets.
+        @return: all the data in this list of attributes
+        @rtype: str
+        """
+        return '<CDF:\n' + str(self) + '\n>'
+
     def __str__(self):
-        """Displays a string representation of the CDF
+        """Returnss a string representation of the CDF
 
         This is an 'informal' representation in that it cannot be evaluated
-        directly to create a L{CDF}, but it can be evaluated to produce
-        a dict of all the data.
+        directly to create a L{CDF}, just the names, types, and sizes of all
+        variables. (Attributes are not listed.)
 
-        @return: all the data in this CDF
-        @rtype: string
+        @return: description of the variables in the CDF
+        @rtype: str
         """
-        return '{' + ', '.join([repr(key) + ': ' + str(self[key])
-                                for key in self]) + '}'
+        return '\n'.join([key + ': ' + str(value)
+                          for (key, value) in self.items()])
 
     def _open(self):
         """Opens the CDF file (called on init)
@@ -617,6 +768,7 @@ class CDF(collections.Mapping):
         """
 
         lib.call(const.OPEN_, const.CDF_, self.pathname, ctypes.byref(self._handle))
+        self.readonly(True)
 
     def _create(self):
         """Creates (and opens) a new CDF file
@@ -673,18 +825,24 @@ class CDF(collections.Mapping):
         return lib.call(const.SELECT_, const.CDF_, self._handle,
                         *args, **kwargs)
 
-    def _majority(self):
+    def col_major(self, new_col=None):
         """Finds the majority of this CDF file
 
-        @returns: const.COLUMN_MAJOR or const.ROW_MAJOR
-        @rtype: ctypes.clong
+        @param new_col: Specify True to change to column-major, False to
+                        change to row major, or do not specify
+                        to leave majority alone (check only)
+        @type new_col: bool
+        @returns: True if column-major, false if row-major
+        @rtype: bool
         """
+        if new_col != None:
+            new_maj = const.COLUMN_MAJOR if new_col else const.ROW_MAJOR
+            self._call(const.PUT_, const.CDF_MAJORITY_, new_maj)
         maj = ctypes.c_long(0)
         self._call(const.GET_, const.CDF_MAJORITY_, ctypes.byref(maj))
-        if maj.value != const.ROW_MAJOR.value and \
-               maj.value != const.COLUMN_MAJOR.value:
+        if not maj.value in (const.ROW_MAJOR.value, const.COLUMN_MAJOR.value):
             raise CDFError(const.BAD_MAJORITY)
-        return maj
+        return maj.value == const.COLUMN_MAJOR.value
 
     def _new_var(self, var_name, *args):
         """Add a new zVariable to this CDF
@@ -730,6 +888,24 @@ class CDF(collections.Mapping):
         else:
             raise CDFError(const.BAD_READONLY_MODE.value)
 
+    def checksum(self, new_val=None):
+        """Set or check the checksum status of this CDF
+
+        @param new_val: True to enable checksum, False to disable, or leave out
+                        to simply check.
+        @type new_val: bool
+        @return: True if the checksum is enabled or False if disabled
+        @rtype: bool
+        """
+        if new_val != None:
+            self._call(const.PUT_, const.CDF_CHECKSUM_,
+                       const.MD5_CHECKSUM if new_val else const.NO_CHECKSUM)
+        chk = ctypes.c_long(0)
+        self._call(const.GET_, const.CDF_CHECKSUM_, ctypes.byref(chk))
+        if not chk.value in (const.MD5_CHECKSUM.value,
+                             const.NO_CHECKSUM.value):
+            raise CDFError(const.BAD_CHECKSUM)
+        return chk.value == const.MD5_CHECKSUM.value
 
     def close(self):
         """Closes the CDF file
@@ -744,6 +920,80 @@ class CDF(collections.Mapping):
 
         self._call(const.CLOSE_, const.CDF_)
         self._handle = ctypes.c_void_p(None)
+
+    def compress(self, comptype=None, param=None):
+        """Set or check the compression of this CDF
+
+        Sets compression on entire I{file}, not per-variable
+        (see L{Var.compression}).
+
+        @param comptype: type of compression to change to, see CDF C reference
+                         manual section 4.10. Constants for this parameter
+                         are in L{const}. If not specified, will not change
+                         compression.
+        @type comptype: ctypes.c_long
+        @param param: Compression parameter, see CDF CRM 4.10 and L{const}.
+                      If not specified, will choose reasonable default (5 for
+                      gzip; other types have only one possible parameter.)
+        @type param: ctypes.c_long
+        @return: (comptype, param) currently in effect
+        @rtype: tuple
+        """
+        return _compress(self, comptype, param)
+
+    def new(self, name, data=None, cdftype=None, recVary=True, dimVarys=None,
+            dims=None, n_elements=None):
+        """Create a new zVariable in this CDF
+
+        @param name: name of the new variable
+        @type name: str
+        @param data: data to store in the new variable
+        @param cdftype: CDF type of the variable, from L{const}
+        @type cdftype: ctypes.c_long
+        @param recVary: record variance of the variable
+        @type recVary: bool
+        @param dimVarys: dimension variance of each dimension
+        @type dimVarys: list of bool
+        @param dims: size of each dimension of this variable
+        @type dims: list of int
+        @param n_elements: number of elements, should be 1 except for
+                           CDF_CHAR, for which it's the length of the string.
+        @type n_elements: int
+        @return: the newly-created zVariable
+        @rtype: L{Var}
+        @raise ValueError: if neither data nor sufficient typing information
+                           is provided.
+        """
+        if data == None:
+            if cdftype == None:
+                raise ValueError('Must provide either data or a CDF type.')
+            if dims == None:
+                raise ValueError('Must provide either data or dimension list.')
+            if n_elements == None:
+                n_elements = 1
+        else:
+            (guess_dims, guess_types, guess_elements) = _Hyperslice.types(data)
+            if dims == None:
+                if recVary:
+                    dims = guess_dims[1:]
+                else:
+                    dims = guess_dims
+            if cdftype == None:
+                cdftype = guess_types[0]
+            if n_elements == None:
+                n_elements = guess_elements
+        if dimVarys == None:
+            dimVarys = [True for i in dims]
+        recVary = const.VARY if recVary else const.NOVARY
+        dimVarys = [const.VARY if dimVary else const.NOVARY
+                    for dimVary in dimVarys]
+        if not hasattr(cdftype, 'value'):
+            cdftype = ctypes.c_long(cdftype)
+        new_var = self._new_var(name, cdftype, n_elements, dims, recVary,
+                                dimVarys)
+        if data != None:
+            new_var[...] = data
+        return new_var
 
     def save(self):
         """Saves the CDF file but leaves it open.
@@ -981,36 +1231,24 @@ class Var(collections.Sequence):
         @raise CDFError: for errors from the CDF library
         """
         hslice = _Hyperslice(self, key)
+        if hslice.counts[0] == 0:
+            return []
         buffer = hslice.create_buffer()
         hslice.select()
         lib.call(const.GET_, const.zVAR_HYPERDATA_, ctypes.byref(buffer))
         result = hslice.unpack_buffer(buffer)
-
-        if self._cdf_type() == const.CDF_EPOCH.value:
-            flat = result
-            while True:
-                try:
-                    flat = [item for sublist in flat for item in sublist]
-                except TypeError:
-                    break
-            try:
-                for i in range(len(flat)):
-                    #NOT a list comprehension, changing values so they'll be
-                    #different in result as well
-                    flat[i] = lib.epoch_to_datetime(flat[i])
-            except TypeError:
+        
+        if self.type() == const.CDF_EPOCH.value:
+            if isinstance(result, float): #single value
                 result = lib.epoch_to_datetime(result)
-        elif self._cdf_type() == const.CDF_EPOCH16.value:
-            flat = result
-            if isinstance(flat[0], float): #single value
+            else:
+                hslice.transform_each(result, lib.epoch_to_datetime)
+        elif self.type() == const.CDF_EPOCH16.value:
+            if isinstance(result[0], float): #single value
                 result = lib.epoch16_to_datetime(result)
             else:
-                while not isinstance(flat[0][0], float):
-                    #Flatten list until just two-element floats
-                    flat = [item for sublist in flat for item in sublist]
-                for i in range(len(flat)):
-                    flat[i] = lib.epoch16_to_datetime(flat[i])
-
+                hslice.transform_each(result, lib.epoch16_to_datetime)
+            
         return hslice.convert_array(result)
 
     def __delitem__(self, key):
@@ -1092,7 +1330,7 @@ class Var(collections.Sequence):
         buff = hslice.create_buffer()
         try:
             hslice.pack_buffer(buff, data)
-        except IndexError:
+        except (IndexError, TypeError):
             #Can be thrown if data isn't same size as slice
             #This is an expensive check, so only do it if something went wrong
             data_dims = _Hyperslice.dimensions(data)
@@ -1107,8 +1345,9 @@ class Var(collections.Sequence):
                hslice.starts[0] + n_recs < hslice.dimsizes[0]:
             #Specified slice ends before last record, so insert in middle
             saved_data = self[hslice.starts[0] + n_recs:]
-        hslice.select()
-        lib.call(const.PUT_, const.zVAR_HYPERDATA_, ctypes.byref(buff))
+        if hslice.counts[0] > 0:
+            hslice.select()
+            lib.call(const.PUT_, const.zVAR_HYPERDATA_, ctypes.byref(buff))
         if hslice.counts[0] < n_recs:
             first_rec = hslice.starts[0] + hslice.counts[0]
             last_rec = hslice.dimsizes[0] - 1
@@ -1220,17 +1459,36 @@ class Var(collections.Sequence):
         self._call(const.GET_, const.zVAR_MAXREC_, ctypes.byref(count))
         return (count.value + 1)
 
+    def __repr__(self):
+        """Returns representation of the variable
+
+        Cannot return anything that can be eval'd to create a copy,
+        so just wrap the informal representation in angle brackets.
+        @return: info on this zVar
+        @rtype: str
+        """
+        return '<Var:\n' + str(self) + '\n>'
+        
     def __str__(self):
-        """Displays a string representation of the variable
+        """Returns a string representation of the variable
 
         This is an 'informal' representation in that it cannot be evaluated
-        directly to create a L{Var}, but it can be evaluated to produce
-        a list of all the data.
+        directly to create a L{Var}.
 
-        @return: all the data in this zVar
-        @rtype: string
+        @return: info on this zVar, CDFTYPE [dimensions] NRV
+                 (if not record-varying)
+        @rtype: str
         """
-        return str(self[...])
+        cdftype = self.type()
+        chartypes = (const.CDF_CHAR.value, const.CDF_UCHAR.value)
+        rv = self._rec_vary()
+        typestr = lib.cdftypenames[cdftype] + \
+                  ('*' + str(self._nelems()) if cdftype in chartypes else '' )
+        if rv:
+            sizestr = str([len(self)] + self._dim_sizes())
+        else:
+            sizestr = str(self._dim_sizes())
+        return typestr + ' ' + sizestr + ('' if rv else ' NRV')
 
     def _n_dims(self):
         """Get number of dimensions for this variable
@@ -1254,9 +1512,6 @@ class Var(collections.Sequence):
         sizes = (ctypes.c_long * const.CDF_MAX_DIMS)(0)
         self._call(const.GET_, const.zVAR_DIMSIZES_, sizes)
         sizes = sizes[0:self._n_dims()]
-        majority = self.cdf_file._majority()
-        if majority == const.COLUMN_MAJOR:
-            sizes.reverse()
         return sizes
 
     def _rec_vary(self):
@@ -1302,7 +1557,7 @@ class Var(collections.Sequence):
         @rtype: type
         @raise CDFError: for library-reported error or failure to find C type
         """
-        cdftype = self._cdf_type()
+        cdftype = self.type()
         if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
             return ctypes.c_char * self._nelems()
         try:
@@ -1310,12 +1565,20 @@ class Var(collections.Sequence):
         except KeyError:
             raise CDFError(const.BAD_DATA_TYPE)
 
-    def _cdf_type(self):
-        """Returns the CDF type of this variable
+    def type(self, new_type=None):
+        """Returns or sets the CDF type of this variable
 
+        @param new_type: the new type, see L{const}
+        @type new_type: ctypes.c_long
         @return: CDF type
         @rtype: int
         """
+        if new_type != None:
+            if not hasattr(new_type, 'value'):
+                new_type = ctypes.c_long(new_type)
+            n_elements = ctypes.c_long(self._nelems())
+            self._call(const.PUT_, const.zVAR_DATASPEC_,
+                       new_type, n_elements)
         cdftype = ctypes.c_long(0)
         self._call(const.GET_, const.zVAR_DATATYPE_,
                    ctypes.byref(cdftype))
@@ -1343,6 +1606,25 @@ class Var(collections.Sequence):
             return self._name
         elif isinstance(self._name, bytes):
             return self._name.decode()
+
+    def compress(self, comptype=None, param=None):
+        """Set or check the compression of this variable
+
+        @param comptype: type of compression to change to, see CDF C reference
+                         manual section 4.10. Constants for this parameter
+                         are in L{const}. If not specified, will not change
+                         compression.
+        @type comptype: ctypes.c_long
+        @param param: Compression parameter, see CDF CRM 4.10 and L{const}.
+                      If not specified, will choose reasonable default (5 for
+                      gzip; other types have only one possible parameter.)
+        @type param: ctypes.c_long
+        @return: (comptype, param) currently in effect
+        @rtype: tuple
+        @note: Compression may not be changeable on variables with data already
+               written; even deleting the data may not permit the change.
+        """
+        return _compress(self, comptype, param)
 
     def copy(self):
         """Copies all data and attributes from this variable
@@ -1393,39 +1675,10 @@ class VarCopy(list):
         """Returns a subset of the data in this copy"""
         if not hasattr(key, '__len__') and key != Ellipsis:
             return super(VarCopy, self).__getitem__(key)
-        key = self._expand_ellipsis(key)
+        key = _Hyperslice.expand_ellipsis(key, len(self._dims))
         result = super(VarCopy, self).__getitem__(key[0])
         for subkey in key[1:]:
             result = result[subkey]
-        return result
-
-    def _expand_ellipsis(self, slices):
-        """Expands ellipses into the correct number of full-sized slices
-
-        @param slices: tuple of slices, integers, or ellipse objects
-        @type slices: tuple
-        @return: key with ellipses replaced by appropriate number of blank
-                 slices
-        @rtype: tuple
-        @raise IndexError: if ellipses specified when already have enough
-                           dimensions
-        """
-        if slices == Ellipsis:
-            return tuple([slice(None, None, None)
-                          for i in range(len(self._dims))])
-        if not Ellipsis in slices:
-            return slices
-
-        size = len(slices)
-        extra = len(self._dims) - size
-        if extra < 0:
-            raise IndexError('Too many dimensions specified to use ellipsis.')
-        idx = slices.index(Ellipsis)
-        result = slices[0:idx] + \
-                 tuple([slice(None, None, None) for i in range(extra)]) + \
-                 slices[idx+1:]
-        if Ellipsis in result:
-            raise IndexError('Ellipses can only be used once per slice.')
         return result
 
 
@@ -1502,11 +1755,12 @@ class _Hyperslice(object):
 
         if not hasattr(key, '__len__'): #Not a container object, pack in tuple
             key = (key, )
-        key = self.expand_ellipsis(key)
+        key = self.expand_ellipsis(key,
+                                   (self.dims + 1) if self.rv else self.dims)
         if len(key) == 1 and self.rv: #get all data for this record(s)
-            key = self.expand_ellipsis(key + (Ellipsis, ))
+            key = self.expand_ellipsis(key + (Ellipsis, ), self.dims + 1)
         elif len(key) == self.dims - 1 or not self.rv: #NRV is always rec 0
-            if zvar._rec_vary(): #get all records
+            if self.rv: #get all records
                 key = (slice(None, None, None), ) +key
             else: #NRV, so get 0th record (degenerate)
                 key = (0, ) + key
@@ -1522,16 +1776,15 @@ class _Hyperslice(object):
                 else: #Single degenerate value
                     if idx < 0:
                         idx += self.dimsizes[i]
-                    if idx >= self.dimsizes[i] or idx < 0:
+                    if idx != 0 and (idx >= self.dimsizes[i] or idx < 0):
                         raise IndexError('list index out of range')
                     self.starts[i] = idx
                     self.degen[i] = True
         else:
             raise IndexError('Slice does not match dimensions for zVar ' +
-                             zvar._name)
+                             str(zvar._name))
 
-        self.column = (zvar.cdf_file._majority().value ==
-                       const.COLUMN_MAJOR.value)
+        self.column = zvar.cdf_file.col_major()
 
     def expected_dims(self, data=None):
         """Calculate size of non-degenerate dimensions
@@ -1607,7 +1860,7 @@ class _Hyperslice(object):
         if self.column:
             counts = self.reorder(counts)
             degens = self.reorder(degens)
-        cdftype = self.zvar._cdf_type()
+        cdftype = self.zvar.type()
         constructor = self.zvar._c_type()
         #Build array from innermost out
         for count, degen in zip(counts[-1::-1], degens[-1::-1]):
@@ -1660,7 +1913,7 @@ class _Hyperslice(object):
         @type buffer: subclass of ctypes.Array
         @return: list-of-lists of the data
         """
-        cdftype = self.zvar._cdf_type()
+        cdftype = self.zvar.type()
         if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
             finaltype = self.zvar._c_type()
             for count, degen in zip(self.counts[-1::-1], self.degen[-1::-1]):
@@ -1668,19 +1921,12 @@ class _Hyperslice(object):
                     finaltype *= count
             buffer = ctypes.cast(buffer, ctypes.POINTER(finaltype)).contents
             buffer = self.c_array_to_list(buffer)
-            #Flatten the list and convert each one to Unicode if necessary
-            flat = buffer
-            if not isinstance(flat, str) and not isinstance(flat, bytes):
-                while not isinstance(flat[0], str) and not isinstance(flat[0], bytes):
-                    flat = [item for sublist in flat for item in sublist]
-                for i in range(len(flat)):
-                    #NOT a list comprehension, changing values so they'll be
-                    #different in result as well
-                    if not isinstance(flat[i], str):
-                        flat[i] = flat[i].decode()
-            else:
-                if not isinstance(buffer, str):
+            if str != bytes: #Need to decode output
+                if isinstance(buffer, bytes):
                     buffer = buffer.decode()
+                else:
+                    dec = lambda x:x.decode()
+                    self.transform_each(buffer, dec)
             return buffer
         else:
             return self.c_array_to_list(buffer)
@@ -1701,7 +1947,7 @@ class _Hyperslice(object):
             counts = self.reorder(counts)
             degen = self.reorder(degen)
             rev = self.reorder(rev)
-        cdf_type = self.zvar._cdf_type()
+        cdf_type = self.zvar.type()
 
         #Handle completely degenerate case, i.e. scalar
         if min(degen):
@@ -1778,8 +2024,6 @@ class _Hyperslice(object):
         """
         if hasattr(array, 'value'):
             return array.value
-        if not isinstance(array, ctypes.Array):
-            return array
 
         dimsizes = []
         counts = self.counts
@@ -1791,7 +2035,7 @@ class _Hyperslice(object):
             if not degen:
                 dimsizes.append(count)
 
-        if self.zvar._cdf_type() == const.CDF_EPOCH16.value:
+        if self.zvar.type() == const.CDF_EPOCH16.value:
             basetype = lib.ctypedict[const.CDF_EPOCH.value]
             dimsizes.append(2)
         else:
@@ -1828,6 +2072,47 @@ class _Hyperslice(object):
                 result = [result[j * size:(j + 1) * size] for j in range(n_lists)]
         return result
 
+    def transform_each(self, data, func):
+        """Transforms each element of an n-D array
+
+        L{data} must be dimensioned the same as this slice. Iterates
+        over each element in L{data}, applying L{func} to the element
+        and assigning the result back to the element.
+
+        L{data} must I{not} be a scalar, as then it cannot be changed.
+
+        @param data: the data to transform
+        @type data: list
+        @param func: the function to call for each element in L{data}
+        @type func: callable
+        """
+        counts = self.counts
+        degen = self.degen
+        if self.column:
+            counts = self.reorder(counts)
+            degen = self.reorder(degen)
+        cdf_counts = [] #non-degenerate no. of elements in each dim., CDF order
+        for i in range(len(counts)):
+            if not degen[i]:
+                cdf_counts.append(counts[i])
+
+        lastdim = len(cdf_counts) - 1
+        idx = [0 for i in range(len(cdf_counts))]
+        while idx[0] < cdf_counts[0]:
+            parent = data
+            for i in idx[:-1]:
+                parent = parent[i]
+            parent[idx[-1]] = func(parent[idx[-1]])
+
+            currdim = lastdim
+            while currdim >= 0:
+                idx[currdim] += 1
+                if idx[currdim] >=  cdf_counts[currdim] and currdim > 0:
+                    idx[currdim] = 0
+                    currdim -= 1
+                else:
+                    break
+
     def select(self):
         """Selects this hyperslice in the CDF
 
@@ -1847,6 +2132,37 @@ class _Hyperslice(object):
                      const.SELECT_, const.zVAR_DIMINTERVALS_,
                      (ctypes.c_long * dims)(*self.intervals[1:]))
         self.zvar._call(*args)
+
+    @staticmethod
+    def expand_ellipsis(slices, n_dims):
+        """Expands any ellipses into correct number of full-size slices
+
+        @param slices: tuple of slices, integers, or ellipse objects
+        @type slices: tuple
+        @param n_dims: number of dimensions this slice is over
+        @type n_dims: int
+        @return: L{slices} with ellipses replaced by appropriate number of
+                 full-dimension slices
+        @rtype: tuple
+        @raise IndexError: if ellipses specified when already have enough
+                           dimensions
+        """
+        if slices == Ellipsis:
+            return tuple([slice(None, None, None)
+                          for i in range(n_dims)])
+        if not Ellipsis in slices:
+            return slices
+
+        extra = n_dims - len(slices) #how many dims to replace ellipsis
+        if extra < 0:
+            raise IndexError('Too many dimensions specified to use ellipsis.')
+        idx = slices.index(Ellipsis)
+        result = slices[0:idx] + \
+                 tuple([slice(None, None, None) for i in range(extra)]) + \
+                 slices[idx+1:]
+        if Ellipsis in result:
+            raise IndexError('Ellipses can only be used once per slice.')
+        return result
 
     @staticmethod
     def flip_majority(array):
@@ -1976,13 +2292,13 @@ class _Hyperslice(object):
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH]
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16]
-        elif max([i % 1 for i in flat]) > 0:
-                absolutes = [abs(i) for i in flat if i != 0]
-                if max(absolutes) > 1.7e38 or min(absolutes) < 3e-39:
-                    types = [const.CDF_DOUBLE, const.CDF_REAL8]
-                else:
-                    types = [const.CDF_FLOAT, const.CDF_REAL4,
-                             const.CDF_DOUBLE, const.CDF_REAL8]
+        elif max([hasattr(i, 'is_integer') for i in flat]):
+            absolutes = [abs(i) for i in flat if i != 0]
+            if max(absolutes) > 1.7e38 or min(absolutes) < 3e-39:
+                types = [const.CDF_DOUBLE, const.CDF_REAL8]
+            else:
+                types = [const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8]
         else:
             minval = min(flat)
             maxval = max([abs(i) for i in flat])
@@ -2047,86 +2363,18 @@ class _Hyperslice(object):
                    4. rev indicates whether the sequence should be reversed
         @rtype: (int, int, int, boolean)
         """
-        #Normalize step
-        if step == 0:
-            raise ValueError('slice step cannot be zero')
-        if step == None:
-            step = 1
-
-        #Everything is different based on direction
+        (start, stop, step) = slice(start, stop, step).indices(size)
         if step < 0:
-            rev = True
             step *= -1
-            (start, stop) = (stop, start) #swap "beginning" and "end"
-            if start == None:
-                #didn't specify an end point, start from beginning of string
-                start = 0
-            elif start >= 0:
-                #end points *past* end, so shift start past specified end
-                start += 1
-                if start > size:
-                    start = size
-            else:
-                #specified a point from END of string
-                #translate to point from START, and do the off-by-one shift
-                start += size
-                start += 1
-                if start < 0:
-                    start = 0
-            if stop == None:
-                #didn't specify a start point, go to end of string
-                stop = size
-            elif stop >= 0:
-                #Shift stop by one to get it past the start pointed to
-                stop += 1
-                if stop > size:
-                    stop = size
-            else:
-                #specified point from END of string
-                #translate to point from START, and do off-by-one
-                stop += size
-                stop += 1
-                if stop < 0:
-                    stop = 0
-            #Convert from start/stop to counts
-            count = int((stop - start + step - 1) / step)
-            if count < 0:
-                count = 0
-                start = 0
-            #"Nail" the sequence to the STOP, not the start
-            start = (stop - 1) - step * (count - 1)
+            count = int((start - stop + step - 1) / step)
+            start = start - (count - 1) * step
+            rev = True
         else:
-            rev = False
-            if start == None:
-                #didn't specify a start point, start from beginning of string
-                start = 0
-            elif start >= 0:
-                if start > size:
-                    start = size
-            else:
-                #specified a point from END of string
-                #translate to point from START
-                start += size
-                if start < 0:
-                    start = 0
-            if stop == None:
-                #didn't specify an end point, go to end of string
-                stop = size
-            elif stop >= 0:
-                if stop > size:
-                    stop = size
-            else:
-                #specified point from END of string
-                #translate to point from START
-                stop += size
-                if stop < 0:
-                    stop = 0
-            #Convert from start/stop to counts
-            #This is basically a poor man's floor
             count = int((stop - start + step - 1) / step)
-            if count < 0:
-                count = 0
-                start = 0
+            rev = False
+        if count < 0:
+            count = 0
+            start = 0
         return (start, count, step, rev)
 
 
@@ -2185,25 +2433,15 @@ class AttrList(collections.Mapping):
         return attrib
 
     def __setitem__(self, name, data):
-        """Create a gAttribute or change its entries
+        """Create an Attribute or change its entries
 
-        @param name: name of gAttribute to change
+        @param name: name of Attribute to change
         @type name: str
-        @param data: gEntries to populate this gAttribute with.
-                     Any existing gEntries will be deleted!
+        @param data: Entries to populate this Attribute with.
+                     Any existing Entries will be deleted!
         @type data: scalar or list
         """
-        attr = None
-        try:
-            attr = gAttr(self._cdf_file, name)
-        except CDFError:
-            (t, v, tb) = sys.exc_info()
-            if v.status != const.NO_SUCH_ATTR:
-                raise
-        if attr == None:
-            attr = gAttr(self._cdf_file, name, True)
-        elif not attr.global_scope():
-                raise KeyError(name + ': not gAttribute.')
+        attr = self._get_or_create(name)
         if isinstance(data, str_classes):
             data = [data]
         else:
@@ -2215,33 +2453,22 @@ class AttrList(collections.Mapping):
         del attr[len(data):]
 
     def __delitem__(self, name):
-        """Delete a gAttribute (and all its entries)
+        """Delete an Attribute (and all its entries)
 
-        @param name: name of gAttribute to delete
+        @param name: name of Attribute to delete
         @type name: str
         """
         try:
-            attr = gAttr(self._cdf_file, name)
+            attr = self.AttrType(self._cdf_file, name)
         except CDFError:
             (t, v, tb) = sys.exc_info()
             if v.status == const.NO_SUCH_ATTR:
                 raise KeyError(name + ': ' + str(v))
             else:
                 raise
-            if not attr.global_scope():
-                raise KeyError(name + ': not gAttribute.')
+            if attr.global_scope() != self.global_scope:
+                raise KeyError(name + ': not ' + self.attr_name)
         attr._delete()
-
-    def __len__(self):
-        """Number of gAttributes in this CDF
-
-        @return: number of gAttributes in the CDF
-        @rtype: int
-        """
-        count = ctypes.c_long(0)
-        self._cdf_file._call(const.GET_, const.CDF_NUMgATTRS_,
-                             ctypes.byref(count))
-        return count.value
 
     def __iter__(self, current=0):
         """Iterates over all Attr in this CDF or variable
@@ -2257,25 +2484,42 @@ class AttrList(collections.Mapping):
             if candidate.global_scope() == self.global_scope:
                 if self.special_entry == None or \
                         candidate.has_entry(self.special_entry()):
-                    value = yield(candidate._name)
+                    if str == bytes:
+                        value = yield(candidate._name)
+                    else:
+                        value = yield(candidate._name.decode())
                     if value != None:
                         current = self[value].number()
             current += 1
 
+    def __repr__(self):
+        """Returns representation of attribute list
+
+        Cannot return anything that can be eval'd to create a copy of the
+        list, so just wrap the informal representation in angle brackets.
+        @return: all the data in this list of attributes
+        @rtype: str
+        """
+        return '<' + self.__class__.__name__ + ':\n' + str(self) + '\n>'
+
     def __str__(self):
-        """Displays a string representation of the attribute list
+        """Returns a string representation of the attribute list
 
         This is an 'informal' representation in that it cannot be evaluated
-        directly to create an L{AttrList}, but it can be evaluated to produce
-        a dict of all the data.
+        directly to create an L{AttrList}.
 
         @return: all the data in this list of attributes
-        @rtype: string
+        @rtype: str
         """
-        return '{' + ', '.join([repr(key) + ': ' +
-                                (str(value) if isinstance(value, Attr)
-                                 else repr(value))
-                                for (key, value) in self.items()]) + '}'
+        return '\n'.join([key + ': ' + (
+            ('\n' + ' ' * (len(key) + 2)).join(
+            [str(value[i]) + ' [' + lib.cdftypenames[value.entry_type(i)] + ']'
+             for i in range(len(value))])
+            if isinstance(value, Attr)
+            else str(value) +
+            ' [' + lib.cdftypenames[self.entry_type(key)] + ']'
+            )
+            for (key, value) in self.items()])
 
     def copy(self):
         """Create a copy of this attribute list
@@ -2285,6 +2529,25 @@ class AttrList(collections.Mapping):
         """
         return dict((key, value[:] if isinstance(value, Attr) else value)
                     for (key, value) in self.items())
+
+    def new(self, name, data=None, type=None):
+        """Create a new Attr in this AttrList
+
+        @param name: name of the new Attribute
+        @type name: str
+        @param data: data to put into the first entry in the new Attribute
+        @param type: CDF type of the first entry from L{const}. Only used
+                     if L{data} are specified.
+        @raise KeyError: if L{name} already exists in this list
+        """
+        if name in self:
+            raise KeyError(name + ' already exists.')
+        attr = self._get_or_create(name)
+        if data != None:
+            if self.special_entry == None:
+                attr.new(data, type)
+            else:
+                attr.new(data, type, self.special_entry())
 
     def rename(self, old_name, new_name):
         """Rename an attribute in this list
@@ -2297,6 +2560,28 @@ class AttrList(collections.Mapping):
         @type new_name: str
         """
         AttrList.__getitem__(self, old_name).rename(new_name)
+
+    def _get_or_create(self, name):
+        """Retrieve L{Attr} or create it if it doesn't exist
+
+        @param name: name of the attribute to look up or create
+        @type name: str
+        @return: attribute with this name
+        @rtype: L{Attr}
+        """
+        attr = None
+        try:
+            attr = self.AttrType(self._cdf_file, name)
+        except CDFError:
+            (t, v, tb) = sys.exc_info()
+            if v.status != const.NO_SUCH_ATTR:
+                raise
+        if attr == None:
+            attr = self.AttrType(self._cdf_file, name, True)
+        elif attr.global_scope() != self.global_scope:
+                raise KeyError(name + ': not ' + self.attr_name)
+        return attr
+
 
 class gAttrList(AttrList):
     """Object representing I{all} the gAttributes in a CDF.
@@ -2467,7 +2752,7 @@ class zAttrList(AttrList):
         """Find or change the CDF type of a zEntry in this zVar
 
         @param name: name of the zAttr to check or change
-        @type number: str
+        @type name: str
         @param new_type: type to change it to, see L{const}
         @type new_type: ctypes.c_long
         @return: CDF variable type, see L{const}
@@ -2480,7 +2765,7 @@ class zAttrList(AttrList):
         if not attrib.has_entry(zvar_num):
             raise KeyError(name + ': no such attribute for variable ' +
                            self._zvar.name())
-        attrib.entry_type(zvar_num, new_type)
+        return attrib.entry_type(zvar_num, new_type)
 
 
 class Attr(collections.Sequence):
@@ -2567,7 +2852,7 @@ class Attr(collections.Sequence):
     def __setitem__(self, key, data):
         """Set a slice of Entries.
 
-        @param key: index or range of Entry numbers to return
+        @param key: index or range of Entry numbers to set
         @type key: slice or int
         @param data: the data to set these entries to.
                      Normally each entry should be a sequence; if
@@ -2629,7 +2914,7 @@ class Attr(collections.Sequence):
                     min([types.index(entrytype) for entrytype in entrytypes])
                     ]
             elif self.ENTRY_ == const.zENTRY_:
-                vartype = self._cdf_file[i]._cdf_type()
+                vartype = self._cdf_file[i].type()
                 if vartype in types:
                     entry_type = vartype
                 else:
@@ -2649,29 +2934,7 @@ class Attr(collections.Sequence):
                 continue
             datum = data[data_idx]
             (dims, entry_type, elements) = typelist[data_idx]
-
-            if isinstance(datum, str_classes):
-                buff = ctypes.create_string_buffer(elements)
-                buff.value = datum
-            else:
-                if len(dims) == 0:
-                    elements = 1
-                    datum = [datum]
-                else:
-                    elements = dims[0]
-                buff = (lib.ctypedict[entry_type] * elements)()
-                if entry_type == const.CDF_EPOCH16.value:
-                    for j in range(elements):
-                        buff[j] = lib.datetime_to_epoch16(datum[j])
-                elif entry_type == const.CDF_EPOCH.value:
-                    for j in range(elements):
-                        buff[j] = lib.datetime_to_epoch(datum[j])
-                else:
-                    for j in range(elements):
-                        buff[j] = datum[j]
-            self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(i),
-                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(entry_type),
-                   ctypes.c_long(elements), ctypes.byref(buff))
+            self._write_entry(i, datum, entry_type, dims, elements)
 
     def __delitem__(self, key):
         """Delete a slice of Entries.
@@ -2721,18 +2984,6 @@ class Attr(collections.Sequence):
                     current = value
             current -= 1
 
-    def __str__(self):
-        """Displays a string representation of the attribute
-
-        This is an 'informal' representation in that it cannot be evaluated
-        directly to create an L{Attr}, but it can be evaluated to produce
-        a list of all the data.
-
-        @return: all the data in this attribute
-        @rtype: string
-        """
-        return str(self[:])
-
     def __len__(self):
         """Number of Entries for this Attr. NOT same as max Entry number.
 
@@ -2742,6 +2993,27 @@ class Attr(collections.Sequence):
         count = ctypes.c_long(0)
         self._call(const.GET_, self.ATTR_NUMENTRIES_, ctypes.byref(count))
         return count.value
+
+    def __repr__(self):
+        """Returns representation of an attribute
+
+        Cannot return anything that can be eval'd to create a copy of the
+        attribtute, so just wrap the informal representation in angle brackets.
+        @return: all the data in this attribute
+        @rtype: str
+        """
+        return '<\n' + str(self) + '\n>'
+
+    def __str__(self):
+        """Returns a string representation of the attribute
+
+        This is an 'informal' representation in that it cannot be evaluated
+        directly to create an L{Attr}.
+
+        @return: all the data in this attribute
+        @rtype: str
+        """
+        return '\n'.join([str(item) for item in self])
 
     def _call(self, *args, **kwargs):
         """Select this CDF and Attr and call the CDF internal interface
@@ -2823,6 +3095,25 @@ class Attr(collections.Sequence):
         self._call(const.GET_, self.ATTR_MAXENTRY_, ctypes.byref(count))
         return count.value
 
+    def new(self, data, cdftype=None, number=None):
+        """Create a new Entry in this Attribute
+
+        @param data: data to put in the Entry
+        @param cdftype: type of the new Entry (otherwise guessed from L{data})
+        @param number: Entry number to write, default is lowest available number.
+        @note: Will overwrite an existing Entry.
+        """
+        if number == None:
+            number = 0
+            while self.has_entry(number):
+                number += 1
+        (dims, types, elements) = _Hyperslice.types(data)
+        if cdftype == None:
+            cdftype = types[0]
+        elif hasattr(cdftype, 'value'):
+            cdftype = cdftype.value
+        self._write_entry(number, data, cdftype, dims, elements)
+                
     def number(self):
         """Find the attribute number for this attribute
 
@@ -2908,6 +3199,41 @@ class Attr(collections.Sequence):
                 result = result[0]
 
         return result
+
+    def _write_entry(self, number, data, cdftype, dims, elements):
+        """Write an Entry to this Attr.
+
+        @param number: number of Entry to write
+        @type number: int
+        @param data: data to write
+        @param cdftype: the CDF type to write, from L{const}
+        @param dims: dimensions of L{data}
+        @type dims: list
+        @param elements: number of elements in L{data}, 1 unless it is a string
+        @type elements: int
+        """
+        if isinstance(data, str_classes):
+            buff = ctypes.create_string_buffer(elements)
+            buff.value = data
+        else:
+            if len(dims) == 0:
+                elements = 1
+                data = [data]
+            else:
+                elements = dims[0]
+            buff = (lib.ctypedict[cdftype] * elements)()
+            if cdftype == const.CDF_EPOCH16.value:
+                for j in range(elements):
+                    buff[j] = lib.datetime_to_epoch16(data[j])
+            elif cdftype == const.CDF_EPOCH.value:
+                for j in range(elements):
+                    buff[j] = lib.datetime_to_epoch(data[j])
+            else:
+                for j in range(elements):
+                    buff[j] = data[j]
+        self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
+                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(cdftype),
+                   ctypes.c_long(elements), ctypes.byref(buff))
 
     def _delete(self):
         """Delete this Attribute
