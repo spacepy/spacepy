@@ -26,19 +26,24 @@ class tFunctionTests(unittest.TestCase):
                   (2001, 34),
                   (2006, 34),
                   (2008, 60),
-                  (2008, 366) )
+                  (2008, 366),
+                  ([2008],[366]))
         real_ans = ( (1, 1),
                      (2, 3),
                      (2, 3),
                      (2, 29),
-                     (12, 31) )
+                     (12, 31),
+                     (12, 31))
         for i, val in enumerate(inval):
             ans = t.doy2date(*val)
+            ans2 = t.doy2date(*val, dtobj = True)
             self.assertEqual(real_ans[i] , ans)
+            self.assertEqual(real_ans[i], (ans2.month , ans2.day))
             
     def test_doy2datefail(self):
         '''doy2date should fail for bad input'''
-        inval = ([[2007],[0.5]],[2007, 0.5])
+        inval = ([[2007],[0.5]],
+                [2007, 0.5])
         for val in inval:
             func = lambda:t.doy2date(*val)
             self.assertRaises(ValueError, func)
