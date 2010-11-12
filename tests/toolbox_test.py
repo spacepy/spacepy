@@ -93,7 +93,7 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_binHisto(self):
         """binHisto should return know answer for known input"""
         input = range(0, 101)
-        real_ans = (21.328903431315652, 5.0)
+        real_ans = (21.47300748096567, 5.0)
         ans = tb.binHisto(input)
         self.assertEqual(ans, real_ans)
 
