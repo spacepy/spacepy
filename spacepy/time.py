@@ -80,7 +80,7 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.28 $, $Date: 2010/11/12 16:52:00 $"
+__version__ = "$Revision: 1.29 $, $Date: 2010/11/12 17:13:11 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1761,7 +1761,7 @@ class Ticktock(object):
 
 def doy2date(year, doy, dtobj=False):
     """
-    convert day-of-year doy into a month and day
+    convert integer day-of-year doy into a month and day
     after http://pleac.sourceforge.net/pleac_python/datesandtimes.html
 
     Input:
@@ -1803,7 +1803,6 @@ def doy2date(year, doy, dtobj=False):
         else:
             test = n.array([doy])
         booltest = n.where(test<1, True, False)
-        print(booltest)
         assert True not in booltest
     except AssertionError:
         raise ValueError('Day-of-Year less than 1 detected: DOY starts from 1')
