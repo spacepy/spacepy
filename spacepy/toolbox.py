@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.52 $, $Date: 2010/10/26 19:54:12 $"
+__version__ = "$Revision: 1.53 $, $Date: 2010/11/12 22:18:16 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -86,8 +86,8 @@ def tCommon(ts1, ts2, mask_only=True):
     
     tn1, tn2 = date2num(ts1),date2num(ts2)
     
-    el1in2 = np.setmember1d(tn1, tn2) #makes mask of present/absent
-    el2in1 = np.setmember1d(tn2, tn1)
+    el1in2 = np.in1d(tn1, tn2, assume_unique=True) #makes mask of present/absent
+    el2in1 = np.in1d(tn2, tn1, assume_unique=True)
     
     if mask_only:
         return el1in2, el2in1
