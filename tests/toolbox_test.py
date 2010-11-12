@@ -2,11 +2,8 @@
 
 import unittest
 import spacepy.toolbox as tb
-import glob
-import os
-import datetime
+import glob, os, datetime, numpy
 from numpy import array
-import numpy
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -95,7 +92,7 @@ class SimpleFunctionTests(unittest.TestCase):
         
     def test_binHisto(self):
         """binHisto should return know answer for known input"""
-        input = range(100)
+        input = range(0, 101)
         real_ans = (21.328903431315652, 5.0)
         ans = tb.binHisto(input)
         self.assertEqual(ans, real_ans)
