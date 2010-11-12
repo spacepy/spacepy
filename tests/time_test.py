@@ -20,7 +20,7 @@ class tFunctionTests(unittest.TestCase):
         #super(tFunctionTests, self).tearDown()
         pass
     
-    def test_doy2date(self):
+    def test_doy2dateconvert(self):
         """doy2date should return a known value for known input"""
         inval = ( (2000, 1),
                   (2001, 34),
@@ -35,6 +35,13 @@ class tFunctionTests(unittest.TestCase):
         for i, val in enumerate(inval):
             ans = t.doy2date(*val)
             self.assertEqual(real_ans[i] , ans)
+            
+    def test_doy2datefail(self):
+        '''doy2date should fail for bad input'''
+        inval = ([[2007],[0.5]],[2007, 0.5])
+        for val in inval:
+            func = lambda:t.doy2date(*val)
+            self.assertRaises(ValueError, func)
 
     def test_tickrange(self):
         """tickrange should return a known value for known input"""
