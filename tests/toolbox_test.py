@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
 
 import unittest
@@ -6,7 +7,7 @@ import glob, os, datetime, numpy
 from numpy import array
 
 class PickleAssembleTests(unittest.TestCase):
-
+    
     def setUp(self):
         super(PickleAssembleTests, self).setUp()
                 
@@ -56,7 +57,7 @@ class PickleAssembleTests(unittest.TestCase):
         tb.savepickle('test_pickle_2.pkl', self.D2)
         tb.savepickle('test_pickle_3.pkl', self.D3)
         expected = self.all
-        result = tb.assemble('test_pickle*.pkl', 'test_all.pkl', sortkey=None)
+        result = tb.assemble(['test_pickle_1.pkl', 'test_pickle_2.pkl', 'test_pickle_3.pkl'] , 'test_all.pkl', sortkey=None)
         for key in result:
             result[key] = result[key].tolist()
         
@@ -120,6 +121,13 @@ class SimpleFunctionTests(unittest.TestCase):
             self.assertEqual(val, tb.pmm(data[i]))
         self.assertEqual([[1, 6], [5, 24], [6.0, 67.340000000000003]], tb.pmm(*data) )
 
+    def test_listUniq(self):
+        """listUniq should give known output for known input"""
+        data = [[1,2,3], [2,3,1], [1,1,1], [1,2,3,1]]
+        real_ans = [[1,2,3], [2,3,1], [1], [1,2,3]]
+        for i, val in enumerate(real_ans):
+            self.assertEqual(val, tb.listUniq(data[i]))
+            
 
 
 class tFunctionTests(unittest.TestCase):
