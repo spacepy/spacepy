@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.53 $, $Date: 2010/11/12 22:18:16 $"
+__version__ = "$Revision: 1.54 $, $Date: 2010/11/16 18:01:21 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1317,7 +1317,26 @@ def normalize(vec):
         ptp = N.ptp(vec)
         out = [(val -  vecmin)/ptp for val in vec]
     return out
+
+
+def listUniq(inVal):
+    """
+    Given an input iterable (list, deque) return a list of the unique elements.
+    Maintains order (keeps the first of non-unique elements
+
+    @param inVal: Input iterable
+    @type inVal: iterable
+    @return: list of unique elements from iterable
+    @rtype: list
+
+    @author: Brian Larsen
+    @organization: Los Alamos National Lab
+    @contact: balarsen@lanl.gov
     
+    @version: V1: 16-Nov-2010 (BAL)
+    """
+    seen = set()
+    return [ x for x in inVal if x not in seen and not seen.add(x)]
 
 
 
