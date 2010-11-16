@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.54 $, $Date: 2010/11/16 18:01:21 $"
+__version__ = "$Revision: 1.55 $, $Date: 2010/11/16 23:58:48 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -400,8 +400,9 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     >>> spacepy.printfig(1)
     """
 
-    import pyplot, os, sys, re, glob, datetime
-
+    import os, sys, re, glob, datetime
+    import pylab as p
+    
     try:
         nfigs = len(fignum)
     except:
@@ -410,7 +411,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
     for ifig in fignum:
         # active this figure
-        pyplot.figure(ifig)
+        p.figure(ifig)
 
         if filename == None:
             # create a filename for the figure
@@ -428,17 +429,17 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
         # save a clean figure without timestamps
         if clean == True:
-            pyplot.savefig(fln+'_clean.png')
+            p.savefig(fln+'_clean.png')
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
         # add the filename to the figure for reference
-        pyplot.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
+        p.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
 
         # now save the figure to this filename
         if pngonly == False:
-            pyplot.savefig(fln+'.ps')
+            p.savefig(fln+'.ps')
         
-        pyplot.savefig(fln+'.png')
+        p.savefig(fln+'.png')
 
         # send it to the printer
         if saveonly != True:
@@ -597,8 +598,8 @@ def update(all=True, omni=False, leapsecs=False):
             minute, second = divmod(minute*60., 60)  
             omnidata['UTC'][i] = datetime.datetime(year, month, day, int(hour), int(minute), int(second))
         
-        omnidata['ticktock'] = Ticktock(omnidata['UTC'], 'UTC')
-        omnidata['RDT'] = omnidata['ticktock'].RDT
+        omnidata['ticks'] = Ticktock(omnidata['UTC'], 'UTC')
+        omnidata['RDT'] = omnidata['ticks'].RDT
         
         #t2 = time.time()
         #print t2-t1

@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.12 $, $Date: 2010/10/26 22:03:15 $"
+__version__ = "$Revision: 1.13 $, $Date: 2010/11/16 23:58:48 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -114,19 +114,19 @@ class RBmodel(object):
 
         import spacepy.time as st
         
-        self.ticktock = st.tickrange(start, end, delta, dtype)
+        self.ticks = st.tickrange(start, end, delta, dtype)
         
     # -----------------------------------------------    
     def add_omni(self, keylist=None):
         
         """
-        add omni data to instance according to the tickrange in ticktock
+        add omni data to instance according to the tickrange in ticks
         """
         import spacepy.omni as om
 
-        assert 'ticktock' in self.__dict__ , \
+        assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
-        omni = om.get_omni(self.ticktock)
+        omni = om.get_omni(self.ticks)
         
         if 'params' not in self.__dict__:           
             self.params = {}
@@ -150,8 +150,8 @@ class RBmodel(object):
         if 'params' not in self.__dict__:           
             self.params = {}
             
-        assert self.ticktock, "Provide tick range with 'setup_ticks'"
-        self.params['Lmax'] = em.get_Lmax(self.ticktock, Lmax_model)
+        assert self.ticks, "Provide tick range with 'setup_ticks'"
+        self.params['Lmax'] = em.get_Lmax(self.ticks, Lmax_model)
                 
     # -----------------------------------------------    
     def add_Lpp(self, Lpp_model):
@@ -164,23 +164,23 @@ class RBmodel(object):
         if 'params' not in self.__dict__:           
             self.params = {}
         
-        assert self.ticktock, "Provide tick range with 'setup_ticks'"
-        self.params['Lpp'] = em.get_plasma_pause(self.ticktock, Lpp_model)
+        assert self.ticks, "Provide tick range with 'setup_ticks'"
+        self.params['Lpp'] = em.get_plasma_pause(self.ticks, Lpp_model)
 
     # -----------------------------------------------    
     def add_PSD(self, satlist=None):
         
         """
-        add observations from PSD database using the ticktock list        
+        add observations from PSD database using the ticks list        
         """
         
         import numpy as n
         import spacepy.sandbox.PSDdata as PD
         import spacepy.time
         
-        assert 'ticktock' in self.__dict__ , \
+        assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
-        Tgrid = self.ticktock
+        Tgrid = self.ticks
         nTAI = len(Tgrid)
         
         self.PSDdata = ['']*(nTAI-1)
@@ -203,11 +203,11 @@ class RBmodel(object):
         import numpy as n
         import copy as c
         
-        assert 'ticktock' in self.__dict__ , \
+        assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
         
         f = self.PSDinit
-        Tgrid = self.ticktock.TAI
+        Tgrid = self.ticks.TAI
         nTAI = len(Tgrid)
         Lgrid = self.Lgrid
         self.PSD  = n.zeros( (len(f),len(Tgrid)) )
@@ -258,7 +258,7 @@ class RBmodel(object):
         # setup method
         assert method in ['enKF'], 'DA method='+method+' not implemented'
 
-        nTAI = len(self.ticktock)
+        nTAI = len(self.ticks)
         
 
         # enKF method
@@ -272,7 +272,7 @@ class RBmodel(object):
             self.PSDf[:,0] = self.PSDinit
 
             # time loop
-            for i, Tnow, Tfut in zip(n.arange(nTAI-1)+1, self.ticktock[:-1], self.ticktock[1:]):
+            for i, Tnow, Tfut in zip(n.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
                     
                 # make forcast and add model error
                 # make forecast using all ensembles in A
@@ -280,7 +280,7 @@ class RBmodel(object):
                 for f in A.T:
                     # create temporary RB class instance
                     rbtemp = c.copy(self)
-                    rbtemp.ticktock = st.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
+                    rbtemp.ticks = st.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
                     rbtemp.PSDinit = f
                     rbtemp.evolve()
                     #rbtemp.PSDdata = self.PSDdata[i-1]
@@ -326,7 +326,7 @@ class RBmodel(object):
                     continue # 
                     
                 # print message
-                print('Tnow: ', self.ticktock[i].ISO)
+                print('Tnow: ', self.ticks[i].ISO)
 
 
     # -----------------------------------------------
@@ -382,7 +382,7 @@ class RBmodel(object):
         else:
             ax1 = p.subplot(1,1,1)
         # Plot phase space density, masking out values of 0.
-        map = ax1.pcolorfast(self.ticktock.eDOY, self.Lgrid, 
+        map = ax1.pcolorfast(self.ticks.eDOY, self.Lgrid, 
                              n.where(self.PSD > 0.0, self.PSD, 10.0**-39),
                              vmin=10.0**clims[0], vmax=10.0**clims[1], 
                              norm=LogNorm())
@@ -394,9 +394,9 @@ class RBmodel(object):
         cbar.set_label('Phase Space Density')
         # add Lmax line
         if Lmax:
-            p.plot(self.ticktock.eDOY, self.params['Lmax'], 'w')
+            p.plot(self.ticks.eDOY, self.params['Lmax'], 'w')
         # Minimize time range.
-        ax1.set_xlim([self.ticktock.eDOY[0], self.ticktock.eDOY[-1]])
+        ax1.set_xlim([self.ticks.eDOY[0], self.ticks.eDOY[-1]])
         # Finally, save the position of the plot to make next plot match.
         pos = ax1.get_position()
         
@@ -405,12 +405,12 @@ class RBmodel(object):
             pos2 = ax2.get_position()
             pos2.x1 = pos.x1
             ax2.set_position(pos2)
-            ax2.plot(self.ticktock.eDOY, self.params['Dst'], color='r')
-            ax2.set_xlabel('DOY in '+str(self.ticktock.UTC[0].year))
+            ax2.plot(self.ticks.eDOY, self.params['Dst'], color='r')
+            ax2.set_xlabel('DOY in '+str(self.ticks.UTC[0].year))
             ax2.set_ylabel('Dst', color='r')
             for tl in ax2.get_yticklabels():
                 tl.set_color('r')
-            ax2.set_xlim([self.ticktock.eDOY[0], self.ticktock.eDOY[-1]])
+            ax2.set_xlim([self.ticks.eDOY[0], self.ticks.eDOY[-1]])
 
         if Kp is True:
             if Dst is True:
@@ -421,12 +421,12 @@ class RBmodel(object):
                 pos3 = ax3.get_position()
                 pos3.x1 = pos.x1
                 ax3.set_position(pos3)
-            ax3.plot(self.ticktock.eDOY, self.params['Kp'], 'k:')            
+            ax3.plot(self.ticks.eDOY, self.params['Kp'], 'k:')            
             if Dst is True:
                 ax3.yaxis.tick_right()
-            ax3.set_xlabel('DOY in '+str(self.ticktock.UTC[0].year))
+            ax3.set_xlabel('DOY in '+str(self.ticks.UTC[0].year))
             ax3.set_ylabel('Kp')                    
-            ax3.set_xlim([self.ticktock.eDOY[0], self.ticktock.eDOY[-1]])
+            ax3.set_xlim([self.ticks.eDOY[0], self.ticks.eDOY[-1]])
 
         p.show()
         

@@ -24,7 +24,7 @@ class coordsTest(unittest.TestCase):
         n.testing.assert_equal([1,1], self.cvals.x)
         n.testing.assert_equal([2,2], self.cvals.y)
         n.testing.assert_equal([4,2], self.cvals.z)
-        self.cvals.ticktock = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
         newcoord = self.cvals.convert('GSM', 'sph')
         
     def test_append(self):

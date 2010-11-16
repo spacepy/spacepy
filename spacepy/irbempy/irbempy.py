@@ -8,7 +8,7 @@ D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.5 $, $Date: 2010/10/07 22:55:06 $"
+__version__ = "$Revision: 1.6 $, $Date: 2010/11/16 23:58:49 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
@@ -41,13 +41,15 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
 
     Example:
     ========
-    >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
-    >>> op.get_Bfield(t,y)
-    {'Blocal': array([  945.99989101,  3381.71633205]),
-        'Bvec': array([[  8.05001055e-01,  -1.54645026e+02,   9.33273841e+02],
-        [  3.36352963e+02,  -5.33658140e+02,   3.32236076e+03]])}
-
+    >>> import spacepy.time as spt
+    >>> import spacepy.coordinates as spc
+    >>> import spacepy.irbempy as ib
+    >>> t = spt.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
+    >>> y = spc.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> ib.get_Bfield(t,y)
+    {'Blocal': array([  976.42565251,  3396.25991675]),
+       'Bvec': array([[ -5.01738885e-01,  -1.65104338e+02,   9.62365503e+02],
+       [  3.33497974e+02,  -5.42111173e+02,   3.33608693e+03]])}
 
     See Also:
     =========
@@ -125,7 +127,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     ========
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
-    >>> op.find_Bmirror(t,y,[90,80,60,10])
+    >>> ib.find_Bmirror(t,y,[90,80,60,10])
     {'Blocal': array([ 0.,  0.]),
         'Bmirr': array([ 0.,  0.]),
         'loci': Coords( [[ NaN  NaN  NaN]
@@ -546,6 +548,108 @@ def get_dtype(sysaxes):
                 carsph = subkey
 
     return dtype, carsph
+
+# -----------------------------------------------    
+def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
+    """
+    will return the flux from the AE8-AP8 model
+
+    Input:
+    ======
+        - energy (float) : center energy in MeV; if fluxtype=RANGE, then needs to be a list [Emin, Emax]
+        - loci (Coords)  : a Coords instance with the location inside the magnetosphere
+             optional      instead of a Coords instance, one can also provide a list with [BBo, L] combination
+        - model (str)    : MIN or MAX for solar cycle dependence
+        - fluxtype (str) : DIFF, RANGE, INT are possible types
+        - particles (str): e or p or electrons or protons
+        
+    Returns:
+    ========
+        - float : flux from AE8/AP8 model
+        
+    Example:
+    ========
+    >>> spacepy.irbempy.get_aep8()
+
+    See Also:
+    =========
+    
+
+    Author:
+    =======
+    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
+
+    Version:
+    ========
+    V1: 16-Nov-2010 (JK)
+    """
+    
+    import spacepy
+    import spacepy.toolbox as tb
+    import spacepy.irbempy.irbempylib as ib
+    import numpy as n
+    
+    # find bad values and dimensions
+    
+    if particles.lower() == 'e': # then choose electron model
+        if model.upper() == 'MIN':
+            whichm = 1
+        elif model.upper() == 'MAX':
+            whichm = 2
+        else:
+            print 'Warning: model='+model+' is not implemented: Choose MIN or MAX'
+    elif particles.lower() == 'p': # then choose proton model
+        if model.upper() == 'MIN':
+            whichm = 3
+        elif model.upper() == 'MAX':
+            whichm = 4
+        else:
+            print 'Warning: model='+model+' is not implemented: Choose MIN or MAX'
+    else:
+        print 'Warning: particles='+particles+' is not available: choose e or p'
+    
+    if fluxtype.upper() == 'DIFF':
+        whatf = 1
+    elif fluxtype.upper() == 'RANGE':
+        whatf = 2
+    elif fluxtype.upper() == 'INT':
+        whatf = 3
+    else:
+        print 'Warning: fluxtype='+fluxtype+' is not implemented: Choose DIFF, INT or RANGE'
+    
+    # need range if whatf=2
+    Nene  = 1
+    if whatf == 2: assert len(energy) == 2, 'Need energy range with this choice of fluxtype=RANGE'
+    ntmax = 1
+    
+    if isinstance(loci, spacepy.coordinates.Coords):
+        assert loci.ticks, 'Coords require time information with a Ticktock object'
+        d = prep_irbem(ticks=loci.ticks, loci=loci)
+        E_array = n.zeros((2,d['nalp_max']))
+        E_array[:,0] = energy
+        # now get the flux
+        flux = ib.fly_in_nasa_aeap1(ntmax, d['sysaxes'], whichm, whatf, Nene, E_array, d['iyearsat'], d['idoysat'], d['utsat'], \
+            d['xin1'], d['xin2'], d['xin3'])
+    elif isinstance(loci, (list, n.ndarray)):
+        BBo, L = loci
+        d = prep_irbem()
+        E_array = n.zeros((2,d['nalp_max']))
+        E_array[:,0] = energy
+        B_array = n.zeros(d['ntime_max'])
+        B_array[0] = BBo
+        L_array = n.zeros(d['ntime_max'])
+        L_array[0] = L
+        # now get the flux
+        flux =  ib.get_ae8_ap8_flux(ntmax, whichm, whatf, Nene, E_array, B_array, L_array)
+    
+    else:
+        print 'Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]'
+        
+    
+    flux[n.where( tb.feq(flux, d['badval'])) ] = n.NaN
+    
+    return flux[0,0]
+    
 
 # -----------------------------------------------
 def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 

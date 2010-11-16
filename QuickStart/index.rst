@@ -23,6 +23,27 @@ Option 2) to install in custom location, e.g.::
 
     python setup.py install --home=/n/packages/lib/python
 
+It is also possible to select a specific compiler for installing the IRBEM-LIB library as part
+of SpacePy. Currently the
+following flags are supported: gnu95, gnu, pg. You can invoke these by using one of the 
+following commands below but not all of them are supported on all platforms:
+
+* ``python setup.py install --fcompiler=pg``      #(will use pgi compiler suite)
+* ``python setup.py install --fcompiler=gnu``    #(will use g77)
+* ``python setup.py install --fcompiler=gnu95``   #(default option for using gfortran)
+
+The installer will create a ``.spacepy`` directory in your ``$HOME`` folder. If you prefer a different location
+for this directory, set the environment variable ``$SPACEPY`` to a location of your choice. For example,
+with a ``csh``, or ``tcsh`` you would::
+
+	setenv SPACEPY /a/different/dir
+
+for the ``bash`` shell you would:
+
+	export SPACEPY=/a/different/dir
+
+Make sure you add the environment variable ``$SPACEPY`` to your ``.cshrc, .tcshrc,`` or ``.bashrc`` script.
+
 
 Toolbox - A Box Full of Tools
 =============================
@@ -129,22 +150,24 @@ cartesian and sphericals.
 Create a Coords instance with spherical='sph' or cartesian='car' 
 coordinates::
  
-    >>> coord = spc.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
+    >>> spaco = spc.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
  
-This will let you request for example all y-coordinates by ``coord.y`` 
-or if given in spherical coordinates by ``coord.lati``. One can transform 
-the coordinates by ``newcoord = coord.convert('GSM', 'sph')``. 
+This will let you request for example all y-coordinates by ``spaco.y`` 
+or if given in spherical coordinates by ``spaco.lati``. One can transform 
+the coordinates by ``newcoord = spaco.convert('GSM', 'sph')``. 
 This will return GSM coordinates in a spherical system. Since GSM 
 coordinates depend on time, you'll have to add first a Ticktock 
-vector like ``coord.ticktock = spt.Ticktock(['2002-02-02T12:00:00', 
+vector with the name ``ticks`` like ``spaco.ticks = spt.Ticktock(['2002-02-02T12:00:00', 
 '2002-02-02T12:00:00'], 'ISO')``
+
+Unit conversion will be implemented in the future.
  
  
-radbelt Module
-==============
+The radbelt Module
+==================
 
 The radiation belt module currently includes a simple radial 
-diffusion code as a class. Import the module and create a class::
+diffusion code as a class. Import the module and create a class instance::
 
     >>> import spacepy.radbelt as sprb
     >>> rb = sprb.RBmodel()
@@ -155,15 +178,16 @@ Add a time grid for a particular period that you are interested in::
 
 This will automatically lookup required geomagnetic/solar wind conditions 
 for that period. Run the diffusion solver for that setup and plot the 
-results.::
+results::
 
     >>> rb.evolve()
     >>> rb.plot()
 
 
-borg Module
-===========
+The borg Module
+===============
 
+(NOT FULLY FUNCTIONAL YET)
 The borg module includes data assimilation functions as classes. It is automatically 
 imported within ``radbelt``.
 
@@ -214,21 +238,27 @@ October and November, 2003.::
     >>> data = om.get_omni(ticks)
 
 *data* is a dictionary containing all the OMNI data, by variable, for the timestamps
-contained within the ``Ticktock`` object *ticks*
+contained within the ``Ticktock`` object *ticks*. Now it is simple to plot Dst values
+for instance::
 
+	>>> import pyplot as p
+	>>> p.plot(ticks.eDOY, data['Dst'])
+	
 
-OneraPy Module
-=================
+The irbempy Module
+==================
 
-ONERA (Office National d'Etudes et Recherches Aerospatiales) maintain a 
+ONERA (Office National d'Etudes et Recherches Aerospatiales) initiated a 
 well-known FORTRAN library that provides routines to compute magnetic 
 coordinates for any location in the Earth's magnetic field, to perform 
 coordinate conversions, to compute magnetic field vectors in geospace for 
 a number of external field models, and to propagate satellite orbits in 
-time. The current iteration of this model is called IRBEM-LIB.
+time. Older versions of this library were called ONERA-DESP-LIB. Recently
+the library has changed its name to IRBEM-LIB and is maintained by a number
+of different institutions.
 
 A number of key routines in IRBEM-LIB have been made available through the 
-module *OneraPy*. Current functionality includes calls to calculate the local
+module *irbempy*. Current functionality includes calls to calculate the local
 magnetic field vectors at any point in geospace, calculation of the magnetic
 mirror point for a particle of a given pitch angle (the angle between a 
 particle's velocity vector and the magnetic field line that it immediately 
@@ -236,7 +266,35 @@ orbits such that a pitch angle of 90 degrees signifies gyration perpendicular
 to the local field) anywhere in geospace, and calculation of electron drift 
 shells in the inner magnetosphere.::
     
-    >>> example code goes here
+    >>> import spacepy.time as spt
+    >>> import spacepy.coordinates as spc
+    >>> import spacepy.irbempy as ib
+    >>> t = spt.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
+    >>> y = spc.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> ib.get_Bfield(t,y)
+    {'Blocal': array([  976.42565251,  3396.25991675]),
+       'Bvec': array([[ -5.01738885e-01,  -1.65104338e+02,   9.62365503e+02],
+       [  3.33497974e+02,  -5.42111173e+02,   3.33608693e+03]])}
+
+One can also calculate the drift shell L* for a 90 degree pitch angle value by using::
+
+    >>> ib.get_Lstar(t,y, [90])
+    {'Bmin': array([  975.59122652,  3388.2476667 ]),
+     'Bmirr': array([[  976.42565251],
+       [ 3396.25991675]]),
+     'Lm': array([[ 3.13508015],
+       [ 2.07013638]]),
+     'Lstar': array([[ 2.86958324],
+       [ 1.95259007]]),
+     'MLT': array([ 11.97222034,  12.13378624]),
+     'Xj': array([[ 0.00081949],
+       [ 0.00270321]])}
+
+Other function wrapped with the IRBEM library include:
+
+* ``find_Bmirror``
+* ``find_magequator``
+* ``corrd_trans``
 
 
 Pycdf - Python Access to NASA CDF Library
@@ -371,10 +429,4 @@ the temporal resolution is 1 hr and the window is +/- 3 days
         #rather than quartiles, we calculate the 95% confidence interval on the median
     >>> sevx.sea(ci=True)
     >>> sevx.plot()
-
-
-Testing Suite
-=============
-
-Is supposed to test the implementation of spacepy modules.
 

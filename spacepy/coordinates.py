@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.7 $, $Date: 2010/09/30 22:45:38 $"
+__version__ = "$Revision: 1.8 $, $Date: 2010/11/16 23:58:48 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -15,7 +15,7 @@ __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 # -----------------------------------------------    
 class Coords(object):
     """
-    a = Coords( data, dtype, carsph, [units, ticktock] )
+    a = Coords( data, dtype, carsph, [units, ticks] )
     
     A class holding spatial coordinates in cartesian/spherical
     in units of Re and degrees
@@ -28,7 +28,7 @@ class Coords(object):
         - carsph (string) : cartesian or spherical, 'car' or 'sph'
         - optional units (list of strings) : standard are  ['Re', 'Re', 'Re'] or 
             ['Re', 'deg', 'deg'] depending on the carsph content
-        - optional ticktock (Ticktock instance) : used for coordinate transformations (see a.convert)    
+        - optional ticks (Ticktock instance) : used for coordinate transformations (see a.convert)    
         
     Returns:
     ========
@@ -39,7 +39,7 @@ class Coords(object):
     >>> cvals = Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
     >>> cvals.x  # returns all x coordinates
     array([1, 1])
-    >>> cvals.ticktock = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
+    >>> cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticks
     >>> newcoord = cvals.convert('GSM', 'sph')
     >>> newcoord
     
@@ -58,7 +58,7 @@ class Coords(object):
     
     """
     
-    def __init__(self, data, dtype, carsph, units=None, ticktock=None):
+    def __init__(self, data, dtype, carsph, units=None, ticks=None):
         
         import numpy as n
         from . import irbempy as op
@@ -73,9 +73,9 @@ class Coords(object):
         assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
         onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
         
-        # add ticktock
-        if ticktock: assert len(ticktock) == len(data), 'Ticktock dimensions seem off'
-        self.ticktock = ticktock
+        # add ticks
+        if ticks: assert len(ticks) == len(data), 'Ticktock dimensions seem off'
+        self.ticks = ticks
         
         # GEO,sph and SPH,sph are the same
         if dtype == 'GEO' and carsph == 'sph':
@@ -195,7 +195,7 @@ class Coords(object):
         
         arr = n.array(self.data)
         
-        return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, self.ticktock)   
+        return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, self.ticks)   
         
     # -----------------------------------------------    
     def __setitem__(self, idx, vals):
@@ -290,7 +290,7 @@ class Coords(object):
         Example:
         ========
         >>> y = Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
-        >>> y.ticktock = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        >>> y.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         >>> x = y.convert('SM','car')
         >>> x
         Coords( [[ 0.81134097  2.6493305   3.6500375 ]
@@ -325,11 +325,11 @@ class Coords(object):
                 carsph = 'sph'
                 units =  [self.units[0], 'deg','deg']
                 data = op.car2sph(self.data)
-            return Coords(data, self.dtype, carsph, units, self.ticktock)
+            return Coords(data, self.dtype, carsph, units, self.ticks)
 
-        # check the length of ticktock and do the more complex convertions
-        if self.ticktock: 
-            assert len(self.ticktock) == len(self), 'ticktock dimension does not match Coords dimensions'
+        # check the length of ticks and do the more complex convertions
+        if self.ticks: 
+            assert len(self.ticks) == len(self), 'Ticktock dimension does not match Coords dimensions'
         
         # check if car2sph is needed first for oneralib compatibility
         if (self.sysaxes == None) : # a car2sph or sph2car is needed            
@@ -346,11 +346,11 @@ class Coords(object):
             units = self.units
             carsph = self.carsph
         
-        Coords = spacepy.coordinates.Coords(data, self.dtype, carsph, units, self.ticktock)
+        Coords = spacepy.coordinates.Coords(data, self.dtype, carsph, units, self.ticks)
         
         # now convert to other coordinate system
         if (self.dtype != returntype) : 
-            assert Coords.ticktock, "Time information required; add a.ticktock attribute"
+            assert Coords.ticks, "Time information required; add a.ticks attribute"
             Coords.data = op.coord_trans( Coords, returntype, returncarsph)
             Coords.dtype = returntype
             Coords.carsph = returncarsph

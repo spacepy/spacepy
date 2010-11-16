@@ -80,7 +80,7 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.29 $, $Date: 2010/11/12 17:13:11 $"
+__version__ = "$Revision: 1.30 $, $Date: 2010/11/16 23:58:48 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1961,8 +1961,8 @@ def test():
     ========
 
     >>> test()
-    testing ticktock: PASSED TEST 1
-    testing ticktock: PASSED TEST 2
+    testing ticks: PASSED TEST 1
+    testing ticks: PASSED TEST 2
     0
 
     Author:

@@ -3,13 +3,13 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.14 $, $Date: 2010/09/30 21:51:52 $"
+__version__ = "$Revision: 1.15 $, $Date: 2010/11/16 23:58:48 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -----------------------------------------------
-def get_omni(ticktock):
+def get_omni(ticks):
     """
-    will load the pickled omni file, interpolate to the given ticktock time
+    will load the pickled omni file, interpolate to the given ticks time
     and return the omni values as dictionary with 
     Kp, Dst, dens, velo, Pdyn, ByIMF, BzIMF, G1, G2, G3, etc.
     (see also http://www.dartmouth.edu/~rdenton/magpar/index.html and
@@ -24,7 +24,7 @@ def get_omni(ticktock):
 
     Input:
     ======
-        - ticktock (Ticktock class) : containing time information
+        - ticks (Ticktock class) : containing time information
         
     Returns:
     ========
@@ -50,15 +50,15 @@ def get_omni(ticktock):
     import numpy as n
     import spacepy.time as st
 
-    # extract RTD from ticktock
-    RDTvals = ticktock.RDT
-    nRDT = len(ticktock)
+    # extract RTD from ticks
+    RDTvals = ticks.RDT
+    nRDT = len(ticks)
 
     omnikeys = omnidata.keys()
     omnikeys.remove('Qbits') # remove this item because it is a string (cannot interpolate)
     omnikeys.remove('UTC')
     omnikeys.remove('RDT')
-    omnikeys.remove('ticktock')
+    omnikeys.remove('ticks')
 
     omnival = {}
     for key in omnikeys:
@@ -73,9 +73,9 @@ def get_omni(ticktock):
         omnival['Qbits'][key] = omnival['Qbits'][key].astype('int')
         
     # add time information back in
-    omnival['UTC'] = ticktock.UTC
-    omnival['RDT'] = ticktock.RDT
-    omnival['ticktock'] = ticktock
+    omnival['UTC'] = ticks.UTC
+    omnival['RDT'] = ticks.RDT
+    omnival['ticks'] = ticks
     
     # return warning if values outside of omni data range
     if n.any(n.isnan(omnival['Kp'])): print("Warning: time is outside of omni data range")

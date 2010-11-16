@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.37 $, $Date: 2010/11/09 18:39:33 $"
+__version__ = "$Revision: 1.38 $, $Date: 2010/11/16 23:58:48 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -22,10 +22,10 @@ def compile_irbempy(fcompiler):
     # compile irbemlib
     os.chdir('spacepy/irbempy/irbem-lib-2010-09-14-rev189')
 
-    F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f']
+    F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
     functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
         'coord_trans1 find_magequator1', 'find_mirror_point1', 
-        'get_field1']
+        'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1']
 
     # call f2py
     os.system('f2py --overwrite-signature -m irbempylib -h irbempylib.pyf '+' '.join(F90files) \
@@ -33,7 +33,7 @@ def compile_irbempy(fcompiler):
 
     # intent(out) substitute list
     outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
-            'xgeo', 'bmir', 'bl', 'bxgeo']
+            'xgeo', 'bmir', 'bl', 'bxgeo', 'flux']
 
     inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
 
@@ -97,10 +97,13 @@ def compile_irbempy(fcompiler):
     else:
         print('%s not supported at this time' % sys.platform)
         sys.exit(1)
-    os.system('rm -f irbempylib.so')
+        
     err = os.system('mv -f irbempylib.so ../')
     if err:
+        print '------------------------------------------------------'
         print 'WARNING: Something went wrong with compiling irbemlib.'
+        print '------------------------------------------------------'
+    
     os.chdir('../../..')
 
     return
