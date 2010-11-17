@@ -3,7 +3,7 @@
 """
 testing	the	irbempy	module
 """
-__version__	=	"$Revision: 1.4 $,	$Date: 2010/10/07 22:55:06 $"
+__version__	=	"$Revision: 1.5 $,	$Date: 2010/11/17 22:23:35 $"
 __author__	=	'Josef	Koller,	Los	Alamos	National	Lab	(jkoller@lanl.gov)'
 
 # -----------------------------------------------------------------------
@@ -82,6 +82,15 @@ class BigTests(unittest.TestCase):
         for key in expected.keys():
             numpy.testing.assert_almost_equal(expected[key], actual[key], 6)
 
+    def test_get_AEP8(self):
+        """test get_AEP8"""
+        c=self.loci[0]
+        c.ticks = self.ticks[0]
+        E = 2.0 # energy in MeV
+        expected = 99492.059080021136
+        actual = ib.get_AEP8(E, c)
+        numpy.testing.assert_almost_equal(expected, actual)
+        
     def test_get_Lstar(self):
         # test T01STORM		
         expected = {'Bmin': array([  975.59122652,  3388.2476667 ]),
