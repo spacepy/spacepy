@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'QuickStartGuide'
-copyright = u'2010, Josef Koller'
+copyright = u'2010, The SpacePy Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
