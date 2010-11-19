@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.10'
+__version__ = '0.11'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -680,9 +680,11 @@ class CDF(collections.Mapping):
 
         @param name: name or number of the variable to write
         @type name: str or int
-        @param data: data to write
+        @param data: data to write, or a L{Var} to copy
         """
-        if name in self:
+        if isinstance(data, Var):
+            self.clone(data, name)
+        elif name in self:
             self[name][...] = data
         else:
             self.new(name, data)
@@ -825,6 +827,29 @@ class CDF(collections.Mapping):
         return lib.call(const.SELECT_, const.CDF_, self._handle,
                         *args, **kwargs)
 
+    def clone(self, zVar, name=None, data=True):
+        """Clone a zVariable (from another CDF or this) into this CDF
+
+        @param zVar: variable to clone
+        @type zVar: L{Var}
+        @param name: Name of the new variable (default: name of the original)
+        @type name: str
+        @param data: Copy data, or only type, dimensions, variance, attributes?
+                     (default: copy data as well)
+        @type data: bool
+        """
+        if name == None:
+            name = zVar.name()
+        if name in self:
+            del self[name]
+        self.new(name, cdftype=zVar.type(), recVary=zVar.rv(),
+                 dimVarys=zVar.dv(), dims=zVar._dim_sizes(),
+                 n_elements=zVar._nelems())
+        self[name].compress(*zVar.compress())
+        self[name].attrs.clone(zVar.attrs)
+        if data:
+            self[name][...] = zVar[...]
+
     def col_major(self, new_col=None):
         """Finds the majority of this CDF file
 
@@ -843,22 +868,6 @@ class CDF(collections.Mapping):
         if not maj.value in (const.ROW_MAJOR.value, const.COLUMN_MAJOR.value):
             raise CDFError(const.BAD_MAJORITY)
         return maj.value == const.COLUMN_MAJOR.value
-
-    def _new_var(self, var_name, *args):
-        """Add a new zVariable to this CDF
-
-        @param var_name: Name of the variable.
-        @type var_name: string
-        @param args: Additional arguments passed to L{Var._create}
-        @type args: various
-        @return: a new variable named L{var_name}.
-        @rtype: L{Var}
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
-        """
-
-        return Var(self, var_name, *args)
 
     def readonly(self, ro=None):
         """Sets or check the readonly status of this CDF
@@ -925,7 +934,7 @@ class CDF(collections.Mapping):
         """Set or check the compression of this CDF
 
         Sets compression on entire I{file}, not per-variable
-        (see L{Var.compression}).
+        (see L{Var.compress}).
 
         @param comptype: type of compression to change to, see CDF C reference
                          manual section 4.10. Constants for this parameter
@@ -989,8 +998,7 @@ class CDF(collections.Mapping):
                     for dimVary in dimVarys]
         if not hasattr(cdftype, 'value'):
             cdftype = ctypes.c_long(cdftype)
-        new_var = self._new_var(name, cdftype, n_elements, dims, recVary,
-                                dimVarys)
+        new_var = Var(self, name, cdftype, n_elements, dims, recVary, dimVarys)
         if data != None:
             new_var[...] = data
         return new_var
@@ -1269,7 +1277,7 @@ class Var(collections.Sequence):
                           record-varying variable, or to delete below
                           the record level
         """
-        if not self._rec_vary():
+        if not self.rv():
             raise TypeError('Cannot delete records from non-record-varying '
                             'variable.')
         hslice = _Hyperslice(self, key)
@@ -1381,7 +1389,7 @@ class Var(collections.Sequence):
         @raise CDFError: if CDF library reports an error
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
-        @note: Not intended to be used directly; use L{CDF._new_var}.
+        @note: Not intended to be used directly; use L{CDF.new}.
         """
 
         dim_array = (ctypes.c_long * len(dims))(*dims)
@@ -1481,7 +1489,7 @@ class Var(collections.Sequence):
         """
         cdftype = self.type()
         chartypes = (const.CDF_CHAR.value, const.CDF_UCHAR.value)
-        rv = self._rec_vary()
+        rv = self.rv()
         typestr = lib.cdftypenames[cdftype] + \
                   ('*' + str(self._nelems()) if cdftype in chartypes else '' )
         if rv:
@@ -1514,21 +1522,52 @@ class Var(collections.Sequence):
         sizes = sizes[0:self._n_dims()]
         return sizes
 
-    def _rec_vary(self):
-        """Gets whether this variable has record variance
+    def rv(self, new_rv=None):
+        """Gets or sets whether this variable has record variance
 
+        @param new_rv: True to change to record variance, False to change
+                       to NRV (unspecified to simply check variance.)
+        @type new_rv: boolean
         @return: True if record variance, False if NRV
         @rtype: boolean
         @note: If the variance is unknown, True is assumed
                (this replicates the apparent behaviour of the
                CDF library on variable creation).
         """
+        if new_rv != None:
+            self._call(const.PUT_, const.zVAR_RECVARY_,
+                       const.VARY if new_rv else const.NOVARY)
         vary = ctypes.c_long(0)
         self._call(const.GET_, const.zVAR_RECVARY_, ctypes.byref(vary))
-        if vary.value == const.NOVARY.value:
-            return False
-        else:
-            return True
+        return vary.value != const.NOVARY.value
+
+    def dv(self, new_dv=None):
+        """Gets or sets dimension variance of each dimension of variable.
+
+        @param new_dv: Each element True to change that dimension to dimension
+                       variance, False to change to not dimension variance.
+                       (Unspecified to simply check variance.)
+        @type new_dv: list of bool
+        @return: True if that dimension has variance, else false.
+        @rtype: list of bool
+        @note: If the variance is unknown, True is assumed
+               (this replicates the apparent behaviour of the
+               CDF library on variable creation).
+        """
+        ndims = self._n_dims()
+        if new_dv != None:
+            if len(new_dv) != ndims:
+                raise ValueError('Must specify variance for ' +
+                                 str(ndims) + 'dimensions.')
+            varies = (ctypes.c_long * ndims)(
+                *[const.VARY if dv else const.NOVARY for dv in new_dv])
+            self._call(const.PUT_, const.zVAR_DIMVARYS_,
+                       varies)
+        if ndims == 0:
+            return []
+        varies = (ctypes.c_long * const.CDF_MAX_DIMS)()
+        self._call(const.GET_, const.zVAR_DIMVARYS_, varies)
+        return [dv != const.NOVARY.value for dv in varies[0:ndims]]
 
     def _call(self, *args, **kwargs):
         """Select this CDF and variable and call the CDF internal interface
@@ -1738,7 +1777,7 @@ class _Hyperslice(object):
         """
 
         self.zvar = zvar
-        self.rv = self.zvar._rec_vary()
+        self.rv = self.zvar.rv()
         self.dims = zvar._n_dims() + 1
         self.dimsizes = [len(zvar)] + \
                         zvar._dim_sizes()
@@ -2294,7 +2333,8 @@ class _Hyperslice(object):
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16]
         elif max([hasattr(i, 'is_integer') for i in flat]):
             absolutes = [abs(i) for i in flat if i != 0]
-            if max(absolutes) > 1.7e38 or min(absolutes) < 3e-39:
+            if len(absolutes) > 0 and \
+                   (max(absolutes) > 1.7e38 or min(absolutes) < 3e-39):
                 types = [const.CDF_DOUBLE, const.CDF_REAL8]
             else:
                 types = [const.CDF_FLOAT, const.CDF_REAL4,
@@ -2439,18 +2479,28 @@ class AttrList(collections.Mapping):
         @type name: str
         @param data: Entries to populate this Attribute with.
                      Any existing Entries will be deleted!
-        @type data: scalar or list
+                     Another C{Attr} may be specified, in which
+                     case all its entries are copied.
+        @type data: scalar, list, or L{Attr}
         """
-        attr = self._get_or_create(name)
-        if isinstance(data, str_classes):
-            data = [data]
+        if isinstance(data, AttrList):
+            if name in self:
+                del self[name]
+            attr = self._get_or_create(name)
+            for entryno in range(data.max_idx()):
+                if data.has_entry(entryno):
+                    attr.new(data[entryno], data.type(entryno), entryno)
         else:
-            try:
-                junk = len(data)
-            except TypeError:
+            attr = self._get_or_create(name)
+            if isinstance(data, str_classes):
                 data = [data]
-        attr[:] = data
-        del attr[len(data):]
+            else:
+                try:
+                    junk = len(data)
+                except TypeError:
+                    data = [data]
+            attr[:] = data
+            del attr[len(data):]
 
     def __delitem__(self, name):
         """Delete an Attribute (and all its entries)
@@ -2513,13 +2563,28 @@ class AttrList(collections.Mapping):
         """
         return '\n'.join([key + ': ' + (
             ('\n' + ' ' * (len(key) + 2)).join(
-            [str(value[i]) + ' [' + lib.cdftypenames[value.entry_type(i)] + ']'
+            [str(value[i]) + ' [' + lib.cdftypenames[value.type(i)] + ']'
              for i in range(len(value))])
             if isinstance(value, Attr)
             else str(value) +
-            ' [' + lib.cdftypenames[self.entry_type(key)] + ']'
+            ' [' + lib.cdftypenames[self.type(key)] + ']'
             )
             for (key, value) in self.items()])
+
+    def clone(self, master, name=None, new_name=None):
+        """Clones this attribute list, or one attribute in it, from another
+
+        @param master: the attribute list to copy from
+        @type master: L{AttrList}
+        @param name: name of attribute to clone (default: clone entire list)
+        @type name: str
+        @param new_name: name of the new attribute, default L{name}
+        @type new_name: str
+        """
+        if name == None:
+            self._clone_list(master)
+        else:
+            self._clone_attr(master, name, new_name)
 
     def copy(self):
         """Create a copy of this attribute list
@@ -2560,6 +2625,34 @@ class AttrList(collections.Mapping):
         @type new_name: str
         """
         AttrList.__getitem__(self, old_name).rename(new_name)
+
+    def _clone_attr(self, master, name, new_name=None):
+        """Clones a single attribute from one in this list or another
+
+        Copies data and types from the master attribute to the new one
+
+        @param master: attribute list to copy attribute from
+        @type master: L{AttrList}
+        @param name: name of attribute to copy
+        @type name: str
+        @param new_name: name of the new attribute, default L{name}
+        @type new_name: str
+        """
+        if new_name == None:
+            new_name = name
+        self[new_name] = master[name]
+
+    def _clone_list(self, master):
+        """Clones this attribute list from another
+
+        @param master: the attribute list to copy from
+        @type master: L{AttrList}
+        """
+        for name in master:
+            self._clone_attr(master, name)
+        for name in list(self): #Can't iterate over a list we're changing
+            if not name in master:
+                del self[name]    
 
     def _get_or_create(self, name):
         """Retrieve L{Attr} or create it if it doesn't exist
@@ -2748,7 +2841,7 @@ class zAttrList(AttrList):
             current += 1
         return length
 
-    def entry_type(self, name, new_type=None):
+    def type(self, name, new_type=None):
         """Find or change the CDF type of a zEntry in this zVar
 
         @param name: name of the zAttr to check or change
@@ -2765,7 +2858,25 @@ class zAttrList(AttrList):
         if not attrib.has_entry(zvar_num):
             raise KeyError(name + ': no such attribute for variable ' +
                            self._zvar.name())
-        return attrib.entry_type(zvar_num, new_type)
+        return attrib.type(zvar_num, new_type)
+
+    def _clone_attr(self, master, name, new_name=None):
+        """Clones a single attribute from one in this list or another
+
+        Copies data and types from the master attribute to the new one
+
+        @param master: attribute list to copy attribute from
+        @type master: L{zAttrList}
+        @param name: name of attribute to copy
+        @type name: str
+        @param new_name: name of the new attribute, default L{name}
+        @type new_name: str
+        """
+        if new_name == None:
+            new_name = name
+        if new_name in self:
+            del self[new_name]
+        self.new(new_name, master[name], master.type(name))
 
 
 class Attr(collections.Sequence):
@@ -2898,13 +3009,13 @@ class Attr(collections.Sequence):
                 raise ValueError('Entry strings must be scalar.')
             entrytypes = []
             if self.has_entry(i):
-                entrytype = self.entry_type(i)
+                entrytype = self.type(i)
                 if entrytype in types:
                     entrytypes = [entrytype]
             if not entrytypes:
                 for num in range(self.max_idx()):
                     if self.has_entry(num):
-                        entrytype = self.entry_type(num)
+                        entrytype = self.type(num)
                         if entrytype in types:
                             entrytypes.append(entrytype)
             if entrytypes:
@@ -3047,7 +3158,7 @@ class Attr(collections.Sequence):
             const.GET_, self.ENTRY_NUMELEMS_, ctypes.byref(count))
         return count.value
 
-    def entry_type(self, number, new_type=None):
+    def type(self, number, new_type=None):
         """Find or change the CDF type of a particular Entry number
         
         @param number: number of Entry to check or change
@@ -3064,7 +3175,7 @@ class Attr(collections.Sequence):
         if new_type != None:
             if not hasattr(new_type, 'value'):
                 new_type = ctypes.c_long(new_type)
-            size = ctypes.c_long(len(self[number]))
+            size = ctypes.c_long(self._entry_len(number))
             self._call(const.SELECT_, self.ENTRY_, number,
                        const.PUT_, self.ENTRY_DATASPEC_, new_type, size)
         cdftype = ctypes.c_long(0)
@@ -3168,7 +3279,7 @@ class Attr(collections.Sequence):
         """
         #Make a big enough buffer
         length = self._entry_len(number)
-        cdftype = self.entry_type(number)
+        cdftype = self.type(number)
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
             buff = ctypes.create_string_buffer(length)
         else:
@@ -3224,7 +3335,7 @@ class Attr(collections.Sequence):
             buff = (lib.ctypedict[cdftype] * elements)()
             if cdftype == const.CDF_EPOCH16.value:
                 for j in range(elements):
-                    buff[j] = lib.datetime_to_epoch16(data[j])
+                    buff[j][:] = lib.datetime_to_epoch16(data[j])
             elif cdftype == const.CDF_EPOCH.value:
                 for j in range(elements):
                     buff[j] = lib.datetime_to_epoch(data[j])

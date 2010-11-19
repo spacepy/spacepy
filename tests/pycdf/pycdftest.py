@@ -2,6 +2,9 @@
 
 """Unit test suite for pycdf"""
 
+__version__ = "0.11"
+__author__ = "Jonathan Niehof <jniehof@lanl.gov>"
+
 import ctypes
 import datetime
 import hashlib
@@ -322,6 +325,7 @@ class NoCDF(unittest.TestCase):
                    datetime.datetime(2009, 1, 1),
                    datetime.datetime(2009, 1, 1, 12, 15, 12, 1),
                    [1.0],
+                   0.0,
                    ]
         types = [([4], [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                         const.CDF_INT2, const.CDF_UINT2,
@@ -335,6 +339,8 @@ class NoCDF(unittest.TestCase):
                  ([], [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
                  ([1], [const.CDF_FLOAT, const.CDF_REAL4,
                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ([], [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ]
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
@@ -380,20 +386,6 @@ class MakeCDF(unittest.TestCase):
         self.assertTrue('ATC' in newcdf)
         newcdf.close()
         os.remove(self.testfspec)
-
-
-class CreateVar(unittest.TestCase):
-    def setUp(self):
-        self.cdf = cdf.CDF('new.cdf', '')
-        self.cdf.readonly(False)
-        
-    def tearDown(self):
-        os.remove('new.cdf')
-
-    def testCreateVarDefault(self):
-        """Create a variable with default options in an empty CDF"""
-        new = self.cdf._new_var('new_variable', cdf.const.CDF_UINT1)
-        self.assertTrue(type(new).__name__ == 'Var')
 
 
 class CDFTests(unittest.TestCase):
@@ -619,7 +611,7 @@ class ReadCDF(CDFTests):
                     'SpinRateScalersCounts': True,
                     'SpinRateScalersCountsSigma': True}
         for i in expected:
-            self.assertEqual(self.cdf[i]._rec_vary(), expected[i])
+            self.assertEqual(self.cdf[i].rv(), expected[i])
 
     def testHyperslices(self):
         slices = {'ATC': 1,
@@ -1037,13 +1029,13 @@ class ReadCDF(CDFTests):
         types = [cdf.const.CDF_CHAR, cdf.const.CDF_EPOCH16, ]
         for (name, number, cdf_type) in zip(names, numbers, types):
             attribute = cdf.zAttr(self.cdf, name)
-            actual_type = attribute.entry_type(number)
+            actual_type = attribute.type(number)
             self.assertEqual(actual_type, cdf_type.value,
                              'zAttr ' + name + ' zEntry ' + str(number) +
                              ' ' + str(cdf_type.value) + ' != ' + 
                              str(actual_type))
         self.assertEqual(cdf.const.CDF_CHAR.value,
-                         self.cdf['PhysRecNo'].attrs.entry_type('DEPEND_0'))
+                         self.cdf['PhysRecNo'].attrs.type('DEPEND_0'))
 
     def testgEntryType(self):
         """Get the type of a gEntry"""
@@ -1052,7 +1044,7 @@ class ReadCDF(CDFTests):
         types = [cdf.const.CDF_CHAR, cdf.const.CDF_CHAR, ]
         for (name, number, cdf_type) in zip(names, numbers, types):
             attribute = cdf.gAttr(self.cdf, name)
-            actual_type = attribute.entry_type(number)
+            actual_type = attribute.type(number)
             self.assertEqual(actual_type, cdf_type.value,
                              'gAttr ' + name + ' gEntry ' + str(number) +
                              ' ' + str(cdf_type.value) + ' != ' +
@@ -1752,13 +1744,13 @@ class ChangeCDF(CDFTests):
         self.assertEqual('foobar', zvar.attrs['DEPEND_0'])
         self.assertEqual(const.CDF_CHAR.value,
                          cdf.zAttr(self.cdf,
-                                   'DEPEND_0').entry_type(zvar._num()))
+                                   'DEPEND_0').type(zvar._num()))
 
         zvar.attrs['FILLVAL'] = [0, 1]
         self.assertEqual([0,1], zvar.attrs['FILLVAL'])
         self.assertEqual(const.CDF_INT4.value,
                          cdf.zAttr(self.cdf,
-                                   'FILLVAL').entry_type(zvar._num()))
+                                   'FILLVAL').type(zvar._num()))
 
         message = 'Entry strings must be scalar.'
         try:
@@ -1786,20 +1778,20 @@ class ChangeCDF(CDFTests):
         self.assertEqual(1, zvar.attrs['NEW_ATTRIBUTE'])
         self.assertEqual(const.CDF_INT4.value,
                          cdf.zAttr(self.cdf,
-                                   'NEW_ATTRIBUTE').entry_type(zvar._num()))
+                                   'NEW_ATTRIBUTE').type(zvar._num()))
         
         zvar.attrs['NEW_ATTRIBUTE2'] = [1, 2]
         self.assertEqual([1, 2], zvar.attrs['NEW_ATTRIBUTE2'])
         self.assertEqual(const.CDF_INT4.value,
                          cdf.zAttr(self.cdf,
-                                   'NEW_ATTRIBUTE2').entry_type(zvar._num()))
+                                   'NEW_ATTRIBUTE2').type(zvar._num()))
 
         zvar = self.cdf['SpinNumbers']
         zvar.attrs['NEW_ATTRIBUTE3'] = 1
         self.assertEqual(1, zvar.attrs['NEW_ATTRIBUTE3'])
         self.assertEqual(const.CDF_BYTE.value,
                          cdf.zAttr(self.cdf,
-                                   'NEW_ATTRIBUTE3').entry_type(zvar._num()))
+                                   'NEW_ATTRIBUTE3').type(zvar._num()))
 
     def testDelzAttr(self):
         """Delete a zEntry"""
@@ -1890,10 +1882,10 @@ class ChangeCDF(CDFTests):
         attrs = self.cdf.attrs
         attrs['new_attr'] = []
         attrs['new_attr'][0] = [ord('a'), ord('b'), ord('c')]
-        attrs['new_attr'].entry_type(0, const.CDF_CHAR)
+        attrs['new_attr'].type(0, const.CDF_CHAR)
         self.assertEqual(attrs['new_attr'][0], 'abc')
         try:
-            attrs['new_attr'].entry_type(0, const.CDF_INT2)
+            attrs['new_attr'].type(0, const.CDF_INT2)
         except cdf.CDFError:
             (t, v, tb) = sys.exc_info()
             self.assertEqual(v.status, const.CANNOT_CHANGE)
@@ -1904,10 +1896,10 @@ class ChangeCDF(CDFTests):
         """Change the type of a zEntry"""
         attrs = self.cdf['ATC'].attrs
         attrs['new_attr'] = [ord('a'), ord('b'), ord('c')]
-        attrs.entry_type('new_attr', const.CDF_CHAR)
+        attrs.type('new_attr', const.CDF_CHAR)
         self.assertEqual(attrs['new_attr'], 'abc')
         self.assertEqual(const.CDF_CHAR.value,
-                         attrs.entry_type('new_attr'))
+                         attrs.type('new_attr'))
 
     def testgAttrNewEntry(self):
         """Create a new gEntry using Attr.new()"""
@@ -1916,24 +1908,24 @@ class ChangeCDF(CDFTests):
         attr.new([0, 1, 2, 3])
         self.assertEqual(2, len(attr))
         self.assertEqual([0, 1, 2, 3], attr[1])
-        self.assertEqual(const.CDF_BYTE.value, attr.entry_type(1))
+        self.assertEqual(const.CDF_BYTE.value, attr.type(1))
         #explicit number
         attr.new('hello there', number=10)
         self.assertEqual(3, len(attr))
         self.assertEqual(10, attr.max_idx())
         self.assertEqual('hello there', attr[10])
-        self.assertEqual(const.CDF_CHAR.value, attr.entry_type(10))
+        self.assertEqual(const.CDF_CHAR.value, attr.type(10))
         #explicit type and number
         attr.new(10, const.CDF_INT4, 15)
         self.assertEqual(4, len(attr))
         self.assertEqual(15, attr.max_idx())
         self.assertEqual(10, attr[15])
-        self.assertEqual(const.CDF_INT4.value, attr.entry_type(15))
+        self.assertEqual(const.CDF_INT4.value, attr.type(15))
         #explicit type
         attr.new([10, 11, 12, 13], const.CDF_REAL8)
         self.assertEqual(5, len(attr))
         self.assertEqual([10.0, 11.0, 12.0, 13.0], attr[2])
-        self.assertEqual(const.CDF_REAL8.value, attr.entry_type(2))
+        self.assertEqual(const.CDF_REAL8.value, attr.type(2))
 
     def testgAttrListNew(self):
         """Create a new gAttr and/or gEntry using gAttrList.new"""
@@ -1946,7 +1938,7 @@ class ChangeCDF(CDFTests):
         attrs.new('new3', [1, 2, 3], const.CDF_INT4)
         self.assertTrue('new3' in attrs)
         self.assertEqual([1, 2, 3], attrs['new3'][0])
-        self.assertEqual(const.CDF_INT4.value, attrs['new3'].entry_type(0))
+        self.assertEqual(const.CDF_INT4.value, attrs['new3'].type(0))
 
     def testzAttrListNew(self):
         """Create a new zEntry using zAttrList.new"""
@@ -1957,7 +1949,7 @@ class ChangeCDF(CDFTests):
         attrs.new('new3', [1, 2, 3], const.CDF_INT4)
         self.assertTrue('new3' in attrs)
         self.assertEqual([1, 2, 3], attrs['new3'])
-        self.assertEqual(const.CDF_INT4.value, attrs.entry_type('new3'))
+        self.assertEqual(const.CDF_INT4.value, attrs.type('new3'))
 
     def testNewVar(self):
         """Create a new variable"""
@@ -2007,9 +1999,18 @@ class ChangeCDF(CDFTests):
     def testNewVarNRV(self):
         """Create a new non-record-varying variable"""
         self.cdf.new('newvar2', [1, 2, 3], recVary=False)
-        self.assertFalse(self.cdf['newvar2']._rec_vary())
+        self.assertFalse(self.cdf['newvar2'].rv())
         self.assertEqual([3], self.cdf['newvar2']._dim_sizes())
         self.assertEqual([1, 2, 3], self.cdf['newvar2'][...])
+
+    def testChangeRV(self):
+        """Change record variance"""
+        zVar = self.cdf.new('newvar', dims=[], cdftype=const.CDF_INT4)
+        self.assertTrue(zVar.rv())
+        zVar.rv(False)
+        self.assertFalse(zVar.rv())
+        zVar.rv(True)
+        self.assertTrue(zVar.rv())
 
     def testChecksum(self):
         """Change checksumming on the CDF"""
@@ -2068,6 +2069,123 @@ class ChangeCDF(CDFTests):
         """Read from an empty variable"""
         self.cdf['ATC'] = []
         self.assertEqual([], self.cdf['ATC'][...])
+
+    def testCopyVariable(self):
+        """Copy one variable to another"""
+        varlist = list(self.cdf.keys())
+        for name in varlist:
+            oldvar = self.cdf[name]
+            self.cdf[name + '_2'] = oldvar
+            newvar = self.cdf[name + '_2']
+            msg = 'Variable ' + name + ' failed.'
+            self.assertEqual(oldvar._n_dims(), newvar._n_dims(), msg)
+            self.assertEqual(oldvar._dim_sizes(), newvar._dim_sizes(), msg)
+            self.assertEqual(oldvar.type(), newvar.type(), msg)
+            self.assertEqual(oldvar._nelems(), newvar._nelems(), msg)
+            self.assertEqual(oldvar.compress(), newvar.compress(), msg)
+            self.assertEqual(oldvar.rv(), newvar.rv(), msg)
+            self.assertEqual(oldvar.dv(), newvar.dv(), msg)
+            self.assertEqual(oldvar[...], newvar[...], msg)
+            oldlist = oldvar.attrs
+            newlist = newvar.attrs
+            for attrname in oldlist:
+                self.assertTrue(attrname in newlist)
+                self.assertEqual(oldlist[attrname], newlist[attrname])
+                self.assertEqual(oldlist.type(attrname),
+                                 newlist.type(attrname))
+
+    def testCloneVariable(self):
+        """Clone a variable's type, dims, etc. to another"""
+        varlist = list(self.cdf.keys())
+        for name in varlist:
+            oldvar = self.cdf[name]
+            self.cdf.clone(oldvar, name + '_2', False)
+            newvar = self.cdf[name + '_2']
+            msg = 'Variable ' + name + ' failed.'
+            self.assertEqual(oldvar._n_dims(), newvar._n_dims(), msg)
+            self.assertEqual(oldvar._dim_sizes(), newvar._dim_sizes(), msg)
+            self.assertEqual(oldvar.type(), newvar.type(), msg)
+            self.assertEqual(oldvar._nelems(), newvar._nelems(), msg)
+            self.assertEqual(oldvar.compress(), newvar.compress(), msg)
+            self.assertEqual(oldvar.rv(), newvar.rv(), msg)
+            self.assertEqual(oldvar.dv(), newvar.dv(), msg)
+            if newvar.rv():
+                self.assertEqual([], newvar[...], msg)
+            oldlist = oldvar.attrs
+            newlist = newvar.attrs
+            for attrname in oldlist:
+                self.assertTrue(attrname in newlist)
+                self.assertEqual(oldlist[attrname], newlist[attrname])
+                self.assertEqual(oldlist.type(attrname),
+                                 newlist.type(attrname))
+
+    def testDimVariance(self):
+        """Check and change dimension variance of a variable"""
+        self.assertEqual([True],
+            self.cdf['SpinNumbers'].dv())
+        self.assertEqual([True, True, True],
+            self.cdf['SectorRateScalersCounts'].dv())
+        self.cdf.new('foobar', cdftype=const.CDF_INT1,
+                     dims=[2, 3], dimVarys=[True, False])
+        self.assertEqual([True, False],
+                         self.cdf['foobar'].dv())
+        self.cdf['foobar'].dv([False, True])
+        self.assertEqual([False, True],
+                         self.cdf['foobar'].dv())
+
+    def testCopyAttr(self):
+        """Assign a gAttribute to another"""
+        self.cdf.attrs['new_attr'] = self.cdf.attrs['TEXT']
+        old_attr = self.cdf.attrs['TEXT']
+        new_attr = self.cdf.attrs['new_attr']
+        for i in range(self.cdf.attrs['TEXT'].max_idx()):
+            self.assertEqual(old_attr.has_entry(i),
+                             new_attr.has_entry(i))
+            if old_attr.has_entry(i):
+                self.assertEqual(old_attr[i], new_attr[i])
+                self.assertEqual(old_attr.type(i),
+                                 new_attr.type(i))
+
+    def testCloneAttrList(self):
+        """Copy an entire attribute list from one CDF to another"""
+        try:
+            with cdf.CDF('attrcopy.cdf', '') as newcdf:
+                newcdf.attrs['deleteme'] = ['hello']
+                newcdf.attrs.clone(self.cdf.attrs)
+                for attrname in self.cdf.attrs:
+                    self.assertTrue(attrname in newcdf.attrs)
+                    old_attr = self.cdf.attrs[attrname]
+                    new_attr = newcdf.attrs[attrname]
+                    self.assertEqual(old_attr.max_idx(),
+                                     new_attr.max_idx())
+                    for i in range(old_attr.max_idx()):
+                        self.assertEqual(old_attr.has_entry(i),
+                                         new_attr.has_entry(i))
+                        if old_attr.has_entry(i):
+                            self.assertEqual(old_attr[i], new_attr[i])
+                            self.assertEqual(old_attr.type(i),
+                                             new_attr.type(i))
+                for attrname in newcdf.attrs:
+                    self.assertTrue(attrname in self.cdf.attrs)
+        finally:
+            os.remove('attrcopy.cdf')
+
+    def testClonezAttrList(self):
+        """Copy entire attribute list from one zVar to another"""
+        oldlist = self.cdf['ATC'].attrs
+        newlist = self.cdf['PhysRecNo'].attrs
+        newlist.clone(oldlist)
+        for attrname in oldlist:
+            self.assertTrue(attrname in newlist)
+            self.assertEqual(oldlist[attrname], newlist[attrname])
+            self.assertEqual(oldlist.type(attrname),
+                             newlist.type(attrname))
+
+    def testAssignEpoch16Entry(self):
+        """Assign to an Epoch16 entry"""
+        self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
+        self.assertEqual(datetime.datetime(2010,1,1),
+                         self.cdf['ATC'].attrs['FILLVAL'])
 
 
 class ChangeColCDF(ColCDFTests):
