@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.55 $, $Date: 2010/11/16 23:58:48 $"
+__version__ = "$Revision: 1.56 $, $Date: 2010/11/22 21:01:53 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1080,8 +1080,8 @@ def leap_year(year, numdays=False, nobool=False):
     return an array of boolean leap year, 
     a lot faster than the mod method that is normally seen
 
-    @param year: array of years
-    @type year: numpy.array
+    @param year: <iterable> of years
+    @type year: iterable
     @keyword numdays: optionally return the number of days in the year
     @type numdays: boolean
     @return: an array of boolean leap year, or array of number of days
@@ -1092,22 +1092,42 @@ def leap_year(year, numdays=False, nobool=False):
     @contact: balarsen@lanl.gov
     
     @version: V1: 14-Jun-2010 (BAL)
+    @version: V2: 22-Nov-2010 (BAL) accepts lists not just arrays
 
     >>> leap_year(arange(15)+1998)
     Out[10]: 
     array([False, False,  True, False, False, False,  True, False, False,
     ... False,  True, False, False, False,  True], dtype=bool)
     """
-    mask400 = (year % 400) == 0   # this is a leap year
-    mask100 = (year % 100) == 0   # these are not leap years
-    mask4   = (year %   4) == 0   # this is a leap year
-    if numdays:
-        numdays=365
-        return numdays + ((mask400 | mask4) & (~mask100 | mask400))
-    else:
-        if nobool:
-            return 0 + ((mask400 | mask4) & (~mask100 | mask400))
-        return ((mask400 | mask4) & (~mask100 | mask400))
+    try:
+        mask400 = (year % 400) == 0   # this is a leap year
+        mask100 = (year % 100) == 0   # these are not leap years
+        mask4   = (year %   4) == 0   # this is a leap year
+    except TypeError: # data wasn't an array so do a comprehension
+        mask400 = [ (val % 400) == 0 for val in year]
+        mask100 = [ (val % 100) == 0 for val in year]        
+        mask4   = [ (val %   4) == 0 for val in year]
+    if numdays or nobool:
+        if numdays:
+            numdays=365
+        else:
+            numdays = 0
+        try:
+            return numdays + ((mask400 | mask4) & (~mask100 | mask400))
+        except TypeError: # data wasn't an array so do a comprehension`
+            return [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
+    try:
+        try:
+            return ((mask400 | mask4) & (~mask100 | mask400)).astype(bool)
+        except AttributeError:
+            return bool((mask400 | mask4) & (~mask100 | mask400)) # get here with a sinle number input
+    
+    except TypeError: # data wasn't an array so do a comprehension`
+        return [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]
+        
+
+leapyear = leap_year
+
     
 def pmm(a, *b):
     """

@@ -127,8 +127,27 @@ class SimpleFunctionTests(unittest.TestCase):
         real_ans = [[1,2,3], [2,3,1], [1], [1,2,3]]
         for i, val in enumerate(real_ans):
             self.assertEqual(val, tb.listUniq(data[i]))
-            
 
+
+    def test_leap_year(self):
+        """Leap_year should give known output for known input"""
+        data = ( 1993 + array(range(10)), 1900, [1993 + val for val in range(10)] )
+        real_ans = ( array([False, False, False,  True, False, False, False,  True, False, False], dtype=bool),
+                     False,
+                     [False, False, False,  True, False, False, False,  True, False, False] )
+        for i, val in enumerate(real_ans):
+            if i == 0:
+                self.assertEqual(val.tolist(), tb.leap_year(data[i]).tolist())
+            else:
+                self.assertEqual(val, tb.leap_year(data[i]))
+        real_ans = ( array([365, 365, 365,  366, 365, 365, 365,  366, 365, 365]),
+                     365,
+                     [365, 365, 365,  366, 365, 365, 365,  366, 365, 365] )
+        for i, val in enumerate(real_ans):
+            if i == 0:
+                self.assertEqual(val.tolist(), tb.leap_year(data[i], True).tolist())
+            else:
+                self.assertEqual(val, tb.leap_year(data[i], True))
 
 class tFunctionTests(unittest.TestCase):
     def setUp(self):
