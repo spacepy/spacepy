@@ -61,7 +61,7 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class Coords</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class Coords</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
 object --+
          |
@@ -69,8 +69,8 @@ object --+
 </pre>
 
 <hr />
-<p>a = Coords( data, dtype, carsph, [units, ticktock] )</p>
-  <p>A class holding spatial coordinates in cartesian/spherical in units of
+<p>a = Coords( data, dtype, carsph, [units, ticks] )</p>
+  <p>A class holding spatial coordinates in Cartesian/spherical in units of
   Re and degrees</p>
   <h1 class="heading">Input:</h1>
     <ul>
@@ -82,14 +82,14 @@ object --+
         SM, GEI MAG, SPH, RLL
       </li>
       <li>
-        carsph (string) : cartesian or spherical, 'car' or 'sph'
+        carsph (string) : Cartesian or spherical, 'car' or 'sph'
       </li>
       <li>
         optional units (list of strings) : standard are  ['Re', 'Re', 'Re']
         or ['Re', 'deg', 'deg'] depending on the carsph content
       </li>
       <li>
-        optional ticktock (Ticktock instance) : used for coordinate 
+        optional ticks (Ticktock instance) : used for coordinate 
         transformations (see a.convert)
       </li>
     </ul>
@@ -104,7 +104,7 @@ object --+
 <span class="py-prompt">&gt;&gt;&gt; </span>cvals = Coords([[1,2,4],[1,2,2]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>cvals.x  <span class="py-comment"># returns all x coordinates</span>
 <span class="py-output">array([1, 1])</span>
-<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>cvals.ticktock = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:00:00'</span>], <span class="py-string">'ISO'</span>) <span class="py-comment"># add ticktock</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>cvals.ticks = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:00:00'</span>], <span class="py-string">'ISO'</span>) <span class="py-comment"># add ticks</span>
 <span class="py-prompt">&gt;&gt;&gt; </span>newcoord = cvals.convert(<span class="py-string">'GSM'</span>, <span class="py-string">'sph'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>newcoord</pre>
   <h1 class="heading">See Also:</h1>
@@ -142,10 +142,10 @@ object --+
         <span class="summary-sig-arg">dtype</span>,
         <span class="summary-sig-arg">carsph</span>,
         <span class="summary-sig-arg">units</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">ticktock</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">ticks</span>=<span class="summary-sig-default">None</span>)</span><br />
       x.__init__(...) initializes x; see x.__class__.__doc__ for signature</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__init__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -162,7 +162,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.coordinates.Coords-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       a.__str__() or a</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__str__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -179,7 +179,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.coordinates.Coords-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       a.__str__() or a</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__str__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -197,7 +197,7 @@ object --+
         <span class="summary-sig-arg">idx</span>)</span><br />
       a.__getitem__(idx) or a[idx]</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__getitem__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -216,7 +216,7 @@ object --+
         <span class="summary-sig-arg">vals</span>)</span><br />
       a.__setitem__(idx, vals) or a[idx] = vals</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__setitem__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -233,7 +233,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.coordinates.Coords-class.html#__len__" class="summary-sig-name">__len__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       a.__len__() or len(a)</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__len__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -252,7 +252,7 @@ object --+
         <span class="summary-sig-arg">returncarsph</span>)</span><br />
       Can be used to create a new Coords instance with new coordinate types</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.convert">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -269,7 +269,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.coordinates.Coords-class.html#__getstate__" class="summary-sig-name">__getstate__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Is called when pickling Author: J.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__getstate__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -287,7 +287,7 @@ object --+
         <span class="summary-sig-arg">dict</span>)</span><br />
       Is called when unpickling Author: J.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__setstate__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -306,7 +306,7 @@ object --+
       Will be called when another Coords instance has to be appended to the
       current one</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.append">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -386,11 +386,11 @@ object --+
         <span class="sig-arg">dtype</span>,
         <span class="sig-arg">carsph</span>,
         <span class="sig-arg">units</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">ticktock</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">ticks</span>=<span class="sig-default">None</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__init__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -415,7 +415,7 @@ object --+
     <br /><em class="fname">(Informal representation operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__str__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -461,7 +461,7 @@ object --+
     <br /><em class="fname">(Representation operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__str__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -508,7 +508,7 @@ object --+
     <br /><em class="fname">(Indexing operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__getitem__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -520,7 +520,7 @@ object --+
         a Coords class instance
       </li>
       <li>
-        idx (int) : interger numbers as index
+        idx (int) : integer numbers as index
       </li>
     </ul>
   <h1 class="heading">Returns:</h1>
@@ -556,7 +556,7 @@ object --+
     <br /><em class="fname">(Index assignment operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__setitem__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -568,7 +568,7 @@ object --+
         a Coords class instance
       </li>
       <li>
-        idx (int) : interger numbers as index
+        idx (int) : integer numbers as index
       </li>
       <li>
         vals (numpy array or list) : new values
@@ -600,7 +600,7 @@ object --+
     <br /><em class="fname">(Length operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__len__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -643,7 +643,7 @@ object --+
         <span class="sig-arg">returncarsph</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.convert">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -660,7 +660,7 @@ object --+
       </li>
       <li>
         returncarsph (string) : coordinate type, possible 'car' for 
-        cartesian and 'sph' for spherical
+        Cartesian and 'sph' for spherical
       </li>
     </ul>
   <h1 class="heading">Returns:</h1>
@@ -672,7 +672,7 @@ object --+
   <h1 class="heading">Example:</h1>
 <pre class="py-doctest">
 <span class="py-prompt">&gt;&gt;&gt; </span>y = Coords([[1,2,4],[1,2,2]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
-<span class="py-prompt">&gt;&gt;&gt; </span>y.ticktock = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:00:00'</span>], <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>y.ticks = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:00:00'</span>], <span class="py-string">'ISO'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>x = y.convert(<span class="py-string">'SM'</span>,<span class="py-string">'car'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>x
 <span class="py-output">Coords( [[ 0.81134097  2.6493305   3.6500375 ]</span>
@@ -695,7 +695,7 @@ object --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__getstate__</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__getstate__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -716,7 +716,7 @@ object --+
         <span class="sig-arg">dict</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.__setstate__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -737,7 +737,7 @@ object --+
         <span class="sig-arg">other</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.coordinates-pysrc.html#Coords.append">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -793,7 +793,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:43 2010
+    Generated by Epydoc 3.0.1 on Mon Nov 22 16:43:52 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

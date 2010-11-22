@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>spacepy.pybats.interact.ClickTracer</title>
+  <title>spacepy.pycdf._pycdf.VarCopy</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 </head>
@@ -43,9 +43,9 @@
     <td width="100%">
       <span class="breadcrumbs">
         <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
-        <a href="spacepy.pybats-module.html">Package&nbsp;pybats</a> ::
-        <a href="spacepy.pybats.interact-module.html">Module&nbsp;interact</a> ::
-        Class&nbsp;ClickTracer
+        <a href="spacepy.pycdf-module.html">Package&nbsp;pycdf</a> ::
+        <a href="spacepy.pycdf._pycdf-module.html" onclick="show_private();">Module&nbsp;_pycdf</a> ::
+        Class&nbsp;VarCopy
       </span>
     </td>
     <td>
@@ -55,24 +55,27 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="spacepy.pybats.interact.ClickTracer-class.html"
+            >]&nbsp;|&nbsp;<a href="spacepy.pycdf._pycdf.VarCopy-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class ClickTracer</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class VarCopy</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
-object --+
-         |
-        <strong class="uidshort">ClickTracer</strong>
+object --+    
+         |    
+      list --+
+             |
+            <strong class="uidshort">VarCopy</strong>
 </pre>
 
 <hr />
-<p>ClickTracers, give an axis containing a 2D plot and the 
-  pybats.bats.Bats2d object used to create it, allows the user to click to 
-  add a streamline passing through the point clicked.</p>
+<p>A copy of the data and attributes in a <a 
+  href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></p>
+  <p>Data are in the list elements, accessed much like <a 
+  href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -93,17 +96,13 @@ object --+
 </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type">new empty list</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.pybats.interact.ClickTracer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">ax</span>,
-        <span class="summary-sig-arg">bats</span>,
-        <span class="summary-sig-arg">xfield</span>,
-        <span class="summary-sig-arg">yfield</span>,
-        <span class="summary-sig-arg">debug</span>=<span class="summary-sig-default">False</span>)</span><br />
-      x.__init__(...) initializes x; see x.__class__.__doc__ for signature</td>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.VarCopy-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">zVar</span>)</span><br />
+      Copies all data and attributes from a zVariable</td>
           <td align="right" valign="top">
             
             
@@ -119,43 +118,9 @@ object --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__call__"></a><span class="summary-sig-name">__call__</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">event</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span></td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="connect"></a><span class="summary-sig-name">connect</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Activate trace-on-click.</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="disconnect"></a><span class="summary-sig-name">disconnect</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Deactivate trace-on-click.</td>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.VarCopy-class.html#__getitem__" class="summary-sig-name">__getitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Returns a subset of the data in this copy</td>
           <td align="right" valign="top">
             
             
@@ -167,20 +132,109 @@ object --+
   </tr>
   <tr>
     <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>list</code></b>:
+      <code>__add__</code>,
+      <code>__contains__</code>,
+      <code>__delitem__</code>,
+      <code>__delslice__</code>,
+      <code>__eq__</code>,
+      <code>__ge__</code>,
+      <code>__getattribute__</code>,
+      <code>__getslice__</code>,
+      <code>__gt__</code>,
+      <code>__iadd__</code>,
+      <code>__imul__</code>,
+      <code>__iter__</code>,
+      <code>__le__</code>,
+      <code>__len__</code>,
+      <code>__lt__</code>,
+      <code>__mul__</code>,
+      <code>__ne__</code>,
+      <code>__new__</code>,
+      <code>__repr__</code>,
+      <code>__reversed__</code>,
+      <code>__rmul__</code>,
+      <code>__setitem__</code>,
+      <code>__setslice__</code>,
+      <code>__sizeof__</code>,
+      <code>append</code>,
+      <code>count</code>,
+      <code>extend</code>,
+      <code>index</code>,
+      <code>insert</code>,
+      <code>pop</code>,
+      <code>remove</code>,
+      <code>reverse</code>,
+      <code>sort</code>
+      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
       <code>__format__</code>,
-      <code>__getattribute__</code>,
-      <code>__hash__</code>,
-      <code>__new__</code>,
       <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
-      <code>__repr__</code>,
       <code>__setattr__</code>,
-      <code>__sizeof__</code>,
       <code>__str__</code>,
       <code>__subclasshook__</code>
       </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>list</code></b>:
+      <code>__hash__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE VARIABLES ==================== -->
+<a name="section-InstanceVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list</span>
+    </td><td class="summary">
+        <a name="_dims"></a><span class="summary-name">_dims</span><br />
+      dimensions of this variable
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">dict</span>
+    </td><td class="summary">
+        <a name="attrs"></a><span class="summary-name">attrs</span><br />
+      attributes for the variable
     </td>
   </tr>
 </table>
@@ -235,11 +289,7 @@ object --+
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">ax</span>,
-        <span class="sig-arg">bats</span>,
-        <span class="sig-arg">xfield</span>,
-        <span class="sig-arg">yfield</span>,
-        <span class="sig-arg">debug</span>=<span class="sig-default">False</span>)</span>
+        <span class="sig-arg">zVar</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -247,12 +297,40 @@ object --+
     </td>
   </tr></table>
   
-  <p>x.__init__(...) initializes x; see x.__class__.__doc__ for 
-  signature</p>
+  <p>Copies all data and attributes from a zVariable</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>zVar</code></strong> (<a href="spacepy.pycdf._pycdf.Var-class.html" 
+          class="link">Var</a>) - variable to take data from</li>
+    </ul></dd>
+    <dt>Returns: new empty list</dt>
     <dt>Overrides:
         object.__init__
-        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+    <br /><em class="fname">(Indexing operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns a subset of the data in this copy</p>
+  <dl class="fields">
+    <dt>Overrides:
+        list.__getitem__
     </dt>
   </dl>
 </td></tr></table>

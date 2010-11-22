@@ -62,7 +62,7 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class Library</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class Library</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
 object --+
          |
@@ -108,7 +108,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Library-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Load the CDF C library.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.__init__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -118,15 +118,16 @@ object --+
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ctypes.clong</span>
+      <span class="summary-type">int</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Library-class.html#check_status" class="summary-sig-name">check_status</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">status</span>)</span><br />
+        <span class="summary-sig-arg">status</span>,
+        <span class="summary-sig-arg">ignore</span>=<span class="summary-sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>)</span><br />
       Raise exception or warning based on return status of CDF call</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.check_status">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -136,15 +137,16 @@ object --+
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ctypes.c_long</span>
+      <span class="summary-type">int</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Library-class.html#call" class="summary-sig-name">call</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">*args</span>)</span><br />
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Call the CDF internal interface</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.call">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -162,7 +164,25 @@ object --+
         <span class="summary-sig-arg">epoch</span>)</span><br />
       Converts a CDF epoch value to a datetime</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.epoch_to_datetime">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">float</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Library-class.html#datetime_to_epoch" class="summary-sig-name">datetime_to_epoch</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dt</span>)</span><br />
+      Converts a Python datetime to a CDF Epoch value</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -180,7 +200,25 @@ object --+
         <span class="summary-sig-arg">epoch</span>)</span><br />
       Converts a CDF epoch16 value to a datetime</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.epoch16_to_datetime">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list of float</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Library-class.html#datetime_to_epoch16" class="summary-sig-name">datetime_to_epoch16</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dt</span>)</span><br />
+      Converts a Python datetime to a CDF Epoch16 value</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -226,10 +264,28 @@ object --+
 </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">boolean</span>
+    </td><td class="summary">
+        <a name="_del_middle_rec_bug"></a><span class="summary-name">_del_middle_rec_bug</span><br />
+      does this version of the library have a bug when deleting a record 
+      from the middle of a variable?
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">ctypes.WinDLL or ctypes.CDLL</span>
     </td><td class="summary">
         <a name="_library"></a><span class="summary-name">_library</span><br />
       <code>ctypes</code> connection to the library
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">tuple</span>
+    </td><td class="summary">
+        <a name="version"></a><span class="summary-name">version</span><br />
+      version of the CDF library, in order version, release, increment, 
+      subincrement
     </td>
   </tr>
 </table>
@@ -287,7 +343,7 @@ object --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.__init__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -323,10 +379,11 @@ object --+
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">check_status</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">status</span>)</span>
+        <span class="sig-arg">status</span>,
+        <span class="sig-arg">ignore</span>=<span class="sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.check_status">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -334,10 +391,13 @@ object --+
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>status</code></strong> (ctypes.clong) - status returned by the C library, equivalent to 
+        <li><strong class="pname"><code>status</code></strong> (int) - status returned by the C library, equivalent to 
           <code>CDFStatus</code></li>
+        <li><strong class="pname"><code>ignore</code></strong> (sequence of ctypes.c_long) - CDF statuses to ignore. If any of these is returned by CDF 
+          library, any related warnings or exceptions will <i>not</i> be 
+          raised. (Default none).</li>
     </ul></dd>
-    <dt>Returns: ctypes.clong</dt>
+    <dt>Returns: int</dt>
         <dd><code class="link">status</code> (unchanged)</dd>
     <dt>Raises:</dt>
     <dd><ul class="nomargin-top">
@@ -356,10 +416,11 @@ object --+
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">call</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">*args</span>)</span>
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.call">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -374,8 +435,11 @@ object --+
         <li><strong class="pname"><code>args</code></strong> (various, see <code>ctypes</code>.) - Passed directly to the CDF library interface. Useful constants 
           are defined in the <a href="spacepy.pycdf.const-module.html" 
           class="link">const</a> module of this package.</li>
+        <li><strong class="pname"><code>ignore</code></strong> - sequence of CDF statuses to ignore. If any of these is returned 
+          by CDF library, any related warnings or exceptions will 
+          <i>not</i> be raised.</li>
     </ul></dd>
-    <dt>Returns: ctypes.c_long</dt>
+    <dt>Returns: int</dt>
         <dd>CDF status from the library</dd>
     <dt>Raises:</dt>
     <dd><ul class="nomargin-top">
@@ -401,7 +465,7 @@ object --+
         <span class="sig-arg">epoch</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.epoch_to_datetime">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -411,6 +475,32 @@ object --+
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>epoch</code></strong> (float) - epoch value from CDF</li>
     </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="datetime_to_epoch"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">datetime_to_epoch</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">dt</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Converts a Python datetime to a CDF Epoch value</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>dt</code></strong> (datetime.datetime) - date and time to convert</li>
+    </ul></dd>
+    <dt>Returns: float</dt>
+        <dd>epoch corresponding to <code class="link">dt</code></dd>
   </dl>
 </td></tr></table>
 </div>
@@ -425,7 +515,7 @@ object --+
         <span class="sig-arg">epoch</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#Library.epoch16_to_datetime">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -433,8 +523,38 @@ object --+
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>epoch</code></strong> (list of two floats #raise EpochError: if input invalid) - epoch16 value from CDF</li>
+        <li><strong class="pname"><code>epoch</code></strong> (list of two floats) - epoch16 value from CDF</li>
     </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.EpochError-class.html">EpochError</a></strong></code> - if input invalid</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="datetime_to_epoch16"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">datetime_to_epoch16</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">dt</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Converts a Python datetime to a CDF Epoch16 value</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>dt</code></strong> (datetime.datetime) - date and time to convert</li>
+    </ul></dd>
+    <dt>Returns: list of float</dt>
+        <dd>epoch16 corresponding to <code class="link">dt</code></dd>
   </dl>
 </td></tr></table>
 </div>
@@ -470,7 +590,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:43 2010
+    Generated by Epydoc 3.0.1 on Mon Nov 22 16:43:53 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,0 +1,1367 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>spacepy.pycdf._pycdf.Attr</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
+        <a href="spacepy.pycdf-module.html">Package&nbsp;pycdf</a> ::
+        <a href="spacepy.pycdf._pycdf-module.html" onclick="show_private();">Module&nbsp;_pycdf</a> ::
+        Class&nbsp;Attr
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="spacepy.pycdf._pycdf.Attr-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Attr</h1><p class="nomargin-top"></p>
+<pre class="base-tree">
+       object --+        
+                |        
+    _abcoll.Sized --+    
+                    |    
+       object --+   |    
+                |   |    
+ _abcoll.Iterable --+    
+                    |    
+       object --+   |    
+                |   |    
+_abcoll.Container --+    
+                    |    
+     _abcoll.Sequence --+
+                        |
+                       <strong class="uidshort">Attr</strong>
+</pre>
+
+<dl><dt>Known Subclasses:</dt>
+<dd>
+      <ul class="subclass-list">
+<li><a href="spacepy.pycdf._pycdf.gAttr-class.html">gAttr</a></li><li>, <a href="spacepy.pycdf._pycdf.zAttr-class.html">zAttr</a></li>  </ul>
+</dd></dl>
+
+<hr />
+<p>An attribute, z or g, for a CDF</p>
+  <p>This class should not be used directly.</p>
+  <p>Represents a CDF attribute, providing access to the Entries in a 
+  format that looks like a Python list. General list information is 
+  available in the python docs: <a 
+  href="http://docs.python.org/tutorial/introduction.html#lists" 
+  target="_top">1</a>, <a 
+  href="http://docs.python.org/tutorial/datastructures.html#more-on-lists" 
+  target="_top">2</a>, <a 
+  href="http://docs.python.org/library/stdtypes.html#typesseq" 
+  target="_top">3</a>.</p>
+  <p>Each element of the list is a single Entry of the appropriate type. 
+  The index to the elements is the Entry number.</p>
+  <p>Multi-dimensional slicing is <i>not</i> supported; an Entry with 
+  multiple elements will have all elements returned (and can thus be sliced
+  itself). Example:</p>
+<pre class="literalblock">
+   first_three = attribute[5, 0:3] #will fail
+   first_three = attribute[5][0:3] #first three elements of 5th Entry
+</pre>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Nested Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-NestedClasses"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b>:
+      <code><a href="abc.ABCMeta-class.html">__metaclass__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">cdf_file</span>,
+        <span class="summary-sig-arg">attr_name</span>,
+        <span class="summary-sig-arg">create</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Initialize this attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__getitem__" class="summary-sig-name">__getitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Return a slice of Entries.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__setitem__" class="summary-sig-name">__setitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>,
+        <span class="summary-sig-arg">data</span>)</span><br />
+      Set a slice of Entries.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__delitem__" class="summary-sig-name">__delitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Delete a slice of Entries.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">current</span>=<span class="summary-sig-default">0</span>)</span><br />
+      Iterates over all entries in this Attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__reversed__" class="summary-sig-name">__reversed__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">current</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Iterates over all entries in this Attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__len__" class="summary-sig-name">__len__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Number of Entries for this Attr.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">str</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns representation of an attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">str</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns a string representation of the attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">ctypes.c_long</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#_call" class="summary-sig-name" onclick="show_private();">_call</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Select this CDF and Attr and call the CDF internal interface</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#_entry_len" class="summary-sig-name" onclick="show_private();">_entry_len</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">number</span>)</span><br />
+      Number of elements in an Entry</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#type" class="summary-sig-name">type</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">number</span>,
+        <span class="summary-sig-arg">new_type</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Find or change the CDF type of a particular Entry number</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">bool</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#has_entry" class="summary-sig-name">has_entry</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">number</span>)</span><br />
+      Check if this attribute has a particular Entry number</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#max_idx" class="summary-sig-name">max_idx</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Maximum index of Entries for this Attr</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#new" class="summary-sig-name">new</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">cdftype</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">number</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Create a new Entry in this Attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#number" class="summary-sig-name">number</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Find the attribute number for this attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">bool</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#global_scope" class="summary-sig-name">global_scope</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Determine scope of this attribute.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#rename" class="summary-sig-name">rename</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">new_name</span>)</span><br />
+      Rename this attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list or str</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#_get_entry" class="summary-sig-name" onclick="show_private();">_get_entry</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">number</span>)</span><br />
+      Read an Entry associated with this <a 
+      href="spacepy.pycdf._pycdf.Attr-class.html" class="link">Attr</a></td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#_write_entry" class="summary-sig-name" onclick="show_private();">_write_entry</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">number</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">cdftype</span>,
+        <span class="summary-sig-arg">dims</span>,
+        <span class="summary-sig-arg">elements</span>)</span><br />
+      Write an Entry to this Attr.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.Attr-class.html#_delete" class="summary-sig-name" onclick="show_private();">_delete</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Delete this Attribute</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sequence</code></b>:
+      <code>__contains__</code>,
+      <code>count</code>,
+      <code>index</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b>:
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_abc_negative_cache"></a><span class="summary-name">_abc_negative_cache</span> = <code title="set([])"><code class="variable-group">set([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_abc_negative_cache_version"></a><span class="summary-name">_abc_negative_cache_version</span> = <code title="15">15</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_abc_registry"></a><span class="summary-name">_abc_registry</span> = <code title="set([])"><code class="variable-group">set([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b> (private):
+      <code>_abc_cache</code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE VARIABLES ==================== -->
+<a name="section-InstanceVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><a href="spacepy.pycdf._pycdf.CDF-class.html" class="link">CDF</a></span>
+    </td><td class="summary">
+        <a name="_cdf_file"></a><span class="summary-name">_cdf_file</span><br />
+      CDF file containing this attribute
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">bytes</span>
+    </td><td class="summary">
+        <a name="_name"></a><span class="summary-name">_name</span><br />
+      Name of the attribute
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">cdf_file</span>,
+        <span class="sig-arg">attr_name</span>,
+        <span class="sig-arg">create</span>=<span class="sig-default">False</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initialize this attribute</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>cdf_file</code></strong> (<a href="spacepy.pycdf._pycdf.CDF-class.html" 
+          class="link">CDF</a>) - CDF file containing this attribute</li>
+        <li><strong class="pname"><code>attr_name</code></strong> (str) - Name of this attribute</li>
+        <li><strong class="pname"><code>create</code></strong> (bool) - True to create attribute, False to look up existing.</li>
+    </ul></dd>
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+    <br /><em class="fname">(Indexing operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a slice of Entries.</p>
+  <p>Because Attributes may be sparse, a multi-element slice will return 
+  None for those elements which do not have associated Entries.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>key</code></strong> (slice or int) - index or range of Entry number to return</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a list of entries, appropriate type.</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>IndexError</strong></code> - if <code class="link">key</code> is an int and that Entry number 
+        does not exist.</li>
+    </ul></dd>
+    <dt>Overrides:
+        _abcoll.Sequence.__getitem__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__setitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__setitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>,
+        <span class="sig-arg">data</span>)</span>
+    <br /><em class="fname">(Index assignment operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Set a slice of Entries.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>key</code></strong> (slice or int) - index or range of Entry numbers to set</li>
+        <li><strong class="pname"><code>data</code></strong> (scalar or list) - the data to set these entries to. Normally each entry should be a
+          sequence; if a scalar is provided, it is treated as a 
+          single-element list.</li>
+    </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>ValueError</strong></code> - if size of {data} does not match size of <code 
+        class="link">key</code></li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Attributes do not 'grow' or 'shrink' as entries are added or 
+        removed. Indexes of entries never change and there is no way to 
+        'insert'.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__delitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__delitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+    <br /><em class="fname">(Index deletion operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Delete a slice of Entries.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>key</code></strong> (slice or int) - index or range of Entry numbers to delete</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Attributes do not 'grow' or 'shrink' as entries are added or 
+        removed. Indexes of entries never change and there is no way to 
+        'insert'.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__iter__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__iter__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">current</span>=<span class="sig-default">0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Iterates over all entries in this Attribute</p>
+  <p>Returns data from one entry at a time until reaches the end.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        _abcoll.Iterable.__iter__
+    </dt>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Returned in entry-number order.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__reversed__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reversed__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">current</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Iterates over all entries in this Attribute</p>
+  <p>Returns data from one entry at a time, starting at end and going to 
+  beginning.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        _abcoll.Sequence.__reversed__
+    </dt>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Returned in entry-number order.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__len__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__len__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Length operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Number of Entries for this Attr. NOT same as max Entry number.</p>
+  <dl class="fields">
+    <dt>Returns: int</dt>
+        <dd>Number of Entries</dd>
+    <dt>Overrides:
+        _abcoll.Sized.__len__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__repr__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__repr__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns representation of an attribute</p>
+  <p>Cannot return anything that can be eval'd to create a copy of the 
+  attribtute, so just wrap the informal representation in angle 
+  brackets.</p>
+  <dl class="fields">
+    <dt>Returns: str</dt>
+        <dd>all the data in this attribute</dd>
+    <dt>Overrides:
+        object.__repr__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__str__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Informal representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns a string representation of the attribute</p>
+  <p>This is an 'informal' representation in that it cannot be evaluated 
+  directly to create an <a href="spacepy.pycdf._pycdf.Attr-class.html" 
+  class="link">Attr</a>.</p>
+  <dl class="fields">
+    <dt>Returns: str</dt>
+        <dd>all the data in this attribute</dd>
+    <dt>Overrides:
+        object.__str__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_call"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_call</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Select this CDF and Attr and call the CDF internal interface</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>args</code></strong> (various, see <code>ctypes</code>.) - Passed directly to the CDF library interface.</li>
+    </ul></dd>
+    <dt>Returns: ctypes.c_long</dt>
+        <dd>CDF status from the library</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
+        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
+        warnings.</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Terminal NULL_ is automatically added to <code 
+        class="link">args</code>.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_entry_len"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_entry_len</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">number</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Number of elements in an Entry</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>number</code></strong> (int) - number of Entry</li>
+    </ul></dd>
+    <dt>Returns: int</dt>
+        <dd>number of elements</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="type"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">type</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">number</span>,
+        <span class="sig-arg">new_type</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Find or change the CDF type of a particular Entry number</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>number</code></strong> (int) - number of Entry to check or change</li>
+        <li><strong class="pname"><code>new_type</code></strong> (ctypes.c_long) - type to change it to, see <a 
+          href="spacepy.pycdf.const-module.html" class="link">const</a></li>
+    </ul></dd>
+    <dt>Returns: int</dt>
+        <dd>CDF variable type, see <a href="spacepy.pycdf.const-module.html" 
+          class="link">const</a></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        If changing types, old and new must be equivalent, see CDF User's 
+        Guide section 2.5.5 pg. 57
+      </p>
+</div></td></tr></table>
+</div>
+<a name="has_entry"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">has_entry</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">number</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Check if this attribute has a particular Entry number</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>number</code></strong> (int) - number of Entry to check</li>
+    </ul></dd>
+    <dt>Returns: bool</dt>
+        <dd>True if <a href="spacepy.pycdf._pycdf.Attr-class.html#number" 
+          class="link">number</a> is a valid entry number; False if not</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="max_idx"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">max_idx</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Maximum index of Entries for this Attr</p>
+  <dl class="fields">
+    <dt>Returns: int</dt>
+        <dd>maximum Entry number</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="new"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">new</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">data</span>,
+        <span class="sig-arg">cdftype</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">number</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create a new Entry in this Attribute</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>data</code></strong> - data to put in the Entry</li>
+        <li><strong class="pname"><code>cdftype</code></strong> - type of the new Entry (otherwise guessed from <code 
+          class="link">data</code>)</li>
+        <li><strong class="pname"><code>number</code></strong> - Entry number to write, default is lowest available number.</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Will overwrite an existing Entry.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="number"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">number</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Find the attribute number for this attribute</p>
+  <dl class="fields">
+    <dt>Returns: int</dt>
+        <dd>attribute number</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="global_scope"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">global_scope</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Determine scope of this attribute.</p>
+  <dl class="fields">
+    <dt>Returns: bool</dt>
+        <dd>True if global (i.e. gAttr) False if zAttr</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="rename"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">rename</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">new_name</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Rename this attribute</p>
+  <p>Renaming a zAttribute renames it for <i>all</i> zVariables in this 
+  CDF!</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>new_name</code></strong> (str) - the new name of the attribute</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_get_entry"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_entry</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">number</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Read an Entry associated with this <a 
+  href="spacepy.pycdf._pycdf.Attr-class.html" class="link">Attr</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>number</code></strong> (int) - number of Entry to return</li>
+    </ul></dd>
+    <dt>Returns: list or str</dt>
+        <dd>data from entry numbered <a 
+          href="spacepy.pycdf._pycdf.Attr-class.html#number" 
+          class="link">number</a></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_write_entry"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_write_entry</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">number</span>,
+        <span class="sig-arg">data</span>,
+        <span class="sig-arg">cdftype</span>,
+        <span class="sig-arg">dims</span>,
+        <span class="sig-arg">elements</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Write an Entry to this Attr.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>number</code></strong> (int) - number of Entry to write</li>
+        <li><strong class="pname"><code>data</code></strong> - data to write</li>
+        <li><strong class="pname"><code>cdftype</code></strong> - the CDF type to write, from <a 
+          href="spacepy.pycdf.const-module.html" class="link">const</a></li>
+        <li><strong class="pname"><code>dims</code></strong> (list) - dimensions of <code class="link">data</code></li>
+        <li><strong class="pname"><code>elements</code></strong> (int) - number of elements in <code class="link">data</code>, 1 unless it
+          is a string</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_delete"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_delete</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Delete this Attribute</p>
+  <p>Also deletes all Entries associated with it.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >SpacePy: Space Science Tools for Python</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Nov 22 16:43:53 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

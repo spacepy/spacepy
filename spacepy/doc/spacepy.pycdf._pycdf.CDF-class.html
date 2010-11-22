@@ -62,7 +62,7 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class CDF</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class CDF</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
        object --+        
                 |        
@@ -83,106 +83,140 @@ _abcoll.Container --+
 
 <hr />
 <p>Python object representing a CDF file.</p>
-  <p>Open a CDF by creating a CDF object, e.g.: <code>cdffile = 
-  pycdf.CDF('cdf_filename.cdf')</code> Be sure to <a 
-  href="spacepy.pycdf._pycdf.CDF-class.html#close" class="link">close</a> 
-  or <a href="spacepy.pycdf._pycdf.CDF-class.html#save" 
-  class="link">save</a> when done.</p>
-  <p>CDF supports the <a 
-  href="http://docs.python.org/tutorial/inputoutput.html#methods-of-file-objects"
-  target="_top">with</a> keyword, like other file objects, so:</p>
+  <h1 class="heading">Opening existing</h1>
+    <p>Open a CDF by creating a CDF object, e.g.: <code>cdffile = 
+    pycdf.CDF('cdf_filename.cdf')</code> Be sure to <a 
+    href="spacepy.pycdf._pycdf.CDF-class.html#close" class="link">close</a>
+    or <a href="spacepy.pycdf._pycdf.CDF-class.html#save" 
+    class="link">save</a> when done.</p>
+    <p>CDF supports the <a 
+    href="http://docs.python.org/tutorial/inputoutput.html#methods-of-file-objects"
+    target="_top">with</a> keyword, like other file objects, so:</p>
 <pre class="literalblock">
    with pycdf.CDF('cdf_filename.cdf') as cdffile:
        do brilliant things with the CDF
 </pre>
-  <p>will open the CDF, execute the indented statements, and close the CDF 
-  when finished or when an error occurs. The <a 
-  href="http://docs.python.org/reference/compound_stmts.html#with" 
-  target="_top">python docs</a> include more detail on this 'context 
-  manager' ability.</p>
-  <p>CDF objects behave like a python <a 
-  href="http://docs.python.org/tutorial/datastructures.html#dictionaries" 
-  target="_top">dictionary</a>, where the keys are names of variables in 
-  the CDF, and the values, <a href="spacepy.pycdf._pycdf.Var-class.html" 
-  class="link">Var</a> objects. As a dictionary, they are also <a 
-  href="http://docs.python.org/tutorial/classes.html#iterators" 
-  target="_top">iterable</a> and it is easy to loop over all of the 
-  variables in a file. Some examples:</p>
-  <ol start="1">
-    <li>
-      List the names of all variables in the open CDF cdffile:
+    <p>will open the CDF, execute the indented statements, and close the 
+    CDF when finished or when an error occurs. The <a 
+    href="http://docs.python.org/reference/compound_stmts.html#with" 
+    target="_top">python docs</a> include more detail on this 'context 
+    manager' ability.</p>
+    <p>CDF objects behave like a python <a 
+    href="http://docs.python.org/tutorial/datastructures.html#dictionaries"
+    target="_top">dictionary</a>, where the keys are names of variables in 
+    the CDF, and the values, <a href="spacepy.pycdf._pycdf.Var-class.html" 
+    class="link">Var</a> objects. As a dictionary, they are also <a 
+    href="http://docs.python.org/tutorial/classes.html#iterators" 
+    target="_top">iterable</a> and it is easy to loop over all of the 
+    variables in a file. Some examples:</p>
+    <ol start="1">
+      <li>
+        List the names of all variables in the open CDF cdffile:
 <pre class="literalblock">
-  keys(cdffile)
+  cdffile.keys()
 </pre>
-    </li>
-    <li>
-      Get a <a href="spacepy.pycdf._pycdf.Var-class.html" 
-      class="link">Var</a> object corresponding to the variable named 
-      Epoch:
+      </li>
+      <li>
+        Get a <a href="spacepy.pycdf._pycdf.Var-class.html" 
+        class="link">Var</a> object corresponding to the variable named 
+        Epoch:
 <pre class="literalblock">
   epoch = cdffile['Epoch']
 </pre>
-    </li>
-    <li>
-      Determine if a CDF contains a variable named B_GSE:
+      </li>
+      <li>
+        Determine if a CDF contains a variable named B_GSE:
 <pre class="literalblock">
   if 'B_GSE' in cdffile:
     print 'B_GSE is in the file'
   else:
     print 'B_GSE is not in the file'
 </pre>
-    </li>
-    <li>
-      Find how many variables are in the file:
+      </li>
+      <li>
+        Find how many variables are in the file:
 <pre class="literalblock">
   print len(cdffile)
 </pre>
-    </li>
-    <li>
-      Open the CDF named <code>cdf_filename.cdf</code>, read <i>all</i> the
-      data from all variables into it, and close it when done or if an 
-      error occurs:
+      </li>
+      <li>
+        Open the CDF named <code>cdf_filename.cdf</code>, read <i>all</i> 
+        the data from all variables into it, and close it when done or if 
+        an error occurs:
 <pre class="literalblock">
  with pycdf.CDF('cdf_filename.cdf') as cdffile:
-      data = cdffile.all_data()
+      data = cdffile.copy()
 </pre>
-    </li>
-  </ol>
-  <p>This last example can be very inefficient as it reads the entire CDF. 
-  Normally it's better to treat the CDF as a dictionary and access only the
-  data needed, which will be pulled transparently from disc. See <a 
-  href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a> for more 
-  subtle examples.</p>
-  <p>Potentially useful dictionary methods and related functions:</p>
-  <ul>
-    <li>
-      <a href="http://docs.python.org/reference/expressions.html#in" 
-      target="_top">in</a>
-    </li>
-    <li>
-      <a 
-      href="http://docs.python.org/tutorial/datastructures.html#dictionaries"
-      target="_top">keys</a>
-    </li>
-    <li>
-      <a href="http://docs.python.org/library/functions.html#len" 
-      target="_top">len</a>
-    </li>
-    <li>
-      <a 
-      href="http://docs.python.org/tutorial/datastructures.html#list-comprehensions"
-      target="_top">list comprehensions</a>
-    </li>
-    <li>
-      <a href="http://docs.python.org/library/functions.html#sorted" 
-      target="_top">sorted</a>
-    </li>
-  </ul>
+      </li>
+    </ol>
+    <p>This last example can be very inefficient as it reads the entire 
+    CDF. Normally it's better to treat the CDF as a dictionary and access 
+    only the data needed, which will be pulled transparently from disc. See
+    <a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a> for 
+    more subtle examples.</p>
+    <p>Potentially useful dictionary methods and related functions:</p>
+    <ul>
+      <li>
+        <a href="http://docs.python.org/reference/expressions.html#in" 
+        target="_top">in</a>
+      </li>
+      <li>
+        <a 
+        href="http://docs.python.org/tutorial/datastructures.html#dictionaries"
+        target="_top">keys</a>
+      </li>
+      <li>
+        <a href="http://docs.python.org/library/functions.html#len" 
+        target="_top">len</a>
+      </li>
+      <li>
+        <a 
+        href="http://docs.python.org/tutorial/datastructures.html#list-comprehensions"
+        target="_top">list comprehensions</a>
+      </li>
+      <li>
+        <a href="http://docs.python.org/library/functions.html#sorted" 
+        target="_top">sorted</a>
+      </li>
+    </ul>
+    <p>See also toolbox.dictree in SpacePy.</p>
+    <p>The <a href="spacepy.pycdf._pycdf.CDF-class.html#attrs" 
+    class="link">attrs</a> Python attribute acts as a dictionary 
+    referencing CDF attributes (do not confuse the two); all the dictionary
+    methods above also work on the attribute dictionary. See <a 
+    href="spacepy.pycdf._pycdf.gAttrList-class.html" 
+    class="link">gAttrList</a> for more on the dictionary of global 
+    attributes.</p>
+  <h1 class="heading">Creating New</h1>
+    <p>Creating a new CDF from a master (skeleton) CDF has similar syntax 
+    to opening one:</p>
+<pre class="literalblock">
+ cdffile = pycdf.CDF('cdf_filename.cdf', 'master_cdf_filename.cdf')
+</pre>
+    <p>This creates and opens <code>cdf_filename.cdf</code> as a copy of 
+    <code>master_cdf_filename.cdf</code></p>
+    <p>Using a skeleton CDF is recommended over making a CDF entirely from 
+    scratch, but this is possible by specifying a blank master:</p>
+<pre class="literalblock">
+ cdffile = pycdf.CDF('cdf_filename.cdf', '')
+</pre>
+    <p>When CDFs are created in this way, they are opened read-write, see 
+    <a href="spacepy.pycdf._pycdf.CDF-class.html#readonly" 
+    class="link">readonly</a> to change.</p>
+    <p>Add variables by direct assignment, which will automatically set 
+    type and dimension based on the data provided:</p>
+<pre class="literalblock">
+ cdffile['new_variable_name'] = [1, 2, 3, 4]
+</pre>
+    <p>or, if more control is needed over the type and dimensions, use <a 
+    href="spacepy.pycdf._pycdf.CDF-class.html#new" 
+    class="link">new</a>.</p>
 
 <hr />
 <div class="fields">      <p><strong>Note:</strong>
-        Write support has not been implemented, so CDF is opened read-only 
-        by default.
+        CDF is opened read-only by default, see <a 
+        href="spacepy.pycdf._pycdf.CDF-class.html#readonly" 
+        class="link">readonly</a> to change.
       </p>
 </div><!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
@@ -237,7 +271,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">masterpath</span>=<span class="summary-sig-default">None</span>)</span><br />
       Open or create a CDF file.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__init__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -254,7 +288,25 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__del__" class="summary-sig-name">__del__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Destructor</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__del__">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__delitem__" class="summary-sig-name">__delitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span><br />
+      Delete a zVariable in this CDF, by name or number</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -271,7 +323,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a name="__enter__"></a><span class="summary-sig-name">__enter__</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Context manager entrance function.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__enter__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -291,7 +343,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">traceback</span>)</span><br />
       Context manager exit function.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__exit__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -309,7 +361,26 @@ _abcoll.Container --+
         <span class="summary-sig-arg">name</span>)</span><br />
       Gets a zVariable in this CDF, by name or number</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__getitem__">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__setitem__" class="summary-sig-name">__setitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">data</span>)</span><br />
+      Writes data to a zVariable in this CDF</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -327,7 +398,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">current</span>=<span class="summary-sig-default">0</span>)</span><br />
       Iterates over zVars in CDF</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__iter__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -344,7 +415,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__len__" class="summary-sig-name">__len__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Implements 'length' of CDF (number of zVars)</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__len__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -362,7 +433,41 @@ _abcoll.Container --+
         <span class="summary-sig-arg">key</span>)</span><br />
       Determines whether a particular variable name is in the CDF</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__contains__">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">str</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns representation of CDF</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">str</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returnss a string representation of the CDF</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -379,7 +484,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#_open" class="summary-sig-name" onclick="show_private();">_open</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Opens the CDF file (called on init)</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._open">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -396,7 +501,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#_create" class="summary-sig-name" onclick="show_private();">_create</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Creates (and opens) a new CDF file</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._create">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -414,7 +519,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">master_path</span>)</span><br />
       Creates a new CDF from a master CDF file</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._from_master">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -429,10 +534,11 @@ _abcoll.Container --+
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#_call" class="summary-sig-name" onclick="show_private();">_call</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">*args</span>)</span><br />
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Select this CDF as current and call the CDF internal interface</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._call">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -440,16 +546,37 @@ _abcoll.Container --+
       
     </td>
   </tr>
-<tr class="private">
+<tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ctypes.clong</span>
+      <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#_majority" class="summary-sig-name" onclick="show_private();">_majority</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#clone" class="summary-sig-name">clone</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">zVar</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Clone a zVariable (from another CDF or this) into this CDF</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">bool</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#col_major" class="summary-sig-name">col_major</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">new_col</span>=<span class="summary-sig-default">None</span>)</span><br />
       Finds the majority of this CDF file</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._majority">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -457,36 +584,35 @@ _abcoll.Container --+
       
     </td>
   </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type"><a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#_new_var" class="summary-sig-name" onclick="show_private();">_new_var</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">var_name</span>,
-        <span class="summary-sig-arg">*args</span>)</span><br />
-      Add a new zVariable to this CDF</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._new_var">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
+<tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">boolean</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#_readonly" class="summary-sig-name" onclick="show_private();">_readonly</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#readonly" class="summary-sig-name">readonly</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">ro</span>=<span class="summary-sig-default">None</span>)</span><br />
       Sets or check the readonly status of this CDF</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._readonly">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">bool</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#checksum" class="summary-sig-name">checksum</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">new_val</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Set or check the checksum status of this CDF</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -503,7 +629,50 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#close" class="summary-sig-name">close</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Closes the CDF file</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.close">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">tuple</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#compress" class="summary-sig-name">compress</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">comptype</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">param</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Set or check the compression of this CDF</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#new" class="summary-sig-name">new</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">cdftype</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">recVary</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">dimVarys</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">dims</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">n_elements</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Create a new zVariable in this CDF</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -520,7 +689,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#save" class="summary-sig-name">save</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Saves the CDF file but leaves it open.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.save">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -530,14 +699,15 @@ _abcoll.Container --+
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">dict</span>
+      <span class="summary-type"><a href="spacepy.pycdf._pycdf.CDFCopy-class.html" 
+      class="link">CDFCopy</a></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#all_data" class="summary-sig-name">all_data</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Returns all data from all zVariables in this CDF</td>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#copy" class="summary-sig-name">copy</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make a copy of all data and attributes in this CDF</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.all_data">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -565,10 +735,8 @@ _abcoll.Container --+
       <code>__new__</code>,
       <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
-      <code>__repr__</code>,
       <code>__setattr__</code>,
-      <code>__sizeof__</code>,
-      <code>__str__</code>
+      <code>__sizeof__</code>
       </p>
     </td>
   </tr>
@@ -669,6 +837,15 @@ _abcoll.Container --+
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><a href="spacepy.pycdf._pycdf.gAttrList-class.html" 
+      class="link">gAttrList</a></span>
+    </td><td class="summary">
+        <a name="attrs"></a><span class="summary-name">attrs</span><br />
+      All global attributes for this CDF
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">string</span>
     </td><td class="summary">
         <a name="pathname"></a><span class="summary-name">pathname</span><br />
@@ -732,7 +909,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__init__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -769,7 +946,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Destructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__del__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -786,6 +963,34 @@ _abcoll.Container --+
       </p>
 </div></td></tr></table>
 </div>
+<a name="__delitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__delitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">(Index deletion operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Delete a zVariable in this CDF, by name or number</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>name</code></strong> (string or int) - Name or number of the CDF variable</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        variable numbers may change if variables are added or removed.
+      </p>
+</div></td></tr></table>
+</div>
 <a name="__exit__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -799,7 +1004,7 @@ _abcoll.Container --+
         <span class="sig-arg">traceback</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__exit__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -821,7 +1026,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Indexing operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__getitem__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -847,6 +1052,38 @@ _abcoll.Container --+
       </p>
 </div></td></tr></table>
 </div>
+<a name="__setitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__setitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>,
+        <span class="sig-arg">data</span>)</span>
+    <br /><em class="fname">(Index assignment operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Writes data to a zVariable in this CDF</p>
+  <p>If the zVariable does not exist, will create one matching <code 
+  class="link">data</code>. If it does exist, will attempt to write <code 
+  class="link">data</code> to it without changing the type or 
+  dimensions.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>name</code></strong> (str or int) - name or number of the variable to write</li>
+        <li><strong class="pname"><code>data</code></strong> - data to write, or a <a href="spacepy.pycdf._pycdf.Var-class.html"
+          class="link">Var</a> to copy</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="__iter__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -858,7 +1095,7 @@ _abcoll.Container --+
         <span class="sig-arg">current</span>=<span class="sig-default">0</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__iter__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -885,7 +1122,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Length operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__len__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -911,7 +1148,7 @@ _abcoll.Container --+
     <br /><em class="fname">(In operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__contains__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -935,6 +1172,62 @@ _abcoll.Container --+
       </p>
 </div></td></tr></table>
 </div>
+<a name="__repr__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__repr__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns representation of CDF</p>
+  <p>Cannot return anything that can be eval'd to create a copy of the CDF,
+  so just wrap the informal representation in angle brackets.</p>
+  <dl class="fields">
+    <dt>Returns: str</dt>
+        <dd>all the data in this list of attributes</dd>
+    <dt>Overrides:
+        object.__repr__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__str__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Informal representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returnss a string representation of the CDF</p>
+  <p>This is an 'informal' representation in that it cannot be evaluated 
+  directly to create a <a href="spacepy.pycdf._pycdf.CDF-class.html" 
+  class="link">CDF</a>, just the names, types, and sizes of all variables. 
+  (Attributes are not listed.)</p>
+  <dl class="fields">
+    <dt>Returns: str</dt>
+        <dd>description of the variables in the CDF</dd>
+    <dt>Overrides:
+        object.__str__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="_open"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
@@ -945,7 +1238,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">_open</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._open">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -976,7 +1269,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">_create</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._create">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -1009,7 +1302,7 @@ _abcoll.Container --+
         <span class="sig-arg">master_path</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._from_master">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -1044,10 +1337,11 @@ _abcoll.Container --+
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">_call</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">*args</span>)</span>
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._call">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -1079,75 +1373,75 @@ _abcoll.Container --+
       </p>
 </div></td></tr></table>
 </div>
-<a name="_majority"></a>
-<div class="private">
+<a name="clone"></a>
+<div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">_majority</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">clone</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">zVar</span>,
+        <span class="sig-arg">name</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">data</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._majority">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Clone a zVariable (from another CDF or this) into this CDF</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>zVar</code></strong> (<a href="spacepy.pycdf._pycdf.Var-class.html" 
+          class="link">Var</a>) - variable to clone</li>
+        <li><strong class="pname"><code>name</code></strong> (str) - Name of the new variable (default: name of the original)</li>
+        <li><strong class="pname"><code>data</code></strong> (bool) - Copy data, or only type, dimensions, variance, attributes? 
+          (default: copy data as well)</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="col_major"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">col_major</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">new_col</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
     </td>
   </tr></table>
   
   <p>Finds the majority of this CDF file</p>
   <dl class="fields">
-    <dt>Returns: ctypes.clong</dt>
-        <dd>const.COLUMN_MAJOR or const.ROW_MAJOR</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="_new_var"></a>
-<div class="private">
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">_new_var</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">var_name</span>,
-        <span class="sig-arg">*args</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._new_var">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Add a new zVariable to this CDF</p>
-  <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>var_name</code></strong> (string) - Name of the variable.</li>
-        <li><strong class="pname"><code>args</code></strong> (various) - Additional arguments passed to <a 
-          href="spacepy.pycdf._pycdf.Var-class.html#_create" class="link" 
-          onclick="show_private();">Var._create</a></li>
+        <li><strong class="pname"><code>new_col</code></strong> (bool) - Specify True to change to column-major, False to change to row 
+          major, or do not specify to leave majority alone (check only)</li>
     </ul></dd>
-    <dt>Returns: <a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></dt>
-        <dd>a new variable named <code class="link">var_name</code>.</dd>
-    <dt>Raises:</dt>
-    <dd><ul class="nomargin-top">
-        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - if CDF library reports an error</li>
-        <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></strong></code> - if CDF library reports a warning and interpreter is set to error on
-        warnings.</li>
-    </ul></dd>
+    <dt>Returns: bool</dt>
+        <dd>True if column-major, false if row-major</dd>
   </dl>
 </td></tr></table>
 </div>
-<a name="_readonly"></a>
-<div class="private">
+<a name="readonly"></a>
+<div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">_readonly</span>(<span class="sig-arg">self</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">readonly</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">ro</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._readonly">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -1167,6 +1461,33 @@ _abcoll.Container --+
       </p>
 </div></td></tr></table>
 </div>
+<a name="checksum"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">checksum</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">new_val</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Set or check the checksum status of this CDF</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>new_val</code></strong> (bool) - True to enable checksum, False to disable, or leave out to simply
+          check.</li>
+    </ul></dd>
+    <dt>Returns: bool</dt>
+        <dd>True if the checksum is enabled or False if disabled</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="close"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1177,7 +1498,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">close</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.close">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -1202,6 +1523,87 @@ _abcoll.Container --+
       </p>
 </div></td></tr></table>
 </div>
+<a name="compress"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">compress</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">comptype</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">param</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Set or check the compression of this CDF</p>
+  <p>Sets compression on entire <i>file</i>, not per-variable (see <a 
+  href="spacepy.pycdf._pycdf.Var-class.html#compress" 
+  class="link">Var.compress</a>).</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>comptype</code></strong> (ctypes.c_long) - type of compression to change to, see CDF C reference manual 
+          section 4.10. Constants for this parameter are in <a 
+          href="spacepy.pycdf.const-module.html" class="link">const</a>. If
+          not specified, will not change compression.</li>
+        <li><strong class="pname"><code>param</code></strong> (ctypes.c_long) - Compression parameter, see CDF CRM 4.10 and <a 
+          href="spacepy.pycdf.const-module.html" class="link">const</a>. If
+          not specified, will choose reasonable default (5 for gzip; other 
+          types have only one possible parameter.)</li>
+    </ul></dd>
+    <dt>Returns: tuple</dt>
+        <dd>(comptype, param) currently in effect</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="new"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">new</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>,
+        <span class="sig-arg">data</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">cdftype</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">recVary</span>=<span class="sig-default">True</span>,
+        <span class="sig-arg">dimVarys</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">dims</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">n_elements</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create a new zVariable in this CDF</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>name</code></strong> (str) - name of the new variable</li>
+        <li><strong class="pname"><code>data</code></strong> - data to store in the new variable</li>
+        <li><strong class="pname"><code>cdftype</code></strong> (ctypes.c_long) - CDF type of the variable, from <a 
+          href="spacepy.pycdf.const-module.html" class="link">const</a></li>
+        <li><strong class="pname"><code>recVary</code></strong> (bool) - record variance of the variable</li>
+        <li><strong class="pname"><code>dimVarys</code></strong> (list of bool) - dimension variance of each dimension</li>
+        <li><strong class="pname"><code>dims</code></strong> (list of int) - size of each dimension of this variable</li>
+        <li><strong class="pname"><code>n_elements</code></strong> (int) - number of elements, should be 1 except for CDF_CHAR, for which 
+          it's the length of the string.</li>
+    </ul></dd>
+    <dt>Returns: <a href="spacepy.pycdf._pycdf.Var-class.html" class="link">Var</a></dt>
+        <dd>the newly-created zVariable</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>ValueError</strong></code> - if neither data nor sufficient typing information is provided.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="save"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1212,7 +1614,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">save</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.save">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -1235,25 +1637,25 @@ _abcoll.Container --+
       </p>
 </div></td></tr></table>
 </div>
-<a name="all_data"></a>
+<a name="copy"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">all_data</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">copy</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.all_data">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
-  <p>Returns all data from all zVariables in this CDF</p>
-  <p>Data are returned as lists keyed by the name of the zVar</p>
+  <p>Make a copy of all data and attributes in this CDF</p>
   <dl class="fields">
-    <dt>Returns: dict</dt>
-        <dd>data from the zVars</dd>
+    <dt>Returns: <a href="spacepy.pycdf._pycdf.CDFCopy-class.html" 
+      class="link">CDFCopy</a></dt>
+        <dd>dict of all data</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -1289,7 +1691,7 @@ _abcoll.Container --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:43 2010
+    Generated by Epydoc 3.0.1 on Mon Nov 22 16:43:53 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

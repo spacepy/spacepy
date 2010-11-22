@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>spacepy.pycdf._pycdf.CDFException</title>
+  <title>spacepy.pycdf._pycdf.zAttr</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 </head>
@@ -45,7 +45,7 @@
         <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
         <a href="spacepy.pycdf-module.html">Package&nbsp;pycdf</a> ::
         <a href="spacepy.pycdf._pycdf-module.html" onclick="show_private();">Module&nbsp;_pycdf</a> ::
-        Class&nbsp;CDFException
+        Class&nbsp;zAttr
       </span>
     </td>
     <td>
@@ -55,39 +55,63 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="spacepy.pycdf._pycdf.CDFException-class.html"
+            >]&nbsp;|&nbsp;<a href="spacepy.pycdf._pycdf.zAttr-class.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class CDFException</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class zAttr</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
-              object --+        
-                       |        
-exceptions.BaseException --+    
-                           |    
-        exceptions.Exception --+
-                               |
-                              <strong class="uidshort">CDFException</strong>
+       object --+            
+                |            
+    _abcoll.Sized --+        
+                    |        
+       object --+   |        
+                |   |        
+ _abcoll.Iterable --+        
+                    |        
+       object --+   |        
+                |   |        
+_abcoll.Container --+        
+                    |        
+     _abcoll.Sequence --+    
+                        |    
+                     <a href="spacepy.pycdf._pycdf.Attr-class.html">Attr</a> --+
+                            |
+                           <strong class="uidshort">zAttr</strong>
 </pre>
 
-<dl><dt>Known Subclasses:</dt>
-<dd>
-      <ul class="subclass-list">
-<li><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></li><li>, <a href="spacepy.pycdf._pycdf.CDFWarning-class.html">CDFWarning</a></li>  </ul>
-</dd></dl>
-
 <hr />
-<p>Base class for errors or warnings in the CDF library.</p>
-  <p>Not normally used directly (see subclasses <a 
-  href="spacepy.pycdf._pycdf.CDFError-class.html" class="link">CDFError</a>
-  and <a href="spacepy.pycdf._pycdf.CDFWarning-class.html" 
-  class="link">CDFWarning</a>).</p>
-  <p>Error messages provided by this class are looked up from the 
-  underlying C library.</p>
+<p>zAttribute for zVariables within a CDF.</p>
+  <p>Do not use directly.</p>
 
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Nested Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-NestedClasses"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b>:
+      <code><a href="abc.ABCMeta-class.html">__metaclass__</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -111,26 +135,10 @@ exceptions.BaseException --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDFException-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">status</span>)</span><br />
-      Create a CDF Exception</td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">string</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDFException-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Error string associated with the library error.</td>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.zAttr-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Initialize this attribute</td>
           <td align="right" valign="top">
             
             
@@ -142,27 +150,104 @@ exceptions.BaseException --+
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>exceptions.Exception</code></b>:
-      <code>__new__</code>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="spacepy.pycdf._pycdf.Attr-class.html">Attr</a></code></b>:
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__delitem__">__delitem__</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__getitem__">__getitem__</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__iter__">__iter__</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__len__">__len__</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__repr__">__repr__</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__reversed__">__reversed__</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__setitem__">__setitem__</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__str__">__str__</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#global_scope">global_scope</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#has_entry">has_entry</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#max_idx">max_idx</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#new">new</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#number">number</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#rename">rename</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#type">type</a></code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>exceptions.BaseException</code></b>:
-      <code>__delattr__</code>,
-      <code>__getattribute__</code>,
-      <code>__getitem__</code>,
-      <code>__getslice__</code>,
-      <code>__reduce__</code>,
-      <code>__repr__</code>,
-      <code>__setattr__</code>,
-      <code>__setstate__</code>,
-      <code>__unicode__</code>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="spacepy.pycdf._pycdf.Attr-class.html">Attr</a></code></b> (private):
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_call" onclick="show_private();">_call</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_delete" onclick="show_private();">_delete</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_entry_len" onclick="show_private();">_entry_len</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_get_entry" onclick="show_private();">_get_entry</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_write_entry" onclick="show_private();">_write_entry</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sequence</code></b>:
+      <code>__contains__</code>,
+      <code>count</code>,
+      <code>index</code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
       <code>__format__</code>,
+      <code>__getattribute__</code>,
       <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
-      <code>__sizeof__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b>:
       <code>__subclasshook__</code>
       </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="spacepy.pycdf._pycdf.Attr-class.html">Attr</a></code></b>:
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#__abstractmethods__">__abstractmethods__</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="spacepy.pycdf._pycdf.Attr-class.html">Attr</a></code></b> (private):
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_abc_negative_cache" onclick="show_private();">_abc_negative_cache</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_abc_negative_cache_version" onclick="show_private();">_abc_negative_cache_version</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_abc_registry" onclick="show_private();">_abc_registry</a></code>
+      </p></div>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b> (private):
+      <code>_abc_cache</code>
+      </p></div>
     </td>
   </tr>
 </table>
@@ -183,22 +268,12 @@ exceptions.BaseException --+
     </table>
   </td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">ctypes.c_long</span>
-    </td><td class="summary">
-        <a name="status"></a><span class="summary-name">status</span><br />
-      CDF library status code
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">string</span>
-    </td><td class="summary">
-        <a name="string"></a><span class="summary-name">string</span><br />
-      CDF library error message for <a 
-      href="spacepy.pycdf._pycdf.CDFException-class.html#status" 
-      class="link">status</a>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="spacepy.pycdf._pycdf.Attr-class.html">Attr</a></code></b> (private):
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_cdf_file" onclick="show_private();">_cdf_file</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.Attr-class.html#_name" onclick="show_private();">_name</a></code>
+      </p></div>
     </td>
   </tr>
 </table>
@@ -221,10 +296,6 @@ exceptions.BaseException --+
 </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>exceptions.BaseException</code></b>:
-      <code>args</code>,
-      <code>message</code>
-      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__class__</code>
       </p>
@@ -257,7 +328,8 @@ exceptions.BaseException --+
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">status</span>)</span>
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -265,40 +337,16 @@ exceptions.BaseException --+
     </td>
   </tr></table>
   
-  <p>Create a CDF Exception</p>
-  <p>Uses CDF C library to look up an appropriate error messsage.</p>
+  <p>Initialize this attribute</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>status</code></strong> (ctypes.c_long) - CDF status</li>
+        <li><strong class="pname"><code>cdf_file</code></strong> - CDF file containing this attribute</li>
+        <li><strong class="pname"><code>attr_name</code></strong> - Name of this attribute</li>
+        <li><strong class="pname"><code>create</code></strong> - True to create attribute, False to look up existing.</li>
     </ul></dd>
     <dt>Overrides:
         object.__init__
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="__str__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
-    <br /><em class="fname">(Informal representation operator)</em>
-  </h3>
-  </td><td align="right" valign="top"
-    >&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Error string associated with the library error.</p>
-  <dl class="fields">
-    <dt>Returns: string</dt>
-        <dd>Error message from the CDF library.</dd>
-    <dt>Overrides:
-        object.__str__
     </dt>
   </dl>
 </td></tr></table>

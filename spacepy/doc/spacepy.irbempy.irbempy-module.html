@@ -61,14 +61,14 @@
   </tr>
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
-<h1 class="epydoc">Module irbempy</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Module irbempy</h1><p class="nomargin-top"></p>
 <p>module wrapper for irbem_lib Reference for this library 
   https://sourceforge.net/projects/irbem/ D. Boscher, S. Bourdarie, P. 
   O'Brien, T. Guild, IRBEM library V4.3, 2004-2008</p>
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.2 $, $Date: 2010/10/26 19:54:12 $
+        $Revision: 1.3 $, $Date: 2010/11/22 23:48:24 $
       </p>
       <p><strong>Author:</strong>
         Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
@@ -96,15 +96,15 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#get_Bfield" class="summary-sig-name">get_Bfield</a>(<span class="summary-sig-arg">ticktock</span>,
-        <span class="summary-sig-arg">Coords</span>,
+          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#get_Bfield" class="summary-sig-name">get_Bfield</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">loci</span>,
         <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
       call get_bfield in irbem lib and return a dictionary with the B-field
       vector and strenght.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#get_Bfield">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -118,8 +118,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#find_Bmirror" class="summary-sig-name">find_Bmirror</a>(<span class="summary-sig-arg">ticktock</span>,
-        <span class="summary-sig-arg">Coords</span>,
+          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#find_Bmirror" class="summary-sig-name">find_Bmirror</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">loci</span>,
         <span class="summary-sig-arg">alpha</span>,
         <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
@@ -128,7 +128,7 @@
       with values for Blocal, Bmirr and the GEO (cartesian) coordinates of 
       the mirror point</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#find_Bmirror">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -142,8 +142,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#find_magequator" class="summary-sig-name">find_magequator</a>(<span class="summary-sig-arg">ticktock</span>,
-        <span class="summary-sig-arg">Coords</span>,
+          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#find_magequator" class="summary-sig-name">find_magequator</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">loci</span>,
         <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span><br />
@@ -151,7 +151,7 @@
       values for Bmin and the GEO (cartesian) coordinates of the magnetic 
       equator</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#find_magequator">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -165,13 +165,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#coord_trans" class="summary-sig-name">coord_trans</a>(<span class="summary-sig-arg">Coords</span>,
+          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#coord_trans" class="summary-sig-name">coord_trans</a>(<span class="summary-sig-arg">loci</span>,
         <span class="summary-sig-arg">returntype</span>,
         <span class="summary-sig-arg">returncarsph</span>)</span><br />
       thin layer to call coor_trans1 from irbem lib this will convert 
       between systems GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#coord_trans">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -188,7 +188,7 @@
           <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#car2sph" class="summary-sig-name">car2sph</a>(<span class="summary-sig-arg">CARin</span>)</span><br />
       coordinate transformation from cartesian to spherical</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#car2sph">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -205,7 +205,7 @@
           <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#sph2car" class="summary-sig-name">sph2car</a>(<span class="summary-sig-arg">SPHin</span>)</span><br />
       coordinate transformation from spherical to cartesian</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#sph2car">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -223,7 +223,7 @@
         <span class="summary-sig-arg">carsph</span>)</span><br />
       will return the sysaxes according to the irbem library</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#get_sysaxes">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -240,7 +240,28 @@
           <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#get_dtype" class="summary-sig-name">get_dtype</a>(<span class="summary-sig-arg">sysaxes</span>)</span><br />
       will return the coordinate system type as string</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#get_dtype">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#get_AEP8" class="summary-sig-name">get_AEP8</a>(<span class="summary-sig-arg">energy</span>,
+        <span class="summary-sig-arg">loci</span>,
+        <span class="summary-sig-arg">model</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">min</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">fluxtype</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">diff</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">particles</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">e</code><code class="variable-quote">'</code></span>)</span><br />
+      will return the flux from the AE8-AP8 model</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -254,8 +275,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#_get_Lstar" class="summary-sig-name" onclick="show_private();">_get_Lstar</a>(<span class="summary-sig-arg">ticktock</span>,
-        <span class="summary-sig-arg">coords</span>,
+          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#_get_Lstar" class="summary-sig-name" onclick="show_private();">_get_Lstar</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">loci</span>,
         <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
@@ -264,7 +285,7 @@
       irbem library and will lookup omni values for given time if not 
       provided (optional).</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#_get_Lstar">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -278,8 +299,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#get_Lstar" class="summary-sig-name">get_Lstar</a>(<span class="summary-sig-arg">ticktock</span>,
-        <span class="summary-sig-arg">coords</span>,
+          <td><span class="summary-sig"><a href="spacepy.irbempy.irbempy-module.html#get_Lstar" class="summary-sig-name">get_Lstar</a>(<span class="summary-sig-arg">ticks</span>,
+        <span class="summary-sig-arg">loci</span>,
         <span class="summary-sig-arg">alpha</span>,
         <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
@@ -288,7 +309,7 @@
       irbem library and will lookup omni values for given time if not 
       provided (optional).</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#get_Lstar">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -302,14 +323,14 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="prep_irbem"></a><span class="summary-sig-name">prep_irbem</span>(<span class="summary-sig-arg">ticktock</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">coords</span>=<span class="summary-sig-default">None</span>,
+          <td><span class="summary-sig"><a name="prep_irbem"></a><span class="summary-sig-name">prep_irbem</span>(<span class="summary-sig-arg">ticks</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">loci</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">extMag</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">options</span>=<span class="summary-sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="summary-sig-arg">omnivals</span>=<span class="summary-sig-default">None</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#prep_irbem">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -383,14 +404,14 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Bfield</span>(<span class="sig-arg">ticktock</span>,
-        <span class="sig-arg">Coords</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Bfield</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">loci</span>,
         <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#get_Bfield">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -399,10 +420,10 @@
   <h1 class="heading">Input:</h1>
     <ul>
       <li>
-        ticktock (Ticktock class) : containing time information
+        ticks (Ticktock class) : containing time information
       </li>
       <li>
-        Coords (Coords class) : containing spatial information
+        loci (Coords class) : containing spatial information
       </li>
       <li>
         extMag (string) : optional; will choose the external magnetic field
@@ -430,12 +451,15 @@
     </ul>
   <h1 class="heading">Example:</h1>
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>t = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:10:00'</span>], <span class="py-string">'ISO'</span>)
-<span class="py-prompt">&gt;&gt;&gt; </span>y = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
-<span class="py-prompt">&gt;&gt;&gt; </span>op.get_Bfield(t,y)
-<span class="py-output">{'Blocal': array([  945.99989101,  3381.71633205]),</span>
-<span class="py-output">    'Bvec': array([[  8.05001055e-01,  -1.54645026e+02,   9.33273841e+02],</span>
-<span class="py-output">    [  3.36352963e+02,  -5.33658140e+02,   3.32236076e+03]])}</span></pre>
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> spacepy.time <span class="py-keyword">as</span> spt
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> spacepy.coordinates <span class="py-keyword">as</span> spc
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> spacepy.irbempy <span class="py-keyword">as</span> ib
+<span class="py-prompt">&gt;&gt;&gt; </span>t = spt.Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:10:00'</span>], <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>y = spc.Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>ib.get_Bfield(t,y)
+<span class="py-output">{'Blocal': array([  976.42565251,  3396.25991675]),</span>
+<span class="py-output">   'Bvec': array([[ -5.01738885e-01,  -1.65104338e+02,   9.62365503e+02],</span>
+<span class="py-output">   [  3.33497974e+02,  -5.42111173e+02,   3.33608693e+03]])}</span></pre>
   <h1 class="heading">See Also:</h1>
     <p>Lstar, find_Bmirror, find_magequator</p>
   <h1 class="heading">Author:</h1>
@@ -453,15 +477,15 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_Bmirror</span>(<span class="sig-arg">ticktock</span>,
-        <span class="sig-arg">Coords</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_Bmirror</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">loci</span>,
         <span class="sig-arg">alpha</span>,
         <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#find_Bmirror">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -471,10 +495,10 @@
   <h1 class="heading">Input:</h1>
     <ul>
       <li>
-        ticktock (Ticktock class) : containing time information
+        ticks (Ticktock class) : containing time information
       </li>
       <li>
-        Coords (Coords class) : containing spatial information
+        loci (Coords class) : containing spatial information
       </li>
       <li>
         alpha (list or ndarray) : containing the pitch angles
@@ -507,10 +531,10 @@
 <pre class="py-doctest">
 <span class="py-prompt">&gt;&gt;&gt; </span>t = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:10:00'</span>], <span class="py-string">'ISO'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>y = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
-<span class="py-prompt">&gt;&gt;&gt; </span>op.find_Bmirror(t,y,[90,80,60,10])
+<span class="py-prompt">&gt;&gt;&gt; </span>ib.find_Bmirror(t,y,[90,80,60,10])
 <span class="py-output">{'Blocal': array([ 0.,  0.]),</span>
 <span class="py-output">    'Bmirr': array([ 0.,  0.]),</span>
-<span class="py-output">    'GEOcar': Coords( [[ NaN  NaN  NaN]</span>
+<span class="py-output">    'loci': Coords( [[ NaN  NaN  NaN]</span>
 <span class="py-output">    [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}</span></pre>
   <h1 class="heading">See Also:</h1>
     <p>Lstar, get_Bfield, find_magequator</p>
@@ -529,14 +553,14 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_magequator</span>(<span class="sig-arg">ticktock</span>,
-        <span class="sig-arg">Coords</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_magequator</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">loci</span>,
         <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#find_magequator">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -546,10 +570,10 @@
   <h1 class="heading">Input:</h1>
     <ul>
       <li>
-        ticktock (Ticktock class) : containing time information
+        ticks (Ticktock class) : containing time information
       </li>
       <li>
-        Coords (Coords class) : containing spatial information
+        loci (Coords class) : containing spatial information
       </li>
       <li>
         extMag (string) : optional; will choose the external magnetic field
@@ -582,7 +606,7 @@
 <span class="py-prompt">&gt;&gt;&gt; </span>y = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>op.find_magequator(t,y)
 <span class="py-output">{'Bmin': array([  945.63652413,  3373.64496167]),</span>
-<span class="py-output">    'GEOcar': Coords( [[ 2.99938371  0.00534151 -0.03213603]</span>
+<span class="py-output">    'loci': Coords( [[ 2.99938371  0.00534151 -0.03213603]</span>
 <span class="py-output">    [ 2.00298822 -0.0073077   0.04584859]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}</span></pre>
   <h1 class="heading">See Also:</h1>
     <p>Lstar, get_Bfield, find_Bmirr</p>
@@ -601,12 +625,12 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">coord_trans</span>(<span class="sig-arg">Coords</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">coord_trans</span>(<span class="sig-arg">loci</span>,
         <span class="sig-arg">returntype</span>,
         <span class="sig-arg">returncarsph</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#coord_trans">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -615,7 +639,7 @@
   <h1 class="heading">Input:</h1>
     <ul>
       <li>
-        Coords (Coords instance) : containing coordinate information, can 
+        loci (Coords instance) : containing coordinate information, can 
         contain n points
       </li>
       <li>
@@ -634,9 +658,9 @@
     </ul>
   <h1 class="heading">Example:</h1>
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>coord = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
-<span class="py-prompt">&gt;&gt;&gt; </span>coord.ticktock = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:10:00'</span>], <span class="py-string">'ISO'</span>)
-<span class="py-prompt">&gt;&gt;&gt; </span>coord_trans(coord, <span class="py-string">'GSM'</span>, <span class="py-string">'car'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>c = Coords([[3,0,0],[2,0,0]], <span class="py-string">'GEO'</span>, <span class="py-string">'car'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>c.ticks = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:10:00'</span>], <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>coord_trans(c, <span class="py-string">'GSM'</span>, <span class="py-string">'car'</span>)
 <span class="py-output">array([[ 2.8639301 , -0.01848784,  0.89306361],</span>
 <span class="py-output">[ 1.9124434 ,  0.07209424,  0.58082929]])</span></pre>
   <h1 class="heading">See Also:</h1>
@@ -659,7 +683,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">car2sph</span>(<span class="sig-arg">CARin</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#car2sph">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -703,7 +727,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">sph2car</span>(<span class="sig-arg">SPHin</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#sph2car">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -748,7 +772,7 @@
         <span class="sig-arg">carsph</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#get_sysaxes">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -796,7 +820,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">get_dtype</span>(<span class="sig-arg">sysaxes</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#get_dtype">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -831,6 +855,64 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="get_AEP8"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_AEP8</span>(<span class="sig-arg">energy</span>,
+        <span class="sig-arg">loci</span>,
+        <span class="sig-arg">model</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">min</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">fluxtype</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">diff</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">particles</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">e</code><code class="variable-quote">'</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>will return the flux from the AE8-AP8 model</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        energy (float) : center energy in MeV; if fluxtype=RANGE, then 
+        needs to be a list [Emin, Emax]
+      </li>
+      <li>
+        loci (Coords)  : a Coords instance with the location inside the 
+        magnetosphere optional      instead of a Coords instance, one can 
+        also provide a list with [BBo, L] combination
+      </li>
+      <li>
+        model (str)    : MIN or MAX for solar cycle dependence
+      </li>
+      <li>
+        fluxtype (str) : DIFF, RANGE, INT are possible types
+      </li>
+      <li>
+        particles (str): e or p or electrons or protons
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        float : flux from AE8/AP8 model
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>spacepy.irbempy.get_aep8()</pre>
+  <h1 class="heading">See Also:</h1>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab, jkoller@lanl.gov</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 16-Nov-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="_get_Lstar"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
@@ -838,15 +920,15 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_Lstar</span>(<span class="sig-arg">ticktock</span>,
-        <span class="sig-arg">coords</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_Lstar</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">loci</span>,
         <span class="sig-arg">alpha</span>=<span class="sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
         <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#_get_Lstar">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -859,10 +941,10 @@
   <h1 class="heading">Input:</h1>
     <ul>
       <li>
-        ticktock (Ticktock class) : containing time information
+        ticks (Ticktock class) : containing time information
       </li>
       <li>
-        Coords (Coords class) : containing spatial information
+        loci (Coords class) : containing spatial information
       </li>
       <li>
         alpha (list or ndarray) : optional pitch angles in degrees; if 
@@ -1068,15 +1150,15 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Lstar</span>(<span class="sig-arg">ticktock</span>,
-        <span class="sig-arg">coords</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_Lstar</span>(<span class="sig-arg">ticks</span>,
+        <span class="sig-arg">loci</span>,
         <span class="sig-arg">alpha</span>,
         <span class="sig-arg">extMag</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">T01STORM</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">options</span>=<span class="sig-default"><code class="variable-group">[</code>1<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-op">, </code>0<code class="variable-group">]</code></span>,
         <span class="sig-arg">omnivals</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.irbempy.irbempy-pysrc.html#get_Lstar">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -1089,10 +1171,10 @@
   <h1 class="heading">Input:</h1>
     <ul>
       <li>
-        ticktock (Ticktock class) : containing time information
+        ticks (Ticktock class) : containing time information
       </li>
       <li>
-        coords (Coords class) : containing spatial information
+        loci (Coords class) : containing spatial information
       </li>
       <li>
         alpha (list or ndarray) : optional pitch angles in degrees; if 
@@ -1368,7 +1450,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:42 2010
+    Generated by Epydoc 3.0.1 on Mon Nov 22 16:43:52 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

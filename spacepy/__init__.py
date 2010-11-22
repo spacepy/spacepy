@@ -38,7 +38,7 @@ __contact__ = 'spacepy@lanl.gov'
 __license__ = """SpacePy: Space Science Tools for Python
 
 SpacePy is a package of tools primarily aimed at the space science community.
-Copyright (C) 2010  Steven Morley, Josef Koller
+Copyright (C) 2010  The SpacePy Team.
 
 LANL LICENSE AGREEMENT FOR SPACEPY 1.0
 

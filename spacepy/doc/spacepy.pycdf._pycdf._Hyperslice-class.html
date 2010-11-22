@@ -62,7 +62,7 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class _Hyperslice</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class _Hyperslice</h1><p class="nomargin-top"></p>
 <pre class="base-tree">
 object --+
          |
@@ -75,7 +75,7 @@ object --+
 
 <hr />
 <div class="fields">      <p><strong>Note:</strong>
-        All variables are stored in the majority of the CDF
+        All dimension-related variables are stored row-major (Python order)
       </p>
 </div><!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -105,7 +105,7 @@ object --+
         <span class="summary-sig-arg">key</span>)</span><br />
       Create a Hyperslice</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.__init__">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -115,15 +115,33 @@ object --+
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">tuple</span>
+      <span class="summary-type">list of int</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#expand_ellipsis" class="summary-sig-name">expand_ellipsis</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">slices</span>)</span><br />
-      Expands ellipses into the correct number of full-size slices</td>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#expected_dims" class="summary-sig-name">expected_dims</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Calculate size of non-degenerate dimensions</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.expand_ellipsis">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#expand" class="summary-sig-name">expand</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>)</span><br />
+      Expands the record dimension of this slice to hold a set of data</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -140,7 +158,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#create_buffer" class="summary-sig-name">create_buffer</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Creates a ctypes array to hold the data from this slice</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.create_buffer">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -158,7 +176,7 @@ object --+
         <span class="summary-sig-arg">array</span>)</span><br />
       Converts a nested list-of-lists to format of this slice</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.convert_array">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -176,7 +194,26 @@ object --+
         <span class="summary-sig-arg">buffer</span>)</span><br />
       Unpacks a buffer of data from this slice into pythonic form</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.unpack_buffer">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#pack_buffer" class="summary-sig-name">pack_buffer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">buff</span>,
+        <span class="summary-sig-arg">data</span>)</span><br />
+      Packs data in the form of this slice into a buffer</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -194,7 +231,43 @@ object --+
         <span class="summary-sig-arg">array</span>)</span><br />
       Converts a ctypes array type to a python nested list</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.c_array_to_list">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#transform_each" class="summary-sig-name">transform_each</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">func</span>)</span><br />
+      Transforms each element of an n-D array</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#select" class="summary-sig-name">select</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Selects this hyperslice in the CDF</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -240,6 +313,24 @@ object --+
 </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">tuple</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#expand_ellipsis" class="summary-sig-name">expand_ellipsis</a>(<span class="summary-sig-arg">slices</span>,
+        <span class="summary-sig-arg">n_dims</span>)</span><br />
+      Expands any ellipses into correct number of full-size slices</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">list (of lists)</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -247,7 +338,41 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#flip_majority" class="summary-sig-name">flip_majority</a>(<span class="summary-sig-arg">array</span>)</span><br />
       Inverts the array majority of an existing array</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.flip_majority">source&nbsp;code</a></span>
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list of int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#dimensions" class="summary-sig-name">dimensions</a>(<span class="summary-sig-arg">data</span>)</span><br />
+      Finds the dimensions of a nested list-of-lists</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">3-tuple of lists ([int], [ctypes.c_long], [int])</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#types" class="summary-sig-name">types</a>(<span class="summary-sig-arg">data</span>)</span><br />
+      Find dimensions and valid types of a nested list-of-lists</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -264,7 +389,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf._Hyperslice-class.html#reorder" class="summary-sig-name">reorder</a>(<span class="summary-sig-arg">seq</span>)</span><br />
       Reorders seq to switch array majority</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.reorder">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -282,9 +407,9 @@ object --+
         <span class="summary-sig-arg">stop</span>,
         <span class="summary-sig-arg">step</span>,
         <span class="summary-sig-arg">size</span>)</span><br />
-      Convertss a start/stop/step range to start/count/interval</td>
+      Converts a start/stop/step range to start/count/interval</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.convert_range">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -323,8 +448,7 @@ object --+
       <span class="summary-type">list of int</span>
     </td><td class="summary">
         <a href="spacepy.pycdf._pycdf._Hyperslice-class.html#counts" class="summary-name">counts</a><br />
-      number of values to get from each dimension Final result will be the 
-      product of everything in counts.
+      number of values to get from each dimension.
     </td>
   </tr>
 <tr>
@@ -351,6 +475,15 @@ object --+
     </td><td class="summary">
         <a name="dimsizes"></a><span class="summary-name">dimsizes</span><br />
       size of each dimension (0th is number of records)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">tuple</span>
+    </td><td class="summary">
+        <a name="expanded_key"></a><span class="summary-name">expanded_key</span><br />
+      fully-expanded version of the key passed to the constructor (all 
+      dimensions filled in)
     </td>
   </tr>
 <tr>
@@ -443,7 +576,7 @@ object --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.__init__">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -467,32 +600,57 @@ object --+
   </dl>
 </td></tr></table>
 </div>
-<a name="expand_ellipsis"></a>
+<a name="expected_dims"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">expand_ellipsis</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">slices</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">expected_dims</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">data</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.expand_ellipsis">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
-  <p>Expands ellipses into the correct number of full-size slices</p>
+  <p>Calculate size of non-degenerate dimensions</p>
+  <p>Figures out size, in each dimension, of expected input data</p>
+  <dl class="fields">
+    <dt>Returns: list of int</dt>
+        <dd>size of each dimension for this slice, excluding degnerate</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="expand"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">expand</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">data</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Expands the record dimension of this slice to hold a set of data</p>
+  <p>If the length of data (outermost dimension) is larger than the record 
+  count (counts[0]) for this slice, expand the slice to hold all the data. 
+  This requires that the record dimension of the slice not be degenerate, 
+  and also that it not have been completely specified when the hyperslice 
+  was created (i.e. record dimension either ellipsis or no specified 
+  stop.)</p>
+  <p>Does <i>not</i> expand any other dimension, since that's Very Hard in 
+  CDF.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>slices</code></strong> (tuple) - tuple of slices, integers, or ellipse objects</li>
-    </ul></dd>
-    <dt>Returns: tuple</dt>
-        <dd>key with ellipses replaced by appropriate number of blank slices</dd>
-    <dt>Raises:</dt>
-    <dd><ul class="nomargin-top">
-        <li><code><strong class='fraise'>IndexError</strong></code> - if ellipses specified when already have enough dimensions</li>
+        <li><strong class="pname"><code>data</code></strong> (list) - the data which are intended to be stored in this slice</li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -507,7 +665,7 @@ object --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">create_buffer</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.create_buffer">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -529,7 +687,7 @@ object --+
         <span class="sig-arg">array</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.convert_array">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -565,7 +723,7 @@ object --+
         <span class="sig-arg">buffer</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.unpack_buffer">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -582,6 +740,34 @@ object --+
   </dl>
 </td></tr></table>
 </div>
+<a name="pack_buffer"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">pack_buffer</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">buff</span>,
+        <span class="sig-arg">data</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Packs data in the form of this slice into a buffer</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>buff</code></strong> (subclass of ctypes.Array) - ctypes object created by <a 
+          href="spacepy.pycdf._pycdf._Hyperslice-class.html#create_buffer" 
+          class="link">create_buffer</a></li>
+        <li><strong class="pname"><code>data</code></strong> (list-of-lists) - data to pack into <code class="link">buff</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="c_array_to_list"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -593,7 +779,7 @@ object --+
         <span class="sig-arg">array</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.c_array_to_list">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -608,6 +794,93 @@ object --+
   </dl>
 </td></tr></table>
 </div>
+<a name="transform_each"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">transform_each</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">data</span>,
+        <span class="sig-arg">func</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Transforms each element of an n-D array</p>
+  <p><code class="link">data</code> must be dimensioned the same as this 
+  slice. Iterates over each element in <code class="link">data</code>, 
+  applying <code class="link">func</code> to the element and assigning the 
+  result back to the element.</p>
+  <p><code class="link">data</code> must <i>not</i> be a scalar, as then it
+  cannot be changed.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>data</code></strong> (list) - the data to transform</li>
+        <li><strong class="pname"><code>func</code></strong> (callable) - the function to call for each element in <code 
+          class="link">data</code></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="select"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">select</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Selects this hyperslice in the CDF</p>
+  <p>Calls the CDF library to select the CDF, variable, records, and array 
+  elements corresponding to this slice.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="expand_ellipsis"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">expand_ellipsis</span>(<span class="sig-arg">slices</span>,
+        <span class="sig-arg">n_dims</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Expands any ellipses into correct number of full-size slices</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>slices</code></strong> (tuple) - tuple of slices, integers, or ellipse objects</li>
+        <li><strong class="pname"><code>n_dims</code></strong> (int) - number of dimensions this slice is over</li>
+    </ul></dd>
+    <dt>Returns: tuple</dt>
+        <dd><code class="link">slices</code> with ellipses replaced by 
+          appropriate number of full-dimension slices</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>IndexError</strong></code> - if ellipses specified when already have enough dimensions</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="flip_majority"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -619,7 +892,7 @@ object --+
     <br /><em class="fname">Static Method</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.flip_majority">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -650,6 +923,116 @@ object --+
       </ul>
 </div></td></tr></table>
 </div>
+<a name="dimensions"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dimensions</span>(<span class="sig-arg">data</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds the dimensions of a nested list-of-lists</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>data</code></strong> (list (of lists)) - data of which dimensions are desired</li>
+    </ul></dd>
+    <dt>Returns: list of int</dt>
+        <dd>dimensions of <code class="link">data</code>, in order outside-in</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>ValueError</strong></code> - if <code class="link">data</code> has irregular dimensions</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="types"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">types</span>(<span class="sig-arg">data</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Find dimensions and valid types of a nested list-of-lists</p>
+  <p>Any given data may be representable by a range of CDF types; infer the
+  CDF types which can represent this data. This breaks down to:</p>
+  <ol start="1">
+    <li>
+      Proper kind (numerical, string, time)
+    </li>
+    <li>
+      Proper range (stores highest and lowest number)
+    </li>
+    <li>
+      Sufficient resolution (EPOCH16 required if datetime has microseconds 
+      or below.)
+    </li>
+  </ol>
+  <p>If more than one value satisfies the requirements, types are returned 
+  in preferred order:</p>
+  <ol start="1">
+    <li>
+      Type that matches precision of data first, then
+    </li>
+    <li>
+      integer type before float type, then
+    </li>
+    <li>
+      Smallest type first, then
+    </li>
+    <li>
+      signed type first, then
+    </li>
+    <li>
+      specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
+    </li>
+  </ol>
+  <p>So for example, EPOCH_16 is preferred over EPOCH if <code 
+  class="link">data</code> specifies below the millisecond level (rule 1), 
+  but otherwise EPOCH is preferred (rule 2).</p>
+  <p>For floats, four-byte is preferred unless eight-byte is required:</p>
+  <ol start="1">
+    <li>
+      absolute values between 0 and 3e-39
+    </li>
+    <li>
+      absolute values greater than 1.7e38
+    </li>
+  </ol>
+  <p>This will switch to an eight-byte double in some cases where four 
+  bytes would be sufficient for IEEE 754 encoding, but where DEC formats 
+  would require eight.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>data</code></strong> (list (of lists)) - data for which dimensions and CDF types are desired</li>
+    </ul></dd>
+    <dt>Returns: 3-tuple of lists ([int], [ctypes.c_long], [int])</dt>
+        <dd>dimensions of <code class="link">data</code>, in order 
+          outside-in; CDF types which can represent this data; number of 
+          elements required (i.e. length of longest string)</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>ValueError</strong></code> - if <code class="link">data</code> has irregular dimensions</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="reorder"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -661,7 +1044,7 @@ object --+
     <br /><em class="fname">Static Method</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.reorder">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
@@ -692,11 +1075,11 @@ object --+
     <br /><em class="fname">Static Method</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#_Hyperslice.convert_range">source&nbsp;code</a></span>&nbsp;
+    >&nbsp;
     </td>
   </tr></table>
   
-  <p>Convertss a start/stop/step range to start/count/interval</p>
+  <p>Converts a start/stop/step range to start/count/interval</p>
   <p>(i.e. changes from Python-style slice to CDF-style)</p>
   <dl class="fields">
     <dt>Parameters:</dt>
@@ -753,7 +1136,7 @@ object --+
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <h3 class="epydoc">counts</h3>
-  number of values to get from each dimension Final result will be the 
+  number of values to get from each dimension. Final result will be the 
   product of everything in counts. ('dimension counts' in CDF speak)
   <dl class="fields">
     <dt>Type:</dt>
@@ -822,7 +1205,7 @@ object --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Oct  1 14:12:43 2010
+    Generated by Epydoc 3.0.1 on Mon Nov 22 16:43:53 2010
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
