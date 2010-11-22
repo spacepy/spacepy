@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.38 $, $Date: 2010/11/16 23:58:48 $"
+__version__ = "$Revision: 1.39 $, $Date: 2010/11/22 23:22:44 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -96,7 +96,8 @@ def compile_irbempy(fcompiler):
             os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
     else:
         print('%s not supported at this time' % sys.platform)
-        sys.exit(1)
+        print('IRBEM will not be available')
+        return 
         
     err = os.system('mv -f irbempylib.so ../')
     if err:
@@ -241,10 +242,10 @@ exec(compile(open('spacepy/toolbox.py').read(), 'spacepy/toolbox.py', 'exec'))
 try:
     dum = sys.version_info
     if dum[0]==2:
-        assert dum[1]>=5
+        assert dum[1]>5
     import numpy
 except:
-    raise Exception("""SpacePy requires Python 2.X, where X>=5.\n
+    raise Exception("""SpacePy requires Python 2.X, where X>=6.\n
     Numpy, Scipy and Matplotlib(>=0.99) are also required\n
     Please install suitable versions.""")
 try:
