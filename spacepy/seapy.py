@@ -171,7 +171,7 @@ class Sea(object):
         Inputs:
         =======
         Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
-        all of which must be available on instatiation.
+        all of which must be available on instantiation.
         
         Optional keyword(s):
         ====================
@@ -258,7 +258,7 @@ class Sea(object):
         
         #Inputs:
         #Uses object attributes obj.data, obj.times, obj.epochs, obj.delta.
-        #all of which must be available on instatiation.
+        #all of which must be available on instantiation.
         #Also requires second set of epochs.
         
         #Optional keyword(s):
@@ -477,12 +477,12 @@ class Sea2d(Sea):
         Inputs:
         =======
         Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
-        all of which must be available on instatiation.
+        all of which must be available on instantiation.
         
         Optional keyword(s):
         ====================
             - storedata (default = False) - saves matrix of epoch windows as obj.datacube
-            - quartiles calculates the interquartile range to show the spread (and is default);
+            - quartiles calculates the inter-quartile range to show the spread (and is default);
             - ci will find the bootstrapped confidence interval (and requires ci_quan to be set);
             - mad will use the median absolute deviation for the spread;
             - ci_quan can be set to 'median' or 'mean'
@@ -686,7 +686,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         - epochline (default = False) - put vertical line at zero epoch.
         - usrlimy (default = []) - override automatic y-limits on plot (same for all plots).
         - show (default = True) - shows plot; set to false to output plot object to variable
-        - x/zunits - Units for labelling x and z axes, if required
+        - x/zunits - Units for labeling x and z axes, if required
         - figsize - tuple of (width, height) in inches
         - dpi (default=300) - figure resolution in dots per inch
         - n_cols - Number of columns: not yet implemented.

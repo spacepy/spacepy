@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.56 $, $Date: 2010/11/22 21:01:53 $"
+__version__ = "$Revision: 1.57 $, $Date: 2010/11/22 22:01:31 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -625,7 +625,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     @type time: 
     @keyword winsize: window size
     @type winsize: 
-    @keyword overlap: amout of window overlap
+    @keyword overlap: amount of window overlap
     @type overlap: 
     @keyword st_time: for time-based averaging, a start-time other than the first 
         point can be specified
@@ -653,12 +653,12 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     
     >>> outdata, outtime = windowmean(data, winsize=10, overlap=9)
     
-    where winsize and overlap are numberic,
+    where winsize and overlap are numeric,
     in this example the window size is 10 points and the overlap is 9 points.
     The output vectors start at winsize/2 and end at N-(winsize/2), the output time vector
     is basically a reference to the nth point in the original series.
     
-    @note: This is a quick and dirty function - it is NOT optimised, at all.
+    @note: This is a quick and dirty function - it is NOT optimized, at all.
 
     """
     import numpy as np
@@ -753,7 +753,7 @@ def medAbsDev(series):
     
     Median absolute deviation (MAD) is a robust and resistant measure of
     the spread of a sample (same purpose as standard deviation). The
-    MAD is preferred to the interquartile range as the interquartile
+    MAD is preferred to the inter-quartile range as the inter-quartile
     range only shows 50% of the data whereas the MAD uses all data but
     remains robust and resistant. See e.g. Wilks, Statistical methods
     for the Atmospheric Sciences, 1995, Ch. 3.
@@ -991,7 +991,7 @@ def arraybin(array, bins):
     @param bins: the bins to slice along (may be array or list)
     @type bins: numpy.array
     @return: list of indices 
-       first element is less than fisrt bin and last bin is larger than last bin
+       first element is less than first bin and last bin is larger than last bin
     @rtype: list
 
     @author: Brian Larsen
@@ -1023,7 +1023,7 @@ def mlt2rad(mlt, midnight=False):
 
     @param mlt:  array of mlt values
     @type mlt: numpy.array
-    @keyword midnight: reference to midnioght instead of noon
+    @keyword midnight: reference to midnight instead of noon
     @type midnight: boolean
     @return: array of radians
     @rtype: numpy.array
@@ -1053,7 +1053,7 @@ def rad2mlt(rad, midnight=False):
 
     @param rad:  array of radian values
     @type rad: numpy.array
-    @keyword midnight: reference to midnioght instead of noon
+    @keyword midnight: reference to midnight instead of noon
     @type midnight: boolean
     @return: array of mlt values
     @rtype: numpy.array
@@ -1120,7 +1120,7 @@ def leap_year(year, numdays=False, nobool=False):
         try:
             return ((mask400 | mask4) & (~mask100 | mask400)).astype(bool)
         except AttributeError:
-            return bool((mask400 | mask4) & (~mask100 | mask400)) # get here with a sinle number input
+            return bool((mask400 | mask4) & (~mask100 | mask400)) # get here with a single number input
     
     except TypeError: # data wasn't an array so do a comprehension`
         return [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]

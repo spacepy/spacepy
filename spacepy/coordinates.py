@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.8 $, $Date: 2010/11/16 23:58:48 $"
+__version__ = "$Revision: 1.9 $, $Date: 2010/11/22 22:01:31 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -17,7 +17,7 @@ class Coords(object):
     """
     a = Coords( data, dtype, carsph, [units, ticks] )
     
-    A class holding spatial coordinates in cartesian/spherical
+    A class holding spatial coordinates in Cartesian/spherical
     in units of Re and degrees
         
     Input:
@@ -25,7 +25,7 @@ class Coords(object):
         - data (list or ndarray, dim = (n,3) ) : coordinate points 
         - dtype (string) :coordinate system, possible are GDZ, GEO, GSM, GSE, SM, GEI
                 MAG, SPH, RLL
-        - carsph (string) : cartesian or spherical, 'car' or 'sph'
+        - carsph (string) : Cartesian or spherical, 'car' or 'sph'
         - optional units (list of strings) : standard are  ['Re', 'Re', 'Re'] or 
             ['Re', 'deg', 'deg'] depending on the carsph content
         - optional ticks (Ticktock instance) : used for coordinate transformations (see a.convert)    
@@ -169,7 +169,7 @@ class Coords(object):
         Input:
         ======
             - a Coords class instance
-            - idx (int) : interger numbers as index
+            - idx (int) : integer numbers as index
 
         Returns:
         ========
@@ -207,7 +207,7 @@ class Coords(object):
         Input:
         ======
             - a Coords class instance
-            - idx (int) : interger numbers as index
+            - idx (int) : integer numbers as index
             - vals (numpy array or list) : new values
             
         Example:
@@ -280,7 +280,7 @@ class Coords(object):
             - a Coords class instance
             - returntype (string) : coordinate system, possible are GDZ, GEO, GSM, GSE, SM, GEI
                 MAG, SPH, RLL
-            - returncarsph (string) : coordinate type, possible 'car' for cartesian and 
+            - returncarsph (string) : coordinate type, possible 'car' for Cartesian and 
                 'sph' for spherical
  
         Returns:
@@ -327,7 +327,7 @@ class Coords(object):
                 data = op.car2sph(self.data)
             return Coords(data, self.dtype, carsph, units, self.ticks)
 
-        # check the length of ticks and do the more complex convertions
+        # check the length of ticks and do the more complex conversions
         if self.ticks: 
             assert len(self.ticks) == len(self), 'Ticktock dimension does not match Coords dimensions'
         

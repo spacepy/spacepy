@@ -5,7 +5,7 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.13 $, $Date: 2010/11/16 23:58:48 $"
+__version__ = "$Revision: 1.14 $, $Date: 2010/11/22 22:01:31 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -30,7 +30,7 @@ class RBmodel(object):
     >>> delta = datetime.timedelta(hours=1)
     >>> rmod.setup_ticks(start, end, delta, dtype='UTC')
 
-    Now, run the model over the enitre time range using the evolve method:
+    Now, run the model over the entire time range using the evolve method:
 
     >>> rmod.evolve()
 
@@ -336,7 +336,7 @@ class RBmodel(object):
         Create a summary plot of the RadBelt object distribution function.
         For reference, the last closed drift shell, Dst, and Kp are all
         included.  These can be disabled individually using the corresponding 
-        boolean kwargs.
+        Boolean kwargs.
 
         The clims kwarg can be used to manually set the color bar range.
         To use, set it equal to a two-element list containing minimum and
@@ -500,7 +500,7 @@ def diff_LL(grid, f, Tdelta, Telapsed, params=None):
 # -----------------------------------------------
 def get_modelop_L(Lgrid, Tdelta, DLL):
     """
-    calculate the model oparator for a single small timestep
+    calculate the model operator for a single small timestep
     """
     
     import numpy as n
@@ -551,7 +551,7 @@ def get_modelop_L(Lgrid, Tdelta, DLL):
     B[0,0] = 1.
     B[-1,-1] = 1.
 
-    # get inverse and multipy
+    # get inverse and multiply
     Ai = nlin.inv(A)
     C = n.dot(Ai,B)
 

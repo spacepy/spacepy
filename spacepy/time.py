@@ -80,7 +80,7 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.30 $, $Date: 2010/11/16 23:58:48 $"
+__version__ = "$Revision: 1.31 $, $Date: 2010/11/22 22:01:31 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -383,7 +383,7 @@ class Ticktock(object):
         Input:
         ======
             - a Ticktock class instance
-            - idx (int) : interger numbers as index
+            - idx (int) : integer numbers as index
 
         Returns:
         ========
