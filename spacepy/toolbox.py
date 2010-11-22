@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.57 $, $Date: 2010/11/22 22:01:31 $"
+__version__ = "$Revision: 1.58 $, $Date: 2010/11/22 22:11:37 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -332,6 +332,11 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
     """
 
     import numpy as n
+
+    try:
+        assert isinstance(in_dict, dict)
+    except AssertionError:
+        raise TypeError('dictree: Input must be dictionary')
 
     if not spaces:
         spaces = ''
