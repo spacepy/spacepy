@@ -8,7 +8,7 @@ D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.6 $, $Date: 2010/11/16 23:58:49 $"
+__version__ = "$Revision: 1.7 $, $Date: 2010/11/22 17:10:39 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
@@ -1013,13 +1013,14 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     if omnivals is None: # nothing provided so use lookup table
         omnivals = omni.get_omni(ticks)
         
-    # multiply Kp*10 to look like omni database
-    # this is what irbem lib is looking for
-    omnivals['Kp'] = omnivals['Kp']*10.
-
     for iTAI in n.arange(nTAI):
         for ikey, key in enumerate(magkeys):
             magin[ikey, iTAI] = omnivals[key][iTAI]
+
+    # multiply Kp*10 to look like omni database
+    # this is what irbem lib is looking for
+    magin[0,:] = magin[0,:]*10.
+    
     d['magin'] = magin
 
     # setup time array
