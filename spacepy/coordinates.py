@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.9 $, $Date: 2010/11/22 22:01:31 $"
+__version__ = "$Revision: 1.10 $, $Date: 2010/11/23 23:51:45 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -325,7 +325,7 @@ class Coords(object):
                 carsph = 'sph'
                 units =  [self.units[0], 'deg','deg']
                 data = op.car2sph(self.data)
-            return Coords(data, self.dtype, carsph, units, self.ticks)
+            return spacepy.coordinates.Coords(data, self.dtype, carsph, units, self.ticks)
 
         # check the length of ticks and do the more complex conversions
         if self.ticks: 
