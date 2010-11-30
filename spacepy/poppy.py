@@ -88,14 +88,15 @@ class PPro(object):
         
         try:
             pk = max(self.assoc_total)
-        except:
+        except AttributeError:
             pk = 'N/A'
             
         try:
             asy = self.asympt_assoc
         except:
             asy = 'N/A'
-        
+
+        # TODO this is broken not enough values for the format statement
         return """Point Process Object:
         Points in process #1 - %d ; Points in process #2 - %d
         Peak association number - %s ; Asymptotic association - %s

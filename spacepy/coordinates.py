@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.10 $, $Date: 2010/11/23 23:51:45 $"
+__version__ = "$Revision: 1.11 $, $Date: 2010/11/30 00:14:47 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -74,12 +74,13 @@ class Coords(object):
         onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
         
         # add ticks
-        if ticks: assert len(ticks) == len(data), 'Ticktock dimensions seem off'
+        if ticks:
+            assert len(ticks) == len(data), 'Ticktock dimensions seem off'
         self.ticks = ticks
         
         # GEO,sph and SPH,sph are the same
         if dtype == 'GEO' and carsph == 'sph':
-        	dtype = 'SPH'
+            dtype = 'SPH'
         self.sysaxes = typedict[dtype][carsph]
         
         #if self.sysaxes >= 10 and self.sysaxes < 20: #need sph2car
@@ -101,10 +102,10 @@ class Coords(object):
         self.carsph = carsph
         # setup units
         self.Re = 6371000.0 #metres
-        if units==None and carsph=='car':
+        if units == None and carsph == 'car':
             # use standard units
             self.units = ['Re', 'Re', 'Re']
-        elif units==None and carsph=='sph':
+        elif units == None and carsph == 'sph':
             self.units = ['Re', 'deg', 'deg']
         else:
             self.units = units
@@ -112,13 +113,13 @@ class Coords(object):
             self.units = ['km', 'deg', 'deg']
         # setup x,y,z etc
         if carsph == 'car':
-            self.x = self.data[:,0]
-            self.y = self.data[:,1]
-            self.z = self.data[:,2]
+            self.x = self.data[:, 0]
+            self.y = self.data[:, 1]
+            self.z = self.data[:, 2]
         else:
-            self.radi = self.data[:,0]
-            self.lati = self.data[:,1]
-            self.long = self.data[:,2]
+            self.radi = self.data[:, 0]
+            self.lati = self.data[:, 1]
+            self.long = self.data[:, 2]
         ## setup list for onera compatibility
         #self.sysaxes = op.get_sysaxes(dtype, carsph)
         self.shape = n.shape(self.data)

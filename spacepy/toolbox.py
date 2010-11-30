@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.59 $, $Date: 2010/11/23 16:53:40 $"
+__version__ = "$Revision: 1.60 $, $Date: 2010/11/30 00:14:47 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -79,15 +79,13 @@ def tCommon(ts1, ts2, mask_only=True):
     @contact: smorley@lanl.gov/morley_steve@hotmail.com
     
     """
-    
-    import datetime as dt
     import numpy as np
     from matplotlib.dates import date2num, num2date
     
-    tn1, tn2 = date2num(ts1),date2num(ts2)
+    tn1, tn2 = date2num(ts1), date2num(ts2)
     
     v_test = np.__version__.split('.')
-    if v_test[0]==1 and v_test[1]<=3:
+    if v_test[0] == 1 and v_test[1] <= 3:
         el1in2 = np.setmember1d(tn1, tn2) #makes mask of present/absent
         el2in1 = np.setmember1d(tn2, tn1)
     else:
@@ -130,7 +128,7 @@ def loadpickle(fln):
     """
     try:
         import cPickle as pickle
-    except:
+    except ImportError:
         import pickle
 
     fh = open(fln, 'rb')
@@ -269,7 +267,7 @@ def human_sort( l ):
     return l
 
 # -----------------------------------------------
-def feq(x,y, precision=0.0000005):
+def feq(x, y, precision=0.0000005):
     """
     compare two floating point values if they are equal
     after: http://www.lahey.com/float.htm
@@ -335,8 +333,6 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
     |____name
 
     """
-
-    import numpy as n
 
     try:
         assert isinstance(in_dict, dict)
@@ -410,7 +406,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     >>> spacepy.printfig(1)
     """
 
-    import os, sys, re, glob, datetime
+    import os, glob, datetime
     import pylab as p
     
     try:
@@ -497,7 +493,6 @@ def update(all=True, omni=False, leapsecs=False):
     
     import os, sys
     import zipfile
-    import re
     import datetime
     #import spacepy.time as st
     from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL
@@ -673,11 +668,10 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     """
     import numpy as np
     import datetime as dt
-    from matplotlib.dates import date2num,num2date
     
     #check inputs and initialize
     #Set resolution to 1 if no times supplied
-    if len(time)==0:
+    if len(time) == 0:
         startpt, res = 0, 1
         time = list(range(len(data)))
         pts = True
@@ -745,7 +739,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         while lastpt < time[-1]:
             [getinds,dum] = tOverlap(time, [startpt,startpt+winsize])
             if getinds: #if not None
-                getdata = np.ma.masked_where(np.isnan(data[getinds]),data[getinds])
+                getdata = np.ma.masked_where(np.isnan(data[getinds]), data[getinds])
                 getmean = np.mean(getdata.compressed()) #find mean excluding NaNs
             else:
                 getmean = np.nan
@@ -905,33 +899,33 @@ def smartTimeTicks(time):
     deltaT = time[-1] - time[0]
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
     if nHours < 1:
-        Mtick=MinuteLocator(byminute=[0,15,30,45])
-        mtick=MinuteLocator(byminute=list(range(60)), interval=5)
+        Mtick = MinuteLocator(byminute = [0,15,30,45])
+        mtick = MinuteLocator(byminute = list(range(60)), interval = 5)
         fmt = DateFormatter('%H:%M UT')
     elif nHours < 4:
-        Mtick=MinuteLocator(byminute=[0,30])
-        mtick=MinuteLocator(byminute=list(range(60)), interval=10)
+        Mtick = MinuteLocator(byminute = [0,30])
+        mtick = MinuteLocator(byminute = list(range(60)), interval = 10)
         fmt = DateFormatter('%H:%M UT')
     elif nHours < 12:
-        Mtick=HourLocator(byhour=list(range(24)), interval=2)
-        mtick=MinuteLocator(byminute=[0,15,30,45])
+        Mtick = HourLocator(byhour = list(range(24)), interval = 2)
+        mtick = MinuteLocator(byminute = [0,15,30,45])
         fmt = DateFormatter('%H:%M UT')
     elif nHours < 24:
-        Mtick=HourLocator(byhour=[0,3,6,9,12,15,18,21])
-        mtick=HourLocator(byhour=list(range(24)))
+        Mtick = HourLocator(byhour = [0,3,6,9,12,15,18,21])
+        mtick = HourLocator(byhour = list(range(24)))
         fmt = DateFormatter('%H:%M UT')
     elif nHours < 48:
-        Mtick=HourLocator(byhour=[0,6,12,18])
-        mtick=HourLocator(byhour=list(range(24)))
+        Mtick = HourLocator(byhour = [0,6,12,18])
+        mtick = HourLocator(byhour = list(range(24)))
         fmt = DateFormatter('%H:%M UT')
     else:
-        Mtick=DayLocator(bymonthday=list(range(1,32)))
-        mtick=HourLocator(byhour=[0,6,12,18])
+        Mtick = DayLocator(bymonthday = list(range(1,32)))
+        mtick = HourLocator(byhour = [0,6,12,18])
         fmt = DateFormatter('%d %b')
 
     return (Mtick, mtick, fmt) 
 
-def applySmartTimeTicks(ax, time, dolimit=True):
+def applySmartTimeTicks(ax, time, dolimit = True):
     '''
     Given an axis 'ax' and a list/array of datetime objects, 'time', 
     use the smartTimeTicks function to build smart time ticks and
@@ -1014,18 +1008,18 @@ def arraybin(array, bins):
     Out[4]: [(array([0, 1, 2, 3, 4]),), (array([5, 6, 7, 8, 9]),)]
     """
     from numpy import where
-    bin_ind=[]
-    for i,b in enumerate(bins):
+    bin_ind = []
+    for i in bins:
         if i == 0:
-            ind=where( (array<bins[i]) )
+            ind = where( (array<bins[i]) )
         else:
-            ind=where( (array>=bins[i-1]) & (array<bins[i]) )
+            ind = where( (array>=bins[i-1]) & (array<bins[i]) )
         bin_ind.append(ind)
-    ind=where( (array>=bins[i]) )        
+    ind = where( (array>=bins[i]) )        
     bin_ind.append(ind)
     return bin_ind
 
-def mlt2rad(mlt, midnight=False):
+def mlt2rad(mlt, midnight = False):
     """
     Convert mlt values to radians for polar plotting
     transform mlt angles to radians from -pi to pi
@@ -1049,7 +1043,7 @@ def mlt2rad(mlt, midnight=False):
     """
     import numpy as np
     if midnight:
-        mlt_arr = mlt + 12
+        mlt_arr =  mlt + 12
     else:
         mlt_arr = mlt
     rad_arr=(mlt_arr-12)*np.pi/12
@@ -1190,7 +1184,7 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     timestamp()
     """
     from datetime import datetime
-    from matplotlib.pyplot import annotate, gca, draw
+    from matplotlib.pyplot import gca, draw
     now = datetime.now()
     strnow = now.strftime("%d%b%Y %H:%M")
     ax=gca()

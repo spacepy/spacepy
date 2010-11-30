@@ -5,7 +5,7 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.10 $, $Date: 2010/09/30 20:13:21 $"
+__version__ = "$Revision: 1.11 $, $Date: 2010/11/30 00:14:47 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -161,7 +161,7 @@ def getMPstandoff(ticks):
     
     try:
         # Initialize r0 and make P and Bz numpy arrays
-        r0 = np.zeros((len(P)),dtype=float)
+        r0 = np.zeros((len(P)), dtype=float)
         Bz = np.array(Bz)
         P = np.array(P)
         

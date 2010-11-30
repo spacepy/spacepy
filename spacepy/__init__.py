@@ -19,7 +19,7 @@ def help():
     """Launches web browser with local HTML help"""
     
     import webbrowser
-    path=__path__[0]+'/doc/'
+    path = __path__[0]+'/doc/'
     webbrowser.open(path+'index.html')
 
 # put modules here that you want to be accessible through 'from spacepy import *'
@@ -33,7 +33,7 @@ import spacepy.time, spacepy.coordinates
 #package info
 __version__ = '0.1dev'
 __author__ = 'The SpacePy Team'
-__team__ = ['Steve Morley', 'Josef Koller','Dan Welling','Brian Larsen','Jon Niehof', 'Mike Henderson']
+__team__ = ['Steve Morley', 'Josef Koller', 'Dan Welling', 'Brian Larsen', 'Jon Niehof', 'Mike Henderson']
 __contact__ = 'spacepy@lanl.gov'
 __license__ = """SpacePy: Space Science Tools for Python
 
@@ -61,7 +61,7 @@ __licence__ = __license__ #for those who speak English, rather than an odd diale
 try: #if in iPython interactive shell, print licence notice
     assert __IPYTHON__active
     print(__notice__)
-except: #otherwise print single line notice
+except NameError: #otherwise print single line notice
     print("SpacePy is released under license. See __licence__ for details, and help() for HTML help.")
 
 # import some settings
