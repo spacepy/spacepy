@@ -21,7 +21,7 @@ except NameError:
     def callable(obj):
         return isinstance(obj, collections.Callable)
 
-import pycdf as cdf
+import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
 
