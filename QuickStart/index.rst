@@ -300,8 +300,8 @@ Other function wrapped with the IRBEM library include:
 Pycdf - Python Access to NASA CDF Library
 =========================================
 
-pycdf provides a "pythonic" interface to the NASA CDF library (currently
-read-only). It requires that the base C library be properly installed.
+pycdf provides a "pythonic" interface to the NASA CDF library. It requires
+that the base C library be properly installed.
 The module can then be imported, e.g.::
 
     >>> import spacepy.pycdf as cdf
