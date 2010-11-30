@@ -22,18 +22,18 @@ class tFunctionTests(unittest.TestCase):
     
     def test_doy2dateconvert(self):
         """doy2date should return a known value for known input"""
-        inval = ( (2000, 1),
+        inval = [ (2000, 1),
                   (2001, 34),
                   (2006, 34),
                   (2008, 60),
                   (2008, 366),
-                  ([2008],[366]))
-        real_ans = ( (1, 1),
+                  ([2008],[366])]
+        real_ans = [ (1, 1),
                      (2, 3),
                      (2, 3),
                      (2, 29),
                      (12, 31),
-                     (12, 31))
+                     (12, 31)]
         for i, val in enumerate(inval):
             ans = t.doy2date(*val)
             ans2 = t.doy2date(*val, dtobj = True)
@@ -47,6 +47,16 @@ class tFunctionTests(unittest.TestCase):
         for val in inval:
             func = lambda:t.doy2date(*val)
             self.assertRaises(ValueError, func)
+
+    def test_doy2datefloat(self):
+        '''doy2date should work with floats'''
+        ans = ( datetime.datetime(2000, 1, 2, 2, 58, 33, 600000),
+                datetime.datetime(2000, 1, 2, 0, 0) )
+        inval = [ (2000, 2.124, True, True),
+                  (2000, 2, True, True)]
+        for i, val in enumerate(ans):
+            self.assertEqual(val, t.doy2date(*inval[i]))
+    
 
     def test_tickrange(self):
         """tickrange should return a known value for known input"""

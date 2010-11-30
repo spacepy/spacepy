@@ -80,7 +80,7 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.32 $, $Date: 2010/11/30 00:58:49 $"
+__version__ = "$Revision: 1.33 $, $Date: 2010/11/30 01:16:55 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1802,7 +1802,7 @@ def doy2date(year, doy, dtobj=False, flAns=False):
             test = n.array(doy)
         else:
             test = n.array([doy])
-        assert (test>1).all()
+        assert (test>=1).all()
     except AssertionError:
         raise ValueError('Day-of-Year less than 1 detected: DOY starts from 1')
 
@@ -1830,7 +1830,7 @@ def doy2date(year, doy, dtobj=False, flAns=False):
         if not flAns:
             dateobj[i] = datetime.datetime(int(year[i]),1,1) + datetime.timedelta(days = int(doy[i]-1))
         else:
-            dateobj[i] = datetime.datetime(year[i],1,1) + datetime.timedelta(days = (doy[i]-1))
+            dateobj[i] = datetime.datetime(year[i],1,1) + datetime.timedelta(days = (doy[i]-1.))
         month[i] = dateobj[i].month
         day[i] = dateobj[i].day
     
