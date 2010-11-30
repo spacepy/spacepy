@@ -80,7 +80,7 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.31 $, $Date: 2010/11/22 22:01:31 $"
+__version__ = "$Revision: 1.32 $, $Date: 2010/11/30 00:58:49 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1759,7 +1759,7 @@ class Ticktock(object):
 # -----------------------------------------------
 
 
-def doy2date(year, doy, dtobj=False):
+def doy2date(year, doy, dtobj=False, flAns=False):
     """
     convert integer day-of-year doy into a month and day
     after http://pleac.sourceforge.net/pleac_python/datesandtimes.html
@@ -1792,8 +1792,8 @@ def doy2date(year, doy, dtobj=False):
     V1: 24-Jan-2010: can handle arrays as input (JK)
     V2: 02-Apr-2010: option to return date objects (SM)
     V3: 07-Apr-2010: modified to return datetime objects (SM)
+    V4: 29-Nov-2010: added keyword flAns for floating point input (BAL)
     """
-
     import datetime
     import numpy as n
 
@@ -1802,25 +1802,35 @@ def doy2date(year, doy, dtobj=False):
             test = n.array(doy)
         else:
             test = n.array([doy])
-        booltest = n.where(test<1, True, False)
-        assert True not in booltest
+        assert (test>1).all()
     except AssertionError:
         raise ValueError('Day-of-Year less than 1 detected: DOY starts from 1')
 
     if isinstance(year, (list, n.ndarray)):
         nTAI = len(year)
-        year = n.array(year, dtype=int)
-        doy = n.array(doy, dtype=int)
+        if not flAns:
+            year = n.array(year, dtype=int)
+            doy = n.array(doy, dtype=int)
+        else:
+            year = n.array(year)
+            doy = n.array(doy)
     else:
         nTAI = 1
-        year = n.array([year], dtype=int)
-        doy = n.array([doy], dtype=int)
+        if not flAns:
+            year = n.array([year], dtype=int)
+            doy = n.array([doy], dtype=int)
+        else:
+            year = n.array([year])
+            doy = n.array([doy])
                 
     month = n.zeros(nTAI, dtype=int)
     day = n.zeros(nTAI, dtype=int)
     dateobj = ['']*nTAI
     for i, iyear, idoy in zip( n.arange(nTAI), year, doy): 
-        dateobj[i] = datetime.datetime(int(year[i]),1,1) + datetime.timedelta(days=int(doy[i]-1))    
+        if not flAns:
+            dateobj[i] = datetime.datetime(int(year[i]),1,1) + datetime.timedelta(days = int(doy[i]-1))
+        else:
+            dateobj[i] = datetime.datetime(year[i],1,1) + datetime.timedelta(days = (doy[i]-1))
         month[i] = dateobj[i].month
         day[i] = dateobj[i].day
     
@@ -1834,6 +1844,8 @@ def doy2date(year, doy, dtobj=False):
             return dateobj
         else:
             return month, day
+
+
 
 # -----------------------------------------------
 def tickrange(start, end, deltadays, dtype='ISO'):

@@ -11,7 +11,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.60 $, $Date: 2010/11/30 00:14:47 $"
+__version__ = "$Revision: 1.61 $, $Date: 2010/11/30 00:58:49 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1362,6 +1362,8 @@ def listUniq(inVal):
     """
     seen = set()
     return [ x for x in inVal if x not in seen and not seen.add(x)]
+
+
 
 
 
