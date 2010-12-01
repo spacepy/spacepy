@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.39 $, $Date: 2010/11/22 23:22:44 $"
+__version__ = "$Revision: 1.40 $, $Date: 2010/12/01 20:02:35 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -25,7 +25,8 @@ def compile_irbempy(fcompiler):
     F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
     functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
         'coord_trans1 find_magequator1', 'find_mirror_point1', 
-        'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1']
+        'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1', 
+        'trace_field_line2_1', 'trace_field_line_towards_earth1']
 
     # call f2py
     os.system('f2py --overwrite-signature -m irbempylib -h irbempylib.pyf '+' '.join(F90files) \
@@ -33,7 +34,7 @@ def compile_irbempy(fcompiler):
 
     # intent(out) substitute list
     outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
-            'xgeo', 'bmir', 'bl', 'bxgeo', 'flux']
+            'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind']
 
     inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
 
