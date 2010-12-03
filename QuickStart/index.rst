@@ -63,6 +63,32 @@ useful. The following functions are a selection of those implemented:
     * binHisto: calculate number of bins for a histogram
     * medAbsDev: find the median absolute deviation of a data series
     * normalize: normalize a data series
+    * listUniq: returns the uniq items in a list (in order)
+    * leapyear: ultra fast leap year query function
+    * applySmartTimeTicks: smartens up the time ticks on a plot
+    * feq: floating point equals
+
+Import this module as::
+
+    >>> import spacepy.toolbox as tb 
+
+Examples:
+
+    >>> import spacepy.toolbox as tb
+    >>> a = {'entry1':'val1', 'entry2':2, 'recurse1':{'one':1, 'two':2}}
+    >>> tb.dictree(a)
+    +
+    |____entry1
+    |____entry2
+    |____recurse1
+         |____one
+         |____two
+    >>> import numpy as np
+    >>> dat = np.random.random_sample(100)
+    >>> tb.binHisto(dat)
+    (0.19151723370512266, 5.0)
+ 
+
 
 
 Time and Coordinate Transformations
