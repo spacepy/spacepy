@@ -12,7 +12,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.66 $, $Date: 2010/12/07 18:52:15 $"
+__version__ = "$Revision: 1.67 $, $Date: 2010/12/07 21:40:38 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1403,14 +1403,14 @@ def intsolve(func, value, start=None, stop=None, maxit=1000):
         if upper_bound == inf:
             if lower_bound == -inf:
                 test_bound = 0
-            elif lower_bound < 1000.0:
-                test_bound = 1000.0
+            elif lower_bound < 1.0:
+                test_bound = 1.0
             else:
                 test_bound = lower_bound * 2
         else:
             if lower_bound == -inf:
-                if upper_bound > -1000.0:
-                    test_bound = -1000.0
+                if upper_bound > -1.0:
+                    test_bound = -1.0
                 else:
                     test_bound = upper_bound * 2
             else:
@@ -1429,3 +1429,44 @@ def intsolve(func, value, start=None, stop=None, maxit=1000):
              ', greater than integral error ' +
              str(err), UserWarning, stacklevel=2)
     return test_bound
+
+
+def dist_to_list(func, length, min=None, max=None):
+    """Convert a probability distribution function to a list of values
+
+    This is a deterministic way to produce a known-length list of values
+    matching a certain probability distribution. It is likely to be a closer
+    match to the distribution function than a random sampling from the
+    distribution.
+
+    @param func: function to call for each possible value, returning
+                 probability density at that value (does not need to be
+                 normalized.)
+    @type func: callable
+    @param length: number of elements to return
+    @type length: int
+    @param min: minimum value to possibly include
+    @type min: float
+    @param max: maximum value to possibly include
+    @type max: float
+
+    >>> gauss = lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
+                          (5 * math.sqrt(2 * math.pi))
+    >>> vals = dist_to_list(gauss, 1000, -inf, inf)
+    >>> matplotlib.pyplot.hist(vals, bins=[i - 10 for i in range(21)],
+                               facecolor='green')
+    >>> matplotlib.pyplot.hold(True)
+    >>> x = [i / 100.0 - 10.0 for i in range(2001)]
+    >>> matplotlib.pyplot.plot(x, [gauss(i) * 1000 for i in x], 'red')
+    >>> matplotlib.pyplot.show()
+    """
+    from scipy import inf
+    from scipy.integrate import quad
+    from warnings import warn
+    if min is None:
+        min = -inf
+    if max is None:
+        max = inf
+    total = quad(func, min, max)[0]
+    step = float(total) / length
+    return [intsolve(func, (0.5 + i) * step, min, max) for i in range(length)]

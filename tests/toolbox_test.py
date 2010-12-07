@@ -1,10 +1,17 @@
 #!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
 
+import datetime
+import glob
+import os
+import math
 import unittest
-import spacepy.toolbox as tb
-import glob, os, datetime, numpy
+
+import numpy
 from numpy import array
+from scipy import inf
+import spacepy.toolbox as tb
+
 
 class PickleAssembleTests(unittest.TestCase):
     
@@ -139,14 +146,49 @@ class SimpleFunctionTests(unittest.TestCase):
         """Find function input to give a desired integral value"""
         inputs = [[lambda x: x**2, 1, 0, 1000],
                   [lambda x: x / 2, 4, 0, 100],
+                  [lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
+                          (5 * math.sqrt(2 * math.pi)), 0.6, -inf, inf],
                   ]
         outputs = [3.0 ** (1.0 / 3),
                    4,
+                   1.266735515678999
                    ]
         for (input, output) in zip(inputs, outputs):
             self.assertAlmostEqual(output,
                                    tb.intsolve(*input),
-                                   places=12)
+                                   places=6)
+
+    def testDistToList(self):
+        """Convert probability distribution to list of values"""
+        inputs = [[lambda x: x, 10, 0, 10],
+                  [lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
+                   (5 * math.sqrt(2 * math.pi)), 20, -inf, inf],
+                  ]
+        outputs = [[2.2360679774998005,
+                    3.8729833462074126,
+                    5.0,
+                    5.91607978309959,
+                    6.708203932499401,
+                    7.416198487095684,
+                    8.06225774829855,
+                    8.66025403784434,
+                    9.219544457292841,
+                    9.746794344808976],
+                   [-9.799819946289062, -7.197657585144043,
+                    -5.751746901776642, -4.672946454957128,
+                    -3.777075132355094, -2.9888006299734116,
+                    -2.268810950219631, -1.5931968204677105,
+                    -0.9455921351909637, -0.31353388726711273,
+                    0.3135339021682739, 0.9455921053886414,
+                    1.5931968688964844, 2.268810987472534,
+                    2.988800525665283, 3.7770752906799316,
+                    4.672946453094482, 5.751747131347656,
+                    7.197657346725464, 9.799819946289062]
+                   ]
+        for (input, output) in zip(inputs, outputs):
+            self.assertAlmostEqual(output,
+                                   tb.dist_to_list(*input),
+                                   places=9)
 
 
 class tFunctionTests(unittest.TestCase):
