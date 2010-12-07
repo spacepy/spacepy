@@ -6,17 +6,13 @@ Toolbox of various functions and generic utilities.
 """
 
 from __future__ import division
-import scipy
-import scipy.integrate
-import warnings
-
 try:
     from spacepy import help
 except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.65 $, $Date: 2010/12/07 18:50:59 $"
+__version__ = "$Revision: 1.66 $, $Date: 2010/12/07 18:52:15 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1364,7 +1360,7 @@ def listUniq(inVal):
     return [ x for x in inVal if x not in seen and not seen.add(x)]
 
 
-def intsolve(func, value, start=-scipy.inf, stop=scipy.inf, maxit=1000):
+def intsolve(func, value, start=None, stop=None, maxit=1000):
     """Find the function input such that definite integral is desired value.
 
     Given a function, integrate from an (optional) start point until the
@@ -1392,28 +1388,34 @@ def intsolve(func, value, start=-scipy.inf, stop=scipy.inf, maxit=1000):
     
     @version: V1: 7-Dec-2010 (JTN)
     """
+    from scipy import inf
+    from scipy.integrate import quad
+    from warnings import warn
+    if start is None:
+        start = -inf
+    if stop is None:
+        stop = inf
     lower_bound = start
     upper_bound = stop
     it = 0
     while it < maxit:
         it += 1
-        if upper_bound == scipy.inf:
-            if lower_bound == -scipy.inf:
+        if upper_bound == inf:
+            if lower_bound == -inf:
                 test_bound = 0
             elif lower_bound < 1000.0:
                 test_bound = 1000.0
             else:
                 test_bound = lower_bound * 2
         else:
-            if lower_bound == -scipy.inf:
+            if lower_bound == -inf:
                 if upper_bound > -1000.0:
                     test_bound = -1000.0
                 else:
                     test_bound = upper_bound * 2
             else:
                 test_bound = (lower_bound + upper_bound) / 2.0
-        (test_value, err) = scipy.integrate.quad(
-            func, start, test_bound)
+        (test_value, err) = quad(func, start, test_bound)
         if abs(value - test_value) <= err:
             break
         elif value < test_value:
@@ -1422,8 +1424,8 @@ def intsolve(func, value, start=-scipy.inf, stop=scipy.inf, maxit=1000):
             lower_bound = test_bound
 
     if abs(value - test_value) > err:
-        warnings.warn('Difference between desired value and actual is ' +
-                      str(abs(value - test_value)) +
-                      ', greater than integral error ' +
-                      str(err), UserWarning, stacklevel=2)
+        warn('Difference between desired value and actual is ' +
+             str(abs(value - test_value)) +
+             ', greater than integral error ' +
+             str(err), UserWarning, stacklevel=2)
     return test_bound
