@@ -4,6 +4,7 @@
 Toolbox of various functions and generic utilities.
 
 """
+
 from __future__ import division
 try:
     from spacepy import help
@@ -11,7 +12,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.62 $, $Date: 2010/12/07 16:39:43 $"
+__version__ = "$Revision: 1.63 $, $Date: 2010/12/07 17:02:38 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -985,39 +986,36 @@ def logspace(min, max, num, **kwargs):
     return logspace(log10(min), log10(max), num, **kwargs)
 
 def arraybin(array, bins):
-    """
-    Given an array and a set of bins return the indices that are less than the 
-    smallest bin between each set and larger than the largest bin
-    bins should be sorted
+    """Split a sequence into subsequences based on value.
+    
+    Given a sequence of values and a sequence of values representing the
+    division between bins, return the indices grouped by bin.
 
-    @param array: the input array to slice
-    @type array: numpy.array
-    @param bins: the bins to slice along (may be array or list)
-    @type bins: numpy.array
-    @return: list of indices 
-       first element is less than first bin and last bin is larger than last bin
-    @rtype: list
+    @param array: the input sequence to slice, must be sorted in ascending
+                  order
+    @type array: sequence
+    @param bins: dividing lines between bins. Number of bins is len(bins)+1,
+                 value that exactly equal a dividing value are assigned
+                 to the higher bin
+    @type bins: sequence
+    @return: indices for each bin
+    @rtype: list of lists
 
-    @author: Brian Larsen
+    @author: Brian Larsen, Jonathan Niehof
     @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
+    @contact: balarsen@lanl.gov, jniehof@lanl.gov
     
     @version: V1: 14-Jun-2010 (BAL)
+    @version: V2: 07-Dec-2010 (JTN)
    
-    >>> arraybin(arange(10), [4.2])
-    Out[4]: [(array([0, 1, 2, 3, 4]),), (array([5, 6, 7, 8, 9]),)]
+    >>> arraybin(range(10), [4.2])
+    Out[4]: [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
     """
-    from numpy import where
-    bin_ind = []
-    for i in bins:
-        if i == 0:
-            ind = where( (array<bins[i]) )
-        else:
-            ind = where( (array>=bins[i-1]) & (array<bins[i]) )
-        bin_ind.append(ind)
-    ind = where( (array>=bins[i]) )        
-    bin_ind.append(ind)
-    return bin_ind
+    value = 0
+    bin_it = (i for i in range(len(array)) if array[i] >= value)
+    splits = [next(bin_it, len(array)) for value in bins]
+    return [list(range(start_idx, stop_idx)) for (start_idx, stop_idx)
+            in zip([0] + splits, splits + [len(array)])]
 
 def mlt2rad(mlt, midnight = False):
     """
@@ -1348,9 +1346,3 @@ def listUniq(inVal):
     """
     seen = set()
     return [ x for x in inVal if x not in seen and not seen.add(x)]
-
-
-
-
-
-# -----------------------------------------------

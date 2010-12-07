@@ -99,14 +99,6 @@ class SimpleFunctionTests(unittest.TestCase):
         for i, val in enumerate(real_ans):
             self.assertAlmostEqual(val, ans[i], places=4)
 
-    def test_arraybin(self):
-        """arraybin should return know answer for known input"""
-        real_ans = [(array([0, 1, 2, 3, 4]),), (array([5, 6, 7, 8, 9]),)]
-        ans = tb.arraybin(numpy.arange(10), [4.2])
-        for i in range(2):
-            self.assertTrue( (ans[i][0] == real_ans[i][0]).all()) 
-        
-
     def test_pmm(self):
         """pmm should give known output for known input"""
         data = [[1,3,5,2,5,6,2], array([5,9,23,24,6]), [6,23,12,67.34] ]
@@ -189,10 +181,23 @@ class tFunctionTests(unittest.TestCase):
         self.assertEqual(real_ans[1].tolist(), ans[1].tolist())
 
 
+class ArrayBinTests(unittest.TestCase):
+    """Tests for arraybin function"""
+
+    def testNormalList(self):
+        """Non-pathological cases, lists as input"""
+        inputs = [[range(10), [4.2]],
+                  [[5, 6, 7, 8, 9, 10, 11, 12], [7, 11]],
+                  [[5, 6, 7, 8, 9, 10, 11, 12], [7, 11, 11.5, 13]],
+                  ]
+        outputs = [[[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]],
+                   [[0, 1], [2, 3, 4, 5], [6, 7]],
+                   [[0, 1], [2, 3, 4, 5], [6], [7], []],
+                    ]
+        for (input, output) in zip(inputs, outputs):
+            self.assertEqual(output,
+                             tb.arraybin(*input))
+
+
 if __name__ == "__main__":
     unittest.main()
-
-
-
-
-
