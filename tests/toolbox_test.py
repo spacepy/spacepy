@@ -66,12 +66,6 @@ class PickleAssembleTests(unittest.TestCase):
 
 
 class SimpleFunctionTests(unittest.TestCase):
-    def setUp(self):
-        super(SimpleFunctionTests, self).setUp()
-
-    def tearDown(self):
-        super(SimpleFunctionTests, self).tearDown()
-
     def testfeq_equal(self):
         """feq should return true when they are equal"""
         val1 = 1.1234
@@ -195,15 +189,7 @@ class tFunctionTests(unittest.TestCase):
         self.assertEqual(real_ans[1].tolist(), ans[1].tolist())
 
 
-
 if __name__ == "__main__":
-    ## suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
-    ## unittest.TextTestRunner(verbosity=2).run(suite)
-
-    ## suite = unittest.TestLoader().loadTestsFromTestCase(tFunctionTests)
-    ## unittest.TextTestRunner(verbosity=2).run(suite)
-
-
     unittest.main()
 
 
