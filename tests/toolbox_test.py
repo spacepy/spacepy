@@ -135,6 +135,20 @@ class SimpleFunctionTests(unittest.TestCase):
             else:
                 self.assertEqual(val, tb.leap_year(data[i], True))
 
+    def testIntSolve(self):
+        """Find function input to give a desired integral value"""
+        inputs = [[lambda x: x**2, 1, 0, 1000],
+                  [lambda x: x / 2, 4, 0, 100],
+                  ]
+        outputs = [3.0 ** (1.0 / 3),
+                   4,
+                   ]
+        for (input, output) in zip(inputs, outputs):
+            self.assertAlmostEqual(output,
+                                   tb.intsolve(*input),
+                                   places=12)
+
+
 class tFunctionTests(unittest.TestCase):
     def setUp(self):
         super(tFunctionTests, self).setUp()

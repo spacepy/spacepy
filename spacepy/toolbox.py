@@ -6,13 +6,17 @@ Toolbox of various functions and generic utilities.
 """
 
 from __future__ import division
+import scipy
+import scipy.integrate
+import warnings
+
 try:
     from spacepy import help
 except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.63 $, $Date: 2010/12/07 17:02:38 $"
+__version__ = "$Revision: 1.64 $, $Date: 2010/12/07 18:16:32 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1346,3 +1350,68 @@ def listUniq(inVal):
     """
     seen = set()
     return [ x for x in inVal if x not in seen and not seen.add(x)]
+
+
+def intsolve(func, value, start=-scipy.inf, stop=scipy.inf, maxit=1000):
+    """Find the function input such that definite integral is desired value.
+
+    Given a function, integrate from an (optional) start point until the
+    integral reached a desired value, and return the end point of the
+    integration.
+
+    @param func: function to integrate, must take single parameter
+    @type func: callable
+    @param value: desired final value of the integral
+    @type value: float
+    @param start: value at which to start integration, default -Infinity
+    @type start: float
+    @param stop: value at which to stop integration, default +Infinity
+    @type stop: float
+    @param maxit: maximum number of iterations
+    @type maxit: int
+    @return: x such that the integral of L{func} from L{start} to x is L{value}
+    @rtype: float
+    @note: Assumes L{func} is everywhere positive, otherwise solution may
+           be multi-valued.
+
+    @author: Jonathan Niehof
+    @organization: Los Alamos National Lab
+    @contact: jniehof@lanl.gov
+    
+    @version: V1: 7-Dec-2010 (JTN)
+    """
+    lower_bound = start
+    upper_bound = stop
+    it = 0
+    while it < maxit:
+        it += 1
+        if upper_bound == scipy.inf:
+            if lower_bound == -scipy.inf:
+                test_bound = 0
+            elif lower_bound < 1000.0:
+                test_bound = 1000.0
+            else:
+                test_bound = lower_bound * 2
+        else:
+            if lower_bound == -scipy.inf:
+                if upper_bound > -1000.0:
+                    test_bound = -1000.0
+                else:
+                    test_bound = upper_bound * 2
+            else:
+                test_bound = (lower_bound + upper_bound) / 2.0
+        (test_value, err) = scipy.integrate.quad(
+            func, start, test_bound)
+        if abs(value - test_value) <= err:
+            break
+        elif value < test_value:
+            upper_bound = test_bound
+        else:
+            lower_bound = test_bound
+
+    if abs(value - test_value) > err:
+        warnings.warn('Difference between desired value and actual is ' +
+                      str(abs(value - test_value)) +
+                      ', greater than integral error ' +
+                      str(err), UserWarning, stacklevel=2)
+    return test_bound
