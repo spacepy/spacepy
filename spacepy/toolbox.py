@@ -16,7 +16,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.64 $, $Date: 2010/12/07 18:16:32 $"
+__version__ = "$Revision: 1.65 $, $Date: 2010/12/07 18:50:59 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1106,6 +1106,9 @@ def leap_year(year, numdays=False, nobool=False):
     array([False, False,  True, False, False, False,  True, False, False,
     ... False,  True, False, False, False,  True], dtype=bool)
     """
+    import numpy
+    if not isinstance(year, (tuple, numpy.ndarray, list)):
+        year = [year]
     mask400 = [(val % 400) == 0 for val in year]   # this is a leap year
     mask100 = [(val % 100) == 0 for val in year ]   # these are not leap years
     mask4   = [(val % 4) == 0 for val in year ]   # this is a leap year
@@ -1114,9 +1117,18 @@ def leap_year(year, numdays=False, nobool=False):
             numdays=365
         else:
             numdays = 0
-        return [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
+        ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
+        if len(ans) == 1:
+            return ans[0]
+        else:
+            return ans
     else:
-        return [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]
+        ans = [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]
+        if len(ans) == 1:
+            return ans[0]
+        else:
+            return ans
+
         
 leapyear = leap_year
 

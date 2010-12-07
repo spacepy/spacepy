@@ -123,7 +123,7 @@ class SimpleFunctionTests(unittest.TestCase):
                      [False, False, False,  True, False, False, False,  True, False, False] )
         for i, val in enumerate(real_ans):
             if i == 0:
-                self.assertEqual(val.tolist(), tb.leap_year(data[i]).tolist())
+                self.assertEqual(val.tolist(), tb.leap_year(data[i]))
             else:
                 self.assertEqual(val, tb.leap_year(data[i]))
         real_ans = ( array([365, 365, 365,  366, 365, 365, 365,  366, 365, 365]),
@@ -131,7 +131,7 @@ class SimpleFunctionTests(unittest.TestCase):
                      [365, 365, 365,  366, 365, 365, 365,  366, 365, 365] )
         for i, val in enumerate(real_ans):
             if i == 0:
-                self.assertEqual(val.tolist(), tb.leap_year(data[i], True).tolist())
+                self.assertEqual(val.tolist(), tb.leap_year(data[i], True))
             else:
                 self.assertEqual(val, tb.leap_year(data[i], True))
 
