@@ -269,34 +269,24 @@ def boots_ci(data, n, inter, func):
     
     Author:
     =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov and
+    Jonathan Niehof, Los Alamos National Lab, jniehof@lanl.gov
     """
     
     import numpy as np
     from numpy.random import randint
     from matplotlib.mlab import prctile
-    #func = lambda x: np.median(x)
-    data = np.array(data)
+
     perc_low = (100.-inter)/2. #set confidence interval
     perc_high = inter + perc_low
     
     n_els = len(data)
-    if n_els > 2:
-        surr_ser = np.empty([n_els]) #create list for surrogate series
-        data_copy = {} #open dict
-        for el, rec in enumerate(data): #dict_loop
-            data_copy[el] = rec #put data in dictionary
-        surr_quan = np.empty([n])
-        ran_el = randint(0, n_els, size=[n_els,n])
-        for i in range(int(n)): #compute n bootstrapped series
-            #surr_ser = data[ran_el[:,i]] #NumPy_resample with replacement
-            for el, rec in enumerate(ran_el[:,i]): #loop over dictionary for access speed
-                surr_ser[el] = data_copy[rec] #dict_resample with replacement
-            surr_quan[i] = func(surr_ser) #get desired quantity from surrogates
-        pul = prctile(surr_quan, p=(perc_low,perc_high)) #get confidence interval
-        ci_low, ci_high = pul[0], pul[1]
-    else:
-        ci_low, ci_high = np.nan
-        
-    return ci_low, ci_high
-    
+    if n_els <= 2:
+        return np.nan, np.nan
+    surr_quan = np.empty([n])
+    ran_el = randint(0, n_els, size=[n, n_els])
+    for i in range(int(n)): #compute n bootstrapped series
+        surr_ser = [data[rec] for rec in ran_el[i, :]] #resample w/ replacemen
+        surr_quan[i] = func(surr_ser) #get desired quantity from surrogates
+    pul = prctile(surr_quan, p=(perc_low,perc_high)) #get confidence interval
+    return pul[0], pul[1]
