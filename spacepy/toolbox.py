@@ -12,7 +12,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.68 $, $Date: 2010/12/08 16:37:29 $"
+__version__ = "$Revision: 1.69 $, $Date: 2010/12/08 17:37:02 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -974,9 +974,9 @@ def logspace(min, max, num, **kwargs):
     Out[2]: array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
 
     """
-    
     from numpy import logspace, log10
     return logspace(log10(min), log10(max), num, **kwargs)
+
 
 def arraybin(array, bins):
     """Split a sequence into subsequences based on value.
@@ -1010,6 +1010,7 @@ def arraybin(array, bins):
     return [list(range(start_idx, stop_idx)) for (start_idx, stop_idx)
             in zip([0] + splits, splits + [len(array)])]
 
+
 def mlt2rad(mlt, midnight = False):
     """
     Convert mlt values to radians for polar plotting
@@ -1034,11 +1035,18 @@ def mlt2rad(mlt, midnight = False):
     """
     import numpy as np
     if midnight:
-        mlt_arr =  mlt + 12
+        try:
+            mlt_arr =  [val + 12 for val in mlt]
+        except TypeError:
+            mlt_arr = mlt + 12
     else:
         mlt_arr = mlt
-    rad_arr=(mlt_arr-12)*np.pi/12
+    try:
+        rad_arr = [(val-12)*np.pi/12. for val in mlt_arr]
+    except TypeError:
+        rad_arr = (mlt_arr-12)*np.pi/12.
     return rad_arr
+
 
 def rad2mlt(rad, midnight=False):
     """

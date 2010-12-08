@@ -74,6 +74,21 @@ class PickleAssembleTests(unittest.TestCase):
 
 
 class SimpleFunctionTests(unittest.TestCase):
+    def test_mlt2rad(self):
+        """mlt2rad should have known output for known input"""
+        self.assertAlmostEqual(-2.8797932657906435, tb.mlt2rad(1))
+        self.assertAlmostEqual(3.6651914291880918, tb.mlt2rad(26))
+        val = tb.mlt2rad([1, 2])
+        ans = [-2.8797932657906435, -2.6179938779914944]
+        for i, j in zip(val, ans):
+            self.assertAlmostEqual(i, j)
+        self.assertAlmostEqual(0.26179938779914941, tb.mlt2rad(1, midnight=True))
+        self.assertAlmostEqual(6.8067840827778854, tb.mlt2rad(26, midnight=True))
+        val = tb.mlt2rad([1, 2], midnight=True)
+        ans = [0.26179938779914941, 0.52359877559829882]
+        for i, j in zip(val, ans):
+            self.assertAlmostEqual(i, j)
+
     def testfeq_equal(self):
         """feq should return true when they are equal"""
         val1 = 1.1234
