@@ -187,9 +187,8 @@ class SimpleFunctionTests(unittest.TestCase):
                     7.197657346725464, 9.799819946289062]
                    ]
         for (input, output) in zip(inputs, outputs):
-            self.assertAlmostEqual(output,
-                                   tb.dist_to_list(*input),
-                                   places=9)
+            for (exp, actual) in zip(output, tb.dist_to_list(*input)):
+                self.assertAlmostEqual(exp, actual, places=9)
 
 
 class tFunctionTests(unittest.TestCase):
