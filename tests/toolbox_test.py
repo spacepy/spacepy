@@ -239,6 +239,13 @@ class tFunctionTests(unittest.TestCase):
         ans = tb.tOverlap(self.dt_a, self.dt_b)
         self.assertEqual(real_ans, ans)
 
+    def test_tOverlapHalf(self):
+        """Get overlap of only one list"""
+        real_ans = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                    30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+        ans = tb.tOverlapHalf(self.dt_a, self.dt_b)
+        self.assertEqual(real_ans, ans)
+
     def test_tCommon(self):
         """tCommon should return a known value for known input"""
         real_ans = (array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
