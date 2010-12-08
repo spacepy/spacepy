@@ -6,7 +6,7 @@ Implementation of Coords class functions
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.11 $, $Date: 2010/11/30 00:14:47 $"
+__version__ = "$Revision: 1.12 $, $Date: 2010/12/08 15:41:46 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -22,7 +22,7 @@ class Coords(object):
         
     Input:
     ======
-        - data (list or ndarray, dim = (n,3) ) : coordinate points 
+        - data (list or ndarray, dim = (n,3) ) : coordinate points [X,Y,Z] or [rad, lat, lon]
         - dtype (string) :coordinate system, possible are GDZ, GEO, GSM, GSE, SM, GEI
                 MAG, SPH, RLL
         - carsph (string) : Cartesian or spherical, 'car' or 'sph'
