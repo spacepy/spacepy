@@ -150,13 +150,8 @@ class PPro(object):
             for nss, tp1 in enumerate(self.process1): #loop for each member of series1
                 t_lower = tp1+lag-self.winhalf
                 t_upper = tp1+lag+self.winhalf
-                inds1, inds2 = tb.tOverlap([t_lower, t_upper], self.process2)
-                if inds2 == None:
-                    numby = 0
-                else:
-                    numby = len(inds2)
-                    
-                self.n_assoc[nss,ilag] = numby
+                inds2 = tb.tOverlapHalf([t_lower, t_upper], self.process2)
+                self.n_assoc[nss,ilag] = len(inds2)
         
         self.assoc_total = np.sum(self.n_assoc, axis=0)
         pul = mlab.prctile_rank(self.lags, p=(20,80))
