@@ -140,6 +140,7 @@ class PPro(object):
         
         import numpy as np
         import matplotlib as mpl
+        from matplotlib import mlab
         import spacepy.toolbox as tb
         
         ##Method 1 - use tb.tOverlap
@@ -158,7 +159,7 @@ class PPro(object):
                 self.n_assoc[nss,ilag] = numby
         
         self.assoc_total = np.sum(self.n_assoc, axis=0)
-        pul = mpl.mlab.prctile_rank(self.lags, p=(20,80))
+        pul = mlab.prctile_rank(self.lags, p=(20,80))
         valsL = self.assoc_total[pul==0]
         valsR = self.assoc_total[pul==2]
         self.asympt_assoc = np.mean([np.mean(valsL), np.mean(valsR)])
@@ -235,6 +236,7 @@ class PPro(object):
         self.ci = [ci_low, ci_high]
     
         return None
+
     
 #Functions outside class
 def boots_ci(data, n, inter, func):
