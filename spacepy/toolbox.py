@@ -12,7 +12,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.69 $, $Date: 2010/12/08 17:37:02 $"
+__version__ = "$Revision: 1.70 $, $Date: 2010/12/08 22:56:31 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -42,21 +42,35 @@ def tOverlap(ts1, ts2):
     ... , datetime.datetime(2007, 5, 10, 4, 57, 30)]
     
     """
-    #elements of ts2 within bounds of ts1
-    t_lower, t_upper = min(ts1), max(ts1)
-    idx_2in1 = [i for i in range(len(ts2))
-                if ts2[i] >= t_lower and ts2[i] <= t_upper]
-    #elements of ts1 within bounds of ts2
-    t_lower, t_upper = min(ts2), max(ts2)
-    idx_1in2 = [i for i in range(len(ts1))
-                if ts1[i] >= t_lower and ts1[i] <= t_upper]
+    idx_1in2 = tOverlapHalf(ts1, ts2)
+    idx_2in1 = tOverlapHalf(ts2, ts1)
     if len(idx_2in1) == 0:
         idx_2in1 = None
     if len(idx_1in2) == 0:
         idx_1in2 = None
     
     return idx_1in2, idx_2in1
-    
+
+
+def tOverlapHalf(ts1, ts2):
+    """Find overlapping elements in two lists of datetime objects
+
+    This is one-half of L{tOverlap}, i.e. it finds only occurances where
+    L{ts1} exists within the bounds of L{ts2}, or the first element 
+    returnd by tOverlap.
+
+    @param ts1: first set of datetime object
+    @type ts1: datetime
+    @param ts2: datatime object
+    @type ts2: datetime
+    @return: indices of ts1 within interval of ts2
+    @rtype: list
+    @note: Returns empty list if no overlap found
+    """
+    t_lower, t_upper = min(ts2), max(ts2)
+    return [i for i in range(len(ts1))
+            if ts1[i] >= t_lower and ts1[i] <= t_upper]
+
 
 def tCommon(ts1, ts2, mask_only=True):
     """Finds the elements in a list of datetime objects present in another
