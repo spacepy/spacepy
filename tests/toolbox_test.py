@@ -5,6 +5,7 @@ import datetime
 import glob
 import os
 import math
+import random
 import unittest
 
 import numpy
@@ -205,10 +206,22 @@ class tFunctionTests(unittest.TestCase):
     
     def test_tOverlap(self):
         """tOverlap should return a known value for known input"""
-        real_ans = ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                     10, 11, 12, 13, 14, 15, 16, 17, 18],
-                    [21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-                     31, 32, 33, 34, 35, 36, 37, 38, 39])
+        real_ans = ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                     11, 12, 13, 14, 15, 16, 17, 18, 19],
+                    [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                     30, 31, 32, 33, 34, 35, 36, 37, 38, 39])
+        ans = tb.tOverlap(self.dt_a, self.dt_b)
+        self.assertEqual(real_ans, ans)
+
+    def test_tOverlap_random(self):
+        """Shuffle input before calling tOverlap"""
+        real_ans = ([1, 5, 6, 10, 15, 16, 18, 24, 29, 30, 43,
+                     46, 47, 51, 53, 55, 56, 64, 67, 74],
+                    [1, 2, 6, 7, 10, 12, 13, 14, 15, 17, 18,
+                     19, 24, 27, 28, 30, 32, 35, 37, 38])
+        random.seed(0)
+        random.shuffle(self.dt_a)
+        random.shuffle(self.dt_b)
         ans = tb.tOverlap(self.dt_a, self.dt_b)
         self.assertEqual(real_ans, ans)
 

@@ -12,7 +12,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.67 $, $Date: 2010/12/07 21:40:38 $"
+__version__ = "$Revision: 1.68 $, $Date: 2010/12/08 16:37:29 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -26,11 +26,11 @@ def tOverlap(ts1, ts2):
     @return: indices of ts1 within interval of ts2, & vice versa
     @rtype: list
     
-    @author: Steve Morley
+    @author: Steve Morley, Jonathan Niehof
     @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov/morley_steve@hotmail.com
+    @contact: smorley@lanl.gov, jniehof@lanl.gov
     
-    @version: 09-Jun-2010: Total rewrite for clarity, efficiency and brevity.
+    @version: 08-Dec-2010: Rewrite for speed
         
     Given two series of datetime objects, event_dates and omni['Time']:
     
@@ -42,27 +42,20 @@ def tOverlap(ts1, ts2):
     ... , datetime.datetime(2007, 5, 10, 4, 57, 30)]
     
     """
-    
     #elements of ts2 within bounds of ts1
     t_lower, t_upper = min(ts1), max(ts1)
-    bool1 = [v > t_lower for v in ts2]
-    bool2 = [v < t_upper for v in ts2]
-    mask2in1 = [b1 and b2 for b1, b2 in zip(bool1, bool2)]
-    inds2in1 = [i for i, val in enumerate(mask2in1) if val==True]
-    
+    idx_2in1 = [i for i in range(len(ts2))
+                if ts2[i] >= t_lower and ts2[i] <= t_upper]
     #elements of ts1 within bounds of ts2
     t_lower, t_upper = min(ts2), max(ts2)
-    bool1 = [v > t_lower for v in ts1]
-    bool2 = [v < t_upper for v in ts1]
-    mask1in2 = [b1 and b2 for b1, b2 in zip(bool1, bool2)]
-    inds1in2 = [i for i, val in enumerate(mask1in2) if val==True]
+    idx_1in2 = [i for i in range(len(ts1))
+                if ts1[i] >= t_lower and ts1[i] <= t_upper]
+    if len(idx_2in1) == 0:
+        idx_2in1 = None
+    if len(idx_1in2) == 0:
+        idx_1in2 = None
     
-    if len(inds2in1) == 0:
-        inds2in1 = None
-    if len(inds1in2) == 0:
-        inds1in2 = None
-    
-    return inds1in2, inds2in1
+    return idx_1in2, idx_2in1
     
 
 def tCommon(ts1, ts2, mask_only=True):
