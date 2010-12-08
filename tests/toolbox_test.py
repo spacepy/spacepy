@@ -194,23 +194,21 @@ class SimpleFunctionTests(unittest.TestCase):
 class tFunctionTests(unittest.TestCase):
     def setUp(self):
         super(tFunctionTests, self).setUp()
-        tdelta1 = [datetime.timedelta(hours=val) for val in range(100)]
-        tdelta2 = [datetime.timedelta(hours=val) for val in range(-20, 20)]
-
         dt1 = datetime.datetime(2000, 11, 12)
-        dt_a = [dt1 + val for val in tdelta1]
-        dt_b = [dt1 + val for val in tdelta2]
-        self.dt_a = dt_a
-        self.dt_b = dt_b
-        
+        self.dt_a = [dt1 + datetime.timedelta(hours=val)
+                     for val in range(100)]
+        self.dt_b = [dt1 + datetime.timedelta(hours=val)
+                     for val in range(-20, 20)]
 
     def tearDown(self):
         super(tFunctionTests, self).tearDown()
     
     def test_tOverlap(self):
         """tOverlap should return a known value for known input"""
-        real_ans = ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-               [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39])
+        real_ans = ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                     10, 11, 12, 13, 14, 15, 16, 17, 18],
+                    [21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+                     31, 32, 33, 34, 35, 36, 37, 38, 39])
         ans = tb.tOverlap(self.dt_a, self.dt_b)
         self.assertEqual(real_ans, ans)
 
