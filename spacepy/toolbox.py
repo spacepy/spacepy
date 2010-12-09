@@ -12,17 +12,19 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.71 $, $Date: 2010/12/08 23:20:28 $"
+__version__ = "$Revision: 1.72 $, $Date: 2010/12/09 15:52:03 $"
 __author__ = 'S. Morley and J. Koller'
 
 
-def tOverlap(ts1, ts2):
+def tOverlap(ts1, ts2, *args, **kwargs):
     """Finds the overlapping elements in two lists of datetime objects
 
     @param ts1: first set of datetime object
     @type ts1: datetime
     @param ts2: datatime object
     @type ts2: datetime
+    @param args: additional arguments passed to L{tOverlapHalf}
+    @param kwargs: additional keywords passed to L{tOverlapHalf}
     @return: indices of ts1 within interval of ts2, & vice versa
     @rtype: list
     
@@ -42,8 +44,8 @@ def tOverlap(ts1, ts2):
     ... , datetime.datetime(2007, 5, 10, 4, 57, 30)]
     
     """
-    idx_1in2 = tOverlapHalf(ts2, ts1)
-    idx_2in1 = tOverlapHalf(ts1, ts2)
+    idx_1in2 = tOverlapHalf(ts2, ts1, *args, **kwargs)
+    idx_2in1 = tOverlapHalf(ts1, ts2, *args, **kwargs)
     if len(idx_2in1) == 0:
         idx_2in1 = None
     if len(idx_1in2) == 0:
@@ -52,7 +54,7 @@ def tOverlap(ts1, ts2):
     return idx_1in2, idx_2in1
 
 
-def tOverlapHalf(ts1, ts2):
+def tOverlapHalf(ts1, ts2, presort=False):
     """Find overlapping elements in two lists of datetime objects
 
     This is one-half of L{tOverlap}, i.e. it finds only occurances where
@@ -63,13 +65,24 @@ def tOverlapHalf(ts1, ts2):
     @type ts1: datetime
     @param ts2: datatime object
     @type ts2: datetime
+    @param presort: Set to use a faster algorithm which assumes L{ts1} and
+                   L{ts2} are both sorted in ascending order. This speeds up
+                   the overlap comparison by about 50x, so it is worth sorting
+                   the list if one sort can be done for many calls to tOverlap
+    @type presort: bool
     @return: indices of ts2 within interval of ts1
     @rtype: list
     @note: Returns empty list if no overlap found
     """
-    t_lower, t_upper = min(ts1), max(ts1)
-    return [i for i in range(len(ts2))
-            if ts2[i] >= t_lower and ts2[i] <= t_upper]
+    if presort:
+        import bisect
+        t_lower, t_upper = ts1[0], ts1[-1]
+        return range(bisect.bisect_left(ts2, t_lower),
+                     bisect.bisect_right(ts2, t_upper))
+    else:
+        t_lower, t_upper = min(ts1), max(ts1)
+        return [i for i in range(len(ts2))
+                if ts2[i] >= t_lower and ts2[i] <= t_upper]
 
 
 def tCommon(ts1, ts2, mask_only=True):

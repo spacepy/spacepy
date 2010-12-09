@@ -246,6 +246,32 @@ class tFunctionTests(unittest.TestCase):
         ans = tb.tOverlapHalf(self.dt_a, self.dt_b)
         self.assertEqual(real_ans, ans)
 
+    def test_tOverlapHalf_random(self):
+        """Shuffle input before calling tOverlapHalf"""
+        real_ans = [1, 2, 6, 7, 10, 12, 13, 14, 15, 17, 18,
+                     19, 24, 27, 28, 30, 32, 35, 37, 38]
+        random.seed(0)
+        random.shuffle(self.dt_a)
+        random.shuffle(self.dt_b)
+        ans = tb.tOverlapHalf(self.dt_a, self.dt_b)
+        self.assertEqual(real_ans, ans)
+
+    def test_tOverlapSorted(self):
+        """Exploit the sorting for a fast tOverlap"""
+        real_ans = ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                     11, 12, 13, 14, 15, 16, 17, 18, 19],
+                    [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                     30, 31, 32, 33, 34, 35, 36, 37, 38, 39])
+        ans = tb.tOverlap(self.dt_a, self.dt_b, presort=True)
+        self.assertEqual(real_ans, ans)        
+
+    def test_tOverlapHalfSorted(self):
+        """Get overlap of only one list, exploiting the sort"""
+        real_ans = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                    30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+        ans = tb.tOverlapHalf(self.dt_a, self.dt_b, presort=True)
+        self.assertEqual(real_ans, ans)
+
     def test_tCommon(self):
         """tCommon should return a known value for known input"""
         real_ans = (array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
