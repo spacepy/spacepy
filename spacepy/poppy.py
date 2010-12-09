@@ -74,6 +74,7 @@ class PPro(object):
     Author:
     =======
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
+    Jonathan Niehof, Los Alamos National Lab, jniehof@lanl.gov
     """
     
     def __init__(self, process1, process2, lags=None, winhalf=None):
@@ -138,24 +139,25 @@ class PPro(object):
                 % ([len(self.process1), len(self.process2)], len(self.lags)))
         except:
             return 'assoc error: attributes lags and winhalf must be populated'
-        
+
         import numpy as np
         import matplotlib as mpl
         from matplotlib import mlab
-        import spacepy.toolbox as tb
+        import bisect
         
         ##Method 1 - use tb.tOverlap
-        self.n_assoc=np.zeros((len(self.process1),len(self.lags))) #create list for association number
-
+        #create list for association number
+        self.n_assoc = np.zeros((len(self.lags), len(self.process1)))
         p2 = sorted(self.process2)
-        for ilag,lag in enumerate(self.lags): #loop for each lag
-            for nss, tp1 in enumerate(self.process1): #loop for each member of series1
-                t_lower = tp1+lag-self.winhalf
-                t_upper = tp1+lag+self.winhalf
-                inds2 = tb.tOverlapHalf([t_lower, t_upper], p2, presort=True)
-                self.n_assoc[nss,ilag] = len(inds2)
-        
-        self.assoc_total = np.sum(self.n_assoc, axis=0)
+        starts = [t - self.winhalf for t in self.process1]
+        stops = [t + self.winhalf for t in self.process1]
+        nss_list = list(range(len(self.process1)))
+        for ilag in xrange(len(self.lags)):
+            self.n_assoc[ilag, :] = [
+                bisect.bisect_right(p2, stops[nss] + self.lags[ilag]) - 
+                bisect.bisect_left(p2, starts[nss] + self.lags[ilag])
+                for nss in nss_list]
+        self.assoc_total = np.sum(self.n_assoc, axis=1)
         pul = mlab.prctile_rank(self.lags, p=(20,80))
         valsL = self.assoc_total[pul==0]
         valsR = self.assoc_total[pul==2]
@@ -228,10 +230,9 @@ class PPro(object):
         aa_fun = lambda x: np.add.reduce(x)
         ci_low, ci_high = np.zeros([len(self.lags)]), np.zeros([len(self.lags)])
         for i in range(len(self.lags)):
-            ci_low[i], ci_high[i] = boots_ci(self.n_assoc[:,i], n_boots, inter, aa_fun)
-    
+            ci_low[i], ci_high[i] = boots_ci(self.n_assoc[i, :],
+                                             n_boots, inter, aa_fun)
         self.ci = [ci_low, ci_high]
-    
         return None
 
     
