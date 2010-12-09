@@ -120,9 +120,10 @@ class PPro(object):
         
     def assoc(self, u=None, h=None):
         """Perform association analysis on input series
-        
-        u = range of lags
-        h = association window half-width
+
+        @param u: the time lags to use
+        @type u: list
+        @param h: association window half-width, same type as L{process1}
         """
         
         #check for existence of lags and winhalf
@@ -145,12 +146,13 @@ class PPro(object):
         
         ##Method 1 - use tb.tOverlap
         self.n_assoc=np.zeros((len(self.process1),len(self.lags))) #create list for association number
-        
+
+        p2 = sorted(self.process2)
         for ilag,lag in enumerate(self.lags): #loop for each lag
             for nss, tp1 in enumerate(self.process1): #loop for each member of series1
                 t_lower = tp1+lag-self.winhalf
                 t_upper = tp1+lag+self.winhalf
-                inds2 = tb.tOverlapHalf([t_lower, t_upper], self.process2)
+                inds2 = tb.tOverlapHalf([t_lower, t_upper], p2, presort=True)
                 self.n_assoc[nss,ilag] = len(inds2)
         
         self.assoc_total = np.sum(self.n_assoc, axis=0)
