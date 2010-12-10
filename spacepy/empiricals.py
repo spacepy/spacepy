@@ -5,10 +5,12 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.11 $, $Date: 2010/11/30 00:14:47 $"
+__version__ = "$Revision: 1.12 $, $Date: 2010/12/10 17:48:29 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
+import spacepy.omni as om
+import spacepy.time as spt
 
 def getLmax(ticks, Lmax_model='JKemp'):
     """
@@ -28,7 +30,6 @@ def getLmax(ticks, Lmax_model='JKemp'):
     """
     
     import numpy as n
-    import spacepy.omni as om
         
     omni = om.get_omni(ticks)
     Dst = omni['Dst']
@@ -73,8 +74,6 @@ def getPlasmaPause(ticks, Lpp_model='M2002'):
     
     import numpy as np
     import datetime as dt
-    import spacepy.omni as om
-    import spacepy.time as spt
     import spacepy.toolbox as tb
     
     if Lpp_model == 'CA1992':
@@ -141,8 +140,6 @@ def getMPstandoff(ticks):
     
     import numpy as np
     import datetime as dt
-    import spacepy.omni as om
-    import spacepy.time as spt
     import spacepy.toolbox as tb
     
     if type(ticks) == spt.Ticktock:
@@ -176,6 +173,47 @@ def getMPstandoff(ticks):
         return r0
     except TypeError:
         raise TypeError("Please check for valid input types")
+    
+    
+def getDststar(ticks, model='Burton'):
+    """Calculate the pressure-corrected Dst index, Dst*
+    
+    Inputs:
+    =======
+        - ticks: TickTock object of desired times
+    (will be interpolated from hourly OMNI data)
+    OR
+        - dictionary including 'Pdyn' and 'Dst' keys where data are lists or arrays
+          and Dst is in [nT], and Pdyn is in [nPa]
+    
+    Returns:
+    ========
+    Dst* - the pressure corrected Dst index from OMNI [nT]
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
+    """
+    model_params = {'Burton': (15.8, 20),
+                    'OBrien': (7.26, 11)}
+    
+    try:
+        b, c = model_params[model]
+    except KeyError:
+        raise ValueError('Invalid pressure correction model selected')
+    
+    if isinstance(ticks, spt.Ticktock):
+        omni = om.get_omni(ticks)
+        P, Dst = omni['Pdyn'], omni['Dst']
+    elif isinstance(ticks, dict):
+        P, Dst = ticks['Pdyn'], ticks['Dst']
+        if isinstance(P, list):
+            P, Dst = np.array(P), np.array(Dst)        
+    
+    #get Dst*
+    Dststar = Dst - b*P**0.5 - c
+    
+    return Dststar
     
     
 ShueMP = getMPstandoff
