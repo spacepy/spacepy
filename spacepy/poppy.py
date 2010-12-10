@@ -165,20 +165,21 @@ class PPro(object):
         
         return None
     
-    def plot(self, figsize=None, dpi=80, asympt=True, show=True):
-        """Method called to create basic plot of association analysis.
+    def plot(self, figsize=None, dpi=80, asympt=True, show=True, norm=True):
+        """Create basic plot of association analysis.
         
-        Inputs:
-        =======
-        Uses object attributes created by the obj.assoc() method.
-        
-        Optional keyword(s):
-        ====================
-        asympt (default = True) - add line of asymptotic assoc. number
-        
-        To Do:
-        ======
-        Add normalization keyword for plotting as n(u,h)/n_asympt
+        Uses object attributes created by the L{assoc} method and,
+        optionally, L{aa_ci}.
+
+        @param figsize: passed through to matplotlib.pyplot.figure
+        @param dpi: passed through to matplotlib.pyplot.figure
+        @param asympt: True to overplot the line of asymptotic association
+                       number
+        @type asympt: bool
+        @param show: Show the plot? (if false, will create without showing)
+        @type show: bool
+        @param norm: Normalize plot to the asymptotic association number
+        @type norm: bool
         """
         try:
             dum = self.n_assoc
@@ -199,17 +200,32 @@ class PPro(object):
             self.x = [i.seconds/60 + i.days*1440. for i in self.lags]
         else:
             self.x = self.lags
+
+        ci = None
+        if norm:
+            if hasattr(self, 'ci'):
+                ci = [[j / self.asympt_assoc for j in self.ci[i]]
+                    for i in [0,1]]
+            asympt_assoc = 1.0
+            assoc_total = [assoc / self.asympt_assoc
+                           for assoc in self.assoc_total]
+        else:
+            try:
+                ci = self.ci
+            except AttributeError:
+                pass
+            asympt_assoc = self.asympt_assoc
+            assoc_total = self.assoc_total
         
         if asympt:
-            ax0.plot([self.x[0], self.x[-1]], [self.asympt_assoc]*2, 'r--', lw=1.5)
-        try:
-            dum = self.ci
-            polyci = makePoly(self.x, self.ci[0], self.ci[1])
+            ax0.plot([self.x[0], self.x[-1]], [asympt_assoc]*2, 'r--', lw=1.5)
+        if ci != None:
+            polyci = makePoly(self.x, ci[0], ci[1])
             ax0.add_patch(polyci)
-        except AttributeError:
+        else:
             print('Error: No confidence intervals to plot - skipping')
         
-        ax0.plot(self.x, self.assoc_total, 'b-', lw=1.5)
+        ax0.plot(self.x, assoc_total, 'b-', lw=1.5)
         
         if show:
             plt.show()
