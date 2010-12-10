@@ -59,6 +59,8 @@ Los Alamos National Laboratory, ISR-1,
 PO Box 1663, MS D466, Los Alamos, NM 87545
 """
 
+import numpy as np
+
 from spacepy import help
 __author__ = 'Steve Morley, Los Alamos National Lab (smorley@lanl.gov)'
     
@@ -78,7 +80,6 @@ class PPro(object):
     """
     
     def __init__(self, process1, process2, lags=None, winhalf=None):
-        import numpy as np
         self.process1 = process1
         self.process2 = process2
         self.lags = lags
@@ -140,7 +141,6 @@ class PPro(object):
         except:
             return 'assoc error: attributes lags and winhalf must be populated'
 
-        import numpy as np
         import matplotlib as mpl
         from matplotlib import mlab
         import bisect
@@ -186,7 +186,6 @@ class PPro(object):
         except AttributeError:
             return 'Error: No association analysis results to plot'
         
-        import numpy as np
         import datetime as dt
         import matplotlib as mpl
         import matplotlib.pyplot as plt
@@ -241,13 +240,10 @@ class PPro(object):
         
         Upper and lower confidence limits are added to the ci attribute
         """
-        import numpy as np
-        
-        aa_fun = lambda x: np.add.reduce(x)
         ci_low, ci_high = np.zeros([len(self.lags)]), np.zeros([len(self.lags)])
         for i in range(len(self.lags)):
             ci_low[i], ci_high[i] = boots_ci(self.n_assoc[i, :],
-                                             n_boots, inter, aa_fun)
+                                             n_boots, inter, np.add.reduce)
         self.ci = [ci_low, ci_high]
         return None
 
