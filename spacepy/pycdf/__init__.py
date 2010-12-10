@@ -10,7 +10,8 @@ Python 2 or Python 3.
 The interface is intended to be quite 'pythonic' rather than reproducing the
 C interface. To open or close a CDF and access its variables, see the L{CDF}
 class documentation. Accessing data within the variables is via the L{Var}
-class.
+class. The L{lib} object (of type L{Library}) provides access to some routines
+that affect the functionality of the library in general.
 
 The base CDF library must be properly installed in order to use this package.
 pycdf will search for the library in this order:
@@ -28,7 +29,7 @@ the module, e.g. if the library is in CDF/lib in the user's home directory::
 The L{const} module contains constants useful for accessing the underlying library.
 """
 
-__version__ = "0.11"
+__version__ = "0.12"
 __author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 from ._pycdf import *

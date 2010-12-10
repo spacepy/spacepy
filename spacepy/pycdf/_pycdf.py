@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.11'
+__version__ = '0.12'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -19,6 +19,7 @@ import os
 import os.path
 import shutil
 import sys
+import tempfile
 import warnings
 
 from . import const
@@ -63,6 +64,9 @@ class Library(object):
         @raise CDFError: BAD_DATA_TYPE if can't map types properly
         """
 
+        if not 'CDF_TMP' in os.environ:
+            os.environ['CDF_TMP'] = tempfile.gettempdir()
+
         if 'CDF_LIB' in os.environ:
             libdir = os.environ['CDF_LIB']
         elif 'CDF_BASE' in os.environ:
@@ -103,6 +107,8 @@ class Library(object):
         self._library.computeEPOCH16.restype = ctypes.c_double
         self._library.computeEPOCH16.argtypes = [ctypes.c_long] * 10 + \
             [ctypes.POINTER(ctypes.c_double * 2)]
+        self._library.CDFsetFileBackward.restype = None
+        self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
 
         #Set up the dictionary for CDF type - ctypes lookup
         c_types = {}
@@ -193,6 +199,9 @@ class Library(object):
                                                (rel < 3 or
                                                 (rel == 3 and inc < 1)))
 
+        #Default to V2 CDF
+        self.set_backward(True)
+
     def check_status(self, status, ignore=()):
         """Raise exception or warning based on return status of CDF call
 
@@ -246,6 +255,26 @@ class Library(object):
             return self.check_status(self._library.CDFlib(
                 *(args + (const.NULL_, ))
                 ))
+
+    def set_backward(self, backward=True):
+        """Set backward compatibility mode for new CDFs
+
+        Unless backward compatible mode is set, CDF files created by
+        the version 3 library can not be read by V2.
+
+        @param backward: Set backward compatible mode if True;
+                         clear it if False.
+        @type backward: bool
+        @raise: ValueError if backward=False and underlying CDF library is V2
+        """
+        if self.version[0] < 3:
+            if not backward:
+                raise ValueError(
+                    'Cannot disable backward-compatible mode for CDF version 2.')
+            else:
+                return
+        self._library.CDFsetFileBackward(const.BACKWARDFILEon if backward
+                                         else const.BACKWARDFILEoff)
 
     def epoch_to_datetime(self, epoch):
         """Converts a CDF epoch value to a datetime
@@ -510,7 +539,7 @@ def _compress(obj, comptype=None, param=None):
     return (comptype, param)
 
 
-class CDF(collections.Mapping):
+class CDF(collections.MutableMapping):
     """Python object representing a CDF file.
 
     Opening existing
@@ -584,6 +613,11 @@ class CDF(collections.Mapping):
 
     When CDFs are created in this way, they are opened read-write, see
     L{readonly} to change.
+
+    By default, new CDFs (without a master) are created in version 2
+    (backward-compatible) format. To create a version 3 CDF::
+      pycdf.lib.set_backward(False)
+      cdffile = pycdf.CDF('cdf_filename.cdf', '')
 
     Add variables by direct assignment, which will automatically set type
     and dimension based on the data provided::
@@ -842,7 +876,7 @@ class CDF(collections.Mapping):
             name = zVar.name()
         if name in self:
             del self[name]
-        self.new(name, cdftype=zVar.type(), recVary=zVar.rv(),
+        self.new(name, type=zVar.type(), recVary=zVar.rv(),
                  dimVarys=zVar.dv(), dims=zVar._dim_sizes(),
                  n_elements=zVar._nelems())
         self[name].compress(*zVar.compress())
@@ -950,20 +984,21 @@ class CDF(collections.Mapping):
         """
         return _compress(self, comptype, param)
 
-    def new(self, name, data=None, cdftype=None, recVary=True, dimVarys=None,
+    def new(self, name, data=None, type=None, recVary=True, dimVarys=None,
             dims=None, n_elements=None):
         """Create a new zVariable in this CDF
 
         @param name: name of the new variable
         @type name: str
         @param data: data to store in the new variable
-        @param cdftype: CDF type of the variable, from L{const}
-        @type cdftype: ctypes.c_long
+        @param type: CDF type of the variable, from L{const}
+        @type type: ctypes.c_long
         @param recVary: record variance of the variable
         @type recVary: bool
         @param dimVarys: dimension variance of each dimension
         @type dimVarys: list of bool
-        @param dims: size of each dimension of this variable
+        @param dims: size of each dimension of this variable,
+                     default zero-dimensional
         @type dims: list of int
         @param n_elements: number of elements, should be 1 except for
                            CDF_CHAR, for which it's the length of the string.
@@ -974,10 +1009,10 @@ class CDF(collections.Mapping):
                            is provided.
         """
         if data == None:
-            if cdftype == None:
+            if type == None:
                 raise ValueError('Must provide either data or a CDF type.')
             if dims == None:
-                raise ValueError('Must provide either data or dimension list.')
+                dims = []
             if n_elements == None:
                 n_elements = 1
         else:
@@ -987,8 +1022,8 @@ class CDF(collections.Mapping):
                     dims = guess_dims[1:]
                 else:
                     dims = guess_dims
-            if cdftype == None:
-                cdftype = guess_types[0]
+            if type == None:
+                type = guess_types[0]
             if n_elements == None:
                 n_elements = guess_elements
         if dimVarys == None:
@@ -996,9 +1031,9 @@ class CDF(collections.Mapping):
         recVary = const.VARY if recVary else const.NOVARY
         dimVarys = [const.VARY if dimVary else const.NOVARY
                     for dimVary in dimVarys]
-        if not hasattr(cdftype, 'value'):
-            cdftype = ctypes.c_long(cdftype)
-        new_var = Var(self, name, cdftype, n_elements, dims, recVary, dimVarys)
+        if not hasattr(type, 'value'):
+            type = ctypes.c_long(type)
+        new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
         if data != None:
             new_var[...] = data
         return new_var
@@ -1048,7 +1083,7 @@ class CDFCopy(dict):
                                       for (key, var) in cdf.items())
 
 
-class Var(collections.Sequence):
+class Var(collections.MutableSequence):
     """A CDF variable.
 
     Reading
@@ -1366,6 +1401,15 @@ class Var(collections.Sequence):
             #Put saved data in after inserted data
             self[hslice.starts[0] + hslice.counts[0]:] = saved_data
 
+    def insert(self, index, data):
+        """Inserts a I{single} record before an index
+
+        @param index: index before which to insert the new record
+        @type index: int
+        @param data: the record to insert
+        """
+        self[index:index] = [data]
+
     def _create(self, var_name, datatype, n_elements = 1, dims = (),
                recVary = const.VARY, dimVarys = None):
         """Creates a new zVariable
@@ -1431,9 +1475,9 @@ class Var(collections.Sequence):
 
         if isinstance(var_name, str_classes):
             try:
-                enc_name = var_name.encode('ascii')
+                enc_name = var_name.encode('ascii').rstrip()
             except AttributeError:
-                enc_name = var_name #already in ASCII
+                enc_name = var_name.rstrip() #already in ASCII
             #This call simply 'touches' the CDF to cause an error if the name isn't there
             varNum = ctypes.c_long(0)
             self.cdf_file._call(const.GET_, const.zVAR_NUMBER_, enc_name, ctypes.byref(varNum))
@@ -1442,7 +1486,7 @@ class Var(collections.Sequence):
             name = ctypes.create_string_buffer(const.CDF_VAR_NAME_LEN256+1)
             self.cdf_file._call(const.SELECT_, const.zVAR_, ctypes.c_long(var_name),
                      const.GET_, const.zVAR_NAME_, name)
-            self._name = name.value
+            self._name = name.value.rstrip()
 
     def _num(self):
         """Returns the zVar number for this variable
@@ -2418,7 +2462,7 @@ class _Hyperslice(object):
         return (start, count, step, rev)
 
 
-class AttrList(collections.Mapping):
+class AttrList(collections.MutableMapping):
     """Object representing a list of attributes.
 
     Only used in its subclasses, L{gAttrList} and L{zAttrList}
@@ -2879,7 +2923,7 @@ class zAttrList(AttrList):
         self.new(new_name, master[name], master.type(name))
 
 
-class Attr(collections.Sequence):
+class Attr(collections.MutableSequence):
     """An attribute, z or g, for a CDF
 
     This class should not be used directly.
@@ -2936,7 +2980,7 @@ class Attr(collections.Sequence):
             self._cdf_file._call(const.SELECT_, const.ATTR_,
                                  ctypes.c_long(attr_name))
             self._cdf_file._call(const.GET_, const.ATTR_NAME_, name)
-            self._name = name.value
+            self._name = name.value.rstrip()
 
     def __getitem__(self, key):
         """Return a slice of Entries.
@@ -3126,6 +3170,15 @@ class Attr(collections.Sequence):
         """
         return '\n'.join([str(item) for item in self])
 
+    def insert(self, index, data):
+        """Insert an entry at a particular number
+
+        Entry numbers do not change on insertion/deletion, so this function
+        cannot be implemented.
+        @raise NotImplementedError: always
+        """
+        raise NotImplementedError
+
     def _call(self, *args, **kwargs):
         """Select this CDF and Attr and call the CDF internal interface
 
@@ -3206,11 +3259,11 @@ class Attr(collections.Sequence):
         self._call(const.GET_, self.ATTR_MAXENTRY_, ctypes.byref(count))
         return count.value
 
-    def new(self, data, cdftype=None, number=None):
+    def new(self, data, type=None, number=None):
         """Create a new Entry in this Attribute
 
         @param data: data to put in the Entry
-        @param cdftype: type of the new Entry (otherwise guessed from L{data})
+        @param type: type of the new Entry (otherwise guessed from L{data})
         @param number: Entry number to write, default is lowest available number.
         @note: Will overwrite an existing Entry.
         """
@@ -3219,11 +3272,11 @@ class Attr(collections.Sequence):
             while self.has_entry(number):
                 number += 1
         (dims, types, elements) = _Hyperslice.types(data)
-        if cdftype == None:
-            cdftype = types[0]
-        elif hasattr(cdftype, 'value'):
-            cdftype = cdftype.value
-        self._write_entry(number, data, cdftype, dims, elements)
+        if type == None:
+            type = types[0]
+        elif hasattr(type, 'value'):
+            type = type.value
+        self._write_entry(number, data, type, dims, elements)
                 
     def number(self):
         """Find the attribute number for this attribute
@@ -3311,13 +3364,13 @@ class Attr(collections.Sequence):
 
         return result
 
-    def _write_entry(self, number, data, cdftype, dims, elements):
+    def _write_entry(self, number, data, type, dims, elements):
         """Write an Entry to this Attr.
 
         @param number: number of Entry to write
         @type number: int
         @param data: data to write
-        @param cdftype: the CDF type to write, from L{const}
+        @param type: the CDF type to write, from L{const}
         @param dims: dimensions of L{data}
         @type dims: list
         @param elements: number of elements in L{data}, 1 unless it is a string
@@ -3332,18 +3385,18 @@ class Attr(collections.Sequence):
                 data = [data]
             else:
                 elements = dims[0]
-            buff = (lib.ctypedict[cdftype] * elements)()
-            if cdftype == const.CDF_EPOCH16.value:
+            buff = (lib.ctypedict[type] * elements)()
+            if type == const.CDF_EPOCH16.value:
                 for j in range(elements):
                     buff[j][:] = lib.datetime_to_epoch16(data[j])
-            elif cdftype == const.CDF_EPOCH.value:
+            elif type == const.CDF_EPOCH.value:
                 for j in range(elements):
                     buff[j] = lib.datetime_to_epoch(data[j])
             else:
                 for j in range(elements):
                     buff[j] = data[j]
         self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
-                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(cdftype),
+                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(type),
                    ctypes.c_long(elements), ctypes.byref(buff))
 
     def _delete(self):
