@@ -1,14 +1,16 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """Unit test suite for PoPPy"""
 
 __version__ = "0.0"
-__author__ = "Jonathan Niehof <jniehof@lanl.gov>"
+__author__ = "Jonathan Niehof <jniehof@lanl.gov>/Steve Morley <smorley@lanl.gov>"
 
 
 import math
 import unittest
 
+import numpy
 import numpy.random
 import scipy.special
 try:
@@ -50,6 +52,31 @@ class BootstrapTests(unittest.TestCase):
             #for 100 samples, stderr is 0.5, 95% is +/- 0.98
             self.assertAlmostEqual(-1.03977357727, ci_low, places=10)
             self.assertAlmostEqual(0.914472603387, ci_high, places=10)
+            
+    def testLogNormal(self):
+        """Check output on a LogNormal"""
+        lnorm = lambda x: math.exp(-1*(math.log(x) - 5.1)**2./(2*0.3**2.) ) \
+                          / (x*math.sqrt(2*math.pi) * 0.3)
+        
+        if self.long_test:
+            dist_values = toolbox.dist_to_list(lnorm, 5000, min=0)
+            numpy.random.seed(0)
+            (ci_low, ci_high) = poppy.boots_ci(dist_values, 50000, 95.0, numpy.median)
+            #confidence interval is given as [exp(mu-sigma*q), exp(mu+sigma*q)]
+            #where q is the (1 - alpha/2) quantile of the standard normal distr.
+            #Here, the theoretical median is 164.022 (6 s.f.)
+            self.assertAlmostEqual(162.31603275984526, ci_low, places=10)
+            self.assertAlmostEqual(165.73324112594128, ci_high, places=10)
+        else:
+            dist_values = toolbox.dist_to_list(lnorm, 100, min=0)
+            numpy.random.seed(0)
+            (ci_low, ci_high) = poppy.boots_ci(dist_values, 100, 95.0, numpy.median)
+            #TODO: the CI for lognorms should be calculated by the given form
+            #currently this is just taken from the test code output
+            #after the distributions have been calculated. The values do fit
+            #with the theoretical median though...
+            self.assertAlmostEqual(152.6079463660717, ci_low, places=10)
+            self.assertAlmostEqual(174.61664971746504, ci_high, places=10)
 
     def testPoisson(self):
         """Check output on a continuous Poisson-like distribution"""

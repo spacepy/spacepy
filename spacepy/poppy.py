@@ -239,7 +239,17 @@ class PPro(object):
     
 #Functions outside class
 def boots_ci(data, n, inter, func):
-    """Construct bootstrap confidence interval - caution: slow!
+    """Construct bootstrap confidence interval
+    
+    The bootstrap is a statistical tool that uses multiple samples derived from
+    the original data (called surrogates) to estimate a parameter of the 
+    population from which the sample was drawn. This assumes that the sample is
+    randomly drawn and hence is representative of the underlying distribution.
+    The benefit of the bootstrap is that it is non-parametric and can be 
+    applied in situations where there is reasonable doubt about the 
+    characteristics of the underlying distribution. This routine uses the boot-
+    strap for its most common application - the estimation of confidence 
+    intervals.
     
     Input:
     ======
@@ -267,6 +277,11 @@ def boots_ci(data, n, inter, func):
     Note that the true value of the desired quantity may lie outside the
     95% confidence interval one time in 20 realizations. This occurred
     for the first iteration here.
+    
+    For the lognormal distribution, the median is found exactly by taking
+    the exponential of the "mean" parameter. Thus here, the theoretical
+    median is 164.022 (6 s.f.) and this is well captured by the above
+    bootstrap confidence interval.
     
     Author:
     =======
