@@ -2,7 +2,7 @@
 
 """Unit test suite for pycdf"""
 
-__version__ = "0.11"
+__version__ = "0.12"
 __author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 import ctypes
@@ -386,6 +386,25 @@ class MakeCDF(unittest.TestCase):
         self.assertTrue('ATC' in newcdf)
         newcdf.close()
         os.remove(self.testfspec)
+
+    def testCreateCDFBackward(self):
+        """Try a backward-compatible CDF"""
+        cdf.lib.set_backward(True)
+        newcdf = cdf.CDF(self.testfspec, '')
+        verno = ctypes.c_long(0)
+        newcdf._call(const.GET_, const.CDF_VERSION_, ctypes.byref(verno))
+        newcdf.close()
+        os.remove(self.testfspec)
+        self.assertEqual(2, verno.value)
+
+        cdf.lib.set_backward(False)
+        newcdf = cdf.CDF(self.testfspec, '')
+        verno = ctypes.c_long(0)
+        newcdf._call(const.GET_, const.CDF_VERSION_, ctypes.byref(verno))
+        newcdf.close()
+        os.remove(self.testfspec)
+        self.assertEqual(3, verno.value)
+        cdf.lib.set_backward(True)
 
 
 class CDFTests(unittest.TestCase):
@@ -1990,11 +2009,11 @@ class ChangeCDF(CDFTests):
     def testNewVarNoData(self):
         """Create a new variable without providing any data"""
         self.assertRaises(ValueError, self.cdf.new, 'newvar')
-        self.assertRaises(ValueError, self.cdf.new,
-                          'newvar', None, const.CDF_INT4)
+        self.cdf.new('newvar', None, const.CDF_INT4)
+        self.assertEqual([], self.cdf['newvar']._dim_sizes())
         
-        self.cdf.new('newvar', None, const.CDF_CHAR, dims=[])
-        self.assertEqual(1, self.cdf['newvar']._nelems())
+        self.cdf.new('newvar2', None, const.CDF_CHAR, dims=[])
+        self.assertEqual(1, self.cdf['newvar2']._nelems())
 
     def testNewVarNRV(self):
         """Create a new non-record-varying variable"""
@@ -2005,7 +2024,7 @@ class ChangeCDF(CDFTests):
 
     def testChangeRV(self):
         """Change record variance"""
-        zVar = self.cdf.new('newvar', dims=[], cdftype=const.CDF_INT4)
+        zVar = self.cdf.new('newvar', dims=[], type=const.CDF_INT4)
         self.assertTrue(zVar.rv())
         zVar.rv(False)
         self.assertFalse(zVar.rv())
@@ -2032,7 +2051,7 @@ class ChangeCDF(CDFTests):
 
     def testVarCompress(self):
         """Change compression on a variable"""
-        zvar = self.cdf.new('newvar', cdftype=const.CDF_INT4, dims=[])
+        zvar = self.cdf.new('newvar', type=const.CDF_INT4, dims=[])
         zvar.compress(const.GZIP_COMPRESSION)
         (comptype, parm) = zvar.compress()
         self.assertEqual(const.GZIP_COMPRESSION, comptype),
@@ -2125,7 +2144,7 @@ class ChangeCDF(CDFTests):
             self.cdf['SpinNumbers'].dv())
         self.assertEqual([True, True, True],
             self.cdf['SectorRateScalersCounts'].dv())
-        self.cdf.new('foobar', cdftype=const.CDF_INT1,
+        self.cdf.new('foobar', type=const.CDF_INT1,
                      dims=[2, 3], dimVarys=[True, False])
         self.assertEqual([True, False],
                          self.cdf['foobar'].dv())
@@ -2186,6 +2205,31 @@ class ChangeCDF(CDFTests):
         self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
         self.assertEqual(datetime.datetime(2010,1,1),
                          self.cdf['ATC'].attrs['FILLVAL'])
+
+    def testVarTrailingSpaces(self):
+        """Cut trailing spaces from names of vars"""
+        self.cdf['foobar  '] = [1, 2, 3]
+        namelist = list(self.cdf.keys())
+        self.assertTrue('foobar' in namelist)
+        self.assertFalse('foobar  ' in namelist)
+
+    def testAttrTrailingSpaces(self):
+        """Cut trailing spaces from names of attributes"""
+        self.cdf.attrs['hi '] = 'hello'
+        namelist = list(self.cdf.attrs.keys())
+        self.assertTrue('hi' in namelist)
+        self.assertFalse('hi ' in namelist)
+
+    def testzVarInsert(self):
+        """Insert a record into a zVariable"""
+        before = self.cdf['ATC'][:]
+        self.cdf['ATC'].insert(100, datetime.datetime(2010, 12, 31))
+        before.insert(100, datetime.datetime(2010, 12, 31))
+        self.assertEqual(before, self.cdf['ATC'][:])
+        before = self.cdf['MeanCharge'][:]
+        self.cdf['MeanCharge'].insert(20, [99] * 16)
+        before.insert(20, [99] * 16)
+        self.assertEqual(before, self.cdf['MeanCharge'][:])
 
 
 class ChangeColCDF(ColCDFTests):
