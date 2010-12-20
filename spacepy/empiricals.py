@@ -5,7 +5,7 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.12 $, $Date: 2010/12/10 17:48:29 $"
+__version__ = "$Revision: 1.13 $, $Date: 2010/12/20 21:21:06 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -175,7 +175,7 @@ def getMPstandoff(ticks):
         raise TypeError("Please check for valid input types")
     
     
-def getDststar(ticks, model='Burton'):
+def getDststar(ticks, model='OBrien'):
     """Calculate the pressure-corrected Dst index, Dst*
     
     Inputs:
@@ -190,17 +190,54 @@ def getDststar(ticks, model='Burton'):
     ========
     Dst* - the pressure corrected Dst index from OMNI [nT]
     
+    Use:
+    ====
+    Coefficients are applied to the standard formulation e.g. Burton et al., 1975
+    of Dst* = Dst - b*sqrt(Pdyn) + c
+    The default is the O'Brien and McPherron model (2002).
+    Other options are Burton et al. (1975) and Borovsky and Denton (2010)
+    
+    >>> import spacepy.time as spt
+    >>> import spacepy.omni as om
+    >>> ticks = spt.tickrange('2000-10-16T00:00:00', '2000-10-31T12:00:00', 1/24.)
+    >>> dststar = getDststar(ticks)
+    
+    User-determined coefficients can also be supplied as a two-element list
+    or tuple of the form (b,c), e.g.
+    
+    >>> dststar = getDststar(ticks, model=(2,11)) #b is extreme driving from O'Brien
+    
+    We have chosen the OBrien model as the default here as this was rigorously 
+    determined from a very long data set and is pertinent to most conditions.
+    It is, however, the most conservative correction. Additionally, Siscoe and 
+    McPherron (2005) argue that the pressure contribution to Dst diminishes 
+    during magnetic storms.
+    
+    To show the relative differences, run the following example:
+    
+    >>> params = [('Burton','k-'), ('OBrien','r-'), ('Borovsky','b-')]
+    >>> for model, col in params:
+            dststar = getDststar(ticks, model=model)
+            plt.plot(ticks.UTC, dststar, col)
+    
     Author:
     =======
     Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
     """
     model_params = {'Burton': (15.8, 20),
-                    'OBrien': (7.26, 11)}
+                    'OBrien': (7.26, 11),
+                    'Borovsky': (20.7,27.7)}
     
-    try:
-        b, c = model_params[model]
-    except KeyError:
-        raise ValueError('Invalid pressure correction model selected')
+    if isinstance(model, str):
+        try:
+            b, c = model_params[model]
+        except KeyError:
+            raise ValueError('Invalid pressure correction model selected')
+    else:
+        try:
+            b, c = model[0], model[1]
+        except (KeyError, IndexError):
+            raise ValueError('Invalid coefficients set: must be of form (b,c)')
     
     if isinstance(ticks, spt.Ticktock):
         omni = om.get_omni(ticks)
@@ -211,7 +248,7 @@ def getDststar(ticks, model='Burton'):
             P, Dst = np.array(P), np.array(Dst)        
     
     #get Dst*
-    Dststar = Dst - b*P**0.5 - c
+    Dststar = Dst - b*P**0.5 + c
     
     return Dststar
     
