@@ -5,7 +5,7 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.13 $, $Date: 2010/12/20 21:21:06 $"
+__version__ = "$Revision: 1.14 $, $Date: 2010/12/20 21:23:26 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -209,8 +209,8 @@ def getDststar(ticks, model='OBrien'):
     
     We have chosen the OBrien model as the default here as this was rigorously 
     determined from a very long data set and is pertinent to most conditions.
-    It is, however, the most conservative correction. Additionally, Siscoe and 
-    McPherron (2005) argue that the pressure contribution to Dst diminishes 
+    It is, however, the most conservative correction. Additionally, Siscoe, 
+    McPherron and Jordanova (2005) argue that the pressure contribution to Dst diminishes 
     during magnetic storms.
     
     To show the relative differences, run the following example:
