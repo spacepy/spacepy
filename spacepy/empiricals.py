@@ -5,21 +5,21 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.14 $, $Date: 2010/12/20 21:23:26 $"
+__version__ = "$Revision: 1.15 $, $Date: 2010/12/21 20:27:09 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
 import spacepy.omni as om
 import spacepy.time as spt
 
-def getLmax(ticks, Lmax_model='JKemp'):
+def getLmax(ticks, model='JKemp'):
     """
     calculate a simple empirical model for Lmax - last closed drift-shell
     
     @param ticks: Ticktock object of desired times
     @type ticks: spacepy.time.Ticktock
     
-    @keyword Lpp_model: 'JKemp' (default - empirical model of J. Koller)
+    @keyword model: 'JKemp' (default - empirical model of J. Koller)
     
     @return: Lmax - L* of last closed drift shell
     @rtype: numpy.ndarray
@@ -36,13 +36,13 @@ def getLmax(ticks, Lmax_model='JKemp'):
     
     Lmax = n.zeros(len(Dst))
     
-    if Lmax_model is 'JKemp':
+    if model is 'JKemp':
         for i, iDst in enumerate(Dst):
             Lmax[i] = 6.7e-5*iDst*iDst + 0.0421*iDst + 8.945
         
     return Lmax
     
-def getPlasmaPause(ticks, Lpp_model='M2002'):
+def getPlasmaPause(ticks, model='M2002', LT='all'):
     """
     Plasmapause location model(s)
     
@@ -52,6 +52,7 @@ def getPlasmaPause(ticks, Lpp_model='M2002'):
         - Lpp_model (kwarg): 'CA1992' or 'M2002' (default)
     CA1992 returns the Carpenter and Anderson model,
     M2002 returns the Moldwin et al. model
+        - LT: requested local time sector, 'all' is valid option
     
     Returns:
     ========
@@ -76,30 +77,49 @@ def getPlasmaPause(ticks, Lpp_model='M2002'):
     import datetime as dt
     import spacepy.toolbox as tb
     
-    if Lpp_model == 'CA1992':
-        prior = dt.timedelta(hours=24)
-        def calcLpp(Kpmax):
-            currLpp = 5.6 - 0.46*Kpmax
-            return currLpp
-    elif Lpp_model == 'M2002':
-        prior = dt.timedelta(hours=12)
-        def calcLpp(Kpmax):
-            currLpp = 5.99 - 0.382*Kpmax
-            return currLpp
+    def calcLpp(Kpmax, A, B):
+        currLpp = A - B*Kpmax
+        return currLpp
+    
+    model_list = ['CA1992', 'M2002']
+    
+    if model == 'CA1992':
+        if LT!='all':
+            print('No LT dependence currently supported for this model')
+    if model not in model_list:
+        raise ValueError("Please specify a valid model:\n'M2002' or 'CA1992'")
+    
+    if LT=='all':
+        parA = {'CA1992': 5.6, 'M2002': 5.39}
+        parB = {'CA1992': 0.46, 'M2002': -0.382}
+        priorvals = {'CA1992': dt.timedelta(hours=24), 
+                     'M2002': dt.timedelta(hours=12)}
+        A, B = parA[model], parB[model]
+        prior = priorvals[model]
     else:
-        raise Exception("Please specify a valid model:\n'M2002' or 'CA1992'")
+        try:
+            float(LT)
+        except (ValueError, TypeError):
+            raise ValueError("Please specify a valid LT:\n'all' or a numeric type")
+        parA = {'CA1992': [5.6]*24,
+                'M2002': [5.7]*3+[6.05]*6+[5.2]*6+[4.45]*6+[5.7]*3}
+        parB = {'CA1992': [0.46]*24,
+                'M2002': [-0.42]*3+[-0.573]*6+[-0.425]*6+[-0.167]*6+[-0.42]*3}
+        LThr = long(LT)
+        A, B = parA[model][LThr], parB[model][LThr]
         
     st, en = ticks.UTC[0]-prior, ticks.UTC[-1]
     einds, oinds = tb.tOverlap([st, en], om.omnidata['UTC'])
     utc = np.array(om.omnidata['UTC'])[oinds]
     Kp = np.array(om.omnidata['Kp'])[oinds]
     Lpp = np.zeros(len(ticks))
+    
     for i, t1 in enumerate(ticks.UTC):
         t0 = t1-prior
         iprevday, dum = tb.tOverlap(utc, [t0, t1])
         if iprevday:
             Kpmax = max(Kp[iprevday])
-            Lpp[i] = calcLpp(Kpmax)
+            Lpp[i] = calcLpp(Kpmax, A, B)
         else:
             Lpp[i] = np.nan
 
