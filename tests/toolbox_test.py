@@ -15,10 +15,10 @@ import spacepy.toolbox as tb
 
 
 class PickleAssembleTests(unittest.TestCase):
-    
+
     def setUp(self):
         super(PickleAssembleTests, self).setUp()
-                
+
         D1 = {}
         D1['names'] = ['John', 'Joe', 'Joyce']
         D1['TAI'] = [1,2,3]
@@ -31,14 +31,14 @@ class PickleAssembleTests(unittest.TestCase):
         self.D3 = D3
         self.all = {'names':['John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce'],
                     'TAI':[1,2,3,4,5,6,7,8,9]}
-        
+
         try:  # make sure test file is gone before test
             os.remove('test_pickle_1.pkl')
             os.remove('test_pickle_2.pkl')
             os.remove('test_pickle_3.pkl')
         except:
             pass
-         
+
 
     def tearDown(self):
         super(PickleAssembleTests, self).tearDown()
@@ -53,12 +53,12 @@ class PickleAssembleTests(unittest.TestCase):
 
     def testSaveLoadPickle(self):
         """savePickle should write a pickle to disk and loadPickle should load it"""
-        
+
         tb.savepickle('test_pickle_1.pkl', self.D1)
         files = glob.glob('*.pkl')
         self.assertTrue('test_pickle_1.pkl' in files)
         DD = tb.loadpickle('test_pickle_1.pkl')
-        self.assertEqual(self.D1, DD)      
+        self.assertEqual(self.D1, DD)
 
     def test_assemble(self):
         tb.savepickle('test_pickle_1.pkl', self.D1)
@@ -68,7 +68,7 @@ class PickleAssembleTests(unittest.TestCase):
         result = tb.assemble('test_pickle_[1-3].pkl', 'test_all.pkl', sortkey=None)
         for key in result:
             result[key] = result[key].tolist()
-        
+
         self.assertEqual(expected, result)
 
 
@@ -107,7 +107,7 @@ class SimpleFunctionTests(unittest.TestCase):
         real_ans = 0.7
         ans = tb.medAbsDev(data)
         self.assertAlmostEqual(ans, real_ans, places=1)
-        
+
     def test_binHisto(self):
         """binHisto should return know answer for known input"""
         input = range(0, 101)
@@ -125,7 +125,7 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_pmm(self):
         """pmm should give known output for known input"""
         data = [[1,3,5,2,5,6,2], array([5,9,23,24,6]), [6,23,12,67.34] ]
-        real_ans = [[[1,6]], [[5, 24]], [[6, 67.34]]] 
+        real_ans = [[[1,6]], [[5, 24]], [[6, 67.34]]]
         for i, val in enumerate(real_ans):
             self.assertEqual(val, tb.pmm(data[i]))
         self.assertEqual([[1, 6], [5, 24], [6.0, 67.340000000000003]], tb.pmm(*data) )
@@ -140,15 +140,24 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_leap_year(self):
         """Leap_year should give known output for known input"""
-        data = ( 1993 + array(range(10)), 1900, [1993 + val for val in range(10)] )
-        real_ans = ( array([False, False, False,  True, False, False, False,  True, False, False], dtype=bool),
-                     False,
-                     [False, False, False,  True, False, False, False,  True, False, False] )
-        for i, val in enumerate(real_ans):
-            if i == 0:
-                self.assertEqual(val.tolist(), tb.leap_year(data[i]))
+        leaps = [1600, 1604, 1608, 1612, 1616, 1620, 1624, 1628, 1632, 1636,
+            1640, 1644, 1648, 1652, 1656, 1660, 1664, 1668, 1672, 1676,
+            1680, 1684, 1688, 1692, 1696, 1704, 1708, 1712, 1716, 1720,
+            1724, 1728, 1732, 1736, 1740, 1744, 1748, 1752, 1756, 1760,
+            1764, 1768, 1772, 1776, 1780, 1784, 1788, 1792, 1796, 1804,
+            1808, 1812, 1816, 1820, 1824, 1828, 1832, 1836, 1840, 1844,
+            1848, 1852, 1856, 1860, 1864, 1868, 1872, 1876, 1880, 1884,
+            1888, 1892, 1896, 1904, 1908, 1912, 1916, 1920, 1924, 1928,
+            1932, 1936, 1940, 1944, 1948, 1952, 1956, 1960, 1964, 1968,
+            1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008,
+            2012, 2016, 2020, 2024, 2028, 2032, 2036, 2040]
+        for i in range(1600, 2041):
+            if i in leaps:
+                self.assertTrue(tb.leap_year(i))
             else:
-                self.assertEqual(val, tb.leap_year(data[i]))
+                self.assertFalse(tb.leap_year(i))
+
+        data = ( 1993 + array(range(10)), 1900, [1993 + val for val in range(10)] )
         real_ans = ( array([365, 365, 365,  366, 365, 365, 365,  366, 365, 365]),
                      365,
                      [365, 365, 365,  366, 365, 365, 365,  366, 365, 365] )
@@ -217,7 +226,7 @@ class tFunctionTests(unittest.TestCase):
 
     def tearDown(self):
         super(tFunctionTests, self).tearDown()
-    
+
     def test_tOverlap(self):
         """tOverlap should return a known value for known input"""
         real_ans = ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -263,7 +272,7 @@ class tFunctionTests(unittest.TestCase):
                     [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
                      30, 31, 32, 33, 34, 35, 36, 37, 38, 39])
         ans = tb.tOverlap(self.dt_a, self.dt_b, presort=True)
-        self.assertEqual(real_ans, ans)        
+        self.assertEqual(real_ans, ans)
 
     def test_tOverlapHalfSorted(self):
         """Get overlap of only one list, exploiting the sort"""
