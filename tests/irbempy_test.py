@@ -3,7 +3,7 @@
 """
 testing	the	irbempy	module
 """
-__version__	=	"$Revision: 1.5 $,	$Date: 2010/11/17 22:23:35 $"
+__version__	=	"$Revision: 1.6 $,	$Date: 2010/12/22 19:49:20 $"
 __author__	=	'Josef	Koller,	Los	Alamos	National	Lab	(jkoller@lanl.gov)'
 
 # -----------------------------------------------------------------------
@@ -92,31 +92,24 @@ class BigTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(expected, actual)
         
     def test_get_Lstar(self):
-        # test T01STORM		
-        expected = {'Bmin': array([  975.59122652,  3388.2476667 ]),
-            'Bmirr': array([[  976.42565251],
-            [ 3396.25991675]]),
-            'Lm': array([[ 3.13508015],
-            [ 2.07013638]]),
-            'Lstar': array([[ 2.86958324],
-            [ 1.95259007]]),
-            'MLT': array([ 11.97222034,  12.13378624]),
-            'Xj': array([[ 0.00081949],
-            [ 0.00270321]])}
+        # test T01STORM
+        expected = {'Xj': array([[ 0.00081949], [ 0.00270321]]), 
+            'Lstar': array([[ 2.93026048], [ 2.02637415]]), 
+            'Bmirr': array([[  976.42565251], [ 3396.25991676]]), 
+            'Lm': array([[ 3.13508015], [ 2.07013638]]), 
+            'Bmin': array([  975.59122652,  3388.2476667 ]), 
+            'MLT': array([ 11.97222034,  12.13378624])}    
         actual = ib.get_Lstar(self.ticks, self.loci, [90])
         for key in expected.keys():
             numpy.testing.assert_almost_equal(expected[key], actual[key])
+        
         # test T05
-        expected = {'Bmin': array([  964.11250643,  3378.36534029]),
-            'Bmirr': array([[ 1092.90528483],
-            [ 3834.94555412]]),
-            'Lm': array([[ 3.12907535],
-            [ 2.06810716]]),
-            'Lstar': array([[ 2.84903221],
-            [ 1.95079584]]),
-            'MLT': array([ 11.97222034,  12.13378624]),
-            'Xj': array([[ 0.24624043],
-            [ 0.18225924]])}
+        expected = {'Xj': array([[ 0.24624075], [ 0.18225978]]), 
+            'Lstar': array([[ 2.90982109], [ 2.0244982 ]]), 
+            'Bmirr': array([[ 1092.90563696], [ 3834.94812575]]), 
+            'Lm': array([[ 3.12907517], [ 2.06810695]]), 
+            'Bmin': array([  964.11250645,  3378.36534029]), 
+            'MLT': array([ 11.97222034,  12.13378624])}
         actual = ib.get_Lstar(self.ticks, self.loci, [70], extMag='T05')
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], actual[key])

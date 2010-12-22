@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.40 $, $Date: 2010/12/01 20:02:35 $"
+__version__ = "$Revision: 1.41 $, $Date: 2010/12/22 19:49:21 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -20,7 +20,7 @@ def compile_pybats():
 def compile_irbempy(fcompiler):
 
     # compile irbemlib
-    os.chdir('spacepy/irbempy/irbem-lib-2010-09-14-rev189')
+    os.chdir('spacepy/irbempy/irbem-lib-2010-12-21-rev275')
 
     F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
     functions = ['make_lstar1', 'make_lstar_shell_splitting1', \

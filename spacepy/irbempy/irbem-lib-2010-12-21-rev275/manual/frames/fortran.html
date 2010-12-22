@@ -1,0 +1,70 @@
+<!-- %***************************************************************************************************
+% Copyright 2004,2006, S. Bourdarie
+%
+% This file is part of IRBEM-LIB.
+%
+%    IRBEM-LIB is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU Lesser General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    IRBEM-LIB is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU Lesser General Public License for more details.
+%
+%    You should have received a copy of the GNU Lesser General Public License
+%    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
+% -->
+<html>
+<head>
+</head>
+<body>
+    <!-- Insert content here --> 
+    <p>
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">INTRODUCTION</font></font> 
+    </h2>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>The library is written is FORTRAN 77 so
+        it is very easy to CALL any subroutine from any FORTRAN code.</font></font> 
+    </p>
+    <p>
+    </p>
+    <p>
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">INSTALLATION</font></font> 
+    </h2>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>See how to build section</font></font>
+        <br />
+    </p>
+
+    <p>
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">USE OF THE LIBRARY</font></font> 
+    </h2>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>A&nbsp;call to the library is trivial.
+        Make sure anyway that the variables are of the same type as defined in the detailled
+        functions (subroutines).</font></font>
+    </p>
+    <p>
+        <font face="Arial" size="4">To link any FORTRAN source code with the&nbsp;static library
+        you&nbsp;have to add at the end of the compilation&nbsp;command the option -Lpath
+        where path&nbsp;allows to locate the static library file and the option -loneradesp
+        (make sure the static lib name is liboneradesp.a)<BR>
+        <br>
+        If you have been using the Makefile to build the library then you have to add the proper 
+        option depending on the compiler in order to force the compiler to add only a single underscore
+        to any subroutine. e.g. with g77 the option is -fno-second-underscore.</font>
+        <br>
+    </p>
+</body>
+</html>
