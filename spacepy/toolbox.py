@@ -12,7 +12,7 @@ except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.72 $, $Date: 2010/12/09 15:52:03 $"
+__version__ = "$Revision: 1.73 $, $Date: 2011/01/04 19:50:35 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1498,3 +1498,31 @@ def dist_to_list(func, length, min=None, max=None):
     total = quad(func, min, max)[0]
     step = float(total) / length
     return [intsolve(func, (0.5 + i) * step, min, max) for i in range(length)]
+
+
+def bin_center_to_edges(centers):
+    """Convert a list of bin centers to their edges
+
+    Given a list of center values for a set of bins, finds the start and
+    end value for each bin. (start of bin n+1 is assumed to be end of bin n).
+    Useful for e.g. matplotlib.pyplot.pcolor.
+
+    Edge between bins n and n+1 is arithmetic mean of the center of n
+    and n+1; edge below bin 0 and above last bin are established to make
+    these bins symmetric about their center value.
+
+    @param centers: list of center values for bins
+    @return: list of edges for bins
+    @note: returned list will be one element longer than L{centers}
+    @author: Jonathan Niehof
+    @organization: Los Alamos National Lab
+    @contact: jniehof@lanl.gov
+    @version: V1: 4-Jan-2011 (JTN)
+
+    >>> bin_center_to_edges([1,2,3])
+    [0.5, 1.5, 2.5, 3.5]
+    """
+    return [1.5 * centers[0] - 0.5 * centers[1] if i == 0 else
+            1.5 * centers[-1] - 0.5 * centers[-2] if i == len(centers) else
+            (centers[i - 1] + centers[i]) / 2.0
+            for i in range(len(centers) + 1)]

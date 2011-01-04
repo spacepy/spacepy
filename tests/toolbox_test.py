@@ -3,8 +3,9 @@
 
 import datetime
 import glob
-import os
+import itertools
 import math
+import os
 import random
 import unittest
 
@@ -213,6 +214,17 @@ class SimpleFunctionTests(unittest.TestCase):
         for (input, output) in zip(inputs, outputs):
             for (exp, actual) in zip(output, tb.dist_to_list(*input)):
                 self.assertAlmostEqual(exp, actual, places=9)
+
+    def testBinCenterToEdges(self):
+        """Convert a set of bin centers to bin edges"""
+        inputs = [[1, 2, 3, 4, 5],
+                  [12.4, 77, 100],
+                  ]
+        outputs = [[0.5, 1.5, 2.5, 3.5, 4.5, 5.5],
+                   [-19.9, 44.7, 88.5, 111.5],
+                   ]
+        for (input, output) in itertools.izip(inputs, outputs):
+            self.assertEqual(output, tb.bin_center_to_edges(input))
 
 
 class tFunctionTests(unittest.TestCase):
