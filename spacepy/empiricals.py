@@ -5,7 +5,7 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.15 $, $Date: 2010/12/21 20:27:09 $"
+__version__ = "$Revision: 1.16 $, $Date: 2011/01/05 22:17:26 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -105,9 +105,13 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
                 'M2002': [5.7]*3+[6.05]*6+[5.2]*6+[4.45]*6+[5.7]*3}
         parB = {'CA1992': [0.46]*24,
                 'M2002': [-0.42]*3+[-0.573]*6+[-0.425]*6+[-0.167]*6+[-0.42]*3}
+        priorvals = {'CA1992': [dt.timedelta(hours=24)]*24, 
+                     'M2002': [dt.timedelta(hours=12)]*24}
         LThr = long(LT)
+        prior = priorvals[model][LThr]
         A, B = parA[model][LThr], parB[model][LThr]
-        
+    
+    #TODO: allow calling with ticks as dict of Kp (will also need UT for Kpmax)
     st, en = ticks.UTC[0]-prior, ticks.UTC[-1]
     einds, oinds = tb.tOverlap([st, en], om.omnidata['UTC'])
     utc = np.array(om.omnidata['UTC'])[oinds]
