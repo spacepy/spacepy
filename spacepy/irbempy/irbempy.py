@@ -8,7 +8,7 @@ D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.7 $, $Date: 2010/11/22 17:10:39 $"
+__version__ = "$Revision: 1.8 $, $Date: 2011/01/05 22:50:46 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
@@ -935,7 +935,7 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
 
     if isinstance(alpha, (float,int)):
         alpha = [alpha]
-    assert len(alpha) is 1, 'len(alpha) needs to be 1'	
+    assert len(alpha) is 1, 'len(alpha) needs to be 1'	#TODO:should this be here?? - SKM
 
     ncpus = spacepy.NCPUS
     ncalc = len(ticks)
