@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -60,12 +60,12 @@
   </tr>
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
-<h1 class="epydoc">Module toolbox</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Module toolbox</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.toolbox-pysrc.html">source&nbsp;code</a></span></p>
 <p>Toolbox of various functions and generic utilities.</p>
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        $Revision: 1.12 $, $Date: 2010/11/22 23:50:56 $
+        $Revision: 1.13 $, $Date: 2011/01/05 23:02:07 $
       </p>
       <p><strong>Author:</strong>
         S. Morley and J. Koller
@@ -94,10 +94,31 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#tOverlap" class="summary-sig-name">tOverlap</a>(<span class="summary-sig-arg">ts1</span>,
-        <span class="summary-sig-arg">ts2</span>)</span><br />
+        <span class="summary-sig-arg">ts2</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Finds the overlapping elements in two lists of datetime objects</td>
           <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#tOverlap">source&nbsp;code</a></span>
             
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#tOverlapHalf" class="summary-sig-name">tOverlapHalf</a>(<span class="summary-sig-arg">ts1</span>,
+        <span class="summary-sig-arg">ts2</span>,
+        <span class="summary-sig-arg">presort</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Find overlapping elements in two lists of datetime objects</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#tOverlapHalf">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -116,7 +137,7 @@
         <span class="summary-sig-arg">mask_only</span>=<span class="summary-sig-default">True</span>)</span><br />
       Finds the elements in a list of datetime objects present in another</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#tCommon">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -133,7 +154,7 @@
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#loadpickle" class="summary-sig-name">loadpickle</a>(<span class="summary-sig-arg">fln</span>)</span><br />
       load a pickle and return content as dictionary</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#loadpickle">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -151,7 +172,7 @@
         <span class="summary-sig-arg">dict</span>)</span><br />
       save dictionary variable dict to a pickle with filename fln</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#savepickle">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -171,7 +192,7 @@
       assembles all pickled files matching fln_pattern into single file and
       save as outfln.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#assemble">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -188,7 +209,7 @@
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#human_sort" class="summary-sig-name">human_sort</a>(<span class="summary-sig-arg">l</span>)</span><br />
       Sort the given list in the way that humans expect.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#human_sort">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -208,7 +229,7 @@
       compare two floating point values if they are equal after: 
       http://www.lahey.com/float.htm</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#feq">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -228,7 +249,7 @@
         <span class="summary-sig-arg">levels</span>=<span class="summary-sig-default">True</span>)</span><br />
       pretty print a dictionary tree</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#dictree">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -249,7 +270,7 @@
         <span class="summary-sig-arg">filename</span>=<span class="summary-sig-default">None</span>)</span><br />
       save current figure to file and call lpr (print).</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#printfig">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -268,7 +289,7 @@
         <span class="summary-sig-arg">leapsecs</span>=<span class="summary-sig-default">False</span>)</span><br />
       Download and update local database for omni, leapsecs etc</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#update">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -289,7 +310,7 @@
         <span class="summary-sig-arg">st_time</span>=<span class="summary-sig-default">None</span>)</span><br />
       Windowing mean function, window overlap is user defined</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#windowMean">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -306,7 +327,7 @@
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#medAbsDev" class="summary-sig-name">medAbsDev</a>(<span class="summary-sig-arg">series</span>)</span><br />
       Calculate median absolute deviation of a given input series</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#medAbsDev">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -327,7 +348,7 @@
         <span class="summary-sig-arg">alpha</span>=<span class="summary-sig-default">0.5</span>)</span><br />
       Make filled polygon for plotting</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#makePoly">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -346,7 +367,7 @@
       Calculates bin width and number of bins for histogram using 
       Freedman-Diaconis rule if rule fails, defaults to square-root method</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#binHisto">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -363,7 +384,7 @@
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#smartTimeTicks" class="summary-sig-name">smartTimeTicks</a>(<span class="summary-sig-arg">time</span>)</span><br />
       Returns major ticks, minor ticks and format for time-based plots</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#smartTimeTicks">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -384,7 +405,7 @@
       the smartTimeTicks function to build smart time ticks and then 
       immediately apply them to the given axis.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#applySmartTimeTicks">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -404,7 +425,7 @@
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Returns log spaced bins.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#logspace">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -414,17 +435,15 @@
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">list</span>
+      <span class="summary-type">list of lists</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#arraybin" class="summary-sig-name">arraybin</a>(<span class="summary-sig-arg">array</span>,
         <span class="summary-sig-arg">bins</span>)</span><br />
-      Given an array and a set of bins return the indices that are less 
-      than the smallest bin between each set and larger than the largest 
-      bin bins should be sorted</td>
+      Split a sequence into subsequences based on value.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#arraybin">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -443,7 +462,7 @@
       Convert mlt values to radians for polar plotting transform mlt angles
       to radians from -pi to pi referenced from noon by default</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#mlt2rad">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -462,7 +481,7 @@
       Convert radian values to mlt transform radians from -pi to pi to mlt 
       referenced from noon by default</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#rad2mlt">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -482,7 +501,7 @@
       return an array of boolean leap year, a lot faster than the mod 
       method that is normally seen</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#leap_year">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -502,7 +521,7 @@
       return an array of boolean leap year, a lot faster than the mod 
       method that is normally seen</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#leap_year">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -520,7 +539,7 @@
         <span class="summary-sig-arg">*b</span>)</span><br />
       print min and max of input arrays</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#pmm">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -540,7 +559,7 @@
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       print a timestamp on the current plot, vertical lower right</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#timestamp">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -558,7 +577,7 @@
         <span class="summary-sig-arg">default</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">yes</code><code class="variable-quote">'</code></span>)</span><br />
       Ask a yes/no question via raw_input() and return their answer.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#query_yes_no">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -579,7 +598,7 @@
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       1-D linear interpolation with interpolation of hours/longitude</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#interpol">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -596,7 +615,7 @@
           <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#normalize" class="summary-sig-name">normalize</a>(<span class="summary-sig-arg">vec</span>)</span><br />
       Given an input vector normalize the vector</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#normalize">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -614,7 +633,65 @@
       Given an input iterable (list, deque) return a list of the unique 
       elements.</td>
           <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#listUniq">source&nbsp;code</a></span>
             
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">float</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#intsolve" class="summary-sig-name">intsolve</a>(<span class="summary-sig-arg">func</span>,
+        <span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">stop</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">maxit</span>=<span class="summary-sig-default">1000</span>)</span><br />
+      Find the function input such that definite integral is desired value.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#intsolve">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#dist_to_list" class="summary-sig-name">dist_to_list</a>(<span class="summary-sig-arg">func</span>,
+        <span class="summary-sig-arg">length</span>,
+        <span class="summary-sig-arg">min</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">max</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Convert a probability distribution function to a list of values</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#dist_to_list">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.toolbox-module.html#bin_center_to_edges" class="summary-sig-name">bin_center_to_edges</a>(<span class="summary-sig-arg">centers</span>)</span><br />
+      Convert a list of bin centers to their edges</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.toolbox-pysrc.html#bin_center_to_edges">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -674,10 +751,12 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">tOverlap</span>(<span class="sig-arg">ts1</span>,
-        <span class="sig-arg">ts2</span>)</span>
+        <span class="sig-arg">ts2</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#tOverlap">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -687,21 +766,27 @@
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>ts1</code></strong> (datetime) - first set of datetime object</li>
         <li><strong class="pname"><code>ts2</code></strong> (datetime) - datatime object</li>
+        <li><strong class="pname"><code>args</code></strong> - additional arguments passed to <a 
+          href="spacepy.toolbox-module.html#tOverlapHalf" 
+          class="link">tOverlapHalf</a></li>
+        <li><strong class="pname"><code>kwargs</code></strong> - additional keywords passed to <a 
+          href="spacepy.toolbox-module.html#tOverlapHalf" 
+          class="link">tOverlapHalf</a></li>
     </ul></dd>
     <dt>Returns: list</dt>
         <dd>indices of ts1 within interval of ts2, &amp; vice versa</dd>
   </dl>
 <div class="fields">      <p><strong>Author:</strong>
-        Steve Morley
+        Steve Morley, Jonathan Niehof
       </p>
       <p><strong>Organization:</strong>
         Los Alamos National Lab
       </p>
       <p><strong>Contact:</strong>
-        smorley@lanl.gov/morley_steve@hotmail.com
+        smorley@lanl.gov, jniehof@lanl.gov
       </p>
       <p><strong>Version:</strong>
-        09-Jun-2010: Total rewrite for clarity, efficiency and brevity.
+        08-Dec-2010: Rewrite for speed
         <p>Given two series of datetime objects, event_dates and 
         omni['Time']:</p>
 <pre class="py-doctest">
@@ -711,6 +796,47 @@
 <span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">print</span> omni_time
 <span class="py-output">[datetime.datetime(2007, 5, 5, 17, 57, 30), datetime.datetime(2007, 5, 5, 18, 2, 30),</span>
 <span class="py-output">... , datetime.datetime(2007, 5, 10, 4, 57, 30)]</span></pre>
+      </p>
+</div></td></tr></table>
+</div>
+<a name="tOverlapHalf"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">tOverlapHalf</span>(<span class="sig-arg">ts1</span>,
+        <span class="sig-arg">ts2</span>,
+        <span class="sig-arg">presort</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#tOverlapHalf">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Find overlapping elements in two lists of datetime objects</p>
+  <p>This is one-half of <a href="spacepy.toolbox-module.html#tOverlap" 
+  class="link">tOverlap</a>, i.e. it finds only occurances where <code 
+  class="link">ts2</code> exists within the bounds of <code 
+  class="link">ts1</code>, or the <i>second</i> element returnd by 
+  tOverlap.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>ts1</code></strong> (datetime) - first set of datetime object</li>
+        <li><strong class="pname"><code>ts2</code></strong> (datetime) - datatime object</li>
+        <li><strong class="pname"><code>presort</code></strong> (bool) - Set to use a faster algorithm which assumes <code 
+          class="link">ts1</code> and <code class="link">ts2</code> are 
+          both sorted in ascending order. This speeds up the overlap 
+          comparison by about 50x, so it is worth sorting the list if one 
+          sort can be done for many calls to tOverlap</li>
+    </ul></dd>
+    <dt>Returns: list</dt>
+        <dd>indices of ts2 within interval of ts1</dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Returns empty list if no overlap found
       </p>
 </div></td></tr></table>
 </div>
@@ -726,7 +852,7 @@
         <span class="sig-arg">mask_only</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#tCommon">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -763,7 +889,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">loadpickle</span>(<span class="sig-arg">fln</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#loadpickle">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -806,7 +932,7 @@
         <span class="sig-arg">dict</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#savepickle">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -850,7 +976,7 @@
         <span class="sig-arg">sortkey</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">ticks</code><code class="variable-quote">'</code></span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#assemble">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -897,7 +1023,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">human_sort</span>(<span class="sig-arg">l</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#human_sort">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -919,7 +1045,7 @@
         <span class="sig-arg">precision</span>=<span class="sig-default">5e-07</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#feq">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -977,7 +1103,7 @@
         <span class="sig-arg">levels</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#dictree">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1036,7 +1162,7 @@
         <span class="sig-arg">filename</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#printfig">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1099,7 +1225,7 @@
         <span class="sig-arg">leapsecs</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#update">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1153,7 +1279,7 @@
         <span class="sig-arg">st_time</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#windowMean">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1218,7 +1344,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">medAbsDev</span>(<span class="sig-arg">series</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#medAbsDev">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1281,7 +1407,7 @@
         <span class="sig-arg">alpha</span>=<span class="sig-default">0.5</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#makePoly">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1324,7 +1450,7 @@
         <span class="sig-arg">verbose</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#binHisto">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1376,7 +1502,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">smartTimeTicks</span>(<span class="sig-arg">time</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#smartTimeTicks">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1419,7 +1545,7 @@
         <span class="sig-arg">dolimit</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#applySmartTimeTicks">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1466,7 +1592,7 @@
         <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#logspace">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1510,38 +1636,45 @@
         <span class="sig-arg">bins</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#arraybin">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Given an array and a set of bins return the indices that are less than
-  the smallest bin between each set and larger than the largest bin bins 
-  should be sorted</p>
+  <p>Split a sequence into subsequences based on value.</p>
+  <p>Given a sequence of values and a sequence of values representing the 
+  division between bins, return the indices grouped by bin.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>array</code></strong> (numpy.array) - the input array to slice</li>
-        <li><strong class="pname"><code>bins</code></strong> (numpy.array) - the bins to slice along (may be array or list)</li>
+        <li><strong class="pname"><code>array</code></strong> (sequence) - the input sequence to slice, must be sorted in ascending order</li>
+        <li><strong class="pname"><code>bins</code></strong> (sequence) - dividing lines between bins. Number of bins is len(bins)+1, value
+          that exactly equal a dividing value are assigned to the higher 
+          bin</li>
     </ul></dd>
-    <dt>Returns: list</dt>
-        <dd>list of indices first element is less than first bin and last bin
-          is larger than last bin</dd>
+    <dt>Returns: list of lists</dt>
+        <dd>indices for each bin</dd>
   </dl>
 <div class="fields">      <p><strong>Author:</strong>
-        Brian Larsen
+        Brian Larsen, Jonathan Niehof
       </p>
       <p><strong>Organization:</strong>
         Los Alamos National Lab
       </p>
       <p><strong>Contact:</strong>
-        balarsen@lanl.gov
+        balarsen@lanl.gov, jniehof@lanl.gov
       </p>
-      <p><strong>Version:</strong>
+      <strong>Version:</strong>
+      <ul class="nomargin-top">
+        <li>
         V1: 14-Jun-2010 (BAL)
+        </li>
+        <li>
+        V2: 07-Dec-2010 (JTN)
 <pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>arraybin(arange(10), [4.2])
-<span class="py-output">Out[4]: [(array([0, 1, 2, 3, 4]),), (array([5, 6, 7, 8, 9]),)]</span></pre>
-      </p>
+<span class="py-prompt">&gt;&gt;&gt; </span>arraybin(range(10), [4.2])
+<span class="py-output">Out[4]: [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]</span></pre>
+        </li>
+      </ul>
 </div></td></tr></table>
 </div>
 <a name="mlt2rad"></a>
@@ -1555,7 +1688,7 @@
         <span class="sig-arg">midnight</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#mlt2rad">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1598,7 +1731,7 @@
         <span class="sig-arg">midnight</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#rad2mlt">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1642,7 +1775,7 @@
         <span class="sig-arg">nobool</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#leap_year">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1673,11 +1806,12 @@
         </li>
         <li>
         V2: 22-Nov-2010 (BAL) accepts lists not just arrays
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>leap_year(arange(15)+1998)
-<span class="py-output">Out[10]: </span>
-<span class="py-output">array([False, False,  True, False, False, False,  True, False, False,</span>
-<span class="py-output">... False,  True, False, False, False,  True], dtype=bool)</span></pre>
+        </li>
+        <li>
+        V3: 07-Dec-2010 (BAL) cleanup &gt;&gt;&gt; 
+        leap_year(numpy.arange(15)+1998) Out[10]: array([False, False,  
+        True, False, False, False,  True, False, False, ... False,  True, 
+        False, False, False,  True], dtype=bool)
         </li>
       </ul>
 </div></td></tr></table>
@@ -1694,7 +1828,7 @@
         <span class="sig-arg">nobool</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#leap_year">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1725,11 +1859,12 @@
         </li>
         <li>
         V2: 22-Nov-2010 (BAL) accepts lists not just arrays
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>leap_year(arange(15)+1998)
-<span class="py-output">Out[10]: </span>
-<span class="py-output">array([False, False,  True, False, False, False,  True, False, False,</span>
-<span class="py-output">... False,  True, False, False, False,  True], dtype=bool)</span></pre>
+        </li>
+        <li>
+        V3: 07-Dec-2010 (BAL) cleanup &gt;&gt;&gt; 
+        leap_year(numpy.arange(15)+1998) Out[10]: array([False, False,  
+        True, False, False, False,  True, False, False, ... False,  True, 
+        False, False, False,  True], dtype=bool)
         </li>
       </ul>
 </div></td></tr></table>
@@ -1745,7 +1880,7 @@
         <span class="sig-arg">*b</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#pmm">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1796,7 +1931,7 @@
         <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#timestamp">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1839,7 +1974,7 @@
         <span class="sig-arg">default</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">yes</code><code class="variable-quote">'</code></span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#query_yes_no">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1891,7 +2026,7 @@
         <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#interpol">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1928,7 +2063,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">normalize</span>(<span class="sig-arg">vec</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#normalize">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1953,7 +2088,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">listUniq</span>(<span class="sig-arg">inVal</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#listUniq">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1978,6 +2113,154 @@
       </p>
       <p><strong>Version:</strong>
         V1: 16-Nov-2010 (BAL)
+      </p>
+</div></td></tr></table>
+</div>
+<a name="intsolve"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">intsolve</span>(<span class="sig-arg">func</span>,
+        <span class="sig-arg">value</span>,
+        <span class="sig-arg">start</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">stop</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">maxit</span>=<span class="sig-default">1000</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#intsolve">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Find the function input such that definite integral is desired 
+  value.</p>
+  <p>Given a function, integrate from an (optional) start point until the 
+  integral reached a desired value, and return the end point of the 
+  integration.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>func</code></strong> (callable) - function to integrate, must take single parameter</li>
+        <li><strong class="pname"><code>value</code></strong> (float) - desired final value of the integral</li>
+        <li><strong class="pname"><code>start</code></strong> (float) - value at which to start integration, default -Infinity</li>
+        <li><strong class="pname"><code>stop</code></strong> (float) - value at which to stop integration, default +Infinity</li>
+        <li><strong class="pname"><code>maxit</code></strong> (int) - maximum number of iterations</li>
+    </ul></dd>
+    <dt>Returns: float</dt>
+        <dd>x such that the integral of <code class="link">func</code> from 
+          <code class="link">start</code> to x is <code 
+          class="link">value</code></dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        Assumes <code class="link">func</code> is everywhere positive, 
+        otherwise solution may be multi-valued.
+      </p>
+      <p><strong>Author:</strong>
+        Jonathan Niehof
+      </p>
+      <p><strong>Organization:</strong>
+        Los Alamos National Lab
+      </p>
+      <p><strong>Contact:</strong>
+        jniehof@lanl.gov
+      </p>
+      <p><strong>Version:</strong>
+        V1: 7-Dec-2010 (JTN)
+      </p>
+</div></td></tr></table>
+</div>
+<a name="dist_to_list"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dist_to_list</span>(<span class="sig-arg">func</span>,
+        <span class="sig-arg">length</span>,
+        <span class="sig-arg">min</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">max</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#dist_to_list">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Convert a probability distribution function to a list of values</p>
+  <p>This is a deterministic way to produce a known-length list of values 
+  matching a certain probability distribution. It is likely to be a closer 
+  match to the distribution function than a random sampling from the 
+  distribution.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>func</code></strong> (callable) - function to call for each possible value, returning probability 
+          density at that value (does not need to be normalized.)</li>
+        <li><strong class="pname"><code>length</code></strong> (int) - number of elements to return</li>
+        <li><strong class="pname"><code>min</code></strong> (float) - minimum value to possibly include</li>
+        <li><strong class="pname"><code>max</code></strong> (float
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>gauss = <span class="py-keyword">lambda</span> x: math.exp(-(x ** 2) / (2 * 5 ** 2)) /                           (5 * math.sqrt(2 * math.pi))
+<span class="py-prompt">&gt;&gt;&gt; </span>vals = dist_to_list(gauss, 1000, -inf, inf)
+<span class="py-prompt">&gt;&gt;&gt; </span>matplotlib.pyplot.hist(vals, bins=[i - 10 <span class="py-keyword">for</span> i <span class="py-keyword">in</span> range(21)],
+<span class="py-output">                           facecolor='green')</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>matplotlib.pyplot.hold(True)
+<span class="py-prompt">&gt;&gt;&gt; </span>x = [i / 100.0 - 10.0 <span class="py-keyword">for</span> i <span class="py-keyword">in</span> range(2001)]
+<span class="py-prompt">&gt;&gt;&gt; </span>matplotlib.pyplot.plot(x, [gauss(i) * 1000 <span class="py-keyword">for</span> i <span class="py-keyword">in</span> x], <span class="py-string">'red'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>matplotlib.pyplot.show()</pre>) - maximum value to possibly include</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="bin_center_to_edges"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">bin_center_to_edges</span>(<span class="sig-arg">centers</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.toolbox-pysrc.html#bin_center_to_edges">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Convert a list of bin centers to their edges</p>
+  <p>Given a list of center values for a set of bins, finds the start and 
+  end value for each bin. (start of bin n+1 is assumed to be end of bin n).
+  Useful for e.g. matplotlib.pyplot.pcolor.</p>
+  <p>Edge between bins n and n+1 is arithmetic mean of the center of n and 
+  n+1; edge below bin 0 and above last bin are established to make these 
+  bins symmetric about their center value.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>centers</code></strong> - list of center values for bins</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>list of edges for bins</dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        returned list will be one element longer than <code 
+        class="link">centers</code>
+      </p>
+      <p><strong>Author:</strong>
+        Jonathan Niehof
+      </p>
+      <p><strong>Organization:</strong>
+        Los Alamos National Lab
+      </p>
+      <p><strong>Contact:</strong>
+        jniehof@lanl.gov
+      </p>
+      <p><strong>Version:</strong>
+        V1: 4-Jan-2011 (JTN)
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>bin_center_to_edges([1,2,3])
+<span class="py-output">[0.5, 1.5, 2.5, 3.5]</span></pre>
       </p>
 </div></td></tr></table>
 </div>
@@ -2006,14 +2289,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Nov 22 16:50:43 2010
+    Generated by Epydoc 3.0.1 on Wed Jan  5 15:54:59 2011
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

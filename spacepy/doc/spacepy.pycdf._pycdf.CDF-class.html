@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -62,23 +62,25 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class CDF</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class CDF</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-       object --+        
-                |        
-    _abcoll.Sized --+    
-                    |    
-       object --+   |    
-                |   |    
- _abcoll.Iterable --+    
-                    |    
-       object --+   |    
-                |   |    
-_abcoll.Container --+    
-                    |    
-      _abcoll.Mapping --+
-                        |
-                       <strong class="uidshort">CDF</strong>
+       object --+            
+                |            
+    _abcoll.Sized --+        
+                    |        
+       object --+   |        
+                |   |        
+ _abcoll.Iterable --+        
+                    |        
+       object --+   |        
+                |   |        
+_abcoll.Container --+        
+                    |        
+      _abcoll.Mapping --+    
+                        |    
+   _abcoll.MutableMapping --+
+                            |
+                           <strong class="uidshort">CDF</strong>
 </pre>
 
 <hr />
@@ -203,6 +205,12 @@ _abcoll.Container --+
     <p>When CDFs are created in this way, they are opened read-write, see 
     <a href="spacepy.pycdf._pycdf.CDF-class.html#readonly" 
     class="link">readonly</a> to change.</p>
+    <p>By default, new CDFs (without a master) are created in version 2 
+    (backward-compatible) format. To create a version 3 CDF:</p>
+<pre class="literalblock">
+ pycdf.lib.set_backward(False)
+ cdffile = pycdf.CDF('cdf_filename.cdf', '')
+</pre>
     <p>Add variables by direct assignment, which will automatically set 
     type and dimension based on the data provided:</p>
 <pre class="literalblock">
@@ -271,7 +279,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">masterpath</span>=<span class="summary-sig-default">None</span>)</span><br />
       Open or create a CDF file.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -288,7 +296,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__del__" class="summary-sig-name">__del__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Destructor</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__del__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -306,7 +314,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">name</span>)</span><br />
       Delete a zVariable in this CDF, by name or number</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__delitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -323,7 +331,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a name="__enter__"></a><span class="summary-sig-name">__enter__</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Context manager entrance function.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__enter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -343,7 +351,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">traceback</span>)</span><br />
       Context manager exit function.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__exit__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -361,7 +369,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">name</span>)</span><br />
       Gets a zVariable in this CDF, by name or number</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__getitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -380,7 +388,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">data</span>)</span><br />
       Writes data to a zVariable in this CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__setitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -398,7 +406,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">current</span>=<span class="summary-sig-default">0</span>)</span><br />
       Iterates over zVars in CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -415,7 +423,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__len__" class="summary-sig-name">__len__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Implements 'length' of CDF (number of zVars)</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__len__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -433,7 +441,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">key</span>)</span><br />
       Determines whether a particular variable name is in the CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__contains__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -450,7 +458,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Returns representation of CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__repr__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -467,7 +475,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Returnss a string representation of the CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__str__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -484,7 +492,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#_open" class="summary-sig-name" onclick="show_private();">_open</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Opens the CDF file (called on init)</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._open">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -501,7 +509,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#_create" class="summary-sig-name" onclick="show_private();">_create</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Creates (and opens) a new CDF file</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._create">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -519,7 +527,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">master_path</span>)</span><br />
       Creates a new CDF from a master CDF file</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._from_master">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -538,7 +546,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Select this CDF as current and call the CDF internal interface</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._call">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -558,7 +566,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">True</span>)</span><br />
       Clone a zVariable (from another CDF or this) into this CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.clone">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -576,7 +584,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">new_col</span>=<span class="summary-sig-default">None</span>)</span><br />
       Finds the majority of this CDF file</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.col_major">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -594,7 +602,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">ro</span>=<span class="summary-sig-default">None</span>)</span><br />
       Sets or check the readonly status of this CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.readonly">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -612,7 +620,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">new_val</span>=<span class="summary-sig-default">None</span>)</span><br />
       Set or check the checksum status of this CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.checksum">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -629,7 +637,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#close" class="summary-sig-name">close</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Closes the CDF file</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.close">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -648,7 +656,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">param</span>=<span class="summary-sig-default">None</span>)</span><br />
       Set or check the compression of this CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.compress">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -665,14 +673,14 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#new" class="summary-sig-name">new</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">cdftype</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">type</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">recVary</span>=<span class="summary-sig-default">True</span>,
         <span class="summary-sig-arg">dimVarys</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">dims</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">n_elements</span>=<span class="summary-sig-default">None</span>)</span><br />
       Create a new zVariable in this CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.new">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -689,7 +697,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#save" class="summary-sig-name">save</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Saves the CDF file but leaves it open.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.save">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -707,7 +715,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.CDF-class.html#copy" class="summary-sig-name">copy</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Make a copy of all data and attributes in this CDF</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.copy">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -717,6 +725,13 @@ _abcoll.Container --+
   </tr>
   <tr>
     <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.MutableMapping</code></b>:
+      <code>clear</code>,
+      <code>pop</code>,
+      <code>popitem</code>,
+      <code>setdefault</code>,
+      <code>update</code>
+      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Mapping</code></b>:
       <code>__eq__</code>,
       <code>__ne__</code>,
@@ -794,7 +809,21 @@ _abcoll.Container --+
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="_abc_negative_cache"></a><span class="summary-name">_abc_negative_cache</span> = <code title="set([])"><code class="variable-group">set([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="_abc_negative_cache_version"></a><span class="summary-name">_abc_negative_cache_version</span> = <code title="15">15</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="_abc_registry"></a><span class="summary-name">_abc_registry</span> = <code title="set([])"><code class="variable-group">set([</code><code class="variable-group">])</code></code>
     </td>
   </tr>
   <tr>
@@ -803,9 +832,7 @@ _abcoll.Container --+
       <code>__hash__</code>
       </p>
     <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b> (private):
-      <code>_abc_cache</code>,
-      <code>_abc_negative_cache</code>,
-      <code>_abc_registry</code>
+      <code>_abc_cache</code>
       </p></div>
     </td>
   </tr>
@@ -909,7 +936,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -946,7 +973,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Destructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__del__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -975,7 +1002,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Index deletion operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__delitem__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -985,6 +1012,9 @@ _abcoll.Container --+
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>name</code></strong> (string or int) - Name or number of the CDF variable</li>
     </ul></dd>
+    <dt>Overrides:
+        _abcoll.MutableMapping.__delitem__
+    </dt>
   </dl>
 <div class="fields">      <p><strong>Note:</strong>
         variable numbers may change if variables are added or removed.
@@ -1004,7 +1034,7 @@ _abcoll.Container --+
         <span class="sig-arg">traceback</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__exit__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1026,7 +1056,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Indexing operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__getitem__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1065,7 +1095,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Index assignment operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__setitem__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1081,6 +1111,9 @@ _abcoll.Container --+
         <li><strong class="pname"><code>data</code></strong> - data to write, or a <a href="spacepy.pycdf._pycdf.Var-class.html"
           class="link">Var</a> to copy</li>
     </ul></dd>
+    <dt>Overrides:
+        _abcoll.MutableMapping.__setitem__
+    </dt>
   </dl>
 </td></tr></table>
 </div>
@@ -1095,7 +1128,7 @@ _abcoll.Container --+
         <span class="sig-arg">current</span>=<span class="sig-default">0</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__iter__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1122,7 +1155,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Length operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__len__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1148,7 +1181,7 @@ _abcoll.Container --+
     <br /><em class="fname">(In operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__contains__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1183,7 +1216,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Representation operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__repr__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1210,7 +1243,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Informal representation operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.__str__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1238,7 +1271,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">_open</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._open">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1269,7 +1302,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">_create</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._create">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1302,7 +1335,7 @@ _abcoll.Container --+
         <span class="sig-arg">master_path</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._from_master">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1341,7 +1374,7 @@ _abcoll.Container --+
         <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF._call">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1386,7 +1419,7 @@ _abcoll.Container --+
         <span class="sig-arg">data</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.clone">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1414,7 +1447,7 @@ _abcoll.Container --+
         <span class="sig-arg">new_col</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.col_major">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1441,7 +1474,7 @@ _abcoll.Container --+
         <span class="sig-arg">ro</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.readonly">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1472,7 +1505,7 @@ _abcoll.Container --+
         <span class="sig-arg">new_val</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.checksum">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1498,7 +1531,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">close</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.close">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1535,7 +1568,7 @@ _abcoll.Container --+
         <span class="sig-arg">param</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.compress">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1570,14 +1603,14 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">new</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">name</span>,
         <span class="sig-arg">data</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">cdftype</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">type</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">recVary</span>=<span class="sig-default">True</span>,
         <span class="sig-arg">dimVarys</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">dims</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">n_elements</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.new">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1587,11 +1620,11 @@ _abcoll.Container --+
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>name</code></strong> (str) - name of the new variable</li>
         <li><strong class="pname"><code>data</code></strong> - data to store in the new variable</li>
-        <li><strong class="pname"><code>cdftype</code></strong> (ctypes.c_long) - CDF type of the variable, from <a 
+        <li><strong class="pname"><code>type</code></strong> (ctypes.c_long) - CDF type of the variable, from <a 
           href="spacepy.pycdf.const-module.html" class="link">const</a></li>
         <li><strong class="pname"><code>recVary</code></strong> (bool) - record variance of the variable</li>
         <li><strong class="pname"><code>dimVarys</code></strong> (list of bool) - dimension variance of each dimension</li>
-        <li><strong class="pname"><code>dims</code></strong> (list of int) - size of each dimension of this variable</li>
+        <li><strong class="pname"><code>dims</code></strong> (list of int) - size of each dimension of this variable, default zero-dimensional</li>
         <li><strong class="pname"><code>n_elements</code></strong> (int) - number of elements, should be 1 except for CDF_CHAR, for which 
           it's the length of the string.</li>
     </ul></dd>
@@ -1614,7 +1647,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">save</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.save">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1647,7 +1680,7 @@ _abcoll.Container --+
   <h3 class="epydoc"><span class="sig"><span class="sig-name">copy</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#CDF.copy">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1684,14 +1717,14 @@ _abcoll.Container --+
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Nov 22 16:50:43 2010
+    Generated by Epydoc 3.0.1 on Wed Jan  5 15:55:00 2011
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -61,7 +61,7 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class PPro</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class PPro</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro">source&nbsp;code</a></span></p>
 <pre class="base-tree">
 object --+
          |
@@ -75,7 +75,8 @@ object --+
   method to perform association analysis of input series</p>
   <p>Output can be nicely plotted with plot method</p>
   <h1 class="heading">Author:</h1>
-    <p>Steve Morley, Los Alamos National Lab, smorley@lanl.gov</p>
+    <p>Steve Morley, Los Alamos National Lab, smorley@lanl.gov Jonathan 
+    Niehof, Los Alamos National Lab, jniehof@lanl.gov</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -107,7 +108,7 @@ object --+
         <span class="summary-sig-arg">winhalf</span>=<span class="summary-sig-default">None</span>)</span><br />
       x.__init__(...) initializes x; see x.__class__.__doc__ for signature</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -124,7 +125,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.poppy.PPro-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       String Representation of PoPPy object</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.__str__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -141,7 +142,7 @@ object --+
           <td><span class="summary-sig"><a href="spacepy.poppy.PPro-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       String Representation of PoPPy object</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.__str__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -158,7 +159,7 @@ object --+
           <td><span class="summary-sig"><a name="__len__"></a><span class="summary-sig-name">__len__</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Calling len(obj) will return the number of points in process 1</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.__len__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -175,7 +176,7 @@ object --+
           <td><span class="summary-sig"><a name="swap"></a><span class="summary-sig-name">swap</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Swaps process 1 and process 2</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.swap">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -194,7 +195,7 @@ object --+
         <span class="summary-sig-arg">h</span>=<span class="summary-sig-default">None</span>)</span><br />
       Perform association analysis on input series</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.assoc">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -212,10 +213,11 @@ object --+
         <span class="summary-sig-arg">figsize</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">dpi</span>=<span class="summary-sig-default">80</span>,
         <span class="summary-sig-arg">asympt</span>=<span class="summary-sig-default">True</span>,
-        <span class="summary-sig-arg">show</span>=<span class="summary-sig-default">True</span>)</span><br />
-      Method called to create basic plot of association analysis.</td>
+        <span class="summary-sig-arg">show</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">norm</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Create basic plot of association analysis.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.plot">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -231,10 +233,30 @@ object --+
         <tr>
           <td><span class="summary-sig"><a href="spacepy.poppy.PPro-class.html#aa_ci" class="summary-sig-name">aa_ci</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">inter</span>,
-        <span class="summary-sig-arg">n_boots</span>=<span class="summary-sig-default">1000</span>)</span><br />
+        <span class="summary-sig-arg">n_boots</span>=<span class="summary-sig-default">1000</span>,
+        <span class="summary-sig-arg">seed</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">threads</span>=<span class="summary-sig-default">None</span>)</span><br />
       Get bootstrap confidence intervals for association number</td>
           <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.aa_ci">source&nbsp;code</a></span>
             
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.poppy.PPro-class.html#dump" class="summary-sig-name">dump</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">f</span>)</span><br />
+      Dump this object out to a file</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.dump">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -256,6 +278,43 @@ object --+
       <code>__sizeof__</code>,
       <code>__subclasshook__</code>
       </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><a href="spacepy.poppy.PPro-class.html" class="link">PPro</a></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.poppy.PPro-class.html#load" class="summary-sig-name">load</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">f</span>)</span><br />
+      Read a <a href="spacepy.poppy.PPro-class.html" class="link">PPro</a> 
+      object from a file</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.load">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
     </td>
   </tr>
 </table>
@@ -317,7 +376,7 @@ object --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -342,7 +401,7 @@ object --+
     <br /><em class="fname">(Informal representation operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.__str__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -365,7 +424,7 @@ object --+
     <br /><em class="fname">(Representation operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.__str__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -389,13 +448,18 @@ object --+
         <span class="sig-arg">h</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.assoc">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
   <p>Perform association analysis on input series</p>
-  <p>u = range of lags h = association window half-width</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>u</code></strong> (list) - the time lags to use</li>
+        <li><strong class="pname"><code>h</code></strong> - association window half-width, same type as <code 
+          class="link">process1</code></li>
+    </ul></dd>
   </dl>
 </td></tr></table>
 </div>
@@ -410,21 +474,28 @@ object --+
         <span class="sig-arg">figsize</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">dpi</span>=<span class="sig-default">80</span>,
         <span class="sig-arg">asympt</span>=<span class="sig-default">True</span>,
-        <span class="sig-arg">show</span>=<span class="sig-default">True</span>)</span>
+        <span class="sig-arg">show</span>=<span class="sig-default">True</span>,
+        <span class="sig-arg">norm</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.plot">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Method called to create basic plot of association analysis.</p>
-  <h1 class="heading">Inputs:</h1>
-    <p>Uses object attributes created by the obj.assoc() method.</p>
-  <h1 class="heading">Optional keyword(s):</h1>
-    <p>asympt (default = True) - add line of asymptotic assoc. number</p>
-  <h1 class="heading">To Do:</h1>
-    <p>Add normalization keyword for plotting as n(u,h)/n_asympt</p>
+  <p>Create basic plot of association analysis.</p>
+  <p>Uses object attributes created by the <a 
+  href="spacepy.poppy.PPro-class.html#assoc" class="link">assoc</a> method 
+  and, optionally, <a href="spacepy.poppy.PPro-class.html#aa_ci" 
+  class="link">aa_ci</a>.</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>figsize</code></strong> - passed through to matplotlib.pyplot.figure</li>
+        <li><strong class="pname"><code>dpi</code></strong> - passed through to matplotlib.pyplot.figure</li>
+        <li><strong class="pname"><code>asympt</code></strong> (bool) - True to overplot the line of asymptotic association number</li>
+        <li><strong class="pname"><code>show</code></strong> (bool) - Show the plot? (if false, will create without showing)</li>
+        <li><strong class="pname"><code>norm</code></strong> (bool) - Normalize plot to the asymptotic association number</li>
+    </ul></dd>
   </dl>
 </td></tr></table>
 </div>
@@ -437,10 +508,12 @@ object --+
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">aa_ci</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">inter</span>,
-        <span class="sig-arg">n_boots</span>=<span class="sig-default">1000</span>)</span>
+        <span class="sig-arg">n_boots</span>=<span class="sig-default">1000</span>,
+        <span class="sig-arg">seed</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">threads</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.aa_ci">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -449,6 +522,58 @@ object --+
   obj.aa_ci(95)</p>
   <p>Upper and lower confidence limits are added to the ci attribute</p>
   <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="dump"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dump</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">f</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.dump">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Dump this object out to a file</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>f</code></strong> - open file (or file-like object) to dump to.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="load"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">load</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">f</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#PPro.load">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Read a <a href="spacepy.poppy.PPro-class.html" class="link">PPro</a> 
+  object from a file</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>f</code></strong> - open file (or file-like object) to read from.</li>
+    </ul></dd>
+    <dt>Returns: <a href="spacepy.poppy.PPro-class.html" class="link">PPro</a></dt>
+        <dd>object stored in <code class="link">f</code></dd>
   </dl>
 </td></tr></table>
 </div>
@@ -477,14 +602,14 @@ object --+
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Nov 22 16:50:43 2010
+    Generated by Epydoc 3.0.1 on Wed Jan  5 15:54:59 2011
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

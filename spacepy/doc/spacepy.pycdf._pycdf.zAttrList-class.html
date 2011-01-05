@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -62,25 +62,27 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class zAttrList</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Class zAttrList</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-       object --+            
-                |            
-    _abcoll.Sized --+        
-                    |        
-       object --+   |        
-                |   |        
- _abcoll.Iterable --+        
-                    |        
-       object --+   |        
-                |   |        
-_abcoll.Container --+        
-                    |        
-      _abcoll.Mapping --+    
-                        |    
-                 <a href="spacepy.pycdf._pycdf.AttrList-class.html">AttrList</a> --+
-                            |
-                           <strong class="uidshort">zAttrList</strong>
+       object --+                
+                |                
+    _abcoll.Sized --+            
+                    |            
+       object --+   |            
+                |   |            
+ _abcoll.Iterable --+            
+                    |            
+       object --+   |            
+                |   |            
+_abcoll.Container --+            
+                    |            
+      _abcoll.Mapping --+        
+                        |        
+   _abcoll.MutableMapping --+    
+                            |    
+                     <a href="spacepy.pycdf._pycdf.AttrList-class.html">AttrList</a> --+
+                                |
+                               <strong class="uidshort">zAttrList</strong>
 </pre>
 
 <hr />
@@ -168,7 +170,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">zvar</span>)</span><br />
       Initialize the attribute collection</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -187,7 +189,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">name</span>)</span><br />
       Find an zEntry by name</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__getitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -205,7 +207,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">name</span>)</span><br />
       Delete an zEntry by name</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__delitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -224,7 +226,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">data</span>)</span><br />
       Sets a zEntry by name</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__setitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -241,7 +243,7 @@ _abcoll.Container --+
           <td><span class="summary-sig"><a href="spacepy.pycdf._pycdf.zAttrList-class.html#__len__" class="summary-sig-name">__len__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Number of zAttributes in this variable</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__len__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -260,7 +262,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">new_type</span>=<span class="summary-sig-default">None</span>)</span><br />
       Find or change the CDF type of a zEntry in this zVar</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.type">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -280,7 +282,7 @@ _abcoll.Container --+
         <span class="summary-sig-arg">new_name</span>=<span class="summary-sig-default">None</span>)</span><br />
       Clones a single attribute from one in this list or another</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList._clone_attr">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -303,6 +305,13 @@ _abcoll.Container --+
       <code><a href="spacepy.pycdf._pycdf.AttrList-class.html#_clone_list" onclick="show_private();">_clone_list</a></code>,
       <code><a href="spacepy.pycdf._pycdf.AttrList-class.html#_get_or_create" onclick="show_private();">_get_or_create</a></code>
       </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.MutableMapping</code></b>:
+      <code>clear</code>,
+      <code>pop</code>,
+      <code>popitem</code>,
+      <code>setdefault</code>,
+      <code>update</code>
+      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Mapping</code></b>:
       <code>__contains__</code>,
       <code>__eq__</code>,
@@ -380,15 +389,15 @@ _abcoll.Container --+
   <tr>
     <td colspan="2" class="summary">
     <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="spacepy.pycdf._pycdf.AttrList-class.html">AttrList</a></code></b> (private):
-      <code><a href="spacepy.pycdf._pycdf.AttrList-class.html#_abc_negative_cache_version" onclick="show_private();">_abc_negative_cache_version</a></code>
+      <code><a href="spacepy.pycdf._pycdf.AttrList-class.html#_abc_negative_cache" onclick="show_private();">_abc_negative_cache</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.AttrList-class.html#_abc_negative_cache_version" onclick="show_private();">_abc_negative_cache_version</a></code>,
+      <code><a href="spacepy.pycdf._pycdf.AttrList-class.html#_abc_registry" onclick="show_private();">_abc_registry</a></code>
       </p></div>
     <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Mapping</code></b>:
       <code>__hash__</code>
       </p>
     <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>_abcoll.Sized</code></b> (private):
-      <code>_abc_cache</code>,
-      <code>_abc_negative_cache</code>,
-      <code>_abc_registry</code>
+      <code>_abc_cache</code>
       </p></div>
     </td>
   </tr>
@@ -492,7 +501,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -522,7 +531,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Indexing operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__getitem__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -559,7 +568,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Index deletion operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__delitem__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -576,7 +585,7 @@ _abcoll.Container --+
         <li><code><strong class='fraise'><a href="spacepy.pycdf._pycdf.CDFError-class.html">CDFError</a></strong></code> - other errors in CDF library</li>
     </ul></dd>
     <dt>Overrides:
-        <a href="spacepy.pycdf._pycdf.AttrList-class.html#__delitem__">AttrList.__delitem__</a>
+        _abcoll.MutableMapping.__delitem__
     </dt>
   </dl>
 <div class="fields">      <p><strong>Note:</strong>
@@ -597,7 +606,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Index assignment operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__setitem__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -635,7 +644,7 @@ _abcoll.Container --+
         the wrong dimensions.</li>
     </ul></dd>
     <dt>Overrides:
-        <a href="spacepy.pycdf._pycdf.AttrList-class.html#__setitem__">AttrList.__setitem__</a>
+        _abcoll.MutableMapping.__setitem__
     </dt>
   </dl>
 </td></tr></table>
@@ -651,7 +660,7 @@ _abcoll.Container --+
     <br /><em class="fname">(Length operator)</em>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.__len__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -678,7 +687,7 @@ _abcoll.Container --+
         <span class="sig-arg">new_type</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList.type">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -713,7 +722,7 @@ _abcoll.Container --+
         <span class="sig-arg">new_name</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.pycdf._pycdf-pysrc.html#zAttrList._clone_attr">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -758,14 +767,14 @@ _abcoll.Container --+
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Nov 22 16:50:43 2010
+    Generated by Epydoc 3.0.1 on Wed Jan  5 15:55:00 2011
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

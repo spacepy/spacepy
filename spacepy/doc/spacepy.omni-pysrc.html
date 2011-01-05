@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -66,13 +66,13 @@
 <a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
 <a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-docstring">tools to read and process omni data</tt> </tt>
 <a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
-<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-name">__version__</tt> <tt class="py-op">=</tt> <tt class="py-string">"$Revision: 1.11 $, $Date: 2010/11/22 23:48:24 $"</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-name">__version__</tt> <tt class="py-op">=</tt> <tt class="py-string">"$Revision: 1.12 $, $Date: 2011/01/05 23:02:06 $"</tt> </tt>
 <a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'</tt> </tt>
 <a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"> </tt>
 <a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"># -----------------------------------------------</tt> </tt>
-<a name="get_omni"></a><div id="get_omni-def"><a name="L10"></a><tt class="py-lineno"> 10</tt> <a class="py-toggle" href="#" id="get_omni-toggle" onclick="return toggle('get_omni');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.omni-module.html#get_omni">get_omni</a><tt class="py-op">(</tt><tt class="py-param">ticktock</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="get_omni"></a><div id="get_omni-def"><a name="L10"></a><tt class="py-lineno"> 10</tt> <a class="py-toggle" href="#" id="get_omni-toggle" onclick="return toggle('get_omni');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="spacepy.omni-module.html#get_omni">get_omni</a><tt class="py-op">(</tt><tt class="py-param">ticks</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
 </div><div id="get_omni-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_omni-expanded"><a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
-<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">    will load the pickled omni file, interpolate to the given ticktock time</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">    will load the pickled omni file, interpolate to the given ticks time</tt> </tt>
 <a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring">    and return the omni values as dictionary with </tt> </tt>
 <a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">    Kp, Dst, dens, velo, Pdyn, ByIMF, BzIMF, G1, G2, G3, etc.</tt> </tt>
 <a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-docstring">    (see also http://www.dartmouth.edu/~rdenton/magpar/index.html and</tt> </tt>
@@ -87,7 +87,7 @@
 <a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
 <a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring">    Input:</tt> </tt>
 <a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-docstring">    ======</tt> </tt>
-<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring">        - ticktock (Ticktock class) : containing time information</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring">        - ticks (Ticktock class) : containing time information</tt> </tt>
 <a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
 <a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-docstring">    Returns:</tt> </tt>
 <a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-docstring">    ========</tt> </tt>
@@ -113,15 +113,15 @@
 <a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">numpy</tt> <tt class="py-keyword">as</tt> <tt class="py-name">n</tt> </tt>
 <a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Package spacepy=spacepy-module.html"><a title="spacepy" class="py-name" href="#" onclick="return doclink('link-0', 'spacepy', 'link-0');">spacepy</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Module spacepy.time=spacepy.time-module.html"><a title="spacepy.time" class="py-name" href="#" onclick="return doclink('link-1', 'time', 'link-1');">time</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">st</tt> </tt>
 <a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
-<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">    <tt class="py-comment"># extract RTD from ticktock</tt> </tt>
-<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">    <tt class="py-name">RDTvals</tt> <tt class="py-op">=</tt> <tt class="py-name">ticktock</tt><tt class="py-op">.</tt><tt class="py-name">RDT</tt> </tt>
-<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">    <tt class="py-name">nRDT</tt> <tt class="py-op">=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">ticktock</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">    <tt class="py-comment"># extract RTD from ticks</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">    <tt class="py-name">RDTvals</tt> <tt class="py-op">=</tt> <tt class="py-name">ticks</tt><tt class="py-op">.</tt><tt class="py-name">RDT</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">    <tt class="py-name">nRDT</tt> <tt class="py-op">=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">ticks</tt><tt class="py-op">)</tt> </tt>
 <a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"> </tt>
 <a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">    <tt class="py-name">omnikeys</tt> <tt class="py-op">=</tt> <tt id="link-2" class="py-name" targets="Variable spacepy.omni.omnidata=spacepy.omni-module.html#omnidata"><a title="spacepy.omni.omnidata" class="py-name" href="#" onclick="return doclink('link-2', 'omnidata', 'link-2');">omnidata</a></tt><tt class="py-op">.</tt><tt class="py-name">keys</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
 <a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">    <tt class="py-name">omnikeys</tt><tt class="py-op">.</tt><tt class="py-name">remove</tt><tt class="py-op">(</tt><tt class="py-string">'Qbits'</tt><tt class="py-op">)</tt> <tt class="py-comment"># remove this item because it is a string (cannot interpolate)</tt> </tt>
 <a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">    <tt class="py-name">omnikeys</tt><tt class="py-op">.</tt><tt class="py-name">remove</tt><tt class="py-op">(</tt><tt class="py-string">'UTC'</tt><tt class="py-op">)</tt> </tt>
 <a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">    <tt class="py-name">omnikeys</tt><tt class="py-op">.</tt><tt class="py-name">remove</tt><tt class="py-op">(</tt><tt class="py-string">'RDT'</tt><tt class="py-op">)</tt> </tt>
-<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">    <tt class="py-name">omnikeys</tt><tt class="py-op">.</tt><tt class="py-name">remove</tt><tt class="py-op">(</tt><tt class="py-string">'ticktock'</tt><tt class="py-op">)</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">    <tt class="py-name">omnikeys</tt><tt class="py-op">.</tt><tt class="py-name">remove</tt><tt class="py-op">(</tt><tt class="py-string">'ticks'</tt><tt class="py-op">)</tt> </tt>
 <a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"> </tt>
 <a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">    <tt class="py-name">omnival</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
 <a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">key</tt> <tt class="py-keyword">in</tt> <tt class="py-name">omnikeys</tt><tt class="py-op">:</tt> </tt>
@@ -136,9 +136,9 @@
 <a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'Qbits'</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-name">key</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'Qbits'</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-name">key</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">astype</tt><tt class="py-op">(</tt><tt class="py-string">'int'</tt><tt class="py-op">)</tt> </tt>
 <a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">         </tt>
 <a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">    <tt class="py-comment"># add time information back in</tt> </tt>
-<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">    <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'UTC'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">ticktock</tt><tt class="py-op">.</tt><tt class="py-name">UTC</tt> </tt>
-<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">    <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'RDT'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">ticktock</tt><tt class="py-op">.</tt><tt class="py-name">RDT</tt> </tt>
-<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">    <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'ticktock'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">ticktock</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">    <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'UTC'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">ticks</tt><tt class="py-op">.</tt><tt class="py-name">UTC</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">    <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'RDT'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">ticks</tt><tt class="py-op">.</tt><tt class="py-name">RDT</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">    <tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'ticks'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">ticks</tt> </tt>
 <a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">     </tt>
 <a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">    <tt class="py-comment"># return warning if values outside of omni data range</tt> </tt>
 <a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">n</tt><tt class="py-op">.</tt><tt class="py-name">any</tt><tt class="py-op">(</tt><tt class="py-name">n</tt><tt class="py-op">.</tt><tt class="py-name">isnan</tt><tt class="py-op">(</tt><tt class="py-name">omnival</tt><tt class="py-op">[</tt><tt class="py-string">'Kp'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> <tt class="py-keyword">print</tt><tt class="py-op">(</tt><tt class="py-string">"Warning: time is outside of omni data range"</tt><tt class="py-op">)</tt> </tt>
@@ -225,14 +225,14 @@ expandto(location.href);
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Nov  3 16:15:57 2010
+    Generated by Epydoc 3.0.1 on Wed Jan  5 15:55:01 2011
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -60,7 +60,7 @@
   </tr>
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
-<h1 class="epydoc">Module poppy</h1><p class="nomargin-top"></p>
+<h1 class="epydoc">Module poppy</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.poppy-pysrc.html">source&nbsp;code</a></span></p>
 <p>PoPPy -- Point Processes in Python.</p>
   <p>This module contains point process class types and a variety of 
   functions for association analysis. The routines given here grew from 
@@ -156,17 +156,18 @@
 </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type">sequence of float</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="spacepy.poppy-module.html#boots_ci" class="summary-sig-name">boots_ci</a>(<span class="summary-sig-arg">data</span>,
         <span class="summary-sig-arg">n</span>,
         <span class="summary-sig-arg">inter</span>,
-        <span class="summary-sig-arg">func</span>)</span><br />
-      Construct bootstrap confidence interval - caution: slow!</td>
+        <span class="summary-sig-arg">func</span>,
+        <span class="summary-sig-arg">seed</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Construct bootstrap confidence interval</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="spacepy.poppy-pysrc.html#boots_ci">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -192,6 +193,28 @@
     </table>
   </td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dptr"></a><span class="summary-name">dptr</span> = <code title="ctypes.POINTER(ctypes.c_double)">ctypes.POINTER(ctypes.c_double)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ulptr"></a><span class="summary-name">ulptr</span> = <code title="ctypes.POINTER(ctypes.c_ulong)">ctypes.POINTER(ctypes.c_ulong)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="libpoppy"></a><span class="summary-name">libpoppy</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -228,29 +251,24 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">boots_ci</span>(<span class="sig-arg">data</span>,
         <span class="sig-arg">n</span>,
         <span class="sig-arg">inter</span>,
-        <span class="sig-arg">func</span>)</span>
+        <span class="sig-arg">func</span>,
+        <span class="sig-arg">seed</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    >&nbsp;
+    ><span class="codelink"><a href="spacepy.poppy-pysrc.html#boots_ci">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Construct bootstrap confidence interval - caution: slow!</p>
-  <h1 class="heading">Input:</h1>
-    <ul>
-      <li>
-        n is number of surrogates;
-      </li>
-      <li>
-        data is data array (1D);
-      </li>
-      <li>
-        inter is desired confidence interval (e.g. 95%);
-      </li>
-      <li>
-        func is a user-defined function (lambda)
-      </li>
-    </ul>
+  <p>Construct bootstrap confidence interval</p>
+  <p>The bootstrap is a statistical tool that uses multiple samples derived
+  from the original data (called surrogates) to estimate a parameter of the
+  population from which the sample was drawn. This assumes that the sample 
+  is randomly drawn and hence is representative of the underlying 
+  distribution. The benefit of the bootstrap is that it is non-parametric 
+  and can be applied in situations where there is reasonable doubt about 
+  the characteristics of the underlying distribution. This routine uses the
+  boot- strap for its most common application - the estimation of 
+  confidence intervals.</p>
   <h1 class="heading">Example:</h1>
 <pre class="py-doctest">
 <span class="py-prompt">&gt;&gt;&gt; </span>data, n = numpy.random.lognormal(mean=5.1, sigma=0.3, size=3000), 4000.
@@ -268,9 +286,29 @@
     <p>Note that the true value of the desired quantity may lie outside the
     95% confidence interval one time in 20 realizations. This occurred for 
     the first iteration here.</p>
+    <p>For the lognormal distribution, the median is found exactly by 
+    taking the exponential of the &quot;mean&quot; parameter. Thus here, 
+    the theoretical median is 164.022 (6 s.f.) and this is well captured by
+    the above bootstrap confidence interval.</p>
   <h1 class="heading">Author:</h1>
-    <p>Steve Morley, Los Alamos National Lab, smorley@lanl.gov</p>
+    <p>Steve Morley, Los Alamos National Lab, smorley@lanl.gov and Jonathan
+    Niehof, Los Alamos National Lab, jniehof@lanl.gov</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>data</code></strong> (sequence) - data to bootstrap</li>
+        <li><strong class="pname"><code>n</code></strong> (int) - number of surrogate series to select, i.e. number of bootstrap 
+          iterations.</li>
+        <li><strong class="pname"><code>inter</code></strong> (numerical) - desired percentage confidence interval</li>
+        <li><strong class="pname"><code>func</code></strong> (callable) - Function to apply to each surrogate series</li>
+        <li><strong class="pname"><code>seed</code></strong> (int) - Optional seed for the random number generator. If not specified, 
+          numpy generator will not be reseeded; C generator will be seeded 
+          from the clock.</li>
+    </ul></dd>
+    <dt>Returns: sequence of float</dt>
+        <dd><code class="link">inter</code> percent confidence interval on 
+          value derived from <code class="link">func</code> applied to the 
+          population sampled by <code class="link">data</code>.</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -299,14 +337,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            >SpacePy: Space Science Tools for Python</th>
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Nov 22 16:50:42 2010
+    Generated by Epydoc 3.0.1 on Wed Jan  5 15:54:59 2011
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
