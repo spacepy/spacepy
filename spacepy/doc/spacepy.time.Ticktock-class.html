@@ -1,0 +1,2185 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>spacepy.time.Ticktock</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
+        <a href="spacepy.time-module.html">Module&nbsp;time</a> ::
+        Class&nbsp;Ticktock
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="spacepy.time.Ticktock-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Ticktock</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+
+         |
+        <strong class="uidshort">Ticktock</strong>
+</pre>
+
+<hr />
+<p>Ticktock( data, dtype )</p>
+  <p>Ticktock class holding various time coordinate systems (TAI, UTC, ISO,
+  JD, MJD, UNX, RDT, CDF, DOY, eDOY)</p>
+  <p>Possible data types: ISO: ISO standard format like 
+  '2002-02-25T12:20:30' UTC: datetime object with UTC time TAI: elapsed 
+  seconds since 1958/1/1 (includes leap seconds) UNX: elapsed seconds since
+  1970/1/1 (all days have 86400 secs sometimes unequal lenghts) JD: Julian 
+  days elapsed MJD: Modified Julian days RDT: Rata Die days elapsed since 
+  1/1/1 CDF: CDF epoch: milliseconds since 1/1/0000</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        data (int, datetime, float, string) : time stamp
+      </li>
+      <li>
+        dtype (string) : data type for data, possible values: CDF, ISO, 
+        UTC, TAI, UNX, JD, MJD, RDT
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        instance with self.data, self.dtype, self.UTC etc
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>x=Ticktock([2452331.0142361112, 2452332.0142361112], <span class="py-string">'JD'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>x.ISO
+<span class="py-output">['2002-02-25T12:20:30', '2002-02-26T12:20:30']</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>x.DOY <span class="py-comment"># Day of year</span>
+<span class="py-output">array([ 56.,  57.])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>a.getCDF, a.getISO, a.getUTC, etc.</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 V2: 25-Jan-2010: includes array support (JK) V3: 
+    25-feb-2010: pulled functions into class (JK) V4: 19-May-2010: ISO 
+    format support (SM) V5: 15-Sep-2010: added format guessing 'ISO', 
+    'UTC', 'CDF' (JK) V6: 15-Sep-2010: data can be any iterable (JN)</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">dtype</span>)</span><br />
+      x.__init__(...) initializes x; see x.__class__.__doc__ for signature</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.__str__() or a</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.__str__() or a</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__getstate__" class="summary-sig-name">__getstate__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Is called when pickling Author: J.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__getstate__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__setstate__" class="summary-sig-name">__setstate__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dict</span>)</span><br />
+      Is called when unpickling Author: J.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__setstate__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__getitem__" class="summary-sig-name">__getitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">idx</span>)</span><br />
+      a.__getitem__(idx) or a[idx]</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__getitem__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__setitem__" class="summary-sig-name">__setitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">idx</span>,
+        <span class="summary-sig-arg">vals</span>)</span><br />
+      a.__setitem__(idx, vals) or a[idx] = vals</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__setitem__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__len__" class="summary-sig-name">__len__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.__len__() or len(a)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__len__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__cmp__" class="summary-sig-name">__cmp__</a>(<span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Will be called when two Ticktock instances are compared</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__cmp__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__gt__"></a><span class="summary-sig-name">__gt__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__gt__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__lt__"></a><span class="summary-sig-name">__lt__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__lt__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__ge__"></a><span class="summary-sig-name">__ge__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__ge__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__le__"></a><span class="summary-sig-name">__le__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__le__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__eq__"></a><span class="summary-sig-name">__eq__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__eq__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__ne__"></a><span class="summary-sig-name">__ne__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__ne__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__sub__" class="summary-sig-name">__sub__</a>(<span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Will be called if a Tickdelta object is substracted to this instance 
+      and returns a new Ticktock instance</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__sub__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__add__" class="summary-sig-name">__add__</a>(<span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Will be called if a Tickdelta object is added to this instance and 
+      returns a new Ticktock instance</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__add__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#__getattr__" class="summary-sig-name">__getattr__</a>(<span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">name</span>)</span><br />
+      Will be called if attribute &quot;name&quot; is not found in Ticktock
+      class instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__getattr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#sort" class="summary-sig-name">sort</a>(<span class="summary-sig-arg">a</span>)</span><br />
+      This will sort the Ticktock values in place</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.sort">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#argsort" class="summary-sig-name">argsort</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      idx = a.argsort()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.argsort">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#isoformat" class="summary-sig-name">isoformat</a>(<span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">b</span>,
+        <span class="summary-sig-arg">attrib</span>=<span class="summary-sig-default">None</span>)</span><br />
+      This changes the self.__isofmt attribute by and subsequently this 
+      function will update the ISO attribute.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.isoformat">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#update_items" class="summary-sig-name">update_items</a>(<span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">b</span>,
+        <span class="summary-sig-arg">attrib</span>)</span><br />
+      After changing the self.data attribute by either __setitem__ or 
+      __add__ etc this function will update all other attributes.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.update_items">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#convert" class="summary-sig-name">convert</a>(<span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">dtype</span>)</span><br />
+      convert a Ticktock instance into a new time coordinate system 
+      provided in dtype</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.convert">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#append" class="summary-sig-name">append</a>(<span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Will be called when another Ticktock instance has to be appended to 
+      the current one</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.append">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getCDF" class="summary-sig-name">getCDF</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.getCDF() or a.CDF</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getCDF">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getDOY" class="summary-sig-name">getDOY</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.DOY or a.getDOY()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getDOY">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#geteDOY" class="summary-sig-name">geteDOY</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.eDOY or a.geteDOY()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.geteDOY">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getJD" class="summary-sig-name">getJD</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.JD or a.getJD()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getJD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getMJD" class="summary-sig-name">getMJD</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.MJD or a.getMJD()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getMJD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getUNX" class="summary-sig-name">getUNX</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.UNX or a.getUNX()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getUNX">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getRDT" class="summary-sig-name">getRDT</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.RDT or a.RDT()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getRDT">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getUTC" class="summary-sig-name">getUTC</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.UTC or a.getUTC()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getUTC">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getGPS" class="summary-sig-name">getGPS</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.GPS or a.getGPS()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getGPS">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getTAI" class="summary-sig-name">getTAI</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.TAI or a.getTAI()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getTAI">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getISO" class="summary-sig-name">getISO</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.ISO or a.getISO()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getISO">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#getleapsecs" class="summary-sig-name">getleapsecs</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      a.leaps or a.getleapsecs()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getleapsecs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.time.Ticktock-class.html#now" class="summary-sig-name">now</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Creates a Ticktock object with the current time, equivalent to dattime.now()</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.now">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">data</span>,
+        <span class="sig-arg">dtype</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>x.__init__(...) initializes x; see x.__class__.__doc__ for 
+  signature</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__str__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Informal representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__str__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.__str__() or a</p>
+  <p>Will be called when printing Ticktock instance a</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        output (string)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:03'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a
+<span class="py-output">Ticktock( ['2002-02-02T12:00:00'] ), dtype=ISO</span></pre>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK)</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__str__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__repr__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__repr__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__str__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.__str__() or a</p>
+  <p>Will be called when printing Ticktock instance a</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        output (string)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:03'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a
+<span class="py-output">Ticktock( ['2002-02-02T12:00:00'] ), dtype=ISO</span></pre>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK)</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__repr__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getstate__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getstate__</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__getstate__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Is called when pickling Author: J. Koller See Also: 
+  http://docs.python.org/library/pickle.html</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__setstate__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__setstate__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">dict</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__setstate__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Is called when unpickling Author: J. Koller See Also: 
+  http://docs.python.org/library/pickle.html</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">idx</span>)</span>
+    <br /><em class="fname">(Indexing operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__getitem__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.__getitem__(idx) or a[idx]</p>
+  <p>Will be called when requesting items in this instance</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+      <li>
+        idx (int) : integer numbers as index
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        Ticktock instance with requested values
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:03'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a[0]
+<span class="py-output">'2002-02-02T12:00:00'</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>a.__setitem__</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1.0: 03-Mar-2010 (JK) V1.1: 23-Mar-2010: now returns Ticktock 
+    instance and can be indexed with arrays (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__setitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__setitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">idx</span>,
+        <span class="sig-arg">vals</span>)</span>
+    <br /><em class="fname">(Index assignment operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__setitem__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.__setitem__(idx, vals) or a[idx] = vals</p>
+  <p>Will be called setting items in this instance</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+      <li>
+        idx (int) : integer numbers as index
+      </li>
+      <li>
+        vals (float, string, datetime) : new values
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:03'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a[0] = <span class="py-string">'2003-03-03T00:00:00'</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>a.__getitem__</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__len__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__len__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Length operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__len__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.__len__() or len(a)</p>
+  <p>Will be called when requesting the length, i.e. number of items</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        length (int number)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:03'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.len
+<span class="py-output">1</span></pre>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__cmp__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__cmp__</span>(<span class="sig-arg">a</span>,
+        <span class="sig-arg">other</span>)</span>
+    <br /><em class="fname">(Comparison operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__cmp__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Will be called when two Ticktock instances are compared</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+      <li>
+        other (Ticktock instance)
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        True or False
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:03'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>b = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a &gt; b
+<span class="py-output">True</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>a.__add__, a.__sub__</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__sub__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__sub__</span>(<span class="sig-arg">a</span>,
+        <span class="sig-arg">other</span>)</span>
+    <br /><em class="fname">(Subtraction operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__sub__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Will be called if a Tickdelta object is substracted to this instance 
+  and returns a new Ticktock instance</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+      <li>
+        other (Tickdelta instance, or Ticktock class instance)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>dt = Tickdelta(3)
+<span class="py-prompt">&gt;&gt;&gt; </span>a - dt
+<span class="py-output">Ticktock( ['2002-02-05T12:00:00'] ), dtype=ISO</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>__sub__</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK) V2: 07-Sep-2010 (BAL) - added Ticktock-Ticktock
+    functionality</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__add__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__add__</span>(<span class="sig-arg">a</span>,
+        <span class="sig-arg">other</span>)</span>
+    <br /><em class="fname">(Addition operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__add__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Will be called if a Tickdelta object is added to this instance and 
+  returns a new Ticktock instance</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+      <li>
+        other (Tickdelta instance)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>dt = Tickdelta(3)
+<span class="py-prompt">&gt;&gt;&gt; </span>a + dt
+<span class="py-output">Ticktock( ['2002-02-05T12:00:00'] ), dtype=ISO</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>__sub__</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK) V2: 07-Sep-2010 (BAL) - added Ticktock-Ticktock
+    functionality</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getattr__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getattr__</span>(<span class="sig-arg">a</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">(Qualification operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.__getattr__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Will be called if attribute &quot;name&quot; is not found in Ticktock 
+  class instance. It will add TAI, RDT, etc</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+      <li>
+        name (string) : a string from the list of time systems 'UTC', 
+        'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'DOY', 'eDOY', 
+        'leaps'
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        requested values as either list/numpy array
+      </li>
+    </ul>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="sort"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sort</span>(<span class="sig-arg">a</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.sort">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This will sort the Ticktock values in place</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Jun-2010 (JK) V1.1: 09-Nov-2010: fixed a little bug; self 
+    only updated inside here (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="argsort"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">argsort</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.argsort">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>idx = a.argsort()</p>
+  <p>This will return the indices that would sort the Ticktock values</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Output:</h1>
+    <ul>
+      <li>
+        idx (int list) : indices that would sort the Ticktock values
+      </li>
+    </ul>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Jun-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="isoformat"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">isoformat</span>(<span class="sig-arg">a</span>,
+        <span class="sig-arg">b</span>,
+        <span class="sig-arg">attrib</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.isoformat">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This changes the self.__isofmt attribute by and subsequently this 
+  function will update the ISO attribute.</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Author:</h1>
+    <p>Steve Morley, Los Alamos National Lab (smorley@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 19-May-2010 (SM)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="update_items"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">update_items</span>(<span class="sig-arg">a</span>,
+        <span class="sig-arg">b</span>,
+        <span class="sig-arg">attrib</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.update_items">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>After changing the self.data attribute by either __setitem__ or 
+  __add__ etc this function will update all other attributes. This function
+  is called automatically in __add__ and __setitem__</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">See Also:</h1>
+    <p>__setitem__, __add__, __sub__</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 03-Mar-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="convert"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">convert</span>(<span class="sig-arg">a</span>,
+        <span class="sig-arg">dtype</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.convert">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>convert a Ticktock instance into a new time coordinate system provided
+  in dtype</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+      <li>
+        dtype (string) : data type for new system, possible values are CDF,
+        ISO, UTC, TAI, UNX, JD, MJD, RDT
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        newobj (Ticktock instance) with new time coordinates
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock([<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'2002-02-02T12:00:00'</span>], <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>s = a.convert(<span class="py-string">'TAI'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>type(s)
+<span class="py-output">&lt;class 'time.Ticktock'&gt;</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>s
+<span class="py-output">Ticktock( [1391342432 1391342432] ), dtype=TAI</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>a.CDF, a.ISO, a.UTC, etc.</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 05-Mar-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="append"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">append</span>(<span class="sig-arg">a</span>,
+        <span class="sig-arg">other</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.append">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Will be called when another Ticktock instance has to be appended to 
+  the current one</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+      <li>
+        other (Ticktock instance)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 23-Mar-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getCDF"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getCDF</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getCDF">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.getCDF() or a.CDF</p>
+  <p>Return CDF time which is milliseconds since 01-Jan-0000 00:00:00.000. 
+  Year zero&quot; is a convention chosen by NSSDC to measure epoch values. 
+  This date is more commonly referred to as 1 BC. Remember that 1 BC was a 
+  leap year. The CDF date/time calculations do not take into account the 
+  changes to the Gregorian calendar, and cannot be directly converted into 
+  Julian date/times.</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        CDF (numpy array) : days elapsed since Jan. 1st
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.CDF
+<span class="py-output">array([  6.31798704e+13])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getRDT, getJD, getMJD, getISO, getTAI, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 02-Feb-2010 (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getDOY"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getDOY</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getDOY">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.DOY or a.getDOY()</p>
+  <p>extract DOY (days since January 1st of given year)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        DOY (numpy array int) : day of the year
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.DOY
+<span class="py-output">array([ 33])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getISO, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 25-Jan-2010 (JK) V1.1: 20-Apr-2010: returns true DOY per 
+    definition as integer (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="geteDOY"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">geteDOY</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.geteDOY">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.eDOY or a.geteDOY()</p>
+  <p>extract eDOY (elapsed days since midnight January 1st of given 
+  year)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        eDOY (numpy array) : days elapsed since midnight bbedJan. 1st
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.eDOY
+<span class="py-output">array([ 32.5])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getISO, 
+    getDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Apr-2010 (JK) V2: 18-May-2010: Added microseconds (SM)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getJD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getJD</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getJD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.JD or a.getJD()</p>
+  <p>convert dtype data into Julian Date (JD)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        JD (numpy array) : elapsed days since 12:00 January 1, 4713 BC
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.JD
+<span class="py-output">array([ 2452308.])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getRDT, getISO, getMJD, getCDF, getTAI, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 (JK) V2: 25-Jan-2010: added array support (JK) V3: 
+    18-May-2010: added microseconds (SM)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getMJD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getMJD</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getMJD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.MJD or a.getMJD()</p>
+  <p>convert dtype data into MJD (modified Julian date)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        MJD (numpy array) : elapsed days since November 17, 1858 (Julian 
+        date was 2,400 000)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.MJD
+<span class="py-output">array([ 52307.5])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 (JK) V2: 25-Jan-2010: added support for arrays 
+    (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getUNX"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getUNX</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getUNX">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.UNX or a.getUNX()</p>
+  <p>convert dtype data into Unix Time (Posix Time) seconds since 
+  1970-Jan-1 (not counting leap seconds)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        UNX (numpy array) : elapsed secs since 1970/1/1 (not counting leap 
+        secs)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.UNX
+<span class="py-output">array([  1.01265120e+09])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 (JK) V2: 25-Jan-2010: added array support (JK) V3: 
+    18-May-2010: added sub-second support (SM)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getRDT"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getRDT</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getRDT">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.RDT or a.RDT()</p>
+  <p>convert dtype data into Rata Die (lat.) Time (days since 1/1/0001)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        RDT (numpy array) : elapsed days since 1/1/1
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.RDT
+<span class="py-output">array([ 730883.5])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 (JK) V2: 25-Jan-2010: added array support (JK) V3: 
+    17-May-2010: added microseconds (SM)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getUTC"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getUTC</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getUTC">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.UTC or a.getUTC()</p>
+  <p>convert dtype data into UTC object a la datetime()</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        UTC (list of datetime objects) : datetime object in UTC time
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.UTC
+<span class="py-output">[datetime.datetime(2002, 2, 2, 12, 0)]</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 (JK) V2: 25-Jan-2010: added array support (JK) V3: 
+    17-May-2010: added microsecond ISO parsing (SM)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getGPS"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getGPS</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getGPS">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.GPS or a.getGPS()</p>
+  <p>return GPS epoch (0000 UT (midnight) on January 6, 1980)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        GPS (numpy array) : elapsed secs since 6Jan1980 (excludes leap 
+        secs)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.GPS
+<span class="py-output">array([])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 (BAL) V2: 17-May-2010: Added sub-second support 
+    (SM)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getTAI"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getTAI</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getTAI">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.TAI or a.getTAI()</p>
+  <p>return TAI (International Atomic Time)</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        TAI (numpy array) : elapsed secs since 1958/1/1 (includes leap 
+        secs, i.e. all secs have equal lengths)
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.TAI
+<span class="py-output">array([1391342432])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 (JK) V2: 25-Jan-2010: include array support (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getISO"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getISO</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getISO">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.ISO or a.getISO()</p>
+  <p>convert dtype data into ISO string</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        ISO (list of strings) : date in ISO format
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.ISO
+<span class="py-output">['2002-02-02T12:00:00']</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, 
+    geteDOY</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010 (JK) V2: 25-Jan-2010: included arary support (JK) 
+    V3: 10-May-2010: speedup, arange to xrange (BAL) V4: 17-May-2010: 
+    switched to native formatting so sub-second is displayed</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getleapsecs"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getleapsecs</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.getleapsecs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>a.leaps or a.getleapsecs()</p>
+  <p>retrieve leapseconds from lookup table, used in getTAI</p>
+  <h1 class="heading">Input:</h1>
+    <ul>
+      <li>
+        a Ticktock class instance
+      </li>
+    </ul>
+  <h1 class="heading">Returns:</h1>
+    <ul>
+      <li>
+        secs (numpy array) : leap seconds
+      </li>
+    </ul>
+  <h1 class="heading">Example:</h1>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>a = Ticktock(<span class="py-string">'2002-02-02T12:00:00'</span>, <span class="py-string">'ISO'</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>a.leaps
+<span class="py-output">array([32])</span></pre>
+  <h1 class="heading">See Also:</h1>
+    <p>getTAI</p>
+  <h1 class="heading">Author:</h1>
+    <p>Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)</p>
+  <h1 class="heading">Version:</h1>
+    <p>V1: 20-Jan-2010: includes array support (JK)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="now"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">now</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.time-pysrc.html#Ticktock.now">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Creates a Ticktock object with the current time, equivalent to dattime.now()
+
+Input:
+======
+- None
+
+Author:
+=======
+Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)
+
+Version:
+========
+V1: 24-May-2010 (BAL)
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Jan  5 17:53:41 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>spacepy.pybats.rampy</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="spacepy-module.html">Package&nbsp;spacepy</a> ::
+        <a href="spacepy.pybats-module.html">Package&nbsp;pybats</a> ::
+        Module&nbsp;rampy
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="spacepy.pybats.rampy-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module rampy</h1><p class="nomargin-top"><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html">source&nbsp;code</a></span></p>
+<p>A module for reading, handling, and plotting RAM-SCB output.</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="spacepy.pybats.rampy.weimer-class.html" class="summary-name">weimer</a><br />
+      Read a Weimer electric field file.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="spacepy.pybats.rampy.ramsat-class.html" class="summary-name">ramsat</a><br />
+      An object to handle NetCDF-formatted satellite output files.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="spacepy.pybats.rampy.plasmaboundary-class.html" class="summary-name">plasmaboundary</a><br />
+      Opens an ascii-format boundary file written from 
+        IM_wrapper.f90:IM_put_from_gm
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#gen_egrid" class="summary-sig-name">gen_egrid</a>(<span class="summary-sig-arg">nE</span>=<span class="summary-sig-default">36</span>,
+        <span class="summary-sig-arg">lb</span>=<span class="summary-sig-default">0.1</span>,
+        <span class="summary-sig-arg">ew</span>=<span class="summary-sig-default">0.03</span>,
+        <span class="summary-sig-arg">power</span>=<span class="summary-sig-default">1.27</span>)</span><br />
+      Given number of points and a lower boundary (lb), build the RAM-SCB 
+      energy grid.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#gen_egrid">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#viz_egrid" class="summary-sig-name">viz_egrid</a>(<span class="summary-sig-arg">nE</span>=<span class="summary-sig-default">36</span>,
+        <span class="summary-sig-arg">lb</span>=<span class="summary-sig-default">0.1</span>,
+        <span class="summary-sig-arg">ew</span>=<span class="summary-sig-default">0.03</span>,
+        <span class="summary-sig-arg">power</span>=<span class="summary-sig-default">1.27</span>)</span><br />
+      Vizualize the energy grid.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#viz_egrid">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#gen_pgrid" class="summary-sig-name">gen_pgrid</a>(<span class="summary-sig-arg">nPa</span>=<span class="summary-sig-default">72</span>)</span><br />
+      Given number of points, build the RAM-SCB pitch angle grid.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#gen_pgrid">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#read_t89file" class="summary-sig-name">read_t89file</a>(<span class="summary-sig-arg">filename</span>)</span><br />
+      For some plots, we want T89 comparisons.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#read_t89file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#grid_zeros" class="summary-sig-name">grid_zeros</a>(<span class="summary-sig-arg">axis</span>)</span><br />
+      Attempt to plot x=0 and y=0 gridlines w/o messing up plot range.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#grid_zeros">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_orb_ticks"></a><span class="summary-sig-name">set_orb_ticks</span>(<span class="summary-sig-arg">axis</span>)</span><br />
+      Set major ticks to multiples of 1, minor ticks to 1/4.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#set_orb_ticks">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#add_orbits" class="summary-sig-name">add_orbits</a>(<span class="summary-sig-arg">sat</span>,
+        <span class="summary-sig-arg">title</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">timelim</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Add three orbit plots to the top of a plot.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#add_orbits">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#smart_timeticks" class="summary-sig-name">smart_timeticks</a>(<span class="summary-sig-arg">time</span>)</span><br />
+      Given a list or array of time values, create intelligent timeticks 
+      based on the max and min of the input.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#smart_timeticks">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#apply_smart_timeticks" class="summary-sig-name">apply_smart_timeticks</a>(<span class="summary-sig-arg">ax</span>,
+        <span class="summary-sig-arg">time</span>,
+        <span class="summary-sig-arg">dolimit</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Given an axis 'ax' and a list/array of datetime objects, 'time', use 
+      the smart_timeticks function to built smart time ticks and then 
+      immediately apply them to the give axis.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#apply_smart_timeticks">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="spacepy.pybats.rampy-module.html#read_ram_dst" class="summary-sig-name">read_ram_dst</a>(<span class="summary-sig-arg">infile</span>)</span><br />
+      A function to quickly read a RAM-SCB dst file as prepared during the 
+      post-processing step of a simulation.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#read_ram_dst">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'spacepy.pybats'"><code class="variable-quote">'</code><code class="variable-string">spacepy.pybats</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="gen_egrid"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">gen_egrid</span>(<span class="sig-arg">nE</span>=<span class="sig-default">36</span>,
+        <span class="sig-arg">lb</span>=<span class="sig-default">0.1</span>,
+        <span class="sig-arg">ew</span>=<span class="sig-default">0.03</span>,
+        <span class="sig-arg">power</span>=<span class="sig-default">1.27</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#gen_egrid">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given number of points and a lower boundary (lb), build the RAM-SCB 
+  energy grid.  Three arrays are returned: ebound(nE+1), the boundary of 
+  each bin, ecenter(nE), the center of each bin, and ewidth(nE), the width 
+  of each bin.  All output units are in KeV.</p>
+  <p>Grid parameters can be set with kwargs but default to common RAM 
+  values. lb = lower boundary ew = first energy bin width power = power 
+  series exponent to determine grid spacing.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="viz_egrid"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">viz_egrid</span>(<span class="sig-arg">nE</span>=<span class="sig-default">36</span>,
+        <span class="sig-arg">lb</span>=<span class="sig-default">0.1</span>,
+        <span class="sig-arg">ew</span>=<span class="sig-default">0.03</span>,
+        <span class="sig-arg">power</span>=<span class="sig-default">1.27</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#viz_egrid">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Vizualize the energy grid.  All kwargs correspond to those used by 
+  gen_egrid.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="gen_pgrid"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">gen_pgrid</span>(<span class="sig-arg">nPa</span>=<span class="sig-default">72</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#gen_pgrid">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given number of points, build the RAM-SCB pitch angle grid. The return
+  value is a nPax3 matrix containing the bin starts, centers, and ends in 
+  cosine of pitch angle.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="read_t89file"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">read_t89file</span>(<span class="sig-arg">filename</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#read_t89file">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>For some plots, we want T89 comparisons.  For now, we don't have that 
+  capability in Python (at least in a straight-forward manner.)  Hence, 
+  we've written some T89 files that need to be read on demand.</p>
+  <p>Usage: time, b_dip, b_ext = read_t89file('somefile.t89')</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="grid_zeros"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">grid_zeros</span>(<span class="sig-arg">axis</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#grid_zeros">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Attempt to plot x=0 and y=0 gridlines w/o messing up plot range.  This
+  should be called last when creating a plot; after you have the range 
+  sorted out.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="add_orbits"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">add_orbits</span>(<span class="sig-arg">sat</span>,
+        <span class="sig-arg">title</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">timelim</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#add_orbits">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Add three orbit plots to the top of a plot. This is an internal 
+  function and should only be called by rampy.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="smart_timeticks"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">smart_timeticks</span>(<span class="sig-arg">time</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#smart_timeticks">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given a list or array of time values, create intelligent timeticks 
+  based on the max and min of the input. Return three items: major tick 
+  locator, minor tick locator, and a format string.</p>
+  <p>Example: &gt;&gt;&gt;Mtick, mtick, fmt = smart_timeticks([time1, 
+  time2])</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="apply_smart_timeticks"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">apply_smart_timeticks</span>(<span class="sig-arg">ax</span>,
+        <span class="sig-arg">time</span>,
+        <span class="sig-arg">dolimit</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#apply_smart_timeticks">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given an axis 'ax' and a list/array of datetime objects, 'time', use 
+  the smart_timeticks function to built smart time ticks and then 
+  immediately apply them to the give axis.</p>
+  <p>The range of the 'time' input value will be used to set the limits of 
+  the x-axis as well.  Set kwarg 'dolimit' to False to override this 
+  behavior.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="read_ram_dst"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">read_ram_dst</span>(<span class="sig-arg">infile</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="spacepy.pybats.rampy-pysrc.html#read_ram_dst">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>A function to quickly read a RAM-SCB dst file as prepared during the 
+  post-processing step of a simulation. It currently returns a list of 
+  datetime objects and a numpy array of dst values (species-specific dst 
+  values are discarded.) Example: (time, dst) = 
+  read_ram_dst('dst_d20050831_t090000.txt')</p>
+  <p>This function is a candidate for removal as more efficient ways of 
+  saving Dst from RAM_SCB are devised.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="spacepy-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://spacepy.lanl.gov">SpacePy: Space Science Tools for Python</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Jan  5 17:53:40 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
