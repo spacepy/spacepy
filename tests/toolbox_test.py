@@ -226,6 +226,13 @@ class SimpleFunctionTests(unittest.TestCase):
         for (input, output) in itertools.izip(inputs, outputs):
             self.assertEqual(output, tb.bin_center_to_edges(input))
 
+    def test_hypot(self):
+        """hypot should have known output"""
+        invals = [ [3, 4], range(3, 6), range(3,10), [-1,2,3] ]
+        ans = [ 5, 5.830951894845301, 8.366600265340756, 2.449489742783178 ]
+        for i, tst in enumerate(invals):
+            self.assertAlmostEqual(ans[i], tb.hypot(*tst))
+
 
 class tFunctionTests(unittest.TestCase):
     def setUp(self):

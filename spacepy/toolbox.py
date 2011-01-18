@@ -4,15 +4,18 @@
 Toolbox of various functions and generic utilities.
 
 """
-
 from __future__ import division
+
+import math
+
 try:
     from spacepy import help
 except ImportError:
     pass
 except:
     pass
-__version__ = "$Revision: 1.73 $, $Date: 2011/01/04 19:50:35 $"
+
+__version__ = "$Revision: 1.74 $, $Date: 2011/01/18 21:20:53 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -27,22 +30,22 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     @param kwargs: additional keywords passed to L{tOverlapHalf}
     @return: indices of ts1 within interval of ts2, & vice versa
     @rtype: list
-    
+
     @author: Steve Morley, Jonathan Niehof
     @organization: Los Alamos National Lab
     @contact: smorley@lanl.gov, jniehof@lanl.gov
-    
+
     @version: 08-Dec-2010: Rewrite for speed
-        
+
     Given two series of datetime objects, event_dates and omni['Time']:
-    
+
     >>> import spacepy.toolbox as tb
     >>> [einds,oinds] = tb.tOverlap(event_dates, omni['Time'])
     >>> omni_time = omni['Time'][oinds[0]:oinds[-1]+1]
     >>> print omni_time
     [datetime.datetime(2007, 5, 5, 17, 57, 30), datetime.datetime(2007, 5, 5, 18, 2, 30),
     ... , datetime.datetime(2007, 5, 10, 4, 57, 30)]
-    
+
     """
     idx_1in2 = tOverlapHalf(ts2, ts1, *args, **kwargs)
     idx_2in1 = tOverlapHalf(ts1, ts2, *args, **kwargs)
@@ -50,15 +53,14 @@ def tOverlap(ts1, ts2, *args, **kwargs):
         idx_2in1 = None
     if len(idx_1in2) == 0:
         idx_1in2 = None
-    
-    return idx_1in2, idx_2in1
 
+    return idx_1in2, idx_2in1
 
 def tOverlapHalf(ts1, ts2, presort=False):
     """Find overlapping elements in two lists of datetime objects
 
     This is one-half of L{tOverlap}, i.e. it finds only occurances where
-    L{ts2} exists within the bounds of L{ts1}, or the I{second} element 
+    L{ts2} exists within the bounds of L{ts1}, or the I{second} element
     returnd by tOverlap.
 
     @param ts1: first set of datetime object
@@ -84,7 +86,6 @@ def tOverlapHalf(ts1, ts2, presort=False):
         return [i for i in range(len(ts2))
                 if ts2[i] >= t_lower and ts2[i] <= t_upper]
 
-
 def tCommon(ts1, ts2, mask_only=True):
     """Finds the elements in a list of datetime objects present in another
 
@@ -98,13 +99,13 @@ def tCommon(ts1, ts2, mask_only=True):
     @author: Steve Morley
     @organization: Los Alamos National Lab
     @contact: smorley@lanl.gov/morley_steve@hotmail.com
-    
+
     """
     import numpy as np
     from matplotlib.dates import date2num, num2date
-    
+
     tn1, tn2 = date2num(ts1), date2num(ts2)
-    
+
     v_test = np.__version__.split('.')
     if v_test[0] == 1 and v_test[1] <= 3:
         el1in2 = np.setmember1d(tn1, tn2) #makes mask of present/absent
@@ -112,7 +113,7 @@ def tCommon(ts1, ts2, mask_only=True):
     else:
         el1in2 = np.in1d(tn1, tn2, assume_unique=True) #makes mask of present/absent
         el2in1 = np.in1d(tn2, tn1, assume_unique=True)
-    
+
     if mask_only:
         return el1in2, el2in1
     else:
@@ -125,7 +126,7 @@ def tCommon(ts1, ts2, mask_only=True):
         if type(ts1)==np.ndarray:
             dum1 = np.array(dum1)
             dum2 = np.array(dum2)
-            
+
         return dum1, dum2
 
 def loadpickle(fln):
@@ -136,13 +137,13 @@ def loadpickle(fln):
     @type fln: string
     @return: dictionary with content from file
     @rtype: dictionary
-    
+
     @see: savepickle
 
     @author: Josef Koller
     @organization: Los Alamos National Lab
     @contact: jkoller@lanl.gov
-    
+
     @version: V1: 20-Jan-2010
 
     >>> d = loadpickle('test.pbin')
@@ -162,24 +163,24 @@ def loadpickle(fln):
 # -----------------------------------------------
 def savepickle(fln, dict):
     """
-    save dictionary variable dict to a pickle with filename fln 
+    save dictionary variable dict to a pickle with filename fln
 
     @param fln: filename
     @type fln: string
     @param dict:  container with stuff
     @type dict: dictionary
-    
+
     @see: loadpickle
 
     @author: Josef Koller
     @organization: Los Alamos National Lab
     @contact: jkoller@lanl.gov
-    
+
     @version: V1: 20-Jan-2010
-    
+
     >>> d = {'grade':[1,2,3], 'name':['Mary', 'John', 'Chris']}
     >>> savepickle('test.pbin', d)
-    
+
     """
     try:
         import cPickle as pickle
@@ -195,7 +196,7 @@ def savepickle(fln, dict):
 # -----------------------------------------------
 def assemble(fln_pattern, outfln, sortkey='ticks'):
     """
-    assembles all pickled files matching fln_pattern into single file and 
+    assembles all pickled files matching fln_pattern into single file and
     save as outfln. Pattern may contain simple shell-style wildcards *? a la fnmatch
     file will be assembled along time axis given by Ticktock (key: 'ticks') in dictionary
     If sortkey = None, then nothing will be sorted
@@ -206,11 +207,11 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
     @type outfln: string
     @return: dcomb - dictionary with combined values
     @rtype: dict
-    
+
     @author: Josef Koller
     @organization: Los Alamos National Lab
     @contact: jkoller@lanl.gov
-    
+
     @version: V1: 20-Jan-2010
 
     >>> assemble('input_files_*.pkl', 'combined_input.pkl')
@@ -232,13 +233,13 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
     for fln in filelist:
         print("adding ", fln)
         d[fln] = loadpickle(fln)
-    
+
     # combine them
     dcomb = d[filelist[0]]  # copy the first file over
     for fln in filelist[1:]:
        # check if sortkey is actually available
         assert (sortkey in d[fln] or sortkey==None), 'provided sortkey ='+sortkey+' is not available'
-        
+
         if sortkey:
             TAIcount = len(d[fln][sortkey])
         else:
@@ -255,7 +256,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
                 else:
                     dcomb[key] = n.append(dcomb[key], d[fln][key], axis=ax)
 
-    if sortkey:    #  then sort     
+    if sortkey:    #  then sort
         if isinstance(dcomb[sortkey], t.Ticktock):
             idx = n.argsort(dcomb[sortkey].RDT)
         else:
@@ -275,15 +276,15 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
 
     return dcomb
 
-# -----------------------------------------------    
-def human_sort( l ): 
-    """ Sort the given list in the way that humans expect. 
+# -----------------------------------------------
+def human_sort( l ):
+    """ Sort the given list in the way that humans expect.
     http://www.codinghorror.com/blog/2007/12/sorting-for-humans-natural-sort-order.html
-    """ 
-    import re 
-    convert = lambda text: int(text) if text.isdigit() else text 
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
-    l.sort( key=alphanum_key ) 
+    """
+    import re
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+    l.sort( key=alphanum_key )
 
     return l
 
@@ -292,7 +293,7 @@ def feq(x, y, precision=0.0000005):
     """
     compare two floating point values if they are equal
     after: http://www.lahey.com/float.htm
-    
+
     further info at::
         - http://docs.python.org/tut/node16.html
         - http://www.velocityreviews.com/forums/t351983-precision-for-equality-of-two-floats.html
@@ -311,12 +312,12 @@ def feq(x, y, precision=0.0000005):
     @author: Josef Koller
     @organization: Los Alamos National Lab
     @contact: jkoller@lanl.gov
-    
+
     @version: V1: 20-Jan-2010
     @version: V2: 18-May-2010: User-specified precision added
-       
+
     >>> index = where( feq(Lpos,Lgrid) ) # use float point comparison
- 
+
     """
 
     boolean = abs(x-y) <= (abs(x+y)*precision)
@@ -336,11 +337,11 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
     @type spaces: string
     @keyword levels: number of levels to recurse through (True means all)
     @type levels: integer
-    
+
     @author: Josef Koller
     @organization: Los Alamos National Lab
     @contact: jkoller@lanl.gov
-    
+
     @version: V1: 20-Jan-2010
     @version: V1.1: 24-Feb-2010 S. Morley, added verbose option
     @version: v1.2: 17-May-2010 S. Morley, added levels option
@@ -363,7 +364,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
     if not spaces:
         spaces = ''
         print('+')
-    
+
     if levels:
         try:
             assert levels is True
@@ -399,10 +400,10 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
 def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     """save current figure to file and call lpr (print).
 
-    This routine will create a total of 3 files (png, ps and c.png) in the 
-    current working directory with a sequence number attached. Also, a time 
-    stamp and the location of the file will be imprinted on the figure. The 
-    file ending with c.png is clean and no directory or time stamp are 
+    This routine will create a total of 3 files (png, ps and c.png) in the
+    current working directory with a sequence number attached. Also, a time
+    stamp and the location of the file will be imprinted on the figure. The
+    file ending with c.png is clean and no directory or time stamp are
     attached (good for powerpoint presentations).
 
     @param fignum: matplotlib figure number
@@ -418,7 +419,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     @author: Josef Koller
     @organization: Los Alamos National Lab
     @contact: jkoller@lanl.gov
-    
+
     @version: V1: 20-Jan-2010
     @version: V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
     @version: V3: 21-Jul-2010: added filename keyword (BAL)
@@ -429,7 +430,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
     import os, glob, datetime
     import pylab as p
-    
+
     try:
         nfigs = len(fignum)
     except:
@@ -448,7 +449,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
         else:
             fln = filename
         # truncate fln if too long
-        if len(fln) > 60: 
+        if len(fln) > 60:
             flnstamp = '[...]'+fln[-60:]
         else:
             flnstamp = fln
@@ -465,7 +466,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
         # now save the figure to this filename
         if pngonly == False:
             p.savefig(fln+'.ps')
-        
+
         p.savefig(fln+'.png')
 
         # send it to the printer
@@ -474,7 +475,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
                 os.popen('lpr '+fln+'.ps')
             else:
                 os.popen('lpr '+fln+'.png')
-            
+
     return
 
 # -----------------------------------------------
@@ -485,7 +486,7 @@ def update(all=True, omni=False, leapsecs=False):
     @keyword all: if True, update all of them
     @type all: boolean
     @keyword omni: if True. update only onmi
-    @type omni: boolean 
+    @type omni: boolean
     @keyword leapsecs:  if True, update only leapseconds
     @type leapsecs: boolean
     @return: data directory where things are saved
@@ -495,14 +496,14 @@ def update(all=True, omni=False, leapsecs=False):
     @author: Josef Koller
     @organization: Los Alamos National Lab
     @contact: jkoller@lanl.gov
-    
+
     @version: V1: 20-Jan-2010
     @version: V1.1: 24-May-2010 Minor modification to return data directory (BAL)
     @version: V1.2: 11-Jun-2010 moved pickle_omni in here and added Qbits (JK)
 
     >>> update(omni=True)
     """
-    
+
     try:
         from spacepy.time import Ticktock, doy2date
     except:
@@ -510,8 +511,8 @@ def update(all=True, omni=False, leapsecs=False):
         #import sys
         #sys.path.append('./spacepy')
         #from spacepy import time as st
-        
-    
+
+
     import os, sys
     import zipfile
     import datetime
@@ -523,9 +524,9 @@ def update(all=True, omni=False, leapsecs=False):
     else:
         import urllib.request as u
     #import time
-    
+
     datadir = DOT_FLN+'/data'
-    
+
     #leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
     leapsec_fname = DOT_FLN+'/data/tai-utc.dat'
 
@@ -552,7 +553,7 @@ def update(all=True, omni=False, leapsecs=False):
         #fh.flush()
         #fh.close
         print("Now pickling (this will take a few minutes) ...")
-        
+
         # create a keylist
         keys = A[0].split()
         keys.remove('8')
@@ -566,11 +567,11 @@ def update(all=True, omni=False, leapsecs=False):
         keys[keys.index('Den_P')] = 'dens'
         keys[keys.index('Day')] = 'DOY'
         keys[keys.index('Year')] = 'Year'
-        
+
         # remove keyword lines and empty lines as well
         idx = n.where(A != '')[0]
         A = A[idx[1:]]
-        
+
         # put it into a 2D table
         #tab = n.zeros((len(A),len(keys)))
         tab = [['']*len(keys)]*len(A)
@@ -580,26 +581,26 @@ def update(all=True, omni=False, leapsecs=False):
             tab[i] = A[i].split()
             stat8[i] = A[i].split()[11]
             stat6[i] = A[i].split()[27]
-        
-        tab = n.array(tab, dtype='float') 
+
+        tab = n.array(tab, dtype='float')
         # take out where Dst not available ( = 99999) or year == 0
         idx = n.where((tab[:,12] !=99.0) & (tab[:,0] != 0))[0]
         tab = tab[idx,:]
         stat8 = n.array(stat8)[idx]
         stat6 = n.array(stat6)[idx]
-        
-        omnidata = {} 
+
+        omnidata = {}
         # sort through and make an omni dictionary
         # extract keys from line above
         for ikey, i  in zip(keys,range(len(keys))):
             omnidata[ikey] = tab[:,i]
-        
+
         # add TAI to omnidata
         nTAI = len(omnidata['DOY'])
         omnidata['UTC'] = ['']*nTAI
         omnidata['RDT'] = n.zeros(nTAI)
-        
-        
+
+
         #t1 = time.time()
         # add interpolation quality flags
         omnidata['Qbits'] = {}
@@ -609,11 +610,11 @@ def update(all=True, omni=False, leapsecs=False):
         for ik, key in enumerate(['W1', 'W2', 'W3', 'W4', 'W5', 'W6']):
             arr = n.array(list(n.array(stat6).tostring()), dtype=int).reshape((6,nTAI))
             omnidata['Qbits'][key] = arr[ik,:]
-            
+
         #remove string status keys
         foo = omnidata.pop('6_status')
         foo = omnidata.pop('8_status')
-        
+
         # add time information to omni pickle (long loop)
         for i in range(nTAI):
             year = int(omnidata['Year'][i])
@@ -621,43 +622,43 @@ def update(all=True, omni=False, leapsecs=False):
             month, day = doy2date(year,doy)
             UT_hr = omnidata['Hr'][i]
             hour, minute = divmod(UT_hr*60., 60)
-            minute, second = divmod(minute*60., 60)  
+            minute, second = divmod(minute*60., 60)
             omnidata['UTC'][i] = datetime.datetime(year, month, day, int(hour), int(minute), int(second))
-        
+
         omnidata['ticks'] = Ticktock(omnidata['UTC'], 'UTC')
         omnidata['RDT'] = omnidata['ticks'].RDT
-        
+
         #t2 = time.time()
         #print t2-t1
         # save as pickle
         savepickle(omni_fname_pkl, omnidata)
-            
+
         # delete left-overs
         os.remove(omni_fname_zip)
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
         u.urlretrieve(LEAPSEC_URL, leapsec_fname)
-        
+
     return datadir
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     """Windowing mean function, window overlap is user defined
 
     @param data: 1D series of points;
-    @type data: 
+    @type data:
     @keyword time:  series of timestamps, optional (format as numeric or datetime)
        For non-overlapping windows set overlap to zero.
-    @type time: 
+    @type time:
     @keyword winsize: window size
-    @type winsize: 
+    @type winsize:
     @keyword overlap: amount of window overlap
-    @type overlap: 
-    @keyword st_time: for time-based averaging, a start-time other than the first 
+    @type overlap:
+    @keyword st_time: for time-based averaging, a start-time other than the first
         point can be specified
     @type st_time:
     @return: the windowed mean of the data, and an associated reference time vector
-    
+
     @todo: Finish documentation
 
     @author: Steve Morley
@@ -669,27 +670,27 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
 
     For non-overlapping windows set overlap to zero.
     e.g. (time-based averaging),
-    
+
     >>> wsize, olap = datetime.timedelta(1), datetime.timedelta(0,3600)
     >>> outdata, outtime = windowmean(data, time, winsize=wsize, overlap=olap)
-    
+
     in this example the window size is 1 day and the overlap is 1 hour.
-    
+
     e.g. (pointwise averaging),
-    
+
     >>> outdata, outtime = windowmean(data, winsize=10, overlap=9)
-    
+
     where winsize and overlap are numeric,
     in this example the window size is 10 points and the overlap is 9 points.
     The output vectors start at winsize/2 and end at N-(winsize/2), the output time vector
     is basically a reference to the nth point in the original series.
-    
+
     @note: This is a quick and dirty function - it is NOT optimized, at all.
 
     """
     import numpy as np
     import datetime as dt
-    
+
     #check inputs and initialize
     #Set resolution to 1 if no times supplied
     if len(time) == 0:
@@ -720,7 +721,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
                 return 'windowmean error: winsize/overlap must be timedeltas'
             pts = False
             startpt = time[0]
-    
+
     #now actually do windowing mean
     outdata, outtime = [], []
     data = np.array(data)
@@ -769,37 +770,37 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
             lastpt = startpt + winsize
             outdata.append(getmean) #construct output arrays
             outtime.append(gettime)
-        
+
     return outdata, outtime
-    
-    
+
+
 def medAbsDev(series):
     """Calculate median absolute deviation of a given input series
-    
+
     Median absolute deviation (MAD) is a robust and resistant measure of
     the spread of a sample (same purpose as standard deviation). The
     MAD is preferred to the inter-quartile range as the inter-quartile
     range only shows 50% of the data whereas the MAD uses all data but
     remains robust and resistant. See e.g. Wilks, Statistical methods
     for the Atmospheric Sciences, 1995, Ch. 3.
-    
+
     @param series: the input data series
     @type series: TODO
     @return: the median absolute deviation
     @rtype: float
 
     @todo: finish documentation
-        
+
     @author: Steve Morley
     @organization: Los Alamos National Lab
     @contact: smorley@lanl.gov/morley_steve@hotmail.com
-    
+
     @version: V1 pre 8-Jul-2010
 
     Find the median absolute deviation of a data set. Here we use the log-
     normal distribution fitted to the population of sawtooth intervals, see
     Morley and Henderson, Comment, Geophysical Research Letters, 2009.
-    
+
     >>> data = numpy.random.lognormal(mean=5.1458, sigma=0.302313, size=30)
     >>> print data
     array([ 181.28078923,  131.18152745, ... , 141.15455416, 160.88972791])
@@ -816,10 +817,10 @@ def medAbsDev(series):
     #get median absolute deviation of unmasked elements
     perc50 = np.median(series.compressed())
     mad = np.median(abs(series.compressed()-perc50))
-    
+
     return mad
-    
-    
+
+
 def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     """Make filled polygon for plotting
 
@@ -838,18 +839,18 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     >>> poly0c = makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
     >>> ax0.add_patch(poly0qc)
     """
-    
+
     import numpy as np
     import matplotlib as mpl
     x2, y1 = x[-1::-1], y1[-1::-1]
     polyx = np.concatenate((x,x2))
-    polyy = np.concatenate((y2,y1)) 
+    polyy = np.concatenate((y2,y1))
     xy = np.empty((len(polyy),2))
-    xy[:,0], xy[:,1] = polyx, polyy 
+    xy[:,0], xy[:,1] = polyx, polyy
     madePoly = mpl.patches.Polygon(xy, facecolor = face, alpha = alpha)
-    
+
     return madePoly
-    
+
 def binHisto(data, verbose=False):
     """
     Calculates bin width and number of bins for histogram using Freedman-Diaconis rule
@@ -861,7 +862,7 @@ def binHisto(data, verbose=False):
     @type verbose: boolean
     @return: calculated width of bins using F-D rule, number of bins (nearest integer) to use for histogram
     @rtype: tuple
-    
+
     @author: Steve Morley
     @organization: Los Alamos National Lab
     @contact: smorley@lanl.gov/morley_steve@hotmail.com
@@ -892,10 +893,10 @@ def binHisto(data, verbose=False):
         if verbose:
             print("Used F-D rule")
     return (binw, nbins)
-    
+
 def smartTimeTicks(time):
     """Returns major ticks, minor ticks and format for time-based plots
-    
+
     smartTimeTicks takes a list of datetime objects and uses the range
     to calculate the best tick spacing and format.  Returned to the user
     is a tuple containing the major tick locator, minor tick locator, and
@@ -914,9 +915,9 @@ def smartTimeTicks(time):
     @organization: Los Alamos National Lab
     @contact: dwelling@lanl.gov/dantwelling@gmail.com
     """
-    from matplotlib.dates import (MinuteLocator, HourLocator, 
+    from matplotlib.dates import (MinuteLocator, HourLocator,
                                   DayLocator, DateFormatter)
-    
+
     deltaT = time[-1] - time[0]
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
     if nHours < 1:
@@ -944,18 +945,18 @@ def smartTimeTicks(time):
         mtick = HourLocator(byhour = [0,6,12,18])
         fmt = DateFormatter('%d %b')
 
-    return (Mtick, mtick, fmt) 
+    return (Mtick, mtick, fmt)
 
 def applySmartTimeTicks(ax, time, dolimit = True):
     '''
-    Given an axis 'ax' and a list/array of datetime objects, 'time', 
+    Given an axis 'ax' and a list/array of datetime objects, 'time',
     use the smartTimeTicks function to build smart time ticks and
     then immediately apply them to the given axis.  The first and
     last elements of the time list will be used as bounds for the
     x-axis range.
 
     The range of the 'time' input value will be used to set the limits
-    of the x-axis as well.  Set kwarg 'dolimit' to False to override 
+    of the x-axis as well.  Set kwarg 'dolimit' to False to override
     this behavior.
 
     @param ax: A matplotlib Axis object.
@@ -982,10 +983,10 @@ def applySmartTimeTicks(ax, time, dolimit = True):
 
 
 def logspace(min, max, num, **kwargs):
-    """Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max 
+    """Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max
     not log10(min) and log10(max)
 
-    @param min: minimum value 
+    @param min: minimum value
     @param max: maximum value
     @param num: number of log spaced bins
     @return: log spaced bins from min to max in a numpy array
@@ -994,7 +995,7 @@ def logspace(min, max, num, **kwargs):
     @author: Brian Larsen
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov
-    
+
     @version: V1: 14-Jun-2010 (BAL)
 
     >>> logspace(1, 100, 5)
@@ -1007,7 +1008,7 @@ def logspace(min, max, num, **kwargs):
 
 def arraybin(array, bins):
     """Split a sequence into subsequences based on value.
-    
+
     Given a sequence of values and a sequence of values representing the
     division between bins, return the indices grouped by bin.
 
@@ -1024,10 +1025,10 @@ def arraybin(array, bins):
     @author: Brian Larsen, Jonathan Niehof
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov, jniehof@lanl.gov
-    
+
     @version: V1: 14-Jun-2010 (BAL)
     @version: V2: 07-Dec-2010 (JTN)
-   
+
     >>> arraybin(range(10), [4.2])
     Out[4]: [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
     """
@@ -1054,9 +1055,9 @@ def mlt2rad(mlt, midnight = False):
     @author: Brian Larsen
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov
-    
+
     @version: V1: 14-Jun-2010 (BAL)
-    
+
     >>> mlt2rad(array([3,6,9,14,22]))
     Out[9]: array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
     """
@@ -1077,7 +1078,7 @@ def mlt2rad(mlt, midnight = False):
 
 def rad2mlt(rad, midnight=False):
     """
-    Convert radian values to mlt 
+    Convert radian values to mlt
     transform radians from -pi to pi to mlt
     referenced from noon by default
 
@@ -1091,7 +1092,7 @@ def rad2mlt(rad, midnight=False):
     @author: Brian Larsen
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov
-    
+
     @version: V1: 14-Jun-2010 (BAL)
 
     >>> rad2mlt(array([0,pi, pi/2.]))
@@ -1108,7 +1109,7 @@ def rad2mlt(rad, midnight=False):
 
 def leap_year(year, numdays=False, nobool=False):
     """
-    return an array of boolean leap year, 
+    return an array of boolean leap year,
     a lot faster than the mod method that is normally seen
 
     @param year: <iterable> of years
@@ -1121,12 +1122,12 @@ def leap_year(year, numdays=False, nobool=False):
     @author: Brian Larsen
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov
-    
+
     @version: V1: 14-Jun-2010 (BAL)
     @version: V2: 22-Nov-2010 (BAL) accepts lists not just arrays
     @version: V3: 07-Dec-2010 (BAL) cleanup
     >>> leap_year(numpy.arange(15)+1998)
-    Out[10]: 
+    Out[10]:
     array([False, False,  True, False, False, False,  True, False, False,
     ... False,  True, False, False, False,  True], dtype=bool)
     """
@@ -1153,10 +1154,10 @@ def leap_year(year, numdays=False, nobool=False):
         else:
             return ans
 
-        
+
 leapyear = leap_year
 
-    
+
 def pmm(a, *b):
     """
     print min and max of input arrays
@@ -1171,10 +1172,10 @@ def pmm(a, *b):
     @author: Brian Larsen
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov
-    
+
     @version: V1: 14-Jun-2010 (BAL)
-    @version: V2: 04-Sep-2010 (BAL) - changed to min() form a.min() works on lists
-    
+    @version: V2: 04-Sep-2010 (BAL) - changed to min() from a.min() works on lists
+
     >>> pmm(arange(10), arange(10)+3)
     Out[12]: [(0, 9), (3, 12)]
     """
@@ -1186,7 +1187,7 @@ def pmm(a, *b):
 
 def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     """
-    print a timestamp on the current plot, vertical lower right 
+    print a timestamp on the current plot, vertical lower right
 
     @keyword position: position for the timestamp
     @type position: list
@@ -1200,7 +1201,7 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     @author: Brian Larsen
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov
-    
+
     @version: V1: 14-Jun-2010 (BAL)
 
     >>> plot(arange(11))
@@ -1215,10 +1216,10 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
     if draw:
         draw()
-        
+
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
-    
+
     "question" is a string that is presented to the user.
     "default" is the presumed answer if the user just hits <Enter>.
     It must be "yes" (the default), "no" or None (meaning
@@ -1236,7 +1237,7 @@ def query_yes_no(question, default="yes"):
     @author: Brian Larsen
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov
-    
+
     @version: V1: 14-Jun-2010 (BAL)
 
     >>> query_yes_no('Ready to go?')
@@ -1271,25 +1272,25 @@ def query_yes_no(question, default="yes"):
 
 def interpol(newx, x, y, wrap=None, **kwargs):
     """1-D linear interpolation with interpolation of hours/longitude
-    
+
     @return: interpolated data values for new abscissa values
     @rtype: numpy.masked_array
-    
+
     @keyword hour: wraps interpolation at 24 (e.g. for local times)
     @type hour: string
     @keyword long: wraps interpolation at 360 (e.g. longitude)
     @type long: string
-    @keyword sect: wraps interpolation based on user specified max    
+    @keyword sect: wraps interpolation based on user specified max
     i.e. days=True is equivalent to sect=24
     @type sect: integer
-    
+
     @author: Steve Morley
     @organization: Los Alamos National Lab
     @contact: smorley@lanl.gov
     """
     import scipy as sci
     import numpy as np
-    
+
     if 'baddata' in kwargs:
         x = np.ma.masked_where(y==kwargs['baddata'], x)
         y = np.ma.masked_where(y==kwargs['baddata'], y)
@@ -1300,7 +1301,7 @@ def interpol(newx, x, y, wrap=None, **kwargs):
             x = np.ma.masked_array(x)
             y = np.ma.masked_array(y)
             newx = np.ma.masked_array(newx)
-    
+
     def wrap_interp(xout, xin, yin, sect):
         dpsect=360/sect
         yc = np.cos(np.deg2rad(y*dpsect))
@@ -1328,7 +1329,7 @@ def interpol(newx, x, y, wrap=None, **kwargs):
         new_bad = np.ma.make_mask(new_bad)
         newy = np.ma.masked_array(newy, mask=new_bad)
         return newy
-    
+
     if wrap=='hour':
         newy = wrap_interp(newx, x.compressed(), y.compressed(), 24)
     elif wrap=='lon':
@@ -1381,7 +1382,7 @@ def listUniq(inVal):
     @author: Brian Larsen
     @organization: Los Alamos National Lab
     @contact: balarsen@lanl.gov
-    
+
     @version: V1: 16-Nov-2010 (BAL)
     """
     seen = set()
@@ -1413,7 +1414,7 @@ def intsolve(func, value, start=None, stop=None, maxit=1000):
     @author: Jonathan Niehof
     @organization: Los Alamos National Lab
     @contact: jniehof@lanl.gov
-    
+
     @version: V1: 7-Dec-2010 (JTN)
     """
     from scipy import inf
@@ -1526,3 +1527,19 @@ def bin_center_to_edges(centers):
             1.5 * centers[-1] - 0.5 * centers[-2] if i == len(centers) else
             (centers[i - 1] + centers[i]) / 2.0
             for i in range(len(centers) + 1)]
+
+def hypot(v1, v2, *vals):
+    """
+    Compute sqrt(v1**2 + v2**2 + any number of others)
+    @author: Brian Larsen
+    @organization: LANL
+    @contact: balarsen@lanl.gov
+
+    @version: V1: 18-Jan-2011 (BAL)
+    """
+    ans = v1**2 + v2**2
+    if vals != ():
+        ans2 = sum([v1**2 for vi in vals])
+        return math.sqrt(ans + ans2)
+    else:
+        return math.sqrt(ans)
