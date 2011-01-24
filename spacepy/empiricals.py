@@ -5,12 +5,13 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.16 $, $Date: 2011/01/05 22:17:26 $"
+__version__ = "$Revision: 1.17 $, $Date: 2011/01/24 18:59:38 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
 import spacepy.omni as om
 import spacepy.time as spt
+import numpy as np
 
 def getLmax(ticks, model='JKemp'):
     """
@@ -28,13 +29,11 @@ def getLmax(ticks, model='JKemp'):
     @organization: Los Alamos National Lab
     @contact: jkoller@lanl.gov
     """
-    
-    import numpy as n
         
     omni = om.get_omni(ticks)
     Dst = omni['Dst']
     
-    Lmax = n.zeros(len(Dst))
+    Lmax = np.zeros(len(Dst))
     
     if model is 'JKemp':
         for i, iDst in enumerate(Dst):
@@ -72,8 +71,7 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
     Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
     
     """
-    
-    import numpy as np
+
     import datetime as dt
     import spacepy.toolbox as tb
     
@@ -161,8 +159,7 @@ def getMPstandoff(ticks):
     =======
     Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
     """
-    
-    import numpy as np
+
     import datetime as dt
     import spacepy.toolbox as tb
     
