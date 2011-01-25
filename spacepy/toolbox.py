@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.75 $, $Date: 2011/01/25 01:03:37 $"
+__version__ = "$Revision: 1.76 $, $Date: 2011/01/25 18:41:12 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -357,9 +357,9 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
     """
 
     try:
-        assert isinstance(in_dict, dict)
+        assert hasattr(in_dict, 'keys')
     except AssertionError:
-        raise TypeError('dictree: Input must be dictionary')
+        raise TypeError('dictree: Input must be dictionary-like')
 
     if not spaces:
         spaces = ''
@@ -391,7 +391,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
                 print(spaces + '|____' + key)
         else:
             print(spaces + '|____' + key)
-        if isinstance(in_dict[key], dict) and levels:
+        if hasattr(in_dict[key], 'keys') and levels:
             dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels)
 
     return None
@@ -759,7 +759,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         if overlap >= winsize:
             raise ValueError
         while lastpt < time[-1]:
-            [getinds,dum] = tOverlap(time, [startpt,startpt+winsize])
+            getinds = tOverlapHalf([startpt,startpt+winsize], time, presort=True)
             if getinds: #if not None
                 getdata = np.ma.masked_where(np.isnan(data[getinds]), data[getinds])
                 getmean = np.mean(getdata.compressed()) #find mean excluding NaNs
