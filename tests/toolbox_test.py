@@ -229,7 +229,7 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_hypot(self):
         """hypot should have known output"""
         invals = [ [3, 4], range(3, 6), range(3,10), [-1,2,3] ]
-        ans = [ 5, 5.830951894845301, 8.366600265340756, 2.449489742783178 ]
+        ans = [ 5, 7.0710678118654755, 16.73320053068151, 3.7416573867739413 ]
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(*tst))
 

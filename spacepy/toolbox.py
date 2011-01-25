@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.74 $, $Date: 2011/01/18 21:20:53 $"
+__version__ = "$Revision: 1.75 $, $Date: 2011/01/25 01:03:37 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1539,7 +1539,7 @@ def hypot(v1, v2, *vals):
     """
     ans = v1**2 + v2**2
     if vals != ():
-        ans2 = sum([v1**2 for vi in vals])
+        ans2 = sum([(vi**2) for vi in vals])
         return math.sqrt(ans + ans2)
     else:
         return math.sqrt(ans)
