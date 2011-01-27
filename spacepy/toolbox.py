@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.76 $, $Date: 2011/01/25 18:41:12 $"
+__version__ = "$Revision: 1.77 $, $Date: 2011/01/27 21:01:06 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -458,6 +458,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
         # save a clean figure without timestamps
         if clean == True:
             p.savefig(fln+'_clean.png')
+            p.savefig(fln+'_clena.ps')
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
         # add the filename to the figure for reference
