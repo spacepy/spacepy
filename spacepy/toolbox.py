@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.79 $, $Date: 2011/02/10 17:15:16 $"
+__version__ = "$Revision: 1.80 $, $Date: 2011/02/10 18:31:05 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1548,12 +1548,16 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
       1. Can be split into completely independent subjobs
       2. Relies heavily on code that does not use the Python GIL, e.g.
          numpy or ctypes code
+      3. Does not return a value. Either pass in a list/array to hold the
+         result, or see L{thread_map}
 
-    Example, summing 100 million numbers::
+    Example, squaring 100 million numbers::
       a = numpy.random.randint(0, 100, [100000000])
-      targ = lambda a, s, c: numpy.sum(a[s:s+c])
-      total = sum(toolbox.thread_job(len(a), 0, targ, a))
-
+      b = numpy.empty([100000000], dtype='int64')
+      def targ(ina, outa, start, count):
+        outa[start:start + count] = ina[start:start + count] ** 2
+      toolbox.thread_job(len(a), 0, targ, a, b)
+        
     @param job_size: Total size of the job, number of "work units". Often
                      this is an array size
     @type job_size: int
@@ -1574,8 +1578,6 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
     @type args: sequence
     @param kwargs: keyword arguments to pass to L{target}.
     @type kwargs: dict
-    @return: return values of L{target} for each thread
-    @rtype: list
     """
     try:
         import threading
@@ -1587,9 +1589,6 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
             thread_count = multiprocessing.cpu_count()
         except: #Do something not too stupid
             thread_count = 8
-    rvals = [None] * thread_count
-    def thread_targ(rv, t, n, args, kwargs):
-        rv[n] = t(*args, **kwargs)
     count = float(job_size) / thread_count
     starts = [int(count * i + 0.5) for i in range(thread_count)]
     subsize = [(starts[i + 1] if i < thread_count - 1 else job_size) -
@@ -1598,11 +1597,50 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
     threads = []
     for i in range(thread_count):
         t = threading.Thread(
-            None, thread_targ, None,
-            (rvals, target, i, args + (starts[i], subsize[i]), kwargs)
-            )
+            None, target, None,
+            args + (starts[i], subsize[i]), kwargs)
         t.start()
         threads.append(t)
-    for i in range(thread_count):
-        threads[i].join()
-    return rvals
+    for t in threads:
+        t.join()
+
+def thread_map(target, iterable, thread_count=None, *args, **kwargs):
+    """Apply a function to every element of a list, in separate threads
+
+    Interface is similar to multiprocessing.map, except it runs in threads
+
+    Example, find totals of several arrays::
+        inputs = [numpy.random.randint(0, 100, [100000]) for i in range(100)]
+        totals = toolbox.thread_map(numpy.sum, inputs)
+
+    @param target: Python callable to run on each element of L{iterable}.
+                   For each call, an element of L{iterable} is appended to
+                   L{args} and both L{args} and L{kwargs} are passed through.
+                   Note that this means the iterable element is always the
+                   I{last} positional argument; this allows the specification
+                   of self as the first argument for method calls.
+    @type target: callable
+    @param iterable: elements to pass to each call of L{target}
+    @type iterable: iterable
+    @param args: arguments to pass to L{target} before each element of
+                 L{iterable}
+    @type args: sequence
+    @param thread_count: Number of threads to spawn; see L{thread_job}.
+    @type thread_count: int
+    @param kwargs: keyword arguments to pass to L{target}.
+    @type kwargs: dict
+    @return: return values of L{target} for each item from L{iterable}
+    @rtype: list
+    """
+    try:
+        jobsize = len(iterable)
+    except TypeError:
+        iterable = list(iterable)
+        jobsize = len(iterable)
+    def array_targ(function, it, retvals, arglist, kwarglist, start, size):
+        for i in range(start, start + size):
+            retvals[i] = function(*(arglist + (it[i],)), **kwarglist)
+    retvals = [None] * jobsize
+    thread_job(jobsize, thread_count, array_targ,
+               target, iterable, retvals, args, kwargs)
+    return retvals
