@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.80 $, $Date: 2011/02/10 18:31:05 $"
+__version__ = "$Revision: 1.81 $, $Date: 2011/02/10 21:22:26 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1561,10 +1561,13 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
     @param job_size: Total size of the job, number of "work units". Often
                      this is an array size
     @type job_size: int
-    @param thread_count: Number of threads to spawn. If <=0 or None, will
+    @param thread_count: Number of threads to spawn. If =0 or None, will
                          spawn as many threads as there are cores available on
                          the system. (Each hyperthreading core counts as 2.)
                          Generally this is the Right Thing to do.
+                         If NEGATIVE, will spawn abs(thread_count) threads,
+                         but will run them sequentially rather than in
+                         parallel; useful for debugging.
     @type thread_count: int
     @param target: Python callable (generally a function, may also be an
                    imported ctypes function) to run in each thread. The
@@ -1583,12 +1586,17 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
         import threading
     except:
         return (target(*(args +  (0, job_size)), **kwargs), )
-    if thread_count == None or thread_count <= 0:
+    if thread_count == None or thread_count == 0:
         try:
             import multiprocessing
             thread_count = multiprocessing.cpu_count()
         except: #Do something not too stupid
             thread_count = 8
+    if thread_count < 0:
+        thread_count *= -1
+        seq = True
+    else:
+        seq = False
     count = float(job_size) / thread_count
     starts = [int(count * i + 0.5) for i in range(thread_count)]
     subsize = [(starts[i + 1] if i < thread_count - 1 else job_size) -
@@ -1600,9 +1608,13 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
             None, target, None,
             args + (starts[i], subsize[i]), kwargs)
         t.start()
-        threads.append(t)
-    for t in threads:
-        t.join()
+        if seq:
+            t.join()
+        else:
+            threads.append(t)
+    if not seq:
+        for t in threads:
+            t.join()
 
 def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     """Apply a function to every element of a list, in separate threads
