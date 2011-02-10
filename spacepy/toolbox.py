@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.77 $, $Date: 2011/01/27 21:01:06 $"
+__version__ = "$Revision: 1.78 $, $Date: 2011/02/10 14:56:06 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1529,18 +1529,14 @@ def bin_center_to_edges(centers):
             (centers[i - 1] + centers[i]) / 2.0
             for i in range(len(centers) + 1)]
 
-def hypot(v1, v2, *vals):
+def hypot(*vals):
     """
-    Compute sqrt(v1**2 + v2**2 + any number of others)
-    @author: Brian Larsen
+    Compute sqrt(vals[0] ** 2 + vals[1] **2 ...), ie. n-dimensional hypoteneuse
+    @author: Brian Larsen, Jonathan Niehof
     @organization: LANL
-    @contact: balarsen@lanl.gov
+    @contact: balarsen@lanl.gov, jniehof@lanl.gov
 
     @version: V1: 18-Jan-2011 (BAL)
+    @version: V2: 10-Feb-2011 (JTN)
     """
-    ans = v1**2 + v2**2
-    if vals != ():
-        ans2 = sum([(vi**2) for vi in vals])
-        return math.sqrt(ans + ans2)
-    else:
-        return math.sqrt(ans)
+    return math.sqrt(sum((v ** 2 for v in vals)))
