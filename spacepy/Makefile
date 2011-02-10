@@ -14,11 +14,6 @@ else
 CFLAGS+=-O2
 endif
 
-ifdef THREADED
-CFLAGS+=-pthread -DTHREADED
-LDFLAGS+=-pthread
-endif
-
 CFLAGS+=-fPIC
 LDFLAGS+=-shared -Wl,-soname,libpoppy.so.0 -lc -lm
 

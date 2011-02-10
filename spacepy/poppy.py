@@ -59,10 +59,13 @@ Los Alamos National Laboratory, ISR-1,
 PO Box 1663, MS D466, Los Alamos, NM 87545
 """
 
+import bisect
+
 import numpy as np
 from matplotlib.mlab import prctile
 
 from spacepy import help
+import spacepy.toolbox as tb
 __author__ = 'Steve Morley, Los Alamos National Lab (smorley@lanl.gov)'
 
 
@@ -74,28 +77,21 @@ try:
     libpoppy = ctypes.CDLL('./libpoppy.so')
     dptr = ctypes.POINTER(ctypes.c_double)
     ulptr = ctypes.POINTER(ctypes.c_ulong)
+    lptr = ctypes.POINTER(ctypes.c_long)
     libpoppy.boots.restype = None
     libpoppy.boots.argtypes = [dptr, dptr, ctypes.c_ulong,
                                ctypes.c_ulong, ctypes.c_ulong,
-                               ctypes.c_int]
+                               ctypes.c_ulong, ctypes.c_int]
     libpoppy.assoc.restype = None
-    libpoppy.assoc.argtypes = [dptr, dptr, dptr, dptr,
-                               ctypes.POINTER(ctypes.c_long),
+    libpoppy.assoc.argtypes = [dptr, dptr, dptr, lptr,
+                               ctypes.c_double,
                                ctypes.c_long, ctypes.c_long,
                                ctypes.c_long]
     libpoppy.aa_ci.restype = None
     libpoppy.aa_ci.argtypes=[ulptr, ulptr,
                              ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong,
-                             ctypes.c_ulong, ctypes.c_int]
-    if hasattr(libpoppy, 'aa_ci_threaded'):
-        libpoppy.aa_ci_threaded.restype = None
-        libpoppy.aa_ci_threaded.argtypes=[ulptr, ulptr,
-                                          ctypes.c_ulong, ctypes.c_ulong,
-                                          ctypes.c_ulong,
-                                          ctypes.c_ulong, ctypes.c_int,
-                                          ctypes.c_int]
+                             ulptr, ctypes.c_int]
 except:
-    import bisect
     libpoppy = None
 
 
@@ -113,6 +109,8 @@ class PPro(object):
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     Jonathan Niehof, Los Alamos National Lab, jniehof@lanl.gov
     """
+    #NB: P2 is the "master" timescale, P1 gets shifted by lags
+    #Add lag to p1 to reach p2's timescale, subtract lag from p2 to reach p1's
     
     def __init__(self, process1, process2, lags=None, winhalf=None):
         self.process1 = process1
@@ -181,36 +179,117 @@ class PPro(object):
         
         ##Method 1 - use tb.tOverlap
         #create list for association number
-        self.n_assoc = np.zeros((len(self.lags), len(self.process1)),
+        self.n_assoc = np.empty((len(self.lags), len(self.process1)),
                                 order='C', dtype=dtype)
         p2 = sorted(self.process2)
-        starts = [t - self.winhalf for t in self.process1]
-        stops = [t + self.winhalf for t in self.process1]
+        p1 = sorted(self.process1)
 
         if libpoppy == None:
+            lags = self.lags
+            starts = [t - self.winhalf for t in p1]
+            stops = [t + self.winhalf for t in p1]
             nss_list = list(range(len(self.process1)))
             for ilag in xrange(len(self.lags)):
-                self.n_assoc[ilag, :] = [
-                    bisect.bisect_right(p2, stops[nss] + self.lags[ilag]) - 
-                    bisect.bisect_left(p2, starts[nss] + self.lags[ilag])
-                    for nss in nss_list]
+                last_idx = [bisect.bisect_right(p2, stops[nss] + self.lags[ilag])
+                            for nss in nss_list]
+                first_idx = [bisect.bisect_left(p2, starts[nss] + self.lags[ilag])
+                             for nss in nss_list]
+                self.n_assoc[ilag, :] = [last_idx[i] - first_idx[i] for i in nss_list]
         else:
             p2 = (ctypes.c_double * len(p2))(*p2)
-            starts = (ctypes.c_double * len(starts))(*starts)
-            stops = (ctypes.c_double * len(stops))(*stops)
+            p1 = (ctypes.c_double * len(p1))(*p1)
             lags = (ctypes.c_double * len(self.lags))(*self.lags)
-            n_assoc = self.n_assoc.ctypes.data_as(ctypes.POINTER(ctypes.c_long))
-            libpoppy.assoc(p2, starts, stops, lags, n_assoc,
-                           len(p2), len(self.process1), len(self.lags))
+            n_assoc = self.n_assoc.ctypes.data_as(lptr)
+            libpoppy.assoc(p2, p1, lags, n_assoc,
+                           self.winhalf,
+                           len(p2), len(p1), len(self.lags))
         self.assoc_total = np.sum(self.n_assoc, axis=1)
         pul = mlab.prctile_rank(self.lags, p=(20,80))
         valsL = self.assoc_total[pul==0]
         valsR = self.assoc_total[pul==2]
         self.asympt_assoc = np.mean([np.mean(valsL), np.mean(valsR)])
-        
+
+        self.expected = np.empty([len(self.lags)], dtype='float64')
+        for i in range(len(self.lags)):
+            start_time = max([p1[0] + lags[i], p2[0]]) - self.winhalf
+            stop_time = min([p1[-1] + lags[i], p2[-1]]) + self.winhalf
+            if start_time != stop_time:
+                n1 = bisect.bisect_right(p1, stop_time - lags[i]) - \
+                     bisect.bisect_left(p1, start_time - lags[i])
+                n2 = bisect.bisect_right(p2, stop_time) - \
+                     bisect.bisect_left(p2, start_time)
+                self.expected[i] = 2.0 * n1 * n2 * self.winhalf / \
+                                       (stop_time - start_time)
+            else:
+                self.expected[i] = 0.0
         return None
+
+    def assoc_mult(self, windows, inter=95, n_boots=1000, seed=None,
+                   threads=8):
+        """Association analysis w/confidence interval on multiple windows
+
+        Using the time sequence and lags stored in this object, perform
+        full association analysis, including bootstrapping of confidence
+        intervals, for every listed window half-size
+
+        @param windows: window half-size for each analysis
+        @type windows: sequence
+        @param inter: desired confidence interval
+        @type inter: float
+        @param n_boots: number of bootstrap iterations
+        @type n_boots: int
+        @param seed: Random number generator seed. It is STRONGLY
+                     recommended not to specify (i.e. leave None) to permit
+                     multithreading.
+        @type seed: int
+        @param threads: number of threads to spawn in bootstrap
+        @type threads: int
+        @warning: This function is likely to take a LOT of time.
+        @return: Three numpy arrays, (windows x lags), containing (in order)
+                 low values of confidence interval, high values of ci,
+                 percentage confidence above the asymptotic association number
+        """
+        for i in range(len(windows)):
+            window = windows[i]
+            self.assoc(h=window)
+            self.aa_ci(inter, n_boots, seed, threads)
+            if i == 0:
+                n_lags = len(self.conf_above)
+                ci_low = np.zeros([len(windows), n_lags])
+                ci_high = np.zeros([len(windows), n_lags])
+                percentiles = np.zeros([len(windows), n_lags])
+            ci_low[i, :] = self.ci[0]
+            ci_high[i, :] = self.ci[1]
+            percentiles[i, :] = self.conf_above
+        return (ci_low, ci_high, percentiles)
+
+    def plot_mult(self, windows, data, min=None, max=None):
+        """Plots a 2D function of window size and lag
+
+        @param windows: list of window sizes (y axis)
+        @param data: list of data, dimensioned (windows x lags)
+        @param min: clip L{data} to this minimum value
+        @param max: clip L{data} to this maximum value
+        """
+        import matplotlib.pyplot as plt
+
+        x = tb.bin_center_to_edges(self.lags)
+        y = tb.bin_center_to_edges(windows)
+
+        fig = plt.figure()
+        ax0 = fig.add_subplot(111)
+        cax = ax0.pcolor(x, y, data, vmin=min, vmax=max,
+                        shading='flat')
+        ax0.set_xlim((x[0], x[-1]))
+        ax0.set_ylim((y[0], y[-1]))
+        plt.xlabel('Lag')
+        plt.ylabel('Window Size')
+        plt.colorbar(cax).set_label(
+            r'% confident above asymptotic association')
+        return fig
     
-    def plot(self, figsize=None, dpi=80, asympt=True, show=True, norm=True):
+    def plot(self, figsize=None, dpi=80, asympt=True, show=True, norm=True,
+             xlabel='Time lag', xscale=None, title=None):
         """Create basic plot of association analysis.
         
         Uses object attributes created by the L{assoc} method and,
@@ -225,6 +304,13 @@ class PPro(object):
         @type show: bool
         @param norm: Normalize plot to the asymptotic association number
         @type norm: bool
+        @param title: label/title for the plot
+        @type title: str
+        @param xlabel: label to put on the X axis of the resulting plot
+        @type xlabel: str
+        @param xscale: scale x-axis by this factor (e.g. 60.0 to convert
+                       seconds to minutes)
+        @type xscale: float
         """
         try:
             dum = self.n_assoc
@@ -234,16 +320,18 @@ class PPro(object):
         import datetime as dt
         import matplotlib as mpl
         import matplotlib.pyplot as plt
-        from spacepy.toolbox import makePoly
         
         fig = plt.figure(figsize=figsize, dpi=dpi)
         ax0 = fig.add_subplot(111)
         
         #fix such that self.lags (a timedelta) are converted to a time
         if type(self.lags[0]) == dt.timedelta:
-            self.x = [i.seconds/60 + i.days*1440. for i in self.lags]
+            x = [i.seconds/60 + i.days*1440. for i in self.lags]
         else:
-            self.x = self.lags
+            x = self.lags
+        if xscale != None:
+            x = [i / xscale for i in x]
+        ax0.set_xlim((min(x), max(x)))
 
         ci = None
         if norm:
@@ -261,15 +349,22 @@ class PPro(object):
             asympt_assoc = self.asympt_assoc
             assoc_total = self.assoc_total
         
-        if asympt:
-            ax0.plot([self.x[0], self.x[-1]], [asympt_assoc]*2, 'r--', lw=1.5)
         if ci != None:
-            polyci = makePoly(self.x, ci[0], ci[1])
-            ax0.add_patch(polyci)
+            ax0.fill_between(x, ci[0], ci[1],
+                             edgecolor='none', facecolor='blue', alpha=0.5)
         else:
             print('Error: No confidence intervals to plot - skipping')
         
-        ax0.plot(self.x, assoc_total, 'b-', lw=1.5)
+        ax0.plot(x, assoc_total, 'b-', lw=1.0)
+        if asympt:
+            ax0.plot([x[0], x[-1]], [asympt_assoc]*2, 'r--', lw=1.0)
+        if norm:
+            plt.ylabel('Normalized Association Number')
+        else:
+            plt.ylabel('Association Number')
+        plt.xlabel(xlabel)
+        if title != None:
+            plt.title(title)
         
         if show:
             plt.show()
@@ -277,165 +372,85 @@ class PPro(object):
         else:
             return fig
     
-    def aa_ci(self, inter, n_boots=1000, seed=None, threads=None):
+    def aa_ci(self, inter, n_boots=1000, seed=None):
         """Get bootstrap confidence intervals for association number
         
         Requires input of desired confidence interval, e.g.,
         >>> obj.aa_ci(95)
         
         Upper and lower confidence limits are added to the ci attribute
-        """
-        ci_low = np.zeros([len(self.lags)])
-        ci_high = np.zeros([len(self.lags)])
 
+        Attribute conf_above will contain the confidence (in percent) that
+        the association number at that lag is I{above} the asymptotic
+        association number. (The confidence of being below is 100 - conf_above)
+        For minor variations in conf_above to be meaningful, a I{large} number
+        of bootstraps is required. (Rougly, 1000 to be meaningful to the
+        nearest percent; 10000 to be meaningful to a tenth of a percent.) A
+        conf_above of 100 usually indicates an insufficient sample size to
+        resolve, I{not} perfect certainty.
+
+        Note also that a 95% chance of being above indicates an exclusion
+        from the I{90}% confidence interval!
+
+        @param inter: percentage confidence interval to calculate
+        @type inter: float
+        @param n_boots: number of bootstrap iterations to run
+        @type n_boots: int
+        @param seed: seed for the random number generator. If not specified,
+                     Python code will use numpy's RNG and its current seed;
+                     C code will seed from the clock.
+        @type seed: int
+        """
+        lags = self.lags
+        
+        ci_low = np.empty([len(lags)])
+        ci_high = np.empty([len(lags)])
+        conf_above = np.empty([len(lags)])
+        ulptr = ctypes.POINTER(ctypes.c_ulong)
+
+        if seed != None:
+            np.random.seed(seed)
+            lag_seeds = np.random.randint(0, 2 ** 32, [len(lags)])
         if libpoppy == None:
-            if seed != None:
-                np.random.seed(seed)
-            for i in range(len(self.lags)):
-                ci_low[i], ci_high[i] = boots_ci(self.n_assoc[i, :],
-                                                 n_boots, inter, np.add.reduce,
-                                                 seed=None)
+            for i in range(len(lags)):
+                if seed != None:
+                    np.random.seed(lag_seeds[i])
+                ci_low[i], ci_high[i], conf_above[i]= boots_ci(
+                    self.n_assoc[i, :],
+                    n_boots, inter, np.add.reduce,
+                    seed=None, target=self.asympt_assoc)
         else:
             perc_low = (100.-inter)/2. #set confidence interval
             perc_high = inter + perc_low
-            n_assoc_p = self.n_assoc.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_ulong))
             dtype = 'int' + str(ctypes.sizeof(ctypes.c_long) * 8)
-            assoc_totals = np.zeros([len(self.lags), n_boots], dtype=dtype)
-            assoc_totals_p = assoc_totals.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_ulong))
+            assoc_totals = np.empty([len(lags), n_boots],
+                                    dtype=dtype, order='C')
             if seed == None:
-                seed = 0
                 clock_seed = ctypes.c_int(1)
+                lag_seeds = np.empty([len(lags)], dtype=dtype)
             else:
                 clock_seed = ctypes.c_int(0)
-            if threads != None and hasattr(libpoppy, 'aa_ci_threaded'):
-                libpoppy.aa_ci_threaded(n_assoc_p, assoc_totals_p,
-                                        len(self.lags), len(self.process1),
-                                        n_boots, seed, clock_seed,
-                                        threads)
-            else:
-                libpoppy.aa_ci(n_assoc_p, assoc_totals_p, len(self.lags),
-                               len(self.process1), n_boots, seed, clock_seed)
-            for i in range(len(self.lags)):
+            def thread_targ(start, size):
+                libpoppy.aa_ci(
+                    self.n_assoc[start:start+size].ctypes.data_as(ulptr),
+                    assoc_totals[start:start+size].ctypes.data_as(ulptr),
+                    size, len(self.process1), n_boots,
+                    lag_seeds[start:start+size].ctypes.data_as(ulptr),
+                    clock_seed)
+            tb.thread_job(len(lags), 0, thread_targ)
+            for i in range(len(lags)):
+                assoc_totals[i, :].sort()
                 ci_low[i], ci_high[i] = prctile(
                     assoc_totals[i, :], p=(perc_low,perc_high))
+                conf_above[i] = 100.0 - value_percentile(assoc_totals[i, :],
+                                                         self.asympt_assoc)
         self.ci = [ci_low, ci_high]
+        self.conf_above = conf_above
         return None
 
-    def dump(self, f):
-        """Dump this object out to a file
 
-        @param f: open file (or file-like object) to dump to.
-        """
-        f.write('process1:' + str(len(self.process1)) + '\n')
-        for val in self.process1:
-            f.write(float(val).hex())
-            f.write('\n')
-        f.write('process2:' + str(len(self.process2)) + '\n')
-        for val in self.process2:
-            f.write(float(val).hex())
-            f.write('\n')
-        if self.lags != None:
-            f.write('lags:' + str(len(self.lags)) + '\n')
-            for val in self.lags:
-                f.write(float(val).hex())
-                f.write('\n')
-        if self.winhalf != None:
-            f.write('winhalf:' + float(self.winhalf).hex() + '\n')
-        if hasattr(self, 'n_assoc'):
-            f.write('asympt_assoc:' + float(self.asympt_assoc).hex() + '\n')
-            assoc_shape = self.n_assoc.shape
-            f.write('n_assoc:' + str(assoc_shape[0]) + ',' +
-                    str(assoc_shape[1]) + '\n')
-            for val in self.n_assoc.flat:
-                f.write(float(val).hex() + '\n')
-        if hasattr(self, 'ci'):
-            f.write('ci:' + str(len(self.ci[0])) + '\n')
-            for val in self.ci[0]:
-                f.write(float(val).hex() + '\n')
-            for val in self.ci[1]:
-                f.write(float(val).hex() + '\n')
-
-    @classmethod
-    def load(cls, f):
-        """Read a L{PPro} object from a file
-
-        @param f: open file (or file-like object) to read from.
-        @return: object stored in L{f}
-        @rtype: L{PPro}
-        """
-        line = f.readline()
-        (name, length) = line.split(':')
-        if name != 'process1':
-            raise ValueError('Unable to parse line ' + line)
-        length = int(length)
-        p1 = [0.0] * length
-        for i in range(length):
-            line = f.readline()
-            p1[i] = float.fromhex(line)
-            
-        line = f.readline()
-        (name, length) = line.split(':')
-        if name != 'process2':
-            raise ValueError('Unable to parse line ' + line)
-        length = int(length)
-        p2 = [0.0] * length
-        for i in range(length):
-            line = f.readline()
-            p2[i] = float.fromhex(line)
-
-        line = f.readline()
-        (name, length) = line.split(':')
-        if name == 'lags':
-            length = int(length)
-            lags = [0.0] * length
-            for i in range(length):
-                line = f.readline()
-                lags[i] = float.fromhex(line)
-            line = f.readline()
-            (name, length) = line.split(':')
-        else:
-            lags = None
-        if name == 'winhalf':
-            winhalf = float.fromhex(length)
-            line = f.readline()
-            (name, length) = line.split(':')
-        else:
-            winhalf = None
-        pop = PPro(p1, p2, lags, winhalf)
-
-        if name == 'asympt_assoc':
-            pop.asympt_assoc = float.fromhex(length)
-            line = f.readline()
-            (name, length) = line.split(':')
-
-        if name == 'n_assoc':
-            size1, size2 = length.split(',')
-            size1 = int(size1)
-            size2 = int(size2)
-            pop.n_assoc = np.zeros([size1, size2])
-            x = pop.n_assoc.flat
-            for i in range(size1 * size2):
-                line = f.readline()
-                x[i] = float.fromhex(line)
-            pop.assoc_total = np.sum(pop.n_assoc, axis=1)
-            line = f.readline()
-            (name, length) = line.split(':')
-
-        if name == 'ci':
-            length = int(length)
-            pop.ci = [np.zeros([length]),
-                      np.zeros([length])]
-            for i in range(2):
-                for j in range(length):
-                    line = f.readline()
-                    pop.ci[i][j] = float.fromhex(line)
-        return pop
-
-    
 #Functions outside class
-def boots_ci(data, n, inter, func, seed=None):
+def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     """Construct bootstrap confidence interval
     
     The bootstrap is a statistical tool that uses multiple samples derived from
@@ -487,34 +502,49 @@ def boots_ci(data, n, inter, func, seed=None):
     @type inter: numerical
     @param func: Function to apply to each surrogate series
     @type func: callable
+    @param sample_size: number of samples in the surrogate series, default
+                        length of L{data}. This will change the statistical
+                        properties of the bootstrap and should only be used
+                        for good reason!
+    @type sample_size: int
     @param seed: Optional seed for the random number generator. If not
                  specified, numpy generator will not be reseeded;
                  C generator will be seeded from the clock.
     @type seed: int
+    @param target: a 'target' value. If specified, will also calculate
+                   percentage confidence of being at or above this value.
+    @type target: same as L{data}
     @return: L{inter} percent confidence interval on value derived from
              L{func} applied to the population sampled by L{data}.
+             If L{target} is specified, also the percentage confidence of
+             being above that value.
     @rtype: sequence of float
     """
     perc_low = (100.-inter)/2. #set confidence interval
     perc_high = inter + perc_low
-    
+
     n_els = len(data)
     if n_els <= 2:
-        return np.nan, np.nan
-    surr_quan = np.empty([n])
-
+        if target == None:
+            return np.nan, np.nan
+        else:
+            return np.nan, np.nan, np.nan
+    if sample_size == None:
+        sample_size = n_els
     if libpoppy == None:
+        surr_quan = np.empty([n])
         from numpy.random import randint
         if seed != None:
             np.random.seed(seed)
-        ran_el = randint(n_els, size=[n, n_els])
+        ran_el = randint(n_els, size=[n, sample_size])
         for i in range(int(n)): #compute n bootstrapped series
             surr_ser = [data[rec] for rec in ran_el[i, :]] #resample w/ replace
             surr_quan[i] = func(surr_ser) #get desired quantity from surrogates
+        surr_quan.sort()
     else:
         n = int(n)
         data = (ctypes.c_double * n_els)(*data)
-        surr_ser = (ctypes.c_double * (n * n_els))()
+        surr_ser = (ctypes.c_double * (n * sample_size))()
         if seed == None:
             seed = 0
             clock_seed = ctypes.c_int(1)
@@ -522,7 +552,41 @@ def boots_ci(data, n, inter, func, seed=None):
             clock_seed= ctypes.c_int(0)
         libpoppy.boots(surr_ser, data,
                        ctypes.c_ulong(n), ctypes.c_ulong(n_els),
+                       ctypes.c_ulong(sample_size),
                        ctypes.c_ulong(seed), clock_seed)
-        surr_quan = [func(surr_ser[i * n_els:(i  + 1) * n_els]) for i in xrange(n)]
+        surr_quan = sorted(
+            (func(surr_ser[i * sample_size:(i  + 1) * sample_size])
+             for i in xrange(n)))
     pul = prctile(surr_quan, p=(perc_low,perc_high)) #get confidence interval
-    return pul[0], pul[1]
+    if target == None:
+        return pul[0], pul[1]
+    else:
+        vp = value_percentile(surr_quan, target)
+        return pul[0], pul[1], 100.0 - vp
+
+
+def value_percentile(sequence, target):
+    """Find the percentile of a particular value in a sequence
+
+    @param sequence: a sequence of values, sorted in ascending order
+    @param target: a target value, same type as sequence
+    @return: the percentile of L{target} in L{sequence}
+    """
+    min = bisect.bisect_left(sequence, target) #first value >= x
+    max = bisect.bisect_right(sequence, target, lo=min) #first value > x
+    #min:max, in Python syntax, will include all values that are target
+    count = len(sequence)
+    if max == 0: #everything is bigger
+        return 0.0
+    if min == count: #everything is smaller
+        return 100.0
+    #Index 0 is 0th percentile (by definition); count-1 is 100th
+    #so index n is (n * 100.0) / (count - 1)
+    #find a 'virtual' index
+    if min == max: #Not equal to any, between min-1 and min
+        #interpolate between two points based on value.
+        idx = min - 1 + float(target - sequence[min - 1]) / \
+              (sequence[min] - sequence[min - 1])
+    else: #Equal to one or more values (min...max-1), average them
+        idx = (min + max - 1) / 2
+    return idx * 100.0 / (count - 1)
