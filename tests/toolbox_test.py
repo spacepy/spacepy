@@ -233,6 +233,16 @@ class SimpleFunctionTests(unittest.TestCase):
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(*tst))
 
+    def testThreadJob(self):
+        """Multithread the sum of an array"""
+        #This is a very stupid example since it's slower
+        numpy.random.seed(0)
+        array = numpy.random.randint(0, 100, [1000000])
+        expected = numpy.sum(array)
+        targ = lambda a, s, c: numpy.sum(a[s:s+c])
+        ret = tb.thread_job(1000000, 0, targ, array)
+        self.assertEqual(expected, numpy.sum(ret))
+
 
 class tFunctionTests(unittest.TestCase):
     def setUp(self):

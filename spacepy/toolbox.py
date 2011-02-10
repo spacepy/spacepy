@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.78 $, $Date: 2011/02/10 14:56:06 $"
+__version__ = "$Revision: 1.79 $, $Date: 2011/02/10 17:15:16 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1540,3 +1540,69 @@ def hypot(*vals):
     @version: V2: 10-Feb-2011 (JTN)
     """
     return math.sqrt(sum((v ** 2 for v in vals)))
+
+def thread_job(job_size, thread_count, target, *args, **kwargs):
+    """Split a job into subjobs and run a thread for each
+
+    This is only useful if a job:
+      1. Can be split into completely independent subjobs
+      2. Relies heavily on code that does not use the Python GIL, e.g.
+         numpy or ctypes code
+
+    Example, summing 100 million numbers::
+      a = numpy.random.randint(0, 100, [100000000])
+      targ = lambda a, s, c: numpy.sum(a[s:s+c])
+      total = sum(toolbox.thread_job(len(a), 0, targ, a))
+
+    @param job_size: Total size of the job, number of "work units". Often
+                     this is an array size
+    @type job_size: int
+    @param thread_count: Number of threads to spawn. If <=0 or None, will
+                         spawn as many threads as there are cores available on
+                         the system. (Each hyperthreading core counts as 2.)
+                         Generally this is the Right Thing to do.
+    @type thread_count: int
+    @param target: Python callable (generally a function, may also be an
+                   imported ctypes function) to run in each thread. The
+                   I{last} two positional arguments passed in will be a
+                   "start" and a "subjob size," respectively. (E. g.
+                   array offset and number of elements to process.)
+    @type target: callable
+    @param args: Arguments to pass to L{target}. If L{target} is an instance
+                 method, self must be explicitly pssed in. start and
+                 subjob_size will be appended.
+    @type args: sequence
+    @param kwargs: keyword arguments to pass to L{target}.
+    @type kwargs: dict
+    @return: return values of L{target} for each thread
+    @rtype: list
+    """
+    try:
+        import threading
+    except:
+        return (target(*(args +  (0, job_size)), **kwargs), )
+    if thread_count == None or thread_count <= 0:
+        try:
+            import multiprocessing
+            thread_count = multiprocessing.cpu_count()
+        except: #Do something not too stupid
+            thread_count = 8
+    rvals = [None] * thread_count
+    def thread_targ(rv, t, n, args, kwargs):
+        rv[n] = t(*args, **kwargs)
+    count = float(job_size) / thread_count
+    starts = [int(count * i + 0.5) for i in range(thread_count)]
+    subsize = [(starts[i + 1] if i < thread_count - 1 else job_size) -
+               starts[i]
+               for i in range(thread_count)]
+    threads = []
+    for i in range(thread_count):
+        t = threading.Thread(
+            None, thread_targ, None,
+            (rvals, target, i, args + (starts[i], subsize[i]), kwargs)
+            )
+        t.start()
+        threads.append(t)
+    for i in range(thread_count):
+        threads[i].join()
+    return rvals
