@@ -115,6 +115,8 @@ class SimpleFunctionTests(unittest.TestCase):
         real_ans = (21.47300748096567, 5.0)
         ans = tb.binHisto(input)
         self.assertEqual(ans, real_ans)
+        numpy.testing.assert_almost_equal(tb.binHisto([100]*10), (3.3333333333333335, 3.0))
+        numpy.testing.assert_almost_equal(tb.binHisto([100]), (1.0, 1.0))
 
     def test_logspace(self):
         """logspace should return know answer for known input"""
