@@ -81,14 +81,12 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertAlmostEqual(3.6651914291880918, tb.mlt2rad(26))
         val = tb.mlt2rad([1, 2])
         ans = [-2.8797932657906435, -2.6179938779914944]
-        for i, j in zip(val, ans):
-            self.assertAlmostEqual(i, j)
+        numpy.testing.assert_almost_equal(val, ans)
         self.assertAlmostEqual(0.26179938779914941, tb.mlt2rad(1, midnight=True))
         self.assertAlmostEqual(6.8067840827778854, tb.mlt2rad(26, midnight=True))
         val = tb.mlt2rad([1, 2], midnight=True)
         ans = [0.26179938779914941, 0.52359877559829882]
-        for i, j in zip(val, ans):
-            self.assertAlmostEqual(i, j)
+        numpy.testing.assert_almost_equal(val, ans)
 
     def testfeq_equal(self):
         """feq should return true when they are equal"""
@@ -122,8 +120,7 @@ class SimpleFunctionTests(unittest.TestCase):
         """logspace should return know answer for known input"""
         real_ans = array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
         ans = tb.logspace(1, 100, 5)
-        for i, val in enumerate(real_ans):
-            self.assertAlmostEqual(val, ans[i], places=4)
+        numpy.testing.assert_almost_equal(real_ans, ans , 4)
 
     def test_pmm(self):
         """pmm should give known output for known input"""
