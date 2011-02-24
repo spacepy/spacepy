@@ -162,9 +162,9 @@ class PPro(object):
             if u:
                 self.lags = u
             assert self.lags
-            if h:
+            if h != None:
                 self.winhalf = h
-            assert self.winhalf
+            assert self.winhalf != None
             print('calculating association for series of length %s at %d lags' \
                 % ([len(self.process1), len(self.process2)], len(self.lags)))
         except:
@@ -224,8 +224,7 @@ class PPro(object):
                 self.expected[i] = 0.0
         return None
 
-    def assoc_mult(self, windows, inter=95, n_boots=1000, seed=None,
-                   threads=8):
+    def assoc_mult(self, windows, inter=95, n_boots=1000, seed=None):
         """Association analysis w/confidence interval on multiple windows
 
         Using the time sequence and lags stored in this object, perform
@@ -242,28 +241,26 @@ class PPro(object):
                      recommended not to specify (i.e. leave None) to permit
                      multithreading.
         @type seed: int
-        @param threads: number of threads to spawn in bootstrap
-        @type threads: int
         @warning: This function is likely to take a LOT of time.
         @return: Three numpy arrays, (windows x lags), containing (in order)
                  low values of confidence interval, high values of ci,
                  percentage confidence above the asymptotic association number
         """
+        n_lags = len(self.lags)
+        ci_low = np.empty([len(windows), n_lags])
+        ci_high = np.empty([len(windows), n_lags])
+        percentiles = np.empty([len(windows), n_lags])
         for i in range(len(windows)):
             window = windows[i]
             self.assoc(h=window)
-            self.aa_ci(inter, n_boots, seed, threads)
-            if i == 0:
-                n_lags = len(self.conf_above)
-                ci_low = np.zeros([len(windows), n_lags])
-                ci_high = np.zeros([len(windows), n_lags])
-                percentiles = np.zeros([len(windows), n_lags])
+            self.aa_ci(inter, n_boots, seed)
             ci_low[i, :] = self.ci[0]
             ci_high[i, :] = self.ci[1]
             percentiles[i, :] = self.conf_above
         return (ci_low, ci_high, percentiles)
 
-    def plot_mult(self, windows, data, min=None, max=None):
+    def plot_mult(self, windows, data, min=None, max=None, cbar_label=None,
+                  figsize=None, dpi=80):
         """Plots a 2D function of window size and lag
 
         @param windows: list of window sizes (y axis)
@@ -273,19 +270,23 @@ class PPro(object):
         """
         import matplotlib.pyplot as plt
 
-        x = tb.bin_center_to_edges(self.lags)
-        y = tb.bin_center_to_edges(windows)
+        x = np.array(tb.bin_center_to_edges(self.lags))
+        y = np.array(tb.bin_center_to_edges(windows))
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=figsize, dpi=dpi)
         ax0 = fig.add_subplot(111)
-        cax = ax0.pcolor(x, y, data, vmin=min, vmax=max,
-                        shading='flat')
+        cax = ax0.pcolormesh(x, y, data, vmin=min, vmax=max,
+                             shading='flat')
         ax0.set_xlim((x[0], x[-1]))
         ax0.set_ylim((y[0], y[-1]))
         plt.xlabel('Lag')
         plt.ylabel('Window Size')
-        plt.colorbar(cax).set_label(
-            r'% confident above asymptotic association')
+        if cbar_label == None:
+            if plt.rcParams['text.usetex']:
+                cbar_label = r'\% confident above asymptotic association'    
+            else:
+                cbar_label = r'% confident above asymptotic association'    
+        plt.colorbar(cax, fraction=0.05).set_label(cbar_label)
         return fig
     
     def plot(self, figsize=None, dpi=80, asympt=True, show=True, norm=True,
