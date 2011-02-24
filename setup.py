@@ -3,12 +3,15 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.41 $, $Date: 2010/12/22 19:49:21 $"
+__version__ = "$Revision: 1.42 $, $Date: 2011/02/24 21:31:44 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
 from distutils.core import setup
+import distutils.ccompiler
+import glob
 from os import environ as ENVIRON
+import re
 
 # -------------------------------------
 def compile_pybats():
@@ -109,6 +112,51 @@ def compile_irbempy(fcompiler):
     os.chdir('../../..')
 
     return
+
+
+def get_c_compiler():
+    """Return a C compiler object. JTN 20110224"""
+    #Based on http://stackoverflow.com/questions/724664/
+    #         python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
+    comp = None
+    getnext = False
+    for a in sys.argv[2:]:
+        if getnext:
+            comp = a
+            getnext = False
+        #separated by space
+        elif a == '--compiler' or re.search('^-[a-z]*c$', a):
+            getnext = True
+        #without space
+        else:
+            m = re.search('^--compiler=(.+)', a)
+            if m == None:
+                m = re.search('^-[a-z]*c(.+)', a)
+            if m:
+                comp = m.group(1)
+    return distutils.ccompiler.new_compiler(compiler=comp)
+
+    
+def compile_libspacepy():
+    """Compile the C library, libspacepy. JTN 20110224"""
+    fname = None
+    olddir = os.getcwd()
+    os.chdir(os.path.join('spacepy', 'libspacepy'))
+    try:
+        comp = get_c_compiler()
+        extra = []
+        if sys.platform == 'linux2':
+            extra.append('-fPIC')
+        objects = comp.compile(list(glob.glob('*.c')), extra_preargs=extra)
+        comp.link_shared_lib(objects, 'spacepy')
+        fname = comp.library_filename('spacepy', lib_type='shared')
+    except:
+        print('libspacepy compile failed; some operations may be slow:')
+        (t, v, tb) = sys.exc_info()
+        print(v)
+    finally:
+        os.chdir(olddir)
+    return fname
 
 
 def compile_oneralib(fcompiler):
@@ -276,6 +324,9 @@ else:
 # Compile PyBats
 compile_pybats()
 
+# Compile libspacepy
+libname = compile_libspacepy()
+
 # create .spacepy in $HOME and move data
 # read-in .rc file first
 exec(compile(open('spacepy/data/spacepy.rc').read(), 'spacepy/data/spacepy.rc', 'exec'))
@@ -310,13 +361,15 @@ if fresh_install:
 
 pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so'
     'pybats/*.out', 'pycdf/*.py']
+if libname != None:
+    pkg_files.append('libspacepy/' + libname)
 #pkg_files = ['onerapy/onerapylib.so','onerapy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pycdf/*.py']
 
 # run setup from distutil
 setup(name='spacepy',
       version='0.1',
       description='SpacePy: Tools for Space Science Applications',
-      author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson',
+      author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',
       requires=['numpy','scipy','matplotlib (>=0.99)'],
