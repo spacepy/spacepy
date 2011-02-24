@@ -65,34 +65,14 @@ import numpy as np
 from matplotlib.mlab import prctile
 
 from spacepy import help
-import spacepy.toolbox as tb
-__author__ = 'Steve Morley, Los Alamos National Lab (smorley@lanl.gov)'
-
-
 #Try to pull in the C version. Assumption is that if you import this module,
 #you want to do some association analysis, so the overhead in the import
 #is OK.
-try:
+from spacepy import lib
+if lib.have_libspacepy:
     import ctypes
-    libpoppy = ctypes.CDLL('./libpoppy.so')
-    dptr = ctypes.POINTER(ctypes.c_double)
-    ulptr = ctypes.POINTER(ctypes.c_ulong)
-    lptr = ctypes.POINTER(ctypes.c_long)
-    libpoppy.boots.restype = None
-    libpoppy.boots.argtypes = [dptr, dptr, ctypes.c_ulong,
-                               ctypes.c_ulong, ctypes.c_ulong,
-                               ctypes.c_ulong, ctypes.c_int]
-    libpoppy.assoc.restype = None
-    libpoppy.assoc.argtypes = [dptr, dptr, dptr, lptr,
-                               ctypes.c_double,
-                               ctypes.c_long, ctypes.c_long,
-                               ctypes.c_long]
-    libpoppy.aa_ci.restype = None
-    libpoppy.aa_ci.argtypes=[ulptr, ulptr,
-                             ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong,
-                             ulptr, ctypes.c_int]
-except:
-    libpoppy = None
+import spacepy.toolbox as tb
+__author__ = 'Steve Morley, Los Alamos National Lab (smorley@lanl.gov)'
 
 
 class PPro(object):
@@ -172,7 +152,7 @@ class PPro(object):
 
         import matplotlib as mpl
         from matplotlib import mlab
-        if libpoppy == None:
+        if lib.have_libspacepy == False:
             dtype = 'int64'
         else:
             dtype = 'int' + str(ctypes.sizeof(ctypes.c_long) * 8)
@@ -184,7 +164,7 @@ class PPro(object):
         p2 = sorted(self.process2)
         p1 = sorted(self.process1)
 
-        if libpoppy == None:
+        if lib.have_libspacepy == False:
             lags = self.lags
             starts = [t - self.winhalf for t in p1]
             stops = [t + self.winhalf for t in p1]
@@ -199,10 +179,10 @@ class PPro(object):
             p2 = (ctypes.c_double * len(p2))(*p2)
             p1 = (ctypes.c_double * len(p1))(*p1)
             lags = (ctypes.c_double * len(self.lags))(*self.lags)
-            n_assoc = self.n_assoc.ctypes.data_as(lptr)
-            libpoppy.assoc(p2, p1, lags, n_assoc,
-                           self.winhalf,
-                           len(p2), len(p1), len(self.lags))
+            n_assoc = self.n_assoc.ctypes.data_as(lib.lptr)
+            lib.assoc(p2, p1, lags, n_assoc,
+                      self.winhalf,
+                      len(p2), len(p1), len(self.lags))
         self.assoc_total = np.sum(self.n_assoc, axis=1)
         pul = mlab.prctile_rank(self.lags, p=(20,80))
         valsL = self.assoc_total[pul==0]
@@ -407,12 +387,11 @@ class PPro(object):
         ci_low = np.empty([len(lags)])
         ci_high = np.empty([len(lags)])
         conf_above = np.empty([len(lags)])
-        ulptr = ctypes.POINTER(ctypes.c_ulong)
 
         if seed != None:
             np.random.seed(seed)
             lag_seeds = np.random.randint(0, 2 ** 32, [len(lags)])
-        if libpoppy == None:
+        if lib.have_libspacepy == False:
             for i in range(len(lags)):
                 if seed != None:
                     np.random.seed(lag_seeds[i])
@@ -432,11 +411,11 @@ class PPro(object):
             else:
                 clock_seed = ctypes.c_int(0)
             def thread_targ(start, size):
-                libpoppy.aa_ci(
-                    self.n_assoc[start:start+size].ctypes.data_as(ulptr),
-                    assoc_totals[start:start+size].ctypes.data_as(ulptr),
+                lib.aa_ci(
+                    self.n_assoc[start:start+size].ctypes.data_as(lib.ulptr),
+                    assoc_totals[start:start+size].ctypes.data_as(lib.ulptr),
                     size, len(self.process1), n_boots,
-                    lag_seeds[start:start+size].ctypes.data_as(ulptr),
+                    lag_seeds[start:start+size].ctypes.data_as(lib.ulptr),
                     clock_seed)
             tb.thread_job(len(lags), 0, thread_targ)
             for i in range(len(lags)):
@@ -532,7 +511,7 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
             return np.nan, np.nan, np.nan
     if sample_size == None:
         sample_size = n_els
-    if libpoppy == None:
+    if lib.have_libspacepy == False:
         surr_quan = np.empty([n])
         from numpy.random import randint
         if seed != None:
@@ -551,10 +530,10 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
             clock_seed = ctypes.c_int(1)
         else:
             clock_seed= ctypes.c_int(0)
-        libpoppy.boots(surr_ser, data,
-                       ctypes.c_ulong(n), ctypes.c_ulong(n_els),
-                       ctypes.c_ulong(sample_size),
-                       ctypes.c_ulong(seed), clock_seed)
+        lib.boots(surr_ser, data,
+                  ctypes.c_ulong(n), ctypes.c_ulong(n_els),
+                  ctypes.c_ulong(sample_size),
+                  ctypes.c_ulong(seed), clock_seed)
         surr_quan = sorted(
             (func(surr_ser[i * sample_size:(i  + 1) * sample_size])
              for i in xrange(n)))

@@ -1,8 +1,5 @@
-/*JTN 20101213
- *Library providing C support to poppy
+/*Library providing C support to poppy
  */
-
-#include <stdio.h>
 
 #include "randomkit.h"
 
