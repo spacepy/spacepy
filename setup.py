@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.43 $, $Date: 2011/02/25 01:00:35 $"
+__version__ = "$Revision: 1.44 $, $Date: 2011/02/28 21:20:55 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -251,13 +251,10 @@ class install(_install):
                 fresh_install = False
             else:
                 fresh_install = True
-            i = 0
-            while 1:
-                if os.path.exists(DOT_FLN+'.bak.'+str(i)):
-                    i = i+1
-                else:
-                    shutil.move(DOT_FLN, DOT_FLN+'.bak.'+str(i))
-                    break
+                i = 0
+                while os.path.exists(DOT_FLN + '.bak.' + str(i)):
+                    i += 1
+                shutil.move(DOT_FLN, DOT_FLN+'.bak.'+str(i))
         else:
             fresh_install = True
 
