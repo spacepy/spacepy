@@ -52,9 +52,11 @@ def load_lib():
     if sys.platform == 'win32':
         libpath = os.path.join(libdir, 'spacepy.dll')
     elif sys.platform == 'darwin':
-        libpath = os.path.join(libdir, 'libspacepy.dylib')
-        if not os.path.exists(libpath):
-            libpath = os.path.join(libdir, 'spacepy.dylib')
+        for n in ('libspacepy.dylib', 'libspacepy.so',
+                  'spacepy.dylib', 'libspacepy.so'):
+            libpath = os.path.join(libdir, n)
+            if os.path.exists(libpath):
+                break
     else:
         libpath = os.path.join(libdir, 'libspacepy.so')
     if not os.path.exists(libpath):
