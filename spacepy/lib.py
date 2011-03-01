@@ -34,6 +34,8 @@ functions = {
               ctypes.c_long],
     'aa_ci': [None, ulptr, ulptr, ctypes.c_ulong, ctypes.c_ulong,
               ctypes.c_ulong, ulptr, ctypes.c_int],
+    'solve_cn': [None, dptr, dptr, dptr, dptr, dptr, dptr, 
+                 ctypes.c_double, ctypes.c_int]
     }
 
 
