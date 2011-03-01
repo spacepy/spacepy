@@ -5,7 +5,8 @@ Functions supporting radiation belt diffusion codes
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.14 $, $Date: 2010/11/22 22:01:31 $"
+import ctypes
+__version__ = "$Revision: 1.15 $, $Date: 2011/03/01 23:48:06 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -49,13 +50,22 @@ class RBmodel(object):
     
     """
     
-    def __init__(self, grid='L', NL=91):
+    def __init__(self, grid='L', NL=91, const_kp=False):
         """
         format for grid e.g., L-PA-E
         """
         import numpy as n
         import spacepy.time as st
-        
+        import spacepy.lib
+
+        self.const_kp=const_kp
+
+        # Initialize the code to use to advance the solution.
+        if spacepy.lib.have_libspacepy and spacepy.lib.solve_cn:
+            self.advance=spacepy.lib.solve_cn
+        else:
+            self.advance=get_modelop_L
+
         grid = grid.upper()
         for type in grid.split():
             if type == 'L':
@@ -96,7 +106,7 @@ class RBmodel(object):
         from numpy import linspace, zeros
         self.NL = NL
         self.Lgrid = linspace(1,10,self.NL)
-        self.PSDinit = zeros(self.NL)
+        self.PSDinit = zeros(self.NL, dtype=ctypes.c_double)
 
     # -----------------------------------------------    
     def setup_ticks(self, start, end, delta, dtype='ISO'):
@@ -185,7 +195,7 @@ class RBmodel(object):
         
         self.PSDdata = ['']*(nTAI-1)
         for i, Tnow, Tfut in zip(n.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
-            start_end = spacepy.time.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
+            start_end = spacepy.time.ticks([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
             self.PSDdata[i] = PD.get_PSD(start_end, self.MU, self.K, satlist)
             
         # adjust initial conditions to these PSD values
@@ -210,7 +220,7 @@ class RBmodel(object):
         Tgrid = self.ticks.TAI
         nTAI = len(Tgrid)
         Lgrid = self.Lgrid
-        self.PSD  = n.zeros( (len(f),len(Tgrid)) )
+        self.PSD  = n.zeros( (len(f),len(Tgrid)), dtype=ctypes.c_double)
         self.PSD[:,0] = c.copy(f)
         
         # add omni if not already given
@@ -241,7 +251,7 @@ class RBmodel(object):
             for key in keylist:
                 params[key] = self.params[key][i]
             # now integrate from Tnow to Tfut
-            f = rb.diff_LL(Lgrid, f, Tdelta, Telapse, params)
+            f = diff_LL(self, Lgrid, f, Tdelta, Telapse, params)
             self.PSD[:,i] = c.copy(f)
 
     # -----------------------------------------------
@@ -280,7 +290,7 @@ class RBmodel(object):
                 for f in A.T:
                     # create temporary RB class instance
                     rbtemp = c.copy(self)
-                    rbtemp.ticks = st.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
+                    rbtemp.ticks = st.ticks([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
                     rbtemp.PSDinit = f
                     rbtemp.evolve()
                     #rbtemp.PSDdata = self.PSDdata[i-1]
@@ -431,96 +441,79 @@ class RBmodel(object):
         p.show()
         
         return fig, ax1, ax2, ax3
+
+    def get_DLL(self, Lgrid, params, DLL_model='BA2000'):
+        """
+        Calculate DLL as a simple power law function (alpha*L**Bbta)
+        using alpha/beta values from popular models found in the 
+        literature and chosen with the kwarg "DLL_model".
         
-# -----------------------------------------------
-def diff_LL(grid, f, Tdelta, Telapsed, params=None):
-    """
-    calculate the diffusion in L at constant mu,K coordinates
-    time units
-    """
-
-    import numpy as n
-    
-    # prepare some parameter variables
-    if params:
-        DLL_model = params['DLL_model']
-        Kp = params['Kp']
-        Dst = params['Dst']
-        Lmax = params['Lmax']
-        Lpp = params['Lpp']
-    #else: # use standard config
-        # but which one?
-       
-    Lgrid = grid
-    NL = len(Lgrid)
-    dL = Lgrid[1]-Lgrid[0]
-    
-    # get DLL and model operator 
-    (DLL, alpha, beta) = get_DLL(Lgrid, params, DLL_model)
-    DLL = DLL/86400.
-    C = get_modelop_L(Lgrid, Tdelta, DLL)
-
-    # set boundaries
-    f[-1] = f[-2]
-    f[0] = f[1]
-
-    # apply diffusion to f
-    f = n.dot(C,f)
-    
-    # add source according to values in SRC...
-    if params['SRC_model']:
-        # setup source vector
-        S = get_local_accel(Lgrid, params, SRC_model='JK1')
-        f = f + S*Tdelta
-
-    # add losses through magnetopause shadowing, time scale taken from MPloss
-    if params['MPloss'].seconds > 0.0:
-        # setup loss vector
-        LSS = n.zeros(NL)
-        LSS[n.where(Lgrid>params['Lmax'])] = -1./params['MPloss'].seconds
-        f = f*n.exp(LSS*Tdelta)
+        The calculated DLL is returned, as is the alpha and beta
+        values used in the calculation. 
         
-    # add losses inside plasma pause, time scale taken from PPloss
-    if params['PPloss'].seconds > 0.0:
-        # calculate plasma pause location after Carpenter & Anderson 1992
-        LSS = n.zeros(NL)
-        LSS[n.where(Lgrid<params['Lpp'])] = -1./params['PPloss'].seconds
-        f = f*n.exp(LSS*Tdelta)
+        The output DLL is in units of units/day.
+        """
 
-    # Add artificial sources
-    if 'SRCartif' in params:
-        # Call the artificial source function, sending info as 
-        # key word arguments.  Note that such functions should be
-        # able to handle extra kwargs through the use of **kwargs!
-        f = f + params['SRCartif'](Telapsed, Lgrid, dll=DLL, 
-                                   alpha=alpha, beta=beta) * Tdelta
+        import numpy as n
 
-    return f
+        if DLL_model is 'BA2000': # Brautigam and Albert (2000)
+            if type(self.const_kp) == type(0.0):
+                Kp=self.const_kp
+            else:
+                Kp = params['Kp']
+            alpha = 10.0**(0.506*Kp-9.325)
+            beta = 10.0
 
+        elif DLL_model is 'FC2006': # Fei and Chan (2006)
+            alpha = 1.5e-6
+            beta  = 8.5
+        
+        elif DLL_model is 'U2008': # Ukhorskiy (2008)
+            alpha = 7.7e-6
+            beta  = 6.0
+        
+        elif DLL_model is 'S1997': # Selesnick (1997)
+            alpha = 1.9e-10
+            beta  = 11.7
+        elif DLL_model is 'const': # Constant DLL.
+            alpha= 1.0
+            beta = 1.0
+            DLL  = n.zeros(len(Lgrid), dtype=ctypes.c_double)+1.5E-8 
+            # approximately BA2000 for Kp=1, L=1.
+        else:
+            raise ValueError, \
+                "Radial diffusion model %s not implemented" % DLL_model
+        
+
+        if (DLL_model!='const'): DLL = alpha * Lgrid ** beta
+
+        return DLL, alpha, beta
 # -----------------------------------------------
-def get_modelop_L(Lgrid, Tdelta, DLL):
+def get_modelop_L(f, L, Dm_old, Dm_new, Dp_old, Dp_new, Tdelta, NL):
+
     """
-    calculate the model operator for a single small timestep
+    Advance the distribution function, f, discretized into the Lgrid, L, forward
+    in time by a timestep, Tdelta.  The off-grid current and next diffusion 
+    coefficients, D[m,p]_[old,new] will be used.  The number of grid points is set
+    by NL.  
+
+    This function performs the same calculation as the C-based code, 
+    spacepy.lib.solve_cn.  This code is very slow and should only be used when 
+    the C code fails to compile.
     """
     
     import numpy as n
     import numpy.linalg as nlin
 
     # get grid and setup centered grid Lm=L_i-1/2, Lp=L_i+1/2
-    L = Lgrid
-    NL = len(L)
     Lmin = L[0]
     Lmax = L[-1]
     dL = L[1] - L[0]
     Lp = L + 0.5*dL
     Lm = L - 0.5*dL
 
-    # setup smaller timesteps
-    k = 100
-    dt = Tdelta/float(k)
-        
     # setup the diffusion coefficient on each grid and center grid
-    Dllm = n.zeros(NL); Dllp = n.zeros(NL)
+    #Dllm = n.zeros(NL); Dllp = n.zeros(NL)
     betam = n.zeros(NL); betap = n.zeros(NL)
     for i in range(1,int(NL)-1,1):
         Dllp[i] = 0.5*(DLL[i]+DLL[i+1])
@@ -551,53 +544,106 @@ def get_modelop_L(Lgrid, Tdelta, DLL):
     B[0,0] = 1.
     B[-1,-1] = 1.
 
-    # get inverse and multiply
+    # get inverse and multipy
     Ai = nlin.inv(A)
     C = n.dot(Ai,B)
 
-    # now complete full timestep by ktimes
-    C = n.array(  n.mat(C)**int(k) )
-    
-    return C
+    return n.dot(C, f)
 
 # -----------------------------------------------
-def get_DLL(Lgrid, params, DLL_model='BA2000'):
+def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     """
-    Calculate DLL as a simple power law function (alpha*L**Bbta)
-    using alpha/beta values from popular models found in the 
-    literature and chosen with the kwarg "DLL_model".
-
-    The calculated DLL is returned, as is the alpha and beta
-    values used in the calculation. 
-
-    The output DLL is in units of units/day.
+    calculate the diffusion in L at constant mu,K coordinates
+    time units
     """
 
     import numpy as n
+    import ctypes as ct
 
-    if DLL_model is 'BA2000': # Brautigam and Albert (2000)
+    # prepare some parameter variables
+    if params:
+        DLL_model = params['DLL_model']
         Kp = params['Kp']
-        alpha = 10.0**(0.506*Kp-9.325)
-        beta = 10.0
+        Dst = params['Dst']
+        Lmax = params['Lmax']
+        Lpp = params['Lpp']
+    #else: # use standard config
+        # but which one?
+       
+    Lgrid = grid
+    NL = len(Lgrid)
+    dL = Lgrid[1]-Lgrid[0]
+    
+    # get DLL and model operator 
+    (DLL,  alpha, beta) = r.get_DLL(Lgrid,          params, DLL_model)
+    (DLLp, alpha, beta) = r.get_DLL(Lgrid + dL/2.0, params, DLL_model)
+    (DLLm, alpha, beta) = r.get_DLL(Lgrid - dL/2.0, params, DLL_model)
+    DLL = DLL/86400.; DLLp = DLLp/86400.; DLLm = DLLm/86400.
+    #C = get_modelop_L(Lgrid, Tdelta, DLL, DLLm, DLLp)
 
-    elif DLL_model is 'FC2006': # Fei and Chan (2006)
-        alpha = 1.5e-6
-        beta  = 8.5
-        
-    elif DLL_model is 'U2008': # Ukhorskiy (2008)
-        alpha = 7.7e-6
-        beta  = 6.0
-        
-    elif DLL_model is 'S1997': # Selesnick (1997)
-        alpha = 1.9e-10
-        beta  = 11.7
-        
+    # Set default of NO sources:
+    src1 = 0; src2 = 0
+
+    # Create source operators (source splitting) using implicit 
+    # trapezoidal method to solve source ODE.
+    # Add artificial sources
+    if params.has_key('SRCartif'):
+        # Call the artificial source function, sending info as 
+        # key word arguments.  Note that such functions should be
+        # able to handle extra kwargs through the use of **kwargs!
+        dthalf = Tdelta/2.0
+        sfunc = params['SRCartif']
+        #src1 = 0.25 * Tdelta *(
+        #    sfunc(Telapsed,        Lgrid, dll=DLL, alpha=alpha, beta=beta) +
+        #    sfunc(Telapsed+dthalf, Lgrid, dll=DLL, alpha=alpha, beta=beta))
+        #src2 = 0.25 * Tdelta *(
+        #    sfunc(Telapsed+dthalf, Lgrid, dll=DLL, alpha=alpha, beta=beta) +
+        #    sfunc(Telapsed+Tdelta, Lgrid, dll=DLL, alpha=alpha, beta=beta))
+        # Apply as prescribed by Tadjeran, 2006
+        src1 = 0.0
+        src2 = Tdelta * sfunc(Telapsed+dthalf, Lgrid, dll=DLL, alpha=alpha, beta=beta)
     else:
-        raise ValueError("Radial diffusion model %s not implemented" % DLL_model)
-        
+        src1 = 0.0
+        src2 = 0.0
 
-    DLL = alpha * Lgrid ** beta
-    return DLL, alpha, beta
+    # Apply solution operators to f.\
+    f=f+src1
+    f[0]=0; f[-1]=0
+    
+    dptr = ctypes.POINTER(ctypes.c_double)
+    r.advance(f.ctypes.data_as(dptr),
+              Lgrid.ctypes.data_as(dptr),
+              DLLm.ctypes.data_as(dptr), 
+              DLLm.ctypes.data_as(dptr), 
+              DLLp.ctypes.data_as(dptr), 
+              DLLp.ctypes.data_as(dptr), 
+              ct.c_double(Tdelta), NL)
+
+    f = f+src2
+    f[0]=0; f[-1]=0
+    
+    
+   # add source according to values in SRC...
+    if params['SRCmagn'].seconds > 0.0:
+        # setup source vector
+        S = get_local_accel(Lgrid, params, SRC_model='JK1')
+        f = f + S*Tdelta
+     
+    # add losses through magnetopause shadowing, time scale taken from MPloss
+    if params['MPloss'].seconds > 0.0:
+        # setup loss vector
+        LSS = n.zeros(NL)
+        LSS[n.where(Lgrid>params['Lmax'])] = -1./params['MPloss'].seconds
+        f = f*n.exp(LSS*Tdelta)
+        
+    # add losses inside plasma pause, time scale taken from PPloss
+    if params['PPloss'].seconds > 0.0:
+        # calculate plasma pause location after Carpenter & Anderson 1992
+        LSS = n.zeros(NL)
+        LSS[n.where(Lgrid<params['Lpp'])] = -1./params['PPloss'].seconds
+        f = f*n.exp(LSS*Tdelta)
+
+    return f
     
 # -----------------------------------------------
 def get_local_accel(Lgrid, params, SRC_model='JK1'):
