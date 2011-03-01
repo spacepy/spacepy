@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.44 $, $Date: 2011/02/28 21:20:55 $"
+__version__ = "$Revision: 1.45 $, $Date: 2011/03/01 22:12:27 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -12,6 +12,7 @@ from distutils.command.build import build as _build
 from distutils.command.install import install as _install
 import distutils.ccompiler
 from distutils.errors import DistutilsOptionError
+import distutils.sysconfig
 import glob
 from os import environ as ENVIRON
 import re
@@ -166,12 +167,10 @@ class build(_build):
         os.chdir(os.path.join('spacepy', 'libspacepy'))
         try:
             comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
-            extra = []
-            if sys.platform == 'linux2':
-                extra.append('-fPIC')
+            extra = distutils.sysconfig.get_config_vars('CCSHARED')
             sourcelist = list(glob.glob('*.c'))
             objects = comp.compile(sourcelist, extra_preargs=extra)
-            comp.link_shared_lib(objects, 'spacepy')
+            comp.link_shared_lib(objects, 'spacepy', libraries=['m'])
             fname = comp.library_filename('spacepy', lib_type='shared')
         except:
             print('libspacepy compile failed; some operations may be slow:')
