@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.45 $, $Date: 2011/03/01 22:12:27 $"
+__version__ = "$Revision: 1.46 $, $Date: 2011/03/01 22:30:57 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -162,23 +162,31 @@ class build(_build):
 
     def compile_libspacepy(self):
         """Compile the C library, libspacepy. JTN 20110224"""
-        fname = None
         olddir = os.getcwd()
         os.chdir(os.path.join('spacepy', 'libspacepy'))
         try:
             comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
             extra = distutils.sysconfig.get_config_vars('CCSHARED')
-            sourcelist = list(glob.glob('*.c'))
-            objects = comp.compile(sourcelist, extra_preargs=extra)
-            comp.link_shared_lib(objects, 'spacepy', libraries=['m'])
-            fname = comp.library_filename('spacepy', lib_type='shared')
+            sources = list(glob.glob('*.c'))
+            objects = [s[:-2] + '.o' for s in sources]
+            headers = [s[:-2] + '.h' for s in sources
+                       if os.path.exists(s[:-2] + '.h')]
+            #Assume every .o file associated with similarly-named .c file,
+            #and EVERY header file
+            outdated = [s for s, o in zip(sources, objects)
+                        if distutils.dep_util.newer(s, o) or
+                        distutils.dep_util.newer_group(headers, o)]
+            if outdated:
+                comp.compile(outdated, extra_preargs=extra)
+            if distutils.dep_util.newer_group(
+                objects, comp.library_filename('spacepy', lib_type='shared')):
+                comp.link_shared_lib(objects, 'spacepy', libraries=['m'])
         except:
             print('libspacepy compile failed; some operations may be slow:')
             (t, v, tb) = sys.exc_info()
             print(v)
         finally:
             os.chdir(olddir)
-        return fname
 
     def run(self):
         """Actually perform the build"""
