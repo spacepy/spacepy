@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.46 $, $Date: 2011/03/01 22:30:57 $"
+__version__ = "$Revision: 1.47 $, $Date: 2011/03/01 22:42:07 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -11,6 +11,7 @@ from distutils.core import setup
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
 import distutils.ccompiler
+import distutils.dep_util
 from distutils.errors import DistutilsOptionError
 import distutils.sysconfig
 import glob
