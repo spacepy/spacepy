@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.47 $, $Date: 2011/03/01 22:42:07 $"
+__version__ = "$Revision: 1.48 $, $Date: 2011/03/01 22:58:18 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -226,22 +226,29 @@ class install(_install):
 
     def run(self):
         """Does all checks, perform install, makes .spacepy directory"""
-        #test for python version 2.x where x>=5
+        #test for python version 2.x where x>=6
         try:
+            print('Checking Python >= 2.6...')
             dum = sys.version_info
-            if dum[0]==2:
-                assert dum[1]>5
+            assert (dum[0] >= 2) or (dum[0] == 2 and dum[1] >= 6)
+            print ('Checking for numpy...')
             import numpy
         except:
             raise Exception("""SpacePy requires Python 2.X, where X>=6.\n
             Numpy, Scipy and Matplotlib(>=0.99) are also required\n
             Please install suitable versions.""")
         try:
+            print ('Checking for scipy...')
             import scipy
+            print ('Checking for matplotlib...')
             import matplotlib
+            assert matplotlib.compare_versions(
+                matplotlib.__version__, '0.99.0')
         except:
             warnings.warn('''Missing Packages: SciPy and MatPlotLib are 
             required for large parts of this library.''')
+        else:
+            print('Dependencies OK.')
 
         _install.run(self)
 
