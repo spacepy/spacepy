@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.48 $, $Date: 2011/03/01 22:58:18 $"
+__version__ = "$Revision: 1.49 $, $Date: 2011/03/02 17:28:30 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -13,7 +13,6 @@ from distutils.command.install import install as _install
 import distutils.ccompiler
 import distutils.dep_util
 from distutils.errors import DistutilsOptionError
-import distutils.sysconfig
 import glob
 from os import environ as ENVIRON
 import re
@@ -167,18 +166,17 @@ class build(_build):
         os.chdir(os.path.join('spacepy', 'libspacepy'))
         try:
             comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
-            extra = distutils.sysconfig.get_config_vars('CCSHARED')
+            distutils.ccompiler.customize_compiler(comp)
             sources = list(glob.glob('*.c'))
             objects = [s[:-2] + '.o' for s in sources]
-            headers = [s[:-2] + '.h' for s in sources
-                       if os.path.exists(s[:-2] + '.h')]
+            headers = list(glob.glob('*.h'))
             #Assume every .o file associated with similarly-named .c file,
             #and EVERY header file
             outdated = [s for s, o in zip(sources, objects)
                         if distutils.dep_util.newer(s, o) or
                         distutils.dep_util.newer_group(headers, o)]
             if outdated:
-                comp.compile(outdated, extra_preargs=extra)
+                comp.compile(outdated)
             if distutils.dep_util.newer_group(
                 objects, comp.library_filename('spacepy', lib_type='shared')):
                 comp.link_shared_lib(objects, 'spacepy', libraries=['m'])
