@@ -33,12 +33,16 @@ class tFunctionTests(unittest.TestCase):
                      (2, 3),
                      (2, 29),
                      (12, 31),
-                     (12, 31)]
+                     ([12], [31])]
         for i, val in enumerate(inval):
             ans = t.doy2date(*val)
             ans2 = t.doy2date(*val, dtobj = True)
             self.assertEqual(real_ans[i] , ans)
-            self.assertEqual(real_ans[i], (ans2.month , ans2.day))
+            try:
+                self.assertEqual(real_ans[i],
+                                 ([ans2[0].month], [ans2[0].day]))
+            except TypeError:
+                self.assertEqual(real_ans[i], (ans2.month , ans2.day))
             
     def test_doy2datefail(self):
         '''doy2date should fail for bad input'''

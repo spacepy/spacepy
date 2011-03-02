@@ -80,7 +80,7 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.33 $, $Date: 2010/11/30 01:16:55 $"
+__version__ = "$Revision: 1.34 $, $Date: 2011/03/02 00:01:50 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -941,7 +941,7 @@ class Ticktock(object):
         a.getCDF() or a.CDF
         
         Return CDF time which is milliseconds since 01-Jan-0000 00:00:00.000. 
-        Year zero" is a convention chosen by NSSDC to measure epoch values. 
+        "Year zero" is a convention chosen by NSSDC to measure epoch values. 
         This date is more commonly referred to as 1 BC. Remember that 1 BC was a leap year. 
         The CDF date/time calculations do not take into account the changes to the Gregorian 
         calendar, and cannot be directly converted into Julian date/times.
@@ -1793,57 +1793,51 @@ def doy2date(year, doy, dtobj=False, flAns=False):
     V2: 02-Apr-2010: option to return date objects (SM)
     V3: 07-Apr-2010: modified to return datetime objects (SM)
     V4: 29-Nov-2010: added keyword flAns for floating point input (BAL)
+    V5: 01-Mar-2011: fixup for speed and readability (JTN)
     """
     import datetime
-    import numpy as n
 
     try:
-        if isinstance(doy, (list, n.ndarray)):
-            test = n.array(doy)
+        n_year = len(year)
+    except TypeError:
+        n_year = -1 #Special case: this is a scalar
+    try:
+        n_doy = len(doy)
+    except TypeError:
+        n_doy = -1
+    if n_doy != n_year:
+        raise ValueError('Day of year and year must have same length')
+
+    if n_year == -1:
+        if doy < 1:
+            raise ValueError(
+                'Day-of-Year less than 1 detected: DOY starts from 1')
+        if not flAns:
+            dt = datetime.datetime(int(year), 1, 1) + \
+                 datetime.timedelta(days=int(doy) - 1)
         else:
-            test = n.array([doy])
-        assert (test>=1).all()
-    except AssertionError:
+            dt = datetime.datetime(year, 1, 1) + \
+                 datetime.timedelta(days=float(doy) - 1)
+        if dtobj:
+            return dt
+        else:
+            return dt.month, dt.day
+
+    if min(doy) < 1:
         raise ValueError('Day-of-Year less than 1 detected: DOY starts from 1')
 
-    if isinstance(year, (list, n.ndarray)):
-        nTAI = len(year)
-        if not flAns:
-            year = n.array(year, dtype=int)
-            doy = n.array(doy, dtype=int)
-        else:
-            year = n.array(year)
-            doy = n.array(doy)
+    if flAns:
+        dateobj = [datetime.datetime(year[i], 1, 1) +
+                   datetime.timedelta(days=float(doy[i]) - 1)
+                   for i in range(n_year)]
     else:
-        nTAI = 1
-        if not flAns:
-            year = n.array([year], dtype=int)
-            doy = n.array([doy], dtype=int)
-        else:
-            year = n.array([year])
-            doy = n.array([doy])
-                
-    month = n.zeros(nTAI, dtype=int)
-    day = n.zeros(nTAI, dtype=int)
-    dateobj = ['']*nTAI
-    for i, iyear, idoy in zip( n.arange(nTAI), year, doy): 
-        if not flAns:
-            dateobj[i] = datetime.datetime(int(year[i]),1,1) + datetime.timedelta(days = int(doy[i]-1))
-        else:
-            dateobj[i] = datetime.datetime(year[i],1,1) + datetime.timedelta(days = (doy[i]-1.))
-        month[i] = dateobj[i].month
-        day[i] = dateobj[i].day
-    
-    if nTAI == 1:
-        if dtobj:
-            return dateobj[0]
-        else:
-            return month[0], day[0]
+        dateobj = [datetime.datetime(int(year[i]), 1, 1) +
+                   datetime.timedelta(days=int(doy[i]) - 1)
+                   for i in range(n_year)]        
+    if dtobj:
+        return dateobj
     else:
-        if dtobj:
-            return dateobj
-        else:
-            return month, day
+        return [dt.month for dt in dateobj], [dt.day for dt in dateobj]
 
 
 
