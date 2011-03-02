@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.50 $, $Date: 2011/03/02 18:53:36 $"
+__version__ = "$Revision: 1.51 $, $Date: 2011/03/02 21:27:09 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -169,28 +169,8 @@ class build(_build):
             comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
             if hasattr(distutils.ccompiler, 'customize_compiler'):
                 distutils.ccompiler.customize_compiler(comp)
-            elif comp.compiler_type == 'unix': #Have to do it by hand
-                #Based on Python 2.7,
-                #Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                #Python Software Foundation
-                (cc, opt, cflags, ccshared, ldshared, so_ext) = \
-                 distutils.sysconfig.get_config_vars(
-                    'CC', 'OPT', 'CFLAGS', 'CCSHARED', 'LDSHARED', 'SO')
-                if 'CC' in os.environ:
-                    cc = os.environ['CC']
-                if 'LDSHARED' in os.environ:
-                    ldshared = os.environ['LDSHARED']
-                if 'LDFLAGS' in os.environ:
-                    ldshared = ldshared + ' ' + os.environ['LDFLAGS']
-                if 'CFLAGS' in os.environ:
-                    cflags = opt + ' ' + os.environ['CFLAGS']
-                    ldshared = ldshared + ' ' + os.environ['CFLAGS']
-                cc_cmd = cc + ' ' + cflags
-                comp.set_executables(
-                    compiler=cc_cmd,
-                    compiler_so=cc_cmd + ' ' + ccshared,
-                    linker_so=ldshared, linker_exe=cc)
-                comp.shared_lib_extension = so_ext
+            else:
+                distutils.sysconfig.customize_compiler(comp)
             sources = list(glob.glob('*.c'))
             objects = [s[:-2] + '.o' for s in sources]
             headers = list(glob.glob('*.h'))
