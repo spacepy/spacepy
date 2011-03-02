@@ -96,4 +96,5 @@ else:
     load_call_dict(functions, library)
     for f in functions:
         globals()[f] = getattr(library, f)
-
+    #Clean up no-longer-useful bits
+    del f, load_call_dict, load_lib, functions, ctypes, os, sys
