@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.51 $, $Date: 2011/03/02 21:27:09 $"
+__version__ = "$Revision: 1.52 $, $Date: 2011/03/02 21:41:27 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -158,6 +158,7 @@ class build(_build):
             print '------------------------------------------------------'
             print 'WARNING: Something went wrong with compiling irbemlib.'
             print '------------------------------------------------------'
+            print 'A different Fortran compiler may help? (--fcompiler option)'
         os.chdir('../../..')
         return
 
