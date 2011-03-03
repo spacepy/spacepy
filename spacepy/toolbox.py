@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.84 $, $Date: 2011/03/03 01:20:11 $"
+__version__ = "$Revision: 1.85 $, $Date: 2011/03/03 19:29:56 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -589,7 +589,7 @@ def update(all=True, omni=False, leapsecs=False):
         stat8 = [val[11] for val in tab]
         stat6 = [val[27] for val in tab]
 
-        tab = n.array(tab, dtype='float')
+        tab = n.array(tab, dtype='float32')
         # take out where Dst not available ( = 99999) or year == 0
         idx = n.where((tab[:,12] !=99.0) & (tab[:,0] != 0))[0]
         tab = tab[idx,:]
@@ -600,18 +600,20 @@ def update(all=True, omni=False, leapsecs=False):
         # sort through and make an omni dictionary
         # extract keys from line above
         for ikey, i  in zip(keys,range(len(keys))):
-            omnidata[ikey] = tab[:,i]
+            if ikey in ('Year', 'DOY', 'Hr'):
+                omnidata[ikey] = n.array(tab[:, i], dtype='int16')
+            else:
+                omnidata[ikey] = tab[:,i]
 
         # add TAI to omnidata
         nTAI = len(omnidata['DOY'])
-        omnidata['RDT'] = n.zeros(nTAI)
 
         # add interpolation quality flags
         omnidata['Qbits'] = {}
-        arr = n.array(list(n.array(stat8).tostring()), dtype=int).reshape((8,nTAI))
+        arr = n.array(list(n.array(stat8).tostring()), dtype=n.byte).reshape((8,nTAI))
         for ik, key in enumerate(['ByIMF', 'BzIMF', 'velo', 'dens', 'Pdyn', 'G1', 'G2', 'G3']):
             omnidata['Qbits'][key] = arr[ik,:]
-        arr = n.array(list(n.array(stat6).tostring()), dtype=int).reshape((6,nTAI))
+        arr = n.array(list(n.array(stat6).tostring()), dtype=n.byte).reshape((6,nTAI))
         for ik, key in enumerate(['W1', 'W2', 'W3', 'W4', 'W5', 'W6']):
             omnidata['Qbits'][key] = arr[ik,:]
 
@@ -622,7 +624,7 @@ def update(all=True, omni=False, leapsecs=False):
         # add time information to omni pickle (long loop)
         omnidata['UTC'] = [datetime.datetime(int(omnidata['Year'][i]), 1, 1) +
                  datetime.timedelta(days=int(omnidata['DOY'][i]) - 1,
-                                    hours=omnidata['Hr'][i])
+                                    hours=int(omnidata['Hr'][i]))
                  for i in range(nTAI)]
 
         omnidata['ticks'] = Ticktock(omnidata['UTC'], 'UTC')
