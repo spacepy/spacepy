@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.86 $, $Date: 2011/03/03 19:51:25 $"
+__version__ = "$Revision: 1.87 $, $Date: 2011/03/03 23:07:30 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -346,7 +346,7 @@ def feq(x, y, precision=0.0000005):
 
 
 # -----------------------------------------------
-def dictree(in_dict, verbose=False, spaces=None, levels=True):
+def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False):
     """ pretty print a dictionary tree
 
     @param in_dict: a complex dictionary (with substructures)
@@ -365,6 +365,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
     @version: V1: 20-Jan-2010
     @version: V1.1: 24-Feb-2010 S. Morley, added verbose option
     @version: v1.2: 17-May-2010 S. Morley, added levels option
+    @version: v1.3: 3-Mar-2011 S. Morley, added attrs support for datamodel
 
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
     >>> dictree(d)
@@ -379,7 +380,14 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
     try:
         assert hasattr(in_dict, 'keys')
     except AssertionError:
-        raise TypeError('dictree: Input must be dictionary-like')
+        try:
+            assert hasattr(in_dict, 'attrs')
+        except:
+            raise TypeError('dictree: Input must be dictionary-like')
+        else:
+            if attrs:
+                dictree(in_dict.attrs, spaces = ':', verbose = verbose, levels = levels)
+            return None
 
     if not spaces:
         spaces = ''
@@ -394,25 +402,26 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True):
                 levels = None
 
     for key in sorted(in_dict.keys()):
+        bar = '|____' + str(key)
         if verbose:
             typestr = str(type(in_dict[key])).split("'")[1]
-            if type(in_dict[key]) != dict:
+            #check entry for dict-like OR .attrs dict
+            try:
+                dimstr = in_dict[key].shape
+                dimstr = ' ' + str(dimstr)
+            except AttributeError:
                 try:
-                    dimstr = in_dict[key].shape
-                    dimstr = ' ' + str(dimstr)
-                except AttributeError:
-                    try:
-                        dimstr = len(in_dict[key])
-                        dimstr = ' [' + str(dimstr) + ']'
-                    except:
-                        dimstr = ''
-                print(spaces + '|____' + key + ' ('+ typestr + dimstr + ')')
-            else:
-                print(spaces + '|____' + key)
+                    dimstr = len(in_dict[key])
+                    dimstr = ' [' + str(dimstr) + ']'
+                except:
+                    dimstr = ''
+            print(spaces + bar + ' ('+ typestr + dimstr + ')')
         else:
-            print(spaces + '|____' + key)
+            print(spaces + bar)
         if hasattr(in_dict[key], 'keys') and levels:
-            dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels)
+            dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels, attrs=attrs)
+        if hasattr(in_dict[key], 'attrs') and attrs:
+            dictree(in_dict[key].attrs, spaces = spaces + '    :', verbose = verbose, levels = levels, attrs=attrs)
 
     return None
 
