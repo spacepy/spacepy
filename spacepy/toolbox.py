@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.85 $, $Date: 2011/03/03 19:29:56 $"
+__version__ = "$Revision: 1.86 $, $Date: 2011/03/03 19:51:25 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -600,7 +600,7 @@ def update(all=True, omni=False, leapsecs=False):
         # sort through and make an omni dictionary
         # extract keys from line above
         for ikey, i  in zip(keys,range(len(keys))):
-            if ikey in ('Year', 'DOY', 'Hr'):
+            if ikey in ('Year', 'DOY', 'Hr', 'Dst'):
                 omnidata[ikey] = n.array(tab[:, i], dtype='int16')
             else:
                 omnidata[ikey] = tab[:,i]
@@ -629,6 +629,9 @@ def update(all=True, omni=False, leapsecs=False):
 
         omnidata['ticks'] = Ticktock(omnidata['UTC'], 'UTC')
         omnidata['RDT'] = omnidata['ticks'].RDT
+        del omnidata['ticks'] #Can be quickly regenerated on import
+        del omnidata['Year']
+        del omnidata['Hr']
 
         # save as pickle
         savepickle(omni_fname_pkl, omnidata)

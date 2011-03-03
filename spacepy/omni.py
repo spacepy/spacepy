@@ -3,7 +3,7 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.15 $, $Date: 2010/11/16 23:58:48 $"
+__version__ = "$Revision: 1.16 $, $Date: 2011/03/03 19:51:25 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 # -----------------------------------------------
@@ -122,7 +122,8 @@ def get_G123(TAI, omnidata):
 #-----------------------------------------------
 
 # load omni file during import
-from spacepy import DOT_FLN, loadpickle, help
+from spacepy import DOT_FLN, loadpickle, help, time
+import numpy as n
 import os
 #dotfln = os.environ['HOME']+'/.spacepy'
 omnifln = DOT_FLN+'/data/omnidata.pkl'
@@ -131,3 +132,11 @@ try:
 except:
     print("No OMNI data found. This module has limited functionality.")
     print("Run spacepy.toolbox.update(omni=True) to download OMNI data")
+if not 'ticks' in omnidata:
+    omnidata['ticks'] = time.Ticktock(omnidata['UTC'], 'UTC')
+if not 'Hr' in omnidata:
+    omnidata['Hr'] = n.fromiter((dt.hour for dt in omnidata['UTC']),
+                                dtype='int16', count=len(omnidata['UTC']))
+if not 'Year' in omnidata:
+    omnidata['Year'] = n.fromiter((dt.year for dt in omnidata['UTC']),
+                                  dtype='int16', count=len(omnidata['UTC']))
