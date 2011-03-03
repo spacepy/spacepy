@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.83 $, $Date: 2011/03/03 00:47:09 $"
+__version__ = "$Revision: 1.84 $, $Date: 2011/03/03 01:20:11 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -146,22 +146,31 @@ def loadpickle(fln):
 
     @version: V1: 20-Jan-2010
 
+    @note: If L{fln} is not found, but the same filename with '.gz'
+           is found, will attempt to open the .gz as a gzipped file.
+
     >>> d = loadpickle('test.pbin')
     """
     try:
         import cPickle as pickle
     except ImportError:
         import pickle
-
-    fh = open(fln, 'rb')
-    content = pickle.load(fh)
-    fh.close()
-
-    return content
+    import os.path
+    
+    if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
+        import gzip
+        with open(fln + '.gz') as fh:
+            gzh = gzip.GzipFile(fileobj=fh)
+            contents = pickle.load(gzh)
+            gzh.close()
+        return contents
+    else:
+        with open(fln, 'rb') as fh:
+            return pickle.load(fh)
 
 
 # -----------------------------------------------
-def savepickle(fln, dict):
+def savepickle(fln, dict, compress=False):
     """
     save dictionary variable dict to a pickle with filename fln
 
@@ -169,6 +178,9 @@ def savepickle(fln, dict):
     @type fln: string
     @param dict:  container with stuff
     @type dict: dictionary
+    @param compress: write as a gzip-compressed file
+                     (.gz will be added to L{fln})
+    @type compress: bool
 
     @see: loadpickle
 
@@ -177,6 +189,7 @@ def savepickle(fln, dict):
     @contact: jkoller@lanl.gov
 
     @version: V1: 20-Jan-2010
+    @version: V2: 02-Mar-2011 JTN
 
     >>> d = {'grade':[1,2,3], 'name':['Mary', 'John', 'Chris']}
     >>> savepickle('test.pbin', d)
@@ -186,10 +199,17 @@ def savepickle(fln, dict):
         import cPickle as pickle
     except:
         import pickle
+    if compress:
+        import gzip
 
-    fh = open(fln, 'wb')
-    pickle.dump(dict, fh, 2) # 2 ... fast binary
-    fh.close()
+    if compress:
+        with open(fln + '.gz', 'wb') as fh:
+            gzh = gzip.GzipFile(fln, 'wb', compresslevel=3, fileobj=fh)
+            pickle.dump(dict, gzh, 2)
+            gzh.close()
+    else:
+        with open(fln, 'wb') as fh:
+            pickle.dump(dict, fh, 2) # 2 ... fast binary
 
     return
 
