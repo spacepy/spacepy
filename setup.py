@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.52 $, $Date: 2011/03/02 21:41:27 $"
+__version__ = "$Revision: 1.53 $, $Date: 2011/03/03 21:41:54 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -79,15 +79,26 @@ class build(_build):
     
     # -------------------------------------
     def compile_irbempy(self):
+        fcompiler = self.fcompiler
+        irbemdir = 'irbem-lib-2010-12-21-rev275'
+        srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
+        sofile = os.path.join('spacepy', 'irbempy', 'irbempylib.so')
+        sources = glob.glob(os.path.join(srcdir, '*.f')) + \
+                  glob.glob(os.path.join(srcdir, '*.inc'))
+        if not distutils.dep_util.newer_group(sources, sofile):
+            #up to date
+            return
         if not sys.platform in ('darwin', 'linux2'):
             print('%s not supported at this time' % sys.platform)
             print('IRBEM will not be available')
             return 
+        if self.fcompiler == 'pg' and sys.platform == 'darwin':
+            print('Portland Group compiler "pg" not supported on Mac OS')
+            print('IRBEM will not be available')
+            return 
 
-        fcompiler = self.fcompiler
         # compile irbemlib
-        os.chdir('spacepy/irbempy/irbem-lib-2010-12-21-rev275')
-
+        os.chdir(os.path.join('spacepy', 'irbempy', irbemdir))
         F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
         functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
                      'coord_trans1 find_magequator1', 'find_mirror_point1', 
@@ -116,43 +127,26 @@ class build(_build):
 
         # compile (platform dependent)
         os.chdir('source')
-        if sys.platform == 'darwin': # then mac OS
-            if fcompiler == 'pg':
-                raise NotImplementedError('Portland Group compiler option "pg" is not supported on Mac OS with f2py')
-                #os.system('pgf77 -c -Mnosecond_underscore -w -fastsse *.f')
-                #os.system('libtool -static -o libBL2.a *.o')
-                #os.chdir('..')
-                #os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
-            elif fcompiler == 'gnu':
-                os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
-                os.system('libtool -static -o libBL2.a *.o')
-                os.chdir('..')
-                os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore ')
-            else:
-                os.system('gfortran -c -w -O2 -fPIC -ffixed-line-length-none *.f')
-                os.system('libtool -static -o libBL2.a *.o')
-                os.chdir('..')
-                os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
-        elif sys.platform == 'linux2': # then linux
-            if fcompiler == 'pg':
-                os.system('pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f')
-                os.system('ar -r libBL2.a *.o')
-                os.system('ranlib libBL2.a')
-                os.chdir('..')
-                os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=pg')
-            elif fcompiler == 'gnu':           
-                os.system('g77 -c -w -O2 -fPIC -fno-second-underscore *.f')
-                os.system('ar -r libBL2.a *.o')
-                os.system('ranlib libBL2.a')
-                os.chdir('..')
-                os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu --f77flags=-fno-second-underscore')
-            else:
-                os.system('gfortran -c -w -O2 -fPIC -ffixed-line-length-none *.f')
-                os.system('ar -r libBL2.a *.o')
-                os.system('ranlib libBL2.a')
-                os.chdir('..')
-                os.system('f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 --fcompiler=gnu95')
-
+        compile_cmd = {
+            'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
+            'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
+            'gnu95': 'gfortran -c -w -O2 -fPIC -ffixed-line-length-none *.f',
+            }
+        f2py_flags = {
+            'pg': '--fcompiler=pg',
+            'gnu': '--fcompiler=gnu --f77flags=-fno-second-underscore',
+            'gnu95': '--fcompiler=gnu95',
+            }
+        os.system(compile_cmd[fcompiler])
+        if sys.platform == 'darwin':
+            os.system('libtool -static -o libBL2.a *.o')
+        elif sys.platform == 'linux2':
+            os.system('ar -r libBL2.a *.o')
+            os.system('ranlib libBL2.a')
+        os.chdir('..')
+        os.system(
+            'f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 ' +
+            f2py_flags[fcompiler])
         err = os.system('mv -f irbempylib.so ../')
         if err:
             print '------------------------------------------------------'
@@ -195,12 +189,7 @@ class build(_build):
     def run(self):
         """Actually perform the build"""
         # run compile for irbem-lib first
-        if os.path.exists(os.path.join('spacepy', 'irbempy', 'irbempylib.so')):
-            ans = query_yes_no('\nDo you want to recompile the IRBEM library?', default="no")
-            if ans=='yes':
-                self.compile_irbempy()
-        else:
-            self.compile_irbempy()
+        self.compile_irbempy()
         # Compile PyBats
         self.compile_pybats()
         # Compile libspacepy
