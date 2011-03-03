@@ -9,6 +9,22 @@ import warnings
 
 import numpy
 
+"""
+datamodel class is a data model implementation meant to mirror the functionality
+of the data model output from pycdf even if implemented differently
+ * dmarray - numpy arrays that support .attrs for information about the data
+ * SpaceData - base class that extends dict so be extended by others
+    Currently used in GPScode and other projects
+
+ Example:
+ >>> import spacepy.datamodel as datamodel
+ >>> position = datamodel.dmarray([1,2,3], attrs={'coord_system':'GSM'})
+ >>> position
+ dmarray([1, 2, 3])
+ >>> position.attrs
+ {'coord_system': 'GSM'}
+"""
+
 class dmarray(numpy.ndarray):
     """
     Container for data within a SpaceData object
@@ -51,5 +67,3 @@ class SpaceData(dict):
         Abstract method, reimplement
         """
         raise(ValueError("Abstract method called, reimplement __repr__"))
-
-
