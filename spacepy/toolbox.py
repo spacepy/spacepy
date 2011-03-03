@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.82 $, $Date: 2011/02/14 18:43:12 $"
+__version__ = "$Revision: 1.83 $, $Date: 2011/03/03 00:47:09 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -524,7 +524,6 @@ def update(all=True, omni=False, leapsecs=False):
         import urllib as u
     else:
         import urllib.request as u
-    #import time
 
     datadir = DOT_FLN+'/data'
 
@@ -547,12 +546,6 @@ def update(all=True, omni=False, leapsecs=False):
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         A = n.array(data.split('\n'))
-        #dd = data.split('\n')
-        # save data as ascii file
-        #fh = open(omni_fname_pkl, 'w')
-        #fh.writelines(data)
-        #fh.flush()
-        #fh.close
         print("Now pickling (this will take a few minutes) ...")
 
         # create a keylist
@@ -571,17 +564,10 @@ def update(all=True, omni=False, leapsecs=False):
 
         # remove keyword lines and empty lines as well
         idx = n.where(A != '')[0]
-        A = A[idx[1:]]
-
         # put it into a 2D table
-        #tab = n.zeros((len(A),len(keys)))
-        tab = [['']*len(keys)]*len(A)
-        stat8 = ['']*(len(A))
-        stat6 = ['']*(len(A))
-        for i in n.arange(len(A)):
-            tab[i] = A[i].split()
-            stat8[i] = A[i].split()[11]
-            stat6[i] = A[i].split()[27]
+        tab = [val.split() for val in A[idx[1:]]]
+        stat8 = [val[11] for val in tab]
+        stat6 = [val[27] for val in tab]
 
         tab = n.array(tab, dtype='float')
         # take out where Dst not available ( = 99999) or year == 0
@@ -598,18 +584,15 @@ def update(all=True, omni=False, leapsecs=False):
 
         # add TAI to omnidata
         nTAI = len(omnidata['DOY'])
-        omnidata['UTC'] = ['']*nTAI
         omnidata['RDT'] = n.zeros(nTAI)
 
-
-        #t1 = time.time()
         # add interpolation quality flags
         omnidata['Qbits'] = {}
+        arr = n.array(list(n.array(stat8).tostring()), dtype=int).reshape((8,nTAI))
         for ik, key in enumerate(['ByIMF', 'BzIMF', 'velo', 'dens', 'Pdyn', 'G1', 'G2', 'G3']):
-            arr = n.array(list(n.array(stat8).tostring()), dtype=int).reshape((8,nTAI))
             omnidata['Qbits'][key] = arr[ik,:]
+        arr = n.array(list(n.array(stat6).tostring()), dtype=int).reshape((6,nTAI))
         for ik, key in enumerate(['W1', 'W2', 'W3', 'W4', 'W5', 'W6']):
-            arr = n.array(list(n.array(stat6).tostring()), dtype=int).reshape((6,nTAI))
             omnidata['Qbits'][key] = arr[ik,:]
 
         #remove string status keys
@@ -617,20 +600,14 @@ def update(all=True, omni=False, leapsecs=False):
         foo = omnidata.pop('8_status')
 
         # add time information to omni pickle (long loop)
-        for i in range(nTAI):
-            year = int(omnidata['Year'][i])
-            doy = int(omnidata['DOY'][i])
-            month, day = doy2date(year,doy)
-            UT_hr = omnidata['Hr'][i]
-            hour, minute = divmod(UT_hr*60., 60)
-            minute, second = divmod(minute*60., 60)
-            omnidata['UTC'][i] = datetime.datetime(year, month, day, int(hour), int(minute), int(second))
+        omnidata['UTC'] = [datetime.datetime(int(omnidata['Year'][i]), 1, 1) +
+                 datetime.timedelta(days=int(omnidata['DOY'][i]) - 1,
+                                    hours=omnidata['Hr'][i])
+                 for i in range(nTAI)]
 
         omnidata['ticks'] = Ticktock(omnidata['UTC'], 'UTC')
         omnidata['RDT'] = omnidata['ticks'].RDT
 
-        #t2 = time.time()
-        #print t2-t1
         # save as pickle
         savepickle(omni_fname_pkl, omnidata)
 
