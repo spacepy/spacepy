@@ -1,19 +1,12 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
-
-import os, glob, re
-import datetime
-import mmap, numbers
-import itertools
-import warnings
-
-import numpy
-
 """
-datamodel class is a data model implementation meant to mirror the functionality
-of the data model output from pycdf even if implemented differently
+The datamodel classes consitute a data model implementation
+meant to mirror the functionality of the data model output from pycdf, though 
+implemented slightlydifferently.
+
+This contains the following classes:
  * dmarray - numpy arrays that support .attrs for information about the data
- * SpaceData - base class that extends dict so be extended by others
+ * SpaceData - base class that extends dict, to be extended by others
     Currently used in GPScode and other projects
 
  Example:
@@ -25,6 +18,9 @@ of the data model output from pycdf even if implemented differently
  {'coord_system': 'GSM'}
 """
 
+from __future__ import division
+import numpy
+
 class dmarray(numpy.ndarray):
     """
     Container for data within a SpaceData object
@@ -34,6 +30,14 @@ class dmarray(numpy.ndarray):
     @contact: balarsen@lanl.gov
 
     @version: V1: 01-Mar-2011 Based on GPSarray from GPScode codebase
+
+    Example:
+    >>> import spacepy.datamodel as datamodel
+    >>> position = datamodel.dmarray([1,2,3], attrs={'coord_system':'GSM'})
+    >>> position
+    dmarray([1, 2, 3])
+    >>> position.attrs
+    {'coord_system': 'GSM'}
     """
     def __new__(cls, input_array, attrs={}):
         # Input array is an already formed ndarray instance
@@ -52,12 +56,21 @@ class dmarray(numpy.ndarray):
 
 class SpaceData(dict):
     """
-    Base datamodel class
+    Base datamodel class extending dict
+
+    Currently has just method stubs, no real functionality
+
+    @author: Steve Morley
+    @organization: Los Alamos National Lab
+    @contact: smorley@lanl.gov
+
+    @version: V1: 01-Mar-2011 Based on GPSarray from GPScode codebase
     """
 
     def __init__(self, *args, **kwargs):
         """
         Base class for "Data Model" representation data
+
         Abstract method, reimplement
         """
         raise(ValueError("Abstract method called, reimplement __init__"))
