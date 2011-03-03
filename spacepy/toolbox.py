@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.87 $, $Date: 2011/03/03 23:07:30 $"
+__version__ = "$Revision: 1.88 $, $Date: 2011/03/03 23:59:08 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -366,7 +366,8 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False):
     @version: V1.1: 24-Feb-2010 S. Morley, added verbose option
     @version: v1.2: 17-May-2010 S. Morley, added levels option
     @version: v1.3: 3-Mar-2011 S. Morley, added attrs support for datamodel
-
+    
+    Example:
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
     >>> dictree(d)
     +
@@ -374,7 +375,22 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False):
         |____level1
         |____level2
     |____name
-
+    
+    More complicated example using a datamodel:
+    >>> counts = datamodel.dmarray([2,4,6], attrs={'units': 'cts/s'})
+    >>> data = {'counts': counts, 'PI': 'Dr Zog'}
+    >>> dictree(data)
+    +
+    |____PI
+    |____counts
+    >>> dictree(data, attrs=True, verbose=True)
+    +
+    |____PI (str [6])
+    |____counts (datamodel.dmarray (3,))
+        :|____units (str [5])
+        
+    Attributes of, e.g., a CDF or a datamodel type object (obj.attrs)
+    are denoted by a colon.
     """
 
     try:
