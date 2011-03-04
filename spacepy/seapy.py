@@ -164,8 +164,7 @@ class Sea(object):
             
         return time,t_epoch
     
-    def sea(self, storedata=False, quartiles=True, ci=False, mad=False, 
-        ci_quan='median'):
+    def sea(self, **kwargs):
         """Method called to perform superposed epoch analysis on data in object.
         
         Inputs:
@@ -183,17 +182,26 @@ class Sea(object):
         
         A basic plot can be raised with the obj.plot() method
         """
+        #check defaults
+        defaults = {'storedata': False, 'quartiles': True, 'ci': False, 
+                    'mad': False, 'ci_quan': 'median'}
+        for default in defaults:
+            if default not in kwargs:
+                kwargs[default] = defaults[default]
         
         #ensure all input is np array
         delt = float(self.delta)
-        y = np.array(self.data, dtype=float)
+        if isinstance(self.data, np.ndarray):
+            y = self.data
+        else:
+            y = np.array(self.data, dtype=float)
         
-        if ci:
-            quartiles, mad = False, False
-        if mad:
-            quartiles, ci = False, False
+        if kwargs['ci']:
+            kwargs['quartiles'], kwargs['mad'] = False, False
+        if kwargs['mad']:
+            kwargs['quartiles'], kwargs['ci'] = False, False
         
-        time,t_epoch = self._timeepoch(delt)
+        time, t_epoch = self._timeepoch(delt)
             
         #build SEA matrix and perform analysis
         wind = self.window
@@ -206,30 +214,38 @@ class Sea(object):
             sea_slice = y[j[0][0]-wind:j[0][0]+wind+1]
             y_sea[i,0:] = sea_slice
         
-        #find SEA mean, median and percentiles - exclude NaNs
-        y_sea_m = ma.masked_where(np.isnan(y_sea), y_sea)
+        #find SEA mean, median and percentiles - exclude NaNs (or badval)
+        try:
+            badval = kwargs['badval']
+        except KeyError:
+            badval = np.nan
+        if badval == np.nan:
+            y_sea_m = ma.masked_where(np.isnan(y_sea), y_sea)
+        else:
+            y_sea_m = ma.masked_values(y_sea, badval)
         self.semean = [np.mean(y_sea_m[:,i].compressed()) for i in range(m)]
         self.semedian = [np.median(y_sea_m[:,i].compressed()) for i in range(m)]
         self.semean, self.semedian = np.array(self.semean), np.array(self.semedian)
         self.bound_low = np.zeros((m,1))
         self.bound_high = np.zeros((m,1))
         
-        if quartiles:
+        if kwargs['quartiles']:
             from matplotlib.mlab import prctile
             for i in range(m):
                 dum = np.sort(y_sea_m[:,i].compressed())
                 qul = prctile(dum,p=(25,75))
                 self.bound_low[i], self.bound_high[i] = qul[0], qul[1]
-        elif ci: #bootstrapped confidence intervals (95%)
+        elif kwargs['ci']: #bootstrapped confidence intervals (95%)
             from spacepy.poppy import boots_ci
-            if ci_quan == 'mean':
+            if kwargs['ci_quan'] == 'mean':
                 ci_func = lambda x: np.mean(x)
             else:
                 ci_func = lambda x: np.median(x)
             for i in range(m):
                 dum = np.sort(y_sea_m[:,i].compressed())
-                self.bound_low[i], self.bound_high[i] = boots_ci(dum, 800, 95, ci_func)
-        elif mad: #median absolute deviation
+                self.bound_low[i], self.bound_high[i] = \
+                     boots_ci(dum, 800, 95, ci_func)
+        elif kwargs['mad']: #median absolute deviation
             from spacepy.toolbox import medAbsDev
             for i in range(m):
                 dum = np.sort(y_sea_m[:,i].compressed())
@@ -239,7 +255,7 @@ class Sea(object):
         
         self.x = np.linspace(-1.*self.window*self.delta, self.window*self.delta, \
          len(self.semedian))
-        if storedata:
+        if kwargs['storedata']:
             self.datacube = y_sea_m
             print('sea(): datacube added as new attribute')
         
