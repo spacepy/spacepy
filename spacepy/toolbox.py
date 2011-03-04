@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.88 $, $Date: 2011/03/03 23:59:08 $"
+__version__ = "$Revision: 1.89 $, $Date: 2011/03/04 00:01:51 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -357,6 +357,8 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False):
     @type spaces: string
     @keyword levels: number of levels to recurse through (True means all)
     @type levels: integer
+    @keyword attrs: display information for attributes
+    @type levels: boolean
 
     @author: Josef Koller
     @organization: Los Alamos National Lab
