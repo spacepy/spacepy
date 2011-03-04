@@ -41,9 +41,11 @@ smorley@lanl.gov
 Los Alamos National Laboratory, ISR-1,
 PO Box 1663, Los Alamos, NM 87545
 """
+from __future__ import division
 
 import numpy as np
 import numpy.ma as ma
+import datetime as dt
 import spacepy.toolbox as tb
 from spacepy import help
 import matplotlib as mpl
@@ -66,7 +68,6 @@ class Sea(object):
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, window=3., delta=1.):
-        import datetime as dt
         from matplotlib.dates import date2num
         self.data = np.array(data, dtype=float)
         self.times = times
@@ -115,7 +116,6 @@ class Sea(object):
         return 'Bad epochs restored to obj.epochs attribute'
     
     def _timeepoch(self,delt):
-        import datetime as dt
         from matplotlib.dates import date2num,num2date
         #check type of time input and throw error message
         el1,ep1 = self.times[0], self.epochs[0]
@@ -447,7 +447,6 @@ class Sea2d(Sea):
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, window=3., delta=1., y=[]):
-        import datetime as dt
         self.data = np.array(data, dtype=float)
         self.times = times
         self.epochs = epochs
@@ -489,8 +488,6 @@ class Sea2d(Sea):
         
         A basic plot can be raised with the obj.plot() method
         """
-        
-        import datetime as dt
         from matplotlib.dates import date2num
         
         #ensure all input is np array or correct form
@@ -809,8 +806,6 @@ def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
     =======
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
-    import datetime as dt
-    
     if iso==False:
         from numpy import loadtxt, zeros
 
