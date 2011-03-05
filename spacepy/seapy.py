@@ -45,13 +45,14 @@ from __future__ import division
 
 import numpy as np
 import numpy.ma as ma
+import numbers
 import datetime as dt
 import spacepy.toolbox as tb
 from spacepy import help
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-__author__ = 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)'
+__author__ = 'Steve Morley (smorley@lanl.gov)'
 
 class Sea(object):
     """SeaPy Superposed epoch analysis object
@@ -67,11 +68,12 @@ class Sea(object):
     =======
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
-    def __init__(self, data, times, epochs, window=3., delta=1.):
+    def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
         from matplotlib.dates import date2num
         self.data = np.array(data, dtype=float)
         self.times = times
         self.epochs = epochs
+        self.verbose = verbose
         if type(delta)==dt.timedelta:
             #t_delt = date2num(times[1])-date2num(times[0])
             t_delt = delta.days + delta.seconds/86400
@@ -119,14 +121,12 @@ class Sea(object):
         from matplotlib.dates import date2num,num2date
         #check type of time input and throw error message
         el1,ep1 = self.times[0], self.epochs[0]
-        el1num = ((type(el1) == int) or (type(el1) == float) or \
-        (type(el1) == int) or (type(el1)==np.float64))
-        ep1num = ((type(ep1) == int) or (type(ep1) == float) or \
-        (type(ep1) == int) or (type(ep1)==np.float64))
-        if (type(el1) == dt.datetime) and (type(el1) == type(self.epochs[0])):
+        el1num = isinstance(el1, numbers.Number) or (type(el1)==np.float64)
+        ep1num = isinstance(ep1, numbers.Number) or (type(ep1)==np.float64)
+        if isinstance(el1, dt.datetime) and (type(el1) == type(self.epochs[0])):
             #both time and epochs are datetime objects
             #convert to serial time
-            print('converting to serial time')
+            if self.verbose: print('converting to serial time')
             dum = date2num(self.epochs)
             t_epoch = np.array(dum)
             dum = date2num(self.times)
@@ -134,7 +134,7 @@ class Sea(object):
             ser_flag=False
         elif el1num and ep1num:
             #time is serial, do nothing
-            print('time is serial')
+            if self.verbose: print('time is serial')
             t_epoch = np.array(self.epochs, dtype=float)
             time = np.array(self.times, dtype=float)
             ser_flag=True
@@ -146,16 +146,17 @@ class Sea(object):
         if len(lose0)>0 and len(lose1)>0:
             linds = np.union1d(lose0[0],lose1[0])
             if len(linds)>0:
-                print('sea(): %s out-of-range epochs moved to badepochs attribute'\
+                if self.verbose: print('sea(): %s out-of-range epochs moved to badepochs attribute'\
                 % len(linds))
             if ser_flag:
                 self.badepochs = t_epoch[linds]
             else:
                 self.badepochs = num2date(t_epoch[linds])
+            ##TODO: replace following two lines with calls to tOverlapHalf
             keep0 = np.where(t_epoch <= time[-1]-(self.window*self.delta))
             keep1 = np.where(t_epoch >= time[0]+(self.window*self.delta))
             kinds = np.intersect1d(keep0[0],keep1[0])
-            if ser_flag: #if serial transform flagged, output to datetime obj.
+            if not ser_flag: #if serial transform flagged, output to datetime obj.
                 t_epoch = date2num(t_epoch[kinds])
                 time = date2num(self.times)
             else:
@@ -249,7 +250,7 @@ class Sea(object):
             from spacepy.toolbox import medAbsDev
             for i in range(m):
                 dum = np.sort(y_sea_m[:,i].compressed())
-                spread_mad = medAbsDev(data)
+                spread_mad = medAbsDev(dum)
                 self.bound_low[i] = self.semedian[i]-spread_mad
                 self.bound_high[i] = self.semedian[i]+spread_mad
         
