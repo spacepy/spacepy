@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.89 $, $Date: 2011/03/04 00:01:51 $"
+__version__ = "$Revision: 1.90 $, $Date: 2011/03/07 19:22:56 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -129,6 +129,7 @@ def tCommon(ts1, ts2, mask_only=True):
 
         return dum1, dum2
 
+
 def loadpickle(fln):
     """
     load a pickle and return content as dictionary
@@ -158,19 +159,25 @@ def loadpickle(fln):
     import os.path
     
     if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
-        import gzip
-        with open(fln + '.gz') as fh:
-            gzh = gzip.GzipFile(fileobj=fh)
-            contents = pickle.load(gzh)
-            gzh.close()
-        return contents
+        try:
+            import zlib
+            with open(fln + '.gz', 'rb') as fh:
+                return pickle.loads(
+                    zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS))
+        except MemoryError:
+            import gzip
+            with open(fln + '.gz') as fh:
+                gzh = gzip.GzipFile(fileobj=fh)
+                contents = pickle.load(gzh)
+                gzh.close()
+            return contents
     else:
         with open(fln, 'rb') as fh:
             return pickle.load(fh)
 
 
 # -----------------------------------------------
-def savepickle(fln, dict, compress=False):
+def savepickle(fln, dict, compress=None):
     """
     save dictionary variable dict to a pickle with filename fln
 
@@ -179,7 +186,9 @@ def savepickle(fln, dict, compress=False):
     @param dict:  container with stuff
     @type dict: dictionary
     @param compress: write as a gzip-compressed file
-                     (.gz will be added to L{fln})
+                     (.gz will be added to L{fln}).
+                     If not specified, defaults to uncompressed, unless the
+                     compressed file exists and the uncomprssed does not.
     @type compress: bool
 
     @see: loadpickle
@@ -199,10 +208,14 @@ def savepickle(fln, dict, compress=False):
         import cPickle as pickle
     except:
         import pickle
+    if compress == None:
+        import os
+        if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
+            compress = True
+        else:
+            compress = False
     if compress:
         import gzip
-
-    if compress:
         with open(fln + '.gz', 'wb') as fh:
             gzh = gzip.GzipFile(fln, 'wb', compresslevel=3, fileobj=fh)
             pickle.dump(dict, gzh, 2)
@@ -210,8 +223,8 @@ def savepickle(fln, dict, compress=False):
     else:
         with open(fln, 'wb') as fh:
             pickle.dump(dict, fh, 2) # 2 ... fast binary
-
     return
+
 
 # -----------------------------------------------
 def assemble(fln_pattern, outfln, sortkey='ticks'):
