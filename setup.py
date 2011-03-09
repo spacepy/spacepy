@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.53 $, $Date: 2011/03/03 21:41:54 $"
+__version__ = "$Revision: 1.54 $, $Date: 2011/03/09 20:31:53 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -307,7 +307,7 @@ setup(name='spacepy',
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
-          'License :: OSI Approved :: GNU General Public License (GPL)',
+          'License :: Other/Proprietary License',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: POSIX',
           'Programming Language :: Python',
