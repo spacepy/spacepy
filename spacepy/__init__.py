@@ -38,19 +38,9 @@ __contact__ = 'spacepy@lanl.gov'
 __license__ = """SpacePy: Space Science Tools for Python
 
 SpacePy is a package of tools primarily aimed at the space science community.
-Copyright (C) 2010  Los Alamos National Laboratory.
+Copyright (C) 2010 The SpacePy Team.
 
-LANL LICENSE AGREEMENT FOR SPACEPY 1.0
-
-This LICENSE AGREEMENT is between the Los Alamos National Laboratory ("LANL"), and the Individual or Organization ("Licensee") accessing and otherwise using SpacePy 1.0 software in source or binary form and its associated documentation.
-Subject to the terms and conditions of this License Agreement, LANL hereby grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce, analyze, test, perform and/or display publicly, prepare derivative works, distribute, and otherwise use SpacePy 1.0 alone or in any derivative version, provided, however, that LANL’s License Agreement and LANL’s notice of copyright, i.e., "Copyright (C) 2001-2010 Los Alamos National Laboratory; All Rights Reserved" are retained in SpacePy 1.0 alone or in any derivative version prepared by Licensee.
-In the event Licensee prepares a derivative work that is based on or incorporates SpacePy 1.0 or any part thereof, and wants to make the derivative work available to others as provided herein, then Licensee hereby agrees to include in any such work a brief summary of the changes made to SpacePy.
-LANL is making SpacePy 1.0 available to Licensee on an "AS IS" basis. LANL MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED. BY WAY OF EXAMPLE, BUT NOT LIMITATION, LANL MAKES NO AND DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF SPACEPY 1.0 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
-LANL SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF SPACEPY 1.0 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING SPACEPY 1.0, OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
-This License Agreement will automatically terminate upon a material breach of its terms and conditions.
-Nothing in this License Agreement shall be deemed to create any relationship of agency, partnership, or joint venture between LANL and Licensee. This License Agreement does not grant permission to use LANL trademarks or trade name in a trademark sense to endorse or promote products or services of Licensee, or any third party.
-By copying, installing or otherwise using SpacePy 1.0, Licensee agrees to be bound by the terms and conditions of this License Agreement.
-
+For license details, please see the license supplied with this package
 """
 
 __notice__ = """SpacePy: Space Science Tools for Python

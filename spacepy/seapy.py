@@ -51,6 +51,7 @@ import spacepy.toolbox as tb
 from spacepy import help
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.dates import date2num, num2date
 
 __author__ = 'Steve Morley (smorley@lanl.gov)'
 
@@ -69,13 +70,11 @@ class Sea(object):
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
-        from matplotlib.dates import date2num
         self.data = np.array(data, dtype=float)
         self.times = times
         self.epochs = epochs
         self.verbose = verbose
         if type(delta)==dt.timedelta:
-            #t_delt = date2num(times[1])-date2num(times[0])
             t_delt = delta.days + delta.seconds/86400
             self.delta = t_delt
         else:
@@ -91,10 +90,13 @@ class Sea(object):
     
     def __str__(self):
         """Define String Representation of Sea object"""
-        
-        return """Superposed Epoch Object:
-        Data array - %s ; Epochs - %d ; Window - %d
-        """ % (self.data.shape, len(self.epochs), self.window)
+
+        strhead = 'Superposed Epoch Object:'
+        str1 = 'Data array - %s; ' % self.data.shape
+        str2 = 'Epochs - %d ; ' % len(self.epochs)
+        str3 = 'Window - %d' % self.window
+
+        return strhead+str1+str2+str3        
     
     __repr__ = __str__
     
@@ -111,14 +113,13 @@ class Sea(object):
         try:
             dum = self.badepochs
         except AttributeError:
-            return 'No bad epochs to restore'
+            raise AttributeError('No bad epochs to restore')
         
         from numpy import union1d
         self.epochs = union1d(self.badepochs,self.epochs)
         return 'Bad epochs restored to obj.epochs attribute'
     
     def _timeepoch(self,delt):
-        from matplotlib.dates import date2num,num2date
         #check type of time input and throw error message
         el1,ep1 = self.times[0], self.epochs[0]
         el1num = isinstance(el1, numbers.Number) or (type(el1)==np.float64)
@@ -156,11 +157,8 @@ class Sea(object):
             keep0 = np.where(t_epoch <= time[-1]-(self.window*self.delta))
             keep1 = np.where(t_epoch >= time[0]+(self.window*self.delta))
             kinds = np.intersect1d(keep0[0],keep1[0])
-            if not ser_flag: #if serial transform flagged, output to datetime obj.
-                t_epoch = date2num(t_epoch[kinds])
-                time = date2num(self.times)
-            else:
-                self.epochs = t_epoch[kinds]
+
+            self.epochs = t_epoch[kinds]
             t_epoch = t_epoch[kinds]
             
         return time,t_epoch
@@ -468,7 +466,6 @@ class Sea2d(Sea):
         self.times = times
         self.epochs = epochs
         if type(delta)==dt.timedelta:
-            #t_delt = date2num(times[1])-date2num(times[0])
             t_delt = delta.days + delta.seconds/86400
             self.delta = t_delt
         else:
@@ -505,8 +502,6 @@ class Sea2d(Sea):
         
         A basic plot can be raised with the obj.plot() method
         """
-        from matplotlib.dates import date2num
-        
         #ensure all input is np array or correct form
         delt = float(self.delta)
         y = np.array(self.data, dtype=float)
