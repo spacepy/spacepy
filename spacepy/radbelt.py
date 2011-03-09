@@ -6,7 +6,7 @@ Functions supporting radiation belt diffusion codes
 
 from spacepy import help
 import ctypes
-__version__ = "$Revision: 1.16 $, $Date: 2011/03/01 23:48:46 $"
+__version__ = "$Revision: 1.17 $, $Date: 2011/03/09 18:53:22 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -211,7 +211,6 @@ class RBmodel(object):
         """
         from . import radbelt as rb
         import numpy as n
-        import copy as c
         
         assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
@@ -221,8 +220,8 @@ class RBmodel(object):
         nTAI = len(Tgrid)
         Lgrid = self.Lgrid
         self.PSD  = n.zeros( (len(f),len(Tgrid)), dtype=ctypes.c_double)
-        self.PSD[:,0] = c.copy(f)
-        
+        self.PSD[:,0] = f
+
         # add omni if not already given
         if 'omni' not in self.__dict__:
             self.add_omni(keylist=['Kp', 'Dst'])
@@ -251,8 +250,8 @@ class RBmodel(object):
             for key in keylist:
                 params[key] = self.params[key][i]
             # now integrate from Tnow to Tfut
-            f = diff_LL(self, Lgrid, f, Tdelta, Telapse, params)
-            self.PSD[:,i] = c.copy(f)
+            f = diff_LL(self, Lgrid, f, Tdelta, Telapse, params=params)
+            self.PSD[:,i] = f
 
     # -----------------------------------------------
     def assimilate(self, method='enKF'):
@@ -478,7 +477,7 @@ class RBmodel(object):
         elif DLL_model is 'const': # Constant DLL.
             alpha= 1.0
             beta = 1.0
-            DLL  = n.zeros(len(Lgrid), dtype=ctypes.c_double)+1.5E-8 
+            DLL  = n.zeros(len(Lgrid), dtype=ctypes.c_double)+10.
             # approximately BA2000 for Kp=1, L=1.
         else:
             raise ValueError, \
@@ -579,7 +578,6 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     (DLLp, alpha, beta) = r.get_DLL(Lgrid + dL/2.0, params, DLL_model)
     (DLLm, alpha, beta) = r.get_DLL(Lgrid - dL/2.0, params, DLL_model)
     DLL = DLL/86400.; DLLp = DLLp/86400.; DLLm = DLLm/86400.
-    #C = get_modelop_L(Lgrid, Tdelta, DLL, DLLm, DLLp)
 
     # Set default of NO sources:
     src1 = 0; src2 = 0
@@ -591,26 +589,26 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
         # Call the artificial source function, sending info as 
         # key word arguments.  Note that such functions should be
         # able to handle extra kwargs through the use of **kwargs!
-        dthalf = Tdelta/2.0
+        dt13rd = Tdelta/3.0
+        dt23rd = 2.0*Tdelta/3.0
         sfunc = params['SRCartif']
-        # Apply as in Toro, 1999
-        #src1 = 0.25 * Tdelta *(
-        #    sfunc(Telapsed,        Lgrid, dll=DLL, alpha=alpha, beta=beta) +
-        #    sfunc(Telapsed+dthalf, Lgrid, dll=DLL, alpha=alpha, beta=beta))
-        #src2 = 0.25 * Tdelta *(
-        #    sfunc(Telapsed+dthalf, Lgrid, dll=DLL, alpha=alpha, beta=beta) +
-        #    sfunc(Telapsed+Tdelta, Lgrid, dll=DLL, alpha=alpha, beta=beta))
-        # Apply as prescribed by Tadjeran, 2006
-        src1 = 0.0
-        src2 = Tdelta * sfunc(Telapsed+dthalf, Lgrid, dll=DLL, alpha=alpha, beta=beta)
+
+        # Apply source using method similar to Toro, 1999, Chp. 15:
+        # 1/2 S(dT) C(dT) 1/2 S(dT) f
+        # The source integrator is Simpson's 3/8ths rule, 4th-order accurate.
+        s1=sfunc(Telapsed,        Lgrid, alpha,  DLL, beta)
+        s2=sfunc(Telapsed+dt13rd, Lgrid, alpha,  DLL, beta)
+        s3=sfunc(Telapsed+dt23rd, Lgrid, alpha,  DLL, beta)
+        s4=sfunc(Telapsed+Tdelta, Lgrid, alpha,  DLL, beta)
+        src1 = Tdelta/6.0*3./8. * (s1+3.0*s2+3.0*s3+s4)
+        src2=src1
+
     else:
         src1 = 0.0
         src2 = 0.0
 
-    # Apply solution operators to f.\
-    f=f+src1
-    f[0]=0; f[-1]=0
-    
+    # Apply solution operators to f.
+    f[1:-1]=f[1:-1]+src1[1:-1]
     dptr = ctypes.POINTER(ctypes.c_double)
     r.advance(f.ctypes.data_as(dptr),
               Lgrid.ctypes.data_as(dptr),
@@ -619,10 +617,7 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
               DLLp.ctypes.data_as(dptr), 
               DLLp.ctypes.data_as(dptr), 
               ct.c_double(Tdelta), NL)
-
-    f = f+src2
-    f[0]=0; f[-1]=0
-    
+    f[1:-1] = f[1:-1]+src2[1:-1]
     
    # add source according to values in SRC...
     if params['SRCmagn'].seconds > 0.0:
