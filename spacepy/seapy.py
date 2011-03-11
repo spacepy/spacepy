@@ -49,13 +49,41 @@ import numbers
 import datetime as dt
 import spacepy.toolbox as tb
 from spacepy import help
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 
 __author__ = 'Steve Morley (smorley@lanl.gov)'
 
-class Sea(object):
+class SeaBase(object):
+    """SeaPy Superposed epoch analysis base class
+    
+    Do not use directly -- subclass it!
+    
+    Author:
+    =======
+    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
+    """
+    def __init__(self, data, times, epochs, **kwargs):
+        self.data = np.array(data, dtype=float)
+        self.times = times
+        self.epochs = epochs
+        self.verbose = kwargs['verbose']
+        if type(kwargs['delta']) == dt.timedelta:
+            t_delt = kwargs['delta'].days + kwargs['delta'].seconds/86400
+            self.delta = t_delt
+        else:
+            self.delta = kwargs['delta']
+        if type(kwargs['window']) == dt.timedelta:
+            self.window = kwargs['window'].days + kwargs['window'].seconds/86400
+        else:
+            self.window = kwargs['window']
+        self.window = np.ceil(float(self.window)/float(self.delta))
+        if kwargs['window'] != self.window:
+            print('Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta)
+        self.bound_type = None
+
+
+class Sea(SeaBase):
     """SeaPy Superposed epoch analysis object
 
     Initialize object with data, times, epochs, window (half-width) and delta (optional).
@@ -70,23 +98,8 @@ class Sea(object):
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
-        self.data = np.array(data, dtype=float)
-        self.times = times
-        self.epochs = epochs
-        self.verbose = verbose
-        if type(delta)==dt.timedelta:
-            t_delt = delta.days + delta.seconds/86400
-            self.delta = t_delt
-        else:
-            self.delta = delta
-        if type(window)==dt.timedelta:
-            self.window = window.days + window.seconds/86400
-        else:
-            self.window = window
-        self.window = np.ceil(float(self.window)/float(self.delta))
-        if window!=self.window:
-            print('Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta)
-        self.bound_type = None
+        super(Sea, self).__init__(data, times, epochs, \
+              window=window, delta=delta, verbose=verbose)
     
     def __str__(self):
         """Define String Representation of Sea object"""
@@ -109,14 +122,12 @@ class Sea(object):
         """Replaces epoch times stored in obj.badepochs in the epochs attribute
 
         """
-        
         try:
             dum = self.badepochs
         except AttributeError:
             raise AttributeError('No bad epochs to restore')
         
-        from numpy import union1d
-        self.epochs = union1d(self.badepochs,self.epochs)
+        self.epochs = np.union1d(self.badepochs,self.epochs)
         return 'Bad epochs restored to obj.epochs attribute'
     
     def _timeepoch(self,delt):
@@ -127,7 +138,8 @@ class Sea(object):
         if isinstance(el1, dt.datetime) and (type(el1) == type(self.epochs[0])):
             #both time and epochs are datetime objects
             #convert to serial time
-            if self.verbose: print('converting to serial time')
+            if self.verbose:
+                print('converting to serial time')
             dum = date2num(self.epochs)
             t_epoch = np.array(dum)
             dum = date2num(self.times)
@@ -135,7 +147,8 @@ class Sea(object):
             ser_flag=False
         elif el1num and ep1num:
             #time is serial, do nothing
-            if self.verbose: print('time is serial')
+            if self.verbose:
+                print('time is serial')
             t_epoch = np.array(self.epochs, dtype=float)
             time = np.array(self.times, dtype=float)
             ser_flag=True
@@ -160,7 +173,6 @@ class Sea(object):
 
             self.epochs = t_epoch[kinds]
             t_epoch = t_epoch[kinds]
-            
         return time,t_epoch
     
     def sea(self, **kwargs):
@@ -181,8 +193,13 @@ class Sea(object):
         
         A basic plot can be raised with the obj.plot() method
         """
+        #check this hasn't already been done
+        #TODO: find out why doing two .sea() calls back-to-back fails 2nd time
+        if hasattr(self, 'semedian') or hasattr(self, 'semean'):
+            return None
+            
         #check defaults
-        defaults = {'storedata': False, 'quartiles': True, 'ci': False, 
+        defaults = {'storedata': True, 'quartiles': True, 'ci': False, 
                     'mad': False, 'ci_quan': 'median'}
         for default in defaults:
             if default not in kwargs:
@@ -218,7 +235,6 @@ class Sea(object):
             badval = kwargs['badval']
         except KeyError:
             badval = np.nan
-        if badval == np.nan:
             y_sea_m = ma.masked_where(np.isnan(y_sea), y_sea)
         else:
             y_sea_m = ma.masked_values(y_sea, badval)
@@ -245,10 +261,9 @@ class Sea(object):
                 self.bound_low[i], self.bound_high[i] = \
                      boots_ci(dum, 800, 95, ci_func)
         elif kwargs['mad']: #median absolute deviation
-            from spacepy.toolbox import medAbsDev
             for i in range(m):
                 dum = np.sort(y_sea_m[:,i].compressed())
-                spread_mad = medAbsDev(dum)
+                spread_mad = tb.medAbsDev(dum)
                 self.bound_low[i] = self.semedian[i]-spread_mad
                 self.bound_high[i] = self.semedian[i]+spread_mad
         
@@ -256,9 +271,12 @@ class Sea(object):
          len(self.semedian))
         if kwargs['storedata']:
             self.datacube = y_sea_m
-            print('sea(): datacube added as new attribute')
-        
-        return 'Superposed epoch analysis complete'
+            if self.verbose:
+                print('sea(): datacube added as new attribute')
+
+        if self.verbose:
+            print('Superposed epoch analysis complete')
+
         
     #def sea_norm(self, epoch2, nbins=100, storedata=False, quartiles=True, ci=False, mad=False, 
     #ci_quan='median'):
@@ -383,9 +401,9 @@ class Sea(object):
         'Quantity Entered By User [Units]'
         """
         try:
-            dum = self.semedian
-        except AttributeError:
-            return 'Error: No superposed epoch results to plot'
+            assert hasattr(self, 'semedian') or hasattr(self, 'semean')
+        except AssertionError:
+            raise ValueError('No superposed epoch results to plot')
         
         from spacepy.toolbox import makePoly
         
@@ -446,7 +464,7 @@ class Sea(object):
             return fig
 
 
-class Sea2d(Sea):
+class Sea2d(SeaBase):
     """SeaPy 2D Superposed epoch analysis object
         
     Initialize object with data, times, epochs, window (half-width),
@@ -461,22 +479,9 @@ class Sea2d(Sea):
     =======
     Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
-    def __init__(self, data, times, epochs, window=3., delta=1., y=[]):
-        self.data = np.array(data, dtype=float)
-        self.times = times
-        self.epochs = epochs
-        if type(delta)==dt.timedelta:
-            t_delt = delta.days + delta.seconds/86400
-            self.delta = t_delt
-        else:
-            self.delta = delta
-        if type(window)==dt.timedelta:
-            self.window = window.days + window.seconds/86400
-        else:
-            self.window = window
-        self.window = np.ceil(float(self.window)/float(self.delta))
-        if window!=self.window:
-            print('Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta)
+    def __init__(self, data, times, epochs, window=3., delta=1., verbose=False, y=[]):
+        super(Sea2d, self).__init__(data, times, epochs, window=window, \
+              delta=1., verbose=False, y=[])
 
         if y:
             self.y = np.linspace(y[0], y[1], data.shape[0]+1)
@@ -880,13 +885,13 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
     try:
         assert test.upper() in keylist
     except:
-        raise TypeError("Test "+self.dtype+" not implemented, only "+str(keylist))
+        raise NotImplemetedError("Test "+self.dtype+" not implemented, only "+str(keylist))
     
     from scipy.stats import ks_2samp, mannwhitneyu
     
     if test.upper() == 'KS':
         try:
-            for x in range(obj1.datacube.shape[0]):
+            for x in range(obj1.datacube.shape[1]):
                 tD, tprobKS2 = ks_2samp(obj1.datacube[:,x].compressed(), 
                     obj2.datacube[:,x].compressed())
                 S.append(tD)
@@ -896,7 +901,7 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
                 Run sea() with kwarg storedata''')
     
     if test.upper() == 'U':
-        for x,y in zip(obj1.semedian, obj2.semedian):
+        for x,y in zip(obj1.datacube.transpose(), obj2.datacube.transpose()):
             tU, tprobU = mannwhitneyu(x, y)
             S.append(tU)
             prob.append(tprobU*2)
@@ -946,8 +951,8 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
             ax0.set_ylim(yr)
         ax0.set_ylabel(ylstr)
         #plot prob in lower panel
-        ax1.plot(obj.x, prob, 'r-', lw=1.5, drawstyle='steps-mid')
-        ax1.plot([obj.x[0], obj.x[-1]], [0.05, 0.05], 'b-')
+        ax1.plot(obj1.x, prob, 'r-', lw=1.5, drawstyle='steps-mid')
+        ax1.plot([obj1.x[0], obj1.x[-1]], [0.05, 0.05], 'b-')
         if epochline:
             yr, yrlo, yrhi = add_epochline(ax1)
             ax1.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
@@ -957,5 +962,5 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         
         plt.show()
         
-    return S, prob
+    return None #S, prob
     
