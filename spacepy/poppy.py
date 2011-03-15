@@ -240,7 +240,8 @@ class PPro(object):
         return (ci_low, ci_high, percentiles)
 
     def plot_mult(self, windows, data, min=None, max=None, cbar_label=None,
-                  figsize=None, dpi=80):
+                  figsize=None, dpi=80,
+                  xlabel='Lag', ylabel='Window Size'):
         """Plots a 2D function of window size and lag
 
         @param windows: list of window sizes (y axis)
@@ -259,8 +260,8 @@ class PPro(object):
                              shading='flat')
         ax0.set_xlim((x[0], x[-1]))
         ax0.set_ylim((y[0], y[-1]))
-        plt.xlabel('Lag')
-        plt.ylabel('Window Size')
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
         if cbar_label == None:
             if plt.rcParams['text.usetex']:
                 cbar_label = r'\% confident above asymptotic association'    
@@ -270,7 +271,7 @@ class PPro(object):
         return fig
     
     def plot(self, figsize=None, dpi=80, asympt=True, show=True, norm=True,
-             xlabel='Time lag', xscale=None, title=None):
+             xlabel='Time lag', xscale=None, ylabel=None, title=None):
         """Create basic plot of association analysis.
         
         Uses object attributes created by the L{assoc} method and,
@@ -292,6 +293,8 @@ class PPro(object):
         @param xscale: scale x-axis by this factor (e.g. 60.0 to convert
                        seconds to minutes)
         @type xscale: float
+        @param ylabel: label to put on the Y axis of the resulting plot
+        @type ylabel: str
         """
         try:
             dum = self.n_assoc
@@ -339,10 +342,18 @@ class PPro(object):
         ax0.plot(x, assoc_total, 'b-', lw=1.0)
         if asympt:
             ax0.plot([x[0], x[-1]], [asympt_assoc]*2, 'r--', lw=1.0)
-        if norm:
-            plt.ylabel('Normalized Association Number')
+        if ylabel == None:
+            if norm:
+                plt.ylabel(
+                    'Normalized Association Number n(u, h={0}) / n({1}, h={0})'.format(
+                    self.winhalf,
+                    '$\mathrm{u\rightarrow\infty}$'
+                    if plt.rcParams['text.usetex'] else 'u->Inf'))
+            else:
+                plt.ylabel('Association Number n(u, h={0})'.format(
+                    self.winhalf))
         else:
-            plt.ylabel('Association Number')
+            plt.ylabel(ylabel)
         plt.xlabel(xlabel)
         if title != None:
             plt.title(title)
@@ -430,6 +441,79 @@ class PPro(object):
 
 
 #Functions outside class
+
+def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
+                  title=None, figsize=None, dpi=80):
+    """Overplots two PPro objects
+
+    @param pprodata: first point process to plot (in blue)
+    @type pprodata: L{PPro}
+    @param pproref: second process to plot (in red)
+    @type pproref: L{PPro}
+    @param ratio: multiply L{pprodata} by this ratio before plotting,
+                  useful for comparing processes of different magnitude
+    @type ratio: float
+    @param norm: normalize everything to L{pproref}, i.e. the association
+                 number for L{pproref} will always plot as 1.
+    @type norm: bool
+    @param title: title to put on the plot
+    @type title: str
+    @param figsize: passed through to matplotlib.pyplot.figure
+    @param dpi: passed through to matplotlib.pyplot.figure
+    """
+    import matplotlib.pyplot as plt
+    if ratio == None:
+        ratio = float(pproref.asympt_assoc) / pprodata.asympt_assoc
+    lags = pproref.lags
+    nlags = len(lags)
+    assert lags[:] == pprodata.lags[:]
+    fig = plt.figure(figsize=figsize, dpi=dpi)
+    plt.subplots_adjust(wspace=0.0, hspace=0.0)
+    ax0 = fig.add_subplot(111)
+    ax0.set_xlim((lags[0], lags[-1]))
+    if norm:
+        scaleddata = [ratio *
+                      float(pprodata.assoc_total[i]) / pproref.assoc_total[i]
+                      for i in xrange(nlags)]
+        scaledhi = [ratio *
+                    float(pprodata.ci[1][i]) / pproref.assoc_total[i]
+                    for i in xrange(nlags)]
+        scaledlo = [ratio *
+                    float(pprodata.ci[0][i]) / pproref.assoc_total[i]
+                    for i in xrange(nlags)]
+        scaledref = [1.0 for i in xrange(nlags)]
+        refhi = [float(pproref.ci[1][i])  / pproref.assoc_total[i]
+                 for i in xrange(nlags)]
+        reflo = [float(pproref.ci[0][i])  / pproref.assoc_total[i]
+                 for i in xrange(nlags)]
+    else:
+        scaleddata = [ratio * float(pprodata.assoc_total[i])
+                      for i in xrange(nlags)]
+        scaledhi = [ratio * float(pprodata.ci[1][i])
+                    for i in xrange(nlags)]
+        scaledlo = [ratio * float(pprodata.ci[0][i])
+                    for i in xrange(nlags)]
+        scaledref = pproref.assoc_total
+        refhi = pproref.ci[1]
+        reflo = pproref.ci[0]
+    ax0.fill_between(lags, reflo, refhi,
+                     edgecolor='none', facecolor='#FF7F7F', interpolate=True)
+    ax0.fill_between(lags, scaledlo, scaledhi,
+                     edgecolor='none', facecolor='#7F7FFF', interpolate=True)
+    bottom = np.fromiter((max([scaledlo[i], reflo[i]]) for i in xrange(nlags)),
+                         np.float64, count=-1)
+    top = np.fromiter((min([scaledhi[i], refhi[i]]) for i in xrange(nlags)),
+                      np.float64, count=-1)
+    ax0.fill_between(lags, bottom, top, where=(bottom <= top),
+                     edgecolor='none', facecolor='#BF3F7F',
+                     interpolate=True)
+    ax0.plot(lags, scaleddata, lw=1.0)
+    ax0.plot(lags, scaledref, 'r--', lw=1.0)
+    ax0.set_ylim(bottom=0)
+    if title:
+        plt.title(title)
+
+
 def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     """Construct bootstrap confidence interval
     
