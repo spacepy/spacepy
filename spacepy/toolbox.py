@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.91 $, $Date: 2011/03/18 16:50:38 $"
+__version__ = "$Revision: 1.92 $, $Date: 2011/03/18 21:11:17 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -540,7 +540,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     return
 
 # -----------------------------------------------
-def update(all=True, omni=False, leapsecs=False):
+def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     """
     Download and update local database for omni, leapsecs etc
 
@@ -578,7 +578,7 @@ def update(all=True, omni=False, leapsecs=False):
     import zipfile
     import datetime
     #import spacepy.time as st
-    from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL
+    from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
     import numpy as n
     if sys.version_info[0]<3:
         import urllib as u
@@ -594,6 +594,8 @@ def update(all=True, omni=False, leapsecs=False):
     #omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
     omni_fname_zip = DOT_FLN+'/data/WGhour-latest.d.zip'
     omni_fname_pkl = DOT_FLN+'/data/omnidata.pkl'
+    
+    PSDdata_fname = DOT_FLN+'/data/psd_dat.sqlite'
 
     if all == True:
         omni = True
@@ -602,7 +604,7 @@ def update(all=True, omni=False, leapsecs=False):
     if omni == True:
         # retrieve omni, unzip and save as table
         print("Retrieving omni file ...")
-        u.urlretrieve(OMNI_URL, omni_fname_zip)
+        u.urlretrieve(OMNI_URL, omni_fname_zip, reporthook=progressbar)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         A = n.array(data.split('\n'))
@@ -682,8 +684,31 @@ def update(all=True, omni=False, leapsecs=False):
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
         u.urlretrieve(LEAPSEC_URL, leapsec_fname)
+        
+    if PSDdata == True:
+        print("Retrieving PSD sql database")
+        u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
+        
 
     return datadir
+    
+def progressbar(count, blocksize, totalsize):
+    """
+    print a progress bar with urllib.urlretrieve reporthook functionality
+    
+    Example:
+    u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
+    
+    Author:
+    Josef Koller (jkoller@lanl.gov)
+    """
+    import sys
+    rem_file = "http://spacepy.lanl.gov/repository/psd_dat.sqlite"
+    percent = int(count*blocksize*100/totalsize)
+    sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
+    if percent == 100: print('\n') 
+    sys.stdout.flush()
+
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     """Windowing mean function, window overlap is user defined

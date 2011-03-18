@@ -3,7 +3,7 @@
 # 
 # Author: Josef Koller (Los Alamos National Lab)
 # Email:  jkoller@lanl.gov
-# $Revision: 1.3 $, $Date: 2010/09/08 16:40:09 $
+# $Revision: 1.4 $, $Date: 2011/03/18 21:11:15 $
 # ----------------------------------------------
 #
 # set number of CPUs used for multi-core processing
@@ -17,6 +17,11 @@ NCPUS = 1
 #
 OMNI_URL = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
 LEAPSEC_URL = 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
+
+# ----------------------------
+# pointer to PSDdata sql file
+#
+PSDDATA_URL = "http://spacepy.lanl.gov/repository/psd_dat.sqlite"
 
 
 
