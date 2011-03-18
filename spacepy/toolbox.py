@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.90 $, $Date: 2011/03/07 19:22:56 $"
+__version__ = "$Revision: 1.91 $, $Date: 2011/03/18 16:50:38 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -227,7 +227,7 @@ def savepickle(fln, dict, compress=None):
 
 
 # -----------------------------------------------
-def assemble(fln_pattern, outfln, sortkey='ticks'):
+def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     """
     assembles all pickled files matching fln_pattern into single file and
     save as outfln. Pattern may contain simple shell-style wildcards *? a la fnmatch
@@ -264,7 +264,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
     # read all files
     d = {}
     for fln in filelist:
-        print("adding ", fln)
+        if verbose: print("adding ", fln)
         d[fln] = loadpickle(fln)
 
     # combine them
@@ -304,7 +304,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks'):
         # do nothing
         pass
 
-    print('\n writing: ', outfln)
+    if verbose: print('\n writing: ', outfln)
     savepickle(outfln, dcomb)
 
     return dcomb
