@@ -24,7 +24,7 @@ def help():
 
 # put modules here that you want to be accessible through 'from spacepy import *'
 __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 
-    "irbempy", "empiricals", "radbelt"]
+    "irbempy", "empiricals", "radbelt", "borg"]
 
 # Expose definitions from modules in this package.
 from .toolbox import loadpickle, savepickle, dictree, printfig
@@ -49,8 +49,7 @@ SpacePy is released under license. See __licence__ for details, and help() for H
 __licence__ = __license__ #for those who speak English, rather than an odd dialect
 
 try: #if in iPython interactive shell, print licence notice
-    assert __IPYTHON__active
-    print(__notice__)
+    if __IPYTHON__active == 1: print(__notice__)
 except NameError: #otherwise print single line notice
     print("SpacePy is released under license. See __licence__ for details, and help() for HTML help.")
 
