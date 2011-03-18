@@ -5,7 +5,7 @@ Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.17 $, $Date: 2011/01/24 18:59:38 $"
+__version__ = "$Revision: 1.18 $, $Date: 2011/03/18 16:50:00 $"
 __author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
 'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
@@ -37,7 +37,7 @@ def getLmax(ticks, model='JKemp'):
     
     if model is 'JKemp':
         for i, iDst in enumerate(Dst):
-            Lmax[i] = 6.7e-5*iDst*iDst + 0.0421*iDst + 8.945
+            Lmax[i] = 6.07e-5*iDst*iDst + 0.0436*iDst + 9.37
         
     return Lmax
     
