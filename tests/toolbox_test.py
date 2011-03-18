@@ -66,7 +66,7 @@ class PickleAssembleTests(unittest.TestCase):
         tb.savepickle('test_pickle_2.pkl', self.D2)
         tb.savepickle('test_pickle_3.pkl', self.D3)
         expected = self.all
-        result = tb.assemble('test_pickle_[1-3].pkl', 'test_all.pkl', sortkey=None)
+        result = tb.assemble('test_pickle_[1-3].pkl', 'test_all.pkl', sortkey=None, verbose=False)
         for key in result:
             result[key] = result[key].tolist()
 

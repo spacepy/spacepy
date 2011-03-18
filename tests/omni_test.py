@@ -3,7 +3,7 @@
 """
 testing	the	omni	module
 """
-__version__	=	"$Revision: 1.1 $,	$Date: 2010/11/17 22:23:35 $"
+__version__	=	"$Revision: 1.2 $,	$Date: 2011/03/18 16:39:02 $"
 __author__	=	'Josef	Koller,	Los	Alamos	National	Lab	(jkoller@lanl.gov)'
 
 # -----------------------------------------------------------------------
@@ -45,18 +45,18 @@ class BigTests(unittest.TestCase):
  'Kp': array([ 3.7,  3.7]),
  'Pdyn': array([ 2.2       ,  2.23666667]),
  'Qbits': {'ByIMF': array([2, 2]),
-           'BzIMF': array([2, 1]),
+           'BzIMF': array([2, 2]),
            'G1': array([2, 2]),
            'G2': array([2, 2]),
            'G3': array([2, 2]),
-           'Pdyn': array([1, 1]),
+           'Pdyn': array([2, 2]),
            'W1': array([0, 0]),
-           'W2': array([0, 0]),
-           'W3': array([2, 2]),
-           'W4': array([2, 2]),
+           'W2': array([2, 2]),
+           'W3': array([0, 0]),
+           'W4': array([0, 0]),
            'W5': array([2, 2]),
            'W6': array([2, 2]),
-           'dens': array([0, 0]),
+           'dens': array([2, 2]),
            'velo': array([2, 2])},
  'RDT': array([ 730883.5       ,  730883.50694444]),
  'UTC': [datetime.datetime(2002, 2, 2, 12, 0),
@@ -78,7 +78,7 @@ class BigTests(unittest.TestCase):
         keylist.remove('UTC')
         keylist.remove('Qbits')
         for key in keylist:
-            numpy.testing.assert_almost_equal(expected[key], actual[key])
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
         for key in actual['Qbits'].keys():
             numpy.testing.assert_almost_equal(expected['Qbits'][key], actual['Qbits'][key])
         self.assertEqual(expected['ticks'].data, actual['ticks'].data)
