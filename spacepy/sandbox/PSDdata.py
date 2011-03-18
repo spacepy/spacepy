@@ -118,7 +118,7 @@ def get_PSD(ticks, MU=1051, K=0.005, sats=None, _query=None):
 
 
 
-    time = []
+    obstime = []
     psd = []
     lstar = []
     sats_l = []
@@ -153,14 +153,18 @@ def get_PSD(ticks, MU=1051, K=0.005, sats=None, _query=None):
             .filter_by(k=K).filter(Psd.time > ticks.UTC[0]).filter(Psd.time < ticks.UTC[1]) \
             .order_by(Psd.time).all()
         for val in ans:
-            time.append(val[0])
+            obstime.append(val[0])
             lstar.append(val[1])
             psd.append(val[2])
             sats_l.append(val[3])
             mu_l.append(MU)
             k_l.append(K)
-    
-        Ticks = spacepy.time.Ticktock(time, 'UTC')
+        
+        if len(obstime) == 0:
+           # no obs, return empy dictionary
+           return {}
+        
+        Ticks = spacepy.time.Ticktock(obstime, 'UTC')
         ret = {'Ticks':Ticks, 'Lstar':n.array(lstar), 'PSD':n.array(psd), \
             'sat':n.array(sats_l), 'MU':n.array(mu_l), 'K':n.array(k_l)}
 
