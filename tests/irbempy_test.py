@@ -3,7 +3,7 @@
 """
 testing	the	irbempy	module
 """
-__version__	=	"$Revision: 1.6 $,	$Date: 2010/12/22 19:49:20 $"
+__version__	=	"$Revision: 1.7 $,	$Date: 2011/03/18 16:21:20 $"
 __author__	=	'Josef	Koller,	Los	Alamos	National	Lab	(jkoller@lanl.gov)'
 
 # -----------------------------------------------------------------------
@@ -30,7 +30,7 @@ class BigTests(unittest.TestCase):
         expected = spacepy.loadpickle('test_prep_irbem.pkl')
         actual = ib.prep_irbem(self.ticks, self.loci)
         for key in expected:
-            numpy.testing.assert_almost_equal(expected[key], actual[key])
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
             
     def test_get_dtype(self):
         sysaxes = 3
@@ -63,15 +63,15 @@ class BigTests(unittest.TestCase):
         expected = {'Blocal': array([  976.42565251,  3396.25991675]),
             'Bmirr': array([ 2363.11489391,  8219.45619451])}
         for key in expected:
-            numpy.testing.assert_almost_equal(expected[key], ib.find_Bmirror(self.ticks, self.loci, [40])[key])
+            numpy.testing.assert_almost_equal(expected[key], ib.find_Bmirror(self.ticks, self.loci, [40])[key], decimal=6)
 
     def test_find_magequator(self):
         expected = {'Bmin': array([  975.59122652,  3388.2476667 ])}
         Bmin_loci = [[ 2.99926479,  0.00642609, -0.03738477],
             [ 2.00291585, -0.00726614,  0.04502799]] 
         actual = ib.find_magequator(self.ticks, self.loci)
-        numpy.testing.assert_almost_equal(expected['Bmin'], actual['Bmin'])
-        numpy.testing.assert_almost_equal(Bmin_loci, actual['loci'].data)
+        numpy.testing.assert_almost_equal(expected['Bmin'], actual['Bmin'], decimal=6)
+        numpy.testing.assert_almost_equal(Bmin_loci, actual['loci'].data, decimal=6)
             
     def test_get_Bfield(self):
         """test get_Bfield"""	
@@ -80,7 +80,7 @@ class BigTests(unittest.TestCase):
         [3.33497974e+02, -5.42111173e+02, 3.33608693e+03]])}
         actual = ib.get_Bfield(self.ticks, self.loci)
         for key in expected.keys():
-            numpy.testing.assert_almost_equal(expected[key], actual[key], 6)
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
 
     def test_get_AEP8(self):
         """test get_AEP8"""
@@ -101,7 +101,7 @@ class BigTests(unittest.TestCase):
             'MLT': array([ 11.97222034,  12.13378624])}    
         actual = ib.get_Lstar(self.ticks, self.loci, [90])
         for key in expected.keys():
-            numpy.testing.assert_almost_equal(expected[key], actual[key])
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
         
         # test T05
         expected = {'Xj': array([[ 0.24624075], [ 0.18225978]]), 
@@ -112,7 +112,7 @@ class BigTests(unittest.TestCase):
             'MLT': array([ 11.97222034,  12.13378624])}
         actual = ib.get_Lstar(self.ticks, self.loci, [70], extMag='T05')
         for key in expected:
-            numpy.testing.assert_almost_equal(expected[key], actual[key])
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
         
         
 # -----------------------------------------------------------------------
