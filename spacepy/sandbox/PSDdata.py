@@ -74,8 +74,7 @@ def get_PSD(ticks, MU=1051, K=0.005, sats=None, _query=None):
     
     if not (file_local or file_dot):
         raise(Exception("Must have the database either in the current directory or your ~/.spacepy/data directory. \n \
-        If you are at LANL, you can download a version of the database on the LANL only site:\n \
-        https://sf4.lanl.gov/sf/docman/do/downloadDocument/projects.spacepy/docman.root/doc142771/1"))
+        You can retrieve an example database from a LANL server using spacepy.toolbox.update(PSDdata=True)"))
 
     if file_local:
         db_loc = 'psd_dat.sqlite'

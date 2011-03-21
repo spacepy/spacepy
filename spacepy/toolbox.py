@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.92 $, $Date: 2011/03/18 21:11:17 $"
+__version__ = "$Revision: 1.93 $, $Date: 2011/03/21 21:19:41 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -567,8 +567,10 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
 
     try:
         from spacepy.time import Ticktock, doy2date
+        from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
     except:
         exec(open('spacepy/time.py').read())
+        exec(open('spacepy/toolbox.py').read())
         #import sys
         #sys.path.append('./spacepy')
         #from spacepy import time as st
@@ -578,7 +580,6 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     import zipfile
     import datetime
     #import spacepy.time as st
-    from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
     import numpy as n
     if sys.version_info[0]<3:
         import urllib as u
@@ -703,7 +704,6 @@ def progressbar(count, blocksize, totalsize):
     Josef Koller (jkoller@lanl.gov)
     """
     import sys
-    rem_file = "http://spacepy.lanl.gov/repository/psd_dat.sqlite"
     percent = int(count*blocksize*100/totalsize)
     sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
     if percent == 100: print('\n') 
