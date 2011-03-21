@@ -73,10 +73,19 @@ class SpaceData(dict):
 
         Abstract method, reimplement
         """
-        raise(ValueError("Abstract method called, reimplement __init__"))
+        #raise(ValueError("Abstract method called, reimplement __init__"))
+        self.attrs = {}
+        if 'attrs' in kwargs:
+            if hasattr(kwargs['attrs'], '__getitem__'):
+                self.attrs = kwargs['attrs']
+            del kwargs['attrs']
+            
+        super(SpaceData, self).__init__(*args, **kwargs)
+                
 
-    def __repr__(self):
-        """
-        Abstract method, reimplement
-        """
-        raise(ValueError("Abstract method called, reimplement __repr__"))
+    #def __repr__(self):
+        #"""
+        #Abstract method, reimplement
+        #"""
+        #super(SpaceData, self).__repr__()
+        ##raise(ValueError("Abstract method called, reimplement __repr__"))
