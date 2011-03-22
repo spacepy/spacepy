@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.54 $, $Date: 2011/03/09 20:31:53 $"
+__version__ = "$Revision: 1.55 $, $Date: 2011/03/22 22:47:41 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -77,6 +77,12 @@ class build(_build):
         os.chdir('..')
         os.chdir('..')
     
+    # -------------------------------------
+    def compile_LANLstar(self):
+        os.chdir(os.path.join('spacepy','LANLstar'))
+        os.system('f2py -c LANLstar.f -m libLANLstar --fcompiler=gnu95')
+        os.chdir(os.path.join('..','..'))
+        
     # -------------------------------------
     def compile_irbempy(self):
         fcompiler = self.fcompiler
@@ -190,6 +196,8 @@ class build(_build):
         """Actually perform the build"""
         # run compile for irbem-lib first
         self.compile_irbempy()
+        # run compile for LANLstar
+        self.compile_LANLstar()
         # Compile PyBats
         self.compile_pybats()
         # Compile libspacepy
@@ -291,8 +299,8 @@ class install(_install):
         print("\nThanks for installing SpacePy.")
 
 
-pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'doc/*.*', 'pybats/*.py', 'pybats/*.so'
-    'pybats/*.out', 'pycdf/*.py', 'libspacepy/*spacepy*',]
+pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'LANLstar/*.py', 'LANLstar/libLANLstar.so', 
+    'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'libspacepy/*spacepy*',]
 
 # run setup from distutil
 setup(name='spacepy',
