@@ -80,7 +80,7 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.34 $, $Date: 2011/03/02 00:01:50 $"
+__version__ = "$Revision: 1.35 $, $Date: 2011/03/28 21:37:37 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -1382,7 +1382,9 @@ class Ticktock(object):
             leapsecs = self.getleapsecs()
             for i in n.arange(nTAI):
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i]))
-
+                tmpleaps = Ticktock(self.UTC[i]).leaps 
+                if tmpleaps == leapsecs[i]-1: self.UTC[i] = self.UTC[i]+datetime.timedelta(seconds=1)
+                
         elif self.dtype.upper() == 'GPS':   
             GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
             for i in n.arange(nTAI):
@@ -1627,11 +1629,16 @@ class Ticktock(object):
         import datetime
     
         nTAI = len(self.data)
-        ISO = ['']*nTAI
-        
+        ISO = ['']*nTAI            
         for i in range(nTAI):
             ISO[i] = self.UTC[i].strftime(self.__isofmt)
-    
+
+            if self.TAI[i] in self.TAIleaps:
+                tmptick = Ticktock(self.UTC[i] - datetime.timedelta(seconds=1), 'UTC')
+                a,b,c = tmptick.ISO[0].split(':')
+                cnew = c.replace('59','60')
+                ISO[i] = a+':'+b+':'+cnew
+
         self.ISO = ISO
         return ISO
 
@@ -1673,10 +1680,11 @@ class Ticktock(object):
         import numpy as n
         import datetime
         from spacepy import DOT_FLN
-    
+        
+        
         tup = self.UTC
         # so you don't have to read the file every single time
-        global secs, year, mon, day
+        global secs, year, mon, day, TAIleaps
         
         try:
            leaps = secs[0]
@@ -1700,7 +1708,14 @@ class Ticktock(object):
               year[i] = int(line.split()[0])
               mon[i] = int(n.where(months == line.split()[1])[0][0] + 1)
               day[i] = int(line.split()[2])
-    
+            
+           TAIleaps = n.zeros(len(secs))
+           TAItup = ['']*len(secs)
+           TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
+           for i in n.arange(len(secs)):
+                TAItup[i] = datetime.datetime(int(year[i]), int(mon[i]), int(day[i])) - TAI0 + datetime.timedelta(seconds=int(secs[i])-1)
+                TAIleaps[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
+
         # check if array:
         if type(tup) == type(datetime.datetime(1,1,1)): # not an array of objects
             tup = [tup]
@@ -1711,10 +1726,11 @@ class Ticktock(object):
             aflag = True
     
         # convert them into a time tuple and find the correct leap seconds
+        self.TAIleaps = TAIleaps
         leaps = [secs[0]]*nTAI
         for i, itup in enumerate(tup):
             for y,m,d,s in zip(year, mon, day, secs):
-                if tup[i] > datetime.datetime(int(y),int(m),int(d)):
+                if tup[i] >= datetime.datetime(int(y),int(m),int(d)):
                     leaps[i] = s
                 else:
                     break
