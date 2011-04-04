@@ -869,7 +869,7 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
     >>> obj2 = seapy.Sea(data2, times2, epochs2)
     >>> obj1.sea(storedata=True)
     >>> obj2.sea(storedata=True)
-    >>> D, probH0 = seapy.sea_signif(obj1, obj2)
+    >>> seapy.sea_signif(obj1, obj2)
     
     Author:
     =======
@@ -962,5 +962,6 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         
         plt.show()
         
+        #now make an output object to store the test stats and prob.
     return None #S, prob
     

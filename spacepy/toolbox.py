@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.93 $, $Date: 2011/03/21 21:19:41 $"
+__version__ = "$Revision: 1.94 $, $Date: 2011/04/04 21:35:52 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -359,7 +359,7 @@ def feq(x, y, precision=0.0000005):
 
 
 # -----------------------------------------------
-def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False):
+def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwargs):
     """ pretty print a dictionary tree
 
     @param in_dict: a complex dictionary (with substructures)
@@ -381,6 +381,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False):
     @version: V1.1: 24-Feb-2010 S. Morley, added verbose option
     @version: v1.2: 17-May-2010 S. Morley, added levels option
     @version: v1.3: 3-Mar-2011 S. Morley, added attrs support for datamodel
+    @version: v1.4: 18-Mar-2011 S. Morley, fixed attrs support for SpaceData
     
     Example:
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
@@ -415,14 +416,21 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False):
             assert hasattr(in_dict, 'attrs')
         except:
             raise TypeError('dictree: Input must be dictionary-like')
-        else:
-            if attrs:
-                dictree(in_dict.attrs, spaces = ':', verbose = verbose, levels = levels)
-            return None
 
     if not spaces:
         spaces = ''
         print('+')
+    
+    if 'toplev' in kwargs:
+        toplev = kwargs['toplev']
+    else:
+        toplev = True
+    try:
+        if toplev and attrs:
+            dictree(in_dict.attrs, spaces = ':', verbose = verbose, levels = levels, attrs=attrs, toplev=True)
+            toplev = False
+    except:
+        pass
 
     if levels:
         try:
@@ -431,29 +439,32 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False):
             levels -= 1
             if levels == 0:
                 levels = None
-
-    for key in sorted(in_dict.keys()):
-        bar = '|____' + str(key)
-        if verbose:
-            typestr = str(type(in_dict[key])).split("'")[1]
-            #check entry for dict-like OR .attrs dict
-            try:
-                dimstr = in_dict[key].shape
-                dimstr = ' ' + str(dimstr)
-            except AttributeError:
+                
+    try:
+        for key in sorted(in_dict.keys()):
+            bar = '|____' + str(key)
+            if verbose:
+                typestr = str(type(in_dict[key])).split("'")[1]
+                #check entry for dict-like OR .attrs dict
                 try:
-                    dimstr = len(in_dict[key])
-                    dimstr = ' [' + str(dimstr) + ']'
-                except:
-                    dimstr = ''
-            print(spaces + bar + ' ('+ typestr + dimstr + ')')
-        else:
-            print(spaces + bar)
-        if hasattr(in_dict[key], 'keys') and levels:
-            dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels, attrs=attrs)
-        if hasattr(in_dict[key], 'attrs') and attrs:
-            dictree(in_dict[key].attrs, spaces = spaces + '    :', verbose = verbose, levels = levels, attrs=attrs)
-
+                    dimstr = in_dict[key].shape
+                    dimstr = ' ' + str(dimstr)
+                except AttributeError:
+                    try:
+                        dimstr = len(in_dict[key])
+                        dimstr = ' [' + str(dimstr) + ']'
+                    except:
+                        dimstr = ''
+                print(spaces + bar + ' ('+ typestr + dimstr + ')')
+            else:
+                print(spaces + bar)
+            if hasattr(in_dict[key], 'attrs') and attrs:
+                dictree(in_dict[key].attrs, spaces = spaces + '    :', verbose = verbose, levels = levels, attrs=attrs, toplev=False)
+            if hasattr(in_dict[key], 'keys') and levels:
+                dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels, attrs=attrs, toplev=False)
+    except:
+        pass
+    
     return None
 
 # -----------------------------------------------
