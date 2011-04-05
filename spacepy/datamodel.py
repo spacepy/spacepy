@@ -76,11 +76,10 @@ class dmarray(numpy.ndarray):
 
     def __setattr__(self, name, value):
         """Make sure that .attrs is the only attribute that we are allowing
-        TODO what is the fastest way to do this?
-          - != how it is?
-          - == switch them
-          - assert(name == 'attrs') with try except?
-          - other?
+        dmarray_ne took 15.324803 s
+        dmarray_eq took 15.665865 s
+        dmarray_assert took 16.025478 s
+        It looks like != is the fastest, but not by much over 10000000 __setattr__
         """
         if name != 'attrs':
             raise(TypeError("Only 'attrs' attribute can be set"))
