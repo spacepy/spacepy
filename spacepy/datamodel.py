@@ -42,13 +42,10 @@ class dmarray(numpy.ndarray):
     def __new__(cls, input_array, attrs=None):
         obj = numpy.asarray(input_array).view(cls)
         # Finally, return the newly created object:
-        return obj
-
-    def __init__(self, input_array, attrs=None):
-        # add the new attribute to the created instance
         if attrs == None:
             attrs = {}
         self.attrs = attrs
+        return obj
 
     def __array_finalize__(self, obj):
         # see InfoArray.__array_finalize__ for comments
