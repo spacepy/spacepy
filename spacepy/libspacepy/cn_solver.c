@@ -34,7 +34,9 @@ arguments to the correct c-type.
 	   DLLm.ctypes.data_as(dptr), 
 	   DLLp.ctypes.data_as(dptr), 
 	   DLLp.ctypes.data_as(dptr), 
-	   ct.c_double(Tdelta), NL)
+	   ct.c_double(Tdelta), 
+	   NL,
+	   S.ctypes.data_as(dptr))
 
 The argument list is defined as follows:
 f is the distribution function being propagated forward in time; a vector of
@@ -47,6 +49,12 @@ Each is a vector of the same length as L.
 dt is the timestep, a scalar double.
 N is the number of gridpoints as a scalar integer.
 The f vector is returned at time+dt.
+S is a vector of source and loss terms prepared such that the following system:
+A*f(t+dt)=B*f(t)+S
+...can be solved by simply performing
+f(t+dt)=A_inv*(B*f(t)+S)
+This means that, following the C-N derivation, S should be dt/2*(S(t)+S(t+dt)).
+This must be done before passing the vector to this routine.
 
 caveats: 
 This code allows to input the diffusion coefficient D at two times, 
@@ -63,7 +71,7 @@ and returns the vector f at the new time.
 
 // Cranck-Nicholson solver
 void solve_cn(double *f, double *L, double *Dm_old,  double *Dm_new, 
-	      double *Dp_old, double *Dp_new, double dt, int N){
+	      double *Dp_old, double *Dp_new, double dt, int N, double *S){
 FILE * pFile;
 double a[N][3],r[N],al[N];
 double betam[N],betap[N],Lp[N],Lm[N],D[N],Dllp[N],Dllm[N];
@@ -87,19 +95,20 @@ for (i=0;i<N;i++){
   
 // define a tridiagonal matrix with vectors a[..][0] (subdiagonal), 
 // a[..][1](diagonal), a[..][2](superdiagonal)
-// r is the known term (right-hand side term)
+// r is the known term (right-hand side term) plus source...
 
 for (i=1;i<N-1;i++) {
 a[i][0]=-betam[i]*L[i]*L[i];
 a[i][1]=1 + betam[i]*L[i]*L[i] + betap[i]*L[i]*L[i];
 a[i][2]=-betap[i]*L[i]*L[i];
-r[i]=betam[i]*L[i]*L[i]*f[i-1]+(1 - betam[i]*L[i]*L[i] - betap[i]*L[i]*L[i])*f[i]+betap[i]*L[i]*L[i]*f[i+1];
+r[i]=betam[i]*L[i]*L[i]*f[i-1]+
+  (1 - betam[i]*L[i]*L[i] - betap[i]*L[i]*L[i])*f[i]+betap[i]*L[i]*L[i]*f[i+1] +
+  S[i];
 }
 
 // dirichlet BC
 a[0][1]=1.0;a[0][2]=0.0;r[0]=0.0;
 a[N-1][1]=1.0;a[N-1][0]=0.0;r[N-1]=0.0;
-
 
 // LU decomposition of matrix A
 
