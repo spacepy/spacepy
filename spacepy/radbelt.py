@@ -6,7 +6,7 @@ Functions supporting radiation belt diffusion codes
 
 from spacepy import help
 import ctypes
-__version__ = "$Revision: 1.18 $, $Date: 2011/03/18 19:42:54 $"
+__version__ = "$Revision: 1.19 $, $Date: 2011/04/13 22:10:21 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -839,7 +839,7 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     DLL = DLL/86400.; DLLp = DLLp/86400.; DLLm = DLLm/86400.
 
     # Set default of NO sources:
-    src1 = n.zeros(NL); src2 = n.zeros(NL)
+    src = n.zeros(NL)
 
     # Create source operators (source splitting) using implicit 
     # trapezoidal method to solve source ODE.
@@ -848,26 +848,19 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
         # Call the artificial source function, sending info as 
         # key word arguments.  Note that such functions should be
         # able to handle extra kwargs through the use of **kwargs!
-        dt13rd = Tdelta/3.0
-        dt23rd = 2.0*Tdelta/3.0
         sfunc = params['SRCartif']
 
-        # Apply source using method similar to Toro, 1999, Chp. 15:
-        # 1/2 S(dT) C(dT) 1/2 S(dT) f
-        # The source integrator is Simpson's 3/8ths rule, 4th-order accurate.
-        s1=sfunc(Telapsed,        Lgrid, alpha,  DLL, beta)
-        s2=sfunc(Telapsed+dt13rd, Lgrid, alpha,  DLL, beta)
-        s3=sfunc(Telapsed+dt23rd, Lgrid, alpha,  DLL, beta)
-        s4=sfunc(Telapsed+Tdelta, Lgrid, alpha,  DLL, beta)
-        src1 = Tdelta/6.0*3./8. * (s1+3.0*s2+3.0*s3+s4)
-        src2=src1
+        # Apply using correct CN-method.
+        src=0.5*Tdelta*(
+            sfunc(Telapsed, Lgrid, alpha, DLL, beta) +
+            sfunc(Telapsed+Tdelta, Lgrid, alpha, DLL, beta))
+        src[0], src[-1] = 0.,0.
 
     else:
         src1 = n.zeros(NL)
         src2 = n.zeros(NL)
 
     # Apply solution operators to f.
-    f[1:-1]=f[1:-1]+src1[1:-1]
     dptr = ctypes.POINTER(ctypes.c_double)
     r.advance(f.ctypes.data_as(dptr),
               Lgrid.ctypes.data_as(dptr),
@@ -875,8 +868,8 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
               DLLm.ctypes.data_as(dptr), 
               DLLp.ctypes.data_as(dptr), 
               DLLp.ctypes.data_as(dptr), 
-              ct.c_double(Tdelta), NL)
-    f[1:-1] = f[1:-1]+src2[1:-1]
+              ct.c_double(Tdelta), NL,
+              src.ctypes.data_as(dptr))
     
    # add source according to values in SRC...
     if params['SRC_model']:
