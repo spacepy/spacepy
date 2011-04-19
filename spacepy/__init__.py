@@ -38,20 +38,40 @@ __contact__ = 'spacepy@lanl.gov'
 __license__ = """SpacePy: Space Science Tools for Python
 
 SpacePy is a package of tools primarily aimed at the space science community.
-Copyright (C) 2010 The SpacePy Team.
+Copyright (C) 2010-2011 The SpacePy Team.
 
 For license details, please see the license supplied with this package
 """
+__citation__ = """When publishing research which used SpacePy, please provide appropriate
+credit to the SpacePy team via citation or acknowledgement.
+
+To cite SpacePy in publications, use (BibTeX code):
+@INPROCEEDINGS{spacepy11,
+author = {{Morley}, S.~K. and {Koller}, J. and {Welling}, D.~T. and {Larsen}, B.~A. and Henderson, M.~G. and Niehof, J.~T.},
+title = "{Spacepy - A Python-based library of tools for the space sciences}",
+booktitle = "{Proceedings of the 9th Python in science conference (SciPy 2010)}",
+year = 2011,
+address = {Austin, TX}
+}
+
+Certain modules may provide additional citations in the __citation__
+attribute. Contact a module's author before publication or public
+presentation of analysis performed by that module. This allows the author
+to validate the analysis and receive appropriate credit for his or her
+work.
+"""
 
 __notice__ = """SpacePy: Space Science Tools for Python
-SpacePy is released under license. See __licence__ for details, and help() for HTML help."""
+SpacePy is released under license.
+See __licence__ for details, __citation__ for citation information,
+and help() for HTML help."""
 
 __licence__ = __license__ #for those who speak English, rather than an odd dialect
 
 try: #if in iPython interactive shell, print licence notice
     if __IPYTHON__active == 1: print(__notice__)
 except NameError: #otherwise print single line notice
-    print("SpacePy is released under license. See __licence__ for details, and help() for HTML help.")
+    print("SpacePy is released under license. See __licence__ and __citation__ for details, and help() for HTML help.")
 
 # import some settings
 from os import environ as ENVIRON
