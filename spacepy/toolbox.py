@@ -15,7 +15,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.94 $, $Date: 2011/04/04 21:35:52 $"
+__version__ = "$Revision: 1.95 $, $Date: 2011/04/19 18:07:54 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -1622,6 +1622,8 @@ def hypot(*vals):
 def thread_job(job_size, thread_count, target, *args, **kwargs):
     """Split a job into subjobs and run a thread for each
 
+    Each thread spawned will call L{target} to handle a slice of the job.
+
     This is only useful if a job:
       1. Can be split into completely independent subjobs
       2. Relies heavily on code that does not use the Python GIL, e.g.
@@ -1632,12 +1634,23 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
     Example, squaring 100 million numbers::
       a = numpy.random.randint(0, 100, [100000000])
       b = numpy.empty([100000000], dtype='int64')
-      def targ(ina, outa, start, count):
-        outa[start:start + count] = ina[start:start + count] ** 2
+      def targ(in_array, out_array, start, count):
+        out_array[start:start + count] = in_array[start:start + count] ** 2
       toolbox.thread_job(len(a), 0, targ, a, b)
+
+    This example:
+      - Defines a target function, which will be called for each thread.
+        It is usually necessary to define a simple "wrapper" function
+        like this to provide the correct call signature.
+      - The target function receives inputs C{in_array} and C{out_array},
+        which are not touched directly by C{thread_job} but are passed
+        through in the call. In this case, C{a} gets passed as
+        C{in_array} and C{b} as C{out_array}
+      - The target function also receives the start and number of elements
+        it needs to process. For each thread where the target is called,
+        these numbers are different.
         
-    @param job_size: Total size of the job, number of "work units". Often
-                     this is an array size
+    @param job_size: Total size of the job. Often this is an array size.
     @type job_size: int
     @param thread_count: Number of threads to spawn. If =0 or None, will
                          spawn as many threads as there are cores available on
@@ -1650,8 +1663,9 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
     @param target: Python callable (generally a function, may also be an
                    imported ctypes function) to run in each thread. The
                    I{last} two positional arguments passed in will be a
-                   "start" and a "subjob size," respectively. (E. g.
-                   array offset and number of elements to process.)
+                   "start" and a "subjob size," respectively;
+                   frequently this will be the start index and the number
+                   of elements to process in an array.
     @type target: callable
     @param args: Arguments to pass to L{target}. If L{target} is an instance
                  method, self must be explicitly pssed in. start and
