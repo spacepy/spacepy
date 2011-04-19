@@ -383,7 +383,7 @@ class Sea(SeaBase):
         
     def plot(self, xquan = 'Time Since Epoch', yquan='', xunits='',
                 yunits='', epochline=False, usrlimy=[], show=True, 
-                figsize=None, dpi=None):
+                figsize=None, dpi=None, transparent=True):
         """Method called to create basic plot of superposed epoch analysis.
         
         Inputs:
@@ -396,6 +396,7 @@ class Sea(SeaBase):
             - x(y)units (default = None (None)) - x(y)-axis units.
             - epochline (default = False) - put vertical line at zero epoch.
             - usrlimy (default = []) - override automatic y-limits on plot.
+            - transparent (default True): make patch for low/high bounds transparent
         
         If both ?quan and ?units are supplied, axis label will read
         'Quantity Entered By User [Units]'
@@ -431,9 +432,13 @@ class Sea(SeaBase):
         #ax0.plot(self.x, self.semedian, 'k-', lw=2.5)
         #ax0.plot(self.x, self.bound_low, 'k-.', lw=2)
         #ax0.plot(self.x, self.bound_high, 'k-.', lw=2)
-        
-        poly = makePoly(self.x, self.bound_low.ravel(), self.bound_high.ravel(), alpha=0.25)
-        ax0.add_patch(poly)
+
+        if transparent:
+            poly = makePoly(self.x, self.bound_low.ravel(), self.bound_high.ravel(), alpha=0.25)
+            ax0.add_patch(poly)
+        else:
+            ax0.fill_between(self.x, self.bound_low.ravel(), self.bound_high.ravel(),
+                             edgecolor='none', facecolor='#7F7FFF', interpolate=True)
         plt.hold(True)
         ax0.plot(self.x, self.semedian, 'k-', lw=2.0)
         ax0.plot(self.x, self.semean, 'r--', lw=1.25)
