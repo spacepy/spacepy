@@ -51,7 +51,6 @@ class dmarray(numpy.ndarray):
         # see InfoArray.__array_finalize__ for comments
         if obj is None:
             return
-        self.attrs = getattr(obj, 'attrs', {})
 
     def __reduce__(self):
         """This is called when pickling, see:
