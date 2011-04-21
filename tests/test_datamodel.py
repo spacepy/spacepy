@@ -25,6 +25,10 @@ class datamodelTests(unittest.TestCase):
         self.assertEqual(data.attrs['coord'], 'GSM')
         data = datamodel.dmarray([1,2,3])
         self.assertTrue(hasattr(data, 'attrs'))
+        self.assertEqual(data.attrs, {})
+        data2 = datamodel.dmarray([1,2,3], attrs={'coord':'GSM'})
+        self.assertEqual(data.attrs, {})
+        self.assertEqual(data2.attrs, {'coord':'GSM'})
 
     def test_pickle(self):
         """things should pickle and unpickle"""
