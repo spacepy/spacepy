@@ -44,7 +44,7 @@ class dmarray(numpy.ndarray):
         # Finally, return the newly created object:
         if attrs == None:
             attrs = {}
-        self.attrs = attrs
+        cls.attrs = attrs
         return obj
 
     def __array_finalize__(self, obj):
