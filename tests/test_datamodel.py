@@ -2,8 +2,10 @@
 from __future__ import division
 
 import unittest
+import os
 import datetime
 from spacepy import datamodel
+import numpy as np
 
 try:
     import cPickle as pickle
@@ -30,7 +32,7 @@ class datamodelTests(unittest.TestCase):
         self.assertEqual(data.attrs, {})
         self.assertEqual(data2.attrs, {'coord':'GSM'})
 
-    def test_pickle(self):
+    def test_pickle_dumps(self):
         """things should pickle and unpickle"""
         dat = datamodel.dmarray([1,2,3,4], attrs={'a':'a', 'b':'b'})
         tmp = pickle.dumps(dat)
@@ -38,7 +40,28 @@ class datamodelTests(unittest.TestCase):
             self.assertEqual(pickle.loads(tmp)[i], val)
         self.assertEqual(pickle.loads(tmp).attrs, dat.attrs)
 
-    def test_attrs(self):
+    def test_pickle_dump(self):
+        """things should pickle and unpickle to a file"""
+        try:
+            os.remove('test_dmarray.pkl')
+        except OSError:
+            pass
+        dat = datamodel.dmarray([1,2,3,4], attrs={'a':'a', 'b':'b'})
+        # save it to a file
+        with open('test_dmarray.pkl', 'wb') as fp:
+            pickle.dump(dat, fp)
+        # not try and load the file
+        with open('test_dmarray.pkl', 'rb') as fp2:
+            dat2 = pickle.load(fp2)
+        # contents the same?
+        np.testing.assert_array_almost_equal(dat, dat2)
+        self.assertEqual(dat.attrs, dat2.attrs)
+        try:
+            os.remove('test_dmarray.pkl')
+        except OSError:
+            pass
+
+    def test_attrs_only(self):
         """dmarray can only have .attrs"""
         self.assertRaises(TypeError, datamodel.dmarray, [1,2,3], setme = 123 )
 
@@ -52,9 +75,6 @@ class datamodelTests(unittest.TestCase):
         except TypeError:
             self.assertTrue(True)
 
-    #def test_SpaceData(self):
-    #    """this is an abstract class that has some exceptions"""
-    #    self.assertRaises(ValueError, datamodel.SpaceData)
 
 if __name__ == "__main__":
     unittest.main()
