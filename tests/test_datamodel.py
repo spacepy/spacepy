@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 from __future__ import division
 
-import unittest
-import os
 import datetime
+import os
+import tempfile
+import unittest
+
 from spacepy import datamodel
 import numpy as np
 
@@ -42,24 +44,19 @@ class datamodelTests(unittest.TestCase):
 
     def test_pickle_dump(self):
         """things should pickle and unpickle to a file"""
-        try:
-            os.remove('test_dmarray.pkl')
-        except OSError:
-            pass
         dat = datamodel.dmarray([1,2,3,4], attrs={'a':'a', 'b':'b'})
-        # save it to a file
-        with open('test_dmarray.pkl', 'wb') as fp:
-            pickle.dump(dat, fp)
-        # not try and load the file
-        with open('test_dmarray.pkl', 'rb') as fp2:
-            dat2 = pickle.load(fp2)
-        # contents the same?
+        fname = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False) as fp:
+                fname = fp.name
+                pickle.dump(dat, fp)
+            with open(fname, 'rb') as fp:
+                dat2 = pickle.load(fp)
+        finally:
+            if fname != None:
+                os.remove(fname)
         np.testing.assert_array_almost_equal(dat, dat2)
         self.assertEqual(dat.attrs, dat2.attrs)
-        try:
-            os.remove('test_dmarray.pkl')
-        except OSError:
-            pass
 
     def test_attrs_only(self):
         """dmarray can only have .attrs"""
