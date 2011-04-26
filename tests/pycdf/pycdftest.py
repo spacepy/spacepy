@@ -2,7 +2,7 @@
 
 """Unit test suite for pycdf"""
 
-__version__ = "0.12"
+__version__ = "0.13"
 __author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 import ctypes
@@ -240,8 +240,12 @@ class NoCDF(unittest.TestCase):
 
     def testEpoch16ToDatetime(self):
         epochs = [[63397987199.0, 999999999999.0],
+                  [-1.0, -1.0],
+                  [0.0, 0.0],
                   ]
         dts = [datetime.datetime(2009, 1, 1),
+               datetime.datetime(9999, 12, 13, 23, 59, 59, 999999),               
+               datetime.datetime(9999, 12, 13, 23, 59, 59, 999999),               
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch16_to_datetime(epoch))
@@ -250,8 +254,12 @@ class NoCDF(unittest.TestCase):
 
     def testEpochToDatetime(self):
         epochs = [63397987200000.0,
+                  -1.0,
+                  0.0,
                   ]
         dts = [datetime.datetime(2009, 1, 1),
+               datetime.datetime(9999, 12, 13, 23, 59, 59, 999000),
+               datetime.datetime(9999, 12, 13, 23, 59, 59, 999000),
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch_to_datetime(epoch))
@@ -355,9 +363,10 @@ class MakeCDF(unittest.TestCase):
     def testOpenCDFNew(self):
         """Create a new CDF"""
 
-        new = cdf.CDF(self.testfspec, '')
+        newcdf = cdf.CDF(self.testfspec, '')
         self.assertTrue(os.path.isfile(self.testfspec))
-        new.close()
+        self.assertFalse(newcdf.readonly())
+        newcdf.close()
         os.remove(self.testfspec)
 
     def testOpenCDFNonexistent(self):
@@ -384,6 +393,7 @@ class MakeCDF(unittest.TestCase):
         """Create a CDF from a master"""
         newcdf = cdf.CDF(self.testfspec, self.testmaster)
         self.assertTrue('ATC' in newcdf)
+        self.assertFalse(newcdf.readonly())
         newcdf.close()
         os.remove(self.testfspec)
 
@@ -1375,7 +1385,28 @@ class ReadCDF(CDFTests):
         del actual['SectorRateScalersCountsSigma']
         self.assertEqual(expected, actual)
 
-        
+    def testReadClosedCDF(self):
+        """Read a CDF that has been closed"""
+        self.cdf.close()
+        try:
+            keylist = list(self.cdf.keys())
+        except cdf.CDFError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(const.BAD_CDF_ID, v.status)
+        else:
+            self.fail('Should raise CDFError: BAD_CDF_ID')
+        finally:
+            self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
+
+    def testStrClosedCDF(self):
+        """String representation of CDF that has been closed"""
+        self.cdf.close()
+        try:
+            self.assertEqual('Closed CDF test_ro.cdf', str(self.cdf))
+        finally:
+            self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
+
+
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
     testfile = 'testc_ro.cdf'
@@ -2133,7 +2164,10 @@ class ChangeCDF(CDFTests):
             oldlist = oldvar.attrs
             newlist = newvar.attrs
             for attrname in oldlist:
-                self.assertTrue(attrname in newlist)
+                self.assertTrue(
+                    attrname in newlist,
+                    'Attribute {0} not found in copy of {1}'.format(
+                    attrname, name))
                 self.assertEqual(oldlist[attrname], newlist[attrname])
                 self.assertEqual(oldlist.type(attrname),
                                  newlist.type(attrname))
@@ -2196,6 +2230,16 @@ class ChangeCDF(CDFTests):
         newlist.clone(oldlist)
         for attrname in oldlist:
             self.assertTrue(attrname in newlist)
+            self.assertEqual(oldlist[attrname], newlist[attrname])
+            self.assertEqual(oldlist.type(attrname),
+                             newlist.type(attrname))
+        oldlist = self.cdf['Epoch'].attrs
+        newlist = self.cdf['MeanCharge'].attrs
+        newlist.clone(oldlist)
+        for attrname in oldlist:
+            self.assertTrue(attrname in newlist,
+                            'Attribute {0} not found in copy.'.format(attrname)
+                            )
             self.assertEqual(oldlist[attrname], newlist[attrname])
             self.assertEqual(oldlist.type(attrname),
                              newlist.type(attrname))

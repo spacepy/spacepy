@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.12'
+__version__ = '0.13'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -265,7 +265,7 @@ class Library(object):
         @param backward: Set backward compatible mode if True;
                          clear it if False.
         @type backward: bool
-        @raise: ValueError if backward=False and underlying CDF library is V2
+        @raise ValueError: if backward=False and underlying CDF library is V2
         """
         if self.version[0] < 3:
             if not backward:
@@ -281,6 +281,10 @@ class Library(object):
 
         @param epoch: epoch value from CDF
         @type epoch: float
+        @return: date and time corresponding to L{epoch}. Invalid values
+                 are set to usual epoch invalid value, i.e. last moment
+                 of year 9999.
+        @rtype: datetime.datetime
         """
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
@@ -294,9 +298,12 @@ class Library(object):
                                      ctypes.byref(dd),
                                      ctypes.byref(hh), ctypes.byref(min),
                                      ctypes.byref(sec), ctypes.byref(msec))
-        return datetime.datetime(yyyy.value, mm.value, dd.value,
-                                 hh.value, min.value, sec.value,
-                                 msec.value * 1000)
+        if yyyy.value <= 0:
+            return datetime.datetime(9999, 12, 13, 23, 59, 59, 999000)
+        else:
+            return datetime.datetime(yyyy.value, mm.value, dd.value,
+                                     hh.value, min.value, sec.value,
+                                     msec.value * 1000)
 
     def datetime_to_epoch(self, dt):
         """Converts a Python datetime to a CDF Epoch value
@@ -322,6 +329,10 @@ class Library(object):
         @param epoch: epoch16 value from CDF
         @type epoch: list of two floats
         @raise EpochError: if input invalid
+        @return: date and time corresponding to L{epoch}. Invalid values
+                 are set to usual epoch invalid value, i.e. last moment
+                 of year 9999.
+        @rtype: datetime.datetime
         """
         try:
             if len(epoch) != 2:
@@ -345,6 +356,8 @@ class Library(object):
                                      ctypes.byref(sec), ctypes.byref(msec),
                                      ctypes.byref(usec), ctypes.byref(nsec),
                                      ctypes.byref(psec))
+        if yyyy.value <= 0:
+            return datetime.datetime(9999, 12, 13, 23, 59, 59, 999999)        
         micro = int(float(msec.value) * 1000 + float(usec.value) +
                     float(nsec.value) / 1000 + float(psec.value) / 1e6 + 0.5)
         if micro < 1000000:
@@ -626,6 +639,8 @@ class CDF(collections.MutableMapping):
 
     @ivar _handle: file handle returned from CDF library open functions.
     @type _handle: ctypes.c_void_p
+    @ivar _opened: is the CDF open?
+    @type _opened: bool
     @ivar pathname: filename of the CDF file
     @type pathname: string
     @ivar attrs: All global attributes for this CDF
@@ -649,6 +664,7 @@ class CDF(collections.MutableMapping):
         """
         self.pathname = pathname.encode()
         self._handle = ctypes.c_void_p(None)
+        self._opened = False
         if masterpath == None:
             self._open()
         elif masterpath:
@@ -664,7 +680,7 @@ class CDF(collections.MutableMapping):
         Close CDF file if there is still a valid handle.
         @note: To avoid data loss, explicitly call L{close} or L{save}.
         """
-        if self._handle:
+        if self._opened:
             self.close()
 
     def __delitem__(self, name):
@@ -789,8 +805,14 @@ class CDF(collections.MutableMapping):
         @return: description of the variables in the CDF
         @rtype: str
         """
-        return '\n'.join([key + ': ' + str(value)
-                          for (key, value) in self.items()])
+        if self._opened:
+            return '\n'.join([key + ': ' + str(value)
+                              for (key, value) in self.items()])
+        else:
+            if isinstance(self.pathname, str):
+                return 'Closed CDF {0}'.format(self.pathname)
+            else:
+                return 'Closed CDF {0}'.format(self.pathname.decode('ascii'))
 
     def _open(self):
         """Opens the CDF file (called on init)
@@ -804,6 +826,7 @@ class CDF(collections.MutableMapping):
         """
 
         lib.call(const.OPEN_, const.CDF_, self.pathname, ctypes.byref(self._handle))
+        self._opened = True
         self.readonly(True)
 
     def _create(self):
@@ -820,6 +843,7 @@ class CDF(collections.MutableMapping):
 
         lib.call(const.CREATE_, const.CDF_, self.pathname, ctypes.c_long(0),
                               (ctypes.c_long * 1)(0), ctypes.byref(self._handle))
+        self._opened = True
 
     def _from_master(self, master_path):
         """Creates a new CDF from a master CDF file
@@ -839,6 +863,8 @@ class CDF(collections.MutableMapping):
             raise CDFError(const.CDF_EXISTS)
         shutil.copy2(master_path, self.pathname)
         self._open()
+        self._opened = True
+        self.readonly(False)
 
     def _call(self, *args, **kwargs):
         """Select this CDF as current and call the CDF internal interface
@@ -857,7 +883,6 @@ class CDF(collections.MutableMapping):
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
         """
-
         return lib.call(const.SELECT_, const.CDF_, self._handle,
                         *args, **kwargs)
 
@@ -962,7 +987,7 @@ class CDF(collections.MutableMapping):
         """
 
         self._call(const.CLOSE_, const.CDF_)
-        self._handle = ctypes.c_void_p(None)
+        self._opened = False
 
     def compress(self, comptype=None, param=None):
         """Set or check the compression of this CDF
