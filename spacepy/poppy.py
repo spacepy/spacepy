@@ -271,7 +271,7 @@ class PPro(object):
         return fig
     
     def plot(self, figsize=None, dpi=80, asympt=True, show=True, norm=True,
-             xlabel='Time lag', xscale=None, ylabel=None, title=None):
+             xlabel='Time lag', xscale=None, ylabel=None, title=None, transparent=True):
         """Create basic plot of association analysis.
         
         Uses object attributes created by the L{assoc} method and,
@@ -295,6 +295,8 @@ class PPro(object):
         @type xscale: float
         @param ylabel: label to put on the Y axis of the resulting plot
         @type ylabel: str
+        @param transparent: make c.i. patch transparent (default)
+        @type transparent: bool
         """
         try:
             dum = self.n_assoc
@@ -334,8 +336,12 @@ class PPro(object):
             assoc_total = self.assoc_total
         
         if ci != None:
-            ax0.fill_between(x, ci[0], ci[1],
-                             edgecolor='none', facecolor='blue', alpha=0.5)
+            if transparent:
+                ax0.fill_between(x, ci[0], ci[1],
+                                 edgecolor='none', facecolor='blue', alpha=0.5)
+            else:
+                ax0.fill_between(x, ci[0], ci[1],
+                                 edgecolor='none', facecolor='#ABABFF')
         else:
             print('Error: No confidence intervals to plot - skipping')
         
@@ -443,7 +449,8 @@ class PPro(object):
 #Functions outside class
 
 def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
-                  title=None, figsize=None, dpi=80):
+                  title=None, xscale=None, figsize=None, dpi=80,
+                  ylim=[None, None], log=False, xticks=None, yticks=None):
     """Overplots two PPro objects
 
     @param pprodata: first point process to plot (in blue)
@@ -458,8 +465,19 @@ def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
     @type norm: bool
     @param title: title to put on the plot
     @type title: str
+    @param xscale: scale x-axis by this factor (e.g. 60.0 to convert
+                   seconds to minutes)
+    @type xscale: float
     @param figsize: passed through to matplotlib.pyplot.figure
     @param dpi: passed through to matplotlib.pyplot.figure
+    @param ylim: [minimum, maximum] values of y for the axis
+    @type ylim: seq of float
+    @param log: True for a log plot
+    @type log: boolean
+    @param xticks: if provided, a list of tickmarks for the X axis
+    @type xticks: seq of float
+    @param yticks: if provided, a list of tickmarks for the Y axis
+    @type yticks: seq of float
     """
     import matplotlib.pyplot as plt
     if ratio == None:
@@ -467,6 +485,8 @@ def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
     lags = pproref.lags
     nlags = len(lags)
     assert lags[:] == pprodata.lags[:]
+    if xscale != None:
+        lags = [float(i) / xscale for i in lags]
     fig = plt.figure(figsize=figsize, dpi=dpi)
     plt.subplots_adjust(wspace=0.0, hspace=0.0)
     ax0 = fig.add_subplot(111)
@@ -497,19 +517,30 @@ def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
         refhi = pproref.ci[1]
         reflo = pproref.ci[0]
     ax0.fill_between(lags, reflo, refhi,
-                     edgecolor='none', facecolor='#FF7F7F', interpolate=True)
+                     edgecolor='none', facecolor='#FFABAB', interpolate=True)
     ax0.fill_between(lags, scaledlo, scaledhi,
-                     edgecolor='none', facecolor='#7F7FFF', interpolate=True)
+                     edgecolor='none', facecolor='#ABABFF', interpolate=True)
     bottom = np.fromiter((max([scaledlo[i], reflo[i]]) for i in xrange(nlags)),
                          np.float64, count=-1)
     top = np.fromiter((min([scaledhi[i], refhi[i]]) for i in xrange(nlags)),
                       np.float64, count=-1)
     ax0.fill_between(lags, bottom, top, where=(bottom <= top),
-                     edgecolor='none', facecolor='#BF3F7F',
+                     edgecolor='none', facecolor='#AB81D5',
                      interpolate=True)
     ax0.plot(lags, scaleddata, lw=1.0)
     ax0.plot(lags, scaledref, 'r--', lw=1.0)
-    ax0.set_ylim(bottom=0)
+    if ylim[0] == None:
+        ax0.set_ylim(bottom=0)
+    else:
+        ax0.set_ylim(bottom=ylim[0])
+    if ylim[1] != None:
+        ax0.set_ylim(top=ylim[1])
+    if log:
+        ax0.set_yscale('log', nonposy='clip')
+    if xticks:
+        ax0.set_xticks(xticks)
+    if yticks:
+        ax0.set_yticks(yticks)
     if title:
         plt.title(title)
 
