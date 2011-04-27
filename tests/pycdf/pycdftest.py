@@ -2,15 +2,17 @@
 
 """Unit test suite for pycdf"""
 
-__version__ = "0.13"
+__version__ = "0.14"
 __author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 import ctypes
 import datetime
+import gc
 import hashlib
 import os, os.path
 import shutil
 import sys
+import tempfile
 import unittest
 import warnings
 
@@ -357,9 +359,13 @@ class NoCDF(unittest.TestCase):
 
 class MakeCDF(unittest.TestCase):
     def setUp(self):
-        self.testfspec='foo.cdf'
+        self.testdir = tempfile.mkdtemp()
+        self.testfspec = os.path.join(self.testdir, 'foo.cdf')
         self.testmaster = 'po_l1_cam_testc.cdf'
-    
+
+    def tearDown(self):
+        shutil.rmtree(self.testdir)
+
     def testOpenCDFNew(self):
         """Create a new CDF"""
 
@@ -416,53 +422,46 @@ class MakeCDF(unittest.TestCase):
         self.assertEqual(3, verno.value)
         cdf.lib.set_backward(True)
 
+    def testCreateCDFLeak(self):
+        """Make a CDF that doesn't get collected"""
+        newcdf = cdf.CDF(self.testfspec, '')
+        newcdf.close()
+        gc.collect()
+        old_garblen = len(gc.garbage)
+        del newcdf
+        os.remove(self.testfspec)
+        gc.collect()
+        new_garblen = len(gc.garbage)
+        self.assertEqual(old_garblen, new_garblen)
 
-class CDFTests(unittest.TestCase):
+
+class CDFTestsBase(unittest.TestCase):
+    """Base class for tests involving existing CDF, column or row major"""
+    def __init__(self, *args, **kwargs):
+        self.testfile = os.path.join(tempfile.gettempdir(), self.testbase)
+        assert(self.calcDigest(self.testmaster) == self.expected_digest)
+        super(CDFTestsBase, self).__init__(*args, **kwargs)
+    
+    @staticmethod
+    def calcDigest(file):
+        m = hashlib.md5()
+        with open(file, 'rb') as f:
+            m.update(f.read())
+        return m.hexdigest()
+
+    
+class CDFTests(CDFTestsBase):
     """Tests that involve an existing CDF, read or write"""
     testmaster = 'po_l1_cam_test.cdf'
-    testfile = 'test.cdf'
-
-    def __init__(self, *args):
-        self.expected_digest = '39833ef7046c10d001dd6f2cbd2a2ef5'
-        assert(self.calcDigest(self.testmaster) == self.expected_digest)
-        super(CDFTests, self).__init__(*args)
-
-    def calcDigest(self, file):
-        """Calculate the MD5 digest from a file.
-
-        @param file: path to the file
-        @type file: string
-        @return: hex digits of L{file}'s md5
-        @rtype: string
-        """
-        m = hashlib.md5()
-        with open(file, 'rb') as f:
-            m.update(f.read())
-        return m.hexdigest()
+    testbase = 'test.cdf'
+    expected_digest = '39833ef7046c10d001dd6f2cbd2a2ef5'
 
 
-class ColCDFTests(unittest.TestCase):
+class ColCDFTests(CDFTestsBase):
     """Tests that involve an existing column-major CDF, read or write"""
     testmaster = 'po_l1_cam_testc.cdf'
-    testfile = 'testc.cdf'
-
-    def __init__(self, *args):
-        self.expected_digest = '7728439e20bece4c0962a125373345bf'
-        assert(self.calcDigest(self.testmaster) == self.expected_digest)
-        super(ColCDFTests, self).__init__(*args)
-
-    def calcDigest(self, file):
-        """Calculate the MD5 digest from a file.
-
-        @param file: path to the file
-        @type file: string
-        @return: hex digits of L{file}'s md5
-        @rtype: string
-        """
-        m = hashlib.md5()
-        with open(file, 'rb') as f:
-            m.update(f.read())
-        return m.hexdigest()
+    testbase = 'testc.cdf'
+    expected_digest = '7728439e20bece4c0962a125373345bf'
 
 
 class OpenCDF(CDFTests):
@@ -518,10 +517,21 @@ class OpenCDF(CDFTests):
         self.assertEqual(expected, names)
         self.assertRaises(cdf.CDFError, f.close)
 
+    def testOpenCDFLeak(self):
+        """Open a CDF that doesn't get collected"""
+        cdffile = cdf.CDF(self.testfile)
+        cdffile.close()
+        gc.collect()
+        old_garblen = len(gc.garbage)
+        del cdffile
+        gc.collect()
+        new_garblen = len(gc.garbage)
+        self.assertEqual(old_garblen, new_garblen)
+
 
 class ReadCDF(CDFTests):
     """Tests that read an existing CDF, but do not modify it."""
-    testfile = 'test_ro.cdf'
+    testbase = 'test_ro.cdf'
 
     def __init__(self, *args, **kwargs):
         super(ReadCDF, self).__init__(*args, **kwargs)
@@ -1401,15 +1411,17 @@ class ReadCDF(CDFTests):
     def testStrClosedCDF(self):
         """String representation of CDF that has been closed"""
         self.cdf.close()
+        cdflabel = str(self.cdf)
         try:
-            self.assertEqual('Closed CDF test_ro.cdf', str(self.cdf))
+            self.assertEqual('Closed CDF', cdflabel[0:10])
+            self.assertEqual(self.testbase, cdflabel[-len(self.testbase):])
         finally:
             self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
 
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
-    testfile = 'testc_ro.cdf'
+    testbase = 'testc_ro.cdf'
 
     def __init__(self, *args, **kwargs):
         super(ReadColCDF, self).__init__(*args, **kwargs)

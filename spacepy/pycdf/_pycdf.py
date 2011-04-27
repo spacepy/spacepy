@@ -6,7 +6,7 @@ This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
 """
 
-__version__ = '0.13'
+__version__ = '0.14'
 __author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
@@ -552,6 +552,18 @@ def _compress(obj, comptype=None, param=None):
     return (comptype, param)
 
 
+class _AttrListGetter(object):
+    """Descriptor to get attribute list for a L{CDF} or L{Var}."""
+    def __get__(self, instance, owner=None):
+        if owner == CDF:
+            return gAttrList(instance)
+        elif owner == Var:
+            return zAttrList(instance)
+        else:
+            raise NotImplementedError(
+                "Attribute lists may only be applied to CDFs or zVars.")
+
+    
 class CDF(collections.MutableMapping):
     """Python object representing a CDF file.
 
@@ -643,10 +655,11 @@ class CDF(collections.MutableMapping):
     @type _opened: bool
     @ivar pathname: filename of the CDF file
     @type pathname: string
-    @ivar attrs: All global attributes for this CDF
-    @type attrs: L{gAttrList}
+    @cvar attrs: Returns global attributes for this CDF (see L{gAttrList})
+    @type attrs: L{_AttrListGetter}
     @note: CDF is opened read-only by default, see L{readonly} to change.
     """
+    attrs = _AttrListGetter()
 
     def __init__(self, pathname, masterpath=None):
         """Open or create a CDF file.
@@ -672,7 +685,6 @@ class CDF(collections.MutableMapping):
         else:
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
-        self.attrs = gAttrList(self)
 
     def __del__(self):
         """Destructor
@@ -1253,8 +1265,8 @@ class Var(collections.MutableSequence):
 
     @ivar cdf_file: the CDF file containing this variable
     @type cdf_file: L{CDF}
-    @ivar attrs: All variable attributes for this variable
-    @type attrs: L{zAttrList}
+    @cvar attrs: Returns attributes for this zVariable (see L{zAttrList})
+    @type attrs: L{_AttrListGetter}
     @ivar _name: name of this variable
     @type _name: string
     @raise CDFError: if CDF library reports an error
@@ -1266,6 +1278,7 @@ class Var(collections.MutableSequence):
            set on opening the CDF so rVars appear as zVars. See p.24 of the
            CDF user's guide; pyCDF uses zMode 2.
     """
+    attrs = _AttrListGetter()
 
     def __init__(self, cdf_file, var_name, *args):
         """Create or locate a variable
@@ -1287,7 +1300,6 @@ class Var(collections.MutableSequence):
             self._get(var_name)
         else:
             self._create(var_name, *args)
-        self.attrs = zAttrList(self)
 
     def __getitem__(self, key):
         """Returns a slice from the data array. Details under L{Var}.
@@ -2487,467 +2499,6 @@ class _Hyperslice(object):
         return (start, count, step, rev)
 
 
-class AttrList(collections.MutableMapping):
-    """Object representing a list of attributes.
-
-    Only used in its subclasses, L{gAttrList} and L{zAttrList}
-
-    @ivar _cdf_file: CDF these attributes are in
-    @type _cdf_file: L{CDF}
-    @ivar special_entry: callable which returns a "special"
-                         entry number, used to limit results
-                         for zAttrs to those which match the zVar
-    @type special_entry: callable
-    @ivar AttrType: type of attribute in this list, L{zAttr} or L{gAttr}
-    @type AttrType: type
-    @ivar attr_name: name of attribute type, zAttribute or gAttribute
-    @type attr_name: str
-    @ivar global_scope: is this list scoped global (True) or variable (False)
-    @type global_scope: bool
-    """
-
-    def __init__(self, cdf_file, special_entry=None):
-        """Initialize the attribute collection
-
-        @param cdf_file: CDF these attributes are in
-        @type cdf_file: L{CDF}
-        @param special_entry: callable which returns a "special"
-                              entry number, used to limit results
-                              for zAttrs to those which match the zVar
-        @type special_entry: callable
-        """
-        self._cdf_file = cdf_file
-        self.special_entry = special_entry
-
-    def __getitem__(self, name):
-        """Find an Attribute by name
-
-        @param name: name of the Attribute to return
-        @type name: str
-        @return: attribute named L{name}
-        @rtype: L{Attr}
-        @raise KeyError: if there is no attribute named L{name}
-        @raise CDFError: other errors in CDF library
-        """
-        try:
-            attrib = self.AttrType(self._cdf_file, name)
-        except CDFError:
-            (t, v, tb) = sys.exc_info()
-            if v.status == const.NO_SUCH_ATTR:
-                raise KeyError(name + ': ' + str(v))
-            else:
-                raise
-        if attrib.global_scope() != self.global_scope:
-            raise KeyError(name + ': no ' + self.attr_name + ' by that name.')
-        return attrib
-
-    def __setitem__(self, name, data):
-        """Create an Attribute or change its entries
-
-        @param name: name of Attribute to change
-        @type name: str
-        @param data: Entries to populate this Attribute with.
-                     Any existing Entries will be deleted!
-                     Another C{Attr} may be specified, in which
-                     case all its entries are copied.
-        @type data: scalar, list, or L{Attr}
-        """
-        if isinstance(data, AttrList):
-            if name in self:
-                del self[name]
-            attr = self._get_or_create(name)
-            for entryno in range(data.max_idx()):
-                if data.has_entry(entryno):
-                    attr.new(data[entryno], data.type(entryno), entryno)
-        else:
-            attr = self._get_or_create(name)
-            if isinstance(data, str_classes):
-                data = [data]
-            else:
-                try:
-                    junk = len(data)
-                except TypeError:
-                    data = [data]
-            attr[:] = data
-            del attr[len(data):]
-
-    def __delitem__(self, name):
-        """Delete an Attribute (and all its entries)
-
-        @param name: name of Attribute to delete
-        @type name: str
-        """
-        try:
-            attr = self.AttrType(self._cdf_file, name)
-        except CDFError:
-            (t, v, tb) = sys.exc_info()
-            if v.status == const.NO_SUCH_ATTR:
-                raise KeyError(name + ': ' + str(v))
-            else:
-                raise
-            if attr.global_scope() != self.global_scope:
-                raise KeyError(name + ': not ' + self.attr_name)
-        attr._delete()
-
-    def __iter__(self, current=0):
-        """Iterates over all Attr in this CDF or variable
-
-        Returns name of one L{Attr} at a time until reaches the end.
-        @note: Returned in number order.
-        """
-        count = ctypes.c_long(0)
-        self._cdf_file._call(const.GET_, const.CDF_NUMATTRS_,
-                             ctypes.byref(count))
-        while current < count.value:
-            candidate = self.AttrType(self._cdf_file, current)
-            if candidate.global_scope() == self.global_scope:
-                if self.special_entry == None or \
-                        candidate.has_entry(self.special_entry()):
-                    if str == bytes:
-                        value = yield(candidate._name)
-                    else:
-                        value = yield(candidate._name.decode())
-                    if value != None:
-                        current = self[value].number()
-            current += 1
-
-    def __repr__(self):
-        """Returns representation of attribute list
-
-        Cannot return anything that can be eval'd to create a copy of the
-        list, so just wrap the informal representation in angle brackets.
-        @return: all the data in this list of attributes
-        @rtype: str
-        """
-        return '<' + self.__class__.__name__ + ':\n' + str(self) + '\n>'
-
-    def __str__(self):
-        """Returns a string representation of the attribute list
-
-        This is an 'informal' representation in that it cannot be evaluated
-        directly to create an L{AttrList}.
-
-        @return: all the data in this list of attributes
-        @rtype: str
-        """
-        return '\n'.join([key + ': ' + (
-            ('\n' + ' ' * (len(key) + 2)).join(
-            [str(value[i]) + ' [' + lib.cdftypenames[value.type(i)] + ']'
-             for i in range(len(value))])
-            if isinstance(value, Attr)
-            else str(value) +
-            ' [' + lib.cdftypenames[self.type(key)] + ']'
-            )
-            for (key, value) in self.items()])
-
-    def clone(self, master, name=None, new_name=None):
-        """Clones this attribute list, or one attribute in it, from another
-
-        @param master: the attribute list to copy from
-        @type master: L{AttrList}
-        @param name: name of attribute to clone (default: clone entire list)
-        @type name: str
-        @param new_name: name of the new attribute, default L{name}
-        @type new_name: str
-        """
-        if name == None:
-            self._clone_list(master)
-        else:
-            self._clone_attr(master, name, new_name)
-
-    def copy(self):
-        """Create a copy of this attribute list
-
-        @return: copy of the entries for all attributes in this list
-        @rtype: dict
-        """
-        return dict((key, value[:] if isinstance(value, Attr) else value)
-                    for (key, value) in self.items())
-
-    def new(self, name, data=None, type=None):
-        """Create a new Attr in this AttrList
-
-        @param name: name of the new Attribute
-        @type name: str
-        @param data: data to put into the first entry in the new Attribute
-        @param type: CDF type of the first entry from L{const}. Only used
-                     if L{data} are specified.
-        @raise KeyError: if L{name} already exists in this list
-        """
-        if name in self:
-            raise KeyError(name + ' already exists.')
-        attr = self._get_or_create(name)
-        if data != None:
-            if self.special_entry == None:
-                attr.new(data, type)
-            else:
-                attr.new(data, type, self.special_entry())
-
-    def rename(self, old_name, new_name):
-        """Rename an attribute in this list
-
-        Renaming a zAttribute renames it for I{all} zVariables in this CDF!
-
-        @param old_name: the current name of the attribute
-        @type old_name: str
-        @param new_name: the new name of the attribute
-        @type new_name: str
-        """
-        AttrList.__getitem__(self, old_name).rename(new_name)
-
-    def _clone_attr(self, master, name, new_name=None):
-        """Clones a single attribute from one in this list or another
-
-        Copies data and types from the master attribute to the new one
-
-        @param master: attribute list to copy attribute from
-        @type master: L{AttrList}
-        @param name: name of attribute to copy
-        @type name: str
-        @param new_name: name of the new attribute, default L{name}
-        @type new_name: str
-        """
-        if new_name == None:
-            new_name = name
-        self[new_name] = master[name]
-
-    def _clone_list(self, master):
-        """Clones this attribute list from another
-
-        @param master: the attribute list to copy from
-        @type master: L{AttrList}
-        """
-        for name in master:
-            self._clone_attr(master, name)
-        for name in list(self): #Can't iterate over a list we're changing
-            if not name in master:
-                del self[name]    
-
-    def _get_or_create(self, name):
-        """Retrieve L{Attr} or create it if it doesn't exist
-
-        @param name: name of the attribute to look up or create
-        @type name: str
-        @return: attribute with this name
-        @rtype: L{Attr}
-        """
-        attr = None
-        try:
-            attr = self.AttrType(self._cdf_file, name)
-        except CDFError:
-            (t, v, tb) = sys.exc_info()
-            if v.status != const.NO_SUCH_ATTR:
-                raise
-        if attr == None:
-            attr = self.AttrType(self._cdf_file, name, True)
-        elif attr.global_scope() != self.global_scope:
-                raise KeyError(name + ': not ' + self.attr_name)
-        return attr
-
-
-class gAttrList(AttrList):
-    """Object representing I{all} the gAttributes in a CDF.
-
-    Normally accessed as an attribute of an open L{CDF}::
-        global_attribs = cdffile.attrs
-
-    Appears as a dictionary: keys are attribute names; each value is an
-    attribute represented by a L{gAttr} object. To access the global
-    attribute TEXT::
-        text_attr = cdffile.attrs['TEXT']
-    """
-
-    def __init__(self, cdf_file):
-        """Initialize the attribute collection
-
-        @param cdf_file: CDF these attributes are in
-        @type cdf_file: L{CDF}
-        """
-        self.AttrType = gAttr
-        self.attr_name = 'gAttribute'
-        self.global_scope = True
-        super(gAttrList, self).__init__(cdf_file)
-
-    def __len__(self):
-        """Number of gAttributes in this CDF
-
-        @return: number of gAttributes in the CDF
-        @rtype: int
-        """
-        count = ctypes.c_long(0)
-        self._cdf_file._call(const.GET_, const.CDF_NUMgATTRS_,
-                             ctypes.byref(count))
-        return count.value
-
-
-class zAttrList(AttrList):
-    """Object representing I{all} the zAttributes in a zVariable.
-
-    Normally access as an attribute of a L{Var} in an open CDF::
-        epoch_attribs = cdffile['Epoch'].attrs
-
-    Appears as a dictionary: keys are attribute names, values are
-    the value of the zEntry associated with the appropriate zVariable.
-    Each vAttribute in a CDF may only have a I{single} entry associated
-    with each variable. The entry may be a string, a single numerical value,
-    or a series of numerical values. Entries with multiple values are returned
-    as an entire list; direct access to the individual elements is not
-    possible.
-
-    Example: finding the first dependency of (ISTP-compliant) variable
-    Flux::
-        print cdffile['Flux'].attrs['DEPEND_0']
-
-    zAttributes are shared among zVariables, one zEntry allowed per zVariable.
-    (pyCDF hides this detail.) Deleting the last zEntry for a zAttribute will
-    delete the underlying zAttribute.
-
-    zEntries are created and destroyed by the usual dict methods on the
-    zAttrlist::
-        epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
-        del epoch_attribs['new_entry'] #delete the zEntry
-    L{__setitem__} describes how the type of an zEntry is determined.
-
-    @ivar _zvar: zVariable these attributes are in
-    @type _zvar: L{Var}
-    @ivar _cdf_file: CDF these attributes are in
-    @type _cdf_file: L{CDF}
-    """
-
-    def __init__(self, zvar):
-        """Initialize the attribute collection
-
-        @param zvar: zVariable these attributes are in
-        @param zvar: L{Var}
-        """
-        self.AttrType = zAttr
-        self.attr_name = 'zAttribute'
-        self.global_scope = False
-        super(zAttrList, self).__init__(zvar.cdf_file, zvar._num)
-        self._zvar = zvar
-
-    def __getitem__(self, name):
-        """Find an zEntry by name
-
-        @param name: name of the zAttribute to return
-        @type name: str
-        @return: attribute named L{name}
-        @rtype: L{zAttr}
-        @raise KeyError: if there is no attribute named L{name} associated
-                         with this zVariable
-        @raise CDFError: other errors in CDF library
-        """
-        attrib = super(zAttrList, self).__getitem__(name)
-        zvar_num = self._zvar._num()
-        if attrib.has_entry(zvar_num):
-            return attrib[zvar_num]
-        else:
-            raise KeyError(name + ': no such attribute for variable ' +
-                           self._zvar.name())
-
-    def __delitem__(self, name):
-        """Delete an zEntry by name
-
-        @param name: name of the zEntry to delete
-        @type name: str
-        @raise KeyError: if there is no attribute named L{name} associated
-                         with this zVariable
-        @raise CDFError: other errors in CDF library
-        @note: If this is the only remaining entry, the Attribute will be
-               deleted.
-        """
-        attrib = super(zAttrList, self).__getitem__(name)
-        zvar_num = self._zvar._num()
-        if not attrib.has_entry(zvar_num):
-            raise KeyError(str(name) + ': no such attribute for variable ' +
-                           str(self._zvar._name))
-        del attrib[zvar_num]
-        if len(attrib) == 0:
-            attrib._delete()
-
-    def __setitem__(self, name, data):
-        """Sets a zEntry by name
-
-        The type of the zEntry is guessed from L{data}. The type is chosen to
-        match the data; subject to that constraint, it will try to match
-        (in order):
-          1. existing zEntry corresponding to this zVar
-          2. other zEntries in this zAttribute
-          3. the type of this zVar
-          4. data-matching constraints described in L{_Hyperslice.types}
-
-        @param name: name of zAttribute; zEntry for this zVariable will be set
-                     in zAttribute by this name
-        @type name: str
-        @raise CDFError: errors in CDF library
-        @raise ValueError: if unable to find a valid CDF type matching L{data},
-                           or if L{data} is the wrong dimensions.
-        """
-        try:
-            attr = super(zAttrList, self).__getitem__(name)
-        except KeyError:
-            attr = zAttr(self._cdf_file, name, True)
-        zvar_num = self._zvar._num()
-        attr[zvar_num] = data
-
-    def __len__(self):
-        """Number of zAttributes in this variable
-
-        @return: number of zAttributes in the CDF
-                 which have entries for this variable.
-        @rtype: int
-        """
-        length = 0
-        count = ctypes.c_long(0)
-        self._cdf_file._call(const.GET_, const.CDF_NUMATTRS_,
-                             ctypes.byref(count))
-        current = 0
-        while current < count.value:
-            candidate = zAttr(self._cdf_file, current)
-            if not candidate.global_scope():
-                if candidate.has_entry(self._zvar._num()):
-                    length += 1
-            current += 1
-        return length
-
-    def type(self, name, new_type=None):
-        """Find or change the CDF type of a zEntry in this zVar
-
-        @param name: name of the zAttr to check or change
-        @type name: str
-        @param new_type: type to change it to, see L{const}
-        @type new_type: ctypes.c_long
-        @return: CDF variable type, see L{const}
-        @rtype: int
-        @note: If changing types, old and new must be equivalent, see CDF
-               User's Guide section 2.5.5 pg. 57
-        """
-        attrib = super(zAttrList, self).__getitem__(name)
-        zvar_num = self._zvar._num()
-        if not attrib.has_entry(zvar_num):
-            raise KeyError(name + ': no such attribute for variable ' +
-                           self._zvar.name())
-        return attrib.type(zvar_num, new_type)
-
-    def _clone_attr(self, master, name, new_name=None):
-        """Clones a single attribute from one in this list or another
-
-        Copies data and types from the master attribute to the new one
-
-        @param master: attribute list to copy attribute from
-        @type master: L{zAttrList}
-        @param name: name of attribute to copy
-        @type name: str
-        @param new_name: name of the new attribute, default L{name}
-        @type new_name: str
-        """
-        if new_name == None:
-            new_name = name
-        if new_name in self:
-            del self[new_name]
-        self.new(new_name, master[name], master.type(name))
-
-
 class Attr(collections.MutableSequence):
     """An attribute, z or g, for a CDF
 
@@ -3519,3 +3070,456 @@ class gAttr(Attr):
         self.ENTRY_DATATYPE_ = const.gENTRY_DATATYPE_
         self.ENTRY_DATASPEC_ = const.gENTRY_DATASPEC_
         super(gAttr, self).__init__(*args, **kwargs)
+
+
+class AttrList(collections.MutableMapping):
+    """Object representing a list of attributes.
+
+    Only used in its subclasses, L{gAttrList} and L{zAttrList}
+
+    @ivar _cdf_file: CDF these attributes are in
+    @type _cdf_file: L{CDF}
+    @ivar special_entry: callable which returns a "special"
+                         entry number, used to limit results
+                         for zAttrs to those which match the zVar
+    @type special_entry: callable
+    @cvar AttrType: type of attribute in this list, L{zAttr} or L{gAttr}
+    @type AttrType: type
+    @cvar attr_name: name of attribute type, 'zAttribute' or 'gAttribute'
+    @type attr_name: str
+    @cvar global_scope: is this list scoped global (True) or variable (False)
+    @type global_scope: bool
+    """
+
+    def __init__(self, cdf_file, special_entry=None):
+        """Initialize the attribute collection
+
+        @param cdf_file: CDF these attributes are in
+        @type cdf_file: L{CDF}
+        @param special_entry: callable which returns a "special"
+                              entry number, used to limit results
+                              for zAttrs to those which match the zVar
+        @type special_entry: callable
+        """
+        self._cdf_file = cdf_file
+        self.special_entry = special_entry
+
+    def __getitem__(self, name):
+        """Find an Attribute by name
+
+        @param name: name of the Attribute to return
+        @type name: str
+        @return: attribute named L{name}
+        @rtype: L{Attr}
+        @raise KeyError: if there is no attribute named L{name}
+        @raise CDFError: other errors in CDF library
+        """
+        try:
+            attrib = self.AttrType(self._cdf_file, name)
+        except CDFError:
+            (t, v, tb) = sys.exc_info()
+            if v.status == const.NO_SUCH_ATTR:
+                raise KeyError(name + ': ' + str(v))
+            else:
+                raise
+        if attrib.global_scope() != self.global_scope:
+            raise KeyError(name + ': no ' + self.attr_name + ' by that name.')
+        return attrib
+
+    def __setitem__(self, name, data):
+        """Create an Attribute or change its entries
+
+        @param name: name of Attribute to change
+        @type name: str
+        @param data: Entries to populate this Attribute with.
+                     Any existing Entries will be deleted!
+                     Another C{Attr} may be specified, in which
+                     case all its entries are copied.
+        @type data: scalar, list, or L{Attr}
+        """
+        if isinstance(data, AttrList):
+            if name in self:
+                del self[name]
+            attr = self._get_or_create(name)
+            for entryno in range(data.max_idx()):
+                if data.has_entry(entryno):
+                    attr.new(data[entryno], data.type(entryno), entryno)
+        else:
+            attr = self._get_or_create(name)
+            if isinstance(data, str_classes):
+                data = [data]
+            else:
+                try:
+                    junk = len(data)
+                except TypeError:
+                    data = [data]
+            attr[:] = data
+            del attr[len(data):]
+
+    def __delitem__(self, name):
+        """Delete an Attribute (and all its entries)
+
+        @param name: name of Attribute to delete
+        @type name: str
+        """
+        try:
+            attr = self.AttrType(self._cdf_file, name)
+        except CDFError:
+            (t, v, tb) = sys.exc_info()
+            if v.status == const.NO_SUCH_ATTR:
+                raise KeyError(name + ': ' + str(v))
+            else:
+                raise
+            if attr.global_scope() != self.global_scope:
+                raise KeyError(name + ': not ' + self.attr_name)
+        attr._delete()
+
+    def __iter__(self, current=0):
+        """Iterates over all Attr in this CDF or variable
+
+        Returns name of one L{Attr} at a time until reaches the end.
+        @note: Returned in number order.
+        """
+        count = ctypes.c_long(0)
+        self._cdf_file._call(const.GET_, const.CDF_NUMATTRS_,
+                             ctypes.byref(count))
+        while current < count.value:
+            candidate = self.AttrType(self._cdf_file, current)
+            if candidate.global_scope() == self.global_scope:
+                if self.special_entry == None or \
+                        candidate.has_entry(self.special_entry()):
+                    if str == bytes:
+                        value = yield(candidate._name)
+                    else:
+                        value = yield(candidate._name.decode())
+                    if value != None:
+                        current = self[value].number()
+            current += 1
+
+    def __repr__(self):
+        """Returns representation of attribute list
+
+        Cannot return anything that can be eval'd to create a copy of the
+        list, so just wrap the informal representation in angle brackets.
+        @return: all the data in this list of attributes
+        @rtype: str
+        """
+        return '<' + self.__class__.__name__ + ':\n' + str(self) + '\n>'
+
+    def __str__(self):
+        """Returns a string representation of the attribute list
+
+        This is an 'informal' representation in that it cannot be evaluated
+        directly to create an L{AttrList}.
+
+        @return: all the data in this list of attributes
+        @rtype: str
+        """
+        return '\n'.join([key + ': ' + (
+            ('\n' + ' ' * (len(key) + 2)).join(
+            [str(value[i]) + ' [' + lib.cdftypenames[value.type(i)] + ']'
+             for i in range(len(value))])
+            if isinstance(value, Attr)
+            else str(value) +
+            ' [' + lib.cdftypenames[self.type(key)] + ']'
+            )
+            for (key, value) in self.items()])
+
+    def clone(self, master, name=None, new_name=None):
+        """Clones this attribute list, or one attribute in it, from another
+
+        @param master: the attribute list to copy from
+        @type master: L{AttrList}
+        @param name: name of attribute to clone (default: clone entire list)
+        @type name: str
+        @param new_name: name of the new attribute, default L{name}
+        @type new_name: str
+        """
+        if name == None:
+            self._clone_list(master)
+        else:
+            self._clone_attr(master, name, new_name)
+
+    def copy(self):
+        """Create a copy of this attribute list
+
+        @return: copy of the entries for all attributes in this list
+        @rtype: dict
+        """
+        return dict((key, value[:] if isinstance(value, Attr) else value)
+                    for (key, value) in self.items())
+
+    def new(self, name, data=None, type=None):
+        """Create a new Attr in this AttrList
+
+        @param name: name of the new Attribute
+        @type name: str
+        @param data: data to put into the first entry in the new Attribute
+        @param type: CDF type of the first entry from L{const}. Only used
+                     if L{data} are specified.
+        @raise KeyError: if L{name} already exists in this list
+        """
+        if name in self:
+            raise KeyError(name + ' already exists.')
+        attr = self._get_or_create(name)
+        if data != None:
+            if self.special_entry == None:
+                attr.new(data, type)
+            else:
+                attr.new(data, type, self.special_entry())
+
+    def rename(self, old_name, new_name):
+        """Rename an attribute in this list
+
+        Renaming a zAttribute renames it for I{all} zVariables in this CDF!
+
+        @param old_name: the current name of the attribute
+        @type old_name: str
+        @param new_name: the new name of the attribute
+        @type new_name: str
+        """
+        AttrList.__getitem__(self, old_name).rename(new_name)
+
+    def _clone_attr(self, master, name, new_name=None):
+        """Clones a single attribute from one in this list or another
+
+        Copies data and types from the master attribute to the new one
+
+        @param master: attribute list to copy attribute from
+        @type master: L{AttrList}
+        @param name: name of attribute to copy
+        @type name: str
+        @param new_name: name of the new attribute, default L{name}
+        @type new_name: str
+        """
+        if new_name == None:
+            new_name = name
+        self[new_name] = master[name]
+
+    def _clone_list(self, master):
+        """Clones this attribute list from another
+
+        @param master: the attribute list to copy from
+        @type master: L{AttrList}
+        """
+        for name in master:
+            self._clone_attr(master, name)
+        for name in list(self): #Can't iterate over a list we're changing
+            if not name in master:
+                del self[name]    
+
+    def _get_or_create(self, name):
+        """Retrieve L{Attr} or create it if it doesn't exist
+
+        @param name: name of the attribute to look up or create
+        @type name: str
+        @return: attribute with this name
+        @rtype: L{Attr}
+        """
+        attr = None
+        try:
+            attr = self.AttrType(self._cdf_file, name)
+        except CDFError:
+            (t, v, tb) = sys.exc_info()
+            if v.status != const.NO_SUCH_ATTR:
+                raise
+        if attr == None:
+            attr = self.AttrType(self._cdf_file, name, True)
+        elif attr.global_scope() != self.global_scope:
+                raise KeyError(name + ': not ' + self.attr_name)
+        return attr
+
+
+class gAttrList(AttrList):
+    """Object representing I{all} the gAttributes in a CDF.
+
+    Normally accessed as an attribute of an open L{CDF}::
+        global_attribs = cdffile.attrs
+
+    Appears as a dictionary: keys are attribute names; each value is an
+    attribute represented by a L{gAttr} object. To access the global
+    attribute TEXT::
+        text_attr = cdffile.attrs['TEXT']
+    """
+    AttrType = gAttr
+    attr_name = 'gAttribute'
+    global_scope = True
+
+    def __len__(self):
+        """Number of gAttributes in this CDF
+
+        @return: number of gAttributes in the CDF
+        @rtype: int
+        """
+        count = ctypes.c_long(0)
+        self._cdf_file._call(const.GET_, const.CDF_NUMgATTRS_,
+                             ctypes.byref(count))
+        return count.value
+
+
+class zAttrList(AttrList):
+    """Object representing I{all} the zAttributes in a zVariable.
+
+    Normally access as an attribute of a L{Var} in an open CDF::
+        epoch_attribs = cdffile['Epoch'].attrs
+
+    Appears as a dictionary: keys are attribute names, values are
+    the value of the zEntry associated with the appropriate zVariable.
+    Each vAttribute in a CDF may only have a I{single} entry associated
+    with each variable. The entry may be a string, a single numerical value,
+    or a series of numerical values. Entries with multiple values are returned
+    as an entire list; direct access to the individual elements is not
+    possible.
+
+    Example: finding the first dependency of (ISTP-compliant) variable
+    Flux::
+        print cdffile['Flux'].attrs['DEPEND_0']
+
+    zAttributes are shared among zVariables, one zEntry allowed per zVariable.
+    (pyCDF hides this detail.) Deleting the last zEntry for a zAttribute will
+    delete the underlying zAttribute.
+
+    zEntries are created and destroyed by the usual dict methods on the
+    zAttrlist::
+        epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
+        del epoch_attribs['new_entry'] #delete the zEntry
+    L{__setitem__} describes how the type of an zEntry is determined.
+
+    @ivar _zvar: zVariable these attributes are in
+    @type _zvar: L{Var}
+    @ivar _cdf_file: CDF these attributes are in
+    @type _cdf_file: L{CDF}
+    """
+    AttrType = zAttr
+    attr_name = 'zAttribute'
+    global_scope = False
+
+    def __init__(self, zvar):
+        """Initialize the attribute collection
+
+        @param zvar: zVariable these attributes are in
+        @param zvar: L{Var}
+        """
+        super(zAttrList, self).__init__(zvar.cdf_file, zvar._num)
+        self._zvar = zvar
+
+    def __getitem__(self, name):
+        """Find an zEntry by name
+
+        @param name: name of the zAttribute to return
+        @type name: str
+        @return: attribute named L{name}
+        @rtype: L{zAttr}
+        @raise KeyError: if there is no attribute named L{name} associated
+                         with this zVariable
+        @raise CDFError: other errors in CDF library
+        """
+        attrib = super(zAttrList, self).__getitem__(name)
+        zvar_num = self._zvar._num()
+        if attrib.has_entry(zvar_num):
+            return attrib[zvar_num]
+        else:
+            raise KeyError(name + ': no such attribute for variable ' +
+                           self._zvar.name())
+
+    def __delitem__(self, name):
+        """Delete an zEntry by name
+
+        @param name: name of the zEntry to delete
+        @type name: str
+        @raise KeyError: if there is no attribute named L{name} associated
+                         with this zVariable
+        @raise CDFError: other errors in CDF library
+        @note: If this is the only remaining entry, the Attribute will be
+               deleted.
+        """
+        attrib = super(zAttrList, self).__getitem__(name)
+        zvar_num = self._zvar._num()
+        if not attrib.has_entry(zvar_num):
+            raise KeyError(str(name) + ': no such attribute for variable ' +
+                           str(self._zvar._name))
+        del attrib[zvar_num]
+        if len(attrib) == 0:
+            attrib._delete()
+
+    def __setitem__(self, name, data):
+        """Sets a zEntry by name
+
+        The type of the zEntry is guessed from L{data}. The type is chosen to
+        match the data; subject to that constraint, it will try to match
+        (in order):
+          1. existing zEntry corresponding to this zVar
+          2. other zEntries in this zAttribute
+          3. the type of this zVar
+          4. data-matching constraints described in L{_Hyperslice.types}
+
+        @param name: name of zAttribute; zEntry for this zVariable will be set
+                     in zAttribute by this name
+        @type name: str
+        @raise CDFError: errors in CDF library
+        @raise ValueError: if unable to find a valid CDF type matching L{data},
+                           or if L{data} is the wrong dimensions.
+        """
+        try:
+            attr = super(zAttrList, self).__getitem__(name)
+        except KeyError:
+            attr = zAttr(self._cdf_file, name, True)
+        zvar_num = self._zvar._num()
+        attr[zvar_num] = data
+
+    def __len__(self):
+        """Number of zAttributes in this variable
+
+        @return: number of zAttributes in the CDF
+                 which have entries for this variable.
+        @rtype: int
+        """
+        length = 0
+        count = ctypes.c_long(0)
+        self._cdf_file._call(const.GET_, const.CDF_NUMATTRS_,
+                             ctypes.byref(count))
+        current = 0
+        while current < count.value:
+            candidate = zAttr(self._cdf_file, current)
+            if not candidate.global_scope():
+                if candidate.has_entry(self._zvar._num()):
+                    length += 1
+            current += 1
+        return length
+
+    def type(self, name, new_type=None):
+        """Find or change the CDF type of a zEntry in this zVar
+
+        @param name: name of the zAttr to check or change
+        @type name: str
+        @param new_type: type to change it to, see L{const}
+        @type new_type: ctypes.c_long
+        @return: CDF variable type, see L{const}
+        @rtype: int
+        @note: If changing types, old and new must be equivalent, see CDF
+               User's Guide section 2.5.5 pg. 57
+        """
+        attrib = super(zAttrList, self).__getitem__(name)
+        zvar_num = self._zvar._num()
+        if not attrib.has_entry(zvar_num):
+            raise KeyError(name + ': no such attribute for variable ' +
+                           self._zvar.name())
+        return attrib.type(zvar_num, new_type)
+
+    def _clone_attr(self, master, name, new_name=None):
+        """Clones a single attribute from one in this list or another
+
+        Copies data and types from the master attribute to the new one
+
+        @param master: attribute list to copy attribute from
+        @type master: L{zAttrList}
+        @param name: name of attribute to copy
+        @type name: str
+        @param new_name: name of the new attribute, default L{name}
+        @type new_name: str
+        """
+        if new_name == None:
+            new_name = name
+        if new_name in self:
+            del self[new_name]
+        self.new(new_name, master[name], master.type(name))
