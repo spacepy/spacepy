@@ -39,12 +39,15 @@ class dmarray(numpy.ndarray):
     >>> position.attrs
     {'coord_system': 'GSM'}
     """
-    def __new__(cls, input_array, attrs={}):
+    def __new__(cls, input_array, attrs=None):
        # Input array is an already formed ndarray instance
        # We first cast to be our class type
        obj = numpy.asarray(input_array).view(cls)
        # add the new attribute to the created instance
-       obj.attrs = attrs
+       if attrs != None:
+           obj.attrs = attrs
+       else:
+           obj.attrs = {}
        # Finally, return the newly created object:
        return obj
 

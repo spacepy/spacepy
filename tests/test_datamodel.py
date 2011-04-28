@@ -35,6 +35,13 @@ class datamodelTests(unittest.TestCase):
         data2 = datamodel.dmarray([1,2,3], attrs={'coord':'GSM'})
         self.assertEqual(data.attrs, {})
         self.assertEqual(data2.attrs, {'coord':'GSM'})
+
+    def test_different_attrs(self):
+        """Different instances of dmarray shouldn't share attrs"""
+        a = datamodel.dmarray([1, 2, 3, 4])
+        b = datamodel.dmarray([2, 3, 4, 5])
+        a.attrs['hi'] = 'there'
+        self.assertNotEqual(a.attrs, b.attrs)
     
     def test_slicing(self):
         '''Slicing a dmarray should keep the attrs'''
