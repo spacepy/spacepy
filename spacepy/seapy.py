@@ -924,49 +924,52 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         
         return (yr, yrlo, yrhi)
     
-    if show:
-        if len(xunits)<1:
-            xlstr = '%s' % xquan
-        else:
-            xlstr = '%s [%s]' % (xquan, xunits)
-        if len(yquan)>=1 and len(yunits)>=1:
-            ylstr = '%s [%s]' % (yquan, yunits)
-        elif len(yquan)>=1 and len(yunits)<1:
-            ylstr = '%s' % yquan
-        else:
-            ylstr = ''
-            
-        #set up plot panels
-        fig = plt.figure()
-        ax0 = fig.add_subplot(211)
-        pos = ax0.get_position()
-        ax0.set_position([pos.bounds[0], 0.4, pos.bounds[2], 0.55])
-        ax1 = fig.add_subplot(212, position=[pos.bounds[0], 0.1, pos.bounds[2], 0.25])
-        #overlay superposed epochs
-        ax0.plot(obj1.x, obj1.semedian, 'b-', lw=1.5)
-        plt.hold(True)
-        ax0.plot(obj1.x, obj1.bound_high, 'b--')
-        ax0.plot(obj1.x, obj1.bound_low, 'b--')
-        ax0.plot(obj2.x, obj2.semedian, 'r-', lw=1.5)
-        ax0.plot(obj2.x, obj2.bound_high, 'r--')
-        ax0.plot(obj2.x, obj2.bound_low, 'r--')
-        if epochline:
-            yr, yrlo, yrhi = add_epochline(ax0)
-            ax0.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
-            ax0.set_ylim(yr)
-        ax0.set_ylabel(ylstr)
-        #plot prob in lower panel
-        ax1.plot(obj1.x, prob, 'r-', lw=1.5, drawstyle='steps-mid')
-        ax1.plot([obj1.x[0], obj1.x[-1]], [0.05, 0.05], 'b-')
-        if epochline:
-            yr, yrlo, yrhi = add_epochline(ax1)
-            ax1.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
-            ax1.set_ylim(yr)
-        ax1.set_xlabel(xlstr)
-        ax1.set_ylabel('Prob. of H0')
+    if len(xunits)<1:
+        xlstr = '%s' % xquan
+    else:
+        xlstr = '%s [%s]' % (xquan, xunits)
+    if len(yquan)>=1 and len(yunits)>=1:
+        ylstr = '%s [%s]' % (yquan, yunits)
+    elif len(yquan)>=1 and len(yunits)<1:
+        ylstr = '%s' % yquan
+    else:
+        ylstr = ''
         
+    #set up plot panels
+    fig = plt.figure()
+    ax0 = fig.add_subplot(211)
+    pos = ax0.get_position()
+    ax0.set_position([pos.bounds[0], 0.4, pos.bounds[2], 0.55])
+    ax1 = fig.add_subplot(212, position=[pos.bounds[0], 0.1, pos.bounds[2], 0.25])
+    #overlay superposed epochs
+    ax0.plot(obj1.x, obj1.semedian, 'b-', lw=1.5)
+    plt.hold(True)
+    ax0.plot(obj1.x, obj1.bound_high, 'b--')
+    ax0.plot(obj1.x, obj1.bound_low, 'b--')
+    ax0.plot(obj2.x, obj2.semedian, 'r-', lw=1.5)
+    ax0.plot(obj2.x, obj2.bound_high, 'r--')
+    ax0.plot(obj2.x, obj2.bound_low, 'r--')
+    if epochline:
+        yr, yrlo, yrhi = add_epochline(ax0)
+        ax0.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
+        ax0.set_ylim(yr)
+    ax0.set_ylabel(ylstr)
+    #plot prob in lower panel
+    ax1.plot(obj1.x, prob, 'r-', lw=1.5, drawstyle='steps-mid')
+    ax1.plot([obj1.x[0], obj1.x[-1]], [0.05, 0.05], 'b-')
+    if epochline:
+        yr, yrlo, yrhi = add_epochline(ax1)
+        ax1.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
+        ax1.set_ylim(yr)
+    ax1.set_xlabel(xlstr)
+    ax1.set_ylabel('Prob. of H0')
+    
+    if show:
         plt.show()
+        return None
+    else:
+        return fig
         
         #now make an output object to store the test stats and prob.
-    return None #S, prob
+    #return None
     
