@@ -19,7 +19,7 @@ This contains the following classes:
 """
 
 from __future__ import division
-import numpy
+import numpy, copy
 
 class dmarray(numpy.ndarray):
     """
@@ -39,18 +39,20 @@ class dmarray(numpy.ndarray):
     >>> position.attrs
     {'coord_system': 'GSM'}
     """
-    def __new__(cls, input_array, attrs=None):
-        obj = numpy.asarray(input_array).view(cls)
-        # Finally, return the newly created object:
-        if attrs == None:
-            attrs = {}
-        obj.attrs = attrs
-        return obj
+    def __new__(cls, input_array, attrs={}):
+       # Input array is an already formed ndarray instance
+       # We first cast to be our class type
+       obj = numpy.asarray(input_array).view(cls)
+       # add the new attribute to the created instance
+       obj.attrs = attrs
+       # Finally, return the newly created object:
+       return obj
 
     def __array_finalize__(self, obj):
-        # see InfoArray.__array_finalize__ for comments
-        if obj is None:
-            return
+       # see InfoArray.__array_finalize__ for comments
+       if obj is None:
+           return
+       self.attrs = getattr(obj, 'attrs', {})
 
     def __reduce__(self):
         """This is called when pickling, see:
