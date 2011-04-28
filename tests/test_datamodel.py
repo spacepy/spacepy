@@ -68,9 +68,11 @@ class datamodelTests(unittest.TestCase):
         dat = datamodel.dmarray([1,2,3,4], attrs={'a':'a', 'b':'b'})
         try:
             dat.bbb = 'someval'
-            self.assertFail()
         except TypeError:
-            self.assertTrue(True)
+            pass
+        else:
+            self.fail(
+                'Assigning to arbitrary Python attribute should raise TypeError')
 
 
 if __name__ == "__main__":
