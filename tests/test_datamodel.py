@@ -87,7 +87,7 @@ class datamodelTests(unittest.TestCase):
         self.assertEqual(a.blabla['foo'], 'you')
 
     def test_extra_pickle(self):
-        """Extra attrs are pickled and unpicked but the names disappear (bug)"""
+        """Extra attrs are pickled and unpicked"""
         a = datamodel.dmarray([1,2,3])
         a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
         a.blabla = {}
@@ -95,8 +95,18 @@ class datamodelTests(unittest.TestCase):
         a.attrs['foo'] = 'bar'
         val = pickle.dumps(a)
         b = pickle.loads(val)
-        self.assertEqual(b.Allowed_Attributes, ['attrs', 'extra_attr_1'])
-        self.assertEqual(b.extra_attr_1['foo'], 'you')
+        self.assertEqual(b.Allowed_Attributes, ['attrs', 'blabla'])
+        self.assertEqual(b.blabla['foo'], 'you')
+
+    def test_addAttribute(self):
+        """addAttribute should work"""
+        a = datamodel.dmarray([1,2,3])
+        a.addAttribute('bla')
+        self.assertEqual(a.bla, None)
+        a.addAttribute('bla2', {'foo': 'bar'})
+        self.assertEqual(a.bla2['foo'], 'bar')
+        self.assertRaises(NameError, a.addAttribute, 'bla2')
+
 
     def test_attrs(self):
         """The only attribute the can be set is attrs"""
