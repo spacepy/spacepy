@@ -39,6 +39,8 @@ class dmarray(numpy.ndarray):
     >>> position.attrs
     {'coord_system': 'GSM'}
     """
+    Allowed_Attributes = ['attrs']
+
     def __new__(cls, input_array, attrs=None):
        # Input array is an already formed ndarray instance
        # We first cast to be our class type
@@ -53,29 +55,37 @@ class dmarray(numpy.ndarray):
 
     def __array_finalize__(self, obj):
        # see InfoArray.__array_finalize__ for comments
-       if obj is None:
-           return
-       self.attrs = getattr(obj, 'attrs', {})
+        if obj is None:
+            return
+        for val in self.Allowed_Attributes:
+            self.__setattr__(val, getattr(obj, val, {}))
 
     def __reduce__(self):
         """This is called when pickling, see:
         http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
         for this particular examnple.
-        Only the attribute attrs can exist, it is stored and returned for pickling
+        Only the attributes in Allowed_Attributes can exist,
+        they are stored and returned for pickling but the names are lost
+        attrs remains attrs all others become extra_attr_X where x goes 1, 2, ...
         """
         object_state = list(numpy.ndarray.__reduce__(self))
-        subclass_state = (self.attrs,)
+        subclass_state = tuple([self.__getattribute__(val) for val in self.Allowed_Attributes])
         object_state[2] = (object_state[2],subclass_state)
         return tuple(object_state)
 
     def __setstate__(self,state):
         """Used for unpickling after __reduce__ the self.attrs is recoved from
-        the way it was saved and reset.  Also requires just .attrs
+        the way it was saved and reset.  The attribute attrs is restored
+        correctly others are restored as extra_attr_X where x goes 1, 2, ...
         """
         nd_state, own_state = state
         numpy.ndarray.__setstate__(self,nd_state)
-        attrs, = own_state
-        self.attrs = attrs
+        for val in range(len(own_state)):
+            if val == 0: # this is attrs
+                self.__setattr__('attrs', own_state[val])
+            else:
+                self.Allowed_Attributes = self.Allowed_Attributes + ['extra_attr_' + str(val)]
+                self.__setattr__('extra_attr_' + str(val), own_state[val])
 
     def __setattr__(self, name, value):
         """Make sure that .attrs is the only attribute that we are allowing
@@ -84,8 +94,10 @@ class dmarray(numpy.ndarray):
         dmarray_assert took 16.025478 s
         It looks like != is the fastest, but not by much over 10000000 __setattr__
         """
-        if name != 'attrs':
-            raise(TypeError("Only 'attrs' attribute can be set"))
+        if name == 'Allowed_Attributes':
+            pass
+        elif not name in self.Allowed_Attributes:
+            raise(TypeError("Only attribute listed in Allowed_Attributes can be set"))
         super(dmarray, self).__setattr__(name, value)
 
 class SpaceData(dict):

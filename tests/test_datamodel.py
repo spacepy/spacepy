@@ -21,7 +21,7 @@ class datamodelTests(unittest.TestCase):
     def setUp(self):
         super(datamodelTests, self).setUp()
         self.dat = datamodel.dmarray([1,2,3,4], attrs={'a':'a', 'b':'b'})
-        
+
     def tearDown(self):
         super(datamodelTests, self).tearDown()
 
@@ -42,7 +42,7 @@ class datamodelTests(unittest.TestCase):
         b = datamodel.dmarray([2, 3, 4, 5])
         a.attrs['hi'] = 'there'
         self.assertNotEqual(a.attrs, b.attrs)
-    
+
     def test_slicing(self):
         '''Slicing a dmarray should keep the attrs'''
         dat_sl = self.dat[:-1]
@@ -77,6 +77,26 @@ class datamodelTests(unittest.TestCase):
     def test_attrs_only(self):
         """dmarray can only have .attrs"""
         self.assertRaises(TypeError, datamodel.dmarray, [1,2,3], setme = 123 )
+
+    def test_more_attrs(self):
+        """more attrs are allowed if they are predefined"""
+        a = datamodel.dmarray([1,2,3])
+        a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
+        a.blabla = {}
+        a.blabla['foo'] = 'you'
+        self.assertEqual(a.blabla['foo'], 'you')
+
+    def test_extra_pickle(self):
+        """Extra attrs are pickled and unpicked but the names disappear (bug)"""
+        a = datamodel.dmarray([1,2,3])
+        a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
+        a.blabla = {}
+        a.blabla['foo'] = 'you'
+        a.attrs['foo'] = 'bar'
+        val = pickle.dumps(a)
+        b = pickle.loads(val)
+        self.assertEqual(b.Allowed_Attributes, ['attrs', 'extra_attr_1'])
+        self.assertEqual(b.extra_attr_1['foo'], 'you')
 
     def test_attrs(self):
         """The only attribute the can be set is attrs"""
