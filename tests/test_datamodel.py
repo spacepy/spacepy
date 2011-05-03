@@ -24,6 +24,7 @@ class datamodelTests(unittest.TestCase):
 
     def tearDown(self):
         super(datamodelTests, self).tearDown()
+        del self.dat
 
     def test_creation_dmarray(self):
         """When a dmarray is created it should have attrs empty or not"""
@@ -88,14 +89,10 @@ class datamodelTests(unittest.TestCase):
 
     def test_extra_pickle(self):
         """Extra attrs are pickled and unpicked"""
-        a = datamodel.dmarray([1,2,3])
-        a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
-        a.blabla = {}
-        a.blabla['foo'] = 'you'
-        a.attrs['foo'] = 'bar'
-        val = pickle.dumps(a)
+        self.dat.addAttribute('blabla', {'foo':'you'})
+        val = pickle.dumps(self.dat)
         b = pickle.loads(val)
-        self.assertEqual(b.Allowed_Attributes, ['attrs', 'blabla'])
+        self.assertTrue('blabla' in b.Allowed_Attributes)
         self.assertEqual(b.blabla['foo'], 'you')
 
     def test_addAttribute(self):
@@ -106,7 +103,6 @@ class datamodelTests(unittest.TestCase):
         a.addAttribute('bla2', {'foo': 'bar'})
         self.assertEqual(a.bla2['foo'], 'bar')
         self.assertRaises(NameError, a.addAttribute, 'bla2')
-
 
     def test_attrs(self):
         """The only attribute the can be set is attrs"""

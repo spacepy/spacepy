@@ -71,18 +71,16 @@ class dmarray(numpy.ndarray):
         object_state[2] = (object_state[2],subclass_state)
         return tuple(object_state)
 
-    def __setstate__(self,state):
+    def __setstate__(self, state):
         """Used for unpickling after __reduce__ the self.attrs is recoved from
         the way it was saved and reset.
         """
         nd_state, own_state = state
         numpy.ndarray.__setstate__(self,nd_state)
-        for val in range(len(own_state)):
-            if val == 0: # this is attrs
-                self.__setattr__(own_state[val][0], own_state[val][1])
-            else:
-                self.Allowed_Attributes = self.Allowed_Attributes + [own_state[val][0]]
-                self.__setattr__(own_state[val][0], own_state[val][1])
+        for i, val in enumerate(own_state):
+            if not val[0] in self.Allowed_Attributes: # this is attrs
+                self.Allowed_Attributes.append(own_state[i][0])
+            self.__setattr__(own_state[i][0], own_state[i][1])
 
     def __setattr__(self, name, value):
         """Make sure that .attrs is the only attribute that we are allowing
@@ -105,7 +103,7 @@ class dmarray(numpy.ndarray):
         """
         if name in self.Allowed_Attributes:
             raise(NameError('{0} is aleady an attribute cannot add again'.format(name)))
-        self.Allowed_Attributes = self.Allowed_Attributes + [name]
+        self.Allowed_Attributes.append(name)
         self.__setattr__(name, value)
 
 
