@@ -19,7 +19,7 @@ This contains the following classes:
 """
 
 from __future__ import division
-import numpy, copy
+import numpy
 
 class dmarray(numpy.ndarray):
     """

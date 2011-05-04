@@ -74,7 +74,7 @@ def LANLstar(inputdict):
     V1: 22-Mar-2011 (JK)
 	"""
 	
-	import libLANLstar
+	import spacepy.LANLstar.libLANLstar as libLANLstar
 	import numpy as n
 	
 	if isinstance(inputdict['Dst'], float):
