@@ -51,8 +51,8 @@ def LANLstar(inputdict):
     >>> inputdict['UT_hr'] = 1.2444444444444445   # UT in units of hours
     >>> 
     >>> # Bfield info
-    >>> inputdict['Lm'] = 9.141032669310043   # McIllwain L for 90 deg PA
-    >>> inputdict['Bmirr'] = 565.14440185399371 # magnetic field strength at the mirror point
+    >>> inputdict['Lm'] = 4.9360326 # McIllwain L for 90 deg PA
+    >>> inputdict['Bmirr'] = 315.62025433 # magnetic field strength at the mirror point
     >>> 
     >>> # coordinates
     >>> inputdict['rGSM'] = 4.83415065 # radial coordinate in GSM [Re]
@@ -63,7 +63,7 @@ def LANLstar(inputdict):
     >>> inputdict['PA'] = 57.387447236040067 # Pitch angle
     >>> 
     >>> LS.LANLstar(inputdict)
-    8.4505511125920574
+    4.740063348582626 
 
     Author:
     =======
