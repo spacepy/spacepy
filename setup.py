@@ -3,7 +3,7 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.55 $, $Date: 2011/03/22 22:47:41 $"
+__version__ = "$Revision: 1.56 $, $Date: 2011/05/09 17:45:56 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
 import os, sys, shutil, getopt, warnings
@@ -85,6 +85,8 @@ class build(_build):
         
     # -------------------------------------
     def compile_irbempy(self):
+        # 64 bit or 32 bit?"
+        bit = len('%x'%sys.maxint)*4
         fcompiler = self.fcompiler
         irbemdir = 'irbem-lib-2010-12-21-rev275'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
@@ -107,7 +109,7 @@ class build(_build):
         os.chdir(os.path.join('spacepy', 'irbempy', irbemdir))
         F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
         functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
-                     'coord_trans1 find_magequator1', 'find_mirror_point1', 
+                     'coord_trans1','find_magequator1', 'find_mirror_point1', 
                      'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1', 
                      'trace_field_line2_1', 'trace_field_line_towards_earth1']
 
@@ -133,17 +135,25 @@ class build(_build):
 
         # compile (platform dependent)
         os.chdir('source')
-        compile_cmd = {
+        compile_cmd32 = {
             'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
             'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
-            'gnu95': 'gfortran -c -w -O2 -fPIC -ffixed-line-length-none *.f',
+            'gnu95': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             }
+        compile_cmd64 = {
+            'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
+            'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
+            'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
+            }           
         f2py_flags = {
             'pg': '--fcompiler=pg',
             'gnu': '--fcompiler=gnu --f77flags=-fno-second-underscore',
             'gnu95': '--fcompiler=gnu95',
             }
-        os.system(compile_cmd[fcompiler])
+        if bit == 32:
+            os.system(compile_cmd32[fcompiler])
+        else:
+            os.system(compile_cmd64[fcompiler])
         if sys.platform == 'darwin':
             os.system('libtool -static -o libBL2.a *.o')
         elif sys.platform == 'linux2':
