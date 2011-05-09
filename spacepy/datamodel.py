@@ -19,7 +19,7 @@ This contains the following classes:
 """
 
 from __future__ import division
-import numpy
+import numpy, copy
 
 class dmarray(numpy.ndarray):
     """
@@ -135,10 +135,133 @@ class SpaceData(dict):
 
         super(SpaceData, self).__init__(*args, **kwargs)
 
-
     #def __repr__(self):
         #"""
         #Abstract method, reimplement
         #"""
         #super(SpaceData, self).__repr__()
         ##raise(ValueError("Abstract method called, reimplement __repr__"))
+
+    
+    def flatten(self):
+        '''Method to collapse datamodel to one level deep
+        
+        Examples
+        --------
+
+        >>> import spacepy.datamodel as dm
+        >>> import spacepy.toolbox as tb
+        >>> a = dm.SpaceData()
+        >>> a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
+        >>> a['4'] = dm.SpaceData(cat = 'kitty')
+        >>> a['5'] = 4
+        >>> tb.dictree(a)
+        +
+        |____1
+             |____dog
+             |____pig
+                  |____fish
+                       |____a
+                       |____b
+        |____4
+             |____cat
+        |____5
+       
+        >>> b = dm.flatten(a)
+        >>> tb.dictree(b)
+        +
+        |____1<--dog
+        |____1<--pig<--fish<--a
+        |____1<--pig<--fish<--b
+        |____4<--cat
+        |____5
+
+        >>> a.flatten()
+        >>> tb.dictree(a)
+        +
+        |____1<--dog
+        |____1<--pig<--fish<--a
+        |____1<--pig<--fish<--b
+        |____4<--cat
+        |____5
+
+        
+        See Also
+        --------
+        spacepy.datamodel.flatten
+
+        '''
+        
+        
+        flatobj = flatten(self)
+        remkeys = [key for key in self]
+        for key in remkeys:
+            del self[key]
+        for key in flatobj:
+            self[key] = copy.copy(flatobj[key])
+
+def flatten(dobj):
+    '''Function to collapse datamodel to one level deep
+    
+    Examples
+    --------
+
+    >>> import spacepy.datamodel as dm
+    >>> import spacepy.toolbox as tb
+    >>> a = dm.SpaceData()
+    >>> a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
+    >>> a['4'] = dm.SpaceData(cat = 'kitty')
+    >>> a['5'] = 4
+    >>> tb.dictree(a)
+    +
+    |____1
+         |____dog
+         |____pig
+              |____fish
+                   |____a
+                   |____b
+    |____4
+         |____cat
+    |____5
+    
+    >>> b = dm.flatten(a)
+    >>> tb.dictree(b)
+    +
+    |____1<--dog
+    |____1<--pig<--fish<--a
+    |____1<--pig<--fish<--b
+    |____4<--cat
+    |____5
+
+    >>> a.flatten()
+    >>> tb.dictree(a)
+    +
+    |____1<--dog
+    |____1<--pig<--fish<--a
+    |____1<--pig<--fish<--b
+    |____4<--cat
+    |____5
+    
+
+    See Also
+    --------
+    spacepy.datamodel.SpaceData.flatten
+
+    '''
+
+    addme = SpaceData()
+    remlist = []
+    for key in dobj: #iterate over keys in SpaceData
+        if isinstance(dobj[key], SpaceData):
+            remlist.append(key)
+            newname = key + '<--'
+            for levkey in dobj[key]:
+                if hasattr(dobj[key][levkey], 'keys'):
+                    retdict = flatten(dobj[key][levkey])
+                    for key2 in retdict:
+                        addme[newname+levkey+'<--'+key2] = retdict[key2]
+                else:
+                    addme[newname+levkey] = copy.copy(dobj[key][levkey])
+        else:
+            addme[key] = copy.copy(dobj[key])
+    return addme
