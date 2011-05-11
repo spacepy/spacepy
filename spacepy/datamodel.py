@@ -249,10 +249,10 @@ def flatten(dobj):
 
     '''
 
-    addme = SpaceData()
+    addme = dobj.__class__()
     remlist = []
     for key in dobj: #iterate over keys in SpaceData
-        if isinstance(dobj[key], SpaceData):
+        if isinstance(dobj[key], dict):
             remlist.append(key)
             newname = str(key) + '<--'
             for levkey in dobj[key]:
