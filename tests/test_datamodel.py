@@ -65,10 +65,31 @@ class SpaceDataTests(unittest.TestCase):
             pass
         else:
             self.fail('KeyError not raised')
-        # might be possible that list order is not preserved and this fails,
-        # if so change to a bunch of self.assertTrue and in statements
-        self.assertEqual(a.keys(), ['4<--cat', '1<--dog', '5', '1<--pig<--fish<--a', '1<--pig<--fish<--b'])
+        ans =  ['4<--cat', '1<--dog', '5', '1<--pig<--fish<--a', '1<--pig<--fish<--b']
+        ans.sort()
+        val = a.keys()
+        val.sort()
+        self.assertEqual(val, ans)
 
+    def test_numeric_key(self):
+        """flatten should handle a numeric key"""
+        a = dm.SpaceData()
+        a[1] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
+        a[4] = dm.SpaceData(cat = 'kitty')
+        a[5] = 4
+        self.assertEqual(a[1]['dog'], 5)
+        a.flatten()
+        try:
+            a[1]['dog']
+        except KeyError:
+            pass
+        else:
+            self.fail('KeyError not raised')
+        ans = ['4<--cat', '1<--dog', 5, '1<--pig<--fish<--a', '1<--pig<--fish<--b']
+        ans.sort()
+        val = a.keys()
+        val.sort()
+        self.assertEqual(val, ans)
 
 class dmarrayTests(unittest.TestCase):
     def setUp(self):

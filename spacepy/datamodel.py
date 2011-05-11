@@ -142,10 +142,10 @@ class SpaceData(dict):
         #super(SpaceData, self).__repr__()
         ##raise(ValueError("Abstract method called, reimplement __repr__"))
 
-    
+
     def flatten(self):
         '''Method to collapse datamodel to one level deep
-        
+
         Examples
         --------
 
@@ -166,7 +166,7 @@ class SpaceData(dict):
         |____4
              |____cat
         |____5
-       
+
         >>> b = dm.flatten(a)
         >>> tb.dictree(b)
         +
@@ -185,14 +185,14 @@ class SpaceData(dict):
         |____4<--cat
         |____5
 
-        
+
         See Also
         --------
         spacepy.datamodel.flatten
 
         '''
-        
-        
+
+
         flatobj = flatten(self)
         remkeys = [key for key in self]
         for key in remkeys:
@@ -202,7 +202,7 @@ class SpaceData(dict):
 
 def flatten(dobj):
     '''Function to collapse datamodel to one level deep
-    
+
     Examples
     --------
 
@@ -223,7 +223,7 @@ def flatten(dobj):
     |____4
          |____cat
     |____5
-    
+
     >>> b = dm.flatten(a)
     >>> tb.dictree(b)
     +
@@ -241,7 +241,7 @@ def flatten(dobj):
     |____1<--pig<--fish<--b
     |____4<--cat
     |____5
-    
+
 
     See Also
     --------
@@ -254,7 +254,7 @@ def flatten(dobj):
     for key in dobj: #iterate over keys in SpaceData
         if isinstance(dobj[key], SpaceData):
             remlist.append(key)
-            newname = key + '<--'
+            newname = str(key) + '<--'
             for levkey in dobj[key]:
                 if hasattr(dobj[key][levkey], 'keys'):
                     retdict = flatten(dobj[key][levkey])
