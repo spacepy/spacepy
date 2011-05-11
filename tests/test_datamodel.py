@@ -7,7 +7,8 @@ import os
 import tempfile
 import unittest
 
-from spacepy import datamodel
+import spacepy.toolbox as tb
+import spacepy.datamodel as dm
 import numpy as np
 
 try:
@@ -17,30 +18,82 @@ except:
 
 __author__ = ['Brian Larsen <balarsen@lanl.gov>', 'Steve Morley <smorley@lanl.gov>']
 
-class datamodelTests(unittest.TestCase):
+
+class SpaceDataTests(unittest.TestCase):
     def setUp(self):
-        super(datamodelTests, self).setUp()
-        self.dat = datamodel.dmarray([1,2,3,4], attrs={'a':'a', 'b':'b'})
+        super(SpaceDataTests, self).setUp()
 
     def tearDown(self):
-        super(datamodelTests, self).tearDown()
+        super(SpaceDataTests, self).tearDown()
+
+    def test_SpaceData(self):
+        """Spacedata dist object has certian attributes"""
+        dat = dm.SpaceData()
+        self.assertEqual(dat.attrs, {})
+        dat = dm.SpaceData(attrs={'foo':'bar'})
+        self.assertEqual(dat.attrs['foo'], 'bar')
+
+    def test_flatten_function(self):
+        """Flatten should flatted a nested dict"""
+        a = dm.SpaceData()
+        a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
+        a['4'] = dm.SpaceData(cat = 'kitty')
+        a['5'] = 4
+        self.assertEqual(a['1']['dog'], 5)
+        b = dm.flatten(a)
+        try:
+            b['1']['dog']
+        except KeyError:
+            pass
+        else:
+            self.fail('KeyError not raised')
+        # might be possible that list order is not preserved and this fails,
+        # if so change to a bunch of self.assertTrue and in statements
+        self.assertEqual(b.keys(), ['1<--pig<--fish<--a', '4<--cat', '1<--dog', '1<--pig<--fish<--b', '5'])
+
+    def test_flatten_method(self):
+        """Flatten should flatted a nested dict"""
+        a = dm.SpaceData()
+        a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
+        a['4'] = dm.SpaceData(cat = 'kitty')
+        a['5'] = 4
+        self.assertEqual(a['1']['dog'], 5)
+        a.flatten()
+        try:
+            a['1']['dog']
+        except KeyError:
+            pass
+        else:
+            self.fail('KeyError not raised')
+        # might be possible that list order is not preserved and this fails,
+        # if so change to a bunch of self.assertTrue and in statements
+        self.assertEqual(a.keys(), ['4<--cat', '1<--dog', '5', '1<--pig<--fish<--a', '1<--pig<--fish<--b'])
+
+
+class dmarrayTests(unittest.TestCase):
+    def setUp(self):
+        super(dmarrayTests, self).setUp()
+        self.dat = dm.dmarray([1,2,3,4], attrs={'a':'a', 'b':'b'})
+
+    def tearDown(self):
+        super(dmarrayTests, self).tearDown()
         del self.dat
 
     def test_creation_dmarray(self):
         """When a dmarray is created it should have attrs empty or not"""
         self.assertTrue(hasattr(self.dat, 'attrs'))
         self.assertEqual(self.dat.attrs['a'], 'a')
-        data = datamodel.dmarray([1,2,3])
+        data = dm.dmarray([1,2,3])
         self.assertTrue(hasattr(data, 'attrs'))
         self.assertEqual(data.attrs, {})
-        data2 = datamodel.dmarray([1,2,3], attrs={'coord':'GSM'})
+        data2 = dm.dmarray([1,2,3], attrs={'coord':'GSM'})
         self.assertEqual(data.attrs, {})
         self.assertEqual(data2.attrs, {'coord':'GSM'})
 
     def test_different_attrs(self):
         """Different instances of dmarray shouldn't share attrs"""
-        a = datamodel.dmarray([1, 2, 3, 4])
-        b = datamodel.dmarray([2, 3, 4, 5])
+        a = dm.dmarray([1, 2, 3, 4])
+        b = dm.dmarray([2, 3, 4, 5])
         a.attrs['hi'] = 'there'
         self.assertNotEqual(a.attrs, b.attrs)
 
@@ -77,11 +130,11 @@ class datamodelTests(unittest.TestCase):
 
     def test_attrs_only(self):
         """dmarray can only have .attrs"""
-        self.assertRaises(TypeError, datamodel.dmarray, [1,2,3], setme = 123 )
+        self.assertRaises(TypeError, dm.dmarray, [1,2,3], setme = 123 )
 
     def test_more_attrs(self):
         """more attrs are allowed if they are predefined"""
-        a = datamodel.dmarray([1,2,3])
+        a = dm.dmarray([1,2,3])
         a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
         a.blabla = {}
         a.blabla['foo'] = 'you'
@@ -95,9 +148,19 @@ class datamodelTests(unittest.TestCase):
         self.assertTrue('blabla' in b.Allowed_Attributes)
         self.assertEqual(b.blabla['foo'], 'you')
 
+    def test_extra_pickle2(self):
+        """Order should not matter of Allowed_Attributes"""
+        # added new one to the front
+        self.dat.Allowed_Attributes = ['foo'] + self.dat.Allowed_Attributes
+        self.dat.foo = 'bar'
+        val = pickle.dumps(self.dat)
+        b = pickle.loads(val)
+        self.assertTrue('foo' in b.Allowed_Attributes)
+        self.assertEqual(b.foo, 'bar')
+
     def test_addAttribute(self):
         """addAttribute should work"""
-        a = datamodel.dmarray([1,2,3])
+        a = dm.dmarray([1,2,3])
         a.addAttribute('bla')
         self.assertEqual(a.bla, None)
         a.addAttribute('bla2', {'foo': 'bar'})
@@ -106,7 +169,7 @@ class datamodelTests(unittest.TestCase):
 
     def test_attrs(self):
         """The only attribute the can be set is attrs"""
-        self.assertRaises(TypeError, datamodel.dmarray, [1,2,3], bbb=23)
+        self.assertRaises(TypeError, dm.dmarray, [1,2,3], bbb=23)
         try:
             self.dat.bbb = 'someval'
         except TypeError:
