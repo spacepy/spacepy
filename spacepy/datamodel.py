@@ -249,7 +249,10 @@ def flatten(dobj):
 
     '''
 
-    addme = dobj.__class__()
+    try:
+        addme = dobj.__class__()
+    except (TypeError):
+        addme = SpaceData() 
     remlist = []
     for key in dobj: #iterate over keys in SpaceData
         if isinstance(dobj[key], dict):
