@@ -119,8 +119,47 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_logspace(self):
         """logspace should return know answer for known input"""
         real_ans = array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
-        ans = tb.logspace(1, 100, 5)
-        numpy.testing.assert_almost_equal(real_ans, ans , 4)
+        numpy.testing.assert_almost_equal(real_ans, tb.logspace(1, 100, 5) , 4)
+        t1 = datetime.datetime(2000, 1, 1)
+        t2 = datetime.datetime(2000, 1, 2)
+        real_ans = [datetime.datetime(1999, 12, 31, 23, 59, 59, 999989),
+            datetime.datetime(2000, 1, 1, 2, 39, 59, 994207),
+            datetime.datetime(2000, 1, 1, 5, 19, 59, 989762),
+            datetime.datetime(2000, 1, 1, 7, 59, 59, 986897),
+            datetime.datetime(2000, 1, 1, 10, 39, 59, 985369),
+            datetime.datetime(2000, 1, 1, 13, 19, 59, 985431),
+            datetime.datetime(2000, 1, 1, 15, 59, 59, 986830),
+            datetime.datetime(2000, 1, 1, 18, 39, 59, 989808),
+            datetime.datetime(2000, 1, 1, 21, 19, 59, 994124),
+            datetime.datetime(2000, 1, 2, 0, 0, 0, 30)]
+        ans = tb.logspace(t1, t2, 10)
+        ans = [val.replace(tzinfo=None) for val in ans]
+        try:
+            from matplotlib.dates import date2num
+        except ImportError:
+            pass
+        else:
+            numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
+
+    def test_linspace(self):
+        """linspace should return know answer for known input"""
+        # should exactly match here since it is the same
+        numpy.testing.assert_equal(tb.linspace(10, 100, 200), numpy.linspace(10,100, 200))
+        t1 = datetime.datetime(2000, 1, 1)
+        t2 = datetime.datetime(2000, 1, 10)
+        real_ans = [datetime.datetime(2000, 1, 1, 0, 0),
+             datetime.datetime(2000, 1, 3, 6, 0),
+             datetime.datetime(2000, 1, 5, 12, 0),
+             datetime.datetime(2000, 1, 7, 18, 0),
+             datetime.datetime(2000, 1, 10, 0, 0)]
+        ans = tb.linspace(t1, t2, 5)
+        ans = [val.replace(tzinfo=None) for val in ans]
+        try:
+            from matplotlib.dates import date2num
+        except ImportError:
+            pass
+        else:
+            numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
 
     def test_pmm(self):
         """pmm should give known output for known input"""

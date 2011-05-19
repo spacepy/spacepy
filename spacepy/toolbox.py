@@ -7,6 +7,7 @@ Toolbox of various functions and generic utilities.
 from __future__ import division
 
 import math
+import datetime
 
 try:
     from spacepy import help
@@ -15,7 +16,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.95 $, $Date: 2011/04/19 18:07:54 $"
+__version__ = "$Revision: 1.96 $, $Date: 2011/05/19 20:44:14 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -157,7 +158,7 @@ def loadpickle(fln):
     except ImportError:
         import pickle
     import os.path
-    
+
     if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
         try:
             import zlib
@@ -382,7 +383,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     @version: v1.2: 17-May-2010 S. Morley, added levels option
     @version: v1.3: 3-Mar-2011 S. Morley, added attrs support for datamodel
     @version: v1.4: 18-Mar-2011 S. Morley, fixed attrs support for SpaceData
-    
+
     Example:
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
     >>> dictree(d)
@@ -391,7 +392,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
         |____level1
         |____level2
     |____name
-    
+
     More complicated example using a datamodel:
     >>> counts = datamodel.dmarray([2,4,6], attrs={'units': 'cts/s'})
     >>> data = {'counts': counts, 'PI': 'Dr Zog'}
@@ -404,7 +405,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     |____PI (str [6])
     |____counts (datamodel.dmarray (3,))
         :|____units (str [5])
-        
+
     Attributes of, e.g., a CDF or a datamodel type object (obj.attrs)
     are denoted by a colon.
     """
@@ -420,7 +421,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     if not spaces:
         spaces = ''
         print('+')
-    
+
     if 'toplev' in kwargs:
         toplev = kwargs['toplev']
     else:
@@ -439,7 +440,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
             levels -= 1
             if levels == 0:
                 levels = None
-                
+
     try:
         for key in sorted(in_dict.keys()):
             bar = '|____' + str(key)
@@ -464,7 +465,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
                 dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels, attrs=attrs, toplev=False)
     except:
         pass
-    
+
     return None
 
 # -----------------------------------------------
@@ -606,7 +607,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     #omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
     omni_fname_zip = DOT_FLN+'/data/WGhour-latest.d.zip'
     omni_fname_pkl = DOT_FLN+'/data/omnidata.pkl'
-    
+
     PSDdata_fname = DOT_FLN+'/data/psd_dat.sqlite'
 
     if all == True:
@@ -696,28 +697,28 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
         u.urlretrieve(LEAPSEC_URL, leapsec_fname)
-        
+
     if PSDdata == True:
         print("Retrieving PSD sql database")
         u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
-        
+
 
     return datadir
-    
+
 def progressbar(count, blocksize, totalsize):
     """
     print a progress bar with urllib.urlretrieve reporthook functionality
-    
+
     Example:
     u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
-    
+
     Author:
     Josef Koller (jkoller@lanl.gov)
     """
     import sys
     percent = int(count*blocksize*100/totalsize)
     sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
-    if percent == 100: print('\n') 
+    if percent == 100: print('\n')
     sys.stdout.flush()
 
 
@@ -1076,14 +1077,59 @@ def logspace(min, max, num, **kwargs):
     @contact: balarsen@lanl.gov
 
     @version: V1: 14-Jun-2010 (BAL)
+    @version: V2: 19-May-2011 (BAL) - added support for datetime objects
 
     >>> logspace(1, 100, 5)
     Out[2]: array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
-
     """
     from numpy import logspace, log10
-    return logspace(log10(min), log10(max), num, **kwargs)
+    if isinstance(min, datetime.datetime):
+        from matplotlib.dates import date2num, num2date
+        return num2date(logspace(log10(date2num(min)), log10(date2num(max)), num, **kwargs))
+    else:
+        return logspace(log10(min), log10(max), num, **kwargs)
 
+def linspace(min, max, num=50, endpoint=True, retstep=False):
+    """Returns linear spaced spaced numbers.  Same as numpy linspace except
+    allows for support of datetime objects
+
+    Parameters
+    ----------
+    start : scalar
+        The starting value of the sequence.
+    stop : scalar
+        The end value of the sequence, unless `endpoint` is set to False.
+        In that case, the sequence consists of all but the last of ``num + 1``
+        evenly spaced samples, so that `stop` is excluded.  Note that the step
+        size changes when `endpoint` is False.
+    num : int, optional
+        Number of samples to generate. Default is 50.
+    endpoint : bool, optional
+        If True, `stop` is the last sample. Otherwise, it is not included.
+        Default is True.
+    retstep : bool, optional
+        If True, return (`samples`, `step`), where `step` is the spacing
+        between samples.
+
+    Returns
+    -------
+    samples : ndarray
+        There are `num` equally spaced samples in the closed interval
+        ``[start, stop]`` or the half-open interval ``[start, stop)``
+        (depending on whether `endpoint` is True or False).
+    step : float (only if `retstep` is True)
+        Size of spacing between samples.
+
+    @version: V1: 19-May-2011 (BAL)
+    """
+    from numpy import linspace, log10
+    if isinstance(min, datetime.datetime):
+        from matplotlib.dates import date2num, num2date
+        return num2date(linspace(date2num(min), date2num(max),
+                                 num=num, endpoint=endpoint, retstep=retstep))
+    else:
+        return linspace(min, max,
+                        num=num, endpoint=endpoint, retstep=retstep)
 
 def arraybin(array, bins):
     """Split a sequence into subsequences based on value.
@@ -1649,7 +1695,7 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
       - The target function also receives the start and number of elements
         it needs to process. For each thread where the target is called,
         these numbers are different.
-        
+
     @param job_size: Total size of the job. Often this is an array size.
     @type job_size: int
     @param thread_count: Number of threads to spawn. If =0 or None, will
