@@ -11,13 +11,20 @@ Mike Henderson)
 Installation
 ============
 
-Option 1) to install it in the standard loction (depending on your system)::
+Option 1) to install it in a standard loction (depending on your system)::
 
     python setup.py install
     
 or::
     
     sudo python setup.py install
+
+or::
+
+    python setup.py install --user
+
+If you do not have administrative privileges, or you will be developing for SpacePy,
+the latter is recommended.
 
 Option 2) to install in custom location, e.g.::
 
@@ -420,6 +427,109 @@ they are accessed::
     >>> bz = b_gse[0,2] #Z component of first record
     >>> bx = b_gse[:,0] #copy X component of all records to bx
     >>> bx = cdf_file['B_GSE'][:,0] #same as above
+
+
+The datamodel Module
+====================
+
+The SpacePy datamodel module implents classes that are designed to make implementing a standard
+data model easy. The concepts are very similar to those used in standards like HDF5, netCDF and
+NASA CDF.
+
+The basic container type is analagous to a folder (on a filesystem; HDF5 calls this a
+group): Here we implement this as a dictionary-like object, a datamodel.SpaceData object, which
+also carries attributes. These attributes can be considered to be global, i.e. relevant for the
+entire folder. The next container type is for storing data and is based on a numpy array, this
+class is datamodel.dmarray and also carries attributes. The dmarray class is analagous to an
+HDF5 dataset.
+
+
+Guide for NASA CDF users
+------------------------
+
+By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records 
+(stored variables of various types) and a set of attributes that are either global or local in
+scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
+are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
+nested (more on this later, if conversion from a nested datamodel to a flat datamodel is required).
+
+This is best illustrated with an example. Imagine representing some satellite data within a CDF -- 
+the global attributes might be the mission name and the instrument PI, the variables might be the
+instrument counts [n-dimensional array], timestamps[1-dimensional array and an orbit number [scalar].
+Each variable will have one attribute (for this example).
+
+    >>> import spacepy.datamodel as dm
+    >>> mydata = dm.SpaceData(attrs={'MissionName': 'BigSat1'})
+    >>> mydata['Counts'] = dm.dmarray([[42, 69, 77], [100, 200, 250]], attrs={'Units': 'cnts/s'})
+    >>> mydata['Epoch'] = dm.dmarray([1, 2, 3], attrs={'units': 'minutes'})
+    >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
+    >>> mydata.attrs['PI'] 'Prof. Big Shot'
+
+This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel, 
+we can use the toolbox function dictree (which works for any dictionary-like object, including PyCDF
+file objects).
+
+    >>> import spacepy.toolbox as tb
+    >>> tb.dictree(mydata, attrs=True)
+    +
+    :|____MissionName
+    :|____PI
+    |____Counts
+        :|____Units
+    |____Epoch
+        :|____units
+    |____OrbitNumber
+        :|____StartsFrom
+
+
+Attributes are denoted by a leading colon. The global attributes are those in the base level,
+and the local attributes are attached to each variable.
+
+If we have data that has nested `folders', allowed by HDF5 but not by NASA CDF, then how can this be
+represented such that the data structure can be mapped directly to a NASA CDF? The data will need to
+be flattened so that it is single layered. Let us now store some ephemerides in our data structure:
+
+    >>> mydata['Ephemeris'] = dm.SpaceData()
+    >>> mydata['Ephemeris']['GSM'] = dm.dmarray([[1,3,3], [1.2,4,2.5], [1.4,5,1.9]])
+    >>> tb.dictree(mydata, attrs=True)
+    +
+    :|____MissionName
+    :|____PI
+    |____Counts
+        :|____Units
+    |____Ephemeris
+        |____GSM
+    |____Epoch
+        :|____units
+    |____OrbitNumber
+        :|____StartsFrom
+                     
+Nested dictionary-like objects is not uncommon in Python (an can be exceptionally useful for representing
+data, so to make this compatible with NASA CDF we call the object method `flatten'.
+
+    >>> mydata.flatten()
+    >>> tb.dictree(mydata, attrs=True)
+    +
+    :|____MissionName
+    :|____PI
+    |____Counts
+        :|____Units
+    |____Ephemeris<--GSM
+    |____Epoch
+        :|____units
+    |____OrbitNumber
+        :|____StartsFrom
+
+Note that the nested SpaceData has been moved to a variable with a new name reflecting its origin. The
+data structure is now flat again and can be mapped directly to NASA CDF.
+
+
+Converters to/from datamodel
+----------------------------
+
+Currently converters to HDF5 and NASA CDF are under development, as are extractors that unpack data from
+these formats into a SpacePy datamodel. Also under development is the reverse of the SpaceData.flatten
+method, so that flattened objects can be restored to their former glory.
 
 
 Empiricals Module
