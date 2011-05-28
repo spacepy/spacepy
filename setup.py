@@ -3,10 +3,9 @@
 # 
 # setup.py to install spacepy
 
-__version__ = "$Revision: 1.56 $, $Date: 2011/05/09 17:45:56 $"
 __author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
 
-import os, sys, shutil, getopt, warnings
+import os, sys, shutil, getopt, warnings, glob, re
 from distutils.core import setup
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
@@ -14,9 +13,7 @@ import distutils.ccompiler
 import distutils.dep_util
 import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
-import glob
 from os import environ as ENVIRON
-import re
 
 # -------------------------------------
 def subst(pattern, replacement, filestr,
@@ -325,7 +322,7 @@ setup(name='spacepy',
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
-          'License :: Other/Proprietary License',
+          'License :: OSI-Approved Open Source :: Python Software Foundation License',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: POSIX',
           'Programming Language :: Python',
