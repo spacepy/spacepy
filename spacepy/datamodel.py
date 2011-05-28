@@ -9,13 +9,62 @@ This contains the following classes:
  * SpaceData - base class that extends dict, to be extended by others
     Currently used in GPScode and other projects
 
- Example:
- >>> import spacepy.datamodel as datamodel
- >>> position = datamodel.dmarray([1,2,3], attrs={'coord_system':'GSM'})
- >>> position
- dmarray([1, 2, 3])
- >>> position.attrs
- {'coord_system': 'GSM'}
+Authors: Steve Morley and Brian Larsen
+Institution: Los Alamos National Laboratory
+Contact: smorley@lanl.gov; balarsen@lanl.gov
+
+About datamodel
+---------------
+
+The SpacePy datamodel module implents classes that are designed to make implementing a standard
+data model easy. The concepts are very similar to those used in standards like HDF5, netCDF and
+NASA CDF.
+
+The basic container type is analagous to a folder (on a filesystem; HDF5 calls this a
+group): Here we implement this as a dictionary-like object, a datamodel.SpaceData object, which
+also carries attributes. These attributes can be considered to be global, i.e. relevant for the
+entire folder. The next container type is for storing data and is based on a numpy array, this
+class is datamodel.dmarray and also carries attributes. The dmarray class is analagous to an
+HDF5 dataset.
+
+
+Guide for NASA CDF users
+------------------------
+
+By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records 
+(stored variables of various types) and a set of attributes that are either global or local in
+scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
+are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
+nested (more on this later, if conversion from a nested datamodel to a flat datamodel is required).
+
+This is best illustrated with an example. Imagine representing some satellite data within a CDF -- 
+the global attributes might be the mission name and the instrument PI, the variables might be the
+instrument counts [n-dimensional array], timestamps[1-dimensional array and an orbit number [scalar].
+Each variable will have one attribute (for this example).
+
+    >>> import spacepy.datamodel as dm
+    >>> mydata = dm.SpaceData(attrs={'MissionName': 'BigSat1'})
+    >>> mydata['Counts'] = dm.dmarray([[42, 69, 77], [100, 200, 250]], attrs={'Units': 'cnts/s'})
+    >>> mydata['Epoch'] = dm.dmarray([1, 2, 3], attrs={'units': 'minutes'})
+    >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
+    >>> mydata.attrs['PI'] 'Prof. Big Shot'
+
+This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel, 
+we can use the toolbox function dictree (which works for any dictionary-like object, including PyCDF
+file objects).
+
+    >>> import spacepy.toolbox as tb
+    >>> tb.dictree(mydata, attrs=True)
+    +
+    :|____MissionName
+    :|____PI
+    |____Counts
+         :|____Units
+    |____Epoch
+         :|____units
+    |____OrbitNumber
+         :|____StartsFrom
+
 """
 
 from __future__ import division
@@ -25,19 +74,27 @@ class dmarray(numpy.ndarray):
     """
     Container for data within a SpaceData object
 
-    @author: Brian Larsen, Steve Morley
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
+    Examples
+    --------
 
-    @version: V1: 01-Mar-2011 Based on GPSarray from GPScode codebase
-
-    Example:
     >>> import spacepy.datamodel as datamodel
     >>> position = datamodel.dmarray([1,2,3], attrs={'coord_system':'GSM'})
     >>> position
     dmarray([1, 2, 3])
     >>> position.attrs
-    {'coord_system': 'GSM'}
+    {'coord_system': 'GSM'}a
+
+    The dmarray, like a numpy ndarray, is versatile and can store
+    any datatype; dmarrays are not just for arrays.
+
+    >>> name = datamodel.dmarray('TestName')
+    dmarray('TestName')
+
+    To extract the string (or scalar quantity), use the tolist method
+
+    >>> name.tolist()
+    'TestName'
+
     """
     Allowed_Attributes = ['attrs']
 
@@ -109,15 +166,8 @@ class dmarray(numpy.ndarray):
 
 class SpaceData(dict):
     """
-    Base datamodel class extending dict
+    Datamodel class extending dict
 
-    Currently has just method stubs, no real functionality
-
-    @author: Steve Morley
-    @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov
-
-    @version: V1: 01-Mar-2011 Based on GPSarray from GPScode codebase
     """
 
     def __init__(self, *args, **kwargs):
@@ -134,14 +184,6 @@ class SpaceData(dict):
             del kwargs['attrs']
 
         super(SpaceData, self).__init__(*args, **kwargs)
-
-    #def __repr__(self):
-        #"""
-        #Abstract method, reimplement
-        #"""
-        #super(SpaceData, self).__repr__()
-        ##raise(ValueError("Abstract method called, reimplement __repr__"))
-
 
     def flatten(self):
         '''Method to collapse datamodel to one level deep
