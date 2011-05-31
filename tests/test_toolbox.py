@@ -1,6 +1,12 @@
 #!/usr/bin/env python2.6
 # -*- coding: utf-8 -*-
 
+"""
+Test suite for toolbox
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
+
 import datetime
 import glob
 import itertools

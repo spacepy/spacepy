@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Unit test suite for SeaPy"""
+"""
+Unit test suite for SeaPy
 
-__version__ = "0.0"
-__author__ = "Steve Morley <smorley@lanl.gov>"
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 
 import unittest

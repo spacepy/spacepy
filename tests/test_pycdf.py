@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-"""Unit test suite for pycdf"""
+"""
+Unit test suite for pycdf
 
-__version__ = "0.14"
-__author__ = "Jonathan Niehof <jniehof@lanl.gov>"
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 import ctypes
 import datetime

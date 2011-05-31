@@ -3,7 +3,10 @@
 vector field.  The subroutines included here are meant to be called from
 python routines.  Compiling and executing this will perform some simple
 tests to ensure that the functions are working correctly.  For a quick 
-test of this module, compile it and run the executable. */
+test of this module, compile it and run the executable.
+
+Copyright ©2010 Los Alamos National Security, LLC. */
+
 /*************************************************************************/
 #include <stdlib.h>
 #include <stdio.h>

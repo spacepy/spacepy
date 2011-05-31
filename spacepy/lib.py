@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 """Support for fast C-based versions of spacepy routines.
 
 To add functions, put a .c file containing the desired functions in
@@ -8,10 +8,16 @@ be added to the functions dictionary below. These functions will
 be callable as attributes of spacepy.lib. If the C library is not
 found, spacepy.lib.have_libspacepy will be False. See Poppy
 for an example.
-"""
 
-__version__ = '0.0'
-__author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
+Authors
+-------
+Jon Niehof
+
+jniehof@lanl.gov
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 import ctypes
 import os.path

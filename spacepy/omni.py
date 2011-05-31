@@ -2,10 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 tools to read and process omni data
-"""
-__version__ = "$Revision: 1.17 $, $Date: 2011/05/31 19:15:19 $"
-__author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
+Authors
+-------
+Josef Koller, 
+
+jkoller@lanl.gov
+Los ALamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 import numpy as np
 
 # -----------------------------------------------
@@ -38,10 +44,6 @@ def get_omni(ticks):
     >>> d = get_omni(tick)
     
     
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 26-Jan-2010 (JK)

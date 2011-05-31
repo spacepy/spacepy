@@ -2,6 +2,8 @@
 '''
 A set of routines for fast field line tracing.
 "Number crunching" is performed in C for speed.
+
+Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
 def trace2d_eul(fieldx, fieldy, xstart, ystart, gridx, gridy, 

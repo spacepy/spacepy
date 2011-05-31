@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # 
-# setup.py to install spacepy
+""" setup script to install spacepy
 
-__author__ = 'The SpacePy Team, Los Alamos National Lab (spacepy@lanl.gov)'
+Authors
+-------
+The SpacePy Team
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 import os, sys, shutil, getopt, warnings, glob, re
 from distutils.core import setup

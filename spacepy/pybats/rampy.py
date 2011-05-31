@@ -1,5 +1,7 @@
 '''
 A module for reading, handling, and plotting RAM-SCB output.  
+
+Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
 import numpy as np

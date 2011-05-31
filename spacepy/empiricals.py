@@ -2,12 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 Module with some useful empirical models (plasmapause, magnetopause, Lmax)
+
+
+Authors
+-------
+Steve Morley, Josef Koller
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from spacepy import help
-__version__ = "$Revision: 1.18 $, $Date: 2011/03/18 16:50:00 $"
-__author__ = ['J. Koller, Los Alamos National Lab (jkoller@lanl.gov)',
-'Steve Morley (smorley@lanl.gov/morley_steve@hotmail.com)']
 
 import spacepy.omni as om
 import spacepy.time as spt
@@ -25,9 +29,6 @@ def getLmax(ticks, model='JKemp'):
     @return: Lmax - L* of last closed drift shell
     @rtype: numpy.ndarray
     
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
     """
         
     omni = om.get_omni(ticks)
@@ -65,10 +66,6 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
     >>> emp.getPlasmaPause(ticks)
     array([ 4.9586,  4.9586,  4.9586,  4.9586,  4.9586,  4.9586,  4.9586,
         5.1114,  5.608 ,  5.7226,  5.7226])
-    
-    Authors:
-    =======
-    Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
     
     """
 
@@ -155,9 +152,6 @@ def getMPstandoff(ticks):
     >>> emp.ShueMP(data)
     array([ 10.29156018,   8.96790412])
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
     """
 
     import datetime as dt
@@ -241,9 +235,6 @@ def getDststar(ticks, model='OBrien'):
             dststar = getDststar(ticks, model=model)
             plt.plot(ticks.UTC, dststar, col)
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Laboratory (smorley@lanl.gov)
     """
     model_params = {'Burton': (15.8, 20),
                     'OBrien': (7.26, 11),

@@ -2,11 +2,9 @@
 #	-*-	coding:	utf-8	-*-
 """
 testing	the	omni	module
-"""
-__version__	=	"$Revision: 1.1 $,	$Date: 2011/05/28 22:36:42 $"
-__author__	=	'Josef	Koller,	Los	Alamos	National	Lab	(jkoller@lanl.gov)'
 
-# -----------------------------------------------------------------------
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 import unittest
 import spacepy

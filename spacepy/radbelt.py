@@ -2,15 +2,20 @@
 # -*- coding: utf-8 -*-
 """
 Functions supporting radiation belt diffusion codes
+
+Authors
+-------
+Josef Koller
+
+jkoller@lanl.gov
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from spacepy import help
 import ctypes
 import numpy as np
-
-__version__ = "$Revision: 1.20 $, $Date: 2011/05/31 19:15:19 $"
-__author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
-
 
 # -----------------------------------------------
 # RBmodel class
@@ -42,10 +47,6 @@ class RBmodel(object):
     
     >>> rmod.plot_summary()
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
     Version:
     ========
     V1: 17-Mar-2010 (JK)

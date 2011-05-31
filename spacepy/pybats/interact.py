@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 '''
 Tools for creating interactive PyBats GUIs.
+
+Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
 class ClickTracer(object):

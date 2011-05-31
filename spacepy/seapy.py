@@ -38,8 +38,9 @@ the plot() method is recommended for 2D SEA.
 --++-- By Steve Morley --++--
 
 smorley@lanl.gov
-Los Alamos National Laboratory, ISR-1,
-PO Box 1663, Los Alamos, NM 87545
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
 
@@ -52,16 +53,12 @@ from spacepy import help
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 
-__author__ = 'Steve Morley (smorley@lanl.gov)'
 
 class SeaBase(object):
     """SeaPy Superposed epoch analysis base class
     
     Do not use directly -- subclass it!
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, **kwargs):
         self.data = np.array(data, dtype=float)
@@ -93,9 +90,6 @@ class Sea(SeaBase):
     Output can be nicely plotted with plot method, or for multiple objects
     use the seamulti function
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
         super(Sea, self).__init__(data, times, epochs, \
@@ -480,9 +474,6 @@ class Sea2d(SeaBase):
     Output can be nicely plotted with plot method, or for multiple
     objects use the seamulti function
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=False, y=[]):
         super(Sea2d, self).__init__(data, times, epochs, window=window, \
@@ -669,9 +660,6 @@ def seadict(objlist, namelist):
     ====================
     namelist = List containing names for y-axes.
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     try:
         assert type(objlist) == \
@@ -715,9 +703,6 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     Plot of input object median and bounds (ci, mad, quartiles - see sea()).
     If keyword 'show' is False, output is a plot object.
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     import matplotlib.ticker as tik
     
@@ -824,9 +809,6 @@ def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
     =======
     epochs (type=list)
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     if iso==False:
         from numpy import loadtxt, zeros
@@ -876,9 +858,6 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
     >>> obj2.sea(storedata=True)
     >>> seapy.sea_signif(obj1, obj2)
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
     """
     try:
         assert isinstance(obj1, Sea)

@@ -52,11 +52,14 @@ The plot method will then add the 95% confidence intervals as a semi-
 transparent patch.
 
 
---++-- By Steve Morley --++--
+Authors:
+========
+Steve Morley and Jon Niehof
 
-smorley@lanl.gov,
-Los Alamos National Laboratory, ISR-1,
-PO Box 1663, MS D466, Los Alamos, NM 87545
+smorley@lanl.gov, jniehof@lanl.gov
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 import bisect
@@ -72,7 +75,6 @@ from spacepy import lib
 if lib.have_libspacepy:
     import ctypes
 import spacepy.toolbox as tb
-__author__ = 'Steve Morley, Los Alamos National Lab (smorley@lanl.gov)'
 
 
 class PPro(object):
@@ -84,10 +86,6 @@ class PPro(object):
 
     Output can be nicely plotted with plot method
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
-    Jonathan Niehof, Los Alamos National Lab, jniehof@lanl.gov
     """
     #NB: P2 is the "master" timescale, P1 gets shifted by lags
     #Add lag to p1 to reach p2's timescale, subtract lag from p2 to reach p1's
@@ -583,11 +581,6 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     median is 164.022 (6 s.f.) and this is well captured by the above
     bootstrap confidence interval.
     
-    Author:
-    =======
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov and
-    Jonathan Niehof, Los Alamos National Lab, jniehof@lanl.gov
-
     @param data: data to bootstrap
     @type data: sequence
     @param n: number of surrogate series to select, i.e. number of bootstrap

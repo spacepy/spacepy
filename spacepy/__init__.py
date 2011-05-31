@@ -13,6 +13,8 @@ will list all available functions, classes and variables.
 Detailed HTML documentation is available locally in the spacepy/doc directory
 and can be launched by typing:
 >>> spacepy.help()
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 def help():

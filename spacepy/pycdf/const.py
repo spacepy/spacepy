@@ -1,11 +1,14 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """CDF constants
 
 Various constants defined in cdf.h and used in pycdf
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 __version__ = "0.14"
-__author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 import ctypes
 

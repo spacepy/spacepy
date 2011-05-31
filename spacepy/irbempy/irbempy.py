@@ -5,11 +5,16 @@ module wrapper for irbem_lib
 Reference for this library
 https://sourceforge.net/projects/irbem/
 D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
+
+Authors
+-------
+Josef Koller, Steve Morley 
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
+import numpy as np
 from spacepy import help
-__version__ = "$Revision: 1.8 $, $Date: 2011/01/05 22:50:46 $"
-__author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
     'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
@@ -55,17 +60,12 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
     =========
     Lstar, find_Bmirror, find_magequator
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 05-Mar-2010 (JK)
 
     """
 
-    import numpy as n
     import spacepy.irbempy.irbempylib as oplib
     import spacepy.toolbox as tb
 
@@ -85,15 +85,15 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
     magin = d['magin']
 
     results = {}
-    results['Blocal'] = n.zeros(nTAI)
-    results['Bvec'] = n.zeros((nTAI,3))
-    for i in n.arange(nTAI):
+    results['Blocal'] = np.zeros(nTAI)
+    results['Bvec'] = np.zeros((nTAI,3))
+    for i in np.arange(nTAI):
         BxyzGEO, Blocal = oplib.get_field1(kext,options,sysaxes,iyearsat[i],idoysat[i],secs[i], \
             xin1[i],xin2[i],xin3[i], magin[:,i])
 
         # take out all the odd 'bad values' and turn them into NaN
-        if tb.feq(Blocal,badval): Blocal = n.NaN
-        BxyzGEO[n.where( tb.feq(BxyzGEO, badval)) ] = n.NaN
+        if tb.feq(Blocal,badval): Blocal = np.NaN
+        BxyzGEO[np.where( tb.feq(BxyzGEO, badval)) ] = np.NaN
 
         results['Blocal'][i] = Blocal
         results['Bvec'][i,:] = BxyzGEO
@@ -137,17 +137,12 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     =========
     Lstar, get_Bfield, find_magequator
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 05-Mar-2010 (JK)
 
     """
 
-    import numpy as n
     import spacepy.irbempy.irbempylib as oplib
     import spacepy.coordinates as c
     import spacepy.toolbox as tb
@@ -170,17 +165,17 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     nalpha = len(alpha)
 
     results = {}
-    results['Blocal'] = n.zeros(nTAI)
-    results['Bmirr'] = n.zeros(nTAI)
+    results['Blocal'] = np.zeros(nTAI)
+    results['Bmirr'] = np.zeros(nTAI)
     results['loci'] = ['']*nTAI
-    for i in n.arange(nTAI):
+    for i in np.arange(nTAI):
         blocal, bmirr, GEOcoord = oplib.find_mirror_point1(kext,options,sysaxes, \
             iyearsat[i],idoysat[i],secs[i], xin1[i],xin2[i],xin3[i], alpha, magin[:,i])
 
         # take out all the odd 'bad values' and turn them into NaN
-        if tb.feq(blocal,badval): blocal = n.NaN
-        if tb.feq(bmirr,badval) : bmirr  = n.NaN
-        GEOcoord[n.where( tb.feq(GEOcoord,badval)) ] = n.NaN
+        if tb.feq(blocal,badval): blocal = np.NaN
+        if tb.feq(bmirr,badval) : bmirr  = np.NaN
+        GEOcoord[np.where( tb.feq(GEOcoord,badval)) ] = np.NaN
 
         results['Blocal'][i] = blocal
         results['Bmirr'][i] = bmirr	
@@ -226,16 +221,11 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
     =========
     Lstar, get_Bfield, find_Bmirr
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 05-Mar-2010 (JK)
 
     """
-    import numpy as n
     import spacepy.irbempy.irbempylib as oplib
     import spacepy.toolbox as tb
     import spacepy
@@ -255,15 +245,15 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
     magin = d['magin']
 
     results = {}
-    results['Bmin'] = n.zeros(nTAI)
+    results['Bmin'] = np.zeros(nTAI)
     results['loci'] = ['']*nTAI
-    for i in n.arange(nTAI):
+    for i in np.arange(nTAI):
         bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
             iyearsat[i],idoysat[i],secs[i], xin1[i],xin2[i],xin3[i],magin[:,i])
 
         # take out all the odd 'bad values' and turn them into NaN
-        if tb.feq(bmin,badval): bmin = n.NaN
-        GEOcoord[n.where( tb.feq(GEOcoord, badval)) ] = n.NaN
+        if tb.feq(bmin,badval): bmin = np.NaN
+        GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
 
         results['Bmin'][i] = bmin
         results['loci'][i] = GEOcoord
@@ -301,16 +291,11 @@ def coord_trans(loci, returntype, returncarsph ):
     =========
     sph2car, car2sph
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 05-Mar-2010 (JK)
 
     """
-    import numpy as n
     import spacepy.irbempy.irbempylib
     import spacepy.irbempy as op
 
@@ -327,8 +312,8 @@ def coord_trans(loci, returntype, returncarsph ):
     else:
         aflag = False
 
-    xout = n.zeros(n.shape(loci.data))
-    for i in n.arange(len(loci)):
+    xout = np.zeros(np.shape(loci.data))
+    for i in np.arange(len(loci)):
         iyear = loci.ticks.UTC[i].year
         idoy = loci.ticks.DOY[i]
         secs = loci.ticks.UTC[i].hour*3600. + loci.ticks.UTC[i].minute*60. + \
@@ -370,28 +355,22 @@ def car2sph(CARin):
     =========
     sph2car
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 05-Mar-2010 (JK)
 
     """	
 
-    import numpy as n
-
     if isinstance(CARin[0], (float, int)):
-        CAR = n.array([CARin])
+        CAR = np.array([CARin])
     else:
-        CAR = n.array(CARin)
+        CAR = np.array(CARin)
 
-    res = n.zeros(n.shape(CAR))
-    for i in n.arange(len(CAR)):
+    res = np.zeros(np.shape(CAR))
+    for i in np.arange(len(CAR)):
         x, y, z = CAR[i,0], CAR[i,1], CAR[i,2]
-        r = n.sqrt(x*x+y*y+z*z)
-        sq = n.sqrt(x*x+y*y)
+        r = np.sqrt(x*x+y*y+z*z)
+        sq = np.sqrt(x*x+y*y)
         if (x == 0) & (y == 0): # on the poles
             longi = 0.
             if z < 0:
@@ -399,8 +378,8 @@ def car2sph(CARin):
             else:
                 lati = 90.0
         else:
-            longi = n.arctan2(y,x)*180./n.pi
-            lati = 90. - n.arctan2(sq, z)*180./n.pi
+            longi = np.arctan2(y,x)*180./np.pi
+            lati = 90. - np.arctan2(sq, z)*180./np.pi
         res[i,:] = [r, lati, longi]
         
     if isinstance(CARin[0], (float, int)):
@@ -431,29 +410,23 @@ def sph2car(SPHin):
     =========
     car2sph
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 05-Mar-2010 (JK)
     """
 
-    import numpy as n
-
     if isinstance(SPHin[0], (float, int)):
-        SPH = n.array([SPHin])
+        SPH = np.array([SPHin])
     else:
-        SPH = n.array(SPHin)
+        SPH = np.array(SPHin)
 
-    res = n.zeros(n.shape(SPH))
-    for i in n.arange(len(SPH)):
+    res = np.zeros(np.shape(SPH))
+    for i in np.arange(len(SPH)):
         r,lati,longi = SPH[i,0], SPH[i,1], SPH[i,2]
-        colat = n.pi/2. - lati*n.pi/180.
-        x = r*n.sin(colat)*n.cos(longi*n.pi/180.)
-        y = r*n.sin(colat)*n.sin(longi*n.pi/180.)
-        z = r*n.cos(colat)
+        colat = np.pi/2. - lati*np.pi/180.
+        x = r*np.sin(colat)*np.cos(longi*np.pi/180.)
+        y = r*np.sin(colat)*np.sin(longi*np.pi/180.)
+        z = r*np.cos(colat)
         res[i,:] = [x, y, z]
 
 
@@ -485,11 +458,6 @@ def get_sysaxes(dtype, carsph):
     See Also:
     =========
     get_dtype
-
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov
 
     Version:
     ========
@@ -531,10 +499,6 @@ def get_dtype(sysaxes):
     =========
     get_sysaxes
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 05-Mar-2010 (JK)
@@ -575,10 +539,6 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     =========
     
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 16-Nov-2010 (JK)
@@ -587,7 +547,6 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     import spacepy
     import spacepy.toolbox as tb
     import spacepy.irbempy.irbempylib as ib
-    import numpy as n
     
     # find bad values and dimensions
     
@@ -625,19 +584,19 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     if isinstance(loci, spacepy.coordinates.Coords):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
         d = prep_irbem(ticks=loci.ticks, loci=loci)
-        E_array = n.zeros((2,d['nalp_max']))
+        E_array = np.zeros((2,d['nalp_max']))
         E_array[:,0] = energy
         # now get the flux
         flux = ib.fly_in_nasa_aeap1(ntmax, d['sysaxes'], whichm, whatf, Nene, E_array, d['iyearsat'], d['idoysat'], d['utsat'], \
             d['xin1'], d['xin2'], d['xin3'])
-    elif isinstance(loci, (list, n.ndarray)):
+    elif isinstance(loci, (list, np.ndarray)):
         BBo, L = loci
         d = prep_irbem()
-        E_array = n.zeros((2,d['nalp_max']))
+        E_array = np.zeros((2,d['nalp_max']))
         E_array[:,0] = energy
-        B_array = n.zeros(d['ntime_max'])
+        B_array = np.zeros(d['ntime_max'])
         B_array[0] = BBo
-        L_array = n.zeros(d['ntime_max'])
+        L_array = np.zeros(d['ntime_max'])
         L_array[0] = L
         # now get the flux
         flux =  ib.get_ae8_ap8_flux(ntmax, whichm, whatf, Nene, E_array, B_array, L_array)
@@ -646,7 +605,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         print 'Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]'
         
     
-    flux[n.where( tb.feq(flux, d['badval'])) ] = n.NaN
+    flux[np.where( tb.feq(flux, d['badval'])) ] = np.NaN
     
     return flux[0,0]
     
@@ -756,10 +715,6 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
             - 2 = Jensen&Cain 1960
             - 3 = GSFC 12/66 updated to 1970
             
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 03-Feb-2010 (JK)
@@ -769,7 +724,6 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
     import spacepy
     import spacepy.toolbox as tb
     import spacepy.irbempy.irbempylib as oplib
-    import numpy as n
 
     nTAI = len(ticks)
     nalpha = len(alpha)
@@ -788,17 +742,17 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
         print('ERROR: too many pitch angles requested; 25 is maximum')
 
     # take out all the odd 'bad values' and turn them into NaN
-    lm[n.where( tb.feq(lm,d['badval'])) ] = n.NaN
-    lstar[n.where( tb.feq(lstar,d['badval'])) ] = n.NaN
-    bmin[n.where( tb.feq(bmin,d['badval'])) ] = n.NaN
-    xj[n.where( tb.feq(xj,d['badval'])) ] = n.NaN
-    mlt[n.where( tb.feq(mlt,d['badval'])) ] = n.NaN
+    lm[np.where( tb.feq(lm,d['badval'])) ] = np.NaN
+    lstar[np.where( tb.feq(lstar,d['badval'])) ] = np.NaN
+    bmin[np.where( tb.feq(bmin,d['badval'])) ] = np.NaN
+    xj[np.where( tb.feq(xj,d['badval'])) ] = np.NaN
+    mlt[np.where( tb.feq(mlt,d['badval'])) ] = np.NaN
 
     results = {}
     if nalpha == 0:
         results['Lm'] = lm[0:nTAI]
         results['Lstar'] = lstar[0:nTAI]
-        blocal[n.where( tb.feq(blocal,d['badval'])) ] = n.NaN
+        blocal[np.where( tb.feq(blocal,d['badval'])) ] = np.NaN
         results['Blocal'] = blocal[0:nTAI]
         results['Bmin'] = bmin[0:nTAI]
         results['Xj'] = xj[0:nTAI]
@@ -806,7 +760,7 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
     else:		
         results['Lm'] = lm[0:nTAI, 0:nalpha]
         results['Lstar'] = lstar[0:nTAI, 0:nalpha]
-        bmirr[n.where( tb.feq(bmirr, d['badval'])) ] = n.NaN
+        bmirr[np.where( tb.feq(bmirr, d['badval'])) ] = np.NaN
         results['Bmirr'] = bmirr[0:nTAI, 0:nalpha]
         results['Bmin'] = bmin[0:nTAI]
         results['Xj'] = xj[0:nTAI, 0:nalpha]
@@ -919,10 +873,6 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
             - 2 = Jensen&Cain 1960
             - 3 = GSFC 12/66 updated to 1970
             
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 03-Feb-2010 (JK)
@@ -931,7 +881,6 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
     """
 
     import spacepy
-    import numpy as n
 
     if isinstance(alpha, (float,int)):
         alpha = [alpha]
@@ -960,15 +909,15 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
         # setup dictionary
         DALL = {}
         for key in RES[0]:
-            if len(n.shape(RES[0][key])) is 2:
-                DALL[key] = n.zeros((ncalc, nalpha))
+            if len(np.shape(RES[0][key])) is 2:
+                DALL[key] = np.zeros((ncalc, nalpha))
             else:
-                DALL[key] = n.zeros(ncalc)
+                DALL[key] = np.zeros(ncalc)
             
         for i, d in enumerate(RES):
             ppidx = list(range(i, ncalc, ncpus))
             for key in DALL:
-                if len(n.shape(d[key])) is 2:
+                if len(np.shape(d[key])) is 2:
                     DALL[key][ppidx,:] = d[key]
                 else:
                     DALL[key][ppidx] = d[key]
@@ -984,7 +933,7 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
 def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
     """
     """
-    import numpy as n
+    import numpy as np
     import spacepy.omni as omni
 
     # setup dictionary to return input values for irbem
@@ -1006,14 +955,14 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     nTAI = len(ticks)
 
     # setup mag array and move omni values
-    magin = n.zeros((nalp_max,ntime_max),float)	
+    magin = np.zeros((nalp_max,ntime_max),float)	
     magkeys = ['Kp', 'Dst', 'dens', 'velo', 'Pdyn', 'ByIMF', 'BzIMF',\
                     'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
     # get omni values
     if omnivals is None: # nothing provided so use lookup table
         omnivals = omni.get_omni(ticks)
         
-    for iTAI in n.arange(nTAI):
+    for iTAI in np.arange(nTAI):
         for ikey, key in enumerate(magkeys):
             magin[ikey, iTAI] = omnivals[key][iTAI]
 
@@ -1024,13 +973,13 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     d['magin'] = magin
 
     # setup time array
-    iyearsat = n.zeros(ntime_max, dtype=int)
-    idoysat = n.zeros(ntime_max, dtype=int)
-    utsat = n.zeros(ntime_max, dtype=float)
-    for i in n.arange(nTAI):
+    iyearsat = np.zeros(ntime_max, dtype=int)
+    idoysat = np.zeros(ntime_max, dtype=int)
+    utsat = np.zeros(ntime_max, dtype=float)
+    for i in np.arange(nTAI):
         iyearsat[i] = UTC[i].year
         idoysat[i] = int(DOY[i])
-        utsat[i] = (eDOY[i]-n.floor(eDOY[i]))*86400.
+        utsat[i] = (eDOY[i]-np.floor(eDOY[i]))*86400.
     d['iyearsat'] = iyearsat
     d['idoysat'] = idoysat
     d['utsat'] = utsat
@@ -1038,9 +987,9 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     # copy coordinates into array
     # prepare coordinates
     d['sysaxes'] = loci.sysaxes
-    xin1 = n.zeros(ntime_max, dtype=float)
-    xin2 = n.zeros(ntime_max, dtype=float)
-    xin3 = n.zeros(ntime_max, dtype=float) 
+    xin1 = np.zeros(ntime_max, dtype=float)
+    xin2 = np.zeros(ntime_max, dtype=float)
+    xin3 = np.zeros(ntime_max, dtype=float) 
     if loci.carsph == 'sph':
         xin1[0:nTAI] = loci.radi[:]
         xin2[0:nTAI] = loci.lati[:]
@@ -1061,7 +1010,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     d['kext'] = kext
 
     # calc at given pitch angels 'alpha'?
-    degalpha = n.zeros(nalp_max, dtype=float)
+    degalpha = np.zeros(nalp_max, dtype=float)
     if isinstance(alpha, float):
         nalpha = 1
         alpha = [alpha]

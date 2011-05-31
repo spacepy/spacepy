@@ -1,6 +1,9 @@
 '''
 A PyBats module for handling input, output, and visualization of 
 binary SWMF output files taylored to BATS-R-US-type data.
+
+
+Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
 import numpy as np

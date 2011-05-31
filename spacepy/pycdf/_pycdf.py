@@ -1,13 +1,22 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """pyCDF implementation
 
 This module contains the implementation details of pyCDF, the
 python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
+
+Authors
+-------
+Jon Niehof
+
+jniehof@lanl.gov
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 __version__ = '0.14'
-__author__ = 'Jonathan Niehof <jniehof@lanl.gov>'
 
 #Main implementation file for pycdf, automatically imported
 

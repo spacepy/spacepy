@@ -76,13 +76,20 @@ array([ 2455167. ,  2455169.5,  2455172. ])
 
 And so on.
 
+Authors:
+--------
+Josef Koller, Brian Larsen, Steve Morley, Jon Niehof
+
+jkoller@lanl.gov,
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from spacepy import help
 import datetime
 import numpy as np
-__version__ = "$Revision: 1.36 $, $Date: 2011/05/31 19:15:20 $"
-__author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
+__version__ = "$Revision: 1.37 $, $Date: 2011/05/31 20:25:32 $"
 
 
 # -----------------------------------------------
@@ -112,10 +119,6 @@ class Tickdelta(object):
     See Also:
     =========
     spacepy.time.Ticktock class
-    
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
     Version:
     ========
@@ -157,10 +160,6 @@ class Tickdelta(object):
         >>> dt
         Tickdelta( days=3 )
         
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Mar-2010 (JK)
@@ -205,7 +204,6 @@ class Tickdelta(object):
     def __getstate__(self):
         """
         Is called when pickling
-        Author: J. Koller
         See Also: http://docs.python.org/library/pickle.html
         """
         odict = self.__dict__.copy() # copy the dict since we change it
@@ -214,7 +212,6 @@ class Tickdelta(object):
     def __setstate__(self, dict):
         """
         Is called when unpickling
-        Author: J. Koller
         See Also: http://docs.python.org/library/pickle.html
         """
         self.__dict__.update(dict)
@@ -263,10 +260,6 @@ class Ticktock(object):
     See Also:
     =========
     a.getCDF, a.getISO, a.getUTC, etc.
-    
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
     Version:
     ========
@@ -342,10 +335,6 @@ class Ticktock(object):
         >>> a
         Ticktock( ['2002-02-02T12:00:00'] ), dtype=ISO
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Mar-2010 (JK)
@@ -359,7 +348,6 @@ class Ticktock(object):
     def __getstate__(self):
         """
         Is called when pickling
-        Author: J. Koller
         See Also: http://docs.python.org/library/pickle.html
         """
         odict = self.__dict__.copy() # copy the dict since we change it
@@ -368,7 +356,6 @@ class Ticktock(object):
     def __setstate__(self, dict):
         """
         Is called when unpickling
-        Author: J. Koller
         See Also: http://docs.python.org/library/pickle.html
         """
         self.__dict__.update(dict)
@@ -400,10 +387,6 @@ class Ticktock(object):
         =========
         a.__setitem__
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1.0: 03-Mar-2010 (JK)
@@ -440,10 +423,6 @@ class Ticktock(object):
         =========
         a.__getitem__
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Mar-2010 (JK)
@@ -475,10 +454,6 @@ class Ticktock(object):
         >>> a.len
         1
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Mar-2010 (JK)
@@ -518,10 +493,6 @@ class Ticktock(object):
         =========
         a.__add__, a.__sub__
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Mar-2010 (JK)
@@ -585,10 +556,6 @@ class Ticktock(object):
         =========
         __sub__
       
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Mar-2010 (JK)
@@ -641,10 +608,6 @@ class Ticktock(object):
         =========
         __sub__
       
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Mar-2010 (JK)
@@ -687,10 +650,6 @@ class Ticktock(object):
         ========
             - requested values as either list/numpy array
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Mar-2010 (JK)
@@ -724,10 +683,6 @@ class Ticktock(object):
         ======
             - a Ticktock class instance
     
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Jun-2010 (JK)
@@ -758,10 +713,6 @@ class Ticktock(object):
         =======
             - idx (int list) : indices that would sort the Ticktock values 
     
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 03-Jun-2010 (JK)
@@ -784,10 +735,6 @@ class Ticktock(object):
         Input:
         ======
             - a Ticktock class instance
-    
-        Author:
-        =======
-        Steve Morley, Los Alamos National Lab (smorley@lanl.gov)
     
         Version:
         ========
@@ -823,10 +770,6 @@ class Ticktock(object):
         See Also:
         =========
         __setitem__, __add__, __sub__
-    
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
         Version:
         ========
@@ -885,10 +828,6 @@ class Ticktock(object):
         =========
         a.CDF, a.ISO, a.UTC, etc. 
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 05-Mar-2010 (JK)
@@ -912,10 +851,6 @@ class Ticktock(object):
         Example:
         ========
       
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 23-Mar-2010 (JK)
@@ -954,10 +889,6 @@ class Ticktock(object):
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getISO, getTAI, getDOY, geteDOY
     
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 02-Feb-2010 (JK)
@@ -994,10 +925,6 @@ class Ticktock(object):
         See Also:
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getISO, geteDOY
-    
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
         Version:
         ========
@@ -1038,10 +965,6 @@ class Ticktock(object):
         See Also:
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getISO, getDOY
-    
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
         Version:
         ========
@@ -1085,10 +1008,6 @@ class Ticktock(object):
         See Also:
         =========
         getUTC, getUNX, getRDT, getISO, getMJD, getCDF, getTAI, getDOY, geteDOY
-    
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
         Version:
         ========
@@ -1176,10 +1095,6 @@ class Ticktock(object):
         =========
         getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, geteDOY
     
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 20-Jan-2010 (JK)
@@ -1221,10 +1136,6 @@ class Ticktock(object):
         See Also:
         =========
         getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-    
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
         Version:
         ========
@@ -1271,10 +1182,6 @@ class Ticktock(object):
         =========
         getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
     
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 20-Jan-2010 (JK)
@@ -1319,10 +1226,6 @@ class Ticktock(object):
         See Also:
         =========
         getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-    
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
         Version:
         ========
@@ -1474,10 +1377,6 @@ class Ticktock(object):
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
     
-        Author:
-        =======
-        Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)
-    
         Version:
         ========
         V1: 20-Jan-2010 (BAL)
@@ -1528,10 +1427,6 @@ class Ticktock(object):
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
     
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 20-Jan-2010 (JK)
@@ -1581,10 +1476,6 @@ class Ticktock(object):
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
     
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 20-Jan-2010 (JK)
@@ -1631,10 +1522,6 @@ class Ticktock(object):
         See Also:
         =========
         getTAI
-    
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
         Version:
         ========
@@ -1718,10 +1605,6 @@ class Ticktock(object):
         ======
         - None
         
-        Author:
-        =======
-        Brian Larsen, Los Alamos National Lab (balarsen@lanl.gov)
-        
         Version:
         ========
         V1: 24-May-2010 (BAL)
@@ -1760,10 +1643,6 @@ def doy2date(year, doy, dtobj=False, flAns=False):
     See Also:
     =========
     getDOY
-
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov 
 
     Version:
     ========
@@ -1845,10 +1724,6 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     =========
     Ticktock
 
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab, jkoller@lanl.gov
-
     Version:
     ========
     V1: 10-Mar-2010: (JK)
@@ -1893,16 +1768,6 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
     
     [hours, minutes, seconds] or datetime.timedelta
     
-    Author:
-    =======
-    
-    Steve Morley, Los Alamos National Lab, smorley@lanl.gov/morley_steve@hotmail.com
-    
-    Modification history:
-    =====================
-    
-    v1. Created by Steve Morley in March 2010
-    v1.1 Datetime timedelta output added; 17-May-2010 (SM)
     """
     
     import datetime as dt
@@ -1946,10 +1811,6 @@ def test():
     testing ticks: PASSED TEST 1
     testing ticks: PASSED TEST 2
     0
-
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
 
     Version:
     ========

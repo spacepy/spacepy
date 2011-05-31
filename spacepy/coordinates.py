@@ -3,12 +3,18 @@
 """
 Implementation of Coords class functions
 
+Authors
+-------
+Josef Koller
+
+jkoller@lanl.gov
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 import numpy as np
 from spacepy import help
-__version__ = "$Revision: 1.13 $, $Date: 2011/05/31 19:15:19 $"
-__author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
 # -----------------------------------------------
@@ -48,10 +54,6 @@ class Coords(object):
     See Also:
     =========
     time.Ticktock class
-    
-    Author:
-    =======
-    Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
     
     Version:
     ========
@@ -147,10 +149,6 @@ class Coords(object):
         Coords( [[1 2 4]
          [1 2 2]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 05-Mar-2010 (JK)
@@ -182,10 +180,6 @@ class Coords(object):
         >>> y[0] 
         array([1, 2, 4])
  
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 05-Mar-2010 (JK)
@@ -218,10 +212,6 @@ class Coords(object):
         Coords( [[1 2 4]
          [9 9 9]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 05-Mar-2010 (JK)
@@ -251,10 +241,6 @@ class Coords(object):
         >>> len(y)
         2
 
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 05-Mar-2010 (JK)
@@ -296,11 +282,6 @@ class Coords(object):
         Coords( [[ 0.81134097  2.6493305   3.6500375 ]
          [ 0.92060408  2.30678864  1.68262126]] ), dtype=SM,car, units=['Re', 'Re', 'Re']
 
-
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 05-Mar-2010 (JK)
@@ -379,7 +360,6 @@ class Coords(object):
     def __getstate__(self):
         """
         Is called when pickling
-        Author: J. Koller
         See Also: http://docs.python.org/library/pickle.html
         """
         odict = self.__dict__.copy() # copy the dict since we change it
@@ -388,7 +368,6 @@ class Coords(object):
     def __setstate__(self, dict):
         """
         Is called when unpickling
-        Author: J. Koller
         See Also: http://docs.python.org/library/pickle.html
         """
         self.__dict__.update(dict)
@@ -409,10 +388,6 @@ class Coords(object):
         Example:
         ========
       
-        Author:
-        =======
-        Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-    
         Version:
         ========
         V1: 15-Sep-2010 (JK)

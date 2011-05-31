@@ -3,6 +3,8 @@
 '''
 Classes, functions, and methods for reading, writing, and plotting output
 from the Ridley Ionosphere Model (RIM).
+
+Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
 def get_iono_cb(ct_name='bwr'):

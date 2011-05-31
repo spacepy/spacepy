@@ -1,20 +1,25 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 """
 Data assimilation functions
-"""
 
-__version__ = "$Revision: 1.1 $, $Date: 2011/03/18 19:42:54 $"
-__author__ = 'J. Koller and H.Godinez, Los Alamos National Lab (jkoller@lanl.gov)'
+Authors
+-------
+Josef Koller, H. Godinez
+
+jkoller@lanl.gov
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 # -----------------------------------------------
 # Data Assimilation class: enKF
 # -----------------------------------------------    
 class enKF(object):
 	"""
-	Author:
-	=======
-	Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-	
 	Version:
 	========
 	V1: 
@@ -423,10 +428,6 @@ class enKF(object):
 # -----------------------------------------------    
 class direct(object):
 	"""
-	Author:
-	=======
-	Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)
-	
 	Version:
 	========
 	V1: 

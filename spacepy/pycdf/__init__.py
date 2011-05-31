@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """pyCDF: Python interface to NASA's Common Data Format library
 
@@ -27,9 +28,18 @@ the module, e.g. if the library is in CDF/lib in the user's home directory::
   import pycdf
 
 The L{const} module contains constants useful for accessing the underlying library.
+
+Authors
+-------
+Jon Niehof
+
+jniehof@lanl.gov
+Los Alamos National Laboratory
+
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 __version__ = "0.14"
-__author__ = "Jonathan Niehof <jniehof@lanl.gov>"
 
 from ._pycdf import *

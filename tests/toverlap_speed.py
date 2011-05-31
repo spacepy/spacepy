@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Tests for the speed of tOverlap"""
+"""Tests for the speed of tOverlap
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 import datetime
 import random

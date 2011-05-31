@@ -4,11 +4,10 @@
 """
 Master test suite for SpacePy
 
-author: Steve Morley
-organization: LANL
-contact: smorley@lanl.gov
-
 version: V1: 28-May-2011 
+
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 import sys

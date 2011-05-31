@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Unit test suite for PoPPy"""
+"""
+Unit test suite for PoPPy
 
-__version__ = "0.0"
-__author__ = "Jonathan Niehof <jniehof@lanl.gov>/Steve Morley <smorley@lanl.gov>"
-
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 import itertools
 import math

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 The datamodel classes consitute a data model implementation
@@ -65,6 +66,8 @@ file objects).
     |____OrbitNumber
          :|____StartsFrom
 
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from __future__ import division

@@ -3,6 +3,14 @@
 """
 Toolbox of various functions and generic utilities.
 
+Authors
+-------
+Steve Morley, Jon Niehof, Brian Larsen, Josef Koller, Dan Welling
+
+smorley@lanl.gov, jniehof@lanl.gov, balarsen@lanl.gov, jkoller@lanl.gov, dwelling@lanl.gov
+Los Alamos National Laboratory
+
+Copyright ©2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
 
@@ -16,9 +24,6 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.97 $, $Date: 2011/05/31 19:15:20 $"
-__author__ = 'S. Morley and J. Koller'
-
 
 def tOverlap(ts1, ts2, *args, **kwargs):
     """Finds the overlapping elements in two lists of datetime objects
@@ -31,10 +36,6 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     @param kwargs: additional keywords passed to L{tOverlapHalf}
     @return: indices of ts1 within interval of ts2, & vice versa
     @rtype: list
-
-    @author: Steve Morley, Jonathan Niehof
-    @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov, jniehof@lanl.gov
 
     @version: 08-Dec-2010: Rewrite for speed
 
@@ -97,10 +98,6 @@ def tCommon(ts1, ts2, mask_only=True):
     @return: Two element tuple of truth tables (of 1 present in 2, & vice versa)
     @rtype: tuple
 
-    @author: Steve Morley
-    @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov/morley_steve@hotmail.com
-
     """
     from matplotlib.dates import date2num, num2date
 
@@ -140,10 +137,6 @@ def loadpickle(fln):
     @rtype: dictionary
 
     @see: savepickle
-
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
 
     @version: V1: 20-Jan-2010
 
@@ -193,10 +186,6 @@ def savepickle(fln, dict, compress=None):
 
     @see: loadpickle
 
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
-
     @version: V1: 20-Jan-2010
     @version: V2: 02-Mar-2011 JTN
 
@@ -240,10 +229,6 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     @type outfln: string
     @return: dcomb - dictionary with combined values
     @rtype: dict
-
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
 
     @version: V1: 20-Jan-2010
 
@@ -341,10 +326,6 @@ def feq(x, y, precision=0.0000005):
     @return: True (equal) or False (not equal)
     @rtype: boolean
 
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
-
     @version: V1: 20-Jan-2010
     @version: V2: 18-May-2010: User-specified precision added
 
@@ -371,10 +352,6 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     @type levels: integer
     @keyword attrs: display information for attributes
     @type levels: boolean
-
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
 
     @version: V1: 20-Jan-2010
     @version: V1.1: 24-Feb-2010 S. Morley, added verbose option
@@ -486,10 +463,6 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     @type clean: boolean
     @keyword filename: None (If specified then the filename is set and code does not use the sequence number)
 
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
-
     @version: V1: 20-Jan-2010
     @version: V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
     @version: V3: 21-Jul-2010: added filename keyword (BAL)
@@ -562,11 +535,6 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     @type leapsecs: boolean
     @return: data directory where things are saved
     @rtype: string
-
-
-    @author: Josef Koller
-    @organization: Los Alamos National Lab
-    @contact: jkoller@lanl.gov
 
     @version: V1: 20-Jan-2010
     @version: V1.1: 24-May-2010 Minor modification to return data directory (BAL)
@@ -709,8 +677,6 @@ def progressbar(count, blocksize, totalsize):
     Example:
     u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
 
-    Author:
-    Josef Koller (jkoller@lanl.gov)
     """
     import sys
     percent = int(count*blocksize*100/totalsize)
@@ -737,10 +703,6 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     @return: the windowed mean of the data, and an associated reference time vector
 
     @todo: Finish documentation
-
-    @author: Steve Morley
-    @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov/morley_steve@hotmail.com
 
     @version: V1 pre 8-Jul-2010
 
@@ -867,10 +829,6 @@ def medAbsDev(series):
 
     @todo: finish documentation
 
-    @author: Steve Morley
-    @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov/morley_steve@hotmail.com
-
     @version: V1 pre 8-Jul-2010
 
     Find the median absolute deviation of a data set. Here we use the log-
@@ -907,10 +865,6 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
 
     @deprecated: Equivalent functionality to built-in matplotlib function fill_between
 
-    @author: Steve Morley
-    @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov/morley_steve@hotmail.com
-
     >>> poly0c = makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
     >>> ax0.add_patch(poly0qc)
     """
@@ -937,11 +891,8 @@ def binHisto(data, verbose=False):
     @return: calculated width of bins using F-D rule, number of bins (nearest integer) to use for histogram
     @rtype: tuple
 
-    @author: Steve Morley
-    @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov/morley_steve@hotmail.com
     @version: V1 SM
-    @version: V2: 6Jul2010 Steve Morley added fallback rule
+    @version: V2: 6Jul2010 S.Morley added fallback rule
 
     >>> import numpy, spacepy
     >>> import matplotlib.pyplot as plt
@@ -984,9 +935,6 @@ def smartTimeTicks(time):
     @return: tuple of Mtick - major ticks, mtick - minor ticks, fmt - format
     @rtype: tuple
 
-    @author: Dan Welling
-    @organization: Los Alamos National Lab
-    @contact: dwelling@lanl.gov/dantwelling@gmail.com
     """
     from matplotlib.dates import (MinuteLocator, HourLocator,
                                   DayLocator, DateFormatter)
@@ -1042,9 +990,6 @@ def applySmartTimeTicks(ax, time, dolimit = True):
     @return: None
     @rtype: None
 
-    @author: Dan Welling
-    @organization: Los Alamos National Lab
-    @contact: dwelling@lanl.gov/dantwelling@gmail.com
     '''
 
     Mtick, mtick, fmt = smartTimeTicks(time)
@@ -1064,10 +1009,6 @@ def logspace(min, max, num, **kwargs):
     @param num: number of log spaced bins
     @return: log spaced bins from min to max in a numpy array
     @rtype: numpy.array
-
-    @author: Brian Larsen
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
 
     @version: V1: 14-Jun-2010 (BAL)
     @version: V2: 19-May-2011 (BAL) - added support for datetime objects
@@ -1140,10 +1081,6 @@ def arraybin(array, bins):
     @return: indices for each bin
     @rtype: list of lists
 
-    @author: Brian Larsen, Jonathan Niehof
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov, jniehof@lanl.gov
-
     @version: V1: 14-Jun-2010 (BAL)
     @version: V2: 07-Dec-2010 (JTN)
 
@@ -1169,10 +1106,6 @@ def mlt2rad(mlt, midnight = False):
     @type midnight: boolean
     @return: array of radians
     @rtype: numpy.array
-
-    @author: Brian Larsen
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
 
     @version: V1: 14-Jun-2010 (BAL)
 
@@ -1206,10 +1139,6 @@ def rad2mlt(rad, midnight=False):
     @return: array of mlt values
     @rtype: numpy.array
 
-    @author: Brian Larsen
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
-
     @version: V1: 14-Jun-2010 (BAL)
 
     >>> rad2mlt(array([0,pi, pi/2.]))
@@ -1234,10 +1163,6 @@ def leap_year(year, numdays=False, nobool=False):
     @type numdays: boolean
     @return: an array of boolean leap year, or array of number of days
     @rtype: numpy.array
-
-    @author: Brian Larsen
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
 
     @version: V1: 14-Jun-2010 (BAL)
     @version: V2: 22-Nov-2010 (BAL) accepts lists not just arrays
@@ -1284,10 +1209,6 @@ def pmm(a, *b):
     @return: list of min, max for each array
     @rtype: list
 
-    @author: Brian Larsen
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
-
     @version: V1: 14-Jun-2010 (BAL)
     @version: V2: 04-Sep-2010 (BAL) - changed to min() from a.min() works on lists
 
@@ -1311,10 +1232,6 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     @type draw: boolean
     @keyword kwargs: other keywords to axis.annotate
     @type kwargs: keywords
-
-    @author: Brian Larsen
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
 
     @version: V1: 14-Jun-2010 (BAL)
 
@@ -1347,10 +1264,6 @@ def query_yes_no(question, default="yes"):
     @type default: string
     @return: answer ('yes' or 'no')
     @rtype: string
-
-    @author: Brian Larsen
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
 
     @version: V1: 14-Jun-2010 (BAL)
 
@@ -1398,9 +1311,6 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     i.e. days=True is equivalent to sect=24
     @type sect: integer
 
-    @author: Steve Morley
-    @organization: Los Alamos National Lab
-    @contact: smorley@lanl.gov
     """
     import scipy as sci
 
@@ -1491,10 +1401,6 @@ def listUniq(inVal):
     @return: list of unique elements from iterable
     @rtype: list
 
-    @author: Brian Larsen
-    @organization: Los Alamos National Lab
-    @contact: balarsen@lanl.gov
-
     @version: V1: 16-Nov-2010 (BAL)
     """
     seen = set()
@@ -1522,10 +1428,6 @@ def intsolve(func, value, start=None, stop=None, maxit=1000):
     @rtype: float
     @note: Assumes L{func} is everywhere positive, otherwise solution may
            be multi-valued.
-
-    @author: Jonathan Niehof
-    @organization: Los Alamos National Lab
-    @contact: jniehof@lanl.gov
 
     @version: V1: 7-Dec-2010 (JTN)
     """
@@ -1627,9 +1529,6 @@ def bin_center_to_edges(centers):
     @param centers: list of center values for bins
     @return: list of edges for bins
     @note: returned list will be one element longer than L{centers}
-    @author: Jonathan Niehof
-    @organization: Los Alamos National Lab
-    @contact: jniehof@lanl.gov
     @version: V1: 4-Jan-2011 (JTN)
 
     >>> bin_center_to_edges([1,2,3])
@@ -1643,9 +1542,6 @@ def bin_center_to_edges(centers):
 def hypot(*vals):
     """
     Compute sqrt(vals[0] ** 2 + vals[1] **2 ...), ie. n-dimensional hypoteneuse
-    @author: Brian Larsen, Jonathan Niehof
-    @organization: LANL
-    @contact: balarsen@lanl.gov, jniehof@lanl.gov
 
     @version: V1: 18-Jan-2011 (BAL)
     @version: V2: 10-Feb-2011 (JTN)

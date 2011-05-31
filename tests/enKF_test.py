@@ -1,4 +1,8 @@
-# test python script for EnKF on spacepy
+"""
+test python script for EnKF on spacepy
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 # load modules
 import numpy

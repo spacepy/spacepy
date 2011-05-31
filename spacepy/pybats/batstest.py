@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
 # Let's test some pybats goodness.
 ################################
 # TEMPORARY USE ONLY.
 # CANDIDATE FOR REMOVAL.
 # USE AS SANDBOX BUT DON'T SAVE.
 ################################
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 import spacepy.pybats.bats as pb
 import pylab as plt

@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Test suite for SpacePy's datamodel
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
+
+
 from __future__ import division
 
 import datetime
@@ -15,8 +22,6 @@ try:
     import cPickle as pickle
 except:
     import pickle
-
-__author__ = ['Brian Larsen <balarsen@lanl.gov>', 'Steve Morley <smorley@lanl.gov>']
 
 
 class SpaceDataTests(unittest.TestCase):

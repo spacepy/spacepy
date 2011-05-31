@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+Test suite for time module
+
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
+
 import unittest
 # import spacepy.toolbox as tb
 import spacepy.time as t

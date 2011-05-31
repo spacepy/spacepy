@@ -62,6 +62,8 @@ when D is a function of time. One can alway put the two equals.
 The boundary conditions are Dirichlet type (i.e. f=0)
 The routine solves the linear system by performing a LU decomposition, 
 and returns the vector f at the new time.
+
+Copyright ©2010 Los Alamos National Security, LLC.
 */
 
 

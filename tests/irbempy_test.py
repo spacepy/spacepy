@@ -2,11 +2,9 @@
 #	-*-	coding:	utf-8	-*-
 """
 testing	the	irbempy	module
-"""
-__version__	=	"$Revision: 1.7 $,	$Date: 2011/03/18 16:21:20 $"
-__author__	=	'Josef	Koller,	Los	Alamos	National	Lab	(jkoller@lanl.gov)'
 
-# -----------------------------------------------------------------------
+Copyright ©2010 Los Alamos National Security, LLC.
+"""
 
 import unittest
 import spacepy
