@@ -5,8 +5,9 @@ Implementation of Coords class functions
 
 """
 
+import numpy as np
 from spacepy import help
-__version__ = "$Revision: 1.12 $, $Date: 2010/12/08 15:41:46 $"
+__version__ = "$Revision: 1.13 $, $Date: 2011/05/31 19:15:19 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -60,14 +61,13 @@ class Coords(object):
     
     def __init__(self, data, dtype, carsph, units=None, ticks=None):
         
-        import numpy as n
         from . import irbempy as op
         from spacepy.irbempy import SYSAXES_TYPES as typedict
         
         if isinstance(data[0], (float, int)):
-            self.data = n.array([data])
+            self.data = np.array([data])
         else:
-            self.data = n.array(data)
+            self.data = np.array(data)
         
         assert dtype in typedict.keys(), 'This dtype='+dtype+' is not supported. Only '+str(typedict.keys())
         assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
@@ -122,7 +122,7 @@ class Coords(object):
             self.long = self.data[:, 2]
         ## setup list for onera compatibility
         #self.sysaxes = op.get_sysaxes(dtype, carsph)
-        self.shape = n.shape(self.data)
+        self.shape = np.shape(self.data)
         return None
         
     # -----------------------------------------------    
@@ -192,9 +192,8 @@ class Coords(object):
         V1.1: 19-Apr-2010: now returns a Coords instance
  
         """
-        import numpy as n
         
-        arr = n.array(self.data)
+        arr = np.array(self.data)
         
         return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, self.ticks)   
         
@@ -308,7 +307,6 @@ class Coords(object):
         
         """
         
-        import numpy as n
         from . import irbempy as op
         import spacepy, spacepy.coordinates
 
@@ -421,7 +419,6 @@ class Coords(object):
        
         """
         
-        import numpy as n
         data = list(self.data)
         otherdata = other.convert(self.dtype, self.carsph)               
         data.extend(list(otherdata.data))

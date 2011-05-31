@@ -6,8 +6,8 @@ Toolbox of various functions and generic utilities.
 """
 from __future__ import division
 
-import math
-import datetime
+import math, datetime
+import numpy as np
 
 try:
     from spacepy import help
@@ -16,7 +16,7 @@ except ImportError:
 except:
     pass
 
-__version__ = "$Revision: 1.96 $, $Date: 2011/05/19 20:44:14 $"
+__version__ = "$Revision: 1.97 $, $Date: 2011/05/31 19:15:20 $"
 __author__ = 'S. Morley and J. Koller'
 
 
@@ -102,7 +102,6 @@ def tCommon(ts1, ts2, mask_only=True):
     @contact: smorley@lanl.gov/morley_steve@hotmail.com
 
     """
-    import numpy as np
     from matplotlib.dates import date2num, num2date
 
     tn1, tn2 = date2num(ts1), date2num(ts2)
@@ -256,7 +255,6 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     """
 
     import glob
-    import numpy as n
     from . import time as t
     from . import coordinates as c
 
@@ -280,25 +278,25 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
             TAIcount = len(d[fln][ list(d[fln].keys())[0] ])
         for key in d[fln]:
             #print fln, key
-            dim = n.array(n.shape(d[fln][key]))
-            ax = n.where(dim==TAIcount)[0]
+            dim = np.array(np.shape(d[fln][key]))
+            ax = np.where(dim==TAIcount)[0]
             if len(ax) == 1: # then match with TAI length is given (jump over otherwise like for 'parameters')
                 if isinstance(dcomb[key], t.Ticktock):
                     dcomb[key] = dcomb[key].append(d[fln][key])
                 elif isinstance(dcomb[key], c.Coords):
                     dcomb[key] = dcomb[key].append(d[fln][key])
                 else:
-                    dcomb[key] = n.append(dcomb[key], d[fln][key], axis=ax)
+                    dcomb[key] = np.append(dcomb[key], d[fln][key], axis=ax)
 
     if sortkey:    #  then sort
         if isinstance(dcomb[sortkey], t.Ticktock):
-            idx = n.argsort(dcomb[sortkey].RDT)
+            idx = np.argsort(dcomb[sortkey].RDT)
         else:
-            idx = n.argsort(dcomb[sortkey])
+            idx = np.argsort(dcomb[sortkey])
         TAIcount = len(dcomb[sortkey])
         for key in dcomb.keys():
-            dim = n.array(n.shape(dcomb[key]))
-            ax = n.where(dim==TAIcount)[0]
+            dim = np.array(np.shape(dcomb[key]))
+            ax = np.where(dim==TAIcount)[0]
             if len(ax) == 1: # then match with length of TAI
                 dcomb[key] = dcomb[key][idx] # resort
     else:
@@ -592,7 +590,6 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     import zipfile
     import datetime
     #import spacepy.time as st
-    import numpy as n
     if sys.version_info[0]<3:
         import urllib as u
     else:
@@ -620,7 +617,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
         u.urlretrieve(OMNI_URL, omni_fname_zip, reporthook=progressbar)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
-        A = n.array(data.split('\n'))
+        A = np.array(data.split('\n'))
         print("Now pickling (this will take a few minutes) ...")
 
         # create a keylist
@@ -638,25 +635,25 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
         keys[keys.index('Year')] = 'Year'
 
         # remove keyword lines and empty lines as well
-        idx = n.where(A != '')[0]
+        idx = np.where(A != '')[0]
         # put it into a 2D table
         tab = [val.split() for val in A[idx[1:]]]
         stat8 = [val[11] for val in tab]
         stat6 = [val[27] for val in tab]
 
-        tab = n.array(tab, dtype='float32')
+        tab = np.array(tab, dtype='float32')
         # take out where Dst not available ( = 99999) or year == 0
-        idx = n.where((tab[:,12] !=99.0) & (tab[:,0] != 0))[0]
+        idx = np.where((tab[:,12] !=99.0) & (tab[:,0] != 0))[0]
         tab = tab[idx,:]
-        stat8 = n.array(stat8)[idx]
-        stat6 = n.array(stat6)[idx]
+        stat8 = np.array(stat8)[idx]
+        stat6 = np.array(stat6)[idx]
 
         omnidata = {}
         # sort through and make an omni dictionary
         # extract keys from line above
         for ikey, i  in zip(keys,range(len(keys))):
             if ikey in ('Year', 'DOY', 'Hr', 'Dst'):
-                omnidata[ikey] = n.array(tab[:, i], dtype='int16')
+                omnidata[ikey] = np.array(tab[:, i], dtype='int16')
             else:
                 omnidata[ikey] = tab[:,i]
 
@@ -665,10 +662,10 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
 
         # add interpolation quality flags
         omnidata['Qbits'] = {}
-        arr = n.array(list(n.array(stat8).tostring()), dtype=n.byte).reshape((8,nTAI))
+        arr = np.array(list(np.array(stat8).tostring()), dtype=np.byte).reshape((8,nTAI))
         for ik, key in enumerate(['ByIMF', 'BzIMF', 'velo', 'dens', 'Pdyn', 'G1', 'G2', 'G3']):
             omnidata['Qbits'][key] = arr[ik,:]
-        arr = n.array(list(n.array(stat6).tostring()), dtype=n.byte).reshape((6,nTAI))
+        arr = np.array(list(np.array(stat6).tostring()), dtype=np.byte).reshape((6,nTAI))
         for ik, key in enumerate(['W1', 'W2', 'W3', 'W4', 'W5', 'W6']):
             omnidata['Qbits'][key] = arr[ik,:]
 
@@ -768,7 +765,6 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     @note: This is a quick and dirty function - it is NOT optimized, at all.
 
     """
-    import numpy as np
     import datetime as dt
 
     #check inputs and initialize
@@ -889,7 +885,6 @@ def medAbsDev(series):
 
     @note: This implementation is robust to presence of NaNs
     """
-    import numpy as np
     #ensure input is numpy array (and make 1-D)
     series = (np.array(series, dtype=float)).ravel()
     #mask for NaNs
@@ -920,7 +915,6 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     >>> ax0.add_patch(poly0qc)
     """
 
-    import numpy as np
     import matplotlib as mpl
     x2, y1 = x[-1::-1], y1[-1::-1]
     polyx = np.concatenate((x,x2))
@@ -956,7 +950,6 @@ def binHisto(data, verbose=False):
     >>> plt.hist(data, bins=nbins, histtype='step', normed=True)
 
     """
-    import numpy as np
     from matplotlib.mlab import prctile
     pul = prctile(data, p=(25,75)) #get confidence interval
     ql, qu = pul[0], pul[1]
@@ -1186,7 +1179,6 @@ def mlt2rad(mlt, midnight = False):
     >>> mlt2rad(array([3,6,9,14,22]))
     Out[9]: array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
     """
-    import numpy as np
     if midnight:
         try:
             mlt_arr =  [val + 12 for val in mlt]
@@ -1223,7 +1215,6 @@ def rad2mlt(rad, midnight=False):
     >>> rad2mlt(array([0,pi, pi/2.]))
     Out[8]: array([ 12.,  24.,  18.])
     """
-    import numpy as np
     if midnight:
         rad_arr = rad + np.pi
     else:
@@ -1256,8 +1247,7 @@ def leap_year(year, numdays=False, nobool=False):
     array([False, False,  True, False, False, False,  True, False, False,
     ... False,  True, False, False, False,  True], dtype=bool)
     """
-    import numpy
-    if not isinstance(year, (tuple, numpy.ndarray, list)):
+    if not isinstance(year, (tuple, np.ndarray, list)):
         year = [year]
     mask400 = [(val % 400) == 0 for val in year]   # this is a leap year
     mask100 = [(val % 100) == 0 for val in year ]   # these are not leap years
@@ -1304,7 +1294,6 @@ def pmm(a, *b):
     >>> pmm(arange(10), arange(10)+3)
     Out[12]: [(0, 9), (3, 12)]
     """
-    import numpy as np
     ans= [[ np.min(a), np.max(a) ]]
     for val in b:
         ans.append( [np.min(val), np.max(val)] )
@@ -1414,7 +1403,6 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     @contact: smorley@lanl.gov
     """
     import scipy as sci
-    import numpy as np
 
     if 'baddata' in kwargs:
         x = np.ma.masked_where(y==kwargs['baddata'], x)
@@ -1483,13 +1471,12 @@ def normalize(vec):
     @return: normalized vector
     @rtype: listlike
     """
-    import numpy as N
     # check to see if vec is numpy array, this is fastest
-    if isinstance(vec, N.ndarray):
-        out = (vec - vec.min())/N.ptp(vec)
+    if isinstance(vec, np.ndarray):
+        out = (vec - vec.min())/np.ptp(vec)
     else:
-        vecmin = N.min(vec)
-        ptp = N.ptp(vec)
+        vecmin = np.min(vec)
+        ptp = np.ptp(vec)
         out = [(val -  vecmin)/ptp for val in vec]
     return out
 

@@ -80,7 +80,8 @@ And so on.
 
 from spacepy import help
 import datetime
-__version__ = "$Revision: 1.35 $, $Date: 2011/03/28 21:37:37 $"
+import numpy as np
+__version__ = "$Revision: 1.36 $, $Date: 2011/05/31 19:15:20 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -409,9 +410,7 @@ class Ticktock(object):
         V1.1: 23-Mar-2010: now returns Ticktock instance and can be indexed with arrays (JK)
  
         """
-        import numpy as n
-        
-        arr = n.array(self.data)
+        arr = np.array(self.data)
         
         if isinstance(idx, int):
             return Ticktock(arr[idx], self.dtype) 
@@ -597,9 +596,8 @@ class Ticktock(object):
 
        
         """
-        import spacepy
         nTAI = len(self.data)
-        if isinstance(other, spacepy.time.Tickdelta):
+        if isinstance(other, Tickdelta): 
             newUTC = ['']*nTAI
             for i in range(nTAI):
                 newUTC[i] = self.UTC[i] - other.timedelta
@@ -609,13 +607,12 @@ class Ticktock(object):
             newobj.update_items(self, 'data')
             return newobj
 
-        elif isinstance(other, spacepy.time.Ticktock):
+        elif isinstance(other, Ticktock):
             newTAI = ['']*nTAI
             for i in range(nTAI):
                 newTAI[i] = self.TAI[i] - other.TAI
             deltas = [Tickdelta(seconds=val) for val in newTAI ]
             return deltas
-
 
 
     
@@ -655,9 +652,8 @@ class Ticktock(object):
 
         """
 
-        import spacepy
         nTAI = len(self.data)
-        if isinstance(other, spacepy.time.Tickdelta):
+        if isinstance(other, Tickdelta):
             newUTC = ['']*nTAI
             for i in range(nTAI):
                 newUTC[i] = self.UTC[i] + other.timedelta
@@ -667,7 +663,7 @@ class Ticktock(object):
             newobj.update_items(self, 'data')
             return newobj
 
-        elif isinstance(other, spacepy.time.Ticktock):
+        elif isinstance(other, Ticktock):
             newTAI = ['']*nTAI
             for i in range(nTAI):
                 newTAI[i] = self.TAI[i] + other.TAI
@@ -739,10 +735,8 @@ class Ticktock(object):
        
         """    
         
-        import numpy as n
-        
         RDT = self.RDT
-        RDTsorted = n.sort(RDT)
+        RDTsorted = np.sort(RDT)
         tmp = Ticktock(RDTsorted, 'RDT').convert(self.dtype)
         self.data = tmp.data
         self.update_items(self, 'data')
@@ -774,10 +768,8 @@ class Ticktock(object):
        
         """    
         
-        import numpy as n
-        
         RDT = self.RDT
-        idx = n.argsort(RDT)
+        idx = np.argsort(RDT)
 
         return idx
         
@@ -929,10 +921,8 @@ class Ticktock(object):
         V1: 23-Mar-2010 (JK)
        
         """
-        import numpy as n
-        
         otherdata = eval('other.'+self.dtype)       
-        newobj = Ticktock(n.append(self.data, otherdata), dtype=self.dtype)
+        newobj = Ticktock(np.append(self.data, otherdata), dtype=self.dtype)
         return newobj
     
     # -----------------------------------------------
@@ -1015,13 +1005,10 @@ class Ticktock(object):
         V1.1: 20-Apr-2010: returns true DOY per definition as integer (JK)
         """ 
     
-        import datetime
-        import numpy as n
-        
         nTAI = len(self.data)
-        DOY = n.zeros(nTAI)
+        DOY = np.zeros(nTAI)
         
-        for i in n.arange(nTAI):
+        for i in np.arange(nTAI):
             DOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal() + 1
  
         self.DOY = DOY.astype(int)
@@ -1061,14 +1048,11 @@ class Ticktock(object):
         V1: 20-Apr-2010 (JK)
         V2: 18-May-2010: Added microseconds (SM)
         """ 
-    
-        import datetime
-        import numpy as n
         
         nTAI = len(self.data)
-        eDOY = n.zeros(nTAI)
+        eDOY = np.zeros(nTAI)
         
-        for i in n.arange(nTAI):
+        for i in np.arange(nTAI):
             eDOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal()
             eDOY[i] = eDOY[i] + self.UTC[i].hour/24. + self.UTC[i].minute/1440. + \
                 self.UTC[i].second/86400. + self.UTC[i].microsecond/86400000000.
@@ -1112,8 +1096,7 @@ class Ticktock(object):
         V2: 25-Jan-2010: added array support (JK)
         V3: 18-May-2010: added microseconds (SM)
         """ 
-        import datetime, decimal
-        import numpy as n
+        import decimal
         
         nTAI = len(self.data)
 
@@ -1125,8 +1108,8 @@ class Ticktock(object):
             print("    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         # include offset if given
-        JD = n.zeros(nTAI)
-        for i in n.arange(nTAI):
+        JD = np.zeros(nTAI)
+        for i in np.arange(nTAI):
             offset = UTCdata[i].utcoffset()
             if offset:
                 UTCdata[i] = UTCdata[i] - offset
@@ -1203,8 +1186,6 @@ class Ticktock(object):
         V2: 25-Jan-2010: added support for arrays (JK)
         """
 
-        import datetime
-
         if self.UTC[0] < datetime.datetime(1582,10,15):
             print("WARNING: Calendar date before the switch from Julian to Gregorian")
             print("Calendar 1582-Oct-15: Use Julian Calendar dates as input")
@@ -1252,15 +1233,12 @@ class Ticktock(object):
         V3: 18-May-2010: added sub-second support (SM)
         """
         
-        import datetime
-        import numpy as n
-              
         nTAI = len(self.data)
 
         UNX0 = datetime.datetime(1970,1,1)
         d = ['']*nTAI
-        UNX = n.zeros(nTAI)
-        for i in n.arange(nTAI):
+        UNX = np.zeros(nTAI)
+        for i in np.arange(nTAI):
             d[i] = self.UTC[i] - UNX0 # timedelta object (only days, seconds, microsecs are stored)
             UNX[i] = (d[i].days)*86400 + d[i].seconds + d[i].microseconds/1.e6
     
@@ -1304,15 +1282,13 @@ class Ticktock(object):
         V3: 17-May-2010: added microseconds (SM)
         """
         
-        import datetime
-        import numpy as n
         import matplotlib.dates as mpd
         
         nTAI = len(self.data)
         UTC = self.UTC
-        #RDT = n.zeros(nTAI)
+        #RDT = np.zeros(nTAI)
         RDT = mpd.date2num(UTC)
-        #for i in n.arange(nTAI):
+        #for i in np.arange(nTAI):
             #RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
                 #UTC[i].second/86400. + UTC[i].microsecond/86400000000.
     
@@ -1355,9 +1331,6 @@ class Ticktock(object):
         V3: 17-May-2010: added microsecond ISO parsing (SM)
         """
     
-        import datetime
-        import numpy as n
-    
         fmt,fmt2 = '%Y-%m-%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S.%f'
         
         nTAI = len(self.data)
@@ -1367,7 +1340,7 @@ class Ticktock(object):
             UTC = self.data # return
             
         elif self.dtype.upper() == 'ISO':
-            for i in n.arange(nTAI):
+            for i in np.arange(nTAI):
                 if len(self.data[i])==19:
                     UTC[i] = datetime.datetime.strptime(self.data[i], fmt)
                 else:
@@ -1375,62 +1348,62 @@ class Ticktock(object):
             
         elif self.dtype.upper() == 'TAI':
             TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-            for i in n.arange(nTAI):
+            for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + TAI0                 
              # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
-            for i in n.arange(nTAI):
+            for i in np.arange(nTAI):
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i]))
                 tmpleaps = Ticktock(self.UTC[i]).leaps 
                 if tmpleaps == leapsecs[i]-1: self.UTC[i] = self.UTC[i]+datetime.timedelta(seconds=1)
                 
         elif self.dtype.upper() == 'GPS':   
             GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
-            for i in n.arange(nTAI):
+            for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + GPS0                 
              # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
-            for i in n.arange(nTAI):
+            for i in np.arange(nTAI):
                 # there were 18 leap secinds before gps zero, need the -18 for that
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i])) + \
                     datetime.timedelta(seconds=19)           
  
         elif self.dtype.upper() == 'UNX':
             UNX0 = datetime.datetime(1970,1,1)     
-            for i in n.arange(nTAI):
+            for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(seconds=self.data[i]) + UNX0 # timedelta object
     
         elif self.dtype.upper() == 'RDT':
             import matplotlib.dates as mpd
             UTC = mpd.num2date(self.data)
             UTC = [t.replace(tzinfo=None) for t in UTC]
-            #for i in n.arange(nTAI):
+            #for i in np.arange(nTAI):
                 #UTC[i] = datetime.datetime(1,1,1) + \
-                    #datetime.timedelta(days=n.floor(self.data[i])-1) +  \
+                    #datetime.timedelta(days=np.floor(self.data[i])-1) +  \
                     #datetime.timedelta(microseconds=(self.data[i] - \
                         #self.data[i])*86400000.)
                 # roundoff the microseconds
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
         
         elif self.dtype.upper() == 'CDF':
-            for i in n.arange(nTAI):
+            for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(days=self.data[i]/86400000.) + \
                         datetime.datetime(1,1,1) - datetime.timedelta(days=366)
-                #UTC[i] = datetime.timedelta(days=n.floor(self.data[i]/86400000.), \
-                    #milliseconds=n.mod(self.data[i],86400000)) + \
+                #UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
+                    #milliseconds=np.mod(self.data[i],86400000)) + \
                         #datetime.datetime(1,1,1) - datetime.timedelta(days=366)
                 # the following has round off errors
                 # UTC[i] = datetime.timedelta(data[i]/86400000.-366) + datetime.datetime(1,1,1)
         
         elif self.dtype.upper() in ['JD', 'MJD']:
             if self.dtype.upper() == 'MJD': 
-                self.JD = n.array(self.data) + 2400000.5
-            for i in n.arange(nTAI):
+                self.JD = np.array(self.data) + 2400000.5
+            for i in np.arange(nTAI):
                 # extract partial days
-                ja = int(n.floor(self.JD[i]))
-                p = self.JD[i] - n.floor(self.JD[i])
+                ja = int(np.floor(self.JD[i]))
+                p = self.JD[i] - np.floor(self.JD[i])
                 # after Press: "Numerical Recipes"
                 # http://www.rgagnon.com/javadetails/java-0506.html
                 # only good for after 15-Oct-1582
@@ -1511,9 +1484,6 @@ class Ticktock(object):
         V2: 17-May-2010: Added sub-second support (SM)
         """
     
-        import datetime
-        import numpy as np
-    
         fmt = '%Y-%m-%dT%H:%M:%S'
         GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
         
@@ -1568,25 +1538,22 @@ class Ticktock(object):
         V2: 25-Jan-2010: include array support (JK)
         """
     
-        import datetime
-        import numpy as n
-    
         fmt = '%Y-%m-%dT%H:%M:%S'
         TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
         
         nTAI = len(self.data)
-        TAI = n.zeros(nTAI)
+        TAI = np.zeros(nTAI)
         UTC = self.UTC
         leapsec = self.getleapsecs()
         TAItup = ['']*nTAI
-        for i in n.arange(nTAI):
+        for i in np.arange(nTAI):
             #t = time.strptime(data[i], fmt)
             #dtimetup = datetime.datetime(t[0], t[1], t[2], t[3], t[4], t[5])    
             # get the leap seconds
             TAItup[i] = UTC[i] - TAI0 + datetime.timedelta(seconds=int(leapsec[i]))
             TAI[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
 
-        self.TAI = n.array(TAI)
+        self.TAI = np.array(TAI)
         return self.TAI
     
     # -----------------------------------------------
@@ -1625,8 +1592,6 @@ class Ticktock(object):
         V3: 10-May-2010: speedup, arange to xrange (BAL)
         V4: 17-May-2010: switched to native formatting so sub-second is displayed
         """
-    
-        import datetime
     
         nTAI = len(self.data)
         ISO = ['']*nTAI            
@@ -1677,8 +1642,6 @@ class Ticktock(object):
         """
     
         import os
-        import numpy as n
-        import datetime
         from spacepy import DOT_FLN
         
         
@@ -1695,24 +1658,24 @@ class Ticktock(object):
            fh = open(fname)
            text = fh.readlines()
     
-           secs = n.zeros(len(text))
-           year = n.zeros(len(text))
-           mon = n.zeros(len(text))
-           day = n.zeros(len(text))
+           secs = np.zeros(len(text))
+           year = np.zeros(len(text))
+           mon = np.zeros(len(text))
+           day = np.zeros(len(text))
     
-           months = n.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', \
+           months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', \
                   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
         
-           for line, i in zip(text, n.arange(len(secs))):
+           for line, i in zip(text, np.arange(len(secs))):
               secs[i] = int(float(line.split()[6]))  # truncate float seconds
               year[i] = int(line.split()[0])
-              mon[i] = int(n.where(months == line.split()[1])[0][0] + 1)
+              mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
               day[i] = int(line.split()[2])
             
-           TAIleaps = n.zeros(len(secs))
+           TAIleaps = np.zeros(len(secs))
            TAItup = ['']*len(secs)
            TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-           for i in n.arange(len(secs)):
+           for i in np.arange(len(secs)):
                 TAItup[i] = datetime.datetime(int(year[i]), int(mon[i]), int(day[i])) - TAI0 + datetime.timedelta(seconds=int(secs[i])-1)
                 TAIleaps[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
 
@@ -1742,7 +1705,7 @@ class Ticktock(object):
             self.leaps = int(leaps[0])
             return int(leaps[0])   # if you want to allow fractional leap seconds, remove 'int' here
         else:
-            self.leaps = n.array(leaps, dtype=int)
+            self.leaps = np.array(leaps, dtype=int)
             return self.leaps
 
     # -----------------------------------------------
@@ -1764,8 +1727,7 @@ class Ticktock(object):
         V1: 24-May-2010 (BAL)
         
         """
-        from datetime import datetime
-        dt = datetime.now()
+        dt = datetime.datetime.now()
         return Ticktock(dt, 'utc')
 
 
@@ -1811,8 +1773,6 @@ def doy2date(year, doy, dtobj=False, flAns=False):
     V4: 29-Nov-2010: added keyword flAns for floating point input (BAL)
     V5: 01-Mar-2011: fixup for speed and readability (JTN)
     """
-    import datetime
-
     try:
         n_year = len(year)
     except TypeError:
@@ -1997,7 +1957,6 @@ def test():
     """
     from . import time as st
     from . import toolbox as tb
-    import numpy as n
     import sys, datetime
     
     def timecomp(x,yarr):
@@ -2069,13 +2028,13 @@ def test():
     
         
     prec = 5./86400000000.
-    testTAI = n.where(tb.feq(TAI[0],TAI, precision=prec))
-    testUNX = n.where(tb.feq(UNX[0],UNX, precision=prec))
-    testJD = n.where(tb.feq(JD[0],JD, precision=prec))
-    testMJD = n.where(tb.feq(MJD[0],MJD, precision=prec))
-    testRDT = n.where(tb.feq(RDT[0],RDT, precision=prec))
+    testTAI = np.where(tb.feq(TAI[0],TAI, precision=prec))
+    testUNX = np.where(tb.feq(UNX[0],UNX, precision=prec))
+    testJD = np.where(tb.feq(JD[0],JD, precision=prec))
+    testMJD = np.where(tb.feq(MJD[0],MJD, precision=prec))
+    testRDT = np.where(tb.feq(RDT[0],RDT, precision=prec))
     testUTC = timecomp(UTC[0],UTC)
-    testCDF = n.where(tb.feq(CDF[0],CDF, precision=prec))
+    testCDF = np.where(tb.feq(CDF[0],CDF, precision=prec))
     try:
         assert len(testUNX[0]) == len(alldtypes)
         assert len(testTAI[0]) == len(alldtypes)
@@ -2084,7 +2043,7 @@ def test():
         assert len(testRDT[0]) == len(alldtypes)
         assert False not in testUTC
         assert len(testCDF[0]) == len(alldtypes)
-        #assert len(n.unique(ISO)) == 1
+        #assert len(np.unique(ISO)) == 1
 
         print("testing Ticktock: PASSED TEST all combinations")
     except AssertionError:
@@ -2092,10 +2051,9 @@ def test():
         nFAIL =+ 1
 
     # test with arrays 
-    import numpy as n
     try:
         for i, dtype in enumerate(alldtypes):
-            foo = st.Ticktock( n.array([out[i], out[i], out[i]]), dtype)
+            foo = st.Ticktock( np.array([out[i], out[i], out[i]]), dtype)
         print("testing Ticktock: PASSED TEST arrays")
     except:
         print("testing Ticktock: FAILED TEST arrays")

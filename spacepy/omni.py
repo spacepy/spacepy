@@ -3,8 +3,10 @@
 """
 tools to read and process omni data
 """
-__version__ = "$Revision: 1.16 $, $Date: 2011/03/03 19:51:25 $"
+__version__ = "$Revision: 1.17 $, $Date: 2011/05/31 19:15:19 $"
 __author__ = 'Josef Koller, Los Alamos National Lab (jkoller@lanl.gov)'
+
+import numpy as np
 
 # -----------------------------------------------
 def get_omni(ticks):
@@ -47,7 +49,6 @@ def get_omni(ticks):
     V1.2: 11-Jun-2010: rewrote status information and put into 'Qbits' (JK)
     """
 
-    import numpy as n
     import spacepy.time as st
 
     # extract RTD from ticks
@@ -62,13 +63,13 @@ def get_omni(ticks):
 
     omnival = {}
     for key in omnikeys:
-        omnival[key] = n.interp(RDTvals, omnidata['RDT'], omnidata[key], left=n.NaN, right=n.NaN)
+        omnival[key] = np.interp(RDTvals, omnidata['RDT'], omnidata[key], left=np.NaN, right=np.NaN)
     
     # interpolate in Quality bits as well
     omnival['Qbits'] = {}
     for key in omnidata['Qbits'].keys():
-        omnival['Qbits'][key] = n.interp(RDTvals, omnidata['RDT'], omnidata['Qbits'][key], \
-            left=n.NaN, right=n.NaN)
+        omnival['Qbits'][key] = np.interp(RDTvals, omnidata['RDT'], omnidata['Qbits'][key], \
+            left=np.NaN, right=np.NaN)
         #floor interpolation values
         omnival['Qbits'][key] = omnival['Qbits'][key].astype('int')
         
@@ -78,7 +79,7 @@ def get_omni(ticks):
     omnival['ticks'] = ticks
     
     # return warning if values outside of omni data range
-    if n.any(n.isnan(omnival['Kp'])): print("Warning: time is outside of omni data range")
+    if np.any(np.isnan(omnival['Kp'])): print("Warning: time is outside of omni data range")
     
     
     return omnival
@@ -123,7 +124,6 @@ def get_G123(TAI, omnidata):
 
 # load omni file during import
 from spacepy import DOT_FLN, loadpickle, help, time
-import numpy as n
 import os
 #dotfln = os.environ['HOME']+'/.spacepy'
 omnifln = DOT_FLN+'/data/omnidata.pkl'
@@ -135,8 +135,8 @@ except:
 if not 'ticks' in omnidata:
     omnidata['ticks'] = time.Ticktock(omnidata['UTC'], 'UTC')
 if not 'Hr' in omnidata:
-    omnidata['Hr'] = n.fromiter((dt.hour for dt in omnidata['UTC']),
+    omnidata['Hr'] = np.fromiter((dt.hour for dt in omnidata['UTC']),
                                 dtype='int16', count=len(omnidata['UTC']))
 if not 'Year' in omnidata:
-    omnidata['Year'] = n.fromiter((dt.year for dt in omnidata['UTC']),
+    omnidata['Year'] = np.fromiter((dt.year for dt in omnidata['UTC']),
                                   dtype='int16', count=len(omnidata['UTC']))

@@ -628,10 +628,9 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
         sample_size = n_els
     if lib.have_libspacepy == False:
         surr_quan = np.empty([n])
-        from numpy.random import randint
         if seed != None:
             np.random.seed(seed)
-        ran_el = randint(n_els, size=[n, sample_size])
+        ran_el = np.random.randint(n_els, size=[n, sample_size])
         for i in range(int(n)): #compute n bootstrapped series
             surr_ser = [data[rec] for rec in ran_el[i, :]] #resample w/ replace
             surr_quan[i] = func(surr_ser) #get desired quantity from surrogates

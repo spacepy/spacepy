@@ -6,7 +6,9 @@ Functions supporting radiation belt diffusion codes
 
 from spacepy import help
 import ctypes
-__version__ = "$Revision: 1.19 $, $Date: 2011/04/13 22:10:21 $"
+import numpy as np
+
+__version__ = "$Revision: 1.20 $, $Date: 2011/05/31 19:15:19 $"
 __author__ = 'J. Koller, Los Alamos National Lab (jkoller@lanl.gov)'
 
 
@@ -55,13 +57,12 @@ class RBmodel(object):
         """
         format for grid e.g., L-PA-E
         """
-        import numpy as n
         import spacepy.time as st
         import spacepy.lib
 
         self.const_kp=const_kp
 
-        # Initialize the code to use to advance the solution.
+        # Initialize the code to use to advance the solutionp.
         if spacepy.lib.have_libspacepy and spacepy.lib.solve_cn:
             self.advance=spacepy.lib.solve_cn
         else:
@@ -185,7 +186,6 @@ class RBmodel(object):
         add observations from PSD database using the ticks list        
         """
         
-        import numpy as n
         import spacepy.sandbox.PSDdata as PD
         import spacepy.time
         
@@ -195,13 +195,13 @@ class RBmodel(object):
         nTAI = len(Tgrid)
         
         self.PSDdata = ['']*(nTAI-1)
-        for i, Tnow, Tfut in zip(n.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
+        for i, Tnow, Tfut in zip(np.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
             start_end = spacepy.time.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
             self.PSDdata[i] = PD.get_PSD(start_end, self.MU, self.K, satlist)
             
         # adjust initial conditions to these PSD values
-        mval = n.mean(self.PSDdata[0]['PSD'])
-        self.PSDinit = mval*n.exp(-(self.Lgrid - 5.5)**2/0.2)
+        mval = np.mean(self.PSDdata[0]['PSD'])
+        self.PSDinit = mval*np.exp(-(self.Lgrid - 5.5)**2/0.2)
         
         return
         
@@ -211,7 +211,6 @@ class RBmodel(object):
         calculate the diffusion in L at constant mu,K coordinates    
         """
         from . import radbelt as rb
-        import numpy as n
         
         assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
@@ -220,7 +219,7 @@ class RBmodel(object):
         Tgrid = self.ticks.TAI
         nTAI = len(Tgrid)
         Lgrid = self.Lgrid
-        self.PSD  = n.zeros( (len(f),len(Tgrid)), dtype=ctypes.c_double)
+        self.PSD  = np.zeros( (len(f),len(Tgrid)), dtype=ctypes.c_double)
         self.PSD[:,0] = f
 
         # add omni if not already given
@@ -244,7 +243,7 @@ class RBmodel(object):
         keylist = ['Kp', 'Dst', 'Lmax', 'Lpp']
                 
         # start with the first one since 0 is the initial condition
-        for i, Tnow, Tfut in zip(n.arange(nTAI-1)+1, Tgrid[:-1], Tgrid[1:]):
+        for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, Tgrid[:-1], Tgrid[1:]):
             Tdelta = Tfut - Tnow
             Telapse= Tnow - Tgrid[0]
             # copy over parameter list
@@ -309,7 +308,6 @@ class RBmodel(object):
         import spacepy.borg
         import spacepy.sandbox.PSDdata as PD
         import spacepy.time as st
-        import numpy as n
         import copy as c
         import pdb
         import spacepy.toolbox as tb
@@ -335,19 +333,19 @@ class RBmodel(object):
             # initialize A with initial condition
             # the initial condition is ones, have to change this to initialize
             # the ensemble with perturbed reference state
-            A = n.ones( (self.NL, da.Nens) )*self.PSDinit[:,n.newaxis]
+            A = np.ones( (self.NL, da.Nens) )*self.PSDinit[:,np.newaxis]
 
-            self.PSDf = n.zeros( (self.PSDinit.shape[0], nTAI) )
-            self.PSDa = n.zeros( (self.PSDinit.shape[0], nTAI) )
+            self.PSDf = np.zeros( (self.PSDinit.shape[0], nTAI) )
+            self.PSDa = np.zeros( (self.PSDinit.shape[0], nTAI) )
             self.PSDa[:,0] = self.PSDinit
             self.PSDf[:,0] = self.PSDinit
 
-            # add model error (perturbation) in the ensemble initial condition.
+            # add model error (perturbation) in the ensemble initial conditionp.
             A = da.add_model_error(self, A, self.PSDdata[0])
-            A[n.where(A < self.MIN_PSD)] = self.MIN_PSD
+            A[np.where(A < self.MIN_PSD)] = self.MIN_PSD
 
             # time loop
-            for i, Tnow, Tfut in zip(n.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
+            for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
                     
                 # make forcast and add model error
                 # make forecast using all ensembles in A
@@ -364,7 +362,7 @@ class RBmodel(object):
         
                 # save result in ff
                 Tnow = Tfut
-                self.PSDf[:,i] = n.mean(A, axis=1)
+                self.PSDf[:,i] = np.mean(A, axis=1)
 
                 # verify that there are data points within the interval, if
                 # there are data points then extract average observations
@@ -375,8 +373,8 @@ class RBmodel(object):
                     # get observations for time window ]Tnow-Twindow,Tnow]
                     Lobs, y = spacepy.borg.average_window(self.PSDdata[i-1], self.Lgrid)
                 else:
-                    y = n.array([])
-                    Lobs = n.array([])
+                    y = np.array([])
+                    Lobs = np.array([])
 
                 print Lobs
                 print y
@@ -406,7 +404,7 @@ class RBmodel(object):
                         # Inflate around ensemble average for EnKF
 
                         # ensemble average
-                        ens_avg = n.mean(A, axis=1)
+                        ens_avg = np.mean(A, axis=1)
 
                         # inflation factor
                         inflation_factor = 1.8
@@ -418,7 +416,7 @@ class RBmodel(object):
                             A[:,iens] = inflation_factor*(ens - ens_avg) + ens_avg
                             iens += 1
 
-                        A[n.where(A < self.MIN_PSD)] = self.MIN_PSD
+                        A[np.where(A < self.MIN_PSD)] = self.MIN_PSD
 
                 
                     # prepare assimilation analysis
@@ -443,16 +441,16 @@ class RBmodel(object):
                         A = da.analysis_Evensen(A, Psi, Inn, HAp)
                 
                     # check for minimum PSD values
-                    A[n.where(A<self.MIN_PSD)] = self.MIN_PSD
+                    A[np.where(A<self.MIN_PSD)] = self.MIN_PSD
                 
                     # average A from analysis step and save in results
                     # dictionary
-                    self.PSDa[:,i] = n.mean(A, axis=1)
+                    self.PSDa[:,i] = np.mean(A, axis=1)
 
                     # print assimilated result
-                    Hx = n.zeros_like(y)
+                    Hx = np.zeros_like(y)
                     for iL,Lstar in enumerate(Lobs):
-                        idx = n.where(tb.feq(self.Lgrid,Lstar))
+                        idx = np.where(tb.feq(self.Lgrid,Lstar))
                         Hx[iL] = self.PSDa[idx,i]
                     print Hx
                     print HA
@@ -472,7 +470,7 @@ class RBmodel(object):
     def plot(self, Lmax=True, Lpp=False, Kp=True, Dst=True, 
              clims=[0,10], title='Summary Plot', values=None):
         """
-        Create a summary plot of the RadBelt object distribution function.
+        Create a summary plot of the RadBelt object distribution functionp.
         For reference, the last closed drift shell, Dst, and Kp are all
         included.  These can be disabled individually using the corresponding 
         Boolean kwargs.
@@ -500,7 +498,6 @@ class RBmodel(object):
         The title of the topmost plot (phase space density) would be set to
         'Good work!'.
         """
-        import numpy as n
         import matplotlib.pyplot as p
         from matplotlib.colors  import LogNorm
         from matplotlib.ticker  import (LogLocator, LogFormatter,
@@ -525,7 +522,7 @@ class RBmodel(object):
             ax1 = p.subplot(1,1,1)
         # Plot phase space density, masking out values of 0.
         map = ax1.pcolorfast(self.ticks.eDOY, self.Lgrid, 
-                             n.where(values > 0.0, self.PSD, 10.0**-39),
+                             np.where(values > 0.0, self.PSD, 10.0**-39),
                              vmin=10.0**clims[0], vmax=10.0**clims[1], 
                              norm=LogNorm())
         ax1.set_ylabel('L*')
@@ -606,7 +603,6 @@ class RBmodel(object):
         'Good work!'.
         """
         import spacepy.borg
-        import numpy as n
         import matplotlib.pyplot as p
         from matplotlib.colors  import LogNorm
         from matplotlib.ticker  import (LogLocator, LogFormatter,
@@ -630,18 +626,18 @@ class RBmodel(object):
         fig.subplots_adjust(left=0.10, right=0.999, top=0.92)
 
         # compute time-window average observation value
-        y = n.array([],dtype=float)
-        Lobs = n.array([],dtype=float)
-        eDOYobs = n.array([],dtype=float)
+        y = np.array([],dtype=float)
+        Lobs = np.array([],dtype=float)
+        eDOYobs = np.array([],dtype=float)
         nTAI = len(self.ticks)
         # time loop
-        for i, Tnow, Tfut in zip(n.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
+        for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
             if len(values[i-1]) > 0:
                 # get observations for time window ]Tnow-Twindow,Tnow]
                 Lobs_tmp, y_tmp = spacepy.borg.average_window(values[i-1], self.Lgrid)
-                y = n.append(y,y_tmp)
-                Lobs = n.append(Lobs,Lobs_tmp)
-                eDOYobs = n.append(eDOYobs,n.ones(len(y_tmp))*self.ticks.eDOY[i-1])
+                y = np.append(y,y_tmp)
+                Lobs = np.append(Lobs,Lobs_tmp)
+                eDOYobs = np.append(eDOYobs,np.ones(len(y_tmp))*self.ticks.eDOY[i-1])
 
         # PLOT PSDdata
         if Kp or Dst:
@@ -707,12 +703,11 @@ class RBmodel(object):
         literature and chosen with the kwarg "DLL_model".
         
         The calculated DLL is returned, as is the alpha and beta
-        values used in the calculation. 
+        values used in the calculationp. 
         
         The output DLL is in units of units/day.
         """
 
-        import numpy as n
 
         if DLL_model is 'BA2000': # Brautigam and Albert (2000)
             if type(self.const_kp) == type(0.0):
@@ -736,7 +731,7 @@ class RBmodel(object):
         elif DLL_model is 'const': # Constant DLL.
             alpha= 1.0
             beta = 1.0
-            DLL  = n.zeros(len(Lgrid), dtype=ctypes.c_double)+10.
+            DLL  = np.zeros(len(Lgrid), dtype=ctypes.c_double)+10.
             # approximately BA2000 for Kp=1, L=1.
         else:
             raise ValueError, \
@@ -756,11 +751,10 @@ def get_modelop_L(f, L, Dm_old, Dm_new, Dp_old, Dp_new, Tdelta, NL):
     by NL.  
 
     This function performs the same calculation as the C-based code, 
-    spacepy.lib.solve_cn.  This code is very slow and should only be used when 
+    spacepy.lib.solve_cnp.  This code is very slow and should only be used when 
     the C code fails to compile.
     """
     
-    import numpy as n
     import numpy.linalg as nlin
 
     # get grid and setup centered grid Lm=L_i-1/2, Lp=L_i+1/2
@@ -771,8 +765,8 @@ def get_modelop_L(f, L, Dm_old, Dm_new, Dp_old, Dp_new, Tdelta, NL):
     Lm = L - 0.5*dL
 
     # setup the diffusion coefficient on each grid and center grid
-    #Dllm = n.zeros(NL); Dllp = n.zeros(NL)
-    betam = n.zeros(NL); betap = n.zeros(NL)
+    #Dllm = np.zeros(NL); Dllp = np.zeros(NL)
+    betam = np.zeros(NL); betap = np.zeros(NL)
     for i in range(1,int(NL)-1,1):
         Dllp[i] = 0.5*(DLL[i]+DLL[i+1])
         Dllm[i] = 0.5*(DLL[i]+DLL[i-1])
@@ -780,12 +774,12 @@ def get_modelop_L(f, L, Dm_old, Dm_new, Dp_old, Dp_new, Tdelta, NL):
         betap[i] = Dllp[i]*dt / (2*dL*dL*Lp[i]*Lp[i])
 
     # initialize some arrays
-    A = n.zeros( (NL,NL) )
-    B = n.zeros( (NL,NL) )
-    C = n.zeros( (NL,NL) )
+    A = np.zeros( (NL,NL) )
+    B = np.zeros( (NL,NL) )
+    C = np.zeros( (NL,NL) )
     
     # off diagonal elements
-    for i in n.arange(1,int(NL)-1,1):
+    for i in np.arange(1,int(NL)-1,1):
         # diagonal elements
         A[i,i] = 1 + betam[i]*L[i]*L[i] + betap[i]*L[i]*L[i] 
         B[i,i] = 1 - betam[i]*L[i]*L[i] - betap[i]*L[i]*L[i] 
@@ -803,10 +797,10 @@ def get_modelop_L(f, L, Dm_old, Dm_new, Dp_old, Dp_new, Tdelta, NL):
     B[-1,-1] = 1.
 
     # get inverse and multipy
-    Ai = nlin.inv(A)
-    C = n.dot(Ai,B)
+    Ai = nlinp.inv(A)
+    C = np.dot(Ai,B)
 
-    return n.dot(C, f)
+    return np.dot(C, f)
 
 # -----------------------------------------------
 def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
@@ -815,7 +809,6 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     time units
     """
 
-    import numpy as n
     import ctypes as ct
 
     # prepare some parameter variables
@@ -839,7 +832,7 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     DLL = DLL/86400.; DLLp = DLLp/86400.; DLLm = DLLm/86400.
 
     # Set default of NO sources:
-    src = n.zeros(NL)
+    src = np.zeros(NL)
 
     # Create source operators (source splitting) using implicit 
     # trapezoidal method to solve source ODE.
@@ -857,8 +850,8 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
         src[0], src[-1] = 0.,0.
 
     else:
-        src1 = n.zeros(NL)
-        src2 = n.zeros(NL)
+        src1 = np.zeros(NL)
+        src2 = np.zeros(NL)
 
     # Apply solution operators to f.
     dptr = ctypes.POINTER(ctypes.c_double)
@@ -880,16 +873,16 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     # add losses through magnetopause shadowing, time scale taken from MPloss
     if params['MPloss'].seconds > 0.0:
         # setup loss vector
-        LSS = n.zeros(NL)
-        LSS[n.where(Lgrid>params['Lmax'])] = -1./params['MPloss'].seconds
-        f = f*n.exp(LSS*Tdelta)
+        LSS = np.zeros(NL)
+        LSS[np.where(Lgrid>params['Lmax'])] = -1./params['MPloss'].seconds
+        f = f*np.exp(LSS*Tdelta)
         
     # add losses inside plasma pause, time scale taken from PPloss
     if params['PPloss'].seconds > 0.0:
         # calculate plasma pause location after Carpenter & Anderson 1992
-        LSS = n.zeros(NL)
-        LSS[n.where(Lgrid<params['Lpp'])] = -1./params['PPloss'].seconds
-        f = f*n.exp(LSS*Tdelta)
+        LSS = np.zeros(NL)
+        LSS[np.where(Lgrid<params['Lpp'])] = -1./params['PPloss'].seconds
+        f = f*np.exp(LSS*Tdelta)
 
     return f
     
@@ -898,14 +891,13 @@ def get_local_accel(Lgrid, params, SRC_model='JK1'):
     """
     calculate the diffusion coefficient D_LL
     """
-    import numpy as n
     
     if SRC_model is 'JK1':        
         magn = params['SRCmagn'].seconds
         Lcenter = 5.6
         Lwidth = 0.3
         Kp = params['Kp']
-        S = magn*n.exp(-(Lgrid-Lcenter)**2/(2*Lwidth**2))*Kp*Kp        
+        S = magn*np.exp(-(Lgrid-Lcenter)**2/(2*Lwidth**2))*Kp*Kp        
 
     
     return S
