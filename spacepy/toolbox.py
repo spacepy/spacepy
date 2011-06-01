@@ -1246,11 +1246,8 @@ def leap_year(year, numdays=False):
     mask400 = [(val % 400) == 0 for val in year]   # this is a leap year
     mask100 = [(val % 100) == 0 for val in year ]   # these are not leap years
     mask4   = [(val % 4) == 0 for val in year ]   # this is a leap year
-    if numdays or nobool:
-        if numdays:
-            numdays=365
-        else:
-            numdays = 0
+    if numdays:
+        numdays=365
         ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
         if len(ans) == 1:
             return ans[0]
