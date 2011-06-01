@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.abspath('../../spacepy'))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx',
               'sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode', 'numpydoc', 'sphinx.ext.inheritance_diagram',
-              'sphinx.ext.extlinks', ]
+              'sphinx.ext.autosummary', 'sphinx.ext.extlinks', ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

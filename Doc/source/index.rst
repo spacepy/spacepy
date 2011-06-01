@@ -31,8 +31,9 @@ this reliance will be diminished.
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
+    toolbox
 
 TODO List
 ---------
