@@ -30,6 +30,9 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphin
               'sphinx.ext.viewcode', 'numpydoc', 'sphinx.ext.inheritance_diagram',
               'sphinx.ext.autosummary', 'sphinx.ext.extlinks', ]
 
+# make it so TODOs will work
+todo_include_todos = True
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

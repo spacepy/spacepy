@@ -33,7 +33,11 @@ Contents:
 .. toctree::
     :maxdepth: 2
 
+    doc_standard
     toolbox
+    datamodel
+
+
 
 TODO List
 ---------

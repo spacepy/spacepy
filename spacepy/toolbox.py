@@ -907,7 +907,8 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     alpha : float (optional)
         alpha of the fill (default 0.5)
 
-    **deprecated** Equivalent functionality to built-in matplotlib function fill_between
+    .. deprecated:: vesion 0.1
+    Equivalent functionality to built-in matplotlib function fill_between
 
     Examples
     ========
@@ -1062,10 +1063,19 @@ def logspace(min, max, num, **kwargs):
     num : integer
         number of log spaced bins
 
+    Other Parameters
+    ================
+    kwargs : dict
+        additional keywords passed into matplotlib.dates.num2date
+
     Returns
     =======
     out : array
         log spaced bins from min to max in a numpy array
+
+    Notes
+    =====
+    This function works on both numbers and datetime objects
 
     Examples
     ========
@@ -1378,8 +1388,11 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     out : numpy.masked_array
         interpolated data values for new abscissa values
 
+
     Parameters
     ==========
+    newx
+
     """
     import scipy as sci
 
