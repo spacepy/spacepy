@@ -18,14 +18,14 @@ On top of Sphinx SpacePy uses the following extensions:
 
 
 So what do I need to do in my code?
-===================================
+-----------------------------------
 Since we are using the 'numpydoc' extension there are fixed headeding that may
 appear in your documenation block, there are a few things to note:
  * No other headings can appear there
  * I belive that no reStructuredText commands can either (e.g. .. Note:)
 
 Allowed headings
-----------------
+~~~~~~~~~~~~~~~~
 **Always use**
  * Parameters
  * Returns

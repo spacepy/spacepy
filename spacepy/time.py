@@ -21,20 +21,24 @@ datetime.datetime(2002, 7, 8, 0, 0)]
 
 >>> dts = spt.Ticktock(dts,'UTC')
 >>> dts.DOY
-array([ 186.,  187.,  188.,  189.]) 
+array([ 186.,  187.,  188.,  189.])
 
 Ticktock object creation
 
->>> isodates = ['2009-12-01T12:00:00', '2009-12-04T00:00:00', '2009-12-06T12:00:00'] 
+>>> isodates = ['2009-12-01T12:00:00', '2009-12-04T00:00:00', '2009-12-06T12:00:00']
 >>> dts = spt.Ticktock(isodates, 'ISO')
+
 OR
+
 >>> dtdates = [dt.datetime(2009,12,1,12), dt.datetime(2009,12,4), dt.datetime(2009,12,6,12)]
 >>> dts = spt.Ticktock(dtdates, 'UTC')
 
 ISO time formatting
 
 >>> dts = spt.tickrange('2009-12-01T12:00:00','2009-12-06T12:00:00',2.5)
+
 OR
+
 >>> dts = spt.tickrange(dt.datetime(2009,12,1,12),dt.datetime(2009,12,6,12), \
     dt.timedelta(days=2, hours=12))
 
@@ -94,41 +98,44 @@ __version__ = "$Revision: 1.37 $, $Date: 2011/05/31 20:25:32 $"
 
 # -----------------------------------------------
 # Tickdelta class
-# -----------------------------------------------    
+# -----------------------------------------------
 class Tickdelta(object):
     """
     Tickdelta( **kwargs )
-    
+
     Tickdelta class holding timedelta similar to datetime.timedelta
     This can be used to add/substract from Ticktock objects
-    
-    Input:
-    ======
-        - days, hours, minutes and/or seconds (int or float) : time step
-    
-    Returns:
+
+    Parameters
+    ==========
+    days : float
+        number of days in for the delta
+    hours : float
+        number of hours for the delta
+    minutes : float
+        number of minutes for the delta
+    seconds : float
+        number of secondes for the delta
+
+    Returns
+    =======
+    out : Tickdelta
+        instance with self.days, self.secs, self.timedelta
+
+    Examples
     ========
-        - instance with self.days, self.secs, self.timedelta
-    
-    Example:
-    ========  
     >>> dt = Tickdelta(days=3.5, hours=12)
     >>> dt
     Tickdelta( days=4.0 )
-       
-    See Also:
-    =========
-    spacepy.time.Ticktock class
-    
-    Version:
-    ========
-    V1: 03-Mar-2010 (JK)
-    """
 
+    See Also
+    ========
+    spacepy.time.Ticktock class
+    """
     def __init__(self, **kwargs):
         import datetime as dt
         days, hours, minutes, seconds = [0,0,0,0]
-        if 'days' in kwargs:  days = kwargs['days'] 
+        if 'days' in kwargs:  days = kwargs['days']
         if 'hours' in kwargs: hours = kwargs['hours']
         if 'minutes' in kwargs: minutes = kwargs['minutes']
         if 'seconds' in kwargs: seconds = kwargs['seconds']
@@ -137,74 +144,75 @@ class Tickdelta(object):
         self.minutes = self.hours*60.
         self.seconds = self.minutes*60.
         self.timedelta = dt.timedelta(days=float(self.days))
-        return  
-        
-    # -----------------------------------------------    
+        return
+
+    # -----------------------------------------------
     def __str__(self):
         """
         dt.__str__() or dt
-        
-        Will be called when printing Tickdelta instance dt
-        
-        Input:
-        ======
-            - a Tickdelta class instance
- 
-        Returns:
-        ========
-            - output (string)          
 
-        Example:
+        Will be called when printing Tickdelta instance dt
+
+        Returns
+        =======
+        out : string
+            string representation of the time
+
+        Examples
         ========
         >>> dt = Tickdelta(3)
         >>> dt
         Tickdelta( days=3 )
-        
-        Version:
-        ========
-        V1: 03-Mar-2010 (JK)
- 
-        """
 
-        return 'Tickdelta( days='+str(self.days) + ' )'  
+        """
+        return 'Tickdelta( days='+str(self.days) + ' )'
     __repr__ = __str__
-    
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __add__(self, other):
         """
-        see Ticktock.__add__
-        
+        See Also
+        ========
+        Ticktock.__add__
+
         """
         # call add routine from Ticktock
         newobj = Ticktock.__add__(other, self)
         return newobj
 
-    # -----------------------------------------------    
+    # -----------------------------------------------
     def __sub__(self, other):
         """
-        see Ticktock.__sub__
-        
+        See Also
+        ========
+        Ticktock.__sub__
+
         """
         # call add routine from Ticktock
         newobj = Ticktock.__sub__(other, self)
         return newobj
-     
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __mul__(self, other):
         """
-        see Ticktock.__sub__
-        
+        See Also
+        ========
+        Ticktock.__sub__
+
         """
         # call add routine from Ticktock
         newobj = self.timedelta.__mul__(other)
         days = newobj.days + newobj.seconds/86400.
         return Tickdelta(days)
-      
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __getstate__(self):
         """
         Is called when pickling
-        See Also: http://docs.python.org/library/pickle.html
+
+        See Also
+        ========
+        http://docs.python.org/library/pickle.html
         """
         odict = self.__dict__.copy() # copy the dict since we change it
         return odict
@@ -212,22 +220,25 @@ class Tickdelta(object):
     def __setstate__(self, dict):
         """
         Is called when unpickling
-        See Also: http://docs.python.org/library/pickle.html
+
+        See Also
+        ========
+        http://docs.python.org/library/pickle.html
         """
         self.__dict__.update(dict)
         return
 
- 
+
 # -----------------------------------------------
 # Ticktock class
-# -----------------------------------------------    
+# -----------------------------------------------
 class Ticktock(object):
     """
     Ticktock( data, dtype )
-    
-    Ticktock class holding various time coordinate systems 
+
+    Ticktock class holding various time coordinate systems
     (TAI, UTC, ISO, JD, MJD, UNX, RDT, CDF, DOY, eDOY)
-    
+
     Possible data types:
     ISO: ISO standard format like '2002-02-25T12:20:30'
     UTC: datetime object with UTC time
@@ -237,38 +248,32 @@ class Ticktock(object):
     MJD: Modified Julian days
     RDT: Rata Die days elapsed since 1/1/1
     CDF: CDF epoch: milliseconds since 1/1/0000
-    
-    Input:
-    ======
-        - data (int, datetime, float, string) : time stamp
-        - dtype (string) : data type for data, possible values: 
-            CDF, ISO, UTC, TAI, UNX, JD, MJD, RDT
-    
-    Returns:
+
+    Parameters
+    ==========
+    data : array_like (int, datetime, float, string)
+        time stamp
+    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`}
+        data type for data
+
+    Returns
+    =======
+    out : Ticktock
+        instance with self.data, self.dtype, self.UTC etc
+
+    Examples
     ========
-        - instance with self.data, self.dtype, self.UTC etc
-    
-    Example:
-    ========
-    
     >>> x=Ticktock([2452331.0142361112, 2452332.0142361112], 'JD')
     >>> x.ISO
     ['2002-02-25T12:20:30', '2002-02-26T12:20:30']
     >>> x.DOY # Day of year
     array([ 56.,  57.])
-    
-    See Also:
-    =========
-    a.getCDF, a.getISO, a.getUTC, etc.
-    
-    Version:
+
+    See Also
     ========
-    V1: 20-Jan-2010
-    V2: 25-Jan-2010: includes array support (JK)
-    V3: 25-feb-2010: pulled functions into class (JK)
-    V4: 19-May-2010: ISO format support (SM)
-    V5: 15-Sep-2010: added format guessing 'ISO', 'UTC', 'CDF' (JK)
-    V6: 15-Sep-2010: data can be any iterable (JN)
+    a.getCDF
+    a.getISO
+    a.getUTC
     """
     def __init__(self, data, dtype=None):
         from numpy import ndarray
@@ -285,23 +290,23 @@ class Ticktock(object):
         # make some educated guess on the format if dtype not provided
         if isinstance(self.data[0], str):
             dtype = 'ISO'
-        elif isinstance(self.data[0], datetime): 
+        elif isinstance(self.data[0], datetime):
             dtype = 'UTC'
         elif self.data[0] > 1e13:
-            dtype = 'CDF' 
+            dtype = 'CDF'
         keylist = ['UTC','TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS']
         assert dtype.upper() in keylist, "data type "+self.dtype+" not provided, only "+str(keylist)
         self.dtype = dtype.upper()
         self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
         self.__isofmt = self.__isoformatstr['seconds']
-        
+
         if dtype.upper() == 'ISO':
             if self.data[0].find('Z'):
                 for i in range(len(self.data)):
                     self.data[i] = self.data[i].split('Z')[0]
             if self.data[0].find('T') == -1: # then assume midnight
                 for i in range(len(self.data)):
-                    self.data[i] = self.data[i]+'T00:00:00'                    
+                    self.data[i] = self.data[i]+'T00:00:00'
             self.ISO = self.data
             self.update_items(self, 'data')
         if dtype.upper() == 'TAI': self.TAI = self.data
@@ -313,38 +318,29 @@ class Ticktock(object):
         self.UTC = self.getUTC()
         self.shape = (len(self.data), )
         return
-        
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __str__(self):
         """
         a.__str__() or a
-        
-        Will be called when printing Ticktock instance a
-        
-        Input:
-        ======
-            - a Ticktock class instance
- 
-        Returns:
-        ========
-            - output (string)          
 
-        Example:
+        Will be called when printing Ticktock instance a
+
+        Returns
+        =======
+        out : string
+            string representaion of the class
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a
         Ticktock( ['2002-02-02T12:00:00'] ), dtype=ISO
-
-        Version:
-        ========
-        V1: 03-Mar-2010 (JK)
- 
         """
-
-        return 'Ticktock( '+str(self.data) + ' ), dtype='+str(self.dtype)  
+        return 'Ticktock( '+str(self.data) + ' ), dtype='+str(self.dtype)
     __repr__ = __str__
-    
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __getstate__(self):
         """
         Is called when pickling
@@ -360,211 +356,180 @@ class Ticktock(object):
         """
         self.__dict__.update(dict)
         return
-        
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __getitem__(self, idx):
         """
         a.__getitem__(idx) or a[idx]
-        
-        Will be called when requesting items in this instance 
-        
-        Input:
-        ======
-            - a Ticktock class instance
-            - idx (int) : integer numbers as index
 
-        Returns:
-        ========
-            - Ticktock instance with requested values
+        Will be called when requesting items in this instance
 
-        Example:
+        Parameters
+        ==========
+
+
+        Returns
+        =======
+        out : Ticktock
+            Ticktock instance with requested values
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a[0]
         '2002-02-02T12:00:00'
-        
-        See Also:
-        =========
+
+        See Also
+        ========
         a.__setitem__
 
-        Version:
-        ========
-        V1.0: 03-Mar-2010 (JK)
-        V1.1: 23-Mar-2010: now returns Ticktock instance and can be indexed with arrays (JK)
- 
         """
         arr = np.array(self.data)
-        
+
         if isinstance(idx, int):
-            return Ticktock(arr[idx], self.dtype) 
+            return Ticktock(arr[idx], self.dtype)
         else:
-            return Ticktock(arr[idx].tolist(), self.dtype)   
-    
-    # -----------------------------------------------    
+            return Ticktock(arr[idx].tolist(), self.dtype)
+
+    # -----------------------------------------------
     def __setitem__(self, idx, vals):
         """
         a.__setitem__(idx, vals) or a[idx] = vals
-        
-        Will be called setting items in this instance 
-        
-        Input:
-        ======
-            - a Ticktock class instance
-            - idx (int) : integer numbers as index
-            - vals (float, string, datetime) : new values
-            
 
-        Example:
+        Will be called setting items in this instance
+
+        Parameters
+        ==========
+        idx : int
+            integer numbers as index
+        vals: {float, string, datetime}
+            new values
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a[0] = '2003-03-03T00:00:00'
-        
-        See Also:
-        =========
-        a.__getitem__
 
-        Version:
+        See Also
         ========
-        V1: 03-Mar-2010 (JK)
- 
+        a.__getitem__
         """
         self.data[idx] = vals
         self.update_items(self, 'data')
-        
+
         return
-        
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __len__(self):
         """
         a.__len__() or len(a)
-        
-        Will be called when requesting the length, i.e. number of items 
-        
-        Input:
-        ======
-            - a Ticktock class instance
-            
-        Returns:
-        ========
-            - length (int number)
 
-        Example:
+        Will be called when requesting the length, i.e. number of items
+
+        Returns
+        =======
+        out : int
+            length
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a.len
         1
-
-        Version:
-        ========
-        V1: 03-Mar-2010 (JK)
- 
         """
-         
-        from numpy import ndarray 
+        from numpy import ndarray
         if isinstance(self.data, (list, ndarray)):
             return len(self.data)
         else:
             return 1
-        return  
-    # -----------------------------------------------    
+        return
+    # -----------------------------------------------
     def __cmp__(self, other):
         """
         a.__cmp__(other)
-        
+
         Will be called when two Ticktock instances are compared
-        
-        Input:
-        ======
-            - a Ticktock class instance
-            - other (Ticktock instance) 
-            
+
+        Paramters
+        =========
+        other : Ticktock
+            instance for comparison
+
         Returns:
         ========
-            - True or False
+        out : boolean
+            True or False
 
-        Example:
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> b = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a > b
         True
-        
-        See Also:
-        =========
-        a.__add__, a.__sub__
 
-        Version:
+        See Also
         ========
-        V1: 03-Mar-2010 (JK)
- 
+        a.__add__, a.__sub__
         """
-        return cmp(self.UNX, other.UNX)  
+        return cmp(self.UNX, other.UNX)
 
-    # -----------------------------------------------    
+    # -----------------------------------------------
     def __gt__(self, other):
         if isinstance(other, datetime.datetime):
             other = Ticktock(other, 'UTC')
         return self.UNX > other.UNX
-        
+
     def __lt__(self, other):
         if isinstance(other, datetime.datetime):
             other = Ticktock(other, 'UTC')
         return self.UNX < other.UNX
-        
+
     def __ge__(self, other):
         if isinstance(other, datetime.datetime):
             other = Ticktock(other, 'UTC')
         return self.UNX >= other.UNX
-        
+
     def __le__(self, other):
         if isinstance(other, datetime.datetime):
             other = Ticktock(other, 'UTC')
         return self.UNX <= other.UNX
-        
+
     def __eq__(self, other):
         if isinstance(other, datetime.datetime):
             other = Ticktock(other, 'UTC')
         return self.UNX == other.UNX
-        
+
     def __ne__(self, other):
         if isinstance(other, datetime.datetime):
             other = Ticktock(other, 'UTC')
         return self.UNX != other.UNX
-    
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __sub__(self, other):
         """
         a.__sub__(other)
-        
+
         Will be called if a Tickdelta object is substracted to this instance and
         returns a new Ticktock instance
 
-        Input:
-        ======
-            - a Ticktock class instance
-            - other (Tickdelta instance, or Ticktock class instance) 
-      
-        Example:
+        Paramters
+        =========
+        other : Ticktock or Tickdelta
+            instance for comparison
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> dt = Tickdelta(3)
         >>> a - dt
         Ticktock( ['2002-02-05T12:00:00'] ), dtype=ISO
 
-
-        See Also:
-        =========
-        __sub__
-      
-        Version:
+        See Also
         ========
-        V1: 03-Mar-2010 (JK)
-        V2: 07-Sep-2010 (BAL) - added Ticktock-Ticktock functionality
-
-       
+        __sub__
         """
         nTAI = len(self.data)
-        if isinstance(other, Tickdelta): 
+        if isinstance(other, Tickdelta):
             newUTC = ['']*nTAI
             for i in range(nTAI):
                 newUTC[i] = self.UTC[i] - other.timedelta
@@ -581,22 +546,20 @@ class Ticktock(object):
             deltas = [Tickdelta(seconds=val) for val in newTAI ]
             return deltas
 
-
-    
-    # -----------------------------------------------    
+    # -----------------------------------------------
     def __add__(self, other):
         """
         a.__add__(other)
-        
-        Will be called if a Tickdelta object is added to this instance and
+
+        Will be called if a Tickdelta object is substracted to this instance and
         returns a new Ticktock instance
 
-        Input:
-        ======
-            - a Ticktock class instance
-            - other (Tickdelta instance) 
-      
-        Example:
+        Paramters
+        =========
+        other : Ticktock or Tickdelta
+            instance for comparison
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> dt = Tickdelta(3)
@@ -604,17 +567,11 @@ class Ticktock(object):
         Ticktock( ['2002-02-05T12:00:00'] ), dtype=ISO
 
 
-        See Also:
-        =========
-        __sub__
-      
-        Version:
+        See Also
         ========
-        V1: 03-Mar-2010 (JK)
-        V2: 07-Sep-2010 (BAL) - added Ticktock-Ticktock functionality
+        __sub__
 
         """
-
         nTAI = len(self.data)
         if isinstance(other, Tickdelta):
             newUTC = ['']*nTAI
@@ -632,12 +589,12 @@ class Ticktock(object):
                 newTAI[i] = self.TAI[i] + other.TAI
             deltas = [Tickdelta(seconds=val) for val in newTAI ]
             return deltas
-      
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __getattr__(self, name):
         """
         a.__getattr__(name)
-        
+
         Will be called if attribute "name" is not found in Ticktock class instance.
         It will add TAI, RDT, etc
 
@@ -653,7 +610,7 @@ class Ticktock(object):
         Version:
         ========
         V1: 03-Mar-2010 (JK)
-       
+
         """
 
         keylist = ['TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'DOY', 'eDOY', 'leaps', 'GPS']
@@ -676,72 +633,45 @@ class Ticktock(object):
     def sort(self):
         """
         a.sort()
-        
+
         This will sort the Ticktock values in place
-        
-        Input:
-        ======
-            - a Ticktock class instance
-    
-        Version:
-        ========
-        V1: 03-Jun-2010 (JK)
-        V1.1: 09-Nov-2010: fixed a little bug; self only updated inside here (JK)
-       
-        """    
-        
+        """
         RDT = self.RDT
         RDTsorted = np.sort(RDT)
         tmp = Ticktock(RDTsorted, 'RDT').convert(self.dtype)
         self.data = tmp.data
         self.update_items(self, 'data')
-        
-        return 
-        
+        return
+
     # -----------------------------------------------
     def argsort(self):
         """
         idx = a.argsort()
-        
+
         This will return the indices that would sort the Ticktock values
-        
-        Input:
-        ======
-            - a Ticktock class instance
-            
-        Output:
+
+        Returns
         =======
-            - idx (int list) : indices that would sort the Ticktock values 
-    
-        Version:
-        ========
-        V1: 03-Jun-2010 (JK)
-       
-        """    
-        
+        out : list
+            indices that would sort the Ticktock values
+
+        """
         RDT = self.RDT
         idx = np.argsort(RDT)
-
         return idx
-        
+
     # -----------------------------------------------
     def isoformat(self, fmt=None):
         """
         a.update_items(b, attrib)
-        
-        This changes the self.__isofmt attribute by and subsequently this 
+
+        This changes the self.__isofmt attribute by and subsequently this
         function will update the ISO attribute.
 
-        Input:
-        ======
-            - a Ticktock class instance
-    
-        Version:
-        ========
-        V1: 19-May-2010 (SM)
-       
+        Parameters
+        ==========
+        fmt : string, optional
         """
-        
         if not fmt:
             print('Current ISO output format is %s' % self.__isofmt)
             print('Options are: %s' % [(k, self.__isoformatstr[k]) for k in list(self.__isoformatstr.keys())])
@@ -753,35 +683,33 @@ class Ticktock(object):
                 print('Not a valid option: Use %s' % list(self.__isoformatstr.keys()))
 
         return
-    
+
     # -----------------------------------------------
     def update_items(self, cls, attrib):
         """
         a.update_items(b, attrib)
-        
+
         After changing the self.data attribute by either __setitem__ or __add__ etc
         this function will update all other attributes. This function is
         called automatically in __add__ and __setitem__
 
-        Input:
-        ======
-            - a Ticktock class instance
-      
-        See Also:
-        =========
-        __setitem__, __add__, __sub__
-    
-        Version:
+        Parameters
+        ==========
+        cls : Ticktock
+        attrib : string
+            attribute to update
+
+        See Also
         ========
-        V1: 03-Mar-2010 (JK)
-       
+        __setitem__
+        __add__
+        __sub__
         """
-        
         keylist = list(cls.__dict__.keys())
         keylist.remove('dtype')
         keylist.remove('data')
         if attrib is not 'data': keylist.remove(attrib)
-        
+
         self.UTC = self.getUTC()
         for key in keylist:
             if key.upper() == 'TAI': self.TAI = self.getTAI()
@@ -795,27 +723,26 @@ class Ticktock(object):
             if key.upper() == 'eDOY': self.eDOY = self.geteDOY()
             if key.upper() == 'GPS' : self.GPS = self.getGPS()
             if key == 'leaps': self.leaps = self.getleapsecs()
-            
         return
 
-    # -----------------------------------------------    
+    # -----------------------------------------------
     def convert(self, dtype):
         """
         a.convert(dtype)
-        
-        convert a Ticktock instance into a new time coordinate system provided in dtype
-        
-        Input:
-        ======
-            - a Ticktock class instance
-            - dtype (string) : data type for new system, possible values are
-                CDF, ISO, UTC, TAI, UNX, JD, MJD, RDT
 
-        Returns:
-        ========
-            - newobj (Ticktock instance) with new time coordinates
-            
-        Example:
+        convert a Ticktock instance into a new time coordinate system provided in dtype
+
+        Parameters
+        ==========
+        dtype : string
+            data type for new system, possible values are {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`}
+
+        Returns
+        =======
+        out : Ticktock
+            Ticktock instance with new time coordinates
+
+        Examples
         ========
         >>> a = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         >>> s = a.convert('TAI')
@@ -824,157 +751,143 @@ class Ticktock(object):
         >>> s
         Ticktock( [1391342432 1391342432] ), dtype=TAI
 
-        See Also:
-        =========
-        a.CDF, a.ISO, a.UTC, etc. 
-
-        Version:
+        See Also
         ========
-        V1: 05-Mar-2010 (JK)
-        
+        a.CDF
+        a.ISO
+        a.UTC
         """
-        newdat = eval('self.'+dtype)        
+        newdat = eval('self.'+dtype)
         return Ticktock(newdat, dtype)
 
-    # -----------------------------------------------    
+    # -----------------------------------------------
     def append(self, other):
         """
         a.append(other)
-        
+
         Will be called when another Ticktock instance has to be appended to the current one
 
-        Input:
-        ======
-            - a Ticktock class instance
-            - other (Ticktock instance) 
-      
-        Example:
-        ========
-      
-        Version:
-        ========
-        V1: 23-Mar-2010 (JK)
-       
+        Parameters
+        ==========
+        other: Ticktock
+            other (Ticktock instance)
         """
-        otherdata = eval('other.'+self.dtype)       
+        otherdata = eval('other.'+self.dtype)
         newobj = Ticktock(np.append(self.data, otherdata), dtype=self.dtype)
         return newobj
-    
+
     # -----------------------------------------------
     def getCDF(self):
         """
         a.getCDF() or a.CDF
-        
-        Return CDF time which is milliseconds since 01-Jan-0000 00:00:00.000. 
-        "Year zero" is a convention chosen by NSSDC to measure epoch values. 
-        This date is more commonly referred to as 1 BC. Remember that 1 BC was a leap year. 
-        The CDF date/time calculations do not take into account the changes to the Gregorian 
+
+        Return CDF time which is milliseconds since 01-Jan-0000 00:00:00.000.
+        "Year zero" is a convention chosen by NSSDC to measure epoch values.
+        This date is more commonly referred to as 1 BC. Remember that 1 BC was a leap year.
+        The CDF date/time calculations do not take into account the changes to the Gregorian
         calendar, and cannot be directly converted into Julian date/times.
 
-        Input:
-        ======
-            - a Ticktock class instance
-      
-        Returns:
-        ========
-            - CDF (numpy array) : days elapsed since Jan. 1st
-    
-        Example:
+        Returns
+        =======
+        out : numpy array
+            days elapsed since Jan. 1st
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.CDF
         array([  6.31798704e+13])
-    
-        See Also:
-        =========
-        getUTC, getUNX, getRDT, getJD, getMJD, getISO, getTAI, getDOY, geteDOY
-    
-        Version:
+
+        See Also
         ========
-        V1: 02-Feb-2010 (JK)
+        getUTC
+        getUNX
+        getRDT
+        getJD
+        getMJD
+        getISO
+        getTAI
+        getDOY
+        geteDOY
         """
-    
         RDTdata = self.getRDT()
         CDF = RDTdata*86400000.0 + 86400000.0*365.0
-    
         self.CDF = CDF
         return CDF
-    
 
     # -----------------------------------------------
     def getDOY(self):
         """
         a.DOY or a.getDOY()
-        
+
         extract DOY (days since January 1st of given year)
-        
-        Input:
-        ======
-            - a Ticktock class instance
-            
-        Returns:
-        ========
-            - DOY (numpy array int) : day of the year
-    
-        Example:
+
+        Returns
+        =======
+        out : numpy array
+            day of the year
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.DOY
         array([ 33])
-    
-        See Also:
-        =========
-        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getISO, geteDOY
-    
-        Version:
+
+        See Also
         ========
-        V1: 25-Jan-2010 (JK)
-        V1.1: 20-Apr-2010: returns true DOY per definition as integer (JK)
-        """ 
-    
+        getUTC
+        getUNX
+        getRDT
+        getJD
+        getMJD
+        getISO
+        getTAI
+        getDOY
+        geteDOY
+        """
         nTAI = len(self.data)
         DOY = np.zeros(nTAI)
-        
+
         for i in np.arange(nTAI):
             DOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal() + 1
- 
+
         self.DOY = DOY.astype(int)
         return DOY
-        
+
     # -----------------------------------------------
     def geteDOY(self):
         """
         a.eDOY or a.geteDOY()
-        
+
         extract eDOY (elapsed days since midnight January 1st of given year)
-        
-        Input:
-        ======
-            - a Ticktock class instance
-            
-        Returns:
-        ========
-            - eDOY (numpy array) : days elapsed since midnight bbedJan. 1st
-    
-        Example:
+
+        Returns
+        =======
+        out : numpy array
+            days elapsed since midnight bbedJan. 1st
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.eDOY
         array([ 32.5])
-    
-        See Also:
-        =========
-        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getISO, getDOY
-    
-        Version:
+
+        See Also
         ========
-        V1: 20-Apr-2010 (JK)
-        V2: 18-May-2010: Added microseconds (SM)
-        """ 
-        
+        getUTC
+        getUNX
+        getRDT
+        getJD
+        getMJD
+        getISO
+        getTAI
+        getDOY
+        geteDOY
+        """
+
         nTAI = len(self.data)
         eDOY = np.zeros(nTAI)
-        
+
         for i in np.arange(nTAI):
             eDOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal()
             eDOY[i] = eDOY[i] + self.UTC[i].hour/24. + self.UTC[i].minute/1440. + \
@@ -988,35 +901,34 @@ class Ticktock(object):
     def getJD(self):
         """
         a.JD or a.getJD()
-        
-        convert dtype data into Julian Date (JD) 
-    
-        Input:
-        ======
-            - a Ticktock class instance
-            
-        Returns:
-        ========
-            - JD (numpy array) : elapsed days since 12:00 January 1, 4713 BC 
-    
-        Example:
+
+        convert dtype data into Julian Date (JD)
+
+        Returns
+        =======
+        out : numpy array
+            elapsed days since 12:00 January 1, 4713 BC
+
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.JD
         array([ 2452308.])
 
-        See Also:
-        =========
-        getUTC, getUNX, getRDT, getISO, getMJD, getCDF, getTAI, getDOY, geteDOY
-    
-        Version:
+        See Also
         ========
-        V1: 20-Jan-2010 (JK)
-        V2: 25-Jan-2010: added array support (JK)
-        V3: 18-May-2010: added microseconds (SM)
-        """ 
+        getUTC
+        getUNX
+        getRDT
+        getJD
+        getMJD
+        getISO
+        getTAI
+        getDOY
+        geteDOY
+        """
         import decimal
-        
+
         nTAI = len(self.data)
 
         # convert all types in to UTC first and call again
@@ -1032,7 +944,7 @@ class Ticktock(object):
             offset = UTCdata[i].utcoffset()
             if offset:
                 UTCdata[i] = UTCdata[i] - offset
-        
+
             # extract year, month, day
             Y = int(UTCdata[i].year)
             M = int(UTCdata[i].month)
@@ -1041,7 +953,7 @@ class Ticktock(object):
             # the following is from Wikipedia (but is wrong by 2 days)
             # JDN = D-32075+1461*(Y+4800+(M-14)/12)/4+367*(M-2-(M-14)/12*12)/12-3*((Y+4900+(M-14)/12)/100)/4
             # JD = JDN + (data.hour-12)/24. + data.minute/1440. + data.second/86400.
-        
+
             # following Press, "Numerical Recipes", Fct: JULDAY, p. 10
             igreg = 15+31*(10+12*1582)
             if M > 2:
@@ -1065,7 +977,7 @@ class Ticktock(object):
             JD[i] = float(JD[i])
             #JD[i] = JD[i] + (UTCdata[i].hour-12)/24. + UTCdata[i].minute/1440. + \
                 #UTCdata[i].second/86400. + UTCdata[i].microsecond/86400000000.
-    
+
         self.JD = JD
         return JD
 
@@ -1073,18 +985,18 @@ class Ticktock(object):
     def getMJD(self):
         """
         a.MJD or a.getMJD()
-        
+
         convert dtype data into MJD (modified Julian date)
-        
+
         Input:
         ======
             - a Ticktock class instance
-            
+
         Returns:
         ========
-            - MJD (numpy array) : elapsed days since November 17, 1858 
-                    (Julian date was 2,400 000) 
-    
+            - MJD (numpy array) : elapsed days since November 17, 1858
+                    (Julian date was 2,400 000)
+
         Example:
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
@@ -1094,7 +1006,7 @@ class Ticktock(object):
         See Also:
         =========
         getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, geteDOY
-    
+
         Version:
         ========
         V1: 20-Jan-2010 (JK)
@@ -1104,9 +1016,9 @@ class Ticktock(object):
         if self.UTC[0] < datetime.datetime(1582,10,15):
             print("WARNING: Calendar date before the switch from Julian to Gregorian")
             print("Calendar 1582-Oct-15: Use Julian Calendar dates as input")
-            
+
         MJD = self.JD - 2400000.5
-    
+
         self.MJD = MJD
         return MJD
 
@@ -1114,36 +1026,36 @@ class Ticktock(object):
     def getUNX(self):
         """
         a.UNX or a.getUNX()
-        
+
         convert dtype data into Unix Time (Posix Time)
         seconds since 1970-Jan-1 (not counting leap seconds)
-    
+
         Input:
         ======
             - a Ticktock class instance
-            
+
         Returns:
         ========
-            - UNX (numpy array) : elapsed secs since 1970/1/1 (not counting leap secs) 
-    
+            - UNX (numpy array) : elapsed secs since 1970/1/1 (not counting leap secs)
+
         Example:
         ========
-    
+
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.UNX
         array([  1.01265120e+09])
-    
+
         See Also:
         =========
         getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-    
+
         Version:
         ========
         V1: 20-Jan-2010 (JK)
         V2: 25-Jan-2010: added array support (JK)
         V3: 18-May-2010: added sub-second support (SM)
         """
-        
+
         nTAI = len(self.data)
 
         UNX0 = datetime.datetime(1970,1,1)
@@ -1152,28 +1064,28 @@ class Ticktock(object):
         for i in np.arange(nTAI):
             d[i] = self.UTC[i] - UNX0 # timedelta object (only days, seconds, microsecs are stored)
             UNX[i] = (d[i].days)*86400 + d[i].seconds + d[i].microseconds/1.e6
-    
+
         self.UNX = UNX
         return UNX
-                
+
     # -----------------------------------------------
     def getRDT(self):
         """
         a.RDT or a.RDT()
-        
+
         convert dtype data into Rata Die (lat.) Time (days since 1/1/0001)
-    
+
         Input:
         ======
             - a Ticktock class instance
-            
+
         Returns:
         ========
-            - RDT (numpy array) : elapsed days since 1/1/1 
-    
+            - RDT (numpy array) : elapsed days since 1/1/1
+
         Example:
         ========
-    
+
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.RDT
         array([ 730883.5])
@@ -1181,16 +1093,16 @@ class Ticktock(object):
         See Also:
         =========
         getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-    
+
         Version:
         ========
         V1: 20-Jan-2010 (JK)
         V2: 25-Jan-2010: added array support (JK)
         V3: 17-May-2010: added microseconds (SM)
         """
-        
+
         import matplotlib.dates as mpd
-        
+
         nTAI = len(self.data)
         UTC = self.UTC
         #RDT = np.zeros(nTAI)
@@ -1198,86 +1110,86 @@ class Ticktock(object):
         #for i in np.arange(nTAI):
             #RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
                 #UTC[i].second/86400. + UTC[i].microsecond/86400000000.
-    
+
         self.RDT = RDT
         return RDT
-            
+
     # -----------------------------------------------
     def getUTC(self):
         """
         a.UTC or a.getUTC()
-        
+
         convert dtype data into UTC object a la datetime()
-    
+
         Input:
         ======
             - a Ticktock class instance
-            
+
         Returns:
         ========
             - UTC (list of datetime objects) : datetime object in UTC time
-    
+
         Example:
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.UTC
         [datetime.datetime(2002, 2, 2, 12, 0)]
-    
+
         See Also:
         =========
         getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-    
+
         Version:
         ========
         V1: 20-Jan-2010 (JK)
         V2: 25-Jan-2010: added array support (JK)
         V3: 17-May-2010: added microsecond ISO parsing (SM)
         """
-    
+
         fmt,fmt2 = '%Y-%m-%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S.%f'
-        
+
         nTAI = len(self.data)
-                       
+
         UTC = ['']*nTAI
         if self.dtype.upper() == 'UTC':
             UTC = self.data # return
-            
+
         elif self.dtype.upper() == 'ISO':
             for i in np.arange(nTAI):
                 if len(self.data[i])==19:
                     UTC[i] = datetime.datetime.strptime(self.data[i], fmt)
                 else:
                     UTC[i] = datetime.datetime.strptime(self.data[i], fmt2)
-            
+
         elif self.dtype.upper() == 'TAI':
             TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
             for i in np.arange(nTAI):
-                UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + TAI0                 
+                UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + TAI0
              # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
             for i in np.arange(nTAI):
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i]))
-                tmpleaps = Ticktock(self.UTC[i]).leaps 
+                tmpleaps = Ticktock(self.UTC[i]).leaps
                 if tmpleaps == leapsecs[i]-1: self.UTC[i] = self.UTC[i]+datetime.timedelta(seconds=1)
-                
-        elif self.dtype.upper() == 'GPS':   
+
+        elif self.dtype.upper() == 'GPS':
             GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
             for i in np.arange(nTAI):
-                UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + GPS0                 
+                UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + GPS0
              # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
             for i in np.arange(nTAI):
                 # there were 18 leap secinds before gps zero, need the -18 for that
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i])) + \
-                    datetime.timedelta(seconds=19)           
- 
+                    datetime.timedelta(seconds=19)
+
         elif self.dtype.upper() == 'UNX':
-            UNX0 = datetime.datetime(1970,1,1)     
+            UNX0 = datetime.datetime(1970,1,1)
             for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(seconds=self.data[i]) + UNX0 # timedelta object
-    
+
         elif self.dtype.upper() == 'RDT':
             import matplotlib.dates as mpd
             UTC = mpd.num2date(self.data)
@@ -1289,7 +1201,7 @@ class Ticktock(object):
                         #self.data[i])*86400000.)
                 # roundoff the microseconds
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
-        
+
         elif self.dtype.upper() == 'CDF':
             for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(days=self.data[i]/86400000.) + \
@@ -1299,9 +1211,9 @@ class Ticktock(object):
                         #datetime.datetime(1,1,1) - datetime.timedelta(days=366)
                 # the following has round off errors
                 # UTC[i] = datetime.timedelta(data[i]/86400000.-366) + datetime.datetime(1,1,1)
-        
+
         elif self.dtype.upper() in ['JD', 'MJD']:
-            if self.dtype.upper() == 'MJD': 
+            if self.dtype.upper() == 'MJD':
                 self.JD = np.array(self.data) + 2400000.5
             for i in np.arange(nTAI):
                 # extract partial days
@@ -1314,7 +1226,7 @@ class Ticktock(object):
                 if ja >= igreg: # after switching to Gregorian Calendar
                     jalpha = int(((ja-1867216)-0.25)/36524.25)
                     ja = ja + 1 + jalpha -jalpha/4
-    
+
                 jb = ja + 1524
                 jc = int(6680.0 + ((jb - 2439870) - 122.1) / 365.25)
                 jd = 365 * jc + jc/4
@@ -1325,7 +1237,7 @@ class Ticktock(object):
                 year = jc - 4715
                 if (month > 2): year = year-1
                 if (year <= 0): year = year-1
-    
+
                 # after http://aa.usno.navy.mil/faq/docs/JD_Formula.php
                 # also good only for after 1582-Oct-15
                 # L= JD+68569
@@ -1337,18 +1249,18 @@ class Ticktock(object):
                 # K= L-2447*J/80
                 # L= J/11
                 # J= J+2-12*L
-                # I= 100*(N-49)+I+L   
-            
+                # I= 100*(N-49)+I+L
+
                 UTC[i] = datetime.datetime(year, month, day) + datetime.timedelta(hours=12) + \
                     datetime.timedelta(seconds = p*86400)
                 if UTC[i] < datetime.datetime(1582,10,15):
                     print("WARNING: Calendar date before the switch from Julian to Gregorian")
                     print("Calendar 1582-Oct-15: Use Julian Calendar dates as input")
-    
+
         else:
             print("ERROR: Data type ", self.dtype, ' in getUTC() not supported')
             return
-    
+
         self.UTC = UTC
         return UTC
 
@@ -1356,36 +1268,36 @@ class Ticktock(object):
     def getGPS(self):
         """
         a.GPS or a.getGPS()
-        
+
         return GPS epoch (0000 UT (midnight) on January 6, 1980)
-    
+
         Input:
         ======
             - a Ticktock class instance
-            
+
         Returns:
         ========
             - GPS (numpy array) : elapsed secs since 6Jan1980 (excludes leap secs)
-    
+
         Example:
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.GPS
         array([])
-    
+
         See Also:
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
-    
+
         Version:
         ========
         V1: 20-Jan-2010 (BAL)
         V2: 17-May-2010: Added sub-second support (SM)
         """
-    
+
         fmt = '%Y-%m-%dT%H:%M:%S'
         GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
-        
+
         nGPS = len(self.data)
         GPS = np.zeros(nGPS)
         UTC = self.UTC
@@ -1405,37 +1317,37 @@ class Ticktock(object):
     def getTAI(self):
         """
         a.TAI or a.getTAI()
-        
+
         return TAI (International Atomic Time)
-    
+
         Input:
         ======
             - a Ticktock class instance
-            
+
         Returns:
         ========
-            - TAI (numpy array) : elapsed secs since 1958/1/1 (includes leap secs, 
+            - TAI (numpy array) : elapsed secs since 1958/1/1 (includes leap secs,
                     i.e. all secs have equal lengths)
-    
+
         Example:
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.TAI
         array([1391342432])
-    
+
         See Also:
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
-    
+
         Version:
         ========
         V1: 20-Jan-2010 (JK)
         V2: 25-Jan-2010: include array support (JK)
         """
-    
+
         fmt = '%Y-%m-%dT%H:%M:%S'
         TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-        
+
         nTAI = len(self.data)
         TAI = np.zeros(nTAI)
         UTC = self.UTC
@@ -1443,39 +1355,39 @@ class Ticktock(object):
         TAItup = ['']*nTAI
         for i in np.arange(nTAI):
             #t = time.strptime(data[i], fmt)
-            #dtimetup = datetime.datetime(t[0], t[1], t[2], t[3], t[4], t[5])    
+            #dtimetup = datetime.datetime(t[0], t[1], t[2], t[3], t[4], t[5])
             # get the leap seconds
             TAItup[i] = UTC[i] - TAI0 + datetime.timedelta(seconds=int(leapsec[i]))
             TAI[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
 
         self.TAI = np.array(TAI)
         return self.TAI
-    
+
     # -----------------------------------------------
     def getISO(self):
         """
         a.ISO or a.getISO()
-        
+
         convert dtype data into ISO string
-        
+
         Input:
         ======
             - a Ticktock class instance
-            
+
         Returns:
         ========
             - ISO (list of strings) : date in ISO format
-    
+
         Example:
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.ISO
         ['2002-02-02T12:00:00']
-    
+
         See Also:
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-    
+
         Version:
         ========
         V1: 20-Jan-2010 (JK)
@@ -1483,9 +1395,9 @@ class Ticktock(object):
         V3: 10-May-2010: speedup, arange to xrange (BAL)
         V4: 17-May-2010: switched to native formatting so sub-second is displayed
         """
-    
+
         nTAI = len(self.data)
-        ISO = ['']*nTAI            
+        ISO = ['']*nTAI
         for i in range(nTAI):
             ISO[i] = self.UTC[i].strftime(self.__isofmt)
 
@@ -1502,63 +1414,63 @@ class Ticktock(object):
     def getleapsecs(self):
         """
         a.leaps or a.getleapsecs()
-        
+
         retrieve leapseconds from lookup table, used in getTAI
-    
+
         Input:
         ======
             - a Ticktock class instance
-    
+
         Returns:
         ========
             - secs (numpy array) : leap seconds
-    
+
         Example:
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.leaps
         array([32])
-    
+
         See Also:
         =========
         getTAI
-    
+
         Version:
         ========
         V1: 20-Jan-2010: includes array support (JK)
         """
-    
+
         import os
         from spacepy import DOT_FLN
-        
-        
+
+
         tup = self.UTC
         # so you don't have to read the file every single time
         global secs, year, mon, day, TAIleaps
-        
+
         try:
            leaps = secs[0]
-    
+
         except:  # then we are calling this routine the 1st time
            # load current file
            fname = DOT_FLN+'/data/tai-utc.dat'
            fh = open(fname)
            text = fh.readlines()
-    
+
            secs = np.zeros(len(text))
            year = np.zeros(len(text))
            mon = np.zeros(len(text))
            day = np.zeros(len(text))
-    
+
            months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', \
                   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
-        
+
            for line, i in zip(text, np.arange(len(secs))):
               secs[i] = int(float(line.split()[6]))  # truncate float seconds
               year[i] = int(line.split()[0])
               mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
               day[i] = int(line.split()[2])
-            
+
            TAIleaps = np.zeros(len(secs))
            TAItup = ['']*len(secs)
            TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
@@ -1574,7 +1486,7 @@ class Ticktock(object):
         else:
             nTAI = len(tup)
             aflag = True
-    
+
         # convert them into a time tuple and find the correct leap seconds
         self.TAIleaps = TAIleaps
         leaps = [secs[0]]*nTAI
@@ -1584,10 +1496,10 @@ class Ticktock(object):
                     leaps[i] = s
                 else:
                     break
-              
+
         #if datetime.datetime(1971,12,31) > tup[0]:
         #   print "WARNING: date before 1972/1/1; leap seconds are by fractions off"
-           
+
         if aflag == False:
             self.leaps = int(leaps[0])
             return int(leaps[0])   # if you want to allow fractional leap seconds, remove 'int' here
@@ -1598,23 +1510,23 @@ class Ticktock(object):
     # -----------------------------------------------
     @classmethod
     def now(self):
-        """    
+        """
         Creates a Ticktock object with the current time, equivalent to dattime.now()
-        
+
         Input:
         ======
         - None
-        
+
         Version:
         ========
         V1: 24-May-2010 (BAL)
-        
+
         """
         dt = datetime.datetime.now()
         return Ticktock(dt, 'utc')
 
 
-        
+
 # -----------------------------------------------
 # End of Ticktock class
 # -----------------------------------------------
@@ -1688,7 +1600,7 @@ def doy2date(year, doy, dtobj=False, flAns=False):
     else:
         dateobj = [datetime.datetime(int(year[i]), 1, 1) +
                    datetime.timedelta(days=int(doy[i]) - 1)
-                   for i in range(n_year)]        
+                   for i in range(n_year)]
     if dtobj:
         return dateobj
     else:
@@ -1712,12 +1624,12 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     Returns:
     ========
         - ticks (Ticktock instance)
-        
+
     Example:
     ========
     >>> ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays = 1)
     >>> ticks
-    Ticktock( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00', 
+    Ticktock( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
     '2002-02-04T00:00:00'] ), dtype=ISO
 
     See Also:
@@ -1730,7 +1642,7 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     V1.1: 16-Mar-2010: fixed bug with floating point precision (JK)
     V1.2: 28-Apr-2010: added timedelta support for increment (SM)
     """
-    
+
     import datetime as dt
 
     Tstart = Ticktock(start, dtype)
@@ -1749,29 +1661,29 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     ticks = Ticktock(trange, 'UTC')
     ticks = eval('Ticktock(ticks.'+dtype+',"'+dtype+'")')
     return ticks
-    
-    
+
+
 def sec2hms(sec, rounding=True, days=False, dtobj=False):
     """Convert seconds of day to hours, minutes, seconds
-    
+
     Inputs:
     =======
-    
+
     Seconds of day
     Keyword arguments:
     rounding (True|False) - set for integer seconds
     days (True|False) - set to wrap around day (i.e. modulo 86400)
     dtobj (True|False) - set to return a timedelta object
-    
+
     Returns:
     ========
-    
+
     [hours, minutes, seconds] or datetime.timedelta
-    
+
     """
-    
+
     import datetime as dt
-    
+
     if not days:
         try:
             assert sec <= 86400
@@ -1779,7 +1691,7 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
             print("Warning: Number of seconds > seconds in day. Try days keyword.")
     else:
         sec %= 86400
-    
+
     hours = int(sec)//3600
     try:
         minutes = int((sec - hours*3600) // 60) % 60
@@ -1788,13 +1700,13 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
     seconds = sec % 60
     if rounding:
         seconds = int(round(seconds))
-    
+
     if dtobj:
         return dt.timedelta(hours=hours, minutes=minutes, seconds=seconds)
     else:
         return [hours, minutes, seconds]
-        
-    
+
+
 # -----------------------------------------------
 def test():
     """
@@ -1819,13 +1731,13 @@ def test():
     from . import time as st
     from . import toolbox as tb
     import sys, datetime
-    
+
     def timecomp(x,yarr):
         x=x[0]
         delta = datetime.timedelta(microseconds=1000000)
         truth = [(y[0] <= x + delta) & (y[0] >= x - delta) for y in yarr]
         return truth
-        
+
     # number of failures
     nFAIL = 0
 
@@ -1836,7 +1748,7 @@ def test():
     data = '2002-02-25T12:20:30.1'
     dtype = 'ISO'
     t = st.Ticktock(data,dtype)
-    
+
     out = ['']*(len(alldtypes))
     back = ['']*(len(alldtypes))
     # cycle (keep the sequence the same as in alldtypes!!)
@@ -1848,14 +1760,14 @@ def test():
     out[5] = t.getUTC()[0]
     out[6] = t.getISO()[0]
     out[7] = t.getCDF()[0]
-    
+
     # compare all to UTC (datetime format)
     for i, datatype in enumerate(alldtypes):
         back[i] = t.getUTC()[0]
     comp = [st.Ticktock(data,'ISO').getUTC()[0]]*len(alldtypes)
     #
     if back == comp and tb.feq(round(out[2],5),2452331.01424) and \
-    tb.feq(out[0],1014639630.1):  
+    tb.feq(out[0],1014639630.1):
         print("testing Ticktock: PASSED TEST simple")
     else:
         print("testing Ticktock: FAILED TEST simple")
@@ -1864,13 +1776,13 @@ def test():
     # now test the class
     foo = ['']*(len(alldtypes))
     bar = ['']*(len(alldtypes))
-    UNX = ['']*(len(alldtypes))    
-    TAI = ['']*(len(alldtypes))    
-    JD  = ['']*(len(alldtypes))    
-    MJD = ['']*(len(alldtypes))    
-    RDT = ['']*(len(alldtypes))    
-    UTC = ['']*(len(alldtypes))    
-    ISO = ['']*(len(alldtypes))   
+    UNX = ['']*(len(alldtypes))
+    TAI = ['']*(len(alldtypes))
+    JD  = ['']*(len(alldtypes))
+    MJD = ['']*(len(alldtypes))
+    RDT = ['']*(len(alldtypes))
+    UTC = ['']*(len(alldtypes))
+    ISO = ['']*(len(alldtypes))
     CDF = ['']*(len(alldtypes))
     for i, dtype in enumerate(alldtypes):
         foo[i] = st.Ticktock(out[i], dtype)
@@ -1886,8 +1798,8 @@ def test():
         UTC[i] = foo[i].getUTC()
         ISO[i] = foo[i].getISO()
         CDF[i] = foo[i].getCDF()
-    
-        
+
+
     prec = 5./86400000000.
     testTAI = np.where(tb.feq(TAI[0],TAI, precision=prec))
     testUNX = np.where(tb.feq(UNX[0],UNX, precision=prec))
@@ -1911,7 +1823,7 @@ def test():
         print("testing Ticktock: FAILED TEST all combinations")
         nFAIL =+ 1
 
-    # test with arrays 
+    # test with arrays
     try:
         for i, dtype in enumerate(alldtypes):
             foo = st.Ticktock( np.array([out[i], out[i], out[i]]), dtype)
@@ -1919,7 +1831,7 @@ def test():
     except:
         print("testing Ticktock: FAILED TEST arrays")
         nFAIL =+ 1
-        
+
     # test DOY
     try:
         foo.DOY
@@ -1927,7 +1839,5 @@ def test():
     except:
         print("testing Ticktock: FAILED TEST DOY")
         nFAIL =+ 1
-        
+
     return nFAIL
-    
-    

@@ -31,11 +31,20 @@ this reliance will be diminished.
 Contents:
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     doc_standard
-    toolbox
+    borg
+    coordinates
     datamodel
+    empiricals
+    omni
+    poppy
+    radbelt
+    seapy
+    time
+    toolbox
+
 
 
 
