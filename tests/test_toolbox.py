@@ -39,33 +39,62 @@ class PickleAssembleTests(unittest.TestCase):
         self.all = {'names':['John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce'],
                     'TAI':[1,2,3,4,5,6,7,8,9]}
 
-        try:  # make sure test file is gone before test
-            os.remove('test_pickle_1.pkl')
-            os.remove('test_pickle_2.pkl')
-            os.remove('test_pickle_3.pkl')
-        except:
-            pass
-
+        # make sure test file is gone before test
+        self.tearDown()
 
     def tearDown(self):
         super(PickleAssembleTests, self).tearDown()
         try:  # make sure test file is gone before test
             os.remove('test_pickle_1.pkl')
+        except:
+            pass
+        try:
             os.remove('test_pickle_2.pkl')
+        except:
+            pass
+        try:
             os.remove('test_pickle_3.pkl')
+        except:
+            pass
+        try:
             os.remove('test_all.pkl')
         except:
             pass
-
+        try:
+            os.remove('test_pickle_1.pkl.gz')
+        except:
+            pass
+        try:
+            os.remove('test_pickle_2.pkl.gz')
+        except:
+            pass
+        try:
+            os.remove('test_pickle_3.pkl.gz')
+        except:
+            pass
+        try:
+            os.remove('test_all.pkl.gz')
+        except:
+            pass
 
     def testSaveLoadPickle(self):
         """savePickle should write a pickle to disk and loadPickle should load it"""
-
         tb.savepickle('test_pickle_1.pkl', self.D1)
         files = glob.glob('*.pkl')
         self.assertTrue('test_pickle_1.pkl' in files)
         DD = tb.loadpickle('test_pickle_1.pkl')
         self.assertEqual(self.D1, DD)
+
+    def testSaveLoadPickleCompress(self):
+        """savePickle should write a pickle to disk and loadPickle should load it (compressed)"""
+        tb.savepickle('test_pickle_1.pkl', self.D1, compress=True)
+        files = glob.glob('*.pkl.gz')
+        self.assertTrue('test_pickle_1.pkl.gz' in files)
+        DD = tb.loadpickle('test_pickle_1.pkl')
+        self.assertEqual(self.D1, DD)
+        # this doesn't but should also work
+        # DD = tb.loadpickle('test_pickle_1.pkl.gz')
+        # self.assertEqual(self.D1, DD)
 
     def test_assemble(self):
         tb.savepickle('test_pickle_1.pkl', self.D1)
@@ -77,7 +106,6 @@ class PickleAssembleTests(unittest.TestCase):
             result[key] = result[key].tolist()
 
         self.assertEqual(expected, result)
-
 
 
 class SimpleFunctionTests(unittest.TestCase):
@@ -305,6 +333,8 @@ class tFunctionTests(unittest.TestCase):
                      for val in range(100)]
         self.dt_b = [dt1 + datetime.timedelta(hours=val)
                      for val in range(-20, 20)]
+        self.dt_b2 = [dt1 + datetime.timedelta(hours=val)
+                     for val in range(-20, -2)]
 
     def tearDown(self):
         super(tFunctionTests, self).tearDown()
@@ -317,6 +347,7 @@ class tFunctionTests(unittest.TestCase):
                      30, 31, 32, 33, 34, 35, 36, 37, 38, 39])
         ans = tb.tOverlap(self.dt_a, self.dt_b)
         self.assertEqual(real_ans, ans)
+        self.assertEqual( (None, None), tb.tOverlap(self.dt_a, self.dt_b2) )
 
     def test_tOverlap_random(self):
         """Shuffle input before calling tOverlap"""
@@ -384,7 +415,51 @@ class tFunctionTests(unittest.TestCase):
         ans = tb.tCommon(self.dt_a, self.dt_b)
         self.assertEqual(real_ans[0].tolist(), ans[0].tolist())
         self.assertEqual(real_ans[1].tolist(), ans[1].tolist())
-
+        real_ans2 = ([datetime.datetime(2000, 11, 12, 0, 0),
+            datetime.datetime(2000, 11, 12, 1, 0, ),
+            datetime.datetime(2000, 11, 12, 2, 0, ),
+            datetime.datetime(2000, 11, 12, 3, 0, ),
+            datetime.datetime(2000, 11, 12, 4, 0, ),
+            datetime.datetime(2000, 11, 12, 5, 0, ),
+            datetime.datetime(2000, 11, 12, 6, 0, ),
+            datetime.datetime(2000, 11, 12, 7, 0, ),
+            datetime.datetime(2000, 11, 12, 8, 0, ),
+            datetime.datetime(2000, 11, 12, 9, 0, ),
+            datetime.datetime(2000, 11, 12, 10, 0, ),
+            datetime.datetime(2000, 11, 12, 11, 0, ),
+            datetime.datetime(2000, 11, 12, 12, 0, ),
+            datetime.datetime(2000, 11, 12, 13, 0, ),
+            datetime.datetime(2000, 11, 12, 14, 0, ),
+            datetime.datetime(2000, 11, 12, 15, 0, ),
+            datetime.datetime(2000, 11, 12, 16, 0, ),
+            datetime.datetime(2000, 11, 12, 17, 0, ),
+            datetime.datetime(2000, 11, 12, 18, 0, ),
+            datetime.datetime(2000, 11, 12, 19, 0, )],
+           [datetime.datetime(2000, 11, 12, 0, 0, ),
+            datetime.datetime(2000, 11, 12, 1, 0, ),
+            datetime.datetime(2000, 11, 12, 2, 0, ),
+            datetime.datetime(2000, 11, 12, 3, 0, ),
+            datetime.datetime(2000, 11, 12, 4, 0, ),
+            datetime.datetime(2000, 11, 12, 5, 0, ),
+            datetime.datetime(2000, 11, 12, 6, 0, ),
+            datetime.datetime(2000, 11, 12, 7, 0, ),
+            datetime.datetime(2000, 11, 12, 8, 0, ),
+            datetime.datetime(2000, 11, 12, 9, 0, ),
+            datetime.datetime(2000, 11, 12, 10, 0, ),
+            datetime.datetime(2000, 11, 12, 11, 0, ),
+            datetime.datetime(2000, 11, 12, 12, 0, ),
+            datetime.datetime(2000, 11, 12, 13, 0, ),
+            datetime.datetime(2000, 11, 12, 14, 0, ),
+            datetime.datetime(2000, 11, 12, 15, 0, ),
+            datetime.datetime(2000, 11, 12, 16, 0, ),
+            datetime.datetime(2000, 11, 12, 17, 0, ),
+            datetime.datetime(2000, 11, 12, 18, 0, ),
+            datetime.datetime(2000, 11, 12, 19, 0, )])
+        ans = tb.tCommon(self.dt_a, self.dt_b, mask_only=False)
+        ans0 = [val.replace(tzinfo=None) for val in ans[0]]
+        ans1 = [val.replace(tzinfo=None) for val in ans[1]]
+        self.assertEqual(real_ans2[0], ans0)
+        self.assertEqual(real_ans2[1], ans1)
 
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""
