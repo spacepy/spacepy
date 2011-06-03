@@ -51,9 +51,16 @@ def get_omni(ticks):
     V1: 26-Jan-2010 (JK)
     V1.1: 11-Mar-2010: fixed bug in get_omni; will now return the correct 6_status, 8_status (JK)
     V1.2: 11-Jun-2010: rewrote status information and put into 'Qbits' (JK)
+    V1.3: 3-Jun-2011: allow lists of datetime objects as input times (SM)
     """
 
     import spacepy.time as st
+
+    if not isinstance(ticks, st.Ticktock):
+        try:
+            ticks = st.Ticktock(ticks, 'UTC')
+        except:
+            raise TypeError('get_omni: Input times must be a Ticktock object or a list of datetime objects')
 
     # extract RTD from ticks
     RDTvals = ticks.RDT
