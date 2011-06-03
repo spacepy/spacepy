@@ -17,6 +17,9 @@ and can be launched by typing:
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 
+import os
+import os.path
+
 def help():
     """Launches web browser with local HTML help"""
     
