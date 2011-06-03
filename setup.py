@@ -46,10 +46,6 @@ def subst(pattern, replacement, filestr,
 # -------------------------------------
 
 
-#import tooblox by reading file from repository
-# this will provide mostly the query_yes_no function and update()
-exec(compile(open('spacepy/toolbox.py').read(), 'spacepy/toolbox.py', 'exec'))
-
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
 
@@ -265,55 +261,8 @@ class install(_install):
 
         _install.run(self)
 
-        # create .spacepy in $HOME and move data
-        # read-in .rc file first
-        exec(compile(open('spacepy/data/spacepy.rc').read(), 'spacepy/data/spacepy.rc', 'exec'))
-        if 'SPACEPY' in ENVIRON:
-            DOT_FLN = os.path.join(ENVIRON['SPACEPY'], '.spacepy')
-        else:
-            DOT_FLN = os.path.join(ENVIRON['HOME'], '.spacepy')
-
-        if os.path.exists(DOT_FLN):
-            ans = query_yes_no('\n'+DOT_FLN+' already exists. Do you want to start fresh?', default="no")
-            if ans=='no':
-                fresh_install = False
-            else:
-                fresh_install = True
-                i = 0
-                while os.path.exists(DOT_FLN + '.bak.' + str(i)):
-                    i += 1
-                shutil.move(DOT_FLN, DOT_FLN+'.bak.'+str(i))
-        else:
-            fresh_install = True
-
-        if fresh_install:
-            os.mkdir(DOT_FLN)
-            os.chmod(DOT_FLN, 0o777)
-            datadir = os.path.join(DOT_FLN, 'data')
-            os.mkdir(datadir)
-            os.chmod(datadir, 0o777)
-            shutil.copy(os.path.join('spacepy', 'data', 'spacepy.rc'), DOT_FLN)
-            shutil.copy(os.path.join('spacepy', 'data', 'tai-utc.dat'),
-                        datadir)
-
-        # update/download packages
-        if sys.version_info[0]<3:
-            if fresh_install:
-                dir = update()
-                print("Data installed to " + dir)
-            else:
-                ans = query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no")
-                if ans=='yes':
-                    dir = update()
-                else:
-                    print("\nRemember to update OMNI and leap seconds table occasionally by running spacepy.toolbox.update()")
-        else:
-            print('''Updating OMNI and leap seconds on install is not currently supported for Python 3.X.''')
-        print("\nThanks for installing SpacePy.")
-
-
 pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'LANLstar/*.py', 'LANLstar/libLANLstar.so', 
-    'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'libspacepy/*spacepy*',]
+    'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'libspacepy/*spacepy*', 'data/*']
 
 # run setup from distutil
 setup(name='spacepy',
