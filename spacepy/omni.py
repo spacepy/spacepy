@@ -58,7 +58,7 @@ def get_omni(ticks):
         try:
             ticks = st.Ticktock(ticks, 'UTC')
         except:
-            raise TypeError('get_omni: Input times must be a Ticktock object or a list of datetime objects'
+            raise TypeError('get_omni: Input times must be a Ticktock object or a list of datetime objects')
 
     # extract RTD from ticks
     RDTvals = ticks.RDT
