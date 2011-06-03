@@ -13,6 +13,7 @@ Los ALamos National Laboratory
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 import numpy as np
+from spacepy.datamodel import SpaceData, dmarray
 
 # -----------------------------------------------
 def get_omni(ticks):
@@ -49,7 +50,7 @@ def get_omni(ticks):
     V1: 26-Jan-2010 (JK)
     V1.1: 11-Mar-2010: fixed bug in get_omni; will now return the correct 6_status, 8_status (JK)
     V1.2: 11-Jun-2010: rewrote status information and put into 'Qbits' (JK)
-    V1.3: 3-Jun-2011: allow lists of datetime objects as input times (SM)
+    V1.3: 3-Jun-2011: allow lists of datetime objects as input times, and use datamodel for storage (SM)
     """
 
     import spacepy.time as st
@@ -70,21 +71,29 @@ def get_omni(ticks):
     omnikeys.remove('RDT')
     omnikeys.remove('ticks')
 
-    omnival = {}
+    omnival = SpaceData(attrs={'URL': 'http://virbo.org/QinDenton'})
     for key in omnikeys:
-        omnival[key] = np.interp(RDTvals, omnidata['RDT'], omnidata[key], left=np.NaN, right=np.NaN)
+        omnival[key] = dmarray(np.interp(RDTvals, omnidata['RDT'], omnidata[key], left=np.NaN, right=np.NaN))
+        #set attributes/units
+        if ('B' in key) or ('Dst' in key):
+            omnival[key].attrs['Units'] = 'nT'
+        elif 'dens' in key:
+            omnival[key].attrs['Units'] = 'cm^{-3}'
+        elif 'Pdyn' in key:
+            omnival[key].attrs['Units'] = 'nPa'
+
     
     # interpolate in Quality bits as well
-    omnival['Qbits'] = {}
+    omnival['Qbits'] = SpaceData()
     for key in omnidata['Qbits'].keys():
-        omnival['Qbits'][key] = np.interp(RDTvals, omnidata['RDT'], omnidata['Qbits'][key], \
-            left=np.NaN, right=np.NaN)
+        omnival['Qbits'][key] = dmarray(np.interp(RDTvals, omnidata['RDT'], omnidata['Qbits'][key], \
+            left=np.NaN, right=np.NaN))
         #floor interpolation values
         omnival['Qbits'][key] = omnival['Qbits'][key].astype('int')
         
     # add time information back in
     omnival['UTC'] = ticks.UTC
-    omnival['RDT'] = ticks.RDT
+    omnival['RDT'] = ticks.RDT #TODO:do we need this, since it's already in ticks?
     omnival['ticks'] = ticks
     
     # return warning if values outside of omni data range
