@@ -54,7 +54,7 @@ def get_omni(ticks):
 
     import spacepy.time as st
 
-    if not isinstance(ticks, st.TickTock):
+    if not isinstance(ticks, st.Ticktock):
         try:
             ticks = st.Ticktock(ticks, 'UTC')
         except:
