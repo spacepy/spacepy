@@ -278,7 +278,13 @@ class Ticktock(collections.MutableSequence):
     def __init__(self, data, dtype=None):
         from numpy import ndarray
         from datetime import datetime
-        self.data = dmarray(data)
+        try:
+            dmarray(data)[0]
+        except IndexError:
+            self.data = dmarray([data])
+        else:
+            self.data = dmarray(data)
+        
         #if isinstance(data, ndarray):
         #    self.data = data
         #elif isinstance(data, (bytes, str)):
