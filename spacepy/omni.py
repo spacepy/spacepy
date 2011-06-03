@@ -40,8 +40,10 @@ def get_omni(ticks):
 
     Example:
     ========
-    >>> tick = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> d = get_omni(tick)
+    >>> import spacepy.time as spt
+    >>> import spacepy.omni as om
+    >>> ticks = spt.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
+    >>> d = om.get_omni(ticks)
     
     
     Version:
