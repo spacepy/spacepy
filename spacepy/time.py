@@ -91,9 +91,9 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from spacepy import help
-import datetime
+from spacepy.datamodel import dmarray
+import datetime, collections
 import numpy as np
-__version__ = "$Revision: 1.37 $, $Date: 2011/05/31 20:25:32 $"
 
 
 # -----------------------------------------------
@@ -232,7 +232,7 @@ class Tickdelta(object):
 # -----------------------------------------------
 # Ticktock class
 # -----------------------------------------------
-class Ticktock(object):
+class Ticktock(collections.MutableSequence):
     """
     Ticktock( data, dtype )
 
@@ -278,15 +278,16 @@ class Ticktock(object):
     def __init__(self, data, dtype=None):
         from numpy import ndarray
         from datetime import datetime
-        if isinstance(data, ndarray):
-            self.data = data
-        elif isinstance(data, (bytes, str)):
-            self.data = [data]
-        else:
-            try:
-                self.data = list(data)
-            except TypeError:
-                self.data = [data]
+        self.data = dmarray(data)
+        #if isinstance(data, ndarray):
+        #    self.data = data
+        #elif isinstance(data, (bytes, str)):
+        #    self.data = [data]
+        #else:
+        #    try:
+        #        self.data = list(data)
+        #    except TypeError:
+        #        self.data = [data]
         # make some educated guess on the format if dtype not provided
         if isinstance(self.data[0], str):
             dtype = 'ISO'
@@ -295,8 +296,8 @@ class Ticktock(object):
         elif self.data[0] > 1e13:
             dtype = 'CDF'
         keylist = ['UTC','TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS']
-        assert dtype.upper() in keylist, "data type "+self.dtype+" not provided, only "+str(keylist)
-        self.dtype = dtype.upper()
+        assert dtype.upper() in keylist, "data type " + dtype +" not provided, only "+str(keylist)
+        self.data.attrs['dtype'] = dtype.upper()
         self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
         self.__isofmt = self.__isoformatstr['seconds']
 
@@ -315,8 +316,8 @@ class Ticktock(object):
         if dtype.upper() == 'UNX': self.UNX = self.data
         if dtype.upper() == 'RDT': self.RDT = self.data
         if dtype.upper() == 'CDF': self.CDF = self.data
-        self.UTC = self.getUTC()
-        self.shape = (len(self.data), )
+        if dtype.upper() == 'UTC': self.UTC = self.data
+        
         return
 
     # -----------------------------------------------
@@ -335,9 +336,9 @@ class Ticktock(object):
         ========
         >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
         >>> a
-        Ticktock( ['2002-02-02T12:00:00'] ), dtype=ISO
+        Ticktock( ['2002-02-02T12:00:00'], dtype=ISO)
         """
-        return 'Ticktock( '+str(self.data) + ' ), dtype='+str(self.dtype)
+        return 'Ticktock( '+str(self.data) + ', dtype='+str(self.data.attrs['dtype'])
     __repr__ = __str__
 
     # -----------------------------------------------
@@ -384,12 +385,8 @@ class Ticktock(object):
         a.__setitem__
 
         """
-        arr = np.array(self.data)
 
-        if isinstance(idx, int):
-            return Ticktock(arr[idx], self.dtype)
-        else:
-            return Ticktock(arr[idx].tolist(), self.dtype)
+        return self.UTC[idx]
 
     # -----------------------------------------------
     def __setitem__(self, idx, vals):
@@ -414,11 +411,21 @@ class Ticktock(object):
         ========
         a.__getitem__
         """
-        self.data[idx] = vals
+        self[idx] = vals
         self.update_items(self, 'data')
 
         return
 
+    # -----------------------------------------------
+    def __delitem__(self, idx):
+        """
+        a.__delitem(index)
+        
+        will be called when deleting items in the sequence
+        """
+        del self.data[idx]
+        self.update_items(self, 'data')
+    
     # -----------------------------------------------
     def __len__(self):
         """
@@ -534,8 +541,8 @@ class Ticktock(object):
             for i in range(nTAI):
                 newUTC[i] = self.UTC[i] - other.timedelta
             newobj = Ticktock(newUTC, 'UTC')
-            newobj.data = eval('newobj.get'+self.dtype+'()')
-            newobj.dtype = self.dtype
+            newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
+            newobj.dtype = self.data.attrs['dtype']
             newobj.update_items(self, 'data')
             return newobj
 
@@ -578,8 +585,8 @@ class Ticktock(object):
             for i in range(nTAI):
                 newUTC[i] = self.UTC[i] + other.timedelta
             newobj = Ticktock(newUTC, 'UTC')
-            newobj.data = eval('newobj.get'+self.dtype+'()')
-            newobj.dtype = self.dtype
+            newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
+            newobj.dtype = self.data.attrs['dtype']
             newobj.update_items(self, 'data')
             return newobj
 
@@ -630,6 +637,23 @@ class Ticktock(object):
         return eval('self.'+name)
 
     # -----------------------------------------------
+    def insert(self, idx, val, dtype=None):
+
+        #TODO: Fix so that this works for dtypre other than that of self.data
+        if not dtype:
+            dtype = 'data'
+            tsys = self.data.attrs['dtype']
+        else:
+            tsys = dtype
+        #try:
+        #    dum = eval('self.' + dtype)
+        #except:
+        #    raise AttributeError('Invalid time system selected')
+        self.data = eval('np.insert(self.' + dtype  + ', idx, val)')
+        self.data.attrs['dtype'] = tsys
+        self.update_items(self, tsys)
+
+    # -----------------------------------------------
     def sort(self):
         """
         a.sort()
@@ -638,7 +662,7 @@ class Ticktock(object):
         """
         RDT = self.RDT
         RDTsorted = np.sort(RDT)
-        tmp = Ticktock(RDTsorted, 'RDT').convert(self.dtype)
+        tmp = Ticktock(RDTsorted, 'RDT').convert(self.data.attrs['dtype'])
         self.data = tmp.data
         self.update_items(self, 'data')
         return
@@ -706,7 +730,7 @@ class Ticktock(object):
         __sub__
         """
         keylist = list(cls.__dict__.keys())
-        keylist.remove('dtype')
+        #keylist.remove('dtype')
         keylist.remove('data')
         if attrib is not 'data': keylist.remove(attrib)
 
@@ -723,6 +747,7 @@ class Ticktock(object):
             if key.upper() == 'eDOY': self.eDOY = self.geteDOY()
             if key.upper() == 'GPS' : self.GPS = self.getGPS()
             if key == 'leaps': self.leaps = self.getleapsecs()
+
         return
 
     # -----------------------------------------------
@@ -772,8 +797,8 @@ class Ticktock(object):
         other: Ticktock
             other (Ticktock instance)
         """
-        otherdata = eval('other.'+self.dtype)
-        newobj = Ticktock(np.append(self.data, otherdata), dtype=self.dtype)
+        otherdata = eval('other.'+self.data.attrs['dtype'])
+        newobj = Ticktock(np.append(self.data, otherdata), dtype=self.data.attrs['dtype'])
         return newobj
 
     # -----------------------------------------------
@@ -1151,17 +1176,17 @@ class Ticktock(object):
         nTAI = len(self.data)
 
         UTC = ['']*nTAI
-        if self.dtype.upper() == 'UTC':
+        if self.data.attrs['dtype'].upper() == 'UTC':
             UTC = self.data # return
 
-        elif self.dtype.upper() == 'ISO':
+        elif self.data.attrs['dtype'].upper() == 'ISO':
             for i in np.arange(nTAI):
                 if len(self.data[i])==19:
                     UTC[i] = datetime.datetime.strptime(self.data[i], fmt)
                 else:
                     UTC[i] = datetime.datetime.strptime(self.data[i], fmt2)
 
-        elif self.dtype.upper() == 'TAI':
+        elif self.data.attrs['dtype'].upper() == 'TAI':
             TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
             for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + TAI0
@@ -1173,7 +1198,7 @@ class Ticktock(object):
                 tmpleaps = Ticktock(self.UTC[i]).leaps
                 if tmpleaps == leapsecs[i]-1: self.UTC[i] = self.UTC[i]+datetime.timedelta(seconds=1)
 
-        elif self.dtype.upper() == 'GPS':
+        elif self.data.attrs['dtype'].upper() == 'GPS':
             GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
             for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + GPS0
@@ -1185,12 +1210,12 @@ class Ticktock(object):
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i])) + \
                     datetime.timedelta(seconds=19)
 
-        elif self.dtype.upper() == 'UNX':
+        elif self.data.attrs['dtype'].upper() == 'UNX':
             UNX0 = datetime.datetime(1970,1,1)
             for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(seconds=self.data[i]) + UNX0 # timedelta object
 
-        elif self.dtype.upper() == 'RDT':
+        elif self.data.attrs['dtype'].upper() == 'RDT':
             import matplotlib.dates as mpd
             UTC = mpd.num2date(self.data)
             UTC = [t.replace(tzinfo=None) for t in UTC]
@@ -1202,7 +1227,7 @@ class Ticktock(object):
                 # roundoff the microseconds
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
 
-        elif self.dtype.upper() == 'CDF':
+        elif self.data.attrs['dtype'].upper() == 'CDF':
             for i in np.arange(nTAI):
                 UTC[i] = datetime.timedelta(days=self.data[i]/86400000.) + \
                         datetime.datetime(1,1,1) - datetime.timedelta(days=366)
@@ -1212,8 +1237,8 @@ class Ticktock(object):
                 # the following has round off errors
                 # UTC[i] = datetime.timedelta(data[i]/86400000.-366) + datetime.datetime(1,1,1)
 
-        elif self.dtype.upper() in ['JD', 'MJD']:
-            if self.dtype.upper() == 'MJD':
+        elif self.data.attrs['dtype'].upper() in ['JD', 'MJD']:
+            if self.data.attrs['dtype'].upper() == 'MJD':
                 self.JD = np.array(self.data) + 2400000.5
             for i in np.arange(nTAI):
                 # extract partial days
@@ -1258,9 +1283,10 @@ class Ticktock(object):
                     print("Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         else:
-            print("ERROR: Data type ", self.dtype, ' in getUTC() not supported')
+            print("ERROR: Data type ", self.data.attrs['dtype'], ' in getUTC() not supported')
             return
 
+        UTC = dmarray(UTC, attrs={'System': 'UTC'})
         self.UTC = UTC
         return UTC
 
