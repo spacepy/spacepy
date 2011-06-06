@@ -3,11 +3,11 @@
 
 """PoPPy -- Point Processes in Python.
 
-This module contains point process class types and a variety of functions for 
-association analysis. The routines given here grew from work presented by 
-Morley and Freeman (Geophysical Research Letters, 34, L08104, doi:10.1029/ 
+This module contains point process class types and a variety of functions for
+association analysis. The routines given here grew from work presented by
+Morley and Freeman (Geophysical Research Letters, 34, L08104, doi:10.1029/
 2006GL028891, 2007), which were originally written in IDL. This module is
-intended for application to discrete time series of events to assess 
+intended for application to discrete time series of events to assess
 statistical association between the series and to calculate confidence limits.
 Any mis-application or mis-interpretation by the user is the user's own fault.
 
@@ -22,7 +22,7 @@ shows timing.
 >>> ticksR1 = spt.Ticktock(tr_list, 'CDF')
 
 Each instance must be initialized
-        
+
 >>> lags = [dt.timedelta(minutes=n) for n in xrange(-400,401,2)]
 >>> halfwindow = dt.timedelta(minutes=10)
 >>> pp1 = poppy.PPro(onsets.UTC, ticksR1.UTC, lags, halfwindow)
@@ -30,7 +30,7 @@ Each instance must be initialized
 To perform association analysis
 
 >>> pp1.assoc()
-Starting association analysis                     
+Starting association analysis
 calculating association for series of length [3494, 1323] at 401 lags
 >>> t1 = dt.datetime.now()
 >>> print("Elapsed:  " + str(t1-t0))
@@ -85,25 +85,26 @@ class PPro(object):
     Includes method to perform association analysis of input series
 
     Output can be nicely plotted with plot method
-    
+
     """
     #NB: P2 is the "master" timescale, P1 gets shifted by lags
     #Add lag to p1 to reach p2's timescale, subtract lag from p2 to reach p1's
-    
-    def __init__(self, process1, process2, lags=None, winhalf=None):
+
+    def __init__(self, process1, process2, lags=None, winhalf=None, verbose=False):
         self.process1 = process1
         self.process2 = process2
         self.lags = lags
         self.winhalf = winhalf
-    
+        self.verbose = verbose
+
     def __str__(self):
         """String Representation of PoPPy object"""
-        
+
         try:
             pk = max(self.assoc_total)
         except AttributeError:
             pk = 'N/A'
-            
+
         try:
             asy = self.asympt_assoc
         except:
@@ -113,20 +114,20 @@ class PPro(object):
         return """Point Process Object:
         Points in process #1 - %d ; Points in process #2 - %d
         Peak association number - %s ; Asymptotic association - %s
-        """ % (len(self.process1), len(self.process2))
-    
+        """ % (len(self.process1), len(self.process2), pk, asy)
+
     __repr__ = __str__
-    
+
     def __len__(self):
         """Calling len(obj) will return the number of points in process 1"""
-        
+
         return len(self.process1)
-        
+
     def swap(self):
         """Swaps process 1 and process 2"""
         self.process1, self.process2 = self.process2, self.process1
         return None
-        
+
     def assoc(self, u=None, h=None):
         """Perform association analysis on input series
 
@@ -134,7 +135,7 @@ class PPro(object):
         @type u: list
         @param h: association window half-width, same type as L{process1}
         """
-        
+
         #check for existence of lags and winhalf
         try:
             if u:
@@ -143,10 +144,14 @@ class PPro(object):
             if h != None:
                 self.winhalf = h
             assert self.winhalf != None
-            print('calculating association for series of length %s at %d lags' \
-                % ([len(self.process1), len(self.process2)], len(self.lags)))
+            if self.verbose:
+                print('calculating association for series of length %s at %d lags' \
+                    % ([len(self.process1), len(self.process2)], len(self.lags)))
         except:
-            return 'assoc error: attributes lags and winhalf must be populated'
+            if self.verbose:
+                return 'assoc error: attributes lags and winhalf must be populated'
+            else:
+                return None
 
         import matplotlib as mpl
         from matplotlib import mlab
@@ -154,7 +159,7 @@ class PPro(object):
             dtype = 'int64'
         else:
             dtype = 'int' + str(ctypes.sizeof(ctypes.c_long) * 8)
-        
+
         ##Method 1 - use tb.tOverlap
         #create list for association number
         self.n_assoc = np.empty((len(self.lags), len(self.process1)),
@@ -262,16 +267,16 @@ class PPro(object):
         plt.ylabel(ylabel)
         if cbar_label == None:
             if plt.rcParams['text.usetex']:
-                cbar_label = r'\% confident above asymptotic association'    
+                cbar_label = r'\% confident above asymptotic association'
             else:
-                cbar_label = r'% confident above asymptotic association'    
+                cbar_label = r'% confident above asymptotic association'
         plt.colorbar(cax, fraction=0.05).set_label(cbar_label)
         return fig
-    
+
     def plot(self, figsize=None, dpi=80, asympt=True, show=True, norm=True,
              xlabel='Time lag', xscale=None, ylabel=None, title=None, transparent=True):
         """Create basic plot of association analysis.
-        
+
         Uses object attributes created by the L{assoc} method and,
         optionally, L{aa_ci}.
 
@@ -300,14 +305,14 @@ class PPro(object):
             dum = self.n_assoc
         except AttributeError:
             return 'Error: No association analysis results to plot'
-        
+
         import datetime as dt
         import matplotlib as mpl
         import matplotlib.pyplot as plt
-        
+
         fig = plt.figure(figsize=figsize, dpi=dpi)
         ax0 = fig.add_subplot(111)
-        
+
         #fix such that self.lags (a timedelta) are converted to a time
         if type(self.lags[0]) == dt.timedelta:
             x = [i.seconds/60 + i.days*1440. for i in self.lags]
@@ -332,7 +337,7 @@ class PPro(object):
                 pass
             asympt_assoc = self.asympt_assoc
             assoc_total = self.assoc_total
-        
+
         if ci != None:
             if transparent:
                 ax0.fill_between(x, ci[0], ci[1],
@@ -342,7 +347,7 @@ class PPro(object):
                                  edgecolor='none', facecolor='#ABABFF')
         else:
             print('Error: No confidence intervals to plot - skipping')
-        
+
         ax0.plot(x, assoc_total, 'b-', lw=1.0)
         if asympt:
             ax0.plot([x[0], x[-1]], [asympt_assoc]*2, 'r--', lw=1.0)
@@ -361,19 +366,19 @@ class PPro(object):
         plt.xlabel(xlabel)
         if title != None:
             plt.title(title)
-        
+
         if show:
             plt.show()
             return None
         else:
             return fig
-    
+
     def aa_ci(self, inter, n_boots=1000, seed=None):
         """Get bootstrap confidence intervals for association number
-        
+
         Requires input of desired confidence interval, e.g.,
         >>> obj.aa_ci(95)
-        
+
         Upper and lower confidence limits are added to the ci attribute
 
         Attribute conf_above will contain the confidence (in percent) that
@@ -398,7 +403,7 @@ class PPro(object):
         @type seed: int
         """
         lags = self.lags
-        
+
         ci_low = np.empty([len(lags)])
         ci_high = np.empty([len(lags)])
         conf_above = np.empty([len(lags)])
@@ -545,17 +550,17 @@ def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
 
 def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     """Construct bootstrap confidence interval
-    
+
     The bootstrap is a statistical tool that uses multiple samples derived from
-    the original data (called surrogates) to estimate a parameter of the 
+    the original data (called surrogates) to estimate a parameter of the
     population from which the sample was drawn. This assumes that the sample is
     randomly drawn and hence is representative of the underlying distribution.
-    The benefit of the bootstrap is that it is non-parametric and can be 
-    applied in situations where there is reasonable doubt about the 
+    The benefit of the bootstrap is that it is non-parametric and can be
+    applied in situations where there is reasonable doubt about the
     characteristics of the underlying distribution. This routine uses the boot-
-    strap for its most common application - the estimation of confidence 
+    strap for its most common application - the estimation of confidence
     intervals.
-    
+
     Example:
     ========
     >>> data, n = numpy.random.lognormal(mean=5.1, sigma=0.3, size=3000), 4000.
@@ -565,22 +570,22 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     (163.96354196633686, 165.2393331896551, 166.60491435416566) iter. 1
     ... repeat
     (162.50379144492726, 164.15218265100233, 165.42840588032755) iter. 2
-    
+
     For comparison:
     ===============
     >>> data = numpy.random.lognormal(mean=5.1, sigma=0.3, size=90000)
     >>> numpy.median(data)
     163.83888237895815
-    
+
     Note that the true value of the desired quantity may lie outside the
     95% confidence interval one time in 20 realizations. This occurred
     for the first iteration here.
-    
+
     For the lognormal distribution, the median is found exactly by taking
     the exponential of the "mean" parameter. Thus here, the theoretical
     median is 164.022 (6 s.f.) and this is well captured by the above
     bootstrap confidence interval.
-    
+
     @param data: data to bootstrap
     @type data: sequence
     @param n: number of surrogate series to select, i.e. number of bootstrap
