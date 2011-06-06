@@ -82,7 +82,7 @@ And so on.
 
 Authors:
 --------
-Josef Koller, Brian Larsen, Steve Morley, Jon Niehof
+Josef Koller, Steve Morley, Brian Larsen, Jon Niehof
 
 jkoller@lanl.gov,
 Los Alamos National Laboratory
@@ -285,16 +285,6 @@ class Ticktock(collections.MutableSequence):
         else:
             self.data = dmarray(data)
         
-        #if isinstance(data, ndarray):
-        #    self.data = data
-        #elif isinstance(data, (bytes, str)):
-        #    self.data = [data]
-        #else:
-        #    try:
-        #        self.data = list(data)
-        #    except TypeError:
-        #        self.data = [data]
-        # make some educated guess on the format if dtype not provided
         if isinstance(self.data[0], str):
             dtype = 'ISO'
         elif isinstance(self.data[0], datetime):
@@ -312,8 +302,7 @@ class Ticktock(collections.MutableSequence):
                 for i in range(len(self.data)):
                     self.data[i] = self.data[i].split('Z')[0]
             if self.data[0].find('T') == -1: # then assume midnight
-                for i in range(len(self.data)):
-                    self.data[i] = self.data[i]+'T00:00:00'
+                self.data = dmarray([el + 'T00:00:00' for el in self.data], attrs={'dtype': dtype.upper()})
             self.ISO = self.data
             self.update_items(self, 'data')
         if dtype.upper() == 'TAI': self.TAI = self.data
@@ -877,7 +866,7 @@ class Ticktock(collections.MutableSequence):
         geteDOY
         """
         nTAI = len(self.data)
-        DOY = np.zeros(nTAI)
+        DOY = dmarray(np.zeros(nTAI))
 
         for i in np.arange(nTAI):
             DOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal() + 1
@@ -917,7 +906,7 @@ class Ticktock(collections.MutableSequence):
         """
 
         nTAI = len(self.data)
-        eDOY = np.zeros(nTAI)
+        eDOY = dmarray(np.zeros(nTAI))
 
         for i in np.arange(nTAI):
             eDOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal()
@@ -970,7 +959,7 @@ class Ticktock(collections.MutableSequence):
             print("    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         # include offset if given
-        JD = np.zeros(nTAI)
+        JD = dmarray(np.zeros(nTAI))
         for i in np.arange(nTAI):
             offset = UTCdata[i].utcoffset()
             if offset:
@@ -1091,7 +1080,7 @@ class Ticktock(collections.MutableSequence):
 
         UNX0 = datetime.datetime(1970,1,1)
         d = ['']*nTAI
-        UNX = np.zeros(nTAI)
+        UNX = dmarray(np.zeros(nTAI))
         for i in np.arange(nTAI):
             d[i] = self.UTC[i] - UNX0 # timedelta object (only days, seconds, microsecs are stored)
             UNX[i] = (d[i].days)*86400 + d[i].seconds + d[i].microseconds/1.e6
@@ -1137,7 +1126,7 @@ class Ticktock(collections.MutableSequence):
         nTAI = len(self.data)
         UTC = self.UTC
         #RDT = np.zeros(nTAI)
-        RDT = mpd.date2num(UTC)
+        RDT = dmarray(mpd.date2num(UTC))
         #for i in np.arange(nTAI):
             #RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
                 #UTC[i].second/86400. + UTC[i].microsecond/86400000000.
@@ -1340,7 +1329,7 @@ class Ticktock(collections.MutableSequence):
             GPStup[i] = UTC[i] - GPS0 + datetime.timedelta(seconds=int(leapsec[i])) - datetime.timedelta(seconds=19)
             GPS[i] = GPStup[i].days*86400 + GPStup[i].seconds + GPStup[i].microseconds/1.e6
 
-        self.GPS = np.array(GPS)#.astype(int)
+        self.GPS = dmarray(GPS)#.astype(int)
         return self.GPS
 
 
@@ -1392,7 +1381,7 @@ class Ticktock(collections.MutableSequence):
             TAItup[i] = UTC[i] - TAI0 + datetime.timedelta(seconds=int(leapsec[i]))
             TAI[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
 
-        self.TAI = np.array(TAI)
+        self.TAI = dmarray(TAI)
         return self.TAI
 
     # -----------------------------------------------
@@ -1408,13 +1397,13 @@ class Ticktock(collections.MutableSequence):
 
         Returns:
         ========
-            - ISO (list of strings) : date in ISO format
+            - ISO (dmarray of strings) : date in ISO format
 
         Example:
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.ISO
-        ['2002-02-02T12:00:00']
+        dmarray(['2002-02-02T12:00:00'])
 
         See Also:
         =========
@@ -1439,7 +1428,7 @@ class Ticktock(collections.MutableSequence):
                 cnew = c.replace('59','60')
                 ISO[i] = a+':'+b+':'+cnew
 
-        self.ISO = ISO
+        self.ISO = dmarray(ISO)
         return ISO
 
     # -----------------------------------------------
