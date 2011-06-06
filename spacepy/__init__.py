@@ -17,6 +17,9 @@ and can be launched by typing:
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 
+import os
+import os.path
+
 def help():
     """Launches web browser with local HTML help"""
     
@@ -46,21 +49,21 @@ All Rights Reserved.
  This material was produced under U.S. Government contract DE-AC52-06NA25396 for Los Alamos National Laboratory (LANL), which is operated by Los Alamos National Security, LLC for the U.S. Department of Energy. The U.S. Government has rights to use, reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE
 
 
- 1. This LICENSE AGREEMENT is between the Los Alamos National Security, LLC ("LANS"), and the Individual or Organization ("Licensee") accessing and otherwise using SpacePy 0.1 software in source or binary form and its associated documentation.
+ 1. This LICENSE AGREEMENT is between the Los Alamos National Security, LLC ("LANS"), and the Individual or Organization ("Licensee") accessing and otherwise using SpacePy 0.1.0 software in source or binary form and its associated documentation.
 
- 2. Subject to the terms and conditions of this License Agreement, LANS hereby grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce, analyze, test, perform and/or display publicly, prepare derivative works, distribute, and otherwise use SpacePy 0.1 alone or in any derivative version, provided, however, that LANS’ License Agreement and LANS’ notice of copyright, i.e., "Copyright (c) 2010 Los Alamos National Security, LLC; All Rights Reserved" are retained in SpacePy 0.1 alone or in any derivative version prepared by Licensee.
+ 2. Subject to the terms and conditions of this License Agreement, LANS hereby grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce, analyze, test, perform and/or display publicly, prepare derivative works, distribute, and otherwise use SpacePy 0.1.0 alone or in any derivative version, provided, however, that LANS’ License Agreement and LANS’ notice of copyright, i.e., "Copyright (c) 2010 Los Alamos National Security, LLC; All Rights Reserved" are retained in SpacePy 0.1.0 alone or in any derivative version prepared by Licensee.
 
- 3. In the event Licensee prepares a derivative work that is based on or incorporates SpacePy 0.1 or any part thereof, and wants to make the derivative work available to others as provided herein, then Licensee hereby agrees to include in any such work a brief summary of the changes made to SpacePy 0.1.
+ 3. In the event Licensee prepares a derivative work that is based on or incorporates SpacePy 0.1.0 or any part thereof, and wants to make the derivative work available to others as provided herein, then Licensee hereby agrees to include in any such work a brief summary of the changes made to SpacePy 0.1.0.
 
- 4. LANS is making SpacePy 0.1 available to Licensee on an "AS IS" basis. LANS MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED. BY WAY OF EXAMPLE, BUT NOT LIMITATION, LANS MAKES NO AND DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF SPACEPY 0.1 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
+ 4. LANS is making SpacePy 0.1.0 available to Licensee on an "AS IS" basis. LANS MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED. BY WAY OF EXAMPLE, BUT NOT LIMITATION, LANS MAKES NO AND DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF SPACEPY 0.1.0 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
 
- 5. LANS SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF SPACEPY 0.1 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING SPACEPY 0.1, OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+ 5. LANS SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF SPACEPY 0.1.0 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING SPACEPY 0.1.0, OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
 
  6. This License Agreement will automatically terminate upon a material breach of its terms and conditions.
 
  7. Nothing in this License Agreement shall be deemed to create any relationship of agency, partnership, or joint venture between LANS and Licensee. This License Agreement does not grant permission to use LANS trademarks or trade name in a trademark sense to endorse or promote products or services of Licensee, or any third party.
 
- 8. By copying, installing or otherwise using SpacePy 0.1, Licensee agrees to be bound by the terms and conditions of this License Agreement.
+ 8. By copying, installing or otherwise using SpacePy 0.1.0, Licensee agrees to be bound by the terms and conditions of this License Agreement.
 """
 
 __citation__ = """When publishing research which used SpacePy, please provide appropriate
@@ -97,8 +100,30 @@ except NameError: #otherwise print single line notice
 # import some settings
 from os import environ as ENVIRON
 if 'SPACEPY' in ENVIRON:
-    exec(compile(open(ENVIRON['SPACEPY']+'/.spacepy/spacepy.rc').read(), ENVIRON['SPACEPY']+'/.spacepy/spacepy.rc', 'exec'))
-    DOT_FLN = ENVIRON['SPACEPY']+'/.spacepy'
+    DOT_FLN = os.path.join(ENVIRON['SPACEPY'], '.spacepy')
 else:
-    exec(compile(open(ENVIRON['HOME']+'/.spacepy/spacepy.rc').read(), ENVIRON['HOME']+'/.spacepy/spacepy.rc', 'exec'))
-    DOT_FLN = ENVIRON['HOME']+'/.spacepy'
+    DOT_FLN = os.path.join(ENVIRON['HOME'], '.spacepy')
+if not os.path.exists(DOT_FLN):
+    import shutil, sys
+    from . import toolbox
+    datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           'data')
+    dataout = os.path.join(DOT_FLN, 'data')
+    os.mkdir(DOT_FLN)
+    os.chmod(DOT_FLN, 0o777)
+    shutil.copy(os.path.join(datadir, 'spacepy.rc'), DOT_FLN)
+    os.mkdir(dataout)
+    os.chmod(dataout, 0o777)
+    shutil.copy(os.path.join(datadir, 'tai-utc.dat'), dataout)
+    print('spacepy data installed to ' + DOT_FLN)
+    rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
+    exec(compile(open(rcfile).read(), rcfile, 'exec'))
+    if sys.version_info[0] < 3 and \
+           toolbox.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no") == 'yes':
+        toolbox.update()
+    print('Thanks for using SpacePy!')
+else:
+    print('Spacepy directory {0} found. Delete or rename to start fresh.'.format(
+        DOT_FLN))
+    rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
+    exec(compile(open(rcfile).read(), rcfile, 'exec'))

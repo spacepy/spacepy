@@ -1,2 +1,10 @@
-*.pyc
 spacepy.komodoproject
+*.aux
+*.log
+*.pyc
+*.pyf
+TODO_jk
+build
+QuickStartGuide.synctex.gz
+.DS_Store
+*~

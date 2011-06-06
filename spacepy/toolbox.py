@@ -587,12 +587,8 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     ========
     >>> update(omni=True)
     """
-    try:
-        from spacepy.time import Ticktock, doy2date
-        from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
-    except:
-        exec(open('spacepy/time.py').read())
-        exec(open('spacepy/toolbox.py').read())
+    from spacepy.time import Ticktock, doy2date
+    from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
 
     if sys.version_info[0]<3:
         import urllib as u
