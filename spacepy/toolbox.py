@@ -4,7 +4,7 @@
 Toolbox of various functions and generic utilities.
 
 Authors
--------
+=======
 Steve Morley, Jon Niehof, Brian Larsen, Josef Koller, Dan Welling
 
 smorley@lanl.gov, jniehof@lanl.gov, balarsen@lanl.gov, jkoller@lanl.gov, dwelling@lanl.gov
@@ -14,7 +14,13 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
 
-import math, datetime
+import math
+import os
+import sys
+import zipfile
+import datetime
+import glob
+
 import numpy as np
 
 try:
@@ -24,21 +30,26 @@ except ImportError:
 except:
     pass
 
-
 def tOverlap(ts1, ts2, *args, **kwargs):
-    """Finds the overlapping elements in two lists of datetime objects
+    """
+    Finds the overlapping elements in two lists of datetime objects
 
-    @param ts1: first set of datetime object
-    @type ts1: datetime
-    @param ts2: datatime object
-    @type ts2: datetime
-    @param args: additional arguments passed to L{tOverlapHalf}
-    @param kwargs: additional keywords passed to L{tOverlapHalf}
-    @return: indices of ts1 within interval of ts2, & vice versa
-    @rtype: list
+    Parameters
+    ----------
+    ts1 : datetime
+        first set of datetime object
+    ts2: datetime
+        datatime object
+    args:
+        additional arguments passed to tOverlapHalf
 
-    @version: 08-Dec-2010: Rewrite for speed
+    Returns
+    -------
+    out : list
+        indices of ts1 within interval of ts2, & vice versa
 
+    Examples
+    --------
     Given two series of datetime objects, event_dates and omni['Time']:
 
     >>> import spacepy.toolbox as tb
@@ -59,24 +70,31 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     return idx_1in2, idx_2in1
 
 def tOverlapHalf(ts1, ts2, presort=False):
-    """Find overlapping elements in two lists of datetime objects
+    """
+    Find overlapping elements in two lists of datetime objects
 
-    This is one-half of L{tOverlap}, i.e. it finds only occurances where
-    L{ts2} exists within the bounds of L{ts1}, or the I{second} element
+    This is one-half of tOverlap, i.e. it finds only occurances where
+    ts2 exists within the bounds of ts1, or the second element
     returnd by tOverlap.
 
-    @param ts1: first set of datetime object
-    @type ts1: datetime
-    @param ts2: datatime object
-    @type ts2: datetime
-    @param presort: Set to use a faster algorithm which assumes L{ts1} and
-                   L{ts2} are both sorted in ascending order. This speeds up
+    Parameters
+    ----------
+    ts1 : list
+        first set of datetime object
+    ts2 : list
+        datatime object
+    presort : bool
+        Set to use a faster algorithm which assumes ts1 and
+                   ts2 are both sorted in ascending order. This speeds up
                    the overlap comparison by about 50x, so it is worth sorting
                    the list if one sort can be done for many calls to tOverlap
-    @type presort: bool
-    @return: indices of ts2 within interval of ts1
-    @rtype: list
-    @note: Returns empty list if no overlap found
+
+    Returns
+    -------
+    out : list
+        indices of ts2 within interval of ts1
+
+        **note:** Returns empty list if no overlap found
     """
     if presort:
         import bisect
@@ -91,13 +109,17 @@ def tOverlapHalf(ts1, ts2, presort=False):
 def tCommon(ts1, ts2, mask_only=True):
     """Finds the elements in a list of datetime objects present in another
 
-    @param ts1: first set of datetime object
-    @type ts1: datetime
-    @param ts2: datatime object
-    @type ts2: datetime
-    @return: Two element tuple of truth tables (of 1 present in 2, & vice versa)
-    @rtype: tuple
+    Parameters
+    ----------
+    ts1 : list
+        first set of datetime objects
+    ts2 : list
+        second set of datetime objects
 
+    Returns
+    -------
+    out : tuple
+        Two element tuple of truth tables (of 1 present in 2, & vice versa)
     """
     from matplotlib.dates import date2num, num2date
 
@@ -131,16 +153,23 @@ def loadpickle(fln):
     """
     load a pickle and return content as dictionary
 
-    @param fln: filename
-    @type fln: string
-    @return: dictionary with content from file
-    @rtype: dictionary
+    Parameters
+    ----------
+    fln : string
+        filename
 
-    @see: savepickle
+    Returns
+    -------
+    out : dict
+        dictionary with content from file
 
-    @version: V1: 20-Jan-2010
+    See Also
+    ========
+    savepickle
 
-    @note: If L{fln} is not found, but the same filename with '.gz'
+    Examples
+    ========
+    **note**: If fln is not found, but the same filename with '.gz'
            is found, will attempt to open the .gz as a gzipped file.
 
     >>> d = loadpickle('test.pbin')
@@ -174,24 +203,26 @@ def savepickle(fln, dict, compress=None):
     """
     save dictionary variable dict to a pickle with filename fln
 
-    @param fln: filename
-    @type fln: string
-    @param dict:  container with stuff
-    @type dict: dictionary
-    @param compress: write as a gzip-compressed file
+    Parameters
+    ----------
+    fln : string
+        filename
+    dict : dict
+        container with stuff
+    compress : bool
+        write as a gzip-compressed file
                      (.gz will be added to L{fln}).
                      If not specified, defaults to uncompressed, unless the
                      compressed file exists and the uncomprssed does not.
-    @type compress: bool
 
-    @see: loadpickle
+    See Also
+    ========
+    loadpickle
 
-    @version: V1: 20-Jan-2010
-    @version: V2: 02-Mar-2011 JTN
-
+    Examples
+    ========
     >>> d = {'grade':[1,2,3], 'name':['Mary', 'John', 'Chris']}
     >>> savepickle('test.pbin', d)
-
     """
     try:
         import cPickle as pickle
@@ -223,23 +254,26 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     file will be assembled along time axis given by Ticktock (key: 'ticks') in dictionary
     If sortkey = None, then nothing will be sorted
 
-    @param fln_pattern: pattern to match filenames
-    @type fln_pattern: string
-    @param outfln: filename to save combined files to
-    @type outfln: string
-    @return: dcomb - dictionary with combined values
-    @rtype: dict
+    Parameters
+    ----------
+    fln_pattern : string
+        pattern to match filenames
+    outfln : string
+        filename to save combined files to
 
-    @version: V1: 20-Jan-2010
+    Returns
+    =======
+    out : dict
+        dictionary with combined values
 
+    Examples
+    ========
     >>> assemble('input_files_*.pkl', 'combined_input.pkl')
     adding input_files_2001.pkl
     adding input_files_2002.pkl
     adding input_files_2004.pkl
     writing: combined_input.pkl
     """
-
-    import glob
     from . import time as t
     from . import coordinates as c
 
@@ -297,6 +331,16 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
 def human_sort( l ):
     """ Sort the given list in the way that humans expect.
     http://www.codinghorror.com/blog/2007/12/sorting-for-humans-natural-sort-order.html
+
+    Parameters
+    ==========
+    l : list
+        list of objects to guman sort
+
+    Returns
+    =======
+    out : list
+        sorted list
     """
     import re
     convert = lambda text: int(text) if text.isdigit() else text
@@ -311,55 +355,55 @@ def feq(x, y, precision=0.0000005):
     compare two floating point values if they are equal
     after: http://www.lahey.com/float.htm
 
-    further info at::
+    See Also
+    ========
         - http://docs.python.org/tut/node16.html
         - http://www.velocityreviews.com/forums/t351983-precision-for-equality-of-two-floats.html
         - http://www.boost.org/libs/test/doc/components/test_tools/floating_point_comparison.html
         - http://howto.wikia.com/wiki/Howto_compare_float_numbers_in_the_C_programming_language
 
-    @param x: a number
-    @type x: float
-    @param y: float  or array of floats
-    @type y: float
-    @keyword precision: precision for equal (default 0.0000005)
-    @type precision: float
-    @return: True (equal) or False (not equal)
-    @rtype: boolean
+    Parameters
+    ==========
+    x : float
+        a number
+    y : float or array of flaots
+        otehr numbers to compare
+    precision : float (optional)
+        precision for equal (default 0.0000005)
 
-    @version: V1: 20-Jan-2010
-    @version: V2: 18-May-2010: User-specified precision added
+    Returns
+    =======
+    out : bool
+        True (equal) or False (not equal)
 
+    Examples
+    ========
     >>> index = where( feq(Lpos,Lgrid) ) # use float point comparison
-
     """
-
     boolean = abs(x-y) <= (abs(x+y)*precision)
-
     return boolean
 
 
 # -----------------------------------------------
 def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwargs):
-    """ pretty print a dictionary tree
+    """
+    pretty print a dictionary tree
 
-    @param in_dict: a complex dictionary (with substructures)
-    @type in_dict: dict
-    @keyword verbose: print more info
-    @type verbose: boolean
-    @keyword spaces: string will added for every line
-    @type spaces: string
-    @keyword levels: number of levels to recurse through (True means all)
-    @type levels: integer
-    @keyword attrs: display information for attributes
-    @type levels: boolean
+    Parameters
+    ==========
+    in_dict : dict
+        a complex dictionary (with substructures)
+    verbose : boolean (optional)
+        print more info
+    spaces : string (optional)
+        string will added for every line
+    levels : integer (optional)
+        number of levels to recurse through (True means all)
+    attrs : boolean (optional)
+        display information for attributes
 
-    @version: V1: 20-Jan-2010
-    @version: V1.1: 24-Feb-2010 S. Morley, added verbose option
-    @version: v1.2: 17-May-2010 S. Morley, added levels option
-    @version: v1.3: 3-Mar-2011 S. Morley, added attrs support for datamodel
-    @version: v1.4: 18-Mar-2011 S. Morley, fixed attrs support for SpaceData
-
-    Example:
+    Examples
+    ========
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
     >>> dictree(d)
     +
@@ -369,6 +413,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     |____name
 
     More complicated example using a datamodel:
+
     >>> counts = datamodel.dmarray([2,4,6], attrs={'units': 'cts/s'})
     >>> data = {'counts': counts, 'PI': 'Dr Zog'}
     >>> dictree(data)
@@ -384,7 +429,6 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     Attributes of, e.g., a CDF or a datamodel type object (obj.attrs)
     are denoted by a colon.
     """
-
     try:
         assert hasattr(in_dict, 'keys')
     except AssertionError:
@@ -453,24 +497,24 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     file ending with c.png is clean and no directory or time stamp are
     attached (good for powerpoint presentations).
 
-    @param fignum: matplotlib figure number
-    @type fignum: integer
-    @keyword saveonly:  True (don't print and save only to file)  False (print and save)
-    @type saveonly: boolean
-    @keyword pngolny: True (only save png files and print png directly) False (print ps file, and generate png, ps; can be slow)
-    @type pngonly: boolean
-    @keyword clean: True (print and save only clean files without directory info) False (print and save directory location as well)
-    @type clean: boolean
-    @keyword filename: None (If specified then the filename is set and code does not use the sequence number)
+    Parameters
+    ==========
+    fignum : integer
+        matplotlib figure number
+    saveonly : boolean (optional)
+        True (don't print and save only to file)  False (print and save)
+    pngolny : boolean (optional)
+        True (only save png files and print png directly) False (print ps file, and generate png, ps; can be slow)
+    clean : boolean (optional)
+        True (print and save only clean files without directory info) False (print and save directory location as well)
+    filename : string (optional)
+        None (If specified then the filename is set and code does not use the sequence number)
 
-    @version: V1: 20-Jan-2010
-    @version: V2: 19-Feb-2010: added pngonly and clean options, array/list support (JK)
-    @version: V3: 21-Jul-2010: added filename keyword (BAL)
-
+    Examples
+    ========
     >>> pyplot.plot([1,2,3],[2,3,2])
-    >>> spacepy.printfig(1)
+    >>> spacepy.printfig(1, pngolny=True)
     """
-
     import os, glob, datetime
     import pylab as p
 
@@ -497,7 +541,6 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
         else:
             flnstamp = fln
 
-
         # save a clean figure without timestamps
         if clean == True:
             p.savefig(fln+'_clean.png')
@@ -519,7 +562,6 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
                 os.popen('lpr '+fln+'.ps')
             else:
                 os.popen('lpr '+fln+'.png')
-
     return
 
 # -----------------------------------------------
@@ -527,29 +569,27 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     """
     Download and update local database for omni, leapsecs etc
 
-    @keyword all: if True, update all of them
-    @type all: boolean
-    @keyword omni: if True. update only onmi
-    @type omni: boolean
-    @keyword leapsecs:  if True, update only leapseconds
-    @type leapsecs: boolean
-    @return: data directory where things are saved
-    @rtype: string
+    Parameters
+    ==========
+    all : boolean (optional)
+        if True, update all of them
+    omni : boolean (optional)
+        if True. update only onmi
+    leapsecs : boolean (optional)
+        if True, update only leapseconds
 
-    @version: V1: 20-Jan-2010
-    @version: V1.1: 24-May-2010 Minor modification to return data directory (BAL)
-    @version: V1.2: 11-Jun-2010 moved pickle_omni in here and added Qbits (JK)
+    Returns
+    =======
+    out : string
+        data directory where things are saved
 
+    Examples
+    ========
     >>> update(omni=True)
     """
-
     from spacepy.time import Ticktock, doy2date
     from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
 
-    import os, sys
-    import zipfile
-    import datetime
-    #import spacepy.time as st
     if sys.version_info[0]<3:
         import urllib as u
     else:
@@ -658,19 +698,17 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     if PSDdata == True:
         print("Retrieving PSD sql database")
         u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
-
-
     return datadir
 
 def progressbar(count, blocksize, totalsize):
     """
     print a progress bar with urllib.urlretrieve reporthook functionality
 
-    Example:
-    u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
+    Examples
+    ========
+    >>> u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
 
     """
-    import sys
     percent = int(count*blocksize*100/totalsize)
     sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
     if percent == 100: print('\n')
@@ -678,27 +716,31 @@ def progressbar(count, blocksize, totalsize):
 
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
-    """Windowing mean function, window overlap is user defined
+    """
+    Windowing mean function, window overlap is user defined
 
-    @param data: 1D series of points;
-    @type data:
-    @keyword time:  series of timestamps, optional (format as numeric or datetime)
-       For non-overlapping windows set overlap to zero.
-    @type time:
-    @keyword winsize: window size
-    @type winsize:
-    @keyword overlap: amount of window overlap
-    @type overlap:
-    @keyword st_time: for time-based averaging, a start-time other than the first
+    Parameters
+    ==========
+    data : array_like
+        1D series of points;
+    time : list (optional)
+        series of timestamps, optional (format as numeric or datetime)
+        For non-overlapping windows set overlap to zero.
+    winsize : integer or datetime.timedelta (optional)
+        window size
+    overlap : integer or datetime.timedelta (optional)
+        amount of window overlap
+    st_time : datetime.datetime (optional)
+        for time-based averaging, a start-time other than the first
         point can be specified
-    @type st_time:
-    @return: the windowed mean of the data, and an associated reference time vector
 
-    @todo: Finish documentation
+    Returns
+    =======
+    out : tuple
+        the windowed mean of the data, and an associated reference time vector
 
-    @version: V1 pre 8-Jul-2010
-
-
+    Examples
+    ========
     For non-overlapping windows set overlap to zero.
     e.g. (time-based averaging),
 
@@ -706,7 +748,6 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     >>> outdata, outtime = windowmean(data, time, winsize=wsize, overlap=olap)
 
     in this example the window size is 1 day and the overlap is 1 hour.
-
     e.g. (pointwise averaging),
 
     >>> outdata, outtime = windowmean(data, winsize=10, overlap=9)
@@ -716,11 +757,8 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     The output vectors start at winsize/2 and end at N-(winsize/2), the output time vector
     is basically a reference to the nth point in the original series.
 
-    @note: This is a quick and dirty function - it is NOT optimized, at all.
-
+    **note** This is a quick and dirty function - it is NOT optimized, at all.
     """
-    import datetime as dt
-
     #check inputs and initialize
     #Set resolution to 1 if no times supplied
     if len(time) == 0:
@@ -733,20 +771,20 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         except:
             return 'windowmean error: data and time must have same length'
         #First check if datetime objects
-        if (type(time[0]) == dt.datetime):
+        if (type(time[0]) == datetime.datetime):
             if not winsize:
                 return 'windowmean error: winsize must be set for datetime input'
             else:
                 try:
-                    assert type(winsize) == dt.timedelta
-                    assert type(overlap) == dt.timedelta
+                    assert type(winsize) == datetime.timedelta
+                    assert type(overlap) == datetime.timedelta
                 except:
                     return 'windowmean error: winsize/overlap must be timedeltas'
             pts = False #force time-based averaging
         else:
             try:
-                assert type(winsize) == dt.timedelta
-                assert type(overlap) == dt.timedelta
+                assert type(winsize) == datetime.timedelta
+                assert type(overlap) == datetime.timedelta
             except:
                 return 'windowmean error: winsize/overlap must be timedeltas'
             pts = False
@@ -805,7 +843,8 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
 
 
 def medAbsDev(series):
-    """Calculate median absolute deviation of a given input series
+    """
+    Calculate median absolute deviation of a given input series
 
     Median absolute deviation (MAD) is a robust and resistant measure of
     the spread of a sample (same purpose as standard deviation). The
@@ -814,15 +853,18 @@ def medAbsDev(series):
     remains robust and resistant. See e.g. Wilks, Statistical methods
     for the Atmospheric Sciences, 1995, Ch. 3.
 
-    @param series: the input data series
-    @type series: TODO
-    @return: the median absolute deviation
-    @rtype: float
+    Parameters
+    ==========
+    series : array_like
+        the input data series
 
-    @todo: finish documentation
+    Returns
+    =======
+    out : float
+        the median absolute deviation
 
-    @version: V1 pre 8-Jul-2010
-
+    Examples
+    ========
     Find the median absolute deviation of a data set. Here we use the log-
     normal distribution fitted to the population of sawtooth intervals, see
     Morley and Henderson, Comment, Geophysical Research Letters, 2009.
@@ -833,7 +875,7 @@ def medAbsDev(series):
     >>> toolbox.medabsdev(data)
     28.346646721370192
 
-    @note: This implementation is robust to presence of NaNs
+    **note** This implementation is robust to presence of NaNs
     """
     #ensure input is numpy array (and make 1-D)
     series = (np.array(series, dtype=float)).ravel()
@@ -842,25 +884,33 @@ def medAbsDev(series):
     #get median absolute deviation of unmasked elements
     perc50 = np.median(series.compressed())
     mad = np.median(abs(series.compressed()-perc50))
-
     return mad
 
-
 def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
-    """Make filled polygon for plotting
+    """
+    Make filled polygon for plotting
 
-    @param x: List of x start and stop values
-    @param y1: List of y lower bounds for fill
-    @param y2: List of y upper bounds for fill
-    @keyword face: color of the fill (default blue)
-    @keyword alpha: alpha of the fill (default 0.5)
+    Parameters
+    ==========
+    x : list
+        List of x start and stop values
+    y1 : list
+        List of y lower bounds for fill
+    y2 : list
+        List of y upper bounds for fill
+    face : string (optional)
+        color of the fill (default blue)
+    alpha : float (optional)
+        alpha of the fill (default 0.5)
 
-    @deprecated: Equivalent functionality to built-in matplotlib function fill_between
+    .. deprecated:: vesion 0.1
+    Equivalent functionality to built-in matplotlib function fill_between
 
+    Examples
+    ========
     >>> poly0c = makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
     >>> ax0.add_patch(poly0qc)
     """
-
     import matplotlib as mpl
     x2, y1 = x[-1::-1], y1[-1::-1]
     polyx = np.concatenate((x,x2))
@@ -868,7 +918,6 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     xy = np.empty((len(polyy),2))
     xy[:,0], xy[:,1] = polyx, polyy
     madePoly = mpl.patches.Polygon(xy, facecolor = face, alpha = alpha)
-
     return madePoly
 
 def binHisto(data, verbose=False):
@@ -876,22 +925,25 @@ def binHisto(data, verbose=False):
     Calculates bin width and number of bins for histogram using Freedman-Diaconis rule
     if rule fails, defaults to square-root method
 
-    @param data: list/array of data values
-    @type data: arraylike
-    @keyword verbose: print out some more information
-    @type verbose: boolean
-    @return: calculated width of bins using F-D rule, number of bins (nearest integer) to use for histogram
-    @rtype: tuple
+    Parameters
+    ==========
+    data : array_like
+        list/array of data values
+    verbose : boolean (optional)
+        print out some more information
 
-    @version: V1 SM
-    @version: V2: 6Jul2010 S.Morley added fallback rule
+    Returns
+    =======
+    out : tuple
+        calculated width of bins using F-D rule, number of bins (nearest integer) to use for histogram
 
+    Examples
+    ========
     >>> import numpy, spacepy
     >>> import matplotlib.pyplot as plt
     >>> data = numpy.random.randn(100)
     >>> binw, nbins = spacepy.toolbox.binHisto(data)
     >>> plt.hist(data, bins=nbins, histtype='step', normed=True)
-
     """
     from matplotlib.mlab import prctile
     pul = prctile(data, p=(25,75)) #get confidence interval
@@ -911,7 +963,8 @@ def binHisto(data, verbose=False):
     return (binw, nbins)
 
 def smartTimeTicks(time):
-    """Returns major ticks, minor ticks and format for time-based plots
+    """
+    Returns major ticks, minor ticks and format for time-based plots
 
     smartTimeTicks takes a list of datetime objects and uses the range
     to calculate the best tick spacing and format.  Returned to the user
@@ -922,15 +975,18 @@ def smartTimeTicks(time):
     to use the convenience function applySmartTimeTicks to place the
     ticks directly on a given axis.
 
-    @param time: list of datetime objects
-    @type time: list
-    @return: tuple of Mtick - major ticks, mtick - minor ticks, fmt - format
-    @rtype: tuple
+    Parameters
+    ==========
+    time : list
+        list of datetime objects
 
+    Returns
+    =======
+    out : tuple
+        tuple of Mtick - major ticks, mtick - minor ticks, fmt - format
     """
     from matplotlib.dates import (MinuteLocator, HourLocator,
                                   DayLocator, DateFormatter)
-
     deltaT = time[-1] - time[0]
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
     if nHours < 1:
@@ -961,7 +1017,7 @@ def smartTimeTicks(time):
     return (Mtick, mtick, fmt)
 
 def applySmartTimeTicks(ax, time, dolimit = True):
-    '''
+    """
     Given an axis 'ax' and a list/array of datetime objects, 'time',
     use the smartTimeTicks function to build smart time ticks and
     then immediately apply them to the given axis.  The first and
@@ -972,18 +1028,16 @@ def applySmartTimeTicks(ax, time, dolimit = True):
     of the x-axis as well.  Set kwarg 'dolimit' to False to override
     this behavior.
 
-    @param ax: A matplotlib Axis object.
-    @type ax: matplotlib.pyplot.Axes
-    @param time: list of datetime objects
-    @type time: list
-    @keyword dolimit: The range of the 'time' input value will be used to set the limits
+    Parameters
+    ==========
+    ax : matplotlib.pyplot.Axes
+        A matplotlib Axis object.
+    time : list
+        list of datetime objects
+    dolimit : boolean (optional)
+        The range of the 'time' input value will be used to set the limits
         of the x-axis as well. Setting this overrides this behavior.
-    @type dolimit: bool
-    @return: None
-    @rtype: None
-
-    '''
-
+    """
     Mtick, mtick, fmt = smartTimeTicks(time)
     ax.xaxis.set_major_locator(Mtick)
     ax.xaxis.set_minor_locator(mtick)
@@ -991,22 +1045,38 @@ def applySmartTimeTicks(ax, time, dolimit = True):
     if dolimit:
         ax.set_xlim([time[0], time[-1]])
 
-
 def logspace(min, max, num, **kwargs):
-    """Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max
+    """
+    Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max
     not log10(min) and log10(max)
 
-    @param min: minimum value
-    @param max: maximum value
-    @param num: number of log spaced bins
-    @return: log spaced bins from min to max in a numpy array
-    @rtype: numpy.array
+    Parameters
+    ==========
+    min : float
+        minimum value
+    max : float
+        maximum value
+    num : integer
+        number of log spaced bins
 
-    @version: V1: 14-Jun-2010 (BAL)
-    @version: V2: 19-May-2011 (BAL) - added support for datetime objects
+    Other Parameters
+    ================
+    kwargs : dict
+        additional keywords passed into matplotlib.dates.num2date
 
+    Returns
+    =======
+    out : array
+        log spaced bins from min to max in a numpy array
+
+    Notes
+    =====
+    This function works on both numbers and datetime objects
+
+    Examples
+    ========
     >>> logspace(1, 100, 5)
-    Out[2]: array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
+    array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
     """
     from numpy import logspace, log10
     if isinstance(min, datetime.datetime):
@@ -1016,37 +1086,36 @@ def logspace(min, max, num, **kwargs):
         return logspace(log10(min), log10(max), num, **kwargs)
 
 def linspace(min, max, num=50, endpoint=True, retstep=False):
-    """Returns linear spaced spaced numbers.  Same as numpy linspace except
+    """
+    Returns linear spaced spaced numbers.  Same as numpy linspace except
     allows for support of datetime objects
 
     Parameters
-    ----------
-    start : scalar
+    ==========
+    start : float
         The starting value of the sequence.
-    stop : scalar
+    stop : float
         The end value of the sequence, unless `endpoint` is set to False.
         In that case, the sequence consists of all but the last of ``num + 1``
         evenly spaced samples, so that `stop` is excluded.  Note that the step
         size changes when `endpoint` is False.
-    num : int, optional
+    num : int (optional)
         Number of samples to generate. Default is 50.
     endpoint : bool, optional
         If True, `stop` is the last sample. Otherwise, it is not included.
         Default is True.
-    retstep : bool, optional
+    retstep : bool (optional)
         If True, return (`samples`, `step`), where `step` is the spacing
         between samples.
 
     Returns
-    -------
-    samples : ndarray
+    =======
+    samples : array
         There are `num` equally spaced samples in the closed interval
         ``[start, stop]`` or the half-open interval ``[start, stop)``
         (depending on whether `endpoint` is True or False).
     step : float (only if `retstep` is True)
         Size of spacing between samples.
-
-    @version: V1: 19-May-2011 (BAL)
     """
     from numpy import linspace, log10
     if isinstance(min, datetime.datetime):
@@ -1058,24 +1127,28 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
                         num=num, endpoint=endpoint, retstep=retstep)
 
 def arraybin(array, bins):
-    """Split a sequence into subsequences based on value.
+    """
+    Split a sequence into subsequences based on value.
 
     Given a sequence of values and a sequence of values representing the
     division between bins, return the indices grouped by bin.
 
-    @param array: the input sequence to slice, must be sorted in ascending
-                  order
-    @type array: sequence
-    @param bins: dividing lines between bins. Number of bins is len(bins)+1,
-                 value that exactly equal a dividing value are assigned
-                 to the higher bin
-    @type bins: sequence
-    @return: indices for each bin
-    @rtype: list of lists
+    Parameters
+    ==========
+    array : array_like
+        the input sequence to slice, must be sorted in ascending order
+    bins : array_like
+        dividing lines between bins. Number of bins is len(bins)+1,
+            value that exactly equal a dividing value are assigned
+            to the higher bin
 
-    @version: V1: 14-Jun-2010 (BAL)
-    @version: V2: 07-Dec-2010 (JTN)
+    Returns
+    =======
+    out : list
+        indices for each bin (list of lists)
 
+    Examples
+    ========
     >>> arraybin(range(10), [4.2])
     Out[4]: [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
     """
@@ -1085,24 +1158,28 @@ def arraybin(array, bins):
     return [list(range(start_idx, stop_idx)) for (start_idx, stop_idx)
             in zip([0] + splits, splits + [len(array)])]
 
-
 def mlt2rad(mlt, midnight = False):
     """
     Convert mlt values to radians for polar plotting
     transform mlt angles to radians from -pi to pi
     referenced from noon by default
 
-    @param mlt:  array of mlt values
-    @type mlt: numpy.array
-    @keyword midnight: reference to midnight instead of noon
-    @type midnight: boolean
-    @return: array of radians
-    @rtype: numpy.array
+    Parameters
+    ==========
+    mlt : numpy array
+        array of mlt values
+    midnight : boolean (optional)
+        reference to midnight instead of noon
 
-    @version: V1: 14-Jun-2010 (BAL)
+    Returns
+    =======
+    out : numpy array
+        array of radians
 
+    Examples
+    ========
     >>> mlt2rad(array([3,6,9,14,22]))
-    Out[9]: array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
+    array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
     """
     if midnight:
         try:
@@ -1117,24 +1194,28 @@ def mlt2rad(mlt, midnight = False):
         rad_arr = (mlt_arr-12)*np.pi/12.
     return rad_arr
 
-
 def rad2mlt(rad, midnight=False):
     """
     Convert radian values to mlt
     transform radians from -pi to pi to mlt
     referenced from noon by default
 
-    @param rad:  array of radian values
-    @type rad: numpy.array
-    @keyword midnight: reference to midnight instead of noon
-    @type midnight: boolean
-    @return: array of mlt values
-    @rtype: numpy.array
+    Parameters
+    ==========
+    rad : numpy array
+        array of radian values
+    midnight : boolean (optional)
+        reference to midnight instead of noon
 
-    @version: V1: 14-Jun-2010 (BAL)
+    Returns
+    =======
+    out : numpy array
+        array of mlt values
 
+    Examples
+    ========
     >>> rad2mlt(array([0,pi, pi/2.]))
-    Out[8]: array([ 12.,  24.,  18.])
+    array([ 12.,  24.,  18.])
     """
     if midnight:
         rad_arr = rad + np.pi
@@ -1143,24 +1224,26 @@ def rad2mlt(rad, midnight=False):
     mlt_arr=rad_arr*(12/np.pi) + 12
     return mlt_arr
 
-
-def leap_year(year, numdays=False, nobool=False):
+def leap_year(year, numdays=False):
     """
     return an array of boolean leap year,
     a lot faster than the mod method that is normally seen
 
-    @param year: <iterable> of years
-    @type year: iterable
-    @keyword numdays: optionally return the number of days in the year
-    @type numdays: boolean
-    @return: an array of boolean leap year, or array of number of days
-    @rtype: numpy.array
+    Parameters
+    ==========
+    year : array_like
+        array of years
+    numdays : boolean (optional)
+        optionally return the number of days in the year
 
-    @version: V1: 14-Jun-2010 (BAL)
-    @version: V2: 22-Nov-2010 (BAL) accepts lists not just arrays
-    @version: V3: 07-Dec-2010 (BAL) cleanup
+    Returns
+    =======
+    out : numpy array
+        an array of boolean leap year, or array of number of days
+
+    Examples
+    ========
     >>> leap_year(numpy.arange(15)+1998)
-    Out[10]:
     array([False, False,  True, False, False, False,  True, False, False,
     ... False,  True, False, False, False,  True], dtype=bool)
     """
@@ -1169,11 +1252,8 @@ def leap_year(year, numdays=False, nobool=False):
     mask400 = [(val % 400) == 0 for val in year]   # this is a leap year
     mask100 = [(val % 100) == 0 for val in year ]   # these are not leap years
     mask4   = [(val % 4) == 0 for val in year ]   # this is a leap year
-    if numdays or nobool:
-        if numdays:
-            numdays=365
-        else:
-            numdays = 0
+    if numdays:
+        numdays=365
         ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
         if len(ans) == 1:
             return ans[0]
@@ -1186,26 +1266,28 @@ def leap_year(year, numdays=False, nobool=False):
         else:
             return ans
 
-
 leapyear = leap_year
-
 
 def pmm(a, *b):
     """
     print min and max of input arrays
 
-    @param a: input array
-    @type a: numpy.array
-    @keyword *b: some additional number of arrays
-    @type *b: numpy.array
-    @return: list of min, max for each array
-    @rtype: list
+    Parameters
+    ==========
+    a : numpy array
+        input array
+    b : list argumants
+        some additional number of arrays
 
-    @version: V1: 14-Jun-2010 (BAL)
-    @version: V2: 04-Sep-2010 (BAL) - changed to min() from a.min() works on lists
+    Returns
+    =======
+    out : list
+        list of min, max for each array
 
+    Examples
+    ========
     >>> pmm(arange(10), arange(10)+3)
-    Out[12]: [(0, 9), (3, 12)]
+    [(0, 9), (3, 12)]
     """
     ans= [[ np.min(a), np.max(a) ]]
     for val in b:
@@ -1216,24 +1298,25 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     """
     print a timestamp on the current plot, vertical lower right
 
-    @keyword position: position for the timestamp
-    @type position: list
-    @keyword size: text size
-    @type size: string
-    @keyword draw: call draw to make sure it appears
-    @type draw: boolean
-    @keyword kwargs: other keywords to axis.annotate
-    @type kwargs: keywords
+    Parameters
+    ==========
+    position : list
+        position for the timestamp
+    size : string (optional)
+        text size
+    draw : bollean (optional)
+        call draw to make sure it appears
+    kwargs : keywords
+        other keywords to axis.annotate
 
-    @version: V1: 14-Jun-2010 (BAL)
-
+    Examples
+    ========
     >>> plot(arange(11))
-    Out[13]: [<matplotlib.lines.Line2D object at 0x49072b0>]
+    [<matplotlib.lines.Line2D object at 0x49072b0>]
     timestamp()
     """
-    from datetime import datetime
     from matplotlib.pyplot import gca, draw
-    now = datetime.now()
+    now = datetime.datetime.now()
     strnow = now.strftime("%d%b%Y %H:%M")
     ax=gca()
     ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
@@ -1241,7 +1324,8 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
         draw()
 
 def query_yes_no(question, default="yes"):
-    """Ask a yes/no question via raw_input() and return their answer.
+    """
+    Ask a yes/no question via raw_input() and return their answer.
 
     "question" is a string that is presented to the user.
     "default" is the presumed answer if the user just hits <Enter>.
@@ -1250,20 +1334,23 @@ def query_yes_no(question, default="yes"):
 
     The "answer" return value is one of "yes" or "no".
 
-    @param question: string that is the question to ask
-    @type question: string
-    @keyword default: the default answer (yes)
-    @type default: string
-    @return: answer ('yes' or 'no')
-    @rtype: string
+    Parameters
+    ==========
+    question : string
+        the question to ask
+    default : string (optional)
 
-    @version: V1: 14-Jun-2010 (BAL)
+    Returns
+    =======
+    out : string
+        answer ('yes' or 'no')
 
+    Examples
+    ========
     >>> query_yes_no('Ready to go?')
     Ready to go? [Y/n] y
-    Out[17]: 'yes'
+    'yes'
     """
-    import sys
     valid = {"yes":"yes",   "y":"yes",  "ye":"yes",
              "no":"no",     "n":"no"}
     if default == None:
@@ -1274,7 +1361,6 @@ def query_yes_no(question, default="yes"):
         prompt = " [y/N] "
     else:
         raise ValueError("invalid default answer: '%s'" % default)
-
     while 1:
         sys.stdout.write(question + prompt)
         if sys.version_info[0]==2:
@@ -1290,18 +1376,18 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 def interpol(newx, x, y, wrap=None, **kwargs):
-    """1-D linear interpolation with interpolation of hours/longitude
+    """
+    1-D linear interpolation with interpolation of hours/longitude
 
-    @return: interpolated data values for new abscissa values
-    @rtype: numpy.masked_array
+    Returns
+    =======
+    out : numpy.masked_array
+        interpolated data values for new abscissa values
 
-    @keyword hour: wraps interpolation at 24 (e.g. for local times)
-    @type hour: string
-    @keyword long: wraps interpolation at 360 (e.g. longitude)
-    @type long: string
-    @keyword sect: wraps interpolation based on user specified max
-    i.e. days=True is equivalent to sect=24
-    @type sect: integer
+
+    Parameters
+    ==========
+    newx
 
     """
     import scipy as sci
@@ -1363,15 +1449,19 @@ def interpol(newx, x, y, wrap=None, **kwargs):
 
 # -----------------------------------------------
 
-
 def normalize(vec):
     """
     Given an input vector normalize the vector
 
-    @param vec: input vector to normalize
-    @type vec: listlike
-    @return: normalized vector
-    @rtype: listlike
+    Parameters
+    ==========
+    vec : array_like
+        input vector to normalize
+
+    Returns
+    =======
+    out : array_like
+        normalized vector
     """
     # check to see if vec is numpy array, this is fastest
     if isinstance(vec, np.ndarray):
@@ -1382,46 +1472,52 @@ def normalize(vec):
         out = [(val -  vecmin)/ptp for val in vec]
     return out
 
-
 def listUniq(inVal):
     """
     Given an input iterable (list, deque) return a list of the unique elements.
     Maintains order (keeps the first of non-unique elements
 
-    @param inVal: Input iterable
-    @type inVal: iterable
-    @return: list of unique elements from iterable
-    @rtype: list
+    Parameters
+    ==========
+    inVal : iterable
+        Input iterable
 
-    @version: V1: 16-Nov-2010 (BAL)
+    Returns
+    =======
+    out : list
+        list of unique elements from iterable
     """
     seen = set()
     return [ x for x in inVal if x not in seen and not seen.add(x)]
 
-
 def intsolve(func, value, start=None, stop=None, maxit=1000):
-    """Find the function input such that definite integral is desired value.
+    """
+    Find the function input such that definite integral is desired value.
 
     Given a function, integrate from an (optional) start point until the
     integral reached a desired value, and return the end point of the
     integration.
 
-    @param func: function to integrate, must take single parameter
-    @type func: callable
-    @param value: desired final value of the integral
-    @type value: float
-    @param start: value at which to start integration, default -Infinity
-    @type start: float
-    @param stop: value at which to stop integration, default +Infinity
-    @type stop: float
-    @param maxit: maximum number of iterations
-    @type maxit: int
-    @return: x such that the integral of L{func} from L{start} to x is L{value}
-    @rtype: float
-    @note: Assumes L{func} is everywhere positive, otherwise solution may
-           be multi-valued.
+    Parameters
+    ==========
+    func : callable
+        function to integrate, must take single parameter
+    value : float
+        desired final value of the integral
+    start : float (optional)
+        value at which to start integration, default -Infinity
+    stop : float (optional)
+        value at which to stop integration, default +Infinity
+    maxit : integer
+        maximum number of iterations
 
-    @version: V1: 7-Dec-2010 (JTN)
+    Returns
+    =======
+    out : float
+        x such that the integral of L{func} from L{start} to x is L{value}
+
+    **Note:** Assumes func is everywhere positive, otherwise solution may
+           be multi-valued.
     """
     from scipy import inf
     from scipy.integrate import quad
@@ -1465,26 +1561,30 @@ def intsolve(func, value, start=None, stop=None, maxit=1000):
              str(err), UserWarning, stacklevel=2)
     return test_bound
 
-
 def dist_to_list(func, length, min=None, max=None):
-    """Convert a probability distribution function to a list of values
+    """
+    Convert a probability distribution function to a list of values
 
     This is a deterministic way to produce a known-length list of values
     matching a certain probability distribution. It is likely to be a closer
     match to the distribution function than a random sampling from the
     distribution.
 
-    @param func: function to call for each possible value, returning
-                 probability density at that value (does not need to be
-                 normalized.)
-    @type func: callable
-    @param length: number of elements to return
-    @type length: int
-    @param min: minimum value to possibly include
-    @type min: float
-    @param max: maximum value to possibly include
-    @type max: float
+    Parameters
+    ==========
+    func : callable
+        function to call for each possible value, returning
+            probability density at that value (does not need to be
+            normalized.)
+    length : int
+        number of elements to return
+    min : float
+        minimum value to possibly include
+    max : float
+        maximum value to possibly include
 
+    Examples
+    ========
     >>> gauss = lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
                           (5 * math.sqrt(2 * math.pi))
     >>> vals = dist_to_list(gauss, 1000, -inf, inf)
@@ -1506,9 +1606,9 @@ def dist_to_list(func, length, min=None, max=None):
     step = float(total) / length
     return [intsolve(func, (0.5 + i) * step, min, max) for i in range(length)]
 
-
 def bin_center_to_edges(centers):
-    """Convert a list of bin centers to their edges
+    """
+    Convert a list of bin centers to their edges
 
     Given a list of center values for a set of bins, finds the start and
     end value for each bin. (start of bin n+1 is assumed to be end of bin n).
@@ -1518,11 +1618,20 @@ def bin_center_to_edges(centers):
     and n+1; edge below bin 0 and above last bin are established to make
     these bins symmetric about their center value.
 
-    @param centers: list of center values for bins
-    @return: list of edges for bins
-    @note: returned list will be one element longer than L{centers}
-    @version: V1: 4-Jan-2011 (JTN)
+    Parameters
+    ==========
+    centers : list
+        list of center values for bins
 
+    Returns
+    =======
+    out : list
+        list of edges for bins
+
+    **note:** returned list will be one element longer than centers
+
+    Examples
+    ========
     >>> bin_center_to_edges([1,2,3])
     [0.5, 1.5, 2.5, 3.5]
     """
@@ -1533,15 +1642,23 @@ def bin_center_to_edges(centers):
 
 def hypot(*vals):
     """
-    Compute sqrt(vals[0] ** 2 + vals[1] **2 ...), ie. n-dimensional hypoteneuse
+    Compute sqrt(vals[0] **2 + vals[1] **2 ...), ie. n-dimensional hypoteneuse
 
-    @version: V1: 18-Jan-2011 (BAL)
-    @version: V2: 10-Feb-2011 (JTN)
+    Parameters
+    ==========
+    vals : float (arbitary number)
+        arbitary number of float values
+
+    Returns
+    =======
+    out : float
+        the Euclidian distance of the points ot the origin
     """
     return math.sqrt(sum((v ** 2 for v in vals)))
 
 def thread_job(job_size, thread_count, target, *args, **kwargs):
-    """Split a job into subjobs and run a thread for each
+    """
+    Split a job into subjobs and run a thread for each
 
     Each thread spawned will call L{target} to handle a slice of the job.
 
@@ -1552,12 +1669,14 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
       3. Does not return a value. Either pass in a list/array to hold the
          result, or see L{thread_map}
 
-    Example, squaring 100 million numbers::
-      a = numpy.random.randint(0, 100, [100000000])
-      b = numpy.empty([100000000], dtype='int64')
-      def targ(in_array, out_array, start, count):
-        out_array[start:start + count] = in_array[start:start + count] ** 2
-      toolbox.thread_job(len(a), 0, targ, a, b)
+    Examples
+    ========
+    squaring 100 million numbers::
+    >>> a = numpy.random.randint(0, 100, [100000000])
+    >>> b = numpy.empty([100000000], dtype='int64')
+    >>> def targ(in_array, out_array, start, count):
+    >>>     out_array[start:start + count] = in_array[start:start + count] ** 2
+    >>> toolbox.thread_job(len(a), 0, targ, a, b)
 
     This example:
       - Defines a target function, which will be called for each thread.
@@ -1571,29 +1690,31 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
         it needs to process. For each thread where the target is called,
         these numbers are different.
 
-    @param job_size: Total size of the job. Often this is an array size.
-    @type job_size: int
-    @param thread_count: Number of threads to spawn. If =0 or None, will
-                         spawn as many threads as there are cores available on
-                         the system. (Each hyperthreading core counts as 2.)
-                         Generally this is the Right Thing to do.
-                         If NEGATIVE, will spawn abs(thread_count) threads,
-                         but will run them sequentially rather than in
-                         parallel; useful for debugging.
-    @type thread_count: int
-    @param target: Python callable (generally a function, may also be an
-                   imported ctypes function) to run in each thread. The
-                   I{last} two positional arguments passed in will be a
-                   "start" and a "subjob size," respectively;
-                   frequently this will be the start index and the number
-                   of elements to process in an array.
-    @type target: callable
-    @param args: Arguments to pass to L{target}. If L{target} is an instance
-                 method, self must be explicitly pssed in. start and
-                 subjob_size will be appended.
-    @type args: sequence
-    @param kwargs: keyword arguments to pass to L{target}.
-    @type kwargs: dict
+    Parameters
+    ==========
+    job_size : int
+        Total size of the job. Often this is an array size.
+    thread_count : int
+        Number of threads to spawn. If =0 or None, will
+            spawn as many threads as there are cores available on
+            the system. (Each hyperthreading core counts as 2.)
+            Generally this is the Right Thing to do.
+            If NEGATIVE, will spawn abs(thread_count) threads,
+            but will run them sequentially rather than in
+            parallel; useful for debugging.
+    target : callable
+        Python callable (generally a function, may also be an
+            imported ctypes function) to run in each thread. The
+            *last* two positional arguments passed in will be a
+            "start" and a "subjob size," respectively;
+            frequently this will be the start index and the number
+            of elements to process in an array.
+    args : sequence
+        Arguments to pass to L{target}. If L{target} is an instance
+            method, self must be explicitly pssed in. start and
+            subjob_size will be appended.
+    kwargs : dict
+        keyword arguments to pass to L{target}.
     """
     try:
         import threading
@@ -1630,32 +1751,41 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
             t.join()
 
 def thread_map(target, iterable, thread_count=None, *args, **kwargs):
-    """Apply a function to every element of a list, in separate threads
+    """
+    Apply a function to every element of a list, in separate threads
 
     Interface is similar to multiprocessing.map, except it runs in threads
 
-    Example, find totals of several arrays::
-        inputs = [numpy.random.randint(0, 100, [100000]) for i in range(100)]
-        totals = toolbox.thread_map(numpy.sum, inputs)
+    Examples
+    ========
+    find totals of several arrays
 
-    @param target: Python callable to run on each element of L{iterable}.
-                   For each call, an element of L{iterable} is appended to
-                   L{args} and both L{args} and L{kwargs} are passed through.
-                   Note that this means the iterable element is always the
-                   I{last} positional argument; this allows the specification
-                   of self as the first argument for method calls.
-    @type target: callable
-    @param iterable: elements to pass to each call of L{target}
-    @type iterable: iterable
-    @param args: arguments to pass to L{target} before each element of
-                 L{iterable}
-    @type args: sequence
-    @param thread_count: Number of threads to spawn; see L{thread_job}.
-    @type thread_count: int
-    @param kwargs: keyword arguments to pass to L{target}.
-    @type kwargs: dict
-    @return: return values of L{target} for each item from L{iterable}
-    @rtype: list
+    >>> inputs = [numpy.random.randint(0, 100, [100000]) for i in range(100)]
+    >>> totals = toolbox.thread_map(numpy.sum, inputs)
+
+    Parameters
+    ==========
+    target : callable
+        Python callable to run on each element of iterable.
+            For each call, an element of iterable is appended to
+            args and both args and kwargs are passed through.
+            Note that this means the iterable element is always the
+            *last* positional argument; this allows the specification
+            of self as the first argument for method calls.
+    iterable : iterable
+        elements to pass to each call of L{target}
+    args : sequence
+        arguments to pass to target before each element of
+            iterable
+    thread_count : integer
+        Number of threads to spawn; see L{thread_job}.
+    kwargs : dict
+        keyword arguments to pass to L{target}.
+
+    Returns
+    =======
+    out : list
+        return values of L{target} for each item from L{iterable}
     """
     try:
         jobsize = len(iterable)

@@ -32,13 +32,13 @@ HDF5 dataset.
 Guide for NASA CDF users
 ------------------------
 
-By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records 
+By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
 (stored variables of various types) and a set of attributes that are either global or local in
 scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
 are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
 nested (more on this later, if conversion from a nested datamodel to a flat datamodel is required).
 
-This is best illustrated with an example. Imagine representing some satellite data within a CDF -- 
+This is best illustrated with an example. Imagine representing some satellite data within a CDF --
 the global attributes might be the mission name and the instrument PI, the variables might be the
 instrument counts [n-dimensional array], timestamps[1-dimensional array and an orbit number [scalar].
 Each variable will have one attribute (for this example).
@@ -50,7 +50,7 @@ Each variable will have one attribute (for this example).
     >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
     >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
-This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel, 
+This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel,
 we can use the toolbox function dictree (which works for any dictionary-like object, including PyCDF
 file objects).
 
@@ -79,7 +79,6 @@ class dmarray(numpy.ndarray):
 
     Examples
     --------
-
     >>> import spacepy.datamodel as datamodel
     >>> position = datamodel.dmarray([1,2,3], attrs={'coord_system':'GSM'})
     >>> position
@@ -97,6 +96,17 @@ class dmarray(numpy.ndarray):
 
     >>> name.tolist()
     'TestName'
+
+    Methods
+    -------
+    addAttribute
+        adds another attribute to the allowed list
+
+    Raises
+    ------
+    NameError
+        raised is the request name was not added to the allowed attributes list
+
 
     """
     Allowed_Attributes = ['attrs']
@@ -170,6 +180,16 @@ class dmarray(numpy.ndarray):
 class SpaceData(dict):
     """
     Datamodel class extending dict
+
+    Methods
+    -------
+    flatten
+
+    Attributes
+    ----------
+    attrs : dict
+        dictionary of the attributes of the SpaceData object
+
 
     """
 
@@ -297,7 +317,7 @@ def flatten(dobj):
     try:
         addme = dobj.__class__()
     except (TypeError):
-        addme = SpaceData() 
+        addme = SpaceData()
     remlist = []
     for key in dobj: #iterate over keys in SpaceData
         if isinstance(dobj[key], dict):

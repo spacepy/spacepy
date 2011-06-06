@@ -52,8 +52,8 @@ The plot method will then add the 95% confidence intervals as a semi-
 transparent patch.
 
 
-Authors:
-========
+Authors
+=======
 Steve Morley and Jon Niehof
 
 smorley@lanl.gov, jniehof@lanl.gov
