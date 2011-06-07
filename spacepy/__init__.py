@@ -17,6 +17,9 @@ and can be launched by typing:
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 
+import os
+import os.path
+
 def help():
     """Launches web browser with local HTML help"""
     
@@ -97,8 +100,30 @@ except NameError: #otherwise print single line notice
 # import some settings
 from os import environ as ENVIRON
 if 'SPACEPY' in ENVIRON:
-    exec(compile(open(ENVIRON['SPACEPY']+'/.spacepy/spacepy.rc').read(), ENVIRON['SPACEPY']+'/.spacepy/spacepy.rc', 'exec'))
-    DOT_FLN = ENVIRON['SPACEPY']+'/.spacepy'
+    DOT_FLN = os.path.join(ENVIRON['SPACEPY'], '.spacepy')
 else:
-    exec(compile(open(ENVIRON['HOME']+'/.spacepy/spacepy.rc').read(), ENVIRON['HOME']+'/.spacepy/spacepy.rc', 'exec'))
-    DOT_FLN = ENVIRON['HOME']+'/.spacepy'
+    DOT_FLN = os.path.join(ENVIRON['HOME'], '.spacepy')
+if not os.path.exists(DOT_FLN):
+    import shutil, sys
+    from . import toolbox
+    datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           'data')
+    dataout = os.path.join(DOT_FLN, 'data')
+    os.mkdir(DOT_FLN)
+    os.chmod(DOT_FLN, 0o777)
+    shutil.copy(os.path.join(datadir, 'spacepy.rc'), DOT_FLN)
+    os.mkdir(dataout)
+    os.chmod(dataout, 0o777)
+    shutil.copy(os.path.join(datadir, 'tai-utc.dat'), dataout)
+    print('spacepy data installed to ' + DOT_FLN)
+    rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
+    exec(compile(open(rcfile).read(), rcfile, 'exec'))
+    if sys.version_info[0] < 3 and \
+           toolbox.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no") == 'yes':
+        toolbox.update()
+    print('Thanks for using SpacePy!')
+else:
+    print('Spacepy directory {0} found. Delete or rename to start fresh.'.format(
+        DOT_FLN))
+    rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
+    exec(compile(open(rcfile).read(), rcfile, 'exec'))
