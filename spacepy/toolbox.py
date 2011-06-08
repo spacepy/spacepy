@@ -142,12 +142,12 @@ def tCommon(ts1, ts2, mask_only=True):
         time2 = np.ma.masked_array(tn2, mask=truemask2)
         dum1 = num2date(time1.compressed())
         dum2 = num2date(time2.compressed())
-        if type(ts1)==np.ndarray:
+        dum1 = [val.replace(tzinfo=None) for val in dum1]
+        dum2 = [val.replace(tzinfo=None) for val in dum2]
+        if type(ts1)==np.ndarray or type(ts2)==np.ndarray:
             dum1 = np.array(dum1)
             dum2 = np.array(dum2)
-
         return dum1, dum2
-
 
 def loadpickle(fln):
     """
@@ -1081,7 +1081,9 @@ def logspace(min, max, num, **kwargs):
     from numpy import logspace, log10
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
-        return num2date(logspace(log10(date2num(min)), log10(date2num(max)), num, **kwargs))
+        ans = num2date(logspace(log10(date2num(min)), log10(date2num(max)), num, **kwargs))
+        ans = [val.replace(tzinfo=None) for val in ans]
+        return np.array(ans)
     else:
         return logspace(log10(min), log10(max), num, **kwargs)
 
@@ -1120,8 +1122,10 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
     from numpy import linspace, log10
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
-        return num2date(linspace(date2num(min), date2num(max),
+        ans = num2date(linspace(date2num(min), date2num(max),
                                  num=num, endpoint=endpoint, retstep=retstep))
+        ans = [val.replace(tzinfo=None) for val in ans]
+        return np.array(ans)
     else:
         return linspace(min, max,
                         num=num, endpoint=endpoint, retstep=retstep)

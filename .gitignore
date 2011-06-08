@@ -8,3 +8,4 @@ build
 QuickStartGuide.synctex.gz
 .DS_Store
 *~
+*.o
