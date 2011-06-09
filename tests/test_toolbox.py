@@ -542,6 +542,71 @@ class tFunctionTests(unittest.TestCase):
         Mtick, mtick, fmt = tb.smartTimeTicks(t1)
         self.assertEqual('%H:%M UT', fmt.fmt)
 
+    def test_windowMean(self):
+        """windowMean should give known results (regression)"""
+        wsize = datetime.timedelta(days=1)
+        olap = datetime.timedelta(hours=12)
+        data = [10, 20]*50
+        time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
+        ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
+                    datetime.datetime(2001, 1, 2, 0, 0),
+                    datetime.datetime(2001, 1, 2, 12, 0),
+                    datetime.datetime(2001, 1, 3, 0, 0),
+                    datetime.datetime(2001, 1, 3, 12, 0),
+                    datetime.datetime(2001, 1, 4, 0, 0),
+                    datetime.datetime(2001, 1, 4, 12, 0)]
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        self.assertEqual(ot_ans, outtime)
+        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
+        od_ans = [14.8, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8]
+        ot_ans = [datetime.datetime(2001, 1, 1, 12, 30),
+                    datetime.datetime(2001, 1, 2, 0, 30),
+                    datetime.datetime(2001, 1, 2, 12, 30),
+                    datetime.datetime(2001, 1, 3, 0, 30),
+                    datetime.datetime(2001, 1, 3, 12, 30),
+                    datetime.datetime(2001, 1, 4, 0, 30),
+                    datetime.datetime(2001, 1, 4, 12, 30)]
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        self.assertEqual(ot_ans, outtime)
+
+        # now test the pointwise
+        outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
+        od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
+        ot_ans = [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0]
+        numpy.testing.assert_almost_equal(ot_ans, outtime)
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        # winsize tests
+        outdata, outtime = tb.windowMean(data, winsize=24.6, overlap=12)
+        od_ans, ot_ans = tb.windowMean(data, winsize=24.6, overlap=12)
+        numpy.testing.assert_almost_equal(ot_ans, outtime)
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        outdata, outtime = tb.windowMean(data, winsize=0.4)
+        od_ans, ot_ans = tb.windowMean(data, winsize=1.0)
+        numpy.testing.assert_almost_equal(ot_ans, outtime)
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        outdata, outtime = tb.windowMean(data, winsize=1.0, overlap=2)
+        od_ans, ot_ans = tb.windowMean(data, winsize=1.0, overlap=0)
+        numpy.testing.assert_almost_equal(ot_ans, outtime)
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+
+    def test_windowMeanInputs(self):
+        """windowMean does some input checking (regression)"""
+        wsize = datetime.timedelta(days=1)
+        olap = datetime.timedelta(hours=12)
+        data = [10, 20]*50
+        time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+        self.assertRaises(ValueError, tb.windowMean, data[1:], time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        self.assertRaises(TypeError, tb.windowMean, data, time, winsize='bad', overlap=olap, st_time=datetime.datetime(2001,1,1))
+        self.assertRaises(TypeError, tb.windowMean, data, time, winsize=wsize, overlap='bad', st_time=datetime.datetime(2001,1,1))
+        self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        olap = datetime.timedelta(days=2)
+        self.assertRaises(ValueError, tb.windowMean, data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        time = range(len(time))
+        self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
+
+
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""
 

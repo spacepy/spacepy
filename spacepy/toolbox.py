@@ -744,7 +744,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     For non-overlapping windows set overlap to zero.
     e.g. (time-based averaging)
     Given a data set of 100 points at hourly resolution (with the time tick in
-    the middle of the sample), the daily average of this, with half-overlapping 
+    the middle of the sample), the daily average of this, with half-overlapping
     windows is calculated:
 
     >>> import spacepy.toolbox as tb
@@ -753,7 +753,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     >>> olap = datetime.timedelta(hours=12)
     >>> data = [10, 20]*50
     >>> time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
-    >>> outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
+    >>> outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
     >>> outdata, outtime
     ([15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0],
      [datetime.datetime(2001, 1, 1, 12, 0),
@@ -772,8 +772,8 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
      [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0])
 
     where winsize and overlap are numeric,
-    in this example the window size is 24 points (as the data are hourly) and 
-    the overlap is 12 points (a half day). The output vectors start at 
+    in this example the window size is 24 points (as the data are hourly) and
+    the overlap is 12 points (a half day). The output vectors start at
     winsize/2 and end at N-(winsize/2), the output time vector
     is basically a reference to the nth point in the original series.
 
@@ -789,25 +789,15 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         try:
             assert len(data) == len(time)
         except:
-            return 'windowmean error: data and time must have same length'
+            raise ValueError('windowmean error: data and time must have same length')
         #First check if datetime objects
-        if (type(time[0]) == datetime.datetime):
-            if not winsize:
-                return 'windowmean error: winsize must be set for datetime input'
-            else:
-                try:
-                    assert type(winsize) == datetime.timedelta
-                    assert type(overlap) == datetime.timedelta
-                except:
-                    return 'windowmean error: winsize/overlap must be timedeltas'
-            pts = False #force time-based averaging
-        else:
-            try:
-                assert type(winsize) == datetime.timedelta
-                assert type(overlap) == datetime.timedelta
-            except:
-                return 'windowmean error: winsize/overlap must be timedeltas'
-            pts = False
+        try:
+            assert type(winsize) == datetime.timedelta
+            assert type(overlap) == datetime.timedelta
+        except AssertionError:
+            raise TypeError('windowmean error: winsize/overlap must be timedeltas')
+        pts = False #force time-based averaging
+        if (type(time[0]) != datetime.datetime):
             startpt = time[0]
 
     #now actually do windowing mean
@@ -815,8 +805,8 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     data = np.array(data)
     if pts:
         #loop for fixed number of points in window
-        if winsize % 1:
-            winsize = round(winsize)
+        if not isinstance(winsize, (int, long)):
+            winsize = int(round(winsize))
             print('windowmean error: non-integer windowsize, rounding to %d' \
             % winsize)
         if winsize < 1:
@@ -845,7 +835,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         else:
             startpt = time[0]
         if overlap >= winsize:
-            raise ValueError
+            raise ValueError('Overlap requested greater than size of window')
         while lastpt < time[-1]:
             getinds = tOverlapHalf([startpt,startpt+winsize], time, presort=True)
             if getinds: #if not None
