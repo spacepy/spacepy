@@ -742,19 +742,39 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     Examples
     ========
     For non-overlapping windows set overlap to zero.
-    e.g. (time-based averaging),
+    e.g. (time-based averaging)
+    Given a data set of 100 points at hourly resolution (with the time tick in
+    the middle of the sample), the daily average of this, with half-overlapping 
+    windows is calculated:
 
-    >>> wsize, olap = datetime.timedelta(1), datetime.timedelta(0,3600)
-    >>> outdata, outtime = windowmean(data, time, winsize=wsize, overlap=olap)
+    >>> import spacepy.toolbox as tb
+    >>> from datetime import datetime, timedelta
+    >>> wsize = datetime.timedelta(days=1)
+    >>> olap = datetime.timedelta(hours=12)
+    >>> data = [10, 20]*50
+    >>> time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+    >>> outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
+    >>> outdata, outtime
+    ([15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0],
+     [datetime.datetime(2001, 1, 1, 12, 0),
+      datetime.datetime(2001, 1, 2, 0, 0),
+      datetime.datetime(2001, 1, 2, 12, 0),
+      datetime.datetime(2001, 1, 3, 0, 0),
+      datetime.datetime(2001, 1, 3, 12, 0),
+      datetime.datetime(2001, 1, 4, 0, 0),
+      datetime.datetime(2001, 1, 4, 12, 0)])
 
-    in this example the window size is 1 day and the overlap is 1 hour.
     e.g. (pointwise averaging),
 
-    >>> outdata, outtime = windowmean(data, winsize=10, overlap=9)
+    >>> outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
+    >>> outdata, outtime
+    ([15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0],
+     [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0])
 
     where winsize and overlap are numeric,
-    in this example the window size is 10 points and the overlap is 9 points.
-    The output vectors start at winsize/2 and end at N-(winsize/2), the output time vector
+    in this example the window size is 24 points (as the data are hourly) and 
+    the overlap is 12 points (a half day). The output vectors start at 
+    winsize/2 and end at N-(winsize/2), the output time vector
     is basically a reference to the nth point in the original series.
 
     **note** This is a quick and dirty function - it is NOT optimized, at all.
