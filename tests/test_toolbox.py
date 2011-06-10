@@ -571,6 +571,24 @@ class tFunctionTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(od_ans, outdata)
         self.assertEqual(ot_ans, outtime)
 
+        time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+        time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
+        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        od_ans = [ 15.,  15.,  15.,  15.,  15.,  numpy.nan,  numpy.nan,  15.,  15.,  15.,  15.]
+        ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
+                  datetime.datetime(2001, 1, 2, 0, 0),
+                  datetime.datetime(2001, 1, 2, 12, 0),
+                  datetime.datetime(2001, 1, 3, 0, 0),
+                  datetime.datetime(2001, 1, 3, 12, 0),
+                  datetime.datetime(2001, 1, 4, 0, 0),
+                  datetime.datetime(2001, 1, 4, 12, 0),
+                  datetime.datetime(2001, 1, 5, 0, 0),
+                  datetime.datetime(2001, 1, 5, 12, 0),
+                  datetime.datetime(2001, 1, 6, 0, 0),
+                  datetime.datetime(2001, 1, 6, 12, 0)]
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        self.assertEqual(ot_ans, outtime)
+
         # now test the pointwise
         outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
         od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
