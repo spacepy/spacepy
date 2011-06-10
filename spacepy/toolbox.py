@@ -764,6 +764,11 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
       datetime.datetime(2001, 1, 4, 0, 0),
       datetime.datetime(2001, 1, 4, 12, 0)])
 
+    When using time-based averaging, ensure that the time tick corresponds to
+    the middle of the time-bin to which the data apply. That is, if the data 
+    are hourly, say for 00:00-01:00, then the time applied should be 00:30.
+    If this is not done, unexpected behaviour can result.
+
     e.g. (pointwise averaging),
 
     >>> outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
