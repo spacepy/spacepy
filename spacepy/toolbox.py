@@ -271,12 +271,20 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
 
     Examples
     ========
-    >>> assemble('input_files_*.pkl', 'combined_input.pkl')
-    adding input_files_2001.pkl
-    adding input_files_2002.pkl
-    adding input_files_2004.pkl
-    writing: combined_input.pkl
+    >>> import spacepy.toolbox as tb
+    >>> a, b, c = {'ticks':[1,2,3]}, {'ticks':[4,5,6]}, {'ticks':[7,8,9]}
+    >>> tb.savepickle('input_files_2001.pkl', a)
+    >>> tb.savepickle('input_files_2002.pkl', b)
+    >>> tb.savepickle('input_files_2004.pkl', c)
+    >>> a = tb.assemble('input_files_*.pkl', 'combined_input.pkl')
+    ('adding ', 'input_files_2001.pkl')
+    ('adding ', 'input_files_2002.pkl')
+    ('adding ', 'input_files_2004.pkl')
+    ('\\n writing: ', 'combined_input.pkl')
+    >>> print(a)
+    {'ticks': array([1, 2, 3, 4, 5, 6, 7, 8, 9])}
     """
+    # done this way so it works before install
     from . import time as t
     from . import coordinates as c
 
@@ -327,10 +335,8 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
 
     if verbose: print('\n writing: ', outfln)
     savepickle(outfln, dcomb)
-
     return dcomb
 
-# -----------------------------------------------
 def human_sort( l ):
     """ Sort the given list in the way that humans expect.
     http://www.codinghorror.com/blog/2007/12/sorting-for-humans-natural-sort-order.html
@@ -338,21 +344,29 @@ def human_sort( l ):
     Parameters
     ==========
     l : list
-        list of objects to guman sort
+        list of objects to human sort
 
     Returns
     =======
     out : list
         sorted list
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> dat = ['r1.txt', 'r10.txt', 'r2.txt']
+    >>> dat.sort()
+    >>> print dat
+    ['r1.txt', 'r10.txt', 'r2.txt']
+    >>> tb.human_sort(dat)
+    ['r1.txt', 'r2.txt', 'r10.txt']
     """
     import re
     convert = lambda text: int(text) if text.isdigit() else text
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
     l.sort( key=alphanum_key )
-
     return l
 
-# -----------------------------------------------
 def feq(x, y, precision=0.0000005):
     """
     compare two floating point values if they are equal
@@ -381,13 +395,17 @@ def feq(x, y, precision=0.0000005):
 
     Examples
     ========
-    >>> index = where( feq(Lpos,Lgrid) ) # use float point comparison
+    >>> import spacepy.toolbox as tb
+    >>> x = 1 + 1e-4
+    >>> y = 1 + 2e-4
+    >>> tb.feq(x, y)
+    False
+    >>> tb.feq(x, y, 1e-3)
+    True
     """
     boolean = abs(x-y) <= (abs(x+y)*precision)
     return boolean
 
-
-# -----------------------------------------------
 def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwargs):
     """
     pretty print a dictionary tree
@@ -407,26 +425,28 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
 
     Examples
     ========
+    >>> import spacepy.toolbox as tb
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
-    >>> dictree(d)
+    >>> tb.dictree(d)
     +
     |____grade
-        |____level1
-        |____level2
+         |____level1
+         |____level2
     |____name
 
     More complicated example using a datamodel:
 
+    >>> from spacepy import datamodel
     >>> counts = datamodel.dmarray([2,4,6], attrs={'units': 'cts/s'})
     >>> data = {'counts': counts, 'PI': 'Dr Zog'}
-    >>> dictree(data)
+    >>> tb.dictree(data)
     +
     |____PI
     |____counts
-    >>> dictree(data, attrs=True, verbose=True)
+    >>> tb.dictree(data, attrs=True, verbose=True)
     +
     |____PI (str [6])
-    |____counts (datamodel.dmarray (3,))
+    |____counts (spacepy.datamodel.dmarray (3,))
         :|____units (str [5])
 
     Attributes of, e.g., a CDF or a datamodel type object (obj.attrs)
@@ -487,10 +507,8 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
                 dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels, attrs=attrs, toplev=False)
     except:
         pass
-
     return None
 
-# -----------------------------------------------
 def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     """save current figure to file and call lpr (print).
 
@@ -515,11 +533,12 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
     Examples
     ========
-    >>> pyplot.plot([1,2,3],[2,3,2])
-    >>> spacepy.printfig(1, pngolny=True)
+    >>> import spacepy.toolbox as tb
+    >>> import matplotlib.pyplot as plt
+    >>> p = plt.plot([1,2,3],[2,3,2])
+    >>> tb.printfig(1, pngonly=True)
     """
-    import os, glob, datetime
-    import pylab as p
+    import matplotlib.pyplot as plt
 
     try:
         nfigs = len(fignum)
@@ -529,7 +548,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
     for ifig in fignum:
         # active this figure
-        p.figure(ifig)
+        plt.figure(ifig)
 
         if filename == None:
             # create a filename for the figure
@@ -546,18 +565,18 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
         # save a clean figure without timestamps
         if clean == True:
-            p.savefig(fln+'_clean.png')
-            p.savefig(fln+'_clena.ps')
+            plt.savefig(fln+'_clean.png')
+            plt.savefig(fln+'_clena.ps')
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
         # add the filename to the figure for reference
-        p.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
+        plt.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
 
         # now save the figure to this filename
         if pngonly == False:
-            p.savefig(fln+'.ps')
+            plt.savefig(fln+'.ps')
 
-        p.savefig(fln+'.png')
+        plt.savefig(fln+'.png')
 
         # send it to the printer
         if saveonly != True:
@@ -567,7 +586,6 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
                 os.popen('lpr '+fln+'.png')
     return
 
-# -----------------------------------------------
 def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     """
     Download and update local database for omni, leapsecs etc
@@ -588,7 +606,8 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
 
     Examples
     ========
-    >>> update(omni=True)
+    >>> import spacepy.toolbox as tb
+    >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
     from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
@@ -709,8 +728,9 @@ def progressbar(count, blocksize, totalsize):
 
     Examples
     ========
-    >>> u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
-
+    >>> import spacepy.toolbox as tb
+    >>> import urllib
+    >>> urllib.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=tb.progressbar)
     """
     percent = int(count*blocksize*100/totalsize)
     sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
@@ -858,7 +878,6 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
 
     return outdata, outtime
 
-
 def medAbsDev(series):
     """
     Calculate median absolute deviation of a given input series
@@ -886,10 +905,13 @@ def medAbsDev(series):
     normal distribution fitted to the population of sawtooth intervals, see
     Morley and Henderson, Comment, Geophysical Research Letters, 2009.
 
+    >>> import numpy
+    >>> import spacepy.toolbox as tb
+    >>> numpy.random.seed(8675301)
     >>> data = numpy.random.lognormal(mean=5.1458, sigma=0.302313, size=30)
     >>> print data
     array([ 181.28078923,  131.18152745, ... , 141.15455416, 160.88972791])
-    >>> toolbox.medabsdev(data)
+    >>> tb.medabsdev(data)
     28.346646721370192
 
     **note** This implementation is robust to presence of NaNs
@@ -925,7 +947,8 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
 
     Examples
     ========
-    >>> poly0c = makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
+    >>> import spacepy.toolbox as tb
+    >>> poly0c = tb.makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
     >>> ax0.add_patch(poly0qc)
     """
     import matplotlib as mpl
@@ -958,9 +981,12 @@ def binHisto(data, verbose=False):
     ========
     >>> import numpy, spacepy
     >>> import matplotlib.pyplot as plt
-    >>> data = numpy.random.randn(100)
+    >>> numpy.random.seed(8675301)
+    >>> data = numpy.random.randn(1000)
     >>> binw, nbins = spacepy.toolbox.binHisto(data)
-    >>> plt.hist(data, bins=nbins, histtype='step', normed=True)
+    >>> print(nbins)
+    19.0
+    >>> p = plt.hist(data, bins=nbins, histtype='step', normed=True)
     """
     from matplotlib.mlab import prctile
     pul = prctile(data, p=(25,75)) #get confidence interval
@@ -1170,8 +1196,9 @@ def arraybin(array, bins):
 
     Examples
     ========
-    >>> arraybin(range(10), [4.2])
-    Out[4]: [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
+    >>> import spacepy.toolbox as tb
+    >>> tb.arraybin(range(10), [4.2])
+    [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
     """
     value = 0
     bin_it = (i for i in range(len(array)) if array[i] >= value)
@@ -1199,6 +1226,7 @@ def mlt2rad(mlt, midnight = False):
 
     Examples
     ========
+    >>> from numpy import array
     >>> mlt2rad(array([3,6,9,14,22]))
     array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
     """
@@ -1264,6 +1292,8 @@ def leap_year(year, numdays=False):
 
     Examples
     ========
+    >>> import numpy
+    >>> import spacepy.toolbox as tb
     >>> leap_year(numpy.arange(15)+1998)
     array([False, False,  True, False, False, False,  True, False, False,
     ... False,  True, False, False, False,  True], dtype=bool)
@@ -1307,8 +1337,10 @@ def pmm(a, *b):
 
     Examples
     ========
-    >>> pmm(arange(10), arange(10)+3)
-    [(0, 9), (3, 12)]
+    >>> import spacepy.toolbox as tb
+    >>> from numpy import arange
+    >>> tb.pmm(arange(10), arange(10)+3)
+    [[0, 9], [3, 12]]
     """
     ans= [[ np.min(a), np.max(a) ]]
     for val in b:
@@ -1332,9 +1364,11 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
 
     Examples
     ========
+    >>> import spacepy.toolbox as tb
+    >>> from pylab import plot, arange
     >>> plot(arange(11))
     [<matplotlib.lines.Line2D object at 0x49072b0>]
-    timestamp()
+    >>> tb.timestamp()
     """
     from matplotlib.pyplot import gca, draw
     now = datetime.datetime.now()
@@ -1368,7 +1402,8 @@ def query_yes_no(question, default="yes"):
 
     Examples
     ========
-    >>> query_yes_no('Ready to go?')
+    >>> import spacepy.toolbox as tb
+    >>> tb.query_yes_no('Ready to go?')
     Ready to go? [Y/n] y
     'yes'
     """
@@ -1648,15 +1683,20 @@ def dist_to_list(func, length, min=None, max=None):
 
     Examples
     ========
+    >>> import matplotlib
+    >>> import numpy
+    >>> import spacepy.toolbox as tb
     >>> gauss = lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
                           (5 * math.sqrt(2 * math.pi))
-    >>> vals = dist_to_list(gauss, 1000, -inf, inf)
-    >>> matplotlib.pyplot.hist(vals, bins=[i - 10 for i in range(21)],
+    >>> vals = tb.dist_to_list(gauss, 1000, -numpy.inf, numpy.inf)
+    >>> print vals[0]
+    -16.45263...
+    >>> p1 = matplotlib.pyplot.hist(vals, bins=[i - 10 for i in range(21)], \
                                facecolor='green')
     >>> matplotlib.pyplot.hold(True)
     >>> x = [i / 100.0 - 10.0 for i in range(2001)]
-    >>> matplotlib.pyplot.plot(x, [gauss(i) * 1000 for i in x], 'red')
-    >>> matplotlib.pyplot.show()
+    >>> p2 = matplotlib.pyplot.plot(x, [gauss(i) * 1000 for i in x], 'red')
+    >>> matplotlib.pyplot.draw()
     """
     from scipy import inf
     from scipy.integrate import quad
@@ -1695,7 +1735,8 @@ def bin_center_to_edges(centers):
 
     Examples
     ========
-    >>> bin_center_to_edges([1,2,3])
+    >>> import spacepy.toolbox as tb
+    >>> tb.bin_center_to_edges([1,2,3])
     [0.5, 1.5, 2.5, 3.5]
     """
     return [1.5 * centers[0] - 0.5 * centers[1] if i == 0 else
@@ -1745,12 +1786,18 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
 
     Examples
     ========
-    squaring 100 million numbers::
+    squaring 100 million numbers:
+
+    >>> import numpy
+    >>> import spacepy.toolbox as tb
+    >>> numpy.random.seed(8675301)
     >>> a = numpy.random.randint(0, 100, [100000000])
     >>> b = numpy.empty([100000000], dtype='int64')
-    >>> def targ(in_array, out_array, start, count):
-    >>>     out_array[start:start + count] = in_array[start:start + count] ** 2
-    >>> toolbox.thread_job(len(a), 0, targ, a, b)
+    >>> def targ(in_array, out_array, start, count): \
+             out_array[start:start + count] = in_array[start:start + count] ** 2
+    >>> tb.thread_job(len(a), 0, targ, a, b)
+    >>> print(b[0:5])
+    [2704 7225  196 1521   36]
 
     This example:
       - Defines a target function, which will be called for each thread.
@@ -1877,3 +1924,8 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     thread_job(jobsize, thread_count, array_targ,
                target, iterable, retvals, args, kwargs)
     return retvals
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
