@@ -131,6 +131,33 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = numpy.ma.masked_array([0.5, 1.5, 2.5, 3.5, 4.5],
             mask = [False,  True,  True, False, False], fill_value = 1e+20)
         numpy.testing.assert_equal(ans, tb.interpol(numpy.arange(5)+0.5, x, y, baddata=2))
+        # test wrap hour
+        y = range(24)*2
+        x = range(len(y))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 23.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 23.5], x, y, wrap='hour'))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 1.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 1.5], x, y)) # as a regression don't need wrap
+        # test wrap lon
+        y = range(360)*2
+        x = range(len(y))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 359.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap='lon'))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 10.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 370.5], x, y)) # as a regression don't need wrap
+        # test wrap arb
+        y = range(14)*2
+        x = range(len(y))
+        real_ans = [1.5, 10.5, 13.5]
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 13.5], x, y, wrap=14).compressed())
+        real_ans = [1.5, 10.5, 1.5]
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 15.5], x, y)) # as a regression don't need wrap
+
+
 
     def test_normalize(self):
         """normalize should give known results"""

@@ -154,12 +154,12 @@ def loadpickle(fln):
     load a pickle and return content as dictionary
 
     Parameters
-    ----------
+    ==========
     fln : string
         filename
 
     Returns
-    -------
+    =======
     out : dict
         dictionary with content from file
 
@@ -765,7 +765,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
       datetime.datetime(2001, 1, 4, 12, 0)])
 
     When using time-based averaging, ensure that the time tick corresponds to
-    the middle of the time-bin to which the data apply. That is, if the data 
+    the middle of the time-bin to which the data apply. That is, if the data
     are hourly, say for 00:00-01:00, then the time applied should be 00:30.
     If this is not done, unexpected behaviour can result.
 
@@ -1398,16 +1398,45 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     """
     1-D linear interpolation with interpolation of hours/longitude
 
+    Parameters
+    ==========
+    newx : array_like
+        x values where we want the interpolated values
+    x : array_like
+        x values of the origional data
+    y : array_like
+        7 values of the origional data
+    wrap : string, optional
+        for continous x data that wraps in y at 'hours' (24), 'longitude' (360),
+        or arbitary value (int, float)
+    kwargs : dict
+        additional keywords, currently accepts baddata that sets baddata for
+        masked arrays
+
     Returns
     =======
     out : numpy.masked_array
         interpolated data values for new abscissa values
 
+    Examples
+    ========
+    For a simple interpolation
 
-    Parameters
-    ==========
-    newx
+    >>> import spacepy.toolbox as tb
+    >>> import numpy
+    >>> x = numpy.arange(10)
+    >>> y = numpy.arange(10)
+    >>> tb.interpol(numpy.arange(5)+0.5, x, y)
+    array([ 0.5,  1.5,  2.5,  3.5,  4.5])
 
+    To use the wrap functionality, without the wrap keyword you get the wrong answer
+
+    >>> y = range(24)*2
+    >>> x = range(len(y))
+    >>> tb.interpol([1.5, 10.5, 23.5], x, y, wrap='hour').compressed() # compress removed the masked array
+    array([  1.5,  10.5,  23.5])
+    >>> tb.interpol([1.5, 10.5, 23.5], x, y)
+    array([  1.5,  10.5,  11.5])
     """
     import scipy as sci
 
@@ -1481,6 +1510,12 @@ def normalize(vec):
     =======
     out : array_like
         normalized vector
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.normalize([1,2,3])
+    [0.0, 0.5, 1.0]
     """
     # check to see if vec is numpy array, this is fastest
     if isinstance(vec, np.ndarray):
@@ -1505,6 +1540,13 @@ def listUniq(inVal):
     =======
     out : list
         list of unique elements from iterable
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> a = [1,1,2,3,3,4,5,5]
+    >>> tb.listUniq(a)
+    [1, 2, 3, 4, 5]
     """
     seen = set()
     return [ x for x in inVal if x not in seen and not seen.add(x)]
@@ -1672,6 +1714,17 @@ def hypot(*vals):
     =======
     out : float
         the Euclidian distance of the points ot the origin
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.hypot(3,4)
+    5.0
+    >>> a = [3, 4]
+    >>> tb.hypot(*a)
+    5.0
+    >>> tb.hypot(*range(10))
+    16.88194...
     """
     return math.sqrt(sum((v ** 2 for v in vals)))
 
