@@ -35,7 +35,7 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     Finds the overlapping elements in two lists of datetime objects
 
     Parameters
-    ----------
+    ==========
     ts1 : datetime
         first set of datetime object
     ts2: datetime
@@ -44,21 +44,25 @@ def tOverlap(ts1, ts2, *args, **kwargs):
         additional arguments passed to tOverlapHalf
 
     Returns
-    -------
+    =======
     out : list
         indices of ts1 within interval of ts2, & vice versa
 
     Examples
-    --------
+    ========
     Given two series of datetime objects, event_dates and omni['Time']:
 
     >>> import spacepy.toolbox as tb
-    >>> [einds,oinds] = tb.tOverlap(event_dates, omni['Time'])
-    >>> omni_time = omni['Time'][oinds[0]:oinds[-1]+1]
+    >>> from spacepy import omni
+    >>> import datetime
+    >>> event_dates = st.tickrange(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 10, 1), deltadays=3)
+    >>> onni_dates = st.tickrange(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 10, 1), deltadays=0.5)
+    >>> omni = omni.get_omni(onni_dates)
+    >>> [einds,oinds] = tb.tOverlap(event_dates, omni['ticks'])
+    >>> omni_time = omni['ticks'][oinds[0]:oinds[-1]+1]
     >>> print omni_time
-    [datetime.datetime(2007, 5, 5, 17, 57, 30), datetime.datetime(2007, 5, 5, 18, 2, 30),
-    ... , datetime.datetime(2007, 5, 10, 4, 57, 30)]
-
+    [datetime.datetime(2000, 1, 1, 0, 0), datetime.datetime(2000, 1, 1, 12, 0),
+    ... , datetime.datetime(2000, 9, 30, 0, 0)]
     """
     idx_1in2 = tOverlapHalf(ts2, ts1, *args, **kwargs)
     idx_2in1 = tOverlapHalf(ts1, ts2, *args, **kwargs)
@@ -66,7 +70,6 @@ def tOverlap(ts1, ts2, *args, **kwargs):
         idx_2in1 = None
     if len(idx_1in2) == 0:
         idx_1in2 = None
-
     return idx_1in2, idx_2in1
 
 def tOverlapHalf(ts1, ts2, presort=False):
@@ -78,7 +81,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
     returnd by tOverlap.
 
     Parameters
-    ----------
+    ==========
     ts1 : list
         first set of datetime object
     ts2 : list
@@ -90,7 +93,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
                    the list if one sort can be done for many calls to tOverlap
 
     Returns
-    -------
+    =======
     out : list
         indices of ts2 within interval of ts1
 
@@ -773,8 +776,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
 
     >>> outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
     >>> outdata, outtime
-    ([15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0],
-     [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0])
+    ([15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0], [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0])
 
     where winsize and overlap are numeric,
     in this example the window size is 24 points (as the data are hourly) and
@@ -1832,8 +1834,12 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     ========
     find totals of several arrays
 
-    >>> inputs = [numpy.random.randint(0, 100, [100000]) for i in range(100)]
+    >>> import numpy
+    >>> from spacepy import toolbox
+    >>> inputs = range(100)
     >>> totals = toolbox.thread_map(numpy.sum, inputs)
+    >>> print(totals[0], totals[50], totals[99])
+    (0, 50, 99)
 
     Parameters
     ==========

@@ -19,7 +19,9 @@ import numpy
 from numpy import array
 from scipy import inf
 import spacepy.toolbox as tb
-
+import matplotlib.pyplot as plt
+import spacepy.time as st
+from matplotlib.text import Text
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -156,8 +158,6 @@ class SimpleFunctionTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 13.5], x, y, wrap=14).compressed())
         real_ans = [1.5, 10.5, 1.5]
         numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 15.5], x, y)) # as a regression don't need wrap
-
-
 
     def test_normalize(self):
         """normalize should give known results"""
@@ -668,6 +668,30 @@ class ArrayBinTests(unittest.TestCase):
         for (input, output) in zip(inputs, outputs):
             self.assertEqual(output,
                              tb.arraybin(*input))
+
+class PlottingTests(unittest.TestCase):
+    """Tests for plotting functionality"""
+
+    def test_applySmartTimeTicks(self):
+        """applySmartTimeTicks should have known behaviour"""
+        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays = 1)
+        y = range(len(ticks))
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        line = ax.plot(ticks.UTC, y)
+        tb.applySmartTimeTicks(ax, ticks.UTC)
+        plt.draw()
+        # should not have moved the ticks
+        real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
+        730888.,  730889.,  730890.,  730891.])
+        numpy.testing.assert_array_almost_equal(real_ans, ax.get_xticks())
+        # should have named them 01 Feb, 02 Feb etc
+        real_ans = ["Text(0,0,u'01 Feb')", "Text(0,0,u'02 Feb')", "Text(0,0,u'03 Feb')", "Text(0,0,u'04 Feb')",
+                    "Text(0,0,u'05 Feb')", "Text(0,0,u'06 Feb')", "Text(0,0,u'07 Feb')", "Text(0,0,u'08 Feb')",
+                    "Text(0,0,u'09 Feb')", "Text(0,0,u'10 Feb')"]
+        ans = [str(ax.xaxis.get_majorticklabels()[i]) for i in range(len(ax.xaxis.get_majorticklabels()))]
+        numpy.testing.assert_array_equal(real_ans, ans)
+
 
 
 if __name__ == "__main__":
