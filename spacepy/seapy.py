@@ -221,10 +221,23 @@ class Sea(SeaBase):
         m = int(2*wind + 1)
         n = len(t_epoch)
         y_sea = np.zeros((n,m), dtype=float)
+        blankslice = np.zeros([m], dtype=float)
         for i in range(n):
             dif = np.abs(time-t_epoch[i])
             j = np.where(dif == np.min(dif))
-            sea_slice = y[j[0][0]-wind:j[0][0]+wind+1]
+            stpt = j[0][0]-wind
+            enpt = j[0][0]+wind+1
+            sea_slice = blankslice.copy()
+            if stpt < 0: #fix for bad epochs not correctly moved to badepochs attr #TODO: make badepochs robust or do all checking here
+                sea_slice[0:abs(stpt)] = np.NaN
+                sea_slice[abs(stpt):] = y[0:enpt]
+            elif enpt >= len(y):
+                tmpslice = y[stpt:]
+                sea_slice[:len(tmpslice)] = tmpslice
+                sea_slice[len(tmpslice):] = np.NaN
+            else:
+                sea_slice = y[stpt:enpt]
+
             y_sea[i,0:] = sea_slice
         
         #find SEA mean, median and percentiles - exclude NaNs (or badval)
