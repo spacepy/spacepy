@@ -23,13 +23,66 @@ except ImportError:
 from spacepy import toolbox
 
 
+class BaseTests(unittest.TestCase):
+    """Tests of basic funstions in poppy"""
+    def setUp(self):
+        super(BaseTests, self).setUp()
+        t1 = [655963,  70837, 681914, 671054, 120856,  52827, 674833, 727548,
+              569743, 168496, 417843, 846365, 124030, 149118, 331591, 499616,
+              401455, 484069, 470137, 476552, 105777, 711075, 688800, 544110,
+              730248,  90896, 249113, 132259, 261126, 723237, 197802, 236209,
+              239956, 231539, 537703, 528239, 354486, 135203, 357335, 683024,
+              258661, 316019, 214481, 672555, 212034, 103213, 746137, 111065,
+              436613, 286559, 511857, 489026,  32363, 275374, 342386, 192878,
+              266724, 116734, 176916, 818199, 842720, 863230,  44519, 439228,
+              419808, 179134, 639349, 763944, 605673, 507410, 618672, 828078,
+              85643, 438461, 737909,  39394, 708392, 652198, 588335, 670095,
+              675992, 580726, 455917, 267198, 708865, 423934, 126758, 537249,
+              228845, 364992, 843165, 687482, 162219, 107074, 263547, 272363,
+              838316, 574703, 421124, 484203]
+        t2 = [757071, 820424, 522664, 399644, 558150, 342836, 834185,   9550,
+              278019, 110750, 514961, 473701, 673490, 830021, 762821, 231852,
+              662373, 729429, 545901, 409830, 432443, 649515, 446492, 286360,
+              364346, 794408, 270865, 291723, 160511, 376046, 483439, 522531,
+              92429, 642585, 803893,  61784, 116165, 405721, 565018,   3538,
+              815125, 311551, 850973, 629556, 701310, 490674, 183441, 116949,
+              388805, 457620, 302912,  75785, 717289, 424186, 370460,  93986,
+              194428, 125804,  95628, 382477, 234520,  34429, 568429, 110523,
+              519464, 530399, 244645, 345020, 690005, 750812, 237726, 549233,
+              297069,  60590, 779392, 120764, 298320, 587738, 141891, 114935,
+              585671, 138104, 752052, 585814, 670661, 281514, 148099, 682492,
+              660800, 429724, 832390, 536037, 618901, 363413, 257753, 858464,
+              674609, 191279, 337199, 193586]
+        self.t1 = t1
+        self.t2 = t2
+
+    def tearDown(self):
+        super(BaseTests, self).tearDown()
+
+    def test_str(self):
+        """__str__ should give known results"""
+        pop = poppy.PPro(self.t1, self.t2)
+        self.assertEqual(str(pop), 'Point Process Object:\n        Points in process #1 - 100 ; Points in process #2 - 100\n        Peak association number - N/A ; Asymptotic association - N/A\n        ')
+
+    def test_len(self):
+        """__len__ has a known behaviour"""
+        pop = poppy.PPro(self.t1, self.t2)
+        self.assertEqual(len(pop), 100)
+
+    def test_swap(self):
+        """swap() should swap the processes"""
+        pop = poppy.PPro(self.t1, self.t2)
+        pop.swap()
+        self.assertEqual(pop.process1, self.t2)
+        self.assertEqual(pop.process2, self.t1)
+
 class BootstrapTests(unittest.TestCase):
     """Tests of the boots_ci function
 
     @ivar long_test: Run a very long test
     @type long_test: bool
     """
-    
+
     def __init__(self, *args, **kwargs):
         super(BootstrapTests, self).__init__(*args, **kwargs)
         self.long_test = False
@@ -57,12 +110,12 @@ class BootstrapTests(unittest.TestCase):
             self.assertAlmostEqual(-1.03977357727, ci_low, places=10)
             self.assertAlmostEqual(0.914472603387, ci_high, places=10)
             self.assertAlmostEqual(97.502939756605045, prc, places=10)
-            
+
     def testLogNormal(self):
         """Check output on a LogNormal"""
         lnorm = lambda x: math.exp(-1*(math.log(x) - 5.1)**2./(2*0.3**2.) ) \
                           / (x*math.sqrt(2*math.pi) * 0.3)
-        
+
         if self.long_test:
             dist_values = toolbox.dist_to_list(lnorm, 5000, min=0)
             (ci_low, ci_high) = poppy.boots_ci(dist_values, 50000, 95.0,
@@ -235,7 +288,7 @@ class ValuePercentileTests(unittest.TestCase):
                     self.assertTrue(t >= rt_target)
                 else:
                     self.assertAlmostEqual(rt_target, t, places=6)
-    
+
 
 if __name__ == '__main__':
     unittest.main()

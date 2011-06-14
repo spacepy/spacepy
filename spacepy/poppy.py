@@ -90,11 +90,12 @@ class PPro(object):
     #NB: P2 is the "master" timescale, P1 gets shifted by lags
     #Add lag to p1 to reach p2's timescale, subtract lag from p2 to reach p1's
 
-    def __init__(self, process1, process2, lags=None, winhalf=None):
+    def __init__(self, process1, process2, lags=None, winhalf=None, verbose=False):
         self.process1 = process1
         self.process2 = process2
         self.lags = lags
         self.winhalf = winhalf
+        self.verbose = verbose
 
     def __str__(self):
         """String Representation of PoPPy object"""
@@ -113,7 +114,7 @@ class PPro(object):
         return """Point Process Object:
         Points in process #1 - %d ; Points in process #2 - %d
         Peak association number - %s ; Asymptotic association - %s
-        """ % (len(self.process1), len(self.process2))
+        """ % (len(self.process1), len(self.process2), pk, asy)
 
     __repr__ = __str__
 
@@ -143,10 +144,14 @@ class PPro(object):
             if h != None:
                 self.winhalf = h
             assert self.winhalf != None
-            print('calculating association for series of length %s at %d lags' \
-                % ([len(self.process1), len(self.process2)], len(self.lags)))
+            if self.verbose:
+                print('calculating association for series of length %s at %d lags' \
+                    % ([len(self.process1), len(self.process2)], len(self.lags)))
         except:
-            return 'assoc error: attributes lags and winhalf must be populated'
+            if self.verbose:
+                return 'assoc error: attributes lags and winhalf must be populated'
+            else:
+                return None
 
         import matplotlib as mpl
         from matplotlib import mlab

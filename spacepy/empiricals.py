@@ -10,6 +10,7 @@ Steve Morley, Josef Koller
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """
+import datetime
 
 import datetime
 
@@ -188,6 +189,8 @@ def getMPstandoff(ticks):
             len(Bz)
         except TypeError:
             Bz = [Bz]
+    else:
+        raise(TypeError('Invalid Input type'))
 
     try:
         # Initialize r0 and make P and Bz numpy arrays

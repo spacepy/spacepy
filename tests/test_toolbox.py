@@ -19,7 +19,9 @@ import numpy
 from numpy import array
 from scipy import inf
 import spacepy.toolbox as tb
-
+import matplotlib.pyplot as plt
+import spacepy.time as st
+from matplotlib.text import Text
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -104,7 +106,6 @@ class PickleAssembleTests(unittest.TestCase):
         result = tb.assemble('test_pickle_[1-3].pkl', 'test_all.pkl', sortkey=None, verbose=False)
         for key in result:
             result[key] = result[key].tolist()
-
         self.assertEqual(expected, result)
 
 
@@ -121,6 +122,47 @@ class SimpleFunctionTests(unittest.TestCase):
         val = tb.mlt2rad([1, 2], midnight=True)
         ans = [0.26179938779914941, 0.52359877559829882]
         numpy.testing.assert_almost_equal(val, ans)
+
+    def test_interpol(self):
+        """interpol should give known results"""
+        ans = array([ 0.5,  1.5,  2.5,  3.5,  4.5])
+        x = numpy.arange(10)
+        y = numpy.arange(10)
+        numpy.testing.assert_equal(ans, tb.interpol(numpy.arange(5)+0.5, x, y))
+        # now test with baddata
+        ans = numpy.ma.masked_array([0.5, 1.5, 2.5, 3.5, 4.5],
+            mask = [False,  True,  True, False, False], fill_value = 1e+20)
+        numpy.testing.assert_equal(ans, tb.interpol(numpy.arange(5)+0.5, x, y, baddata=2))
+        # test wrap hour
+        y = range(24)*2
+        x = range(len(y))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 23.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 23.5], x, y, wrap='hour'))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 1.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 1.5], x, y)) # as a regression don't need wrap
+        # test wrap lon
+        y = range(360)*2
+        x = range(len(y))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 359.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap='lon'))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 10.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 370.5], x, y)) # as a regression don't need wrap
+        # test wrap arb
+        y = range(14)*2
+        x = range(len(y))
+        real_ans = [1.5, 10.5, 13.5]
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 13.5], x, y, wrap=14).compressed())
+        real_ans = [1.5, 10.5, 1.5]
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 15.5], x, y)) # as a regression don't need wrap
+
+    def test_normalize(self):
+        """normalize should give known results"""
+        self.assertEqual([0.0, 0.5, 1.0], tb.normalize([1,2,3]))
+        numpy.testing.assert_equal(array([0.0, 0.5, 1.0]), tb.normalize(array([1,2,3])))
 
     def testfeq_equal(self):
         """feq should return true when they are equal"""
@@ -167,7 +209,6 @@ class SimpleFunctionTests(unittest.TestCase):
             datetime.datetime(2000, 1, 1, 21, 19, 59, 994124),
             datetime.datetime(2000, 1, 2, 0, 0, 0, 30)]
         ans = tb.logspace(t1, t2, 10)
-        ans = [val.replace(tzinfo=None) for val in ans]
         try:
             from matplotlib.dates import date2num
         except ImportError:
@@ -187,7 +228,6 @@ class SimpleFunctionTests(unittest.TestCase):
              datetime.datetime(2000, 1, 7, 18, 0),
              datetime.datetime(2000, 1, 10, 0, 0)]
         ans = tb.linspace(t1, t2, 5)
-        ans = [val.replace(tzinfo=None) for val in ans]
         try:
             from matplotlib.dates import date2num
         except ImportError:
@@ -209,7 +249,6 @@ class SimpleFunctionTests(unittest.TestCase):
         real_ans = [[1,2,3], [2,3,1], [1], [1,2,3]]
         for i, val in enumerate(real_ans):
             self.assertEqual(val, tb.listUniq(data[i]))
-
 
     def test_leap_year(self):
         """Leap_year should give known output for known input"""
@@ -239,6 +278,30 @@ class SimpleFunctionTests(unittest.TestCase):
                 self.assertEqual(val.tolist(), tb.leap_year(data[i], True))
             else:
                 self.assertEqual(val, tb.leap_year(data[i], True))
+        real_ans = ( array([False, False, False,  True, False, False, False, True, False, False]),
+                     False,
+                     [False, False, False, True, False, False, False,  True, False, False] )
+        for i, val in enumerate(real_ans):
+            if i == 0:
+                self.assertEqual(val.tolist(), tb.leap_year(data[i], False))
+            else:
+                self.assertEqual(val, tb.leap_year(data[i], False))
+
+    def test_rad2mlt(self):
+        """rad2mlt should give known answers (regression)"""
+        real_ans = array([ -6.        ,  -4.10526316,  -2.21052632,  -0.31578947,
+         1.57894737,   3.47368421,   5.36842105,   7.26315789,
+         9.15789474,  11.05263158,  12.94736842,  14.84210526,
+        16.73684211,  18.63157895,  20.52631579,  22.42105263,
+        24.31578947,  26.21052632,  28.10526316,  30.        ])
+        numpy.testing.assert_almost_equal(real_ans, tb.rad2mlt(numpy.linspace(-numpy.pi*1.5, numpy.pi*1.5, 20)))
+        real_ans = array([  6.        ,   7.89473684,   9.78947368,  11.68421053,
+        13.57894737,  15.47368421,  17.36842105,  19.26315789,
+        21.15789474,  23.05263158,  24.94736842,  26.84210526,
+        28.73684211,  30.63157895,  32.52631579,  34.42105263,
+        36.31578947,  38.21052632,  40.10526316,  42.        ])
+        numpy.testing.assert_almost_equal(real_ans, tb.rad2mlt(numpy.linspace(-numpy.pi*1.5, numpy.pi*1.5, 20), midnight=True))
+
 
     def testIntSolve(self):
         """Find function input to give a desired integral value"""
@@ -284,8 +347,19 @@ class SimpleFunctionTests(unittest.TestCase):
                     7.197657346725464, 9.799819946289062]
                    ]
         for (input, output) in zip(inputs, outputs):
-            for (exp, actual) in zip(output, tb.dist_to_list(*input)):
-                self.assertAlmostEqual(exp, actual, places=9)
+            numpy.testing.assert_almost_equal(output, tb.dist_to_list(*input))
+        ans = [0.22360679689512963,
+                0.3872983331400981,
+                0.49999999808849793,
+                0.5916079760482376,
+                0.6708203906853853,
+                0.7416198458743466,
+                0.8062257717476484,
+                0.8660254004736174,
+                0.9219544422046511,
+                0.9746794307546907]
+        # test the "if max is None:" part
+        numpy.testing.assert_almost_equal(ans, tb.dist_to_list(lambda x: x, 10, 0))
 
     def testBinCenterToEdges(self):
         """Convert a set of bin centers to bin edges"""
@@ -456,10 +530,127 @@ class tFunctionTests(unittest.TestCase):
             datetime.datetime(2000, 11, 12, 18, 0, ),
             datetime.datetime(2000, 11, 12, 19, 0, )])
         ans = tb.tCommon(self.dt_a, self.dt_b, mask_only=False)
-        ans0 = [val.replace(tzinfo=None) for val in ans[0]]
-        ans1 = [val.replace(tzinfo=None) for val in ans[1]]
-        self.assertEqual(real_ans2[0], ans0)
-        self.assertEqual(real_ans2[1], ans1)
+        self.assertEqual(real_ans2[0], ans[0])
+        self.assertEqual(real_ans2[1], ans[1])
+        # test ts1 being an array
+        ans = tb.tCommon(array(self.dt_a), self.dt_b, mask_only=False)
+        numpy.testing.assert_equal(real_ans2[0], ans[0])
+        numpy.testing.assert_equal(real_ans2[1], ans[1])
+        # test ts2 being an array
+        ans = tb.tCommon(self.dt_a, array(self.dt_b), mask_only=False)
+        numpy.testing.assert_equal(real_ans2[0], ans[0])
+        numpy.testing.assert_equal(real_ans2[1], ans[1])
+
+    def test_smartTimeTicks(self):
+        """smartTimeTicks should give known output (regression)"""
+        # hits all the different cases
+        # else
+        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 10), 20)
+        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
+        self.assertEqual('%d %b', fmt.fmt)
+        # elif nHours < 4:
+        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 1), 20)
+        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
+        self.assertEqual('%H:%M UT', fmt.fmt)
+        # elif nHours < 24:
+        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 13), 20)
+        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
+        self.assertEqual('%H:%M UT', fmt.fmt)
+        # elif nHours < 12:
+        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 11), 20)
+        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
+        self.assertEqual('%H:%M UT', fmt.fmt)
+        # if nHours < 1:
+        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 0, 30), 20)
+        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
+        self.assertEqual('%H:%M UT', fmt.fmt)
+        # elif nHours < 48:
+        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 2, 0, 30), 20)
+        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
+        self.assertEqual('%H:%M UT', fmt.fmt)
+
+    def test_windowMean(self):
+        """windowMean should give known results (regression)"""
+        wsize = datetime.timedelta(days=1)
+        olap = datetime.timedelta(hours=12)
+        data = [10, 20]*50
+        time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
+        ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
+                    datetime.datetime(2001, 1, 2, 0, 0),
+                    datetime.datetime(2001, 1, 2, 12, 0),
+                    datetime.datetime(2001, 1, 3, 0, 0),
+                    datetime.datetime(2001, 1, 3, 12, 0),
+                    datetime.datetime(2001, 1, 4, 0, 0),
+                    datetime.datetime(2001, 1, 4, 12, 0)]
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        self.assertEqual(ot_ans, outtime)
+        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
+        od_ans = [14.8, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8]
+        ot_ans = [datetime.datetime(2001, 1, 1, 12, 30),
+                    datetime.datetime(2001, 1, 2, 0, 30),
+                    datetime.datetime(2001, 1, 2, 12, 30),
+                    datetime.datetime(2001, 1, 3, 0, 30),
+                    datetime.datetime(2001, 1, 3, 12, 30),
+                    datetime.datetime(2001, 1, 4, 0, 30),
+                    datetime.datetime(2001, 1, 4, 12, 30)]
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        self.assertEqual(ot_ans, outtime)
+
+        time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+        time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
+        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        od_ans = [ 15.,  15.,  15.,  15.,  15.,  numpy.nan,  numpy.nan,  15.,  15.,  15.,  15.]
+        ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
+                  datetime.datetime(2001, 1, 2, 0, 0),
+                  datetime.datetime(2001, 1, 2, 12, 0),
+                  datetime.datetime(2001, 1, 3, 0, 0),
+                  datetime.datetime(2001, 1, 3, 12, 0),
+                  datetime.datetime(2001, 1, 4, 0, 0),
+                  datetime.datetime(2001, 1, 4, 12, 0),
+                  datetime.datetime(2001, 1, 5, 0, 0),
+                  datetime.datetime(2001, 1, 5, 12, 0),
+                  datetime.datetime(2001, 1, 6, 0, 0),
+                  datetime.datetime(2001, 1, 6, 12, 0)]
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        self.assertEqual(ot_ans, outtime)
+
+        # now test the pointwise
+        outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
+        od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
+        ot_ans = [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0]
+        numpy.testing.assert_almost_equal(ot_ans, outtime)
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        # winsize tests
+        outdata, outtime = tb.windowMean(data, winsize=24.6, overlap=12)
+        od_ans, ot_ans = tb.windowMean(data, winsize=24.6, overlap=12)
+        numpy.testing.assert_almost_equal(ot_ans, outtime)
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        outdata, outtime = tb.windowMean(data, winsize=0.4)
+        od_ans, ot_ans = tb.windowMean(data, winsize=1.0)
+        numpy.testing.assert_almost_equal(ot_ans, outtime)
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+        outdata, outtime = tb.windowMean(data, winsize=1.0, overlap=2)
+        od_ans, ot_ans = tb.windowMean(data, winsize=1.0, overlap=0)
+        numpy.testing.assert_almost_equal(ot_ans, outtime)
+        numpy.testing.assert_almost_equal(od_ans, outdata)
+
+    def test_windowMeanInputs(self):
+        """windowMean does some input checking (regression)"""
+        wsize = datetime.timedelta(days=1)
+        olap = datetime.timedelta(hours=12)
+        data = [10, 20]*50
+        time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+        self.assertRaises(ValueError, tb.windowMean, data[1:], time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        self.assertRaises(TypeError, tb.windowMean, data, time, winsize='bad', overlap=olap, st_time=datetime.datetime(2001,1,1))
+        self.assertRaises(TypeError, tb.windowMean, data, time, winsize=wsize, overlap='bad', st_time=datetime.datetime(2001,1,1))
+        self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        olap = datetime.timedelta(days=2)
+        self.assertRaises(ValueError, tb.windowMean, data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+        time = range(len(time))
+        self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
+
 
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""
@@ -477,6 +668,30 @@ class ArrayBinTests(unittest.TestCase):
         for (input, output) in zip(inputs, outputs):
             self.assertEqual(output,
                              tb.arraybin(*input))
+
+class PlottingTests(unittest.TestCase):
+    """Tests for plotting functionality"""
+
+    def test_applySmartTimeTicks(self):
+        """applySmartTimeTicks should have known behaviour"""
+        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays = 1)
+        y = range(len(ticks))
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        line = ax.plot(ticks.UTC, y)
+        tb.applySmartTimeTicks(ax, ticks.UTC)
+        plt.draw()
+        # should not have moved the ticks
+        real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
+        730888.,  730889.,  730890.,  730891.])
+        numpy.testing.assert_array_almost_equal(real_ans, ax.get_xticks())
+        # should have named them 01 Feb, 02 Feb etc
+        real_ans = ["Text(0,0,u'01 Feb')", "Text(0,0,u'02 Feb')", "Text(0,0,u'03 Feb')", "Text(0,0,u'04 Feb')",
+                    "Text(0,0,u'05 Feb')", "Text(0,0,u'06 Feb')", "Text(0,0,u'07 Feb')", "Text(0,0,u'08 Feb')",
+                    "Text(0,0,u'09 Feb')", "Text(0,0,u'10 Feb')"]
+        ans = [str(ax.xaxis.get_majorticklabels()[i]) for i in range(len(ax.xaxis.get_majorticklabels()))]
+        numpy.testing.assert_array_equal(real_ans, ans)
+
 
 
 if __name__ == "__main__":

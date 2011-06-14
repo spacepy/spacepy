@@ -122,9 +122,11 @@ class Sea(SeaBase):
             raise AttributeError('No bad epochs to restore')
         
         self.epochs = np.union1d(self.badepochs,self.epochs)
-        return 'Bad epochs restored to obj.epochs attribute'
+        if self.verbose: print('Bad epochs restored to epochs attribute')
+
+        return None
     
-    def _timeepoch(self,delt):
+    def _timeepoch(self, delt):
         #check type of time input and throw error message
         el1,ep1 = self.times[0], self.epochs[0]
         el1num = isinstance(el1, numbers.Number) or (type(el1)==np.float64)
@@ -147,7 +149,7 @@ class Sea(SeaBase):
             time = np.array(self.times, dtype=float)
             ser_flag=True
         else:
-            return 'Error: Time and Epochs must be consistently typed (numeric/datetime)'
+            raise ValueError('Time and Epochs must be consistently typed (numeric/datetime)')
         
         lose0 = np.where(t_epoch > time[-1]-(self.window*self.delta))
         lose1 = np.where(t_epoch < time[0]+(self.window*self.delta))
@@ -167,7 +169,8 @@ class Sea(SeaBase):
 
             self.epochs = t_epoch[kinds]
             t_epoch = t_epoch[kinds]
-        return time,t_epoch
+        
+        return time, t_epoch
     
     def sea(self, **kwargs):
         """Method called to perform superposed epoch analysis on data in object.
@@ -218,10 +221,23 @@ class Sea(SeaBase):
         m = int(2*wind + 1)
         n = len(t_epoch)
         y_sea = np.zeros((n,m), dtype=float)
+        blankslice = np.zeros([m], dtype=float)
         for i in range(n):
             dif = np.abs(time-t_epoch[i])
             j = np.where(dif == np.min(dif))
-            sea_slice = y[j[0][0]-wind:j[0][0]+wind+1]
+            stpt = j[0][0]-wind
+            enpt = j[0][0]+wind+1
+            sea_slice = blankslice.copy()
+            if stpt < 0: #fix for bad epochs not correctly moved to badepochs attr #TODO: make badepochs robust or do all checking here
+                sea_slice[0:abs(stpt)] = np.NaN
+                sea_slice[abs(stpt):] = y[0:enpt]
+            elif enpt >= len(y):
+                tmpslice = y[stpt:]
+                sea_slice[:len(tmpslice)] = tmpslice
+                sea_slice[len(tmpslice):] = np.NaN
+            else:
+                sea_slice = y[stpt:enpt]
+
             y_sea[i,0:] = sea_slice
         
         #find SEA mean, median and percentiles - exclude NaNs (or badval)
@@ -863,13 +879,13 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         assert isinstance(obj1, Sea)
         assert isinstance(obj2, Sea)
     except:
-        raise Exception("Inputs must both be seapy.Sea() instances of same length")
+        raise TypeError("Inputs must both be seapy.Sea() instances of same length")
     
     keylist, S, prob = ['KS','U'], [], []
     try:
         assert test.upper() in keylist
     except:
-        raise NotImplemetedError("Test "+self.dtype+" not implemented, only "+str(keylist))
+        raise NotImplementedError("Test "+self.dtype+" not implemented, only "+str(keylist))
     
     from scipy.stats import ks_2samp, mannwhitneyu
     
@@ -881,7 +897,7 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
                 S.append(tD)
                 prob.append(tprobKS2)        
         except:
-            raise Exception('''KS significance testing requires datacube attribute\n
+            raise AttributeError('''KS significance testing requires datacube attribute\n
                 Run sea() with kwarg storedata''')
     
     if test.upper() == 'U':
