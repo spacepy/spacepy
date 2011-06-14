@@ -19,10 +19,10 @@ On top of Sphinx SpacePy uses the following extensions:
 
 So what do I need to do in my code?
 -----------------------------------
-Since we are using the 'numpydoc' extension there are fixed headeding that may
-appear in your documenation block, there are a few things to note:
+Since we are using the 'numpydoc' extension there are fixed heading that may
+appear in your documentation block, there are a few things to note:
  * No other headings can appear there
- * I belive that no reStructuredText commands can either (e.g. .. Note:)
+ * I believe that no reStructuredText commands can either (e.g. .. Note:)
 
 Allowed headings
 ~~~~~~~~~~~~~~~~
@@ -50,9 +50,13 @@ Allowed headings
 **Do not use**
  * Signature
 
+**Examples**
+ * Use them, but they must be fully stand alone, the user can just copy-paste
+   exactly what is there and it should work (think, and probably run doctest on them)
+
 Method Example
 --------------
-This code from toolbox shows what a method shouyld look like in your code
+This code from toolbox shows what a method should look like in your code
 
     .. code-block:: python
 
@@ -86,7 +90,8 @@ This code from toolbox shows what a method shouyld look like in your code
 
             Examples
             ========
-            >>> logspace(1, 100, 5)
+            >>> import spacepy.toolbox as tb
+            >>> tb.logspace(1, 100, 5)
             array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
             """
             from numpy import logspace, log10
@@ -97,9 +102,6 @@ This code from toolbox shows what a method shouyld look like in your code
                 return logspace(log10(min), log10(max), num, **kwargs)
 
 
-Which then rendes as:
+Which then renders as:
 
     .. autofunction:: toolbox.logspace
-
-
-

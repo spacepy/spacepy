@@ -125,7 +125,7 @@ The answer is exactly the same and from where we started this is a 382x speedup:
             1    0.000    0.000    0.000    0.000 {isinstance}
             1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
 
-Overall thing really hard before you write a for loop or a list comprehension.
+Overall think really hard before you write a for loop or a list comprehension.
 
 .. _IDL: http://www.ittvis.com/language/en-us/productsservices/idl.aspx
 .. _Matlab: http://www.mathworks.com/products/matlab/
