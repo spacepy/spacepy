@@ -200,7 +200,7 @@ to an array that we already have::
         return (x0_y0_z0)
 
 Profiling this with cProfile one can see that this is now fast enough for me,
-no more work to do.  We picked up a 48x speed increase, I;m sure this can still
+no more work to do.  We picked up a 48x speed increase, I'm sure this can still
 be made better and let the spacepy team know if you rewrite it and it will be
 included::
 
