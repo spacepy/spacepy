@@ -131,9 +131,12 @@ class PPro(object):
     def assoc(self, u=None, h=None):
         """Perform association analysis on input series
 
-        @param u: the time lags to use
-        @type u: list
-        @param h: association window half-width, same type as L{process1}
+        Parameters
+        ==========
+        u : list, optional
+            the time lags to use
+        h :
+            association window half-width, same type as process1
         """
 
         #check for existence of lags and winhalf
@@ -214,20 +217,29 @@ class PPro(object):
         full association analysis, including bootstrapping of confidence
         intervals, for every listed window half-size
 
-        @param windows: window half-size for each analysis
-        @type windows: sequence
-        @param inter: desired confidence interval
-        @type inter: float
-        @param n_boots: number of bootstrap iterations
-        @type n_boots: int
-        @param seed: Random number generator seed. It is STRONGLY
-                     recommended not to specify (i.e. leave None) to permit
-                     multithreading.
-        @type seed: int
-        @warning: This function is likely to take a LOT of time.
-        @return: Three numpy arrays, (windows x lags), containing (in order)
-                 low values of confidence interval, high values of ci,
-                 percentage confidence above the asymptotic association number
+        Parameters
+        ==========
+        windows : sequence
+            window half-size for each analysis
+        inter : float, optional
+            desired confidence interval, default 95
+        n_boots : int, optional
+            number of bootstrap iterations, default 1000
+        seed : int, optional
+            Random number generator seed. It is STRONGLY
+            recommended not to specify (i.e. leave None) to permit
+            multithreading.
+
+        Warnings
+        ========
+        This function is likely to take a LOT of time.
+
+        Returns
+        =======
+        out : three numpy array
+            Three numpy arrays, (windows x lags), containing (in order)
+            low values of confidence interval, high values of ci,
+            percentage confidence above the asymptotic association number
         """
         n_lags = len(self.lags)
         ci_low = np.empty([len(windows), n_lags])
@@ -247,10 +259,16 @@ class PPro(object):
                   xlabel='Lag', ylabel='Window Size'):
         """Plots a 2D function of window size and lag
 
-        @param windows: list of window sizes (y axis)
-        @param data: list of data, dimensioned (windows x lags)
-        @param min: clip L{data} to this minimum value
-        @param max: clip L{data} to this maximum value
+        Parameters
+        ==========
+        windows : list
+            list of window sizes (y axis)
+        data : list
+            list of data, dimensioned (windows x lags)
+        min : float, optional
+            clip L{data} to this minimum value
+        max : float, optional
+            clip L{data} to this maximum value
         """
         import matplotlib.pyplot as plt
 
@@ -277,29 +295,31 @@ class PPro(object):
              xlabel='Time lag', xscale=None, ylabel=None, title=None, transparent=True):
         """Create basic plot of association analysis.
 
-        Uses object attributes created by the L{assoc} method and,
-        optionally, L{aa_ci}.
+        Uses object attributes created by the assoc method and,
+        optionally, aa_ci.
 
-        @param figsize: passed through to matplotlib.pyplot.figure
-        @param dpi: passed through to matplotlib.pyplot.figure
-        @param asympt: True to overplot the line of asymptotic association
-                       number
-        @type asympt: bool
-        @param show: Show the plot? (if false, will create without showing)
-        @type show: bool
-        @param norm: Normalize plot to the asymptotic association number
-        @type norm: bool
-        @param title: label/title for the plot
-        @type title: str
-        @param xlabel: label to put on the X axis of the resulting plot
-        @type xlabel: str
-        @param xscale: scale x-axis by this factor (e.g. 60.0 to convert
-                       seconds to minutes)
-        @type xscale: float
-        @param ylabel: label to put on the Y axis of the resulting plot
-        @type ylabel: str
-        @param transparent: make c.i. patch transparent (default)
-        @type transparent: bool
+        Parameters
+        ==========
+        figsize : , optional
+            passed through to matplotlib.pyplot.figure
+        dpi : int, optional
+            passed through to matplotlib.pyplot.figure
+        asympt : boolean, optional
+            True to overplot the line of asymptotic association number
+        show : boolean, optional
+            Show the plot? (if false, will create without showing)
+        norm : boolean, optional
+            Normalize plot to the asymptotic association number
+        title : string, optional
+            label/title for the plot
+        xlabel : string, optional
+            label to put on the X axis of the resulting plot
+        xscale : float, optional
+            scale x-axis by this factor (e.g. 60.0 to convert seconds to minutes)
+        ylabel : string, optional
+            label to put on the Y axis of the resulting plot
+        transparent : boolean, optional
+            make c.i. patch transparent (default)
         """
         try:
             dum = self.n_assoc
@@ -391,16 +411,18 @@ class PPro(object):
         resolve, I{not} perfect certainty.
 
         Note also that a 95% chance of being above indicates an exclusion
-        from the I{90}% confidence interval!
+        from the *90*% confidence interval!
 
-        @param inter: percentage confidence interval to calculate
-        @type inter: float
-        @param n_boots: number of bootstrap iterations to run
-        @type n_boots: int
-        @param seed: seed for the random number generator. If not specified,
-                     Python code will use numpy's RNG and its current seed;
-                     C code will seed from the clock.
-        @type seed: int
+        Parameters
+        ==========
+        inter : float
+            percentage confidence interval to calculate
+        n_boots : int, optional
+            number of bootstrap iterations to run
+        seed : int, optional
+            seed for the random number generator. If not specified,
+            Python code will use numpy's RNG and its current seed;
+            C code will seed from the clock.
         """
         lags = self.lags
 
@@ -456,31 +478,35 @@ def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
                   ylim=[None, None], log=False, xticks=None, yticks=None):
     """Overplots two PPro objects
 
-    @param pprodata: first point process to plot (in blue)
-    @type pprodata: L{PPro}
-    @param pproref: second process to plot (in red)
-    @type pproref: L{PPro}
-    @param ratio: multiply L{pprodata} by this ratio before plotting,
-                  useful for comparing processes of different magnitude
-    @type ratio: float
-    @param norm: normalize everything to L{pproref}, i.e. the association
-                 number for L{pproref} will always plot as 1.
-    @type norm: bool
-    @param title: title to put on the plot
-    @type title: str
-    @param xscale: scale x-axis by this factor (e.g. 60.0 to convert
-                   seconds to minutes)
-    @type xscale: float
-    @param figsize: passed through to matplotlib.pyplot.figure
-    @param dpi: passed through to matplotlib.pyplot.figure
-    @param ylim: [minimum, maximum] values of y for the axis
-    @type ylim: seq of float
-    @param log: True for a log plot
-    @type log: boolean
-    @param xticks: if provided, a list of tickmarks for the X axis
-    @type xticks: seq of float
-    @param yticks: if provided, a list of tickmarks for the Y axis
-    @type yticks: seq of float
+    Parameters
+    ==========
+    pprodata : PPro
+        first point process to plot (in blue)
+    pproref : PPro
+        second process to plot (in red)
+    ratio : float
+        multiply L{pprodata} by this ratio before plotting,
+        useful for comparing processes of different magnitude
+    norm : boolean
+        normalize everything to L{pproref}, i.e. the association
+        number for L{pproref} will always plot as 1.
+    title : string
+        title to put on the plot
+    xscale : float
+        scale x-axis by this factor (e.g. 60.0 to convert
+        seconds to minutes)
+    figsize :
+        passed through to matplotlib.pyplot.figure
+    dpi : int
+        passed through to matplotlib.pyplot.figure
+    ylim : list
+        [minimum, maximum] values of y for the axis
+    log : bollean
+        True for a log plot
+    xticks : sequence or float
+        if provided, a list of tickmarks for the X axis
+    yticks : sequance or float
+        if provided, a list of tickmarks for the Y axis
     """
     import matplotlib.pyplot as plt
     if ratio == None:
@@ -561,7 +587,7 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     strap for its most common application - the estimation of confidence
     intervals.
 
-    Example:
+    Examples
     ========
     >>> data, n = numpy.random.lognormal(mean=5.1, sigma=0.3, size=3000), 4000.
     >>> myfunc = lambda x: numpy.median(x)
@@ -571,8 +597,8 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     ... repeat
     (162.50379144492726, 164.15218265100233, 165.42840588032755) iter. 2
 
-    For comparison:
-    ===============
+    For comparison
+
     >>> data = numpy.random.lognormal(mean=5.1, sigma=0.3, size=90000)
     >>> numpy.median(data)
     163.83888237895815
@@ -586,32 +612,36 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     median is 164.022 (6 s.f.) and this is well captured by the above
     bootstrap confidence interval.
 
-    @param data: data to bootstrap
-    @type data: sequence
-    @param n: number of surrogate series to select, i.e. number of bootstrap
-              iterations.
-    @type n: int
-    @param inter: desired percentage confidence interval
-    @type inter: numerical
-    @param func: Function to apply to each surrogate series
-    @type func: callable
-    @param sample_size: number of samples in the surrogate series, default
-                        length of L{data}. This will change the statistical
-                        properties of the bootstrap and should only be used
-                        for good reason!
-    @type sample_size: int
-    @param seed: Optional seed for the random number generator. If not
-                 specified, numpy generator will not be reseeded;
-                 C generator will be seeded from the clock.
-    @type seed: int
-    @param target: a 'target' value. If specified, will also calculate
-                   percentage confidence of being at or above this value.
-    @type target: same as L{data}
-    @return: L{inter} percent confidence interval on value derived from
-             L{func} applied to the population sampled by L{data}.
-             If L{target} is specified, also the percentage confidence of
-             being above that value.
-    @rtype: sequence of float
+    Parameters
+    ==========
+    data : array like
+        data to bootstrap
+    n : int
+        number of surrogate series to select, i.e. number of bootstrap iterations.
+    inter : numerical
+        desired percentage confidence interval
+    func : callable
+        Function to apply to each surrogate series
+    sample_size : int
+        number of samples in the surrogate series, default
+        length of L{data}. This will change the statistical
+        properties of the bootstrap and should only be used
+        for good reason!
+    seed : int
+        Optional seed for the random number generator. If not
+        specified, numpy generator will not be reseeded;
+        C generator will be seeded from the clock.
+    target : same as data
+        a 'target' value. If specified, will also calculate
+        percentage confidence of being at or above this value.
+
+    Returns
+    =======
+    out : sequence of float
+        inter percent confidence interval on value derived from
+        func applied to the population sampled by data.
+        If target is specified, also the percentage confidence of
+        being above that value.
     """
     perc_low = (100.-inter)/2. #set confidence interval
     perc_high = inter + perc_low
@@ -660,9 +690,17 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
 def value_percentile(sequence, target):
     """Find the percentile of a particular value in a sequence
 
-    @param sequence: a sequence of values, sorted in ascending order
-    @param target: a target value, same type as sequence
-    @return: the percentile of L{target} in L{sequence}
+    Parameters
+    ==========
+    sequence : sequence
+        a sequence of values, sorted in ascending order
+    target : same type as sequence
+         a target value
+
+    Returns
+    =======
+    out : float
+        the percentile of target in sequence
     """
     min = bisect.bisect_left(sequence, target) #first value >= x
     max = bisect.bisect_right(sequence, target, lo=min) #first value > x

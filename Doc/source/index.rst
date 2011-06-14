@@ -28,12 +28,19 @@ this reliance will be diminished.
 
 .. module:: spacepy
 
-Contents:
+SpacePy Documents:
 
 .. toctree::
     :maxdepth: 1
 
     doc_standard
+    tips
+
+SpacePy Code:
+
+.. toctree::
+    :maxdepth: 1
+
     borg
     coordinates
     datamodel
@@ -44,14 +51,7 @@ Contents:
     seapy
     time
     toolbox
-    tips
 
-
-
-TODO List
----------
-
-.. todolist::
 
 
 Indices and tables

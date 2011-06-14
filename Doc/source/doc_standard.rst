@@ -1,7 +1,11 @@
 Documentation Standard
 ======================
 
-SpacePy uses Sphinx (http://sphinx.pocoo.org/) as its documentation system
+SpacePy is trying to be a high quality product and as such we are striving for a
+certain amount of uniformity among modules in the package.  Please take the time
+to make you code compliant with the documentation standard.
+
+SpacePy uses Sphinx_ as its documentation system
 
 On top of Sphinx SpacePy uses the following extensions:
  * 'sphinx.ext.autodoc'
@@ -16,6 +20,7 @@ On top of Sphinx SpacePy uses the following extensions:
  * 'sphinx.ext.autosummary'
  * 'sphinx.ext.extlinks'
 
+.. _Sphinx: http://sphinx.pocoo.org/
 
 So what do I need to do in my code?
 -----------------------------------

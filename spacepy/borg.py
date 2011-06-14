@@ -48,7 +48,7 @@ class enKF(object):
 		==========
 		A : numpy array
 			What do I do?
-		Psi : 
+		Psi :
 
 		Inn :
 
