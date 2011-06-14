@@ -536,7 +536,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     >>> import spacepy.toolbox as tb
     >>> import matplotlib.pyplot as plt
     >>> p = plt.plot([1,2,3],[2,3,2])
-    >>> tb.printfig(1, pngonly=True)
+    >>> tb.printfig(1, pngonly=True, saveonly=True)
     """
     import matplotlib.pyplot as plt
 
