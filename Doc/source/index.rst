@@ -44,7 +44,7 @@ Contents:
     seapy
     time
     toolbox
-
+    tips
 
 
 
