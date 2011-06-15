@@ -43,7 +43,13 @@ def subst(pattern, replacement, filestr,
         
     return filestr
 
-# -------------------------------------
+
+def default_f2py():
+    interp = os.path.basename(sys.executable)
+    if interp[0:6] == 'python':
+        return 'f2py' + interp[6:]
+    else:
+        return 'f2py'
 
 
 class build(_build):
@@ -52,10 +58,14 @@ class build(_build):
     user_options = _build.user_options + [
         ('fcompiler=', None,
          'specify the fortran compiler to use: pg, gnu95, gnu [gnu95]'),
+        ('f2py=', None,
+         'specify name (or full path) of f2py executable [{0}]'.format(
+        default_f2py())),
         ]
 
     def initialize_options(self):
         self.fcompiler = None
+        self.f2py = None
         _build.initialize_options(self)
 
     def finalize_options(self):
@@ -68,18 +78,22 @@ class build(_build):
         if not self.fcompiler in ('pg', 'gnu', 'gnu95'):
             raise DistutilsOptionError(
                 '--fcompiler must be pg, gnu, gnu95')
+        if self.f2py == None:
+            self.f2py = default_f2py()
 
     # -------------------------------------
     def compile_pybats(self):
         os.chdir(os.path.join('spacepy', 'pybats'))
-        os.system('f2py -c ctrace2d.pyf trace2d.c')
+        os.system('{0} -c ctrace2d.pyf trace2d.c'.format(
+            self.f2py))
         os.chdir('..')
         os.chdir('..')
     
     # -------------------------------------
     def compile_LANLstar(self):
         os.chdir(os.path.join('spacepy','LANLstar'))
-        os.system('f2py -c LANLstar.f -m libLANLstar --fcompiler=gnu95')
+        os.system('{0} -c LANLstar.f -m libLANLstar --fcompiler=gnu95'.format(
+            self.f2py))
         os.chdir(os.path.join('..','..'))
         
     # -------------------------------------
@@ -113,8 +127,9 @@ class build(_build):
                      'trace_field_line2_1', 'trace_field_line_towards_earth1']
 
         # call f2py
-        os.system('f2py --overwrite-signature -m irbempylib -h irbempylib.pyf '+' '.join(F90files) \
-                  +' only: ' + ' '.join(functions) + ' :')
+        os.system('{0} --overwrite-signature -m irbempylib -h irbempylib.pyf '
+                  '{1} only: {2} :'.format(
+            self.f2py, ' '.join(F90files), ' '.join(functions)))
         # intent(out) substitute list
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
                    'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind']
@@ -160,8 +175,9 @@ class build(_build):
             os.system('ranlib libBL2.a')
         os.chdir('..')
         os.system(
-            'f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 ' +
-            f2py_flags[fcompiler])
+            '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
+            '{1}'.format(
+            self.f2py, f2py_flags[fcompiler]))
         err = os.system('mv -f irbempylib.so ../')
         if err:
             print '------------------------------------------------------'
@@ -219,10 +235,14 @@ class install(_install):
     user_options = _install.user_options + [
         ('fcompiler=', None,
          'specify the fortran compiler to use: pg, gnu95, gnu [gnu95]'),
+        ('f2py=', None,
+         'specify name (or full path) of f2py executable [{0}]'.format(
+        default_f2py())),
         ]
 
     def initialize_options(self):
         self.fcompiler = None
+        self.f2py = None
         _install.initialize_options(self)
 
     def finalize_options(self):
@@ -231,6 +251,8 @@ class install(_install):
         if not self.fcompiler in ('pg', 'gnu', 'gnu95'):
             raise DistutilsOptionError(
                 '--fcompiler must be pg, gnu, gnu95')
+        if self.f2py == None:
+            self.f2py = default_f2py()
         _install.finalize_options(self)
 
     def run(self):
