@@ -92,8 +92,8 @@ class build(_build):
     # -------------------------------------
     def compile_LANLstar(self):
         os.chdir(os.path.join('spacepy','LANLstar'))
-        os.system('{0} -c LANLstar.f -m libLANLstar --fcompiler=gnu95'.format(
-            self.f2py))
+        os.system('{0} -c LANLstar.f -m libLANLstar --fcompiler={1}'.format(
+            self.f2py, self.fcompiler))
         os.chdir(os.path.join('..','..'))
         
     # -------------------------------------
