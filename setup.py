@@ -183,33 +183,35 @@ class build(_build):
 
     def compile_libspacepy(self):
         """Compile the C library, libspacepy. JTN 20110224"""
-        olddir = os.getcwd()
-        os.chdir(os.path.join('spacepy', 'libspacepy'))
+        srcdir = os.path.join('spacepy', 'libspacepy')
+        outdir = os.path.join(self.build_lib, 'spacepy', 'libspacepy')
         try:
             comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
             if hasattr(distutils.ccompiler, 'customize_compiler'):
                 distutils.ccompiler.customize_compiler(comp)
             else:
                 distutils.sysconfig.customize_compiler(comp)
-            sources = list(glob.glob('*.c'))
-            objects = [s[:-2] + '.o' for s in sources]
-            headers = list(glob.glob('*.h'))
+            sources = list(glob.glob(os.path.join(srcdir, '*.c')))
+            objects = [os.path.join(self.build_temp, s[:-2] + '.o')
+                       for s in sources]
+            headers = list(glob.glob(os.path.join(srcdir, '*.h')))
             #Assume every .o file associated with similarly-named .c file,
             #and EVERY header file
             outdated = [s for s, o in zip(sources, objects)
                         if distutils.dep_util.newer(s, o) or
                         distutils.dep_util.newer_group(headers, o)]
             if outdated:
-                comp.compile(outdated)
+                comp.compile(outdated, output_dir=self.build_temp)
+            libpath = os.path.join(
+                outdir, comp.library_filename('spacepy', lib_type='shared'))
             if distutils.dep_util.newer_group(
-                objects, comp.library_filename('spacepy', lib_type='shared')):
-                comp.link_shared_lib(objects, 'spacepy', libraries=['m'])
+                objects, libpath):
+                comp.link_shared_lib(objects, 'spacepy', libraries=['m'],
+                                     output_dir=outdir)
         except:
             print('libspacepy compile failed; some operations may be slow:')
             (t, v, tb) = sys.exc_info()
             print(v)
-        finally:
-            os.chdir(olddir)
 
     def run(self):
         """Actually perform the build"""
@@ -280,7 +282,7 @@ class install(_install):
 
 
 pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'LANLstar/*.py', 'LANLstar/libLANLstar.so', 
-    'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'libspacepy/*spacepy*', 'data/*']
+    'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'data/*']
 
 
 # run setup from distutil
