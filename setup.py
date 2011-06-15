@@ -75,15 +75,27 @@ class build(_build):
             self.f2py = default_f2py()
 
     def compile_pybats(self):
-        os.chdir(os.path.join('spacepy', 'pybats'))
-        if distutils.dep_util.newer_group(
-            ('ctrace2d.pyf', 'trace2d.c'),
-            'ctrace2d.so'):
-            os.system(
-                '{0} -c ctrace2d.pyf trace2d.c'.format(
-                self.f2py))
-        os.chdir('..')
-        os.chdir('..')
+        outdir = os.path.join(self.build_lib, 'spacepy', 'pybats')
+        outpath = os.path.join(outdir, 'ctrace2d.so')
+        srcdir = os.path.join('spacepy', 'pybats')
+        srcpaths = [os.path.join(srcdir, f)
+                    for f in ('ctrace2d.pyf', 'trace2d.c')]
+        if distutils.dep_util.newer_group(srcpaths, outpath):
+            os.chdir(srcdir)
+            try:
+                os.system(
+                    '{0} -c ctrace2d.pyf trace2d.c'.format(
+                    self.f2py))
+                outpath = os.path.join('..', '..', outpath)
+                if os.path.exists(outpath):
+                    os.remove(outpath)
+                shutil.move('ctrace2d.so',
+                            os.path.join('..', '..', outdir))
+            except:
+                print('pybats compile failed; pybats will not be available.')
+            finally:
+                os.chdir('..')
+                os.chdir('..')
     
     def compile_LANLstar(self):
         os.chdir(os.path.join('spacepy','LANLstar'))
