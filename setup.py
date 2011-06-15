@@ -84,16 +84,22 @@ class build(_build):
     # -------------------------------------
     def compile_pybats(self):
         os.chdir(os.path.join('spacepy', 'pybats'))
-        os.system('{0} -c ctrace2d.pyf trace2d.c'.format(
-            self.f2py))
+        if distutils.dep_util.newer_group(
+            ('ctrace2d.pyf', 'trace2d.c'),
+            'ctrace2d.so'):
+            os.system(
+                '{0} -c ctrace2d.pyf trace2d.c'.format(
+                self.f2py))
         os.chdir('..')
         os.chdir('..')
     
     # -------------------------------------
     def compile_LANLstar(self):
         os.chdir(os.path.join('spacepy','LANLstar'))
-        os.system('{0} -c LANLstar.f -m libLANLstar --fcompiler={1}'.format(
-            self.f2py, self.fcompiler))
+        if distutils.dep_util.newer('LANLstar.f', 'libLANLstar.so'):
+            os.system(
+                '{0} -c LANLstar.f -m libLANLstar --fcompiler={1}'.format(
+                self.f2py, self.fcompiler))
         os.chdir(os.path.join('..','..'))
         
     # -------------------------------------
