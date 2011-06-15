@@ -115,15 +115,15 @@ if not os.path.exists(DOT_FLN):
     os.mkdir(dataout)
     os.chmod(dataout, 0o777)
     shutil.copy(os.path.join(datadir, 'tai-utc.dat'), dataout)
-    print('spacepy data installed to ' + DOT_FLN)
+    print('SpacePy data installed to ' + DOT_FLN)
+    print('If you wish to start fresh in the future, delete this directory.')
     rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
     exec(compile(open(rcfile).read(), rcfile, 'exec'))
     if sys.version_info[0] < 3 and \
            toolbox.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no") == 'yes':
         toolbox.update()
+    print('Regular OMNI updates are recommended: spacepy.toolbox.update()')
     print('Thanks for using SpacePy!')
 else:
-    print('Spacepy directory {0} found. Delete or rename to start fresh.'.format(
-        DOT_FLN))
     rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
     exec(compile(open(rcfile).read(), rcfile, 'exec'))
