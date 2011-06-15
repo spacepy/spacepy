@@ -98,12 +98,27 @@ class build(_build):
                 os.chdir('..')
     
     def compile_LANLstar(self):
-        os.chdir(os.path.join('spacepy','LANLstar'))
-        if distutils.dep_util.newer('LANLstar.f', 'libLANLstar.so'):
-            os.system(
-                '{0} -c LANLstar.f -m libLANLstar --fcompiler={1}'.format(
-                self.f2py, self.fcompiler))
-        os.chdir(os.path.join('..','..'))
+        outdir = os.path.join(self.build_lib, 'spacepy', 'LANLstar')
+        outpath = os.path.join(outdir, 'libLANLstar.so')
+        srcdir = os.path.join('spacepy', 'LANLstar')
+        srcpath = os.path.join(srcdir, 'LANLstar.f')
+        if distutils.dep_util.newer(srcpath, outpath):
+            os.chdir(srcdir)
+            try:
+                os.system(
+                    '{0} -c  LANLstar.f -m libLANLstar --fcompiler={1}'.format(
+                    self.f2py, self.fcompiler))
+                outpath = os.path.join('..', '..', outpath)
+                if os.path.exists(outpath):
+                    os.remove(outpath)
+                shutil.move('libLANLstar.so',
+                            os.path.join('..', '..', outdir))
+            except:
+                print(
+                    'LANLstar compile failed; LANLstar will not be available.')
+            finally:
+                os.chdir('..')
+                os.chdir('..')
         
     def compile_irbempy(self):
         # 64 bit or 32 bit?"
