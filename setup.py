@@ -184,7 +184,7 @@ class build(_build):
     def compile_libspacepy(self):
         """Compile the C library, libspacepy. JTN 20110224"""
         srcdir = os.path.join('spacepy', 'libspacepy')
-        outdir = os.path.join(self.build_lib, 'spacepy', 'libspacepy')
+        outdir = os.path.join(self.build_lib, 'spacepy')
         try:
             comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
             if hasattr(distutils.ccompiler, 'customize_compiler'):
@@ -204,8 +204,7 @@ class build(_build):
                 comp.compile(outdated, output_dir=self.build_temp)
             libpath = os.path.join(
                 outdir, comp.library_filename('spacepy', lib_type='shared'))
-            if distutils.dep_util.newer_group(
-                objects, libpath):
+            if distutils.dep_util.newer_group(objects, libpath):
                 comp.link_shared_lib(objects, 'spacepy', libraries=['m'],
                                      output_dir=outdir)
         except:

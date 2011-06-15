@@ -54,9 +54,7 @@ def load_lib():
     @return: the open library
     @rtype: ctypes.CDLL or ctypes.WinDLL
     """
-    libdir = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'libspacepy')
+    libdir = os.path.dirname(os.path.abspath(__file__))
     if sys.platform == 'win32':
         libpath = os.path.join(libdir, 'spacepy.dll')
     elif sys.platform == 'darwin':
