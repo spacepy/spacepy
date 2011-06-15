@@ -21,26 +21,19 @@ import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
 from os import environ as ENVIRON
 
-# -------------------------------------
+
 def subst(pattern, replacement, filestr,
-          pattern_matching_modifiers=None):
-          
+          pattern_matching_modifiers=None):   
     """
-    replace pattern by replacement in file
+    replace pattern by replacement in string
     pattern_matching_modifiers: re.DOTALL, re.MULTILINE, etc.
     """
-    
-    import re, shutil
-    
-    
     if pattern_matching_modifiers is not None:
         cp = re.compile(pattern, pattern_matching_modifiers)
     else:
         cp = re.compile(pattern)
-
     if cp.search(filestr):  # any occurence of pattern?
         filestr = cp.sub(replacement, filestr)
-        
     return filestr
 
 
@@ -81,7 +74,6 @@ class build(_build):
         if self.f2py == None:
             self.f2py = default_f2py()
 
-    # -------------------------------------
     def compile_pybats(self):
         os.chdir(os.path.join('spacepy', 'pybats'))
         if distutils.dep_util.newer_group(
@@ -93,7 +85,6 @@ class build(_build):
         os.chdir('..')
         os.chdir('..')
     
-    # -------------------------------------
     def compile_LANLstar(self):
         os.chdir(os.path.join('spacepy','LANLstar'))
         if distutils.dep_util.newer('LANLstar.f', 'libLANLstar.so'):
@@ -102,10 +93,9 @@ class build(_build):
                 self.f2py, self.fcompiler))
         os.chdir(os.path.join('..','..'))
         
-    # -------------------------------------
     def compile_irbempy(self):
         # 64 bit or 32 bit?"
-        bit = len('%x'%sys.maxint)*4
+        bit = len('%x' % sys.maxsize)*4
         fcompiler = self.fcompiler
         irbemdir = 'irbem-lib-2010-12-21-rev275'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
@@ -142,16 +132,14 @@ class build(_build):
         inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
         fln = 'irbempylib.pyf'
         print('Substituting fortran intent(in/out) statements')
-        f = open(fln, 'r')
-        filestr = f.read()
-        f.close()
+        with open(fln, 'r') as f:
+            filestr = f.read()
         for item in inlist:
             filestr = subst( ':: '+item, ', intent(in) :: '+item, filestr)
         for item in outlist:
             filestr = subst( ':: '+item, ', intent(out) :: '+item, filestr)
-        f = open(fln, 'w')
-        f.write(filestr)
-        f.close()
+        with open(fln, 'w') as f:
+            f.write(filestr)
 
         # compile (platform dependent)
         os.chdir('source')
@@ -235,6 +223,7 @@ class build(_build):
         self.compile_libspacepy()
         _build.run(self)
 
+
 class install(_install):
     """Extends base distutils install to check versions, install .spacepy"""
 
@@ -289,8 +278,10 @@ class install(_install):
 
         _install.run(self)
 
+
 pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'LANLstar/*.py', 'LANLstar/libLANLstar.so', 
     'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'libspacepy/*spacepy*', 'data/*']
+
 
 # run setup from distutil
 setup(name='spacepy',
