@@ -126,7 +126,10 @@ class build(_build):
         fcompiler = self.fcompiler
         irbemdir = 'irbem-lib-2010-12-21-rev275'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
-        sofile = os.path.join('spacepy', 'irbempy', 'irbempylib.so')
+        outdir = os.path.join(self.build_lib, 'spacepy', 'irbempy')
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+        sofile = os.path.join(outdir, 'irbempylib.so')
         sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                   glob.glob(os.path.join(srcdir, '*.inc'))
         if not distutils.dep_util.newer_group(sources, sofile):
@@ -199,8 +202,10 @@ class build(_build):
             '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
             '{1}'.format(
             self.f2py, f2py_flags[fcompiler]))
-        err = os.system('mv -f irbempylib.so ../')
-        if err:
+        try:
+            shutil.move('irbempylib.so',
+                        os.path.join('..', '..', '..', sofile))
+        except:
             print '------------------------------------------------------'
             print 'WARNING: Something went wrong with compiling irbemlib.'
             print '------------------------------------------------------'
@@ -307,7 +312,7 @@ class install(_install):
         _install.run(self)
 
 
-pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'LANLstar/*.py', 'LANLstar/libLANLstar.so', 
+pkg_files = ['irbempy/*.py', 'LANLstar/*.py', 'LANLstar/libLANLstar.so', 
     'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'data/*']
 
 
