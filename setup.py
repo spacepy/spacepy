@@ -130,9 +130,8 @@ class build(_build):
         fcompiler = self.fcompiler
         irbemdir = 'irbem-lib-2010-12-21-rev275'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
-        outdir = os.path.join(self.build_lib, 'spacepy', 'irbempy')
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
+        outdir = os.path.join(os.path.abspath(self.build_lib),
+                              'spacepy', 'irbempy')
         sofile = os.path.join(outdir, 'irbempylib.so')
         sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                   glob.glob(os.path.join(srcdir, '*.inc'))
@@ -148,8 +147,16 @@ class build(_build):
             print('IRBEM will not be available')
             return 
 
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+        builddir = os.path.join(self.build_temp, 'irbem')
+        if os.path.exists(builddir):
+            shutil.rmtree(builddir)
+        shutil.copytree(os.path.join('spacepy', 'irbempy', irbemdir),
+                        builddir)
         # compile irbemlib
-        os.chdir(os.path.join('spacepy', 'irbempy', irbemdir))
+        olddir = os.getcwd()
+        os.chdir(builddir)
         F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
         functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
                      'coord_trans1','find_magequator1', 'find_mirror_point1', 
@@ -207,14 +214,13 @@ class build(_build):
             '{1}'.format(
             self.f2py, f2py_flags[fcompiler]))
         try:
-            shutil.move('irbempylib.so',
-                        os.path.join('..', '..', '..', sofile))
+            shutil.move('irbempylib.so', sofile)
         except:
             print '------------------------------------------------------'
             print 'WARNING: Something went wrong with compiling irbemlib.'
             print '------------------------------------------------------'
             print 'A different Fortran compiler may help? (--fcompiler option)'
-        os.chdir('../../..')
+        os.chdir(olddir)
         return
 
     def compile_libspacepy(self):
