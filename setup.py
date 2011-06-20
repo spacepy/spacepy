@@ -76,6 +76,8 @@ class build(_build):
 
     def compile_pybats(self):
         outdir = os.path.join(self.build_lib, 'spacepy', 'pybats')
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
         outpath = os.path.join(outdir, 'ctrace2d.so')
         srcdir = os.path.join('spacepy', 'pybats')
         srcpaths = [os.path.join(srcdir, f)
@@ -99,6 +101,8 @@ class build(_build):
     
     def compile_LANLstar(self):
         outdir = os.path.join(self.build_lib, 'spacepy', 'LANLstar')
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
         outpath = os.path.join(outdir, 'libLANLstar.so')
         srcdir = os.path.join('spacepy', 'LANLstar')
         srcpath = os.path.join(srcdir, 'LANLstar.f')
@@ -312,8 +316,8 @@ class install(_install):
         _install.run(self)
 
 
-pkg_files = ['irbempy/*.py', 'LANLstar/*.py', 'LANLstar/libLANLstar.so', 
-    'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'data/*']
+pkg_files = ['irbempy/*.py', 'LANLstar/*.py',
+    'doc/*.*', 'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*']
 
 
 # run setup from distutil
