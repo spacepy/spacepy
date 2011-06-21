@@ -231,4 +231,4 @@ included::
 :Release: |version|
 :Doc generation date: |today|
 
-For additions or foxes to this page contact Brian Larsen at Los Alamos.
+For additions or fixes to this page contact Brian Larsen at Los Alamos.
