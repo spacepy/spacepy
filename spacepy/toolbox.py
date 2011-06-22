@@ -1132,7 +1132,7 @@ def logspace(min, max, num, **kwargs):
 
 def linspace(min, max, num=50, endpoint=True, retstep=False):
     """
-    Returns linear spaced spaced numbers.  Same as numpy linspace except
+    Returns linear spaced numbers.  Same as numpy linspace except
     allows for support of datetime objects
 
     Parameters
@@ -1172,6 +1172,63 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
     else:
         return linspace(min, max,
                         num=num, endpoint=endpoint, retstep=retstep)
+
+def geomspace(start, ratio=None, stop=False, num=50):
+    """
+    Returns geometrically spaced numbers.  
+
+    Parameters
+    ==========
+    start : float
+    The starting value of the sequence.
+    ratio : float (optional)
+    The ratio between subsequent points
+    stop: float (optional)
+    End value, if this is selected `num' is overridden
+    num : int (optional)
+    Number of samples to generate. Default is 50.
+                                                                                                                    Returns
+    =======
+    seq : array
+    
+    Examples
+    ========
+    To get a geometric progression between 0.01 and 3 in 10 steps
+
+    >>> import spacepy.toolbox as tb
+    >>> tb.geomspace(0.01, stop=3, num=10)
+    [0.01,
+     0.018846716378431192,
+     0.035519871824902655,
+     0.066943295008216955,
+     0.12616612944575134,
+     0.23778172582285118,
+     0.44814047465571644,
+     0.84459764235318191,
+     1.5917892219322083,
+     2.9999999999999996]
+
+     To get a geometric progression with a specified ratio, say 10
+
+     >>> import spacepy.toolbox as tb
+     >>> tb.geomspace(0.01, ratio=10, num=5)
+     [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
+    """
+    if not ratio and stop:
+        ratio = (stop/start)**(1/(num-1))
+    seq = []
+    seq.append(start)
+    if not stop:
+        for j in range(1, num):
+            seq.append(seq[j-1]*ratio)
+        return seq
+    else:
+        val, j = start, 1
+        while val<=stop:
+            val = seq[j-1]*ratio
+            seq.append(val)
+            j+=1
+        return seq[:-1]
 
 def arraybin(array, bins):
     """
