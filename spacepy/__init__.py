@@ -24,7 +24,7 @@ def help():
     """Launches web browser with local HTML help"""
     
     import webbrowser
-    path = __path__[0]+'/doc/'
+    path = __path__[0]+'/../Doc/build/html/'
     webbrowser.open(path+'index.html')
 
 # put modules here that you want to be accessible through 'from spacepy import *'

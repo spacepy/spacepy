@@ -323,7 +323,9 @@ class install(_install):
 
 
 pkg_files = ['irbempy/*.py', 'LANLstar/*.py',
-    'doc/*.*', 'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*']
+    '../Doc/build/html/*.*', '../Doc/build/html/_sources/*.*', 
+    '../Doc/build/html/_modules/*.*', '../Doc/build/html/_static/*.*',
+    'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*']
 
 
 # run setup from distutil
