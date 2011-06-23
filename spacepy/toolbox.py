@@ -1090,7 +1090,7 @@ def applySmartTimeTicks(ax, time, dolimit = True):
 
 def logspace(min, max, num, **kwargs):
     """
-    Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max
+    Returns log-spaced bins. Same as numpy.logspace except the min and max are the min and max
     not log10(min) and log10(max)
 
     Parameters
@@ -1110,7 +1110,7 @@ def logspace(min, max, num, **kwargs):
     Returns
     =======
     out : array
-        log spaced bins from min to max in a numpy array
+        log-spaced bins from min to max in a numpy array
 
     Notes
     =====
@@ -1132,7 +1132,7 @@ def logspace(min, max, num, **kwargs):
 
 def linspace(min, max, num=50, endpoint=True, retstep=False):
     """
-    Returns linear spaced numbers.  Same as numpy linspace except
+    Returns linearly spaced numbers.  Same as numpy.linspace except
     allows for support of datetime objects
 
     Parameters
