@@ -72,7 +72,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from __future__ import division
-import numpy, copy
+import numpy, copy, pycdf
 
 class dmarray(numpy.ndarray):
     """
@@ -407,11 +407,11 @@ def fromCDF(fname, **kwargs):
     except:
         raise IOError('Could not open %s' % fname)
     #make SpaceData and grab global attributes from CDF
-    data = SpaceData(attrs=copy.deepcopy(cdfdata.attrs))
+    data = SpaceData(attrs=copy.copy(cdfdata.attrs))
     #iterate on CDF variables and copy into dmarrays, carrying attrs
     for key in cdfdata:
-        data[key] = dmarray(cdfdata[key][:], 
-	                       attrs=copy.deepcopy(cdfdata[key].attrs))
+        data[key] = dmarray(cdfdata[key][...], 
+	                       attrs=copy.copy(cdfdata[key].attrs))
     return data
 
 def fromHDF5(fname, **kwargs):
@@ -432,6 +432,11 @@ def fromHDF5(fname, **kwargs):
     ========
     >>> import spacepy.datamodel as dm
     >>> data = dm.fromHDF5('test.hdf')
+
+    Notes
+    =====
+    Known issues -- zero-sized datasets will break in h5py
+    This is kluged by returning a dmarray containing a None
     '''
 
     def hdfcarryattrs(SDobject, hfile, path):
@@ -443,31 +448,41 @@ def fromHDF5(fname, **kwargs):
                     print('\n\nThe following key:value pair is not permitted')
                     print('key (type) =', key, '(', type(key), ')\n', 
 		          'value (type) =', value, '(',type(value), ')')
+
     try:
         import h5py as hdf
     except ImportError:
         raise ImportError('HDF5 converter requires h5py')
-   
+  
+    if type(fname) == str:
+        hfile = hdf.File(fname, mode='r')
+    else:
+        hfile = fname
+        #should test here for HDF file object
+    
     if 'path' not in kwargs:
         path = '/'
+    else:
+        path = kwargs['path']
 
     SDobject = SpaceData()
     allowed_elems = [hdf.Group, hdf.Dataset]
-    try:
-        ##carry over the attributes
-        hdfcarryattrs(SDobject,hfile,path)
-        ##carry over the groups and datasets
-        for key,value in hfile[path].iteritems():
-            try:
-                if type(value) is allowed_elems[0]:
-                    SDobject[key] = SpaceData()
-                    SDobject[key] = fromHDF5(hfile, path=path+key)
-                elif type(value) is allowed_elems[1]:
+    ##carry over the attributes
+    hdfcarryattrs(SDobject, hfile, path)
+    ##carry over the groups and datasets
+    for key, value in hfile[path].iteritems():
+            print(key, value)
+        #try:
+            if type(value) is allowed_elems[0]: #if a group
+                SDobject[key] = SpaceData()
+                SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
+            elif type(value) is allowed_elems[1]: #if a dataset
+                if len(value) != 0:
                     SDobject[key] = dmarray(value)
-                    SDobject[key] = thdfcarryattrs(hfile, path=path+key)
-            except:
-                raise ValueError('HDF5 file contains type other than Group or Dataset')
-    except:
-        raise Exception('Unrecoverable Error in the Object.\nAborting')
-
+                else:
+                    SDobject[key] = dmarray(None)
+                hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
+        #except:
+            #raise ValueError('HDF5 file contains type other than Group or Dataset')
+    
     return SDobject
