@@ -426,7 +426,6 @@ def fromHDF5(fname, **kwargs):
     hdfcarryattrs(SDobject, hfile, path)
     ##carry over the groups and datasets
     for key, value in hfile[path].iteritems():
-        print(key, value)
         try:
             if type(value) is allowed_elems[0]: #if a group
                 SDobject[key] = SpaceData()
