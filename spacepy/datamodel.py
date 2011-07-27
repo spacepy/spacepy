@@ -29,6 +29,12 @@ entire folder. The next container type is for storing data and is based on a num
 class is datamodel.dmarray and also carries attributes. The dmarray class is analagous to an
 HDF5 dataset.
 
+In fact, HDF5 can be loaded directly into a SpacePy datamodel, carrying across all attributes,
+using the function fromHDF5:
+
+    >>> import spacepy.datamodel as dm
+    >>> data = dm.fromHDF5('test.h5')
+
 
 Guide for NASA CDF users
 ------------------------
@@ -67,6 +73,12 @@ file objects).
     |____OrbitNumber
          :|____StartsFrom
 
+Opening a CDF and working directly with the contents can be easily done using the PyCDF module, however,
+if you wish to load the entire contents of a CDF directly into a datamodel (complete with attributes)
+the following will make life easier:
+
+    >>> import spacepy.datamodel as dm
+    >>> data = dm.fromCDF('test.cdf')
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """
