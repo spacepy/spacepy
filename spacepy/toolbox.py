@@ -1118,7 +1118,8 @@ def logspace(min, max, num, **kwargs):
 
     Examples
     ========
-    >>> logspace(1, 100, 5)
+    >>> import sapcepy.toolbox as tb
+    >>> tb.logspace(1, 100, 5)
     array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
     """
     from numpy import logspace, log10
