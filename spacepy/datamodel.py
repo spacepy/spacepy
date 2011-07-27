@@ -3,7 +3,7 @@
 """
 The datamodel classes consitute a data model implementation
 meant to mirror the functionality of the data model output from pycdf, though
-implemented slightlydifferently.
+implemented slightly differently.
 
 This contains the following classes:
  * dmarray - numpy arrays that support .attrs for information about the data
@@ -11,6 +11,7 @@ This contains the following classes:
     Currently used in GPScode and other projects
 
 Authors: Steve Morley and Brian Larsen
+Additional Contributors: Charles Kiyanda and Miles Engel
 Institution: Los Alamos National Laboratory
 Contact: smorley@lanl.gov; balarsen@lanl.gov
 
@@ -265,6 +266,52 @@ class SpaceData(dict):
         for key in flatobj:
             self[key] = copy.copy(flatobj[key])
 
+    def SDtohdf5(SDobject, hfile, path='/'):
+        def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
+            if hasattr(SDobject, 'attrs'):
+                for key,value in SDobject.attrs.iteritems():
+                    try:
+                        if type(value) in allowed_attrs:
+                            hfile[path].attrs[key] = value
+                        else:
+                            print('\n\nThe following key:value pair is not permitted')
+                            print('key (type) =', key, '(', type(key), ')\n', 
+			          'value (type) =', value, '(', type(value), ')')
+                            print('value type ', type(value), ' is not in the allowed attribute list\n')
+
+                    except:
+                        print('\n\nThe following key:value pair is not permitted')
+                        print('key (type) =', key, '(', type(key), ')\n', 
+			      'value (type) =', value, '(', type(value), ')')
+                        print('key cannot be of type ', type(key), '\n')
+
+        try:
+            import h5py as hdf
+        except ImportError:
+            raise ImportError('h5py is required to use HDF5 files')
+
+        allowed_attrs = [int, long, float, str, numpy.ndarray, list]
+        allowed_elems = [SpaceData, dmarray]
+    
+        try:
+            ##carry over the attributes
+            SDcarryattrs(SDobject,hfile,path,allowed_attrs)
+            ##carry over the groups and datasets
+            for key, value in SDobject.iteritems():
+                try:
+                    if type(value) is allowed_elems[0]:
+                        hfile[path].create_group(key)
+                        SDtohdf5(SDobject[key], hfile, path+key)
+                    elif type(value) is allowed_elems[1]:
+                        hfile[path].create_dataset(key, data=value)
+                        SDcarryattrs(SDobject[key], hfile, path+key, allowed_attrs)
+                except:
+                    print('Irrecoverable Error in the Object.\nAborting')
+                    return False
+        except:
+            raise Exception('Irrecoverable Error in the Object.\nAborting')
+
+
 def flatten(dobj):
     '''Function to collapse datamodel to one level deep
 
@@ -333,3 +380,94 @@ def flatten(dobj):
         else:
             addme[key] = copy.copy(dobj[key])
     return addme
+
+def fromCDF(fname, **kwargs):
+    '''
+    Create a SpacePy datamodel representation of a NASA CDF file
+
+    Parameters
+    ==========
+    file : string
+        the name of the cdf file to be loaded into a datamodel
+    
+    Returns
+    =======
+    out : spacepy.datamodel.SpaceData
+        SpaceData with associated attributes and variables in dmarrays
+
+    Examples
+    ========
+    >>> import spacepy.datamodel as dm
+    >>> data = dm.fromCDF('test.cdf')
+    '''
+    #TODO: add unflatten keyword and restore flattened variables
+    
+    try:
+        cdfdata = pycdf.CDF(fname)
+    except:
+        raise IOError('Could not open %s' % fname)
+    #make SpaceData and grab global attributes from CDF
+    data = SpaceData(attrs=copy.deepcopy(cdfdata.attrs))
+    #iterate on CDF variables and copy into dmarrays, carrying attrs
+    for key in cdfdata:
+        data[key] = dmarray(cdfdata[key][:], 
+	                       attrs=copy.deepcopy(cdfdata[key].attrs))
+    return data
+
+def fromHDF5(fname, **kwargs):
+    '''
+    Create a SpacePy datamodel representation of an HDF5 file
+
+    Parameters
+    ==========
+    file : string
+        the name of the HDF5 file to be loaded into a datamodel
+    
+    Returns
+    =======
+    out : spacepy.datamodel.SpaceData
+        SpaceData with associated attributes and variables in dmarrays
+
+    Examples
+    ========
+    >>> import spacepy.datamodel as dm
+    >>> data = dm.fromHDF5('test.hdf')
+    '''
+
+    def hdfcarryattrs(SDobject, hfile, path):
+        if hasattr(hfile[path],'attrs'):
+            for key, value in hfile[path].attrs.iteritems():
+                try:
+                    SDobject.attrs[key] = value
+                except:
+                    print('\n\nThe following key:value pair is not permitted')
+                    print('key (type) =', key, '(', type(key), ')\n', 
+		          'value (type) =', value, '(',type(value), ')')
+    try:
+        import h5py as hdf
+    except ImportError:
+        raise ImportError('HDF5 converter requires h5py')
+   
+    if 'path' not in kwargs:
+        path = '/'
+
+    SDobject = SpaceData()
+    allowed_elems = [hdf.Group, hdf.Dataset]
+    try:
+        ##carry over the attributes
+        hdfcarryattrs(SDobject,hfile,path)
+        ##carry over the groups and datasets
+        for key,value in hfile[path].iteritems():
+            try:
+                if type(value) is allowed_elems[0]:
+                    SDobject[key] = SpaceData()
+                    SDobject[key] = fromHDF5(hfile, path=path+key)
+                elif type(value) is allowed_elems[1]:
+                    SDobject[key] = dmarray(value)
+                    SDobject[key] = thdfcarryattrs(hfile, path=path+key)
+            except:
+                raise ValueError('HDF5 file contains type other than Group or Dataset')
+    except:
+        raise Exception('Unrecoverable Error in the Object.\nAborting')
+
+    return SDobject
