@@ -364,7 +364,6 @@ def fromCDF(fname, **kwargs):
     #make SpaceData and grab global attributes from CDF
     data = SpaceData()
     for akey in cdfdata.attrs:
-        print(cdfdata.attrs[akey])
         try:
             data.attrs[akey] = cdfdata.attrs[akey][:]
         except TypeError:
@@ -474,20 +473,24 @@ def toHDF5(fname, SDobject, **kwargs):
     def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
         if hasattr(SDobject, 'attrs'):
             for key, value in SDobject.attrs.iteritems():
-                try:
+                #try:
                     if type(value) in allowed_attrs:
-                        hfile[path].attrs[key] = value
+                        if value or value is 0:
+                            hfile[path].attrs[key] = value
+                        else:
+                            hfile[path].attrs[key] = ''
                     else:
+                        #TODO: add support for datetime in attrs (convert to isoformat)
                         print('\n\nThe following key:value pair is not permitted')
                         print('key (type) =', key, '(', type(key), ')\n', 
 			      'value (type) =', value, '(', type(value), ')')
                         print('value type ', type(value), ' is not in the allowed attribute list\n')
 
-                except:
-                    print('\n\nThe following key:value pair is not permitted')
-                    print('key (type) =', key, '(', type(key), ')\n', 
-			  'value (type) =', value, '(', type(value), ')')
-                    print('key cannot be of type ', type(key), '\n')
+                #except:
+                    #print('\n\nThe following key:value pair is not permitted')
+                    #print('key (type) =', key, '(', type(key), ')\n', 
+		    #	  'value (type) =', value, '(', type(value), ')')
+                    #print('key cannot be of type %s \n' % type(key))
 
     try:
         import h5py as hdf
@@ -514,19 +517,29 @@ def toHDF5(fname, SDobject, **kwargs):
     allowed_attrs = [int, long, float, str, numpy.ndarray, list]
     allowed_elems = [SpaceData, dmarray]
     
-    try:
+    #try:
         ##carry over the attributes
-        SDcarryattrs(SDobject,hfile,path,allowed_attrs)
+    SDcarryattrs(SDobject,hfile,path,allowed_attrs)
         ##carry over the groups and datasets
-        for key, value in SDobject.iteritems():
-            try:
+    for key, value in SDobject.iteritems():
+            #try:
                 if type(value) is allowed_elems[0]:
                     hfile[path].create_group(key)
                     tohdf5(hfile, SDobject[key], path+'/'+key)
                 elif type(value) is allowed_elems[1]:
-                    hfile[path].create_dataset(key, data=value)
+                    try:
+                        hfile[path].create_dataset(key, data=value)
+                    except:
+                        if isinstance(value[0], datetime.datetime):
+                            for i, val in enumerate(value): value[i] = val.isoformat()
+                        hfile[path].create_dataset(key, data=value.astype('|S35'))
+                    #if isinstance(value, numpy.ndarray) and isinstance(value[0], datetime.datetime):
+                        #for i, val in enumerate(value): value[i] = val.isoformat()
+                        #hfile[path].create_dataset(key, data=value.astype(str))
+                    #else:
+                        #hfile[path].create_dataset(key, data=value)
                     SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
-            except:
-                raise Exception('Unrecoverable Error in the Object.\nAborting')
-    except:
-        raise Exception('Unrecoverable Error in the Object.\nAborting')
+            #except:
+                #raise Exception('Unrecoverable Error in the Object.\nAborting')
+    #except:
+        #raise Exception('Unrecoverable Error in the Object.\nAborting')
