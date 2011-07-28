@@ -84,7 +84,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from __future__ import division
-import numpy, copy, pycdf
+import numpy, copy, pycdf, datetime
 
 class dmarray(numpy.ndarray):
     """
@@ -374,11 +374,22 @@ def fromCDF(fname, **kwargs):
     except:
         raise IOError('Could not open %s' % fname)
     #make SpaceData and grab global attributes from CDF
-    data = SpaceData(attrs=copy.copy(cdfdata.attrs))
+    data = SpaceData()
+    for akey in cdfdata.attrs:
+        try:
+            data.attrs[akey] = cdfdata.attrs[akey][:]
+        except TypeError:
+            #required for datetime objects, floats, etc.
+            data.attrs[akey] = cdfdata.attrs[akey]
+
     #iterate on CDF variables and copy into dmarrays, carrying attrs
     for key in cdfdata:
-        data[key] = dmarray(cdfdata[key][...], 
-	                       attrs=copy.copy(cdfdata[key].attrs))
+        data[key] = dmarray(cdfdata[key][...])
+        for akey in cdfdata[key].attrs:
+            try:
+                data[key].attrs[akey] = cdfdata[key].attrs[akey][:]
+            except TypeError:
+                data[key].attrs[akey] = cdfdata[key].attrs[akey]
     return data
 
 def fromHDF5(fname, **kwargs):
@@ -452,3 +463,94 @@ def fromHDF5(fname, **kwargs):
             raise ValueError('HDF5 file contains type other than Group or Dataset')
     
     return SDobject
+
+def toHDF5(fname, SDobject, **kwargs):
+    '''
+    Create an HDF5 file from a SpacePy datamodel representation
+
+    Parameters
+    ----------
+    fname : str
+        Filename to write to
+
+    SDobject : spacepy.datamodel.SpaceData
+        SpaceData with associated attributes and variables in dmarrays
+    
+    Returns
+    -------
+    None
+
+    '''
+    def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
+        if hasattr(SDobject, 'attrs'):
+            for key, value in SDobject.attrs.iteritems():
+                #try:
+                    if type(value) in allowed_attrs:
+                        if value or value is 0:
+                            hfile[path].attrs[key] = value
+                        else:
+                            hfile[path].attrs[key] = ''
+                    else:
+                        #TODO: add support for datetime in attrs (convert to isoformat)
+                        print('\n\nThe following key:value pair is not permitted')
+                        print('key (type) =', key, '(', type(key), ')\n', 
+			      'value (type) =', value, '(', type(value), ')')
+                        print('value type ', type(value), ' is not in the allowed attribute list\n')
+
+                #except:
+                    #print('\n\nThe following key:value pair is not permitted')
+                    #print('key (type) =', key, '(', type(key), ')\n', 
+		    #	  'value (type) =', value, '(', type(value), ')')
+                    #print('key cannot be of type %s \n' % type(key))
+
+    try:
+        import h5py as hdf
+    except ImportError:
+        raise ImportError('h5py is required to use HDF5 files')
+
+    #mash these into a defaults dict...
+    if 'mode' not in kwargs:
+        wr_mo = 'a'
+    else:
+        wr_mo = kwargs['mode']
+
+    if type(fname) == str:
+        hfile = hdf.File(fname, mode=wr_mo)
+    else:
+        hfile = fname
+        #should test here for HDF file object
+
+    if 'path' in kwargs:
+        path = kwargs['path']
+    else:
+        path = '/'
+
+    allowed_attrs = [int, long, float, str, numpy.ndarray, list]
+    allowed_elems = [SpaceData, dmarray]
+    
+    #try:
+        ##carry over the attributes
+    SDcarryattrs(SDobject,hfile,path,allowed_attrs)
+        ##carry over the groups and datasets
+    for key, value in SDobject.iteritems():
+            #try:
+                if type(value) is allowed_elems[0]:
+                    hfile[path].create_group(key)
+                    tohdf5(hfile, SDobject[key], path+'/'+key)
+                elif type(value) is allowed_elems[1]:
+                    try:
+                        hfile[path].create_dataset(key, data=value)
+                    except:
+                        if isinstance(value[0], datetime.datetime):
+                            for i, val in enumerate(value): value[i] = val.isoformat()
+                        hfile[path].create_dataset(key, data=value.astype('|S35'))
+                    #if isinstance(value, numpy.ndarray) and isinstance(value[0], datetime.datetime):
+                        #for i, val in enumerate(value): value[i] = val.isoformat()
+                        #hfile[path].create_dataset(key, data=value.astype(str))
+                    #else:
+                        #hfile[path].create_dataset(key, data=value)
+                    SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
+            #except:
+                #raise Exception('Unrecoverable Error in the Object.\nAborting')
+    #except:
+        #raise Exception('Unrecoverable Error in the Object.\nAborting')
