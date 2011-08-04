@@ -462,6 +462,8 @@ def fromHDF5(fname, **kwargs):
         except:
             raise ValueError('HDF5 file contains type other than Group or Dataset')
     
+    if path=='/': hfile.close()
+
     return SDobject
 
 def toHDF5(fname, SDobject, **kwargs):
