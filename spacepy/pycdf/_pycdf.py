@@ -82,7 +82,7 @@ class Library(object):
             libdir = os.path.join(os.environ['CDF_BASE'], 'lib')
         else:
             libdir = None
-            libpath = None
+        libpath = None
         if libdir:
             if sys.platform == 'win32':
                 libpath = os.path.join(libdir, 'cdf.dll')

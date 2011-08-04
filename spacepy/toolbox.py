@@ -35,7 +35,7 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     Finds the overlapping elements in two lists of datetime objects
 
     Parameters
-    ----------
+    ==========
     ts1 : datetime
         first set of datetime object
     ts2: datetime
@@ -44,21 +44,25 @@ def tOverlap(ts1, ts2, *args, **kwargs):
         additional arguments passed to tOverlapHalf
 
     Returns
-    -------
+    =======
     out : list
         indices of ts1 within interval of ts2, & vice versa
 
     Examples
-    --------
+    ========
     Given two series of datetime objects, event_dates and omni['Time']:
 
     >>> import spacepy.toolbox as tb
-    >>> [einds,oinds] = tb.tOverlap(event_dates, omni['Time'])
-    >>> omni_time = omni['Time'][oinds[0]:oinds[-1]+1]
+    >>> from spacepy import omni
+    >>> import datetime
+    >>> event_dates = st.tickrange(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 10, 1), deltadays=3)
+    >>> onni_dates = st.tickrange(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 10, 1), deltadays=0.5)
+    >>> omni = omni.get_omni(onni_dates)
+    >>> [einds,oinds] = tb.tOverlap(event_dates, omni['ticks'])
+    >>> omni_time = omni['ticks'][oinds[0]:oinds[-1]+1]
     >>> print omni_time
-    [datetime.datetime(2007, 5, 5, 17, 57, 30), datetime.datetime(2007, 5, 5, 18, 2, 30),
-    ... , datetime.datetime(2007, 5, 10, 4, 57, 30)]
-
+    [datetime.datetime(2000, 1, 1, 0, 0), datetime.datetime(2000, 1, 1, 12, 0),
+    ... , datetime.datetime(2000, 9, 30, 0, 0)]
     """
     idx_1in2 = tOverlapHalf(ts2, ts1, *args, **kwargs)
     idx_2in1 = tOverlapHalf(ts1, ts2, *args, **kwargs)
@@ -66,7 +70,6 @@ def tOverlap(ts1, ts2, *args, **kwargs):
         idx_2in1 = None
     if len(idx_1in2) == 0:
         idx_1in2 = None
-
     return idx_1in2, idx_2in1
 
 def tOverlapHalf(ts1, ts2, presort=False):
@@ -78,7 +81,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
     returnd by tOverlap.
 
     Parameters
-    ----------
+    ==========
     ts1 : list
         first set of datetime object
     ts2 : list
@@ -90,7 +93,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
                    the list if one sort can be done for many calls to tOverlap
 
     Returns
-    -------
+    =======
     out : list
         indices of ts2 within interval of ts1
 
@@ -142,24 +145,24 @@ def tCommon(ts1, ts2, mask_only=True):
         time2 = np.ma.masked_array(tn2, mask=truemask2)
         dum1 = num2date(time1.compressed())
         dum2 = num2date(time2.compressed())
-        if type(ts1)==np.ndarray:
+        dum1 = [val.replace(tzinfo=None) for val in dum1]
+        dum2 = [val.replace(tzinfo=None) for val in dum2]
+        if type(ts1)==np.ndarray or type(ts2)==np.ndarray:
             dum1 = np.array(dum1)
             dum2 = np.array(dum2)
-
         return dum1, dum2
-
 
 def loadpickle(fln):
     """
     load a pickle and return content as dictionary
 
     Parameters
-    ----------
+    ==========
     fln : string
         filename
 
     Returns
-    -------
+    =======
     out : dict
         dictionary with content from file
 
@@ -268,12 +271,20 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
 
     Examples
     ========
-    >>> assemble('input_files_*.pkl', 'combined_input.pkl')
-    adding input_files_2001.pkl
-    adding input_files_2002.pkl
-    adding input_files_2004.pkl
-    writing: combined_input.pkl
+    >>> import spacepy.toolbox as tb
+    >>> a, b, c = {'ticks':[1,2,3]}, {'ticks':[4,5,6]}, {'ticks':[7,8,9]}
+    >>> tb.savepickle('input_files_2001.pkl', a)
+    >>> tb.savepickle('input_files_2002.pkl', b)
+    >>> tb.savepickle('input_files_2004.pkl', c)
+    >>> a = tb.assemble('input_files_*.pkl', 'combined_input.pkl')
+    ('adding ', 'input_files_2001.pkl')
+    ('adding ', 'input_files_2002.pkl')
+    ('adding ', 'input_files_2004.pkl')
+    ('\\n writing: ', 'combined_input.pkl')
+    >>> print(a)
+    {'ticks': array([1, 2, 3, 4, 5, 6, 7, 8, 9])}
     """
+    # done this way so it works before install
     from . import time as t
     from . import coordinates as c
 
@@ -324,10 +335,8 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
 
     if verbose: print('\n writing: ', outfln)
     savepickle(outfln, dcomb)
-
     return dcomb
 
-# -----------------------------------------------
 def human_sort( l ):
     """ Sort the given list in the way that humans expect.
     http://www.codinghorror.com/blog/2007/12/sorting-for-humans-natural-sort-order.html
@@ -335,21 +344,29 @@ def human_sort( l ):
     Parameters
     ==========
     l : list
-        list of objects to guman sort
+        list of objects to human sort
 
     Returns
     =======
     out : list
         sorted list
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> dat = ['r1.txt', 'r10.txt', 'r2.txt']
+    >>> dat.sort()
+    >>> print dat
+    ['r1.txt', 'r10.txt', 'r2.txt']
+    >>> tb.human_sort(dat)
+    ['r1.txt', 'r2.txt', 'r10.txt']
     """
     import re
     convert = lambda text: int(text) if text.isdigit() else text
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
     l.sort( key=alphanum_key )
-
     return l
 
-# -----------------------------------------------
 def feq(x, y, precision=0.0000005):
     """
     compare two floating point values if they are equal
@@ -378,13 +395,17 @@ def feq(x, y, precision=0.0000005):
 
     Examples
     ========
-    >>> index = where( feq(Lpos,Lgrid) ) # use float point comparison
+    >>> import spacepy.toolbox as tb
+    >>> x = 1 + 1e-4
+    >>> y = 1 + 2e-4
+    >>> tb.feq(x, y)
+    False
+    >>> tb.feq(x, y, 1e-3)
+    True
     """
     boolean = abs(x-y) <= (abs(x+y)*precision)
     return boolean
 
-
-# -----------------------------------------------
 def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwargs):
     """
     pretty print a dictionary tree
@@ -404,26 +425,28 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
 
     Examples
     ========
+    >>> import spacepy.toolbox as tb
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
-    >>> dictree(d)
+    >>> tb.dictree(d)
     +
     |____grade
-        |____level1
-        |____level2
+         |____level1
+         |____level2
     |____name
 
     More complicated example using a datamodel:
 
+    >>> from spacepy import datamodel
     >>> counts = datamodel.dmarray([2,4,6], attrs={'units': 'cts/s'})
     >>> data = {'counts': counts, 'PI': 'Dr Zog'}
-    >>> dictree(data)
+    >>> tb.dictree(data)
     +
     |____PI
     |____counts
-    >>> dictree(data, attrs=True, verbose=True)
+    >>> tb.dictree(data, attrs=True, verbose=True)
     +
     |____PI (str [6])
-    |____counts (datamodel.dmarray (3,))
+    |____counts (spacepy.datamodel.dmarray (3,))
         :|____units (str [5])
 
     Attributes of, e.g., a CDF or a datamodel type object (obj.attrs)
@@ -484,10 +507,8 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
                 dictree(in_dict[key], spaces = spaces + '     ', verbose = verbose, levels = levels, attrs=attrs, toplev=False)
     except:
         pass
-
     return None
 
-# -----------------------------------------------
 def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     """save current figure to file and call lpr (print).
 
@@ -512,11 +533,12 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
     Examples
     ========
-    >>> pyplot.plot([1,2,3],[2,3,2])
-    >>> spacepy.printfig(1, pngolny=True)
+    >>> import spacepy.toolbox as tb
+    >>> import matplotlib.pyplot as plt
+    >>> p = plt.plot([1,2,3],[2,3,2])
+    >>> tb.printfig(1, pngonly=True, saveonly=True)
     """
-    import os, glob, datetime
-    import pylab as p
+    import matplotlib.pyplot as plt
 
     try:
         nfigs = len(fignum)
@@ -526,7 +548,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
     for ifig in fignum:
         # active this figure
-        p.figure(ifig)
+        plt.figure(ifig)
 
         if filename == None:
             # create a filename for the figure
@@ -543,18 +565,18 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
 
         # save a clean figure without timestamps
         if clean == True:
-            p.savefig(fln+'_clean.png')
-            p.savefig(fln+'_clena.ps')
+            plt.savefig(fln+'_clean.png')
+            plt.savefig(fln+'_clena.ps')
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
         # add the filename to the figure for reference
-        p.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
+        plt.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
 
         # now save the figure to this filename
         if pngonly == False:
-            p.savefig(fln+'.ps')
+            plt.savefig(fln+'.ps')
 
-        p.savefig(fln+'.png')
+        plt.savefig(fln+'.png')
 
         # send it to the printer
         if saveonly != True:
@@ -564,7 +586,6 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
                 os.popen('lpr '+fln+'.png')
     return
 
-# -----------------------------------------------
 def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     """
     Download and update local database for omni, leapsecs etc
@@ -585,7 +606,8 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
 
     Examples
     ========
-    >>> update(omni=True)
+    >>> import spacepy.toolbox as tb
+    >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
     from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
@@ -706,8 +728,9 @@ def progressbar(count, blocksize, totalsize):
 
     Examples
     ========
-    >>> u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
-
+    >>> import spacepy.toolbox as tb
+    >>> import urllib
+    >>> urllib.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=tb.progressbar)
     """
     percent = int(count*blocksize*100/totalsize)
     sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
@@ -742,19 +765,43 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     Examples
     ========
     For non-overlapping windows set overlap to zero.
-    e.g. (time-based averaging),
+    e.g. (time-based averaging)
+    Given a data set of 100 points at hourly resolution (with the time tick in
+    the middle of the sample), the daily average of this, with half-overlapping
+    windows is calculated:
 
-    >>> wsize, olap = datetime.timedelta(1), datetime.timedelta(0,3600)
-    >>> outdata, outtime = windowmean(data, time, winsize=wsize, overlap=olap)
+    >>> import spacepy.toolbox as tb
+    >>> from datetime import datetime, timedelta
+    >>> wsize = datetime.timedelta(days=1)
+    >>> olap = datetime.timedelta(hours=12)
+    >>> data = [10, 20]*50
+    >>> time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+    >>> outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+    >>> outdata, outtime
+    ([15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0],
+     [datetime.datetime(2001, 1, 1, 12, 0),
+      datetime.datetime(2001, 1, 2, 0, 0),
+      datetime.datetime(2001, 1, 2, 12, 0),
+      datetime.datetime(2001, 1, 3, 0, 0),
+      datetime.datetime(2001, 1, 3, 12, 0),
+      datetime.datetime(2001, 1, 4, 0, 0),
+      datetime.datetime(2001, 1, 4, 12, 0)])
 
-    in this example the window size is 1 day and the overlap is 1 hour.
+    When using time-based averaging, ensure that the time tick corresponds to
+    the middle of the time-bin to which the data apply. That is, if the data
+    are hourly, say for 00:00-01:00, then the time applied should be 00:30.
+    If this is not done, unexpected behaviour can result.
+
     e.g. (pointwise averaging),
 
-    >>> outdata, outtime = windowmean(data, winsize=10, overlap=9)
+    >>> outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
+    >>> outdata, outtime
+    ([15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0], [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0])
 
     where winsize and overlap are numeric,
-    in this example the window size is 10 points and the overlap is 9 points.
-    The output vectors start at winsize/2 and end at N-(winsize/2), the output time vector
+    in this example the window size is 24 points (as the data are hourly) and
+    the overlap is 12 points (a half day). The output vectors start at
+    winsize/2 and end at N-(winsize/2), the output time vector
     is basically a reference to the nth point in the original series.
 
     **note** This is a quick and dirty function - it is NOT optimized, at all.
@@ -769,25 +816,15 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         try:
             assert len(data) == len(time)
         except:
-            return 'windowmean error: data and time must have same length'
+            raise ValueError('windowmean error: data and time must have same length')
         #First check if datetime objects
-        if (type(time[0]) == datetime.datetime):
-            if not winsize:
-                return 'windowmean error: winsize must be set for datetime input'
-            else:
-                try:
-                    assert type(winsize) == datetime.timedelta
-                    assert type(overlap) == datetime.timedelta
-                except:
-                    return 'windowmean error: winsize/overlap must be timedeltas'
-            pts = False #force time-based averaging
-        else:
-            try:
-                assert type(winsize) == datetime.timedelta
-                assert type(overlap) == datetime.timedelta
-            except:
-                return 'windowmean error: winsize/overlap must be timedeltas'
-            pts = False
+        try:
+            assert type(winsize) == datetime.timedelta
+            assert type(overlap) == datetime.timedelta
+        except AssertionError:
+            raise TypeError('windowmean error: winsize/overlap must be timedeltas')
+        pts = False #force time-based averaging
+        if (type(time[0]) != datetime.datetime):
             startpt = time[0]
 
     #now actually do windowing mean
@@ -795,8 +832,8 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     data = np.array(data)
     if pts:
         #loop for fixed number of points in window
-        if winsize % 1:
-            winsize = round(winsize)
+        if not isinstance(winsize, (int, long)):
+            winsize = int(round(winsize))
             print('windowmean error: non-integer windowsize, rounding to %d' \
             % winsize)
         if winsize < 1:
@@ -825,7 +862,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         else:
             startpt = time[0]
         if overlap >= winsize:
-            raise ValueError
+            raise ValueError('Overlap requested greater than size of window')
         while lastpt < time[-1]:
             getinds = tOverlapHalf([startpt,startpt+winsize], time, presort=True)
             if getinds: #if not None
@@ -840,7 +877,6 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
             outtime.append(gettime)
 
     return outdata, outtime
-
 
 def medAbsDev(series):
     """
@@ -869,10 +905,13 @@ def medAbsDev(series):
     normal distribution fitted to the population of sawtooth intervals, see
     Morley and Henderson, Comment, Geophysical Research Letters, 2009.
 
+    >>> import numpy
+    >>> import spacepy.toolbox as tb
+    >>> numpy.random.seed(8675301)
     >>> data = numpy.random.lognormal(mean=5.1458, sigma=0.302313, size=30)
     >>> print data
     array([ 181.28078923,  131.18152745, ... , 141.15455416, 160.88972791])
-    >>> toolbox.medabsdev(data)
+    >>> tb.medabsdev(data)
     28.346646721370192
 
     **note** This implementation is robust to presence of NaNs
@@ -908,7 +947,8 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
 
     Examples
     ========
-    >>> poly0c = makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
+    >>> import spacepy.toolbox as tb
+    >>> poly0c = tb.makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
     >>> ax0.add_patch(poly0qc)
     """
     import matplotlib as mpl
@@ -941,9 +981,12 @@ def binHisto(data, verbose=False):
     ========
     >>> import numpy, spacepy
     >>> import matplotlib.pyplot as plt
-    >>> data = numpy.random.randn(100)
+    >>> numpy.random.seed(8675301)
+    >>> data = numpy.random.randn(1000)
     >>> binw, nbins = spacepy.toolbox.binHisto(data)
-    >>> plt.hist(data, bins=nbins, histtype='step', normed=True)
+    >>> print(nbins)
+    19.0
+    >>> p = plt.hist(data, bins=nbins, histtype='step', normed=True)
     """
     from matplotlib.mlab import prctile
     pul = prctile(data, p=(25,75)) #get confidence interval
@@ -1047,7 +1090,7 @@ def applySmartTimeTicks(ax, time, dolimit = True):
 
 def logspace(min, max, num, **kwargs):
     """
-    Returns log spaced bins.  Same as numpy logspace except the min and max are the ,min and max
+    Returns log-spaced bins. Same as numpy.logspace except the min and max are the min and max
     not log10(min) and log10(max)
 
     Parameters
@@ -1067,7 +1110,7 @@ def logspace(min, max, num, **kwargs):
     Returns
     =======
     out : array
-        log spaced bins from min to max in a numpy array
+        log-spaced bins from min to max in a numpy array
 
     Notes
     =====
@@ -1075,19 +1118,22 @@ def logspace(min, max, num, **kwargs):
 
     Examples
     ========
-    >>> logspace(1, 100, 5)
+    >>> import sapcepy.toolbox as tb
+    >>> tb.logspace(1, 100, 5)
     array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
     """
     from numpy import logspace, log10
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
-        return num2date(logspace(log10(date2num(min)), log10(date2num(max)), num, **kwargs))
+        ans = num2date(logspace(log10(date2num(min)), log10(date2num(max)), num, **kwargs))
+        ans = [val.replace(tzinfo=None) for val in ans]
+        return np.array(ans)
     else:
         return logspace(log10(min), log10(max), num, **kwargs)
 
 def linspace(min, max, num=50, endpoint=True, retstep=False):
     """
-    Returns linear spaced spaced numbers.  Same as numpy linspace except
+    Returns linearly spaced numbers.  Same as numpy.linspace except
     allows for support of datetime objects
 
     Parameters
@@ -1120,11 +1166,70 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
     from numpy import linspace, log10
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
-        return num2date(linspace(date2num(min), date2num(max),
+        ans = num2date(linspace(date2num(min), date2num(max),
                                  num=num, endpoint=endpoint, retstep=retstep))
+        ans = [val.replace(tzinfo=None) for val in ans]
+        return np.array(ans)
     else:
         return linspace(min, max,
                         num=num, endpoint=endpoint, retstep=retstep)
+
+def geomspace(start, ratio=None, stop=False, num=50):
+    """
+    Returns geometrically spaced numbers.  
+
+    Parameters
+    ==========
+    start : float
+    The starting value of the sequence.
+    ratio : float (optional)
+    The ratio between subsequent points
+    stop: float (optional)
+    End value, if this is selected `num' is overridden
+    num : int (optional)
+    Number of samples to generate. Default is 50.
+                                                                                                                    Returns
+    =======
+    seq : array
+    
+    Examples
+    ========
+    To get a geometric progression between 0.01 and 3 in 10 steps
+
+    >>> import spacepy.toolbox as tb
+    >>> tb.geomspace(0.01, stop=3, num=10)
+    [0.01,
+     0.018846716378431192,
+     0.035519871824902655,
+     0.066943295008216955,
+     0.12616612944575134,
+     0.23778172582285118,
+     0.44814047465571644,
+     0.84459764235318191,
+     1.5917892219322083,
+     2.9999999999999996]
+
+     To get a geometric progression with a specified ratio, say 10
+
+     >>> import spacepy.toolbox as tb
+     >>> tb.geomspace(0.01, ratio=10, num=5)
+     [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
+    """
+    if not ratio and stop:
+        ratio = (stop/start)**(1/(num-1))
+    seq = []
+    seq.append(start)
+    if not stop:
+        for j in range(1, num):
+            seq.append(seq[j-1]*ratio)
+        return seq
+    else:
+        val, j = start, 1
+        while val<=stop:
+            val = seq[j-1]*ratio
+            seq.append(val)
+            j+=1
+        return seq[:-1]
 
 def arraybin(array, bins):
     """
@@ -1149,8 +1254,9 @@ def arraybin(array, bins):
 
     Examples
     ========
-    >>> arraybin(range(10), [4.2])
-    Out[4]: [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
+    >>> import spacepy.toolbox as tb
+    >>> tb.arraybin(range(10), [4.2])
+    [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
     """
     value = 0
     bin_it = (i for i in range(len(array)) if array[i] >= value)
@@ -1178,6 +1284,7 @@ def mlt2rad(mlt, midnight = False):
 
     Examples
     ========
+    >>> from numpy import array
     >>> mlt2rad(array([3,6,9,14,22]))
     array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
     """
@@ -1243,6 +1350,8 @@ def leap_year(year, numdays=False):
 
     Examples
     ========
+    >>> import numpy
+    >>> import spacepy.toolbox as tb
     >>> leap_year(numpy.arange(15)+1998)
     array([False, False,  True, False, False, False,  True, False, False,
     ... False,  True, False, False, False,  True], dtype=bool)
@@ -1286,8 +1395,10 @@ def pmm(a, *b):
 
     Examples
     ========
-    >>> pmm(arange(10), arange(10)+3)
-    [(0, 9), (3, 12)]
+    >>> import spacepy.toolbox as tb
+    >>> from numpy import arange
+    >>> tb.pmm(arange(10), arange(10)+3)
+    [[0, 9], [3, 12]]
     """
     ans= [[ np.min(a), np.max(a) ]]
     for val in b:
@@ -1311,9 +1422,11 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
 
     Examples
     ========
+    >>> import spacepy.toolbox as tb
+    >>> from pylab import plot, arange
     >>> plot(arange(11))
     [<matplotlib.lines.Line2D object at 0x49072b0>]
-    timestamp()
+    >>> tb.timestamp()
     """
     from matplotlib.pyplot import gca, draw
     now = datetime.datetime.now()
@@ -1347,7 +1460,8 @@ def query_yes_no(question, default="yes"):
 
     Examples
     ========
-    >>> query_yes_no('Ready to go?')
+    >>> import spacepy.toolbox as tb
+    >>> tb.query_yes_no('Ready to go?')
     Ready to go? [Y/n] y
     'yes'
     """
@@ -1379,16 +1493,45 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     """
     1-D linear interpolation with interpolation of hours/longitude
 
+    Parameters
+    ==========
+    newx : array_like
+        x values where we want the interpolated values
+    x : array_like
+        x values of the origional data
+    y : array_like
+        7 values of the origional data
+    wrap : string, optional
+        for continous x data that wraps in y at 'hours' (24), 'longitude' (360),
+        or arbitary value (int, float)
+    kwargs : dict
+        additional keywords, currently accepts baddata that sets baddata for
+        masked arrays
+
     Returns
     =======
     out : numpy.masked_array
         interpolated data values for new abscissa values
 
+    Examples
+    ========
+    For a simple interpolation
 
-    Parameters
-    ==========
-    newx
+    >>> import spacepy.toolbox as tb
+    >>> import numpy
+    >>> x = numpy.arange(10)
+    >>> y = numpy.arange(10)
+    >>> tb.interpol(numpy.arange(5)+0.5, x, y)
+    array([ 0.5,  1.5,  2.5,  3.5,  4.5])
 
+    To use the wrap functionality, without the wrap keyword you get the wrong answer
+
+    >>> y = range(24)*2
+    >>> x = range(len(y))
+    >>> tb.interpol([1.5, 10.5, 23.5], x, y, wrap='hour').compressed() # compress removed the masked array
+    array([  1.5,  10.5,  23.5])
+    >>> tb.interpol([1.5, 10.5, 23.5], x, y)
+    array([  1.5,  10.5,  11.5])
     """
     import scipy as sci
 
@@ -1462,6 +1605,12 @@ def normalize(vec):
     =======
     out : array_like
         normalized vector
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.normalize([1,2,3])
+    [0.0, 0.5, 1.0]
     """
     # check to see if vec is numpy array, this is fastest
     if isinstance(vec, np.ndarray):
@@ -1486,6 +1635,13 @@ def listUniq(inVal):
     =======
     out : list
         list of unique elements from iterable
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> a = [1,1,2,3,3,4,5,5]
+    >>> tb.listUniq(a)
+    [1, 2, 3, 4, 5]
     """
     seen = set()
     return [ x for x in inVal if x not in seen and not seen.add(x)]
@@ -1585,15 +1741,20 @@ def dist_to_list(func, length, min=None, max=None):
 
     Examples
     ========
+    >>> import matplotlib
+    >>> import numpy
+    >>> import spacepy.toolbox as tb
     >>> gauss = lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
                           (5 * math.sqrt(2 * math.pi))
-    >>> vals = dist_to_list(gauss, 1000, -inf, inf)
-    >>> matplotlib.pyplot.hist(vals, bins=[i - 10 for i in range(21)],
+    >>> vals = tb.dist_to_list(gauss, 1000, -numpy.inf, numpy.inf)
+    >>> print vals[0]
+    -16.45263...
+    >>> p1 = matplotlib.pyplot.hist(vals, bins=[i - 10 for i in range(21)], \
                                facecolor='green')
     >>> matplotlib.pyplot.hold(True)
     >>> x = [i / 100.0 - 10.0 for i in range(2001)]
-    >>> matplotlib.pyplot.plot(x, [gauss(i) * 1000 for i in x], 'red')
-    >>> matplotlib.pyplot.show()
+    >>> p2 = matplotlib.pyplot.plot(x, [gauss(i) * 1000 for i in x], 'red')
+    >>> matplotlib.pyplot.draw()
     """
     from scipy import inf
     from scipy.integrate import quad
@@ -1632,7 +1793,8 @@ def bin_center_to_edges(centers):
 
     Examples
     ========
-    >>> bin_center_to_edges([1,2,3])
+    >>> import spacepy.toolbox as tb
+    >>> tb.bin_center_to_edges([1,2,3])
     [0.5, 1.5, 2.5, 3.5]
     """
     return [1.5 * centers[0] - 0.5 * centers[1] if i == 0 else
@@ -1653,6 +1815,17 @@ def hypot(*vals):
     =======
     out : float
         the Euclidian distance of the points ot the origin
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.hypot(3,4)
+    5.0
+    >>> a = [3, 4]
+    >>> tb.hypot(*a)
+    5.0
+    >>> tb.hypot(*range(10))
+    16.88194...
     """
     return math.sqrt(sum((v ** 2 for v in vals)))
 
@@ -1671,12 +1844,18 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
 
     Examples
     ========
-    squaring 100 million numbers::
+    squaring 100 million numbers:
+
+    >>> import numpy
+    >>> import spacepy.toolbox as tb
+    >>> numpy.random.seed(8675301)
     >>> a = numpy.random.randint(0, 100, [100000000])
     >>> b = numpy.empty([100000000], dtype='int64')
-    >>> def targ(in_array, out_array, start, count):
-    >>>     out_array[start:start + count] = in_array[start:start + count] ** 2
-    >>> toolbox.thread_job(len(a), 0, targ, a, b)
+    >>> def targ(in_array, out_array, start, count): \
+             out_array[start:start + count] = in_array[start:start + count] ** 2
+    >>> tb.thread_job(len(a), 0, targ, a, b)
+    >>> print(b[0:5])
+    [2704 7225  196 1521   36]
 
     This example:
       - Defines a target function, which will be called for each thread.
@@ -1760,8 +1939,12 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     ========
     find totals of several arrays
 
-    >>> inputs = [numpy.random.randint(0, 100, [100000]) for i in range(100)]
+    >>> import numpy
+    >>> from spacepy import toolbox
+    >>> inputs = range(100)
     >>> totals = toolbox.thread_map(numpy.sum, inputs)
+    >>> print(totals[0], totals[50], totals[99])
+    (0, 50, 99)
 
     Parameters
     ==========
@@ -1799,3 +1982,8 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     thread_job(jobsize, thread_count, array_targ,
                target, iterable, retvals, args, kwargs)
     return retvals
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

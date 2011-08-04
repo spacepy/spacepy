@@ -5,7 +5,7 @@ tools to read and process omni data
 
 Authors
 -------
-Josef Koller, 
+Josef Koller,
 
 jkoller@lanl.gov
 Los ALamos National Laboratory
@@ -14,39 +14,46 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 import numpy as np
 from spacepy.datamodel import SpaceData, dmarray
+import spacepy.time as st
+
 
 # -----------------------------------------------
 def get_omni(ticks):
     """
     will load the pickled omni file, interpolate to the given ticks time
-    and return the omni values as dictionary with 
+    and return the omni values as dictionary with
     Kp, Dst, dens, velo, Pdyn, ByIMF, BzIMF, G1, G2, G3, etc.
     (see also http://www.dartmouth.edu/~rdenton/magpar/index.html and
     http://www.agu.org/pubs/crossref/2007/2006SW000296.shtml )
-    
-    Note carefully about Qbits: If the status variable is 2, the quantity you are using is fairly well 
-    determined. If it is 1, the value has some connection to measured values, but is not directly 
-    measured. These values are still better than just using an average value, but not as good 
-    as those with the status variable equal to 2. If the status variable is 0, the quantity is 
-    based on average quantities, and the values listed are no better than an average value. The 
+
+    Note carefully about Qbits: If the status variable is 2, the quantity you are using is fairly well
+    determined. If it is 1, the value has some connection to measured values, but is not directly
+    measured. These values are still better than just using an average value, but not as good
+    as those with the status variable equal to 2. If the status variable is 0, the quantity is
+    based on average quantities, and the values listed are no better than an average value. The
     lower the status variable, the less confident you should be in the value.
 
-    Input:
-    ======
-        - ticks (Ticktock class) : containing time information
-        
-    Returns:
-    ========
-        - omnival (dictionary) : containing all omni values as a dictionary
+    Parameters
+    ==========
+    ticks : Ticktock class
+        containing time information
 
-    Example:
+    Returns
+    =======
+    out : dict
+        containing all omni values as a dictionary
+
+    Examples
     ========
     >>> import spacepy.time as spt
     >>> import spacepy.omni as om
     >>> ticks = spt.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> d = om.get_omni(ticks)
-    
-    
+    ['velo', 'Bz6', 'Bz5', 'Bz4', 'Bz3', 'Bz2', 'Bz1', 'RDT', 'Dst',
+    'akp3', 'DOY', 'Qbits', 'G3', 'G2', 'G1', 'Hr', 'ticks', 'BzIMF',
+    'UTC', 'Kp', 'Pdyn', 'dens', 'ByIMF', 'W6', 'W5', 'W4', 'W3', 'W2',
+    'W1', 'Year']
+
     Version:
     ========
     V1: 26-Jan-2010 (JK)
@@ -54,9 +61,6 @@ def get_omni(ticks):
     V1.2: 11-Jun-2010: rewrote status information and put into 'Qbits' (JK)
     V1.3: 3-Jun-2011: allow lists of datetime objects as input times, and use datamodel for storage (SM)
     """
-
-    import spacepy.time as st
-
     if not isinstance(ticks, st.Ticktock):
         try:
             ticks = st.Ticktock(ticks, 'UTC')
@@ -84,7 +88,7 @@ def get_omni(ticks):
         elif 'Pdyn' in key:
             omnival[key].attrs['Units'] = 'nPa'
 
-    
+
     # interpolate in Quality bits as well
     omnival['Qbits'] = SpaceData()
     for key in omnidata['Qbits'].keys():
@@ -92,16 +96,16 @@ def get_omni(ticks):
             left=np.NaN, right=np.NaN))
         #floor interpolation values
         omnival['Qbits'][key] = omnival['Qbits'][key].astype('int')
-        
+
     # add time information back in
     omnival['UTC'] = ticks.UTC
     omnival['RDT'] = ticks.RDT #TODO:do we need this, since it's already in ticks?
     omnival['ticks'] = ticks
-    
+
     # return warning if values outside of omni data range
     if np.any(np.isnan(omnival['Kp'])): print("Warning: time is outside of omni data range")
-    
-    
+
+
     return omnival
 
 
@@ -131,14 +135,14 @@ def get_G123(TAI, omnidata):
     Bsouth = Bzgrid
     Bsouth[where(Bsouth>0)] = 0
     Bsouth = abs(Bsouth)
-    
+
     G1 = sum( hperp*velogrid*sin(theta/2)**3 )/n
     G2 = a*sum(velogrid*Bsouth)/n
     G3 = sum(velogrid*densgrid*Bsouth)/n/2000
-    
+
 
     return G1, G2, G3
-    
+
 
 #-----------------------------------------------
 

@@ -4,7 +4,7 @@
 """
 Master test suite for SpacePy
 
-version: V1: 28-May-2011 
+version: V1: 28-May-2011
 
 
 Copyright ©2010 Los Alamos National Security, LLC.
@@ -25,7 +25,8 @@ from test_coordinates import *
 from test_seapy import *
 from test_poppy import *
 from test_pycdf import *
-# add others here as they are written 
+from test_borg import *
+# add others here as they are written
 
 if __name__ == '__main__':
     ut.main()

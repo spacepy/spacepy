@@ -19,16 +19,16 @@ import numpy as np
 
 # -----------------------------------------------
 # RBmodel class
-# -----------------------------------------------    
+# -----------------------------------------------
 class RBmodel(object):
     """1-D Radial diffusion class
 
     This module contains a class for performing and visualizing 1-D radial
-    diffusion simulations of the radiation belts.  
+    diffusion simulations of the radiation belts.
 
     Here is an example using the default settings of the model.
     Each instance must be initialized with (assuming import radbelt as rb):
-        
+
     >>> rmod = rb.RBmodel()
 
     Next, set the start time, end time, and the size of the timestep:
@@ -44,16 +44,10 @@ class RBmodel(object):
     >>> rmod.evolve()
 
     Finally, visualize the results:
-    
-    >>> rmod.plot_summary()
 
-    Version:
-    ========
-    V1: 17-Mar-2010 (JK)
-    v1.01 12-May-2010 (dtw)
-    
+    >>> rmod.plot_summary()
     """
-    
+
     def __init__(self, grid='L', NL=91, const_kp=False):
         """
         format for grid e.g., L-PA-E
@@ -85,40 +79,40 @@ class RBmodel(object):
                 self.MODerr = 5. # relative factor * PSD
                 self.PSDerr = 0.3 # relative observational error
                 self.MIN_PSD = 1e-99
-                        
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def __str__(self):
         return '<RB Model; mu=%f, k=%f, DLL_model=%s >' % \
             (self.MU, self.K, self.DLL_model)
 
     __repr__ = __str__
 
-    # -----------------------------------------------    
+    # -----------------------------------------------
     def __getitem__(self, idx):
         """
         """
 
-        return self.PSD[:,idx]   
+        return self.PSD[:,idx]
 
-    # -----------------------------------------------     
+    # -----------------------------------------------
     def set_lgrid(self, NL=91):
         '''
         Using NL grid points, create grid in L.
-        Default number of points is 91 (dL=0.1). 
+        Default number of points is 91 (dL=0.1).
         '''
         from numpy import linspace, zeros
         self.NL = NL
         self.Lgrid = linspace(1,10,self.NL)
         self.PSDinit = zeros(self.NL, dtype=ctypes.c_double)
 
-    # -----------------------------------------------    
+    # -----------------------------------------------
     def setup_ticks(self, start, end, delta, dtype='ISO'):
         """
         Add time information to the simulation by specifying
         a start and end time, timestep, and time type (optional).
 
-        Example:
-
+        Examples
+        ========
         >>> start = datetime.datetime(2003,10,14)
         >>> end = datetime.datetime(2003,12,26)
         >>> delta = datetime.timedelta(hours=1)
@@ -126,12 +120,12 @@ class RBmodel(object):
         """
 
         import spacepy.time as st
-        
+
         self.ticks = st.tickrange(start, end, delta, dtype)
-        
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def add_omni(self, keylist=None):
-        
+
         """
         add omni data to instance according to the tickrange in ticks
         """
@@ -140,10 +134,10 @@ class RBmodel(object):
         assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
         omni = om.get_omni(self.ticks)
-        
-        if 'params' not in self.__dict__:           
+
+        if 'params' not in self.__dict__:
             self.params = {}
-            
+
         if keylist is None:
             # add all keys
             self.params = omni
@@ -151,71 +145,71 @@ class RBmodel(object):
             # just add requested keys
             for key in keylist:
                 self.params[key] = omni[key]
-        
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def add_Lmax(self, Lmax_model):
-        
+
         """
         add last closed drift shell Lmax
         """
         import spacepy.empiricals as em
-        
-        if 'params' not in self.__dict__:           
+
+        if 'params' not in self.__dict__:
             self.params = {}
-            
+
         assert self.ticks, "Provide tick range with 'setup_ticks'"
         self.params['Lmax'] = em.get_Lmax(self.ticks, Lmax_model)
-                
-    # -----------------------------------------------    
+
+    # -----------------------------------------------
     def add_Lpp(self, Lpp_model):
-        
+
         """
         add last closed drift shell Lmax
         """
         import spacepy.empiricals as em
- 
-        if 'params' not in self.__dict__:           
+
+        if 'params' not in self.__dict__:
             self.params = {}
-        
+
         assert self.ticks, "Provide tick range with 'setup_ticks'"
         self.params['Lpp'] = em.get_plasma_pause(self.ticks, Lpp_model)
 
-    # -----------------------------------------------    
+    # -----------------------------------------------
     def add_PSD(self, satlist=None):
-        
+
         """
-        add observations from PSD database using the ticks list        
+        add observations from PSD database using the ticks list
         """
-        
+
         import spacepy.sandbox.PSDdata as PD
         import spacepy.time
-        
+
         assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
         Tgrid = self.ticks
         nTAI = len(Tgrid)
-        
+
         self.PSDdata = ['']*(nTAI-1)
         for i, Tnow, Tfut in zip(np.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
             start_end = spacepy.time.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
             self.PSDdata[i] = PD.get_PSD(start_end, self.MU, self.K, satlist)
-            
+
         # adjust initial conditions to these PSD values
         mval = np.mean(self.PSDdata[0]['PSD'])
         self.PSDinit = mval*np.exp(-(self.Lgrid - 5.5)**2/0.2)
-        
+
         return
-        
+
     # -----------------------------------------------
     def evolve(self):
         """
-        calculate the diffusion in L at constant mu,K coordinates    
+        calculate the diffusion in L at constant mu,K coordinates
         """
         from . import radbelt as rb
-        
+
         assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
-        
+
         f = self.PSDinit
         Tgrid = self.ticks.TAI
         nTAI = len(Tgrid)
@@ -226,12 +220,12 @@ class RBmodel(object):
         # add omni if not already given
         if 'omni' not in self.__dict__:
             self.add_omni(keylist=['Kp', 'Dst'])
-        
+
         # run Lmax model
         self.add_Lmax(self.Lmax_model)
         # run plasma pause model
         self.add_Lpp(self.Lpp_model)
-        
+
         # setup params dictionary
         params = {}
         params['DLL_model'] = self.DLL_model
@@ -242,7 +236,7 @@ class RBmodel(object):
         if 'SRCartif' in self.__dict__:
             params['SRCartif'] = self.SRCartif
         keylist = ['Kp', 'Dst', 'Lmax', 'Lpp']
-                
+
         # start with the first one since 0 is the initial condition
         for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, Tgrid[:-1], Tgrid[1:]):
             Tdelta = Tfut - Tnow
@@ -292,7 +286,7 @@ class RBmodel(object):
         >> rmod.add_PSD()
 
         The observations are averaged over the time windows, whose interval is
-        give by the time step. 
+        give by the time step.
 
         Once the dates and data are set, the assimiation is performed using the
         'assimilate' function:
@@ -313,13 +307,13 @@ class RBmodel(object):
         import pdb
         import spacepy.toolbox as tb
 
-        # add PSD observations with add_PSD, 
+        # add PSD observations with add_PSD,
         # this has to be done to the class
         # module when running the RBmodel.
         # add_PSD will add the PSDdata to the class
         # which is a dictionary for the data that has been added
-        
-        # debugging command 
+
+        # debugging command
         #pdb.set_trace()
 
         # setup method
@@ -347,7 +341,7 @@ class RBmodel(object):
 
             # time loop
             for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
-                    
+
                 # make forcast and add model error
                 # make forecast using all ensembles in A
                 iens = 0
@@ -360,7 +354,7 @@ class RBmodel(object):
                     #rbtemp.PSDdata = self.PSDdata[i-1]
                     A[:,iens] = rbtemp.PSD[:,1]
                     iens += 1
-        
+
                 # save result in ff
                 Tnow = Tfut
                 self.PSDf[:,i] = np.mean(A, axis=1)
@@ -369,7 +363,7 @@ class RBmodel(object):
                 # there are data points then extract average observations
                 # within the window, if not return empty observation array y
                 # and Lobs.
-        
+
                 if len(self.PSDdata[i-1]) > 0:
                     # get observations for time window ]Tnow-Twindow,Tnow]
                     Lobs, y = spacepy.borg.average_window(self.PSDdata[i-1], self.Lgrid)
@@ -379,10 +373,10 @@ class RBmodel(object):
 
                 print Lobs
                 print y
-                
+
                 # then assimilate otherwise do another forcast
                 if len(y) > 0:
-        
+
                     # INFLATION SCHEMES
                     if inflation == 0:
 
@@ -419,19 +413,19 @@ class RBmodel(object):
 
                         A[np.where(A < self.MIN_PSD)] = self.MIN_PSD
 
-                
+
                     # prepare assimilation analysis
 
                     # project ensemble states to obs. grid
                     HA = da.getHA(self, Lobs, A)
-                    
+
                     # measurement perturbations ensemble
                     Psi = da.getperturb(self, y)
 
                     # ensemble of innovation vectors
                     Inn = da.getInnovation(y, Psi, HA)
 
-                    # calculate ensemble perturbation HA' = HA-HA_mean 
+                    # calculate ensemble perturbation HA' = HA-HA_mean
                     HAp = da.getHAprime(HA)
 
                     # now call the main analysis routine
@@ -440,10 +434,10 @@ class RBmodel(object):
                     else:
                         #A = da.analysis(A, Psi, Inn, HAp)
                         A = da.analysis_Evensen(A, Psi, Inn, HAp)
-                
+
                     # check for minimum PSD values
                     A[np.where(A<self.MIN_PSD)] = self.MIN_PSD
-                
+
                     # average A from analysis step and save in results
                     # dictionary
                     self.PSDa[:,i] = np.mean(A, axis=1)
@@ -455,30 +449,30 @@ class RBmodel(object):
                         Hx[iL] = self.PSDa[idx,i]
                     print Hx
                     print HA
-                    
+
                 elif len(y) == 0:
 
                     print 'no observations within this window'
 
                     self.PSDa[:,i] = self.PSDf[:,i]
 
-                    continue # 
-                    
+                    continue #
+
                 # print message
                 print('Tnow: ', self.ticks[i].ISO)
 
     # -----------------------------------------------
-    def plot(self, Lmax=True, Lpp=False, Kp=True, Dst=True, 
+    def plot(self, Lmax=True, Lpp=False, Kp=True, Dst=True,
              clims=[0,10], title='Summary Plot', values=None):
         """
         Create a summary plot of the RadBelt object distribution functionp.
         For reference, the last closed drift shell, Dst, and Kp are all
-        included.  These can be disabled individually using the corresponding 
+        included.  These can be disabled individually using the corresponding
         Boolean kwargs.
 
         The clims kwarg can be used to manually set the color bar range.
         To use, set it equal to a two-element list containing minimum and
-        maximum Log_10 value to plot.  Default action is to use [0,10] as 
+        maximum Log_10 value to plot.  Default action is to use [0,10] as
         the log_10 of the color range.  This is good enough for most
         applications.
 
@@ -487,11 +481,12 @@ class RBmodel(object):
 
         The figure object and all three axis objects (PSD axis, Dst axis,
         and Kp axis) are all returned to allow the user to further customize
-        the plots as necessary.  If any of the plots are excluded, None is 
+        the plots as necessary.  If any of the plots are excluded, None is
         returned in their stead.
 
-        Example:
-        
+        Examples
+        ========
+
         >>> rb.plot(Lmax=False, Kp=False, clims=[2,10], title='Good work!')
 
         This command would create the summary plot with a color bar range
@@ -506,12 +501,12 @@ class RBmodel(object):
         # test for default values
         if values is None:
             values = self.PSD
-        
-        # Initialize axis variables so that they can be returned, 
+
+        # Initialize axis variables so that they can be returned,
         # even if not used.
         ax1 = None
         ax2 = None
-        ax3 = None    
+        ax3 = None
 
         fig = p.figure()
         fig.subplots_adjust(left=0.10, right=0.999, top=0.92)
@@ -522,14 +517,14 @@ class RBmodel(object):
         else:
             ax1 = p.subplot(1,1,1)
         # Plot phase space density, masking out values of 0.
-        map = ax1.pcolorfast(self.ticks.eDOY, self.Lgrid, 
+        map = ax1.pcolorfast(self.ticks.eDOY, self.Lgrid,
                              np.where(values > 0.0, self.PSD, 10.0**-39),
-                             vmin=10.0**clims[0], vmax=10.0**clims[1], 
+                             vmin=10.0**clims[0], vmax=10.0**clims[1],
                              norm=LogNorm())
         ax1.set_ylabel('L*')
         ax1.set_title(title)
         # Add color bar.
-        cbar = p.colorbar(map, pad=0.01, shrink=.85, ticks=LogLocator(), 
+        cbar = p.colorbar(map, pad=0.01, shrink=.85, ticks=LogLocator(),
                           format=LogFormatterMathtext())
         cbar.set_label('Phase Space Density')
         # add Lmax line
@@ -539,7 +534,7 @@ class RBmodel(object):
         ax1.set_xlim([self.ticks.eDOY[0], self.ticks.eDOY[-1]])
         # Finally, save the position of the plot to make next plot match.
         pos = ax1.get_position()
-        
+
         if Dst is True:
             ax2 = p.subplot(2,1,2)
             pos2 = ax2.get_position()
@@ -561,19 +556,19 @@ class RBmodel(object):
                 pos3 = ax3.get_position()
                 pos3.x1 = pos.x1
                 ax3.set_position(pos3)
-            ax3.plot(self.ticks.eDOY, self.params['Kp'], 'k:')            
+            ax3.plot(self.ticks.eDOY, self.params['Kp'], 'k:')
             if Dst is True:
                 ax3.yaxis.tick_right()
             ax3.set_xlabel('DOY in '+str(self.ticks.UTC[0].year))
-            ax3.set_ylabel('Kp')                    
+            ax3.set_ylabel('Kp')
             ax3.set_xlim([self.ticks.eDOY[0], self.ticks.eDOY[-1]])
 
         p.show()
-        
+
         return fig, ax1, ax2, ax3
 
     # -----------------------------------------------
-    def plot_obs(self, Lmax=True, Lpp=False, Kp=True, Dst=True, 
+    def plot_obs(self, Lmax=True, Lpp=False, Kp=True, Dst=True,
              clims=[0,10], title='Summary Plot', values=None):
         """
         Create a summary plot of the observations.  For reference, the last
@@ -582,7 +577,7 @@ class RBmodel(object):
 
         The clims kwarg can be used to manually set the color bar range.
         To use, set it equal to a two-element list containing minimum and
-        maximum Log_10 value to plot.  Default action is to use [0,10] as 
+        maximum Log_10 value to plot.  Default action is to use [0,10] as
         the log_10 of the color range.  This is good enough for most
         applications.
 
@@ -591,11 +586,12 @@ class RBmodel(object):
 
         The figure object and all three axis objects (PSD axis, Dst axis,
         and Kp axis) are all returned to allow the user to further customize
-        the plots as necessary.  If any of the plots are excluded, None is 
+        the plots as necessary.  If any of the plots are excluded, None is
         returned in their stead.
 
-        Example:
-        
+        Examples
+        ========
+
         >>> rb.plot_obs(Lmax=False, Kp=False, clims=[2,10], title='Observations Plot')
 
         This command would create the summary plot with a color bar range
@@ -610,18 +606,18 @@ class RBmodel(object):
                                         LogFormatterMathtext)
         import pdb
 
-        # debugging command 
+        # debugging command
         #pdb.set_trace()
 
         # test for default values
         if values is None:
             values = self.PSDdata
-        
-        # Initialize axis variables so that they can be returned, 
+
+        # Initialize axis variables so that they can be returned,
         # even if not used.
         ax1 = None
         ax2 = None
-        ax3 = None    
+        ax3 = None
 
         fig = p.figure()
         fig.subplots_adjust(left=0.10, right=0.999, top=0.92)
@@ -653,7 +649,7 @@ class RBmodel(object):
         ax1.set_title(title)
         ax1.set_ylim(self.Lgrid[0],self.Lgrid[len(self.Lgrid)-1])
         # Add color bar.
-        cbar = p.colorbar(map, pad=0.01, shrink=.85, ticks=LogLocator(), 
+        cbar = p.colorbar(map, pad=0.01, shrink=.85, ticks=LogLocator(),
                           format=LogFormatterMathtext())
         cbar.set_label('Phase Space Density')
         # add Lmax line
@@ -663,7 +659,7 @@ class RBmodel(object):
         ax1.set_xlim([self.ticks.eDOY[0], self.ticks.eDOY[-1]])
         # Finally, save the position of the plot to make next plot match.
         pos = ax1.get_position()
-        
+
         if Dst is True:
             ax2 = p.subplot(2,1,2)
             pos2 = ax2.get_position()
@@ -685,27 +681,27 @@ class RBmodel(object):
                 pos3 = ax3.get_position()
                 pos3.x1 = pos.x1
                 ax3.set_position(pos3)
-            ax3.plot(self.ticks.eDOY, self.params['Kp'], 'k:')            
+            ax3.plot(self.ticks.eDOY, self.params['Kp'], 'k:')
             if Dst is True:
                 ax3.yaxis.tick_right()
             ax3.set_xlabel('DOY in '+str(self.ticks.UTC[0].year))
-            ax3.set_ylabel('Kp')                    
+            ax3.set_ylabel('Kp')
             ax3.set_xlim([self.ticks.eDOY[0], self.ticks.eDOY[-1]])
 
         #p.show()
-        
+
         return fig, ax1, ax2, ax3
-        
+
 
     def get_DLL(self, Lgrid, params, DLL_model='BA2000'):
         """
         Calculate DLL as a simple power law function (alpha*L**Bbta)
-        using alpha/beta values from popular models found in the 
+        using alpha/beta values from popular models found in the
         literature and chosen with the kwarg "DLL_model".
-        
+
         The calculated DLL is returned, as is the alpha and beta
-        values used in the calculationp. 
-        
+        values used in the calculationp.
+
         The output DLL is in units of units/day.
         """
 
@@ -721,11 +717,11 @@ class RBmodel(object):
         elif DLL_model is 'FC2006': # Fei and Chan (2006)
             alpha = 1.5e-6
             beta  = 8.5
-        
+
         elif DLL_model is 'U2008': # Ukhorskiy (2008)
             alpha = 7.7e-6
             beta  = 6.0
-        
+
         elif DLL_model is 'S1997': # Selesnick (1997)
             alpha = 1.9e-10
             beta  = 11.7
@@ -737,7 +733,7 @@ class RBmodel(object):
         else:
             raise ValueError, \
                 "Radial diffusion model %s not implemented" % DLL_model
-        
+
 
         if (DLL_model!='const'): DLL = alpha * Lgrid ** beta
 
@@ -747,15 +743,15 @@ def get_modelop_L(f, L, Dm_old, Dm_new, Dp_old, Dp_new, Tdelta, NL):
 
     """
     Advance the distribution function, f, discretized into the Lgrid, L, forward
-    in time by a timestep, Tdelta.  The off-grid current and next diffusion 
+    in time by a timestep, Tdelta.  The off-grid current and next diffusion
     coefficients, D[m,p]_[old,new] will be used.  The number of grid points is set
-    by NL.  
+    by NL.
 
-    This function performs the same calculation as the C-based code, 
-    spacepy.lib.solve_cnp.  This code is very slow and should only be used when 
+    This function performs the same calculation as the C-based code,
+    spacepy.lib.solve_cnp.  This code is very slow and should only be used when
     the C code fails to compile.
     """
-    
+
     import numpy.linalg as nlin
 
     # get grid and setup centered grid Lm=L_i-1/2, Lp=L_i+1/2
@@ -778,12 +774,12 @@ def get_modelop_L(f, L, Dm_old, Dm_new, Dp_old, Dp_new, Tdelta, NL):
     A = np.zeros( (NL,NL) )
     B = np.zeros( (NL,NL) )
     C = np.zeros( (NL,NL) )
-    
+
     # off diagonal elements
     for i in np.arange(1,int(NL)-1,1):
         # diagonal elements
-        A[i,i] = 1 + betam[i]*L[i]*L[i] + betap[i]*L[i]*L[i] 
-        B[i,i] = 1 - betam[i]*L[i]*L[i] - betap[i]*L[i]*L[i] 
+        A[i,i] = 1 + betam[i]*L[i]*L[i] + betap[i]*L[i]*L[i]
+        B[i,i] = 1 - betam[i]*L[i]*L[i] - betap[i]*L[i]*L[i]
         # off diagonal elements
         A[i,i+1] = -betap[i]*L[i]*L[i]
         A[i,i-1] = -betam[i]*L[i]*L[i]
@@ -821,12 +817,12 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
         Lpp = params['Lpp']
     #else: # use standard config
         # but which one?
-       
+
     Lgrid = grid
     NL = len(Lgrid)
     dL = Lgrid[1]-Lgrid[0]
-    
-    # get DLL and model operator 
+
+    # get DLL and model operator
     (DLL,  alpha, beta) = r.get_DLL(Lgrid,          params, DLL_model)
     (DLLp, alpha, beta) = r.get_DLL(Lgrid + dL/2.0, params, DLL_model)
     (DLLm, alpha, beta) = r.get_DLL(Lgrid - dL/2.0, params, DLL_model)
@@ -835,11 +831,11 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     # Set default of NO sources:
     src = np.zeros(NL)
 
-    # Create source operators (source splitting) using implicit 
+    # Create source operators (source splitting) using implicit
     # trapezoidal method to solve source ODE.
     # Add artificial sources
     if params.has_key('SRCartif'):
-        # Call the artificial source function, sending info as 
+        # Call the artificial source function, sending info as
         # key word arguments.  Note that such functions should be
         # able to handle extra kwargs through the use of **kwargs!
         sfunc = params['SRCartif']
@@ -858,26 +854,26 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     dptr = ctypes.POINTER(ctypes.c_double)
     r.advance(f.ctypes.data_as(dptr),
               Lgrid.ctypes.data_as(dptr),
-              DLLm.ctypes.data_as(dptr), 
-              DLLm.ctypes.data_as(dptr), 
-              DLLp.ctypes.data_as(dptr), 
-              DLLp.ctypes.data_as(dptr), 
+              DLLm.ctypes.data_as(dptr),
+              DLLm.ctypes.data_as(dptr),
+              DLLp.ctypes.data_as(dptr),
+              DLLp.ctypes.data_as(dptr),
               ct.c_double(Tdelta), NL,
               src.ctypes.data_as(dptr))
-    
+
    # add source according to values in SRC...
     if params['SRC_model']:
         # setup source vector
         S = get_local_accel(Lgrid, params, SRC_model='JK1')
         f = f + S*Tdelta
-     
+
     # add losses through magnetopause shadowing, time scale taken from MPloss
     if params['MPloss'].seconds > 0.0:
         # setup loss vector
         LSS = np.zeros(NL)
         LSS[np.where(Lgrid>params['Lmax'])] = -1./params['MPloss'].seconds
         f = f*np.exp(LSS*Tdelta)
-        
+
     # add losses inside plasma pause, time scale taken from PPloss
     if params['PPloss'].seconds > 0.0:
         # calculate plasma pause location after Carpenter & Anderson 1992
@@ -886,19 +882,19 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
         f = f*np.exp(LSS*Tdelta)
 
     return f
-    
+
 # -----------------------------------------------
 def get_local_accel(Lgrid, params, SRC_model='JK1'):
     """
     calculate the diffusion coefficient D_LL
     """
-    
-    if SRC_model is 'JK1':        
+
+    if SRC_model is 'JK1':
         magn = params['SRCmagn'].seconds
         Lcenter = 5.6
         Lwidth = 0.3
         Kp = params['Kp']
-        S = magn*np.exp(-(Lgrid-Lcenter)**2/(2*Lwidth**2))*Kp*Kp        
+        S = magn*np.exp(-(Lgrid-Lcenter)**2/(2*Lwidth**2))*Kp*Kp
 
-    
+
     return S

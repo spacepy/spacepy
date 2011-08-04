@@ -21,29 +21,28 @@ import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
 from os import environ as ENVIRON
 
-# -------------------------------------
+
 def subst(pattern, replacement, filestr,
-          pattern_matching_modifiers=None):
-          
+          pattern_matching_modifiers=None):   
     """
-    replace pattern by replacement in file
+    replace pattern by replacement in string
     pattern_matching_modifiers: re.DOTALL, re.MULTILINE, etc.
     """
-    
-    import re, shutil
-    
-    
     if pattern_matching_modifiers is not None:
         cp = re.compile(pattern, pattern_matching_modifiers)
     else:
         cp = re.compile(pattern)
-
     if cp.search(filestr):  # any occurence of pattern?
         filestr = cp.sub(replacement, filestr)
-        
     return filestr
 
-# -------------------------------------
+
+def default_f2py():
+    interp = os.path.basename(sys.executable)
+    if interp[0:6] == 'python':
+        return 'f2py' + interp[6:]
+    else:
+        return 'f2py'
 
 
 class build(_build):
@@ -52,10 +51,14 @@ class build(_build):
     user_options = _build.user_options + [
         ('fcompiler=', None,
          'specify the fortran compiler to use: pg, gnu95, gnu [gnu95]'),
+        ('f2py=', None,
+         'specify name (or full path) of f2py executable [{0}]'.format(
+        default_f2py())),
         ]
 
     def initialize_options(self):
         self.fcompiler = None
+        self.f2py = None
         _build.initialize_options(self)
 
     def finalize_options(self):
@@ -68,28 +71,68 @@ class build(_build):
         if not self.fcompiler in ('pg', 'gnu', 'gnu95'):
             raise DistutilsOptionError(
                 '--fcompiler must be pg, gnu, gnu95')
+        if self.f2py == None:
+            self.f2py = default_f2py()
 
-    # -------------------------------------
     def compile_pybats(self):
-        os.chdir(os.path.join('spacepy', 'pybats'))
-        os.system('f2py -c ctrace2d.pyf trace2d.c')
-        os.chdir('..')
-        os.chdir('..')
+        outdir = os.path.join(self.build_lib, 'spacepy', 'pybats')
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+        outpath = os.path.join(outdir, 'ctrace2d.so')
+        srcdir = os.path.join('spacepy', 'pybats')
+        srcpaths = [os.path.join(srcdir, f)
+                    for f in ('ctrace2d.pyf', 'trace2d.c')]
+        if distutils.dep_util.newer_group(srcpaths, outpath):
+            os.chdir(srcdir)
+            try:
+                os.system(
+                    '{0} -c ctrace2d.pyf trace2d.c'.format(
+                    self.f2py))
+                outpath = os.path.join('..', '..', outpath)
+                if os.path.exists(outpath):
+                    os.remove(outpath)
+                shutil.move('ctrace2d.so',
+                            os.path.join('..', '..', outdir))
+            except:
+                print('pybats compile failed; pybats will not be available.')
+            finally:
+                os.chdir('..')
+                os.chdir('..')
     
-    # -------------------------------------
     def compile_LANLstar(self):
-        os.chdir(os.path.join('spacepy','LANLstar'))
-        os.system('f2py -c LANLstar.f -m libLANLstar --fcompiler=gnu95')
-        os.chdir(os.path.join('..','..'))
+        outdir = os.path.join(self.build_lib, 'spacepy', 'LANLstar')
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+        outpath = os.path.join(outdir, 'libLANLstar.so')
+        srcdir = os.path.join('spacepy', 'LANLstar')
+        srcpath = os.path.join(srcdir, 'LANLstar.f')
+        if distutils.dep_util.newer(srcpath, outpath):
+            os.chdir(srcdir)
+            try:
+                os.system(
+                    '{0} -c  LANLstar.f -m libLANLstar --fcompiler={1}'.format(
+                    self.f2py, self.fcompiler))
+                outpath = os.path.join('..', '..', outpath)
+                if os.path.exists(outpath):
+                    os.remove(outpath)
+                shutil.move('libLANLstar.so',
+                            os.path.join('..', '..', outdir))
+            except:
+                print(
+                    'LANLstar compile failed; LANLstar will not be available.')
+            finally:
+                os.chdir('..')
+                os.chdir('..')
         
-    # -------------------------------------
     def compile_irbempy(self):
         # 64 bit or 32 bit?"
-        bit = len('%x'%sys.maxint)*4
+        bit = len('%x' % sys.maxsize)*4
         fcompiler = self.fcompiler
         irbemdir = 'irbem-lib-2010-12-21-rev275'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
-        sofile = os.path.join('spacepy', 'irbempy', 'irbempylib.so')
+        outdir = os.path.join(os.path.abspath(self.build_lib),
+                              'spacepy', 'irbempy')
+        sofile = os.path.join(outdir, 'irbempylib.so')
         sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                   glob.glob(os.path.join(srcdir, '*.inc'))
         if not distutils.dep_util.newer_group(sources, sofile):
@@ -104,8 +147,16 @@ class build(_build):
             print('IRBEM will not be available')
             return 
 
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+        builddir = os.path.join(self.build_temp, 'irbem')
+        if os.path.exists(builddir):
+            shutil.rmtree(builddir)
+        shutil.copytree(os.path.join('spacepy', 'irbempy', irbemdir),
+                        builddir)
         # compile irbemlib
-        os.chdir(os.path.join('spacepy', 'irbempy', irbemdir))
+        olddir = os.getcwd()
+        os.chdir(builddir)
         F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
         functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
                      'coord_trans1','find_magequator1', 'find_mirror_point1', 
@@ -113,24 +164,23 @@ class build(_build):
                      'trace_field_line2_1', 'trace_field_line_towards_earth1']
 
         # call f2py
-        os.system('f2py --overwrite-signature -m irbempylib -h irbempylib.pyf '+' '.join(F90files) \
-                  +' only: ' + ' '.join(functions) + ' :')
+        os.system('{0} --overwrite-signature -m irbempylib -h irbempylib.pyf '
+                  '{1} only: {2} :'.format(
+            self.f2py, ' '.join(F90files), ' '.join(functions)))
         # intent(out) substitute list
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
                    'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind']
         inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
         fln = 'irbempylib.pyf'
         print('Substituting fortran intent(in/out) statements')
-        f = open(fln, 'r')
-        filestr = f.read()
-        f.close()
+        with open(fln, 'r') as f:
+            filestr = f.read()
         for item in inlist:
             filestr = subst( ':: '+item, ', intent(in) :: '+item, filestr)
         for item in outlist:
             filestr = subst( ':: '+item, ', intent(out) :: '+item, filestr)
-        f = open(fln, 'w')
-        f.write(filestr)
-        f.close()
+        with open(fln, 'w') as f:
+            f.write(filestr)
 
         # compile (platform dependent)
         os.chdir('source')
@@ -160,46 +210,49 @@ class build(_build):
             os.system('ranlib libBL2.a')
         os.chdir('..')
         os.system(
-            'f2py -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 ' +
-            f2py_flags[fcompiler])
-        err = os.system('mv -f irbempylib.so ../')
-        if err:
+            '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
+            '{1}'.format(
+            self.f2py, f2py_flags[fcompiler]))
+        try:
+            shutil.move('irbempylib.so', sofile)
+        except:
             print '------------------------------------------------------'
             print 'WARNING: Something went wrong with compiling irbemlib.'
             print '------------------------------------------------------'
             print 'A different Fortran compiler may help? (--fcompiler option)'
-        os.chdir('../../..')
+        os.chdir(olddir)
         return
 
     def compile_libspacepy(self):
         """Compile the C library, libspacepy. JTN 20110224"""
-        olddir = os.getcwd()
-        os.chdir(os.path.join('spacepy', 'libspacepy'))
+        srcdir = os.path.join('spacepy', 'libspacepy')
+        outdir = os.path.join(self.build_lib, 'spacepy')
         try:
             comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
             if hasattr(distutils.ccompiler, 'customize_compiler'):
                 distutils.ccompiler.customize_compiler(comp)
             else:
                 distutils.sysconfig.customize_compiler(comp)
-            sources = list(glob.glob('*.c'))
-            objects = [s[:-2] + '.o' for s in sources]
-            headers = list(glob.glob('*.h'))
+            sources = list(glob.glob(os.path.join(srcdir, '*.c')))
+            objects = [os.path.join(self.build_temp, s[:-2] + '.o')
+                       for s in sources]
+            headers = list(glob.glob(os.path.join(srcdir, '*.h')))
             #Assume every .o file associated with similarly-named .c file,
             #and EVERY header file
             outdated = [s for s, o in zip(sources, objects)
                         if distutils.dep_util.newer(s, o) or
                         distutils.dep_util.newer_group(headers, o)]
             if outdated:
-                comp.compile(outdated)
-            if distutils.dep_util.newer_group(
-                objects, comp.library_filename('spacepy', lib_type='shared')):
-                comp.link_shared_lib(objects, 'spacepy', libraries=['m'])
+                comp.compile(outdated, output_dir=self.build_temp)
+            libpath = os.path.join(
+                outdir, comp.library_filename('spacepy', lib_type='shared'))
+            if distutils.dep_util.newer_group(objects, libpath):
+                comp.link_shared_lib(objects, 'spacepy', libraries=['m'],
+                                     output_dir=outdir)
         except:
             print('libspacepy compile failed; some operations may be slow:')
             (t, v, tb) = sys.exc_info()
             print(v)
-        finally:
-            os.chdir(olddir)
 
     def run(self):
         """Actually perform the build"""
@@ -213,16 +266,21 @@ class build(_build):
         self.compile_libspacepy()
         _build.run(self)
 
+
 class install(_install):
     """Extends base distutils install to check versions, install .spacepy"""
 
     user_options = _install.user_options + [
         ('fcompiler=', None,
          'specify the fortran compiler to use: pg, gnu95, gnu [gnu95]'),
+        ('f2py=', None,
+         'specify name (or full path) of f2py executable [{0}]'.format(
+        default_f2py())),
         ]
 
     def initialize_options(self):
         self.fcompiler = None
+        self.f2py = None
         _install.initialize_options(self)
 
     def finalize_options(self):
@@ -231,6 +289,8 @@ class install(_install):
         if not self.fcompiler in ('pg', 'gnu', 'gnu95'):
             raise DistutilsOptionError(
                 '--fcompiler must be pg, gnu, gnu95')
+        if self.f2py == None:
+            self.f2py = default_f2py()
         _install.finalize_options(self)
 
     def run(self):
@@ -261,8 +321,12 @@ class install(_install):
 
         _install.run(self)
 
-pkg_files = ['irbempy/irbempylib.so', 'irbempy/*.py', 'LANLstar/*.py', 'LANLstar/libLANLstar.so', 
-    'doc/*.*', 'pybats/*.py', 'pybats/*.so', 'pybats/*.out', 'pycdf/*.py', 'libspacepy/*spacepy*', 'data/*']
+
+pkg_files = ['irbempy/*.py', 'LANLstar/*.py',
+    '../Doc/build/html/*.*', '../Doc/build/html/_sources/*.*', 
+    '../Doc/build/html/_modules/*.*', '../Doc/build/html/_static/*.*',
+    'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*']
+
 
 # run setup from distutil
 setup(name='spacepy',
