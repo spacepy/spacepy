@@ -303,7 +303,7 @@ class Coords(object):
         # now convert to other coordinate system
         if (self.dtype != returntype) :
             assert NewCoords.ticks, "Time information required; add a.ticks attribute"
-            NewCoords.data = op.coord_trans( Coords, returntype, returncarsph)
+            NewCoords.data = op.coord_trans( self, returntype, returncarsph)
             NewCoords.dtype = returntype
             NewCoords.carsph = returncarsph
             NewCoords.sysaxes = op.get_sysaxes(returntype, returncarsph)
@@ -314,9 +314,9 @@ class Coords(object):
             if NewCoords.__dict__.has_key('x'): NewCoords.__delattr__('x')
             if NewCoords.__dict__.has_key('y'): NewCoords.__delattr__('y')
             if NewCoords.__dict__.has_key('z'): NewCoords.__delattr__('z')
-            NewCoords.radi = Coords.data[:,0]
-            NewCoords.lati = Coords.data[:,1]
-            NewCoords.long = Coords.data[:,2]
+            NewCoords.radi = self.data[:,0]
+            NewCoords.lati = self.data[:,1]
+            NewCoords.long = self.data[:,2]
         else: # 'car'
             NewCoords.units =  [units[0]]*3
             if NewCoords.__dict__.has_key('radi'): NewCoords.__delattr__('radi')

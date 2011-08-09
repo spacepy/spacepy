@@ -56,6 +56,8 @@ def getLmax(ticks, model='JKemp'):
     if model is 'JKemp':
         for i, iDst in enumerate(Dst):
             Lmax[i] = 6.07e-5*iDst*iDst + 0.0436*iDst + 9.37
+    else:
+        raise ValueError('Invalid model selection')
     return Lmax
 
 def getPlasmaPause(ticks, model='M2002', LT='all'):
