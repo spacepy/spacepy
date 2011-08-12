@@ -279,6 +279,26 @@ class SpaceData(dict):
             self[key] = copy.copy(flatobj[key])
 
 
+def convertKeysToStr(SDobject):
+    if isinstance(SDobject, SpaceData):
+        newSDobject = SpaceData()
+    else:
+        newSDobject = {}
+    for key in SDobject:
+        if not isinstance(key, str):
+            if isinstance(SDobject[key], dict):
+                newSDobject[key] = convertKeysToStr(SDobject[key])
+            else:
+                newSDobject[str(key)] = copy.deepcopy(SDobject[key])
+        else:
+            if isinstance(SDobject[key], dict):
+                newSDobject[key] = convertKeysToStr(SDobject[key])
+            else:
+                newSDobject[key] = copy.deepcopy(SDobject[key])
+
+    return newSDobject
+
+
 def flatten(dobj):
     '''Function to collapse datamodel to one level deep
 
@@ -488,6 +508,9 @@ def toHDF5(fname, SDobject, **kwargs):
             for key, value in SDobject.attrs.iteritems():
                 #try:
                     if type(value) in allowed_attrs:
+                        #test for datetimes in interables
+                        if hasattr(value, '__iter__'):
+                            value = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
                         if value or value is 0:
                             hfile[path].attrs[key] = value
                         else:
@@ -500,10 +523,10 @@ def toHDF5(fname, SDobject, **kwargs):
                         print('value type ', type(value), ' is not in the allowed attribute list\n')
 
                 #except:
-                    #print('\n\nThe following key:value pair is not permitted')
-                    #print('key (type) =', key, '(', type(key), ')\n', 
-		    #	  'value (type) =', value, '(', type(value), ')')
-                    #print('key cannot be of type %s \n' % type(key))
+                #    print('\n\nThe following key:value pair is not permitted')
+                #    print('key (type) =', key, '(', type(key), ')\n', 
+		#    	  'value (type) =', value, '(', type(value), ')')
+                #    print('key cannot be of type %s \n' % type(key))
 
     try:
         import h5py as hdf
@@ -516,8 +539,16 @@ def toHDF5(fname, SDobject, **kwargs):
     else:
         wr_mo = kwargs['mode']
 
+    if 'overwrite' not in kwargs: kwargs['overwrite'] = True
     if type(fname) == str:
-        hfile = hdf.File(fname, mode=wr_mo)
+        try:
+            hfile = hdf.File(fname, mode=wr_mo)
+        except:
+            if kwargs['overwrite']:
+                os.remove(fname)
+                hfile = hdf.File(fname, mode=wr_mo)
+            else:
+                return None 
     else:
         hfile = fname
         #should test here for HDF file object
@@ -538,13 +569,14 @@ def toHDF5(fname, SDobject, **kwargs):
             #try:
                 if type(value) is allowed_elems[0]:
                     hfile[path].create_group(key)
-                    tohdf5(hfile, SDobject[key], path+'/'+key)
+                    toHDF5(hfile, SDobject[key], path=path+'/'+key)
                 elif type(value) is allowed_elems[1]:
                     try:
                         hfile[path].create_dataset(key, data=value)
                     except:
                         if isinstance(value[0], datetime.datetime):
                             for i, val in enumerate(value): value[i] = val.isoformat()
+                        #now make sure numeric keys are converted to str
                         hfile[path].create_dataset(key, data=value.astype('|S35'))
                     #if isinstance(value, numpy.ndarray) and isinstance(value[0], datetime.datetime):
                         #for i, val in enumerate(value): value[i] = val.isoformat()
