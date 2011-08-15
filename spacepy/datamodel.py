@@ -289,12 +289,12 @@ def convertKeysToStr(SDobject):
             if isinstance(SDobject[key], dict):
                 newSDobject[key] = convertKeysToStr(SDobject[key])
             else:
-                newSDobject[str(key)] = copy.deepcopy(SDobject[key])
+                newSDobject[str(key)] = SDobject[key]
         else:
             if isinstance(SDobject[key], dict):
                 newSDobject[key] = convertKeysToStr(SDobject[key])
             else:
-                newSDobject[key] = copy.deepcopy(SDobject[key])
+                newSDobject[key] = SDobject[key]
 
     return newSDobject
 
@@ -560,7 +560,10 @@ def toHDF5(fname, SDobject, **kwargs):
 
     allowed_attrs = [int, long, float, str, numpy.ndarray, list]
     allowed_elems = [SpaceData, dmarray]
-    
+   
+    #first convert non-string keys to str
+    SDobject = convertKeysToStr(SDobject)
+
     #try:
         ##carry over the attributes
     SDcarryattrs(SDobject,hfile,path,allowed_attrs)
@@ -576,13 +579,9 @@ def toHDF5(fname, SDobject, **kwargs):
                     except:
                         if isinstance(value[0], datetime.datetime):
                             for i, val in enumerate(value): value[i] = val.isoformat()
-                        #now make sure numeric keys are converted to str
                         hfile[path].create_dataset(key, data=value.astype('|S35'))
-                    #if isinstance(value, numpy.ndarray) and isinstance(value[0], datetime.datetime):
-                        #for i, val in enumerate(value): value[i] = val.isoformat()
-                        #hfile[path].create_dataset(key, data=value.astype(str))
-                    #else:
-                        #hfile[path].create_dataset(key, data=value)
+                        #else:
+                        #    hfile[path].create_dataset(key, data=value.astype(float))
                     SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
             #except:
                 #raise Exception('Unrecoverable Error in the Object.\nAborting')
