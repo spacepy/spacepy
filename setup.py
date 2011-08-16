@@ -38,9 +38,18 @@ def subst(pattern, replacement, filestr,
 
 
 def default_f2py():
+    """Looks for f2py based on name of python executable
+    Assumes any suffix to python should also apply to f2py.
+    This picks up .exe, version numbers, etc.
+    """
     interp = os.path.basename(sys.executable)
     if interp[0:6] == 'python':
-        return 'f2py' + interp[6:]
+        candidate = 'f2py' + interp[6:]
+        for dir in os.environ['PATH'].split(os.pathsep):
+            if os.path.isfile(os.path.join(dir, candidate)):
+                return candidate
+    if sys.platform == 'win32':
+        return 'f2py.exe'
     else:
         return 'f2py'
 
