@@ -12,6 +12,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 import os, sys, shutil, getopt, warnings, glob, re
+import subprocess
 from distutils.core import setup
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
@@ -63,11 +64,14 @@ class build(_build):
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
+        ('build-docs', None,
+         'Build documentation with Sphinx (default: copy pre-built) [False]'),
         ]
 
     def initialize_options(self):
         self.fcompiler = None
         self.f2py = None
+        self.build_docs = False
         _build.initialize_options(self)
 
     def finalize_options(self):
@@ -263,17 +267,34 @@ class build(_build):
             (t, v, tb) = sys.exc_info()
             print(v)
 
-    def build_docs(self):
-        """Build the documentation
-
-        For now, just copy it from the pre-built Doc directory.
-        """
+    def copy_docs(self):
+        """Copy documentation from pre-build Doc directory."""
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'Doc')
         indir = os.path.join('Doc', 'build', 'html')
         if os.path.exists(outdir):
-            shutil.rmtree(outdir)
+            return
+        if not os.path.exists(indir):
+            print("No pre-built documentation, attempting to build...")
+            self.make_docs()
+            return
         shutil.copytree(indir, outdir)
+
+    def make_docs(self):
+        """Create/update documentation with Sphinx."""
+        try:
+            import sphinx
+            import numpydoc
+        except:
+            print("WARNING: Numpydoc and sphinx required to build documentation."
+                  "Help will not be available; try without --build-docs.")
+        builddir = os.path.join(os.path.join(self.build_temp, 'doctrees'))
+        indir = os.path.join('Doc', 'source')
+        outdir = os.path.join(os.path.abspath(self.build_lib),
+                              'spacepy', 'Doc')
+        cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
+            builddir, indir, outdir)
+        subprocess.check_call(cmd.split())
 
     def run(self):
         """Actually perform the build"""
@@ -281,7 +302,10 @@ class build(_build):
         self.compile_LANLstar()
         self.compile_pybats()
         self.compile_libspacepy()
-        self.build_docs()
+        if self.build_docs:
+            self.make_docs()
+        else:
+            self.copy_docs()
         _build.run(self)
 
 
@@ -294,11 +318,14 @@ class install(_install):
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
+        ('build-docs', None,
+         'Build documentation with Sphinx (default: copy pre-built) [False]'),
         ]
 
     def initialize_options(self):
         self.fcompiler = None
         self.f2py = None
+        self.build_docs = False
         _install.initialize_options(self)
 
     def finalize_options(self):
