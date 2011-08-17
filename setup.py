@@ -263,16 +263,25 @@ class build(_build):
             (t, v, tb) = sys.exc_info()
             print(v)
 
+    def build_docs(self):
+        """Build the documentation
+
+        For now, just copy it from the pre-built Doc directory.
+        """
+        outdir = os.path.join(os.path.abspath(self.build_lib),
+                              'spacepy', 'Doc')
+        indir = os.path.join('Doc', 'build', 'html')
+        if os.path.exists(outdir):
+            shutil.rmtree(outdir)
+        shutil.copytree(indir, outdir)
+
     def run(self):
         """Actually perform the build"""
-        # run compile for irbem-lib first
         self.compile_irbempy()
-        # run compile for LANLstar
         self.compile_LANLstar()
-        # Compile PyBats
         self.compile_pybats()
-        # Compile libspacepy
         self.compile_libspacepy()
+        self.build_docs()
         _build.run(self)
 
 
@@ -332,8 +341,6 @@ class install(_install):
 
 
 pkg_files = ['irbempy/*.py', 'LANLstar/*.py',
-    '../Doc/build/html/*.*', '../Doc/build/html/_sources/*.*', 
-    '../Doc/build/html/_modules/*.*', '../Doc/build/html/_static/*.*',
     'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*']
 
 

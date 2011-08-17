@@ -24,8 +24,14 @@ def help():
     """Launches web browser with local HTML help"""
     
     import webbrowser
-    path = __path__[0]+'/../Doc/build/html/'
-    webbrowser.open(path+'index.html')
+    fspec = os.path.join(__path__[0], 'Doc', 'index.html')
+    if not os.path.exists(fspec):
+        fspec = os.path.join(__path__[0], '..',
+                             'Doc', 'build', 'html', 'index.html')
+    if os.path.exists(fspec):
+        webbrowser.open(fspec)
+    else:
+        print("Can't find help files in {0}".format(__path__[0]))
 
 # put modules here that you want to be accessible through 'from spacepy import *'
 __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 
