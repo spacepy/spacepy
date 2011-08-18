@@ -1,7 +1,7 @@
 
 
 ##################################
-SeaPy Ð Superposed Epoch in Python
+SeaPy \Ð Superposed Epoch in Python
 ##################################
 
 .. todolist::

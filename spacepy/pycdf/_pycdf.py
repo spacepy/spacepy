@@ -1,13 +1,14 @@
-#!/usr/bin/env python
+3#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""pyCDF implementation
+"""
+pyCDF implementation
 
 This module contains the implementation details of pyCDF, the
-python interface to U{NASA's CDF library<http://cdf.gsfc.nasa.gov/>}.
+python interface to NASA's CDF library http://cdf.gsfc.nasa.gov/.
 
 Authors
--------
+=======
 Jon Niehof
 
 jniehof@lanl.gov
@@ -41,16 +42,17 @@ except NameError:
 
 
 class Library(object):
-    """Abstraction of the base CDF C library and its state.
+    """
+    Abstraction of the base CDF C library and its state.
 
     Not normally intended for end-user use. An instance of this class
     is created at package load time as the L{lib} variable, providing
     access to the underlying C library if necessary.
 
     Calling the C library directly requires knowledge of the
-    U{ctypes<http://docs.python.org/library/ctypes.html>} package.
+    ctypes http://docs.python.org/library/ctypes.html package.
 
-    L{__init__} searches for and loads the C library; details on the
+    __init__ searches for and loads the C library; details on the
     search are documented there.
 
     @ivar _del_middle_rec_bug: does this version of the library have a bug
@@ -181,7 +183,7 @@ class Library(object):
                              const.CDF_INT2.value: 'CDF_INT2',
                              const.CDF_UINT2.value: 'CDF_UINT2',
                              const.CDF_INT4.value: 'CDF_INT4',
-                             const.CDF_UINT4.value: 'CDF_UINT4', 
+                             const.CDF_UINT4.value: 'CDF_UINT4',
                              const.CDF_FLOAT.value: 'CDF_FLOAT',
                              const.CDF_REAL4.value: 'CDF_REAL4',
                              const.CDF_DOUBLE.value: 'CDF_DOUBLE',
@@ -366,7 +368,7 @@ class Library(object):
                                      ctypes.byref(usec), ctypes.byref(nsec),
                                      ctypes.byref(psec))
         if yyyy.value <= 0:
-            return datetime.datetime(9999, 12, 13, 23, 59, 59, 999999)        
+            return datetime.datetime(9999, 12, 13, 23, 59, 59, 999999)
         micro = int(float(msec.value) * 1000 + float(usec.value) +
                     float(nsec.value) / 1000 + float(psec.value) / 1e6 + 0.5)
         if micro < 1000000:
@@ -572,7 +574,7 @@ class _AttrListGetter(object):
             raise NotImplementedError(
                 "Attribute lists may only be applied to CDFs or zVars.")
 
-    
+
 class CDF(collections.MutableMapping):
     """Python object representing a CDF file.
 
@@ -1326,7 +1328,7 @@ class Var(collections.MutableSequence):
         hslice.select()
         lib.call(const.GET_, const.zVAR_HYPERDATA_, ctypes.byref(buffer))
         result = hslice.unpack_buffer(buffer)
-        
+
         if self.type() == const.CDF_EPOCH.value:
             if isinstance(result, float): #single value
                 result = lib.epoch_to_datetime(result)
@@ -1337,7 +1339,7 @@ class Var(collections.MutableSequence):
                 result = lib.epoch16_to_datetime(result)
             else:
                 hslice.transform_each(result, lib.epoch16_to_datetime)
-            
+
         return hslice.convert_array(result)
 
     def __delitem__(self, key):
@@ -1380,7 +1382,7 @@ class Var(collections.MutableSequence):
             lib.call(const.GET_, const.zVAR_nINDEXENTRIES_,
                      ctypes.byref(entries))
             dangerous_delete = (entries.value == 1)
-            
+
         if dangerous_delete:
             data = self[...]
             del data[start:start + count * interval:interval]
@@ -1410,7 +1412,7 @@ class Var(collections.MutableSequence):
         @param data: data to store
         @type data: list
         @raise IndexError: if L{key} is out of range, mismatches dimensions,
-                           or simply unparseable. IndexError will 
+                           or simply unparseable. IndexError will
         @raise CDFError: for errors from the CDF library
         """
         hslice = _Hyperslice(self, key)
@@ -1566,7 +1568,7 @@ class Var(collections.MutableSequence):
         @rtype: str
         """
         return '<Var:\n' + str(self) + '\n>'
-        
+
     def __str__(self):
         """Returns a string representation of the variable
 
@@ -1949,7 +1951,7 @@ class _Hyperslice(object):
                 self.counts[0] = len(data)
         elif len(data) > self.counts[0]: #Expand to fit data
             if rec_slice.step in (None, 1):
-                self.counts[0] = len(data)            
+                self.counts[0] = len(data)
 
     def expand_ellipsis(self, slices):
         """Expands ellipses into the correct number of full-size slices
@@ -2798,7 +2800,7 @@ class Attr(collections.MutableSequence):
 
     def type(self, number, new_type=None):
         """Find or change the CDF type of a particular Entry number
-        
+
         @param number: number of Entry to check or change
         @type number: int
         @param new_type: type to change it to, see L{const}
@@ -2862,7 +2864,7 @@ class Attr(collections.MutableSequence):
         elif hasattr(type, 'value'):
             type = type.value
         self._write_entry(number, data, type, dims, elements)
-                
+
     def number(self):
         """Find the attribute number for this attribute
 
@@ -3315,7 +3317,7 @@ class AttrList(collections.MutableMapping):
             self._clone_attr(master, name)
         for name in list(self): #Can't iterate over a list we're changing
             if not name in master:
-                del self[name]    
+                del self[name]
 
     def _get_or_create(self, name):
         """Retrieve L{Attr} or create it if it doesn't exist

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""CDF constants
+"""
+CDF constants
 
 Various constants defined in cdf.h and used in pycdf
 

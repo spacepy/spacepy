@@ -71,6 +71,7 @@ SpacePy Code:
     seapy
     time
     toolbox
+    pycdf
 
 
 
