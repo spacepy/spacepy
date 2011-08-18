@@ -84,7 +84,8 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from __future__ import division
-import numpy, copy, pycdf, datetime
+import numpy, copy, datetime
+from spacepy import pycdf
 
 class dmarray(numpy.ndarray):
     """
@@ -376,7 +377,7 @@ def fromCDF(fname, **kwargs):
     ----------
     file : string
         the name of the cdf file to be loaded into a datamodel
-    
+
     Returns
     -------
     out : spacepy.datamodel.SpaceData
@@ -388,7 +389,7 @@ def fromCDF(fname, **kwargs):
     >>> data = dm.fromCDF('test.cdf')
     '''
     #TODO: add unflatten keyword and restore flattened variables
-    
+
     try:
         cdfdata = pycdf.CDF(fname)
     except:
@@ -420,7 +421,7 @@ def fromHDF5(fname, **kwargs):
     ----------
     file : string
         the name of the HDF5 file to be loaded into a datamodel
-    
+
     Returns
     -------
     out : spacepy.datamodel.SpaceData
@@ -444,20 +445,20 @@ def fromHDF5(fname, **kwargs):
                     SDobject.attrs[key] = value
                 except:
                     print('\n\nThe following key:value pair is not permitted')
-                    print('key (type) =', key, '(', type(key), ')\n', 
+                    print('key (type) =', key, '(', type(key), ')\n',
 		          'value (type) =', value, '(',type(value), ')')
 
     try:
         import h5py as hdf
     except ImportError:
         raise ImportError('HDF5 converter requires h5py')
-  
+
     if type(fname) == str:
         hfile = hdf.File(fname, mode='r')
     else:
         hfile = fname
         #should test here for HDF file object
-    
+
     if 'path' not in kwargs:
         path = '/'
     else:
@@ -481,7 +482,7 @@ def fromHDF5(fname, **kwargs):
                 hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
         except:
             raise ValueError('HDF5 file contains type other than Group or Dataset')
-    
+
     if path=='/': hfile.close()
 
     return SDobject
@@ -497,7 +498,7 @@ def toHDF5(fname, SDobject, **kwargs):
 
     SDobject : spacepy.datamodel.SpaceData
         SpaceData with associated attributes and variables in dmarrays
-    
+
     Returns
     -------
     None
@@ -518,13 +519,13 @@ def toHDF5(fname, SDobject, **kwargs):
                     else:
                         #TODO: add support for datetime in attrs (convert to isoformat)
                         print('\n\nThe following key:value pair is not permitted')
-                        print('key (type) =', key, '(', type(key), ')\n', 
+                        print('key (type) =', key, '(', type(key), ')\n',
 			      'value (type) =', value, '(', type(value), ')')
                         print('value type ', type(value), ' is not in the allowed attribute list\n')
 
                 #except:
                 #    print('\n\nThe following key:value pair is not permitted')
-                #    print('key (type) =', key, '(', type(key), ')\n', 
+                #    print('key (type) =', key, '(', type(key), ')\n',
 		#    	  'value (type) =', value, '(', type(value), ')')
                 #    print('key cannot be of type %s \n' % type(key))
 
@@ -548,7 +549,7 @@ def toHDF5(fname, SDobject, **kwargs):
                 os.remove(fname)
                 hfile = hdf.File(fname, mode=wr_mo)
             else:
-                return None 
+                return None
     else:
         hfile = fname
         #should test here for HDF file object
@@ -560,7 +561,7 @@ def toHDF5(fname, SDobject, **kwargs):
 
     allowed_attrs = [int, long, float, str, numpy.ndarray, list]
     allowed_elems = [SpaceData, dmarray]
-   
+
     #first convert non-string keys to str
     SDobject = convertKeysToStr(SDobject)
 

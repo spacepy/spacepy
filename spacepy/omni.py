@@ -11,6 +11,14 @@ jkoller@lanl.gov
 Los ALamos National Laboratory
 
 Copyright ©2010 Los Alamos National Security, LLC.
+
+Version
+=======
+V1: 26-Jan-2010 (JK)
+V1.1: 11-Mar-2010: fixed bug in get_omni; will now return the correct 6_status, 8_status (JK)
+V1.2: 11-Jun-2010: rewrote status information and put into 'Qbits' (JK)
+V1.3: 3-Jun-2011: allow lists of datetime objects as input times, and use datamodel for storage (SM)
+
 """
 import numpy as np
 from spacepy.datamodel import SpaceData, dmarray
@@ -54,12 +62,7 @@ def get_omni(ticks):
     'UTC', 'Kp', 'Pdyn', 'dens', 'ByIMF', 'W6', 'W5', 'W4', 'W3', 'W2',
     'W1', 'Year']
 
-    Version:
-    ========
-    V1: 26-Jan-2010 (JK)
-    V1.1: 11-Mar-2010: fixed bug in get_omni; will now return the correct 6_status, 8_status (JK)
-    V1.2: 11-Jun-2010: rewrote status information and put into 'Qbits' (JK)
-    V1.3: 3-Jun-2011: allow lists of datetime objects as input times, and use datamodel for storage (SM)
+
     """
     if not isinstance(ticks, st.Ticktock):
         try:

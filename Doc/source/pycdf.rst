@@ -8,3 +8,11 @@ pyCDF \- Python interface to CDF files
 
 .. automodule:: pycdf
     :members:
+
+.. currentmodule:: spacepy.pycdf
+
+.. autosummary::
+
+    Library
+    Library.check_status
+

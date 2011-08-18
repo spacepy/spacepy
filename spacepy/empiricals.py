@@ -215,8 +215,8 @@ def getMPstandoff(ticks):
 def getDststar(ticks, model='OBrien'):
     """Calculate the pressure-corrected Dst index, Dst*
 
-    Paramters
-    =========
+    Parameters
+    ==========
     ticks : spacepy.time.Ticktock
         TickTock object of desired times (will be interpolated from hourly OMNI data)
         OR dictionary including 'Pdyn' and 'Dst' keys where data are lists or arrays

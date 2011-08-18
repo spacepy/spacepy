@@ -92,6 +92,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 
 from spacepy import help
 import datetime
+import datetime as dt
 import numpy as np
 __version__ = "$Revision: 1.37 $, $Date: 2011/05/31 20:25:32 $"
 
@@ -133,7 +134,6 @@ class Tickdelta(object):
     spacepy.time.Ticktock class
     """
     def __init__(self, **kwargs):
-        import datetime as dt
         days, hours, minutes, seconds = [0,0,0,0]
         if 'days' in kwargs:  days = kwargs['days']
         if 'hours' in kwargs: hours = kwargs['hours']
@@ -344,7 +344,7 @@ class Ticktock(object):
     def __getstate__(self):
         """
         Is called when pickling
-        See Also: http://docs.python.org/library/pickle.html
+        See Also http://docs.python.org/library/pickle.html
         """
         odict = self.__dict__.copy() # copy the dict since we change it
         return odict
@@ -352,7 +352,7 @@ class Ticktock(object):
     def __setstate__(self, dict):
         """
         Is called when unpickling
-        See Also: http://docs.python.org/library/pickle.html
+        See Also http://docs.python.org/library/pickle.html
         """
         self.__dict__.update(dict)
         return
@@ -366,7 +366,8 @@ class Ticktock(object):
 
         Parameters
         ==========
-
+        idx : int
+            the item index to get
 
         Returns
         =======
@@ -455,7 +456,7 @@ class Ticktock(object):
         other : Ticktock
             instance for comparison
 
-        Returns:
+        Returns
         ========
         out : boolean
             True or False
@@ -598,18 +599,16 @@ class Ticktock(object):
         Will be called if attribute "name" is not found in Ticktock class instance.
         It will add TAI, RDT, etc
 
-        Input:
-        ======
-            - a Ticktock class instance
-            - name (string) : a string from the list of time systems
+        Parameters
+        ==========
+            name : string
+                a string from the list of time systems
                     'UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'DOY', 'eDOY', 'leaps'
-        Returns:
+        Returns
         ========
-            - requested values as either list/numpy array
+            out: list, array
+                requested values as either list/numpy array
 
-        Version:
-        ========
-        V1: 03-Mar-2010 (JK)
 
         """
 
@@ -769,7 +768,7 @@ class Ticktock(object):
 
         Parameters
         ==========
-        other: Ticktock
+        other : Ticktock
             other (Ticktock instance)
         """
         otherdata = eval('other.'+self.dtype)
@@ -988,29 +987,22 @@ class Ticktock(object):
 
         convert dtype data into MJD (modified Julian date)
 
-        Input:
-        ======
-            - a Ticktock class instance
-
-        Returns:
+        Returns
         ========
-            - MJD (numpy array) : elapsed days since November 17, 1858
+            out : numpy array
+                elapsed days since November 17, 1858
                     (Julian date was 2,400 000)
 
-        Example:
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.MJD
         array([ 52307.5])
 
-        See Also:
-        =========
+        See Also
+        ========
         getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, geteDOY
 
-        Version:
-        ========
-        V1: 20-Jan-2010 (JK)
-        V2: 25-Jan-2010: added support for arrays (JK)
         """
 
         if self.UTC[0] < datetime.datetime(1582,10,15):
@@ -1030,30 +1022,21 @@ class Ticktock(object):
         convert dtype data into Unix Time (Posix Time)
         seconds since 1970-Jan-1 (not counting leap seconds)
 
-        Input:
-        ======
-            - a Ticktock class instance
-
-        Returns:
+        Returns
         ========
-            - UNX (numpy array) : elapsed secs since 1970/1/1 (not counting leap secs)
+            out : numpy array
+                elapsed secs since 1970/1/1 (not counting leap secs)
 
-        Example:
+        Examples
         ========
-
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.UNX
         array([  1.01265120e+09])
 
-        See Also:
+        See Also
         =========
         getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
-        Version:
-        ========
-        V1: 20-Jan-2010 (JK)
-        V2: 25-Jan-2010: added array support (JK)
-        V3: 18-May-2010: added sub-second support (SM)
         """
 
         nTAI = len(self.data)
@@ -1075,30 +1058,21 @@ class Ticktock(object):
 
         convert dtype data into Rata Die (lat.) Time (days since 1/1/0001)
 
-        Input:
-        ======
-            - a Ticktock class instance
-
-        Returns:
+        Returns
         ========
-            - RDT (numpy array) : elapsed days since 1/1/1
+            out : numpy array
+                elapsed days since 1/1/1
 
-        Example:
+        Examples
         ========
-
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.RDT
         array([ 730883.5])
 
-        See Also:
+        See Also
         =========
         getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
-        Version:
-        ========
-        V1: 20-Jan-2010 (JK)
-        V2: 25-Jan-2010: added array support (JK)
-        V3: 17-May-2010: added microseconds (SM)
         """
 
         import matplotlib.dates as mpd
@@ -1121,29 +1095,21 @@ class Ticktock(object):
 
         convert dtype data into UTC object a la datetime()
 
-        Input:
-        ======
-            - a Ticktock class instance
-
-        Returns:
+        Returns
         ========
-            - UTC (list of datetime objects) : datetime object in UTC time
+            out : list of datetime objects
+                datetime object in UTC time
 
-        Example:
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.UTC
         [datetime.datetime(2002, 2, 2, 12, 0)]
 
-        See Also:
+        See Also
         =========
         getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
-        Version:
-        ========
-        V1: 20-Jan-2010 (JK)
-        V2: 25-Jan-2010: added array support (JK)
-        V3: 17-May-2010: added microsecond ISO parsing (SM)
         """
 
         fmt,fmt2 = '%Y-%m-%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S.%f'
@@ -1271,28 +1237,21 @@ class Ticktock(object):
 
         return GPS epoch (0000 UT (midnight) on January 6, 1980)
 
-        Input:
-        ======
-            - a Ticktock class instance
-
-        Returns:
+        Returns
         ========
-            - GPS (numpy array) : elapsed secs since 6Jan1980 (excludes leap secs)
+            out : numpy array
+                elapsed secs since 6Jan1980 (excludes leap secs)
 
-        Example:
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.GPS
         array([])
 
-        See Also:
+        See Also
         =========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
 
-        Version:
-        ========
-        V1: 20-Jan-2010 (BAL)
-        V2: 17-May-2010: Added sub-second support (SM)
         """
 
         fmt = '%Y-%m-%dT%H:%M:%S'
@@ -1320,29 +1279,22 @@ class Ticktock(object):
 
         return TAI (International Atomic Time)
 
-        Input:
-        ======
-            - a Ticktock class instance
-
-        Returns:
-        ========
-            - TAI (numpy array) : elapsed secs since 1958/1/1 (includes leap secs,
+        Returns
+        =======
+            out : numpy array
+                elapsed secs since 1958/1/1 (includes leap secs,
                     i.e. all secs have equal lengths)
 
-        Example:
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.TAI
         array([1391342432])
 
-        See Also:
-        =========
+        See Also
+        ========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
 
-        Version:
-        ========
-        V1: 20-Jan-2010 (JK)
-        V2: 25-Jan-2010: include array support (JK)
         """
 
         fmt = '%Y-%m-%dT%H:%M:%S'
@@ -1370,30 +1322,21 @@ class Ticktock(object):
 
         convert dtype data into ISO string
 
-        Input:
-        ======
-            - a Ticktock class instance
+        Returns
+        =======
+            out : list of strings
+                date in ISO format
 
-        Returns:
-        ========
-            - ISO (list of strings) : date in ISO format
-
-        Example:
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.ISO
         ['2002-02-02T12:00:00']
 
-        See Also:
-        =========
+        See Also
+        ========
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
-        Version:
-        ========
-        V1: 20-Jan-2010 (JK)
-        V2: 25-Jan-2010: included arary support (JK)
-        V3: 10-May-2010: speedup, arange to xrange (BAL)
-        V4: 17-May-2010: switched to native formatting so sub-second is displayed
         """
 
         nTAI = len(self.data)
@@ -1417,27 +1360,21 @@ class Ticktock(object):
 
         retrieve leapseconds from lookup table, used in getTAI
 
-        Input:
-        ======
-            - a Ticktock class instance
+        Returns
+        =======
+            out : numpy array
+                leap seconds
 
-        Returns:
-        ========
-            - secs (numpy array) : leap seconds
-
-        Example:
+        Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.leaps
         array([32])
 
-        See Also:
+        See Also
         =========
         getTAI
 
-        Version:
-        ========
-        V1: 20-Jan-2010: includes array support (JK)
         """
 
         import os
@@ -1511,15 +1448,16 @@ class Ticktock(object):
     @classmethod
     def now(self):
         """
-        Creates a Ticktock object with the current time, equivalent to dattime.now()
+        Creates a Ticktock object with the current time, equivalent to datetime.now()
 
-        Input:
-        ======
-        - None
+        Returns
+        =======
+            out : ticktock
+                Ticktock object with the current time, equivalent to datetime.now()
 
-        Version:
+        See Also
         ========
-        V1: 24-May-2010 (BAL)
+        datetime.datetime.now()
 
         """
         dt = datetime.datetime.now()
@@ -1537,32 +1475,29 @@ def doy2date(year, doy, dtobj=False, flAns=False):
     convert integer day-of-year doy into a month and day
     after http://pleac.sourceforge.net/pleac_python/datesandtimes.html
 
-    Input:
-    ======
-        - year (int or array of int) : year
-        - doy (int or array of int) : day of year
+    Parameters
+    ==========
+        year : int or array of int
+            year
+        doy : int or array of int
+            day of year
 
-    Returns:
-    ========
-        - month (int or array of int) : month as integer number
-        - day (int or array of int) : as integer number
+    Returns
+    =======
+        month : int or array of int
+            month as integer number
+        day : int or array of int
+            as integer number
 
-    Example:
+    Examples
     ========
     >>> month, day = doy2date(2002, 186)
     >>> dts = doy2date([2002]*4, range(186,190), dtobj=True)
 
-    See Also:
-    =========
+    See Also
+    ========
     getDOY
 
-    Version:
-    ========
-    V1: 24-Jan-2010: can handle arrays as input (JK)
-    V2: 02-Apr-2010: option to return date objects (SM)
-    V3: 07-Apr-2010: modified to return datetime objects (SM)
-    V4: 29-Nov-2010: added keyword flAns for floating point input (BAL)
-    V5: 01-Mar-2011: fixup for speed and readability (JTN)
     """
     try:
         n_year = len(year)
@@ -1613,38 +1548,34 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     """
     return a Ticktock range given the start, end, and delta
 
-    Input:
-    ======
-        - start (string or number) : start time
-        - end (string or number) : end time (inclusive)
-        - deltadays: step in units of days (float); or datetime timedelta object
-        - (optional) dtype (string) : data type for start, end; e.g. ISO, UTC, RTD, etc.
-            see Ticktock for all options
+    Parameters
+    ==========
+        start : string or number
+            start time
+        end : string or number
+            end time (inclusive)
+        deltadays : float or timedelta
+            step in units of days (float); or datetime timedelta object
+        dtype : string (optional)
+            data type for start, end; e.g. ISO, UTC, RTD, etc. see Ticktock for all options
 
-    Returns:
-    ========
-        - ticks (Ticktock instance)
+    Returns
+    =======
+        out : Ticktock instance
+            ticks
 
-    Example:
+    Examples
     ========
     >>> ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays = 1)
     >>> ticks
     Ticktock( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
     '2002-02-04T00:00:00'] ), dtype=ISO
 
-    See Also:
-    =========
+    See Also
+    ========
     Ticktock
 
-    Version:
-    ========
-    V1: 10-Mar-2010: (JK)
-    V1.1: 16-Mar-2010: fixed bug with floating point precision (JK)
-    V1.2: 28-Apr-2010: added timedelta support for increment (SM)
     """
-
-    import datetime as dt
-
     Tstart = Ticktock(start, dtype)
     Tend = Ticktock(end, dtype)
     diff = Tend.UTC[0] - Tstart.UTC[0]
@@ -1666,24 +1597,25 @@ def tickrange(start, end, deltadays, dtype='ISO'):
 def sec2hms(sec, rounding=True, days=False, dtobj=False):
     """Convert seconds of day to hours, minutes, seconds
 
-    Inputs:
+    Parameters
+    ==========
+        sec : float
+            Seconds of day
+
+    Other Parameters
+    ================
+        rounding : boolean
+            set for integer seconds
+        days : boolean
+            set to wrap around day (i.e. modulo 86400)
+        dtobj : boolean
+            set to return a timedelta object
+
+    Returns
     =======
-
-    Seconds of day
-    Keyword arguments:
-    rounding (True|False) - set for integer seconds
-    days (True|False) - set to wrap around day (i.e. modulo 86400)
-    dtobj (True|False) - set to return a timedelta object
-
-    Returns:
-    ========
-
-    [hours, minutes, seconds] or datetime.timedelta
+        out : [hours, minutes, seconds] or datetime.timedelta
 
     """
-
-    import datetime as dt
-
     if not days:
         try:
             assert sec <= 86400
@@ -1712,21 +1644,18 @@ def test():
     """
     test all time conversions
 
-    Returns:
+    Returns
     ========
-        - nFAIL (int) : number of failures
+        out : int
+            number of failures
 
-    Example:
+    Examples
     ========
-
     >>> test()
     testing ticks: PASSED TEST 1
     testing ticks: PASSED TEST 2
     0
 
-    Version:
-    ========
-    V1: 20-Jan-2010
     """
     from . import time as st
     from . import toolbox as tb

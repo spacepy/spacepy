@@ -297,7 +297,7 @@ class Sea(SeaBase):
     #ci_quan='median'):
         #"""Method for normalized superposed epoch analysis (creates new object)
 
-        #Example:
+        #Examples
         #Assuming an already instantiated Sea object, xampl
 
         #>>> xampl_norm = xampl.sea_norm(epoch2)
@@ -309,7 +309,7 @@ class Sea(SeaBase):
         #all of which must be available on instantiation.
         #Also requires second set of epochs.
 
-        #Optional keyword(s):
+        #Other Parameters
         #nbins (default = 100) - number of bins for normalized SEA
         #storedata (default = False) - saves matrix of epoch windows as obj.datacube
         #quartiles calculates the quartiles as the upper and lower bounds (and is default);
@@ -518,13 +518,13 @@ class Sea2d(SeaBase):
         ci_quan='median', nmask=1):
         """Method called to perform 2D superposed epoch analysis on data in object.
 
-        Inputs:
-        =======
+        Parameters
+        ==========
         Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
         all of which must be available on instantiation.
 
-        Optional keyword(s):
-        ====================
+        Other Parameters
+        ================
             - storedata (default = False) - saves matrix of epoch windows as obj.datacube
             - quartiles calculates the inter-quartile range to show the spread (and is default);
             - ci will find the bootstrapped confidence interval (and requires ci_quan to be set);
@@ -590,12 +590,12 @@ class Sea2d(SeaBase):
                 show=True, zlog=True, figsize=None, dpi=300):
         """Method called to create basic plot of 2D superposed epoch analysis.
 
-        Inputs:
-        =======
+        Parameters
+        ==========
         Uses object attributes created by the obj.sea() method.
 
-        Optional keyword(s):
-        ====================
+        Other Parameters
+        ================
             - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
             - x(y/z)units (default = None (None)) - x(y/z)-axis units.
             - epochline (default = False) - put vertical line at zero epoch.
@@ -681,13 +681,13 @@ class Sea2d(SeaBase):
 def seadict(objlist, namelist):
     """Function to create dictionary of SeaPy.Sea objects.
 
-    Inputs:
-    =======
+    Parameters
+    ==========
         - objlist: List of Sea objects.
         - namelist: List of variable labels for input objects.
 
-    Optional keyword(s):
-    ====================
+    Other Parameters
+    ================
     namelist = List containing names for y-axes.
 
     """
@@ -714,12 +714,12 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     xunits='', show=True, zunits='', zlog=True, figsize=None, dpi=300):
     """Function to create multipanel plot of superposed epoch analyses.
 
-    Inputs:
-    =======
+    Parameters
+    ==========
     Dictionary of Sea objects (from superposedepoch.seadict()).
 
-    Optional keyword(s):
-    ====================
+    Other Parameters
+    ================
         - epochline (default = False) - put vertical line at zero epoch.
         - usrlimy (default = []) - override automatic y-limits on plot (same for all plots).
         - show (default = True) - shows plot; set to false to output plot object to variable
@@ -728,7 +728,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         - dpi (default=300) - figure resolution in dots per inch
         - n_cols - Number of columns: not yet implemented.
 
-    Output:
+    Returns
     =======
     Plot of input object median and bounds (ci, mad, quartiles - see sea()).
     If keyword 'show' is False, output is a plot object.
@@ -826,16 +826,16 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
 def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
     """Read epochs from text file assuming YYYY MM DD hh mm ss format
 
-    Input:
-    ======
+    Parameters
+    ==========
     Filename (include path)
 
-    Optional inputs:
+    Other Parameters
     ================
     iso (default = False), read in ISO date format
     isofmt (default is YYYY-mm-ddTHH:MM:SS, code is %Y-%m-%dT%H:%M:%S)
 
-    Output:
+    Returns
     =======
     epochs (type=list)
 
@@ -868,11 +868,11 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         yquan='', xunits='', yunits='', epochline=True, usrlimy=[]):
     """Test for similarity between distributions at each lag in two 1-D SEAs
 
-    Inputs:
+    Parameters
     =======
     Two seapy.Sea() instances for comparison
 
-    Optional keyword(s):
+    Other Parameters
     ====================
         - show (default = True)
         - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
@@ -880,7 +880,7 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         - epochline (default = True) - put vertical line at zero epoch.
         - usrlimy (default = []) - override automatic y-limits on plot.
 
-    Example:
+    Examples
     ========
     >>> obj1 = seapy.Sea(data1, times1, epochs1)
     >>> obj2 = seapy.Sea(data2, times2, epochs2)
