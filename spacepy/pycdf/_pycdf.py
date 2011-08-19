@@ -48,7 +48,7 @@ class Library(object):
     Abstraction of the base CDF C library and its state.
 
     Not normally intended for end-user use. An instance of this class
-    is created at package load time as the L{lib} variable, providing
+    is created at package load time as the :py:class:`pycdf.lib` variable, providing
     access to the underlying C library if necessary.
 
     Calling the C library directly requires knowledge of the
@@ -259,7 +259,7 @@ class Library(object):
         CDF library's C internal interface. Checks the return value with
         :py:meth:`pycdf.Library.check_status`.
 
-        Terminal NULL_ is automatically added to L{args}.
+        Terminal NULL_ is automatically added to args.
 
         Parameters
         ==========
@@ -394,7 +394,7 @@ class Library(object):
         Returns
         =======
         out : :py:class:`datetime.datetime`
-            date and time corresponding to L{epoch}. Invalid values are set to usual epoch invalid value, i.e. last moment of year 9999.
+            date and time corresponding to epoch. Invalid values are set to usual epoch invalid value, i.e. last moment of year 9999.
         """
         try:
             if len(epoch) != 2:
@@ -554,10 +554,10 @@ class EpochError(Exception):
 
 
 def _compress(obj, comptype=None, param=None):
-    """Set or check the compression of a :py:class:`pycdf.CDF` or L{Var}
+    """Set or check the compression of a :py:class:`pycdf.CDF` or :py:class:`pycdf.Var`
 
     @param obj: object on which to set or check compression
-    @type obj: :py:class:`pycdf.CDF` or L{Var}
+    @type obj: :py:class:`pycdf.CDF` or :py:class:`pycdf.Var`
     @param comptype: type of compression to change to, see CDF C reference
                      manual section 4.10. Constants for this parameter
                      are in :py:mod:`pycdf.const`. If not specified, will not change
@@ -630,7 +630,7 @@ def _compress(obj, comptype=None, param=None):
 
 
 class _AttrListGetter(object):
-    """Descriptor to get attribute list for a :py:class:`pycdf.CDF` or L{Var}."""
+    """Descriptor to get attribute list for a :py:class:`pycdf.CDF` or :py:class:`pycdf.Var`."""
     def __get__(self, instance, owner=None):
         if owner == CDF:
             return gAttrList(instance)
@@ -649,7 +649,7 @@ class CDF(collections.MutableMapping):
     ================
     Open a CDF by creating a CDF object, e.g.:
     C{cdffile = pycdf.CDF('cdf_filename.cdf')}
-    Be sure to L{close} or L{save} when done.
+    Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save` when done.
 
     CDF supports the U{with
     <http://docs.python.org/tutorial/inputoutput.html#methods-of-file-objects>}
@@ -665,12 +665,12 @@ class CDF(collections.MutableMapping):
     U{dictionary
     <http://docs.python.org/tutorial/datastructures.html#dictionaries>},
     where the keys are names of variables in the CDF, and the values,
-    L{Var} objects. As a dictionary, they are also U{iterable
+    :py:class:`pycdf.Var` objects. As a dictionary, they are also U{iterable
     <http://docs.python.org/tutorial/classes.html#iterators>} and it is easy
     to loop over all of the variables in a file. Some examples:
       1. List the names of all variables in the open CDF cdffile::
          cdffile.keys()
-      2. Get a L{Var} object corresponding to the variable named Epoch::
+      2. Get a :py:class:`pycdf.Var` object corresponding to the variable named Epoch::
          epoch = cdffile['Epoch']
       3. Determine if a CDF contains a variable named B_GSE::
          if 'B_GSE' in cdffile:
@@ -686,7 +686,7 @@ class CDF(collections.MutableMapping):
     This last example can be very inefficient as it reads the entire CDF.
     Normally it's better to treat the CDF as a dictionary and access only
     the data needed, which will be pulled transparently from disc. See
-    L{Var} for more subtle examples.
+    :py:class:`pycdf.Var` for more subtle examples.
 
     Potentially useful dictionary methods and related functions:
       - U{in<http://docs.python.org/reference/expressions.html#in>}
@@ -699,7 +699,7 @@ class CDF(collections.MutableMapping):
 
     The L{attrs} Python attribute acts as a dictionary referencing CDF
     attributes (do not confuse the two); all the dictionary methods above
-    also work on the attribute dictionary. See L{gAttrList} for more on the
+    also work on the attribute dictionary. See :py:class:`pycdf.gAttrsList` for more on the
     dictionary of global attributes.
 
     Creating New
@@ -733,7 +733,7 @@ class CDF(collections.MutableMapping):
     @type _opened: bool
     @ivar pathname: filename of the CDF file
     @type pathname: string
-    @cvar attrs: Returns global attributes for this CDF (see L{gAttrList})
+    @cvar attrs: Returns global attributes for this CDF (see :py:class:`pycdf.gAttrsList`)
     @type attrs: L{_AttrListGetter}
     @note: CDF is opened read-only by default, see L{readonly} to change.
     """
@@ -801,7 +801,7 @@ class CDF(collections.MutableMapping):
         @param name: Name or number of the CDF variable
         @type name: string or int
         @return: CDF variable named or numbered L{name}
-        @rtype: L{Var}
+        @rtype: :py:class:`pycdf.Var`
         @raise KeyError: for pretty much any problem in lookup
         @note: variable numbers may change if variables are added or removed.
         """
@@ -820,7 +820,7 @@ class CDF(collections.MutableMapping):
 
         @param name: name or number of the variable to write
         @type name: str or int
-        @param data: data to write, or a L{Var} to copy
+        @param data: data to write, or a :py:class:`pycdf.Var` to copy
         """
         if isinstance(data, Var):
             self.clone(data, name)
@@ -1429,7 +1429,7 @@ class Var(collections.MutableSequence):
             self._create(var_name, *args)
 
     def __getitem__(self, key):
-        """Returns a slice from the data array. Details under L{Var}.
+        """Returns a slice from the data array. Details under :py:class:`pycdf.Var`.
 
         @return: The data from this variable
         @rtype: list-of-lists of appropriate type.
@@ -1521,7 +1521,7 @@ class Var(collections.MutableSequence):
                          ctypes.c_long(recno), ctypes.c_long(recno))
 
     def __setitem__(self, key, data):
-        """Puts a slice into the data array. Details under L{Var}.
+        """Puts a slice into the data array. Details under :py:class:`pycdf.Var`.
 
         @param key: index or slice to store
         @type key: int or slice
@@ -1597,7 +1597,7 @@ class Var(collections.MutableSequence):
         @param dimVarys: array of VARY or NOVARY, variance for each dimension
         @type dimVarys: sequence of long
         @return: new variable with this name
-        @rtype: L{Var}
+        @rtype: :py:class:`pycdf.Var`
         @raise CDFError: if CDF library reports an error
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
@@ -1634,7 +1634,7 @@ class Var(collections.MutableSequence):
         @param var_name: name of this variable
         @type var_name: string
         @return: variable with this name
-        @rtype: L{Var}
+        @rtype: :py:class:`pycdf.Var`
         @raise CDFError: if CDF library reports an error
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
@@ -1693,7 +1693,7 @@ class Var(collections.MutableSequence):
         """Returns a string representation of the variable
 
         This is an 'informal' representation in that it cannot be evaluated
-        directly to create a L{Var}.
+        directly to create a :py:class:`pycdf.Var`.
 
         @return: info on this zVar, CDFTYPE [dimensions] NRV
                  (if not record-varying)
@@ -1936,9 +1936,9 @@ class Var(collections.MutableSequence):
 
 class VarCopy(list):
     """
-    A copy of the data and attributes in a L{Var}
+    A copy of the data and attributes in a :py:class:`pycdf.Var`
 
-    Data are in the list elements, accessed much like L{Var}
+    Data are in the list elements, accessed much like :py:class:`pycdf.Var`
 
     @ivar attrs: attributes for the variable
     @type attrs: dict
@@ -1950,7 +1950,7 @@ class VarCopy(list):
         """Copies all data and attributes from a zVariable
 
         @param zVar: variable to take data from
-        @type zVar: L{Var}
+        @type zVar: :py:class:`pycdf.Var`
         """
         self.attrs = zVar.attrs.copy()
         super(VarCopy, self).__init__(zVar[...])
@@ -2001,7 +2001,7 @@ class _Hyperslice(object):
     @ivar column: is this slice in column-major mode (if false, row-major)
     @type column: boolean
     @ivar zvar: what CDF variable this object slices on
-    @type zvar: L{Var}
+    @type zvar: :py:class:`pycdf.Var`
     @ivar expanded_key: fully-expanded version of the key passed to the
                         constructor (all dimensions filled in)
     @type expanded_key: tuple
@@ -2013,7 +2013,7 @@ class _Hyperslice(object):
         """Create a Hyperslice
 
         @param zvar: zVariable that this slices
-        @type zvar: L{Var}
+        @type zvar: :py:class:`pycdf.Var`
         @param key: Python multi-dimensional slice as passed to
                     __getitem__
         @type key: tuple of slice and/or int
@@ -3178,7 +3178,7 @@ class gAttr(Attr):
     U{2<http://docs.python.org/tutorial/datastructures.html#more-on-lists>},
     U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
 
-    Normally accessed by providing a key to a L{gAttrList}, e.g.::
+    Normally accessed by providing a key to a :py:class:`pycdf.gAttrsList`, e.g.::
         attribute = cdffile.attrs['attribute_name']
         first_gentry = attribute[0]
 
@@ -3550,7 +3550,7 @@ class gAttrList(AttrList):
 class zAttrList(AttrList):
     """Object representing I{all} the zAttributes in a zVariable.
 
-    Normally access as an attribute of a L{Var} in an open CDF::
+    Normally access as an attribute of a :py:class:`pycdf.Var` in an open CDF::
         epoch_attribs = cdffile['Epoch'].attrs
 
     Appears as a dictionary: keys are attribute names, values are
@@ -3576,7 +3576,7 @@ class zAttrList(AttrList):
     L{__setitem__} describes how the type of an zEntry is determined.
 
     @ivar _zvar: zVariable these attributes are in
-    @type _zvar: L{Var}
+    @type _zvar: :py:class:`pycdf.Var`
     @ivar _cdf_file: CDF these attributes are in
     @type _cdf_file: :py:class:`pycdf.CDF`
     """
@@ -3588,7 +3588,7 @@ class zAttrList(AttrList):
         """Initialize the attribute collection
 
         @param zvar: zVariable these attributes are in
-        @param zvar: L{Var}
+        @param zvar: :py:class:`pycdf.Var`
         """
         super(zAttrList, self).__init__(zvar.cdf_file, zvar._num)
         self._zvar = zvar
