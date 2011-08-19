@@ -1,6 +1,6 @@
-==============================
+===============================
 SpacePy Python Programming Tips
-==============================
+===============================
 
 One often hears that interpreted languages are too slow for whatever task someone
 needs to do.  In many cases this is exactly the wrong-headed.  As the time spent

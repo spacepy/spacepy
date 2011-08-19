@@ -16,7 +16,11 @@ Copyright ©2010 Los Alamos National Security, LLC.
 from spacepy import help
 import ctypes
 import numpy as np
-from spacepy.toolbox import feq
+import spacepy.time as st
+import pdb
+import spacepy.toolbox as tb
+
+
 
 # -----------------------------------------------
 # RBmodel class
@@ -53,7 +57,6 @@ class RBmodel(object):
         """
         format for grid e.g., L-PA-E
         """
-        import spacepy.time as st
         import spacepy.lib
 
         self.const_kp=const_kp
@@ -84,7 +87,7 @@ class RBmodel(object):
 
         # source term flag set to false
         self.source = False
-                        
+
     # -----------------------------------------------
     def __str__(self):
         return '<RB Model; mu=%f, k=%f, DLL_model=%s >' % \
@@ -123,9 +126,6 @@ class RBmodel(object):
         >>> delta = datetime.timedelta(hours=1)
         >>> rmod.setup_ticks(start, end, delta, dtype='UTC')
         """
-
-        import spacepy.time as st
-
         self.ticks = st.tickrange(start, end, delta, dtype)
 
     # -----------------------------------------------
@@ -225,7 +225,6 @@ class RBmodel(object):
         """
 
         import spacepy.sandbox.PSDdata as PD
-        import spacepy.time
         import pdb
 
         assert 'ticks' in self.__dict__ , \
@@ -237,7 +236,7 @@ class RBmodel(object):
         self.PSDdata = ['']*(nTAI-1)
 
         if (PSD == None):
-        # PSD data not provided, 
+        # PSD data not provided,
         # extract from database
 
             for i, Tnow, Tfut in zip(np.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
@@ -304,7 +303,7 @@ class RBmodel(object):
                         # average observation
                         for j, iL in enumerate(lstar):
                             # identify idex of grid-point
-                            idx = np.where(feq(iL,tmplstar))
+                            idx = np.where(tb.feq(iL,tmplstar))
                             # assign observation for grid-point
                             psd[j] = psd[j] + tmppsd[idx]
                             # add for number of observations
@@ -330,7 +329,7 @@ class RBmodel(object):
                     self.PSDdata[i] = {'Ticks':Ticks, 'Lstar':lstar, \
                                        'PSD':psd, 'sat':sat, \
                                        'MU':MU, 'K':K}
-        
+
 
         # adjust initial conditions to these PSD values
         mval = np.mean(self.PSDdata[0]['PSD'])
@@ -365,16 +364,13 @@ class RBmodel(object):
 ###        return
 ###    # -----------------------------------------------
     def add_PSD_twin(self,dt=0,Lt=1):
-        
+
         """
         add observations from PSD database using the ticks list
         the arguments are the following:
             dt = observation time delta in seconds
             Lt = observation space delta
         """
-        
-        import spacepy.time
-        
         assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
         Tgrid = self.ticks
@@ -413,11 +409,11 @@ class RBmodel(object):
         # adjust initial conditions to these PSD values
         mval = np.mean(self.PSDdata[0]['PSD'])
         self.PSDinit = mval*np.exp(-(self.Lgrid - 5.5)**2/0.2)
-        
+
         return
     # -----------------------------------------------
     def add_source(self,source=True,A=1.0e-8,mu=5.0,sigma=0.5):
-        
+
         """
         add source parameters A, mu, and sigma for the Gaussian source function
         """
@@ -441,8 +437,8 @@ class RBmodel(object):
         Gaussian source term added to radiation belt model. The source term is
         given by the equation:
 
-        S = A exp{-(L-mu)^2/(2*sigma^2)} 
-        
+        S = A exp{-(L-mu)^2/(2*sigma^2)}
+
         with A=10^(-8), mu=5.0, and sigma=0.5 as default values
         """
 
@@ -477,7 +473,6 @@ class RBmodel(object):
         calculate the diffusion in L at constant mu,K coordinates
         """
         from . import radbelt as rb
-        import pdb
 
         assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
@@ -579,10 +574,7 @@ class RBmodel(object):
         """
         import spacepy.data_assimilation
         import spacepy.sandbox.PSDdata as PD
-        import spacepy.time as st
         import copy as c
-        import pdb
-        import spacepy.toolbox as tb
 
         # add PSD observations with add_PSD,
         # this has to be done to the class
@@ -741,7 +733,7 @@ class RBmodel(object):
                     # calculate prior diagnostics
                     # observation minus background
                     omb = y-np.average(HA,axis=1)
-                    self.PSD_omb[i] = { 
+                    self.PSD_omb[i] = {
                             'Lobs':Lobs,
                             'y':y,
                             'omb':omb,
@@ -765,7 +757,7 @@ class RBmodel(object):
                     # observation minus analysis
                     Hanalysis = da.getHA(self, Lobs, A)
                     oma = y-np.average(Hanalysis,axis=1)
-                    self.PSD_oma[i] = { 
+                    self.PSD_oma[i] = {
                             'Lobs':Lobs,
                             'y':y,
                             'omb':oma,
@@ -790,7 +782,7 @@ class RBmodel(object):
                     self.PSDa[:,i] = self.PSDf[:,i]
 
                     continue #
-                    
+
                 # print message
                 print('Tnow: ', self.ticks[i].ISO)
 
@@ -839,7 +831,7 @@ class RBmodel(object):
 
                 print Lobs
                 print y
-                
+
                 #pdb.set_trace()
                 # then assimilate otherwise do another forcast
                 if len(y) > 0:
@@ -866,8 +858,8 @@ class RBmodel(object):
 
                     self.PSDa[:,i] = self.PSDf[:,i]
 
-                    continue # 
-                    
+                    continue #
+
                 # print message
                 print('Tnow: ', self.ticks[i].ISO)
 
@@ -910,7 +902,7 @@ class RBmodel(object):
                                         LogFormatterMathtext)
         import pdb
 
-        # debugging command 
+        # debugging command
         #pdb.set_trace()
 
         # test for default values
@@ -937,7 +929,7 @@ class RBmodel(object):
                              vmin=10.0**clims[0], vmax=10.0**clims[1],
                              norm=LogNorm())
         ax1.set_ylabel('L*')
-        
+
         if title is not None:
             ax1.set_title(title)
         # Add color bar.

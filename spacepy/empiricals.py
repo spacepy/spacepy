@@ -25,6 +25,8 @@ def getLmax(ticks, model='JKemp'):
     """
     calculate a simple empirical model for Lmax - last closed drift-shell
 
+    What is the paper this model is from?  Put it here!
+
     Parameters
     ==========
     ticks : spacepy.time.Ticktock
@@ -45,9 +47,6 @@ def getLmax(ticks, model='JKemp'):
     >>> ticks = st.tickrange(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 3), deltadays=1)
     array([ 7.4928412,  8.3585632,  8.6463423])
 
-    See Also
-    ========
-    What is the paper this model is from?  Put it here!
 
     """
     omni = om.get_omni(ticks)
@@ -63,6 +62,8 @@ def getLmax(ticks, model='JKemp'):
 def getPlasmaPause(ticks, model='M2002', LT='all'):
     """
     Plasmapause location model(s)
+
+    We need to list the references here!
 
     Parameters
     ==========
@@ -89,10 +90,6 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
     array([ 6.42140002,  6.42140002,  6.42140002,  6.42140002,  6.42140002,
         6.42140002,  6.42140002,  6.26859998,  5.772     ,  5.6574    ,
         5.6574    ])
-
-    See Also
-    ========
-    We need to list the references here!
     """
     def calcLpp(Kpmax, A, B):
         currLpp = A - B*Kpmax
@@ -149,6 +146,8 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
 def getMPstandoff(ticks):
     """Calculates the Shue et al. (1997) subsolar magnetopause radius
 
+    Lets put the full reference here
+
     Parameters
     ==========
     ticks : spacepy.time.Ticktock
@@ -173,10 +172,6 @@ def getMPstandoff(ticks):
     >>> data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
     >>> emp.ShueMP(data)
     array([ 9.96096838,  8.96790412])
-
-    See Also
-    ========
-    Lets put the full reference here
     """
     if type(ticks) == spt.Ticktock:
         omni = om.get_omni(ticks)
@@ -214,6 +209,8 @@ def getMPstandoff(ticks):
 
 def getDststar(ticks, model='OBrien'):
     """Calculate the pressure-corrected Dst index, Dst*
+
+    We need to add in the references to the models here!
 
     Parameters
     ==========
@@ -261,9 +258,6 @@ def getDststar(ticks, model='OBrien'):
             dststar = getDststar(ticks, model=model)
             plt.plot(ticks.UTC, dststar, col)
 
-    See Also
-    ========
-    We need to add in the references to the models here!
     """
     model_params = {'Burton': (15.8, 20),
                     'OBrien': (7.26, 11),

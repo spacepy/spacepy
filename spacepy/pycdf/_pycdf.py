@@ -15,6 +15,8 @@ jniehof@lanl.gov
 Los Alamos National Laboratory
 
 Copyright ©2010 Los Alamos National Security, LLC.
+
+
 """
 
 __version__ = '0.14'
@@ -52,14 +54,14 @@ class Library(object):
     Calling the C library directly requires knowledge of the
     ctypes http://docs.python.org/library/ctypes.html package.
 
-    __init__ searches for and loads the C library; details on the
+    ``__init__()`` searches for and loads the C library; details on the
     search are documented there.
 
     @ivar _del_middle_rec_bug: does this version of the library have a bug
                                when deleting a record from the middle of a
                                variable?
-    @type _del_middle_rec_bug: boolean
-    @ivar _library: C{ctypes} connection to the library
+    @type _del_middle_rec_bug: Boolean
+    @ivar _library: :py:mod:`ctypes` connection to the library
     @type _library: ctypes.WinDLL or ctypes.CDLL
     @ivar version: version of the CDF library, in order version, release,
                    increment, subincrement
@@ -214,19 +216,31 @@ class Library(object):
         self.set_backward(True)
 
     def check_status(self, status, ignore=()):
-        """Raise exception or warning based on return status of CDF call
+        """
+        Raise exception or warning based on return status of CDF call
 
-        @param status: status returned by the C library, equivalent to C{CDFStatus}
-        @type status: int
-        @param ignore: CDF statuses to ignore. If any of these
+        Parameters
+        ==========
+        status : int
+            status returned by the C library, equivalent to C{CDFStatus}
+        ignore : sequence of ctypes.c_long
+            CDF statuses to ignore. If any of these
                        is returned by CDF library, any related warnings or
                        exceptions will I{not} be raised. (Default none).
-        @type ignore: sequence of ctypes.c_long
-        @raise CDFError: if status < CDF_WARN, indicating an error
-        @raise CDFWarning: if CDF_WARN <= status < CDF_OK, indicating a warning,
-                           I{and} interpreter is set to error on warnings.
-        @return: L{status} (unchanged)
-        @rtype: int
+
+        Raises
+        ======
+        CDFError : if status < CDF_WARN, indicating an error
+
+        Warns
+        =====
+        CDFWarning : if CDF_WARN <= status < CDF_OK, indicating a warning,
+                           `and` interpreter is set to error on warnings.
+
+        Returns
+        =======
+        out : int
+            status (unchanged)
         """
         if status == const.CDF_OK or status in ignore:
             return status
@@ -238,26 +252,41 @@ class Library(object):
             return status
 
     def call(self, *args, **kwargs):
-        """Call the CDF internal interface
+        """
+        Call the CDF internal interface
 
         Passes all parameters directly through to the CDFlib routine of the
         CDF library's C internal interface. Checks the return value with
-        L{check_status}.
+        :py:meth:`pycdf.Library.check_status`.
 
-        @param args: Passed directly to the CDF library interface. Useful
-                     constants are defined in the L{const} module of this package.
-        @type args: various, see C{ctypes}.
-        @keyword ignore: sequence of CDF statuses to ignore. If any of these
+        Terminal NULL_ is automatically added to L{args}.
+
+        Parameters
+        ==========
+        args : various, see :py:mod:`ctypes`
+            Passed directly to the CDF library interface. Useful
+                     constants are defined in the :py:mod:`pycdf.const` module of this package.
+
+        Other Parameters
+        ================
+        ignore : sequence of CDF statuses
+            sequence of CDF statuses to ignore. If any of these
                          is returned by CDF library, any related warnings or
                          exceptions will I{not} be raised.
-        @return: CDF status from the library
-        @rtype: int
-        @note: Terminal NULL_ is automatically added to L{args}.
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
-        """
 
+        Returns
+        =======
+        out : int
+            CDF status from the library
+
+        Raises
+        ======
+        CDFError : if CDF library reports an error
+
+        Warns
+        =====
+        CDFWarning : if CDF library reports a warning and interpreter is set to error on warnings.
+        """
         if 'ignore' in kwargs:
             return self.check_status(self._library.CDFlib(
                 *(args + (const.NULL_, ))
@@ -268,15 +297,20 @@ class Library(object):
                 ))
 
     def set_backward(self, backward=True):
-        """Set backward compatibility mode for new CDFs
+        """
+        Set backward compatibility mode for new CDFs
 
         Unless backward compatible mode is set, CDF files created by
         the version 3 library can not be read by V2.
 
-        @param backward: Set backward compatible mode if True;
-                         clear it if False.
-        @type backward: bool
-        @raise ValueError: if backward=False and underlying CDF library is V2
+        Parameters
+        ==========
+        backward : Boolean
+            Set backward compatible mode if True; clear it if False.
+
+        Raises
+        ======
+        ValueError : if backward=False and underlying CDF library is V2
         """
         if self.version[0] < 3:
             if not backward:
@@ -288,14 +322,18 @@ class Library(object):
                                          else const.BACKWARDFILEoff)
 
     def epoch_to_datetime(self, epoch):
-        """Converts a CDF epoch value to a datetime
+        """
+        Converts a CDF epoch value to a datetime
 
-        @param epoch: epoch value from CDF
-        @type epoch: float
-        @return: date and time corresponding to L{epoch}. Invalid values
-                 are set to usual epoch invalid value, i.e. last moment
-                 of year 9999.
-        @rtype: datetime.datetime
+        Parameters
+        ==========
+        epoch : float
+            epoch value from CDF
+
+        Returns
+        =======
+        out : :py:class:`datetime.datetime`
+            date and time corresponding to epoch. Invalid values are set to usual epoch invalid value, i.e. last moment of year 9999.
         """
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
@@ -317,12 +355,18 @@ class Library(object):
                                      msec.value * 1000)
 
     def datetime_to_epoch(self, dt):
-        """Converts a Python datetime to a CDF Epoch value
+        """
+        Converts a Python datetime to a CDF Epoch value
 
-        @param dt: date and time to convert
-        @type dt: datetime.datetime
-        @return: epoch corresponding to L{dt}
-        @rtype: float
+        Parameters
+        ==========
+        dt : :py:class:`datetime.datetime`
+            date and time to convert
+
+        Returns
+        =======
+        out : float
+            epoch corresponding to dt
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
@@ -335,15 +379,22 @@ class Library(object):
                                           int(dt.microsecond / 1000))
 
     def epoch16_to_datetime(self, epoch):
-        """Converts a CDF epoch16 value to a datetime
+        """
+        Converts a CDF epoch16 value to a datetime
 
-        @param epoch: epoch16 value from CDF
-        @type epoch: list of two floats
-        @raise EpochError: if input invalid
-        @return: date and time corresponding to L{epoch}. Invalid values
-                 are set to usual epoch invalid value, i.e. last moment
-                 of year 9999.
-        @rtype: datetime.datetime
+        Parameters
+        ==========
+        epoch : list of two floats
+            epoch16 value from CDF
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : :py:class:`datetime.datetime`
+            date and time corresponding to L{epoch}. Invalid values are set to usual epoch invalid value, i.e. last moment of year 9999.
         """
         try:
             if len(epoch) != 2:
@@ -388,12 +439,18 @@ class Library(object):
                                          999999)
 
     def datetime_to_epoch16(self, dt):
-        """Converts a Python datetime to a CDF Epoch16 value
+        """
+        Converts a Python datetime to a CDF Epoch16 value
 
-        @param dt: date and time to convert
-        @type dt: datetime.datetime
-        @return: epoch16 corresponding to L{dt}
-        @rtype: list of float
+        Parameters
+        ==========
+        dt :  :py:class:`datetime.datetime`
+            date and time to convert
+
+        Returns
+        =======
+        out : list of float
+            epoch16 corresponding to dt
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
@@ -416,9 +473,10 @@ access to the CDF library and a common state.
 
 
 class CDFException(Exception):
-    """Base class for errors or warnings in the CDF library.
+    """
+    Base class for errors or warnings in the CDF library.
 
-    Not normally used directly (see subclasses L{CDFError} and L{CDFWarning}).
+    Not normally used directly (see subclasses :py:class:`pycdf.CDFError` and :py:class:`pycdf.CDFWarning`).
 
     Error messages provided by this class are looked up from the underlying
     C library.
@@ -428,14 +486,16 @@ class CDFException(Exception):
     @ivar string: CDF library error message for L{status}
     @type string: string
     """
-
     def __init__(self, status):
-        """Create a CDF Exception
+        """
+        Create a CDF Exception
 
-        Uses CDF C library to look up an appropriate error messsage.
+        Uses CDF C library to look up an appropriate error message.
 
-        @param status: CDF status
-        @type status: ctypes.c_long
+        Parameters
+        ==========
+        status : ctypes.c_long
+            CDF status
         """
         self.status = status
         self.string = 'CDF error ' + repr(status) + ', unable to get details.'
@@ -454,10 +514,13 @@ class CDFException(Exception):
             pass
 
     def __str__(self):
-        """Error string associated with the library error.
+        """
+        Error string associated with the library error.
 
-        @return: Error message from the CDF library.
-        @rtype: string
+        Returns
+        =======
+        out : str
+            Error message from the CDF library.
         """
         return self.string
 
@@ -471,12 +534,15 @@ class CDFWarning(CDFException, UserWarning):
     """Used for a warning in the CDF library."""
 
     def warn(self, level=4):
-        """Issues a warning based on the information stored in my exception
+        """
+        Issues a warning based on the information stored in my exception
 
         Intended for use in check_status or similar wrapper function.
 
-        @param level: optional (default 3), how far up the stack the warning
-                      should be reported. Passed directly to C{warnings.warn}.
+        Parameters
+        ==========
+        level : int (optional)
+            optional (default 3), how far up the stack the warning should be reported. Passed directly to :py:class:`warnings.warn`.
         @type level: int
         """
         warnings.warn(self, self.__class__, level)
@@ -488,16 +554,16 @@ class EpochError(Exception):
 
 
 def _compress(obj, comptype=None, param=None):
-    """Set or check the compression of a L{CDF} or L{Var}
+    """Set or check the compression of a :py:class:`pycdf.CDF` or L{Var}
 
     @param obj: object on which to set or check compression
-    @type obj: L{CDF} or L{Var}
+    @type obj: :py:class:`pycdf.CDF` or L{Var}
     @param comptype: type of compression to change to, see CDF C reference
                      manual section 4.10. Constants for this parameter
-                     are in L{const}. If not specified, will not change
+                     are in :py:mod:`pycdf.const`. If not specified, will not change
                      compression.
     @type comptype: ctypes.c_long
-    @param param: Compression parameter, see CDF CRM 4.10 and L{const}.
+    @param param: Compression parameter, see CDF CRM 4.10 and :py:mod:`pycdf.const`.
                   If not specified, will choose reasonable default (5 for
                   gzip; other types have only one possible parameter.)
     @type param: ctypes.c_long
@@ -564,7 +630,7 @@ def _compress(obj, comptype=None, param=None):
 
 
 class _AttrListGetter(object):
-    """Descriptor to get attribute list for a L{CDF} or L{Var}."""
+    """Descriptor to get attribute list for a :py:class:`pycdf.CDF` or L{Var}."""
     def __get__(self, instance, owner=None):
         if owner == CDF:
             return gAttrList(instance)
@@ -576,7 +642,8 @@ class _AttrListGetter(object):
 
 
 class CDF(collections.MutableMapping):
-    """Python object representing a CDF file.
+    """
+    Python object representing a CDF file.
 
     Opening existing
     ================
@@ -795,7 +862,7 @@ class CDF(collections.MutableMapping):
         @param key: key/variable name to check
         @type key: string
         @return: True if L{key} is the name of a variable in CDF, else False
-        @rtype: boolean
+        @rtype: Boolean
         """
         try:
             foo = self[key]
@@ -819,10 +886,10 @@ class CDF(collections.MutableMapping):
         return '<CDF:\n' + str(self) + '\n>'
 
     def __str__(self):
-        """Returnss a string representation of the CDF
+        """Returns a string representation of the CDF
 
         This is an 'informal' representation in that it cannot be evaluated
-        directly to create a L{CDF}, just the names, types, and sizes of all
+        directly to create a :py:class:`pycdf.CDF`, just the names, types, and sizes of all
         variables. (Attributes are not listed.)
 
         @return: description of the variables in the CDF
@@ -844,7 +911,7 @@ class CDF(collections.MutableMapping):
         @raise CDFError: if CDF library reports an error
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
-        @note: Not intended for direct call; pass parameters to L{CDF}
+        @note: Not intended for direct call; pass parameters to :py:class:`pycdf.CDF`
                constructor.
         """
 
@@ -860,7 +927,7 @@ class CDF(collections.MutableMapping):
         @raise CDFError: if CDF library reports an error
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
-        @note: Not intended for direct call; pass parameters to L{CDF}
+        @note: Not intended for direct call; pass parameters to :py:class:`pycdf.CDF`
                constructor.
         """
 
@@ -878,7 +945,7 @@ class CDF(collections.MutableMapping):
         @raise CDFError: if CDF library reports an error
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
-        @note: Not intended for direct call; pass parameters to L{CDF}
+        @note: Not intended for direct call; pass parameters to :py:class:`pycdf.CDF`
                constructor.
         """
 
@@ -897,8 +964,8 @@ class CDF(collections.MutableMapping):
         interface. Checks the return value with L{Library.check_status}.
 
         @param args: Passed directly to the CDF library interface. Useful
-                     constants are defined in the L{const} module of this package.
-        @type args: various, see C{ctypes}.
+                     constants are defined in the :py:mod:`pycdf.const` module of this package.
+        @type args: various, see :py:mod:`ctypes`.
         @return: CDF status from the library
         @rtype: ctypes.c_long
         @note: Terminal NULL_ is automatically added to L{args}.
@@ -910,15 +977,17 @@ class CDF(collections.MutableMapping):
                         *args, **kwargs)
 
     def clone(self, zVar, name=None, data=True):
-        """Clone a zVariable (from another CDF or this) into this CDF
+        """
+        Clone a zVariable (from another CDF or this) into this CDF
 
-        @param zVar: variable to clone
-        @type zVar: L{Var}
-        @param name: Name of the new variable (default: name of the original)
-        @type name: str
-        @param data: Copy data, or only type, dimensions, variance, attributes?
-                     (default: copy data as well)
-        @type data: bool
+        Parameters
+        ==========
+        zVar : pycdf.Var
+            variable to clone
+        name : str
+            Name of the new variable (default: name of the original)
+        data : Boolean (optional)
+            Copy data, or only type, dimensions, variance, attributes? (default: copy data as well)
         """
         if name == None:
             name = zVar.name()
@@ -933,14 +1002,18 @@ class CDF(collections.MutableMapping):
             self[name][...] = zVar[...]
 
     def col_major(self, new_col=None):
-        """Finds the majority of this CDF file
+        """
+        Finds the majority of this CDF file
 
-        @param new_col: Specify True to change to column-major, False to
-                        change to row major, or do not specify
-                        to leave majority alone (check only)
-        @type new_col: bool
-        @returns: True if column-major, false if row-major
-        @rtype: bool
+        Parameters
+        ==========
+        new_col : Boolean
+            Specify True to change to column-major, False to change to row major, or do not specify to leave majority alone (check only)
+
+        Returns
+        =======
+        out : Boolean
+            True if column-major, false if row-major
         """
         if new_col != None:
             new_maj = const.COLUMN_MAJOR if new_col else const.ROW_MAJOR
@@ -952,16 +1025,25 @@ class CDF(collections.MutableMapping):
         return maj.value == const.COLUMN_MAJOR.value
 
     def readonly(self, ro=None):
-        """Sets or check the readonly status of this CDF
+        """
+        Sets or check the readonly status of this CDF
 
-        @param ro: True to set the CDF readonly,
-                   False to set it read/write,
-                   otherwise to check
-        @type ro: boolean
-        @return: True if CDF is read-only, else False
-        @rtype: boolean
-        @note: If the CDF has been changed since opening,
-               setting readonly mode will have no effect.
+        If the CDF has been changed since opening, setting readonly mode will have no effect.
+
+        Parameters
+        ==========
+        ro : Boolean
+            True to set the CDF readonly, False to set it read/write, otherwise to check
+
+        Returns
+        =======
+        out : Boolean
+            True if CDF is read-only, else False
+
+        Raises
+        ======
+        pycdf.CDFError : if bad mode is set
+
         """
         if ro == True:
             self._call(const.SELECT_, const.CDF_READONLY_MODE_,
@@ -980,13 +1062,18 @@ class CDF(collections.MutableMapping):
             raise CDFError(const.BAD_READONLY_MODE.value)
 
     def checksum(self, new_val=None):
-        """Set or check the checksum status of this CDF
+        """
+        Set or check the checksum status of this CDF
 
-        @param new_val: True to enable checksum, False to disable, or leave out
-                        to simply check.
-        @type new_val: bool
-        @return: True if the checksum is enabled or False if disabled
-        @rtype: bool
+        Parameters
+        ==========
+        new_val : Boolean (optional)
+            True to enable checksum, False to disable, or leave out to simply check.
+
+        Returns
+        =======
+        out : Boolean
+            True if the checksum is enabled or False if disabled
         """
         if new_val != None:
             self._call(const.PUT_, const.CDF_CHECKSUM_,
@@ -999,62 +1086,82 @@ class CDF(collections.MutableMapping):
         return chk.value == const.MD5_CHECKSUM.value
 
     def close(self):
-        """Closes the CDF file
+        """
+        Closes the CDF file
 
-        @note: Although called on object destruction (from L{__del__}),
-               to ensure all data are saved the user should explicitly call
-               L{close} or L{save}.
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
+        Although called on object destruction :py:meth:`pycdf.CDF.__del__`,
+        to ensure all data are saved the user should explicitly call
+        :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`.
+
+        Raises
+        ======
+        CDFError : if CDF library reports an error
+
+        Warns
+        =====
+        CDFWarning : if CDF library reports a warning and interpreter is set to error on warnings.
         """
 
         self._call(const.CLOSE_, const.CDF_)
         self._opened = False
 
     def compress(self, comptype=None, param=None):
-        """Set or check the compression of this CDF
+        """
+        Set or check the compression of this CDF
 
-        Sets compression on entire I{file}, not per-variable
-        (see L{Var.compress}).
+        Sets compression on entire `file`, not per-variable.
 
-        @param comptype: type of compression to change to, see CDF C reference
-                         manual section 4.10. Constants for this parameter
-                         are in L{const}. If not specified, will not change
-                         compression.
-        @type comptype: ctypes.c_long
-        @param param: Compression parameter, see CDF CRM 4.10 and L{const}.
-                      If not specified, will choose reasonable default (5 for
-                      gzip; other types have only one possible parameter.)
-        @type param: ctypes.c_long
-        @return: (comptype, param) currently in effect
-        @rtype: tuple
+        Parameters
+        ==========
+        comptype : ctypes.c_long
+            type of compression to change to, see CDF C reference manual section 4.10. Constants for this parameter are in :py:mod:`pycdf.const`. If not specified, will not change compression.
+        param : ctypes.c_long
+            Compression parameter, see CDF CRM 4.10 and :py:mod:`pycdf.const`. If not specified, will choose reasonable default (5 for gzip; other types have only one possible parameter.)
+
+        Returns
+        =======
+        out : tuple
+            (comptype, param) currently in effect
+
+        See Also
+        ========
+        pycdf.Var.compress
         """
         return _compress(self, comptype, param)
 
     def new(self, name, data=None, type=None, recVary=True, dimVarys=None,
             dims=None, n_elements=None):
-        """Create a new zVariable in this CDF
+        """
+        Create a new zVariable in this CDF
 
-        @param name: name of the new variable
-        @type name: str
-        @param data: data to store in the new variable
-        @param type: CDF type of the variable, from L{const}
-        @type type: ctypes.c_long
-        @param recVary: record variance of the variable
-        @type recVary: bool
-        @param dimVarys: dimension variance of each dimension
-        @type dimVarys: list of bool
-        @param dims: size of each dimension of this variable,
-                     default zero-dimensional
-        @type dims: list of int
-        @param n_elements: number of elements, should be 1 except for
-                           CDF_CHAR, for which it's the length of the string.
-        @type n_elements: int
-        @return: the newly-created zVariable
-        @rtype: L{Var}
-        @raise ValueError: if neither data nor sufficient typing information
-                           is provided.
+        Parameters
+        ==========
+        name : str
+            name of the new variable
+        data : CDF type of the variable, from :py:mod:`pycdf.const` (optional)
+            data to store in the new variable
+        type : ctypes.c_long
+            CDF type of the variable, from :py:mod:`pycdf.const`
+
+        Other Parameters
+        ================
+        recVary : Boolean (optional)
+            record variance of the variable (default True)
+        dimVarys : list of Boolean (optional)
+            dimension variance of each dimension
+        dims : list of int (optional)
+            size of each dimension of this variable, default zero-dimensional
+        n_elements : int
+            number of elements, should be 1 except for CDF_CHAR, for which it's the length of the string.
+
+        Returns
+        =======
+        out : pycdf.Var
+            the newly-created zVariable
+
+        Raises
+        ======
+        ValueError : if neither data nor sufficient typing information is provided.
         """
         if data == None:
             if type == None:
@@ -1087,34 +1194,43 @@ class CDF(collections.MutableMapping):
         return new_var
 
     def save(self):
-        """Saves the CDF file but leaves it open.
+        """
+        Saves the CDF file but leaves it open.
 
-        If closing the CDF, L{close} is sufficient, there is no need to call
-        C{save} before C{close}.
+        If closing the CDF, :py:func:`pycdf.CDF.close` is sufficient, there is no need to call
+        :py:func:`pycdf.CDF.save` before :py:func:`pycdf.CDF.close`.
 
-        @note: Relies on an undocumented call of the CDF C library, which
-               is also used in the Java interface.
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
+        Relies on an undocumented call of the CDF C library, which is also used in the Java interface.
+
+        Raises
+        ======
+        CDFError : if CDF library reports an error
+
+        Warns
+        =====
+        CDFWarning : if CDF library reports a warning and interpreter is set to error on warnings.
         """
 
         self._call(const.SAVE_, const.CDF_)
 
     def copy(self):
-        """Make a copy of all data and attributes in this CDF
+        """
+        Make a copy of all data and attributes in this CDF
 
-        @return: dict of all data
-        @rtype: L{CDFCopy}
+        Returns
+        =======
+        out : :py:class:`pycdf.CDFCopy`
+            dict of all data
         """
         return CDFCopy(self)
 
 
 class CDFCopy(dict):
-    """A copy of all data and attributes in a L{CDF}
+    """
+    A copy of all data and attributes in a :py:class:`pycdf.CDF`
 
-    Data are L{VarCopy} objects, keyed by variable name (i.e.
-    data are accessed much like from a L{CDF}).
+    Data are :py:class:`pycdf.VarCopy` objects, keyed by variable name (i.e.
+    data are accessed much like from a :py:class:`pycdf.CDF`).
 
     @ivar attrs: attributes for the CDF
     @type attrs: dict
@@ -1124,7 +1240,7 @@ class CDFCopy(dict):
         """Copies all data and attributes from a CDF
 
         @param cdf: CDF to take data from
-        @type cdf: L{CDF}
+        @type cdf: :py:class:`pycdf.CDF`
         """
         self.attrs = cdf.attrs.copy()
         super(CDFCopy, self).__init__((key, var.copy())
@@ -1275,7 +1391,7 @@ class Var(collections.MutableSequence):
          variable definition intact.
 
     @ivar cdf_file: the CDF file containing this variable
-    @type cdf_file: L{CDF}
+    @type cdf_file: :py:class:`pycdf.CDF`
     @cvar attrs: Returns attributes for this zVariable (see L{zAttrList})
     @type attrs: L{_AttrListGetter}
     @ivar _name: name of this variable
@@ -1283,7 +1399,7 @@ class Var(collections.MutableSequence):
     @raise CDFError: if CDF library reports an error
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
-    @note: Not intended to be created directly; use methods of L{CDF}
+    @note: Not intended to be created directly; use methods of :py:class:`pycdf.CDF`
            to gain access to a variable.
     @note: Although this interface only directly supports zVariables, zMode is
            set on opening the CDF so rVars appear as zVars. See p.24 of the
@@ -1295,7 +1411,7 @@ class Var(collections.MutableSequence):
         """Create or locate a variable
 
         @param cdf_file: CDF file containing this variable
-        @type cdf_file: L{CDF}
+        @type cdf_file: :py:class:`pycdf.CDF`
         @param var_name: name of this variable
         @type var_name: string
         @param args: additional arguments passed to L{_create}. If none,
@@ -1450,11 +1566,15 @@ class Var(collections.MutableSequence):
             self[hslice.starts[0] + hslice.counts[0]:] = saved_data
 
     def insert(self, index, data):
-        """Inserts a I{single} record before an index
+        """
+        Inserts a `single` record before an index
 
-        @param index: index before which to insert the new record
-        @type index: int
-        @param data: the record to insert
+        Parameters
+        =========
+        index : int
+            index before which to insert the new record
+        data :
+            the record to insert
         """
         self[index:index] = [data]
 
@@ -1615,16 +1735,20 @@ class Var(collections.MutableSequence):
         return sizes
 
     def rv(self, new_rv=None):
-        """Gets or sets whether this variable has record variance
+        """
+        Gets or sets whether this variable has record variance
 
-        @param new_rv: True to change to record variance, False to change
-                       to NRV (unspecified to simply check variance.)
-        @type new_rv: boolean
-        @return: True if record variance, False if NRV
-        @rtype: boolean
-        @note: If the variance is unknown, True is assumed
-               (this replicates the apparent behaviour of the
-               CDF library on variable creation).
+        If the variance is unknown, True is assumed (this replicates the apparent behavior of the CDF library on variable creation).
+
+        Parameters
+        ==========
+        new_rv : Boolean
+            True to change to record variance, False to change to NRV (unspecified to simply check variance.)
+
+        Returns
+        =======
+        out : Boolean
+            True if record variance, False if NRV
         """
         if new_rv != None:
             self._call(const.PUT_, const.zVAR_RECVARY_,
@@ -1634,17 +1758,24 @@ class Var(collections.MutableSequence):
         return vary.value != const.NOVARY.value
 
     def dv(self, new_dv=None):
-        """Gets or sets dimension variance of each dimension of variable.
+        """
+        Gets or sets dimension variance of each dimension of variable.
 
-        @param new_dv: Each element True to change that dimension to dimension
+        If the variance is unknown, True is assumed
+            (this replicates the apparent behavior of the
+            CDF library on variable creation).
+
+        Parameters
+        ==========
+        new_dv : list of boolean
+            Each element True to change that dimension to dimension
                        variance, False to change to not dimension variance.
                        (Unspecified to simply check variance.)
-        @type new_dv: list of bool
-        @return: True if that dimension has variance, else false.
-        @rtype: list of bool
-        @note: If the variance is unknown, True is assumed
-               (this replicates the apparent behaviour of the
-               CDF library on variable creation).
+
+        Returns
+        =======
+        out : lost of boolean
+            True if that dimension has variance, else false.
         """
         ndims = self._n_dims()
         if new_dv != None:
@@ -1669,8 +1800,8 @@ class Var(collections.MutableSequence):
         interface. Checks the return value with L{Library.check_status}.
 
         @param args: Passed directly to the CDF library interface. Useful
-                     constants are defined in the L{const} module of this package.
-        @type args: various, see C{ctypes}.
+                     constants are defined in the :py:mod:`pycdf.const` module of this package.
+        @type args: various, see :py:mod:`ctypes`.
         @return: CDF status from the library
         @rtype: ctypes.c_long
         @note: Terminal NULL_ is automatically added to L{args}.
@@ -1697,12 +1828,18 @@ class Var(collections.MutableSequence):
             raise CDFError(const.BAD_DATA_TYPE)
 
     def type(self, new_type=None):
-        """Returns or sets the CDF type of this variable
+        """
+        Returns or sets the CDF type of this variable
 
-        @param new_type: the new type, see L{const}
-        @type new_type: ctypes.c_long
-        @return: CDF type
-        @rtype: int
+        Parameters
+        ==========
+        new_type : ctypes.c_long
+            the new type, see :py:mod:`pycdf.const`
+
+        Returns
+        =======
+        out : int
+            CDF type
         """
         if new_type != None:
             if not hasattr(new_type, 'value'):
@@ -1728,10 +1865,13 @@ class Var(collections.MutableSequence):
         return nelems.value
 
     def name(self):
-        """Returns the name of this variable
+        """
+        Returns the name of this variable
 
-        @return: variable's name
-        @rtype: string
+        Returns
+        =======
+        out : str
+            variable's name
         """
         if isinstance(self._name, str):
             return self._name
@@ -1739,37 +1879,50 @@ class Var(collections.MutableSequence):
             return self._name.decode()
 
     def compress(self, comptype=None, param=None):
-        """Set or check the compression of this variable
+        """
+        Set or check the compression of this variable
 
-        @param comptype: type of compression to change to, see CDF C reference
+        Compression may not be changeable on variables with data already
+               written; even deleting the data may not permit the change.
+
+        Parameters
+        ==========
+        comptype : ctypes.c_long
+            type of compression to change to, see CDF C reference
                          manual section 4.10. Constants for this parameter
-                         are in L{const}. If not specified, will not change
+                         are in :py:mod:`pycdf.const`. If not specified, will not change
                          compression.
-        @type comptype: ctypes.c_long
-        @param param: Compression parameter, see CDF CRM 4.10 and L{const}.
+        param : ctypes.c_long
+            Compression parameter, see CDF CRM 4.10 and :py:mod:`pycdf.const`.
                       If not specified, will choose reasonable default (5 for
                       gzip; other types have only one possible parameter.)
-        @type param: ctypes.c_long
-        @return: (comptype, param) currently in effect
-        @rtype: tuple
-        @note: Compression may not be changeable on variables with data already
-               written; even deleting the data may not permit the change.
+
+        Returns
+        =======
+        out : tuple
+            (comptype, param) currently in effect
         """
         return _compress(self, comptype, param)
 
     def copy(self):
-        """Copies all data and attributes from this variable
+        """
+        Copies all data and attributes from this variable
 
-        @return: list of all data in record order
-        @rtype: L{VarCopy}
+        Returns
+        =======
+        out : py:class:`pycdf.VarCopy`
+            list of all data in record order
         """
         return VarCopy(self)
 
     def rename(self, new_name):
-        """Renames this variable
+        """
+        Renames this variable
 
-        @param new_name: the new name for this variable
-        @type new_name: str
+        Parameters
+        ==========
+        new_name : str
+            the new name for this variable
         """
         try:
             enc_name = new_name.encode('ascii')
@@ -1782,7 +1935,8 @@ class Var(collections.MutableSequence):
 
 
 class VarCopy(list):
-    """A copy of the data and attributes in a L{Var}
+    """
+    A copy of the data and attributes in a L{Var}
 
     Data are in the list elements, accessed much like L{Var}
 
@@ -1922,7 +2076,7 @@ class _Hyperslice(object):
 
         Figures out size, in each dimension, of expected input data
 
-        @return: size of each dimension for this slice, excluding degnerate
+        @return: size of each dimension for this slice, excluding degenerate
         @rtype: list of int
         """
         return [self.counts[i] for i in range(self.dims) if not self.degen[i]]
@@ -2532,7 +2686,7 @@ class Attr(collections.MutableSequence):
         first_three = attribute[5][0:3] #first three elements of 5th Entry
 
     @ivar _cdf_file: CDF file containing this attribute
-    @type _cdf_file: L{CDF}
+    @type _cdf_file: :py:class:`pycdf.CDF`
     @ivar _name: Name of the attribute
     @type _name: bytes
     """
@@ -2541,7 +2695,7 @@ class Attr(collections.MutableSequence):
         """Initialize this attribute
 
         @param cdf_file: CDF file containing this attribute
-        @type cdf_file: L{CDF}
+        @type cdf_file: :py:class:`pycdf.CDF`
         @param attr_name: Name of this attribute
         @type attr_name: str
         @param create: True to create attribute,
@@ -2770,7 +2924,7 @@ class Attr(collections.MutableSequence):
         """Select this CDF and Attr and call the CDF internal interface
 
         @param args: Passed directly to the CDF library interface.
-        @type args: various, see C{ctypes}.
+        @type args: various, see :py:mod:`ctypes`.
         @return: CDF status from the library
         @rtype: ctypes.c_long
         @note: Terminal NULL_ is automatically added to L{args}.
@@ -2803,9 +2957,9 @@ class Attr(collections.MutableSequence):
 
         @param number: number of Entry to check or change
         @type number: int
-        @param new_type: type to change it to, see L{const}
+        @param new_type: type to change it to, see :py:mod:`pycdf.const`
         @type new_type: ctypes.c_long
-        @return: CDF variable type, see L{const}
+        @return: CDF variable type, see :py:mod:`pycdf.const`
         @rtype: int
         @note: If changing types, old and new must be equivalent, see CDF
                User's Guide section 2.5.5 pg. 57
@@ -2957,7 +3111,7 @@ class Attr(collections.MutableSequence):
         @param number: number of Entry to write
         @type number: int
         @param data: data to write
-        @param type: the CDF type to write, from L{const}
+        @param type: the CDF type to write, from :py:mod:`pycdf.const`
         @param dims: dimensions of L{data}
         @type dims: list
         @param elements: number of elements in L{data}, 1 unless it is a string
@@ -3084,12 +3238,13 @@ class gAttr(Attr):
 
 
 class AttrList(collections.MutableMapping):
-    """Object representing a list of attributes.
+    """
+    Object representing a list of attributes.
 
-    Only used in its subclasses, L{gAttrList} and L{zAttrList}
+    Only used in its subclasses, :py:class:`pycdf.gAttrList` and :py:class:`pycdf.zAttrList`
 
     @ivar _cdf_file: CDF these attributes are in
-    @type _cdf_file: L{CDF}
+    @type _cdf_file: :py:class:`pycdf.CDF`
     @ivar special_entry: callable which returns a "special"
                          entry number, used to limit results
                          for zAttrs to those which match the zVar
@@ -3106,7 +3261,7 @@ class AttrList(collections.MutableMapping):
         """Initialize the attribute collection
 
         @param cdf_file: CDF these attributes are in
-        @type cdf_file: L{CDF}
+        @type cdf_file: :py:class:`pycdf.CDF`
         @param special_entry: callable which returns a "special"
                               entry number, used to limit results
                               for zAttrs to those which match the zVar
@@ -3237,14 +3392,17 @@ class AttrList(collections.MutableMapping):
             for (key, value) in self.items()])
 
     def clone(self, master, name=None, new_name=None):
-        """Clones this attribute list, or one attribute in it, from another
+        """
+        Clones this attribute list, or one attribute in it, from another
 
-        @param master: the attribute list to copy from
-        @type master: L{AttrList}
-        @param name: name of attribute to clone (default: clone entire list)
-        @type name: str
-        @param new_name: name of the new attribute, default L{name}
-        @type new_name: str
+        Parameters
+        ==========
+        master : pycdf.AttrList
+            the attribute list to copy from
+        name : str (optional)
+            name of attribute to clone (default: clone entire list)
+        new_name : str (optional)
+            name of the new attribute, default L{name}
         """
         if name == None:
             self._clone_list(master)
@@ -3252,23 +3410,31 @@ class AttrList(collections.MutableMapping):
             self._clone_attr(master, name, new_name)
 
     def copy(self):
-        """Create a copy of this attribute list
+        """
+        Create a copy of this attribute list
 
-        @return: copy of the entries for all attributes in this list
-        @rtype: dict
+        Returns
+        =======
+        out: dict
+            copy of the entries for all attributes in this list
         """
         return dict((key, value[:] if isinstance(value, Attr) else value)
                     for (key, value) in self.items())
 
     def new(self, name, data=None, type=None):
-        """Create a new Attr in this AttrList
+        """
+        Create a new Attr in this AttrList
 
-        @param name: name of the new Attribute
-        @type name: str
-        @param data: data to put into the first entry in the new Attribute
-        @param type: CDF type of the first entry from L{const}. Only used
-                     if L{data} are specified.
-        @raise KeyError: if L{name} already exists in this list
+        Parameters
+        ==========
+        name : str
+            name of the new Attribute
+        data : CDF type of the first entry from :py:mod:`pycdf.const`. Only used if data are specified.
+            data to put into the first entry in the new Attribute
+
+        Raises
+        ======
+        KeyError : if the name already exists in this list
         """
         if name in self:
             raise KeyError(name + ' already exists.')
@@ -3280,14 +3446,17 @@ class AttrList(collections.MutableMapping):
                 attr.new(data, type, self.special_entry())
 
     def rename(self, old_name, new_name):
-        """Rename an attribute in this list
+        """
+        Rename an attribute in this list
 
-        Renaming a zAttribute renames it for I{all} zVariables in this CDF!
+        Renaming a zAttribute renames it for `all` zVariables in this CDF!
 
-        @param old_name: the current name of the attribute
-        @type old_name: str
-        @param new_name: the new name of the attribute
-        @type new_name: str
+        Parameters
+        ==========
+        old_name : str
+            the current name of the attribute
+        new_name : str
+            the new name of the attribute
         """
         AttrList.__getitem__(self, old_name).rename(new_name)
 
@@ -3342,25 +3511,35 @@ class AttrList(collections.MutableMapping):
 
 
 class gAttrList(AttrList):
-    """Object representing I{all} the gAttributes in a CDF.
+    """
+    Object representing `all` the gAttributes in a CDF.
 
-    Normally accessed as an attribute of an open L{CDF}::
-        global_attribs = cdffile.attrs
+    Normally accessed as an attribute of an open :py:class:`pycdf.CDF`
+        >>> global_attribs = cdffile.attrs
 
     Appears as a dictionary: keys are attribute names; each value is an
-    attribute represented by a L{gAttr} object. To access the global
-    attribute TEXT::
-        text_attr = cdffile.attrs['TEXT']
+    attribute represented by a :py:class:`pycdf.gAttr` object. To access the global
+    attribute TEXT
+        >>> text_attr = cdffile.attrs['TEXT']
+
+    Attributes
+    ==========
+    attr_name : the name of the attribute
+    global_scope : boolean
+        If the attribute global in scope
     """
     AttrType = gAttr
     attr_name = 'gAttribute'
     global_scope = True
 
     def __len__(self):
-        """Number of gAttributes in this CDF
+        """
+        Number of gAttributes in this CDF
 
-        @return: number of gAttributes in the CDF
-        @rtype: int
+        Returns
+        =======
+        out : int
+            number of gAttributes in the CDF
         """
         count = ctypes.c_long(0)
         self._cdf_file._call(const.GET_, const.CDF_NUMgATTRS_,
@@ -3399,7 +3578,7 @@ class zAttrList(AttrList):
     @ivar _zvar: zVariable these attributes are in
     @type _zvar: L{Var}
     @ivar _cdf_file: CDF these attributes are in
-    @type _cdf_file: L{CDF}
+    @type _cdf_file: :py:class:`pycdf.CDF`
     """
     AttrType = zAttr
     attr_name = 'zAttribute'
@@ -3503,9 +3682,9 @@ class zAttrList(AttrList):
 
         @param name: name of the zAttr to check or change
         @type name: str
-        @param new_type: type to change it to, see L{const}
+        @param new_type: type to change it to, see :py:mod:`pycdf.const`
         @type new_type: ctypes.c_long
-        @return: CDF variable type, see L{const}
+        @return: CDF variable type, see :py:mod:`pycdf.const`
         @rtype: int
         @note: If changing types, old and new must be equivalent, see CDF
                User's Guide section 2.5.5 pg. 57

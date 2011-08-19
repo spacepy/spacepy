@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""pyCDF: Python interface to NASA's Common Data Format library
+"""
+pyCDF: Python interface to NASA's Common Data Format library
 
 This package provides a Python interface to the Common Data Format (CDF)
 library used for many NASA missions, available at U{http://cdf.gsfc.nasa.gov/}.
@@ -16,18 +17,22 @@ that affect the functionality of the library in general.
 
 The base CDF library must be properly installed in order to use this package.
 pycdf will search for the library in this order:
-  1. A directory named by the environment variable CDF_LIB (which should be
-     set if using the definitions file provided with the CDF library).
-  2. A subdirectory C{lib} in a directory named by the environment variable
-     CDF_BASE.
-  3. The standard system library search path.
+
+    1. A directory named by the environment variable CDF_LIB (which should be set if using the definitions file provided with the CDF library).
+    2. A subdirectory C{lib} in a directory named by the environment variable CDF_BASE.
+    3. The standard system library search path.
+
 If pycdf has trouble finding the library, try setting CDF_LIB before importing
 the module, e.g. if the library is in CDF/lib in the user's home directory::
   import os
   os.putenv("CDF_LIB", "~/CDF/lib")
   import pycdf
 
-The L{const} module contains constants useful for accessing the underlying library.
+.. currentmodule:: spacepy.pycdf
+
+The :py:mod:`pycdf.const` module contains constants useful for accessing the underlying library.
+
+.. NOTE... there is an error with this reference
 
 Authors
 -------
@@ -38,6 +43,7 @@ Los Alamos National Laboratory
 
 
 Copyright ©2010 Los Alamos National Security, LLC.
+
 """
 
 __version__ = "0.14"

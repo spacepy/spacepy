@@ -28,7 +28,7 @@ this reliance will be diminished.
 
 
 When publishing research which used SpacePy, please provide appropriate
-credit to the SpacePy team via citation or acknowledgement.
+credit to the SpacePy team via citation or acknowledgment.
 
 To cite SpacePy in publications, use (BibTeX code):
 @INPROCEEDINGS{spacepy11,

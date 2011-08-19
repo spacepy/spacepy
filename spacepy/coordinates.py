@@ -60,7 +60,7 @@ class Coords(object):
 
     See Also
     ========
-    time.Ticktock class
+    spacepy.time.Ticktock
     """
     def __init__(self, data, dtype, carsph, units=None, ticks=None):
 
@@ -348,7 +348,7 @@ class Coords(object):
     # -----------------------------------------------
     def append(self, other):
         """
-        a.append(other)
+        Ticktock.append(other)
 
         Will be called when another Coords instance has to be appended to the current one
 

@@ -36,6 +36,7 @@ using the function fromHDF5:
     >>> data = dm.fromHDF5('test.h5')
 
 
+
 Guide for NASA CDF users
 ------------------------
 
@@ -113,8 +114,7 @@ class dmarray(numpy.ndarray):
 
     Methods
     -------
-    addAttribute
-        adds another attribute to the allowed list
+    addAttribute : adds another attribute to the allowed list
 
     Raises
     ------
@@ -199,12 +199,6 @@ class SpaceData(dict):
     -------
     flatten
 
-    Attributes
-    ----------
-    attrs : dict
-        dictionary of the attributes of the SpaceData object
-
-
     """
 
     def __init__(self, *args, **kwargs):
@@ -212,6 +206,12 @@ class SpaceData(dict):
         Base class for "Data Model" representation data
 
         Abstract method, reimplement
+
+        Attributes
+        ----------
+        attrs : dict
+            dictionary of the attributes of the SpaceData object
+
         """
         #raise(ValueError("Abstract method called, reimplement __init__"))
         self.attrs = {}
@@ -223,11 +223,11 @@ class SpaceData(dict):
         super(SpaceData, self).__init__(*args, **kwargs)
 
     def flatten(self):
-        '''Method to collapse datamodel to one level deep
+        '''
+        Method to collapse datamodel to one level deep
 
         Examples
         --------
-
         >>> import spacepy.datamodel as dm
         >>> import spacepy.toolbox as tb
         >>> a = dm.SpaceData()
@@ -263,11 +263,6 @@ class SpaceData(dict):
         |____1<--pig<--fish<--b
         |____4<--cat
         |____5
-
-
-        See Also
-        --------
-        spacepy.datamodel.flatten
 
         '''
 

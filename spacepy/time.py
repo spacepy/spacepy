@@ -470,7 +470,7 @@ class Ticktock(object):
 
         See Also
         ========
-        a.__add__, a.__sub__
+        Ticktock.__add__, Ticktock.__sub__
         """
         return cmp(self.UNX, other.UNX)
 
@@ -700,9 +700,9 @@ class Ticktock(object):
 
         See Also
         ========
-        __setitem__
-        __add__
-        __sub__
+        spacepy.Ticktock.__setitem__
+        spacepy.Ticktock.__add__
+        spacepy.Ticktock.__sub__
         """
         keylist = list(cls.__dict__.keys())
         keylist.remove('dtype')

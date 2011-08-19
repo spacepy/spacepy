@@ -30,7 +30,8 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphin
               'sphinx.ext.viewcode', 'numpydoc', 'sphinx.ext.inheritance_diagram',
               'sphinx.ext.autosummary', 'sphinx.ext.extlinks', ]
 
-autosummary_generate = True
+autosummary_generate = False # not using this yet
+numpydoc_show_class_members = True
 
 # make it so TODOs will work
 todo_include_todos = True
