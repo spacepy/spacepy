@@ -1329,6 +1329,17 @@ class ReadCDF(CDFTests):
             self.assertEqual(attrs[key][:], attrcopy[key])
             self.assertFalse(attrs[key] is attrcopy[key])
 
+    def testgAttribListSame(self):
+        """Are two instances of attributes from a CDF the same?"""
+        attrs = self.cdf.attrs
+        self.assertTrue(attrs is self.cdf.attrs)
+
+    def testzAttribListSame(self):
+        """Are two instances of attributes from a zVar the same?"""
+        zv = self.cdf['PhysRecNo']
+        attrs = zv.attrs
+        self.assertTrue(attrs is zv.attrs)
+
     def testzVarCopy(self):
         """Make a copy of an entire zVar"""
         zvar = self.cdf['PhysRecNo']
@@ -1417,6 +1428,39 @@ class ReadCDF(CDFTests):
         try:
             self.assertEqual('Closed CDF', cdflabel[0:10])
             self.assertEqual(self.testbase, cdflabel[-len(self.testbase):])
+        finally:
+            self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
+
+    def testStrClosedVar(self):
+        """String representation of zVar in CDF that has been closed"""
+        zVar = self.cdf['ATC']
+        self.cdf.close()
+        varlabel = str(zVar)
+        try:
+            self.assertEqual('zVar "ATC" in closed CDF ', varlabel[0:25])
+            self.assertEqual(self.testbase, varlabel[-len(self.testbase):])
+        finally:
+            self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
+
+    def testStrClosedAttribute(self):
+        """String representation of attribute in CDF that has been closed"""
+        attrib = self.cdf.attrs['Project']
+        self.cdf.close()
+        attrlabel = str(attrib)
+        try:
+            self.assertEqual('Attribute "Project" in closed CDF ', attrlabel[0:34])
+            self.assertEqual(self.testbase, attrlabel[-len(self.testbase):])
+        finally:
+            self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
+
+    def testStrClosedAttributeList(self):
+        """String representation of attribute list in closed CDF"""
+        al = self.cdf.attrs
+        self.cdf.close()
+        allabel = str(al)
+        try:
+            self.assertEqual('Attribute list in closed CDF ', allabel[0:29])
+            self.assertEqual(self.testbase, allabel[-len(self.testbase):])
         finally:
             self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
 

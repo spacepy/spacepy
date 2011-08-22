@@ -16,8 +16,6 @@ Copyright ©2010 Los Alamos National Security, LLC.
 
 """
 
-__version__ = '0.14'
-
 #Main implementation file for pycdf, automatically imported
 
 import collections
@@ -30,6 +28,7 @@ import shutil
 import sys
 import tempfile
 import warnings
+import weakref
 
 from . import const
 
@@ -195,7 +194,7 @@ class Library(object):
         ver = ctypes.c_long(0)
         rel = ctypes.c_long(0)
         inc = ctypes.c_long(0)
-        sub = ctypes.c_char(' ')
+        sub = ctypes.c_char(b' ')
         self.call(const.GET_, const.LIB_VERSION_, ctypes.byref(ver),
                   const.GET_, const.LIB_RELEASE_, ctypes.byref(rel),
                   const.GET_, const.LIB_INCREMENT_, ctypes.byref(inc),
@@ -629,13 +628,19 @@ def _compress(obj, comptype=None, param=None):
 class _AttrListGetter(object):
     """Descriptor to get attribute list for a :py:class:`pycdf.CDF` or :py:class:`pycdf.Var`."""
     def __get__(self, instance, owner=None):
-        if owner == CDF:
-            return gAttrList(instance)
-        elif owner == Var:
-            return zAttrList(instance)
-        else:
-            raise NotImplementedError(
-                "Attribute lists may only be applied to CDFs or zVars.")
+        if instance is None:
+            return self
+        al = instance._attrlistref()
+        if al is None:
+            if owner == CDF:
+                al = gAttrList(instance)
+            elif owner == Var:
+                al = zAttrList(instance)
+            else:
+                raise NotImplementedError(
+                    "Attribute lists may only be applied to CDFs or zVars.")
+            instance._attrlistref = weakref.ref(al)
+        return al
 
 
 class CDF(collections.MutableMapping):
@@ -728,6 +733,9 @@ class CDF(collections.MutableMapping):
     @type _handle: ctypes.c_void_p
     @ivar _opened: is the CDF open?
     @type _opened: bool
+    @ivar _attrlistref: reference to the attribute list
+                        (use L{attrs} instead)
+    @type _attrlistref: weakref
     @ivar pathname: filename of the CDF file
     @type pathname: string
     @cvar attrs: Returns global attributes for this CDF (see :py:class:`pycdf.gAttrsList`)
@@ -760,6 +768,7 @@ class CDF(collections.MutableMapping):
         else:
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
+        self._attrlistref = weakref.ref(gAttrList(self))
 
     def __del__(self):
         """Destructor
@@ -1393,6 +1402,9 @@ class Var(collections.MutableSequence):
     @type attrs: L{_AttrListGetter}
     @ivar _name: name of this variable
     @type _name: string
+    @ivar _attrlistref: reference to the attribute list
+                        (use L{attrs} instead)
+    @type _attrlistref: weakref
     @raise CDFError: if CDF library reports an error
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
@@ -1424,6 +1436,7 @@ class Var(collections.MutableSequence):
             self._get(var_name)
         else:
             self._create(var_name, *args)
+        self._attrlistref = weakref.ref(zAttrList(self))
 
     def __getitem__(self, key):
         """Returns a slice from the data array. Details under :py:class:`pycdf.Var`.
@@ -1696,16 +1709,25 @@ class Var(collections.MutableSequence):
                  (if not record-varying)
         @rtype: str
         """
-        cdftype = self.type()
-        chartypes = (const.CDF_CHAR.value, const.CDF_UCHAR.value)
-        rv = self.rv()
-        typestr = lib.cdftypenames[cdftype] + \
-                  ('*' + str(self._nelems()) if cdftype in chartypes else '' )
-        if rv:
-            sizestr = str([len(self)] + self._dim_sizes())
+        if self.cdf_file._opened:
+            cdftype = self.type()
+            chartypes = (const.CDF_CHAR.value, const.CDF_UCHAR.value)
+            rv = self.rv()
+            typestr = lib.cdftypenames[cdftype] + \
+                      ('*' + str(self._nelems()) if cdftype in chartypes else '' )
+            if rv:
+                sizestr = str([len(self)] + self._dim_sizes())
+            else:
+                sizestr = str(self._dim_sizes())
+            return typestr + ' ' + sizestr + ('' if rv else ' NRV')
         else:
-            sizestr = str(self._dim_sizes())
-        return typestr + ' ' + sizestr + ('' if rv else ' NRV')
+            if isinstance(self._name, str):
+                return 'zVar "{0}" in closed CDF {1}'.format(
+                    self._name, self.cdf_file.pathname)
+            else:
+                return 'zVar "{0}" in closed CDF {1}'.format(
+                    self._name.decode('ascii'),
+                    self.cdf_file.pathname.decode('ascii'))
 
     def _n_dims(self):
         """Get number of dimensions for this variable
@@ -2906,7 +2928,16 @@ class Attr(collections.MutableSequence):
         @return: all the data in this attribute
         @rtype: str
         """
-        return '\n'.join([str(item) for item in self])
+        if self._cdf_file._opened:
+            return '\n'.join([str(item) for item in self])
+        else:
+            if isinstance(self._name, str):
+                return 'Attribute "{0}" in closed CDF {1}'.format(
+                    self._name, self._cdf_file.pathname)
+            else:
+                return 'Attribute "{0}" in closed CDF {1}'.format(
+                    self._name.decode('ascii'),
+                    self._cdf_file.pathname.decode('ascii'))
 
     def insert(self, index, data):
         """Insert an entry at a particular number
@@ -3378,15 +3409,23 @@ class AttrList(collections.MutableMapping):
         @return: all the data in this list of attributes
         @rtype: str
         """
-        return '\n'.join([key + ': ' + (
-            ('\n' + ' ' * (len(key) + 2)).join(
-            [str(value[i]) + ' [' + lib.cdftypenames[value.type(i)] + ']'
-             for i in range(len(value))])
-            if isinstance(value, Attr)
-            else str(value) +
-            ' [' + lib.cdftypenames[self.type(key)] + ']'
-            )
-            for (key, value) in self.items()])
+        if self._cdf_file._opened:
+            return '\n'.join([key + ': ' + (
+                ('\n' + ' ' * (len(key) + 2)).join(
+                [str(value[i]) + ' [' + lib.cdftypenames[value.type(i)] + ']'
+                 for i in range(len(value))])
+                if isinstance(value, Attr)
+                else str(value) +
+                ' [' + lib.cdftypenames[self.type(key)] + ']'
+                )
+                for (key, value) in self.items()])
+        else:
+            if isinstance(self._cdf_file.pathname, str):
+                return 'Attribute list in closed CDF {0}'.format(
+                    self._cdf_file.pathname)
+            else:
+                return 'Attribute list in closed CDF {0}'.format(
+                    self._cdf_file.pathname.decode('ascii'))
 
     def clone(self, master, name=None, new_name=None):
         """
