@@ -340,7 +340,7 @@ def flatten(dobj):
 
     See Also
     --------
-    spacepy.datamodel.SpaceData.flatten
+    SpaceData.flatten
 
     '''
 

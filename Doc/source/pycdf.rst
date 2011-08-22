@@ -9,6 +9,11 @@ pyCDF \- Python interface to CDF files
 
 .. automodule:: pycdf
 
+:py:class:`datetime.datetime`
+
+:py:mod:`datamodel`
+
+
 
 Contents
 --------

@@ -1,7 +1,7 @@
 
 
 ##################################################################
-Time conversion, manipulation and implementation of Ticktock class
+time - Time conversion, manipulation and implementation of Ticktock class
 ##################################################################
 
 .. automodule:: spacepy.time
