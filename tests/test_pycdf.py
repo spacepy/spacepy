@@ -1431,6 +1431,17 @@ class ReadCDF(CDFTests):
         finally:
             self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
 
+    def testStrClosedVar(self):
+        """String representation of zVar in CDF that has been closed"""
+        zVar = self.cdf['ATC']
+        self.cdf.close()
+        varlabel = str(zVar)
+        try:
+            self.assertEqual('zVar "ATC" in closed CDF ', varlabel[0:25])
+            self.assertEqual(self.testbase, varlabel[-len(self.testbase):])
+        finally:
+            self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""

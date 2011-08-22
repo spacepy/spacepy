@@ -1711,16 +1711,25 @@ class Var(collections.MutableSequence):
                  (if not record-varying)
         @rtype: str
         """
-        cdftype = self.type()
-        chartypes = (const.CDF_CHAR.value, const.CDF_UCHAR.value)
-        rv = self.rv()
-        typestr = lib.cdftypenames[cdftype] + \
-                  ('*' + str(self._nelems()) if cdftype in chartypes else '' )
-        if rv:
-            sizestr = str([len(self)] + self._dim_sizes())
+        if self.cdf_file._opened:
+            cdftype = self.type()
+            chartypes = (const.CDF_CHAR.value, const.CDF_UCHAR.value)
+            rv = self.rv()
+            typestr = lib.cdftypenames[cdftype] + \
+                      ('*' + str(self._nelems()) if cdftype in chartypes else '' )
+            if rv:
+                sizestr = str([len(self)] + self._dim_sizes())
+            else:
+                sizestr = str(self._dim_sizes())
+            return typestr + ' ' + sizestr + ('' if rv else ' NRV')
         else:
-            sizestr = str(self._dim_sizes())
-        return typestr + ' ' + sizestr + ('' if rv else ' NRV')
+            if isinstance(self._name, str):
+                return 'zVar "{0}" in closed CDF {1}'.format(
+                    self._name, self.cdf_file.pathname)
+            else:
+                return 'zVar "{0}" in closed CDF {1}'.format(
+                    self._name.decode('ascii'),
+                    self.cdf_file.pathname.decode('ascii'))
 
     def _n_dims(self):
         """Get number of dimensions for this variable
