@@ -409,19 +409,17 @@ class MakeCDF(unittest.TestCase):
         """Try a backward-compatible CDF"""
         cdf.lib.set_backward(True)
         newcdf = cdf.CDF(self.testfspec, '')
-        verno = ctypes.c_long(0)
-        newcdf._call(const.GET_, const.CDF_VERSION_, ctypes.byref(verno))
+        (ver, rel, inc) = newcdf.version()
         newcdf.close()
         os.remove(self.testfspec)
-        self.assertEqual(2, verno.value)
+        self.assertEqual(2, ver)
 
         cdf.lib.set_backward(False)
         newcdf = cdf.CDF(self.testfspec, '')
-        verno = ctypes.c_long(0)
-        newcdf._call(const.GET_, const.CDF_VERSION_, ctypes.byref(verno))
+        (ver, rel, inc) = newcdf.version()
         newcdf.close()
         os.remove(self.testfspec)
-        self.assertEqual(3, verno.value)
+        self.assertEqual(3, ver)
         cdf.lib.set_backward(True)
 
     def testCreateCDFLeak(self):
