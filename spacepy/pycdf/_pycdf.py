@@ -1185,6 +1185,9 @@ class CDF(collections.MutableMapping):
                     dims = guess_dims
             if type == None:
                 type = guess_types[0]
+                if type == const.CDF_EPOCH16.value \
+                       and self.version()[0] < 3:
+                    type = const.CDF_EPOCH
             if n_elements == None:
                 n_elements = guess_elements
         if dimVarys == None:
@@ -1229,6 +1232,23 @@ class CDF(collections.MutableMapping):
             dict of all data
         """
         return CDFCopy(self)
+
+    def version(self):
+        """
+        Get version of library that created this CDF
+
+        Returns
+        =======
+        out : tuple
+        version of CDF library, in form (version, release, increment)
+        """
+        ver = ctypes.c_long(0)
+        rel = ctypes.c_long(0)
+        inc = ctypes.c_long(0)
+        self._call(const.GET_, const.CDF_VERSION_, ctypes.byref(ver),
+                   const.GET_, const.CDF_RELEASE_, ctypes.byref(rel),
+                   const.GET_, const.CDF_INCREMENT_, ctypes.byref(inc))
+        return (ver.value, rel.value, inc.value)
 
 
 class CDFCopy(dict):
