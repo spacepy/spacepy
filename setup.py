@@ -297,9 +297,14 @@ class build(_build):
             import sphinx
             import numpydoc
         except:
-            self.distribution.add_warning(
+            if self.build_docs:
+                self.distribution.add_warning(
                 "Numpydoc and sphinx required to build documentation.\n"
                 "Help will not be available; try without --build-docs.")
+            else:
+                self.distribution.add_warning(
+                "Numpydoc and sphinx required to build documentation.\n"
+                "Help will not be available.")
         builddir = os.path.join(os.path.join(self.build_temp, 'doctrees'))
         indir = os.path.join('Doc', 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
