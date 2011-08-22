@@ -72,21 +72,27 @@ class build(_build):
     def initialize_options(self):
         self.fcompiler = None
         self.f2py = None
-        self.build_docs = False
+        self.build_docs = None
         _build.initialize_options(self)
 
     def finalize_options(self):
         _build.finalize_options(self)
+        install_obj = self.distribution.get_command_obj('install')
         if self.fcompiler == None:
-            self.fcompiler = \
-                 self.distribution.get_command_obj('install').fcompiler
+            self.fcompiler = install_obj.fcompiler
             if self.fcompiler == None:
                 self.fcompiler = 'gnu95'
         if not self.fcompiler in ('pg', 'gnu', 'gnu95'):
             raise DistutilsOptionError(
                 '--fcompiler must be pg, gnu, gnu95')
+        if self.build_docs == None:
+            self.build_docs = install_obj.build_docs
+            if self.build_docs == None:
+                self.build_docs = False
         if self.f2py == None:
-            self.f2py = default_f2py()
+            self.f2py = install_obj.f2py
+            if self.f2py == None:
+                self.f2py = default_f2py()
 
     def compile_pybats(self):
         outdir = os.path.join(self.build_lib, 'spacepy', 'pybats')
