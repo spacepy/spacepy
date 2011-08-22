@@ -194,7 +194,7 @@ class Library(object):
         ver = ctypes.c_long(0)
         rel = ctypes.c_long(0)
         inc = ctypes.c_long(0)
-        sub = ctypes.c_char(' ')
+        sub = ctypes.c_char(b' ')
         self.call(const.GET_, const.LIB_VERSION_, ctypes.byref(ver),
                   const.GET_, const.LIB_RELEASE_, ctypes.byref(rel),
                   const.GET_, const.LIB_INCREMENT_, ctypes.byref(inc),
