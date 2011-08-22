@@ -16,7 +16,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 
 """
 
-__version__ = '0.14'
+__version__ = '0.15pre'
 
 #Main implementation file for pycdf, automatically imported
 
@@ -30,6 +30,7 @@ import shutil
 import sys
 import tempfile
 import warnings
+import weakref
 
 from . import const
 
@@ -629,13 +630,19 @@ def _compress(obj, comptype=None, param=None):
 class _AttrListGetter(object):
     """Descriptor to get attribute list for a :py:class:`pycdf.CDF` or :py:class:`pycdf.Var`."""
     def __get__(self, instance, owner=None):
-        if owner == CDF:
-            return gAttrList(instance)
-        elif owner == Var:
-            return zAttrList(instance)
-        else:
-            raise NotImplementedError(
-                "Attribute lists may only be applied to CDFs or zVars.")
+        if instance is None:
+            return self
+        al = instance._attrlistref()
+        if al is None:
+            if owner == CDF:
+                al = gAttrList(instance)
+            elif owner == Var:
+                al = zAttrList(instance)
+            else:
+                raise NotImplementedError(
+                    "Attribute lists may only be applied to CDFs or zVars.")
+            instance._attrlistref = weakref.ref(al)
+        return al
 
 
 class CDF(collections.MutableMapping):
@@ -728,6 +735,9 @@ class CDF(collections.MutableMapping):
     @type _handle: ctypes.c_void_p
     @ivar _opened: is the CDF open?
     @type _opened: bool
+    @ivar _attrlistref: reference to the attribute list
+                        (use L{attrs} instead)
+    @type _attrlistref: weakref
     @ivar pathname: filename of the CDF file
     @type pathname: string
     @cvar attrs: Returns global attributes for this CDF (see :py:class:`pycdf.gAttrsList`)
@@ -760,6 +770,7 @@ class CDF(collections.MutableMapping):
         else:
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
+        self._attrlistref = weakref.ref(gAttrList(self))
 
     def __del__(self):
         """Destructor
@@ -1393,6 +1404,9 @@ class Var(collections.MutableSequence):
     @type attrs: L{_AttrListGetter}
     @ivar _name: name of this variable
     @type _name: string
+    @ivar _attrlistref: reference to the attribute list
+                        (use L{attrs} instead)
+    @type _attrlistref: weakref
     @raise CDFError: if CDF library reports an error
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
@@ -1424,6 +1438,7 @@ class Var(collections.MutableSequence):
             self._get(var_name)
         else:
             self._create(var_name, *args)
+        self._attrlistref = weakref.ref(zAttrList(self))
 
     def __getitem__(self, key):
         """Returns a slice from the data array. Details under :py:class:`pycdf.Var`.

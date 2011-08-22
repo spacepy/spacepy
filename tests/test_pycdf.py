@@ -1329,6 +1329,17 @@ class ReadCDF(CDFTests):
             self.assertEqual(attrs[key][:], attrcopy[key])
             self.assertFalse(attrs[key] is attrcopy[key])
 
+    def testgAttribListSame(self):
+        """Are two instances of attributes from a CDF the same?"""
+        attrs = self.cdf.attrs
+        self.assertTrue(attrs is self.cdf.attrs)
+
+    def testzAttribListSame(self):
+        """Are two instances of attributes from a zVar the same?"""
+        zv = self.cdf['PhysRecNo']
+        attrs = zv.attrs
+        self.assertTrue(attrs is zv.attrs)
+
     def testzVarCopy(self):
         """Make a copy of an entire zVar"""
         zvar = self.cdf['PhysRecNo']

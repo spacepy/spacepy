@@ -9,7 +9,7 @@ Various constants defined in cdf.h and used in pycdf
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 
-__version__ = "0.14"
+__version__ = "0.15pre"
 
 import ctypes
 
