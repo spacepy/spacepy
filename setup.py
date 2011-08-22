@@ -11,13 +11,14 @@ Los Alamos National Laboratory
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 
-import os, sys, shutil, getopt, warnings, glob, re
+import os, sys, shutil, getopt, glob, re
 import subprocess
 from distutils.core import setup
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
 import distutils.ccompiler
 import distutils.dep_util
+from distutils.dist import Distribution as _Distribution
 import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
 from os import environ as ENVIRON
@@ -107,7 +108,8 @@ class build(_build):
                 shutil.move('ctrace2d.so',
                             os.path.join('..', '..', outdir))
             except:
-                print('pybats compile failed; pybats will not be available.')
+                self.distribution.add_warning(
+                    'pybats compile failed; pybats will not be available.')
             finally:
                 os.chdir('..')
                 os.chdir('..')
@@ -131,7 +133,7 @@ class build(_build):
                 shutil.move('libLANLstar.so',
                             os.path.join('..', '..', outdir))
             except:
-                print(
+                self.distribution.add_warning(
                     'LANLstar compile failed; LANLstar will not be available.')
             finally:
                 os.chdir('..')
@@ -152,12 +154,14 @@ class build(_build):
             #up to date
             return
         if not sys.platform in ('darwin', 'linux2'):
-            print('%s not supported at this time' % sys.platform)
-            print('IRBEM will not be available')
+            self.distribution.add_warning(
+                '%s not supported at this time\n' % sys.platform + 
+                'IRBEM will not be available')
             return 
         if self.fcompiler == 'pg' and sys.platform == 'darwin':
-            print('Portland Group compiler "pg" not supported on Mac OS')
-            print('IRBEM will not be available')
+            self.distribution.add_warning(
+                'Portland Group compiler "pg" not supported on Mac OS\n'
+                'IRBEM will not be available.')
             return 
 
         if not os.path.exists(outdir):
@@ -229,10 +233,9 @@ class build(_build):
         try:
             shutil.move('irbempylib.so', sofile)
         except:
-            print '------------------------------------------------------'
-            print 'WARNING: Something went wrong with compiling irbemlib.'
-            print '------------------------------------------------------'
-            print 'A different Fortran compiler may help? (--fcompiler option)'
+            self.distribution.add_warning(
+                'irbemlib compile failed. '
+                'Try a different Fortran compiler? (--fcompiler)')
         os.chdir(olddir)
         return
 
@@ -263,7 +266,9 @@ class build(_build):
                 comp.link_shared_lib(objects, 'spacepy', libraries=['m'],
                                      output_dir=outdir)
         except:
-            print('libspacepy compile failed; some operations may be slow:')
+            self.distribution.add_warning(
+                'libspacepy compile failed; some operations may be slow.')
+            print('libspacepy compile failed:')
             (t, v, tb) = sys.exc_info()
             print(v)
 
@@ -286,8 +291,9 @@ class build(_build):
             import sphinx
             import numpydoc
         except:
-            print("WARNING: Numpydoc and sphinx required to build documentation."
-                  "Help will not be available; try without --build-docs.")
+            self.distribution.add_warning(
+                "Numpydoc and sphinx required to build documentation.\n"
+                "Help will not be available; try without --build-docs.")
         builddir = os.path.join(os.path.join(self.build_temp, 'doctrees'))
         indir = os.path.join('Doc', 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
@@ -359,12 +365,36 @@ class install(_install):
             assert matplotlib.compare_versions(
                 matplotlib.__version__, '0.99.0')
         except:
-            warnings.warn('''Missing Packages: SciPy and MatPlotLib are 
-            required for large parts of this library.''')
+            self.distribution.add_warning(
+                'SciPy and matplotlib were not found.'
+                'They are required for large parts of SpacePy.')
         else:
             print('Dependencies OK.')
 
         _install.run(self)
+
+
+class Distribution(_Distribution):
+    """Subclass of main distutils Distribution that adds support for warnings"""
+
+    def add_warning(self, msg):
+        """Add a warning for this instance of setup"""
+        self._warnings.append(msg)
+
+    def print_warnings(self):
+        """Print out warnings from this execution of setup"""
+        if not self._warnings:
+            return
+        print('\nsetup produced the following warnings. '
+              'Some functionality may be missing.\n')
+        for w in self._warnings:
+            print(w)
+
+    def run_commands(self):
+        """Run all setup commands"""
+        self._warnings = []
+        _Distribution.run_commands(self)
+        self.print_warnings()
 
 
 pkg_files = ['irbempy/*.py', 'LANLstar/*.py',
@@ -394,4 +424,5 @@ setup(name='spacepy',
       cmdclass={'build': build,
                 'install': install,
                 },
+      distclass=Distribution,
       )
