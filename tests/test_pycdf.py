@@ -1442,6 +1442,28 @@ class ReadCDF(CDFTests):
         finally:
             self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
 
+    def testStrClosedAttribute(self):
+        """String representation of attribute in CDF that has been closed"""
+        attrib = self.cdf.attrs['Project']
+        self.cdf.close()
+        attrlabel = str(attrib)
+        try:
+            self.assertEqual('Attribute "Project" in closed CDF ', attrlabel[0:34])
+            self.assertEqual(self.testbase, attrlabel[-len(self.testbase):])
+        finally:
+            self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
+
+    def testStrClosedAttributeList(self):
+        """String representation of attribute list in closed CDF"""
+        al = self.cdf.attrs
+        self.cdf.close()
+        allabel = str(al)
+        try:
+            self.assertEqual('Attribute list in closed CDF ', allabel[0:29])
+            self.assertEqual(self.testbase, allabel[-len(self.testbase):])
+        finally:
+            self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""

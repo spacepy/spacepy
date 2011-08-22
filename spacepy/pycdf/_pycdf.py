@@ -2930,7 +2930,16 @@ class Attr(collections.MutableSequence):
         @return: all the data in this attribute
         @rtype: str
         """
-        return '\n'.join([str(item) for item in self])
+        if self._cdf_file._opened:
+            return '\n'.join([str(item) for item in self])
+        else:
+            if isinstance(self._name, str):
+                return 'Attribute "{0}" in closed CDF {1}'.format(
+                    self._name, self._cdf_file.pathname)
+            else:
+                return 'Attribute "{0}" in closed CDF {1}'.format(
+                    self._name.decode('ascii'),
+                    self._cdf_file.pathname.decode('ascii'))
 
     def insert(self, index, data):
         """Insert an entry at a particular number
@@ -3402,15 +3411,23 @@ class AttrList(collections.MutableMapping):
         @return: all the data in this list of attributes
         @rtype: str
         """
-        return '\n'.join([key + ': ' + (
-            ('\n' + ' ' * (len(key) + 2)).join(
-            [str(value[i]) + ' [' + lib.cdftypenames[value.type(i)] + ']'
-             for i in range(len(value))])
-            if isinstance(value, Attr)
-            else str(value) +
-            ' [' + lib.cdftypenames[self.type(key)] + ']'
-            )
-            for (key, value) in self.items()])
+        if self._cdf_file._opened:
+            return '\n'.join([key + ': ' + (
+                ('\n' + ' ' * (len(key) + 2)).join(
+                [str(value[i]) + ' [' + lib.cdftypenames[value.type(i)] + ']'
+                 for i in range(len(value))])
+                if isinstance(value, Attr)
+                else str(value) +
+                ' [' + lib.cdftypenames[self.type(key)] + ']'
+                )
+                for (key, value) in self.items()])
+        else:
+            if isinstance(self._cdf_file.pathname, str):
+                return 'Attribute list in closed CDF {0}'.format(
+                    self._cdf_file.pathname)
+            else:
+                return 'Attribute list in closed CDF {0}'.format(
+                    self._cdf_file.pathname.decode('ascii'))
 
     def clone(self, master, name=None, new_name=None):
         """
