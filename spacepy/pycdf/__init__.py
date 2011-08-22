@@ -34,12 +34,9 @@ The :py:mod:`pycdf.const` module contains constants useful for accessing the und
 
 .. NOTE... there is an error with this reference
 
-Authors
--------
-Jon Niehof
-
-jniehof@lanl.gov
-Los Alamos National Laboratory
+Authors: Jon Niehof
+Institution: Los Alamos National Laboratory
+Contact: jniehof@lanl.gov
 
 
 Copyright ©2010 Los Alamos National Security, LLC.

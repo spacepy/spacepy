@@ -7,12 +7,9 @@ pyCDF implementation
 This module contains the implementation details of pyCDF, the
 python interface to NASA's CDF library http://cdf.gsfc.nasa.gov/.
 
-Authors
-=======
-Jon Niehof
-
-jniehof@lanl.gov
-Los Alamos National Laboratory
+Authors: Jon Niehof
+Institution: Los Alamos National Laboratory
+Contact: jniehof@lanl.gov
 
 Copyright ©2010 Los Alamos National Security, LLC.
 

@@ -3,12 +3,9 @@
 """
 Implementation of Coords class functions for coordinate transformations
 
-Authors
--------
-Josef Koller
-
-jkoller@lanl.gov
-Los Alamos National Laboratory
+Authors: Josef Koller
+Institution: Los ALamos National Laboratory
+Contaact: jkoller@lanl.gov
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """
