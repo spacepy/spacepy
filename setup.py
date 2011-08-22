@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 """ setup script to install spacepy
 
 Authors
@@ -25,7 +25,7 @@ from os import environ as ENVIRON
 
 
 def subst(pattern, replacement, filestr,
-          pattern_matching_modifiers=None):   
+          pattern_matching_modifiers=None):
     """
     replace pattern by replacement in string
     pattern_matching_modifiers: re.DOTALL, re.MULTILINE, etc.
@@ -119,7 +119,7 @@ class build(_build):
             finally:
                 os.chdir('..')
                 os.chdir('..')
-    
+
     def compile_LANLstar(self):
         outdir = os.path.join(self.build_lib, 'spacepy', 'LANLstar')
         if not os.path.exists(outdir):
@@ -144,7 +144,7 @@ class build(_build):
             finally:
                 os.chdir('..')
                 os.chdir('..')
-        
+
     def compile_irbempy(self):
         # 64 bit or 32 bit?"
         bit = len('%x' % sys.maxsize)*4
@@ -182,8 +182,8 @@ class build(_build):
         os.chdir(builddir)
         F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
         functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
-                     'coord_trans1','find_magequator1', 'find_mirror_point1', 
-                     'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1', 
+                     'coord_trans1','find_magequator1', 'find_mirror_point1',
+                     'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1',
                      'trace_field_line2_1', 'trace_field_line_towards_earth1']
 
         # call f2py
@@ -216,7 +216,7 @@ class build(_build):
             'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
             'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
             'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
-            }           
+            }
         f2py_flags = {
             'pg': '--fcompiler=pg',
             'gnu': '--fcompiler=gnu --f77flags=-fno-second-underscore',
@@ -420,7 +420,7 @@ setup(name='spacepy',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',
       requires=['numpy','scipy','matplotlib (>=0.99)'],
-      packages=['spacepy','spacepy.sandbox'],
+      packages=['spacepy',],
       package_data={'spacepy': pkg_files},
       classifiers=[
           'Development Status :: 4 - Beta',
