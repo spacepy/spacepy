@@ -63,17 +63,18 @@ SpacePy Code
 .. toctree::
     :maxdepth: 1
 
-    borg
     coordinates
     datamodel
+    data_assimilation
     empiricals
     omni
     poppy
+    pycdf
     radbelt
     seapy
+    spacepy_EnKF
     time
     toolbox
-    pycdf
 
 
 
