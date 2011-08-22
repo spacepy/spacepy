@@ -4,9 +4,9 @@
 Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 
 
-Authors
--------
-Steve Morley, Josef Koller
+Authors: Steve Morley, Josef Koller
+Institution: Los Alamos National Laboratory
+Contact: smorley@lanl.gov
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """

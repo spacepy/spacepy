@@ -80,12 +80,9 @@ array([ 2455167. ,  2455169.5,  2455172. ])
 
 And so on.
 
-Authors:
---------
-Josef Koller, Brian Larsen, Steve Morley, Jon Niehof
-
-jkoller@lanl.gov,
-Los Alamos National Laboratory
+Authors: Josef Koller, Brian Larsen, Steve Morley, Jon Niehof
+Institution: Los Alamos National Laboratory
+Contact: jkoller@lanl.gov,
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """

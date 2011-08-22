@@ -13,12 +13,9 @@ from matplotlib.mlab import find
 """
 Data assimilation functions used for several projects
 
-Authors
--------
-Josef Koller, H. Godinez
-
-jkoller@lanl.gov
-Los Alamos National Laboratory
+Authors: Josef Koller, Humberto Godinez
+nstitution: Los Alamos National Laboratory
+Contact: jkoller@lanl.gov
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """

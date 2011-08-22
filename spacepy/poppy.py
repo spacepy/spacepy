@@ -52,12 +52,9 @@ The plot method will then add the 95% confidence intervals as a semi-
 transparent patch.
 
 
-Authors
-=======
-Steve Morley and Jon Niehof
-
-smorley@lanl.gov, jniehof@lanl.gov
-Los Alamos National Laboratory
+Authors: Steve Morley and Jon Niehof
+Institution: Los Alamos National Laboratory
+Contact: smorley@lanl.gov, jniehof@lanl.gov
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """

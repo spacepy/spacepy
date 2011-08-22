@@ -3,12 +3,9 @@
 """
 Functions supporting radiation belt diffusion codes
 
-Authors
--------
-Josef Koller
-
-jkoller@lanl.gov
-Los Alamos National Laboratory
+Authors: Josef Koller
+Institution: Los Alamos National Laboratory
+Contact: jkoller@lanl.gov
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """
