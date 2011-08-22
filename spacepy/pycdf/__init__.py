@@ -43,6 +43,4 @@ Copyright ©2010 Los Alamos National Security, LLC.
 
 """
 
-__version__ = "0.15pre"
-
 from ._pycdf import *

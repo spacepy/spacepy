@@ -16,8 +16,6 @@ Copyright ©2010 Los Alamos National Security, LLC.
 
 """
 
-__version__ = '0.15pre'
-
 #Main implementation file for pycdf, automatically imported
 
 import collections
