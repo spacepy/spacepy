@@ -96,31 +96,6 @@ class SpaceDataTests(unittest.TestCase):
         val.sort()
         self.assertEqual(val, ans)
 
-    def test_convertKeysToStr(self):
-        """convertKeysToStr sjould give known output"""
-        a = dm.SpaceData()
-        a['data'] = dm.dmarray([1,2,3])
-        b = dm.convertKeysToStr(a)
-        self.assertEqual(a.keys(), b.keys())
-        a = dm.SpaceData()
-        a[50] = dm.dmarray([1,2,3])
-        b = dm.convertKeysToStr(a)
-        self.assertEqual([str(a.keys()[0])], b.keys())
-        a = {}
-        a[50] = dm.dmarray([1,2,3])
-        b = dm.convertKeysToStr(a)
-        self.assertEqual([str(a.keys()[0])], b.keys())
-        a = dm.SpaceData()
-        a['data'] = dm.SpaceData()
-        a['data']['test'] = dm.dmarray([1,2,3])
-        b = dm.convertKeysToStr(a)
-        self.assertEqual(a.keys(), b.keys())
-        a = dm.SpaceData()
-        a[50] = dm.SpaceData()
-        a[50][49] = dm.dmarray([1,2,3])
-        b = dm.convertKeysToStr(a)
-        self.assertEqual([str(a.keys()[0])], b.keys())
-
 
 class dmarrayTests(unittest.TestCase):
     def setUp(self):
@@ -233,15 +208,48 @@ class dmarrayTests(unittest.TestCase):
 class converterTests(unittest.TestCase):
     def setUp(self):
         super(converterTests, self).setUp()
-        #TODO: setup of spacedata with a global attr, and an entry with an attr
         self.SDobj = dm.SpaceData(attrs={'global': 'test'})
         self.SDobj['var'] = dm.dmarray([1, 2, 3], attrs={'a': 'a'})
+        if os.path.isfile('dmh5test.h5'):
+            os.remove('dmh5test.h5')
 
     def tearDown(self):
         super(converterTests, self).tearDown()
         del self.SDobj
+        if os.path.isfile('dmh5test.h5'):
+            os.remove('dmh5test.h5')
+    
+    def test_convertKeysToStr(self):
+        """convertKeysToStr sjould give known output"""
+        a = dm.SpaceData()
+        a['data'] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual(a.keys(), b.keys())
+        a = dm.SpaceData()
+        a[50] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual([str(a.keys()[0])], b.keys())
+        a = {}
+        a[50] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual([str(a.keys()[0])], b.keys())
+        a = dm.SpaceData()
+        a['data'] = dm.SpaceData()
+        a['data']['test'] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual(a.keys(), b.keys())
+        a = dm.SpaceData()
+        a[50] = dm.SpaceData()
+        a[50][49] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual([str(a.keys()[0])], b.keys())
 
-
+    def test_HDF5roundtrip(self):
+        dm.toHDF5('dmh5test.h5', self.SDobj)
+        newobj = dm.fromHDF5('dmh5test.h5')
+        self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
+        np.testing.assert_array_almost_equal(self.SDobj['var'], newobj['var'])
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
 
 if __name__ == "__main__":
