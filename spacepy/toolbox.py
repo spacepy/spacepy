@@ -960,8 +960,13 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
 
 def binHisto(data, verbose=False):
     """
-    Calculates bin width and number of bins for histogram using Freedman-Diaconis rule
-    if rule fails, defaults to square-root method
+    Calculates bin width and number of bins for histogram using Freedman-Diaconis rule, if rule fails, defaults to square-root method
+
+    The Freedman-Diaconis method is detailed in:
+        Freedman, D., and P. Diaconis (1981), On the histogram as a density estimator: L2 theory, Z. Wahrscheinlichkeitstheor. Verw. Geb., 57, 453–476
+    
+    and is also described by:
+        Wilks, D. S. (2006), Statistical Methods in the Atmospheric Sciences, 2nd ed.
 
     Parameters
     ==========
