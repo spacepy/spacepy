@@ -52,7 +52,7 @@ def default_f2py():
             if os.path.isfile(os.path.join(dir, candidate)):
                 return candidate
     if sys.platform == 'win32':
-        return 'f2py.exe'
+        return 'f2py.py'
     else:
         return 'f2py'
 
