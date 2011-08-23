@@ -9,9 +9,6 @@ pyCDF \- Python interface to CDF files
 
 .. automodule:: pycdf
 
-:py:class:`datetime.datetime`
-
-:py:mod:`datamodel`
 
 
 
@@ -92,7 +89,7 @@ CDF files, like standard Python files, act as context managers
 Read a CDF
 ==========
 
-Reading a CDF is done in much the same way, the CDF object behaves like a dictionary and only goes to disk when you request the data.  Shown here is a full example using the above CDF then, then explained.
+Reading a CDF is done in much the same way, the CDF object behaves like a dictionary and only goes to disk when you request the data.  Shown here is a full example using the above CDF then, then explained (see also :py:func:`datamodel.fromCDF`).
     >>> from spacepy import pycdf
     >>> cdf = pycdf.CDF('MyCDF.cdf')
     >>> print(cdf)

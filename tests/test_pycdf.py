@@ -409,20 +409,34 @@ class MakeCDF(unittest.TestCase):
         """Try a backward-compatible CDF"""
         cdf.lib.set_backward(True)
         newcdf = cdf.CDF(self.testfspec, '')
-        verno = ctypes.c_long(0)
-        newcdf._call(const.GET_, const.CDF_VERSION_, ctypes.byref(verno))
+        (ver, rel, inc) = newcdf.version()
         newcdf.close()
         os.remove(self.testfspec)
-        self.assertEqual(2, verno.value)
+        self.assertEqual(2, ver)
 
         cdf.lib.set_backward(False)
         newcdf = cdf.CDF(self.testfspec, '')
-        verno = ctypes.c_long(0)
-        newcdf._call(const.GET_, const.CDF_VERSION_, ctypes.byref(verno))
+        (ver, rel, inc) = newcdf.version()
         newcdf.close()
         os.remove(self.testfspec)
-        self.assertEqual(3, verno.value)
+        self.assertEqual(3, ver)
         cdf.lib.set_backward(True)
+
+    def testNewEPOCHAssign(self):
+        """Create a new epoch variable by assigning to a CDF element"""
+        cdf.lib.set_backward(True)
+        newcdf = cdf.CDF(self.testfspec, '')
+        data = [datetime.datetime(2000, 1, 1, 0, 0, 0, 999999),
+                datetime.datetime(2001, 1, 1, 0, 0, 0, 999999)]
+        newcdf['newzVar'] = data
+        newtype = newcdf['newzVar'].type()
+        newdata = newcdf['newzVar'][...]
+        newcdf.close()
+        os.remove(self.testfspec)
+        self.assertEqual(const.CDF_EPOCH.value, newtype)
+        self.assertEqual([datetime.datetime(2000, 1, 1, 0, 0, 1),
+                          datetime.datetime(2001, 1, 1, 0, 0, 1)],
+                         newdata)
 
     def testCreateCDFLeak(self):
         """Make a CDF that doesn't get collected"""

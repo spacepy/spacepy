@@ -3,7 +3,7 @@ SpacePy Python Programming Tips
 ===============================
 
 One often hears that interpreted languages are too slow for whatever task someone
-needs to do.  In many cases this is exactly the wrong-headed.  As the time spent
+needs to do.  In many cases this is exactly wrong-headed.  As the time spent
 programming/debugging in an interpreted language is less than a compiled language
 the programmer has time to figure out where code is slow and make it faster.  This
 page is dedicated to that idea, providing examples of code speedup and best practices.
@@ -11,12 +11,12 @@ page is dedicated to that idea, providing examples of code speedup and best prac
 Lists, for loops, and arrays
 ============================
 This example teaches the lesson that every IDL_ or Matlab_ programmer already
-knows; do everything in arrays and never use a for loop.
+knows; do everything in arrays and never use a for loop if there is another choice.
 
-This bit of code takes in a series of points, computes their magnitude, and drops
-the larges 100 of them.
+The following bit of code takes in a series of points, computes their magnitude, and drops
+the largest 100 of them.
 
-This is how the code started out, Shell_x0_y0_z0 is a Nx3 numpy array,
+This is how the code started out, Shell_x0_y0_z0 is an Nx3 numpy array,
 ShellCenter is a 3 element list or array, and Num_Pts_Removed is the number of
 points to drop::
 
@@ -33,7 +33,7 @@ points to drop::
         Shell_x0_y0_z0 = np.take(Shell_x0_y0_z0, ARG, axis = 0)  # sort based on index order
         return Shell_x0_y0_z0[:-Num_Pts_Removed,:]   #remove last points that have the "anomalously" high flux
 
-A cProfile of this yields a lot of time spend just in the function itself, this
+A cProfile of this yields a lot of time spent just in the function itself; this
 is the for loop (list comprehension is a little faster but not much in this case)::
 
     Tue Jun 14 10:10:56 2011    SortRemove_HighFluxPts_.prof
@@ -57,7 +57,8 @@ is the for loop (list comprehension is a little faster but not much in this case
 
 Simply pulling out the addition inside the for loop makes an amazing difference
 (2.3x speedup).  We believe the difference is that pulling out the addition lets
-numpy do its thing in C and not in python for each element::
+numpy do its thing in C once only (saving a massive overhead as array operations 
+are done as for loops in C)  and not in python for each element::
 
     def SortRemove_HighFluxPts_(Shell_x0_y0_z0, ShellCenter, Num_Pts_Removed):
         #Sort the Shell Points based on radial distance (Flux prop to 1/R^2) and remove Num_Pts_Removed points with the highest flux
@@ -134,7 +135,8 @@ Overall think really hard before you write a for loop or a list comprehension.
 Zip
 ===
 the zip_ function is a great thing but it is really slow, if you find yourself
-using it then you probably need to reexamine the algorithm that you are using.
+using it then you probably need to reexamine the algorithm that you are using A
+good alternative, if you do need the functionality of zip, is in :py:func:`itertools.izip`.
 
 This example generate evenly distributed N points on the unit sphere centered at
 (0,0,0) using the "Golden Spiral" method.
