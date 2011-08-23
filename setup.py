@@ -104,20 +104,27 @@ class build(_build):
         outdir = os.path.join(self.build_lib, 'spacepy', 'pybats')
         if not os.path.exists(outdir):
             os.makedirs(outdir)
-        outpath = os.path.join(outdir, 'ctrace2d.so')
+        if sys.platform == 'win32':
+            libfile = 'ctrace2d.pyd'
+        else:
+            libfile = 'ctrace2d.so'
+        outpath = os.path.join(outdir, libfile)
         srcdir = os.path.join('spacepy', 'pybats')
         srcpaths = [os.path.join(srcdir, f)
                     for f in ('ctrace2d.pyf', 'trace2d.c')]
         if distutils.dep_util.newer_group(srcpaths, outpath):
             os.chdir(srcdir)
             try:
+                f2py = self.f2py
+                if self.compiler:
+                    f2py += ' --compiler={0}'.format(self.compiler)
                 os.system(
                     '{0} -c ctrace2d.pyf trace2d.c'.format(
-                    self.f2py))
+                    f2py))
                 outpath = os.path.join('..', '..', outpath)
                 if os.path.exists(outpath):
                     os.remove(outpath)
-                shutil.move('ctrace2d.so',
+                shutil.move(libfile,
                             os.path.join('..', '..', outdir))
             except:
                 self.distribution.add_warning(
