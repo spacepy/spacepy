@@ -58,7 +58,7 @@ class Library(object):
                                variable?
     @type _del_middle_rec_bug: Boolean
     @ivar _library: :py:mod:`ctypes` connection to the library
-    @type _library: ctypes.WinDLL or ctypes.CDLL
+    @type _library: ctypes.CDLL
     @ivar version: version of the CDF library, in order version, release,
                    increment, subincrement
     @type version: tuple
@@ -85,7 +85,7 @@ class Library(object):
         libpath = None
         if libdir:
             if sys.platform == 'win32':
-                libpath = os.path.join(libdir, 'cdf.dll')
+                libpath = os.path.join(libdir, 'dllcdf.dll')
             elif sys.platform == 'darwin':
                 libpath = os.path.join(libdir, 'libcdf.dylib')
                 if not os.path.exists(libpath):
@@ -97,18 +97,28 @@ class Library(object):
 
         if libpath == None:
             if sys.platform == 'win32':
-                libpath = ctypes.util.find_library('cdf.dll')
+                libpath = ctypes.util.find_library('dllcdf.dll')
             else:
                 libpath = ctypes.util.find_library('cdf')
-            if not libpath:
-                raise Exception('Cannot find CDF C library. ' + \
-                                'Try os.putenv("CDF_LIB", library_directory) ' + \
-                                'before import.')
 
-        if sys.platform == 'win32':
-            self._library = ctypes.WinDLL(libpath)
-        else:
-            self._library = ctypes.CDLL(libpath)
+        #Last-ditch check-the-default
+        if not libpath and sys.platform == 'win32':
+            cdfdist = 'c:\\CDF Distribution\\'
+            if os.path.isdir(cdfdist):
+                candidates = []
+                for d in os.listdir(cdfdist):
+                    if os.path.exists(cdfdist + d + '\\lib\\dllcdf.dll'):
+                        candidates.append(d)
+                if candidates: #choose the latest version
+                    libpath = cdfdist + \
+                        sorted(candidates)[-1] + '\\lib\\dllcdf.dll'
+
+        if not libpath:
+            raise Exception('Cannot find CDF C library. ' + \
+                            'Try os.putenv("CDF_LIB", library_directory) ' + \
+                            'before import.')
+
+        self._library = ctypes.CDLL(libpath)
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long
         self._library.computeEPOCH.restype = ctypes.c_double
