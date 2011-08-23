@@ -204,6 +204,18 @@ class dmarrayTests(unittest.TestCase):
             self.fail(
                 'Assigning to arbitrary Python attribute should raise TypeError')
 
+class converterTests(unittest.TestCase):
+    def setUp(self):
+        super(converterTests, self).setUp()
+        #TODO: setup of spacedata with a global attr, and an entry with an attr
+        self.SDobj = dm.SpaceData(attrs={'global': 'test'})
+        self.SDobj['var'] = dm.dmarray([1, 2, 3], attrs={'a': 'a'})
+
+    def tearDown(self):
+        super(converterTests, self).tearDown()
+        del self.SDobj
+
+
 
 if __name__ == "__main__":
     unittest.main()
