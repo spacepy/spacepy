@@ -699,7 +699,7 @@ class CDF(collections.MutableMapping):
       - U{sorted<http://docs.python.org/library/functions.html#sorted>}
     See also toolbox.dictree in SpacePy.
 
-    The L{attrs} Python attribute acts as a dictionary referencing CDF
+    The py:class:`pycdf.attrs` Python attribute acts as a dictionary referencing CDF
     attributes (do not confuse the two); all the dictionary methods above
     also work on the attribute dictionary. See :py:class:`pycdf.gAttrsList` for more on the
     dictionary of global attributes.
@@ -774,7 +774,7 @@ class CDF(collections.MutableMapping):
         """Destructor
 
         Close CDF file if there is still a valid handle.
-        @note: To avoid data loss, explicitly call L{close} or L{save}.
+        @note: To avoid data loss, explicitly call :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`.
         """
         if self._opened:
             self.close()

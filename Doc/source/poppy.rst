@@ -1,7 +1,7 @@
 
 
 ##################################
-PoPPy \- Point Processes in Python
+PoPPy - Point Processes in Python
 ##################################
 
 .. todolist::

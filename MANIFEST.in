@@ -1,0 +1,21 @@
+# this is the file that distutils parses for what to include
+
+graft Doc/build/html
+#graft Doc/build/html/_modules/*
+#graft Doc/build/html/_modules/spacepy
+#graft Doc/build/html/_sources
+#graft Doc/build/html/_static
+graft spacepy/libspacepy
+graft spacepy/pybats/sample_scripts
+graft tests
+recursive-include spacepy *.c *.h
+prune spacepy/onerapy
+graft spacepy/irbempy
+#prune spacepy/irbempy/irbem-lib-*
+include spacepy/LANLstar/*
+recursive-exclude spacepy/libspacepy *.o *.pyc
+recursive-exclude tests *.o *.pyc
+recursive-exclude spacepy/irbempy *.o *.pyc
+
+prune spacepy/sandbox
+prune tests/htmlcov
