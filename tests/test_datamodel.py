@@ -96,6 +96,32 @@ class SpaceDataTests(unittest.TestCase):
         val.sort()
         self.assertEqual(val, ans)
 
+    def test_convertKeysToStr(self):
+        """convertKeysToStr sjould give known output"""
+        a = dm.SpaceData()
+        a['data'] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual(a.keys(), b.keys())
+        a = dm.SpaceData()
+        a[50] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual([str(a.keys()[0])], b.keys())
+        a = {}
+        a[50] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual([str(a.keys()[0])], b.keys())
+        a = dm.SpaceData()
+        a['data'] = dm.SpaceData()
+        a['data']['test'] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual(a.keys(), b.keys())
+        a = dm.SpaceData()
+        a[50] = dm.SpaceData()
+        a[50][49] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual([str(a.keys()[0])], b.keys())
+
+
 class dmarrayTests(unittest.TestCase):
     def setUp(self):
         super(dmarrayTests, self).setUp()
@@ -214,6 +240,7 @@ class converterTests(unittest.TestCase):
     def tearDown(self):
         super(converterTests, self).tearDown()
         del self.SDobj
+
 
 
 
