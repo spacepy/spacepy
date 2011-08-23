@@ -110,6 +110,16 @@ class SpaceDataTests(unittest.TestCase):
         a[50] = dm.dmarray([1,2,3])
         b = dm.convertKeysToStr(a)
         self.assertEqual([str(a.keys()[0])], b.keys())
+        a = dm.SpaceData()
+        a['data'] = dm.SpaceData()
+        a['data']['test'] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual(a.keys(), b.keys())
+        a = dm.SpaceData()
+        a[50] = dm.SpaceData()
+        a[50][49] = dm.dmarray([1,2,3])
+        b = dm.convertKeysToStr(a)
+        self.assertEqual([str(a.keys()[0])], b.keys())
 
 
 class dmarrayTests(unittest.TestCase):
