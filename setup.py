@@ -159,22 +159,31 @@ class build(_build):
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')
-        sofile = os.path.join(outdir, 'irbempylib.so')
+        if sys.platform == 'win32':
+            libfile = 'irbempylib.pyd'
+        else:
+            libfile = 'irbempylib.so'
+        sofile = os.path.join(outdir, libfile)
         sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                   glob.glob(os.path.join(srcdir, '*.inc'))
         if not distutils.dep_util.newer_group(sources, sofile):
             #up to date
             return
-        if not sys.platform in ('darwin', 'linux2'):
+        if not sys.platform in ('darwin', 'linux2', 'win32'):
             self.distribution.add_warning(
-                '%s not supported at this time\n' % sys.platform + 
+                '%s not supported at this time. ' % sys.platform + 
                 'IRBEM will not be available')
-            return 
+            return
         if self.fcompiler == 'pg' and sys.platform == 'darwin':
             self.distribution.add_warning(
                 'Portland Group compiler "pg" not supported on Mac OS\n'
                 'IRBEM will not be available.')
-            return 
+            return
+        if self.fcompiler != 'gnu95' and sys.platform == 'win32':
+            self.distribution.add_warning(
+                'Only supported compiler on Win32 is gnu95\n'
+                'IRBEM will not be available.')
+            return
 
         if not os.path.exists(outdir):
             os.makedirs(outdir)
@@ -223,11 +232,11 @@ class build(_build):
             'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
             'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             }
-        f2py_flags = {
-            'pg': '--fcompiler=pg',
-            'gnu': '--fcompiler=gnu --f77flags=-fno-second-underscore',
-            'gnu95': '--fcompiler=gnu95',
-            }
+        f2py_flags = '--fcompiler={0}'.format(fcompiler)
+        if fcompiler == 'gnu':
+            f2py_flags += ' --f77flags=-fno-second-underscore'
+        if self.compiler:
+            f2py_flags += ' --compiler={0}'.format(self.compiler)
         if bit == 32:
             os.system(compile_cmd32[fcompiler])
         else:
@@ -237,13 +246,16 @@ class build(_build):
         elif sys.platform == 'linux2':
             os.system('ar -r libBL2.a *.o')
             os.system('ranlib libBL2.a')
+        elif sys.platform == 'win32':
+            os.system('ar -r libBL2.a *.o')
+            os.system('ranlib libBL2.a')            
         os.chdir('..')
         os.system(
             '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
             '{1}'.format(
-            self.f2py, f2py_flags[fcompiler]))
+            self.f2py, f2py_flags))
         try:
-            shutil.move('irbempylib.so', sofile)
+            shutil.move(libfile, sofile)
         except:
             self.distribution.add_warning(
                 'irbemlib compile failed. '
