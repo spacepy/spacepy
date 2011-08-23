@@ -64,10 +64,7 @@ def load_lib():
         libpath = os.path.join(libdir, 'libspacepy.so')
     if not os.path.exists(libpath):
         return None
-    if sys.platform == 'win32':
-        return ctypes.WinDLL(libpath)
-    else:
-        return ctypes.CDLL(libpath)
+    return ctypes.CDLL(libpath)
 
 
 def load_call_dict(call_dict, lib):
