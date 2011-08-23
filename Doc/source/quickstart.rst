@@ -379,7 +379,7 @@ Other function wrapped with the IRBEM library include:
 * ``corrd_trans``
 
 
-Pycdf - Python Access to NASA CDF Library
+pyCDF - Python Access to NASA CDF Library
 =========================================
 
 pycdf provides a "pythonic" interface to the NASA CDF library. It requires
