@@ -16,6 +16,7 @@ import subprocess
 from distutils.core import setup
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
+from distutils.command.sdist import sdist as _sdist
 import distutils.ccompiler
 import distutils.dep_util
 from distutils.dist import Distribution as _Distribution
@@ -385,6 +386,33 @@ class install(_install):
         _install.run(self)
 
 
+class sdist(_sdist):
+    """Rebuild the docs before making a source distribution"""
+
+    def run(self):
+        builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
+        indir = os.path.join('Doc', 'source')
+        outdir = os.path.join('Doc', 'build', 'html')
+        cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
+            builddir, indir, outdir)
+        subprocess.check_call(cmd.split())
+        os.chdir('Doc')
+        try:
+            cmd = 'make latexpdf'
+            subprocess.check_call(cmd.split())
+            shutil.move(os.path.join('build', 'latex', 'SpacePy.pdf'),
+                        '.')
+        except:
+            self.distribution.add_warning(
+                'PDF documentation rebuild failed.')
+            print('PDF documentation rebuild failed:')
+            (t, v, tb) = sys.exc_info()
+            print(v)
+        finally:
+            os.chdir('..')
+        _sdist.run(self)
+
+
 class Distribution(_Distribution):
     """Subclass of main distutils Distribution that adds support for warnings"""
 
@@ -434,6 +462,7 @@ setup(name='spacepy',
           ],
       cmdclass={'build': build,
                 'install': install,
+                'sdist': sdist,
                 },
       distclass=Distribution,
       )

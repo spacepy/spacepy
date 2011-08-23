@@ -1,8 +1,9 @@
 # this is the file that distutils parses for what to include
 
 graft Doc/build/html
-graft Doc/Makefile
+include Doc/Makefile
 graft Doc/source
+include Doc/SpacePy.pdf
 graft spacepy/libspacepy
 graft spacepy/pybats/sample_scripts
 graft tests
@@ -18,5 +19,4 @@ recursive-exclude Doc *.bak
 
 prune spacepy/sandbox
 prune tests/htmlcov
-prune Doc/build
 prune Doc/generated
