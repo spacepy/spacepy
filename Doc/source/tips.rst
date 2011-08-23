@@ -11,6 +11,7 @@ page is dedicated to that idea, providing examples of code speedup and best prac
     * `Basic examples`_
     * `Lists, for loops, and arrays`_
     * `Zip`_
+    * `External links`_
 
 
 Basic examples
@@ -36,7 +37,7 @@ The next more Pythonic way is with a list comprehension
 
 this is 4 function calls in 1.643 CPU seconds (~1.6x)
 
-Next we introduce :py:mod:`numpy` and change our list to an array then add one
+Next we introduce numpy_ and change our list to an array then add one
     >>> data = np.asarray(data)
     >>> data += 1
 
@@ -274,8 +275,20 @@ included::
             1    0.000    0.000    0.000    0.000 {method 'transpose' of 'numpy.ndarray' objects}
 
 
-.. _numpy: http://docs.scipy.org/doc/numpy/reference/
 
+External links
+==============
+Here is a collection of links that serve as a decent reference for Python and speed
+    * `PythonSpeed PerformanceTips`_
+    * `scipy array tip sheet`_
+    * `Python Tips, Tricks, and Hacks`_
+
+
+
+.. _numpy: http://docs.scipy.org/doc/numpy/reference/
+.. _`PythonSpeed PerformanceTips`: http://wiki.python.org/moin/PythonSpeed/PerformanceTips
+.. _`scipy array tip sheet`: http://pages.physics.cornell.edu/~myers/teaching/ComputationalMethods/python/arrays.html
+.. _`Python Tips, Tricks, and Hacks`: http://www.siafoo.net/article/52
 --------------------------
 
 :Release: |version|
