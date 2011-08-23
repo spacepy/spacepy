@@ -93,7 +93,6 @@ the following will make life easier:
 
 from __future__ import division
 import numpy, copy, datetime
-from spacepy import pycdf
 
 class dmarray(numpy.ndarray):
     """
@@ -392,6 +391,10 @@ def fromCDF(fname, **kwargs):
     >>> data = dm.fromCDF('test.cdf')
     '''
     #TODO: add unflatten keyword and restore flattened variables
+    try:
+        from spacepy import pycdf
+    except ImportError:
+        raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
 
     try:
         cdfdata = pycdf.CDF(fname)
