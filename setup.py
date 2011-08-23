@@ -137,23 +137,33 @@ class build(_build):
         outdir = os.path.join(self.build_lib, 'spacepy', 'LANLstar')
         if not os.path.exists(outdir):
             os.makedirs(outdir)
-        outpath = os.path.join(outdir, 'libLANLstar.so')
+        if sys.platform == 'win32':
+            libfile = 'libLANLstar.pyd'
+        else:
+            libfile = 'libLANLstar.so'
+        outpath = os.path.join(outdir, libfile)
         srcdir = os.path.join('spacepy', 'LANLstar')
         srcpath = os.path.join(srcdir, 'LANLstar.f')
         if distutils.dep_util.newer(srcpath, outpath):
             os.chdir(srcdir)
             try:
+                f2py = self.f2py
+                if self.compiler:
+                    f2py += ' --compiler={0}'.format(self.compiler)
                 os.system(
                     '{0} -c  LANLstar.f -m libLANLstar --fcompiler={1}'.format(
-                    self.f2py, self.fcompiler))
+                    f2py, self.fcompiler))
                 outpath = os.path.join('..', '..', outpath)
                 if os.path.exists(outpath):
                     os.remove(outpath)
-                shutil.move('libLANLstar.so',
+                shutil.move(libfile,
                             os.path.join('..', '..', outdir))
             except:
                 self.distribution.add_warning(
                     'LANLstar compile failed; LANLstar will not be available.')
+                print('LANLstar compile failed:')
+                (t, v, tb) = sys.exc_info()
+                print(v)
             finally:
                 os.chdir('..')
                 os.chdir('..')
