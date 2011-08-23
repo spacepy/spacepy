@@ -6,14 +6,20 @@ meant to mirror the functionality of the data model output from pycdf, though
 implemented slightly differently.
 
 This contains the following classes:
- * dmarray - numpy arrays that support .attrs for information about the data
- * SpaceData - base class that extends dict, to be extended by others
+ * :py:class:`dmarray` - numpy arrays that support .attrs for information about the data
+ * :py:class:`SpaceData` - base class that extends dict, to be extended by others
     Currently used in GPScode and other projects
 
 Authors: Steve Morley and Brian Larsen
+
 Additional Contributors: Charles Kiyanda and Miles Engel
+
 Institution: Los Alamos National Laboratory
+
 Contact: smorley@lanl.gov; balarsen@lanl.gov
+
+Copyright ©2010 Los Alamos National Security, LLC.
+
 
 About datamodel
 ---------------
@@ -36,18 +42,11 @@ using the function fromHDF5:
     >>> data = dm.fromHDF5('test.h5')
 
 
+Examples
+--------
 
-Guide for NASA CDF users
-------------------------
-
-By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
-(stored variables of various types) and a set of attributes that are either global or local in
-scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
-are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
-nested (more on this later, if conversion from a nested datamodel to a flat datamodel is required).
-
-This is best illustrated with an example. Imagine representing some satellite data within a CDF --
-the global attributes might be the mission name and the instrument PI, the variables might be the
+Imagine representing some satellite data within the global attributes might be
+the mission name and the instrument PI, the variables might be the
 instrument counts [n-dimensional array], timestamps[1-dimensional array and an orbit number [scalar].
 Each variable will have one attribute (for this example).
 
@@ -58,9 +57,8 @@ Each variable will have one attribute (for this example).
     >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
     >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
-This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel,
-we can use the toolbox function dictree (which works for any dictionary-like object, including PyCDF
-file objects).
+This has now populated a structure that can map directly to a NASA CDF or a HDF5. To visualize our datamodel,
+we can use the :py:func:`toolbox.dictree` function (which works for any dictionary-like object).
 
     >>> import spacepy.toolbox as tb
     >>> tb.dictree(mydata, attrs=True)
@@ -74,6 +72,16 @@ file objects).
     |____OrbitNumber
          :|____StartsFrom
 
+
+Guide for NASA CDF users
+------------------------
+By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
+(stored variables of various types) and a set of attributes that are either global or local in
+scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
+are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
+nested (more on this later, if conversion from a nested datamodel to a flat datamodel is required).
+
+
 Opening a CDF and working directly with the contents can be easily done using the PyCDF module, however,
 if you wish to load the entire contents of a CDF directly into a datamodel (complete with attributes)
 the following will make life easier:
@@ -81,7 +89,6 @@ the following will make life easier:
     >>> import spacepy.datamodel as dm
     >>> data = dm.fromCDF('test.cdf')
 
-Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from __future__ import division
