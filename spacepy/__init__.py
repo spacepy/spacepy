@@ -108,7 +108,12 @@ from os import environ as ENVIRON
 if 'SPACEPY' in ENVIRON:
     DOT_FLN = os.path.join(ENVIRON['SPACEPY'], '.spacepy')
 else:
-    DOT_FLN = os.path.join(ENVIRON['HOME'], '.spacepy')
+    if 'HOME' in ENVIRON:
+        DOT_FLN = os.path.join(ENVIRON['HOME'], '.spacepy')
+    else:
+        DOT_FLN = os.path.join(ENVIRON['HOMEDRIVE'],
+                               ENVIRON['HOMEPATH'],
+                               '.spacepy')
 if not os.path.exists(DOT_FLN):
     import shutil, sys
     from . import toolbox
