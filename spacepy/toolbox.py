@@ -473,6 +473,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     except:
         pass
 
+    # TODO, if levels is True why check again?
     if levels:
         try:
             assert levels is True
@@ -964,7 +965,7 @@ def binHisto(data, verbose=False):
 
     The Freedman-Diaconis method is detailed in:
         Freedman, D., and P. Diaconis (1981), On the histogram as a density estimator: L2 theory, Z. Wahrscheinlichkeitstheor. Verw. Geb., 57, 453–476
-    
+
     and is also described by:
         Wilks, D. S. (2006), Statistical Methods in the Atmospheric Sciences, 2nd ed.
 
@@ -1124,6 +1125,11 @@ def logspace(min, max, num, **kwargs):
     >>> import sapcepy.toolbox as tb
     >>> tb.logspace(1, 100, 5)
     array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
+
+    See Also
+    ========
+    toolbox.geomspace
+    toolbox.linspace
     """
     from numpy import logspace, log10
     if isinstance(min, datetime.datetime):
@@ -1165,6 +1171,11 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
         (depending on whether `endpoint` is True or False).
     step : float (only if `retstep` is True)
         Size of spacing between samples.
+
+    See Also
+    ========
+    toolbox.geomspace
+    toolbox.logspace
     """
     from numpy import linspace, log10
     if isinstance(min, datetime.datetime):
@@ -1179,22 +1190,24 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
 
 def geomspace(start, ratio=None, stop=False, num=50):
     """
-    Returns geometrically spaced numbers.  
+    Returns geometrically spaced numbers.
 
     Parameters
     ==========
     start : float
-    The starting value of the sequence.
+        The starting value of the sequence.
     ratio : float (optional)
-    The ratio between subsequent points
+        The ratio between subsequent points
     stop: float (optional)
-    End value, if this is selected `num' is overridden
+        End value, if this is selected `num' is overridden
     num : int (optional)
-    Number of samples to generate. Default is 50.
-                                                                                                                    Returns
+        Number of samples to generate. Default is 50.
+
+    Returns
     =======
     seq : array
-    
+        geometrically spaced sequence
+
     Examples
     ========
     To get a geometric progression between 0.01 and 3 in 10 steps
@@ -1214,21 +1227,26 @@ def geomspace(start, ratio=None, stop=False, num=50):
 
      To get a geometric progression with a specified ratio, say 10
 
-     >>> import spacepy.toolbox as tb
-     >>> tb.geomspace(0.01, ratio=10, num=5)
+    >>> import spacepy.toolbox as tb
+    >>> tb.geomspace(0.01, ratio=10, num=5)
      [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
+
+    See Also
+    ========
+    toolbox.linspace
+    toolbox.logspace
     """
-    if not ratio and stop:
+    if not ratio and stop != False:
         ratio = (stop/start)**(1/(num-1))
     seq = []
     seq.append(start)
-    if not stop:
+    if stop == False:
         for j in range(1, num):
             seq.append(seq[j-1]*ratio)
         return seq
     else:
         val, j = start, 1
-        while val<=stop:
+        while val <= stop or feq(val, stop, ):
             val = seq[j-1]*ratio
             seq.append(val)
             j+=1
