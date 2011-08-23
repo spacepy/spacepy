@@ -1,10 +1,8 @@
 # this is the file that distutils parses for what to include
 
 graft Doc/build/html
-#graft Doc/build/html/_modules/*
-#graft Doc/build/html/_modules/spacepy
-#graft Doc/build/html/_sources
-#graft Doc/build/html/_static
+graft Doc/Makefile
+graft Doc/source
 graft spacepy/libspacepy
 graft spacepy/pybats/sample_scripts
 graft tests
