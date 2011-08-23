@@ -1,16 +1,13 @@
 
 
 ######################################
-pyCDF \- Python interface to CDF files
+pyCDF - Python interface to CDF files
 ######################################
 
 
 .. currentmodule:: spacepy.pycdf
 
 .. automodule:: pycdf
-
-
-
 
 Contents
 --------
@@ -26,7 +23,7 @@ Contents
 Quickstart
 ----------
 Create a CDF
-============
+========
 This quickstart guide should walk uses through the basics of CDF manipulation
 using pyCDF
 
@@ -87,7 +84,7 @@ CDF files, like standard Python files, act as context managers
 
 
 Read a CDF
-==========
+=======
 
 Reading a CDF is done in much the same way, the CDF object behaves like a dictionary and only goes to disk when you request the data.  Shown here is a full example using the above CDF then, then explained (see also :py:func:`datamodel.fromCDF`).
     >>> from spacepy import pycdf
