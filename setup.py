@@ -94,6 +94,11 @@ class build(_build):
             self.f2py = install_obj.f2py
             if self.f2py == None:
                 self.f2py = default_f2py()
+        if self.compiler == None:
+            self.compiler = install_obj.compiler
+            if self.compiler == None:
+                if sys.platform == 'win32':
+                    self.compiler = 'mingw32'
 
     def compile_pybats(self):
         outdir = os.path.join(self.build_lib, 'spacepy', 'pybats')
@@ -344,6 +349,7 @@ class install(_install):
         self.fcompiler = None
         self.f2py = None
         self.build_docs = False
+        self.compiler = None
         _install.initialize_options(self)
 
     def finalize_options(self):
@@ -355,6 +361,9 @@ class install(_install):
         if self.f2py == None:
             self.f2py = default_f2py()
         _install.finalize_options(self)
+        if self.compiler == None:
+            if sys.platform == 'win32':
+                self.compiler = 'mingw32'
 
     def run(self):
         """Does all checks, perform install, makes .spacepy directory"""
