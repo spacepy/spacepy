@@ -278,6 +278,7 @@ class SpaceData(dict):
 def convertKeysToStr(SDobject):
     if isinstance(SDobject, SpaceData):
         newSDobject = SpaceData()
+        newSDobject.attrs = SDobject.attrs
     else:
         newSDobject = {}
     for key in SDobject:
@@ -502,27 +503,20 @@ def toHDF5(fname, SDobject, **kwargs):
     def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
         if hasattr(SDobject, 'attrs'):
             for key, value in SDobject.attrs.iteritems():
-                #try:
-                    if type(value) in allowed_attrs:
-                        #test for datetimes in interables
-                        if hasattr(value, '__iter__'):
-                            value = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
-                        if value or value is 0:
-                            hfile[path].attrs[key] = value
-                        else:
-                            hfile[path].attrs[key] = ''
+                if type(value) in allowed_attrs:
+                    #test for datetimes in interables
+                    if hasattr(value, '__iter__'):
+                        value = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
+                    if value or value is 0:
+                        hfile[path].attrs[key] = value
                     else:
-                        #TODO: add support for datetime in attrs (convert to isoformat)
-                        print('\n\nThe following key:value pair is not permitted')
-                        print('key (type) =', key, '(', type(key), ')\n',
-			      'value (type) =', value, '(', type(value), ')')
-                        print('value type ', type(value), ' is not in the allowed attribute list\n')
-
-                #except:
-                #    print('\n\nThe following key:value pair is not permitted')
-                #    print('key (type) =', key, '(', type(key), ')\n',
-		#    	  'value (type) =', value, '(', type(value), ')')
-                #    print('key cannot be of type %s \n' % type(key))
+                        hfile[path].attrs[key] = ''
+                else:
+                    #TODO: add support for datetime in attrs (convert to isoformat)
+                    print('\n\nThe following key:value pair is not permitted')
+                    print('key (type) =', key, '(', type(key), ')\n',
+		          'value (type) =', value, '(', type(value), ')')
+                    print('value type ', type(value), ' is not in the allowed attribute list\n')
 
     try:
         import h5py as hdf
@@ -560,26 +554,18 @@ def toHDF5(fname, SDobject, **kwargs):
     #first convert non-string keys to str
     SDobject = convertKeysToStr(SDobject)
 
-    #try:
-        ##carry over the attributes
     SDcarryattrs(SDobject,hfile,path,allowed_attrs)
-        ##carry over the groups and datasets
     for key, value in SDobject.iteritems():
-            #try:
-                if type(value) is allowed_elems[0]:
-                    hfile[path].create_group(key)
-                    toHDF5(hfile, SDobject[key], path=path+'/'+key)
-                elif type(value) is allowed_elems[1]:
-                    try:
-                        hfile[path].create_dataset(key, data=value)
-                    except:
-                        if isinstance(value[0], datetime.datetime):
-                            for i, val in enumerate(value): value[i] = val.isoformat()
-                        hfile[path].create_dataset(key, data=value.astype('|S35'))
-                        #else:
-                        #    hfile[path].create_dataset(key, data=value.astype(float))
-                    SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
-            #except:
-                #raise Exception('Unrecoverable Error in the Object.\nAborting')
-    #except:
-        #raise Exception('Unrecoverable Error in the Object.\nAborting')
+        if type(value) is allowed_elems[0]:
+            hfile[path].create_group(key)
+            toHDF5(hfile, SDobject[key], path=path+'/'+key)
+        elif type(value) is allowed_elems[1]:
+            try:
+                hfile[path].create_dataset(key, data=value)
+            except:
+                if isinstance(value[0], datetime.datetime):
+                    for i, val in enumerate(value): value[i] = val.isoformat()
+                hfile[path].create_dataset(key, data=value.astype('|S35'))
+                #else:
+                #    hfile[path].create_dataset(key, data=value.astype(float))
+            SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
