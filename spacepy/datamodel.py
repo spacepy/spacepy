@@ -283,7 +283,7 @@ def convertKeysToStr(SDobject):
     for key in SDobject:
         if not isinstance(key, str):
             if isinstance(SDobject[key], dict):
-                newSDobject[key] = convertKeysToStr(SDobject[key])
+                newSDobject[str(key)] = convertKeysToStr(SDobject[key])
             else:
                 newSDobject[str(key)] = SDobject[key]
         else:
