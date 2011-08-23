@@ -60,6 +60,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 import bisect
+import sys
 
 import numpy as np
 from matplotlib.mlab import prctile
@@ -429,7 +430,10 @@ class PPro(object):
 
         if seed != None:
             np.random.seed(seed)
-            lag_seeds = np.random.randint(0, 2 ** 32, [len(lags)])
+            #TODO: This is a bit ugly and we potentially lose entropy
+            #should be unsigned long, but numpy forces signed int...
+            lag_seeds = np.random.randint(
+                -sys.maxsize - 1, sys.maxsize, [len(lags)])
         if lib.have_libspacepy == False:
             for i in range(len(lags)):
                 if seed != None:
