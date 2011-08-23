@@ -34,7 +34,7 @@ def subst(pattern, replacement, filestr,
         cp = re.compile(pattern, pattern_matching_modifiers)
     else:
         cp = re.compile(pattern)
-    if cp.search(filestr):  # any occurence of pattern?
+    if cp.search(filestr):  # any occurrence of pattern?
         filestr = cp.sub(replacement, filestr)
     return filestr
 

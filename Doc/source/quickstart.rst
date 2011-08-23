@@ -4,19 +4,19 @@ SpacePy - A Quick Start Documentation
 
 
 The SpacePy Team
-(Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Jon Niehof, 
+(Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Jon Niehof,
 Mike Henderson)
 
 
 Installation
 ============
 
-Option 1) to install it in a standard loction (depending on your system)::
+Option 1) to install it in a standard location (depending on your system)::
 
     python setup.py install
-    
+
 or::
-    
+
     sudo python setup.py install
 
 or::
@@ -32,7 +32,7 @@ Option 2) to install in custom location, e.g.::
 
 It is also possible to select a specific compiler for installing the IRBEM-LIB library as part
 of SpacePy. Currently the
-following flags are supported: gnu95, gnu, pg. You can invoke these by using one of the 
+following flags are supported: gnu95, gnu, pg. You can invoke these by using one of the
 following commands below but not all of them are supported on all platforms:
 
 * ``python setup.py install --fcompiler=pg``      #(will use pgi compiler suite)
@@ -55,29 +55,27 @@ Make sure you add the environment variable ``$SPACEPY`` to your ``.cshrc, .tcshr
 Toolbox - A Box Full of Tools
 =============================
 
-Contains tools that don't fit anywhere else but are, in general, quite 
+Contains tools that don't fit anywhere else but are, in general, quite
 useful. The following functions are a selection of those implemented:
 
-    * windowMean: windowing mean with variable window size and overlap
-    * dictree: pretty prints the contents of dictionaries (recursively)
-    * loadpickle: single line convenience routine for loading Python 
-        pickles
-    * savepickle: same as loadpickle, but for saving
-    * update: updates the OMNI database and the leap seconds database 
-        (internet connection required)
-    * tOverlap: find interval of overlap between two time series
-    * tCommon: find times common to two time series
-    * binHisto: calculate number of bins for a histogram
-    * medAbsDev: find the median absolute deviation of a data series
-    * normalize: normalize a data series
-    * listUniq: returns the uniq items in a list (in order)
-    * leapyear: ultra fast leap year query function
-    * applySmartTimeTicks: smartens up the time ticks on a plot
-    * feq: floating point equals
+    * :py:func:`toolbox.windowMean`: windowing mean with variable window size and overlap
+    * :py:func:`toolbox.dictree`: pretty prints the contents of dictionaries (recursively)
+    * :py:func:`toolbox.loadpickle`: single line convenience routine for loading Python pickles
+    * :py:func:`toolbox.savepickle`: same as loadpickle, but for saving
+    * :py:func:`toolbox.update`: updates the OMNI database and the leap seconds database (internet connection required)
+    * :py:func:`toolbox.tOverlap`: find interval of overlap between two time series
+    * :py:func:`toolbox.tCommon`: find times common to two time series
+    * :py:func:`toolbox.binHisto`: calculate number of bins for a histogram
+    * :py:func:`toolbox.medAbsDev`: find the median absolute deviation of a data series
+    * :py:func:`toolbox.normalize`: normalize a data series
+    * :py:func:`toolbox.listUniq`: returns the uniq items in a list (in order)
+    * :py:func:`toolbox.leapyear`: ultra fast leap year query function
+    * :py:func:`toolbox.applySmartTimeTicks`: smartens up the time ticks on a plot
+    * :py:func:`toolbox.feq`: floating point equals
 
 Import this module as::
 
-    >>> import spacepy.toolbox as tb 
+    >>> import spacepy.toolbox as tb
 
 Examples:
 
@@ -94,14 +92,14 @@ Examples:
     >>> dat = np.random.random_sample(100)
     >>> tb.binHisto(dat)
     (0.19151723370512266, 5.0)
- 
+
 
 
 
 Time and Coordinate Transformations
 ===================================
 
-Import the modules as:: 
+Import the modules as::
 
     >>> import spacepy.time as spt
     >>> import spacepy.coords as spc
@@ -110,7 +108,7 @@ Import the modules as::
 Ticktock Class
 --------------
 
-The Ticktock class provides a number of time conversion routines and is 
+The Ticktock class provides a number of time conversion routines and is
 implemented as a container class built on the functionality of the Python
 datetime module. The following time coordinates are provided
 
@@ -121,17 +119,17 @@ datetime module. The following time coordinates are provided
     * MJD: Modified Julian Day
     * UNX: UNIX time in seconds since Jan 1, 1970
     * RDT: Rata Die Time (Gregorian Ordinal Time) in days since Jan 1, 1 AD midnight
-    * CDF: CDF Epoch time in milliseconds since Jan 1, year 0 
+    * CDF: CDF Epoch time in milliseconds since Jan 1, year 0
     * DOY: Day of Year including fractions
-    * leaps: Leap seconds according to ftp://maia.usno.navy.mil/ser7/tai-utc.dat 
+    * leaps: Leap seconds according to ftp://maia.usno.navy.mil/ser7/tai-utc.dat
 
-To access these time coordinates, you'll create an instance of a 
+To access these time coordinates, you'll create an instance of a
 Ticktock class, e.g.::
 
     >>> t = spt.Ticktock('2002-10-25T12:30:00', 'ISO')
 
-Instead of ISO you may use any of the formats listed above. You can also 
-use numpy arrays or lists of time points. ``t`` has now the class 
+Instead of ISO you may use any of the formats listed above. You can also
+use numpy arrays or lists of time points. ``t`` has now the class
 attributes::
 
     >>> t.dtype = 'ISO'
@@ -139,7 +137,7 @@ attributes::
 
 FYI ``t.UTC`` is added automatically.
 
-If you want to convert/add a class attribute from the list above, 
+If you want to convert/add a class attribute from the list above,
 simply type e.g.::
 
     >>> t.RTD
@@ -154,21 +152,21 @@ You can find out how many leap seconds were used by issuing the command::
 Tickdelta Class
 ---------------
 
-You can add/substract time from a Ticktock class instance by creating a 
+You can add/substract time from a Ticktock class instance by creating a
 Tickdelta instance first.::
 
     >>> dt = spt.Tickdelta(days=2.3)
 
 Then you can add by e.g.::
 
-    >>> t+dt 
+    >>> t+dt
 
 
 Coords Class
 ------------
 
-The spatial coordinate class includes the following coordinate systems in 
-cartesian and sphericals. 
+The spatial coordinate class includes the following coordinate systems in
+Cartesian and sphericals.
 
     * GZD:  (altitude, latitude, longitude in km, deg, deg
     * GEO: cartesian, Re
@@ -180,26 +178,26 @@ cartesian and sphericals.
     * SPH: same as GEO but in spherical
     * RLL: radial distance, latitude, longitude, Re, deg, deg.
 
-Create a Coords instance with spherical='sph' or cartesian='car' 
+Create a Coords instance with spherical='sph' or cartesian='car'
 coordinates::
- 
+
     >>> spaco = spc.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
- 
-This will let you request for example all y-coordinates by ``spaco.y`` 
-or if given in spherical coordinates by ``spaco.lati``. One can transform 
-the coordinates by ``newcoord = spaco.convert('GSM', 'sph')``. 
-This will return GSM coordinates in a spherical system. Since GSM 
-coordinates depend on time, you'll have to add first a Ticktock 
-vector with the name ``ticks`` like ``spaco.ticks = spt.Ticktock(['2002-02-02T12:00:00', 
+
+This will let you request for example all y-coordinates by ``spaco.y``
+or if given in spherical coordinates by ``spaco.lati``. One can transform
+the coordinates by ``newcoord = spaco.convert('GSM', 'sph')``.
+This will return GSM coordinates in a spherical system. Since GSM
+coordinates depend on time, you'll have to add first a Ticktock
+vector with the name ``ticks`` like ``spaco.ticks = spt.Ticktock(['2002-02-02T12:00:00',
 '2002-02-02T12:00:00'], 'ISO')``
 
 Unit conversion will be implemented in the future.
- 
- 
+
+
 The radbelt Module
 ==================
 
-The radiation belt module currently includes a simple radial 
+The radiation belt module currently includes a simple radial
 diffusion code as a class. Import the module and create a class instance::
 
     >>> import spacepy.radbelt as sprb
@@ -209,16 +207,16 @@ Add a time grid for a particular period that you are interested in::
 
     >>> rb.setup_ticks('2002-02-01T00:00:00', '2002-02-10T00:00:00', 0.25)
 
-This will automatically lookup required geomagnetic/solar wind conditions 
-for that period. Run the diffusion solver for that setup and plot the 
+This will automatically lookup required geomagnetic/solar wind conditions
+for that period. Run the diffusion solver for that setup and plot the
 results::
 
     >>> rb.evolve()
     >>> rb.plot()
 
 
-The borg Module
-===============
+The Data Assimilation Module
+============================
 
 This module includes data assimilation capabilities, through the
 assimilation class. The class assimilates data for the radiation belt model
@@ -236,8 +234,8 @@ argument, where the options are the following:
 
    * inflation == 2: Inflate around ensemble average for EnKF.
 
-Prior to assimilation, a set of data values has to be speficied by setting the
-start and end dates, and time step, using the ``setup_ticks`` funcion of the
+Prior to assimilation, a set of data values has to be specified by setting the
+start and end dates, and time step, using the ``setup_ticks`` function of the
 radiation belt model::
 
    >> import spacepy
@@ -255,21 +253,21 @@ Once the dates and time step are specified, the data is added using the
    >> rmod.add_PSD()
 
 The observations are averaged over the time windows, whose interval is give by
-the time step. Once the dates and data are set, the assimiation is performed
+the time step. Once the dates and data are set, the assimilation is performed
 using the ``assimilate`` function::
 
    >> rmod.assimilate(inflation=1)
 
 This function will add the PSDa values, which are the analysis state of
 the radiation belt using the observations within the dates. To plot the
-analysis simply use the ``plot`` funtion::
+analysis simply use the ``plot`` function::
 
    >> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
 
 Additionally, to create a summary plot of the observations use the ``plot_obs``
 function within the radbelt module. For reference, the last closed drift shell,
 Dst, and Kp are all included. These can be disabled individually using the
-corresponding boolean kwargs.
+corresponding Boolean kwargs.
 
 The clims kwarg can be used to manually set the color bar range.  To use, set
 it equal to a two-element list containing minimum and maximum Log_10 value to
@@ -294,24 +292,24 @@ OMNI Module
 ===========
 
 The OMNI database is an hourly resolution, multi-source data set
-with coverage from November 1963; higher temporal resolution versions of 
+with coverage from November 1963; higher temporal resolution versions of
 the OMNI database exist, but with coverage from 1995. The primary data are
-near-Earth solar wind, magnetic field and plasma parameters. However, a 
+near-Earth solar wind, magnetic field and plasma parameters. However, a
 number of modern magnetic field models require derived input parameters,
 and Qin and Denton (2007) have used the publicly-available OMNI database to provide
-a modified version of this database containing all parameters necessary 
-for these magnetic field models. These data are available through ViRBO  - the Virtual 
+a modified version of this database containing all parameters necessary
+for these magnetic field models. These data are available through ViRBO  - the Virtual
 Radiation Belt Observatory.
 
 In SpacePy this data is made available on request on install; if not downloaded
-when SpacePy is installed and attempt to import the omni module will 
-ask the user whether they wish to download the data. Should the user 
-require the latest data, the toolbox.update function can 
+when SpacePy is installed and attempt to import the omni module will
+ask the user whether they wish to download the data. Should the user
+require the latest data, the toolbox.update function can
 be used to fetch the latest files from ViRBO.
 
-The following example fetches the OMNI data for the storms of 
+The following example fetches the OMNI data for the storms of
 October and November, 2003.::
-    
+
     >>> import spacepy.time as spt
     >>> import spacepy.omni as om
     >>> import datetime as dt
@@ -327,29 +325,29 @@ for instance::
 
 	>>> import pyplot as p
 	>>> p.plot(ticks.eDOY, data['Dst'])
-	
+
 
 The irbempy Module
 ==================
 
-ONERA (Office National d'Etudes et Recherches Aerospatiales) initiated a 
-well-known FORTRAN library that provides routines to compute magnetic 
-coordinates for any location in the Earth's magnetic field, to perform 
-coordinate conversions, to compute magnetic field vectors in geospace for 
-a number of external field models, and to propagate satellite orbits in 
+ONERA (Office National d'Etudes et Recherches Aerospatiales) initiated a
+well-known FORTRAN library that provides routines to compute magnetic
+coordinates for any location in the Earth's magnetic field, to perform
+coordinate conversions, to compute magnetic field vectors in geospace for
+a number of external field models, and to propagate satellite orbits in
 time. Older versions of this library were called ONERA-DESP-LIB. Recently
 the library has changed its name to IRBEM-LIB and is maintained by a number
 of different institutions.
 
-A number of key routines in IRBEM-LIB have been made available through the 
+A number of key routines in IRBEM-LIB have been made available through the
 module *irbempy*. Current functionality includes calls to calculate the local
 magnetic field vectors at any point in geospace, calculation of the magnetic
-mirror point for a particle of a given pitch angle (the angle between a 
-particle's velocity vector and the magnetic field line that it immediately 
-orbits such that a pitch angle of 90 degrees signifies gyration perpendicular 
-to the local field) anywhere in geospace, and calculation of electron drift 
+mirror point for a particle of a given pitch angle (the angle between a
+particle's velocity vector and the magnetic field line that it immediately
+orbits such that a pitch angle of 90 degrees signifies gyration perpendicular
+to the local field) anywhere in geospace, and calculation of electron drift
 shells in the inner magnetosphere.::
-    
+
     >>> import spacepy.time as spt
     >>> import spacepy.coordinates as spc
     >>> import spacepy.irbempy as ib
@@ -409,7 +407,7 @@ by the variable name::
     >>> var_names = keys(cdf_file) #list of all variables
     >>> for var_name in cdf_file:
     ...     print(len(cdf_file[var_name])) #number of records in each variable
-    
+
         #list comprehensions work, too
     >>> lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
 
@@ -432,28 +430,28 @@ they are accessed::
 The datamodel Module
 ====================
 
-The SpacePy datamodel module implents classes that are designed to make implementing a standard
+The SpacePy datamodel module implements classes that are designed to make implementing a standard
 data model easy. The concepts are very similar to those used in standards like HDF5, netCDF and
 NASA CDF.
 
-The basic container type is analagous to a folder (on a filesystem; HDF5 calls this a
+The basic container type is analogous to a folder (on a filesystem; HDF5 calls this a
 group): Here we implement this as a dictionary-like object, a datamodel.SpaceData object, which
 also carries attributes. These attributes can be considered to be global, i.e. relevant for the
 entire folder. The next container type is for storing data and is based on a numpy array, this
-class is datamodel.dmarray and also carries attributes. The dmarray class is analagous to an
+class is datamodel.dmarray and also carries attributes. The dmarray class is analogous to an
 HDF5 dataset.
 
 
 Guide for NASA CDF users
 ------------------------
 
-By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records 
+By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
 (stored variables of various types) and a set of attributes that are either global or local in
 scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
 are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
 nested (more on this later, if conversion from a nested datamodel to a flat datamodel is required).
 
-This is best illustrated with an example. Imagine representing some satellite data within a CDF -- 
+This is best illustrated with an example. Imagine representing some satellite data within a CDF --
 the global attributes might be the mission name and the instrument PI, the variables might be the
 instrument counts [n-dimensional array], timestamps[1-dimensional array and an orbit number [scalar].
 Each variable will have one attribute (for this example).
@@ -465,7 +463,7 @@ Each variable will have one attribute (for this example).
     >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
     >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
-This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel, 
+This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel,
 we can use the toolbox function dictree (which works for any dictionary-like object, including PyCDF
 file objects).
 
@@ -503,7 +501,7 @@ be flattened so that it is single layered. Let us now store some ephemerides in 
         :|____units
     |____OrbitNumber
         :|____StartsFrom
-                     
+
 Nested dictionary-like objects is not uncommon in Python (an can be exceptionally useful for representing
 data, so to make this compatible with NASA CDF we call the object method `flatten'.
 
@@ -537,26 +535,26 @@ Empiricals Module
 
 The empiricals module provides access to some useful empirical models.
 As of SpacePy 0.1.0, the models available are:
-    
-    * An empirical parametrization of the L* of the last closed drift shell 
+
+    * An empirical parametrization of the L* of the last closed drift shell
       (Lmax)
-    * The plasmapause location, following either Carpenter and Anderson 
+    * The plasmapause location, following either Carpenter and Anderson
       (1992) or Moldwin et al. (2002)
-    * The magnetopause standoff location (i.e. the sub-solar point), using 
+    * The magnetopause standoff location (i.e. the sub-solar point), using
       the Shue et al. (1997) model
 
-Each model is called by passing it a Ticktock object (see above) which then 
-calculates the model output using the 1-hour Qin-Denton OMNI data (from the 
+Each model is called by passing it a Ticktock object (see above) which then
+calculates the model output using the 1-hour Qin-Denton OMNI data (from the
 OMNI module; see above). For example::
-    
+
     >>> import spacepy.time as spt
     >>> import spacepy.empiricals as emp
     >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
 
 calls the tickrange function from spacepy.time and makes a Ticktock object
-with times from midday on January 1st 2002 to midnight January 4th 2002, 
+with times from midday on January 1st 2002 to midnight January 4th 2002,
 incremented 6-hourly::
-    
+
     >>> Lpp = emp.getPlasmaPause(ticks)
 
 then returns the model plasmapause location using the default setting of the
@@ -564,9 +562,9 @@ Moldwin et al. (2002) model. The Carpenter and Anderson model can be used by
 setting the Lpp_model keyword to 'CA1992'.
 
 The magnetopause standoff location can be called using this syntax, or can be
-called for specific solar wind parameters (ram pressure, P, and IMF Bz) passed 
+called for specific solar wind parameters (ram pressure, P, and IMF Bz) passed
 through in a Python dictionary::
-    
+
     >>> data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
     >>> emp.getMPstandoff(data)
     array([ 10.29156018,   8.96790412])
@@ -577,16 +575,16 @@ SeaPy - Superposed Epoch Analysis in Python
 
 Superposed epoch analysis is a technique used to reveal consistent responses,
 relative to some repeatable phenomenon, in noisy data . Time series of the variables
-under investigation are extracted from a window around the epoch and all data 
-at a given time relative to epoch forms the sample of events at that lag. The 
-data at each time lag are then averaged so that fluctuations not 
-consistent about the epoch cancel. In many superposed epoch analyses the mean of 
-the data at each time *u* relative to epoch, is used to 
-represent the central tendency. In SeaPy we calculate both the mean and the median, 
-since the median is a more robust measure of central tendency and is less affected 
-by departures from normality. SeaPy also calculates a measure of spread at each time 
-relative to epoch when performing the superposed epoch analysis; the interquartile 
-range is the default, but the median absolute deviation and bootstrapped confidence 
+under investigation are extracted from a window around the epoch and all data
+at a given time relative to epoch forms the sample of events at that lag. The
+data at each time lag are then averaged so that fluctuations not
+consistent about the epoch cancel. In many superposed epoch analyses the mean of
+the data at each time *u* relative to epoch, is used to
+represent the central tendency. In SeaPy we calculate both the mean and the median,
+since the median is a more robust measure of central tendency and is less affected
+by departures from normality. SeaPy also calculates a measure of spread at each time
+relative to epoch when performing the superposed epoch analysis; the interquartile
+range is the default, but the median absolute deviation and bootstrapped confidence
 intervals of the median (or mean) are also available.
 
 As an example we fetch OMNI data for 4 years and perform a superposed epoch analysis
@@ -598,16 +596,16 @@ of the solar wind radial velocity, with a set of epoch times read from a text fi
         #now read the epochs for the analysis
     >>> epochs = se.readepochs('epochs_OMNI.txt', iso=True)
     >>> st, en = datetime.datetime(2005,1,1), datetime.datetime(2009,1,1)
-    
-The readepochs function can handle multiple formats by a user-specified format code. 
+
+The readepochs function can handle multiple formats by a user-specified format code.
 ISO 8601 format is directly supported. As an alternative to the getOMNI function used above, we
 can get the hourly data directly from the OMNI module using a toolbox function::
-    
+
     >>> einds, oinds = tb.tOverlap([st, en], om.omnidata['UTC'])
     >>> omni1hr = array(om.omnidata['UTC'])[oinds]
     >>> omniVx = om.omnidata['velo'][oinds]
-    
-and these data are used for the superposed epoch analysis. 
+
+and these data are used for the superposed epoch analysis.
 the temporal resolution is 1 hr and the window is +/- 3 days
 
     >>> delta = datetime.timedelta(hours=1)
@@ -616,4 +614,3 @@ the temporal resolution is 1 hr and the window is +/- 3 days
         #rather than quartiles, we calculate the 95% confidence interval on the median
     >>> sevx.sea(ci=True)
     >>> sevx.plot()
-

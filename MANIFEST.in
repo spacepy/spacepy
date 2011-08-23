@@ -16,6 +16,9 @@ include spacepy/LANLstar/*
 recursive-exclude spacepy/libspacepy *.o *.pyc
 recursive-exclude tests *.o *.pyc
 recursive-exclude spacepy/irbempy *.o *.pyc
+recursive-exclude Doc *.bak
 
 prune spacepy/sandbox
 prune tests/htmlcov
+prune Doc/build
+prune Doc/generated
