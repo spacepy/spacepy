@@ -109,6 +109,30 @@ compiler_options = [
         ]
 
 
+def rebuild_static_docs(dist=None):
+    """Rebuild the 'static' documentation in Doc/build"""
+    builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
+    indir = os.path.join('Doc', 'source')
+    outdir = os.path.join('Doc', 'build', 'html')
+    cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
+        builddir, indir, outdir)
+    subprocess.check_call(cmd.split())
+    os.chdir('Doc')
+    try:
+        cmd = 'make latexpdf'
+        subprocess.check_call(cmd.split())
+        shutil.move(os.path.join('build', 'latex', 'SpacePy.pdf'), '.')
+    except:
+        if dist != None:
+            dist.add_warning(
+                'PDF documentation rebuild failed.')
+        print('PDF documentation rebuild failed:')
+        (t, v, tb) = sys.exc_info()
+        print(v)
+    finally:
+        os.chdir('..')
+
+
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
 
@@ -451,31 +475,16 @@ class bdist_wininst(_bdist_wininst):
         _bdist_wininst.finalize_options(self)
         finalize_compiler_options(self)
 
+    def run(self):
+        rebuild_static_docs(self.distribution)
+        _bdist_wininst.run(self)
+
 
 class sdist(_sdist):
     """Rebuild the docs before making a source distribution"""
 
     def run(self):
-        builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
-        indir = os.path.join('Doc', 'source')
-        outdir = os.path.join('Doc', 'build', 'html')
-        cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
-            builddir, indir, outdir)
-        subprocess.check_call(cmd.split())
-        os.chdir('Doc')
-        try:
-            cmd = 'make latexpdf'
-            subprocess.check_call(cmd.split())
-            shutil.move(os.path.join('build', 'latex', 'SpacePy.pdf'),
-                        '.')
-        except:
-            self.distribution.add_warning(
-                'PDF documentation rebuild failed.')
-            print('PDF documentation rebuild failed:')
-            (t, v, tb) = sys.exc_info()
-            print(v)
-        finally:
-            os.chdir('..')
+        rebuild_static_docs(self.distribution)
         _sdist.run(self)
 
 
