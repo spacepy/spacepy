@@ -5,7 +5,7 @@ include README.windows
 graft Doc/build/html
 include Doc/Makefile
 graft Doc/source
-include Doc/SpacePy.pdf
+include Doc/build/latex/SpacePy.pdf
 graft spacepy/libspacepy
 graft spacepy/pybats/sample_scripts
 graft tests
