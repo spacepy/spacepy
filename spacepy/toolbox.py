@@ -41,9 +41,9 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     ==========
     ts1 : datetime
         first set of datetime object
-    ts2: datetime
+    ts2 : datetime
         datatime object
-    args:
+    args :
         additional arguments passed to tOverlapHalf
 
     Returns
@@ -1221,7 +1221,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
         The starting value of the sequence.
     ratio : float (optional)
         The ratio between subsequent points
-    stop: float (optional)
+    stop : float (optional)
         End value, if this is selected `num' is overridden
     num : int (optional)
         Number of samples to generate. Default is 50.
