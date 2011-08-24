@@ -1,5 +1,7 @@
 # this is the file that distutils parses for what to include
 
+include INSTALL
+include README.windows
 graft Doc/build/html
 include Doc/Makefile
 graft Doc/source
