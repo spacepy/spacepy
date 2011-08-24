@@ -16,6 +16,7 @@ import subprocess
 from distutils.core import setup
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
+from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
 from distutils.command.sdist import sdist as _sdist
 import distutils.ccompiler
 import distutils.dep_util
@@ -57,48 +58,78 @@ def default_f2py():
         return 'f2py'
 
 
-class build(_build):
-    """Extends base distutils build to make pybats, libspacepy, irbem"""
+def initialize_compiler_options(cmd):
+    """Initialize the compiler options for a command"""
+    cmd.fcompiler = None
+    cmd.f2py = None
+    cmd.compiler = None
 
-    user_options = _build.user_options + [
+    
+def finalize_compiler_options(cmd):
+    """Finalize compiler options for a command
+
+    If compiler options (fcompiler, compiler, f2py) have not been
+    specified for a command, check if they were specified for other
+    commands on the command line--if so, grab from there. If not,
+    set reasonable defaults.
+
+    cmd: the command to finalize the options for
+    """
+    dist = cmd.distribution
+    defaults = {'fcompiler': 'gnu95',
+                'f2py': default_f2py(),
+                'compiler': None}
+    #Check all options on all other commands, reverting to default
+    #as necessary
+    for option in defaults:
+        if getattr(cmd, option) == None:
+            for c in dist.commands:
+                other_cmd = dist.get_command_obj(c)
+                if other_cmd == cmd or not hasattr(other_cmd, option):
+                    continue
+                if getattr(other_cmd, option) != None:
+                    setattr(cmd, option, getattr(other_cmd, option))
+                    break
+            if getattr(cmd, option) == None:
+                setattr(cmd, option, defaults[option])
+    #Special-case defaults, checks
+    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95'):
+        raise DistutilsOptionError(
+            '--fcompiler must be pg, gnu, gnu95')
+    if cmd.compiler == None and sys.platform == 'win32':
+        cmd.compiler = 'mingw32'
+
+
+compiler_options = [
         ('fcompiler=', None,
          'specify the fortran compiler to use: pg, gnu95, gnu [gnu95]'),
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
+        ]
+
+
+class build(_build):
+    """Extends base distutils build to make pybats, libspacepy, irbem"""
+
+    user_options = _build.user_options + compiler_options + [
         ('build-docs', None,
          'Build documentation with Sphinx (default: copy pre-built) [False]'),
         ]
 
     def initialize_options(self):
-        self.fcompiler = None
-        self.f2py = None
         self.build_docs = None
+        initialize_compiler_options(self)
         _build.initialize_options(self)
 
     def finalize_options(self):
         _build.finalize_options(self)
-        install_obj = self.distribution.get_command_obj('install')
-        if self.fcompiler == None:
-            self.fcompiler = install_obj.fcompiler
-            if self.fcompiler == None:
-                self.fcompiler = 'gnu95'
-        if not self.fcompiler in ('pg', 'gnu', 'gnu95'):
-            raise DistutilsOptionError(
-                '--fcompiler must be pg, gnu, gnu95')
+        finalize_compiler_options(self)
         if self.build_docs == None:
-            self.build_docs = install_obj.build_docs
+            self.build_docs = self.distribution.get_command_obj(
+                'install').build_docs
             if self.build_docs == None:
                 self.build_docs = False
-        if self.f2py == None:
-            self.f2py = install_obj.f2py
-            if self.f2py == None:
-                self.f2py = default_f2py()
-        if self.compiler == None:
-            self.compiler = install_obj.compiler
-            if self.compiler == None:
-                if sys.platform == 'win32':
-                    self.compiler = 'mingw32'
 
     def compile_pybats(self):
         outdir = os.path.join(self.build_lib, 'spacepy', 'pybats')
@@ -364,35 +395,19 @@ class build(_build):
 class install(_install):
     """Extends base distutils install to check versions, install .spacepy"""
 
-    user_options = _install.user_options + [
-        ('fcompiler=', None,
-         'specify the fortran compiler to use: pg, gnu95, gnu [gnu95]'),
-        ('f2py=', None,
-         'specify name (or full path) of f2py executable [{0}]'.format(
-        default_f2py())),
+    user_options = _install.user_options + compiler_options + [
         ('build-docs', None,
          'Build documentation with Sphinx (default: copy pre-built) [False]'),
         ]
 
     def initialize_options(self):
-        self.fcompiler = None
-        self.f2py = None
         self.build_docs = False
-        self.compiler = None
+        initialize_compiler_options(self)
         _install.initialize_options(self)
 
     def finalize_options(self):
-        if self.fcompiler == None:
-            self.fcompiler = 'gnu95'
-        if not self.fcompiler in ('pg', 'gnu', 'gnu95'):
-            raise DistutilsOptionError(
-                '--fcompiler must be pg, gnu, gnu95')
-        if self.f2py == None:
-            self.f2py = default_f2py()
         _install.finalize_options(self)
-        if self.compiler == None:
-            if sys.platform == 'win32':
-                self.compiler = 'mingw32'
+        finalize_compiler_options(self)
 
     def run(self):
         """Does all checks, perform install, makes .spacepy directory"""
@@ -420,8 +435,21 @@ class install(_install):
                 'They are required for large parts of SpacePy.')
         else:
             print('Dependencies OK.')
-
         _install.run(self)
+
+
+class bdist_wininst(_bdist_wininst):
+    """Handle compiler options for build on Windows install"""
+
+    user_options = _bdist_wininst.user_options + compiler_options
+
+    def initialize_options(self):
+        initialize_compiler_options(self)
+        _bdist_wininst.initialize_options(self)
+
+    def finalize_options(self):
+        _bdist_wininst.finalize_options(self)
+        finalize_compiler_options(self)
 
 
 class sdist(_sdist):
@@ -500,6 +528,7 @@ setup(name='spacepy',
           ],
       cmdclass={'build': build,
                 'install': install,
+                'bdist_wininst': bdist_wininst,
                 'sdist': sdist,
                 },
       distclass=Distribution,
