@@ -4,9 +4,58 @@ SpacePy Python Programming Tips
 
 One often hears that interpreted languages are too slow for whatever task someone
 needs to do.  In many cases this is exactly wrong-headed.  As the time spent
-programming/debugging in an interpreted language is less than a compiled language
-the programmer has time to figure out where code is slow and make it faster.  This
+programming/debugging in an interpreted language is less than a compiled language,
+the programmer then has time to figure out where code is slow and make it faster.  This
 page is dedicated to that idea, providing examples of code speedup and best practices.
+
+    * `Basic examples`_
+    * `Lists, for loops, and arrays`_
+    * `Zip`_
+    * `External links`_
+
+
+Basic examples
+==============
+Python does not look like (or work like) Matlab or IDL, and as Matlab or IDL programmers
+we have to rethink how we do things.  The same mantra is true in Python however
+if you are using a for loop you are probably doing it wrong...
+
+Take the simple take of a large data array where you want to add one to each element
+I can think of four ways to do this of wildly varying speed.
+
+Create the data
+    >>> data = range(10000000)
+
+The most C-like way is just a straight up for loop
+    >>> for i in range(len(data)):
+    >>>     data[i] += 1
+
+For me this is 6 function calls in 2.590 CPU seconds (from :py:mod:`cProfile`)
+
+The next more Pythonic way is with a list comprehension
+    >>> data = [val+1 for val in data]
+
+this is 4 function calls in 1.643 CPU seconds (~1.6x)
+
+Next we introduce numpy_ and change our list to an array then add one
+    >>> data = np.asarray(data)
+    >>> data += 1
+
+this is 6 function calls in 1.959 CPU seconds (~1.3x), better than the for loop but worse
+than the list comprehension
+
+Next we do this the `right` way and just create it in numpy_ and never leave
+    >>> data = np.arange(10000000)
+    >>> data += 1
+
+this is 4 function calls in 0.049 CPU seconds (~53x).
+
+While this is a really simple example it shows the basic premise, start in numpy_
+and stay in numpy_
+
+
+
+
 
 Lists, for loops, and arrays
 ============================
@@ -57,7 +106,7 @@ is the for loop (list comprehension is a little faster but not much in this case
 
 Simply pulling out the addition inside the for loop makes an amazing difference
 (2.3x speedup).  We believe the difference is that pulling out the addition lets
-numpy do its thing in C once only (saving a massive overhead as array operations 
+numpy do its thing in C once only (saving a massive overhead as array operations
 are done as for loops in C)  and not in python for each element::
 
     def SortRemove_HighFluxPts_(Shell_x0_y0_z0, ShellCenter, Num_Pts_Removed):
@@ -134,9 +183,9 @@ Overall think really hard before you write a for loop or a list comprehension.
 
 Zip
 ===
-the zip_ function is a great thing but it is really slow, if you find yourself
+the :py:func:`zip` function is a great thing but it is really slow, if you find yourself
 using it then you probably need to reexamine the algorithm that you are using A
-good alternative, if you do need the functionality of zip, is in :py:func:`itertools.izip`.
+good alternative, if you do need the functionality of :py:func:`zip`, is in :py:func:`itertools.izip`.
 
 This example generate evenly distributed N points on the unit sphere centered at
 (0,0,0) using the "Golden Spiral" method.
@@ -144,7 +193,7 @@ This example generate evenly distributed N points on the unit sphere centered at
 The original code::
 
     import numpy as np
-    def PointsOnSphere_(N):
+    def PointsOnSphere(N):
     # Generate evenly distributed N points on the unit sphere centered at (0,0,0)
     # Uses "Golden Spiral" method
         x0 = np.array((N,), dtype= float)
@@ -162,9 +211,9 @@ The original code::
         x0_y0_z0 = np.array(zip(x0,y0,z0))     #combine into 3 column (x,y,z) file
         return (x0_y0_z0)
 
-Profiling this with cProfile one can see a lot of time in zip()::
+Profiling this with :py:mod:`cProfile` one can see a lot of time in :py:func:`zip`::
 
-    Tue Jun 14 09:54:41 2011    PointsOnSphere_.prof
+    Tue Jun 14 09:54:41 2011    PointsOnSphere.prof
 
              9 function calls in 8.132 seconds
 
@@ -172,7 +221,7 @@ Profiling this with cProfile one can see a lot of time in zip()::
 
        ncalls  tottime  percall  cumtime  percall filename:lineno(function)
             1    0.010    0.010    8.132    8.132 <string>:1(<module>)
-            1    0.470    0.470    8.122    8.122 test1.py:192(PointsOnSphere_)
+            1    0.470    0.470    8.122    8.122 test1.py:192(PointsOnSphere)
             4    6.993    1.748    6.993    1.748 {numpy.core.multiarray.array}
             1    0.654    0.654    0.654    0.654 {zip}
             1    0.005    0.005    0.005    0.005 {numpy.core.multiarray.arange}
@@ -180,10 +229,10 @@ Profiling this with cProfile one can see a lot of time in zip()::
 
 So lets try and do a few simple rewrites to make this faster.  Using numpy.vstack
 is the first one that came to mind.  The change here is to replace building up
-the array from the elements made by zip to just appending the data we already have
+the array from the elements made by :py:func:`zip` to just appending the data we already have
 to an array that we already have::
 
-    def PointsOnSphere_(N):
+    def PointsOnSphere(N):
     # Generate evenly distributed N points on the unit sphere centered at (0,0,0)
     # Uses "Golden Spiral" method
         x0 = np.array((N,), dtype= float)
@@ -201,12 +250,12 @@ to an array that we already have::
         x0_y0_z0 = np.vstack((x0, y0, z0)).transpose()
         return (x0_y0_z0)
 
-Profiling this with cProfile one can see that this is now fast enough for me,
+Profiling this with :py:mod:`cProfile` one can see that this is now fast enough for me,
 no more work to do.  We picked up a 48x speed increase, I'm sure this can still
 be made better and let the spacepy team know if you rewrite it and it will be
 included::
 
-    Tue Jun 14 09:57:41 2011    PointsOnSphere_.prof
+    Tue Jun 14 09:57:41 2011    PointsOnSphere.prof
 
              32 function calls in 0.168 seconds
 
@@ -215,7 +264,7 @@ included::
 
        ncalls  tottime  percall  cumtime  percall filename:lineno(function)
             1    0.010    0.010    0.168    0.168 <string>:1(<module>)
-            1    0.123    0.123    0.159    0.159 test1.py:217(PointsOnSphere_)
+            1    0.123    0.123    0.159    0.159 test1.py:217(PointsOnSphere)
             1    0.000    0.000    0.034    0.034 /opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/numpy/core/shape_base.py:177(vstack)
             1    0.034    0.034    0.034    0.034 {numpy.core.multiarray.concatenate}
             1    0.002    0.002    0.002    0.002 {numpy.core.multiarray.arange}
@@ -226,8 +275,20 @@ included::
             1    0.000    0.000    0.000    0.000 {method 'transpose' of 'numpy.ndarray' objects}
 
 
-.. _zip: http://docs.python.org/library/functions.html#zip
 
+External links
+==============
+Here is a collection of links that serve as a decent reference for Python and speed
+    * `PythonSpeed PerformanceTips`_
+    * `scipy array tip sheet`_
+    * `Python Tips, Tricks, and Hacks`_
+
+
+
+.. _numpy: http://docs.scipy.org/doc/numpy/reference/
+.. _`PythonSpeed PerformanceTips`: http://wiki.python.org/moin/PythonSpeed/PerformanceTips
+.. _`scipy array tip sheet`: http://pages.physics.cornell.edu/~myers/teaching/ComputationalMethods/python/arrays.html
+.. _`Python Tips, Tricks, and Hacks`: http://www.siafoo.net/article/52
 --------------------------
 
 :Release: |version|

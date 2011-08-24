@@ -19,6 +19,11 @@ import zipfile
 import datetime
 import glob
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
 import numpy as np
 
 try:
@@ -61,6 +66,11 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     >>> print omni_time
     [datetime.datetime(2000, 1, 1, 0, 0), datetime.datetime(2000, 1, 1, 12, 0),
     ... , datetime.datetime(2000, 9, 30, 0, 0)]
+
+    See Also
+    ========
+    toolbox.tOverlapHalf
+    toolbox.tCommon
     """
     idx_1in2 = tOverlapHalf(ts2, ts1, *args, **kwargs)
     idx_2in1 = tOverlapHalf(ts1, ts2, *args, **kwargs)
@@ -96,6 +106,11 @@ def tOverlapHalf(ts1, ts2, presort=False):
         indices of ts2 within interval of ts1
 
         **note:** Returns empty list if no overlap found
+
+    See Also
+    ========
+    toolbox.tOverlap
+    toolbox.tCommon
     """
     if presort:
         import bisect
@@ -121,6 +136,11 @@ def tCommon(ts1, ts2, mask_only=True):
     -------
     out : tuple
         Two element tuple of truth tables (of 1 present in 2, & vice versa)
+
+    See Also
+    ========
+    toolbox.tOverlapHalf
+    toolbox.tOverlap
     """
     from matplotlib.dates import date2num, num2date
 
@@ -175,12 +195,6 @@ def loadpickle(fln):
 
     >>> d = loadpickle('test.pbin')
     """
-    try:
-        import cPickle as pickle
-    except ImportError:
-        import pickle
-    import os.path
-
     if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
         try:
             import zlib
@@ -225,12 +239,7 @@ def savepickle(fln, dict, compress=None):
     >>> d = {'grade':[1,2,3], 'name':['Mary', 'John', 'Chris']}
     >>> savepickle('test.pbin', d)
     """
-    try:
-        import cPickle as pickle
-    except:
-        import pickle
     if compress == None:
-        import os
         if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
             compress = True
         else:
@@ -322,7 +331,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
         else:
             idx = np.argsort(dcomb[sortkey])
         TAIcount = len(dcomb[sortkey])
-        for key in dcomb.keys():
+        for key in dcomb: # iterates over keys by default
             dim = np.array(np.shape(dcomb[key]))
             ax = np.where(dim==TAIcount)[0]
             if len(ax) == 1: # then match with length of TAI
@@ -473,6 +482,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     except:
         pass
 
+    # TODO, if levels is True why check again?
     if levels:
         try:
             assert levels is True
@@ -948,6 +958,10 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     >>> import spacepy.toolbox as tb
     >>> poly0c = tb.makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
     >>> ax0.add_patch(poly0qc)
+
+    See Also
+    ========
+    matplotlib.pyplot.fill_between
     """
     import matplotlib as mpl
     x2, y1 = x[-1::-1], y1[-1::-1]
@@ -960,8 +974,13 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
 
 def binHisto(data, verbose=False):
     """
-    Calculates bin width and number of bins for histogram using Freedman-Diaconis rule
-    if rule fails, defaults to square-root method
+    Calculates bin width and number of bins for histogram using Freedman-Diaconis rule, if rule fails, defaults to square-root method
+
+    The Freedman-Diaconis method is detailed in:
+        Freedman, D., and P. Diaconis (1981), On the histogram as a density estimator: L2 theory, Z. Wahrscheinlichkeitstheor. Verw. Geb., 57, 453–476
+
+    and is also described by:
+        Wilks, D. S. (2006), Statistical Methods in the Atmospheric Sciences, 2nd ed.
 
     Parameters
     ==========
@@ -985,6 +1004,10 @@ def binHisto(data, verbose=False):
     >>> print(nbins)
     19.0
     >>> p = plt.hist(data, bins=nbins, histtype='step', normed=True)
+
+    See Also
+    ========
+    matplotlib.pyplot.hist
     """
     from matplotlib.mlab import prctile
     pul = prctile(data, p=(25,75)) #get confidence interval
@@ -1025,6 +1048,10 @@ def smartTimeTicks(time):
     =======
     out : tuple
         tuple of Mtick - major ticks, mtick - minor ticks, fmt - format
+
+    See Also
+    ========
+    toolbox.applySmartTimeTicks
     """
     from matplotlib.dates import (MinuteLocator, HourLocator,
                                   DayLocator, DateFormatter)
@@ -1078,6 +1105,10 @@ def applySmartTimeTicks(ax, time, dolimit = True):
     dolimit : boolean (optional)
         The range of the 'time' input value will be used to set the limits
         of the x-axis as well. Setting this overrides this behavior.
+
+    See Also
+    ========
+    toolbox.smartTimeTicks
     """
     Mtick, mtick, fmt = smartTimeTicks(time)
     ax.xaxis.set_major_locator(Mtick)
@@ -1119,15 +1150,19 @@ def logspace(min, max, num, **kwargs):
     >>> import sapcepy.toolbox as tb
     >>> tb.logspace(1, 100, 5)
     array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
+
+    See Also
+    ========
+    toolbox.geomspace
+    toolbox.linspace
     """
-    from numpy import logspace, log10
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
-        ans = num2date(logspace(log10(date2num(min)), log10(date2num(max)), num, **kwargs))
+        ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), num, **kwargs))
         ans = [val.replace(tzinfo=None) for val in ans]
         return np.array(ans)
     else:
-        return logspace(log10(min), log10(max), num, **kwargs)
+        return np.logspace(np.log10(min), np.log10(max), num, **kwargs)
 
 def linspace(min, max, num=50, endpoint=True, retstep=False):
     """
@@ -1160,36 +1195,42 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
         (depending on whether `endpoint` is True or False).
     step : float (only if `retstep` is True)
         Size of spacing between samples.
+
+    See Also
+    ========
+    toolbox.geomspace
+    toolbox.logspace
     """
-    from numpy import linspace, log10
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
-        ans = num2date(linspace(date2num(min), date2num(max),
+        ans = num2date(np.linspace(date2num(min), date2num(max),
                                  num=num, endpoint=endpoint, retstep=retstep))
         ans = [val.replace(tzinfo=None) for val in ans]
         return np.array(ans)
     else:
-        return linspace(min, max,
+        return np.linspace(min, max,
                         num=num, endpoint=endpoint, retstep=retstep)
 
 def geomspace(start, ratio=None, stop=False, num=50):
     """
-    Returns geometrically spaced numbers.  
+    Returns geometrically spaced numbers.
 
     Parameters
     ==========
     start : float
-    The starting value of the sequence.
+        The starting value of the sequence.
     ratio : float (optional)
-    The ratio between subsequent points
+        The ratio between subsequent points
     stop: float (optional)
-    End value, if this is selected `num' is overridden
+        End value, if this is selected `num' is overridden
     num : int (optional)
-    Number of samples to generate. Default is 50.
-                                                                                                                    Returns
+        Number of samples to generate. Default is 50.
+
+    Returns
     =======
     seq : array
-    
+        geometrically spaced sequence
+
     Examples
     ========
     To get a geometric progression between 0.01 and 3 in 10 steps
@@ -1209,21 +1250,26 @@ def geomspace(start, ratio=None, stop=False, num=50):
 
      To get a geometric progression with a specified ratio, say 10
 
-     >>> import spacepy.toolbox as tb
-     >>> tb.geomspace(0.01, ratio=10, num=5)
+    >>> import spacepy.toolbox as tb
+    >>> tb.geomspace(0.01, ratio=10, num=5)
      [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
+
+    See Also
+    ========
+    toolbox.linspace
+    toolbox.logspace
     """
-    if not ratio and stop:
+    if not ratio and stop != False:
         ratio = (stop/start)**(1/(num-1))
     seq = []
     seq.append(start)
-    if not stop:
+    if stop == False:
         for j in range(1, num):
             seq.append(seq[j-1]*ratio)
         return seq
     else:
         val, j = start, 1
-        while val<=stop:
+        while val <= stop or feq(val, stop, ):
             val = seq[j-1]*ratio
             seq.append(val)
             j+=1
@@ -1285,6 +1331,10 @@ def mlt2rad(mlt, midnight = False):
     >>> from numpy import array
     >>> mlt2rad(array([3,6,9,14,22]))
     array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
+
+    See Also
+    ========
+    toolbox.rad2mlt
     """
     if midnight:
         try:
@@ -1321,6 +1371,10 @@ def rad2mlt(rad, midnight=False):
     ========
     >>> rad2mlt(array([0,pi, pi/2.]))
     array([ 12.,  24.,  18.])
+
+    See Also
+    ========
+    toolbox.mlt2rad
     """
     if midnight:
         rad_arr = rad + np.pi

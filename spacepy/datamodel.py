@@ -6,14 +6,20 @@ meant to mirror the functionality of the data model output from pycdf, though
 implemented slightly differently.
 
 This contains the following classes:
- * dmarray - numpy arrays that support .attrs for information about the data
- * SpaceData - base class that extends dict, to be extended by others
+ * :py:class:`dmarray` - numpy arrays that support .attrs for information about the data
+ * :py:class:`SpaceData` - base class that extends dict, to be extended by others
     Currently used in GPScode and other projects
 
 Authors: Steve Morley and Brian Larsen
+
 Additional Contributors: Charles Kiyanda and Miles Engel
+
 Institution: Los Alamos National Laboratory
+
 Contact: smorley@lanl.gov; balarsen@lanl.gov
+
+Copyright ©2010 Los Alamos National Security, LLC.
+
 
 About datamodel
 ---------------
@@ -36,18 +42,11 @@ using the function fromHDF5:
     >>> data = dm.fromHDF5('test.h5')
 
 
+Examples
+--------
 
-Guide for NASA CDF users
-------------------------
-
-By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
-(stored variables of various types) and a set of attributes that are either global or local in
-scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
-are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
-nested (more on this later, if conversion from a nested datamodel to a flat datamodel is required).
-
-This is best illustrated with an example. Imagine representing some satellite data within a CDF --
-the global attributes might be the mission name and the instrument PI, the variables might be the
+Imagine representing some satellite data within the global attributes might be
+the mission name and the instrument PI, the variables might be the
 instrument counts [n-dimensional array], timestamps[1-dimensional array and an orbit number [scalar].
 Each variable will have one attribute (for this example).
 
@@ -58,9 +57,8 @@ Each variable will have one attribute (for this example).
     >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
     >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
-This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel,
-we can use the toolbox function dictree (which works for any dictionary-like object, including PyCDF
-file objects).
+This has now populated a structure that can map directly to a NASA CDF or a HDF5. To visualize our datamodel,
+we can use the :py:func:`toolbox.dictree` function (which works for any dictionary-like object).
 
     >>> import spacepy.toolbox as tb
     >>> tb.dictree(mydata, attrs=True)
@@ -74,6 +72,16 @@ file objects).
     |____OrbitNumber
          :|____StartsFrom
 
+
+Guide for NASA CDF users
+------------------------
+By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
+(stored variables of various types) and a set of attributes that are either global or local in
+scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
+are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
+nested (more on this later, if conversion from a nested datamodel to a flat datamodel is required).
+
+
 Opening a CDF and working directly with the contents can be easily done using the PyCDF module, however,
 if you wish to load the entire contents of a CDF directly into a datamodel (complete with attributes)
 the following will make life easier:
@@ -81,12 +89,10 @@ the following will make life easier:
     >>> import spacepy.datamodel as dm
     >>> data = dm.fromCDF('test.cdf')
 
-Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from __future__ import division
 import numpy, copy, datetime
-from spacepy import pycdf
 
 class dmarray(numpy.ndarray):
     """
@@ -278,12 +284,13 @@ class SpaceData(dict):
 def convertKeysToStr(SDobject):
     if isinstance(SDobject, SpaceData):
         newSDobject = SpaceData()
+        newSDobject.attrs = SDobject.attrs
     else:
         newSDobject = {}
     for key in SDobject:
         if not isinstance(key, str):
             if isinstance(SDobject[key], dict):
-                newSDobject[key] = convertKeysToStr(SDobject[key])
+                newSDobject[str(key)] = convertKeysToStr(SDobject[key])
             else:
                 newSDobject[str(key)] = SDobject[key]
         else:
@@ -384,6 +391,10 @@ def fromCDF(fname, **kwargs):
     >>> data = dm.fromCDF('test.cdf')
     '''
     #TODO: add unflatten keyword and restore flattened variables
+    try:
+        from spacepy import pycdf
+    except ImportError:
+        raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
 
     try:
         cdfdata = pycdf.CDF(fname)
@@ -502,27 +513,20 @@ def toHDF5(fname, SDobject, **kwargs):
     def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
         if hasattr(SDobject, 'attrs'):
             for key, value in SDobject.attrs.iteritems():
-                #try:
-                    if type(value) in allowed_attrs:
-                        #test for datetimes in interables
-                        if hasattr(value, '__iter__'):
-                            value = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
-                        if value or value is 0:
-                            hfile[path].attrs[key] = value
-                        else:
-                            hfile[path].attrs[key] = ''
+                if type(value) in allowed_attrs:
+                    #test for datetimes in interables
+                    if hasattr(value, '__iter__'):
+                        value = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
+                    if value or value is 0:
+                        hfile[path].attrs[key] = value
                     else:
-                        #TODO: add support for datetime in attrs (convert to isoformat)
-                        print('\n\nThe following key:value pair is not permitted')
-                        print('key (type) =', key, '(', type(key), ')\n',
-			      'value (type) =', value, '(', type(value), ')')
-                        print('value type ', type(value), ' is not in the allowed attribute list\n')
-
-                #except:
-                #    print('\n\nThe following key:value pair is not permitted')
-                #    print('key (type) =', key, '(', type(key), ')\n',
-		#    	  'value (type) =', value, '(', type(value), ')')
-                #    print('key cannot be of type %s \n' % type(key))
+                        hfile[path].attrs[key] = ''
+                else:
+                    #TODO: add support for datetime in attrs (convert to isoformat)
+                    print('\n\nThe following key:value pair is not permitted')
+                    print('key (type) =', key, '(', type(key), ')\n',
+		          'value (type) =', value, '(', type(value), ')')
+                    print('value type ', type(value), ' is not in the allowed attribute list\n')
 
     try:
         import h5py as hdf
@@ -560,26 +564,18 @@ def toHDF5(fname, SDobject, **kwargs):
     #first convert non-string keys to str
     SDobject = convertKeysToStr(SDobject)
 
-    #try:
-        ##carry over the attributes
     SDcarryattrs(SDobject,hfile,path,allowed_attrs)
-        ##carry over the groups and datasets
     for key, value in SDobject.iteritems():
-            #try:
-                if type(value) is allowed_elems[0]:
-                    hfile[path].create_group(key)
-                    toHDF5(hfile, SDobject[key], path=path+'/'+key)
-                elif type(value) is allowed_elems[1]:
-                    try:
-                        hfile[path].create_dataset(key, data=value)
-                    except:
-                        if isinstance(value[0], datetime.datetime):
-                            for i, val in enumerate(value): value[i] = val.isoformat()
-                        hfile[path].create_dataset(key, data=value.astype('|S35'))
-                        #else:
-                        #    hfile[path].create_dataset(key, data=value.astype(float))
-                    SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
-            #except:
-                #raise Exception('Unrecoverable Error in the Object.\nAborting')
-    #except:
-        #raise Exception('Unrecoverable Error in the Object.\nAborting')
+        if type(value) is allowed_elems[0]:
+            hfile[path].create_group(key)
+            toHDF5(hfile, SDobject[key], path=path+'/'+key)
+        elif type(value) is allowed_elems[1]:
+            try:
+                hfile[path].create_dataset(key, data=value)
+            except:
+                if isinstance(value[0], datetime.datetime):
+                    for i, val in enumerate(value): value[i] = val.isoformat()
+                hfile[path].create_dataset(key, data=value.astype('|S35'))
+                #else:
+                #    hfile[path].create_dataset(key, data=value.astype(float))
+            SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)

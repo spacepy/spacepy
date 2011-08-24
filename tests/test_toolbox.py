@@ -398,6 +398,25 @@ class SimpleFunctionTests(unittest.TestCase):
         expected = [numpy.sum(i) for i in inputs]
         self.assertEqual(expected, totals)
 
+    def test_dictree(self):
+        """dictree has known output (None)"""
+        a = {'a':1, 'b':2, 'c':{'aa':11, 'bb':22}}
+        self.assertEqual(tb.dictree(a), None)
+        self.assertEqual(tb.dictree(a, attrs=True), None)
+        self.assertEqual(tb.dictree(a, verbose=True), None)
+        self.assertRaises(TypeError, tb.dictree, 'bad')
+
+    def test_geomspace(self):
+        """geomspace shopuld give known output"""
+        ans = [1, 10, 100, 1000]
+        numpy.testing.assert_array_equal(tb.geomspace(1, 10, 1000), ans)
+        ans = [1, 10.0, 100.0]
+        numpy.testing.assert_array_equal(tb.geomspace(1, stop = 100, num=3), ans)
+        ans = [1, 10, 100]
+        numpy.testing.assert_array_equal(tb.geomspace(1, ratio = 10, num=3), ans)
+        # there was a roiunding issue that this test catches
+        ans = [1, 3.1622776601683795, 10.000000000000002]
+        numpy.testing.assert_allclose(tb.geomspace(1, stop = 10, num=3), ans)
 
 class tFunctionTests(unittest.TestCase):
     def setUp(self):

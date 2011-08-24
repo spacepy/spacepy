@@ -10,7 +10,6 @@ graft tests
 recursive-include spacepy *.c *.h
 prune spacepy/onerapy
 graft spacepy/irbempy
-#prune spacepy/irbempy/irbem-lib-*
 include spacepy/LANLstar/*
 recursive-exclude spacepy/libspacepy *.o *.pyc
 recursive-exclude tests *.o *.pyc
