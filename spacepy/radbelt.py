@@ -201,24 +201,24 @@ class RBmodel(object):
 
         Returns
         -------
-        out : radbeltmodel.PSDdata
-            List with information of the observational data, where each entry
+        out : list of dicts
+            Information of the observational data, where each entry
             contains the observations and locations of observations for each
             time specified in the time array. Each list entry is a dictionary
             with the following information:
-                'Ticks' : Ticktock array
-                        time of observations
-                'Lstar' : numpy array
-                        location of observations
-                'PSD'   : numpy array
-                        PSD observation values
-                'sat'   : list of strings
-                        satellite names
-                'MU'    : scalar value
-                        Mu value for the observations
-                'K'     : scalar value
-                        K value for the observations
 
+        Ticks : Ticktock array
+            time of observations
+        Lstar : numpy array
+            location of observations
+        PSD   : numpy array
+            PSD observation values
+        sat   : list of strings
+            satellite names
+        MU    : scalar value
+            Mu value for the observations
+        K     : scalar value
+            K value for the observations
         """
 
         import spacepy.sandbox.PSDdata as PD
