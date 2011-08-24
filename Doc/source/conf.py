@@ -214,6 +214,9 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
+#Keep the TOC from getting too deep for LaTeX
+#latex_elements = {'preamble': '\\setcounter{tocdepth}{3}'}
+
 
 # -- Options for manual page output --------------------------------------------
 
