@@ -2,7 +2,7 @@
 
 
 {% block rootrellink %}
-        <li><a href="{{ pathto('index') }}">home</a>|&nbsp;</li>
+        <li><a href="http://spacepy.lanl.gov/index.shtml">homepage</a>|&nbsp;</li>
         <li><a href="{{ pathto('search') }}">search</a>|&nbsp;</li>
        <li><a href="{{ pathto('index') }}">documentation </a> &raquo;</li>
 {% endblock %}
@@ -12,7 +12,7 @@
 
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
 <a href="{{ pathto('index') }}"><img src="{{
-pathto("_static/spacepy_logo.jpg", 1) }}" border="0" alt="py4sci"/></a>
+pathto("_static/spacepy_logo.jpg", 1) }}" border="0" alt="spacepy_logo"/></a>
 </div>
 {{ super() }}
 {% endblock %}
