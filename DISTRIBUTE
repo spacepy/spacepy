@@ -9,8 +9,8 @@ The latest must be installed for the docs to be built properly.
 Tarball and zip are in the dist directory.
 
 On Windows with Sphinx installed:
-copy SpacePy.pdf from the Unix build above into the Doc directory
+copy SpacePy.pdf from the Unix build above into the Doc directory,
+since LaTeX is unlikely to work on Windows
     python setup.py install
-    python setup.py build --build-docs
     python setup.py bdist_wininst
 installer exe is in the dist directory.
