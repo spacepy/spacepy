@@ -121,7 +121,6 @@ def rebuild_static_docs(dist=None):
     try:
         cmd = 'make latexpdf'
         subprocess.check_call(cmd.split())
-        shutil.move(os.path.join('build', 'latex', 'SpacePy.pdf'), '.')
     except:
         if dist != None:
             dist.add_warning(
