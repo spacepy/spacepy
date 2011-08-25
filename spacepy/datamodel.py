@@ -579,3 +579,5 @@ def toHDF5(fname, SDobject, **kwargs):
                 #else:
                 #    hfile[path].create_dataset(key, data=value.astype(float))
             SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
+
+    if path=='/': hfile.close()
