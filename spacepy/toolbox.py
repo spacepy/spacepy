@@ -1796,13 +1796,11 @@ def dist_to_list(func, length, min=None, max=None):
     >>> import matplotlib
     >>> import numpy
     >>> import spacepy.toolbox as tb
-    >>> gauss = lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
-                          (5 * math.sqrt(2 * math.pi))
+    >>> gauss = lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / (5 * math.sqrt(2 * math.pi))
     >>> vals = tb.dist_to_list(gauss, 1000, -numpy.inf, numpy.inf)
     >>> print vals[0]
     -16.45263...
-    >>> p1 = matplotlib.pyplot.hist(vals, bins=[i - 10 for i in range(21)], \
-                               facecolor='green')
+    >>> p1 = matplotlib.pyplot.hist(vals, bins=[i - 10 for i in range(21)], facecolor='green')
     >>> matplotlib.pyplot.hold(True)
     >>> x = [i / 100.0 - 10.0 for i in range(2001)]
     >>> p2 = matplotlib.pyplot.plot(x, [gauss(i) * 1000 for i in x], 'red')
