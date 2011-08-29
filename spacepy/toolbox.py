@@ -1550,9 +1550,9 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     newx : array_like
         x values where we want the interpolated values
     x : array_like
-        x values of the origional data
+        x values of the original data
     y : array_like
-        7 values of the origional data
+        y values of the original data
     wrap : string, optional
         for continous x data that wraps in y at 'hours' (24), 'longitude' (360),
         or arbitary value (int, float)
