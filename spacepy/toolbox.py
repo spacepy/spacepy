@@ -1854,12 +1854,12 @@ def bin_center_to_edges(centers):
 
 def hypot(*vals):
     """
-    Compute sqrt(vals[0] **2 + vals[1] **2 ...), ie. n-dimensional hypoteneuse
+    Compute sqrt(vals[0] **2 + vals[1] **2 ...), ie. n-dimensional hypotenuse
 
     Parameters
     ==========
-    vals : float (arbitary number)
-        arbitary number of float values
+    vals : float (arbitary number), or iterable
+        arbitary number of float values as arguments or an iterable
 
     Returns
     =======
@@ -1877,7 +1877,13 @@ def hypot(*vals):
     >>> tb.hypot(*range(10))
     16.88194...
     """
-    return math.sqrt(sum((v ** 2 for v in vals)))
+    if len(vals) !=1 :
+        return math.sqrt(sum((v ** 2 for v in vals)))
+    else: # it was a single iterator
+        try:
+            return math.sqrt(sum((v ** 2 for v in vals[0])))
+        except TypeError:
+            return vals[0]
 
 def thread_job(job_size, thread_count, target, *args, **kwargs):
     """

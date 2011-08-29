@@ -378,6 +378,9 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = [ 5, 7.0710678118654755, 16.73320053068151, 3.7416573867739413 ]
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(*tst))
+        for i, tst in enumerate(invals):
+            self.assertAlmostEqual(ans[i], tb.hypot(tst))
+        self.assertEqual(5.0, tb.hypot(5.0))
 
     def testThreadJob(self):
         """Multithread the square of an array"""
