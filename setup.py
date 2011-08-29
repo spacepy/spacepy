@@ -390,10 +390,12 @@ class build(_build):
                 self.distribution.add_warning(
                 "Numpydoc and sphinx required to build documentation.\n"
                 "Help will not be available; try without --build-docs.")
+                return
             else:
                 self.distribution.add_warning(
                 "Numpydoc and sphinx required to build documentation.\n"
                 "Help will not be available.")
+                return
         builddir = os.path.join(os.path.join(self.build_temp, 'doctrees'))
         indir = os.path.join('Doc', 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
