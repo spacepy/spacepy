@@ -1452,9 +1452,19 @@ def pmm(a, *b):
     >>> tb.pmm(arange(10), arange(10)+3)
     [[0, 9], [3, 12]]
     """
-    ans= [[ np.min(a), np.max(a) ]]
+    ind = np.isfinite(a)
+    try:
+        ans = [[ np.min(a[ind]), np.max(a[ind]) ]]
+    except TypeError:
+        a_tmp = np.asarray(a)
+        ans = [[ np.min(a_tmp[ind]), np.max(a_tmp[ind]) ]]
     for val in b:
-        ans.append( [np.min(val), np.max(val)] )
+        ind = np.isfinite(val)
+        try:
+            ans.append( [np.min(val[ind]), np.max(val[ind])] )
+        except TypeError:
+            val_tmp = np.asarray(val)
+            ans.append( [np.min(val_tmp[ind]), np.max(val_tmp[ind])] )
     return ans
 
 def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
