@@ -8,12 +8,12 @@ Authors
 The SpacePy Team
 Los Alamos National Laboratory
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright ©2010 - 2011 Los Alamos National Security, LLC.
 """
 
 import os, sys, shutil, getopt, glob, re
 import subprocess
-from distutils.core import setup
+from distutils.core import setup, Extension
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
 from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
@@ -24,6 +24,8 @@ from distutils.dist import Distribution as _Distribution
 import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
 from os import environ as ENVIRON
+
+import numpy
 
 
 def subst(pattern, replacement, filestr,
@@ -153,39 +155,6 @@ class build(_build):
                 'install').build_docs
             if self.build_docs == None:
                 self.build_docs = False
-
-    def compile_pybats(self):
-        outdir = os.path.join(self.build_lib, 'spacepy', 'pybats')
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
-        if sys.platform == 'win32':
-            libfile = 'ctrace2d.pyd'
-        else:
-            libfile = 'ctrace2d.so'
-        outpath = os.path.join(outdir, libfile)
-        srcdir = os.path.join('spacepy', 'pybats')
-        srcpaths = [os.path.join(srcdir, f)
-                    for f in ('ctrace2d.pyf', 'trace2d.c')]
-        if distutils.dep_util.newer_group(srcpaths, outpath):
-            os.chdir(srcdir)
-            try:
-                f2py = self.f2py
-                if self.compiler:
-                    f2py += ' --compiler={0}'.format(self.compiler)
-                os.system(
-                    '{0} -c ctrace2d.pyf trace2d.c'.format(
-                    f2py))
-                outpath = os.path.join('..', '..', outpath)
-                if os.path.exists(outpath):
-                    os.remove(outpath)
-                shutil.move(libfile,
-                            os.path.join('..', '..', outdir))
-            except:
-                self.distribution.add_warning(
-                    'pybats compile failed; pybats will not be available.')
-            finally:
-                os.chdir('..')
-                os.chdir('..')
 
     def compile_LANLstar(self):
         outdir = os.path.join(self.build_lib, 'spacepy', 'LANLstar')
@@ -408,7 +377,6 @@ class build(_build):
         """Actually perform the build"""
         self.compile_irbempy()
         self.compile_LANLstar()
-        self.compile_pybats()
         self.compile_libspacepy()
         if self.build_docs:
             self.make_docs()
@@ -441,8 +409,6 @@ class install(_install):
             print('Checking Python >= 2.6...')
             dum = sys.version_info
             assert (dum[0] >= 2) or (dum[0] == 2 and dum[1] >= 6)
-            print ('Checking for numpy...')
-            import numpy
         except:
             raise Exception("""SpacePy requires Python 2.X, where X>=6.\n
             Numpy, Scipy and Matplotlib(>=0.99) are also required\n
@@ -515,11 +481,15 @@ class Distribution(_Distribution):
 pkg_files = ['irbempy/*.py', 'LANLstar/*.py',
     'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*']
 
+pybats_ext = Extension('spacepy/pybats/ctrace2d',
+                       sources=['spacepy/pybats/ctrace2dmodule.c'],
+                       include_dirs=[numpy.get_include()])
 
 # run setup from distutil
 setup(name='spacepy',
       version='0.1',
       description='SpacePy: Tools for Space Science Applications',
+      ext_modules=[pybats_ext],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',

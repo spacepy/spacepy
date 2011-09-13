@@ -11,7 +11,7 @@ Copyright 2010 - 2011  Los Alamos National Security, LLC. */
 
 /*************************************************************************/
 #include <Python.h>
-#include <arrayobject.h>
+#include <numpy/arrayobject.h>
 #include <math.h>
 
 /* Bilinear interpolation for x1,y1=0 and x2,y2=1     */
