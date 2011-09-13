@@ -246,7 +246,7 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
   PyArrayObject *outxtrunc, *outytrunc;
   double xstart, ystart, ds;
   int maxstep, xsize, ysize, count, lout;
-  PyArray_Descr *array_type, *array_type_tmp;
+  PyArray_Descr *array_type;
   npy_intp outdims[] = {0};
   npy_intp indims[] = {0};
   PyArray_Dims outshape = { outdims, 1 };
@@ -258,9 +258,7 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
 			&PyArray_Type, &fieldx, &PyArray_Type, &fieldy))
     return NULL;
 
-  array_type_tmp = PyArray_DescrFromType(NPY_DOUBLE);
-  array_type = PyArray_DescrNewByteorder(array_type_tmp, NPY_NATIVE);
-  Py_DECREF(array_type_tmp);
+  array_type = PyArray_DescrFromType(NPY_DOUBLE);
   /*For all of these, we are throwing away the borrowed ref
    *to the original, and creating a new object with a new ref.
    *So the new ref will be freed, but the borrowed ref is left alone.
@@ -269,13 +267,12 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
   gridy = (PyArrayObject*)PyArray_FromArray(gridy, array_type, NPY_DEFAULT);
   fieldx = (PyArrayObject*)PyArray_FromArray(fieldx, array_type, NPY_DEFAULT);
   fieldy = (PyArrayObject*)PyArray_FromArray(fieldy, array_type, NPY_DEFAULT);
-  Py_DECREF(array_type);
   xsize = (int)PyArray_DIM(gridx, 0);
   ysize = (int)PyArray_DIM(gridy, 0);
   indims[0] = maxstep;
   outx = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
   outy = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
-  return Py_BuildValue("OO", outx, outy);
+  Py_DECREF(array_type);
 
   gridxd = (double*)PyArray_DATA(gridx);
   gridyd = (double*)PyArray_DATA(gridy);
