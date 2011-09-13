@@ -1,22 +1,19 @@
 /*************************************************************************/
 /*Fast, accurate tracing routines for tracing a streamline through a 2D
 vector field.  The subroutines included here are meant to be called from
-python routines.  Compiling and executing this will perform some simple
-tests to ensure that the functions are working correctly.  For a quick 
-test of this module, compile it and run the executable.
+python routines.
 
-Copyright ©2010 Los Alamos National Security, LLC. */
+Copyright 2010 - 2011  Los Alamos National Security, LLC. */
 
 /*************************************************************************/
-#include <stdlib.h>
-#include <stdio.h>
+#include <Python.h>
 #include <math.h>
 
 /* Bilinear interpolation for x1,y1=0 and x2,y2=1     */
 /* Q's are surrounding points such that Q00 = F[0,0], */
 /* Q10 = F[1,0], etc.                                 */
-double bilin_reg(double x, double y, double Q00, 
-		 double Q01, double Q10, double Q11)
+static double bilin_reg(double x, double y, double Q00, 
+			double Q01, double Q10, double Q11)
 {
   double fout;
   //printf("Input = %.3f, %.3f\n",x, y);
@@ -33,7 +30,7 @@ double bilin_reg(double x, double y, double Q00,
 }
 
 /* Check to see if we should break out of an integration */
-int DoBreak(int iloc, int jloc, int iSize, int jSize)
+static int DoBreak(int iloc, int jloc, int iSize, int jSize)
 {
   int ibreak = 0;
   //printf("At %i, %i with limits %i, %i\n", iloc, jloc, iSize, jSize);
@@ -46,7 +43,7 @@ int DoBreak(int iloc, int jloc, int iSize, int jSize)
 }
 
 /* Create unit vectors of field */
-void make_unit(int iSize, int jSize, double *ux, double *uy)
+static void make_unit(int iSize, int jSize, double *ux, double *uy)
 {
   int i, j;
   double magnitude;
@@ -62,20 +59,14 @@ void make_unit(int iSize, int jSize, double *ux, double *uy)
   return;
 }
 
-int test_arrays(int iSize, int jSize, double xGrid[], double yGrid[],
-		double *ux, double *uy){
-  printf("Seems to work.\n");
-  return 1;
-}
-
 /* Simple tracing using Euler's method. */
 /* Super fast but not super accurate.   */
-int cEuler(int iSize, int jSize,             /* Grid size and max steps */
-	   int maxstep, double ds,           /* Maxsteps and step size  */
-	   double xstart, double ystart,     /* Starting locations      */
-	   double xGrid[], double yGrid[],   /* Actual coord system     */
-	   double *ux, double *uy,           /* Field to trace through  */
-	   double x[], double y[], int l[])  /* x, y of result stream   */
+static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
+		  int maxstep, double ds,         /* Maxsteps and step size  */
+		  double xstart, double ystart,   /* Starting locations      */
+		  double xGrid[], double yGrid[], /* Actual coord system     */
+		  double *ux, double *uy,         /* Field to trace through  */
+		  double x[], double y[], int l[])/* x, y of result stream   */
 {
   /* Variable declarations */
   int n=0, i, xloc, yloc;
@@ -132,12 +123,12 @@ int cEuler(int iSize, int jSize,             /* Grid size and max steps */
 
 /* Fast and reasonably accurate tracing with */
 /* Runge-Kutta 4 method (constant step size) */
-int cRk4(int iSize, int jSize,             /* Grid size and max steps */
-	 int maxstep, double ds,           /* Maxsteps and step size  */
-	 double xstart, double ystart,     /* Starting locations      */
-	 double xGrid[], double yGrid[],   /* Actual coord system     */
-	 double *ux, double *uy,           /* Field to trace through  */
-	 double x[], double y[], int l[])  /* x, y of result stream   */
+static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
+		int maxstep, double ds,           /* Maxsteps and step size  */
+		double xstart, double ystart,     /* Starting locations      */
+		double xGrid[], double yGrid[],   /* Actual coord system     */
+		double *ux, double *uy,           /* Field to trace through  */
+		double x[], double y[], int l[])  /* x, y of result stream   */
 {
   /* Variable declarations */
   int n=0, i, xloc, yloc;
@@ -233,75 +224,4 @@ int cRk4(int iSize, int jSize,             /* Grid size and max steps */
   l[0] = n;
   return n;
 
-}
-
-/* A utility for printing test results. */
-void test_check(double result, double answer)
-{
-  double diff, thresh;
-
-  thresh = 0.00001;
-  diff = 100.0*(result - answer) / answer;
-
-  if (diff < thresh)
-    printf("TEST PASSED! (Result=%.4f, Answer=%.4f)\n", result, answer);
-  else{
-    printf("TEST FAILED!\n");
-    printf("Result %.20f differs from answer %.20f\n", result, answer);
-    printf("Difference of %.3f%% is over threshold of %.5f%%\n", diff, thresh);
-  }
-}
-
-
-/* Main simply tests the functionality of all funcs in this file.*/
-int main()
-{
-  /* Declarations */
-  double out=0, x=0.1, y=0.2, Q00=3.0, Q01=5.0, Q10=40.0, Q11=60.0;
-  double sol1 = 7.460;
-  int l[1];
-
-  /* Test bilin_reg */
-  printf("Testing bilin_reg\n");
-  out = bilin_reg(x, y, Q00, Q01, Q10, Q11);
-  printf("TEST 1: ");
-  test_check(out, sol1);
-
-
-  /* Test cEuler 1 */
-  int i, j, nx=841, ny=121, maxstep=10000, npoints;
-  double xgrid[nx], ygrid[nx], *ux, *uy, xt[maxstep], yt[maxstep], ds=1.0;
-  ux = malloc(nx * ny * sizeof(double));
-  uy = malloc(nx * ny * sizeof(double));
-  
-  for (i=0; i<nx; i++)
-    {
-      xgrid[i] = -10.0+0.25*i;
-      ygrid[i] = xgrid[i];
-    }
-
-  for (i=0; i<nx; i++)
-    for (j=0; j<ny; j++)
-      {
-	*(ux+i*ny+j) = xgrid[i];
-	*(uy+i*ny+j) = -1.0 * ygrid[j];
-      }
-
-  npoints = cEuler(nx, ny, maxstep, ds, 1.0, 10.0, xgrid, ygrid,
-			 ux, uy, xt, yt, l);
-  printf("Npoints = %i\n", npoints);
-  printf("Grid goes from %.2f to %.2f\n", xgrid[0], xgrid[nx-1]);
-  printf("Our trace starts at %.2f, %.2f\n", xt[0], yt[0]);
-  printf("...and ends at      %.2f, %.2f\n", xt[npoints], yt[npoints]);
-
-  npoints = cRk4(nx, ny, maxstep, ds, 1.0, 10.0, xgrid, ygrid,
-		 ux, uy, xt, yt, l);
-  printf("Npoints = %i\n", npoints);
-  printf("Grid goes from %.2f to %.2f\n", xgrid[0], xgrid[nx-1]);
-  printf("Our trace starts at %.2f, %.2f\n", xt[0], yt[0]);
-  printf("...and ends at      %.2f, %.2f\n", xt[npoints], yt[npoints]);  
-
-  /*for (i=0; i<npoints; i++)
-    printf("%.3f, %.3f\n", xt[i], yt[i]);*/
-  return 0;
 }
