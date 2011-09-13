@@ -71,7 +71,7 @@ static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
 		  double xstart, double ystart,   /* Starting locations      */
 		  double xGrid[], double yGrid[], /* Actual coord system     */
 		  double *ux, double *uy,         /* Field to trace through  */
-		  double x[], double y[], int l[])/* x, y of result stream   */
+		  double x[], double y[])         /* x, y of result stream   */
 {
   /* Variable declarations */
   int n=0, i, xloc, yloc;
@@ -122,7 +122,6 @@ static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
     }
   //printf("Used %i points\n",n);
   //printf("Breaking at %.3f, %.3f\n", x[n], y[n]);
-  l[0] = n;
   return n;
 }
 
@@ -133,7 +132,7 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
 		double xstart, double ystart,     /* Starting locations      */
 		double xGrid[], double yGrid[],   /* Actual coord system     */
 		double *ux, double *uy,           /* Field to trace through  */
-		double x[], double y[], int l[])  /* x, y of result stream   */
+		double x[], double y[])           /* x, y of result stream   */
 {
   /* Variable declarations */
   int n=0, i, xloc, yloc;
@@ -226,7 +225,6 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
       x[i] = x[i]*dx + xGrid[0];
       y[i] = y[i]*dy + yGrid[0];
     }
-  l[0] = n;
   return n;
 
 }
@@ -239,12 +237,12 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
 					     double, double, double,
 					     double*, double*,
 					     double*, double*,
-					     double*, double*, int*)) {
+					     double*, double*)) {
   PyArrayObject *gridx, *gridy, *fieldx, *fieldy, *outx, *outy;
   /*Data pointers for the above arrays*/
   double *gridxd, *gridyd, *fieldxd, *fieldyd, *outxd, *outyd;
   double xstart, ystart, ds;
-  int maxstep, xsize, ysize, count, lout;
+  int maxstep, xsize, ysize, count;
   PyArray_Descr *array_type;
   npy_intp outdims[] = {0};
   npy_intp indims[] = {0};
@@ -282,8 +280,7 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
 
 NPY_BEGIN_ALLOW_THREADS
   count = (*func)(xsize, ysize, maxstep, ds, xstart, ystart,
-		 gridxd, gridyd, fieldxd, fieldyd, outxd, outyd,
-		 &lout);
+		 gridxd, gridyd, fieldxd, fieldyd, outxd, outyd);
 NPY_END_ALLOW_THREADS
 
   Py_DECREF(gridx);
