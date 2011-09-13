@@ -247,8 +247,8 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
   double xstart, ystart, ds;
   int maxstep, xsize, ysize, count, lout;
   PyArray_Descr *array_type, *array_type_tmp;
-  int outdims[] = {0};
-  int indims[] = {0};
+  npy_intp outdims[] = {0};
+  npy_intp indims[] = {0};
   PyArray_Dims outshape = { outdims, 1 };
 
   if (!PyArg_ParseTuple(args,
