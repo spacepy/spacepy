@@ -295,8 +295,8 @@ NPY_END_ALLOW_THREADS
   Py_DECREF(fieldy);
 
   outdims[0] = count;
-  outxtrunc = (PyArrayObject*)PyArray_Newshape(outx, &outshape, NPY_CORDER);
-  outytrunc = (PyArrayObject*)PyArray_Newshape(outy, &outshape, NPY_CORDER);
+  outxtrunc = (PyArrayObject*)PyArray_Resize(outx, &outshape, 1, NPY_CORDER);
+  outytrunc = (PyArrayObject*)PyArray_Resize(outy, &outshape, 1, NPY_CORDER);
   Py_DECREF(outx);
   Py_DECREF(outy);
   /*Giving away our reference to the caller*/
