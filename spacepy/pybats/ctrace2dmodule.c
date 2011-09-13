@@ -50,16 +50,14 @@ static int DoBreak(int iloc, int jloc, int iSize, int jSize)
 /* Create unit vectors of field */
 static void make_unit(int iSize, int jSize, double *ux, double *uy)
 {
-  int i, j;
+  int i;
   double magnitude;
 
-  for (i=0; i<iSize; i++)
-    for (j=0; j<jSize; j++)
-      {
-	magnitude = sqrt(pow(*(ux+i*jSize+j),2)+pow(*(uy+i*jSize+j),2));
-	*(ux+i*jSize+j) = *(ux+i*jSize+j) / magnitude;
-	*(uy+i*jSize+j) = *(uy+i*jSize+j) / magnitude;
-      }
+  for (i=0; i< iSize * jSize; i++) {
+	magnitude = sqrt(pow(ux[i],2) + pow(uy[i],2));
+	ux[i] /= magnitude;
+	uy[i] /= magnitude;
+  }
 
   return;
 }
