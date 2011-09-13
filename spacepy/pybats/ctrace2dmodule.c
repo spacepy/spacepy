@@ -243,7 +243,6 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
   PyArrayObject *gridx, *gridy, *fieldx, *fieldy, *outx, *outy;
   /*Data pointers for the above arrays*/
   double *gridxd, *gridyd, *fieldxd, *fieldyd, *outxd, *outyd;
-  PyArrayObject *outxtrunc, *outytrunc;
   double xstart, ystart, ds;
   int maxstep, xsize, ysize, count, lout;
   PyArray_Descr *array_type;
@@ -293,12 +292,12 @@ NPY_END_ALLOW_THREADS
   Py_DECREF(fieldy);
 
   outdims[0] = count;
-  outxtrunc = (PyArrayObject*)PyArray_Resize(outx, &outshape, 1, NPY_CORDER);
-  outytrunc = (PyArrayObject*)PyArray_Resize(outy, &outshape, 1, NPY_CORDER);
-  Py_DECREF(outx);
-  Py_DECREF(outy);
+  if (!PyArray_Resize(outx, &outshape, 1, NPY_CORDER))
+    return NULL;
+  if (!PyArray_Resize(outy, &outshape, 1, NPY_CORDER))
+    return NULL;
   /*Giving away our reference to the caller*/
-  return Py_BuildValue("NN", outxtrunc, outytrunc);
+  return Py_BuildValue("NN", outx, outy);
 }
 
 static PyObject *ctrace2d_cEuler(PyObject *self, PyObject *args) {
