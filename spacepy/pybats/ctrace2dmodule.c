@@ -69,9 +69,9 @@ static void make_unit(int iSize, int jSize, double *ux, double *uy)
  *int xsize, int ysize: Size of field in X and y
  */
 #define grid_interp(x, y, field, xloc, yloc, xsize, ysize) \
-  bilin_reg(x-xloc, y-yloc, *(field+xloc*ysize+yloc), \
-	    *(field+xloc*ysize+yloc+1), *(field+(xloc+1)*ysize+yloc), \
-	    *(field+(xloc+1)*ysize+yloc+1))
+  bilin_reg(x-xloc, y-yloc, *(field+yloc*xsize+xloc), \
+	    *(field+(yloc+1)*xsize+xloc), *(field+yloc*xsize+xloc+1), \
+	    *(field+(yloc+1)*xsize+xloc+1))
 
 /* Simple tracing using Euler's method. */
 /* Super fast but not super accurate.   */
