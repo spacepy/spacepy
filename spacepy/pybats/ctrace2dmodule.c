@@ -273,8 +273,9 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
   xsize = (int)PyArray_DIM(gridx, 0);
   ysize = (int)PyArray_DIM(gridy, 0);
   indims[0] = maxstep;
-  outx = (PyArrayObject *)PyArray_SimpleNew(1, indims, NPY_DOUBLE);
-  outy = (PyArrayObject *)PyArray_SimpleNew(1, indims, NPY_DOUBLE);
+  outx = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
+  outy = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
+  return Py_BuildValue("OO", outx, outy);
 
   gridxd = (double*)PyArray_DATA(gridx);
   gridyd = (double*)PyArray_DATA(gridy);
@@ -300,7 +301,7 @@ NPY_END_ALLOW_THREADS
   Py_DECREF(outx);
   Py_DECREF(outy);
   /*Giving away our reference to the caller*/
-  return Py_BuildValue("NN", outxtrunc, outytrunc);  
+  return Py_BuildValue("NN", outxtrunc, outytrunc);
 }
 
 static PyObject *ctrace2d_cEuler(PyObject *self, PyObject *args) {
