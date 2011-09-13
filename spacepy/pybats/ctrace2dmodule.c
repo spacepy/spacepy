@@ -3,10 +3,15 @@
 vector field.  The subroutines included here are meant to be called from
 python routines.
 
+Test compilation:
+gcc -DNDEBUG -g -O3 -Wall -Wstrict-prototypes -fPIC -DMAJOR_VERSION=1 -DMINOR_VERISON=0 -I /usr/include/python2.6 -I /usr/share/pyshared/numpy/core/include/numpy/ -c ctrace2dmodule.c
+gcc -shared ctrace2dmodule.o -o ctrace2d.so
+
 Copyright 2010 - 2011  Los Alamos National Security, LLC. */
 
 /*************************************************************************/
 #include <Python.h>
+#include <arrayobject.h>
 #include <math.h>
 
 /* Bilinear interpolation for x1,y1=0 and x2,y2=1     */
@@ -224,4 +229,95 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
   l[0] = n;
   return n;
 
+}
+
+/*Since the two tracers have identical interfaces,
+ *almost all the code is common
+ */
+static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
+				 int (*func)(int, int, int,
+					     double, double, double,
+					     double*, double*,
+					     double*, double*,
+					     double*, double*, int*)) {
+  PyArrayObject *gridx, *gridy, *fieldx, *fieldy, *outx, *outy;
+  /*Data pointers for the above arrays*/
+  double *gridxd, *gridyd, *fieldxd, *fieldyd, *outxd, *outyd;
+  PyArrayObject *outxtrunc, *outytrunc;
+  double xstart, ystart, ds;
+  int maxstep, xsize, ysize, count, lout;
+  PyArray_Descr *array_type, *array_type_tmp;
+  int outdims[] = {0};
+  int indims[] = {0};
+  PyArray_Dims outshape = { outdims, 1 };
+
+  if (!PyArg_ParseTuple(args,
+			"idddO!O!O!O!:cEuler",
+			&maxstep, &ds, &xstart, &ystart,
+			&PyArray_Type, &gridx, &PyArray_Type, &gridy,
+			&PyArray_Type, &fieldx, &PyArray_Type, &fieldy))
+    return NULL;
+
+  array_type_tmp = PyArray_DescrFromType(NPY_DOUBLE);
+  array_type = PyArray_DescrNewByteorder(array_type_tmp, NPY_NATIVE);
+  Py_DECREF(array_type_tmp);
+  /*For all of these, we are throwing away the borrowed ref
+   *to the original, and creating a new object with a new ref.
+   *So the new ref will be freed, but the borrowed ref is left alone.
+   */
+  gridx = (PyArrayObject*)PyArray_FromArray(gridx, array_type, NPY_DEFAULT);
+  gridy = (PyArrayObject*)PyArray_FromArray(gridy, array_type, NPY_DEFAULT);
+  fieldx = (PyArrayObject*)PyArray_FromArray(fieldx, array_type, NPY_DEFAULT);
+  fieldy = (PyArrayObject*)PyArray_FromArray(fieldy, array_type, NPY_DEFAULT);
+  Py_DECREF(array_type);
+  xsize = (int)PyArray_DIM(gridx, 0);
+  ysize = (int)PyArray_DIM(gridy, 0);
+  indims[0] = maxstep;
+  outx = (PyArrayObject *)PyArray_SimpleNew(1, indims, NPY_DOUBLE);
+  outy = (PyArrayObject *)PyArray_SimpleNew(1, indims, NPY_DOUBLE);
+
+  gridxd = (double*)PyArray_DATA(gridx);
+  gridyd = (double*)PyArray_DATA(gridy);
+  fieldxd = (double*)PyArray_DATA(fieldx);
+  fieldyd = (double*)PyArray_DATA(fieldy);
+  outxd = (double*)PyArray_DATA(outx);
+  outyd = (double*)PyArray_DATA(outy);
+
+NPY_BEGIN_ALLOW_THREADS
+  count = (*func)(xsize, ysize, maxstep, ds, xstart, ystart,
+		 gridxd, gridyd, fieldxd, fieldyd, outxd, outyd,
+		 &lout);
+NPY_END_ALLOW_THREADS
+
+  Py_DECREF(gridx);
+  Py_DECREF(gridy);
+  Py_DECREF(fieldx);
+  Py_DECREF(fieldy);
+
+  outdims[0] = count;
+  outxtrunc = (PyArrayObject*)PyArray_Newshape(outx, &outshape, NPY_CORDER);
+  outytrunc = (PyArrayObject*)PyArray_Newshape(outy, &outshape, NPY_CORDER);
+  Py_DECREF(outx);
+  Py_DECREF(outy);
+  /*Giving away our reference to the caller*/
+  return Py_BuildValue("NN", outxtrunc, outytrunc);  
+}
+
+static PyObject *ctrace2d_cEuler(PyObject *self, PyObject *args) {
+  return ctrace2d_common(self, args, cEuler);
+}
+
+static PyObject *ctrace2d_cRk4(PyObject *self, PyObject *args) {
+  return ctrace2d_common(self, args, cRk4);
+}
+
+static PyMethodDef ctrace2d_methods[] = {
+   { "cEuler", (PyCFunction)ctrace2d_cEuler, METH_VARARGS, NULL },
+   { "cRk4", (PyCFunction)ctrace2d_cRk4, METH_VARARGS, NULL },
+   { NULL, NULL, 0, NULL }
+};
+
+PyMODINIT_FUNC initctrace2d(void) {
+   Py_InitModule("ctrace2d", ctrace2d_methods);
+   import_array();
 }

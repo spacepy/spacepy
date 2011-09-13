@@ -20,12 +20,9 @@ def trace2d_eul(fieldx, fieldy, xstart, ystart, gridx, gridy,
     '''
     from . import ctrace2d as ct
 
-    out = ct.cEuler(maxstep, ds, xstart, ystart, gridx, gridy,
-                    fieldx.transpose(), fieldy.transpose())
-    x = out[0][0:out[2][0]-1]
-    y = out[1][0:out[2][0]-1]
+    return ct.cEuler(maxstep, ds, xstart, ystart, gridx, gridy,
+                    fieldx, fieldy)
 
-    return(x,y)
 
 def trace2d_rk4(fieldx, fieldy, xstart, ystart, gridx, gridy, 
                 maxstep=20000, ds=0.01):
@@ -44,12 +41,8 @@ def trace2d_rk4(fieldx, fieldy, xstart, ystart, gridx, gridy,
     '''
     from . import ctrace2d as ct
 
-    out = ct.cRk4(maxstep, ds, xstart, ystart, gridx, gridy,
-                    fieldx.transpose(), fieldy.transpose())
-    x = out[0][0:out[2][0]-1]
-    y = out[1][0:out[2][0]-1]
-
-    return(x,y)
+    return ct.cRk4(maxstep, ds, xstart, ystart, gridx, gridy,
+                    fieldx, fieldy)
 
 
 ###################################################
