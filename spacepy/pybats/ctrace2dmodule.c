@@ -64,6 +64,17 @@ static void make_unit(int iSize, int jSize, double *ux, double *uy)
   return;
 }
 
+/*Interpolate a value from a grid
+ *double x, double y: X and Y of location to interp
+ *double *field: Field to interpolate on
+ *int xloc, int yloc: position of grid point below x,y
+ *int xsize, int ysize: Size of field in X and y
+ */
+#define grid_interp(x, y, field, xloc, yloc, xsize, ysize) \
+  bilin_reg(x-xloc, y-yloc, *(field+xloc*ysize+yloc), \
+	    *(field+xloc*ysize+yloc+1), *(field+(xloc+1)*ysize+yloc), \
+	    *(field+(xloc+1)*ysize+yloc+1))
+
 /* Simple tracing using Euler's method. */
 /* Super fast but not super accurate.   */
 static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
@@ -98,12 +109,8 @@ static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
 	break;
 
       /* Interpolate unit vectors to current location */
-      fx = bilin_reg(x[n]-xloc, y[n]-yloc, *(ux+xloc*jSize+yloc), 
-		     *(ux+xloc*jSize+yloc+1), *(ux+(xloc+1)*jSize+yloc), 
-		     *(ux+(xloc+1)*jSize+yloc+1));
-      fy = bilin_reg(x[n]-xloc, y[n]-yloc, *(uy+xloc*jSize+yloc), 
-		     *(uy+xloc*jSize+yloc+1), *(uy+(xloc+1)*jSize+yloc), 
-		     *(uy+(xloc+1)*jSize+yloc+1)); 
+      fx = grid_interp(x[n], y[n], ux, xloc, yloc, iSize, jSize);
+      fy = grid_interp(x[n], y[n], uy, xloc, yloc, iSize, jSize);
       
       /* Detect NaNs in function values */
       if (isnan(fx) || isnan(fy) || isinf(fx) || isinf(fy))
@@ -156,12 +163,8 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
     yloc = floor(y[n]);
     if (DoBreak(xloc, yloc, iSize, jSize))
       break;
-    f1x = bilin_reg(x[n]-xloc, y[n]-yloc, *(ux+xloc*jSize+yloc), 
-		   *(ux+xloc*jSize+yloc+1), *(ux+(xloc+1)*jSize+yloc), 
-		   *(ux+(xloc+1)*jSize+yloc+1));
-    f1y = bilin_reg(x[n]-xloc, y[n]-yloc, *(uy+xloc*jSize+yloc), 
-		   *(uy+xloc*jSize+yloc+1), *(uy+(xloc+1)*jSize+yloc), 
-		   *(uy+(xloc+1)*jSize+yloc+1));
+    f1x = grid_interp(x[n], y[n], ux, xloc, yloc, iSize, jSize);
+    f1y = grid_interp(x[n], y[n], uy, xloc, yloc, iSize, jSize);
     if (isnan(f1x) || isnan(f1y) || isinf(f1x) || isinf(f1y))
       break;
 
@@ -172,12 +175,9 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
     yloc = floor(ypos);
     if (DoBreak(xloc, yloc, iSize, jSize))
       break;
-    f2x = bilin_reg(xpos-xloc, ypos-yloc, *(ux+xloc*jSize+yloc), 
-		   *(ux+xloc*jSize+yloc+1), *(ux+(xloc+1)*jSize+yloc), 
-		   *(ux+(xloc+1)*jSize+yloc+1));
-    f2y = bilin_reg(x[n]-xloc, y[n]-yloc, *(uy+xloc*jSize+yloc), 
-		   *(uy+xloc*jSize+yloc+1), *(uy+(xloc+1)*jSize+yloc), 
-		   *(uy+(xloc+1)*jSize+yloc+1));
+    f2x = grid_interp(xpos, ypos, ux, xloc, yloc, iSize, jSize);
+    f2y = grid_interp(xpos, ypos, uy, xloc, yloc, iSize, jSize);
+
     if (isnan(f2x) || isnan(f2y) || isinf(f2x) || isinf(f2y))
       break;
 
@@ -188,12 +188,8 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
     yloc = floor(ypos);
     if (DoBreak(xloc, yloc, iSize, jSize))
       break;
-    f3x = bilin_reg(xpos-xloc, ypos-yloc, *(ux+xloc*jSize+yloc), 
-		   *(ux+xloc*jSize+yloc+1), *(ux+(xloc+1)*jSize+yloc), 
-		   *(ux+(xloc+1)*jSize+yloc+1));
-    f3y = bilin_reg(x[n]-xloc, y[n]-yloc, *(uy+xloc*jSize+yloc), 
-		   *(uy+xloc*jSize+yloc+1), *(uy+(xloc+1)*jSize+yloc), 
-		   *(uy+(xloc+1)*jSize+yloc+1));
+    f3x = grid_interp(xpos, ypos, ux, xloc, yloc, iSize, jSize);
+    f3y = grid_interp(xpos, ypos, uy, xloc, yloc, iSize, jSize);
     if (isnan(f3x) || isnan(f3y) || isinf(f3x) || isinf(f3y))
       break;
 
@@ -204,12 +200,8 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
     yloc = floor(ypos);
     if (DoBreak(xloc, yloc, iSize, jSize))
       break;
-    f4x = bilin_reg(xpos-xloc, ypos-yloc, *(ux+xloc*jSize+yloc), 
-		   *(ux+xloc*jSize+yloc+1), *(ux+(xloc+1)*jSize+yloc), 
-		   *(ux+(xloc+1)*jSize+yloc+1));
-    f4y = bilin_reg(x[n]-xloc, y[n]-yloc, *(uy+xloc*jSize+yloc), 
-		   *(uy+xloc*jSize+yloc+1), *(uy+(xloc+1)*jSize+yloc), 
-		   *(uy+(xloc+1)*jSize+yloc+1));
+    f4x = grid_interp(xpos, ypos, ux, xloc, yloc, iSize, jSize);
+    f4y = grid_interp(xpos, ypos, uy, xloc, yloc, iSize, jSize);
     if (isnan(f4x) || isnan(f4y) || isinf(f4x) || isinf(f4y))
       break;
 
