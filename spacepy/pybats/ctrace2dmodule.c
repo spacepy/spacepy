@@ -222,7 +222,8 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
 /*Since the two tracers have identical interfaces,
  *almost all the code is common
  */
-static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
+static PyObject *ctrace2d_common(PyObject *self,
+				 PyObject *args, PyObject *kwargs,
 				 int (*func)(int, int, int,
 					     double, double, double,
 					     double*, double*,
@@ -237,12 +238,16 @@ static PyObject *ctrace2d_common(PyObject *self, PyObject *args,
   npy_intp outdims[] = {0};
   npy_intp indims[] = {0};
   PyArray_Dims outshape = { outdims, 1 };
-
-  if (!PyArg_ParseTuple(args,
-			"idddO!O!O!O!:cEuler",
-			&maxstep, &ds, &xstart, &ystart,
-			&PyArray_Type, &gridx, &PyArray_Type, &gridy,
-			&PyArray_Type, &fieldx, &PyArray_Type, &fieldy))
+  static char *kwlist[] = {"fieldx", "fieldy", "xstart", "ystart",
+			   "gridx", "gridy", "maxstep", "ds", NULL};
+  maxstep = 20000;
+  ds = 0.01;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs,
+				   "O!O!ddO!O!|id", kwlist,
+				   &PyArray_Type, &fieldx, &PyArray_Type, &fieldy,
+				   &xstart, &ystart,
+				   &PyArray_Type, &gridx, &PyArray_Type, &gridy,
+				   &maxstep, &ds))
     return NULL;
 
   array_type = PyArray_DescrFromType(NPY_DOUBLE);
@@ -287,17 +292,36 @@ NPY_END_ALLOW_THREADS
   return Py_BuildValue("NN", outx, outy);
 }
 
-static PyObject *ctrace2d_cEuler(PyObject *self, PyObject *args) {
-  return ctrace2d_common(self, args, cEuler);
+static PyObject *ctrace2d_cEuler(PyObject *self,
+				 PyObject *args, PyObject *kwargs) {
+  return ctrace2d_common(self, args, kwargs, cEuler);
 }
 
-static PyObject *ctrace2d_cRk4(PyObject *self, PyObject *args) {
-  return ctrace2d_common(self, args, cRk4);
+static PyObject *ctrace2d_cRk4(PyObject *self,
+			       PyObject *args, PyObject *kwargs) {
+  return ctrace2d_common(self, args, kwargs, cRk4);
 }
 
 static PyMethodDef ctrace2d_methods[] = {
-   { "cEuler", (PyCFunction)ctrace2d_cEuler, METH_VARARGS, NULL },
-   { "cRk4", (PyCFunction)ctrace2d_cRk4, METH_VARARGS, NULL },
+   { "cEuler", (PyCFunction)ctrace2d_cEuler, METH_VARARGS | METH_KEYWORDS,
+     "Given a 2D vector field, trace a streamline from a given point\n"
+     "to the edge of the vector field.  The field is integrated using\n"
+     "Euler's method.  While this is faster than rk4, it is less accurate.\n\n"
+     "Only valid for regular grid with coordinates gridx, gridy.\n"
+     "If gridx and gridy are not given, assume that xstart and ystart\n"
+     "are normalized coordinates (e.g., position in terms of array\n"
+     "indices.)"},
+   { "cRk4", (PyCFunction)ctrace2d_cRk4, METH_VARARGS | METH_KEYWORDS,
+    "Given a 2D vector field, trace a streamline from a given point\n"
+    "to the edge of the vector field.  The field is integrated using\n"
+    "Runge Kutta 4.  Slower than Euler, but more accurate.  The\n"
+    "higher accuracy allows for larger step sizes (ds kwarg).  For\n"
+    "a demonstration of the improved accuracy, run test_asymtote and\n"
+    "test_dipole, bouth found in the pybats.trace2d module.\n"
+    "Only valid for regular grid with coordinates gridx, gridy.\n"
+    "If gridx and gridy are not given, assume that xstart and ystart\n"
+    "are normalized coordinates (e.g., position in terms of array\n"
+    "indices.)\n"},
    { NULL, NULL, 0, NULL }
 };
 
