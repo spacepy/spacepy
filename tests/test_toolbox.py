@@ -706,7 +706,7 @@ class PlottingTests(unittest.TestCase):
         # should not have moved the ticks
         real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
         730888.,  730889.,  730890.,  730891.])
-        numpy.testing.assert_array_almost_equal(real_ans, ax.get_xticks())
+        numpy.testing.assert_allclose(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
         real_ans = ["Text(0,0,u'01 Feb')", "Text(0,0,u'02 Feb')", "Text(0,0,u'03 Feb')", "Text(0,0,u'04 Feb')",
                     "Text(0,0,u'05 Feb')", "Text(0,0,u'06 Feb')", "Text(0,0,u'07 Feb')", "Text(0,0,u'08 Feb')",

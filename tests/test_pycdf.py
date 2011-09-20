@@ -31,15 +31,15 @@ import spacepy.pycdf.const as const
 
 class est_tz(datetime.tzinfo):
     """Eastern Standard timezone (no daylight time"""
-        
+
     def utcoffset(self, dt):
         """Offset from UTC"""
         return datetime.timedelta(hours=-5)
-    
+
     def dst(self, dt):
         """Minute offset for DST"""
         return datetime.timedelta(0)
-    
+
     def tzname(self, dt):
         """Name of this time zone"""
         return 'EST'
@@ -248,8 +248,8 @@ class NoCDF(unittest.TestCase):
                   [0.0, 0.0],
                   ]
         dts = [datetime.datetime(2009, 1, 1),
-               datetime.datetime(9999, 12, 13, 23, 59, 59, 999999),               
-               datetime.datetime(9999, 12, 13, 23, 59, 59, 999999),               
+               datetime.datetime(9999, 12, 13, 23, 59, 59, 999999),
+               datetime.datetime(9999, 12, 13, 23, 59, 59, 999999),
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch16_to_datetime(epoch))
@@ -457,7 +457,7 @@ class CDFTestsBase(unittest.TestCase):
         self.testfile = os.path.join(tempfile.gettempdir(), self.testbase)
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
         super(CDFTestsBase, self).__init__(*args, **kwargs)
-    
+
     @staticmethod
     def calcDigest(file):
         m = hashlib.md5()
@@ -465,7 +465,7 @@ class CDFTestsBase(unittest.TestCase):
             m.update(f.read())
         return m.hexdigest()
 
-    
+
 class CDFTests(CDFTestsBase):
     """Tests that involve an existing CDF, read or write"""
     testmaster = 'po_l1_cam_test.cdf'
@@ -511,7 +511,7 @@ class OpenCDF(CDFTests):
         testfspec = 'foo.cdf'
         open(testfspec, 'w').close()
         errstr = 'CDF_EXISTS: The CDF named already exists.'
-        try: 
+        try:
             new = cdf.CDF(testfspec, self.testfile)
         except cdf.CDFError:
             self.assertEqual(sys.exc_info()[1].__str__(),
@@ -570,7 +570,7 @@ class ReadCDF(CDFTests):
         if self._testMethodName == self.last_test:
             os.remove(self.testfile)
         super(ReadCDF, self).tearDown()
-            
+
     def testGetATC(self):
         """Get ATC zVar using subscripting"""
         atc = self.cdf['ATC']
@@ -581,7 +581,7 @@ class ReadCDF(CDFTests):
         atc = self.cdf[0]
         self.assertEqual(type(atc), cdf.Var)
         self.assertEqual(atc.name(), 'ATC')
-        
+
     def testGetAllzVars(self):
         """Check getting a list of zVars"""
         expectedNames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers',
@@ -683,7 +683,7 @@ class ReadCDF(CDFTests):
         expected = {'ATC': [1, [747], [1], [1], [1], [True], [False]],
                     'PhysRecNo': [1, [100], [4], [4], [2], [False], [True]],
                     'SpinNumbers': [2, [1, 18], [0, 2], [1, 8], [1, 2],
-                                    [True, False], [False, False]], 
+                                    [True, False], [False, False]],
                     'SectorRateScalersCounts': [4, [100, 18, 32, 9],
                                                 [0, 3, 0, 0], [100, 3, 32, 9],
                                                 [1, 1, 1, 1],
@@ -770,7 +770,7 @@ class ReadCDF(CDFTests):
         sliced.pack_buffer(buff, list(range(100)))
         result = [buff[i] for i in range(100)]
         self.assertEqual(list(range(100)), result)
-        
+
         sliced = cdf._pycdf._Hyperslice(zvar, slice(None, None, -1))
         buff = sliced.create_buffer()
         sliced.pack_buffer(buff, list(range(100)))
@@ -1087,7 +1087,7 @@ class ReadCDF(CDFTests):
             actual_type = attribute.type(number)
             self.assertEqual(actual_type, cdf_type.value,
                              'zAttr ' + name + ' zEntry ' + str(number) +
-                             ' ' + str(cdf_type.value) + ' != ' + 
+                             ' ' + str(cdf_type.value) + ' != ' +
                              str(actual_type))
         self.assertEqual(cdf.const.CDF_CHAR.value,
                          self.cdf['PhysRecNo'].attrs.type('DEPEND_0'))
@@ -1310,7 +1310,7 @@ class ReadCDF(CDFTests):
         self.assertEqual(['CATDESC', 'DEPEND_0', 'FIELDNAM', 'FILLVAL',
                           'FORMAT', 'VALIDMIN', 'VALIDMAX', 'VAR_TYPE'],
                          list(attrlist))
-        
+
     def testgAttribListIt(self):
         """Iterate over keys in a gAttrList"""
         attrlist = cdf.gAttrList(self.cdf)
@@ -1545,7 +1545,7 @@ class ReadColCDF(ColCDFTests):
         expected = {'ATC': [1, [747], [1], [1], [1], [True], [False]],
                     'PhysRecNo': [1, [100], [4], [4], [2], [False], [True]],
                     'SpinNumbers': [2, [1, 18], [0, 2], [1, 8], [1, 2],
-                                    [True, False], [False, False]], 
+                                    [True, False], [False, False]],
                     'SectorRateScalersCounts': [4, [100, 18, 32, 9],
                                                 [0, 3, 0, 0], [100, 3, 32, 9],
                                                 [1, 1, 1, 1],
@@ -1640,7 +1640,7 @@ class ReadColCDF(ColCDFTests):
         sliced.pack_buffer(buff, list(range(100)))
         result = [buff[i] for i in range(100)]
         self.assertEqual(list(range(100)), result)
-        
+
         sliced = cdf._pycdf._Hyperslice(zvar, slice(None, None, -1))
         buff = sliced.create_buffer()
         sliced.pack_buffer(buff, list(range(100)))
@@ -1675,7 +1675,7 @@ class ChangeCDF(CDFTests):
     """Tests that modify an existing CDF"""
     def __init__(self, *args):
         super(ChangeCDF, self).__init__(*args)
-        
+
     def setUp(self):
         super(ChangeCDF, self).setUp()
         shutil.copy(self.testmaster, self.testfile)
@@ -1761,7 +1761,7 @@ class ChangeCDF(CDFTests):
 
     def testWriteAndTruncate(self):
         """Write with insufficient data to fill all existing records"""
-        expected = [-1 * i for i in range(20)] 
+        expected = [-1 * i for i in range(20)]
         self.cdf['PhysRecNo'][:] = expected
         self.assertEqual(expected, self.cdf['PhysRecNo'][:])
 
@@ -1788,7 +1788,7 @@ class ChangeCDF(CDFTests):
             (t, v, tb) = sys.exc_info()
             self.assertEqual(message, str(v))
         else:
-            self.fail('Should have raised ValueError: ' + message)        
+            self.fail('Should have raised ValueError: ' + message)
 
     def testDeleteRecord(self):
         """Delete records from a variable"""
@@ -1901,7 +1901,7 @@ class ChangeCDF(CDFTests):
         self.assertEqual(const.CDF_INT4.value,
                          cdf.zAttr(self.cdf,
                                    'NEW_ATTRIBUTE').type(zvar._num()))
-        
+
         zvar.attrs['NEW_ATTRIBUTE2'] = [1, 2]
         self.assertEqual([1, 2], zvar.attrs['NEW_ATTRIBUTE2'])
         self.assertEqual(const.CDF_INT4.value,
@@ -2114,7 +2114,7 @@ class ChangeCDF(CDFTests):
         self.assertRaises(ValueError, self.cdf.new, 'newvar')
         self.cdf.new('newvar', None, const.CDF_INT4)
         self.assertEqual([], self.cdf['newvar']._dim_sizes())
-        
+
         self.cdf.new('newvar2', None, const.CDF_CHAR, dims=[])
         self.assertEqual(1, self.cdf['newvar2']._nelems())
 
@@ -2352,7 +2352,7 @@ class ChangeColCDF(ColCDFTests):
     """Tests that modify an existing colum-major CDF"""
     def __init__(self, *args):
         super(ChangeColCDF, self).__init__(*args)
-        
+
     def setUp(self):
         shutil.copy(self.testmaster, self.testfile)
         self.cdf = cdf.CDF(self.testfile)

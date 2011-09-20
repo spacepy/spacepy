@@ -38,6 +38,3 @@ timing = timeit.timeit('toolbox.tOverlap(dt_a, dt_b)',
                        'from __main__ import toolbox, dt_a, dt_b',
                        number=n_iter)
 print('Scrambled arrays took ' + str(timing) + ' seconds.')
-
-
-

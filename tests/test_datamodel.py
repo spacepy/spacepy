@@ -152,7 +152,7 @@ class dmarrayTests(unittest.TestCase):
         finally:
             if fname != None:
                 os.remove(fname)
-        np.testing.assert_array_almost_equal(self.dat, dat2)
+        np.testing.assert_allclose(self.dat, dat2)
         self.assertEqual(self.dat.attrs, dat2.attrs)
 
     def test_attrs_only(self):
@@ -218,7 +218,7 @@ class converterTests(unittest.TestCase):
         del self.SDobj
         if os.path.isfile('dmh5test.h5'):
             os.remove('dmh5test.h5')
-    
+
     def test_convertKeysToStr(self):
         """convertKeysToStr sjould give known output"""
         a = dm.SpaceData()
@@ -248,7 +248,7 @@ class converterTests(unittest.TestCase):
         dm.toHDF5('dmh5test.h5', self.SDobj)
         newobj = dm.fromHDF5('dmh5test.h5')
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
-        np.testing.assert_array_almost_equal(self.SDobj['var'], newobj['var'])
+        np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
 

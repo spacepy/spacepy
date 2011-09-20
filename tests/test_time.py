@@ -15,7 +15,7 @@ import datetime
 from numpy import array
 import numpy
 
-        
+
 
 class tFunctionTests(unittest.TestCase):
     def setUp(self):
@@ -25,7 +25,7 @@ class tFunctionTests(unittest.TestCase):
     def tearDown(self):
         #super(tFunctionTests, self).tearDown()
         pass
-    
+
     def test_doy2dateconvert(self):
         """doy2date should return a known value for known input"""
         inval = [ (2000, 1),
@@ -49,7 +49,7 @@ class tFunctionTests(unittest.TestCase):
                                  ([ans2[0].month], [ans2[0].day]))
             except TypeError:
                 self.assertEqual(real_ans[i], (ans2.month , ans2.day))
-            
+
     def test_doy2datefail(self):
         '''doy2date should fail for bad input'''
         inval = ([[2007],[0.5]],
@@ -66,22 +66,22 @@ class tFunctionTests(unittest.TestCase):
                   (2000, 2, True, True)]
         for i, val in enumerate(ans):
             self.assertEqual(val, t.doy2date(*inval[i]))
-    
+
 
     def test_tickrange(self):
         """tickrange should return a known value for known input"""
         inval = ( ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 1),
                   ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 0.5) )
-        real_ans = ( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00', 
+        real_ans = ( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
                       '2002-02-04T00:00:00'],
-                     ['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00', 
+                     ['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
                       '2002-02-02T12:00:00', '2002-02-03T00:00:00', '2002-02-03T12:00:00',
                       '2002-02-04T00:00:00'] )
 
         for i, val in enumerate(inval):
             ans = t.tickrange(*val)
             self.assertEqual(real_ans[i], ans.ISO)
-                             
+
 
     def test_sec2hms(self):
         """sec2hms should return a known value for known input"""
@@ -130,9 +130,9 @@ class classTests(unittest.TestCase):
     def test_TickTock_with_xrange(self):
         t0 = 1663236947
         iter_ex = range(t0, t0+5000, 500)
-        range_ex = list(range(t0, t0+5000, 500)) 
+        range_ex = list(range(t0, t0+5000, 500))
         self.assertEqual(t.Ticktock(iter_ex, 'TAI').TAI, t.Ticktock(range_ex, 'TAI').TAI)
-        
+
     def test_append(self):
         t1 = t.Ticktock(['2002-01-01', '2002-01-02'])
         t2 = t.Ticktock(['2002-01-03', '2002-01-04'])
@@ -141,7 +141,7 @@ class classTests(unittest.TestCase):
         actual_2 = t1.append(t2.convert('UTC'))
         numpy.testing.assert_equal(expected.RDT, actual_1.RDT)
         numpy.testing.assert_equal(expected.RDT, actual_2.RDT)
-        
+
 if __name__ == "__main__":
     ## suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
     ## unittest.TextTestRunner(verbosity=2).run(suite)
@@ -151,8 +151,3 @@ if __name__ == "__main__":
 
 
     unittest.main()
-
-
-
-
-

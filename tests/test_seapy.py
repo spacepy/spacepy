@@ -49,7 +49,7 @@ class SEATestsUniform(unittest.TestCase):
         """Test of equivalence of serial and datetime handling"""
         sttime = dt.datetime(2010, 1, 1)
         time = [sttime + dt.timedelta(minutes=x) for x in range(200)]
-        epochs = [sttime + dt.timedelta(minutes=x) for x in self.epochs] 
+        epochs = [sttime + dt.timedelta(minutes=x) for x in self.epochs]
         window = dt.timedelta(minutes=3)
         delta = dt.timedelta(minutes=1)
         compobj = seapy.Sea(self.unidata, time, epochs, \
@@ -72,7 +72,7 @@ class SEATestsUniWithBad(unittest.TestCase):
         for ind in range(30,180,16):
             self.unidata[ind] = -99
         time = range(200)
-        self.epochs = [20,40,60,80,100,120,140,160,180] 
+        self.epochs = [20,40,60,80,100,120,140,160,180]
         self.obj = seapy.Sea(self.unidata, time, self.epochs, verbose=False)
         self.obj.sea(badval=-99)
 
@@ -94,7 +94,7 @@ class SEATestsUniWithBad(unittest.TestCase):
         """Test of equivalence of serial and datetime handling"""
         sttime = dt.datetime(2010, 1, 1)
         time = [sttime + dt.timedelta(minutes=x) for x in range(200)]
-        epochs = [sttime + dt.timedelta(minutes=x) for x in self.epochs] 
+        epochs = [sttime + dt.timedelta(minutes=x) for x in self.epochs]
         window = dt.timedelta(minutes=3)
         delta = dt.timedelta(minutes=1)
         compobj = seapy.Sea(self.unidata, time, epochs, \
