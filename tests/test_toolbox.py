@@ -606,7 +606,7 @@ class tFunctionTests(unittest.TestCase):
                     datetime.datetime(2001, 1, 3, 12, 0),
                     datetime.datetime(2001, 1, 4, 0, 0),
                     datetime.datetime(2001, 1, 4, 12, 0)]
-        numpy.testing.assert_almost_equal(od_ans, outdata)
+        numpy.testing.assert_allclose(od_ans, outdata)
         self.assertEqual(ot_ans, outtime)
         outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
         od_ans = [14.8, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8]
@@ -617,7 +617,7 @@ class tFunctionTests(unittest.TestCase):
                     datetime.datetime(2001, 1, 3, 12, 30),
                     datetime.datetime(2001, 1, 4, 0, 30),
                     datetime.datetime(2001, 1, 4, 12, 30)]
-        numpy.testing.assert_almost_equal(od_ans, outdata)
+        numpy.testing.assert_allclose(od_ans, outdata)
         self.assertEqual(ot_ans, outtime)
 
         time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
@@ -635,28 +635,28 @@ class tFunctionTests(unittest.TestCase):
                   datetime.datetime(2001, 1, 5, 12, 0),
                   datetime.datetime(2001, 1, 6, 0, 0),
                   datetime.datetime(2001, 1, 6, 12, 0)]
-        numpy.testing.assert_almost_equal(od_ans, outdata)
+        numpy.testing.assert_allclose(od_ans, outdata)
         self.assertEqual(ot_ans, outtime)
 
         # now test the pointwise
         outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
         od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
         ot_ans = [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0]
-        numpy.testing.assert_almost_equal(ot_ans, outtime)
-        numpy.testing.assert_almost_equal(od_ans, outdata)
+        numpy.testing.assert_allclose(ot_ans, outtime)
+        numpy.testing.assert_allclose(od_ans, outdata)
         # winsize tests
         outdata, outtime = tb.windowMean(data, winsize=24.6, overlap=12)
         od_ans, ot_ans = tb.windowMean(data, winsize=24.6, overlap=12)
-        numpy.testing.assert_almost_equal(ot_ans, outtime)
-        numpy.testing.assert_almost_equal(od_ans, outdata)
+        numpy.testing.assert_allclose(ot_ans, outtime)
+        numpy.testing.assert_allclose(od_ans, outdata)
         outdata, outtime = tb.windowMean(data, winsize=0.4)
         od_ans, ot_ans = tb.windowMean(data, winsize=1.0)
-        numpy.testing.assert_almost_equal(ot_ans, outtime)
-        numpy.testing.assert_almost_equal(od_ans, outdata)
+        numpy.testing.assert_allclose(ot_ans, outtime)
+        numpy.testing.assert_allclose(od_ans, outdata)
         outdata, outtime = tb.windowMean(data, winsize=1.0, overlap=2)
         od_ans, ot_ans = tb.windowMean(data, winsize=1.0, overlap=0)
-        numpy.testing.assert_almost_equal(ot_ans, outtime)
-        numpy.testing.assert_almost_equal(od_ans, outdata)
+        numpy.testing.assert_allclose(ot_ans, outtime)
+        numpy.testing.assert_allclose(od_ans, outdata)
 
     def test_windowMeanInputs(self):
         """windowMean does some input checking (regression)"""
@@ -713,7 +713,7 @@ class PlottingTests(unittest.TestCase):
                     "Text(0,0,u'09 Feb')", "Text(0,0,u'10 Feb')"]
         ans = [str(ax.xaxis.get_majorticklabels()[i]) for i in range(len(ax.xaxis.get_majorticklabels()))]
         numpy.testing.assert_array_equal(real_ans, ans)
-
+        plt.close()
 
 
 if __name__ == "__main__":
