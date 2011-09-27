@@ -455,7 +455,7 @@ class tFunctionTests(unittest.TestCase):
         random.shuffle(self.dt_a)
         random.shuffle(self.dt_b)
         ans = tb.tOverlap(self.dt_a, self.dt_b)
-        self.assertEqual(real_ans, ans)
+        numpy.testing.assert_array_equal(real_ans, ans)
 
     def test_tOverlapHalf(self):
         """Get overlap of only one list"""
@@ -481,14 +481,14 @@ class tFunctionTests(unittest.TestCase):
                     [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
                      30, 31, 32, 33, 34, 35, 36, 37, 38, 39])
         ans = tb.tOverlap(self.dt_a, self.dt_b, presort=True)
-        self.assertEqual(real_ans, ans)
+        numpy.testing.assert_array_equal(real_ans, ans)
 
     def test_tOverlapHalfSorted(self):
         """Get overlap of only one list, exploiting the sort"""
         real_ans = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
                     30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
         ans = tb.tOverlapHalf(self.dt_a, self.dt_b, presort=True)
-        self.assertEqual(real_ans, ans)
+        numpy.testing.assert_array_equal(real_ans, ans)
 
     def test_tCommon(self):
         """tCommon should return a known value for known input"""

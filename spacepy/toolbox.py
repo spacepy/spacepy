@@ -115,7 +115,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
     if presort:
         import bisect
         t_lower, t_upper = ts1[0], ts1[-1]
-        return range(bisect.bisect_left(ts2, t_lower),
+        return xrange(bisect.bisect_left(ts2, t_lower),
                      bisect.bisect_right(ts2, t_upper))
     else:
         t_lower, t_upper = min(ts1), max(ts1)
@@ -874,7 +874,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         while lastpt < time[-1]:
             getinds = tOverlapHalf([startpt,startpt+winsize], time, presort=True)
             if getinds: #if not None
-                getdata = np.ma.masked_where(np.isnan(data[getinds]), data[getinds])
+                getdata = np.ma.masked_where(np.isnan(data[getinds[0]:getinds[-1]+1]), data[getinds[0]:getinds[-1]+1])
                 getmean = np.mean(getdata.compressed()) #find mean excluding NaNs
             else:
                 getmean = np.nan
