@@ -74,8 +74,6 @@ class QTree(dict):
 
         (self.d, self.npoints) = grid.shape
 
-        self.tree = {}
-
         if not grid_edges:
             #####
             # toolbox.bin_center_to_edges can be used to make centers into edges
@@ -168,7 +166,7 @@ class QTree(dict):
             32.   : 'black'}
 
         dx_vals = {}
-        for key in self.tree.keys():
+        for key in self:
             if self[key].isLeaf:
                 self[key].plot_res(ax, fc=res_colors[self[key].dx])
                 dx_vals[self[key].dx] = 1.0
@@ -189,7 +187,7 @@ class Branch(object):
     '''
     Base class for branches/leafs along a QO tree.
     '''
-    def __init__(self, lim):
+    def __init__(self, lim, isLeaf=False):
         '''
         lim should be a 4 element list of the
         dimensional boundaries of the branch.
@@ -198,7 +196,7 @@ class Branch(object):
             assert(len(lim) == 4)
         except AssertionError:
             raise(ValueError("Limits can only be a 4 element array"))
-        self.isLeaf = False
+        self.isLeaf = isLeaf
         self.lim = lim
 
     def plotbox(self, ax, lc='k', **kwargs):
