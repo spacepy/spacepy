@@ -104,12 +104,19 @@ class qotreeTests(unittest.TestCase):
         self.assertEqual(qt.npoints, 150)
 
     def test_decision(self):
-        """create a QTree and test its decision_func(regression)"""
-        qt = qotree.QTree(self.grid, max_depth=3)
-        self.assertEqual(qt.d, 2)
-        self.assertEqual(qt.keys(), range(1, 22))
-        self.assertEqual(qt.max_depth, 3)
-        self.assertEqual(qt.npoints, 150)
+        """create a QTree and test its decision_func (regression)"""
+        qt = qotree.QTree(self.grid, max_depth=3, decision_func=decision_func)
+        self.assertEqual(qt.keys(), [1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17])
+
+
+def decision_func(tree, branchNum):
+    """
+    this is a fake decision tree that only allows odd numbered splits
+    """
+    if branchNum % 2 == 0 or branchNum == 1:
+        return True
+    else:
+        return False
 
 
 if __name__ == "__main__":
