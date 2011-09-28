@@ -9,32 +9,6 @@ Original by Dan Welling, cleanup and subclassing by Brian Larsen
 
 import numpy as np
 
-def pybats_decision(tree=None, branchNum=None):
-    a = np.sqrt(tree[branchNum].npts)
-    if (int(a) == a) and (a > 0 ):
-        dx = (np.max(grid[0,:][tree[branchNum].locs]) \
-                  - np.min(grid[0,:][tree[branchNum].locs])) \
-                  / (np.sqrt(tree[branchNum].npts)-1)
-        if not np.isnan(dx):
-            if int(np.log2(dx))==np.log2(dx):
-                # An NxN block can be considered a "leaf" or stopping point
-                # if Dx is an integer power of 2.  Leafs must "know" the
-                # indices of the x,y points located inside of them as a
-                # grid and also know the bounding coords of the grid cells.
-                #tree[branchNum].isLeaf = True
-                tree[branchNum].locs=self[i].locs.reshape( (a, a) )
-                tree[branchNum].dx = dx
-                tree[branchNum].cells = np.meshgrid(
-                    np.arange(tree[branchNum].lim[0], tree[branchNum].lim[1]+dx, dx),
-                    np.arange(tree[branchNum].lim[2], tree[branchNum].lim[3]+dx, dx))
-                return False
-        else:
-            return False
-    else:
-        return True
-
-
-
 def leftdaughter(dim, k):
     return k*2**dim-2**dim+2
 
@@ -72,7 +46,7 @@ class QTree(dict):
         self.max_depth = max_depth
         self.grid = grid
 
-        (self.d, self.npoints) = grid.shape
+        (self.d, self.npts) = grid.shape
 
         if not grid_edges:
             #####
@@ -131,13 +105,17 @@ class QTree(dict):
         y=[self[i].lim[2], self[i].lim[2], self[i].lim[2]+dx, self[i].lim[2]+dx]
         for j, k in enumerate(range(self.getleftdaughter(i), self.getrightdaughter(i)+1)):
             self[k] = Branch(np.asarray([x[j],x[j]+dx,y[j],y[j]+dx]))
+            self[k].locs = self.locs[(self.grid[0,:][self.locs]>self[k].lim[0]) &
+                                   (self.grid[0,:][self.locs]<self[k].lim[1]) &
+                                   (self.grid[1,:][self.locs]>self[k].lim[2]) &
+                                   (self.grid[1,:][self.locs]<self[k].lim[3]) ]
+            self[k].npts = self[k].locs.size
             # if we are at max depth we don't want to split again
             # this is tested by seeing if k is in the lowest level
             if k <= self.getboxes_through_level(self.max_depth-1):
                 self._spawn_daughters(k)
             else:
                 self[k].isLeaf = True
-
 
     def getboxes_through_level(self, level):
         return boxes_through_level(self.d, level)

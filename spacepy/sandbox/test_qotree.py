@@ -93,7 +93,7 @@ class qotreeTests(unittest.TestCase):
         numpy.testing.assert_allclose(qt.grid, self.grid)
         numpy.testing.assert_array_equal(qt.locs, range(150))
         self.assertEqual(qt.max_depth, 2)
-        self.assertEqual(qt.npoints, 150)
+        self.assertEqual(qt.npts, 150)
 
     def test_creation2(self):
         """create a QTree and test its contents (regression)"""
@@ -101,7 +101,13 @@ class qotreeTests(unittest.TestCase):
         self.assertEqual(qt.d, 2)
         self.assertEqual(qt.keys(), range(1, 22))
         self.assertEqual(qt.max_depth, 3)
-        self.assertEqual(qt.npoints, 150)
+        self.assertEqual(qt.npts, 150)
+        self.assertEqual(qt[1].npts, 150)
+        self.assertEqual(qt[2].npts, 75)
+        self.assertEqual(qt[3].npts, 0)
+        self.assertEqual(qt[4].npts, 75)
+        self.assertEqual(qt[5].npts, 0)
+
 
     def test_decision(self):
         """create a QTree and test its decision_func (regression)"""
