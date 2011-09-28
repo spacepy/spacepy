@@ -42,13 +42,13 @@ class staticTests(unittest.TestCase):
         super(staticTests, self).tearDown()
 
     def test_leftdaughter(self):
-        """leftdaughter shold give known output"""
+        """leftdaughter should give known output"""
         ans = [2, 102, 202, 302, 402, 502, 602, 702]
         for i, ii in enumerate(range(1, 200, 25)):
             self.assertEqual(qotree.leftdaughter(2, ii), ans[i])
 
     def test_rightdaughter(self):
-        """rightdaughter shold give known output"""
+        """rightdaughter should give known output"""
         ans = [5, 105, 205, 305, 405, 505, 605, 705]
         for i, ii in enumerate(range(1, 200, 25)):
             self.assertEqual(qotree.rightdaughter(2, ii), ans[i])
@@ -76,7 +76,7 @@ class qotreeTests(unittest.TestCase):
     def tearDown(self):
         super(qotreeTests, self).tearDown()
 
-    def test_QTree_imputs(self):
+    def test_QTree_inputs(self):
         """QTree does some input checking"""
         self.assertRaises(NotImplementedError, qotree.QTree, numpy.vstack((self.grid, self.x)))
         self.assertRaises(NotImplementedError, qotree.QTree, self.grid, grid_edges=True)
@@ -102,6 +102,15 @@ class qotreeTests(unittest.TestCase):
         self.assertEqual(qt.keys(), range(1, 22))
         self.assertEqual(qt.max_depth, 3)
         self.assertEqual(qt.npoints, 150)
+
+    def test_decision(self):
+        """create a QTree and test its decision_func(regression)"""
+        qt = qotree.QTree(self.grid, max_depth=3)
+        self.assertEqual(qt.d, 2)
+        self.assertEqual(qt.keys(), range(1, 22))
+        self.assertEqual(qt.max_depth, 3)
+        self.assertEqual(qt.npoints, 150)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,7 +3,7 @@
 '''
 Let's try to make a OQ tree.  QO tree.  Whatever.
 
-Origional by Dan Welling, cleanup and subclassing by Brian Larsen
+Original by Dan Welling, cleanup and subclassing by Brian Larsen
 
 '''
 
