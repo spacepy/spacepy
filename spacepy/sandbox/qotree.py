@@ -2,83 +2,92 @@
 
 '''
 Let's try to make a OQ tree.  QO tree.  Whatever.
+
+Origional by Dan Welling, cleanup and subclassing by Brian Larsen
+
 '''
+
+import numpy as np
+
 
 class QTree(object):
     '''
     Base class for Quad/Oct tree objects assuming cell-centered grid points
     in a rectangular non-regular layout.
     '''
-    
+
     def __init__(self, grid):
         '''
         Build QO Tree for input grid.  Grid should be a NxM numpy array where
         N is the number of dimensions and M is the number of points.
+
+        Parameters
+        ==========
+        grid, numpy.ndarray
+            Grid should be a NxM numpy array where N is the number of dimensions and M is the number of points.
         '''
-        from numpy import sqrt, where, arange, lexsort
         (self.d, self.npoints) = grid.shape
 
         if(self.d != 2):
             raise NotImplementedError, "Sorry, QTrees are for 2D grids only."
         self.tree = {}
-        
+
         # Find limits of cell-centered grid.
         # Get values and locations of grid max/min
         minloc, xmin = grid[0,:].argmin(), grid[0,:].min()
         maxloc, xmax = grid[0,:].argmax(), grid[0,:].max()
         # Distance from min X value is grid size at that point.
-        r = sqrt((grid[0,:]-xmin)**2. + (grid[1,:]-grid[1,:][minloc])**2.)
-        ml=(where(r>0, r, 10000)).min()
+        r = np.sqrt((grid[0,:]-xmin)**2. + (grid[1,:]-grid[1,:][minloc])**2.)
+        ml=(np.where(r>0, r, 10000)).min()
         # Actual min is not cell center, but cell boundary.
         xmin-=ml/2.
         # Repeat for Xmax.
-        r = sqrt((grid[0,:]-xmax)**2. + 
+        r = np.sqrt((grid[0,:]-xmax)**2. +
                  (grid[1,:]-grid[1,:][maxloc])**2.)
-        ml=(where(r>0, r, 10000)).min()
+        ml=(np.where(r>0, r, 10000)).min()
         xmax+=ml/2.
-        
+
         # Repeat for Ymin/max.
         minloc, ymin = grid[1,:].argmin(),grid[1,:].min()
         maxloc, ymax = grid[1,:].argmax(),grid[1,:].max()
 
-        r = sqrt((grid[1,:]-ymin)**2. + (grid[0,:]-grid[0,:][minloc])**2.)
-        ml=(where(r>0, r, 10000)).min(); ymin-=ml/2.
-        r = sqrt((grid[1,:]-ymax)**2. + (grid[0,:]-grid[0,:][maxloc])**2.)
-        ml=(where(r>0, r, 10000)).min(); ymax+=ml/2.
+        r = np.sqrt((grid[1,:]-ymin)**2. + (grid[0,:]-grid[0,:][minloc])**2.)
+        ml=(np.where(r>0, r, 10000)).min(); ymin-=ml/2.
+        r = np.sqrt((grid[1,:]-ymax)**2. + (grid[0,:]-grid[0,:][maxloc])**2.)
+        ml=(np.where(r>0, r, 10000)).min(); ymax+=ml/2.
 
         self.aspect_ratio = (xmax-xmin)/(ymax-ymin)
 
         # Use spatial range of grid to seed root of QTree.
         self[1]=[xmin,xmax,ymin,ymax]
-        self.locs = lexsort( (grid[0,:], grid[1,:]) )
-        self._spawn_kids(grid)
+        self.locs = np.lexsort( (grid[1,:], grid[0,:]) ) # lexsort works from the right
+        self._spawn_daughters(grid)
 
-    def _spawn_kids(self, grid, i=1):
+    def _spawn_daughters(self, grid, i=1):
         '''
         Internal recursive method for populating tree.
         '''
-        from numpy import sqrt, max, min, log2, arange, meshgrid
         self[i].locs=self.locs[(grid[0,:][self.locs]>self[i].lim[0]) &
                                (grid[0,:][self.locs]<self[i].lim[1]) &
                                (grid[1,:][self.locs]>self[i].lim[2]) &
                                (grid[1,:][self.locs]<self[i].lim[3]) ]
         self[i].npts = self[i].locs.size
-        a = sqrt(self[i].npts)
+        a = np.sqrt(self[i].npts)
         if (int(a) == a) :
-            dx = (max(grid[0,:][self[i].locs]) \
-                      - min(grid[0,:][self[i].locs])) \
-                      / (sqrt(self[i].npts)-1)
-            if int(log2(dx))==log2(dx):
+            dx = (np.max(grid[0,:][self[i].locs]) \
+                      - np.min(grid[0,:][self[i].locs])) \
+                      / (np.sqrt(self[i].npts)-1)
+            if int(np.log2(dx))==np.log2(dx):
                 # An NxN block can be considered a "leaf" or stopping point
-                # if Dx is an integer power of 2.  Leafs must "know" the 
-                # indices of the x,y points located inside of them as a 
+                # if Dx is an integer power of 2.  Leafs must "know" the
+                # indices of the x,y points located inside of them as a
                 # grid and also know the bounding coords of the grid cells.
                 self[i].isLeaf = True
                 self[i].locs=self[i].locs.reshape( (a, a) )
                 self[i].dx = dx
-                self[i].cells = meshgrid(
-                    arange(self[i].lim[0], self[i].lim[1]+dx, dx),
-                    arange(self[i].lim[2], self[i].lim[3]+dx, dx))
+                self[i].cells = np.meshgrid(
+                    np.arange(self[i].lim[0], self[i].lim[1]+dx, dx),
+                    np.arange(self[i].lim[2], self[i].lim[3]+dx, dx))
                 return
 
         # Subdivide section into four new ones (8 if oct tree)
@@ -87,7 +96,7 @@ class QTree(object):
         y=[self[i].lim[2], self[i].lim[2], self[i].lim[2]+dx, self[i].lim[2]+dx]
         for j, k in enumerate(range(self.ld(i), self.rd(i)+1)):
             self[k] = [x[j],x[j]+dx,y[j],y[j]+dx]
-            self._spawn_kids(grid,k)
+            self._spawn_daughters(grid,k)
 
 
     def __getitem__(self, key):
@@ -121,7 +130,7 @@ class QTree(object):
             8.    : 'lightblue',
             16.   : 'grey',
             32.   : 'black'}
-            
+
         dx_vals = {}
         for key in self.tree.keys():
             if self[key].isLeaf:
@@ -129,7 +138,7 @@ class QTree(object):
                 dx_vals[self[key].dx] = 1.0
 
         if DoLabel:
-            ax.annotate('Resolution:', [1.01,0.99], xycoords='axes fraction', 
+            ax.annotate('Resolution:', [1.01,0.99], xycoords='axes fraction',
                         color='k',size='medium')
             for i,key in enumerate(sorted(dx_vals.keys())):
                 if key<1:
@@ -151,10 +160,10 @@ class Branch(object):
         '''
         self.isLeaf = False
         self.lim = lim
-    
+
     def plotbox(self, ax, lc='k', **kwargs):
         '''
-        Plot a box encompassing the branch lim onto 
+        Plot a box encompassing the branch lim onto
         axis 'ax'.
         '''
         from matplotlib.collections import LineCollection
