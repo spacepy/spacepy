@@ -16,9 +16,12 @@ ind1 = rng[0]
 ind2 = rng[-1]
 
 data = SpaceData()
-data['Epoch'] = np.asarray(cdf['EPOCH'][ind1:ind2])
-data['lValue'] = np.asarray(cdf['lValue'][ind1:ind2])
-data['mepOmni'] = np.asarray(cdf['mepOmni'][ind1:ind2])[:,0]
+#data['Epoch'] = dmarray(cdf['EPOCH'][ind1:ind2])
+#data['lValue'] = dmarray(cdf['lValue'][ind1:ind2])
+data['mepOmni'] = dmarray(cdf['mepOmni'][ind1:ind2])[:,0]
+data['Epoch'] = cdf['EPOCH'][ind1:ind2]
+data['lValue'] = cdf['lValue'][ind1:ind2]
+
 
 cdf.close()
 

@@ -145,21 +145,30 @@ class spectrogram(dm.SpaceData):
         for ivar, var in enumerate(self._variables):
             if isinstance(self[var][0], datetime.datetime):
                 self.bins[ivar] = mpl.dates.date2num(self.bins[ivar])
-                _range[ivar] = mpl.dates.date2num(_range[ivar])
+                try: #weird issue with arrays and date2num
+                    _range[ivar] = mpl.dates.date2num(_range[ivar].tolist())
+                except AttributeError:
+                    try: # ugg if this is not an array this breaks
+                        _range[ivar] = [mpl.dates.date2num(val.tolist()) for val in _range[ivar]]
+                    except AttributeError:
+                        _range[ivar] = [mpl.dates.date2num(val) for val in _range[ivar]]
                 var_time[ivar] = True
 
+        plt_data = np.vstack((self[self._variables[0]], self[self._variables[1]]))
 
-        plt_data = [self[self._variables[0]], self[self._variables[1]]]
         for ival, val in enumerate(var_time):
             if val:
                 plt_data[ival] = date2num(plt_data[ival])
+
+        if plt_data.dtype.name == 'object':  # why was this an abject
+            plt_data = plt_data.astype(float)
 
         # go through and get rid of bad counts
         zdat = np.ma.masked_outside(self[self._variables[2]], self.zlim[0], self.zlim[1])
         zind = ~zdat.mask
         # get the number in each bin
-        H, xedges, yedges = np.histogram2d(plt_data[0][zind],
-                                plt_data[1][zind],
+        H, xedges, yedges = np.histogram2d(plt_data[0, zind],
+                                plt_data[1, zind],
                                 bins = self.bins,
                                 range = _range,
                                 )
@@ -167,8 +176,8 @@ class spectrogram(dm.SpaceData):
         np.add(overall_count, H.transpose(), overall_count)
 
         # get the sum in each bin
-        H, xedges, yedges = np.histogram2d(plt_data[0][zind],
-                                plt_data[1][zind],
+        H, xedges, yedges = np.histogram2d(plt_data[0,zind],
+                                plt_data[1, zind],
                                 bins = self.bins,
                                 range = _range,
                                 weights = zdat.data[zind]
