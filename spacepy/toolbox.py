@@ -1164,7 +1164,7 @@ def logspace(min, max, num, **kwargs):
     else:
         return np.logspace(np.log10(min), np.log10(max), num, **kwargs)
 
-def linspace(min, max, num=50, endpoint=True, retstep=False):
+def linspace(min, max, num=50, endpoint=True, retstep=False, forcedate=False):
     """
     Returns linearly spaced numbers.  Same as numpy.linspace except
     allows for support of datetime objects
@@ -1186,6 +1186,8 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
     retstep : bool (optional)
         If True, return (`samples`, `step`), where `step` is the spacing
         between samples.
+    forcedate : bool (optional)
+        Forces linspace to use the date formulation, needed sometimes on 0-d arrays
 
     Returns
     =======
@@ -1201,7 +1203,7 @@ def linspace(min, max, num=50, endpoint=True, retstep=False):
     toolbox.geomspace
     toolbox.logspace
     """
-    if isinstance(min, datetime.datetime):
+    if isinstance(min, datetime.datetime) or forcedate==True:
         from matplotlib.dates import date2num, num2date
         ans = num2date(np.linspace(date2num(min), date2num(max),
                                  num=num, endpoint=endpoint, retstep=retstep))
