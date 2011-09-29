@@ -16,7 +16,9 @@ Copyright 2011 Los Alamos National Security, LLC.
 
 import datetime
 
+import numpy as np
 import matplotlib as mpl
+from matplotlib.dates import date2num, num2date
 
 import spacepy.datamodel as dm
 
@@ -122,6 +124,8 @@ class spectrogram(dm.SpaceData):
                              np.max(self[self._variables[2]]))
         else:
             self.zlim = kwargs['zlim']
+        # do the spectrogram
+        self._doSpec()
 
 
     def _doSpec(self):
@@ -130,22 +134,25 @@ class spectrogram(dm.SpaceData):
         to the spectrogram class data
         """
         # this is here for in the future when we take a list a SpaceData objects
-        overall_sum = np.zeros((Lbins.shape[0]-1, Tbins.shape[0]-1), dtype=np.double)
-        overall_count = np.zeros((Lbins.shape[0]-1, Tbins.shape[0]-1), dtype=np.long)
+        overall_sum = np.zeros((self.bins[1].shape[0]-1, self.bins[0].shape[0]-1), dtype=np.double)
+        overall_count = np.zeros((self.bins[1].shape[0]-1, self.bins[0].shape[0]-1), dtype=np.long)
+
+        # the valid range for the histograms
+        _range = [self.xlim, self.ylim]
 
         # if x/y is a time need to convert it to numbers (checking first element)
         var_time = [False]*2
         for ivar, var in enumerate(self._variables):
             if isinstance(self[var][0], datetime.datetime):
                 self.bins[ivar] = mpl.dates.date2num(self.bins[ivar])
+                _range[ivar] = mpl.dates.date2num(_range[ivar])
                 var_time[ivar] = True
 
-        # the valid range for the histograms
-        _range = [self.xlim, self.ylim]
-        plt_data = [self[self._variables[0]], self._variables[1]]
-        for ival, val in var_time:
+
+        plt_data = [self[self._variables[0]], self[self._variables[1]]]
+        for ival, val in enumerate(var_time):
             if val:
-                plt_data[ival] = mpl.dates.date2num(plt_data[ival])
+                plt_data[ival] = date2num(plt_data[ival])
 
         # go through and get rid of bad counts
         zdat = np.ma.masked_outside(self[self._variables[2]], self.zlim[0], self.zlim[1])
@@ -162,7 +169,7 @@ class spectrogram(dm.SpaceData):
         # get the sum in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0][zind],
                                 plt_data[1][zind],
-                                bins = bins,
+                                bins = self.bins,
                                 range = _range,
                                 weights = zdat.data[zind]
                                 )
