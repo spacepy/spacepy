@@ -92,7 +92,7 @@ class spectrogram(dm.SpaceData):
         if not 'bins' in kwargs:
             self.bins = []
             try:
-                for var in self._variables:
+                for var in self._variables[0:2]:
                     self.bins.append(self[var].attrs['bins'])
             except (AttributeError, KeyError):
                 raise(ValueError(str(var) + ' has no bins specified and no "bins" in .attrs'))
