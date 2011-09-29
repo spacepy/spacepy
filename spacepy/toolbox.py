@@ -1205,8 +1205,13 @@ def linspace(min, max, num=50, endpoint=True, retstep=False, forcedate=False):
     """
     if isinstance(min, datetime.datetime) or forcedate==True:
         from matplotlib.dates import date2num, num2date
-        ans = num2date(np.linspace(date2num(min), date2num(max),
-                                 num=num, endpoint=endpoint, retstep=retstep))
+        try:
+            ans = num2date(np.linspace(date2num(min), date2num(max),
+                                     num=num, endpoint=endpoint, retstep=retstep))
+        except AttributeError: # weird error when min/max are 0d arrays
+            ans = num2date(np.linspace(date2num(min.tolist()), date2num(max.tolist()),
+                                     num=num, endpoint=endpoint, retstep=retstep))
+
         ans = [val.replace(tzinfo=None) for val in ans]
         return np.array(ans)
     else:
