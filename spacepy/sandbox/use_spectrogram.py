@@ -16,11 +16,11 @@ ind1 = rng[0]
 ind2 = rng[-1]
 
 data = SpaceData()
-#data['Epoch'] = dmarray(cdf['EPOCH'][ind1:ind2])
-#data['lValue'] = dmarray(cdf['lValue'][ind1:ind2])
+data['Epoch'] = dmarray(cdf['EPOCH'][ind1:ind2])
+data['lValue'] = dmarray(cdf['lValue'][ind1:ind2])
 data['mepOmni'] = dmarray(cdf['mepOmni'][ind1:ind2])[:,0]
-data['Epoch'] = cdf['EPOCH'][ind1:ind2]
-data['lValue'] = cdf['lValue'][ind1:ind2]
+#data['Epoch'] = cdf['EPOCH'][ind1:ind2]
+#data['lValue'] = cdf['lValue'][ind1:ind2]
 
 
 cdf.close()
@@ -34,12 +34,15 @@ maxL = 10               #max L value to plot (<20)
 step = 0.25             #L step size to use (.1, .2, .25, .5, 1, 2, ...), #smaller step sizes take considerably
 Lbins = np.arange(minL, maxL, step)
 
+data['Epoch'].attrs['bins'] = Tbins
+data['lValue'].attrs['bins'] = Lbins
+
 kwargs = {}
 
 kwargs['bins'] = [Tbins, Lbins]
 kwargs['ylim'] = [Lbins[0], Lbins[-1]]
 kwargs['variables'] = ['Epoch', 'lValue', 'mepOmni']
-kwargs['zlim'] = [0, np.max(data['mepOmni'])]
+#kwargs['zlim'] = [0, np.max(data['mepOmni'])]
 
 import spectrogram
 reload(spectrogram)
@@ -47,5 +50,6 @@ reload(spectrogram)
 a = spectrogram.spectrogram(data, **kwargs)
 
 from pylab import *
+figure()
 bb = np.ma.masked_less_equal(a['spectrogram']['spectrogram'], 0)
 pcolormesh(a['spectrogram']['xedges'], a['spectrogram']['yedges'], np.ma.log10(bb))

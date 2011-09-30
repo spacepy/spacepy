@@ -21,6 +21,7 @@ import matplotlib as mpl
 from matplotlib.dates import date2num, num2date
 
 import spacepy.datamodel as dm
+import spacepy.toolbox as tb
 
 class spectrogram(dm.SpaceData):
     """
@@ -74,56 +75,57 @@ class spectrogram(dm.SpaceData):
         ====
         Allow for the input of a list of SpaceData objecys for different sats
         """
-        # is variables in kwargs?
-        if not 'variables' in kwargs:
-            self._variables = ['Epoch', 'Energy', 'Flux']
-        else:
-            self._variables = kwargs['variables']
-            # check to see if the variables are in the spacedata
-            for var in kwargs['variables']:
-                if not var in data:  # TODO could check other capitalization
-                    raise(ValueError(str(var) + ' not found in the input data' ))
+        ## setup a default dictionary to step through to set values from kwargs
+        self.settings = {}
+        self.settings['variables'] = ['Epoch', 'Energy', 'Flux']
+        self.settings['bins'] = None  # this is the linspace over the range with sqrt() of the len bins
+        self.settings['xlim'] = None
+        self.settings['ylim'] = None
+        self.settings['zlim'] = None
+
+        # if the key exists in kwargs replace setting with it, otherwise its an error
+        for key in kwargs:
+            if key not in self.settings:
+                raise(KeyError('Invalid keyword specified ' + str(key)))
+            self.settings[key] = kwargs[key]
+
+        # check to see if the variables are in the spacedata
+        for var in self.settings['variables']:
+            if not var in data:  # TODO could check other capitalization
+                raise(ValueError(str(var) + ' not found in the input data' ))
+
+        # set default limits
+        if self.settings['xlim'] == None:
+            self.settings['xlim'] = (np.min(data[self.settings['variables'][0]]),
+                                np.max(data[self.settings['variables'][0]]))
+        if self.settings['ylim'] == None:
+            self.settings['ylim'] = (np.min(data[self.settings['variables'][1]]),
+                                np.max(data[self.settings['variables'][1]]))
+        if self.settings['zlim'] == None:
+            self.settings['zlim'] = (np.min(data[self.settings['variables'][2]]),
+                                np.max(data[self.settings['variables'][2]]))
+
+        # set default bins)()
+        if self.settings['bins'] == None:
+            # use the toolbox version of linspace so it works on dates
+            forcedate = [False] * 2
+            if isinstance(data[self.settings['variables'][0]][0], datetime.datetime):
+                forcedate[0] = True
+            if isinstance(data[self.settings['variables'][1]][0], datetime.datetime):
+                forcedate[1] = True
+            self.settings['bins'] = [np.asarray(tb.linspace(self.settings['xlim'][0],
+                                             self.settings['xlim'][1],
+                                             np.sqrt(len(data[self.settings['variables'][0]])), forcedate=forcedate[0])),
+                np.asarray(tb.linspace(self.settings['ylim'][0],
+                                             self.settings['ylim'][1],
+                                             np.sqrt(len(data[self.settings['variables'][1]])), forcedate=forcedate[1]))]
+
         for key in data: # TODO can this be done easier?
             self[key] = data[key]
             try:
                 self[key].attrs = data[key].attrs
             except:
                 pass
-        if not 'bins' in kwargs:
-            self.bins = []
-            try:
-                for var in self._variables[0:2]:
-                    self.bins.append(self[var].attrs['bins'])
-            except (AttributeError, KeyError):
-                raise(ValueError(str(var) + ' has no bins specified and no "bins" in .attrs'))
-        else:
-            self.bins = kwargs['bins']
-        # check for xlim in kwargs
-        if not 'xlim' in kwargs:
-            try:
-                self.xlim = self[self._variables[0]].attrs['lim']
-            except (AttributeError, KeyError):
-                self.xlim = (np.min(self[self._variables[0]]),
-                             np.max(self[self._variables[0]]))
-        else:
-            self.xlim = kwargs['xlim']
-        # check for ylim in kwargs
-        if not 'ylim' in kwargs:
-            try:
-                self.ylim = self[self._variables[1]].attrs['lim']
-            except (AttributeError, KeyError):
-                self.ylim = (np.min(self[self._variables[1]]),
-                             np.max(self[self._variables[1]]))
-        else:
-            self.ylim = kwargs['ylim']
-        if not 'zlim' in kwargs:
-            try:
-                self.zlim = self[self._variables[2]].attrs['lim']
-            except (AttributeError, KeyError):
-                self.zlim = (np.min(self[self._variables[2]]),
-                             np.max(self[self._variables[2]]))
-        else:
-            self.zlim = kwargs['zlim']
         # do the spectrogram
         self._doSpec()
 
@@ -134,17 +136,18 @@ class spectrogram(dm.SpaceData):
         to the spectrogram class data
         """
         # this is here for in the future when we take a list a SpaceData objects
-        overall_sum = np.zeros((self.bins[1].shape[0]-1, self.bins[0].shape[0]-1), dtype=np.double)
-        overall_count = np.zeros((self.bins[1].shape[0]-1, self.bins[0].shape[0]-1), dtype=np.long)
+        sz = (self.settings['bins'][1].shape[0]-1, self.settings['bins'][0].shape[0]-1)
+        overall_sum = np.zeros(sz, dtype=np.double)
+        overall_count = np.zeros(sz, dtype=np.long)
 
         # the valid range for the histograms
-        _range = [self.xlim, self.ylim]
+        _range = [self.settings['xlim'], self.settings['ylim']]
 
         # if x/y is a time need to convert it to numbers (checking first element)
         var_time = [False]*2
-        for ivar, var in enumerate(self._variables):
+        for ivar, var in enumerate(self.settings['variables']):
             if isinstance(self[var][0], datetime.datetime):
-                self.bins[ivar] = mpl.dates.date2num(self.bins[ivar])
+                self.settings['bins'][ivar] = mpl.dates.date2num(self.settings['bins'][ivar])
                 try: #weird issue with arrays and date2num
                     _range[ivar] = mpl.dates.date2num(_range[ivar].tolist())
                 except AttributeError:
@@ -154,7 +157,7 @@ class spectrogram(dm.SpaceData):
                         _range[ivar] = [mpl.dates.date2num(val) for val in _range[ivar]]
                 var_time[ivar] = True
 
-        plt_data = np.vstack((self[self._variables[0]], self[self._variables[1]]))
+        plt_data = np.vstack((self[self.settings['variables'][0]], self[self.settings['variables'][1]]))
 
         for ival, val in enumerate(var_time):
             if val:
@@ -164,12 +167,12 @@ class spectrogram(dm.SpaceData):
             plt_data = plt_data.astype(float)
 
         # go through and get rid of bad counts
-        zdat = np.ma.masked_outside(self[self._variables[2]], self.zlim[0], self.zlim[1])
+        zdat = np.ma.masked_outside(self[self.settings['variables'][2]], self.settings['zlim'][0], self.settings['zlim'][1])
         zind = ~zdat.mask
         # get the number in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0, zind],
                                 plt_data[1, zind],
-                                bins = self.bins,
+                                bins = self.settings['bins'],
                                 range = _range,
                                 )
         # this is here for in the future when we take a list a SpaceData objects
@@ -178,7 +181,7 @@ class spectrogram(dm.SpaceData):
         # get the sum in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0,zind],
                                 plt_data[1, zind],
-                                bins = self.bins,
+                                bins = self.settings['bins'],
                                 range = _range,
                                 weights = zdat.data[zind]
                                 )
@@ -192,16 +195,17 @@ class spectrogram(dm.SpaceData):
         #data[ind0] = np.ma.masked # add to the mask
         #data = np.ma.log10(data)
         self['spectrogram'] = dm.SpaceData()
+        self['spectrogram'].attrs = self.settings
         self['spectrogram']['spectrogram'] = dm.dmarray(data,
-            attrs={'name':str(self._variables[0]) + ' ' + str(self._variables[1]),
+            attrs={'name':str(self.settings['variables'][0]) + ' ' + str(self.settings['variables'][1]),
                    'xedges':'xedges',
                    'yedges':'yedges',})
         self['spectrogram']['xedges'] = dm.dmarray(xedges,
-            attrs={'name':str(self._variables[0]),
-                   'lim':[self.xlim],})
+            attrs={'name':str(self.settings['variables'][0]),
+                   'lim':[self.settings['xlim']],})
         self['spectrogram']['yedges'] = dm.dmarray(yedges,
-            attrs={'name':str(self._variables[1]),
-                   'lim':[self.ylim],})
+            attrs={'name':str(self.settings['variables'][1]),
+                   'lim':[self.settings['ylim']],})
 
 
 
