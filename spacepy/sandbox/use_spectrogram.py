@@ -7,7 +7,7 @@ import spacepy.toolbox as tb
 import spacepy.pycdf as pycdf
 from spacepy.datamodel import SpaceData, dmarray
 
-cdf = pycdf.CDF('poes_n15_all.cdf')
+cdf = pycdf.CDF('poes_n15_short.cdf')
 
 plotTime = np.asarray([datetime.datetime(2000, 11, 1), datetime.datetime(2000, 12, 1)])
 
@@ -48,8 +48,10 @@ import spectrogram
 reload(spectrogram)
 
 a = spectrogram.spectrogram(data, **kwargs)
+a.plot()
 
-from pylab import *
-figure()
-bb = np.ma.masked_less_equal(a['spectrogram']['spectrogram'], 0)
-pcolormesh(a['spectrogram']['xedges'], a['spectrogram']['yedges'], np.ma.log10(bb))
+
+#from pylab import *
+#figure()
+#bb = np.ma.masked_less_equal(a['spectrogram']['spectrogram'], 0)
+#pcolormesh(a['spectrogram']['xedges'], a['spectrogram']['yedges'], np.ma.log10(bb))

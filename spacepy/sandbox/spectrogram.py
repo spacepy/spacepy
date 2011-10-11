@@ -76,49 +76,49 @@ class spectrogram(dm.SpaceData):
         Allow for the input of a list of SpaceData objecys for different sats
         """
         ## setup a default dictionary to step through to set values from kwargs
-        self.settings = {}
-        self.settings['variables'] = ['Epoch', 'Energy', 'Flux']
-        self.settings['bins'] = None  # this is the linspace over the range with sqrt() of the len bins
-        self.settings['xlim'] = None
-        self.settings['ylim'] = None
-        self.settings['zlim'] = None
+        self.specSettings = {}
+        self.specSettings['variables'] = ['Epoch', 'Energy', 'Flux']
+        self.specSettings['bins'] = None  # this is the linspace over the range with sqrt() of the len bins
+        self.specSettings['xlim'] = None
+        self.specSettings['ylim'] = None
+        self.specSettings['zlim'] = None
 
         # if the key exists in kwargs replace setting with it, otherwise its an error
         for key in kwargs:
-            if key not in self.settings:
+            if key not in self.specSettings:
                 raise(KeyError('Invalid keyword specified ' + str(key)))
-            self.settings[key] = kwargs[key]
+            self.specSettings[key] = kwargs[key]
 
         # check to see if the variables are in the spacedata
-        for var in self.settings['variables']:
+        for var in self.specSettings['variables']:
             if not var in data:  # TODO could check other capitalization
                 raise(ValueError(str(var) + ' not found in the input data' ))
 
         # set default limits
-        if self.settings['xlim'] == None:
-            self.settings['xlim'] = (np.min(data[self.settings['variables'][0]]),
-                                np.max(data[self.settings['variables'][0]]))
-        if self.settings['ylim'] == None:
-            self.settings['ylim'] = (np.min(data[self.settings['variables'][1]]),
-                                np.max(data[self.settings['variables'][1]]))
-        if self.settings['zlim'] == None:
-            self.settings['zlim'] = (np.min(data[self.settings['variables'][2]]),
-                                np.max(data[self.settings['variables'][2]]))
+        if self.specSettings['xlim'] == None:
+            self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
+                                np.max(data[self.specSettings['variables'][0]]))
+        if self.specSettings['ylim'] == None:
+            self.specSettings['ylim'] = (np.min(data[self.specSettings['variables'][1]]),
+                                np.max(data[self.specSettings['variables'][1]]))
+        if self.specSettings['zlim'] == None:
+            self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
+                                np.max(data[self.specSettings['variables'][2]]))
 
         # set default bins)()
-        if self.settings['bins'] == None:
+        if self.specSettings['bins'] == None:
             # use the toolbox version of linspace so it works on dates
             forcedate = [False] * 2
-            if isinstance(data[self.settings['variables'][0]][0], datetime.datetime):
+            if isinstance(data[self.specSettings['variables'][0]][0], datetime.datetime):
                 forcedate[0] = True
-            if isinstance(data[self.settings['variables'][1]][0], datetime.datetime):
+            if isinstance(data[self.specSettings['variables'][1]][0], datetime.datetime):
                 forcedate[1] = True
-            self.settings['bins'] = [np.asarray(tb.linspace(self.settings['xlim'][0],
-                                             self.settings['xlim'][1],
-                                             np.sqrt(len(data[self.settings['variables'][0]])), forcedate=forcedate[0])),
-                np.asarray(tb.linspace(self.settings['ylim'][0],
-                                             self.settings['ylim'][1],
-                                             np.sqrt(len(data[self.settings['variables'][1]])), forcedate=forcedate[1]))]
+            self.specSettings['bins'] = [np.asarray(tb.linspace(self.specSettings['xlim'][0],
+                                             self.specSettings['xlim'][1],
+                                             np.sqrt(len(data[self.specSettings['variables'][0]])), forcedate=forcedate[0])),
+                np.asarray(tb.linspace(self.specSettings['ylim'][0],
+                                             self.specSettings['ylim'][1],
+                                             np.sqrt(len(data[self.specSettings['variables'][1]])), forcedate=forcedate[1]))]
 
         for key in data: # TODO can this be done easier?
             self[key] = data[key]
@@ -127,27 +127,26 @@ class spectrogram(dm.SpaceData):
             except:
                 pass
         # do the spectrogram
-        self._doSpec()
+        self._computeSpec()
 
-
-    def _doSpec(self):
+    def _computeSpec(self):
         """
         Method operates on the inout data to bin up the spectrogram and adds it
         to the spectrogram class data
         """
         # this is here for in the future when we take a list a SpaceData objects
-        sz = (self.settings['bins'][1].shape[0]-1, self.settings['bins'][0].shape[0]-1)
+        sz = (self.specSettings['bins'][1].shape[0]-1, self.specSettings['bins'][0].shape[0]-1)
         overall_sum = np.zeros(sz, dtype=np.double)
         overall_count = np.zeros(sz, dtype=np.long)
 
         # the valid range for the histograms
-        _range = [self.settings['xlim'], self.settings['ylim']]
+        _range = [self.specSettings['xlim'], self.specSettings['ylim']]
 
         # if x/y is a time need to convert it to numbers (checking first element)
         var_time = [False]*2
-        for ivar, var in enumerate(self.settings['variables']):
+        for ivar, var in enumerate(self.specSettings['variables']):
             if isinstance(self[var][0], datetime.datetime):
-                self.settings['bins'][ivar] = mpl.dates.date2num(self.settings['bins'][ivar])
+                self.specSettings['bins'][ivar] = mpl.dates.date2num(self.specSettings['bins'][ivar])
                 try: #weird issue with arrays and date2num
                     _range[ivar] = mpl.dates.date2num(_range[ivar].tolist())
                 except AttributeError:
@@ -157,7 +156,7 @@ class spectrogram(dm.SpaceData):
                         _range[ivar] = [mpl.dates.date2num(val) for val in _range[ivar]]
                 var_time[ivar] = True
 
-        plt_data = np.vstack((self[self.settings['variables'][0]], self[self.settings['variables'][1]]))
+        plt_data = np.vstack((self[self.specSettings['variables'][0]], self[self.specSettings['variables'][1]]))
 
         for ival, val in enumerate(var_time):
             if val:
@@ -167,12 +166,18 @@ class spectrogram(dm.SpaceData):
             plt_data = plt_data.astype(float)
 
         # go through and get rid of bad counts
-        zdat = np.ma.masked_outside(self[self.settings['variables'][2]], self.settings['zlim'][0], self.settings['zlim'][1])
+        zdat = np.ma.masked_outside(self[self.specSettings['variables'][2]], self.specSettings['zlim'][0], self.specSettings['zlim'][1])
         zind = ~zdat.mask
+        try:
+            if len(zind) == len(zdat):
+                pass
+        except TypeError: # no len to a scalar
+            zind = np.asarray([zind]*len(zdat))
+
         # get the number in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0, zind],
                                 plt_data[1, zind],
-                                bins = self.settings['bins'],
+                                bins = self.specSettings['bins'],
                                 range = _range,
                                 )
         # this is here for in the future when we take a list a SpaceData objects
@@ -181,7 +186,7 @@ class spectrogram(dm.SpaceData):
         # get the sum in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0,zind],
                                 plt_data[1, zind],
-                                bins = self.settings['bins'],
+                                bins = self.specSettings['bins'],
                                 range = _range,
                                 weights = zdat.data[zind]
                                 )
@@ -195,17 +200,100 @@ class spectrogram(dm.SpaceData):
         #data[ind0] = np.ma.masked # add to the mask
         #data = np.ma.log10(data)
         self['spectrogram'] = dm.SpaceData()
-        self['spectrogram'].attrs = self.settings
+        self['spectrogram'].attrs = self.specSettings
         self['spectrogram']['spectrogram'] = dm.dmarray(data,
-            attrs={'name':str(self.settings['variables'][0]) + ' ' + str(self.settings['variables'][1]),
+            attrs={'name':str(self.specSettings['variables'][0]) + ' ' + str(self.specSettings['variables'][1]),
                    'xedges':'xedges',
                    'yedges':'yedges',})
         self['spectrogram']['xedges'] = dm.dmarray(xedges,
-            attrs={'name':str(self.settings['variables'][0]),
-                   'lim':[self.settings['xlim']],})
+            attrs={'name':str(self.specSettings['variables'][0]),
+                   'lim':[self.specSettings['xlim']],})
         self['spectrogram']['yedges'] = dm.dmarray(yedges,
-            attrs={'name':str(self.settings['variables'][1]),
-                   'lim':[self.settings['ylim']],})
+            attrs={'name':str(self.specSettings['variables'][1]),
+                   'lim':[self.specSettings['ylim']],})
+
+    def plot(self, fignum=None, **kwargs):
+        """
+        Plot the spectrogram
+
+        TODO: **kwargs is just passed straight through o pcolormesh for now
+        """
+        # go through the passed in kwargs to plot and look at defaults
+        import matplotlib.pyplot as plt
+
+        plotSettings_keys = ('title', 'x_label', 'y_label', 'DateFormatter', 
+                             'zlim', 'nocolorbar', 'colorbar_label')
+        for key in kwargs:
+            if key not in plotSettings_keys:
+                raise(ValueError('Invalid keyword argument to plot(), "' + key + '"'))
+
+        self.plotSettings = {}
+        if 'title' in kwargs:
+            self.plotSettings['title'] = kwargs['title']
+        else:
+            self.plotSettings['title'] = ''
+        if 'x_label' in kwargs:
+            self.plotSettings['x_label'] = kwargs['x_label']
+        else:
+            self.plotSettings['x_label'] = ''
+        if 'y_label' in kwargs:
+            self.plotSettings['y_label'] = kwargs['y_label']
+        else:
+            self.plotSettings['y_label'] = ''
+
+        if 'DateFormatter' in kwargs:
+            self.plotSettings['DateFormatter'] = kwargs['DateFormatter']
+        else:
+            self.plotSettings['DateFormatter'] = mpl.dates.DateFormatter("%d %b %Y")
+        if 'zlim' in kwargs:
+            self.plotSettings['zlim'] = kwargs['zlim']
+        else:
+            self.plotSettings['zlim'] = self.specSettings['zlim']
+        if 'nocolorbar' in kwargs:
+            self.plotSettings['nocolorbar'] =  kwargs['nocolorbar']
+        else:
+            self.plotSettings['nocolorbar'] = False
+        if 'colorbar_label' in kwargs:
+            self.plotSettings['colorbar_label'] = kwargs['colorbar_label']
+        else:
+            self.plotSettings['colorbar_label'] = ''
+
+
+        if fignum == None:
+            fig = plt.figure()
+        else:
+            fig = plt.figure(fignum)
+        ax = fig.add_subplot(111)
+        bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
+        pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.ma.log10(bb))
+        time_ticks = self._set_ticks_to_time(ax)
+        ax.set_title(self.plotSettings['title'])
+        ax.set_xlabel(self.plotSettings['x_label'])
+        ax.set_ylabel(self.plotSettings['y_label'])
+        if not self.plotSettings['nocolorbar']:
+            if 'cmap' in kwargs:
+                self.plotSettings['cmap'] = kwargs['cmap']
+            else:
+                self.plotSettings['cmap'] = mpl.cm.rainbow
+            #cb = mpl.colorbar.ColorbarBase(ax, cmap=self.plotSettings['cmap'],
+                                   #norm=norm,
+            #                       orientation='vertical')
+            cb = mpl.pyplot.colorbar(pcm)
+            #cb = plt.colorbar(np.ma.log10(bb))
+            cb.set_label(self.plotSettings['colorbar_label'])
+        return fig
+
+    def _set_ticks_to_time(self, axis):
+        """
+        given the axis change the ticks to times
+        """
+        import matplotlib.dates
+        ticks = axis.get_xticks()
+        axis.set_xticklabels(mpl.dates.num2date(ticks))
+        timeFmt = mpl.dates.DateFormatter("%d %b %Y")
+        axis.xaxis.set_major_formatter(timeFmt)
+        axis.get_figure().autofmt_xdate()
+
 
 
 
