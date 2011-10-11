@@ -11,8 +11,7 @@ import unittest
 import numpy as np
 
 import spacepy.datamodel as dm
-#from spcepy import spectrogram
-import spectrogram
+from spacepy.plot import spectrogram
 
 
 kwargs = {}
@@ -32,12 +31,12 @@ class spectrogramTests(unittest.TestCase):
 
     def test_keywords(self):
         """there is some input checking"""
-        self.assertRaises(KeyError, spectrogram.spectrogram, data, variables=['bad'] )
-        self.assertRaises(KeyError, spectrogram.spectrogram, data, bad_keyword=['bad'] )
+        self.assertRaises(KeyError, spectrogram, data, variables=['bad'] )
+        self.assertRaises(KeyError, spectrogram, data, bad_keyword=['bad'] )
 
     def test_defaults(self):
         """run it and check that defualts were set correctly"""
-        a = spectrogram.spectrogram(data, variables=['xval', 'yval', 'zval'])
+        a = spectrogram(data, variables=['xval', 'yval', 'zval'])
         ans = {'bins': [np.array([ 0.00120857,  0.07751865,  0.15382872,  0.2301388 ,  0.30644887,
                                0.38275895,  0.45906902,  0.5353791 ,  0.61168917,  0.68799925,
                                0.76430932,  0.8406194 ,  0.91692947,  0.99323955]),

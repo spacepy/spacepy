@@ -479,7 +479,7 @@ class Distribution(_Distribution):
 
 
 pkg_files = ['irbempy/*.py', 'LANLstar/*.py',
-    'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*']
+    'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*', 'plot/*']
 
 pybats_ext = Extension('spacepy/pybats/ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],

@@ -26,6 +26,7 @@ from test_seapy import *
 from test_poppy import *
 from test_pycdf import *
 from test_borg import *
+from test_spectrogram import *
 # add others here as they are written
 
 if __name__ == '__main__':

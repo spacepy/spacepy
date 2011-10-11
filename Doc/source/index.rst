@@ -76,7 +76,7 @@ SpacePy Code
     spacepy_EnKF
     time
     toolbox
-
+    plot
 
 
 Indices and tables
