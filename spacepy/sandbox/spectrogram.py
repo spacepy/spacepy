@@ -66,14 +66,10 @@ class spectrogram(dm.SpaceData):
         zlim : list
             if the name "lim" is not specified in the .attrs of the dmarray variable
             this specifies the limit for the z variable [zlow, zhigh]
-        # plotting
-        #zlog : bool
-        #    if the name "log" is not specified in the .attrs of the dmarray variable
-        #    this specifies if the colorbar should be log (default=True)
 
         TODO
         ====
-        Allow for the input of a list of SpaceData objecys for different sats
+        Allow for the input of a list of SpaceData objects for different sats
         """
         ## setup a default dictionary to step through to set values from kwargs
         self.specSettings = {}
@@ -92,7 +88,7 @@ class spectrogram(dm.SpaceData):
         # check to see if the variables are in the spacedata
         for var in self.specSettings['variables']:
             if not var in data:  # TODO could check other capitalization
-                raise(ValueError(str(var) + ' not found in the input data' ))
+                raise(KeyError(str(var) + ' not found in the input data' ))
 
         # set default limits
         if self.specSettings['xlim'] == None:
@@ -105,7 +101,7 @@ class spectrogram(dm.SpaceData):
             self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
                                 np.max(data[self.specSettings['variables'][2]]))
 
-        # set default bins)()
+        # set default bins
         if self.specSettings['bins'] == None:
             # use the toolbox version of linspace so it works on dates
             forcedate = [False] * 2
@@ -120,7 +116,8 @@ class spectrogram(dm.SpaceData):
                                              self.specSettings['ylim'][1],
                                              np.sqrt(len(data[self.specSettings['variables'][1]])), forcedate=forcedate[1]))]
 
-        for key in data: # TODO can this be done easier?
+        # copy all the used keys
+        for key in self.specSettings['variables']: 
             self[key] = data[key]
             try:
                 self[key].attrs = data[key].attrs
@@ -165,9 +162,10 @@ class spectrogram(dm.SpaceData):
         if plt_data.dtype.name == 'object':  # why was this an abject
             plt_data = plt_data.astype(float)
 
-        # go through and get rid of bad counts
+        # go through and get rid of "bad" counts
         zdat = np.ma.masked_outside(self[self.specSettings['variables'][2]], self.specSettings['zlim'][0], self.specSettings['zlim'][1])
         zind = ~zdat.mask
+        # ma has the annoying feature of if all the masks are the same just giving one value
         try:
             if len(zind) == len(zdat):
                 pass
@@ -216,16 +214,37 @@ class spectrogram(dm.SpaceData):
         """
         Plot the spectrogram
 
-        TODO: **kwargs is just passed straight through o pcolormesh for now
+        Other Parameters
+        ================
+        title : str
+            plot title (default '')
+        x_label : str
+            x axis label (default '')
+        y_label : str
+            y axis label (default '')
+        colorbar_label : str
+            colorbar label (default '')
+        DateFormatter : matplotlib.dates.DateFormatter
+            The formatting to use on the dates on the x-axis (default mpl.dates.DateFormatter("%d %b %Y"))
+        zlog : bool
+            plot the log of the z variable (default True)
+        colorbar : bool
+            plot the colorbar (default True)
+        zlim : np.array
+            array like 2 element that overrides (interior) the spectrogram zlim (default spectrogram.specSettings['zlim'])
+
+        TODO
+        ====
+        **kwargs is just passed straight through o pcolormesh for now
         """
         # go through the passed in kwargs to plot and look at defaults
         import matplotlib.pyplot as plt
 
         plotSettings_keys = ('title', 'x_label', 'y_label', 'DateFormatter', 
-                             'zlim', 'nocolorbar', 'colorbar_label')
+                             'zlim', 'colorbar', 'colorbar_label', 'zlog')
         for key in kwargs:
             if key not in plotSettings_keys:
-                raise(ValueError('Invalid keyword argument to plot(), "' + key + '"'))
+                raise(KeyError('Invalid keyword argument to plot(), "' + key + '"'))
 
         self.plotSettings = {}
         if 'title' in kwargs:
@@ -240,6 +259,10 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['y_label'] = kwargs['y_label']
         else:
             self.plotSettings['y_label'] = ''
+        if 'zlog' in kwargs:
+            self.plotSettings['zlog'] = kwargs['zlog']
+        else:
+            self.plotSettings['zlog'] = True
 
         if 'DateFormatter' in kwargs:
             self.plotSettings['DateFormatter'] = kwargs['DateFormatter']
@@ -249,37 +272,35 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['zlim'] = kwargs['zlim']
         else:
             self.plotSettings['zlim'] = self.specSettings['zlim']
-        if 'nocolorbar' in kwargs:
-            self.plotSettings['nocolorbar'] =  kwargs['nocolorbar']
+        if 'colorbar' in kwargs:
+            self.plotSettings['colorbar'] =  kwargs['colorbar']
         else:
-            self.plotSettings['nocolorbar'] = False
+            self.plotSettings['colorbar'] = True
         if 'colorbar_label' in kwargs:
             self.plotSettings['colorbar_label'] = kwargs['colorbar_label']
         else:
             self.plotSettings['colorbar_label'] = ''
-
 
         if fignum == None:
             fig = plt.figure()
         else:
             fig = plt.figure(fignum)
         ax = fig.add_subplot(111)
-        bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
-        pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.ma.log10(bb))
+        if self.plotSettings['zlog']:
+            bb = np.ma.log10(np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim']))
+        else:
+            bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
+        pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb)
         time_ticks = self._set_ticks_to_time(ax)
         ax.set_title(self.plotSettings['title'])
         ax.set_xlabel(self.plotSettings['x_label'])
         ax.set_ylabel(self.plotSettings['y_label'])
-        if not self.plotSettings['nocolorbar']:
+        if self.plotSettings['colorbar']:
             if 'cmap' in kwargs:
                 self.plotSettings['cmap'] = kwargs['cmap']
             else:
                 self.plotSettings['cmap'] = mpl.cm.rainbow
-            #cb = mpl.colorbar.ColorbarBase(ax, cmap=self.plotSettings['cmap'],
-                                   #norm=norm,
-            #                       orientation='vertical')
             cb = mpl.pyplot.colorbar(pcm)
-            #cb = plt.colorbar(np.ma.log10(bb))
             cb.set_label(self.plotSettings['colorbar_label'])
         return fig
 
@@ -287,7 +308,6 @@ class spectrogram(dm.SpaceData):
         """
         given the axis change the ticks to times
         """
-        import matplotlib.dates
         ticks = axis.get_xticks()
         axis.set_xticklabels(mpl.dates.num2date(ticks))
         timeFmt = mpl.dates.DateFormatter("%d %b %Y")
