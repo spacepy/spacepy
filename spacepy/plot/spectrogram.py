@@ -108,6 +108,7 @@ class spectrogram(dm.SpaceData):
             if np.asarray(attr_bins[0:2]).all():
                 self.specSettings['bins'] = [np.asanyarray(data[self.specSettings['variables'][0]].attrs['bins']),
                                              np.asanyarray(data[self.specSettings['variables'][1]].attrs['bins']),]
+                # TODO this is not a hard extension to doing one with bins and one default
             else:
                 # use the toolbox version of linspace so it works on dates
                 forcedate = [False] * 2
@@ -298,7 +299,7 @@ class spectrogram(dm.SpaceData):
             bb = np.ma.log10(np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim']))
         else:
             bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
-        pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb)
+        pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb, **kwargs)
         time_ticks = self._set_ticks_to_time(ax)
         ax.set_title(self.plotSettings['title'])
         ax.set_xlabel(self.plotSettings['x_label'])
