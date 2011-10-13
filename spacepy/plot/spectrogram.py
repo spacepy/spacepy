@@ -17,7 +17,7 @@ Copyright 2011 Los Alamos National Security, LLC.
 import datetime
 
 import numpy as np
-import matplotlib as mpl
+import matplotlib
 from matplotlib.dates import date2num
 
 import spacepy.datamodel as dm
@@ -150,14 +150,14 @@ class spectrogram(dm.SpaceData):
         var_time = [False]*2
         for ivar, var in enumerate(self.specSettings['variables']):
             if isinstance(self[var][0], datetime.datetime):
-                self.specSettings['bins'][ivar] = mpl.dates.date2num(self.specSettings['bins'][ivar])
+                self.specSettings['bins'][ivar] = matplotlib.dates.date2num(self.specSettings['bins'][ivar])
                 try: #weird issue with arrays and date2num
-                    _range[ivar] = mpl.dates.date2num(_range[ivar].tolist())
+                    _range[ivar] = matplotlib.dates.date2num(_range[ivar].tolist())
                 except AttributeError:
                     try: # ugg if this is not an array this breaks
-                        _range[ivar] = [mpl.dates.date2num(val.tolist()) for val in _range[ivar]]
+                        _range[ivar] = [matplotlib.dates.date2num(val.tolist()) for val in _range[ivar]]
                     except AttributeError:
-                        _range[ivar] = [mpl.dates.date2num(val) for val in _range[ivar]]
+                        _range[ivar] = [matplotlib.dates.date2num(val) for val in _range[ivar]]
                 var_time[ivar] = True
 
         plt_data = np.vstack((self[self.specSettings['variables'][0]], self[self.specSettings['variables'][1]]))
@@ -234,7 +234,7 @@ class spectrogram(dm.SpaceData):
         colorbar_label : str
             colorbar label (default '')
         DateFormatter : matplotlib.dates.DateFormatter
-            The formatting to use on the dates on the x-axis (default mpl.dates.DateFormatter("%d %b %Y"))
+            The formatting to use on the dates on the x-axis (default matplotlib.dates.DateFormatter("%d %b %Y"))
         zlog : bool
             plot the log of the z variable (default True)
         colorbar : bool
@@ -247,8 +247,6 @@ class spectrogram(dm.SpaceData):
         **kwargs is just passed straight through o pcolormesh for now
         """
         # go through the passed in kwargs to plot and look at defaults
-        import matplotlib.pyplot as plt
-
         plotSettings_keys = ('title', 'x_label', 'y_label', 'DateFormatter', 
                              'zlim', 'colorbar', 'colorbar_label', 'zlog')
         for key in kwargs:
@@ -276,7 +274,7 @@ class spectrogram(dm.SpaceData):
         if 'DateFormatter' in kwargs:
             self.plotSettings['DateFormatter'] = kwargs['DateFormatter']
         else:
-            self.plotSettings['DateFormatter'] = mpl.dates.DateFormatter("%d %b %Y")
+            self.plotSettings['DateFormatter'] = matplotlib.dates.DateFormatter("%d %b %Y")
         if 'zlim' in kwargs:
             self.plotSettings['zlim'] = kwargs['zlim']
         else:
@@ -291,9 +289,9 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['colorbar_label'] = ''
 
         if fignum == None:
-            fig = plt.figure()
+            fig = matplotlib.pyplot.figure()
         else:
-            fig = plt.figure(fignum)
+            fig = matplotlib.pyplot.figure(fignum)
         ax = fig.add_subplot(111)
         if self.plotSettings['zlog']:
             bb = np.ma.log10(np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim']))
@@ -308,8 +306,8 @@ class spectrogram(dm.SpaceData):
             if 'cmap' in kwargs:
                 self.plotSettings['cmap'] = kwargs['cmap']
             else:
-                self.plotSettings['cmap'] = mpl.cm.rainbow
-            cb = mpl.pyplot.colorbar(pcm)
+                self.plotSettings['cmap'] = matplotlib.cm.rainbow
+            cb = matplotlib.pyplot.colorbar(pcm)
             cb.set_label(self.plotSettings['colorbar_label'])
         return fig
 
@@ -318,8 +316,8 @@ class spectrogram(dm.SpaceData):
         given the axis change the ticks to times
         """
         ticks = axis.get_xticks()
-        axis.set_xticklabels(mpl.dates.num2date(ticks))
-        timeFmt = mpl.dates.DateFormatter("%d %b %Y")
+        axis.set_xticklabels(matplotlib.dates.num2date(ticks))
+        timeFmt = matplotlib.dates.DateFormatter("%d %b %Y")
         axis.xaxis.set_major_formatter(timeFmt)
         axis.get_figure().autofmt_xdate()
 
