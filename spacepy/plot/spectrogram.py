@@ -103,18 +103,24 @@ class spectrogram(dm.SpaceData):
 
         # set default bins
         if self.specSettings['bins'] == None:
-            # use the toolbox version of linspace so it works on dates
-            forcedate = [False] * 2
-            if isinstance(data[self.specSettings['variables'][0]][0], datetime.datetime):
-                forcedate[0] = True
-            if isinstance(data[self.specSettings['variables'][1]][0], datetime.datetime):
-                forcedate[1] = True
-            self.specSettings['bins'] = [np.asarray(tb.linspace(self.specSettings['xlim'][0],
-                                             self.specSettings['xlim'][1],
-                                             np.sqrt(len(data[self.specSettings['variables'][0]])), forcedate=forcedate[0])),
-                np.asarray(tb.linspace(self.specSettings['ylim'][0],
-                                             self.specSettings['ylim'][1],
-                                             np.sqrt(len(data[self.specSettings['variables'][1]])), forcedate=forcedate[1]))]
+            # since it is not set by keyword was it set in the datamodel?
+            attr_bins = ['bins' in data[var].attrs for var in self.specSettings['variables']]
+            if np.asarray(attr_bins[0:2]).all():
+                self.specSettings['bins'] = [np.asanyarray(data[self.specSettings['variables'][0]].attrs['bins']),
+                                             np.asanyarray(data[self.specSettings['variables'][1]].attrs['bins']),]
+            else:
+                # use the toolbox version of linspace so it works on dates
+                forcedate = [False] * 2
+                if isinstance(data[self.specSettings['variables'][0]][0], datetime.datetime):
+                    forcedate[0] = True
+                if isinstance(data[self.specSettings['variables'][1]][0], datetime.datetime):
+                    forcedate[1] = True
+                self.specSettings['bins'] = [np.asarray(tb.linspace(self.specSettings['xlim'][0],
+                                                 self.specSettings['xlim'][1],
+                                                 np.sqrt(len(data[self.specSettings['variables'][0]])), forcedate=forcedate[0])),
+                    np.asarray(tb.linspace(self.specSettings['ylim'][0],
+                                                 self.specSettings['ylim'][1],
+                                                 np.sqrt(len(data[self.specSettings['variables'][1]])), forcedate=forcedate[1]))]
 
         # copy all the used keys
         for key in self.specSettings['variables']: 
@@ -163,7 +169,9 @@ class spectrogram(dm.SpaceData):
             plt_data = plt_data.astype(float)
 
         # go through and get rid of "bad" counts
-        zdat = np.ma.masked_outside(self[self.specSettings['variables'][2]], self.specSettings['zlim'][0], self.specSettings['zlim'][1])
+        zdat = np.ma.masked_outside(self[self.specSettings['variables'][2]], 
+                                    self.specSettings['zlim'][0], 
+                                    self.specSettings['zlim'][1])
         zind = ~zdat.mask
         # ma has the annoying feature of if all the masks are the same just giving one value
         try:
