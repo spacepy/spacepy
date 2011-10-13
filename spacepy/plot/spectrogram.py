@@ -100,6 +100,14 @@ class spectrogram(dm.SpaceData):
         if self.specSettings['zlim'] == None:
             self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
                                 np.max(data[self.specSettings['variables'][2]]))
+        
+        # are the axis dates?
+        forcedate = [False] * 2
+        if isinstance(data[self.specSettings['variables'][0]][0], datetime.datetime):
+            forcedate[0] = True
+        if isinstance(data[self.specSettings['variables'][1]][0], datetime.datetime):
+            forcedate[1] = True
+        self.specSettings['axisDates'] = forcedate
 
         # set default bins
         if self.specSettings['bins'] == None:
@@ -110,12 +118,7 @@ class spectrogram(dm.SpaceData):
                                              np.asanyarray(data[self.specSettings['variables'][1]].attrs['bins']),]
                 # TODO this is not a hard extension to doing one with bins and one default
             else:
-                # use the toolbox version of linspace so it works on dates
-                forcedate = [False] * 2
-                if isinstance(data[self.specSettings['variables'][0]][0], datetime.datetime):
-                    forcedate[0] = True
-                if isinstance(data[self.specSettings['variables'][1]][0], datetime.datetime):
-                    forcedate[1] = True
+                # use the toolbox version of linspace so it works on dates                
                 self.specSettings['bins'] = [np.asarray(tb.linspace(self.specSettings['xlim'][0],
                                                  self.specSettings['xlim'][1],
                                                  np.sqrt(len(data[self.specSettings['variables'][0]])), forcedate=forcedate[0])),
@@ -247,6 +250,7 @@ class spectrogram(dm.SpaceData):
         **kwargs is just passed straight through o pcolormesh for now
         """
         # go through the passed in kwargs to plot and look at defaults
+        import matplotlib.pyplot as plt
         plotSettings_keys = ('title', 'x_label', 'y_label', 'DateFormatter', 
                              'zlim', 'colorbar', 'colorbar_label', 'zlog')
         for key in kwargs:
@@ -289,16 +293,19 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['colorbar_label'] = ''
 
         if fignum == None:
-            fig = matplotlib.pyplot.figure()
+            fig = plt.figure()
         else:
-            fig = matplotlib.pyplot.figure(fignum)
+            fig = plt.figure(fignum)
         ax = fig.add_subplot(111)
         if self.plotSettings['zlog']:
             bb = np.ma.log10(np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim']))
         else:
             bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
         pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb, **kwargs)
-        time_ticks = self._set_ticks_to_time(ax)
+        if self.specSettings['axisDates'][0]:
+            time_ticks = self._set_ticks_to_time(ax, 'x')
+        elif self.specSettings['axisDates'][1]:
+            time_ticks = self._set_ticks_to_time(ax, 'y')
         ax.set_title(self.plotSettings['title'])
         ax.set_xlabel(self.plotSettings['x_label'])
         ax.set_ylabel(self.plotSettings['y_label'])
@@ -307,19 +314,25 @@ class spectrogram(dm.SpaceData):
                 self.plotSettings['cmap'] = kwargs['cmap']
             else:
                 self.plotSettings['cmap'] = matplotlib.cm.rainbow
-            cb = matplotlib.pyplot.colorbar(pcm)
+            cb =plt.colorbar(pcm)
             cb.set_label(self.plotSettings['colorbar_label'])
         return fig
 
-    def _set_ticks_to_time(self, axis):
+    def _set_ticks_to_time(self, axis, xy):
         """
         given the axis change the ticks to times
         """
-        ticks = axis.get_xticks()
-        axis.set_xticklabels(matplotlib.dates.num2date(ticks))
-        timeFmt = matplotlib.dates.DateFormatter("%d %b %Y")
-        axis.xaxis.set_major_formatter(timeFmt)
-        axis.get_figure().autofmt_xdate()
+        timeFmt = self.plotSettings['DateFormatter']
+        if xy == 'x':
+            ticks = axis.get_xticks()
+            axis.set_xticklabels(matplotlib.dates.num2date(ticks))
+            axis.xaxis.set_major_formatter(timeFmt)
+            axis.get_figure().autofmt_xdate()
+        elif xy == 'y':
+            ticks = axis.get_yticks()
+            axis.set_yticklabels(matplotlib.dates.num2date(ticks))
+            axis.yaxis.set_major_formatter(timeFmt)
+            axis.get_figure().autofmt_ydate()
 
 
 
