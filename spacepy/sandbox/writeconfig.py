@@ -16,3 +16,6 @@ def writeconfig(my_cfg, config_filepath):
     cfg.write(fp)
     fp.close()
     return
+
+# usage
+# writeconfig({'PORT':12, 'BROWSER_REFRESH':False, 'SERVICE_NAME':'daman', 'POLL_INTERVAL':1200, 'LOG_RECORDS':True}, 'test.cfg')
