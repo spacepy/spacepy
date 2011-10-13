@@ -18,7 +18,7 @@ import datetime
 
 import numpy as np
 import matplotlib as mpl
-from matplotlib.dates import date2num, num2date
+from matplotlib.dates import date2num
 
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
@@ -182,7 +182,7 @@ class spectrogram(dm.SpaceData):
         np.add(overall_count, H.transpose(), overall_count)
 
         # get the sum in each bin
-        H, xedges, yedges = np.histogram2d(plt_data[0,zind],
+        H, xedges, yedges = np.histogram2d(plt_data[0, zind],
                                 plt_data[1, zind],
                                 bins = self.specSettings['bins'],
                                 range = _range,
