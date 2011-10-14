@@ -18,6 +18,8 @@ import sys
 import zipfile
 import datetime
 import glob
+import warnings
+
 
 try:
     import cPickle as pickle
@@ -379,12 +381,12 @@ def feq(x, y, precision=0.0000005):
     compare two floating point values if they are equal
     after: http://www.lahey.com/float.htm
 
+    .. deprecated:: version 0.2
+    This is the same and less capable than numpy.allclose
+
     See Also
     ========
-        - http://docs.python.org/tut/node16.html
-        - http://www.velocityreviews.com/forums/t351983-precision-for-equality-of-two-floats.html
-        - http://www.boost.org/libs/test/doc/components/test_tools/floating_point_comparison.html
-        - http://howto.wikia.com/wiki/Howto_compare_float_numbers_in_the_C_programming_language
+    numpy.allclose
 
     Parameters
     ==========
@@ -410,6 +412,7 @@ def feq(x, y, precision=0.0000005):
     >>> tb.feq(x, y, 1e-3)
     True
     """
+    warnings.warn('feq has been deprecated, see numpy.allclose', DeprecationWarning)
     boolean = abs(x-y) <= (abs(x+y)*precision)
     return boolean
 
@@ -963,6 +966,7 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     ========
     matplotlib.pyplot.fill_between
     """
+    warnings.warn('makePoly has been deprecated, see matplotlib.pyplot.fill_between', DeprecationWarning)
     import matplotlib as mpl
     x2, y1 = x[-1::-1], y1[-1::-1]
     polyx = np.concatenate((x,x2))
@@ -1719,6 +1723,7 @@ def listUniq(inVal):
     ========
     numpy.unique
     """
+    warnings.warn('listUniq has been deprecated, see numpy.unique', DeprecationWarning)
     seen = set()
     return [ x for x in inVal if x not in seen and not seen.add(x)]
 
