@@ -950,7 +950,7 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     alpha : float (optional)
         alpha of the fill (default 0.5)
 
-    .. deprecated:: vesion 0.1
+    .. deprecated:: version 0.1
     Equivalent functionality to built-in matplotlib function fill_between
 
     Examples
@@ -1694,6 +1694,9 @@ def listUniq(inVal):
     """
     Given an input iterable (list, deque) return a list of the unique elements.
     Maintains order (keeps the first of non-unique elements
+    
+    .. deprecated:: version 0.2
+    Equivalent functionality to numpy.unique 
 
     Parameters
     ==========
@@ -1711,6 +1714,10 @@ def listUniq(inVal):
     >>> a = [1,1,2,3,3,4,5,5]
     >>> tb.listUniq(a)
     [1, 2, 3, 4, 5]
+    
+    See Also
+    ========
+    numpy.unique
     """
     seen = set()
     return [ x for x in inVal if x not in seen and not seen.add(x)]
