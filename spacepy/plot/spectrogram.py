@@ -72,6 +72,7 @@ class spectrogram(dm.SpaceData):
         TODO
         ====
         Allow for the input of a list of SpaceData objects for different sats
+        Make "subclasses" that allow for datato be passed in directly avoiding the data model
         """
         ## setup a default dictionary to step through to set values from kwargs
         self.specSettings = {}
@@ -167,6 +168,7 @@ class spectrogram(dm.SpaceData):
 
         plt_data = np.vstack((self[self.specSettings['variables'][0]], self[self.specSettings['variables'][1]]))
 
+        1/0
         for ival, val in enumerate(var_time):
             if val:
                 plt_data[ival] = date2num(plt_data[ival])
@@ -186,6 +188,7 @@ class spectrogram(dm.SpaceData):
         except TypeError: # no len to a scalar
             zind = np.asarray([zind]*len(zdat))
 
+        
         # get the number in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0, zind],
                                 plt_data[1, zind],
