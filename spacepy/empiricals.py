@@ -21,6 +21,8 @@ import spacepy.toolbox as tb
 import spacepy.omni as om
 import spacepy.time as spt
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
+
 def getLmax(ticks, model='JKemp'):
     """
     calculate a simple empirical model for Lmax - last closed drift-shell

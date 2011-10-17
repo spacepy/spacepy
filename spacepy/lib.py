@@ -20,6 +20,8 @@ import ctypes
 import os.path
 import sys
 
+__contact__ = 'Jon Niehof, jniehof@lanl.gov'
+
 #Handy shortcut types
 dptr = ctypes.POINTER(ctypes.c_double)
 ulptr = ctypes.POINTER(ctypes.c_ulong)

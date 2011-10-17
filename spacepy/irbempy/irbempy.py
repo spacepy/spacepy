@@ -16,6 +16,8 @@ Copyright ©2010 Los Alamos National Security, LLC.
 import numpy as np
 from spacepy import help
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
+
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
     'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
     'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},

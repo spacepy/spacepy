@@ -23,6 +23,8 @@ from matplotlib.dates import date2num, num2date
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
 
+__contact__ = 'Brian Larsen, balarsen@lanl.gov'
+
 class spectrogram(dm.SpaceData):
     """
     This class generates and then contains the data binned into he spectrogram

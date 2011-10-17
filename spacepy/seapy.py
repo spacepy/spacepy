@@ -53,6 +53,7 @@ from spacepy import help
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 
+__contact__ = 'Steve Morley, smorley@lanl.gov'
 
 class SeaBase(object):
     """SeaPy Superposed epoch analysis base class

@@ -20,7 +20,6 @@ import datetime
 import glob
 import warnings
 
-
 try:
     import cPickle as pickle
 except:
@@ -34,6 +33,8 @@ except ImportError:
     pass
 except:
     pass
+
+__contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
 def tOverlap(ts1, ts2, *args, **kwargs):
     """

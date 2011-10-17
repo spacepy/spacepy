@@ -91,8 +91,8 @@ from spacepy import help
 import datetime
 import datetime as dt
 import numpy as np
-__version__ = "$Revision: 1.37 $, $Date: 2011/05/31 20:25:32 $"
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 # -----------------------------------------------
 # Tickdelta class

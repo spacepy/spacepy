@@ -74,6 +74,7 @@ if lib.have_libspacepy:
     import ctypes
 import spacepy.toolbox as tb
 
+__contact__ = 'Steve Morley, smorley@lanl.gov'
 
 class PPro(object):
     """PoPPy point process object

@@ -94,6 +94,8 @@ the following will make life easier:
 from __future__ import division
 import numpy, copy, datetime
 
+__contact__ = 'Steve Morley, smorley@lanl.gov'
+
 class dmarray(numpy.ndarray):
     """
     Container for data within a SpaceData object
