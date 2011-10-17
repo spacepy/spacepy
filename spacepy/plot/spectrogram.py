@@ -232,9 +232,9 @@ class spectrogram(dm.SpaceData):
         ================
         title : str
             plot title (default '')
-        x_label : str
+        xlabel : str
             x axis label (default '')
-        y_label : str
+        ylabel : str
             y axis label (default '')
         colorbar_label : str
             colorbar label (default '')
@@ -249,11 +249,10 @@ class spectrogram(dm.SpaceData):
 
         TODO
         ====
-        **kwargs is just passed straight through o pcolormesh for now
         """
         # go through the passed in kwargs to plot and look at defaults
         import matplotlib.pyplot as plt
-        plotSettings_keys = ('title', 'x_label', 'y_label', 'DateFormatter', 
+        plotSettings_keys = ('title', 'xlabel', 'ylabel', 'DateFormatter', 
                              'zlim', 'colorbar', 'colorbar_label', 'zlog')
         for key in kwargs:
             if key not in plotSettings_keys:
@@ -264,14 +263,14 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['title'] = kwargs['title']
         else:
             self.plotSettings['title'] = ''
-        if 'x_label' in kwargs:
-            self.plotSettings['x_label'] = kwargs['x_label']
+        if 'xlabel' in kwargs:
+            self.plotSettings['xlabel'] = kwargs['xlabel']
         else:
-            self.plotSettings['x_label'] = ''
-        if 'y_label' in kwargs:
-            self.plotSettings['y_label'] = kwargs['y_label']
+            self.plotSettings['xlabel'] = ''
+        if 'ylabel' in kwargs:
+            self.plotSettings['ylabel'] = kwargs['ylabel']
         else:
-            self.plotSettings['y_label'] = ''
+            self.plotSettings['ylabel'] = ''
         if 'zlog' in kwargs:
             self.plotSettings['zlog'] = kwargs['zlog']
         else:
@@ -303,14 +302,14 @@ class spectrogram(dm.SpaceData):
             bb = np.ma.log10(np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim']))
         else:
             bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
-        pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb, **kwargs)
+        pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb)
         if self.specSettings['axisDates'][0]:
             time_ticks = self._set_ticks_to_time(ax, 'x')
         elif self.specSettings['axisDates'][1]:
             time_ticks = self._set_ticks_to_time(ax, 'y')
         ax.set_title(self.plotSettings['title'])
-        ax.set_xlabel(self.plotSettings['x_label'])
-        ax.set_ylabel(self.plotSettings['y_label'])
+        ax.set_xlabel(self.plotSettings['xlabel'])
+        ax.set_ylabel(self.plotSettings['ylabel'])
         if self.plotSettings['colorbar']:
             if 'cmap' in kwargs:
                 self.plotSettings['cmap'] = kwargs['cmap']
