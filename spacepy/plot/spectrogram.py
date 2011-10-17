@@ -253,7 +253,8 @@ class spectrogram(dm.SpaceData):
         # go through the passed in kwargs to plot and look at defaults
         import matplotlib.pyplot as plt
         plotSettings_keys = ('title', 'xlabel', 'ylabel', 'DateFormatter', 
-                             'zlim', 'colorbar', 'colorbar_label', 'zlog')
+                             'zlim', 'colorbar', 'colorbar_label', 'zlog', 
+                             'xlim', 'ylim')
         for key in kwargs:
             if key not in plotSettings_keys:
                 raise(KeyError('Invalid keyword argument to plot(), "' + key + '"'))
@@ -292,6 +293,14 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['colorbar_label'] = kwargs['colorbar_label']
         else:
             self.plotSettings['colorbar_label'] = ''
+        if 'xlim' in kwargs:
+            self.plotSettings['xlim'] = kwargs['xlim']
+        else:
+            self.plotSettings['xlim'] = None          
+        if 'ylim' in kwargs:
+            self.plotSettings['ylim'] = kwargs['ylim']
+        else:
+            self.plotSettings['ylim'] = None          
 
         if fignum == None:
             fig = plt.figure()
@@ -310,6 +319,11 @@ class spectrogram(dm.SpaceData):
         ax.set_title(self.plotSettings['title'])
         ax.set_xlabel(self.plotSettings['xlabel'])
         ax.set_ylabel(self.plotSettings['ylabel'])
+        if self.plotSettings['ylim'] != None:
+            ax.set_ylim(self.plotSettings['ylim'])
+        if self.plotSettings['xlim'] != None:
+            ax.set_xlim(self.plotSettings['xlim'])
+
         if self.plotSettings['colorbar']:
             if 'cmap' in kwargs:
                 self.plotSettings['cmap'] = kwargs['cmap']
