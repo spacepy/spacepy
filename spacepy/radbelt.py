@@ -17,7 +17,7 @@ import spacepy.time as st
 import pdb
 import spacepy.toolbox as tb
 
-__contact__ 'Josef Koller, jkoller@lanl.gov'
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 
 # -----------------------------------------------
