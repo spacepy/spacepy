@@ -11,6 +11,8 @@ import fp_equality
 import spacepy.time as st
 import pdb
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
+
 # flags for script
 # -----------------------------------------
 

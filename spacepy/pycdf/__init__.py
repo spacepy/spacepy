@@ -44,3 +44,5 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 
 from ._pycdf import *
+
+__contact__ = 'Jon Niehof, jniehof@lanl.gov'

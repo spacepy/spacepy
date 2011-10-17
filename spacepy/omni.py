@@ -15,6 +15,7 @@ import numpy as np
 from spacepy.datamodel import SpaceData, dmarray
 import spacepy.time as st
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 # -----------------------------------------------
 def get_omni(ticks):

@@ -19,6 +19,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 
 import os
 import os.path
+import warnings
 
 def help():
     """Launches web browser with local HTML help"""
@@ -138,3 +139,12 @@ if not os.path.exists(DOT_FLN):
 else:
     rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
     exec(compile(open(rcfile).read(), rcfile, 'exec'))
+
+#Set up a filter to always warn on deprecation
+try:
+    ENABLE_DEPRECATION_WARNING
+except:
+    ENABLE_DEPRECATION_WARNING = True
+if ENABLE_DEPRECATION_WARNING:
+    warnings.filterwarnings('default', '', DeprecationWarning,
+                            '^spacepy', 0, False)

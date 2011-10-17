@@ -14,6 +14,7 @@ import numpy as np
 from spacepy import help
 import spacepy
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 # -----------------------------------------------
 # space coordinate class

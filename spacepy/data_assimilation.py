@@ -9,6 +9,7 @@ import pdb
 from spacepy.toolbox import feq
 from matplotlib.mlab import find
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 """
 Data assimilation functions used for several projects

@@ -11,6 +11,8 @@
 #
 #
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
+
 # ----------------------------------------------------------------
 def LANLstar(inputdict):
 	"""

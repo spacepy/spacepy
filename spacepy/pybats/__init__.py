@@ -6,6 +6,8 @@ and visualizing BATS-R-US and SWMF output.
 Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
+__contact__ = 'Dan Welling, dwelling@lanl.gov'
+
 def load(pbfile):
     '''
     Load and return a pickled pybats object.
