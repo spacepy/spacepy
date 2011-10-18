@@ -93,6 +93,14 @@ class spectrogram(dm.SpaceData):
             if not var in data:  # TODO could check other capitalization
                 raise(KeyError(str(var) + ' not found in the input data' ))
 
+        # if the variables are empty error and quit
+        if len(data[self.specSettings['variables'][0]]) == 0:
+            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][0])))
+        if len(data[self.specSettings['variables'][1]]) == 0:
+            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][1])))
+        if len(data[self.specSettings['variables'][2]]) == 0:
+            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][2])))
+
         # set default limits
         if self.specSettings['xlim'] == None:
             self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
@@ -168,7 +176,6 @@ class spectrogram(dm.SpaceData):
 
         plt_data = np.vstack((self[self.specSettings['variables'][0]], self[self.specSettings['variables'][1]]))
 
-        1/0
         for ival, val in enumerate(var_time):
             if val:
                 plt_data[ival] = date2num(plt_data[ival])
