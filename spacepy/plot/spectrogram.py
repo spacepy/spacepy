@@ -256,6 +256,8 @@ class spectrogram(dm.SpaceData):
             plot the colorbar (default True)
         zlim : np.array
             array like 2 element that overrides (interior) the spectrogram zlim (default spectrogram.specSettings['zlim'])
+        figsize : tuple (optional)
+            tuple of size to pass to figure(), None does the default
 
         TODO
         ====
@@ -264,7 +266,7 @@ class spectrogram(dm.SpaceData):
         import matplotlib.pyplot as plt
         plotSettings_keys = ('title', 'xlabel', 'ylabel', 'DateFormatter', 
                              'zlim', 'colorbar', 'colorbar_label', 'zlog', 
-                             'xlim', 'ylim')
+                             'xlim', 'ylim', 'figsize')
         for key in kwargs:
             if key not in plotSettings_keys:
                 raise(KeyError('Invalid keyword argument to plot(), "' + key + '"'))
@@ -313,7 +315,11 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['ylim'] = None          
 
         if fignum == None:
-            fig = plt.figure()
+            if figsize in kwargs:
+                if kwargs['figsize'] != None:
+                    fig = plt.figure(figsize=kwargs['figsize'])
+            else:
+                fig = plt.figure()
         else:
             fig = plt.figure(fignum)
         ax = fig.add_subplot(111)
