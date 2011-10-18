@@ -19,7 +19,6 @@ import zipfile
 import datetime
 import glob
 import warnings
-import time
 
 try:
     import cPickle as pickle
@@ -383,7 +382,7 @@ def feq(x, y, precision=0.0000005):
     compare two floating point values if they are equal
     after: http://www.lahey.com/float.htm
 
-    .. deprecated:: version 0.2
+    .. deprecated:: version 0.11
     This is the same and less capable than numpy.allclose
 
     See Also
@@ -1701,7 +1700,7 @@ def listUniq(inVal):
     Given an input iterable (list, deque) return a list of the unique elements.
     Maintains order (keeps the first of non-unique elements
     
-    .. deprecated:: version 0.2
+    .. deprecated:: version 0.11
     Equivalent functionality to numpy.unique 
 
     Parameters
@@ -2070,7 +2069,7 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
                target, iterable, retvals, args, kwargs)
     return retvals
 
-def EventTimer(Event, Time1):
+def eventTimer(Event, Time1):
     """
     Times an event then prints out the time and the name of the event,
     nice for debugging and seeing that the code is progressing
@@ -2092,9 +2091,11 @@ def EventTimer(Event, Time1):
     >>> import spacepy.toolbox as tb
     >>> import time
     >>> t1 = time.time()
-    >>> t1 = tb.EventTimer('Test event finished', t1)
+    >>> t1 = tb.eventTimer('Test event finished', t1)
     ('4.40', 'Test event finished')
     """
+    raise(NotImplementedError("There is a known spacepy bug (3301794) that will not allow for the import of the core module time" ))
+    import time # need this in here so it doesn't collide with spacepy.time
     Time2 = time.time()
     print("%4.2f" % (Time2 - Time1), Event)
     return Time2
