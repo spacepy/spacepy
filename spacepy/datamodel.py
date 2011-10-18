@@ -92,7 +92,7 @@ the following will make life easier:
 """
 
 from __future__ import division
-import numpy, copy, datetime
+import numpy, copy, datetime, os
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
@@ -543,14 +543,11 @@ def toHDF5(fname, SDobject, **kwargs):
 
     if 'overwrite' not in kwargs: kwargs['overwrite'] = True
     if type(fname) == str:
-        try:
-            hfile = hdf.File(fname, mode=wr_mo)
-        except:
-            if kwargs['overwrite']:
-                os.remove(fname)
-                hfile = hdf.File(fname, mode=wr_mo)
-            else:
-                return None
+        if os.path.isfile(fname) and not kwargs['overwrite']:
+            raise(IOError('Cannot write HDF5, file exists (see overwrite)'))
+        if os.path.isfile(fname) and kwargs['overwrite']:
+            os.remove(fname)
+        hfile = hdf.File(fname, mode=wr_mo)
     else:
         hfile = fname
         #should test here for HDF file object
