@@ -19,6 +19,7 @@ import zipfile
 import datetime
 import glob
 import warnings
+import time
 
 try:
     import cPickle as pickle
@@ -2068,6 +2069,35 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     thread_job(jobsize, thread_count, array_targ,
                target, iterable, retvals, args, kwargs)
     return retvals
+
+def EventTimer(Event, Time1):
+    """
+    Times an event then prints out the time and the name of the event,
+    nice for debugging and seeing that the code is progressing
+    
+    Parameters
+    ==========
+    Event : str
+        Name of the event, string is printed out by function
+    Time1 : time.time
+        the time to differece in the function 
+    
+    Returns
+    =======
+    Time2 : time.time
+        the new time for the next call to EventTimer
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> import time
+    >>> t1 = time.time()
+    >>> t1 = tb.EventTimer('Test event finished', t1)
+    ('4.40', 'Test event finished')
+    """
+    Time2 = time.time()
+    print("%4.2f" % (Time2 - Time1), Event)
+    return Time2
 
 
 if __name__ == "__main__":
