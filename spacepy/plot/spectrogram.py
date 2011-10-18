@@ -74,8 +74,9 @@ class spectrogram(dm.SpaceData):
         Allow for the input of a list of SpaceData objects for different sats
         Make "subclasses" that allow for datato be passed in directly avoiding the data model
         """
+        super(spectrogram, self).__init__()
         ## setup a default dictionary to step through to set values from kwargs
-        self.specSettings = {}
+        self.specSettings = dm.SpaceData()
         self.specSettings['variables'] = ['Epoch', 'Energy', 'Flux']
         self.specSettings['bins'] = None  # this is the linspace over the range with sqrt() of the len bins
         self.specSettings['xlim'] = None
@@ -271,7 +272,7 @@ class spectrogram(dm.SpaceData):
             if key not in plotSettings_keys:
                 raise(KeyError('Invalid keyword argument to plot(), "' + key + '"'))
 
-        self.plotSettings = {}
+        self.plotSettings = dm.SpaceData()
         if 'title' in kwargs:
             self.plotSettings['title'] = kwargs['title']
         else:
@@ -315,7 +316,7 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['ylim'] = None          
 
         if fignum == None:
-            if figsize in kwargs:
+            if 'figsize' in kwargs:
                 if kwargs['figsize'] != None:
                     fig = plt.figure(figsize=kwargs['figsize'])
             else:
