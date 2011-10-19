@@ -13,6 +13,7 @@ import datetime
 import os
 import tempfile
 import unittest
+import warnings
 
 import spacepy.toolbox as tb
 import spacepy.datamodel as dm
@@ -212,12 +213,14 @@ class converterTests(unittest.TestCase):
         self.SDobj['var'] = dm.dmarray([1, 2, 3], attrs={'a': 'a'})
         if os.path.isfile('dmh5test.h5'):
             os.remove('dmh5test.h5')
+        warnings.simplefilter('error', dm.DMWarning)
 
     def tearDown(self):
         super(converterTests, self).tearDown()
         del self.SDobj
         if os.path.isfile('dmh5test.h5'):
             os.remove('dmh5test.h5')
+        warnings.simplefilter('default', dm.DMWarning)
 
     def test_convertKeysToStr(self):
         """convertKeysToStr sjould give known output"""
@@ -245,12 +248,41 @@ class converterTests(unittest.TestCase):
         self.assertEqual([str(a.keys()[0])], b.keys())
 
     def test_HDF5roundtrip(self):
+        """Data can go to hdf and back"""
         dm.toHDF5('dmh5test.h5', self.SDobj)
         newobj = dm.fromHDF5('dmh5test.h5')
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
+        dm.toHDF5('dmh5test.h5', self.SDobj, mode='a')
+        newobj = dm.fromHDF5('dmh5test.h5')
+        self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
+        np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])        
 
+    def test_HDF5Exceptions(self):
+        """HDF5 has warnings and exceptions"""
+        dm.toHDF5('dmh5test.h5', self.SDobj)
+        self.assertRaises(IOError, dm.toHDF5, 'dmh5test.h5', self.SDobj, overwrite=False)
+        a = dm.SpaceData()
+        a.attrs['foo'] = datetime.datetime.now() # not an allowed type for attrs
+        self.assertRaises(dm.DMWarning, dm.toHDF5, 'dmh5test.h5', a)
+        a = dm.SpaceData()
+        a['foo'] = 'bar' # not an allowed type for data
+        self.assertRaises(dm.DMWarning, dm.toHDF5, 'dmh5test.h5', a)
+        
+    def test_HDF5roundtrip2(self):
+        """Data can go to hdf and back again"""
+        a = dm.SpaceData()
+        a['foo'] = dm.SpaceData()
+        dm.toHDF5('dmh5test.h5', a)
+        newobj = dm.fromHDF5('dmh5test.h5')
+        self.assertEqual(a['foo'], newobj['foo'])
+        a['bar'] = dm.dmarray([datetime.datetime(2000, 1, 1)])
+        dm.toHDF5('dmh5test.h5', a)
+        newobj = dm.fromHDF5('dmh5test.h5')
+        self.assertEqual(a['bar'], newobj['bar'])
+        
 
 if __name__ == "__main__":
     unittest.main()

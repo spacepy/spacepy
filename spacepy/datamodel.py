@@ -92,9 +92,16 @@ the following will make life easier:
 """
 
 from __future__ import division
-import numpy, copy, datetime
+import numpy, copy, datetime, os, warnings
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
+
+class DMWarning(Warning):
+    """
+    Warnings class for datamodel, subclassed so it can be set to always
+    """
+    pass
+warnings.simplefilter('always', DMWarning)
 
 class dmarray(numpy.ndarray):
     """
@@ -507,10 +514,16 @@ def toHDF5(fname, SDobject, **kwargs):
     SDobject : spacepy.datamodel.SpaceData
         SpaceData with associated attributes and variables in dmarrays
 
+    Other Parameters
+    ----------------
+    overwrite : bool (optional)
+        allow overwrite of an existing target file (default True)
+    mode : str (optional)
+        HDF5 file open mode (a, w, r) (default 'a')
+
     Returns
     -------
     None
-
     '''
     def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
         if hasattr(SDobject, 'attrs'):
@@ -525,10 +538,10 @@ def toHDF5(fname, SDobject, **kwargs):
                         hfile[path].attrs[key] = ''
                 else:
                     #TODO: add support for datetime in attrs (convert to isoformat)
-                    print('\n\nThe following key:value pair is not permitted')
-                    print('key (type) =', key, '(', type(key), ')\n',
-		          'value (type) =', value, '(', type(value), ')')
-                    print('value type ', type(value), ' is not in the allowed attribute list\n')
+                    warnings.warn('The following key:value pair is not permitted\n' + 
+                                    'key = {0} ({1})\n'.format(key, type(key)) + 
+                                    'value type {0} is not in the allowed attribute list'.format(type(value)), 
+                                        DMWarning)
 
     try:
         import h5py as hdf
@@ -543,14 +556,11 @@ def toHDF5(fname, SDobject, **kwargs):
 
     if 'overwrite' not in kwargs: kwargs['overwrite'] = True
     if type(fname) == str:
-        try:
-            hfile = hdf.File(fname, mode=wr_mo)
-        except:
-            if kwargs['overwrite']:
-                os.remove(fname)
-                hfile = hdf.File(fname, mode=wr_mo)
-            else:
-                return None
+        if os.path.isfile(fname) and not kwargs['overwrite']:
+            raise(IOError('Cannot write HDF5, file exists (see overwrite)'))
+        if os.path.isfile(fname) and kwargs['overwrite']:
+            os.remove(fname)
+        hfile = hdf.File(fname, mode=wr_mo)
     else:
         hfile = fname
         #should test here for HDF file object
@@ -560,7 +570,7 @@ def toHDF5(fname, SDobject, **kwargs):
     else:
         path = '/'
 
-    allowed_attrs = [int, long, float, str, numpy.ndarray, list]
+    allowed_attrs = [int, long, float, str, numpy.ndarray, list, tuple]
     allowed_elems = [SpaceData, dmarray]
 
     #first convert non-string keys to str
@@ -581,5 +591,9 @@ def toHDF5(fname, SDobject, **kwargs):
                 #else:
                 #    hfile[path].create_dataset(key, data=value.astype(float))
             SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
-
+        else:
+            warnings.warn('The following data is not being written as is not of an allowed type\n' +
+                           'key = {0} ({1})\n'.format(key, type(key)) + 
+                              'value type {0} is not in the allowed data type list'.format(type(value)), 
+                                  DMWarning)
     if path=='/': hfile.close()
