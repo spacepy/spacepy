@@ -125,16 +125,16 @@ class spectrogram(dm.SpaceData):
         if self.specSettings['bins'] == None:
             # since it is not set by keyword was it set in the datamodel?
             attr_bins = ['bins' in data[var].attrs for var in self.specSettings['variables']]
-            if np.asarray(attr_bins[0:2]).all():
-                self.specSettings['bins'] = [np.asanyarray(data[self.specSettings['variables'][0]].attrs['bins']),
-                                             np.asanyarray(data[self.specSettings['variables'][1]].attrs['bins']),]
+            if dm.dmarray(attr_bins[0:2]).all():
+                self.specSettings['bins'] = [dm.dmarray(data[self.specSettings['variables'][0]].attrs['bins']),
+                                             dm.dmarray(data[self.specSettings['variables'][1]].attrs['bins']),]
                 # TODO this is not a hard extension to doing one with bins and one default
             else:
                 # use the toolbox version of linspace so it works on dates                
-                self.specSettings['bins'] = [np.asarray(tb.linspace(self.specSettings['xlim'][0],
+                self.specSettings['bins'] = [dm.dmarray(tb.linspace(self.specSettings['xlim'][0],
                                                  self.specSettings['xlim'][1],
                                                  np.sqrt(len(data[self.specSettings['variables'][0]])), forcedate=forcedate[0])),
-                    np.asarray(tb.linspace(self.specSettings['ylim'][0],
+                    dm.dmarray(tb.linspace(self.specSettings['ylim'][0],
                                                  self.specSettings['ylim'][1],
                                                  np.sqrt(len(data[self.specSettings['variables'][1]])), forcedate=forcedate[1]))]
 
@@ -155,8 +155,8 @@ class spectrogram(dm.SpaceData):
         """
         # this is here for in the future when we take a list a SpaceData objects
         sz = (self.specSettings['bins'][1].shape[0]-1, self.specSettings['bins'][0].shape[0]-1)
-        overall_sum = np.zeros(sz, dtype=np.double)
-        overall_count = np.zeros(sz, dtype=np.long)
+        overall_sum = dm.dmarray(np.zeros(sz, dtype=np.double))
+        overall_count = dm.dmarray(np.zeros(sz, dtype=np.long))
 
         # the valid range for the histograms
         _range = [self.specSettings['xlim'], self.specSettings['ylim']]
@@ -175,6 +175,7 @@ class spectrogram(dm.SpaceData):
                         _range[ivar] = [matplotlib.dates.date2num(val) for val in _range[ivar]]
                 var_time[ivar] = True
 
+        # ok not as a dmarray since it is local now
         plt_data = np.vstack((self[self.specSettings['variables'][0]], self[self.specSettings['variables'][1]]))
 
         for ival, val in enumerate(var_time):
@@ -194,8 +195,8 @@ class spectrogram(dm.SpaceData):
             if len(zind) == len(zdat):
                 pass
         except TypeError: # no len to a scalar
+            # ok not as a dmarray since it is local now
             zind = np.asarray([zind]*len(zdat))
-
         
         # get the number in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0, zind],
