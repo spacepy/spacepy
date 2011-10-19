@@ -1877,10 +1877,40 @@ def bin_center_to_edges(centers):
     >>> tb.bin_center_to_edges([1,2,3])
     [0.5, 1.5, 2.5, 3.5]
     """
-    return [1.5 * centers[0] - 0.5 * centers[1] if i == 0 else
-            1.5 * centers[-1] - 0.5 * centers[-2] if i == len(centers) else
-            (centers[i - 1] + centers[i]) / 2.0
-            for i in range(len(centers) + 1)]
+    edges = bin_edges_to_center(centers)
+    edges = np.append(centers[0]-(edges[0]-centers[0]), edges)
+    edges = np.append(edges, centers[-1]+(centers[-1]-edges[-1]))
+    return edges
+
+def bin_edges_to_center(edges):
+    """
+    Convert a list of bin edges to their centers
+
+    Given a list of edge values for a set of bins, finds the center of each bin.
+    (start of bin n+1 is assumed to be end of bin n).
+
+    Center of bin n is arithmetic mean of the edges of the adjacent bins.  
+
+    Parameters
+    ==========
+    edges : list
+        list of edge values for bins
+
+    Returns
+    =======
+    out : numpy.ndarray
+        array of centers for bins
+
+    **note:** returned array will be one element shorter than edges
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.bin_center_to_edges([1,2,3])
+    [0.5, 1.5, 2.5, 3.5]
+    """
+    df = np.diff(edges)
+    return edges[:-1] + df/2
 
 def hypot(*vals):
     """
@@ -1906,6 +1936,10 @@ def hypot(*vals):
     5.0
     >>> tb.hypot(*range(10))
     16.88194...
+    
+    See Also
+    ========
+    math.hypot
     """
     if len(vals) !=1 :
         return math.sqrt(sum((v ** 2 for v in vals)))

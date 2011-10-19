@@ -359,18 +359,26 @@ class SimpleFunctionTests(unittest.TestCase):
                 0.9219544422046511,
                 0.9746794307546907]
         # test the "if max is None:" part
-        numpy.testing.assert_almost_equal(ans, tb.dist_to_list(lambda x: x, 10, 0))
+        numpy.testing.assert_allclose(ans, tb.dist_to_list(lambda x: x, 10, 0))
 
     def testBinCenterToEdges(self):
         """Convert a set of bin centers to bin edges"""
         inputs = [[1, 2, 3, 4, 5],
-                  [12.4, 77, 100],
-                  ]
+                  [12.4, 77, 100],]
         outputs = [[0.5, 1.5, 2.5, 3.5, 4.5, 5.5],
-                   [-19.9, 44.7, 88.5, 111.5],
-                   ]
-        for (input, output) in itertools.izip(inputs, outputs):
-            self.assertEqual(output, tb.bin_center_to_edges(input))
+                   [-19.9, 44.7, 88.5, 111.5],]
+        for i, val in enumerate(inputs):
+            numpy.testing.assert_allclose(outputs[i], tb.bin_center_to_edges(val))
+        
+    def testBinEdgesToCenters(self):
+        """Convert a set of bin edges to bin centers"""
+        inputs = [[1, 2, 3, 4, 5],
+                  [1,2,3,7,10,20],
+                  ]
+        outputs = [[1.5, 2.5, 3.5, 4.5],
+                   [1.5, 2.5, 5, 8.5, 15],]
+        for i, val in enumerate(inputs):
+            numpy.testing.assert_allclose(outputs[i], tb.bin_edges_to_center(val))
 
     def test_hypot(self):
         """hypot should have known output"""
