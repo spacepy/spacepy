@@ -452,16 +452,15 @@ def fromHDF5(fname, **kwargs):
     Known issues -- zero-sized datasets will break in h5py
     This is kluged by returning a dmarray containing a None
     '''
-
     def hdfcarryattrs(SDobject, hfile, path):
         if hasattr(hfile[path],'attrs'):
             for key, value in hfile[path].attrs.iteritems():
                 try:
                     SDobject.attrs[key] = value
                 except:
-                    print('\n\nThe following key:value pair is not permitted')
-                    print('key (type) =', key, '(', type(key), ')\n',
-		          'value (type) =', value, '(',type(value), ')')
+                    warnings.warn('The following key:value pair is not permitted\n' + 
+                                    'key = {0} ({1})\n'.format(key, type(key)) + 
+                                    'value = {0} ({1})'.format(value, type(value)), DMWarning)
 
     try:
         import h5py as hdf
@@ -497,9 +496,7 @@ def fromHDF5(fname, **kwargs):
                 hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
         except:
             raise ValueError('HDF5 file contains type other than Group or Dataset')
-
     if path=='/': hfile.close()
-
     return SDobject
 
 def toHDF5(fname, SDobject, **kwargs):
