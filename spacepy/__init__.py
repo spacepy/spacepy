@@ -105,6 +105,30 @@ except NameError: #otherwise print single line notice
     print("SpacePy is released under license. See __licence__ and __citation__ for details, and help() for HTML help.")
 
 # import some settings
+def _read_config(rcfile):
+    """Read configuration information from a file"""
+    global ENABLE_DEPRECATION_WARNING, NCPUS, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
+    with open(rcfile, 'r') as f:
+        for l in f:
+            if l.count('=') != 1:
+                continue
+            name, val = l.split('=')
+            name = name.strip(' "\'\n')
+            val = val.strip(' "\'\n')
+            if not name in ('ENABLE_DEPRECATION_WARNING', 'NCPUS', 'OMNI_URL',
+                            'LEAPSEC_URL', 'PSDDATA_URL'):
+                continue
+            if name == 'ENABLE_DEPRECATION_WARNING':
+                ENABLE_DEPRECATION_WARNING = val
+            elif name == 'NCPUS':
+                NCPUS = val
+            elif name == 'OMNI_URL':
+                OMNI_URL = val
+            elif name == 'LEAPSEC_URL':
+                LEAPSEC_URL = val
+            elif name == 'PSDDATA_URL':
+                PSDDATA_URL = val
+
 from os import environ as ENVIRON
 if 'SPACEPY' in ENVIRON:
     DOT_FLN = os.path.join(ENVIRON['SPACEPY'], '.spacepy')
@@ -115,6 +139,7 @@ else:
         DOT_FLN = os.path.join(ENVIRON['HOMEDRIVE'],
                                ENVIRON['HOMEPATH'],
                                '.spacepy')
+rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
 if not os.path.exists(DOT_FLN):
     import shutil, sys
     from . import toolbox
@@ -129,16 +154,14 @@ if not os.path.exists(DOT_FLN):
     shutil.copy(os.path.join(datadir, 'tai-utc.dat'), dataout)
     print('SpacePy data installed to ' + DOT_FLN)
     print('If you wish to start fresh in the future, delete this directory.')
-    rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
-    exec(compile(open(rcfile).read(), rcfile, 'exec'))
+    _read_config(rcfile)
     if sys.version_info[0] < 3 and \
            toolbox.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no") == 'yes':
         toolbox.update()
     print('Regular OMNI updates are recommended: spacepy.toolbox.update()')
     print('Thanks for using SpacePy!')
 else:
-    rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
-    exec(compile(open(rcfile).read(), rcfile, 'exec'))
+    _read_config(rcfile)
 
 #Set up a filter to always warn on deprecation
 try:
