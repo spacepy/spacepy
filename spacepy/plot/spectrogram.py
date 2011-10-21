@@ -320,6 +320,8 @@ class spectrogram(dm.SpaceData):
             if 'figsize' in kwargs:
                 if kwargs['figsize'] != None:
                     fig = plt.figure(figsize=kwargs['figsize'])
+                else:
+                    fig = plt.figure()                    
             else:
                 fig = plt.figure()
         else:
