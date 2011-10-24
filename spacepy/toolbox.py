@@ -34,6 +34,12 @@ except ImportError:
 except:
     pass
 
+#Py3k compatibility renamings
+try:
+    xrange
+except NameError:
+    xrange = range
+
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
 def tOverlap(ts1, ts2, *args, **kwargs):
