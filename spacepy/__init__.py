@@ -17,6 +17,11 @@ and can be launched by typing:
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
+import multiprocessing
 import os
 import os.path
 import warnings
@@ -108,26 +113,53 @@ except NameError: #otherwise print single line notice
 def _read_config(rcfile):
     """Read configuration information from a file"""
     global ENABLE_DEPRECATION_WARNING, NCPUS, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
-    with open(rcfile, 'r') as f:
-        for l in f:
-            if l.count('=') != 1:
-                continue
-            name, val = l.split('=')
-            name = name.strip(' "\'\n')
-            val = val.strip(' "\'\n')
-            if not name in ('ENABLE_DEPRECATION_WARNING', 'NCPUS', 'OMNI_URL',
-                            'LEAPSEC_URL', 'PSDDATA_URL'):
-                continue
-            if name == 'ENABLE_DEPRECATION_WARNING':
-                ENABLE_DEPRECATION_WARNING = val
-            elif name == 'NCPUS':
-                NCPUS = val
-            elif name == 'OMNI_URL':
-                OMNI_URL = val
-            elif name == 'LEAPSEC_URL':
-                LEAPSEC_URL = val
-            elif name == 'PSDDATA_URL':
-                PSDDATA_URL = val
+    defaults = {'enable_deprecation_warning': True,
+                'ncpus': multiprocessing.cpu_count(),
+                'omni_url': 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
+                'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
+                'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
+                }
+    cp = ConfigParser.SafeConfigParser(defaults)
+    try:
+        successful = cp.read([rcfile])
+    except ConfigParser.Error:
+        successful = []
+    if successful: #New file structure
+        ENABLE_DEPRECATION_WARNING = cp.getboolean('spacepy', 'enable_deprecation_warning')
+        NCPUS = cp.getint('spacepy', 'ncpus')
+        OMNI_URL = cp.get('spacepy', 'omni_url')
+        LEAPSEC_URL = cp.get('spacepy', 'leapsec_url')
+        PSDDATA_URL = cp.get('spacepy', 'psddata_url')
+    else:
+        output_vals = {} #default to writing nothing
+        if os.path.exists(rcfile):
+            with open(rcfile, 'r') as f: #old file structure, read and convert
+                for l in f:
+                    if l.count('=') != 1:
+                        continue
+                    name, val = l.split('=')
+                    name = name.strip(' "\'\n')
+                    val = val.strip(' "\'\n')
+                    if not name in ('ENABLE_DEPRECATION_WARNING', 'NCPUS',
+                                    'OMNI_URL', 'LEAPSEC_URL', 'PSDDATA_URL'):
+                        continue
+                    output_vals[name.lower()] = val
+                    if name == 'ENABLE_DEPRECATION_WARNING':
+                        ENABLE_DEPRECATION_WARNING = val
+                    elif name == 'NCPUS':
+                        NCPUS = val
+                    elif name == 'OMNI_URL':
+                        OMNI_URL = val
+                    elif name == 'LEAPSEC_URL':
+                        LEAPSEC_URL = val
+                    elif name == 'PSDDATA_URL':
+                        PSDDATA_URL = val
+        cp = ConfigParser.SafeConfigParser()
+        cp.add_section('spacepy')
+        for k in output_vals:
+            cp.set('spacepy', k, str(output_vals[k]))
+        with open(rcfile, 'wb') as cf:
+            cp.write(cf)
 
 from os import environ as ENVIRON
 if 'SPACEPY' in ENVIRON:
