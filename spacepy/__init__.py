@@ -115,7 +115,7 @@ config = {}
 # import some settings
 def _read_config(rcfile):
     """Read configuration information from a file"""
-    global NCPUS, OMNI_URL, LEAPSEC_URL, PSDDATA_URL, config
+    global OMNI_URL, LEAPSEC_URL, PSDDATA_URL, config
     defaults = {'enable_deprecation_warning': str(True),
                 'ncpus': str(multiprocessing.cpu_count()),
                 'omni_url': 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
@@ -157,7 +157,6 @@ def _read_config(rcfile):
                 config[k] = defaults[k]
     for k in caster:
         config[k] = caster[k](config[k])
-    NCPUS = config['ncpus']
     OMNI_URL = config['omni_url']
     LEAPSEC_URL = config['leapsec_url']
     PSDDATA_URL = config['psddata_url']

@@ -888,7 +888,7 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
         alpha = [alpha]
     assert len(alpha) is 1, 'len(alpha) needs to be 1'	#TODO:should this be here?? - SKM
 
-    ncpus = spacepy.NCPUS
+    ncpus = spacepy.config['ncpus']
     ncalc = len(ticks)
     nalpha = len(alpha)
 
