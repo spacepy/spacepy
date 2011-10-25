@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 '''
 Tools for creating interactive PyBats GUIs.
-
-Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
 class ClickTracer(object):
     '''
-    ClickTracers, give an axis containing a 2D plot and the pybats.bats.Bats2d
+    ClickTracers, given an axis containing a 2D plot and the pybats.bats.Bats2d
     object used to create it, allows the user to click to add a streamline 
     passing through the point clicked.
     '''
@@ -26,16 +24,16 @@ class ClickTracer(object):
         self.connected = False
         self.connect()
 
-    def __call__(self, event, **kwargs):
+    def _do_trace(self, event, **kwargs):
         if event.inaxes != self.ax: 
             return
         if self.debug:
-            print('click at %.3f, %.3f' % (event.xdata, event.ydata))
+            print 'click at %.3f, %.3f' % (event.xdata, event.ydata)
         stream = self.bats.get_stream(event.xdata, event.ydata,
                                       self.xfield, self.yfield)
         ylims = self.ax.get_ylim()
         xlims = self.ax.get_xlim()
-        self.nowline = stream.plot(self.ax)
+        self.nowline = stream.plot(self.ax, alpha=0.25)
         self.ax.set_ylim(ylims)
         self.ax.set_xlim(xlims)
         self.ax.figure.canvas.draw()
@@ -46,7 +44,9 @@ class ClickTracer(object):
         '''
         if self.connected:
             return
-        self.cid = self.ax.figure.canvas.mpl_connect('button_press_event',self)
+        self.cid = self.ax.figure.canvas.mpl_connect(
+            'button_press_event',self._do_trace)
+        #self.kid = self
         self.connected = True
 
     def disconnect(self):
