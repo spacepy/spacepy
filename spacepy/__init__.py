@@ -109,27 +109,31 @@ try: #if in iPython interactive shell, print licence notice
 except NameError: #otherwise print single line notice
     print("SpacePy is released under license. See __licence__ and __citation__ for details, and help() for HTML help.")
 
+#Global spacepy configuration information
+config = {}
+
 # import some settings
 def _read_config(rcfile):
     """Read configuration information from a file"""
-    global ENABLE_DEPRECATION_WARNING, NCPUS, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
-    defaults = {'enable_deprecation_warning': True,
-                'ncpus': multiprocessing.cpu_count(),
+    global ENABLE_DEPRECATION_WARNING, NCPUS, OMNI_URL, LEAPSEC_URL, PSDDATA_URL, config
+    defaults = {'enable_deprecation_warning': str(True),
+                'ncpus': str(multiprocessing.cpu_count()),
                 'omni_url': 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
                 'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
                 }
+    #Functions to cast a config value; if not specified, value is a string
+    str2bool = lambda x: x.lower() in ('1', 'yes', 'true', 'on')
+    caster = {'enable_deprecation_warning': str2bool,
+              'ncpus': int,
+              }
     cp = ConfigParser.SafeConfigParser(defaults)
     try:
         successful = cp.read([rcfile])
     except ConfigParser.Error:
         successful = []
     if successful: #New file structure
-        ENABLE_DEPRECATION_WARNING = cp.getboolean('spacepy', 'enable_deprecation_warning')
-        NCPUS = cp.getint('spacepy', 'ncpus')
-        OMNI_URL = cp.get('spacepy', 'omni_url')
-        LEAPSEC_URL = cp.get('spacepy', 'leapsec_url')
-        PSDDATA_URL = cp.get('spacepy', 'psddata_url')
+        config = dict(cp.items('spacepy'))
     else:
         output_vals = {} #default to writing nothing
         if os.path.exists(rcfile):
@@ -144,22 +148,23 @@ def _read_config(rcfile):
                                     'OMNI_URL', 'LEAPSEC_URL', 'PSDDATA_URL'):
                         continue
                     output_vals[name.lower()] = val
-                    if name == 'ENABLE_DEPRECATION_WARNING':
-                        ENABLE_DEPRECATION_WARNING = val
-                    elif name == 'NCPUS':
-                        NCPUS = val
-                    elif name == 'OMNI_URL':
-                        OMNI_URL = val
-                    elif name == 'LEAPSEC_URL':
-                        LEAPSEC_URL = val
-                    elif name == 'PSDDATA_URL':
-                        PSDDATA_URL = val
+                    config[name.lower()] = val
         cp = ConfigParser.SafeConfigParser()
         cp.add_section('spacepy')
         for k in output_vals:
-            cp.set('spacepy', k, str(output_vals[k]))
+            cp.set('spacepy', k, output_vals[k])
         with open(rcfile, 'wb') as cf:
             cp.write(cf)
+        for k in defaults:
+            if not k in config:
+                config[k] = defaults[k]
+    for k in caster:
+        config[k] = caster[k](config[k])
+    ENABLE_DEPRECATION_WARNING = config['enable_deprecation_warning']
+    NCPUS = config['ncpus']
+    OMNI_URL = config['omni_url']
+    LEAPSEC_URL = config['leapsec_url']
+    PSDDATA_URL = config['psddata_url']
 
 from os import environ as ENVIRON
 if 'SPACEPY' in ENVIRON:
