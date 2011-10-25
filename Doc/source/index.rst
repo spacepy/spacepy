@@ -57,6 +57,7 @@ SpacePy Documents
     quickstart
     doc_standard
     tips
+    configuration
 
 SpacePy Code
 ============
