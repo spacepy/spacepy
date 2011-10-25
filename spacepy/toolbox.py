@@ -628,7 +628,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
-    from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
+    from spacepy import savepickle, DOT_FLN, config
 
     if sys.version_info[0]<3:
         import urllib as u
@@ -654,7 +654,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     if omni == True:
         # retrieve omni, unzip and save as table
         print("Retrieving omni file ...")
-        u.urlretrieve(OMNI_URL, omni_fname_zip, reporthook=progressbar)
+        u.urlretrieve(config['omni_url'], omni_fname_zip, reporthook=progressbar)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         A = np.array(data.split('\n'))
@@ -733,11 +733,11 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
-        u.urlretrieve(LEAPSEC_URL, leapsec_fname)
+        u.urlretrieve(config['leapsec_url'], leapsec_fname)
 
     if PSDdata == True:
         print("Retrieving PSD sql database")
-        u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
+        u.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=progressbar)
     return datadir
 
 def progressbar(count, blocksize, totalsize):
@@ -748,7 +748,7 @@ def progressbar(count, blocksize, totalsize):
     ========
     >>> import spacepy.toolbox as tb
     >>> import urllib
-    >>> urllib.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=tb.progressbar)
+    >>> urllib.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=tb.progressbar)
     """
     percent = int(count*blocksize*100/totalsize)
     sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
