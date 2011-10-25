@@ -134,19 +134,16 @@ def _read_config(rcfile):
         successful = []
     if successful: #New file structure
         config = dict(cp.items('spacepy'))
-    else:
+    else: #old file structure, read and convert
         output_vals = {} #default to writing nothing
         if os.path.exists(rcfile):
-            with open(rcfile, 'r') as f: #old file structure, read and convert
+            with open(rcfile, 'r') as f:
                 for l in f:
                     if l.count('=') != 1:
                         continue
                     name, val = l.split('=')
                     name = name.strip(' "\'\n')
                     val = val.strip(' "\'\n')
-                    if not name in ('ENABLE_DEPRECATION_WARNING', 'NCPUS',
-                                    'OMNI_URL', 'LEAPSEC_URL', 'PSDDATA_URL'):
-                        continue
                     output_vals[name.lower()] = val
                     config[name.lower()] = val
         cp = ConfigParser.SafeConfigParser()
