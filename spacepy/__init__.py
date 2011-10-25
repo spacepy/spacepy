@@ -177,7 +177,6 @@ if not os.path.exists(DOT_FLN):
     dataout = os.path.join(DOT_FLN, 'data')
     os.mkdir(DOT_FLN)
     os.chmod(DOT_FLN, 0o777)
-    shutil.copy(os.path.join(datadir, 'spacepy.rc'), DOT_FLN)
     os.mkdir(dataout)
     os.chmod(dataout, 0o777)
     shutil.copy(os.path.join(datadir, 'tai-utc.dat'), dataout)
