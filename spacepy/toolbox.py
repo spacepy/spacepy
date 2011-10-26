@@ -11,6 +11,7 @@ Los Alamos National Laboratory
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
+from __future__ import absolute_import
 
 import math
 import os
@@ -19,6 +20,7 @@ import zipfile
 import datetime
 import glob
 import warnings
+import time
 
 try:
     import cPickle as pickle
@@ -33,6 +35,12 @@ except ImportError:
     pass
 except:
     pass
+
+#Py3k compatibility renamings
+try:
+    xrange
+except NameError:
+    xrange = range
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
@@ -622,7 +630,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
-    from spacepy import savepickle, DOT_FLN, OMNI_URL, LEAPSEC_URL, PSDDATA_URL
+    from spacepy import savepickle, DOT_FLN, config
 
     if sys.version_info[0]<3:
         import urllib as u
@@ -648,7 +656,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     if omni == True:
         # retrieve omni, unzip and save as table
         print("Retrieving omni file ...")
-        u.urlretrieve(OMNI_URL, omni_fname_zip, reporthook=progressbar)
+        u.urlretrieve(config['omni_url'], omni_fname_zip, reporthook=progressbar)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         A = np.array(data.split('\n'))
@@ -727,11 +735,11 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
-        u.urlretrieve(LEAPSEC_URL, leapsec_fname)
+        u.urlretrieve(config['leapsec_url'], leapsec_fname)
 
     if PSDdata == True:
         print("Retrieving PSD sql database")
-        u.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=progressbar)
+        u.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=progressbar)
     return datadir
 
 def progressbar(count, blocksize, totalsize):
@@ -742,7 +750,7 @@ def progressbar(count, blocksize, totalsize):
     ========
     >>> import spacepy.toolbox as tb
     >>> import urllib
-    >>> urllib.urlretrieve(PSDDATA_URL, PSDdata_fname, reporthook=tb.progressbar)
+    >>> urllib.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=tb.progressbar)
     """
     percent = int(count*blocksize*100/totalsize)
     sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
@@ -2128,8 +2136,6 @@ def eventTimer(Event, Time1):
     >>> t1 = tb.eventTimer('Test event finished', t1)
     ('4.40', 'Test event finished')
     """
-    raise(NotImplementedError("There is a known spacepy bug (3301794) that will not allow for the import of the core module time" ))
-    import time # need this in here so it doesn't collide with spacepy.time
     Time2 = time.time()
     print("%4.2f" % (Time2 - Time1), Event)
     return Time2

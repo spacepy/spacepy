@@ -17,6 +17,11 @@ and can be launched by typing:
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
+import multiprocessing
 import os
 import os.path
 import warnings
@@ -104,7 +109,55 @@ try: #if in iPython interactive shell, print licence notice
 except NameError: #otherwise print single line notice
     print("SpacePy is released under license. See __licence__ and __citation__ for details, and help() for HTML help.")
 
+#Global spacepy configuration information
+config = {}
+
 # import some settings
+def _read_config(rcfile):
+    """Read configuration information from a file"""
+    global config
+    defaults = {'enable_deprecation_warning': str(True),
+                'ncpus': str(multiprocessing.cpu_count()),
+                'omni_url': 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
+                'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
+                'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
+                }
+    #Functions to cast a config value; if not specified, value is a string
+    str2bool = lambda x: x.lower() in ('1', 'yes', 'true', 'on')
+    caster = {'enable_deprecation_warning': str2bool,
+              'ncpus': int,
+              }
+    cp = ConfigParser.SafeConfigParser(defaults)
+    try:
+        successful = cp.read([rcfile])
+    except ConfigParser.Error:
+        successful = []
+    if successful: #New file structure
+        config = dict(cp.items('spacepy'))
+    else: #old file structure, read and convert
+        output_vals = {} #default to writing nothing
+        if os.path.exists(rcfile):
+            with open(rcfile, 'r') as f:
+                for l in f:
+                    if l.count('=') != 1:
+                        continue
+                    name, val = l.split('=')
+                    name = name.strip(' "\'\n')
+                    val = val.strip(' "\'\n')
+                    output_vals[name.lower()] = val
+                    config[name.lower()] = val
+        cp = ConfigParser.SafeConfigParser()
+        cp.add_section('spacepy')
+        for k in output_vals:
+            cp.set('spacepy', k, output_vals[k])
+        with open(rcfile, 'wb') as cf:
+            cp.write(cf)
+        for k in defaults:
+            if not k in config:
+                config[k] = defaults[k]
+    for k in caster:
+        config[k] = caster[k](config[k])
+
 from os import environ as ENVIRON
 if 'SPACEPY' in ENVIRON:
     DOT_FLN = os.path.join(ENVIRON['SPACEPY'], '.spacepy')
@@ -115,6 +168,7 @@ else:
         DOT_FLN = os.path.join(ENVIRON['HOMEDRIVE'],
                                ENVIRON['HOMEPATH'],
                                '.spacepy')
+rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
 if not os.path.exists(DOT_FLN):
     import shutil, sys
     from . import toolbox
@@ -123,28 +177,21 @@ if not os.path.exists(DOT_FLN):
     dataout = os.path.join(DOT_FLN, 'data')
     os.mkdir(DOT_FLN)
     os.chmod(DOT_FLN, 0o777)
-    shutil.copy(os.path.join(datadir, 'spacepy.rc'), DOT_FLN)
     os.mkdir(dataout)
     os.chmod(dataout, 0o777)
     shutil.copy(os.path.join(datadir, 'tai-utc.dat'), dataout)
     print('SpacePy data installed to ' + DOT_FLN)
     print('If you wish to start fresh in the future, delete this directory.')
-    rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
-    exec(compile(open(rcfile).read(), rcfile, 'exec'))
+    _read_config(rcfile)
     if sys.version_info[0] < 3 and \
            toolbox.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no") == 'yes':
         toolbox.update()
     print('Regular OMNI updates are recommended: spacepy.toolbox.update()')
     print('Thanks for using SpacePy!')
 else:
-    rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
-    exec(compile(open(rcfile).read(), rcfile, 'exec'))
+    _read_config(rcfile)
 
 #Set up a filter to always warn on deprecation
-try:
-    ENABLE_DEPRECATION_WARNING
-except:
-    ENABLE_DEPRECATION_WARNING = True
-if ENABLE_DEPRECATION_WARNING:
+if config['enable_deprecation_warning']:
     warnings.filterwarnings('default', '', DeprecationWarning,
                             '^spacepy', 0, False)
