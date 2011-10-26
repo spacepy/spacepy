@@ -7,6 +7,7 @@ Test suite for toolbox
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 
+import time
 import datetime
 import glob
 import itertools
@@ -369,7 +370,7 @@ class SimpleFunctionTests(unittest.TestCase):
                    [-19.9, 44.7, 88.5, 111.5],]
         for i, val in enumerate(inputs):
             numpy.testing.assert_allclose(outputs[i], tb.bin_center_to_edges(val))
-        
+
     def testBinEdgesToCenters(self):
         """Convert a set of bin edges to bin centers"""
         inputs = [[1, 2, 3, 4, 5],
@@ -570,6 +571,13 @@ class tFunctionTests(unittest.TestCase):
         ans = tb.tCommon(self.dt_a, array(self.dt_b), mask_only=False)
         numpy.testing.assert_equal(real_ans2[0], ans[0])
         numpy.testing.assert_equal(real_ans2[1], ans[1])
+
+    def test_eventTimer(self):
+        """eventTimer should behave in a known way"""
+        t1 = time.time()
+        time.sleep(0.25)
+        t2 = tb.eventTimer('', t1)
+        numpy.testing.assert_allclose(t2-t1, 0.25, atol=0.1, rtol=0.1)
 
     def test_smartTimeTicks(self):
         """smartTimeTicks should give known output (regression)"""
