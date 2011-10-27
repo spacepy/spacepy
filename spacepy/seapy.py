@@ -80,22 +80,6 @@ class SeaBase(object):
             print('Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta)
         self.bound_type = None
 
-
-class Sea(SeaBase):
-    """SeaPy Superposed epoch analysis object
-
-    Initialize object with data, times, epochs, window (half-width) and delta (optional).
-    'times' and epochs should be in some useful format
-    Includes method to perform superposed epoch analysis of input data series
-
-    Output can be nicely plotted with plot method, or for multiple objects
-    use the seamulti function
-
-    """
-    def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
-        super(Sea, self).__init__(data, times, epochs, \
-              window=window, delta=delta, verbose=verbose)
-
     def __str__(self):
         """Define String Representation of Sea object"""
 
@@ -172,6 +156,23 @@ class Sea(SeaBase):
             t_epoch = t_epoch[kinds]
 
         return time, t_epoch
+
+
+
+class Sea(SeaBase):
+    """SeaPy Superposed epoch analysis object
+
+    Initialize object with data, times, epochs, window (half-width) and delta (optional).
+    'times' and epochs should be in some useful format
+    Includes method to perform superposed epoch analysis of input data series
+
+    Output can be nicely plotted with plot method, or for multiple objects
+    use the seamulti function
+
+    """
+    def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
+        super(Sea, self).__init__(data, times, epochs, \
+              window=window, delta=delta, verbose=verbose)
 
     def sea(self, **kwargs):
         """Method called to perform superposed epoch analysis on data in object.
