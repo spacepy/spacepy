@@ -11,6 +11,7 @@ Los Alamos National Laboratory
 Copyright ©2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
+from __future__ import absolute_import
 
 import math
 import os
@@ -19,6 +20,7 @@ import zipfile
 import datetime
 import glob
 import warnings
+import time
 
 try:
     import cPickle as pickle
@@ -2134,8 +2136,6 @@ def eventTimer(Event, Time1):
     >>> t1 = tb.eventTimer('Test event finished', t1)
     ('4.40', 'Test event finished')
     """
-    raise(NotImplementedError("There is a known spacepy bug (3301794) that will not allow for the import of the core module time" ))
-    import time # need this in here so it doesn't collide with spacepy.time
     Time2 = time.time()
     print("%4.2f" % (Time2 - Time1), Event)
     return Time2
