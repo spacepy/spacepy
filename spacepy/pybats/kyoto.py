@@ -12,7 +12,7 @@ information.
 # Module wide imports.
 import numpy as np
 import datetime as dt
-from pybats import PbData
+from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray, SpaceData
 
 #############################################################################
@@ -131,7 +131,7 @@ class KyotoKp(PbData):
         '''
 
         import matplotlib.pyplot as plt
-        from pybats import apply_smart_timeticks
+        from spacepy.pybats import apply_smart_timeticks
 
         # Shortcuts for the lazy.
         bstart=self['binstart']

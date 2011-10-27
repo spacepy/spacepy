@@ -5,7 +5,7 @@ A module for reading, handling, and plotting RAM-SCB output.
 # Global imports
 import numpy as np
 import datetime as dt
-from pybats import PbData
+from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray
 
 ############################################################################
@@ -1382,7 +1382,7 @@ class LogFile(PbData):
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
         try:
-            import pybats.kyoto as kt
+            import spacepy.pybats.kyoto as kt
         except ImportError:
             return fig, ax
         
@@ -1625,7 +1625,7 @@ class Currents(object):
         self._netcdf.close()
 
     def plot_jpar(self, ax, time,maxz=0.5):
-        from pybats.rim import get_iono_cb
+        from spacepy.pybats.rim import get_iono_cb
         from matplotlib.colors import Normalize
         cmap=get_iono_cb('bwr')
         crange = Normalize(vmin=-1.*maxz, vmax=maxz)
