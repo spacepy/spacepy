@@ -23,7 +23,7 @@ contains a single section, ``[spacepy]``.
 Available configuration options
 ===============================
 enable_deprecation_warning
-  SpacePy raises :py:exc:`DeprecationWarning` when deprecated functions
+  SpacePy raises :py:exc:`~exceptions.DeprecationWarning` when deprecated functions
   are called. Starting in Python 2.7, these are ignored. SpacePy adds a warnings
   filter to force display of deprecation warnings from SpacePy the first time a
   deprecated function is called. Set this option to False to retain the default
