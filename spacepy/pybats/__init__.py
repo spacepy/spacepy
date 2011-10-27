@@ -563,7 +563,7 @@ class LogFile(PbData):
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
         try:
-            import pybats.kyoto as kt
+            import spacepy.pybats.kyoto as kt
         except ImportError:
             return fig, ax
         
@@ -838,7 +838,6 @@ class ImfInput(PbData):
         Returns a figure object containing the plots.
         '''
 
-        from rampy import apply_smart_timeticks
         import matplotlib.pyplot as plt
 
         if not timerange:

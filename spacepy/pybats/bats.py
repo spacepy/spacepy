@@ -4,7 +4,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 '''
 
 import numpy as np
-import pybats
+from spacepy.pybats import IdlBin, LogFile
 
 class Stream(object):
     '''
@@ -72,9 +72,9 @@ class Stream(object):
         '''
         from numpy import array, sqrt
         if self.method == 'euler':
-            from pybats.trace2d import trace2d_eul as trc
+            from spacepy.pybats.trace2d import trace2d_eul as trc
         elif self.method == 'rk4':
-            from pybats.trace2d import trace2d_rk4 as trc
+            from spacepy.pybats.trace2d import trace2d_rk4 as trc
         
         # Get name of dimensions in order.
         grid = bats['grid'].attrs['dims']
@@ -105,7 +105,7 @@ class Stream(object):
         '''
         ax.plot(self.x, self.y, self.style, *args, **kwargs)
 
-class Bats2d(pybats.IdlBin):
+class Bats2d(IdlBin):
     '''
     An object class of parent pybats.idlbin taylored to BATS-R-US output.
     This function requires the Matplotlib griddata function.
@@ -113,11 +113,11 @@ class Bats2d(pybats.IdlBin):
     '''
     # Init by calling IdlBin init and then building qotree, etc.
     def __init__(self, filename):
-        import pybats.qotree as qo
+        import spacepy.pybats.qotree as qo
         reload(qo)
         from numpy import array
         # Read file.
-        pybats.IdlBin.__init__(self, filename)
+        IdlBin.__init__(self, filename)
 
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
@@ -868,7 +868,7 @@ class BatsMag(object):
         '''
 
         import matplotlib.pyplot as plt
-        from rampy import apply_smart_timeticks
+        from spacepy.pybats import apply_smart_timeticks
 
         if not label:
             label=value
@@ -1015,7 +1015,7 @@ class MagFile(object):
         for mag in self.namemag:
             self[mag].recalc()
 
-class GeoIndFile(pybats.LogFile):
+class GeoIndFile(LogFile):
     '''
     Geomagnetic Index files are a specialized BATS-R-US output that contain
     geomagnetic indices calculated from simulated ground-based magnetometers.
@@ -1041,7 +1041,6 @@ class GeoIndFile(pybats.LogFile):
         kwargs are passed to pyplot.plot.
         '''
         import matplotlib.pyplot as plt
-        from rampy import apply_smart_timeticks
         
         if type(target) == plt.Figure:
             fig = target
@@ -1059,7 +1058,7 @@ class GeoIndFile(pybats.LogFile):
         apply_smart_timeticks(ax, self.time)
 
         try:
-            import kyotodst as kt
+            import spacepy.pybats.kyoto as kt
         except ImportError:
             print "kyotodst package unavailable."
             return fig, ax
