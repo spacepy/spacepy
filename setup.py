@@ -478,9 +478,10 @@ class Distribution(_Distribution):
         self.print_warnings()
 
 
-pkg_files = ['irbempy/*.py', 'LANLstar/*.py',
-    'pybats/*.py', 'pybats/*.out', 'pycdf/*.py', 'data/*', 'plot/*']
-
+packages = ['spacepy', 'spacepy.irbempy', 'spacepy.LANLstar',
+            'spacepy.pycdf', 'spacepy.plot', 'spacepy.pybats']
+#If adding to package_data, also put in MANIFEST.in
+package_data = ['data/*', 'pybats/sample_data/*']
 pybats_ext = Extension('spacepy/pybats/ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],
                        include_dirs=[numpy.get_include()])
@@ -494,8 +495,8 @@ setup(name='spacepy',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',
       requires=['numpy','scipy','matplotlib (>=0.99)'],
-      packages=['spacepy',],
-      package_data={'spacepy': pkg_files},
+      packages=packages,
+      package_data={'spacepy': package_data},
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
