@@ -1,0 +1,30 @@
+Changes in Version 0.1.1
+========================
+- new config file structure
+- overhaul of source distribution build
+- __contact__ attribute added to each SpacePy module (FR: 3424949)
+Datamodel
+ - HDF5 file object closure on dump to HDF5
+ - file overwriting is now possible in toHDF using overwrite keyword
+ - warnings added for incompatible data types on dump to HDF5
+Toolbox
+ - reformatted example in dist_to_list
+ - hypot now takes multiple args or an interable
+ - pmm now handles NaN
+ - tOverlap/tOverlapHalf now return iterators for presorted input
+ - forcedate keyword added to linspace
+ - EventTimer added
+ - bin_edges_to_center added to perform inverse of extant bin_center_to_edges
+Plot
+ - New subpackage plot added to SpacePy
+ - spectrogram function added
+PyBATS
+ - pybats is now an extension module
+ - major upgrades to internals (qdtree implementation, use of datamodel)
+ - new Kyoto index handler
+
+Additional typo fixes in documentation, Py3k compatibility updates and unit test updates
+
+Version 0.1
+===========
+Original release of SpacePy

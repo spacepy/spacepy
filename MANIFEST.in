@@ -1,6 +1,7 @@
 # this is the file that distutils parses for what to include
 #top-level docs
 include INSTALL
+include CHANGELOG
 include README.windows
 #Sphinx docs and source
 graft Doc/build/html
