@@ -18,7 +18,7 @@ Toolbox
 SeaPy
  - fixed Sea2d failure caused by incomplete migration to base class for all Sea types
 Plot
- - New subpackage plot added to SpacePy
+ - New subpackage plot added to SpacePy (still in heavy development)
  - spectrogram function added
 PyBATS
  - pybats is now an extension module
