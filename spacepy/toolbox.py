@@ -390,7 +390,7 @@ def feq(x, y, precision=0.0000005):
     compare two floating point values if they are equal
     after: http://www.lahey.com/float.htm
 
-    .. deprecated:: version 0.11
+    .. deprecated:: version 0.1.1
     This is the same and less capable than numpy.allclose
 
     See Also
@@ -1708,7 +1708,7 @@ def listUniq(inVal):
     Given an input iterable (list, deque) return a list of the unique elements.
     Maintains order (keeps the first of non-unique elements
     
-    .. deprecated:: version 0.11
+    .. deprecated:: version 0.1.1
     Equivalent functionality to numpy.unique 
 
     Parameters
