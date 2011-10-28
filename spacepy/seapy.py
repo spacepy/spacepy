@@ -154,7 +154,8 @@ class SeaBase(object):
 
             self.epochs = t_epoch[kinds]
             t_epoch = t_epoch[kinds]
-
+            if len(self.epochs)==0:
+                raise RuntimeError('No valid epochs for data supplied')
         return time, t_epoch
 
 
@@ -509,7 +510,7 @@ class Sea2d(SeaBase):
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=False, y=[]):
         super(Sea2d, self).__init__(data, times, epochs, window=window, \
-              delta=1., verbose=False, y=[])
+              delta=delta, verbose=False, y=[])
 
         if y:
             self.y = np.linspace(y[0], y[1], data.shape[0]+1)
@@ -517,7 +518,7 @@ class Sea2d(SeaBase):
             self.y = np.linspace(0, data.shape[0]-1, data.shape[0]+1)
 
     def sea(self, storedata=False, quartiles=True, ci=False, mad=False,
-        ci_quan='median', nmask=1):
+        ci_quan='median', nmask=1, **kwargs):
         """Method called to perform 2D superposed epoch analysis on data in object.
 
         Parameters
@@ -555,7 +556,14 @@ class Sea2d(SeaBase):
             y_sea[:,:,i] = sea_slice
 
         #find SEA mean, median and percentiles - exclude NaNs
-        y_sea_m = ma.masked_where(y_sea < 0., y_sea)
+        #y_sea_m = ma.masked_where(y_sea < 0., y_sea)
+        try:
+            badval = kwargs['badval']
+        except KeyError:
+            badval = np.nan
+            y_sea_m = ma.masked_where(np.isnan(y_sea), y_sea)
+        else:
+            y_sea_m = ma.masked_values(y_sea, badval)
         #now get SEA quantities
         self.semean, self.semedian, self.countmask = np.empty((l,m)), np.empty((l,m)), np.empty((l,m))
         yj=0
@@ -585,7 +593,8 @@ class Sea2d(SeaBase):
             self.datacube = y_sea_m
             print('sea(): datacube added as new attribute')
 
-        return 'Superposed epoch analysis complete'
+        if self.verbose:
+            print('Superposed epoch analysis complete')
 
     def plot(self, xquan = 'Time Since Epoch', yquan='', xunits='',
                 yunits='', zunits='', epochline=False, usrlimy=[],
