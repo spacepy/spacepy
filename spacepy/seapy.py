@@ -170,6 +170,20 @@ class Sea(SeaBase):
     Output can be nicely plotted with plot method, or for multiple objects
     use the seamulti function
 
+    Parameters
+    ==========
+    data : array_like
+        list or array of data
+    times : array_like
+        list of datetime objects (or list of serial times)
+    epochs : array_like
+        list of datetime objects (or serial times) for zero epochs in SEA
+    window : datetime.timedelta
+        size of the half-window for the SEA (can also be given as serial time)
+    delta : datetime.timedelta
+        resolution of the input data series, which must be uniform (can also be
+        given as serial time)
+    
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
         super(Sea, self).__init__(data, times, epochs, \
@@ -499,13 +513,28 @@ class Sea(SeaBase):
 class Sea2d(SeaBase):
     """SeaPy 2D Superposed epoch analysis object
 
-    Initialize object with data, times, epochs, window (half-width),
-    delta (optional), and y (two-element vector with max and min of y;optional)
+    Initialize object with data (n element vector), times(y*n array), 
+    epochs, window (half-width), delta (optional), and 
+    y (two-element vector with max and min of y;optional)
     'times' and epochs should be in some useful format
     Includes method to perform superposed epoch analysis of input data series
 
     Output can be nicely plotted with plot method, or for multiple
     objects use the seamulti function
+
+    Parameters
+    ==========
+    data : array_like
+        2-D array of data (0th dimension is quantity y, 1st dimension is time)
+    times : array_like
+        list of datetime objects (or list of serial times)
+    epochs : array_like
+        list of datetime objects (or serial times) for zero epochs in SEA
+    window : datetime.timedelta
+        size of the half-window for the SEA (can also be given as serial time)
+    delta : datetime.timedelta
+        resolution of the input data series, which must be uniform (can also be
+        given as serial time)
 
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=False, y=[]):
