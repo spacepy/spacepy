@@ -96,7 +96,7 @@ class spectrogram(dm.SpaceData):
         # check to see if the variables are in the spacedata
         for var in self.specSettings['variables']:
             if not var in data:  # TODO could check other capitalization
-                raise(KeyError(str(var) + ' not found in the input data' ))
+                raise(KeyError('"{}" not found in the input data'.format(var) ))
 
         # if the variables are empty error and quit
         if len(data[self.specSettings['variables'][0]]) == 0:
