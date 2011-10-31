@@ -34,7 +34,7 @@ class SpaceDataTests(unittest.TestCase):
         super(SpaceDataTests, self).tearDown()
 
     def test_SpaceData(self):
-        """Spacedata dist object has certian attributes"""
+        """Spacedata dist object has certain attributes"""
         dat = dm.SpaceData()
         self.assertEqual(dat.attrs, {})
         dat = dm.SpaceData(attrs={'foo':'bar'})
@@ -224,7 +224,7 @@ class converterTests(unittest.TestCase):
         warnings.simplefilter('default', dm.DMWarning)
 
     def test_convertKeysToStr(self):
-        """convertKeysToStr sjould give known output"""
+        """convertKeysToStr should give known output"""
         a = dm.SpaceData()
         a['data'] = dm.dmarray([1,2,3])
         b = dm.convertKeysToStr(a)
@@ -305,7 +305,7 @@ class CDFTests(unittest.TestCase):
                      
 
     def test_fromCDF_exception(self):
-        """Bad fle raises"""
+        """Bad file raises"""
         self.assertRaises(IOError, dm.fromCDF, 'bad_file.cdf')
 
 

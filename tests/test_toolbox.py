@@ -430,14 +430,14 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertRaises(TypeError, tb.dictree, 'bad')
 
     def test_geomspace(self):
-        """geomspace shopuld give known output"""
+        """geomspace should give known output"""
         ans = [1, 10, 100, 1000]
         numpy.testing.assert_array_equal(tb.geomspace(1, 10, 1000), ans)
         ans = [1, 10.0, 100.0]
         numpy.testing.assert_array_equal(tb.geomspace(1, stop = 100, num=3), ans)
         ans = [1, 10, 100]
         numpy.testing.assert_array_equal(tb.geomspace(1, ratio = 10, num=3), ans)
-        # there was a roiunding issue that this test catches
+        # there was a rounding issue that this test catches
         ans = [1, 3.1622776601683795, 10.000000000000002]
         numpy.testing.assert_allclose(tb.geomspace(1, stop = 10, num=3), ans)
 

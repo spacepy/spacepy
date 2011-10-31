@@ -24,7 +24,7 @@ from spacepy import toolbox
 
 
 class BaseTests(unittest.TestCase):
-    """Tests of basic funstions in poppy"""
+    """Tests of basic functions in poppy"""
     def setUp(self):
         super(BaseTests, self).setUp()
         t1 = [655963,  70837, 681914, 671054, 120856,  52827, 674833, 727548,
