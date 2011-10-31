@@ -4,7 +4,7 @@
 """
 plot: SpacePy specialized plotting routines
 
-This package provides classes to plot variuos types of space physics data.
+This package provides classes to plot various types of space physics data.
 
 .. currentmodule:: spacepy.plot
 

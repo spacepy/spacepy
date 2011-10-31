@@ -1,7 +1,7 @@
 """
 spacepy.plot.utils
 
-various utilitiy routines for plotting and plot related activities
+various utility routines for plotting and plot related activities
 
 Authors: Brian Larsen
 

@@ -57,7 +57,7 @@ class spectrogram(dm.SpaceData):
             the list is a list of the SpaceData keys in x, y, z, order
         bins : list
             if the name "bins" is not specified in the .attrs of the dmarray variable
-            this specifies the bins for each vairable in a
+            this specifies the bins for each variable in a
             [[xbins], [ybins]] format
         xlim : list
             if the name "lim" is not specified in the .attrs of the dmarray variable
@@ -72,7 +72,7 @@ class spectrogram(dm.SpaceData):
         TODO
         ====
         Allow for the input of a list of SpaceData objects for different sats
-        Make "subclasses" that allow for datato be passed in directly avoiding the data model
+        Make "subclasses" that allow for data to be passed in directly avoiding the data model
         """
         super(spectrogram, self).__init__()
         ## setup a default dictionary to step through to set values from kwargs
@@ -150,7 +150,7 @@ class spectrogram(dm.SpaceData):
 
     def _computeSpec(self):
         """
-        Method operates on the inout data to bin up the spectrogram and adds it
+        Method operates on the input data to bin up the spectrogram and adds it
         to the spectrogram class data
         """
         # this is here for in the future when we take a list a SpaceData objects
