@@ -36,6 +36,10 @@ except ImportError:
 except:
     pass
 
+from spacepy import lib
+if lib.have_libspacepy:
+    import ctypes
+
 #Py3k compatibility renamings
 try:
     xrange
@@ -1924,6 +1928,8 @@ def hypot(*vals):
     """
     Compute sqrt(vals[0] **2 + vals[1] **2 ...), ie. n-dimensional hypotenuse
 
+    If the input is a numpy array a c-backend is called for the calculation
+
     Parameters
     ==========
     vals : float (arbitary number), or iterable
@@ -1944,7 +1950,9 @@ def hypot(*vals):
     5.0
     >>> tb.hypot(*range(10))
     16.88194...
-    
+    >>> tb.hypot(numpy.arange(4)) # uses the c backend
+    3.7416573867739413
+
     See Also
     ========
     math.hypot
@@ -1953,7 +1961,11 @@ def hypot(*vals):
         return math.sqrt(sum((v ** 2 for v in vals)))
     else: # it was a single iterator
         try:
-            return math.sqrt(sum((v ** 2 for v in vals[0])))
+            if lib.have_libspacepy and isinstance(vals[0], np.ndarray):
+                d = vals[0].astype(np.double)
+                return lib.hypot_tb(d.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), d.size)
+            else:
+                return math.sqrt(sum((v ** 2 for v in vals[0])))
         except TypeError:
             return vals[0]
 

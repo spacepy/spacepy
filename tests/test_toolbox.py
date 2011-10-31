@@ -23,6 +23,7 @@ import spacepy.toolbox as tb
 import matplotlib.pyplot as plt
 import spacepy.time as st
 from matplotlib.text import Text
+import spacepy.lib
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -236,6 +237,13 @@ class SimpleFunctionTests(unittest.TestCase):
         else:
             numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
 
+    def test_linspace_bug(self):
+        """This catches a linspace datetime bug with 0-d arrays (regression)"""
+        ## remove this as the bug is fixed
+        t1 = datetime.datetime(2000, 1, 1)
+        t2 = datetime.datetime(2000, 1, 10)
+        self.assertRaises(TypeError, tb.linspace, numpy.array(t1), numpy.array(t2), 5)
+
     def test_pmm(self):
         """pmm should give known output for known input"""
         data = [[1,3,5,2,5,6,2], array([5,9,23,24,6]), [6,23,12,67.34] ]
@@ -390,6 +398,9 @@ class SimpleFunctionTests(unittest.TestCase):
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(tst))
         self.assertEqual(5.0, tb.hypot(5.0))
+        if spacepy.lib.have_libspacepy:
+            self.assertEqual(tb.hypot(numpy.array([3.,4.])), 5.0)
+            self.assertEqual(tb.hypot(numpy.array([3,4])), 5.0)
 
     def testThreadJob(self):
         """Multithread the square of an array"""

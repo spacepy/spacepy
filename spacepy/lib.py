@@ -40,7 +40,8 @@ functions = {
     'aa_ci': [None, ulptr, ulptr, ctypes.c_ulong, ctypes.c_ulong,
               ctypes.c_ulong, ulptr, ctypes.c_int],
     'solve_cn': [None, dptr, dptr, dptr, dptr, dptr, dptr, 
-                 ctypes.c_double, ctypes.c_int, dptr]
+                 ctypes.c_double, ctypes.c_int, dptr], 
+    'hypot_tb': [ctypes.c_double, dptr, ctypes.c_long]
     }
 
 
