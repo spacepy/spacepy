@@ -68,6 +68,8 @@ class spectrogram(dm.SpaceData):
         zlim : list
             if the name "lim" is not specified in the .attrs of the dmarray variable
             this specifies the limit for the z variable [zlow, zhigh]
+        extended_out : bool (optional)
+            if this is True add more information to the output data model (defualt False)
 
         TODO
         ====
@@ -82,6 +84,8 @@ class spectrogram(dm.SpaceData):
         self.specSettings['xlim'] = None
         self.specSettings['ylim'] = None
         self.specSettings['zlim'] = None
+        self.specSettings['extended_out'] = False
+        self.specSettings['axisDates'] = False
 
         # if the key exists in kwargs replace setting with it, otherwise its an error
         for key in kwargs:
@@ -112,7 +116,7 @@ class spectrogram(dm.SpaceData):
         if self.specSettings['zlim'] == None:
             self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
                                 np.max(data[self.specSettings['variables'][2]]))
-        
+
         # are the axis dates?
         forcedate = [False] * 2
         if isinstance(data[self.specSettings['variables'][0]][0], datetime.datetime):
@@ -130,7 +134,7 @@ class spectrogram(dm.SpaceData):
                                              dm.dmarray(data[self.specSettings['variables'][1]].attrs['bins']),]
                 # TODO this is not a hard extension to doing one with bins and one default
             else:
-                # use the toolbox version of linspace so it works on dates                
+                # use the toolbox version of linspace so it works on dates
                 self.specSettings['bins'] = [dm.dmarray(tb.linspace(self.specSettings['xlim'][0],
                                                  self.specSettings['xlim'][1],
                                                  np.sqrt(len(data[self.specSettings['variables'][0]])), forcedate=forcedate[0])),
@@ -139,7 +143,7 @@ class spectrogram(dm.SpaceData):
                                                  np.sqrt(len(data[self.specSettings['variables'][1]])), forcedate=forcedate[1]))]
 
         # copy all the used keys
-        for key in self.specSettings['variables']: 
+        for key in self.specSettings['variables']:
             self[key] = data[key]
             try:
                 self[key].attrs = data[key].attrs
@@ -165,7 +169,10 @@ class spectrogram(dm.SpaceData):
         var_time = [False]*2
         for ivar, var in enumerate(self.specSettings['variables']):
             if isinstance(self[var][0], datetime.datetime):
-                self.specSettings['bins'][ivar] = matplotlib.dates.date2num(self.specSettings['bins'][ivar])
+                try:
+                    self.specSettings['bins'][ivar] = matplotlib.dates.date2num(self.specSettings['bins'][ivar])
+                except AttributeError: # it is already changed to date2num
+                    pass
                 try: #weird issue with arrays and date2num
                     _range[ivar] = matplotlib.dates.date2num(_range[ivar].tolist())
                 except AttributeError:
@@ -186,8 +193,8 @@ class spectrogram(dm.SpaceData):
             plt_data = plt_data.astype(float)
 
         # go through and get rid of "bad" counts
-        zdat = np.ma.masked_outside(self[self.specSettings['variables'][2]], 
-                                    self.specSettings['zlim'][0], 
+        zdat = np.ma.masked_outside(self[self.specSettings['variables'][2]],
+                                    self.specSettings['zlim'][0],
                                     self.specSettings['zlim'][1])
         zind = ~zdat.mask
         # ma has the annoying feature of if all the masks are the same just giving one value
@@ -197,7 +204,7 @@ class spectrogram(dm.SpaceData):
         except TypeError: # no len to a scalar
             # ok not as a dmarray since it is local now
             zind = np.asarray([zind]*len(zdat))
-        
+
         # get the number in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0, zind],
                                 plt_data[1, zind],
@@ -235,6 +242,17 @@ class spectrogram(dm.SpaceData):
         self['spectrogram']['yedges'] = dm.dmarray(yedges,
             attrs={'name':str(self.specSettings['variables'][1]),
                    'lim':[self.specSettings['ylim']],})
+        if self.specSettings['extended_out']:
+            self['spectrogram']['count'] = overall_count
+            self['spectrogram']['sum'] = overall_sum
+
+    def add_data(self, data):
+        if not self.specSettings['extended_out']:
+            raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on inital creation'))
+        b = spectrogram(data, **self.specSettings)
+        self['spectrogram']['count'] += b['spectrogram']['count']
+        self['spectrogram']['sum'] += b['spectrogram']['sum']
+        self['spectrogram']['spectrogram'][...] = np.ma.divide(self['spectrogram']['sum'], self['spectrogram']['count'])
 
     def plot(self, fignum=None, **kwargs):
         """
@@ -266,8 +284,8 @@ class spectrogram(dm.SpaceData):
         """
         # go through the passed in kwargs to plot and look at defaults
         import matplotlib.pyplot as plt
-        plotSettings_keys = ('title', 'xlabel', 'ylabel', 'DateFormatter', 
-                             'zlim', 'colorbar', 'colorbar_label', 'zlog', 
+        plotSettings_keys = ('title', 'xlabel', 'ylabel', 'DateFormatter',
+                             'zlim', 'colorbar', 'colorbar_label', 'zlog',
                              'xlim', 'ylim', 'figsize')
         for key in kwargs:
             if key not in plotSettings_keys:
@@ -310,18 +328,18 @@ class spectrogram(dm.SpaceData):
         if 'xlim' in kwargs:
             self.plotSettings['xlim'] = kwargs['xlim']
         else:
-            self.plotSettings['xlim'] = None          
+            self.plotSettings['xlim'] = None
         if 'ylim' in kwargs:
             self.plotSettings['ylim'] = kwargs['ylim']
         else:
-            self.plotSettings['ylim'] = None          
+            self.plotSettings['ylim'] = None
 
         if fignum == None:
             if 'figsize' in kwargs:
                 if kwargs['figsize'] != None:
                     fig = plt.figure(figsize=kwargs['figsize'])
                 else:
-                    fig = plt.figure()                    
+                    fig = plt.figure()
             else:
                 fig = plt.figure()
         else:

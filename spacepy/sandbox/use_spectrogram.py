@@ -39,12 +39,14 @@ data['lValue'].attrs['bins'] = Lbins
 
 kwargs = {}
 
-kwargs['bins'] = [Tbins, Lbins]
+#kwargs['bins'] = [Tbins, Lbins]
 kwargs['ylim'] = [Lbins[0], Lbins[-1]]
 kwargs['variables'] = ['Epoch', 'lValue', 'mepOmni']
 #kwargs['zlim'] = [0, np.max(data['mepOmni'])]
 
-from spacepy.plot import spectrogram
+1/0
+#from spacepy.plot import spectrogram
+from spectrogram import *
 
 a = spectrogram(data, **kwargs)
 a.plot()
