@@ -250,6 +250,14 @@ class spectrogram(dm.SpaceData):
         if not self.specSettings['extended_out']:
             raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on inital creation'))
         b = spectrogram(data, **self.specSettings)
+        # if they are both masked keep them that way
+        mask = self['spectrogram']['count'].mask & b['spectrogram']['count'].mask
+        # turn off the mask by setting sum and count to zero where it masked for self an be sure b mask doesnt it self
+        self['spectrogram']['count'][self['spectrogram']['count'].mask] = 0
+        b['spectrogram']['count'][b['spectrogram']['count'].mask] = 0
+        # put the mask back they are both bad        
+        self['spectrogram']['count'].mask = mask
+        b['spectrogram']['count'].mask = mask
         self['spectrogram']['count'] += b['spectrogram']['count']
         self['spectrogram']['sum'] += b['spectrogram']['sum']
         self['spectrogram']['spectrogram'][...] = np.ma.divide(self['spectrogram']['sum'], self['spectrogram']['count'])
