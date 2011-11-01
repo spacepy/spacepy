@@ -485,12 +485,14 @@ package_data = ['data/*', 'pybats/sample_data/*']
 pybats_ext = Extension('spacepy.pybats.ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],
                        include_dirs=[numpy.get_include()])
+date2num_single_ext = Extension('spacepy.sandbox.date2num_single',
+                                sources=['spacepy/sandbox/date2num_single.c'])
 
 # run setup from distutil
 setup(name='spacepy',
       version='0.1.1',
       description='SpacePy: Tools for Space Science Applications',
-      ext_modules=[pybats_ext],
+      ext_modules=[pybats_ext, date2num_single_ext],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',
