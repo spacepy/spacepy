@@ -9,7 +9,6 @@
 *************************************************************************/
 #include <Python.h>
 #include <datetime.h>
-#include <stdio.h>
 
 #define HOURS_PER_DAY 24
 #define MINUTES_PER_DAY (60*HOURS_PER_DAY)
@@ -127,7 +126,7 @@ static PyObject *date2num_common(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef date2num_methods[] = {
-   { "date2num_single", (PyCFunction)date2num_common, METH_VARARGS,
+   { "date2num", (PyCFunction)date2num_common, METH_VARARGS,
      "Return value is a floating point number (or sequence of floats) which \n"
      "gives the number of days (fraction part represents hours, minutes, seconds)\n"
      "since 0001-01-01 00:00:00 UTC, plus one. The addition of one here is a \n"
@@ -136,8 +135,8 @@ static PyMethodDef date2num_methods[] = {
    { NULL, NULL, 0, NULL }
 };
 
-PyMODINIT_FUNC initdate2num_single(void) {
-   Py_InitModule3("date2num_single", date2num_methods, 
+PyMODINIT_FUNC initdate2num(void) {
+   Py_InitModule3("date2num", date2num_methods, 
                     "Module for computing matplotlib.dates.date2num a lot faster");
    PyDateTime_IMPORT;
 }
