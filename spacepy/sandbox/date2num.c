@@ -63,12 +63,7 @@ static double date2num(PyDateTime_DateTime *inval) {
 
 
 static PyObject *date2num_common(PyObject *self,
-				 PyObject *args, PyObject *kwargs,
-				 int (*func)(int, int, int,
-					     double, double, double,
-					     double*, double*,
-					     double*, double*,
-					     double*, double*)) {
+				 PyObject *args) {
   PyArrayObject *inval_p;
   /*Data pointers for the above arrays*/
   PyDateTime_DateTime *inval;
@@ -76,7 +71,7 @@ static PyObject *date2num_common(PyObject *self,
   npy_intp outdims[] = {0};
   npy_intp indims[] = {0};
   PyArray_Dims outshape = { outdims, 1 };
-  static char *kwlist[] = {NULL};
+  // static char *kwlist[] = {NULL}; // TODO there are no kwargs so I don't need this right?
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs,
 				   "O!", kwlist,
@@ -106,16 +101,6 @@ static PyObject *date2num_common(PyObject *self,
     return NULL;
   /*Giving away our reference to the caller*/
   return Py_BuildValue("NN", outx, outy);
-}
-
-static PyObject *ctrace2d_cEuler(PyObject *self,
-				 PyObject *args, PyObject *kwargs) {
-  return ctrace2d_common(self, args, kwargs, cEuler);
-}
-
-static PyObject *ctrace2d_cRk4(PyObject *self,
-			       PyObject *args, PyObject *kwargs) {
-  return ctrace2d_common(self, args, kwargs, cRk4);
 }
 
 static PyMethodDef date2num_methods[] = {
