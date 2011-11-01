@@ -93,6 +93,7 @@ the following will make life easier:
 
 from __future__ import division
 import numpy, copy, datetime, os, warnings
+from toolbox import dictree
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
@@ -214,6 +215,8 @@ class SpaceData(dict):
     -------
     flatten
 
+    tree
+
     """
 
     def __init__(self, *args, **kwargs):
@@ -237,6 +240,27 @@ class SpaceData(dict):
 
         super(SpaceData, self).__init__(*args, **kwargs)
 
+    def tree(self, **kwargs):
+        '''Print the contents of the SpaceData object in a visual tree
+
+        Examples
+        --------
+        >>> import spacepy.datamodel as dm
+        >>> import spacepy.toolbox as tb
+        >>> a = dm.SpaceData()
+        >>> a['1'] = dm.SpaceData(dog = 5)
+        >>> a['4'] = dm.SpaceData(cat = 'kitty')
+        >>> a['5'] = 4
+        >>> a.tree()
+        +
+        |____1
+             |____dog
+        |____4
+             |____cat
+        |____5
+        '''
+        dictree(self, **kwargs)
+    
     def flatten(self):
         '''
         Method to collapse datamodel to one level deep
