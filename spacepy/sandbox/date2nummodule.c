@@ -9,6 +9,9 @@
 *************************************************************************/
 #include <Python.h>
 #include <datetime.h>
+#include <numpy/arrayobject.h>
+
+#include <stdio.h>
 
 #define HOURS_PER_DAY 24
 #define MINUTES_PER_DAY (60*HOURS_PER_DAY)
@@ -88,6 +91,7 @@ static int ymd_to_ord(int year, int month, int day)
 static double date2num(PyDateTime_DateTime *inval) {
     int microsecond, second, minute, hour, day, month, year;
     double ord; // the ordinal
+    // If inval is not a datetime object raise ValueError
     microsecond = PyDateTime_DATE_GET_MICROSECOND(inval);
     second = PyDateTime_DATE_GET_SECOND(inval);
     minute = PyDateTime_DATE_GET_MINUTE(inval);
@@ -108,21 +112,67 @@ static double date2num(PyDateTime_DateTime *inval) {
 /*==============================================================================
  This handles the type checking and interface to then pass the data on to date2num()
 ==============================================================================*/
-static PyObject *date2num_common(PyObject *self, PyObject *args) {
-  PyDateTime_DateTime *inval;
-  double outval;
-  
-  if (!PyArg_ParseTuple(args, "O", &inval)) 
-    return NULL;
-  // If it is not a datetime object raise ValueError
-  if (!PyDate_Check(inval)) {
-    PyErr_SetString(PyExc_ValueError, "Must be a datetime object");
-    return NULL; 
-  }
-  outval = date2num(inval);
+static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
+    PyDateTime_DateTime *inval;
+    Py_ssize_t inval_len;
+    Py_ssize_t ind;
+    PyDateTime_DateTime *item;
+    PyArrayObject *outval;
 
-  /*Giving away our reference to the caller*/
-  return Py_BuildValue("d", outval);
+    if (!PyArg_ParseTuple(args, "O", &inval)) 
+        return NULL;
+
+printf("here0\n");
+    // if inval is a datetime then call the conversion and return
+    if (PyDate_Check(inval)) {
+        return Py_BuildValue("d", date2num(inval));  
+    } else {
+printf("here1: %d\n", PySequence_Check(inval));
+    // if it is not a datetime then iterate over it doing the conversion for each
+        if (!PySequence_Check(inval)) { // is the input a sequace of sorts
+            PyErr_SetString(PyExc_ValueError, "Must be a datetime object or iterable of datetime objects");
+            Py_DECREF(item);
+            return NULL;         
+        }
+        // this is an iterable, do something with it
+        inval_len = PySequence_Length(inval);
+printf("here2: len = %d\n", inval_len);
+        // check the zeroth element just to be sure it is a datetime before making outarray, could be huge
+        item = PySequence_GetItem(inval, 0);
+        if (!PyDate_Check(item)) {
+            PyErr_SetString(PyExc_ValueError, "Iterable must contain datetime objects");
+            Py_DECREF(item);
+            return NULL; 
+        }
+        Py_DECREF(item);
+printf("here3: PyArray_DOUBLE=%d\n", PyArray_DOUBLE);
+        // make a double array of this length
+outval = PyArray_ZEROS(1, &inval_len, PyArray_DOUBLE, 0);
+//        outval = PyArray_SimpleNew(1, inval_len, PyArray_DOUBLE);
+printf("here4: \n");
+
+        for (ind=0;ind<inval_len;ind++){
+            item = PySequence_GetItem(inval, ind);
+            // If this isn't a datetime error
+            if (!PyDate_Check(item)) {
+printf("here4.5 WTF: \n");
+                PyErr_SetString(PyExc_ValueError, "Iterable must contain datetime objects");
+                Py_DECREF(item);
+                return NULL; 
+            }
+            printf("here5: ind=%d inval_len=%d  num = %f\n", ind, inval_len, date2num(item));
+            if (PyArray_SETITEM(outval, &ind, Py_BuildValue("d", date2num(item))) == -1) {
+                PyErr_SetString(PyExc_RuntimeError, "Error setting array element");
+printf("here5.5 WTF: \n");
+                return NULL; 
+            }
+            Py_DECREF(item);
+        }
+    }
+
+
+    /*Giving away our reference to the caller*/
+    return outval;
 }
 
 static PyMethodDef date2num_methods[] = {
@@ -139,5 +189,6 @@ PyMODINIT_FUNC initdate2num(void) {
    Py_InitModule3("date2num", date2num_methods, 
                     "Module for computing matplotlib.dates.date2num a lot faster");
    PyDateTime_IMPORT;
+   import_array();
 }
 
