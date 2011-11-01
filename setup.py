@@ -486,7 +486,8 @@ pybats_ext = Extension('spacepy.pybats.ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],
                        include_dirs=[numpy.get_include()])
 date2num_single_ext = Extension('spacepy.sandbox.date2num',
-                                sources=['spacepy/sandbox/date2nummodule.c'])
+                                sources=['spacepy/sandbox/date2nummodule.c'], 
+                       include_dirs=[numpy.get_include()])
 
 # run setup from distutil
 setup(name='spacepy',
