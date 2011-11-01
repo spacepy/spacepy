@@ -1,15 +1,14 @@
 /*************************************************************************/
 /*
 Test compilation:
-gcc -DNDEBUG -g -O3 -Wall -Wstrict-prototypes -fPIC -DMAJOR_VERSION=1 -DMINOR_VERISON=0 -I /usr/include/python2.6 -I /usr/share/pyshared/numpy/core/include/numpy/ -c ctrace2dmodule.c
+gcc -DNDEBUG -g -O3 -Wall -Wstrict-prototypes -fPIC -DMAJOR_VERSION=1 -DMINOR_VERISON=0 -I /usr/include/python2.6  -c ctrace2dmodule.c
 gcc -shared ctrace2dmodule.o -o ctrace2d.so
 
 Copyright 2010 - 2011  Los Alamos National Security, LLC. */
 
 /*************************************************************************/
 #include <Python.h>
-#include <numpy/arrayobject.h>
-//#include <math.h>
+//#include <numpy/arrayobject.h>
 #include <datetime.h>
 
 
@@ -67,47 +66,22 @@ static PyObject *date2num_common(PyObject *self,
 //TODO and the macro PyDateTime_IMPORT must be invoked, usually as part of the 
 //module initialisation function. The macro puts a pointer to a C structure into 
 //a static variable, PyDateTimeAPI
-  PyArrayObject *inval_p, *outval_p;
-  int inval_p_len, i;
-  /*Data pointers for the above arrays*/
+  PyDateTime_IMPORT; // TODO does it matter where thi goes?
   PyDateTime_DateTime *inval;
-  double *outval;
-  PyArray_Descr *array_type;
-  npy_intp outdims[] = {0};
-  npy_intp indims[] = {0};
-  PyArray_Dims outshape = { outdims, 1 };
+  double outval;
   static char *kwlist[] = {NULL}; // TODO there are no kwargs so I don't need this right?
-
     
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-				   "O!", kwlist,
-				   &PyArray_Type ))
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, 
+                                    &PyDateTime_DateTime, &inval)) 
     return NULL;
 
-  array_type = PyArray_DescrFromType(NPY_DOUBLE);
-  outval_p = (PyArrayObject*)PyArray_FromArray(outval_p, array_type, NPY_DEFAULT);
-
-  /*For all of these, we are throwing away the borrowed ref
-   *to the original, and creating a new object with a new ref.
-   *So the new ref will be freed, but the borrowed ref is left alone.
-   */
-  Py_DECREF(array_type);
-
-
 //NPY_BEGIN_ALLOW_THREADS
-  // TODO somewhere need to give outval some memory
-  // TODO set the lengh of inval_p into inval_p_len
-  for (i=0;i<inval_p_len;i++){
-     outval[i] = date2num(inval[i]);
-  }
+  outval = date2num(inval);
   
   
 //NPY_END_ALLOW_THREADS
 
 //  Py_DECREF(fieldy); // TODO what do I need to dec/inc in here?
-
-  outval = (double*)PyArray_DATA(fieldx);
- 
 
 //  outdims[0] = count;
 //  if (!PyArray_Resize(outx, &outshape, 1, NPY_CORDER))
@@ -115,7 +89,7 @@ static PyObject *date2num_common(PyObject *self,
 //  if (!PyArray_Resize(outy, &outshape, 1, NPY_CORDER))
 //    return NULL;
 //  /*Giving away our reference to the caller*/
-  return Py_BuildValue("N", outval);
+  return Py_BuildValue("d", outval);
 }
 
 static PyMethodDef date2num_methods[] = {
