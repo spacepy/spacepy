@@ -8,7 +8,9 @@ Copyright ©2011 Los Alamos National Security, LLC.
 """
 import unittest
 import datetime
+
 from matplotlib.dates import date2num as date2num_mpl
+import numpy
 
 import date2num
 
@@ -30,6 +32,9 @@ class date2numTests(unittest.TestCase):
         """the C version should give the same result as the matplotlib version"""
         self.assertAlmostEqual(date2num.date2num(self.dt), date2num_mpl(self.dt))
 
+    def test_array(self):
+        """output is an array if the input is an iterable"""
+        numpy.testing.assert_allclose(date2num.date2num([self.dt]*10), date2num_mpl([self.dt]*10))
 
 
 if __name__ == "__main__":
