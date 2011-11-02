@@ -24,29 +24,28 @@
 
 
 // pulled from python source
-static int is_leap(int year)
+static npy_int is_leap(npy_int year)
 {
     /* Cast year to unsigned.  The result is the same either way, but
      * C can generate faster code for unsigned mod than for signed
      * mod (especially for % 4 -- a good compiler should just grab
      * the last 2 bits when the LHS is unsigned).
      */
-    const unsigned int ayear = (unsigned int)year;
+    const npy_uint ayear = (npy_uint)year;
     return ayear % 4 == 0 && (ayear % 100 != 0 || ayear % 400 == 0);
 }
 
 // pulled from python source
-static int _days_before_month[] = {
+static npy_int _days_before_month[] = {
     0, /* unused; this vector uses 1-based indexing */
     0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
 };
 
 // pulled from python source
 /* year, month -> number of days in year preceeding first day of month */
-static int
-days_before_month(int year, int month)
+static npy_int days_before_month(npy_int year, npy_int month)
 {
-    int days;
+    npy_int days;
 
     assert(month >= 1);
     assert(month <= 12);
@@ -57,9 +56,9 @@ days_before_month(int year, int month)
 }
 
 // pulled from python source
-static int days_before_year(int year)
+static npy_int days_before_year(npy_int year)
 {
-    int y = year - 1;
+    npy_int y = year - 1;
     /* This is incorrect if year <= 0; we really want the floor
      * here.  But so long as MINYEAR is 1, the smallest year this
      * can see is 0 (this can happen in some normalization endcases),
@@ -76,7 +75,7 @@ static int days_before_year(int year)
 
 // pulled from python source
 /* year, month, day -> ordinal, considering 01-Jan-0001 as day 1. */
-static int ymd_to_ord(int year, int month, int day)
+static npy_int ymd_to_ord(npy_int year, npy_int month, npy_int day)
 {
     return days_before_year(year) + days_before_month(year, month) + day;
 }
@@ -88,9 +87,9 @@ static int ymd_to_ord(int year, int month, int day)
 #
 # raise a ValueError for a non datetime input
 ==============================================================================*/
-static double date2num(PyDateTime_DateTime *inval) {
-    int microsecond, second, minute, hour, day, month, year;
-    double ord; // the ordinal
+static npy_double date2num(PyDateTime_DateTime *inval) {
+    npy_int microsecond, second, minute, hour, day, month, year;
+    npy_double ord; // the ordinal
     // If inval is not a datetime object raise ValueError
     microsecond = PyDateTime_DATE_GET_MICROSECOND(inval);
     second = PyDateTime_DATE_GET_SECOND(inval);
@@ -99,12 +98,12 @@ static double date2num(PyDateTime_DateTime *inval) {
     day = PyDateTime_GET_DAY(inval);
     month = PyDateTime_GET_MONTH(inval);
     year = PyDateTime_GET_YEAR(inval);
-    ord = (double)ymd_to_ord(year, month, day); // this is from datetimemodule.c
+    ord = (npy_double)ymd_to_ord(year, month, day); // this is from datetimemodule.c
     // make sure we dont have any int division    
-    ord += ((double)hour/HOURS_PER_DAY + 
-            (double)minute/MINUTES_PER_DAY + 
-            (double)second/SECONDS_PER_DAY + 
-            (double)microsecond/MUSECONDS_PER_DAY);
+    ord += ((npy_double)hour/HOURS_PER_DAY + 
+            (npy_double)minute/MINUTES_PER_DAY + 
+            (npy_double)second/SECONDS_PER_DAY + 
+            (npy_double)microsecond/MUSECONDS_PER_DAY);
     return (ord);
 }
 
@@ -112,12 +111,16 @@ static double date2num(PyDateTime_DateTime *inval) {
 /*==============================================================================
  This handles the type checking and interface to then pass the data on to date2num()
 ==============================================================================*/
-static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
+static PyObject *date2num_common(PyObject *self, PyObject *args) {
     PyDateTime_DateTime *inval;
     Py_ssize_t inval_len;
     Py_ssize_t ind;
     PyDateTime_DateTime *item;
-    PyArrayObject *outval;
+    PyObject *outval;
+    PyObject *tmp;
+
+    Py_ssize_t t111;
+
 
     if (!PyArg_ParseTuple(args, "O", &inval)) 
         return NULL;
@@ -127,7 +130,7 @@ printf("here0\n");
     if (PyDate_Check(inval)) {
         return Py_BuildValue("d", date2num(inval));  
     } else {
-printf("here1: %d\n", PySequence_Check(inval));
+printf(" here1: %d\n", PySequence_Check(inval));
     // if it is not a datetime then iterate over it doing the conversion for each
         if (!PySequence_Check(inval)) { // is the input a sequace of sorts
             PyErr_SetString(PyExc_ValueError, "Must be a datetime object or iterable of datetime objects");
@@ -136,7 +139,7 @@ printf("here1: %d\n", PySequence_Check(inval));
         }
         // this is an iterable, do something with it
         inval_len = PySequence_Length(inval);
-printf("here2: len = %d\n", inval_len);
+printf("  here2: len = %d\n", inval_len);
         // check the zeroth element just to be sure it is a datetime before making outarray, could be huge
         item = PySequence_GetItem(inval, 0);
         if (!PyDate_Check(item)) {
@@ -145,34 +148,56 @@ printf("here2: len = %d\n", inval_len);
             return NULL; 
         }
         Py_DECREF(item);
-printf("here3: PyArray_DOUBLE=%d\n", PyArray_DOUBLE);
+printf("   here3: PyArray_DOUBLE=%d\n", PyArray_DOUBLE);
+printf("   here3: PyArray_DOUBLE=%d\n", NPY_DOUBLE);
         // make a double array of this length
-outval = PyArray_ZEROS(1, &inval_len, PyArray_DOUBLE, 0);
-//        outval = PyArray_SimpleNew(1, inval_len, PyArray_DOUBLE);
-printf("here4: \n");
+//outval = PyArray_ZEROS(1, &inval_len, NPY_DOUBLE, 0);
 
-        for (ind=0;ind<inval_len;ind++){
+/****************
+Have tried nearly every combination of PyArray_SimpleNew and PyArray_SETITEM so giving up
+Moving to the less good solutio of lists
+***************/
+        outval = PyList_New(inval_len);
+printf("    here4: size=%d\n", PyArray_Size(outval));
+
+        for (ind=0;ind<inval_len;ind++) {
             item = PySequence_GetItem(inval, ind);
             // If this isn't a datetime error
             if (!PyDate_Check(item)) {
-printf("here4.5 WTF: \n");
+printf("    here4.5 WTF: \n");
                 PyErr_SetString(PyExc_ValueError, "Iterable must contain datetime objects");
                 Py_DECREF(item);
                 return NULL; 
             }
-            printf("here5: ind=%d inval_len=%d  num = %f\n", ind, inval_len, date2num(item));
-            if (PyArray_SETITEM(outval, &ind, Py_BuildValue("d", date2num(item))) == -1) {
-                PyErr_SetString(PyExc_RuntimeError, "Error setting array element");
-printf("here5.5 WTF: \n");
-                return NULL; 
-            }
+printf("     here5: ind=%d inval_len=%d  num = %f\n", ind, inval_len, date2num(item));
+//tmp = Py_BuildValue("d", date2num(item));
+//printf("      here6 : tmp=%f \n", *tmp);
+
+printf("       here7 : SETITEM=%d \n", -999);//PyArray_SETITEM(outval, &ind, (PyObject *)PyFloat_FromDouble(date2num(item))));
+
+PyList_SET_ITEM(outval, ind, (PyObject *)PyFloat_FromDouble(date2num(item)));
+//PySequence_SetItem(outval, &ind, item);
+//PyArray_SETITEM(outval, &ind, Py_BuildValue("d", (PyObject *)PyFloat_FromDouble(date2num(item))));
+
+
+//            if (PyArray_SETITEM(outval, &ind, Py_BuildValue("d", date2num(item))) == -1) {
+//printf("here5.5 WTF: \n");
+//                PyErr_SetString(PyExc_RuntimeError, "Error setting array element");
+//                return NULL; 
+//            }
+printf("        here8: ind=%d inval_len=%d  num = %f\n", ind, inval_len, date2num(item));
             Py_DECREF(item);
         }
     }
+//PyArray_ITER_DATA
 
-
+t111 = 0;
     /*Giving away our reference to the caller*/
-    return outval;
+printf("        here9: outval[%d]=%f\n", t111, PyList_GetItem(outval, t111));
+t111 = 1;
+printf("        here9: outval[%d]=%f\n", t111, PyList_GetItem(outval, t111));
+
+    return Py_BuildValue("N", outval);
 }
 
 static PyMethodDef date2num_methods[] = {
