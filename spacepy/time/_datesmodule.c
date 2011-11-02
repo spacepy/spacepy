@@ -22,6 +22,14 @@
 #define SEC_PER_HOUR 3600
 #define SEC_PER_DAY (SEC_PER_HOUR*24)
 #define SEC_PER_WEEK (SEC_PER_DAY*7)
+/* Number of days in 4, 100, and 400 year cycles.  That these have
+ * the correct values is asserted in the module init function.
+ */
+#define DI4Y	1461	/* days_before_year(5); days in 4 years */
+#define DI100Y	36524	/* days_before_year(101); days in 100 years */
+#define DI400Y	146097	/* days_before_year(401); days in 400 years  */
+
+
 
 
 // pulled from python source
@@ -41,6 +49,115 @@ static npy_int _days_before_month[] = {
     0, /* unused; this vector uses 1-based indexing */
     0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
 };
+
+/* For each month ordinal in 1..12, the number of days in that month,
+ * and the number of days before that month in the same year.  These
+ * are correct for non-leap years only.
+ */
+static int _days_in_month[] = {
+	0, /* unused; this vector uses 1-based indexing */
+	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+};
+
+// pulled from python source
+/* year, month -> number of days in that month in that year */
+static int
+days_in_month(int year, int month)
+{
+	assert(month >= 1);
+	assert(month <= 12);
+	if (month == 2 && is_leap(year))
+		return 29;
+	else
+		return _days_in_month[month];
+}
+
+// pulled from python source
+/* ordinal -> year, month, day, considering 01-Jan-0001 as day 1. */
+static void
+ord_to_ymd(npy_int ordinal, npy_int *year, npy_int *month, npy_int *day)
+{
+	npy_int n, n1, n4, n100, n400, leapyear, preceding;
+
+	/* ordinal is a 1-based index, starting at 1-Jan-1.  The pattern of
+	 * leap years repeats exactly every 400 years.  The basic strategy is
+	 * to find the closest 400-year boundary at or before ordinal, then
+	 * work with the offset from that boundary to ordinal.  Life is much
+	 * clearer if we subtract 1 from ordinal first -- then the values
+	 * of ordinal at 400-year boundaries are exactly those divisible
+	 * by DI400Y:
+	 *
+	 *    D  M   Y            n              n-1
+	 *    -- --- ----        ----------     ----------------
+	 *    31 Dec -400        -DI400Y       -DI400Y -1
+	 *     1 Jan -399         -DI400Y +1   -DI400Y      400-year boundary
+	 *    ...
+	 *    30 Dec  000        -1             -2
+	 *    31 Dec  000         0             -1
+	 *     1 Jan  001         1              0          400-year boundary
+	 *     2 Jan  001         2              1
+	 *     3 Jan  001         3              2
+	 *    ...
+	 *    31 Dec  400         DI400Y        DI400Y -1
+	 *     1 Jan  401         DI400Y +1     DI400Y      400-year boundary
+	 */
+	assert(ordinal >= 1);
+	--ordinal;
+	n400 = ordinal / DI400Y;
+	n = ordinal % DI400Y;
+	*year = n400 * 400 + 1;
+
+	/* Now n is the (non-negative) offset, in days, from January 1 of
+	 * year, to the desired date.  Now compute how many 100-year cycles
+	 * precede n.
+	 * Note that it's possible for n100 to equal 4!  In that case 4 full
+	 * 100-year cycles precede the desired day, which implies the
+	 * desired day is December 31 at the end of a 400-year cycle.
+	 */
+	n100 = n / DI100Y;
+	n = n % DI100Y;
+
+	/* Now compute how many 4-year cycles precede it. */
+	n4 = n / DI4Y;
+	n = n % DI4Y;
+
+	/* And now how many single years.  Again n1 can be 4, and again
+	 * meaning that the desired day is December 31 at the end of the
+	 * 4-year cycle.
+	 */
+	n1 = n / 365;
+	n = n % 365;
+
+	*year += n100 * 100 + n4 * 4 + n1;
+	if (n1 == 4 || n100 == 4) {
+		assert(n == 0);
+		*year -= 1;
+		*month = 12;
+		*day = 31;
+		return;
+	}
+
+	/* Now the year is correct, and n is the offset from January 1.  We
+	 * find the month via an estimate that's either exact or one too
+	 * large.
+	 */
+	leapyear = n1 == 3 && (n4 != 24 || n100 == 3);
+	assert(leapyear == is_leap(*year));
+	*month = (n + 50) >> 5;
+	preceding = (_days_before_month[*month] + (*month > 2 && leapyear));
+	if (preceding > n) {
+		/* estimate is too large */
+		*month -= 1;
+		preceding -= days_in_month(*year, *month);
+	}
+	n -= preceding;
+	assert(0 <= n);
+	assert(n < days_in_month(*year, *month));
+
+	*day = n + 1;
+}
+
+
 
 // pulled from python source
 /* year, month -> number of days in year preceding first day of month */
@@ -222,6 +339,100 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
     return (PyArrayObject *)outval;
 }
 
+
+static PyDateTime_DateTime *num2date(double inval){
+    npy_int year, month, day, hour, minute, second, usecond;
+    npy_double remainder;
+    PyObject *delta;
+    npy_int tmp;
+
+
+    remainder = inval - (npy_int)inval; // get the fraction part
+    remainder *= 24;
+    hour = (npy_int)(remainder);
+    remainder -= hour;
+    remainder *= 60;
+    minute = (npy_int)(remainder);
+    remainder -= minute;
+    remainder *= 60;
+    second = (npy_int)(remainder);
+    remainder -= second;
+    remainder *= 1e6;
+    usecond = (npy_int)(remainder);
+
+    if (usecond < 10)
+        usecond = 0;
+
+    if (usecond>999990)  // compensate for rounding errors
+        usecond += (1e6-usecond);
+
+    ord_to_ymd((npy_int)inval, &year, &month, &day);
+
+    return (PyDateTime_DateTime*)PyDateTime_FromDateAndTime(year, month, day, hour, minute, second, usecond );
+    
+
+}
+
+
+static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
+    PyObject *inval;
+    Py_ssize_t inval_len;
+    Py_ssize_t ind;
+    PyObject *item;
+    PyObject *item_out;
+    PyArrayObject *outval;
+    npy_double *outval_dat;
+    PyArray_Descr *array_type;
+
+
+    if (!PyArg_ParseTuple(args, "O", &inval))
+        return NULL;
+
+    if (PyFloat_Check(inval)) {
+        return (PyArrayObject *)(num2date(PyFloat_AsDouble(inval)));  
+    } else if (PyLong_Check(inval)) {
+        return (PyArrayObject *)(num2date((npy_double)(PyLong_AsSsize_t(inval))));  
+    } else {
+        if (!PySequence_Check(inval)) { // is the input a sequence of sorts
+            PyErr_SetString(PyExc_ValueError, "Must be a numeric object or iterable of numeric objects");
+            return NULL;         
+        }
+        inval_len = PySequence_Length(inval);
+        item_out = PySequence_GetItem(inval, 0);
+        // same check as above, is it a datetime object?
+        if (!PyFloat_Check(item_out) & !PyLong_Check(item_out)) {
+            PyErr_SetString(PyExc_ValueError, "Iterable must contain numeric objects");
+            Py_DECREF(item_out); // clean up the objects
+            return NULL; 
+        }
+        //    "Your mother does not work here, clean up after yourself"
+        Py_DECREF(item_out);
+        array_type = PyArray_DescrFromType(NPY_OBJECT);
+        outval = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, inval_len, array_type);
+        Py_DECREF(array_type); // no longer needed
+
+        // step thru all the datetimes and  convert them, putting ans in the array
+        for (ind=0;ind<inval_len;ind++) {
+            // as above get an item from the iterator ival and cast as needed
+            item = PySequence_GetItem(inval, ind);
+            // If this isn't a datetime error
+            if (!PyFloat_Check(item)) {
+                PyErr_SetString(PyExc_ValueError, "Iterable must contain float objects");
+                Py_DECREF(item);
+                return NULL; 
+            }
+            item_out = (PyObject *)num2date(PyFloat_AsDouble(item));
+            PyArray_SETITEM(outval, &ind, item_out); // does this steal a ref as the tuple one does?
+            Py_DECREF(item_out);
+        }
+    }
+    /*Giving away our reference to the caller*/
+    // cast the outval of type PyObject* to what we want to return
+    return (PyArrayObject *)outval;
+}
+
+
+
 // setup h C that the Python knows what to do with it
 // PyMethodDef: struct type used to hold int he info, one set per function you
 //     want exposed in python  i.e. this is where you set the name
@@ -232,14 +443,15 @@ static PyMethodDef dates_methods[] = {
     //    it in python with the name
     //  METH_VARARGS: it takes in arguments and not kwargs
    { "date2num", (PyCFunction)date2num_common, METH_VARARGS,
-    // docstring: C automatically concatenates string constants
      "Return value is a floating point number (or sequence of floats) which \n"
      "gives the number of days (fraction part represents hours, minutes, seconds)\n"
      "since 0001-01-01 00:00:00 UTC, plus one. The addition of one here is a \n"
      "historical artifact. Also, note that the Gregorian calendar is assumed; \n"
      "this is not universal practice. For details, see the module docstring.\n"},
+     {"num2date", (PyCFunction)num2date_common, METH_VARARGS,
+     "I Need docs\n"},
     // NULL terminate Python looking at the object
-   { NULL, NULL, 0, NULL }
+     { NULL, NULL, 0, NULL }
 };
 
 // this the what does the exposing to python
