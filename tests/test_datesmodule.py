@@ -12,7 +12,7 @@ import datetime
 from matplotlib.dates import date2num as date2num_mpl
 import numpy
 
-import dates
+import spacepy.time as spt
 
 class datesTests(unittest.TestCase):
     def setUp(self):
@@ -24,18 +24,18 @@ class datesTests(unittest.TestCase):
 
     def test_input(self):
         """There is some input checking"""
-        self.assertRaises(TypeError, dates.date2num, self.dt, self.dt)
-        self.assertRaises(ValueError, dates.date2num, 'bad in')
-        self.assertRaises(ValueError, dates.date2num, 8675309)
-        self.assertRaises(ValueError, dates.date2num, [self.dt, 1])        
+        self.assertRaises(TypeError, spt.date2num, self.dt, self.dt)
+        self.assertRaises(ValueError, spt.date2num, 'bad in')
+        self.assertRaises(ValueError, spt.date2num, 8675309)
+        self.assertRaises(ValueError, spt.date2num, [self.dt, 1])        
     
     def test_mpl_same(self):
         """the C version should give the same result as the matplotlib version"""
-        self.assertAlmostEqual(dates.date2num(self.dt), date2num_mpl(self.dt))
+        self.assertAlmostEqual(spt.date2num(self.dt), date2num_mpl(self.dt))
 
     def test_array(self):
         """output is an array if the input is an iterable"""
-        numpy.testing.assert_allclose(dates.date2num([self.dt]*10), date2num_mpl([self.dt]*10))
+        numpy.testing.assert_allclose(spt.date2num([self.dt]*10), date2num_mpl([self.dt]*10))
 
 
 if __name__ == "__main__":
