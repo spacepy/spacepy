@@ -224,7 +224,7 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
 // PyMethodDef: struct type used to hold int he info, one set per function you
 //     want exposed in python  i.e. this is where you set the name
 // static: again we don't want Python to have this in the namespace 
-static PyMethodDef date2num_methods[] = {
+static PyMethodDef dates_methods[] = {
     // date2num: this is the name as it will show up in python
     // (PyCFunction)date2num_common: cast the c function we created and associate
     //    it in python with the name
@@ -243,13 +243,13 @@ static PyMethodDef date2num_methods[] = {
 // this the what does the exposing to python
 // initdate2num: it is normal to name this with a leading "init" and to name the 
 //    file with a trailing "module"
-PyMODINIT_FUNC initdate2num(void) {
+PyMODINIT_FUNC initdates(void) {
     // this sets up the module, there are different versions of Py_InitModule3
     //     that take different arguments based on docstring etc
     // date2num: this is the name of the module
     // date2num_methods: the name of the method dict we defined above
     // docstring: in the "3" version you spec the docstring here
-    Py_InitModule3("date2num", date2num_methods, 
+    Py_InitModule3("dates", dates_methods, 
                      "Module for computing matplotlib.dates.date2num a lot faster");
     // this is a required macro for using datetime objects in the module, it goes here
     PyDateTime_IMPORT;
