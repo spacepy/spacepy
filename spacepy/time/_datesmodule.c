@@ -24,20 +24,61 @@
 #define SEC_PER_WEEK (SEC_PER_DAY*7)
 
 
-/*==============================================================================
- Jon Niehof's function to call an instance method
- ==============================================================================*/
-/*Function to call a method, given an object, method name, arguments*/
-static PyObject *callmeth(PyObject *obj, const char* methname,
-			  PyObject *args, PyObject *kwargs)
+// pulled from python source
+static npy_int is_leap(npy_int year)
 {
- PyObject *meth, *retval;
+    /* Cast year to unsigned.  The result is the same either way, but
+     * C can generate faster code for unsigned mod than for signed
+     * mod (especially for % 4 -- a good compiler should just grab
+     * the last 2 bits when the LHS is unsigned).
+     */
+    const npy_uint ayear = (npy_uint)year;
+    return ayear % 4 == 0 && (ayear % 100 != 0 || ayear % 400 == 0);
+}
 
- if (!(meth = PyObject_GetAttrString(obj, methname)))
-   return NULL;
- retval = PyEval_CallObjectWithKeywords(meth, args, kwargs);
- Py_DECREF(meth);
- return retval;
+// pulled from python source
+static npy_int _days_before_month[] = {
+    0, /* unused; this vector uses 1-based indexing */
+    0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
+};
+
+// pulled from python source
+/* year, month -> number of days in year preceding first day of month */
+static npy_int days_before_month(npy_int year, npy_int month)
+{
+    npy_int days;
+
+    assert(month >= 1);
+    assert(month <= 12);
+    days = _days_before_month[month];
+    if (month > 2 && is_leap(year))
+        ++days;
+    return days;
+}
+
+// pulled from python source
+static npy_int days_before_year(npy_int year)
+{
+    npy_int y = year - 1;
+    /* This is incorrect if year <= 0; we really want the floor
+     * here.  But so long as MINYEAR is 1, the smallest year this
+     * can see is 0 (this can happen in some normalization endcases),
+     * so we'll just special-case that.
+     */
+    assert (year >= 0);
+    if (y >= 0)
+        return y*365 + y/4 - y/100 + y/400;
+    else {
+        assert(y == -1);
+        return -366;
+    }
+}
+
+// pulled from python source
+/* year, month, day -> ordinal, considering 01-Jan-0001 as day 1. */
+static npy_int ymd_to_ord(npy_int year, npy_int month, npy_int day)
+{
+    return days_before_year(year) + days_before_month(year, month) + day;
 }
 
 
@@ -53,7 +94,6 @@ static npy_double date2num(PyDateTime_DateTime *inval) {
     // using the numpy types for variables in a platform independence try
     npy_int microsecond, second, minute, hour, day, month, year;
     npy_double ord; // the ordinal
-    PyObject *ret_val;
     // If inval is not a datetime object raise ValueError
     // these function are all in datetime.h
     microsecond = PyDateTime_DATE_GET_MICROSECOND(inval);
@@ -64,10 +104,7 @@ static npy_double date2num(PyDateTime_DateTime *inval) {
     month = PyDateTime_GET_MONTH(inval);
     year = PyDateTime_GET_YEAR(inval);
     // this is in datetimemodule.c in python, reproduced here, working to change this
-
-    ret_val = callmeth((PyObject*)inval, "toordinal", (PyObject *)NULL, (PyObject *)NULL);
-    ord = PyFloat_AsDouble(ret_val);
-    Py_DECREF(ret_val);
+    ord = (npy_double)ymd_to_ord(year, month, day); // this is from datetimemodule.c
 
 //    ord = (npy_double)ymd_to_ord(year, month, day); // this is from datetimemodule.c
     // make sure we don't have any int division    
