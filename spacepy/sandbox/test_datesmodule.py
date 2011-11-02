@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Test suite for date2num
+Test suite for dates
 
 As this is an exention module should have tests in C but I am too lazy
 
@@ -12,29 +12,30 @@ import datetime
 from matplotlib.dates import date2num as date2num_mpl
 import numpy
 
-import date2num
+import dates
 
-class date2numTests(unittest.TestCase):
+class datesTests(unittest.TestCase):
     def setUp(self):
-        super(date2numTests, self).setUp()
+        super(datesTests, self).setUp()
         self.dt = datetime.datetime(2000, 12, 13, 04, 54, 34)
 
     def tearDown(self):
-        super(date2numTests, self).tearDown()
+        super(datesTests, self).tearDown()
 
     def test_input(self):
         """There is some input checking"""
-        self.assertRaises(TypeError, date2num.date2num, self.dt, self.dt)
-        self.assertRaises(ValueError, date2num.date2num, 'bad in')
-        self.assertRaises(ValueError, date2num.date2num, 8675309)
+        self.assertRaises(TypeError, dates.date2num, self.dt, self.dt)
+        self.assertRaises(ValueError, dates.date2num, 'bad in')
+        self.assertRaises(ValueError, dates.date2num, 8675309)
+        self.assertRaises(ValueError, dates.date2num, [self.dt, 1])        
     
     def test_mpl_same(self):
         """the C version should give the same result as the matplotlib version"""
-        self.assertAlmostEqual(date2num.date2num(self.dt), date2num_mpl(self.dt))
+        self.assertAlmostEqual(dates.date2num(self.dt), date2num_mpl(self.dt))
 
     def test_array(self):
         """output is an array if the input is an iterable"""
-        numpy.testing.assert_allclose(date2num.date2num([self.dt]*10), date2num_mpl([self.dt]*10))
+        numpy.testing.assert_allclose(dates.date2num([self.dt]*10), date2num_mpl([self.dt]*10))
 
 
 if __name__ == "__main__":
