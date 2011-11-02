@@ -111,7 +111,7 @@ static npy_double date2num(PyDateTime_DateTime *inval) {
 /*==============================================================================
  This handles the type checking and interface to then pass the data on to date2num()
 ==============================================================================*/
-static PyObject *date2num_common(PyObject *self, PyObject *args) {
+static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
     PyDateTime_DateTime *inval;
     Py_ssize_t inval_len;
     Py_ssize_t ind;
@@ -197,7 +197,8 @@ printf("        here9: outval[%d]=%f\n", t111, PyList_GetItem(outval, t111));
 t111 = 1;
 printf("        here9: outval[%d]=%f\n", t111, PyList_GetItem(outval, t111));
 
-    return Py_BuildValue("N", outval);
+//    return Py_BuildValue("N", outval);
+    return PyArray_Return(PyArray_FROM_O(outval));
 }
 
 static PyMethodDef date2num_methods[] = {
