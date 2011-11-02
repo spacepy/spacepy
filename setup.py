@@ -479,14 +479,14 @@ class Distribution(_Distribution):
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.LANLstar',
-            'spacepy.pycdf', 'spacepy.plot', 'spacepy.pybats']
+            'spacepy.pycdf', 'spacepy.plot', 'spacepy.pybats', 'spacepy.time']
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*', 'pybats/sample_data/*']
 pybats_ext = Extension('spacepy.pybats.ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],
                        include_dirs=[numpy.get_include()])
-dates_ext = Extension('spacepy.sandbox.dates',
-                                sources=['spacepy/sandbox/datesmodule.c'], 
+dates_ext = Extension('spacepy.time._dates',
+                                sources=['spacepy/time/_datesmodule.c'], 
                        include_dirs=[numpy.get_include()])
 
 # run setup from distutil

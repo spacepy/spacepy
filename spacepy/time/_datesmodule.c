@@ -243,13 +243,13 @@ static PyMethodDef dates_methods[] = {
 // this the what does the exposing to python
 // initdate2num: it is normal to name this with a leading "init" and to name the 
 //    file with a trailing "module"
-PyMODINIT_FUNC initdates(void) {
+PyMODINIT_FUNC init_dates(void) {
     // this sets up the module, there are different versions of Py_InitModule3
     //     that take different arguments based on docstring etc
     // date2num: this is the name of the module
     // date2num_methods: the name of the method dict we defined above
     // docstring: in the "3" version you spec the docstring here
-    Py_InitModule3("dates", dates_methods, 
+    Py_InitModule3("_dates", dates_methods, 
                      "Module for computing matplotlib.dates.date2num a lot faster");
     // this is a required macro for using datetime objects in the module, it goes here
     PyDateTime_IMPORT;
