@@ -125,7 +125,7 @@ static npy_double date2num(PyDateTime_DateTime *inval) {
 // return type: just whatever type you are going to return
 static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
     // PyDateTime_DateTime the C name for a datetime type
-    PyDateTime_DateTime *inval;
+    PyObject *inval;
     // using the python variable types in a platform independence try
     Py_ssize_t inval_len;
     Py_ssize_t ind;
@@ -146,16 +146,16 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
         return NULL;
 
     // if inval is a datetime then call the conversion and return
-    if (PyDate_Check((PyObject *)inval)) {
+    if (PyDate_Check(inval)) {
         // if we got a datetime just do he calculation an return the answer
         // PyArrayObject*: this is casting it to the expected return type
         // PyFloat_FromDouble: changes a C double to Python float
-        return (PyArrayObject *)PyFloat_FromDouble(date2num(inval));  
+        return (PyArrayObject *)PyFloat_FromDouble(date2num((PyDateTime_DateTime*)inval));  
     } else {
         // if it is not a datetime then iterate over it doing the conversion for each
         // PySequence_Check is magic, it tests if the input is a sequence (iterable)
         // PyObject *: cast inval to the type expected by PySequence_Check
-        if (!PySequence_Check((PyObject *)inval)) { // is the input a sequence of sorts
+        if (!PySequence_Check(inval)) { // is the input a sequence of sorts
             // PyErr_SetString: easy way to raise an exception
             PyErr_SetString(PyExc_ValueError, "Must be a datetime object or iterable of datetime objects");
             // return NULL: again this is how to get the exception to actually work
@@ -166,12 +166,12 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
         // this is an iterable, do something with it
         // PySequence_Length: how long s the iterable?
         // PyObject *: cast inval to the type expected by PySequence_Length
-        inval_len = PySequence_Length((PyObject *)inval);
+        inval_len = PySequence_Length(inval);
         // check the zeroth element just to be sure it is a datetime before making outarray, could be huge
         // PySequence_GetItem: gets an object from the sequence at the requested element
         // PyDateTime_DateTime*: cast the object to the type we want
         // PyObject *: cast inval to the type expected by PySequence_GetItem
-        item = (PyDateTime_DateTime*)PySequence_GetItem((PyObject *)inval, 0);
+        item = (PyDateTime_DateTime*)PySequence_GetItem(inval, 0);
         // same check as above, is it a datetime object?
         if (!PyDate_Check(item)) {
             // again raise an exception, really this sets the exception counter 
@@ -180,7 +180,7 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
             // Py_DECREF: since we created a python object "item" we have to 
             //    Py_DECREF it so that the gc can deal with it before we go back
             Py_DECREF(item); // clean up the objects
-            //go back o python and let the exception be raised
+            //go back to python and let the exception be raised
             return NULL; 
         }
         // Py_DECREF: since we created a python object "item" we have to Py_DECREF
@@ -201,7 +201,7 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
         // step thru all the datetimes and  convert them, putting ans in the array
         for (ind=0;ind<inval_len;ind++) {
             // as above get an item from the iterator ival and cast as needed
-            item = (PyDateTime_DateTime*)PySequence_GetItem((PyObject *)inval, ind);
+            item = (PyDateTime_DateTime*)PySequence_GetItem(inval, ind);
             // If this isn't a datetime error
             if (!PyDate_Check(item)) {
                 PyErr_SetString(PyExc_ValueError, "Iterable must contain datetime objects");
@@ -210,7 +210,7 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
                 return NULL; 
             }
             // since outval_dat is a double* we can just use it as we want
-            outval_dat[ind] = date2num(item);
+            outval_dat[ind] = date2num((PyDateTime_DateTime*)item);
             // we are done with item and ready to get the next one, clean up
             Py_DECREF(item);
         }
