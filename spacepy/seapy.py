@@ -62,7 +62,7 @@ class SeaBase(object):
 
     """
     def __init__(self, data, times, epochs, **kwargs):
-        self.data = np.array(data, dtype=float)
+        self.data = np.asarray(data, dtype=float)
         self.times = times
         self.epochs = epochs
         self.verbose = kwargs['verbose']
@@ -229,7 +229,7 @@ class Sea(SeaBase):
         if isinstance(self.data, np.ndarray):
             y = self.data
         else:
-            y = np.array(self.data, dtype=float)
+            y = np.asarray(self.data, dtype=float)
 
         if kwargs['ci']:
             kwargs['quartiles'], kwargs['mad'] = False, False
@@ -567,7 +567,7 @@ class Sea2d(SeaBase):
         """
         #ensure all input is np array or correct form
         delt = float(self.delta)
-        y = np.array(self.data, dtype=float)
+        y = np.asarray(self.data, dtype=float)
         time,t_epoch = self._timeepoch(delt)
         if not nmask:
             nmask = 0 #set mask to exclude none
