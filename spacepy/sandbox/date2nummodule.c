@@ -115,23 +115,18 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
     Py_ssize_t ind;
     PyDateTime_DateTime *item;
     PyObject *outval;
+    npy_double *outval_dat;
 
     if (!PyArg_ParseTuple(args, "O", &inval)) 
         return NULL;
 
     // if inval is a datetime then call the conversion and return
     if (PyDate_Check((PyObject *)inval)) {
-        // these were uninitialized, do I still need to DECREF?        
-        //Py_DECREF(item);  // clean up the objects
-        //Py_DECREF(outval);
         return (PyArrayObject *)PyFloat_FromDouble(date2num(inval));  
     } else {
     // if it is not a datetime then iterate over it doing the conversion for each
         if (!PySequence_Check((PyObject *)inval)) { // is the input a sequace of sorts
             PyErr_SetString(PyExc_ValueError, "Must be a datetime object or iterable of datetime objects");
-            // these were uninitialized, do I still need to DECREF?        
-            //Py_DECREF(item); // clean up the objects
-            //Py_DECREF(outval);
             return NULL;         
         }
         // this is an iterable, do something with it
@@ -141,19 +136,15 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
         if (!PyDate_Check(item)) {
             PyErr_SetString(PyExc_ValueError, "Iterable must contain datetime objects");
             Py_DECREF(item); // clean up the objects
-            // this was uninitialized here does it still need decref?
-            //Py_DECREF(outval);
             return NULL; 
         }
         Py_DECREF(item);
 
-/****************
-Have tried nearly every combination of PyArray_SimpleNew and PyArray_SETITEM so giving up
-Moving to the less good solution of list then change to array
-preallocating the list the populating it then change to array
-***************/
-        outval = PyList_New(inval_len);  // make a full sized list
-        // step thru all the datetimes and  convert them, putting ans in the list
+        outval = PyArray_ZEROS(1, &inval_len, NPY_DOUBLE, 0);
+
+        outval_dat = (double*)PyArray_DATA(outval);
+
+        // step thru all the datetimes and  convert them, putting ans in the array
         for (ind=0;ind<inval_len;ind++) {
             item = (PyDateTime_DateTime*)PySequence_GetItem((PyObject *)inval, ind);
             // If this isn't a datetime error
@@ -162,13 +153,12 @@ preallocating the list the populating it then change to array
                 Py_DECREF(item);
                 return NULL; 
             }
-
-            PyList_SET_ITEM(outval, ind, (PyObject *)PyFloat_FromDouble(date2num(item)));
+            outval_dat[ind] = date2num(item);
             Py_DECREF(item);
         }
     }
     /*Giving away our reference to the caller*/
-    return (PyArrayObject *)PyArray_Return((PyArrayObject*)PyArray_FROM_O(outval));
+    return (PyArrayObject *)outval;
 }
 
 static PyMethodDef date2num_methods[] = {
