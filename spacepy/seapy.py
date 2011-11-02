@@ -84,11 +84,8 @@ class SeaBase(object):
         """Define String Representation of Sea object"""
 
         strhead = 'Superposed Epoch Object:'
-        str1 = 'Data array - %s; ' % self.data.shape
-        str2 = 'Epochs - %d ; ' % len(self.epochs)
-        str3 = 'Window - %d' % self.window
-
-        return strhead+str1+str2+str3
+        strtail = 'Data array - {0}; Epochs - {1}'.format(self.data.shape, self.epochs)
+        return ' '.join(strhead, strtail)
 
     __repr__ = __str__
 
