@@ -479,7 +479,8 @@ class Distribution(_Distribution):
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.LANLstar',
-            'spacepy.pycdf', 'spacepy.plot', 'spacepy.pybats', 'spacepy.time']
+            'spacepy.pycdf', 'spacepy.plot', 'spacepy.pybats', 'spacepy.time', 
+            'spacepy.toolbox']
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*', 'pybats/sample_data/*']
 pybats_ext = Extension('spacepy.pybats.ctrace2d',
@@ -488,12 +489,15 @@ pybats_ext = Extension('spacepy.pybats.ctrace2d',
 dates_ext = Extension('spacepy.time._dates',
                                 sources=['spacepy/time/_datesmodule.c'], 
                        include_dirs=[numpy.get_include()])
-
+toolbox_ext = Extension('spacepy.toolbox._toolbox',
+                                sources=['spacepy/toolbox/_toolboxmodule.c'], 
+                       include_dirs=[numpy.get_include()])
+                       
 # run setup from distutil
 setup(name='spacepy',
       version='0.1.1',
       description='SpacePy: Tools for Space Science Applications',
-      ext_modules=[pybats_ext, dates_ext],
+      ext_modules=[pybats_ext, dates_ext, toolbox_ext],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',
