@@ -2,7 +2,7 @@
 # date2num
 # take a single datetime object and compute the matplotlib.dates.date2num value
 # but do it using an extension module so hat it is a heck of a lot faster
-# 
+#
 # Brian Larsen & Jon Niehof
 # balarsen@lanl.gov
 # Copyright ©2010 - 2011 Los Alamos National Security, LLC.
@@ -224,10 +224,10 @@ static npy_double date2num(PyDateTime_DateTime *inval) {
     ord = (npy_double)ymd_to_ord(year, month, day); // this is from datetimemodule.c
 
 //    ord = (npy_double)ymd_to_ord(year, month, day); // this is from datetimemodule.c
-    // make sure we don't have any int division    
-    ord += ((npy_double)hour/HOURS_PER_DAY + 
-            (npy_double)minute/MINUTES_PER_DAY + 
-            (npy_double)second/SECONDS_PER_DAY + 
+    // make sure we don't have any int division
+    ord += ((npy_double)hour/HOURS_PER_DAY +
+            (npy_double)minute/MINUTES_PER_DAY +
+            (npy_double)second/SECONDS_PER_DAY +
             (npy_double)microsecond/MUSECONDS_PER_DAY);
     return (ord);
 }
@@ -252,7 +252,7 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
     // the PyArrayObject that we will return is declared as a PyObject for ease later
     //    then casted to a PyObject* before return
     PyObject *outval;
-    // this is the easy way to access the data of the output array, grab a double* 
+    // this is the easy way to access the data of the output array, grab a double*
     //    to the data of the numpy array that we are creating
     npy_double *outval_dat;
 
@@ -269,7 +269,7 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
         // if we got a datetime just do he calculation an return the answer
         // PyArrayObject*: this is casting it to the expected return type
         // PyFloat_FromDouble: changes a C double to Python float
-        return (PyArrayObject *)PyFloat_FromDouble(date2num((PyDateTime_DateTime*)inval));  
+        return (PyArrayObject *)PyFloat_FromDouble(date2num((PyDateTime_DateTime*)inval));
     } else {
         // if it is not a datetime then iterate over it doing the conversion for each
         // PySequence_Check is magic, it tests if the input is a sequence (iterable)
@@ -280,7 +280,7 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
             // return NULL: again this is how to get the exception to actually work
             //    be sure to do any required DECREF before return, none are required
             //    here as we have not initialized any python objects
-            return NULL;         
+            return NULL;
         }
         // this is an iterable, do something with it
         // PySequence_Length: how long s the iterable?
@@ -293,17 +293,17 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
         item = (PyDateTime_DateTime*)PySequence_GetItem(inval, 0);
         // same check as above, is it a datetime object?
         if (!PyDate_Check(item)) {
-            // again raise an exception, really this sets the exception counter 
+            // again raise an exception, really this sets the exception counter
             //     and the return is what lets python actually do the raising
             PyErr_SetString(PyExc_ValueError, "Iterable must contain datetime objects");
-            // Py_DECREF: since we created a python object "item" we have to 
+            // Py_DECREF: since we created a python object "item" we have to
             //    Py_DECREF it so that the gc can deal with it before we go back
             Py_DECREF(item); // clean up the objects
             //go back to python and let the exception be raised
-            return NULL; 
+            return NULL;
         }
         // Py_DECREF: since we created a python object "item" we have to Py_DECREF
-        //    it since we don't use it 
+        //    it since we don't use it
         //    "Your mother does not work here, clean up after yourself"
         Py_DECREF(item);
 
@@ -326,7 +326,7 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
                 PyErr_SetString(PyExc_ValueError, "Iterable must contain datetime objects");
                 // don't forget to clean up python objects that you create
                 Py_DECREF(item);
-                return NULL; 
+                return NULL;
             }
             // since outval_dat is a double* we can just use it as we want
             outval_dat[ind] = date2num((PyDateTime_DateTime*)item);
@@ -339,13 +339,9 @@ static PyArrayObject *date2num_common(PyObject *self, PyObject *args) {
     return (PyArrayObject *)outval;
 }
 
-
 static PyDateTime_DateTime *num2date(double inval){
     npy_int year, month, day, hour, minute, second, usecond;
     npy_double remainder;
-    PyObject *delta;
-    npy_int tmp;
-
 
     remainder = inval - (npy_int)inval; // get the fraction part
     remainder *= 24;
@@ -367,35 +363,29 @@ static PyDateTime_DateTime *num2date(double inval){
         usecond += (1e6-usecond);
 
     ord_to_ymd((npy_int)inval, &year, &month, &day);
-
     return (PyDateTime_DateTime*)PyDateTime_FromDateAndTime(year, month, day, hour, minute, second, usecond );
-    
-
 }
 
 
 static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
-    PyObject *inval;
-    Py_ssize_t inval_len;
-    Py_ssize_t ind;
-    PyObject *item;
-    PyObject *item_out;
-    PyArrayObject *outval;
-    npy_double *outval_dat;
-    PyArray_Descr *array_type;
-
+    PyObject *inval; // what the user passed in
+    Py_ssize_t inval_len; // the length of what was passed in
+    Py_ssize_t ind;  // for loop index
+    PyObject *item;  // item from the user input list
+    PyObject *item_out;  // converted item
+    PyObject *outval;   // array to return
 
     if (!PyArg_ParseTuple(args, "O", &inval))
         return NULL;
 
     if (PyFloat_Check(inval)) {
-        return (PyArrayObject *)(num2date(PyFloat_AsDouble(inval)));  
+        return (PyArrayObject *)(num2date(PyFloat_AsDouble(inval)));
     } else if (PyLong_Check(inval)) {
-        return (PyArrayObject *)(num2date((npy_double)(PyLong_AsSsize_t(inval))));  
+        return (PyArrayObject *)(num2date((npy_double)(PyLong_AsSsize_t(inval))));
     } else {
         if (!PySequence_Check(inval)) { // is the input a sequence of sorts
             PyErr_SetString(PyExc_ValueError, "Must be a numeric object or iterable of numeric objects");
-            return NULL;         
+            return NULL;
         }
         inval_len = PySequence_Length(inval);
         item_out = PySequence_GetItem(inval, 0);
@@ -403,13 +393,12 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
         if (!PyFloat_Check(item_out) & !PyLong_Check(item_out)) {
             PyErr_SetString(PyExc_ValueError, "Iterable must contain numeric objects");
             Py_DECREF(item_out); // clean up the objects
-            return NULL; 
+            return NULL;
         }
         //    "Your mother does not work here, clean up after yourself"
         Py_DECREF(item_out);
-        array_type = PyArray_DescrFromType(NPY_OBJECT);
-        outval = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, inval_len, array_type);
-        Py_DECREF(array_type); // no longer needed
+
+        outval = PyList_New(inval_len);
 
         // step thru all the datetimes and  convert them, putting ans in the array
         for (ind=0;ind<inval_len;ind++) {
@@ -419,16 +408,17 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
             if (!PyFloat_Check(item)) {
                 PyErr_SetString(PyExc_ValueError, "Iterable must contain float objects");
                 Py_DECREF(item);
-                return NULL; 
+                return NULL;
             }
             item_out = (PyObject *)num2date(PyFloat_AsDouble(item));
-            PyArray_SETITEM(outval, &ind, item_out); // does this steal a ref as the tuple one does?
-            Py_DECREF(item_out);
+
+            PyList_SET_ITEM(outval, ind, item_out); // does this steal a ref as the tuple one does?
+            // itemout  reference stolen by PyList_SET_ITEM so no DECREF
         }
     }
     /*Giving away our reference to the caller*/
     // cast the outval of type PyObject* to what we want to return
-    return (PyArrayObject *)outval;
+    return (PyArrayObject *)PyArray_FROM_O(outval);
 }
 
 
@@ -436,7 +426,7 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
 // setup h C that the Python knows what to do with it
 // PyMethodDef: struct type used to hold int he info, one set per function you
 //     want exposed in python  i.e. this is where you set the name
-// static: again we don't want Python to have this in the namespace 
+// static: again we don't want Python to have this in the namespace
 static PyMethodDef dates_methods[] = {
     // date2num: this is the name as it will show up in python
     // (PyCFunction)date2num_common: cast the c function we created and associate
@@ -455,7 +445,7 @@ static PyMethodDef dates_methods[] = {
 };
 
 // this the what does the exposing to python
-// initdate2num: it is normal to name this with a leading "init" and to name the 
+// initdate2num: it is normal to name this with a leading "init" and to name the
 //    file with a trailing "module"
 PyMODINIT_FUNC init_dates(void) {
     // this sets up the module, there are different versions of Py_InitModule3
@@ -463,7 +453,7 @@ PyMODINIT_FUNC init_dates(void) {
     // date2num: this is the name of the module
     // date2num_methods: the name of the method dict we defined above
     // docstring: in the "3" version you spec the docstring here
-    Py_InitModule3("_dates", dates_methods, 
+    Py_InitModule3("_dates", dates_methods,
                      "Module for computing matplotlib.dates.date2num a lot faster");
     // this is a required macro for using datetime objects in the module, it goes here
     PyDateTime_IMPORT;
