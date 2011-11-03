@@ -467,7 +467,7 @@ PyMODINIT_FUNC init_dates(void) {
     // date2num_methods: the name of the method dict we defined above
     // docstring: in the "3" version you spec the docstring here
     Py_InitModule3("_dates", dates_methods,
-                     "Module for computing matplotlib.dates.date2num a lot faster");
+                     "Module for computing matplotlib.dates.date2num and num2date a lot faster");
     // this is a required macro for using datetime objects in the module, it goes here
     PyDateTime_IMPORT;
     // this is a required function (macro) for using numpy arrays in the module
