@@ -63,5 +63,15 @@ class num2dateTests(unittest.TestCase):
         """output is an array if the input is an iterable"""
         numpy.testing.assert_array_equal(spt.num2date([self.num]*10), [val.replace(tzinfo=None) for val in num2date_mpl([self.num]*10)])
 
+    def test_intypes(self):
+        """Can input float, long, or int"""
+        self.assertEqual(spt.num2date(int(self.num)), datetime.datetime(2011, 11, 2, 0, 0))
+        self.assertEqual(spt.num2date(long(self.num)), datetime.datetime(2011, 11, 2, 0, 0))
+        self.assertEqual(spt.num2date(float(long(self.num))), datetime.datetime(2011, 11, 2, 0, 0))
+        self.assertEqual(spt.num2date([int(self.num)][0]), datetime.datetime(2011, 11, 2, 0, 0))
+        self.assertEqual(spt.num2date([long(self.num)][0]), datetime.datetime(2011, 11, 2, 0, 0))
+        self.assertEqual(spt.num2date([float(long(self.num))][0]), datetime.datetime(2011, 11, 2, 0, 0))
+
+
 if __name__ == "__main__":
     unittest.main()

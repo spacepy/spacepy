@@ -374,47 +374,56 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
     PyObject *item;  // item from the user input list
     PyObject *item_out;  // converted item
     PyObject *outval;   // array to return
+    PyObject **outval_dat;
 
     if (!PyArg_ParseTuple(args, "O", &inval))
         return NULL;
 
-    if (PyFloat_Check(inval)) {
+    if (PyFloat_Check(inval))
         return (PyArrayObject *)(num2date(PyFloat_AsDouble(inval)));
-    } else if (PyLong_Check(inval)) {
+    if (PyLong_Check(inval))
         return (PyArrayObject *)(num2date((npy_double)(PyLong_AsSsize_t(inval))));
-    } else {
-        if (!PySequence_Check(inval)) { // is the input a sequence of sorts
-            PyErr_SetString(PyExc_ValueError, "Must be a numeric object or iterable of numeric objects");
-            return NULL;
-        }
-        inval_len = PySequence_Length(inval);
-        item_out = PySequence_GetItem(inval, 0);
-        // same check as above, is it a datetime object?
-        if (!PyFloat_Check(item_out) & !PyLong_Check(item_out)) {
+    if (PyInt_Check(inval))
+       return (PyArrayObject *)(num2date((npy_double)(PyInt_AsSsize_t(inval))));
+    if (!PySequence_Check(inval)) { // is the input a sequence of sorts
+        PyErr_SetString(PyExc_ValueError, "Must be a numeric object or iterable of numeric objects");
+        return NULL;
+    }
+    inval_len = PySequence_Length(inval);
+    if (!(item_out = PySequence_GetItem(inval, 0)))
+	  return NULL;
+    // same check as above, is it a datetime object?
+    if (!PyFloat_Check(item_out) & !PyLong_Check(item_out) & !PyInt_Check(item_out) ) {
+        PyErr_SetString(PyExc_ValueError, "Iterable must contain numeric objects");
+        Py_DECREF(item_out); // clean up the objects
+        return NULL;
+    }
+    //    "Your mother does not work here, clean up after yourself"
+    Py_DECREF(item_out);
+
+    //outval = PyList_New(inval_len);
+    outval = PyArray_SimpleNew(1, &inval_len, NPY_OBJECT);
+    outval_dat = (PyObject **)PyArray_DATA(outval);
+    
+    // step thru all the datetimes and  convert them, putting ans in the array
+    for (ind=0;ind<inval_len;ind++) {
+        // as above get an item from the iterator ival and cast as needed
+        item = PySequence_GetItem(inval, ind);
+        // If this isn't a float error
+        if (!PyFloat_Check(item) & !PyLong_Check(item) & !PyInt_Check(item)) {
             PyErr_SetString(PyExc_ValueError, "Iterable must contain numeric objects");
-            Py_DECREF(item_out); // clean up the objects
+            Py_DECREF(item);
             return NULL;
         }
-        //    "Your mother does not work here, clean up after yourself"
-        Py_DECREF(item_out);
-
-        outval = PyList_New(inval_len);
-
-        // step thru all the datetimes and  convert them, putting ans in the array
-        for (ind=0;ind<inval_len;ind++) {
-            // as above get an item from the iterator ival and cast as needed
-            item = PySequence_GetItem(inval, ind);
-            // If this isn't a datetime error
-            if (!PyFloat_Check(item)) {
-                PyErr_SetString(PyExc_ValueError, "Iterable must contain float objects");
-                Py_DECREF(item);
-                return NULL;
-            }
+        if (PyLong_Check(item_out))
+            item_out = (PyObject *)(num2date((npy_double)(PyLong_AsSsize_t(item))));
+        else if (PyInt_Check(item_out))
+            item_out = (PyObject *)(num2date((npy_double)(PyInt_AsSsize_t(item))));
+        else
             item_out = (PyObject *)num2date(PyFloat_AsDouble(item));
 
-            PyList_SET_ITEM(outval, ind, item_out); // does this steal a ref as the tuple one does?
-            // itemout  reference stolen by PyList_SET_ITEM so no DECREF
-        }
+        outval_dat[ind] = item_out;
+        Py_DECREF(item);
     }
     /*Giving away our reference to the caller*/
     // cast the outval of type PyObject* to what we want to return
@@ -439,7 +448,13 @@ static PyMethodDef dates_methods[] = {
      "historical artifact. Also, note that the Gregorian calendar is assumed; \n"
      "this is not universal practice. For details, see the module docstring.\n"},
      {"num2date", (PyCFunction)num2date_common, METH_VARARGS,
-     "I Need docs\n"},
+     "Input is a float value which gives the number of days (fraction part \n"
+     "represents hours, minutes, seconds) since 0001-01-01 00:00:00 UTC plus one.\n"
+     "The addition of one here is a historical artifact. Also, note that the\n"
+     "Gregorian calendar is assumed; this is not universal practice. For details,\n"
+     "see the module docstring.\n\n"
+     "Return value is a datetime instance in timezone tz (default to rcparams TZ value).\n\n"
+     "If input is a sequence, a numpy array of datetime objects will be returned.\n"},
     // NULL terminate Python looking at the object
      { NULL, NULL, 0, NULL }
 };
