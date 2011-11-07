@@ -14,6 +14,9 @@
 // to use numpy arrays, there are many things in numpy
 #include <numpy/arrayobject.h>
 
+#define PyNumber_AsDouble(y) PyFloat_AsDouble(PyNumber_Float(y))
+
+
 #define HOURS_PER_DAY 24
 #define MINUTES_PER_DAY (60*HOURS_PER_DAY)
 #define SECONDS_PER_DAY (60*MINUTES_PER_DAY)
@@ -377,12 +380,8 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "O", &inval))
         return NULL;
 
-    if (PyFloat_Check(inval))
-        return (PyArrayObject *)(num2date(PyFloat_AsDouble(inval)));
-    if (PyLong_Check(inval))
-        return (PyArrayObject *)(num2date((npy_double)(PyLong_AsSsize_t(inval))));
-    if (PyInt_Check(inval))
-       return (PyArrayObject *)(num2date((npy_double)(PyInt_AsSsize_t(inval))));
+    if (PyNumber_Check(inval))
+        return (PyArrayObject *)(num2date(PyNumber_AsDouble(inval)));
     if (!PySequence_Check(inval)) { // is the input a sequence of sorts
         PyErr_SetString(PyExc_ValueError, "Must be a numeric object or iterable of numeric objects");
         return NULL;
@@ -391,7 +390,7 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
     if (!(item_out = PySequence_GetItem(inval, 0)))
 	  return NULL;
     // same check as above, is it a datetime object?
-    if (!PyFloat_Check(item_out) & !PyLong_Check(item_out) & !PyInt_Check(item_out) ) {
+    if (!PyNumber_Check(item_out)) {
         PyErr_SetString(PyExc_ValueError, "Iterable must contain numeric objects");
         Py_DECREF(item_out); // clean up the objects
         return NULL;
@@ -399,7 +398,6 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
     //    "Your mother does not work here, clean up after yourself"
     Py_DECREF(item_out);
 
-    //outval = PyList_New(inval_len);
     outval = PyArray_SimpleNew(1, &inval_len, NPY_OBJECT);
     outval_dat = (PyObject **)PyArray_DATA(outval);
     
@@ -408,17 +406,12 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
         // as above get an item from the iterator ival and cast as needed
         item = PySequence_GetItem(inval, ind);
         // If this isn't a float error
-        if (!PyFloat_Check(item) & !PyLong_Check(item) & !PyInt_Check(item)) {
+        if (!PyNumber_Check(item)) {
             PyErr_SetString(PyExc_ValueError, "Iterable must contain numeric objects");
             Py_DECREF(item);
             return NULL;
         }
-        if (PyLong_Check(item_out))
-            item_out = (PyObject *)(num2date((npy_double)(PyLong_AsSsize_t(item))));
-        else if (PyInt_Check(item_out))
-            item_out = (PyObject *)(num2date((npy_double)(PyInt_AsSsize_t(item))));
-        else
-            item_out = (PyObject *)num2date(PyFloat_AsDouble(item));
+        item_out = (PyObject *)(num2date(PyNumber_AsDouble(item)));
 
         outval_dat[ind] = item_out;
         Py_DECREF(item);
