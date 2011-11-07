@@ -1924,51 +1924,6 @@ def bin_edges_to_center(edges):
     df = np.diff(edges)
     return edges[:-1] + df/2
 
-def hypot(*vals):
-    """
-    Compute sqrt(vals[0] **2 + vals[1] **2 ...), ie. n-dimensional hypotenuse
-
-    If the input is a numpy array a c-backend is called for the calculation
-
-    Parameters
-    ==========
-    vals : float (arbitary number), or iterable
-        arbitary number of float values as arguments or an iterable
-
-    Returns
-    =======
-    out : float
-        the Euclidian distance of the points ot the origin
-
-    Examples
-    ========
-    >>> import spacepy.toolbox as tb
-    >>> tb.hypot(3,4)
-    5.0
-    >>> a = [3, 4]
-    >>> tb.hypot(*a)
-    5.0
-    >>> tb.hypot(*range(10))
-    16.88194...
-    >>> tb.hypot(numpy.arange(4)) # uses the c backend
-    3.7416573867739413
-
-    See Also
-    ========
-    math.hypot
-    """
-    if len(vals) !=1 :
-        return math.sqrt(sum((v ** 2 for v in vals)))
-    else: # it was a single iterator
-        try:
-            if lib.have_libspacepy and isinstance(vals[0], np.ndarray):
-                d = vals[0].astype(np.double)
-                return lib.hypot_tb(d.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), d.size)
-            else:
-                return math.sqrt(sum((v ** 2 for v in vals[0])))
-        except TypeError:
-            return vals[0]
-
 def thread_job(job_size, thread_count, target, *args, **kwargs):
     """
     Split a job into subjobs and run a thread for each

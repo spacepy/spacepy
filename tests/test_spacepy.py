@@ -27,6 +27,7 @@ from test_poppy import *
 from test_pycdf import *
 from test_borg import *
 from test_spectrogram import *
+from test_datesmodule import *
 # add others here as they are written
 
 if __name__ == '__main__':
