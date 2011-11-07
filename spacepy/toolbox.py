@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import math
 import os
+import os.path
 import sys
 import zipfile
 import datetime
@@ -641,17 +642,20 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     else:
         import urllib.request as u
 
-    datadir = DOT_FLN+'/data'
+    datadir = os.path.join(DOT_FLN, 'data')
+    if not os.path.exists(datadir):
+        os.mkdir(datadir)
+        os.chmod(datadir, 0o777)
 
     #leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
-    leapsec_fname = DOT_FLN+'/data/tai-utc.dat'
+    leapsec_fname = os.path.join(datadir, 'tai-utc.dat')
 
     # define location for getting omni
     #omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
-    omni_fname_zip = DOT_FLN+'/data/WGhour-latest.d.zip'
-    omni_fname_pkl = DOT_FLN+'/data/omnidata.pkl'
+    omni_fname_zip = os.path.join(datadir, 'WGhour-latest.d.zip')
+    omni_fname_pkl = os.path.join(datadir, 'omnidata.pkl')
 
-    PSDdata_fname = DOT_FLN+'/data/psd_dat.sqlite'
+    PSDdata_fname = os.path.join('psd_dat.sqlite')
 
     if all == True:
         omni = True
