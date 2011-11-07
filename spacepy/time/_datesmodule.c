@@ -380,13 +380,14 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "O", &inval))
         return NULL;
 
-    if (PyNumber_Check(inval))
-        return (PyArrayObject *)(num2date(PyNumber_AsDouble(inval)));
+    if (PyNumber_Check(inval) & !PySequence_Check(inval)) 
+        return (PyArrayObject *)(num2date(PyNumber_AsDouble(inval))); 
     if (!PySequence_Check(inval)) { // is the input a sequence of sorts
         PyErr_SetString(PyExc_ValueError, "Must be a numeric object or iterable of numeric objects");
         return NULL;
     }
     inval_len = PySequence_Length(inval);
+
     if (!(item_out = PySequence_GetItem(inval, 0)))
 	  return NULL;
     // same check as above, is it a datetime object?
