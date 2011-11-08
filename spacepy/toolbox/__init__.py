@@ -11,6 +11,7 @@ Los Alamos National Laboratory
 
 Copyright ©2010 Los Alamos National Security, LLC.
 """
+from __future__ import absolute_import
 
 from toolbox import *
 from . import _toolbox
