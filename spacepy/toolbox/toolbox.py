@@ -1181,60 +1181,6 @@ def logspace(min, max, num, **kwargs):
     else:
         return np.logspace(np.log10(min), np.log10(max), num, **kwargs)
 
-#def linspace(min, max, num=50, endpoint=True, retstep=False, forcedate=False):
-#    """
-#    Returns linearly spaced numbers.  Same as numpy.linspace except
-#    allows for support of datetime objects
-#
-#    Parameters
-#    ==========
-#    start : float
-#        The starting value of the sequence.
-#    stop : float
-#        The end value of the sequence, unless `endpoint` is set to False.
-#        In that case, the sequence consists of all but the last of ``num + 1``
-#        evenly spaced samples, so that `stop` is excluded.  Note that the step
-#        size changes when `endpoint` is False.
-#    num : int (optional)
-#        Number of samples to generate. Default is 50.
-#    endpoint : bool, optional
-#        If True, `stop` is the last sample. Otherwise, it is not included.
-#        Default is True.
-#    retstep : bool (optional)
-#        If True, return (`samples`, `step`), where `step` is the spacing
-#        between samples.
-#    forcedate : bool (optional)
-#        Forces linspace to use the date formulation, needed sometimes on 0-d arrays
-#
-#    Returns
-#    =======
-#    samples : array
-#        There are `num` equally spaced samples in the closed interval
-#        ``[start, stop]`` or the half-open interval ``[start, stop)``
-#        (depending on whether `endpoint` is True or False).
-#    step : float (only if `retstep` is True)
-#        Size of spacing between samples.
-#
-#    See Also
-#    ========
-#    toolbox.geomspace
-#    toolbox.logspace
-#    """
-#    if isinstance(min, datetime.datetime) or forcedate==True:
-#        from matplotlib.dates import date2num, num2date
-#        try:
-#            ans = num2date(np.linspace(date2num(min), date2num(max),
-#                                     num=num, endpoint=endpoint, retstep=retstep))
-#        except AttributeError: # weird error when min/max are 0d arrays
-#            ans = num2date(np.linspace(date2num(min.tolist()), date2num(max.tolist()),
-#                                     num=num, endpoint=endpoint, retstep=retstep))
-#
-#        ans = [val.replace(tzinfo=None) for val in ans]
-#        return np.array(ans)
-#    else:
-#        return np.linspace(min, max,
-#                        num=num, endpoint=endpoint, retstep=retstep)
-
 def geomspace(start, ratio=None, stop=False, num=50):
     """
     Returns geometrically spaced numbers.

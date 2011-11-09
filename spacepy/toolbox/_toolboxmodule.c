@@ -16,9 +16,8 @@
 #define TRUE 1
 #define FALSE 0
 
-
-
 /*Function to call a method, given an object, method name, arguments*/
+// Jon Niehof
 static PyObject *callmeth(PyObject *obj, const char* methname,
 			  PyObject *args, PyObject *kwargs)
 {
@@ -48,11 +47,8 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
     PyObject *outval, *outtuple, *calltuple;
     PyObject *datetime_module;
 
-    PyObject *tmp;
-
     static char *kwlist[] = {"startVal", "stopVal", "num", "endpoint", "retstep", "forcedate", NULL};
 
-// def linspace(min, max, num=50, endpoint=True, retstep=False, forcedate=False):
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd|hhh", kwlist, &startVal, &stopVal,
         &num_in, &endpoint, &retstep, &forcedate)) {
         PyErr_Clear();
@@ -79,11 +75,11 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
     }
 
     num = (Py_ssize_t)num_in;
-
     // if we want 0 (or neg) length return empty array
     if (num<=0) {
         num=0;
         outval = PyArray_SimpleNew(1, &num, NPY_DOUBLE);
+        Py_XDECREF(datetime_module);
         return outval;
     }
     // no neg to PyArray_SimpleNew()
@@ -97,6 +93,7 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
             calltuple = PyTuple_Pack(1, PyFloat_FromDouble(startVal));
             outval  = callmeth(datetime_module, "num2date", calltuple, NULL);
             Py_DECREF(calltuple);
+            Py_DECREF(datetime_module);
             return outval;
         }
         step = (stopVal-startVal)/((double)(num-1));
@@ -112,10 +109,12 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
         if (!forcedate)
             outtuple = PyTuple_Pack(2, outval, PyFloat_FromDouble(step));
         else {
+
             calltuple = PyTuple_Pack(1, outval);
             outval  = callmeth(datetime_module, "num2date", calltuple, NULL);
             Py_DECREF(calltuple);
             outtuple = PyTuple_Pack(2, outval, PyFloat_FromDouble(step));
+            Py_DECREF(datetime_module);
         }
         return outtuple;
     }
@@ -124,6 +123,7 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
     calltuple = PyTuple_Pack(1, outval);
     outval  = callmeth(datetime_module, "num2date", calltuple, NULL);
     Py_DECREF(calltuple);
+    Py_DECREF(datetime_module);
     return outval;
 }
 
@@ -202,7 +202,40 @@ static PyMethodDef toolbox_methods[] = {
     "See Also\n"
     "========\n"
     "math.hypot\n"},
-   {"linspace", (PyCFunction)linspace_tb, METH_VARARGS|METH_KEYWORDS, "Add Docs\n"},
+   {"linspace", (PyCFunction)linspace_tb, METH_VARARGS|METH_KEYWORDS,
+    "Returns linearly spaced numbers.  Same as numpy.linspace except\n"
+    "allows for support of datetime objects\n\n"
+    "Parameters\n"
+    "==========\n"
+    "start : float\n"
+    "\tThe starting value of the sequence.\n"
+    "stop : float\n"
+    "\tThe end value of the sequence, unless `endpoint` is set to False.\n"
+    "\tIn that case, the sequence consists of all but the last of ``num + 1``\n"
+    "\tevenly spaced samples, so that `stop` is excluded.  Note that the step\n"
+    "\tsize changes when `endpoint` is False.\n"
+    "num : int (optional)\n"
+    "\tNumber of samples to generate. Default is 50.\n"
+    "endpoint : bool, optional\n"
+    "\tIf True, `stop` is the last sample. Otherwise, it is not included.\n"
+    "\tDefault is True.\n"
+    "retstep : bool (optional)\n"
+    "\tIf True, return (`samples`, `step`), where `step` is the spacing\n"
+    "\tbetween samples.\n"
+    "forcedate : bool (optional)\n"
+    "\tForces linspace to use the date formulation, needed sometimes on 0-d arrays\n\n"
+    "Returns\n"
+    "=======\n"
+    "samples : array\n"
+    "\tThere are `num` equally spaced samples in the closed interval\n"
+    "\t``[start, stop]`` or the half-open interval ``[start, stop)``\n"
+    "\t(depending on whether `endpoint` is True or False).\n"
+    "step : float (only if `retstep` is True)\n"
+    "\tSize of spacing between samples.\n\n"
+    "See Also\n"
+    "========\n"
+    "toolbox.geomspace\n"
+    "toolbox.logspace\n"},
     // NULL terminate Python looking at the object
      { NULL, NULL, 0, NULL }
 };
