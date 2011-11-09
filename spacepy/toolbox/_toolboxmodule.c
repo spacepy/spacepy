@@ -2,17 +2,135 @@
 # _toolboxmodule
 # make some functions in toolbox c extensions to be a lot faster
 #
-# Brian Larsen 
+# Brian Larsen
 # balarsen@lanl.gov
 # Copyright ©2010 - 2011 Los Alamos National Security, LLC.
 *************************************************************************/
 // the normal include for python extension modules
 #include <Python.h>
 #include <math.h>
+#include <numpy/arrayobject.h>
+#include <datetime.h>
 
 #define PyNumber_AsDouble(y) PyFloat_AsDouble(PyNumber_Float(y))
+#define TRUE 1
+#define FALSE 0
 
 
+
+/*Function to call a method, given an object, method name, arguments*/
+static PyObject *callmeth(PyObject *obj, const char* methname,
+			  PyObject *args, PyObject *kwargs)
+{
+    PyObject *meth, *retval;
+
+    if (!(meth = PyObject_GetAttrString(obj, methname)))
+        return NULL;
+    retval = PyEval_CallObjectWithKeywords(meth, args, kwargs);
+    Py_DECREF(meth);
+    return retval;
+}
+
+//=============================================================================
+// Make linearly spaced data from start to finish, lso handle datetime objects
+//=============================================================================
+static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+//    Grabbed a 15x speedup over the numpy version
+//    tb_t = timeit.Timer("tb.linspace(1.5, 10.5, 6)", setup="import spacepy.toolbox as tb")
+//    np_t = timeit.Timer("np.linspace(1.5, 10.5, 6)", setup="import numpy as np")
+//    print np_t.timeit(10000)/tb_t.timeit(10000)
+    double startVal, stopVal, step, num_in;
+    PyObject *startDT, *stopDT;
+    double *outval_dat;
+    Py_ssize_t num, ii;
+    short endpoint=TRUE, retstep=FALSE, forcedate=FALSE;
+    PyObject *outval, *outtuple, *calltuple;
+    PyObject *datetime_module;
+
+    PyObject *tmp;
+
+    static char *kwlist[] = {"startVal", "stopVal", "num", "endpoint", "retstep", "forcedate", NULL};
+
+// def linspace(min, max, num=50, endpoint=True, retstep=False, forcedate=False):
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ddd|hhh", kwlist, &startVal, &stopVal,
+        &num_in, &endpoint, &retstep, &forcedate)) {
+        PyErr_Clear();
+        // this was not doubles, test if it is datetimes
+        if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOd|hhh", kwlist, &startDT, &stopDT,
+            &num_in, &endpoint, &retstep, &forcedate))
+            return NULL;
+        else {
+            if (!PyDateTime_Check(startDT) | !PyDateTime_Check(stopDT)) {
+                PyErr_SetString(PyExc_TypeError, "number or datetime objects expected");
+                return NULL;
+            }
+        // need to call the spacepy.time.date2num
+        if (!(datetime_module = PyImport_ImportModule("spacepy.time")))
+            return NULL;
+        calltuple = PyTuple_Pack(1, startDT);
+        startVal = PyFloat_AsDouble(callmeth(datetime_module, "date2num", calltuple, NULL));
+        Py_DECREF(calltuple);
+        calltuple = PyTuple_Pack(1, stopDT);
+        stopVal  = PyFloat_AsDouble(callmeth(datetime_module, "date2num", calltuple, NULL));
+        Py_DECREF(calltuple);
+        forcedate = TRUE;
+        }
+    }
+
+    num = (Py_ssize_t)num_in;
+
+    // if we want 0 (or neg) length return empty array
+    if (num<=0) {
+        num=0;
+        outval = PyArray_SimpleNew(1, &num, NPY_DOUBLE);
+        return outval;
+    }
+    // no neg to PyArray_SimpleNew()
+    outval = PyArray_SimpleNew(1, &num, NPY_DOUBLE);
+    outval_dat = (double *)PyArray_DATA(outval);
+    if (endpoint) {
+        if (num==1) {
+            outval_dat[0] = startVal;
+            if (!forcedate)
+                return outval;
+            calltuple = PyTuple_Pack(1, PyFloat_FromDouble(startVal));
+            outval  = callmeth(datetime_module, "num2date", calltuple, NULL);
+            Py_DECREF(calltuple);
+            return outval;
+        }
+        step = (stopVal-startVal)/((double)(num-1));
+        for (ii=0; ii<num; ii++)
+            outval_dat[ii] = ii*step + startVal;
+        outval_dat[num-1] = stopVal;
+    } else {
+        step = (stopVal-startVal)/((double)num);
+        for (ii=0; ii<num; ii++)
+            outval_dat[ii] = ii*step + startVal;
+    }
+    if (retstep) {
+        if (!forcedate)
+            outtuple = PyTuple_Pack(2, outval, PyFloat_FromDouble(step));
+        else {
+            calltuple = PyTuple_Pack(1, outval);
+            outval  = callmeth(datetime_module, "num2date", calltuple, NULL);
+            Py_DECREF(calltuple);
+            outtuple = PyTuple_Pack(2, outval, PyFloat_FromDouble(step));
+        }
+        return outtuple;
+    }
+    if (!forcedate)
+        return outval;
+    calltuple = PyTuple_Pack(1, outval);
+    outval  = callmeth(datetime_module, "num2date", calltuple, NULL);
+    Py_DECREF(calltuple);
+    return outval;
+}
+
+
+//=============================================================================
+// Go through the input arguments or iterator and return sqrt(x**2 + y**2 + ...)
+//=============================================================================
 static PyObject *hypot_tb(PyObject *self, PyObject *args)
 {
     Py_ssize_t TupleSize = PyTuple_Size(args);
@@ -21,7 +139,7 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
     double tot=0., tmp_d;
 
     if(!TupleSize) {
-        if(!PyErr_Occurred()) 
+        if(!PyErr_Occurred())
             PyErr_SetString(PyExc_TypeError,"hypot expected at least 1 argument, got 0");
         return NULL;
     }
@@ -84,6 +202,7 @@ static PyMethodDef toolbox_methods[] = {
     "See Also\n"
     "========\n"
     "math.hypot\n"},
+   {"linspace", (PyCFunction)linspace_tb, METH_VARARGS|METH_KEYWORDS, "Add Docs\n"},
     // NULL terminate Python looking at the object
      { NULL, NULL, 0, NULL }
 };
@@ -91,6 +210,8 @@ static PyMethodDef toolbox_methods[] = {
 PyMODINIT_FUNC init_toolbox(void) {
     Py_InitModule3("_toolbox", toolbox_methods,
                      "toolbox module");
-
+    PyDateTime_IMPORT;
+    // this is a required function (macro) for using numpy arrays in the module
+    import_array();
 }
 
