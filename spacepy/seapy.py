@@ -62,7 +62,7 @@ class SeaBase(object):
 
     """
     def __init__(self, data, times, epochs, **kwargs):
-        self.data = np.array(data, dtype=float)
+        self.data = np.asarray(data, dtype=float)
         self.times = times
         self.epochs = epochs
         self.verbose = kwargs['verbose']
@@ -84,11 +84,8 @@ class SeaBase(object):
         """Define String Representation of Sea object"""
 
         strhead = 'Superposed Epoch Object:'
-        str1 = 'Data array - %s; ' % self.data.shape
-        str2 = 'Epochs - %d ; ' % len(self.epochs)
-        str3 = 'Window - %d' % self.window
-
-        return strhead+str1+str2+str3
+        strtail = 'Data array - {0}; #Epochs - {1}'.format(self.data.shape, len(self.epochs))
+        return ' '.join((strhead, strtail))
 
     __repr__ = __str__
 
@@ -229,7 +226,7 @@ class Sea(SeaBase):
         if isinstance(self.data, np.ndarray):
             y = self.data
         else:
-            y = np.array(self.data, dtype=float)
+            y = np.asarray(self.data, dtype=float)
 
         if kwargs['ci']:
             kwargs['quartiles'], kwargs['mad'] = False, False
@@ -567,7 +564,7 @@ class Sea2d(SeaBase):
         """
         #ensure all input is np array or correct form
         delt = float(self.delta)
-        y = np.array(self.data, dtype=float)
+        y = np.asarray(self.data, dtype=float)
         time,t_epoch = self._timeepoch(delt)
         if not nmask:
             nmask = 0 #set mask to exclude none
