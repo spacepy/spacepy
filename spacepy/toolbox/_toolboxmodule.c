@@ -73,13 +73,15 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
         forcedate = TRUE;
         }
     }
+    // TODO: Right here we ae totally done with Python objects from the outside, if they
+    // change we don't care so we can release the GIL
 
     num = (Py_ssize_t)num_in;
     // if we want 0 (or neg) length return empty array
     if (num<=0) {
         num=0;
         outval = PyArray_SimpleNew(1, &num, NPY_DOUBLE);
-        Py_XDECREF(datetime_module);
+        Py_XDECREF(datetime_module); // X since we may not have used datetime_module
         return outval;
     }
     // no neg to PyArray_SimpleNew()
