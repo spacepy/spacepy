@@ -534,7 +534,7 @@ Empiricals Module
 =================
 
 The empiricals module provides access to some useful empirical models.
-As of SpacePy 0.1.0, the models available are:
+As of SpacePy 0.1.1, the models available are:
 
     * An empirical parametrization of the L* of the last closed drift shell
       (Lmax)

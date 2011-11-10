@@ -90,6 +90,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 from spacepy import help
 import datetime
 import datetime as dt
+import dateutil.parser as dup
 import numpy as np
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
@@ -1109,26 +1110,18 @@ class Ticktock(object):
 
         """
 
-        fmt,fmt2 = '%Y-%m-%dT%H:%M:%S','%Y-%m-%dT%H:%M:%S.%f'
-
         nTAI = len(self.data)
 
-        UTC = ['']*nTAI
         if self.dtype.upper() == 'UTC':
             UTC = self.data # return
 
         elif self.dtype.upper() == 'ISO':
-            for i in np.arange(nTAI):
-                if len(self.data[i])==19:
-                    UTC[i] = datetime.datetime.strptime(self.data[i], fmt)
-                else:
-                    UTC[i] = datetime.datetime.strptime(self.data[i], fmt2)
+            UTC = [dup.parse(isot) for isot in self.data]
 
         elif self.dtype.upper() == 'TAI':
             TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-            for i in np.arange(nTAI):
-                UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + TAI0
-             # add leap seconds after UTC is created
+            UTC = [dt.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
+            # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
             for i in np.arange(nTAI):
@@ -1138,9 +1131,8 @@ class Ticktock(object):
 
         elif self.dtype.upper() == 'GPS':
             GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
-            for i in np.arange(nTAI):
-                UTC[i] = datetime.timedelta(seconds=float(self.data[i])) + GPS0
-             # add leap seconds after UTC is created
+            UTC = [dt.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
+            # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
             for i in np.arange(nTAI):
@@ -1149,9 +1141,8 @@ class Ticktock(object):
                     datetime.timedelta(seconds=19)
 
         elif self.dtype.upper() == 'UNX':
-            UNX0 = datetime.datetime(1970,1,1)
-            for i in np.arange(nTAI):
-                UTC[i] = datetime.timedelta(seconds=self.data[i]) + UNX0 # timedelta object
+            UNX0 = dt.datetime(1970,1,1)
+            UTC = [dt.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
 
         elif self.dtype.upper() == 'RDT':
             import matplotlib.dates as mpd
@@ -1166,9 +1157,8 @@ class Ticktock(object):
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
 
         elif self.dtype.upper() == 'CDF':
-            for i in np.arange(nTAI):
-                UTC[i] = datetime.timedelta(days=self.data[i]/86400000.) + \
-                        datetime.datetime(1,1,1) - datetime.timedelta(days=366)
+            UTC = [dt.timedelta(days=cdft/86400000.) + 
+                        dt.datetime(1,1,1) - dt.timedelta(days=366) for cdft in self.data]
                 #UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
                     #milliseconds=np.mod(self.data[i],86400000)) + \
                         #datetime.datetime(1,1,1) - datetime.timedelta(days=366)
@@ -1178,6 +1168,7 @@ class Ticktock(object):
         elif self.dtype.upper() in ['JD', 'MJD']:
             if self.dtype.upper() == 'MJD':
                 self.JD = np.array(self.data) + 2400000.5
+            UTC = ['']*nTAI
             for i in np.arange(nTAI):
                 # extract partial days
                 ja = int(np.floor(self.JD[i]))
@@ -1541,7 +1532,7 @@ def doy2date(year, doy, dtobj=False, flAns=False):
 
 
 # -----------------------------------------------
-def tickrange(start, end, deltadays, dtype='ISO'):
+def tickrange(start, end, deltadays, dtype='UTC'):
     """
     return a Ticktock range given the start, end, and delta
 

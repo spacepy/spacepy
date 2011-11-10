@@ -23,6 +23,7 @@ import spacepy.toolbox as tb
 import matplotlib.pyplot as plt
 import spacepy.time as st
 from matplotlib.text import Text
+import spacepy.lib
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -236,6 +237,13 @@ class SimpleFunctionTests(unittest.TestCase):
         else:
             numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
 
+    def test_linspace_bug(self):
+        """This catches a linspace datetime bug with 0-d arrays (regression)"""
+        ## remove this as the bug is fixed
+        t1 = datetime.datetime(2000, 1, 1)
+        t2 = datetime.datetime(2000, 1, 10)
+        self.assertRaises(TypeError, tb.linspace, numpy.array(t1), numpy.array(t2), 5)
+
     def test_pmm(self):
         """pmm should give known output for known input"""
         data = [[1,3,5,2,5,6,2], array([5,9,23,24,6]), [6,23,12,67.34] ]
@@ -390,6 +398,9 @@ class SimpleFunctionTests(unittest.TestCase):
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(tst))
         self.assertEqual(5.0, tb.hypot(5.0))
+        if spacepy.lib.have_libspacepy:
+            self.assertEqual(tb.hypot(numpy.array([3.,4.])), 5.0)
+            self.assertEqual(tb.hypot(numpy.array([3,4])), 5.0)
 
     def testThreadJob(self):
         """Multithread the square of an array"""
@@ -419,14 +430,14 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertRaises(TypeError, tb.dictree, 'bad')
 
     def test_geomspace(self):
-        """geomspace shopuld give known output"""
+        """geomspace should give known output"""
         ans = [1, 10, 100, 1000]
         numpy.testing.assert_array_equal(tb.geomspace(1, 10, 1000), ans)
         ans = [1, 10.0, 100.0]
         numpy.testing.assert_array_equal(tb.geomspace(1, stop = 100, num=3), ans)
         ans = [1, 10, 100]
         numpy.testing.assert_array_equal(tb.geomspace(1, ratio = 10, num=3), ans)
-        # there was a roiunding issue that this test catches
+        # there was a rounding issue that this test catches
         ans = [1, 3.1622776601683795, 10.000000000000002]
         numpy.testing.assert_allclose(tb.geomspace(1, stop = 10, num=3), ans)
 
@@ -689,6 +700,28 @@ class tFunctionTests(unittest.TestCase):
         time = range(len(time))
         self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
 
+    def test_randomDate(self):
+        """randomDate should give known result"""
+        try: 
+            from matplotlib.dates import date2num, num2date 
+        except ImportError: 
+            return # don't even do the test
+        dt1 = datetime.datetime(2000, 1, 1)
+        dt2 = datetime.datetime(2000, 2, 1)
+        numpy.random.seed(8675309)
+        ans = numpy.array([datetime.datetime(2000,01,26,04,28,10,500070), 
+                           datetime.datetime(2000,01,24,06,46,39,156905), 
+                           datetime.datetime(2000,01,12,01,52,50,481431), 
+                           datetime.datetime(2000,01,07,06,30,26,331312), 
+                           datetime.datetime(2000,01,13,16,17,48,619577)])
+        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=False))        
+        # check the exception
+        dt11 = num2date(date2num(dt1))
+        self.assertRaises(ValueError, tb.randomDate, dt11, dt2)
+        ans.sort()
+        numpy.random.seed(8675309)
+        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=True))        
+        
 
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""

@@ -53,7 +53,7 @@ class empFunctionTests(unittest.TestCase):
         self.assertRaises(ValueError, em.getLmax, self.ticks, model='bad')
 
     def test_getMPstandoff(self):
-        """getMPstandoff sjould give known results (regression)"""
+        """getMPstandoff should give known results (regression)"""
         real_ans = np.array([ 10.57319537,  10.91327764,  10.75086873,  10.77577207,
             9.78180261,  11.0374474 ,  11.4065    ,  11.27555451,
             11.47988573,  11.8202582 ,  11.23834814])

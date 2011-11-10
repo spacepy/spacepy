@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import math
 import os
+import os.path
 import sys
 import zipfile
 import datetime
@@ -35,6 +36,10 @@ except ImportError:
     pass
 except:
     pass
+
+from spacepy import lib
+if lib.have_libspacepy:
+    import ctypes
 
 #Py3k compatibility renamings
 try:
@@ -390,7 +395,7 @@ def feq(x, y, precision=0.0000005):
     compare two floating point values if they are equal
     after: http://www.lahey.com/float.htm
 
-    .. deprecated:: version 0.11
+    .. deprecated:: version 0.1.1
     This is the same and less capable than numpy.allclose
 
     See Also
@@ -401,7 +406,7 @@ def feq(x, y, precision=0.0000005):
     ==========
     x : float
         a number
-    y : float or array of flaots
+    y : float or array of floats
         otehr numbers to compare
     precision : float (optional)
         precision for equal (default 0.0000005)
@@ -637,17 +642,20 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     else:
         import urllib.request as u
 
-    datadir = DOT_FLN+'/data'
+    datadir = os.path.join(DOT_FLN, 'data')
+    if not os.path.exists(datadir):
+        os.mkdir(datadir)
+        os.chmod(datadir, 0o777)
 
     #leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
-    leapsec_fname = DOT_FLN+'/data/tai-utc.dat'
+    leapsec_fname = os.path.join(datadir, 'tai-utc.dat')
 
     # define location for getting omni
     #omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
-    omni_fname_zip = DOT_FLN+'/data/WGhour-latest.d.zip'
-    omni_fname_pkl = DOT_FLN+'/data/omnidata.pkl'
+    omni_fname_zip = os.path.join(datadir, 'WGhour-latest.d.zip')
+    omni_fname_pkl = os.path.join(datadir, 'omnidata.pkl')
 
-    PSDdata_fname = DOT_FLN+'/data/psd_dat.sqlite'
+    PSDdata_fname = os.path.join('psd_dat.sqlite')
 
     if all == True:
         omni = True
@@ -1708,7 +1716,7 @@ def listUniq(inVal):
     Given an input iterable (list, deque) return a list of the unique elements.
     Maintains order (keeps the first of non-unique elements
     
-    .. deprecated:: version 0.11
+    .. deprecated:: version 0.1.1
     Equivalent functionality to numpy.unique 
 
     Parameters
@@ -1924,6 +1932,8 @@ def hypot(*vals):
     """
     Compute sqrt(vals[0] **2 + vals[1] **2 ...), ie. n-dimensional hypotenuse
 
+    If the input is a numpy array a c-backend is called for the calculation
+
     Parameters
     ==========
     vals : float (arbitary number), or iterable
@@ -1944,7 +1954,9 @@ def hypot(*vals):
     5.0
     >>> tb.hypot(*range(10))
     16.88194...
-    
+    >>> tb.hypot(numpy.arange(4)) # uses the c backend
+    3.7416573867739413
+
     See Also
     ========
     math.hypot
@@ -1953,7 +1965,11 @@ def hypot(*vals):
         return math.sqrt(sum((v ** 2 for v in vals)))
     else: # it was a single iterator
         try:
-            return math.sqrt(sum((v ** 2 for v in vals[0])))
+            if lib.have_libspacepy and isinstance(vals[0], np.ndarray):
+                d = vals[0].astype(np.double)
+                return lib.hypot_tb(d.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), d.size)
+            else:
+                return math.sqrt(sum((v ** 2 for v in vals[0])))
         except TypeError:
             return vals[0]
 
@@ -2139,6 +2155,54 @@ def eventTimer(Event, Time1):
     Time2 = time.time()
     print("%4.2f" % (Time2 - Time1), Event)
     return Time2
+
+def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
+    """
+    Return a (or many) random datetimes between two given dates, this is done
+    under the convention dt <=1 rand < dt2
+
+    Parameters
+    ==========
+    dt1 : datetime.datetime
+        start date for the the random date
+    dt2 : datetime.datetime
+        stop date for the the random date
+        
+    Other Parameters
+    ================
+    N : int (optional)
+        the number of random dates to generate (defualt=1)
+    tzinfo : bool (optional)
+        maintain thetzinfo of the input datetimes (default=False)
+    sorted : bool (optional)
+        return the times sorted (default=False)        
+        
+    Returns
+    =======
+    out : datetime.datetime or numpy.ndarray of datetime.datetime
+        the new time for the next call to EventTimer
+
+    Examples
+    ========
+    """
+    try:
+        from matplotlib.dates import date2num, num2date
+    except ImportError:
+        raise(NotImplementedError("Matplotlib is not installed, it is required for this function"))
+    if dt1.tzinfo != dt2.tzinfo:
+        raise(ValueError('tzinfo for the input and output datetimes must match'))
+    dt1n = date2num(dt1)
+    dt2n = date2num(dt2)
+    rnd_tn = np.random.uniform(dt1n, dt2n, size=N)
+    rnd_t = num2date(rnd_tn)
+    if not tzinfo:
+        tzinfo = None
+    else:
+        tzinfo = dt1.tzinfo
+    rnd_t = np.asarray([val.replace(tzinfo=tzinfo) for val in rnd_t])
+    if sorted:
+        rnd_t.sort()
+    return rnd_t
 
 
 if __name__ == "__main__":

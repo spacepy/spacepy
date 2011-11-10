@@ -28,7 +28,7 @@ rmod.SRC_model = False
 # add PSD data
 rmod.add_PSD()
 
-# Now, run the model over the enitre time range using the evolve method:
+# Now, run the model over the entire time range using the evolve method:
 rmod.evolve()
 
 # visualize the results of rmod

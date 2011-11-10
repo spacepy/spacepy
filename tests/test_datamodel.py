@@ -14,6 +14,7 @@ import os
 import tempfile
 import unittest
 import warnings
+import datetime
 
 import spacepy.toolbox as tb
 import spacepy.datamodel as dm
@@ -33,7 +34,7 @@ class SpaceDataTests(unittest.TestCase):
         super(SpaceDataTests, self).tearDown()
 
     def test_SpaceData(self):
-        """Spacedata dist object has certian attributes"""
+        """Spacedata dist object has certain attributes"""
         dat = dm.SpaceData()
         self.assertEqual(dat.attrs, {})
         dat = dm.SpaceData(attrs={'foo':'bar'})
@@ -223,7 +224,7 @@ class converterTests(unittest.TestCase):
         warnings.simplefilter('default', dm.DMWarning)
 
     def test_convertKeysToStr(self):
-        """convertKeysToStr sjould give known output"""
+        """convertKeysToStr should give known output"""
         a = dm.SpaceData()
         a['data'] = dm.dmarray([1,2,3])
         b = dm.convertKeysToStr(a)
@@ -282,7 +283,31 @@ class converterTests(unittest.TestCase):
         dm.toHDF5('dmh5test.h5', a)
         newobj = dm.fromHDF5('dmh5test.h5')
         self.assertEqual(a['bar'], newobj['bar'])
-        
+
+class CDFTests(unittest.TestCase):
+    def setUp(self):
+        super(CDFTests, self).setUp()
+        self.cdffile = 'po_l1_cam_test.cdf'
+
+    def tearDown(self):
+        super(CDFTests, self).tearDown()
+
+    def test_fromCDF(self):
+        """from CDF should give known results"""
+        dat = dm.fromCDF(self.cdffile)
+        String1D_ans = [['A', 'B', 'C'], ['D', 'E', 'F']]
+        np.testing.assert_array_equal(dat['String1D'], String1D_ans)
+        SpinNumbers_ans = ['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ', '8 ', '9 ', '10',
+                           '11', '12', '13', '14', '15', '16', '17']
+        np.testing.assert_array_equal(dat['SpinNumbers'], SpinNumbers_ans)
+        Epoch_ans = [datetime.datetime(1998, 1, 15, 0, minute) for minute in range(11)]
+        np.testing.assert_array_equal(dat['Epoch'], Epoch_ans)
+                     
+
+    def test_fromCDF_exception(self):
+        """Bad file raises"""
+        self.assertRaises(IOError, dm.fromCDF, 'bad_file.cdf')
+
 
 if __name__ == "__main__":
     unittest.main()
