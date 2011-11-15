@@ -6,6 +6,9 @@ import datetime as dt
 import dateutil.parser as dup
 import numpy as np
 
+from . import _dates
+from _dates import date2num, num2date
+
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 # -----------------------------------------------
@@ -991,7 +994,7 @@ class Ticktock(object):
         nTAI = len(self.data)
         UTC = self.UTC
         #RDT = np.zeros(nTAI)
-        RDT = mpd.date2num(UTC)
+        RDT = date2num(UTC)
         #for i in np.arange(nTAI):
             #RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
                 #UTC[i].second/86400. + UTC[i].microsecond/86400000000.
@@ -1059,7 +1062,7 @@ class Ticktock(object):
 
         elif self.dtype.upper() == 'RDT':
             import matplotlib.dates as mpd
-            UTC = mpd.num2date(self.data)
+            UTC = num2date(self.data)
             UTC = [t.replace(tzinfo=None) for t in UTC]
             #for i in np.arange(nTAI):
                 #UTC[i] = datetime.datetime(1,1,1) + \
@@ -1070,7 +1073,7 @@ class Ticktock(object):
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
 
         elif self.dtype.upper() == 'CDF':
-            UTC = [dt.timedelta(days=cdft/86400000.) + 
+            UTC = [dt.timedelta(days=cdft/86400000.) +
                         dt.datetime(1,1,1) - dt.timedelta(days=366) for cdft in self.data]
                 #UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
                     #milliseconds=np.mod(self.data[i],86400000)) + \
