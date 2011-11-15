@@ -93,6 +93,7 @@ the following will make life easier:
 
 from __future__ import division
 import numpy, copy, datetime, os, warnings
+import re, json
 from toolbox import dictree
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -618,3 +619,61 @@ def toHDF5(fname, SDobject, **kwargs):
                               'value type {0} is not in the allowed data type list'.format(type(value)), 
                                   DMWarning)
     if path=='/': hfile.close()
+
+def readJSONMetadata(fname, **kwargs):
+    '''Read JSON metadata from an ASCII data file
+
+    Parameters
+    ----------
+    fname : str
+        Filename to read metadata from
+
+    Other Parameters
+    ----------------
+    verbose : bool (optional)
+        set verbose output so metadata tree prints on read (default False)
+
+    Returns
+    -------
+    mdata: spacepy.datamodel.SpaceData
+        SpaceData with the metadata from the file
+    '''
+    with open(fname, 'r') as f:
+        lines = f.read()
+
+    # isolate header
+    p_srch = re.compile(r"^#(.*)$", re.M)
+    hreg = re.findall(p_srch, lines)
+    header = "".join(hreg)
+
+    # isolate JSON field
+    srch = re.search( r'\{\s*(.*)\s*\}', header )
+    if isinstance(srch, type(None)):
+        raise IOError('The input file has no valid JSON header. Must be valid JSON bounded by braces "{ }".')
+    js = srch.group(1)
+    inx = js.rfind('end JSON')
+    
+    if inx == -1:
+        js = ' '.join(('{', js, '}'))
+        mdatadict = json.loads(js)
+    else:
+        js = ' '.join(('{', js[:inx]))
+        mdatadict = json.loads(js)
+
+    mdata = SpaceData()
+    for key in mdatadict:
+       if 'START_COLUMN' in mdatadict[key]:
+           mdata[key] = SpaceData(attrs=mdatadict[key])
+       elif 'VALUES' in mdatadict[key]:
+           dum = mdatadict[key].pop('VALUES')
+           mdata[key] = dmarray(dum, attrs=mdatadict[key])
+       else:
+           mdata.attrs[key] = mdatadict[key]
+
+    if 'verbose' in kwargs:
+        if kwargs['verbose']:
+            #pretty-print config_dict
+            config_dict.tree(verbose=True, attrs=True)
+
+    return mdata
+
