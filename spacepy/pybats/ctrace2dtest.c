@@ -56,6 +56,8 @@ int main()
   /* Test cEuler 1 */
   int i, j, nx=841, ny=121, maxstep=10000, npoints;
   double xgrid[nx], ygrid[nx], *ux, *uy, xt[maxstep], yt[maxstep], ds=1.0;
+  # I belive these should be calls to PyMem_New() and not malloc for Python
+  # style and portability
   ux = malloc(nx * ny * sizeof(double));
   uy = malloc(nx * ny * sizeof(double));
   
