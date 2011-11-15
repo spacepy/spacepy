@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-The datamodel classes consitute a data model implementation
+The datamodel classes constitute a data model implementation
 meant to mirror the functionality of the data model output from pycdf, though
 implemented slightly differently.
 
@@ -24,15 +24,15 @@ Copyright ©2010 Los Alamos National Security, LLC.
 About datamodel
 ---------------
 
-The SpacePy datamodel module implents classes that are designed to make implementing a standard
+The SpacePy datamodel module implements classes that are designed to make implementing a standard
 data model easy. The concepts are very similar to those used in standards like HDF5, netCDF and
 NASA CDF.
 
-The basic container type is analagous to a folder (on a filesystem; HDF5 calls this a
+The basic container type is analogous to a folder (on a filesystem; HDF5 calls this a
 group): Here we implement this as a dictionary-like object, a datamodel.SpaceData object, which
 also carries attributes. These attributes can be considered to be global, i.e. relevant for the
 entire folder. The next container type is for storing data and is based on a numpy array, this
-class is datamodel.dmarray and also carries attributes. The dmarray class is analagous to an
+class is datamodel.dmarray and also carries attributes. The dmarray class is analogous to an
 HDF5 dataset.
 
 In fact, HDF5 can be loaded directly into a SpacePy datamodel, carrying across all attributes,
@@ -164,7 +164,7 @@ class dmarray(numpy.ndarray):
     def __reduce__(self):
         """This is called when pickling, see:
         http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
-        for this particular examnple.
+        for this particular example.
         Only the attributes in Allowed_Attributes can exist
         """
         object_state = list(numpy.ndarray.__reduce__(self))
@@ -173,7 +173,7 @@ class dmarray(numpy.ndarray):
         return tuple(object_state)
 
     def __setstate__(self, state):
-        """Used for unpickling after __reduce__ the self.attrs is recoved from
+        """Used for unpickling after __reduce__ the self.attrs is recovered from
         the way it was saved and reset.
         """
         nd_state, own_state = state
@@ -198,12 +198,12 @@ class dmarray(numpy.ndarray):
 
     def addAttribute(self, name, value=None):
         """Method to add an attribute to a dmarray
-        equilivant to
+        equivalent to
         a = datamodel.dmarray([1,2,3])
         a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
         """
         if name in self.Allowed_Attributes:
-            raise(NameError('{0} is aleady an attribute cannot add again'.format(name)))
+            raise(NameError('{0} is already an attribute cannot add again'.format(name)))
         self.Allowed_Attributes.append(name)
         self.__setattr__(name, value)
 
