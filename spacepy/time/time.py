@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from spacepy import help
 import datetime
-import datetime as dt
 import dateutil.parser as dup
 import numpy as np
 
@@ -57,7 +56,7 @@ class Tickdelta(object):
         self.hours = self.days*24.
         self.minutes = self.hours*60.
         self.seconds = self.minutes*60.
-        self.timedelta = dt.timedelta(days=float(self.days))
+        self.timedelta = datetime.timedelta(days=float(self.days))
         return
 
     # -----------------------------------------------
@@ -1036,7 +1035,7 @@ class Ticktock(object):
 
         elif self.dtype.upper() == 'TAI':
             TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-            UTC = [dt.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
+            UTC = [datetime.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
             # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
@@ -1047,7 +1046,7 @@ class Ticktock(object):
 
         elif self.dtype.upper() == 'GPS':
             GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
-            UTC = [dt.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
+            UTC = [datetime.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
             # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
@@ -1057,8 +1056,8 @@ class Ticktock(object):
                     datetime.timedelta(seconds=19)
 
         elif self.dtype.upper() == 'UNX':
-            UNX0 = dt.datetime(1970,1,1)
-            UTC = [dt.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
+            UNX0 = datetime.datetime(1970,1,1)
+            UTC = [datetime.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
 
         elif self.dtype.upper() == 'RDT':
             import matplotlib.dates as mpd
@@ -1073,8 +1072,8 @@ class Ticktock(object):
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
 
         elif self.dtype.upper() == 'CDF':
-            UTC = [dt.timedelta(days=cdft/86400000.) +
-                        dt.datetime(1,1,1) - dt.timedelta(days=366) for cdft in self.data]
+            UTC = [datetime.timedelta(days=cdft/86400000.) +
+                        datetime.datetime(1,1,1) - datetime.timedelta(days=366) for cdft in self.data]
                 #UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
                     #milliseconds=np.mod(self.data[i],86400000)) + \
                         #datetime.datetime(1,1,1) - datetime.timedelta(days=366)
@@ -1485,14 +1484,14 @@ def tickrange(start, end, deltadays, dtype='ISO'):
     diff = Tend.UTC[0] - Tstart.UTC[0]
     dmusec, dsec = diff.microseconds/86400000000., diff.seconds/86400.
     try:
-        assert type(deltadays)==dt.timedelta
+        assert type(deltadays)==datetime.timedelta
         musec, sec = deltadays.microseconds/86400000000., deltadays.seconds/86400.
         deltat = musec + sec + deltadays.days
         nticks = int((dmusec + dsec + diff.days)/deltat + 1)
         trange = [Tstart.UTC[0] + deltadays*n for n in range(nticks)]
     except:
         nticks = int((dmusec + dsec + diff.days)/float(deltadays) + 1)
-        trange = [Tstart.UTC[0] + dt.timedelta(days=deltadays)*n for n in range(nticks)]
+        trange = [Tstart.UTC[0] + datetime.timedelta(days=deltadays)*n for n in range(nticks)]
     ticks = Ticktock(trange, 'UTC')
     ticks = eval('Ticktock(ticks.'+dtype+',"'+dtype+'")')
     return ticks
@@ -1538,7 +1537,7 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
         seconds = int(round(seconds))
 
     if dtobj:
-        return dt.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+        return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
     else:
         return [hours, minutes, seconds]
 
