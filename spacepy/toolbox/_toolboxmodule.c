@@ -147,15 +147,21 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
     }
     // if TupleSize is one maybe we got a sequence in
     if (TupleSize == 1) {
-    // is it a sequence
+        // is it a sequence
         temp_p = PyTuple_GetItem(args,0);
         if(temp_p == NULL)
             return NULL;
+        // if the input is an array ravel it then do the same thing
+        if (PyArray_Check(temp_p)) {
+            temp_seq = PyArray_Ravel((PyArrayObject*)temp_p, 0);
+            temp_p = temp_seq;
+        }
         if (PySequence_Check(temp_p)) { // is the input a sequence of sorts
             seqSize =  PySequence_Length(temp_p);
             for (i=0;i<seqSize;i++) {
-                temp_seq = PySequence_GetItem(temp_p, i);
+                temp_seq = PySequence_GetItem(temp_p, i);  // returns a new reference
                 tmp_d = PyNumber_AsDouble(temp_seq);
+                Py_XDECREF(temp_seq);
                 tot += (tmp_d*tmp_d);
             }
             return PyFloat_FromDouble(sqrt(tot));
