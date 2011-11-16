@@ -159,7 +159,7 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
         if (PySequence_Check(temp_p)) { // is the input a sequence of sorts
             seqSize =  PySequence_Length(temp_p);
             for (i=0;i<seqSize;i++) {
-                temp_seq = PySequence_GetItem(temp_p, i);
+                temp_seq = PySequence_GetItem(temp_p, i);  // returns a new reference
                 tmp_d = PyNumber_AsDouble(temp_seq);
                 Py_XDECREF(temp_seq);
                 tot += (tmp_d*tmp_d);
