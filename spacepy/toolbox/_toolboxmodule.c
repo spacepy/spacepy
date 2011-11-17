@@ -242,8 +242,8 @@ static PyMethodDef toolbox_methods[] = {
     "\tSize of spacing between samples.\n\n"
     "See Also\n"
     "========\n"
-    "toolbox.geomspace\n"
-    "toolbox.logspace\n"},
+    "geomspace\n"
+    "logspace\n"},
     // NULL terminate Python looking at the object
      { NULL, NULL, 0, NULL }
 };

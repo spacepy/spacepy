@@ -3237,8 +3237,8 @@ class gAttr(Attr):
     U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
 
     Normally accessed by providing a key to a :py:class:`pycdf.gAttrsList`, e.g.::
-        attribute = cdffile.attrs['attribute_name']
-        first_gentry = attribute[0]
+    attribute = cdffile.attrs['attribute_name']
+    first_gentry = attribute[0]
 
     Each element of the list is a single gEntry of the appropriate type.
     The index to the elements is the gEntry number.
