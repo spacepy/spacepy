@@ -6,7 +6,8 @@ toolbox - Toolbox of various functions and generic utilities
 
 .. currentmodule:: spacepy.toolbox
 
-.. automodule::
+.. automodule:: toolbox
+
 
 .. autosummary::
     :toctree:
