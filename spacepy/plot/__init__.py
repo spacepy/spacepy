@@ -17,4 +17,4 @@ Copyright ©2011 Los Alamos National Security, LLC.
 
 """
 
-from .spectrogram import spectrogram
+from spectrogram import spectrogram

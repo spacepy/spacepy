@@ -9,11 +9,11 @@ datamodel - easy to use general data model
 .. autosummary::
     :toctree:
 
-    DMWarning
-    dmarray
     SpaceData
+    dmarray
     convertKeysToStr
     flatten
     fromCDF
     fromHDF5
     toHDF5
+    DMWarning
