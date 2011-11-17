@@ -2716,7 +2716,8 @@ class _Hyperslice(object):
 class Attr(collections.MutableSequence):
     """An attribute, z or g, for a CDF
 
-    This class should not be used directly.
+    .. warning::
+        This class should not be used directly.
 
     Represents a CDF attribute, providing access to the Entries in a format
     that looks like a Python

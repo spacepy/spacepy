@@ -4,7 +4,12 @@
 radbelt - Functions supporting radiation belt diffusion codes
 #############################################################
 
-.. todolist::
-
 .. automodule:: radbelt
-    :members:
+
+.. autosummary::
+    :toctree:
+
+    RBmodel
+    get_modelop_L
+    diff_LL
+    get_local_accel

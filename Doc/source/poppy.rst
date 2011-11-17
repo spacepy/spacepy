@@ -4,7 +4,12 @@
 PoPPy - Point Processes in Python
 ##################################
 
-.. todolist::
-
 .. automodule:: poppy
-    :members:
+
+.. autosummary::
+    :toctree:
+
+    PPro
+    plot_two_ppro
+    boots_ci
+    value_percentile
