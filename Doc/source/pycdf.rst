@@ -196,6 +196,7 @@ Class reference
 .. autosummary::
     :toctree:
 
+    CDF
     Attr
     zAttr
     gAttr
@@ -203,7 +204,6 @@ Class reference
     gAttrList
     zAttrList
     const
-    CDF
     CDFCopy
     Library
     Var

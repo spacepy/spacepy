@@ -109,4 +109,7 @@ This code from toolbox shows what a method should look like in your code
 
 Which then renders as:
 
-    .. autofunction:: toolbox.logspace
+    .. autofunction:: spacepy.toolbox.logspace
+        :noindex:
+
+

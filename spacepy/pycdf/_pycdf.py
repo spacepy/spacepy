@@ -2732,8 +2732,8 @@ class Attr(collections.MutableSequence):
     Multi-dimensional slicing is I{not} supported; an Entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
     Example::
-        first_three = attribute[5, 0:3] #will fail
-        first_three = attribute[5][0:3] #first three elements of 5th Entry
+    first_three = attribute[5, 0:3] #will fail
+    first_three = attribute[5][0:3] #first three elements of 5th Entry
 
     @ivar _cdf_file: CDF file containing this attribute
     @type _cdf_file: :py:class:`pycdf.CDF`
@@ -2748,8 +2748,7 @@ class Attr(collections.MutableSequence):
         @type cdf_file: :py:class:`pycdf.CDF`
         @param attr_name: Name of this attribute
         @type attr_name: str
-        @param create: True to create attribute,
-                       False to look up existing.
+        @param create: True to create attribute, False to look up existing.
         @type create: bool
         """
         self._cdf_file = cdf_file
@@ -2800,10 +2799,9 @@ class Attr(collections.MutableSequence):
 
         @param key: index or range of Entry numbers to set
         @type key: slice or int
-        @param data: the data to set these entries to.
-                     Normally each entry should be a sequence; if
-                     a scalar is provided, it is treated as a single-element
-                     list.
+        @param data: the data to set these entries to. Normally each entry should
+        be a sequence; if a scalar is provided, it is treated
+        as a single-element list.
         @type data: scalar or list
         @raise ValueError: if size of {data} does not match size of L{key}
         @note: Attributes do not 'grow' or 'shrink' as entries are added
@@ -3321,9 +3319,8 @@ class AttrList(collections.MutableMapping):
 
         @param cdf_file: CDF these attributes are in
         @type cdf_file: :py:class:`pycdf.CDF`
-        @param special_entry: callable which returns a "special"
-                              entry number, used to limit results
-                              for zAttrs to those which match the zVar
+        @param special_entry: callable which returns a "special" entry number,
+        used to limit results for zAttrs to those which match the zVar
         @type special_entry: callable
         """
         self._cdf_file = cdf_file
@@ -3582,16 +3579,17 @@ class gAttrList(AttrList):
     Object representing `all` the gAttributes in a CDF.
 
     Normally accessed as an attribute of an open :py:class:`pycdf.CDF`
-        >>> global_attribs = cdffile.attrs
+    >>> global_attribs = cdffile.attrs
 
     Appears as a dictionary: keys are attribute names; each value is an
     attribute represented by a :py:class:`pycdf.gAttr` object. To access the global
     attribute TEXT
-        >>> text_attr = cdffile.attrs['TEXT']
+    >>> text_attr = cdffile.attrs['TEXT']
 
     Attributes
     ==========
-    attr_name : the name of the attribute
+    attr_name : str
+        the name of the attribute
     global_scope : boolean
         If the attribute global in scope
     """
@@ -3618,7 +3616,7 @@ class zAttrList(AttrList):
     """Object representing I{all} the zAttributes in a zVariable.
 
     Normally access as an attribute of a :py:class:`pycdf.Var` in an open CDF::
-        epoch_attribs = cdffile['Epoch'].attrs
+    epoch_attribs = cdffile['Epoch'].attrs
 
     Appears as a dictionary: keys are attribute names, values are
     the value of the zEntry associated with the appropriate zVariable.
@@ -3630,7 +3628,7 @@ class zAttrList(AttrList):
 
     Example: finding the first dependency of (ISTP-compliant) variable
     Flux::
-        print cdffile['Flux'].attrs['DEPEND_0']
+    print cdffile['Flux'].attrs['DEPEND_0']
 
     zAttributes are shared among zVariables, one zEntry allowed per zVariable.
     (pyCDF hides this detail.) Deleting the last zEntry for a zAttribute will
@@ -3638,8 +3636,8 @@ class zAttrList(AttrList):
 
     zEntries are created and destroyed by the usual dict methods on the
     zAttrlist::
-        epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
-        del epoch_attribs['new_entry'] #delete the zEntry
+    epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
+    del epoch_attribs['new_entry'] #delete the zEntry
     L{__setitem__} describes how the type of an zEntry is determined.
 
     @ivar _zvar: zVariable these attributes are in

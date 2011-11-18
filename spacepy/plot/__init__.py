@@ -6,8 +6,6 @@ plot: SpacePy specialized plotting routines
 
 This package provides classes to plot various types of space physics data.
 
-.. currentmodule:: spacepy.plot
-
 Authors: Brian Larsen and Steve Morley
 Institution: Los Alamos National Laboratory
 Contact: balarsen@lanl.gov
