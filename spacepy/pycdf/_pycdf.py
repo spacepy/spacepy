@@ -230,9 +230,8 @@ class Library(object):
         status : int
             status returned by the C library, equivalent to C{CDFStatus}
         ignore : sequence of ctypes.c_long
-            CDF statuses to ignore. If any of these
-                       is returned by CDF library, any related warnings or
-                       exceptions will I{not} be raised. (Default none).
+            CDF statuses to ignore. If any of these is returned by CDF library,
+            any related warnings or exceptions will *not* be raised. (Default none).
 
         Raises
         ======
@@ -278,7 +277,7 @@ class Library(object):
         ignore : sequence of CDF statuses
             sequence of CDF statuses to ignore. If any of these
                          is returned by CDF library, any related warnings or
-                         exceptions will I{not} be raised.
+                         exceptions will *not* be raised.
 
         Returns
         =======
@@ -691,7 +690,7 @@ class CDF(collections.MutableMapping):
            print 'B_GSE is not in the file'
       4. Find how many variables are in the file::
          print len(cdffile)
-      5. Open the CDF named C{cdf_filename.cdf}, read I{all} the data from all
+      5. Open the CDF named C{cdf_filename.cdf}, read *all* the data from all
          variables into it, and close it when done or if an error occurs::
            with pycdf.CDF('cdf_filename.cdf') as cdffile:
                 data = cdffile.copy()
@@ -1385,7 +1384,7 @@ class Var(collections.MutableSequence):
     The topic of array majority can be very confusing; good background material
     is available at U{IDL Array Storage and Indexing
     <http://www.dfanning.com/misc_tips/colrow_major.html>}. In brief,
-    I{regardless of the majority stored in the CDF}, pycdf will always present
+    *regardless of the majority stored in the CDF*, pycdf will always present
     the data in the native Python majority, row-major order, also known as
     C order. This is the default order in U{numPy
     <http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
@@ -1423,7 +1422,7 @@ class Var(collections.MutableSequence):
       6. C{del Flux[0]} removes the first record.
       7. C{del Flux[5]} removes record 5 (the sixth). Due to the need to work
          around a bug in the CDF library, this operation can be quite slow.
-      8. C{del Flux[...]} deletes I{all data} from C{Flux}, but leaves the
+      8. C{del Flux[...]} deletes *all data* from C{Flux}, but leaves the
          variable definition intact.
 
     @ivar cdf_file: the CDF file containing this variable
@@ -1503,7 +1502,7 @@ class Var(collections.MutableSequence):
 
         Only whole records can be deleted, so the del call must either specify
         only one dimension or it must specify all elements of the non-record
-        dimensions. This is I{not} a way to resize a variable!
+        dimensions. This is *not* a way to resize a variable!
 
         Deleting records from the middle of a variable may be very slow in
         some circumstances. To work around a bug in CDF library versions
@@ -1774,9 +1773,8 @@ class Var(collections.MutableSequence):
 
         @return: sequence of sizes
         @rtype: sequence of long
-        @note: This will always be in Python order (i.e. row major,
-               last index iterates most quickly), I{regardless} of the
-               majority of the CDF.
+        @note: This will always be in Python order (i.e. row major, last index
+        iterates most quickly), *regardless* of the majority of the CDF.
         """
         sizes = (ctypes.c_long * const.CDF_MAX_DIMS)(0)
         self._call(const.GET_, const.zVAR_DIMSIZES_, sizes)
@@ -2140,7 +2138,7 @@ class _Hyperslice(object):
         was created (i.e. record dimension either ellipsis or no specified
         stop.)
 
-        Does I{not} expand any other dimension, since that's Very Hard in CDF.
+        Does *not* expand any other dimension, since that's Very Hard in CDF.
 
         @param data: the data which are intended to be stored in this slice
         @type data: list
@@ -2413,7 +2411,7 @@ class _Hyperslice(object):
         over each element in L{data}, applying L{func} to the element
         and assigning the result back to the element.
 
-        L{data} must I{not} be a scalar, as then it cannot be changed.
+        L{data} must *not* be a scalar, as then it cannot be changed.
 
         @param data: the data to transform
         @type data: list
@@ -2512,7 +2510,7 @@ class _Hyperslice(object):
                all lists at a particular level of dimensionality
                must have the same size
         @raise RuntimeError: if dimensionality of result not what it
-               should be (i.e. error in I{this} function).
+               should be (i.e. error in *this* function).
         """
         try:
             dims = [len(array)] #dimensions of array
@@ -2665,7 +2663,7 @@ class _Hyperslice(object):
         and column majority. First element is not touched,
         being the record number.
 
-        @param seq: a sequence of I{subscripts}
+        @param seq: a sequence of *subscripts*
         @type seq: sequence of integers
         @return: seq with all but element 0 reversed in order
         @rtype: sequence of integers
@@ -2729,7 +2727,7 @@ class Attr(collections.MutableSequence):
     Each element of the list is a single Entry of the appropriate type.
     The index to the elements is the Entry number.
 
-    Multi-dimensional slicing is I{not} supported; an Entry with multiple
+    Multi-dimensional slicing is *not* supported; an Entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
     Example::
     first_three = attribute[5, 0:3] #will fail
@@ -3106,7 +3104,7 @@ class Attr(collections.MutableSequence):
     def rename(self, new_name):
         """Rename this attribute
 
-        Renaming a zAttribute renames it for I{all} zVariables in this CDF!
+        Renaming a zAttribute renames it for *all* zVariables in this CDF!
 
         @param new_name: the new name of the attribute
         @type new_name: str
@@ -3249,14 +3247,14 @@ class gAttr(Attr):
     the entry level; the whole list is returned at once (but Python's
     slicing syntax can be used to extract individual items from that list.)
 
-    Multi-dimensional slicing is I{not} supported; an entry with multiple
+    Multi-dimensional slicing is *not* supported; an entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
     Example::
         first_three = attribute[5, 0:3] #will fail
         first_three = attribute[5][0:3] #first three elements of 5th Entry
 
-    gEntries are I{not} necessarily contiguous; a gAttribute may have an
-    entry 0 and entry 2 without an entry 1. C{len} will return the I{number}
+    gEntries are *not* necessarily contiguous; a gAttribute may have an
+    entry 0 and entry 2 without an entry 1. C{len} will return the *number*
     of gEntries; use L{max_idx} to find the highest defined gEntry number and
     L{has_entry} to determine if a particular gEntry number exists. Iterating
     over all entries is also supported::
@@ -3613,14 +3611,15 @@ class gAttrList(AttrList):
 
 
 class zAttrList(AttrList):
-    """Object representing I{all} the zAttributes in a zVariable.
+    """Object representing *all* the zAttributes in a zVariable.
 
-    Normally access as an attribute of a :py:class:`pycdf.Var` in an open CDF::
+    Normally access as an attribute of a :py:class:`pycdf.Var` in an open
+    CDF::
     epoch_attribs = cdffile['Epoch'].attrs
 
     Appears as a dictionary: keys are attribute names, values are
     the value of the zEntry associated with the appropriate zVariable.
-    Each vAttribute in a CDF may only have a I{single} entry associated
+    Each vAttribute in a CDF may only have a *single* entry associated
     with each variable. The entry may be a string, a single numerical value,
     or a series of numerical values. Entries with multiple values are returned
     as an entire list; direct access to the individual elements is not
@@ -3638,7 +3637,7 @@ class zAttrList(AttrList):
     zAttrlist::
     epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
     del epoch_attribs['new_entry'] #delete the zEntry
-    L{__setitem__} describes how the type of an zEntry is determined.
+    :py:method:`~pycdf.zAttrList.__setitem__` describes how the type of an zEntry is determined.
 
     @ivar _zvar: zVariable these attributes are in
     @type _zvar: :py:class:`pycdf.Var`
@@ -3703,10 +3702,10 @@ class zAttrList(AttrList):
         The type of the zEntry is guessed from L{data}. The type is chosen to
         match the data; subject to that constraint, it will try to match
         (in order):
-          1. existing zEntry corresponding to this zVar
-          2. other zEntries in this zAttribute
-          3. the type of this zVar
-          4. data-matching constraints described in L{_Hyperslice.types}
+        1. existing zEntry corresponding to this zVar
+        2. other zEntries in this zAttribute
+        3. the type of this zVar
+        4. data-matching constraints described in L{_Hyperslice.types}
 
         @param name: name of zAttribute; zEntry for this zVariable will be set
                      in zAttribute by this name
