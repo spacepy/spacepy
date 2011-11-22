@@ -429,7 +429,7 @@ def feq(x, y, precision=0.0000005):
     x : float
         a number
     y : float or array of floats
-        otehr numbers to compare
+        other numbers to compare
     precision : float (optional)
         precision for equal (default 0.0000005)
 
@@ -1319,7 +1319,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
         return seq
     else:
         val, j = start, 1
-        while val <= stop or feq(val, stop, ):
+        while val <= stop or np.allclose(val, stop, ):
             val = seq[j-1]*ratio
             seq.append(val)
             j+=1
@@ -1737,9 +1737,9 @@ def listUniq(inVal):
     """
     Given an input iterable (list, deque) return a list of the unique elements.
     Maintains order (keeps the first of non-unique elements
-    
+
     .. deprecated:: version 0.1.1
-    Equivalent functionality to numpy.unique 
+    Equivalent functionality to numpy.unique
 
     Parameters
     ==========
@@ -1757,7 +1757,7 @@ def listUniq(inVal):
     >>> a = [1,1,2,3,3,4,5,5]
     >>> tb.listUniq(a)
     [1, 2, 3, 4, 5]
-    
+
     See Also
     ========
     numpy.unique
@@ -1927,7 +1927,7 @@ def bin_edges_to_center(edges):
     Given a list of edge values for a set of bins, finds the center of each bin.
     (start of bin n+1 is assumed to be end of bin n).
 
-    Center of bin n is arithmetic mean of the edges of the adjacent bins.  
+    Center of bin n is arithmetic mean of the edges of the adjacent bins.
 
     Parameters
     ==========
@@ -2153,14 +2153,14 @@ def eventTimer(Event, Time1):
     """
     Times an event then prints out the time and the name of the event,
     nice for debugging and seeing that the code is progressing
-    
+
     Parameters
     ==========
     Event : str
         Name of the event, string is printed out by function
     Time1 : time.time
-        the time to differece in the function 
-    
+        the time to differece in the function
+
     Returns
     =======
     Time2 : time.time
@@ -2189,7 +2189,7 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
         start date for the the random date
     dt2 : datetime.datetime
         stop date for the the random date
-        
+
     Other Parameters
     ================
     N : int (optional)
@@ -2197,8 +2197,8 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     tzinfo : bool (optional)
         maintain thetzinfo of the input datetimes (default=False)
     sorted : bool (optional)
-        return the times sorted (default=False)        
-        
+        return the times sorted (default=False)
+
     Returns
     =======
     out : datetime.datetime or numpy.ndarray of datetime.datetime
