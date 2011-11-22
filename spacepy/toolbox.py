@@ -142,14 +142,14 @@ def tCommon(ts1, ts2, mask_only=True):
     """Finds the elements in a list of datetime objects present in another
 
     Parameters
-    ----------
-    ts1 : list
+    ==========
+    ts1 : list or array-like
         first set of datetime objects
-    ts2 : list
+    ts2 : list or array-like
         second set of datetime objects
 
     Returns
-    -------
+    =======
     out : tuple
         Two element tuple of truth tables (of 1 present in 2, & vice versa)
 
@@ -157,6 +157,28 @@ def tCommon(ts1, ts2, mask_only=True):
     ========
     toolbox.tOverlapHalf
     toolbox.tOverlap
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> import numpy as np
+    >>> import datetime as dt
+    >>> ts1 = np.array([dt.datetime(2001,3,10)+dt.timedelta(hours=a) for a in range(20)])
+    >>> ts2 = np.array([dt.datetime(2001,3,10,2)+dt.timedelta(hours=a*0.5) for a in range(20)])
+    >>> common_inds = tb.tCommon(ts1, ts2)
+    >>> common_inds[0] #mask of values in ts1 common with ts2
+    array([False, False,  True,  True,  True,  True,  True,  True,  True,
+            True,  True,  True, False, False, False, False, False, False,
+           False, False], dtype=bool)
+    >>> ts2[common_inds[1]] #values of ts2 also in ts1
+
+    The latter can be found more simply by setting the mask_only keyword to False
+    >>> common_vals = tb.tCommon(ts1, ts2, mask_only=False)
+    >>> common_vals[1]
+    array([2001-03-10 02:00:00, 2001-03-10 03:00:00, 2001-03-10 04:00:00,
+           2001-03-10 05:00:00, 2001-03-10 06:00:00, 2001-03-10 07:00:00,
+           2001-03-10 08:00:00, 2001-03-10 09:00:00, 2001-03-10 10:00:00,
+           2001-03-10 11:00:00], dtype=object)
     """
     from matplotlib.dates import date2num, num2date
 
