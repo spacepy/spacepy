@@ -593,7 +593,7 @@ def toHDF5(fname, SDobject, **kwargs):
     else:
         path = '/'
 
-    allowed_attrs = [int, long, float, str, numpy.ndarray, list, tuple]
+    allowed_attrs = [int, long, float, str, unicode, numpy.ndarray, list, tuple]
     allowed_elems = [SpaceData, dmarray]
 
     #first convert non-string keys to str
