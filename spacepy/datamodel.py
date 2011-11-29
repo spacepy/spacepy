@@ -94,6 +94,7 @@ the following will make life easier:
 from __future__ import division
 import numpy, copy, datetime, os, warnings
 import re, json
+import dateutil.parser as dup
 from toolbox import dictree
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -677,3 +678,68 @@ def readJSONMetadata(fname, **kwargs):
 
     return mdata
 
+def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
+    '''read JSON-headed ASCII data files into a SpacePy datamodel
+
+    Parameters
+    ----------
+    fname : str
+        Filename to read data from
+
+    Other Parameters
+    ----------------
+    mdata : spacepy.datamodel.SpaceData (optional)
+        supply metadata object, otherwise is read from fname (default None)
+    comment: str (optional)
+        comment string in file to be read; lines starting with comment are
+        ignored (default '#')
+    convert: bool or dict-like (optional)
+        If True, uses common names to try conversion from string. If a dict-
+        like then uses the functions specified as the dict values to convert 
+        each element of 'key' to a non-string
+
+    Returns
+    -------
+    mdata: spacepy.datamodel.SpaceData
+        SpaceData with the data and metadata from the file
+    '''
+    if not mdata:
+        mdata = readJSONMetadata(fname)
+    fh = open(fname)    #now read file the old-fashioned way
+    line = fh.readline()
+    while line[0]==comment:
+        line = fh.readline()
+    alldata = fh.readlines()
+    ncols = len(alldata[0].rstrip().split())
+    nrows = len(alldata)
+    data = numpy.empty((nrows, ncols), dtype=object)
+    for ridx, line in enumerate(alldata):
+        for cidx, el in enumerate(line.split()):
+            data[ridx, cidx] = el
+    keys = mdata.keys()
+    for key in keys:
+        if 'START_COLUMN' in mdata[key].attrs:
+            st = mdata[key].attrs['START_COLUMN']
+            if 'DIMENSION' in mdata[key].attrs:
+                en = mdata[key].attrs['DIMENSION'][0] + st
+                mdata[key] = dmarray(data[:,st:en], attrs=mdata[key].attrs)
+            else:
+                mdata[key] = dmarray(data[:,st], attrs=mdata[key].attrs)
+    if convert:
+        conversions = {'DateTime': lambda x: dup.parse(x, ignoretz=True),
+                       'ExtModel': lambda x: str(x)}
+        for conkey in conversions:
+            try:
+                name = keys.pop(keys.index(conkey)) #remove from keylist
+                for i,element in numpy.ndenumerate(mdata[name]):
+                    mdata[name][i] = conversions[name](element)
+            except:
+                print('Key {0} for conversion not found in file'.format(conkey))
+                #this should be a warning, not a print
+        for remkey in keys:
+            try:
+                mdata[remkey] = numpy.asanyarray(mdata[remkey], dtype=float)
+            except ValueError:
+                pass #this will skip any unspecified string fields
+    return mdata
+        
