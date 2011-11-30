@@ -556,6 +556,10 @@ def toHDF5(fname, SDobject, **kwargs):
                     if hasattr(value, '__iter__'):
                         value = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
                     if value or value is 0:
+                        if type(key) is unicode:
+                            key = str(key)
+                        if type(value) is unicode:
+                            value = str(value)
                         hfile[path].attrs[key] = value
                     else:
                         hfile[path].attrs[key] = ''
