@@ -7,7 +7,7 @@ data assimilation - data assimilation module
 .. automodule:: data_assimilation
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     ensemble
     average_window

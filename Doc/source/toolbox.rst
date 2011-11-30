@@ -7,7 +7,7 @@ toolbox - Toolbox of various functions and generic utilities
 .. automodule:: spacepy.toolbox
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     applySmartTimeTicks
     arraybin

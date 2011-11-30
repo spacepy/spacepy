@@ -7,7 +7,7 @@ PoPPy - Point Processes in Python
 .. automodule:: poppy
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     PPro
     plot_two_ppro

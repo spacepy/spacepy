@@ -194,7 +194,7 @@ Class reference
 
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     CDF
     Attr

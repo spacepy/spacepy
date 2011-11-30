@@ -7,7 +7,7 @@ radbelt - Functions supporting radiation belt diffusion codes
 .. automodule:: radbelt
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     RBmodel
     get_modelop_L

@@ -8,6 +8,6 @@ coordinates - module for coordinate transforms
 .. automodule:: coordinates
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     Coords

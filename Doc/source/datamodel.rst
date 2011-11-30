@@ -7,7 +7,7 @@ datamodel - easy to use general data model
 .. automodule:: spacepy.datamodel
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     SpaceData
     dmarray

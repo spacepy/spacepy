@@ -9,7 +9,7 @@ time - Time conversion, manipulation and implementation of Ticktock class
    :undoc-members:
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     Tickdelta
     Ticktock

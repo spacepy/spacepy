@@ -7,7 +7,7 @@ SeaPy - Superposed Epoch in Python
 .. automodule:: seapy
 
 .. autosummary::
-    :toctree:
+    :toctree: autosummary
 
     SeaBase
     Sea
