@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import math
 import os
+import os.path
 import sys
 import zipfile
 import datetime
@@ -150,14 +151,14 @@ def tCommon(ts1, ts2, mask_only=True):
     """Finds the elements in a list of datetime objects present in another
 
     Parameters
-    ----------
-    ts1 : list
+    ==========
+    ts1 : list or array-like
         first set of datetime objects
-    ts2 : list
+    ts2 : list or array-like
         second set of datetime objects
 
     Returns
-    -------
+    =======
     out : tuple
         Two element tuple of truth tables (of 1 present in 2, & vice versa)
 
@@ -165,6 +166,28 @@ def tCommon(ts1, ts2, mask_only=True):
     ========
     tOverlapHalf
     tOverlap
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> import numpy as np
+    >>> import datetime as dt
+    >>> ts1 = np.array([dt.datetime(2001,3,10)+dt.timedelta(hours=a) for a in range(20)])
+    >>> ts2 = np.array([dt.datetime(2001,3,10,2)+dt.timedelta(hours=a*0.5) for a in range(20)])
+    >>> common_inds = tb.tCommon(ts1, ts2)
+    >>> common_inds[0] #mask of values in ts1 common with ts2
+    array([False, False,  True,  True,  True,  True,  True,  True,  True,
+            True,  True,  True, False, False, False, False, False, False,
+           False, False], dtype=bool)
+    >>> ts2[common_inds[1]] #values of ts2 also in ts1
+
+    The latter can be found more simply by setting the mask_only keyword to False
+    >>> common_vals = tb.tCommon(ts1, ts2, mask_only=False)
+    >>> common_vals[1]
+    array([2001-03-10 02:00:00, 2001-03-10 03:00:00, 2001-03-10 04:00:00,
+           2001-03-10 05:00:00, 2001-03-10 06:00:00, 2001-03-10 07:00:00,
+           2001-03-10 08:00:00, 2001-03-10 09:00:00, 2001-03-10 10:00:00,
+           2001-03-10 11:00:00], dtype=object)
     """
     from matplotlib.dates import date2num, num2date
 
@@ -415,7 +438,7 @@ def feq(x, y, precision=0.0000005):
     x : float
         a number
     y : float or array of floats
-        otehr numbers to compare
+        other numbers to compare
     precision : float (optional)
         precision for equal (default 0.0000005)
 
@@ -650,17 +673,20 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     else:
         import urllib.request as u
 
-    datadir = DOT_FLN+'/data'
+    datadir = os.path.join(DOT_FLN, 'data')
+    if not os.path.exists(datadir):
+        os.mkdir(datadir)
+        os.chmod(datadir, 0o777)
 
     #leapsec_url ='ftp://maia.usno.navy.mil/ser7/tai-utc.dat'
-    leapsec_fname = DOT_FLN+'/data/tai-utc.dat'
+    leapsec_fname = os.path.join(datadir, 'tai-utc.dat')
 
     # define location for getting omni
     #omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
-    omni_fname_zip = DOT_FLN+'/data/WGhour-latest.d.zip'
-    omni_fname_pkl = DOT_FLN+'/data/omnidata.pkl'
+    omni_fname_zip = os.path.join(datadir, 'WGhour-latest.d.zip')
+    omni_fname_pkl = os.path.join(datadir, 'omnidata.pkl')
 
-    PSDdata_fname = DOT_FLN+'/data/psd_dat.sqlite'
+    PSDdata_fname = os.path.join('psd_dat.sqlite')
 
     if all == True:
         omni = True
@@ -1248,7 +1274,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
         return seq
     else:
         val, j = start, 1
-        while val <= stop or feq(val, stop, ):
+        while val <= stop or np.allclose(val, stop, ):
             val = seq[j-1]*ratio
             seq.append(val)
             j+=1

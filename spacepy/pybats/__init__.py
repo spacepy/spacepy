@@ -543,7 +543,6 @@ class LogFile(PbData):
         '''
         
         import matplotlib.pyplot as plt
-        from rampy import apply_smart_timeticks
         
         if type(target) == plt.Figure:
             fig = target

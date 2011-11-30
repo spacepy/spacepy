@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-The datamodel classes consitute a data model implementation
+The datamodel classes constitute a data model implementation
 meant to mirror the functionality of the data model output from pycdf, though
 implemented slightly differently.
 
@@ -24,15 +24,15 @@ Copyright ©2010 Los Alamos National Security, LLC.
 About datamodel
 ---------------
 
-The SpacePy datamodel module implents classes that are designed to make implementing a standard
+The SpacePy datamodel module implements classes that are designed to make implementing a standard
 data model easy. The concepts are very similar to those used in standards like HDF5, netCDF and
 NASA CDF.
 
-The basic container type is analagous to a folder (on a filesystem; HDF5 calls this a
+The basic container type is analogous to a folder (on a filesystem; HDF5 calls this a
 group): Here we implement this as a dictionary-like object, a datamodel.SpaceData object, which
 also carries attributes. These attributes can be considered to be global, i.e. relevant for the
 entire folder. The next container type is for storing data and is based on a numpy array, this
-class is datamodel.dmarray and also carries attributes. The dmarray class is analagous to an
+class is datamodel.dmarray and also carries attributes. The dmarray class is analogous to an
 HDF5 dataset.
 
 In fact, HDF5 can be loaded directly into a SpacePy datamodel, carrying across all attributes,
@@ -93,6 +93,8 @@ the following will make life easier:
 
 from __future__ import division
 import numpy, copy, datetime, os, warnings
+import re, json
+import dateutil.parser as dup
 from toolbox import dictree
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -163,7 +165,7 @@ class dmarray(numpy.ndarray):
     def __reduce__(self):
         """This is called when pickling, see:
         http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
-        for this particular examnple.
+        for this particular example.
         Only the attributes in Allowed_Attributes can exist
         """
         object_state = list(numpy.ndarray.__reduce__(self))
@@ -172,7 +174,7 @@ class dmarray(numpy.ndarray):
         return tuple(object_state)
 
     def __setstate__(self, state):
-        """Used for unpickling after __reduce__ the self.attrs is recoved from
+        """Used for unpickling after __reduce__ the self.attrs is recovered from
         the way it was saved and reset.
         """
         nd_state, own_state = state
@@ -197,12 +199,12 @@ class dmarray(numpy.ndarray):
 
     def addAttribute(self, name, value=None):
         """Method to add an attribute to a dmarray
-        equilivant to
+        equivalent to
         a = datamodel.dmarray([1,2,3])
         a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
         """
         if name in self.Allowed_Attributes:
-            raise(NameError('{0} is aleady an attribute cannot add again'.format(name)))
+            raise(NameError('{0} is already an attribute cannot add again'.format(name)))
         self.Allowed_Attributes.append(name)
         self.__setattr__(name, value)
 
@@ -554,6 +556,10 @@ def toHDF5(fname, SDobject, **kwargs):
                     if hasattr(value, '__iter__'):
                         value = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
                     if value or value is 0:
+                        if type(key) is unicode:
+                            key = str(key)
+                        if type(value) is unicode:
+                            value = str(value)
                         hfile[path].attrs[key] = value
                     else:
                         hfile[path].attrs[key] = ''
@@ -591,7 +597,7 @@ def toHDF5(fname, SDobject, **kwargs):
     else:
         path = '/'
 
-    allowed_attrs = [int, long, float, str, numpy.ndarray, list, tuple]
+    allowed_attrs = [int, long, float, str, unicode, numpy.ndarray, list, tuple]
     allowed_elems = [SpaceData, dmarray]
 
     #first convert non-string keys to str
@@ -618,3 +624,126 @@ def toHDF5(fname, SDobject, **kwargs):
                               'value type {0} is not in the allowed data type list'.format(type(value)), 
                                   DMWarning)
     if path=='/': hfile.close()
+
+def readJSONMetadata(fname, **kwargs):
+    '''Read JSON metadata from an ASCII data file
+
+    Parameters
+    ----------
+    fname : str
+        Filename to read metadata from
+
+    Other Parameters
+    ----------------
+    verbose : bool (optional)
+        set verbose output so metadata tree prints on read (default False)
+
+    Returns
+    -------
+    mdata: spacepy.datamodel.SpaceData
+        SpaceData with the metadata from the file
+    '''
+    with open(fname, 'r') as f:
+        lines = f.read()
+
+    # isolate header
+    p_srch = re.compile(r"^#(.*)$", re.M)
+    hreg = re.findall(p_srch, lines)
+    header = "".join(hreg)
+
+    # isolate JSON field
+    srch = re.search( r'\{\s*(.*)\s*\}', header )
+    if isinstance(srch, type(None)):
+        raise IOError('The input file has no valid JSON header. Must be valid JSON bounded by braces "{ }".')
+    js = srch.group(1)
+    inx = js.rfind('end JSON')
+    
+    if inx == -1:
+        js = ' '.join(('{', js, '}'))
+        mdatadict = json.loads(js)
+    else:
+        js = ' '.join(('{', js[:inx]))
+        mdatadict = json.loads(js)
+
+    mdata = SpaceData()
+    for key in mdatadict:
+       if 'START_COLUMN' in mdatadict[key]:
+           mdata[key] = SpaceData(attrs=mdatadict[key])
+       elif 'VALUES' in mdatadict[key]:
+           dum = mdatadict[key].pop('VALUES')
+           mdata[key] = dmarray(dum, attrs=mdatadict[key])
+       else:
+           mdata.attrs[key] = mdatadict[key]
+
+    if 'verbose' in kwargs:
+        if kwargs['verbose']:
+            #pretty-print config_dict
+            config_dict.tree(verbose=True, attrs=True)
+
+    return mdata
+
+def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
+    '''read JSON-headed ASCII data files into a SpacePy datamodel
+
+    Parameters
+    ----------
+    fname : str
+        Filename to read data from
+
+    Other Parameters
+    ----------------
+    mdata : spacepy.datamodel.SpaceData (optional)
+        supply metadata object, otherwise is read from fname (default None)
+    comment: str (optional)
+        comment string in file to be read; lines starting with comment are
+        ignored (default '#')
+    convert: bool or dict-like (optional)
+        If True, uses common names to try conversion from string. If a dict-
+        like then uses the functions specified as the dict values to convert 
+        each element of 'key' to a non-string
+
+    Returns
+    -------
+    mdata: spacepy.datamodel.SpaceData
+        SpaceData with the data and metadata from the file
+    '''
+    if not mdata:
+        mdata = readJSONMetadata(fname)
+    fh = open(fname)    #now read file the old-fashioned way
+    line = fh.readline()
+    while line[0]==comment:
+        line = fh.readline()
+    alldata = fh.readlines()
+    ncols = len(alldata[0].rstrip().split())
+    nrows = len(alldata)
+    data = numpy.empty((nrows, ncols), dtype=object)
+    for ridx, line in enumerate(alldata):
+        for cidx, el in enumerate(line.split()):
+            data[ridx, cidx] = el
+    keys = mdata.keys()
+    for key in keys:
+        if 'START_COLUMN' in mdata[key].attrs:
+            st = mdata[key].attrs['START_COLUMN']
+            if 'DIMENSION' in mdata[key].attrs:
+                en = mdata[key].attrs['DIMENSION'][0] + st
+                mdata[key] = dmarray(data[:,st:en], attrs=mdata[key].attrs)
+            else:
+                mdata[key] = dmarray(data[:,st], attrs=mdata[key].attrs)
+    if convert:
+        conversions = {'DateTime': lambda x: dup.parse(x, ignoretz=True),
+                       'ExtModel': lambda x: str(x)}
+        for conkey in conversions:
+            try:
+                name = keys.pop(keys.index(conkey)) #remove from keylist
+                for i,element in numpy.ndenumerate(mdata[name]):
+                    mdata[name][i] = conversions[name](element)
+            except:
+                print('Key {0} for conversion not found in file'.format(conkey))
+                #this should be a warning, not a print
+        for remkey in keys:
+            try:
+                mdata[remkey] = numpy.asanyarray(mdata[remkey], dtype=float)
+            except ValueError:
+                pass #this will skip any unspecified string fields
+    return mdata
+        

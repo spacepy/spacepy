@@ -1447,7 +1447,7 @@ def doy2date(year, doy, dtobj=False, flAns=False):
 
 
 # -----------------------------------------------
-def tickrange(start, end, deltadays, dtype='ISO'):
+def tickrange(start, end, deltadays, dtype='UTC'):
     """
     return a Ticktock range given the start, end, and delta
 
