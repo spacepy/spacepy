@@ -670,7 +670,6 @@ class RamSat(object):
                 # Factor of pi here so we don't need it later.
                 dMu[i] = 4*np.pi*self['pa_grid'][i] -self['pa_grid'][i-1]
 
-        print 'WARNING!  Re-calculating omni because FORTRAN is wrong!!!'
         # Integrate.
         tempH=self['FluxH+']; tempO=self['FluxO+']
         tempe=self['Fluxe-']; tempHe=self['FluxHe+']
@@ -1095,7 +1094,7 @@ class PressureFile(PbData):
 
     def add_cont_press(self, var='total', n=31, target=None, maxz=1000.0, 
                        minz=1.0, loc=111, add_cbar=False, npa=False, 
-                       labelsize=15,  **kwargs):
+                       labelsize=15,  title='auto', **kwargs):
         '''
         Create a polar log-axis contour plot of pressure and add it to axis
         'ax'.  For speedier plots, use plot_cont_press, which makes it's
@@ -1113,7 +1112,7 @@ class PressureFile(PbData):
         if type(target) == plt.Figure:
             fig = target
             ax  = fig.add_subplot(loc, polar=True)
-        elif type(target).__base__ == plt.Axes:
+        elif type(target).__base__ in (plt.Axes, plt.PolarAxes):
             ax  = target
             fig = ax.figure
         else:
@@ -1123,6 +1122,8 @@ class PressureFile(PbData):
         p=self[var]
         mapname='spectral'
         label='$KeV/cm^-3$'
+        if title=='auto':
+            title=self[var].attrs['label']
         if npa:
             p=p*0.16 # Energy Density to Pressure in nPa.
             mapname='jet'
@@ -1134,8 +1135,7 @@ class PressureFile(PbData):
                              norm=LogNorm(), cmap=get_cmap(mapname))
         cont = ax.tricontourf(self['theta'], self['L'], p, levs, 
                               norm=LogNorm(), cmap=get_cmap(mapname))
-        _adjust_dialplot(ax, self['L'], title=self[var].attrs['label'],
-                         labelsize=labelsize)
+        _adjust_dialplot(ax, self['L'], title=title, labelsize=labelsize)
         if add_cbar:
             cbar = colorbar(cont, pad=0.1, ticks=LogLocator(), ax=ax,
                             format=LogFormatterMathtext(), shrink=0.8)
@@ -1143,7 +1143,8 @@ class PressureFile(PbData):
             cbar.set_label(label)
             
     def add_pcol_press(self, var='total', target=None, maxz=1000.0, minz=1.0,
-                       add_cbar=False, loc=111, labelsize=15,**kwargs):
+                       add_cbar=False, loc=111, labelsize=15, title='auto',
+                       **kwargs):
         '''
         Add a pcolor plot of the pressure object to target.
         '''
@@ -1159,12 +1160,16 @@ class PressureFile(PbData):
         if type(target) == plt.Figure:
             fig = target
             ax  = fig.add_subplot(loc, polar=True)
-        elif type(target).__base__ == plt.Axes:
+        elif type(target).__base__ in (plt.Axes,plt.PolarAxes):
             ax  = target
             fig = ax.figure
         else:
             fig = plt.figure()
             ax  = fig.add_subplot(loc, polar=True)
+
+        # Set title.
+        if title=='auto':
+            title=self[var].attrs['label']
 
         # Set up grid centered on gridpoints.
         dT=self.attrs['dTheta']
@@ -1175,7 +1180,7 @@ class PressureFile(PbData):
         p=reshape(self[var], [self.attrs['nL'], self.attrs['nTheta']])
         pcol = ax.pcolormesh(T, R, p[:,:-1], norm=LogNorm(),
                              vmin=minz, vmax=maxz, cmap=get_cmap('spectral'))
-        _adjust_dialplot(ax, R, title=self[var].attrs['label'], labelsize=15)
+        _adjust_dialplot(ax, R, title=title, labelsize=15)
         if add_cbar:
             cbar = colorbar(pcol, pad=0.1, ticks=LogLocator(), ax=ax,
                             format=LogFormatterMathtext(), shrink=0.8)

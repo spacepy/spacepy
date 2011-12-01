@@ -613,7 +613,7 @@ class Bats2d(IdlBin):
             raise KeyError, 'rbody not found in self.para!'
 
         body = Circle((0,0), rad, fc='w', zorder=1000, **extra_kwargs)
-        arch = Wedge((0,0), rad, 90+ang, -90+ang, fc='k', 
+        arch = Wedge((0,0), rad, 90.+ang, -90.+ang, fc='k', 
                      zorder=1001, **extra_kwargs)
         
         if ax != None:
@@ -764,8 +764,13 @@ class Bats2d(IdlBin):
         if type(ylim)==type([]) and len(ylim)==2:
             ax.set_ylim(ylim)
 
-        # Add body/planet.
-        self.add_body(ax)
+        # Add body/planet.  Determine where the sun is first.
+        if dim1.lower()=='x':
+            ang=0.0
+        elif dim2.lower()=='x':
+            ang=90.0
+        else: ang=0.0
+        self.add_body(ax, ang=ang)
 
         return fig, ax, cont, cbar
 
