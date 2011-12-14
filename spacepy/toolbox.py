@@ -772,7 +772,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
         u.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=progressbar)
     return datadir
 
-def progressbar(count, blocksize, totalsize):
+def progressbar(count, blocksize, totalsize, text='Download Progress'):
     """
     print a progress bar with urllib.urlretrieve reporthook functionality
 
@@ -783,10 +783,9 @@ def progressbar(count, blocksize, totalsize):
     >>> urllib.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=tb.progressbar)
     """
     percent = int(count*blocksize*100/totalsize)
-    sys.stdout.write("\rDownload Progress " + "...%d%%" % percent)
+    sys.stdout.write("\r" + text + " " + "...%d%%" % percent)
     if percent == 100: print('\n')
     sys.stdout.flush()
-
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     """
