@@ -215,7 +215,7 @@ class IdlBin(PbData):
         self.attrs['file'] = filename   # Save file name.
         self.read()   # Read binary file.
 
-    def __str__(self):
+    def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
     
     def read(self):
@@ -648,6 +648,16 @@ class ImfInput(PbData):
         # Load/create data vectors.
         if filename and load:  # Load contents from existing file.
             self.read(filename)
+            self.calc_pram()
+
+    def calc_pram(self):
+        '''
+        Calculate ram pressure from SW conditions.  Output units in nPa.
+        If object was instantiated via an existing imf file, this value
+        is calculated automatically.
+        '''
+        self['pram']=dmarray(self['vx']**2.*self['dens']*1.67621E-6, 
+                             {'units':'nPa'})
 
     def varcheck(self):
         '''

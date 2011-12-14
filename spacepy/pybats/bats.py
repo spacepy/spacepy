@@ -613,7 +613,7 @@ class Bats2d(IdlBin):
             raise KeyError, 'rbody not found in self.para!'
 
         body = Circle((0,0), rad, fc='w', zorder=1000, **extra_kwargs)
-        arch = Wedge((0,0), rad, 90+ang, -90+ang, fc='k', 
+        arch = Wedge((0,0), rad, 90.+ang, -90.+ang, fc='k', 
                      zorder=1001, **extra_kwargs)
         
         if ax != None:
@@ -715,10 +715,14 @@ class Bats2d(IdlBin):
     def add_contour(self, dim1, dim2, value, levs=30, target=None, loc=111, 
                     title=None, xlabel=None, ylabel=None, dolabel=True,
                     ylim=None, xlim=None, add_cbar=False, clabel=None,
-                    filled=True, add_body=True, *args, **kwargs):
+                    filled=True, add_body=True, dolog=False, logrange=[.01,50.],
+                    *args, **kwargs):
         '''doc forthcoming.'''
         
         import matplotlib.pyplot as plt
+        from matplotlib.colors import (LogNorm, Normalize)
+        from matplotlib.ticker import (LogLocator, LogFormatter, 
+                                       LogFormatterMathtext, MultipleLocator)
 
         # Set ax and fig based on given target.
         if type(target) == plt.Figure:
@@ -743,11 +747,31 @@ class Bats2d(IdlBin):
             else:
                 contour=ax.contour
 
+        # If a log-scale plot, take log of values.
+        if dolog:
+            # Set cbar tick locators, contour norms.
+            norm=LogNorm()
+            ticks=LogLocator()
+            fmt=LogFormatterMathtext()
+            # Trim small values.
+            z=np.where(self[value]>logrange[0], self[value], 1.01*logrange[0])
+            # Set up levels if not explicitly set.
+            if not isinstance(levs, (list, np.ndarray)):
+                levs=np.power(10, np.linspace(np.log10(logrange[0]),
+                                              np.log10(logrange[1]), levs))
+        else:
+            # Use defaults.  We will need to edit this to
+            # not overwrite kwargs.
+            norm=None
+            ticks=None
+            fmt=None
+            z=self[value]
+
         # Plot contour.
-        cont=contour(self[dim1],self[dim2],self[value],levs,*args,**kwargs)
+        cont=contour(self[dim1],self[dim2],z,levs,*args, norm=norm, **kwargs)
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cont, pad=0.01)
+            cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
             if clabel==None: 
                 clabel="%s (%s)" % (value, self[value].attrs['units'])
             cbar.set_label(clabel)
@@ -764,8 +788,13 @@ class Bats2d(IdlBin):
         if type(ylim)==type([]) and len(ylim)==2:
             ax.set_ylim(ylim)
 
-        # Add body/planet.
-        self.add_body(ax)
+        # Add body/planet.  Determine where the sun is first.
+        if dim1.lower()=='x':
+            ang=0.0
+        elif dim2.lower()=='x':
+            ang=90.0
+        else: ang=0.0
+        self.add_body(ax, ang=ang)
 
         return fig, ax, cont, cbar
 
