@@ -116,8 +116,9 @@ class EventClicker(object):
         self.ax = self.fig.add_subplot(111)
         self.ax.plot(self.x, self.y)
         self._relim(self.x[0])
-        self._cid1 = self.fig.canvas.mpl_connect('button_press_event', self._onclick)
-        self._cid2 = self.fig.canvas.mpl_connect('close_event', self._onclose)
+        self._cids = []
+        self._cids.append(self.fig.canvas.mpl_connect('button_press_event', self._onclick))
+        self._cids.append(self.fig.canvas.mpl_connect('close_event', self._onclose))
         plt.show()
 
     def get_eventlist(self):
@@ -189,8 +190,8 @@ class EventClicker(object):
 
     def _onclose(self, event):
         """Handle the window closing"""
-        self.fig.canvas.mpl_disconnect(self._cid1)
-        self.fig.canvas.mpl_disconnect(self._cid2)
+        for cid in self._cids:
+            self.fig.canvas.mpl_disconnect(cid)
         
     def _relim(self, left_x):
         """Reset the limits based on a particular X value"""
