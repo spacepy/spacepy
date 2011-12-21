@@ -687,8 +687,8 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
 
     Parameters
     ----------
-    fname : str
-        Filename to read data from
+    fname : str or list
+        Filename(s) to read data from
 
     Other Parameters
     ----------------
@@ -707,28 +707,44 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
     mdata: spacepy.datamodel.SpaceData
         SpaceData with the data and metadata from the file
     '''
+    if isinstance(fname, str):
+        fname=[fname]
     if not mdata:
-        mdata = readJSONMetadata(fname)
-    fh = open(fname)    #now read file the old-fashioned way
-    line = fh.readline()
-    while line[0]==comment:
-        line = fh.readline()
-    alldata = fh.readlines()
-    ncols = len(alldata[0].rstrip().split())
-    nrows = len(alldata)
-    data = numpy.empty((nrows, ncols), dtype=object)
-    for ridx, line in enumerate(alldata):
-        for cidx, el in enumerate(line.split()):
-            data[ridx, cidx] = el
-    keys = mdata.keys()
+        mdata = readJSONMetadata(fname[0])
+    mdata_copy = copy.copy(mdata)
+    for fn in fname:
+        with open(fn) as fh:
+            line = fh.readline()
+            while line[0]==comment:
+                line = fh.readline()
+            alldata = fh.readlines()
+            ncols = len(alldata[0].rstrip().split())
+            nrows = len(alldata)
+            data = numpy.empty((nrows, ncols), dtype=object)
+            for ridx, line in enumerate(alldata):
+                for cidx, el in enumerate(line.split()):
+                    data[ridx, cidx] = el
+            keys = mdata.keys()
+            for key in keys:
+                if 'START_COLUMN' in mdata_copy[key].attrs:
+                    st = mdata_copy[key].attrs['START_COLUMN']
+                    if 'DIMENSION' in mdata_copy[key].attrs:
+                        en = mdata_copy[key].attrs['DIMENSION'][0] + st
+                        try:
+                            mdata[key] = numpy.vstack((mdata[key], data[:,st:en]))
+                        except ValueError:
+                            mdata[key] = data[:,st:en]
+                    else:
+                        try:
+                            assert mdata[key]=={}
+                            mdata[key] = data[:,st]
+                        except:    
+                            mdata[key] = numpy.hstack((mdata[key], data[:,st]))
+    
+    #now add the attributres to the variables
     for key in keys:
-        if 'START_COLUMN' in mdata[key].attrs:
-            st = mdata[key].attrs['START_COLUMN']
-            if 'DIMENSION' in mdata[key].attrs:
-                en = mdata[key].attrs['DIMENSION'][0] + st
-                mdata[key] = dmarray(data[:,st:en], attrs=mdata[key].attrs)
-            else:
-                mdata[key] = dmarray(data[:,st], attrs=mdata[key].attrs)
+        mdata[key] = dmarray(mdata[key], attrs=mdata_copy[key].attrs)
+
     if convert:
         conversions = {'DateTime': lambda x: dup.parse(x, ignoretz=True),
                        'ExtModel': lambda x: str(x)}
