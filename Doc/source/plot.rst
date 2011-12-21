@@ -9,3 +9,5 @@ plot - Plot, various specialized plotting functions and associated utilities
 .. autosummary::
     :toctree: autosummary
 
+    spectrogram
+    utils
