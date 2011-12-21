@@ -687,8 +687,8 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
 
     Parameters
     ----------
-    fname : str
-        Filename to read data from
+    fname : str or list
+        Filename(s) to read data from
 
     Other Parameters
     ----------------
