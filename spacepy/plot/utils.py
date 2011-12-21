@@ -165,6 +165,8 @@ class EventClicker(object):
         else:
             del self.ax.lines[-1]
             self._curr_phase -= 1
+            if self._curr_phase == 0 and self._events.shape[0] > 1:
+                self._relim(self._events[-2, -1])
         self.fig.canvas.draw()
 
     def _onclick(self, event):
