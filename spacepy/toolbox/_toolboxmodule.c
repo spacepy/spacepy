@@ -206,7 +206,7 @@ static PyMethodDef toolbox_methods[] = {
     ">>> tb.hypot(*a)\n"
     "5.0\n"
     ">>> tb.hypot(*range(10))\n"
-    "16.88194...\n
+    "16.88194...\n"
     ">>> tb.hypot(range(10))\n"
     "16.88194...\n\n"
     "See Also\n"
