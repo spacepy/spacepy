@@ -116,8 +116,10 @@ class EventClicker(object):
         self.ax = self.fig.add_subplot(111)
         self.ax.plot(self.x, self.y)
         self._relim(self.x[0])
-        self._cid1 = self.fig.canvas.mpl_connect('button_press_event', self._onclick)
-        self._cid2 = self.fig.canvas.mpl_connect('close_event', self._onclose)
+        self._cids = []
+        self._cids.append(self.fig.canvas.mpl_connect('button_press_event', self._onclick))
+        self._cids.append(self.fig.canvas.mpl_connect('close_event', self._onclose))
+        self._cids.append(self.fig.canvas.mpl_connect('key_press_event', self._onkeypress))
         plt.show()
 
     def get_eventlist(self):
@@ -189,8 +191,18 @@ class EventClicker(object):
 
     def _onclose(self, event):
         """Handle the window closing"""
-        self.fig.canvas.mpl_disconnect(self._cid1)
-        self.fig.canvas.mpl_disconnect(self._cid2)
+        for cid in self._cids:
+            self.fig.canvas.mpl_disconnect(cid)
+
+    def _onkeypress(self, event):
+        """Handle a keypress"""
+        if event.key == ' ':
+            rightside = self.ax.xaxis.get_view_interval()[1]
+            if self._x_is_datetime:
+                rightside = matplotlib.dates.num2date(rightside).replace(tzinfo=None)
+            self._relim(rightside)
+        if event.key == 'delete':
+            self._delete_event_phase()
         
     def _relim(self, left_x):
         """Reset the limits based on a particular X value"""
@@ -206,6 +218,9 @@ class EventClicker(object):
             idx_l = len(self.y) - 1
         ymin = min(self.y[idx_l:idx_r])
         ymax = max(self.y[idx_l:idx_r])
+        ydiff = (ymax - ymin) / 10
+        ymin -= ydiff
+        ymax += ydiff
         self.ax.set_xlim(xmin, xmax)
         self.ax.set_ylim(ymin, ymax)
         self.ax.autoscale_view()
