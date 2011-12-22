@@ -11,3 +11,4 @@ plot - Plot, various specialized plotting functions and associated utilities
 
     spectrogram
     utils
+    utils.EventClicker

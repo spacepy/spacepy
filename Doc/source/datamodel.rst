@@ -16,4 +16,6 @@ datamodel - easy to use general data model
     fromCDF
     fromHDF5
     toHDF5
+    readJSONMetadata
+    readJSONheadedASCII
     DMWarning
