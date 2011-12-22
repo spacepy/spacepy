@@ -143,10 +143,13 @@ class dmarray(numpy.ndarray):
     """
     Allowed_Attributes = ['attrs']
 
-    def __new__(cls, input_array, attrs=None):
+    def __new__(cls, input_array, attrs=None, dtype=None):
        # Input array is an already formed ndarray instance
        # We first cast to be our class type
-       obj = numpy.asarray(input_array).view(cls)
+       if not dtype:
+           obj = numpy.asarray(input_array).view(cls)
+       else:
+           obj = numpy.asarray(input_array).view(cls).astype(dtype)
        # add the new attribute to the created instance
        if attrs != None:
            obj.attrs = attrs
@@ -746,14 +749,18 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         mdata[key] = dmarray(mdata[key], attrs=mdata_copy[key].attrs)
 
     if convert:
-        conversions = {'DateTime': lambda x: dup.parse(x, ignoretz=True),
-                       'ExtModel': lambda x: str(x)}
+        if isinstance(convert, dict):
+            conversions=convert
+        else:
+            conversions = {'DateTime': lambda x: dup.parse(x, ignoretz=True),
+                           'ExtModel': lambda x: str(x)}
         for conkey in conversions:
             try:
                 name = keys.pop(keys.index(conkey)) #remove from keylist
                 for i,element in numpy.ndenumerate(mdata[name]):
                     mdata[name][i] = conversions[name](element)
             except:
+                1/0
                 print('Key {0} for conversion not found in file'.format(conkey))
                 #this should be a warning, not a print
         for remkey in keys:
