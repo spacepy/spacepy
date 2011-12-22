@@ -108,7 +108,7 @@ def _parseRICE(data, hours):
             units.append(None)
     data = dm.dmarray([val.split() for val in data])
     times = dm.dmarray([dup.parse('{0}{1:02d}{2:02d}T{3:04d}'.format(val[0], int(val[1]), int(val[2]), int(val[3]))) for val in data[:, 0:4]])
-    data = dm.dmarray(data[:,4:]).astype(float)
+    data = dm.dmarray(data[:,4:], dtype=float)
     for i, (key, unit) in enumerate(zip(header, units)):
         dd[key+'_' + hours + 'hr'] = dm.dmarray(data[:,i], attrs={'units':unit})
     dd['Calc_' + hours + 'hr'] = times
