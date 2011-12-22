@@ -218,6 +218,9 @@ class EventClicker(object):
             idx_l = len(self.y) - 1
         ymin = min(self.y[idx_l:idx_r])
         ymax = max(self.y[idx_l:idx_r])
+        ydiff = (ymax - ymin) / 10
+        ymin -= ydiff
+        ymax += ydiff
         self.ax.set_xlim(xmin, xmax)
         self.ax.set_ylim(ymin, ymax)
         self.ax.autoscale_view()
