@@ -760,7 +760,6 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                 for i,element in numpy.ndenumerate(mdata[name]):
                     mdata[name][i] = conversions[name](element)
             except:
-                1/0
                 print('Key {0} for conversion not found in file'.format(conkey))
                 #this should be a warning, not a print
         for remkey in keys:
