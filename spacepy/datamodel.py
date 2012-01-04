@@ -768,4 +768,42 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
             except ValueError:
                 pass #this will skip any unspecified string fields
     return mdata
-        
+
+def dmcopy(dobj):
+    '''Generic copy utility to return a copy of a (datamodel) object
+
+    Parameters
+    ----------
+    dobj : object
+        object to return a copy of
+
+    Returns
+    -------
+    copy_obj: object (same type as input)
+        copy of input oibject
+
+    Examples
+    --------
+    >>> import spacepy.datamodel as dm
+    >>> dat = dm.dmarray([2,3], attrs={'units': 'T'})
+    >>> dat1 = dm.dmcopy(dat)
+    >>> dat1.attrs['copy': True]
+    >>> dat is dat1
+    False
+    >>> dat1.attrs
+    {'copy': True, 'units': 'T'}
+    >>> dat.attrs
+    {'units': 'T'}
+
+    '''
+    if isinstance(dobj, SpaceData):
+        return copy.deepcopy(dobj)
+    elif isinstance(dobj, dmarray):
+        arrcopy = numpy.copy(dobj)
+        attrcopy = copy.deepcopy(dobj.attrs)
+        out = dmarray(arrcopy, attrs=attrcopy)
+        return out
+    elif isinstance(dobj, numpy.ndarray):
+        return numpy.copy(dobj)
+    else:
+        return copy.copy(dobj)
