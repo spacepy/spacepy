@@ -3,16 +3,16 @@ spacepy.plot.utils
 
 various utility routines for plotting and plot related activities
 
-Authors: Brian Larsen
+Authors: Jonathan Niehof
 
 Institution: Los Alamos National Laboratory
 
-Contact: balarsen@lanl.gov
+Contact: jniehof@lanl.gov
 
-Copyright 2011 Los Alamos National Security, LLC.
+Copyright 2011-2012 Los Alamos National Security, LLC.
 """
 
-__contact__ = 'Brian Larsen: balarsen@lanl.gov'
+__contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
 
 import bisect
 import datetime
@@ -20,33 +20,7 @@ import datetime
 import matplotlib.pyplot as plt
 import matplotlib.dates
 import numpy
-from pylab import gca, gcf, show, close
 
-def print_clicks(fig=None, ax=None):
-    """
-    given a figure print out the values of the clicks
-           
-    Other Parameters
-    ================
-    fig : matplotlib.figure.Figure (optional)
-        a figure instance to use for the clicking if not specified grabbed from gcf()
-    ax : matplotlib.axes.AxesSubplot (optional)
-        if an axis is specified then use that axis, otherwise grabbed from gca()
-        
-    """
-    if fig == None:
-        fig = gcf()
-    if ax == None:
-        ax = gca()
-    def onclick(event):
-        if event.button == 1: # only use left clicks
-            print '{}, {}'.format(event.xdata, event.ydata)
-            return [event.xdata, event.ydata]
-    cid = fig.canvas.mpl_connect('button_press_event', onclick)
-    show()
-
-
-#TODO: make this accept a pre-existing plot
 #TODO: do something with the Y values, maybe snap-to-data
 #      do distance for this based on axis coordinates
 #      http://matplotlib.sourceforge.net/users/transforms_tutorial.html
@@ -56,28 +30,21 @@ class EventClicker(object):
 
     Present a time series for 
 
-    Returns
-    =======
-
-    out : array
-        2-D array of x values clicked on. First dimension is sized n_phases.
     """
     _colors = ['k', 'r', 'g']
     _styles = ['solid', 'dashed', 'dotted']
 
-    def __init__(self, x, y, n_phases=1, interval=None):
+    def __init__(self, ax=None, n_phases=1, interval=None):
         """
         Create a clicker 
         
-        Parameters
-        ==========
-        x : sequence
-            a sequence (e.g. list, 1-D numpy array) of the X values to plot
-        y : sequence
-            Y values to plot
-
         Other Parameters
         ================
+        ax : maplotlib.axes.AxesSubplot
+            The subplot to display and grab data from. If not provided, the
+            current subplot is grabbed from gca() (Lookup of the current
+            subplot is done when :py:meth:analyse is called.)
+        
         n_phases : int (optional, default 1)
             number of phases to an event, i.e. number of subevents to mark.
             E.g. for a storm where one wants the onset and the minimum, set
@@ -87,11 +54,9 @@ class EventClicker(object):
         interval : same as elements of x (optional)
             Size of the X window to show. This should be in units that can
             be added to/subtracted from individual elements of x (e.g.
-            timedelta is x is a series of datetime.) Defaults to showing
+            timedelta if x is a series of datetime.) Defaults to showing
             1/20th of the total
         """
-        self.x = x
-        self.y = y
         self.n_phases = n_phases
         self.interval = interval
         #Default to not autoscale on x
@@ -99,6 +64,7 @@ class EventClicker(object):
         self._intervalcount = 0
         self._intervaltotal = None
         self._events = None
+        self.ax = None
 
     def analyze(self):
         """Iterate over the elements"""
@@ -107,9 +73,9 @@ class EventClicker(object):
         self._lastclick_button = None
         self._curr_phase = 0
         
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111)
-        self.ax.plot(self.x, self.y)
+        if self.ax is None:
+            self.ax = plt.gca()
+        self.fig = self.ax.get_figure()
         lines = self.ax.get_lines()
         if len(lines) > 0:
             self._xdata = lines[0].get_xdata()
@@ -120,8 +86,8 @@ class EventClicker(object):
             self._ydata = None
             self._x_is_datetime = False
 
-        if self.interval == None:
-            if self._xdata != None:
+        if self.interval is None:
+            if not self._xdata is None:
                 if self._x_is_datetime:
                     self.interval = (self._xdata[-1] - self._xdata[0]) / 20
                 else:
@@ -139,8 +105,18 @@ class EventClicker(object):
         plt.show()
 
     def get_eventlist(self):
-        """Get back the list of events"""
-        return self._events[0:-1]
+        """Get back the list of events
+
+        Returns
+        =======
+        
+        out : array
+            2-D array of x values clicked on. First dimension is sized n_phases.
+        """
+        if self._events is None:
+            return None
+        else:
+            return self._events[0:-1]
 
     def _add_event_phase(self, xval, yval):
         """Add a phase of the event"""
@@ -150,7 +126,7 @@ class EventClicker(object):
             xval,
             color=self._colors[self._curr_phase % len(self._colors)],
             ls=self._styles[self._curr_phase / len(self._colors) % len(self._styles)])
-        if self._events == None:
+        if self._events is None:
             self._events = numpy.array([[xval] * self.n_phases])
         self._events[-1, self._curr_phase] = xval
         self._curr_phase += 1
@@ -230,7 +206,7 @@ class EventClicker(object):
         else:
             xmin = left_x - 0.1 * self.interval
             xmax = left_x + 1.1 * self.interval
-        if self._xdata != None:
+        if not self._xdata is None:
             idx_l = bisect.bisect_left(self._xdata, xmin)
             idx_r = bisect.bisect_right(self._xdata, xmax)
             if idx_l >= len(self._ydata):
