@@ -40,7 +40,7 @@ def print_clicks(fig=None, ax=None):
         ax = gca()
     def onclick(event):
         if event.button == 1: # only use left clicks
-            print '{}, {}'.format(event.xdata, event.ydata)
+            print '{0}, {1}'.format(event.xdata, event.ydata)
             return [event.xdata, event.ydata]
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
     show()
