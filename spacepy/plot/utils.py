@@ -48,6 +48,8 @@ def print_clicks(fig=None, ax=None):
 
 #TODO: make this accept a pre-existing plot
 #TODO: do something with the Y values, maybe snap-to-data
+#      do distance for this based on axis coordinates
+#      http://matplotlib.sourceforge.net/users/transforms_tutorial.html
 class EventClicker(object):
     """
     .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
@@ -88,21 +90,15 @@ class EventClicker(object):
             timedelta is x is a series of datetime.) Defaults to showing
             1/20th of the total
         """
-        self._x_is_datetime = isinstance(x[0], datetime.datetime)
         self.x = x
         self.y = y
         self.n_phases = n_phases
-        if interval == None:
-            if self._x_is_datetime:
-                self.interval = (self.x[-1] - self.x[0]) / 20
-            else:
-                self.interval = (self.x[-1] - self.x[0]) / 20.0
-            self._autointerval = True
-        else:
-            self.interval = interval
-            self._autointerval = False
-            self._intervalcount = 0
-            self._intervaltotal = None
+        self.interval = interval
+        #Default to not autoscale on x
+        self._autointerval = False
+        self._intervalcount = 0
+        self._intervaltotal = None
+        self._events = None
 
     def analyze(self):
         """Iterate over the elements"""
@@ -110,12 +106,32 @@ class EventClicker(object):
         self._lastclick_y = None
         self._lastclick_button = None
         self._curr_phase = 0
-        self._events = numpy.array([[self.x[0]] * self.n_phases])
         
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
         self.ax.plot(self.x, self.y)
-        self._relim(self.x[0])
+        lines = self.ax.get_lines()
+        if len(lines) > 0:
+            self._xdata = lines[0].get_xdata()
+            self._ydata = lines[0].get_ydata()
+            self._x_is_datetime = isinstance(self._xdata[0], datetime.datetime)
+        else:
+            self._xdata = None
+            self._ydata = None
+            self._x_is_datetime = False
+
+        if self.interval == None:
+            if self._xdata != None:
+                if self._x_is_datetime:
+                    self.interval = (self._xdata[-1] - self._xdata[0]) / 20
+                else:
+                    self.interval = (self._xdata[-1] - self._xdata[0]) / 20.0
+                self._autointerval = True
+            else: #Just keep the existing viewport
+                (left, right) = ax.get_view_interval()
+                self.interval = right - left
+
+        self._relim(self._xdata[0])
         self._cids = []
         self._cids.append(self.fig.canvas.mpl_connect('button_press_event', self._onclick))
         self._cids.append(self.fig.canvas.mpl_connect('close_event', self._onclose))
@@ -134,6 +150,8 @@ class EventClicker(object):
             xval,
             color=self._colors[self._curr_phase % len(self._colors)],
             ls=self._styles[self._curr_phase / len(self._colors) % len(self._styles)])
+        if self._events == None:
+            self._events = numpy.array([[xval] * self.n_phases])
         self._events[-1, self._curr_phase] = xval
         self._curr_phase += 1
         if self._curr_phase >= self.n_phases:
@@ -212,16 +230,20 @@ class EventClicker(object):
         else:
             xmin = left_x - 0.1 * self.interval
             xmax = left_x + 1.1 * self.interval
-        idx_l = bisect.bisect_left(self.x, xmin)
-        idx_r = bisect.bisect_right(self.x, xmax)
-        if idx_l >= len(self.y):
-            idx_l = len(self.y) - 1
-        ymin = min(self.y[idx_l:idx_r])
-        ymax = max(self.y[idx_l:idx_r])
-        ydiff = (ymax - ymin) / 10
-        ymin -= ydiff
-        ymax += ydiff
-        self.ax.set_xlim(xmin, xmax)
-        self.ax.set_ylim(ymin, ymax)
-        self.ax.autoscale_view()
+        if self._xdata != None:
+            idx_l = bisect.bisect_left(self._xdata, xmin)
+            idx_r = bisect.bisect_right(self._xdata, xmax)
+            if idx_l >= len(self._ydata):
+                idx_l = len(self._ydata) - 1
+            ymin = min(self._ydata[idx_l:idx_r])
+            ymax = max(self._ydata[idx_l:idx_r])
+            ydiff = (ymax - ymin) / 10
+            ymin -= ydiff
+            ymax += ydiff
+            self.ax.set_xlim(xmin, xmax)
+            self.ax.set_ylim(ymin, ymax)
+            self.ax.autoscale_view()
+        else:
+            self.ax.set_xlim(xmin, xmax)
+            self.ax.autoscale_view(scalex=True, scaley=False)
         self.fig.canvas.draw()
