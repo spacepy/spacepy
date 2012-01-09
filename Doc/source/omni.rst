@@ -4,7 +4,10 @@
 omni - module top read and process NASA OMNIWEB data
 ####################################################
 
-.. todolist::
-
 .. automodule:: omni
-    :members:
+
+.. autosummary::
+    :toctree: autosummary
+
+    get_omni
+    get_G123

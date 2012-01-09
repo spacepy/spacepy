@@ -4,7 +4,12 @@
 empiricals - module with heliospheric empirical modules
 ########################################################
 
-.. todolist::
-
 .. automodule:: empiricals
-    :members:
+
+.. autosummary::
+    :toctree: autosummary
+
+    getLmax
+    getPlasmaPause
+    getMPstandoff
+    getDststar

@@ -191,12 +191,12 @@ static PyMethodDef toolbox_methods[] = {
     "If the input is a numpy array a c-backend is called for the calculation\n\n"
     "Parameters\n"
     "==========\n"
-    "vals : float (arbitary number), or iterable\n"
+    "vals : float (arbitrary number), or iterable\n"
     "\tarbitary number of float values as arguments or an iterable\n\n"
     "Returns\n"
     "=======\n"
     "out : float\n"
-    "\tthe Euclidian distance of the points ot the origin\n\n"
+    "\tthe Euclidean distance of the points to the origin\n\n"
     "Examples\n"
     "========\n"
     ">>> import spacepy.toolbox as tb\n"
@@ -206,6 +206,8 @@ static PyMethodDef toolbox_methods[] = {
     ">>> tb.hypot(*a)\n"
     "5.0\n"
     ">>> tb.hypot(*range(10))\n"
+    "16.88194...\n"
+    ">>> tb.hypot(range(10))\n"
     "16.88194...\n\n"
     "See Also\n"
     "========\n"
@@ -224,7 +226,7 @@ static PyMethodDef toolbox_methods[] = {
     "\tsize changes when `endpoint` is False.\n"
     "num : int (optional)\n"
     "\tNumber of samples to generate. Default is 50.\n"
-    "endpoint : bool, optional\n"
+    "endpoint : bool (optional)\n"
     "\tIf True, `stop` is the last sample. Otherwise, it is not included.\n"
     "\tDefault is True.\n"
     "retstep : bool (optional)\n"
@@ -242,8 +244,8 @@ static PyMethodDef toolbox_methods[] = {
     "\tSize of spacing between samples.\n\n"
     "See Also\n"
     "========\n"
-    "toolbox.geomspace\n"
-    "toolbox.logspace\n"},
+    "geomspace\n"
+    "logspace\n"},
     // NULL terminate Python looking at the object
      { NULL, NULL, 0, NULL }
 };

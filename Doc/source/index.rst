@@ -78,6 +78,7 @@ SpacePy Code
     time
     toolbox
     plot
+    realtime
 
 
 Indices and tables

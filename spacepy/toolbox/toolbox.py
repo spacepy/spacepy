@@ -29,6 +29,7 @@ except:
     import pickle
 
 import numpy as np
+import numpy
 
 try:
     from spacepy import help
@@ -37,15 +38,23 @@ except ImportError:
 except:
     pass
 
-from spacepy import lib
-if lib.have_libspacepy:
-    import ctypes
+from spacepy.time import date2num, num2date
 
 #Py3k compatibility renamings
 try:
     xrange
 except NameError:
     xrange = range
+
+__all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
+           'human_sort', 'feq', 'dictree', 'printfig', 'update', 'progressbar',
+           'windowMean', 'medAbsDev', 'makePoly', 'binHisto', 'smartTimeTicks',
+           'applySmartTimeTicks', 'logspace', 'geomspace', 'arraybin', 'mlt2rad',
+           'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'query_yes_no',
+           'interpol', 'normalize', 'listUniq', 'intsolve', 'dist_to_list',
+           'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
+           'eventTimer', 'randomDate']
+
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
@@ -85,8 +94,8 @@ def tOverlap(ts1, ts2, *args, **kwargs):
 
     See Also
     ========
-    toolbox.tOverlapHalf
-    toolbox.tCommon
+    tOverlapHalf
+    tCommon
     """
     idx_1in2 = tOverlapHalf(ts2, ts1, *args, **kwargs)
     idx_2in1 = tOverlapHalf(ts1, ts2, *args, **kwargs)
@@ -125,8 +134,8 @@ def tOverlapHalf(ts1, ts2, presort=False):
 
     See Also
     ========
-    toolbox.tOverlap
-    toolbox.tCommon
+    tOverlap
+    tCommon
     """
     if presort:
         import bisect
@@ -155,8 +164,8 @@ def tCommon(ts1, ts2, mask_only=True):
 
     See Also
     ========
-    toolbox.tOverlapHalf
-    toolbox.tOverlap
+    tOverlapHalf
+    tOverlap
 
     Examples
     ========
@@ -1093,7 +1102,7 @@ def smartTimeTicks(time):
 
     See Also
     ========
-    toolbox.applySmartTimeTicks
+    applySmartTimeTicks
     """
     from matplotlib.dates import (MinuteLocator, HourLocator,
                                   DayLocator, DateFormatter)
@@ -1150,7 +1159,7 @@ def applySmartTimeTicks(ax, time, dolimit = True):
 
     See Also
     ========
-    toolbox.smartTimeTicks
+    smartTimeTicks
     """
     Mtick, mtick, fmt = smartTimeTicks(time)
     ax.xaxis.set_major_locator(Mtick)
@@ -1195,8 +1204,8 @@ def logspace(min, max, num, **kwargs):
 
     See Also
     ========
-    toolbox.geomspace
-    toolbox.linspace
+    geomspace
+    linspace
     """
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
@@ -1251,8 +1260,8 @@ def geomspace(start, ratio=None, stop=False, num=50):
 
     See Also
     ========
-    toolbox.linspace
-    toolbox.logspace
+    linspace
+    logspace
     """
     if not ratio and stop != False:
         ratio = (stop/start)**(1/(num-1))
@@ -1329,7 +1338,7 @@ def mlt2rad(mlt, midnight = False):
 
     See Also
     ========
-    toolbox.rad2mlt
+    rad2mlt
     """
     if midnight:
         try:
@@ -1369,7 +1378,7 @@ def rad2mlt(rad, midnight=False):
 
     See Also
     ========
-    toolbox.mlt2rad
+    mlt2rad
     """
     if midnight:
         rad_arr = rad + np.pi
@@ -2080,8 +2089,7 @@ def eventTimer(Event, Time1):
 
 def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     """
-    Return a (or many) random datetimes between two given dates, this is done
-    under the convention dt <=1 rand < dt2
+    Return a (or many) random datetimes between two given dates, this is done under the convention dt <=1 rand < dt2
 
     Parameters
     ==========
@@ -2107,10 +2115,6 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     Examples
     ========
     """
-    try:
-        from matplotlib.dates import date2num, num2date
-    except ImportError:
-        raise(NotImplementedError("Matplotlib is not installed, it is required for this function"))
     if dt1.tzinfo != dt2.tzinfo:
         raise(ValueError('tzinfo for the input and output datetimes must match'))
     dt1n = date2num(dt1)

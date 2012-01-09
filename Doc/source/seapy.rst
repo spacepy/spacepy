@@ -4,7 +4,15 @@
 SeaPy - Superposed Epoch in Python
 ##################################
 
-.. todolist::
-
 .. automodule:: seapy
-    :members:
+
+.. autosummary::
+    :toctree: autosummary
+
+    SeaBase
+    Sea
+    Sea2d
+    seadict
+    multisea
+    readepochs
+    sea_signif

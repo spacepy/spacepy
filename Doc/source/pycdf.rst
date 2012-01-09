@@ -4,10 +4,7 @@
 pyCDF - Python interface to CDF files
 ######################################
 
-
-.. currentmodule:: spacepy.pycdf
-
-.. automodule:: pycdf
+.. automodule:: spacepy.pycdf
 
 Contents
 --------
@@ -194,7 +191,25 @@ If one has the hourly data file created above and only wants to read in a portio
 Class reference
 ===============
 
-.. toctree::
-    :maxdepth: 1
 
-    pycdf_reference
+
+.. autosummary::
+    :toctree: autosummary
+
+    CDF
+    Attr
+    zAttr
+    gAttr
+    AttrList
+    gAttrList
+    zAttrList
+    const
+    CDFCopy
+    Library
+    Var
+    VarCopy
+    CDFError
+    CDFException
+    CDFWarning
+    EpochError
+

@@ -13,9 +13,8 @@ Copyright ©2010 Los Alamos National Security, LLC.
 """
 #from __future__ import absolute_import
 
-from .toolbox import *
-from . import _toolbox
-from ._toolbox import hypot, linspace
+from toolbox import *
+from _toolbox import hypot, linspace
 
 
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
