@@ -339,8 +339,8 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     {'ticks': array([1, 2, 3, 4, 5, 6, 7, 8, 9])}
     """
     # done this way so it works before install
-    from . import time as t
-    from . import coordinates as c
+    from spacepy import time as t
+    from spacepy import coordinates as c
 
     filelist = glob.glob(fln_pattern)
     filelist = human_sort(filelist)
