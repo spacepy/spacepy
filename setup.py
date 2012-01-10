@@ -427,6 +427,16 @@ class install(_install):
         else:
             print('Dependencies OK.')
         _install.run(self)
+        deletefiles = ['toolbox.py', 'toolbox.pyc']
+        for f in deletefiles:
+            path = os.path.join(self.install_lib, 'spacepy',
+                                os.path.normpath(f))
+            if os.path.exists(path):
+                print('Deleting {0} from old version of spacepy.'.format(path))
+                if os.path.isdir(path):
+                    os.rmdir(path)
+                else:
+                    os.remove(path)
 
 
 class bdist_wininst(_bdist_wininst):
