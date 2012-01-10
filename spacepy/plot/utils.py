@@ -23,9 +23,6 @@ import matplotlib.pyplot as plt
 import matplotlib.dates
 import numpy
 
-#TODO: do something with the Y values, maybe snap-to-data
-#      do distance for this based on axis coordinates
-#      http://matplotlib.sourceforge.net/users/transforms_tutorial.html
 #TODO: these infernal docs don't cross-link. Fix 'em.
 #TODO: put an example in the docs
 class EventClicker(object):
@@ -139,6 +136,7 @@ class EventClicker(object):
         self._intervalcount = 0
         self._intervaltotal = None
         self._events = None
+        self._data_events = None #snap-to-data version of events
         self._ymax = ymax
         self._ymin = ymin
         self._line = line
@@ -206,6 +204,8 @@ class EventClicker(object):
             self._ydata = self._line.get_ydata()
             self._x_is_datetime = isinstance(self._xdata[0],
                                              datetime.datetime)
+            self._xydata = numpy.column_stack(
+                (matplotlib.dates.date2num(self._xdata), self._ydata))
             if self._ymin is None: #Make the clipping comparison always fail
                 self._ymin = max(self._ydata)
             if self._ymax is None:
@@ -236,14 +236,40 @@ class EventClicker(object):
         =======
         
         out : array
-            3-D array of (x, y) values clicked on. First dimension is sized n_phases.
-            Shape is (n_events, n_phases, 2), i.e. indexed by event number, then phase
-            of the event, then (x, y).
+            3-D array of (x, y) values clicked on.
+            Shape is (n_events, n_phases, 2), i.e. indexed by event
+            number, then phase of the event, then (x, y).
         """
         if self._events is None:
             return None
         else:
             return self._events[0:-1]
+
+    def get_events_data(self):
+        """Get a list of events, "snapped" to the data.
+
+        For each point selected as a phase of an event, selects the point
+        from the original data which is closest to the clicked point. Distance
+        from point to data is calculated based on the screen distance, not
+        in data coordinates.
+
+        Note that this snaps to data points, not to the closest point on the
+        line between points.
+
+        Call after :meth:`analyze`.
+
+        Returns
+        =======
+        
+        out : array
+            3-D array of (x, y) values in the data which are closest to each
+            point clicked on. Shape is (n_events, n_phases, 2), i.e. indexed
+            by event number, then phase of the event, then (x, y).
+        """
+        if self._data_events is None:
+            return None
+        else:
+            return self._data_events[0:-1]
 
     def _add_event_phase(self, xval, yval):
         """Add a phase of the event"""
@@ -251,6 +277,17 @@ class EventClicker(object):
             xval,
             color=self._colors[self._curr_phase % len(self._colors)],
             ls=self._styles[self._curr_phase / len(self._colors) % len(self._styles)])
+        if not self._xydata is None:
+            point_disp = self.ax.transData.transform((xval, yval))
+            data_disp = self.ax.transData.transform(self._xydata)
+            idx = numpy.argmin(numpy.sum(
+                (data_disp - point_disp) ** 2, axis=1
+                ))
+            if self._data_events is None:
+                self._data_events = numpy.array(
+                    [[[self._xdata[0], self._ydata[0]]] * self.n_phases])
+            self._data_events[-1, self._curr_phase] = \
+                                  [self._xdata[idx], self._ydata[idx]]
         if self._x_is_datetime:
             xval = matplotlib.dates.num2date(xval).replace(tzinfo=None)
         if self._events is None:
@@ -272,6 +309,9 @@ class EventClicker(object):
             self._events.resize((self._events.shape[0] + 1,
                                  self.n_phases, 2
                                  ))
+            self._data_events.resize((self._data_events.shape[0] + 1,
+                                      self.n_phases, 2
+                                      ))
             self._relim(xval)
         else:
             self.fig.canvas.draw()
@@ -284,6 +324,10 @@ class EventClicker(object):
                 self._events.resize((self._events.shape[0] - 1,
                                      self.n_phases, 2
                                      ))
+                if not self._data_events is None:
+                    self._data_events.resize((self._data_events.shape[0] - 1,
+                                              self.n_phases, 2
+                                              ))
                 self._curr_phase = self.n_phases - 1
         else:
             del self.ax.lines[-1]
