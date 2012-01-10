@@ -27,7 +27,6 @@ import numpy
 #      do distance for this based on axis coordinates
 #      http://matplotlib.sourceforge.net/users/transforms_tutorial.html
 #TODO: these infernal docs don't cross-link. Fix 'em.
-#TODO: allow specification of the line with the data
 #TODO: put an example in the docs
 class EventClicker(object):
     """
@@ -76,12 +75,17 @@ class EventClicker(object):
 
     ymax : (optional, default None)
         Similar to ymin, but the top of the Y axis will never be below ymax.
+
+    line : matplotlib.lines.Line2D (optional)
+        Specify the matplotlib line object to use for autoscaling the
+        Y axis. If this is not specified, the first line object on the
+        provided subplot will be used. This should usually be correct.
     """
     _colors = ['k', 'r', 'g']
     _styles = ['solid', 'dashed', 'dotted']
 
     def __init__(self, ax=None, n_phases=1, interval=None, auto_interval=None,
-                 auto_scale=True, ymin=None, ymax=None):
+                 auto_scale=True, ymin=None, ymax=None, line=None):
         """Initialize EventClicker
 
         Other Parameters
@@ -122,6 +126,11 @@ class EventClicker(object):
 
         ymax : (optional, default None)
             Similar to ymin, but the top of the Y axis will never be below ymax.
+
+        line : matplotlib.lines.Line2D (optional)
+            Specify the matplotlib line object to use for autoscaling the
+            Y axis. If this is not specified, the first line object on the
+            provided subplot will be used. This should usually be correct.
         """
         self.n_phases = n_phases
         self.interval = interval
@@ -132,6 +141,7 @@ class EventClicker(object):
         self._events = None
         self._ymax = ymax
         self._ymin = ymin
+        self._line = line
         self.ax = None
 
     def analyze(self):
@@ -179,19 +189,27 @@ class EventClicker(object):
             self.ax = plt.gca()
         self.fig = self.ax.get_figure()
         lines = self.ax.get_lines()
-        if len(lines) > 0:
-            self._xdata = lines[0].get_xdata()
-            self._ydata = lines[0].get_ydata()
-            self._x_is_datetime = isinstance(self._xdata[0], datetime.datetime)
+        if self._line is None:
+            if len(lines) > 0:
+                self._line = lines[0]
+        else:
+            if not self._line in lines:
+                self._line = None
+                
+        if self._line is None:
+            self._xdata = None
+            self._ydata = None
+            self._autoscale = False
+            self._x_is_datetime = False
+        else:
+            self._xdata = self._line.get_xdata()
+            self._ydata = self._line.get_ydata()
+            self._x_is_datetime = isinstance(self._xdata[0],
+                                             datetime.datetime)
             if self._ymin is None: #Make the clipping comparison always fail
                 self._ymin = max(self._ydata)
             if self._ymax is None:
                 self._ymax = min(self._ydata)
-        else:
-            self._xdata = None
-            self._ydata = None
-            self._x_is_datetime = False
-            self._autoscale = False
 
         if self._autointerval is None:
             self._autointerval = self.interval is None
