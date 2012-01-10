@@ -236,7 +236,9 @@ class EventClicker(object):
         =======
         
         out : array
-            2-D array of x values clicked on. First dimension is sized n_phases.
+            3-D array of (x, y) values clicked on. First dimension is sized n_phases.
+            Shape is (n_events, n_phases, 2), i.e. indexed by event number, then phase
+            of the event, then (x, y).
         """
         if self._events is None:
             return None
@@ -245,30 +247,30 @@ class EventClicker(object):
 
     def _add_event_phase(self, xval, yval):
         """Add a phase of the event"""
-        if self._x_is_datetime:
-            xval = matplotlib.dates.num2date(xval).replace(tzinfo=None)
         self.ax.axvline(
             xval,
             color=self._colors[self._curr_phase % len(self._colors)],
             ls=self._styles[self._curr_phase / len(self._colors) % len(self._styles)])
+        if self._x_is_datetime:
+            xval = matplotlib.dates.num2date(xval).replace(tzinfo=None)
         if self._events is None:
-            self._events = numpy.array([[xval] * self.n_phases])
-        self._events[-1, self._curr_phase] = xval
+            self._events = numpy.array([[[xval, yval]] * self.n_phases])
+        self._events[-1, self._curr_phase] = [xval, yval]
         self._curr_phase += 1
         if self._curr_phase >= self.n_phases:
             self._curr_phase = 0
             if self._autointerval:
                 if self._events.shape[0] > 2:
                     self._intervalcount += 1
-                    self._intervaltotal += (self._events[-1, 0] - self._events[-2, 0])
+                    self._intervaltotal += (self._events[-1, 0, 0] - self._events[-2, 0, 0])
                     self.interval = self._intervaltotal / self._intervalcount
                 elif self._events.shape[0] == 2:
                     self._intervalcount = 1
-                    self._intervaltotal = self._events[1, 0] - self._events[0, 0]
+                    self._intervaltotal = self._events[1, 0, 0] - self._events[0, 0, 0]
                     self.interval = self._intervaltotal
                 
             self._events.resize((self._events.shape[0] + 1,
-                                 self.n_phases
+                                 self.n_phases, 2
                                  ))
             self._relim(xval)
         else:
@@ -280,14 +282,14 @@ class EventClicker(object):
             if self._events.shape[0] > 1:
                 del self.ax.lines[-1]
                 self._events.resize((self._events.shape[0] - 1,
-                                     self.n_phases
+                                     self.n_phases, 2
                                      ))
                 self._curr_phase = self.n_phases - 1
         else:
             del self.ax.lines[-1]
             self._curr_phase -= 1
-            if self._curr_phase == 0 and self._events.shape[0] > 1:
-                self._relim(self._events[-2, -1])
+        if self._curr_phase == 0 and self._events.shape[0] > 1:
+            self._relim(self._events[-2, -1, 0])
         self.fig.canvas.draw()
 
     def _onclick(self, event):
