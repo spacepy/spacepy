@@ -1,97 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Time conversion, manipulation and implementation of Ticktock class
-
-
-Examples:
-=========
-
->>> import spacepy.time as spt
->>> import datetime as dt
-
-Day of year calculations
-
->>> dts = spt.doy2date([2002]*4, range(186,190), dtobj=True)
->>> dts
-[datetime.datetime(2002, 7, 5, 0, 0),
-datetime.datetime(2002, 7, 6, 0, 0),
-datetime.datetime(2002, 7, 7, 0, 0),
-datetime.datetime(2002, 7, 8, 0, 0)]
-
->>> dts = spt.Ticktock(dts,'UTC')
->>> dts.DOY
-array([ 186.,  187.,  188.,  189.])
-
-Ticktock object creation
-
->>> isodates = ['2009-12-01T12:00:00', '2009-12-04T00:00:00', '2009-12-06T12:00:00']
->>> dts = spt.Ticktock(isodates, 'ISO')
-
-OR
-
->>> dtdates = [dt.datetime(2009,12,1,12), dt.datetime(2009,12,4), dt.datetime(2009,12,6,12)]
->>> dts = spt.Ticktock(dtdates, 'UTC')
-
-ISO time formatting
-
->>> dts = spt.tickrange('2009-12-01T12:00:00','2009-12-06T12:00:00',2.5)
-
-OR
-
->>> dts = spt.tickrange(dt.datetime(2009,12,1,12),dt.datetime(2009,12,6,12), \
-    dt.timedelta(days=2, hours=12))
-
->>> dts
-Ticktock( ['2009-12-01T12:00:00', '2009-12-04T00:00:00', '2009-12-06T12:00:00'] ), dtype=ISO
-
->>> dts.isoformat()
-Current ISO output format is %Y-%m-%dT%H:%M:%S
-Options are: [('seconds', '%Y-%m-%dT%H:%M:%S'), ('microseconds', '%Y-%m-%dT%H:%M:%S.%f')]
-
->>> dts.isoformat('microseconds')
->>> dts.ISO
-['2009-12-01T12:00:00.000000',
- '2009-12-04T00:00:00.000000',
- '2009-12-06T12:00:00.000000']
-
-Time manipulation
-
->>> tdelt  = spt.Tickdelta(days=1, hours=6)
->>> tdelt
-Tickdelta( days=1.25 )
-
->>> new_dts = dts + tdelt
->>> new_dts.UTC
-[datetime.datetime(2009, 12, 2, 18, 0),
- datetime.datetime(2009, 12, 5, 6, 0),
- datetime.datetime(2009, 12, 7, 18, 0)]
-
-Other time formats
-
->>> dts.RDT  # Gregorian ordinal time
-array([ 733742.5,  733745. ,  733747.5])
-
->>> dts.GPS # GPS time
-array([  9.43704015e+08,   9.43920015e+08,   9.44136015e+08])
-
->>> dts.JD # Julian day
-array([ 2455167. ,  2455169.5,  2455172. ])
-
-And so on.
-
-Authors: Josef Koller, Brian Larsen, Steve Morley, Jon Niehof
-Institution: Los Alamos National Laboratory
-Contact: jkoller@lanl.gov,
-
-Copyright ©2010 Los Alamos National Security, LLC.
-"""
-
 from spacepy import help
 import datetime
-import datetime as dt
 import dateutil.parser as dup
 import numpy as np
+
+from . import _dates
+from _dates import date2num, num2date
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -141,7 +56,7 @@ class Tickdelta(object):
         self.hours = self.days*24.
         self.minutes = self.hours*60.
         self.seconds = self.minutes*60.
-        self.timedelta = dt.timedelta(days=float(self.days))
+        self.timedelta = datetime.timedelta(days=float(self.days))
         return
 
     # -----------------------------------------------
@@ -1078,7 +993,7 @@ class Ticktock(object):
         nTAI = len(self.data)
         UTC = self.UTC
         #RDT = np.zeros(nTAI)
-        RDT = mpd.date2num(UTC)
+        RDT = date2num(UTC)
         #for i in np.arange(nTAI):
             #RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
                 #UTC[i].second/86400. + UTC[i].microsecond/86400000000.
@@ -1120,7 +1035,7 @@ class Ticktock(object):
 
         elif self.dtype.upper() == 'TAI':
             TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-            UTC = [dt.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
+            UTC = [datetime.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
             # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
@@ -1131,7 +1046,7 @@ class Ticktock(object):
 
         elif self.dtype.upper() == 'GPS':
             GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
-            UTC = [dt.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
+            UTC = [datetime.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
             # add leap seconds after UTC is created
             self.UTC = UTC
             leapsecs = self.getleapsecs()
@@ -1141,12 +1056,12 @@ class Ticktock(object):
                     datetime.timedelta(seconds=19)
 
         elif self.dtype.upper() == 'UNX':
-            UNX0 = dt.datetime(1970,1,1)
-            UTC = [dt.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
+            UNX0 = datetime.datetime(1970,1,1)
+            UTC = [datetime.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
 
         elif self.dtype.upper() == 'RDT':
             import matplotlib.dates as mpd
-            UTC = mpd.num2date(self.data)
+            UTC = num2date(self.data)
             UTC = [t.replace(tzinfo=None) for t in UTC]
             #for i in np.arange(nTAI):
                 #UTC[i] = datetime.datetime(1,1,1) + \
@@ -1157,8 +1072,8 @@ class Ticktock(object):
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
 
         elif self.dtype.upper() == 'CDF':
-            UTC = [dt.timedelta(days=cdft/86400000.) + 
-                        dt.datetime(1,1,1) - dt.timedelta(days=366) for cdft in self.data]
+            UTC = [datetime.timedelta(days=cdft/86400000.) +
+                        datetime.datetime(1,1,1) - datetime.timedelta(days=366) for cdft in self.data]
                 #UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
                     #milliseconds=np.mod(self.data[i],86400000)) + \
                         #datetime.datetime(1,1,1) - datetime.timedelta(days=366)
@@ -1569,14 +1484,14 @@ def tickrange(start, end, deltadays, dtype='UTC'):
     diff = Tend.UTC[0] - Tstart.UTC[0]
     dmusec, dsec = diff.microseconds/86400000000., diff.seconds/86400.
     try:
-        assert type(deltadays)==dt.timedelta
+        assert type(deltadays)==datetime.timedelta
         musec, sec = deltadays.microseconds/86400000000., deltadays.seconds/86400.
         deltat = musec + sec + deltadays.days
         nticks = int((dmusec + dsec + diff.days)/deltat + 1)
         trange = [Tstart.UTC[0] + deltadays*n for n in range(nticks)]
     except:
         nticks = int((dmusec + dsec + diff.days)/float(deltadays) + 1)
-        trange = [Tstart.UTC[0] + dt.timedelta(days=deltadays)*n for n in range(nticks)]
+        trange = [Tstart.UTC[0] + datetime.timedelta(days=deltadays)*n for n in range(nticks)]
     ticks = Ticktock(trange, 'UTC')
     ticks = eval('Ticktock(ticks.'+dtype+',"'+dtype+'")')
     return ticks
@@ -1622,7 +1537,7 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
         seconds = int(round(seconds))
 
     if dtobj:
-        return dt.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+        return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
     else:
         return [hours, minutes, seconds]
 

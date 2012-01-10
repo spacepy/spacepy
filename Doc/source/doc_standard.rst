@@ -26,8 +26,8 @@ So what do I need to do in my code?
 -----------------------------------
 Since we are using the 'numpydoc' extension there are fixed headings that may
 appear in your documentation block, there are a few things to note:
- * No other headings can appear there
- * I believe that no reStructuredText commands can either (e.g. .. Note:)
+* No other headings can appear there
+* I believe that no reStructuredText commands can either (e.g. .. Note:)
 
 Allowed headings
 ~~~~~~~~~~~~~~~~
@@ -109,4 +109,7 @@ This code from toolbox shows what a method should look like in your code
 
 Which then renders as:
 
-    .. autofunction:: toolbox.logspace
+    .. autofunction:: spacepy.toolbox.logspace
+        :noindex:
+
+

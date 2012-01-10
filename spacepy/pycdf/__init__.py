@@ -18,9 +18,9 @@ that affect the functionality of the library in general.
 The base CDF library must be properly installed in order to use this package.
 pycdf will search for the library in this order:
 
-    1. A directory named by the environment variable CDF_LIB (which should be set if using the definitions file provided with the CDF library).
-    2. A subdirectory C{lib} in a directory named by the environment variable CDF_BASE.
-    3. The standard system library search path.
+1. A directory named by the environment variable CDF_LIB (which should be set if using the definitions file provided with the CDF library).
+2. A subdirectory C{lib} in a directory named by the environment variable CDF_BASE.
+3. The standard system library search path.
 
 If pycdf has trouble finding the library, try setting CDF_LIB before importing
 the module, e.g. if the library is in CDF/lib in the user's home directory::

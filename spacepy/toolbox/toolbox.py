@@ -29,6 +29,7 @@ except:
     import pickle
 
 import numpy as np
+import numpy
 
 try:
     from spacepy import help
@@ -37,15 +38,23 @@ except ImportError:
 except:
     pass
 
-from spacepy import lib
-if lib.have_libspacepy:
-    import ctypes
+from spacepy.time import date2num, num2date
 
 #Py3k compatibility renamings
 try:
     xrange
 except NameError:
     xrange = range
+
+__all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
+           'human_sort', 'feq', 'dictree', 'printfig', 'update', 'progressbar',
+           'windowMean', 'medAbsDev', 'makePoly', 'binHisto', 'smartTimeTicks',
+           'applySmartTimeTicks', 'logspace', 'geomspace', 'arraybin', 'mlt2rad',
+           'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'query_yes_no',
+           'interpol', 'normalize', 'listUniq', 'intsolve', 'dist_to_list',
+           'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
+           'eventTimer', 'randomDate']
+
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
@@ -85,8 +94,8 @@ def tOverlap(ts1, ts2, *args, **kwargs):
 
     See Also
     ========
-    toolbox.tOverlapHalf
-    toolbox.tCommon
+    tOverlapHalf
+    tCommon
     """
     idx_1in2 = tOverlapHalf(ts2, ts1, *args, **kwargs)
     idx_2in1 = tOverlapHalf(ts1, ts2, *args, **kwargs)
@@ -125,8 +134,8 @@ def tOverlapHalf(ts1, ts2, presort=False):
 
     See Also
     ========
-    toolbox.tOverlap
-    toolbox.tCommon
+    tOverlap
+    tCommon
     """
     if presort:
         import bisect
@@ -155,8 +164,8 @@ def tCommon(ts1, ts2, mask_only=True):
 
     See Also
     ========
-    toolbox.tOverlapHalf
-    toolbox.tOverlap
+    tOverlapHalf
+    tOverlap
 
     Examples
     ========
@@ -330,8 +339,8 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     {'ticks': array([1, 2, 3, 4, 5, 6, 7, 8, 9])}
     """
     # done this way so it works before install
-    from . import time as t
-    from . import coordinates as c
+    from spacepy import time as t
+    from spacepy import coordinates as c
 
     filelist = glob.glob(fln_pattern)
     filelist = human_sort(filelist)
@@ -1093,7 +1102,7 @@ def smartTimeTicks(time):
 
     See Also
     ========
-    toolbox.applySmartTimeTicks
+    applySmartTimeTicks
     """
     from matplotlib.dates import (MinuteLocator, HourLocator,
                                   DayLocator, DateFormatter)
@@ -1150,7 +1159,7 @@ def applySmartTimeTicks(ax, time, dolimit = True):
 
     See Also
     ========
-    toolbox.smartTimeTicks
+    smartTimeTicks
     """
     Mtick, mtick, fmt = smartTimeTicks(time)
     ax.xaxis.set_major_locator(Mtick)
@@ -1195,8 +1204,8 @@ def logspace(min, max, num, **kwargs):
 
     See Also
     ========
-    toolbox.geomspace
-    toolbox.linspace
+    geomspace
+    linspace
     """
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
@@ -1205,60 +1214,6 @@ def logspace(min, max, num, **kwargs):
         return np.array(ans)
     else:
         return np.logspace(np.log10(min), np.log10(max), num, **kwargs)
-
-def linspace(min, max, num=50, endpoint=True, retstep=False, forcedate=False):
-    """
-    Returns linearly spaced numbers.  Same as numpy.linspace except
-    allows for support of datetime objects
-
-    Parameters
-    ==========
-    start : float
-        The starting value of the sequence.
-    stop : float
-        The end value of the sequence, unless `endpoint` is set to False.
-        In that case, the sequence consists of all but the last of ``num + 1``
-        evenly spaced samples, so that `stop` is excluded.  Note that the step
-        size changes when `endpoint` is False.
-    num : int (optional)
-        Number of samples to generate. Default is 50.
-    endpoint : bool, optional
-        If True, `stop` is the last sample. Otherwise, it is not included.
-        Default is True.
-    retstep : bool (optional)
-        If True, return (`samples`, `step`), where `step` is the spacing
-        between samples.
-    forcedate : bool (optional)
-        Forces linspace to use the date formulation, needed sometimes on 0-d arrays
-
-    Returns
-    =======
-    samples : array
-        There are `num` equally spaced samples in the closed interval
-        ``[start, stop]`` or the half-open interval ``[start, stop)``
-        (depending on whether `endpoint` is True or False).
-    step : float (only if `retstep` is True)
-        Size of spacing between samples.
-
-    See Also
-    ========
-    toolbox.geomspace
-    toolbox.logspace
-    """
-    if isinstance(min, datetime.datetime) or forcedate==True:
-        from matplotlib.dates import date2num, num2date
-        try:
-            ans = num2date(np.linspace(date2num(min), date2num(max),
-                                     num=num, endpoint=endpoint, retstep=retstep))
-        except AttributeError: # weird error when min/max are 0d arrays
-            ans = num2date(np.linspace(date2num(min.tolist()), date2num(max.tolist()),
-                                     num=num, endpoint=endpoint, retstep=retstep))
-
-        ans = [val.replace(tzinfo=None) for val in ans]
-        return np.array(ans)
-    else:
-        return np.linspace(min, max,
-                        num=num, endpoint=endpoint, retstep=retstep)
 
 def geomspace(start, ratio=None, stop=False, num=50):
     """
@@ -1305,8 +1260,8 @@ def geomspace(start, ratio=None, stop=False, num=50):
 
     See Also
     ========
-    toolbox.linspace
-    toolbox.logspace
+    linspace
+    logspace
     """
     if not ratio and stop != False:
         ratio = (stop/start)**(1/(num-1))
@@ -1383,7 +1338,7 @@ def mlt2rad(mlt, midnight = False):
 
     See Also
     ========
-    toolbox.rad2mlt
+    rad2mlt
     """
     if midnight:
         try:
@@ -1423,7 +1378,7 @@ def rad2mlt(rad, midnight=False):
 
     See Also
     ========
-    toolbox.mlt2rad
+    mlt2rad
     """
     if midnight:
         rad_arr = rad + np.pi
@@ -1949,51 +1904,6 @@ def bin_edges_to_center(edges):
     df = np.diff(edges)
     return edges[:-1] + df/2
 
-def hypot(*vals):
-    """
-    Compute sqrt(vals[0] **2 + vals[1] **2 ...), ie. n-dimensional hypotenuse
-
-    If the input is a numpy array a c-backend is called for the calculation
-
-    Parameters
-    ==========
-    vals : float (arbitary number), or iterable
-        arbitary number of float values as arguments or an iterable
-
-    Returns
-    =======
-    out : float
-        the Euclidian distance of the points ot the origin
-
-    Examples
-    ========
-    >>> import spacepy.toolbox as tb
-    >>> tb.hypot(3,4)
-    5.0
-    >>> a = [3, 4]
-    >>> tb.hypot(*a)
-    5.0
-    >>> tb.hypot(*range(10))
-    16.88194...
-    >>> tb.hypot(numpy.arange(4)) # uses the c backend
-    3.7416573867739413
-
-    See Also
-    ========
-    math.hypot
-    """
-    if len(vals) !=1 :
-        return math.sqrt(sum((v ** 2 for v in vals)))
-    else: # it was a single iterator
-        try:
-            if lib.have_libspacepy and isinstance(vals[0], np.ndarray):
-                d = vals[0].astype(np.double)
-                return lib.hypot_tb(d.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), d.size)
-            else:
-                return math.sqrt(sum((v ** 2 for v in vals[0])))
-        except TypeError:
-            return vals[0]
-
 def thread_job(job_size, thread_count, target, *args, **kwargs):
     """
     Split a job into subjobs and run a thread for each
@@ -2179,8 +2089,7 @@ def eventTimer(Event, Time1):
 
 def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     """
-    Return a (or many) random datetimes between two given dates, this is done
-    under the convention dt <=1 rand < dt2
+    Return a (or many) random datetimes between two given dates, this is done under the convention dt <=1 rand < dt2
 
     Parameters
     ==========
@@ -2206,10 +2115,6 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     Examples
     ========
     """
-    try:
-        from matplotlib.dates import date2num, num2date
-    except ImportError:
-        raise(NotImplementedError("Matplotlib is not installed, it is required for this function"))
     if dt1.tzinfo != dt2.tzinfo:
         raise(ValueError('tzinfo for the input and output datetimes must match'))
     dt1n = date2num(dt1)
