@@ -3,6 +3,8 @@ spacepy.plot.utils
 
 various utility routines for plotting and plot related activities
 
+.. currentmodule:: spacepy.plot.utils
+
 Authors: Jonathan Niehof
 
 Institution: Los Alamos National Laboratory
@@ -24,26 +26,53 @@ import numpy
 #TODO: do something with the Y values, maybe snap-to-data
 #      do distance for this based on axis coordinates
 #      http://matplotlib.sourceforge.net/users/transforms_tutorial.html
+#TODO: these infernal docs don't cross-link. Fix 'em.
+#TODO: grab initial interval from the plot, don't specify it
+#TODO: be smart about Y scaling?
+#TODO: maybe axe autointerval
+#TODO: allow specification of the line with the data
+#TODO: allow disabling of Y scaling
 class EventClicker(object):
     """
     .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
 
-    Present a time series for 
+    Presents a provided figure (normally a time series) and provides
+    an interface to mark events shown in the plot. The user interface
+    is explained in :meth:`analyze` and results are returned
+    by :meth:`get_events`
 
+    Other Parameters
+    ================
+    ax : maplotlib.axes.AxesSubplot
+        The subplot to display and grab data from. If not provided, the
+        current subplot is grabbed from gca() (Lookup of the current
+        subplot is done when :meth:`analyze` is called.)
+        
+    n_phases : int (optional, default 1)
+        number of phases to an event, i.e. number of subevents to mark.
+        E.g. for a storm where one wants the onset and the minimum, set
+        n_phases to 2 and double click on the onset, then minimum, and
+        then the next double-click will be onset of the next storm.
+
+    interval : same as elements of x (optional)
+        Size of the X window to show. This should be in units that can
+        be added to/subtracted from individual elements of x (e.g.
+        timedelta if x is a series of datetime.) Defaults to showing
+        1/20th of the total at first, then scaling based on the average
+        distance between selected events.
     """
     _colors = ['k', 'r', 'g']
     _styles = ['solid', 'dashed', 'dotted']
 
     def __init__(self, ax=None, n_phases=1, interval=None):
-        """
-        Create a clicker 
-        
+        """Initialize EventClicker
+
         Other Parameters
         ================
         ax : maplotlib.axes.AxesSubplot
             The subplot to display and grab data from. If not provided, the
             current subplot is grabbed from gca() (Lookup of the current
-            subplot is done when :py:meth:analyse is called.)
+            subplot is done when :meth:`analyze` is called.)
         
         n_phases : int (optional, default 1)
             number of phases to an event, i.e. number of subevents to mark.
@@ -55,7 +84,8 @@ class EventClicker(object):
             Size of the X window to show. This should be in units that can
             be added to/subtracted from individual elements of x (e.g.
             timedelta if x is a series of datetime.) Defaults to showing
-            1/20th of the total
+            1/20th of the total at first, then scaling based on the average
+            distance between selected events.
         """
         self.n_phases = n_phases
         self.interval = interval
@@ -67,7 +97,41 @@ class EventClicker(object):
         self.ax = None
 
     def analyze(self):
-        """Iterate over the elements"""
+        """
+        Displays the figure provided and allows the user to select events.
+
+        All matplot lib controls for zooming, panning, etc. the figure
+        remain active.
+
+        Double left click
+            Mark this point as an event phase. One-phase events are the
+            simplest: they occur at a particular time. Two-phase events
+            have two times associated with them; an example is any event
+            with a distinct start and stop time. In that case, the first
+            double-click would mark the beginning, the second one, the end;
+            the next double-click would mark the beginning of the next event.
+            Each phase of an event is annotated with a vertical line on the
+            plot; the color and line style is the same for all events, but
+            different for each phase.
+
+            After marking the final phase of an event, the X axis will scroll
+            and zoom to place that phase near the left of the screeen and
+            include one full interval of data (as defined in the constructor).
+            The Y axis will be scaled to cover the data in that X range.
+            
+        Double right click or delete button
+            Remove the last marked event phase. If an entire event (i.e., the
+            first phase of an event) is removed, the X axis will be scrolled
+            left to the previous event and the Y axis will be scaled to cover
+            the data in the new range.
+            
+        Space bar
+            Scroll the X axis by one interval. Y axis will be scaled to cover
+            the data.
+
+        When finished, close the figure window (if necessary) and call
+        :meth:`get_events` to get the list of events.
+        """
         self._lastclick_x = None
         self._lastclick_y = None
         self._lastclick_button = None
@@ -104,8 +168,10 @@ class EventClicker(object):
         self._cids.append(self.fig.canvas.mpl_connect('key_press_event', self._onkeypress))
         plt.show()
 
-    def get_eventlist(self):
-        """Get back the list of events
+    def get_events(self):
+        """Get back the list of events.
+
+        Call after :meth:`analyze`.
 
         Returns
         =======
