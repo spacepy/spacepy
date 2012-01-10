@@ -54,8 +54,7 @@ Create some data of an arbitrary type
 
 Create a new empty CDF.  The '' is the name of the CDF to use as a master.  Note that the data is copied form the master to the new CDF.
     >>> cdf = pycdf.CDF('MyCDF.cdf', '')
-.. note::
-    You cannot create a new CDF with a name that already exists on disk.  It will throw an :class:`exceptions.NameError`
+.. note:: You cannot create a new CDF with a name that already exists on disk.  It will throw an :class:`exceptions.NameError`
 
 
 To put that data into the CDF just do it, CDF objects behave like Python dictionaries.
@@ -81,7 +80,7 @@ CDF files, like standard Python files, act as context managers
 
 
 Read a CDF
-=======
+==========
 
 Reading a CDF is done in much the same way, the CDF object behaves like a dictionary and only goes to disk when you request the data.  Shown here is a full example using the above CDF then, then explained (see also :py:func:`datamodel.fromCDF`).
     >>> from spacepy import pycdf

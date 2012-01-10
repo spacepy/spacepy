@@ -4,6 +4,9 @@
 """
 pyCDF: Python interface to NASA's Common Data Format library
 
+.. currentmodule:: spacepy
+
+
 This package provides a Python interface to the Common Data Format (CDF)
 library used for many NASA missions, available at http://cdf.gsfc.nasa.gov/.
 It is targeted at Python 2.6+ and should work without change on either
@@ -29,6 +32,7 @@ the module, e.g. if the library is in CDF/lib in the user's home directory::
   import pycdf
 
 .. currentmodule:: spacepy.pycdf
+
 
 The :py:mod:`pycdf.const` module contains constants useful for accessing the underlying library.
 
