@@ -27,11 +27,8 @@ import numpy
 #      do distance for this based on axis coordinates
 #      http://matplotlib.sourceforge.net/users/transforms_tutorial.html
 #TODO: these infernal docs don't cross-link. Fix 'em.
-#TODO: grab initial interval from the plot, don't specify it
-#TODO: be smart about Y scaling?
-#TODO: maybe axe autointerval
 #TODO: allow specification of the line with the data
-#TODO: allow disabling of Y scaling
+#TODO: put an example in the docs
 class EventClicker(object):
     """
     .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
@@ -54,17 +51,37 @@ class EventClicker(object):
         n_phases to 2 and double click on the onset, then minimum, and
         then the next double-click will be onset of the next storm.
 
-    interval : same as elements of x (optional)
+    interval : (optional)
         Size of the X window to show. This should be in units that can
         be added to/subtracted from individual elements of x (e.g.
         timedelta if x is a series of datetime.) Defaults to showing
-        1/20th of the total at first, then scaling based on the average
-        distance between selected events.
+        the entire plot.
+
+    auto_interval : boolean (optional)
+        Automatically adjust interval based on the average distance
+        between selected events. Default is True if interval is not
+        specified; False if interval is specified.
+
+    auto_scale : boolean (optional, default True):
+        Automatically adjust the Y axis to match the data as the X
+        axis is panned.
+
+    ymin : (optional, default None)
+        If auto_scale is True, the bottom of the autoscaled Y axis will
+        never be above ymin (i.e. ymin will always be shown on the plot).
+        This prevents the autoscaling from blowing up very small features
+        in mostly flat portions of the plot. The user can still manually
+        zoom in past this point. The autoscaler will always zoom out to
+        show the data.
+
+    ymax : (optional, default None)
+        Similar to ymin, but the top of the Y axis will never be below ymax.
     """
     _colors = ['k', 'r', 'g']
     _styles = ['solid', 'dashed', 'dotted']
 
-    def __init__(self, ax=None, n_phases=1, interval=None):
+    def __init__(self, ax=None, n_phases=1, interval=None, auto_interval=None,
+                 auto_scale=True, ymin=None, ymax=None):
         """Initialize EventClicker
 
         Other Parameters
@@ -80,20 +97,41 @@ class EventClicker(object):
             n_phases to 2 and double click on the onset, then minimum, and
             then the next double-click will be onset of the next storm.
 
-        interval : same as elements of x (optional)
+        interval : (optional)
             Size of the X window to show. This should be in units that can
             be added to/subtracted from individual elements of x (e.g.
             timedelta if x is a series of datetime.) Defaults to showing
-            1/20th of the total at first, then scaling based on the average
-            distance between selected events.
+            the entire plot.
+
+        auto_interval : boolean (optional)
+            Automatically adjust interval based on the average distance
+            between selected events. Default is True if interval is not
+            specified; False if interval is specified.
+
+        auto_scale : boolean (optional, default True):
+            Automatically adjust the Y axis to match the data as the X
+            axis is panned.
+
+        ymin : (optional, default None)
+            If auto_scale is True, the bottom of the autoscaled Y axis will
+            never be above ymin (i.e. ymin will always be shown on the plot).
+            This prevents the autoscaling from blowing up very small features
+            in mostly flat portions of the plot. The user can still manually
+            zoom in past this point. The autoscaler will always zoom out to
+            show the data.
+
+        ymax : (optional, default None)
+            Similar to ymin, but the top of the Y axis will never be below ymax.
         """
         self.n_phases = n_phases
         self.interval = interval
-        #Default to not autoscale on x
-        self._autointerval = False
+        self._autointerval = auto_interval
+        self._autoscale = auto_scale
         self._intervalcount = 0
         self._intervaltotal = None
         self._events = None
+        self._ymax = ymax
+        self._ymin = ymin
         self.ax = None
 
     def analyze(self):
@@ -145,21 +183,24 @@ class EventClicker(object):
             self._xdata = lines[0].get_xdata()
             self._ydata = lines[0].get_ydata()
             self._x_is_datetime = isinstance(self._xdata[0], datetime.datetime)
+            if self._ymin is None: #Make the clipping comparison always fail
+                self._ymin = max(self._ydata)
+            if self._ymax is None:
+                self._ymax = min(self._ydata)
         else:
             self._xdata = None
             self._ydata = None
             self._x_is_datetime = False
+            self._autoscale = False
 
+        if self._autointerval is None:
+            self._autointerval = self.interval is None
         if self.interval is None:
-            if not self._xdata is None:
-                if self._x_is_datetime:
-                    self.interval = (self._xdata[-1] - self._xdata[0]) / 20
-                else:
-                    self.interval = (self._xdata[-1] - self._xdata[0]) / 20.0
-                self._autointerval = True
-            else: #Just keep the existing viewport
-                (left, right) = ax.get_view_interval()
-                self.interval = right - left
+            (left, right) = self.ax.get_xaxis().get_view_interval()
+            if self._x_is_datetime:
+                right = matplotlib.dates.num2date(right).replace(tzinfo=None)
+                left = matplotlib.dates.num2date(left).replace(tzinfo=None)
+            self.interval = right - left
 
         self._relim(self._xdata[0])
         self._cids = []
@@ -272,13 +313,17 @@ class EventClicker(object):
         else:
             xmin = left_x - 0.1 * self.interval
             xmax = left_x + 1.1 * self.interval
-        if not self._xdata is None:
+        if self._autoscale:
             idx_l = bisect.bisect_left(self._xdata, xmin)
             idx_r = bisect.bisect_right(self._xdata, xmax)
             if idx_l >= len(self._ydata):
                 idx_l = len(self._ydata) - 1
             ymin = min(self._ydata[idx_l:idx_r])
             ymax = max(self._ydata[idx_l:idx_r])
+            if ymin > self._ymin:
+                ymin = self._ymin
+            if ymax < self._ymax:
+                ymax = self._ymax
             ydiff = (ymax - ymin) / 10
             ymin -= ydiff
             ymax += ydiff
