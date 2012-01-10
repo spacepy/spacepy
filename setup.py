@@ -427,10 +427,14 @@ class install(_install):
         else:
             print('Dependencies OK.')
         _install.run(self)
+        #Files will be deleted in the order specified, so list files
+        #before directories containing them!
+        #Paths are relative to spacepy. Unix path separators are OK
+        #Don't forget to delete the .pyc
         deletefiles = ['toolbox.py', 'toolbox.pyc']
         for f in deletefiles:
             path = os.path.join(self.install_lib, 'spacepy',
-                                os.path.normpath(f))
+                                os.path.normpath(f)) #makes pathing portable
             if os.path.exists(path):
                 print('Deleting {0} from old version of spacepy.'.format(path))
                 if os.path.isdir(path):
