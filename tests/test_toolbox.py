@@ -96,9 +96,8 @@ class PickleAssembleTests(unittest.TestCase):
         self.assertTrue('test_pickle_1.pkl.gz' in files)
         DD = tb.loadpickle('test_pickle_1.pkl')
         self.assertEqual(self.D1, DD)
-        # this doesn't but should also work
-        # DD = tb.loadpickle('test_pickle_1.pkl.gz')
-        # self.assertEqual(self.D1, DD)
+        DD = tb.loadpickle('test_pickle_1.pkl.gz')
+        self.assertEqual(self.D1, DD)
 
     def test_assemble(self):
         tb.savepickle('test_pickle_1.pkl', self.D1)
