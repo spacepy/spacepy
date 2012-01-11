@@ -20,8 +20,8 @@ import bisect
 import datetime
 
 import matplotlib.pyplot as plt
-import matplotlib.dates
 import numpy
+import spacepy.time
 
 #TODO: these infernal docs don't cross-link. Fix 'em.
 class EventClicker(object):
@@ -238,7 +238,7 @@ class EventClicker(object):
                                              datetime.datetime)
             if self._x_is_datetime:
                 self._xydata = numpy.column_stack(
-                    (matplotlib.dates.date2num(self._xdata), self._ydata))
+                    (spacepy.time.date2num(self._xdata), self._ydata))
             else:
                 self._xydata = numpy.column_stack((self._xdata, self._ydata))
             if self._ymin is None: #Make the clipping comparison always fail
@@ -251,8 +251,8 @@ class EventClicker(object):
         if self.interval is None:
             (left, right) = self.ax.get_xaxis().get_view_interval()
             if self._x_is_datetime:
-                right = matplotlib.dates.num2date(right).replace(tzinfo=None)
-                left = matplotlib.dates.num2date(left).replace(tzinfo=None)
+                right = spacepy.time.num2date(right)
+                left = spacepy.time.num2date(left)
             self.interval = right - left
 
         self._relim(self._xdata[0])
@@ -324,7 +324,7 @@ class EventClicker(object):
             self._data_events[-1, self._curr_phase] = \
                                   [self._xdata[idx], self._ydata[idx]]
         if self._x_is_datetime:
-            xval = matplotlib.dates.num2date(xval).replace(tzinfo=None)
+            xval = spacepy.time.num2date(xval)
         if self._events is None:
             self._events = numpy.array([[[xval, yval]] * self.n_phases])
         self._events[-1, self._curr_phase] = [xval, yval]
@@ -399,7 +399,7 @@ class EventClicker(object):
         if event.key == ' ':
             rightside = self.ax.xaxis.get_view_interval()[1]
             if self._x_is_datetime:
-                rightside = matplotlib.dates.num2date(rightside).replace(tzinfo=None)
+                rightside = spacepy.time.num2date(rightside)
             self._relim(rightside)
         if event.key == 'delete':
             self._delete_event_phase()
