@@ -11,7 +11,7 @@ Institution: Los Alamos National Laboratory
 
 Contact: jniehof@lanl.gov
 
-Copyright 2011-2012 Los Alamos National Security, LLC.
+Copyright 2012 Los Alamos National Security, LLC.
 """
 
 __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
@@ -24,11 +24,8 @@ import matplotlib.dates
 import numpy
 
 #TODO: these infernal docs don't cross-link. Fix 'em.
-#TODO: put an example in the docs
 class EventClicker(object):
     """
-    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
-
     Presents a provided figure (normally a time series) and provides
     an interface to mark events shown in the plot. The user interface
     is explained in :meth:`analyze` and results are returned
@@ -77,6 +74,41 @@ class EventClicker(object):
         Specify the matplotlib line object to use for autoscaling the
         Y axis. If this is not specified, the first line object on the
         provided subplot will be used. This should usually be correct.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import numpy
+    >>> import matplotlib.pyplot as plt
+    >>> x = numpy.arange(630) / 100.0 * numpy.pi
+    >>> y = numpy.sin(x)
+    >>> clicker = spacepy.plot.utils.EventClicker(
+    ... n_phases=2, #Two picks per event
+    ... interval=numpy.pi * 2) #Display one cycle at a time
+    >>> plt.plot(x, y)
+    >>> clicker.analyze() #Double-click on max and min of each cycle; close
+    >>> e = clicker.get_events()
+    >>> peaks = e[:, 0, 0] #x value of event starts
+    >>> peaks -= 2 * numpy.pi * numpy.floor(peaks / (2 * numpy.pi)) #mod 2pi
+    >>> max(numpy.abs(peaks - numpy.pi / 2)) < 0.2 #Peaks should be near pi/2
+    True
+    >>> troughs = e[:, 1, 0] #x value of event ends
+    >>> troughs -= 2 * numpy.pi * numpy.floor(troughs / (2 * numpy.pi))
+    >>> max(numpy.abs(peaks - 3 * numpy.pi / 2)) < 0.2 #troughs near 3pi/2
+    True
+    >>> d = clicker.get_events_data() #snap-to-data of events
+    >>> peakvals = d[:, 0, 1] #y value, snapped near peaks
+    >>> max(peakvals) <= 1.0 #should peak at 1
+    True
+    >>> min(peakvals) > 0.9 #should click near 1
+    True
+    >>> troughvals = d[:, 1, 1] #y value, snapped near peaks
+    >>> max(troughvals) <= -0.9 #should click near -1
+    True
+    >>> min(troughvals) <= -1.0 #should bottom-out at -1
+    True    
+
+    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
     """
     _colors = ['k', 'r', 'g']
     _styles = ['solid', 'dashed', 'dotted']
