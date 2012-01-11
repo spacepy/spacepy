@@ -204,8 +204,11 @@ class EventClicker(object):
             self._ydata = self._line.get_ydata()
             self._x_is_datetime = isinstance(self._xdata[0],
                                              datetime.datetime)
-            self._xydata = numpy.column_stack(
-                (matplotlib.dates.date2num(self._xdata), self._ydata))
+            if self._x_is_datetime:
+                self._xydata = numpy.column_stack(
+                    (matplotlib.dates.date2num(self._xdata), self._ydata))
+            else:
+                self._xydata = numpy.column_stack((self._xdata, self._ydata))
             if self._ymin is None: #Make the clipping comparison always fail
                 self._ymin = max(self._ydata)
             if self._ymax is None:
@@ -243,7 +246,7 @@ class EventClicker(object):
         if self._events is None:
             return None
         else:
-            return self._events[0:-1]
+            return self._events[0:-1].copy()
 
     def get_events_data(self):
         """Get a list of events, "snapped" to the data.
@@ -269,7 +272,7 @@ class EventClicker(object):
         if self._data_events is None:
             return None
         else:
-            return self._data_events[0:-1]
+            return self._data_events[0:-1].copy()
 
     def _add_event_phase(self, xval, yval):
         """Add a phase of the event"""
