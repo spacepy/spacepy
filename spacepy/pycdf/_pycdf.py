@@ -767,7 +767,11 @@ class CDF(collections.MutableMapping):
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
         """
-        self.pathname = pathname.encode()
+        try:
+            self.pathname = pathname.encode()
+        except AttributeError:
+            raise ValueError(
+                'pathname must be string-like: {0}'.format(pathname))
         self._handle = ctypes.c_void_p(None)
         self._opened = False
         if masterpath == None:
