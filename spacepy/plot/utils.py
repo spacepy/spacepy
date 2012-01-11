@@ -313,7 +313,9 @@ class EventClicker(object):
             color=self._colors[self._curr_phase % len(self._colors)],
             ls=self._styles[self._curr_phase / len(self._colors) % len(self._styles)])
         if not self._xydata is None:
-            point_disp = self.ax.transData.transform((xval, yval))
+            point_disp = self.ax.transData.transform(
+                numpy.array([[xval, yval]])
+                )[0]
             data_disp = self.ax.transData.transform(self._xydata)
             idx = numpy.argmin(numpy.sum(
                 (data_disp - point_disp) ** 2, axis=1
