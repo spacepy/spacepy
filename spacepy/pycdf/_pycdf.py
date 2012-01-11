@@ -2613,6 +2613,8 @@ class _Hyperslice(object):
                 lengths = [len(i) for i in flat]
             except TypeError: #Now completely flat
                 break
+            except KeyError:
+                raise ValueError('zVar/Entry data cannot be dictionary-like')
             if min(lengths) != max(lengths):
                 raise ValueError('Data irregular in dimension ' +
                                 str(len(dims)))
