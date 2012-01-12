@@ -1,8 +1,5 @@
 """
-spacepy.plot.utils
-
-various utility routines for plotting and plot related activities
-
+Utility routines for plotting and related activities
 .. currentmodule:: spacepy.plot.utils
 
 Authors: Jonathan Niehof
@@ -12,6 +9,12 @@ Institution: Los Alamos National Laboratory
 Contact: jniehof@lanl.gov
 
 Copyright 2012 Los Alamos National Security, LLC.
+
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    EventClicker
 """
 
 __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
@@ -23,7 +26,6 @@ import matplotlib.pyplot as plt
 import numpy
 import spacepy.time
 
-#TODO: these infernal docs don't cross-link. Fix 'em.
 class EventClicker(object):
     """
     Presents a provided figure (normally a time series) and provides
@@ -109,6 +111,9 @@ class EventClicker(object):
     True    
 
     .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
+    .. automethod:: analyze
+    .. automethod:: get_events
+    .. automethod:: get_events_data
     """
     _colors = ['k', 'r', 'g']
     _styles = ['solid', 'dashed', 'dotted']
@@ -269,7 +274,6 @@ class EventClicker(object):
 
         Returns
         =======
-        
         out : array
             3-D array of (x, y) values clicked on.
             Shape is (n_events, n_phases, 2), i.e. indexed by event
@@ -294,8 +298,7 @@ class EventClicker(object):
         Call after :meth:`analyze`.
 
         Returns
-        =======
-        
+        =======        
         out : array
             3-D array of (x, y) values in the data which are closest to each
             point clicked on. Shape is (n_events, n_phases, 2), i.e. indexed
