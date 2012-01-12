@@ -116,8 +116,6 @@ def rebuild_static_docs(dist=None):
     builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
     indir = os.path.join('Doc', 'source')
     outdir = os.path.join('Doc', 'build', 'html')
-    #Autosummary seems not to update properly
-    shutil.rmtree(os.path.join(indir, 'autosummary'))
     cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
         builddir, indir, outdir)
     subprocess.check_call(cmd.split())
@@ -369,8 +367,6 @@ class build(_build):
                 return
         builddir = os.path.join(os.path.join(self.build_temp, 'doctrees'))
         indir = os.path.join('Doc', 'source')
-        #Autosummary seems not to update properly
-        shutil.rmtree(os.path.join(indir, 'autosummary'))
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'Doc')
         cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
