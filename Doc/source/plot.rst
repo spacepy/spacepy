@@ -9,6 +9,7 @@ plot - Plot, various specialized plotting functions and associated utilities
 .. currentmodule:: spacepy.plot
 
 .. autosummary::
+    :template: clean_module.rst
     :toctree: autosummary
 
     spectrogram
