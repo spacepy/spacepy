@@ -1,6 +1,5 @@
 """
 Utility routines for plotting and related activities
-.. currentmodule:: spacepy.plot.utils
 
 Authors: Jonathan Niehof
 
@@ -9,6 +8,8 @@ Institution: Los Alamos National Laboratory
 Contact: jniehof@lanl.gov
 
 Copyright 2012 Los Alamos National Security, LLC.
+
+.. currentmodule:: spacepy.plot.utils
 
 .. autosummary::
     :template: clean_class.rst
