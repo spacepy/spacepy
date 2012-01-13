@@ -247,9 +247,9 @@ class EventClicker(object):
             else:
                 self._xydata = numpy.column_stack((self._xdata, self._ydata))
             if self._ymin is None: #Make the clipping comparison always fail
-                self._ymin = max(self._ydata)
+                self._ymin = numpy.nanmax(self._ydata)
             if self._ymax is None:
-                self._ymax = min(self._ydata)
+                self._ymax = numpy.nanmin(self._ydata)
 
         if self._autointerval is None:
             self._autointerval = self.interval is None
@@ -260,7 +260,10 @@ class EventClicker(object):
                 left = spacepy.time.num2date(left)
             self.interval = right - left
 
-        self._relim(self._xdata[0])
+        if not self._xdata is None:
+            self._relim(self._xdata[0])
+        else:
+            self._relim(self.ax.get_xaxis().get_view_interval()[0])
         self._cids = []
         self._cids.append(self.fig.canvas.mpl_connect('button_press_event', self._onclick))
         self._cids.append(self.fig.canvas.mpl_connect('close_event', self._onclose))
@@ -422,8 +425,8 @@ class EventClicker(object):
             idx_r = bisect.bisect_right(self._xdata, xmax)
             if idx_l >= len(self._ydata):
                 idx_l = len(self._ydata) - 1
-            ymin = min(self._ydata[idx_l:idx_r])
-            ymax = max(self._ydata[idx_l:idx_r])
+            ymin = numpy.nanmin(self._ydata[idx_l:idx_r])
+            ymax = numpy.nanmax(self._ydata[idx_l:idx_r])
             if ymin > self._ymin:
                 ymin = self._ymin
             if ymax < self._ymax:
