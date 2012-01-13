@@ -15,4 +15,5 @@ Copyright ©2011 Los Alamos National Security, LLC.
 
 """
 
-from spectrogram import spectrogram
+__all__ = ["spectrogram", "utils"]
+

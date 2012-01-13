@@ -767,7 +767,11 @@ class CDF(collections.MutableMapping):
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
         """
-        self.pathname = pathname.encode()
+        try:
+            self.pathname = pathname.encode()
+        except AttributeError:
+            raise ValueError(
+                'pathname must be string-like: {0}'.format(pathname))
         self._handle = ctypes.c_void_p(None)
         self._opened = False
         if masterpath == None:
@@ -2609,6 +2613,8 @@ class _Hyperslice(object):
                 lengths = [len(i) for i in flat]
             except TypeError: #Now completely flat
                 break
+            except KeyError:
+                raise ValueError('zVar/Entry data cannot be dictionary-like')
             if min(lengths) != max(lengths):
                 raise ValueError('Data irregular in dimension ' +
                                 str(len(dims)))

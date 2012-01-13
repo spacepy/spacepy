@@ -12,6 +12,11 @@ Contact: balarsen@lanl.gov, smorley@lanl.gov
 Los Alamos National Laboratory
 
 Copyright 2011 Los Alamos National Security, LLC.
+
+.. autosummary::
+    :toctree: autosummary
+
+    spectrogram
 """
 
 import datetime
