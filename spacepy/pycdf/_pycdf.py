@@ -126,8 +126,9 @@ class Library(object):
         self._library.computeEPOCH16.restype = ctypes.c_double
         self._library.computeEPOCH16.argtypes = [ctypes.c_long] * 10 + \
             [ctypes.POINTER(ctypes.c_double * 2)]
-        self._library.CDFsetFileBackward.restype = None
-        self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
+        if hasattr(self._library, 'CDFsetFileBackward'):
+            self._library.CDFsetFileBackward.restype = None
+            self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
 
         #Set up the dictionary for CDF type - ctypes lookup
         c_types = {}
