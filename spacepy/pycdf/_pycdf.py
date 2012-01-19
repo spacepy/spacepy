@@ -657,10 +657,30 @@ class CDF(collections.MutableMapping):
     """
     Python object representing a CDF file.
 
-    Opening existing
-    ================
+    Open or create a CDF file by creating an object of this class.
+
+    Parameters
+    ==========
+    pathname : string
+        name of the file to open or create
+    masterpath : string
+        name of the master CDF file to use in creating
+        a new file. If not provided, an existing file is
+        opened; if provided but evaluates to ``False``
+        (e.g. ``''``), an empty new CDF is created.
+
+    Raises
+    ======
+    CDFError
+        if CDF library reports an error
+    CDFWarning
+        if CDF library reports a warning and interpreter
+        is set to error on warnings.
+
+    Examples
+    ========
     Open a CDF by creating a CDF object, e.g.:
-    C{cdffile = pycdf.CDF('cdf_filename.cdf')}
+        >>> cdffile = pycdf.CDF('cdf_filename.cdf')
     Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save` when done.
 
     CDF supports the U{with
@@ -714,8 +734,6 @@ class CDF(collections.MutableMapping):
     also work on the attribute dictionary. See :py:class:`pycdf.gAttrsList` for more on the
     dictionary of global attributes.
 
-    Creating New
-    ============
     Creating a new CDF from a master (skeleton) CDF has similar syntax to
     opening one::
       cdffile = pycdf.CDF('cdf_filename.cdf', 'master_cdf_filename.cdf')
@@ -739,17 +757,17 @@ class CDF(collections.MutableMapping):
       cdffile['new_variable_name'] = [1, 2, 3, 4]
     or, if more control is needed over the type and dimensions, use L{new}.
 
-    @ivar _handle: file handle returned from CDF library open functions.
-    @type _handle: ctypes.c_void_p
-    @ivar _opened: is the CDF open?
-    @type _opened: bool
-    @ivar _attrlistref: reference to the attribute list
+    :ivar _handle: file handle returned from CDF library open functions.
+    :type _handle: ctypes.c_void_p
+    :ivar _opened: is the CDF open?
+    :type _opened: bool
+    :ivar _attrlistref: reference to the attribute list
                         (use L{attrs} instead)
-    @type _attrlistref: weakref
-    @ivar pathname: filename of the CDF file
-    @type pathname: string
-    @cvar attrs: Returns global attributes for this CDF (see :py:class:`pycdf.gAttrsList`)
-    @type attrs: L{_AttrListGetter}
+    :type _attrlistref: weakref
+    :ivar pathname: filename of the CDF file
+    :type pathname: string
+    :cvar attrs: Returns global attributes for this CDF (see :py:class:`pycdf.gAttrsList`)
+    :type attrs: L{_AttrListGetter}
     @note: CDF is opened read-only by default, see L{readonly} to change.
     """
     attrs = _AttrListGetter()
