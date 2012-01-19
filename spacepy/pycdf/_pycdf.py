@@ -1,4 +1,4 @@
-3#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -11,7 +11,7 @@ Authors: Jon Niehof
 Institution: Los Alamos National Laboratory
 Contact: jniehof@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 
 
 """

@@ -18,7 +18,7 @@ Institution: Los Alamos National Laboratory
 
 Contact: smorley@lanl.gov; balarsen@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 
 
 About datamodel

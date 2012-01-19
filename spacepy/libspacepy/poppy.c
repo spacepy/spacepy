@@ -1,6 +1,6 @@
 /*Library providing C support to poppy
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 */
 
 #include "randomkit.h"

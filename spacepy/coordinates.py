@@ -7,7 +7,7 @@ Authors: Josef Koller
 Institution: Los ALamos National Laboratory
 Contaact: jkoller@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import numpy as np
