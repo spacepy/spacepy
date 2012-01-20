@@ -3,7 +3,7 @@
 PyBats!  An open source Python-based interface for reading, manipulating,
 and visualizing BATS-R-US and SWMF output.
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 '''
 
 __contact__ = 'Dan Welling, dwelling@lanl.gov'

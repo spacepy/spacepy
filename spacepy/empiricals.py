@@ -8,7 +8,7 @@ Authors: Steve Morley, Josef Koller
 Institution: Los Alamos National Laboratory
 Contact: smorley@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 import datetime
 from functools import partial

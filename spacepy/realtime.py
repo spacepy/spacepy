@@ -9,7 +9,7 @@ Institution: Los Alamos National Laboratory
 
 Contact: jkoller@lanl.gov
 
-Copyright ©2012 Los Alamos National Security, LLC.
+Copyright 2012 Los Alamos National Security, LLC.
 
 
 About realtime

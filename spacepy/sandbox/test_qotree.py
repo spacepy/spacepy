@@ -4,7 +4,7 @@
 """
 Test suite for qotree
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 import unittest
 

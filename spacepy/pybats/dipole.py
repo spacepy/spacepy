@@ -2,7 +2,7 @@
 '''
 Some functions for the generation of a dipole field.
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 '''
 
 import numpy as np

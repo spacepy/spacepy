@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-code to create and plot generic spectrograms for space science - these are different
-than the standard spectrogram in other fields in that there is no fft used
-
+Create and plot generic spectrograms for space science.
+These are different than the standard spectrogram in other
+fields in that there is no fft used
 
 Authors: Brian Larsen and Steve Morley
 Institution: Los Alamos National Laboratory
@@ -12,6 +12,11 @@ Contact: balarsen@lanl.gov, smorley@lanl.gov
 Los Alamos National Laboratory
 
 Copyright 2011 Los Alamos National Security, LLC.
+
+.. autosummary::
+    :toctree: autosummary
+
+    spectrogram
 """
 
 import datetime

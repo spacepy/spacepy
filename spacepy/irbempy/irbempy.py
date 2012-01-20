@@ -10,7 +10,7 @@ Authors
 -------
 Josef Koller, Steve Morley 
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import numpy as np

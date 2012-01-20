@@ -18,7 +18,7 @@ Authors: Josef Koller, Humberto Godinez
 nstitution: Los Alamos National Laboratory
 Contact: jkoller@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 # -----------------------------------------------

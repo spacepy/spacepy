@@ -7,7 +7,7 @@ Authors: Josef Koller
 Institution: Los Alamos National Laboratory
 Contact: jkoller@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 from spacepy import help

@@ -8,7 +8,7 @@ Institution: Los Alamos National Laboratory
 Contact: smorley@lanl.gov, jniehof@lanl.gov, balarsen@lanl.gov, jkoller@lanl.gov, dwelling@lanl.gov
 Los Alamos National Laboratory
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
 from __future__ import absolute_import
@@ -243,21 +243,29 @@ def loadpickle(fln):
     >>> d = loadpickle('test.pbin')
     """
     if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
+        gzip = True
+        fln += '.gz'
+    else:
+        try:
+            with open(fln, 'rb') as fh:
+                return pickle.load(fh)
+        except pickle.UnpicklingError: #maybe it's a gzip?
+            gzip = True
+        else:
+            gzip = False
+    if gzip:
         try:
             import zlib
-            with open(fln + '.gz', 'rb') as fh:
+            with open(fln, 'rb') as fh:
                 return pickle.loads(
                     zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS))
         except MemoryError:
             import gzip
-            with open(fln + '.gz') as fh:
+            with open(fln) as fh:
                 gzh = gzip.GzipFile(fileobj=fh)
                 contents = pickle.load(gzh)
                 gzh.close()
             return contents
-    else:
-        with open(fln, 'rb') as fh:
-            return pickle.load(fh)
 
 
 # -----------------------------------------------

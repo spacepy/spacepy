@@ -11,8 +11,9 @@ Institution: Los Alamos National Laboratory
 Contact: balarsen@lanl.gov
 
 
-Copyright ©2011 Los Alamos National Security, LLC.
+Copyright 2011 Los Alamos National Security, LLC.
 
 """
 
-from spectrogram import spectrogram
+__all__ = ["spectrogram", "utils"]
+

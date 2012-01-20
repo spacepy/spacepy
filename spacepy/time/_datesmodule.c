@@ -5,7 +5,7 @@
 #
 # Brian Larsen & Jon Niehof
 # balarsen@lanl.gov
-# Copyright ©2010 - 2011 Los Alamos National Security, LLC.
+# Copyright 2010 - 2011 Los Alamos National Security, LLC.
 *************************************************************************/
 // the normal include for python extension modules
 #include <Python.h>

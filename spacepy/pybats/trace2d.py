@@ -3,7 +3,7 @@
 A set of routines for fast field line tracing.
 "Number crunching" is performed in C for speed.
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 '''
 
 from . import ctrace2d

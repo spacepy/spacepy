@@ -1,9 +1,5 @@
 """
-spacepy.plot.utils
-
-various utility routines for plotting and plot related activities
-
-.. currentmodule:: spacepy.plot.utils
+Utility routines for plotting and related activities
 
 Authors: Jonathan Niehof
 
@@ -11,7 +7,15 @@ Institution: Los Alamos National Laboratory
 
 Contact: jniehof@lanl.gov
 
-Copyright 2011-2012 Los Alamos National Security, LLC.
+Copyright 2012 Los Alamos National Security, LLC.
+
+.. currentmodule:: spacepy.plot.utils
+
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    EventClicker
 """
 
 __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
@@ -20,15 +24,11 @@ import bisect
 import datetime
 
 import matplotlib.pyplot as plt
-import matplotlib.dates
 import numpy
+import spacepy.time
 
-#TODO: these infernal docs don't cross-link. Fix 'em.
-#TODO: put an example in the docs
 class EventClicker(object):
     """
-    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
-
     Presents a provided figure (normally a time series) and provides
     an interface to mark events shown in the plot. The user interface
     is explained in :meth:`analyze` and results are returned
@@ -77,6 +77,44 @@ class EventClicker(object):
         Specify the matplotlib line object to use for autoscaling the
         Y axis. If this is not specified, the first line object on the
         provided subplot will be used. This should usually be correct.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import numpy
+    >>> import matplotlib.pyplot as plt
+    >>> x = numpy.arange(630) / 100.0 * numpy.pi
+    >>> y = numpy.sin(x)
+    >>> clicker = spacepy.plot.utils.EventClicker(
+    ... n_phases=2, #Two picks per event
+    ... interval=numpy.pi * 2) #Display one cycle at a time
+    >>> plt.plot(x, y)
+    >>> clicker.analyze() #Double-click on max and min of each cycle; close
+    >>> e = clicker.get_events()
+    >>> peaks = e[:, 0, 0] #x value of event starts
+    >>> peaks -= 2 * numpy.pi * numpy.floor(peaks / (2 * numpy.pi)) #mod 2pi
+    >>> max(numpy.abs(peaks - numpy.pi / 2)) < 0.2 #Peaks should be near pi/2
+    True
+    >>> troughs = e[:, 1, 0] #x value of event ends
+    >>> troughs -= 2 * numpy.pi * numpy.floor(troughs / (2 * numpy.pi))
+    >>> max(numpy.abs(peaks - 3 * numpy.pi / 2)) < 0.2 #troughs near 3pi/2
+    True
+    >>> d = clicker.get_events_data() #snap-to-data of events
+    >>> peakvals = d[:, 0, 1] #y value, snapped near peaks
+    >>> max(peakvals) <= 1.0 #should peak at 1
+    True
+    >>> min(peakvals) > 0.9 #should click near 1
+    True
+    >>> troughvals = d[:, 1, 1] #y value, snapped near peaks
+    >>> max(troughvals) <= -0.9 #should click near -1
+    True
+    >>> min(troughvals) <= -1.0 #should bottom-out at -1
+    True    
+
+    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
+    .. automethod:: analyze
+    .. automethod:: get_events
+    .. automethod:: get_events_data
     """
     _colors = ['k', 'r', 'g']
     _styles = ['solid', 'dashed', 'dotted']
@@ -204,23 +242,29 @@ class EventClicker(object):
             self._ydata = self._line.get_ydata()
             self._x_is_datetime = isinstance(self._xdata[0],
                                              datetime.datetime)
-            self._xydata = numpy.column_stack(
-                (matplotlib.dates.date2num(self._xdata), self._ydata))
+            if self._x_is_datetime:
+                self._xydata = numpy.column_stack(
+                    (spacepy.time.date2num(self._xdata), self._ydata))
+            else:
+                self._xydata = numpy.column_stack((self._xdata, self._ydata))
             if self._ymin is None: #Make the clipping comparison always fail
-                self._ymin = max(self._ydata)
+                self._ymin = numpy.nanmax(self._ydata)
             if self._ymax is None:
-                self._ymax = min(self._ydata)
+                self._ymax = numpy.nanmin(self._ydata)
 
         if self._autointerval is None:
             self._autointerval = self.interval is None
         if self.interval is None:
             (left, right) = self.ax.get_xaxis().get_view_interval()
             if self._x_is_datetime:
-                right = matplotlib.dates.num2date(right).replace(tzinfo=None)
-                left = matplotlib.dates.num2date(left).replace(tzinfo=None)
+                right = spacepy.time.num2date(right)
+                left = spacepy.time.num2date(left)
             self.interval = right - left
 
-        self._relim(self._xdata[0])
+        if not self._xdata is None:
+            self._relim(self._xdata[0])
+        else:
+            self._relim(self.ax.get_xaxis().get_view_interval()[0])
         self._cids = []
         self._cids.append(self.fig.canvas.mpl_connect('button_press_event', self._onclick))
         self._cids.append(self.fig.canvas.mpl_connect('close_event', self._onclose))
@@ -234,7 +278,6 @@ class EventClicker(object):
 
         Returns
         =======
-        
         out : array
             3-D array of (x, y) values clicked on.
             Shape is (n_events, n_phases, 2), i.e. indexed by event
@@ -243,7 +286,7 @@ class EventClicker(object):
         if self._events is None:
             return None
         else:
-            return self._events[0:-1]
+            return self._events[0:-1].copy()
 
     def get_events_data(self):
         """Get a list of events, "snapped" to the data.
@@ -259,8 +302,7 @@ class EventClicker(object):
         Call after :meth:`analyze`.
 
         Returns
-        =======
-        
+        =======        
         out : array
             3-D array of (x, y) values in the data which are closest to each
             point clicked on. Shape is (n_events, n_phases, 2), i.e. indexed
@@ -269,7 +311,7 @@ class EventClicker(object):
         if self._data_events is None:
             return None
         else:
-            return self._data_events[0:-1]
+            return self._data_events[0:-1].copy()
 
     def _add_event_phase(self, xval, yval):
         """Add a phase of the event"""
@@ -278,7 +320,9 @@ class EventClicker(object):
             color=self._colors[self._curr_phase % len(self._colors)],
             ls=self._styles[self._curr_phase / len(self._colors) % len(self._styles)])
         if not self._xydata is None:
-            point_disp = self.ax.transData.transform((xval, yval))
+            point_disp = self.ax.transData.transform(
+                numpy.array([[xval, yval]])
+                )[0]
             data_disp = self.ax.transData.transform(self._xydata)
             idx = numpy.argmin(numpy.sum(
                 (data_disp - point_disp) ** 2, axis=1
@@ -289,7 +333,7 @@ class EventClicker(object):
             self._data_events[-1, self._curr_phase] = \
                                   [self._xdata[idx], self._ydata[idx]]
         if self._x_is_datetime:
-            xval = matplotlib.dates.num2date(xval).replace(tzinfo=None)
+            xval = spacepy.time.num2date(xval)
         if self._events is None:
             self._events = numpy.array([[[xval, yval]] * self.n_phases])
         self._events[-1, self._curr_phase] = [xval, yval]
@@ -364,7 +408,7 @@ class EventClicker(object):
         if event.key == ' ':
             rightside = self.ax.xaxis.get_view_interval()[1]
             if self._x_is_datetime:
-                rightside = matplotlib.dates.num2date(rightside).replace(tzinfo=None)
+                rightside = spacepy.time.num2date(rightside)
             self._relim(rightside)
         if event.key == 'delete':
             self._delete_event_phase()
@@ -382,8 +426,8 @@ class EventClicker(object):
             idx_r = bisect.bisect_right(self._xdata, xmax)
             if idx_l >= len(self._ydata):
                 idx_l = len(self._ydata) - 1
-            ymin = min(self._ydata[idx_l:idx_r])
-            ymax = max(self._ydata[idx_l:idx_r])
+            ymin = numpy.nanmin(self._ydata[idx_l:idx_r])
+            ymax = numpy.nanmax(self._ydata[idx_l:idx_r])
             if ymin > self._ymin:
                 ymin = self._ymin
             if ymax < self._ymax:

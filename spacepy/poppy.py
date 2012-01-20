@@ -56,7 +56,7 @@ Authors: Steve Morley and Jon Niehof
 Institution: Los Alamos National Laboratory
 Contact: smorley@lanl.gov, jniehof@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import bisect
