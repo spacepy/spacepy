@@ -70,6 +70,7 @@ SpacePy Code
     data_assimilation
     empiricals
     omni
+    plot
     poppy
     pycdf
     radbelt
@@ -77,7 +78,6 @@ SpacePy Code
     spacepy_EnKF
     time
     toolbox
-    plot
 ..  realtime
 
 
