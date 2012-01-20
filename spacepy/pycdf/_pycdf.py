@@ -1283,7 +1283,7 @@ class CDF(collections.MutableMapping):
 
         Other Parameters
         ================
-        data : 
+        data
             data to store in the new variable
         type : ctypes.c_long
             CDF type of the variable, from :doc:`const </pycdf_const>`.
@@ -1307,6 +1307,34 @@ class CDF(collections.MutableMapping):
         ======
         ValueError : if neither data nor sufficient typing information
                      is provided.
+
+        Notes
+        =====
+        Any given data may be representable by a range of CDF types; if
+        the type is not specified, pycdf will guess which
+        the CDF types which can represent this data. This breaks down to:
+          #. Proper kind (numerical, string, time)
+          #. Proper range (stores highest and lowest number provided)
+          #. Sufficient resolution (EPOCH16 required if datetime has
+             microseconds or below.)
+
+        If more than one value satisfies the requirements, types are returned
+        in preferred order:
+          #. Type that matches precision of data first, then
+          #. integer type before float type, then
+          #. Smallest type first, then
+          #. signed type first, then
+          #. specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
+        So for example, EPOCH_16 is preferred over EPOCH if ``data`` specifies
+        below the millisecond level (rule 1), but otherwise EPOCH is preferred
+        (rule 2).
+
+        For floats, four-byte is preferred unless eight-byte is required:
+          #. absolute values between 0 and 3e-39
+          #. absolute values greater than 1.7e38
+        This will switch to an eight-byte double in some cases where four bytes
+        would be sufficient for IEEE 754 encoding, but where DEC formats would
+        require eight.
         """
         if data == None:
             if type == None:
