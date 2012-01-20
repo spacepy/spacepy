@@ -3764,8 +3764,8 @@ class gAttrList(AttrList):
     """
     Object representing `all` the gAttributes in a CDF.
 
-    Normally accessed as an attribute of an open :py:class:`pycdf.CDF`
-    >>> global_attribs = cdffile.attrs
+    Normally accessed as an attribute of an open :py:class:`CDF`:
+        >>> global_attribs = cdffile.attrs
 
     Appears as a dictionary: keys are attribute names; each value is an
     attribute represented by a :py:class:`gAttr` object. To access the global
