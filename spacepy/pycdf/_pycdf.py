@@ -240,8 +240,7 @@ class Library(object):
 
         Warns
         =====
-        CDFWarning : if CDF_WARN <= status < CDF_OK, indicating a warning,
-                           `and` interpreter is set to error on warnings.
+        CDFWarning : if CDF_WARN <= status < CDF_OK, indicating a warning.
 
         Returns
         =======
@@ -679,6 +678,9 @@ class CDF(collections.MutableMapping):
     ======
     CDFError
         if CDF library reports an error
+
+    Warns
+    =====
     CDFWarning
         if CDF library reports a warning and interpreter
         is set to error on warnings.
@@ -1414,16 +1416,15 @@ class CDFCopy(dict):
 
 
 class Var(collections.MutableSequence):
-    """A CDF variable.
+    """
+    A CDF variable.
 
-    Reading
-    =======
     This object does not directly store the data from the CDF; rather,
     it provides access to the data in a format that looks like a Python
     list. General list information is available in the python docs:
-    U{1<http://docs.python.org/tutorial/introduction.html#lists>},
-    U{2<http://docs.python.org/tutorial/datastructures.html#more-on-lists>},
-    U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
+    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
+    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
     A record-varying variable's data are viewed as a hypercube of dimensions
     n_dims+1 and are indexed in row-major fashion, i.e. the last
@@ -1439,7 +1440,7 @@ class Var(collections.MutableSequence):
     representing the record number. If the CDF is column major,
     the data are reordered to row major. Each dimension is specified
     by standard Python
-    U{slice<http://docs.python.org/tutorial/introduction.html#strings>}
+    `slice <http://docs.python.org/tutorial/introduction.html#strings>`_
     notation, with dimensions separated by commas. The ellipsis fills in
     any missing dimensions with full slices. The returned data are
     lists; Python represents multidimensional arrays as nested lists.
@@ -1457,28 +1458,28 @@ class Var(collections.MutableSequence):
       2. Requests for multi-dimensional variables may skip the record-number
          dimension and simply specify the slice on the array itself. In that
          case, the slice of the array will be returned for all records.
-    In the event of ambiguity (i.e. single-dimension slice on a one-dimensional
+    In the event of ambiguity (e.g., single-dimension slice on a one-dimensional
     variable), case 1 takes priority.
     Otherwise, mismatch between the number of dimensions specified in
     the slice and the number of dimensions in the variable will cause
-    an IndexError to be thrown.
+    an :py:exc:IndexError to be thrown.
 
     This all sounds very complicated but it's essentially attempting
     to do the 'right thing' for a range of slices.
 
-    As a list type, variables are also U{iterable
-    <http://docs.python.org/tutorial/classes.html#iterators>}; iterating
+    As a list type, variables are also `iterable
+    <http://docs.python.org/tutorial/classes.html#iterators>`_; iterating
     over a variable returns a single complete record at a time.
 
-    This is all clearer with examples. Consider a variable B_GSM, with
+    This is all clearer with examples. Consider a variable ``B_GSM``, with
     three elements per record (x, y, z components) and fifty records in
     the CDF. Then:
-      1. C{B_GSM[0, 1]} is the y component of the first record.
-      2. C{B_GSM[10, :]} is a three-element list, containing x, y, and z
+      1. ``B_GSM[0, 1]`` is the y component of the first record.
+      2. ``B_GSM[10, :]`` is a three-element list, containing x, y, and z
          components of the 11th record. As a shortcut, if only one dimension
          is specified, it is assumed to be the record number, so this
-         could also be written C{B_GSM[10]}.
-      3. C{B_GSM[...]} reads all data for B_GSM and returns it as a
+         could also be written ``B_GSM[10]``.
+      3. ``B_GSM[...]`` reads all data for ``B_GSM`` and returns it as a
          fifty-element list, each element itself being a three-element
          list of x, y, z components.
 
@@ -1488,12 +1489,12 @@ class Var(collections.MutableSequence):
     representing (say) ten energy steps and the second, eighteen
     pitch angle bins (ten degrees wide, centered from 5 to 175 degrees).
     Assume 100 records stored in the CDF (i.e. 100 different times).
-      1. C{Flux[4]} is a list of ten elements, one per energy step,
+      1. ``Flux[4]`` is a list of ten elements, one per energy step,
          each element being a list of 18 fluxes, one per pitch bin.
          All are taken from the fifth record in the CDF.
-      2. C{Flux[4, :, 0:4]} is the same record, all energies, but
+      2. ``Flux[4, :, 0:4]`` is the same record, all energies, but
          only the first four pitch bins (roughly, field-aligned).
-      3. C{Flux[..., 0:4]} is a 100-element list (one per record),
+      3. ``Flux[..., 0:4]`` is a 100-element list (one per record),
          each element being a ten-element list (one per energy step),
          each containing fluxes for the first four pitch bins.
     This slicing notation is very flexible and allows reading
@@ -1501,63 +1502,77 @@ class Var(collections.MutableSequence):
 
     All data are, on read, converted to appropriate Python data
     types; EPOCH and EPOCH16 types are converted to
-    U{datetime<http://docs.python.org/library/datetime.html>}.
+    `datetime <http://docs.python.org/library/datetime.html>`_.
 
     Potentially useful list methods and related functions:
-      - U{count<http://docs.python.org/tutorial/datastructures.html#more-on-lists>}
-      - U{in<http://docs.python.org/reference/expressions.html#in>}
-      - U{index<http://docs.python.org/tutorial/datastructures.html#more-on-lists>}
-      - U{len<http://docs.python.org/library/functions.html#len>}
-      - U{list comprehensions
-        <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>}
-      - U{sorted<http://docs.python.org/library/functions.html#sorted>}
+      - `count <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
+      - `in <http://docs.python.org/reference/expressions.html#in>`_
+      - `index <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
+      - `len <http://docs.python.org/library/functions.html#len>`_
+      - `list comprehensions
+        <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>`_
+      - `sorted <http://docs.python.org/library/functions.html#sorted>`_
 
     The topic of array majority can be very confusing; good background material
-    is available at U{IDL Array Storage and Indexing
-    <http://www.dfanning.com/misc_tips/colrow_major.html>}. In brief,
+    is available at `IDL Array Storage and Indexing
+    <http://www.dfanning.com/misc_tips/colrow_major.html>`_. In brief,
     *regardless of the majority stored in the CDF*, pycdf will always present
     the data in the native Python majority, row-major order, also known as
-    C order. This is the default order in U{numPy
+    C order. This is the default order in `numPy
     <http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
-    #internal-memory-layout-of-an-ndarray>}.
+    #internal-memory-layout-of-an-ndarray>`_.
     However, packages that render image data may expect it in column-major
     order. If the axes seem 'swapped' this is likely the reason.
 
-    The L{attrs} Python attribute acts as a dictionary referencing zAttributes
-    attributes (do not confuse the two); all the dictionary methods above
-    also work on the attribute dictionary. See L{zAttrList} for more on the
-    dictionary of global attributes.
+    The ``attrs`` Python attribute acts as a dictionary referencing zAttributes
+    (do not confuse the two); all the dictionary methods above
+    also work on the attribute dictionary. See :py:class:zAttrList for more on
+    the dictionary of attributes.
 
-    Writing
-    =======
-    As with reading, every attempt has been made to match the behavior of
-    Python lists. You can write one record, many records, or even certain
-    elements of all records. There is one restriction: only the record
+    With writing, as with reading, every attempt has been made to match the
+    behavior of Python lists. You can write one record, many records, or even
+    certain elements of all records. There is one restriction: only the record
     dimension (i.e. dimension 0) can be resized by write, as all records
     in a variable must have the same dimensions. Similarly, only whole
     records can be deleted.
 
     For these examples, assume Flux has 100 records and dimensions [2, 3].
-      1. C{Flux[0] = [[1, 2, 3], [4, 5, 6]]} rewrites the first record
+      1. ``Flux[0] = [[1, 2, 3], [4, 5, 6]]`` rewrites the first record
          without changing the rest.
-      2. C{Flux[...] = [[1, 2, 3], [4, 5, 6]]} writes a new first record
+      2. ``Flux[...] = [[1, 2, 3], [4, 5, 6]]`` writes a new first record
          and deletes all the rest.
-      3. C{Flux[99:] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]}
+      3. ``Flux[99:] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]``
          writes a new record in the last position and adds a new record after.
-      4. C{Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]}
+      4. ``Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]``
          inserts two new records between the current number 5 and 6. This
          operation can be quite slow, as it requires reading and rewriting the
          entire variable. (CDF does not directly support record insertion.)
-      5. C{Flux[0:2, 0, 0] = [1, 2]} changes the first element of the first
+      5. ``Flux[0:2, 0, 0] = [1, 2]`` changes the first element of the first
          two records but leaves other elements alone.
-      6. C{del Flux[0]} removes the first record.
-      7. C{del Flux[5]} removes record 5 (the sixth). Due to the need to work
+      6. ``del Flux[0]`` removes the first record.
+      7. ``del Flux[5]`` removes record 5 (the sixth). Due to the need to work
          around a bug in the CDF library, this operation can be quite slow.
-      8. C{del Flux[...]} deletes *all data* from C{Flux}, but leaves the
+      8. ``del Flux[...]`` deletes *all data* from ``Flux``, but leaves the
          variable definition intact.
 
-    @ivar cdf_file: the CDF file containing this variable
-    @type cdf_file: :py:class:`pycdf.CDF`
+    .. note::
+        Not intended to be created directly; use methods of
+        :py:class:`CDF` to gain access to a variable.
+    .. note::
+        Although this interface only directly supports zVariables, zMode is
+        set on opening the CDF so rVars appear as zVars. See p.24 of the
+        CDF user's guide; pyCDF uses zMode 2.
+
+    .. automethod:: insert
+    .. automethod:: copy
+    .. automethod:: rename
+    .. automethod:: name
+    .. automethod:: compress
+    .. automethod:: type
+    .. automethod:: dv
+    .. automethod:: rv
+..  @ivar cdf_file: the CDF file containing this variable
+    @type cdf_file: :py:class:`CDF`
     @cvar attrs: Returns attributes for this zVariable (see L{zAttrList})
     @type attrs: L{_AttrListGetter}
     @ivar _name: name of this variable
@@ -1568,27 +1583,35 @@ class Var(collections.MutableSequence):
     @raise CDFError: if CDF library reports an error
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
-    @note: Not intended to be created directly; use methods of :py:class:`pycdf.CDF`
-           to gain access to a variable.
-    @note: Although this interface only directly supports zVariables, zMode is
-           set on opening the CDF so rVars appear as zVars. See p.24 of the
-           CDF user's guide; pyCDF uses zMode 2.
     """
     attrs = _AttrListGetter()
 
     def __init__(self, cdf_file, var_name, *args):
         """Create or locate a variable
 
-        @param cdf_file: CDF file containing this variable
-        @type cdf_file: :py:class:`pycdf.CDF`
-        @param var_name: name of this variable
-        @type var_name: string
-        @param args: additional arguments passed to L{_create}. If none,
-                     opens an existing variable. If provided, creates a
-                     new one.
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
+        Parameters
+        ==========
+        cdf_file : :py:class:`pycdf.CDF`
+            CDF file containing this variable
+        var_name : string
+            name of this variable
+
+        Other Parameters
+        ================
+        args
+            additional arguments passed to :py:meth:`_create`. If none,
+            opens an existing variable. If provided, creates a
+            new one.
+
+        Raises
+        ======
+        CDFError
+            if CDF library reports an error
+
+        Warns
+        =====
+        CDFWarning
+            if CDF library reports a warning
         """
         self.cdf_file = cdf_file
         self._name = None
@@ -1916,17 +1939,20 @@ class Var(collections.MutableSequence):
         """
         Gets or sets whether this variable has record variance
 
-        If the variance is unknown, True is assumed (this replicates the apparent behavior of the CDF library on variable creation).
+        If the variance is unknown, True is assumed
+        (this replicates the apparent behavior of the CDF library on
+        variable creation).
 
-        Parameters
+        Other Parameters
         ==========
-        new_rv : Boolean
-            True to change to record variance, False to change to NRV (unspecified to simply check variance.)
+        new_rv : boolean
+            True to change to record variance, False to change to NRV,
+            unspecified to simply check variance.
 
         Returns
         =======
         out : Boolean
-            True if record variance, False if NRV
+            True if record varying, False if NRV
         """
         if new_rv != None:
             self._call(const.PUT_, const.zVAR_RECVARY_,
@@ -1940,19 +1966,19 @@ class Var(collections.MutableSequence):
         Gets or sets dimension variance of each dimension of variable.
 
         If the variance is unknown, True is assumed
-            (this replicates the apparent behavior of the
-            CDF library on variable creation).
+        (this replicates the apparent behavior of the
+        CDF library on variable creation).
 
         Parameters
         ==========
         new_dv : list of boolean
             Each element True to change that dimension to dimension
-                       variance, False to change to not dimension variance.
-                       (Unspecified to simply check variance.)
+            variance, False to change to not dimension variance.
+            (Unspecified to simply check variance.)
 
         Returns
         =======
-        out : lost of boolean
+        out : list of boolean
             True if that dimension has variance, else false.
         """
         ndims = self._n_dims()
@@ -2012,7 +2038,7 @@ class Var(collections.MutableSequence):
         Parameters
         ==========
         new_type : ctypes.c_long
-            the new type, see :py:mod:`pycdf.const`
+            the new type from :doc:`const </pycdf_const>`
 
         Returns
         =======
@@ -2061,24 +2087,25 @@ class Var(collections.MutableSequence):
         Set or check the compression of this variable
 
         Compression may not be changeable on variables with data already
-               written; even deleting the data may not permit the change.
+        written; even deleting the data may not permit the change.
 
-        Parameters
-        ==========
+        Other Parameters
+        ================
         comptype : ctypes.c_long
             type of compression to change to, see CDF C reference
-                         manual section 4.10. Constants for this parameter
-                         are in :py:mod:`pycdf.const`. If not specified, will not change
-                         compression.
+            manual section 4.10. Constants for this parameter
+            are in :doc:`const </pycdf_const>`. If not specified, will not
+            change compression.
         param : ctypes.c_long
-            Compression parameter, see CDF CRM 4.10 and :py:mod:`pycdf.const`.
-                      If not specified, will choose reasonable default (5 for
-                      gzip; other types have only one possible parameter.)
+            Compression parameter, see CDF CRM 4.10 and
+            :doc:`const </pycdf_const>`.
+            If not specified, will choose reasonable default (5 for
+            gzip; other types have only one possible parameter.)
 
         Returns
         =======
         out : tuple
-            (comptype, param) currently in effect
+            the (comptype, param) currently in effect
         """
         return _compress(self, comptype, param)
 
@@ -2088,7 +2115,7 @@ class Var(collections.MutableSequence):
 
         Returns
         =======
-        out : py:class:`pycdf.VarCopy`
+        out : py:class:`VarCopy`
             list of all data in record order
         """
         return VarCopy(self)
