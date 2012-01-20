@@ -22,3 +22,4 @@ graft tests
 prune tests/htmlcov
 #Cruft to keep out
 recursive-exclude * *.o *.pyc *~ *.bak
+recursive-exclude spacepy realtime.*
