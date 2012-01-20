@@ -83,8 +83,22 @@ class PPro(object):
     events, given as lists, arrays, or lists of datetime objects.
     Includes method to perform association analysis of input series
 
-    Output can be nicely plotted with plot method
+    Output can be nicely plotted with :py:meth:`plot`.
 
+    .. currentmodule:: spacepy.poppy
+    .. autosummary::
+        ~PPro.aa_ci
+        ~PPro.assoc
+        ~PPro.assoc_mult
+        ~PPro.plot
+        ~PPro.plot_mult
+        ~PPro.swap
+    .. automethod:: aa_ci
+    .. automethod:: assoc
+    .. automethod:: assoc_mult
+    .. automethod:: plot
+    .. automethod:: plot_mult
+    .. automethod:: swap
     """
     #NB: P2 is the "master" timescale, P1 gets shifted by lags
     #Add lag to p1 to reach p2's timescale, subtract lag from p2 to reach p1's
@@ -294,8 +308,8 @@ class PPro(object):
              xlabel='Time lag', xscale=None, ylabel=None, title=None, transparent=True):
         """Create basic plot of association analysis.
 
-        Uses object attributes created by the assoc method and,
-        optionally, aa_ci.
+        Uses object attributes created by :py:meth:`assoc` and,
+        optionally, :py:meth:`aa_ci`.
 
         Parameters
         ==========
@@ -395,22 +409,22 @@ class PPro(object):
     def aa_ci(self, inter, n_boots=1000, seed=None):
         """Get bootstrap confidence intervals for association number
 
-        Requires input of desired confidence interval, e.g.,
-        >>> obj.aa_ci(95)
+        Requires input of desired confidence interval, e.g.:
+            >>> obj.aa_ci(95)
 
         Upper and lower confidence limits are added to the ci attribute
 
         Attribute conf_above will contain the confidence (in percent) that
-        the association number at that lag is I{above} the asymptotic
+        the association number at that lag is *above* the asymptotic
         association number. (The confidence of being below is 100 - conf_above)
-        For minor variations in conf_above to be meaningful, a I{large} number
+        For minor variations in conf_above to be meaningful, a *large* number
         of bootstraps is required. (Rougly, 1000 to be meaningful to the
         nearest percent; 10000 to be meaningful to a tenth of a percent.) A
         conf_above of 100 usually indicates an insufficient sample size to
-        resolve, I{not} perfect certainty.
+        resolve, *not* perfect certainty.
 
         Note also that a 95% chance of being above indicates an exclusion
-        from the *90*% confidence interval!
+        from the *90%* confidence interval!
 
         Parameters
         ==========
