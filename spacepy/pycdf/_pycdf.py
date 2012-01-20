@@ -470,13 +470,19 @@ class Library(object):
         return [epoch16[0], epoch16[1]]
 
 
-lib = Library()
-"""Module global library object.
-
-Initalized at module load time so all classes have ready
-access to the CDF library and a common state.
-"""
-
+try:
+    lib = Library()
+    """Module global library object.
+    
+    Initalized at module load time so all classes have ready
+    access to the CDF library and a common state.
+    """
+except:
+    if 'sphinx' in sys.argv[0]:
+        warnings.warn('CDF library did not load. '
+                      'You appear to be building docs, so ignoring this error.')
+    else:
+        raise
 
 class CDFException(Exception):
     """
