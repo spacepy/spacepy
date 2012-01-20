@@ -8,11 +8,20 @@ time - Time conversion, manipulation and implementation of Ticktock class
    :members:
    :undoc-members:
 
+.. rubric:: Classes
+
 .. autosummary::
+    :template: clean_class.rst
     :toctree: autosummary
 
     Tickdelta
     Ticktock
+
+.. rubric:: Functions
+
+.. autosummary::
+    :toctree: autosummary
+
     doy2date
     tickrange
     sec2hms
