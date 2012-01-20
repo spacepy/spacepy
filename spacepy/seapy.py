@@ -164,9 +164,6 @@ class Sea(SeaBase):
     'times' and epochs should be in some useful format
     Includes method to perform superposed epoch analysis of input data series
 
-    Output can be nicely plotted with plot method, or for multiple objects
-    use the seamulti function
-
     Parameters
     ==========
     data : array_like
@@ -180,7 +177,18 @@ class Sea(SeaBase):
     delta : datetime.timedelta
         resolution of the input data series, which must be uniform (can also be
         given as serial time)
-    
+
+    Notes
+    =====
+    Output can be nicely plotted with :py:meth:`plot`, or for multiple objects
+    use the :py:func:`multisea` function
+
+    .. currentmodule:: spacepy.seapy
+    .. autosummary::
+        ~Sea.sea
+        ~Sea.plot
+    .. automethod:: sea
+    .. automethod:: plot
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
         super(Sea, self).__init__(data, times, epochs, \
@@ -189,10 +197,8 @@ class Sea(SeaBase):
     def sea(self, **kwargs):
         """Method called to perform superposed epoch analysis on data in object.
 
-        Parameters
-	==========
-        Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
-        all of which must be available on instantiation.
+        Uses object attributes obj.data, obj.times, obj.epochs, obj.delta,
+        obj.window, all of which must be available on instantiation.
 
 	Other Parameters
         ================
@@ -202,12 +208,14 @@ class Sea(SeaBase):
 	    calculates the quartiles as the upper and lower bounds (and is default);
         ci : float
 	    will find the bootstrapped confidence intervals (and requires ci_quan to be set);
-        mad : flaot
+        mad : float
 	    will use +/- the median absolute deviation for the bounds;
         ci_quan : string
 	    can be set to 'median' or 'mean'
 
-        A basic plot can be raised with the obj.plot() method
+        Notes
+        =====
+        A basic plot can be raised with :meth:`plot`
         """
         #check this hasn't already been done
         #TODO: find out why doing two .sea() calls back-to-back fails 2nd time
@@ -436,6 +444,8 @@ class Sea(SeaBase):
         transparent : boolean
 	    (default True): make patch for low/high bounds transparent
 
+        Notes
+        =====
         If both quan and units are supplied, axis label will read
         'Quantity Entered By User [Units]'
         """
@@ -516,9 +526,6 @@ class Sea2d(SeaBase):
     'times' and epochs should be in some useful format
     Includes method to perform superposed epoch analysis of input data series
 
-    Output can be nicely plotted with plot method, or for multiple
-    objects use the seamulti function
-
     Parameters
     ==========
     data : array_like
@@ -533,6 +540,18 @@ class Sea2d(SeaBase):
         resolution of the input data series, which must be uniform (can also be
         given as serial time)
 
+    Notes
+    =====
+    Output can be nicely plotted with :meth:`plot`, or for multiple
+    objects use the :func:`multisea` function
+
+
+    .. currentmodule:: spacepy.seapy
+    .. autosummary::
+        ~Sea2d.sea
+        ~Sea2d.plot
+    .. automethod:: sea
+    .. automethod:: plot
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=False, y=[]):
         super(Sea2d, self).__init__(data, times, epochs, window=window, \
@@ -545,22 +564,29 @@ class Sea2d(SeaBase):
 
     def sea(self, storedata=False, quartiles=True, ci=False, mad=False,
         ci_quan='median', nmask=1, **kwargs):
-        """Method called to perform 2D superposed epoch analysis on data in object.
+        """Perform 2D superposed epoch analysis on data in object
 
-        Parameters
-        ==========
-        Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
-        all of which must be available on instantiation.
+        Uses object attributes obj.data, obj.times, obj.epochs, obj.delta,
+        obj.window, all of which must be available on instantiation.
 
         Other Parameters
         ================
-            - storedata (default = False) - saves matrix of epoch windows as obj.datacube
-            - quartiles calculates the inter-quartile range to show the spread (and is default);
-            - ci will find the bootstrapped confidence interval (and requires ci_quan to be set);
-            - mad will use the median absolute deviation for the spread;
-            - ci_quan can be set to 'median' or 'mean'
+        storedata : boolean
+            saves matrix of epoch windows as obj.datacube (default = False)
+        quartiles : list
+            calculates the inter-quartile range to show the spread
+            (and is default);
+        ci : float
+            will find the bootstrapped confidence interval
+            (and requires ci_quan to be set)
+        mad : float
+            will use the median absolute deviation for the spread;
+        ci_quan : string
+            can be set to 'median' or 'mean'
 
-        A basic plot can be raised with the obj.plot() method
+        Notes
+        =====
+        A basic plot can be raised with :meth:`plot`
         """
         #ensure all input is np array or correct form
         delt = float(self.delta)
@@ -627,21 +653,29 @@ class Sea2d(SeaBase):
                 show=True, zlog=True, figsize=None, dpi=300):
         """Method called to create basic plot of 2D superposed epoch analysis.
 
-        Parameters
-        ==========
-        Uses object attributes created by the obj.sea() method.
+        Uses object attributes created by :meth:`sea`.
 
         Other Parameters
         ================
-            - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
-            - x(y/z)units (default = None (None)) - x(y/z)-axis units.
-            - epochline (default = False) - put vertical line at zero epoch.
-            - usrlimy (default = []) - override automatic y-limits on plot.
-            - show (default = True) - shows plot; set to false to output plot object to variable
-            - figsize - tuple of (width, height) in inches
-            - dpi (default=300) - figure resolution in dots per inch
+        x(y)quan : str
+            x(y)-axis label.  (default = 'Time since epoch' (None))
+        x(y/z)units : str
+            x(y/z)-axis units. (default = None (None))
+        epochline : boolean
+            put vertical line at zero epoch. (default = False)
+        usrlimy : list
+            override automatic y-limits on plot. (default = [])
+        show : boolean
+            shows plot; set to false to output plot object to variable
+            (default = True)
+        figsize : tuple
+            (width, height) in inches
+        dpi : int
+            figure resolution in dots per inch (default=300)
 
-        If both ?quan and ?units are supplied, axis label will read
+        Notes
+        =====
+        If both quan and units are supplied, axis label will read
         'Quantity Entered By User [Units]'
         """
         try:
