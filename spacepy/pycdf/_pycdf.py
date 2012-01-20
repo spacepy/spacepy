@@ -3740,10 +3740,11 @@ class gAttrList(AttrList):
     >>> global_attribs = cdffile.attrs
 
     Appears as a dictionary: keys are attribute names; each value is an
-    attribute represented by a :py:class:`pycdf.gAttr` object. To access the global
-    attribute TEXT
-    >>> text_attr = cdffile.attrs['TEXT']
+    attribute represented by a :py:class:`gAttr` object. To access the global
+    attribute TEXT:
+        >>> text_attr = cdffile.attrs['TEXT']
 
+.. comment
     Attributes
     ==========
     attr_name : str
@@ -3773,9 +3774,9 @@ class gAttrList(AttrList):
 class zAttrList(AttrList):
     """Object representing *all* the zAttributes in a zVariable.
 
-    Normally access as an attribute of a :py:class:`pycdf.Var` in an open
-    CDF::
-    epoch_attribs = cdffile['Epoch'].attrs
+    Normally accessed as an attribute of a :py:class:`Var` in an open
+    CDF:
+        >>> epoch_attribs = cdffile['Epoch'].attrs
 
     Appears as a dictionary: keys are attribute names, values are
     the value of the zEntry associated with the appropriate zVariable.
@@ -3786,19 +3787,26 @@ class zAttrList(AttrList):
     possible.
 
     Example: finding the first dependency of (ISTP-compliant) variable
-    Flux::
-    print cdffile['Flux'].attrs['DEPEND_0']
+    ``Flux``:
+        >>> print cdffile['Flux'].attrs['DEPEND_0']
 
     zAttributes are shared among zVariables, one zEntry allowed per zVariable.
     (pyCDF hides this detail.) Deleting the last zEntry for a zAttribute will
     delete the underlying zAttribute.
 
     zEntries are created and destroyed by the usual dict methods on the
-    zAttrlist::
-    epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
-    del epoch_attribs['new_entry'] #delete the zEntry
-    :py:method:`~pycdf.zAttrList.__setitem__` describes how the type of an zEntry is determined.
+    zAttrlist:
+        >>> epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
+        >>> del epoch_attribs['new_entry'] #delete the zEntry
 
+    The type of the zEntry is guessed from data provided. The type is chosen to
+    match the data; subject to that constraint, it will try to match
+    (in order):
+        #. existing zEntry corresponding to this zVar
+        #. other zEntries in this zAttribute
+        #. the type of this zVar
+        #. data-matching constraints described in :py:meth:`CDF.new`
+.. comment
     @ivar _zvar: zVariable these attributes are in
     @type _zvar: :py:class:`pycdf.Var`
     @ivar _cdf_file: CDF these attributes are in
