@@ -2908,19 +2908,20 @@ class Attr(collections.MutableSequence):
     Represents a CDF attribute, providing access to the Entries in a format
     that looks like a Python
     list. General list information is available in the python docs:
-    U{1<http://docs.python.org/tutorial/introduction.html#lists>},
-    U{2<http://docs.python.org/tutorial/datastructures.html#more-on-lists>},
-    U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
+    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
+    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
     Each element of the list is a single Entry of the appropriate type.
     The index to the elements is the Entry number.
 
     Multi-dimensional slicing is *not* supported; an Entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
-    Example::
-    first_three = attribute[5, 0:3] #will fail
-    first_three = attribute[5][0:3] #first three elements of 5th Entry
+    Example:
+        >>> first_three = attribute[5, 0:3] #will fail
+        >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
+    .. comment::
     @ivar _cdf_file: CDF file containing this attribute
     @type _cdf_file: :py:class:`pycdf.CDF`
     @ivar _name: Name of the attribute
@@ -3417,13 +3418,13 @@ class gAttr(Attr):
     Represents a CDF attribute, providing access to the gEntries in a format
     that looks like a Python
     list. General list information is available in the python docs:
-    U{1<http://docs.python.org/tutorial/introduction.html#lists>},
-    U{2<http://docs.python.org/tutorial/datastructures.html#more-on-lists>},
-    U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
+    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
+    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
-    Normally accessed by providing a key to a :py:class:`pycdf.gAttrsList`, e.g.::
-    attribute = cdffile.attrs['attribute_name']
-    first_gentry = attribute[0]
+    Normally accessed by providing a key to a :class:`gAttrList`:
+        >>> attribute = cdffile.attrs['attribute_name']
+        >>> first_gentry = attribute[0]
 
     Each element of the list is a single gEntry of the appropriate type.
     The index to the elements is the gEntry number.
@@ -3437,33 +3438,37 @@ class gAttr(Attr):
 
     Multi-dimensional slicing is *not* supported; an entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
-    Example::
-        first_three = attribute[5, 0:3] #will fail
-        first_three = attribute[5][0:3] #first three elements of 5th Entry
+    Example:
+        >>> first_three = attribute[5, 0:3] #will fail
+        >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
     gEntries are *not* necessarily contiguous; a gAttribute may have an
-    entry 0 and entry 2 without an entry 1. C{len} will return the *number*
-    of gEntries; use L{max_idx} to find the highest defined gEntry number and
-    L{has_entry} to determine if a particular gEntry number exists. Iterating
-    over all entries is also supported::
-        entrylist = [entry for entry in attribute]
+    entry 0 and entry 2 without an entry 1. :meth:`~Attr.len` will return the
+    *number* of gEntries; use :meth:`~Attr.max_idx` to find the highest defined
+    gEntry number and :meth:`~Attr.has_entry` to determine if a particular
+    gEntry number exists. Iterating over all entries is also supported::
+        >>> entrylist = [entry for entry in attribute]
 
     Deleting gEntries will leave a "hole"::
-        attribute[0:3] = [1, 2, 3]
-        del attribute[1]
-        attribute.has_entry(1) #False
-        attribute.has_entry(2) #True
-        print attribute[0:3] #[1, None, 3]
+        >>> attribute[0:3] = [1, 2, 3]
+        >>> del attribute[1]
+        >>> attribute.has_entry(1)
+            False
+        >>> attribute.has_entry(2)
+            True
+        >>> print attribute[0:3]
+            [1, None, 3]
 
     Multi-element slices over nonexistent gEntries will return None where
     no entry exists. Single-element indices for nonexistent gEntries will
     raise IndexError. Assigning None to a gEntry will delete it.
 
-    When assigning to a gEntry, the type is chosen to match the data; subject
-    to that constraint, it will try to match (in order):
+    When assigning to a gEntry, the type is chosen to match the data;
+    subject to that constraint, it will try to match
+    (in order):
       1. existing gEntry of the same number in this gAttribute
       2. other gEntries in this gAttribute
-      3. data-matching constraints described in L{_Hyperslice.types}
+      3. data-matching constraints described in :meth:`CDF.new`)
     """
 
     def __init__(self, *args, **kwargs):
