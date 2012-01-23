@@ -2903,7 +2903,9 @@ class Attr(collections.MutableSequence):
     """An attribute, z or g, for a CDF
 
     .. warning::
-        This class should not be used directly.
+        This class should not be used directly, but only in its
+        subclasses, :class:`gAttr` and :class:`zAttr`. The methods
+        listed here are safe to use in the subclasses.
 
     Represents a CDF attribute, providing access to the Entries in a format
     that looks like a Python
@@ -2922,10 +2924,22 @@ class Attr(collections.MutableSequence):
         >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
     .. comment::
-    @ivar _cdf_file: CDF file containing this attribute
-    @type _cdf_file: :py:class:`pycdf.CDF`
-    @ivar _name: Name of the attribute
-    @type _name: bytes
+        @ivar _cdf_file: CDF file containing this attribute
+        @type _cdf_file: :py:class:`pycdf.CDF`
+        @ivar _name: Name of the attribute
+        @type _name: bytes
+
+    .. autosummary::
+        ~Attr.max_idx
+        ~Attr.new
+        ~Attr.number
+        ~Attr.rename
+        ~Attr.type
+    .. automethod:: max_idx
+    .. automethod:: new
+    .. automethod:: number
+    .. automethod:: rename
+    .. automethod:: type
     """
 
     def __init__(self, cdf_file, attr_name, create=False):
@@ -3199,14 +3213,26 @@ class Attr(collections.MutableSequence):
     def type(self, number, new_type=None):
         """Find or change the CDF type of a particular Entry number
 
-        @param number: number of Entry to check or change
-        @type number: int
-        @param new_type: type to change it to, see :py:mod:`pycdf.const`
-        @type new_type: ctypes.c_long
-        @return: CDF variable type, see :py:mod:`pycdf.const`
-        @rtype: int
-        @note: If changing types, old and new must be equivalent, see CDF
-               User's Guide section 2.5.5 pg. 57
+        Parameters
+        ==========
+        number : int
+            number of Entry to check or change
+
+        Other Parameters
+        ================
+        new_type :
+            type to change it to, from :py:mod:`pycdf.const`
+            Omit to only check type.
+
+        Returns
+        =======
+        out : int
+            CDF variable type, see :py:mod:`pycdf.const`
+
+        Notes
+        =====
+        If changing types, old and new must be equivalent, see CDF
+        User's Guide section 2.5.5 pg. 57
         """
         if not self.has_entry(number):
             raise IndexError('list index ' + str(number) + ' out of range.')
@@ -3224,10 +3250,15 @@ class Attr(collections.MutableSequence):
     def has_entry(self, number):
         """Check if this attribute has a particular Entry number
 
-        @param number: number of Entry to check
-        @type number: int
-        @return: True if L{number} is a valid entry number; False if not
-        @rtype: bool
+        Parameters
+        ==========
+        number : int
+            number of Entry to check or change
+
+        Returns
+        =======
+        out : bool
+            True if ``number`` is a valid entry number; False if not
         """
         status = self._call(const.CONFIRM_, self.ENTRY_EXISTENCE_,
                             ctypes.c_long(number),
@@ -3237,8 +3268,10 @@ class Attr(collections.MutableSequence):
     def max_idx(self):
         """Maximum index of Entries for this Attr
 
-        @return: maximum Entry number
-        @rtype: int
+        Returns
+        =======
+        out : int
+            maximum Entry number
         """
         count = ctypes.c_long(0)
         self._call(const.GET_, self.ATTR_MAXENTRY_, ctypes.byref(count))
@@ -3247,10 +3280,20 @@ class Attr(collections.MutableSequence):
     def new(self, data, type=None, number=None):
         """Create a new Entry in this Attribute
 
-        @param data: data to put in the Entry
-        @param type: type of the new Entry (otherwise guessed from L{data})
-        @param number: Entry number to write, default is lowest available number.
-        @note: Will overwrite an existing Entry.
+        .. note:: Will overwrite an existing Entry.
+
+        Parameters
+        ==========
+        data
+            data to put in the Entry
+
+        Other Parameters
+        ================
+        type : int
+            type of the new Entry, from :mod:`~pycdf.const`
+            (otherwise guessed from ``data``)
+        number : int
+            Entry number to write, default is lowest available number.
         """
         if number == None:
             number = 0
@@ -3266,8 +3309,10 @@ class Attr(collections.MutableSequence):
     def number(self):
         """Find the attribute number for this attribute
 
-        @return: attribute number
-        @rtype: int
+        Returns
+        =======
+        out : int
+            attribute number
         """
         no = ctypes.c_long(0)
         self._cdf_file._call(const.GET_, const.ATTR_NUMBER_,
@@ -3277,9 +3322,10 @@ class Attr(collections.MutableSequence):
     def global_scope(self):
         """Determine scope of this attribute.
 
-        @return: True if global (i.e. gAttr)
-                 False if zAttr
-        @rtype: bool
+        Returns
+        =======
+        out : bool
+            True if global (i.e. gAttr), False if zAttr
         """
         scope = ctypes.c_long(0)
         self._call(const.GET_, const.ATTR_SCOPE_, ctypes.byref(scope))
@@ -3295,8 +3341,10 @@ class Attr(collections.MutableSequence):
 
         Renaming a zAttribute renames it for *all* zVariables in this CDF!
 
-        @param new_name: the new name of the attribute
-        @type new_name: str
+        Parameters
+        ==========
+        new_name : str
+             the new name of the attribute
         """
         try:
             enc_name = new_name.encode('ascii')
@@ -3395,7 +3443,10 @@ class Attr(collections.MutableSequence):
 class zAttr(Attr):
     """zAttribute for zVariables within a CDF.
 
-    Do not use directly; use :class:`zAttrList` to access individual zEntries
+    .. warning::
+        Because zAttributes are shared across all variables in a CDF,
+        directly manipulating them may have unexpected consequences.
+        It is safest to operate on zEntries via :class:`zAttrList`.
     """
 
     def __init__(self, *args, **kwargs):
