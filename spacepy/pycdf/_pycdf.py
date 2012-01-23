@@ -3394,7 +3394,7 @@ class Attr(collections.MutableSequence):
 class zAttr(Attr):
     """zAttribute for zVariables within a CDF.
 
-    Do not use directly.
+    Do not use directly; use :class:`zAttrList` to access individual zEntries
     """
 
     def __init__(self, *args, **kwargs):
