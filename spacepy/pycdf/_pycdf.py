@@ -129,6 +129,17 @@ class Library(object):
                 if candidates: #choose the latest version
                     libpath = cdfdist + \
                         sorted(candidates)[-1] + '\\lib\\dllcdf.dll'
+        if not libpath and sys.platform == 'darwin':
+            cdfdist = '/Applications/'
+            if os.path.isdir(cdfdist):
+                candidates = []
+                for d in os.listdir(cdfdist):
+                    if d[0:3]=='cdf' and \
+                           os.path.exists(cdfdist + d + '/lib/libcdf.dylib'):
+                        candidates.append(d)
+                if candidates: #choose the latest version
+                    libpath = cdfdist + \
+                        sorted(candidates)[-1] + '/lib/libcdf.dylib'
 
         if not libpath:
             raise Exception('Cannot find CDF C library. ' + \
