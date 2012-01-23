@@ -3486,23 +3486,30 @@ class gAttr(Attr):
 
 
 class AttrList(collections.MutableMapping):
-    """
-    Object representing a list of attributes.
+    """Object representing a list of attributes.
 
-    Only used in its subclasses, :py:class:`pycdf.gAttrList` and :py:class:`pycdf.zAttrList`
+    .. warning::
+        This class should not be used directly, but only its
+        subclasses, :class:`gAttrList` and :class:`zAttrList`.
+        Methods listed here are safe to use from the subclasses.
 
-    @ivar _cdf_file: CDF these attributes are in
-    @type _cdf_file: :py:class:`pycdf.CDF`
-    @ivar special_entry: callable which returns a "special"
-                         entry number, used to limit results
-                         for zAttrs to those which match the zVar
-    @type special_entry: callable
-    @cvar AttrType: type of attribute in this list, L{zAttr} or L{gAttr}
-    @type AttrType: type
-    @cvar attr_name: name of attribute type, 'zAttribute' or 'gAttribute'
-    @type attr_name: str
-    @cvar global_scope: is this list scoped global (True) or variable (False)
-    @type global_scope: bool
+    .. automethod:: clone
+    .. automethod:: new
+    .. automethod:: rename
+    
+    .. comment::
+        @ivar _cdf_file: CDF these attributes are in
+        @type _cdf_file: :py:class:`pycdf.CDF`
+        @ivar special_entry: callable which returns a "special"
+            entry number, used to limit results
+            for zAttrs to those which match the zVar
+        @type special_entry: callable
+        @cvar AttrType: type of attribute in this list, L{zAttr} or L{gAttr}
+        @type AttrType: type
+        @cvar attr_name: name of attribute type, 'zAttribute' or 'gAttribute'
+        @type attr_name: str
+        @cvar global_scope: is this list scoped global (True) or variable (False)
+        @type global_scope: bool
     """
 
     def __init__(self, cdf_file, special_entry=None):
@@ -3648,16 +3655,20 @@ class AttrList(collections.MutableMapping):
 
     def clone(self, master, name=None, new_name=None):
         """
-        Clones this attribute list, or one attribute in it, from another
+        Clones another attribute list, or one attribute from it, into this
+        list.
 
         Parameters
         ==========
-        master : pycdf.AttrList
+        master : AttrList
             the attribute list to copy from
+
+        Other Parameters
+        ================
         name : str (optional)
             name of attribute to clone (default: clone entire list)
         new_name : str (optional)
-            name of the new attribute, default L{name}
+            name of the new attribute, default ``name``
         """
         if name == None:
             self._clone_list(master)
@@ -3670,7 +3681,7 @@ class AttrList(collections.MutableMapping):
 
         Returns
         =======
-        out: dict
+        out : dict
             copy of the entries for all attributes in this list
         """
         return dict((key, value[:] if isinstance(value, Attr) else value)
@@ -3684,8 +3695,14 @@ class AttrList(collections.MutableMapping):
         ==========
         name : str
             name of the new Attribute
-        data : CDF type of the first entry from :py:mod:`pycdf.const`. Only used if data are specified.
+
+        Other Parameters
+        ================
+        data : 
             data to put into the first entry in the new Attribute
+        type :
+            CDF type of the first entry from :mod:`pycdf.const`.
+            Only used if data are specified.
 
         Raises
         ======
