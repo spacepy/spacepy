@@ -44,24 +44,41 @@ class Library(object):
     Abstraction of the base CDF C library and its state.
 
     Not normally intended for end-user use. An instance of this class
-    is created at package load time as the :py:class:`pycdf.lib` variable, providing
+    is created at package load time as the :data:`~pycdf.lib` variable, providing
     access to the underlying C library if necessary.
 
-    Calling the C library directly requires knowledge of the
-    ctypes http://docs.python.org/library/ctypes.html package.
+    Calling the C library directly requires knowledge of
+    :mod:`ctypes`.
 
-    ``__init__()`` searches for and loads the C library; details on the
-    search are documented there.
+    Instantiating this object loads the C library, see :doc:`/pycdf` docs
+    for details.
 
-    @ivar _del_middle_rec_bug: does this version of the library have a bug
-                               when deleting a record from the middle of a
-                               variable?
-    @type _del_middle_rec_bug: Boolean
-    @ivar _library: :py:mod:`ctypes` connection to the library
-    @type _library: ctypes.CDLL
-    @ivar version: version of the CDF library, in order version, release,
-                   increment, subincrement
-    @type version: tuple
+    .. autosummary::
+        ~Library.call
+        ~Library.check_status
+        ~Library.datetime_to_epoch
+        ~Library.datetime_to_epoch16
+        ~Library.epoch_to_datetime
+        ~Library.epoch16_to_datetime
+        ~Library.set_backward
+    .. automethod:: call
+    .. automethod:: check_status
+    .. automethod:: datetime_to_epoch
+    .. automethod:: datetime_to_epoch16
+    .. automethod:: epoch_to_datetime
+    .. automethod:: epoch16_to_datetime
+    .. automethod:: set_backward
+
+    .. comment:
+        @ivar _del_middle_rec_bug: does this version of the library have a bug
+                                   when deleting a record from the middle of a
+                                   variable?
+        @type _del_middle_rec_bug: Boolean
+        @ivar _library: :py:mod:`ctypes` connection to the library
+        @type _library: ctypes.CDLL
+        @ivar version: version of the CDF library, in order version, release,
+                       increment, subincrement
+        @type version: tuple
     """
     def __init__(self):
         """Load the CDF C library.
@@ -229,10 +246,14 @@ class Library(object):
         Parameters
         ==========
         status : int
-            status returned by the C library, equivalent to C{CDFStatus}
+            status returned by the C library
+
+        Other Parameters
+        ================
         ignore : sequence of ctypes.c_long
             CDF statuses to ignore. If any of these is returned by CDF library,
-            any related warnings or exceptions will *not* be raised. (Default none).
+            any related warnings or exceptions will *not* be raised.
+            (Default none).
 
         Raises
         ======
@@ -262,22 +283,22 @@ class Library(object):
 
         Passes all parameters directly through to the CDFlib routine of the
         CDF library's C internal interface. Checks the return value with
-        :py:meth:`pycdf.Library.check_status`.
+        :meth:`check_status`.
 
-        Terminal NULL_ is automatically added to args.
+        Terminal NULL is automatically added to args.
 
         Parameters
         ==========
-        args : various, see :py:mod:`ctypes`
+        args : various, see :mod:`ctypes`
             Passed directly to the CDF library interface. Useful
-                     constants are defined in the :py:mod:`pycdf.const` module of this package.
+            constants are defined in the :mod:`~pycdf.const` module.
 
         Other Parameters
         ================
         ignore : sequence of CDF statuses
             sequence of CDF statuses to ignore. If any of these
-                         is returned by CDF library, any related warnings or
-                         exceptions will *not* be raised.
+            is returned by CDF library, any related warnings or
+            exceptions will *not* be raised.
 
         Returns
         =======
@@ -290,7 +311,7 @@ class Library(object):
 
         Warns
         =====
-        CDFWarning : if CDF library reports a warning and interpreter is set to error on warnings.
+        CDFWarning : if CDF library reports a warning
         """
         if 'ignore' in kwargs:
             return self.check_status(self._library.CDFlib(
@@ -310,7 +331,7 @@ class Library(object):
 
         Parameters
         ==========
-        backward : Boolean
+        backward : boolean
             Set backward compatible mode if True; clear it if False.
 
         Raises
@@ -337,8 +358,9 @@ class Library(object):
 
         Returns
         =======
-        out : :py:class:`datetime.datetime`
-            date and time corresponding to epoch. Invalid values are set to usual epoch invalid value, i.e. last moment of year 9999.
+        out : :class:`datetime.datetime`
+            date and time corresponding to epoch. Invalid values are set to
+            usual epoch invalid value, i.e. last moment of year 9999.
         """
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
@@ -365,7 +387,7 @@ class Library(object):
 
         Parameters
         ==========
-        dt : :py:class:`datetime.datetime`
+        dt : :class:`datetime.datetime`
             date and time to convert
 
         Returns
@@ -398,8 +420,9 @@ class Library(object):
 
         Returns
         =======
-        out : :py:class:`datetime.datetime`
-            date and time corresponding to epoch. Invalid values are set to usual epoch invalid value, i.e. last moment of year 9999.
+        out : :class:`datetime.datetime`
+            date and time corresponding to epoch. Invalid values are set to
+            usual epoch invalid value, i.e. last moment of year 9999.
         """
         try:
             if len(epoch) != 2:
@@ -449,7 +472,7 @@ class Library(object):
 
         Parameters
         ==========
-        dt :  :py:class:`datetime.datetime`
+        dt :  :class:`datetime.datetime`
             date and time to convert
 
         Returns
