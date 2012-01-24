@@ -14,6 +14,7 @@ Los Alamos National Laboratory
 Copyright 2011 Los Alamos National Security, LLC.
 
 .. autosummary::
+    :template: clean_class.rst
     :toctree: autosummary
 
     spectrogram
@@ -39,47 +40,58 @@ class spectrogram(dm.SpaceData):
     the third series "z" is plotted in color.
 
     The series are not passed in independently but instead inside a
-    spacepy.datamodel.SpaceData container.  Helper routines are provided to
+    :class:`~spacepy.datamodel.SpaceData` container.
+    
+    Parameters
+    ==========
+    data : :class:`~spacepy.datamodel.SpaceData`
+        The data for the spectrogram, the variables to be used default to
+        "Epoch" for x, "Energy" for y, and "Flux" for z.  Other names are
+        specified using the 'variables' keyword.  All keywords override .attrs
+        contents.
+
+    Other Parameters
+    ================
+    variables : list
+        keyword containing the names of the variables to use for the spectrogram
+        the list is a list of the SpaceData keys in x, y, z, order
+    bins : list
+        if the name "bins" is not specified in the .attrs of the dmarray variable
+        this specifies the bins for each variable in a
+        [[xbins], [ybins]] format
+    xlim : list
+        if the name "lim" is not specified in the .attrs of the dmarray variable
+        this specifies the limit for the x variable [xlow, xhigh]
+    ylim : list
+        if the name "lim" is not specified in the .attrs of the dmarray variable
+        this specifies the limit for the y variable [ylow, yhigh]
+    zlim : list
+        if the name "lim" is not specified in the .attrs of the dmarray variable
+        this specifies the limit for the z variable [zlow, zhigh]
+    extended_out : bool (optional)
+        if this is True add more information to the output data model (defualt False)
+
+    Notes
+    =====
+    Helper routines are planned to
     facilitate the creation of the SpaceData container if the data are not in the format.
+
+    .. autosummary::
+
+        ~spectrogram.plot
+
+    .. automethod:: plot
+
     """
 
-    ## NOTE this will need to set the sphinx var autoclass_content to "both"
+#    TODO
+#    ====
+#    Allow for the input of a list of SpaceData objects for different sats
+#    Make "subclasses" that allow for data to be passed in directly avoiding the data model
+
 
     def __init__(self, data, **kwargs):
         """
-        Parameters
-        ==========
-        data : spacepy.datamodel.SpaceData
-            The data for the spectrogram, the variables to be used default to
-            "Epoch" for x, "Energy" for y, and "Flux" for z.  Other names are
-            specified using the 'variables' keyword.  All keywords override .attrs
-            contents.
-
-        Other Parameters
-        ================
-        variables : list
-            keyword containing the names of the variables to use for the spectrogram
-            the list is a list of the SpaceData keys in x, y, z, order
-        bins : list
-            if the name "bins" is not specified in the .attrs of the dmarray variable
-            this specifies the bins for each variable in a
-            [[xbins], [ybins]] format
-        xlim : list
-            if the name "lim" is not specified in the .attrs of the dmarray variable
-            this specifies the limit for the x variable [xlow, xhigh]
-        ylim : list
-            if the name "lim" is not specified in the .attrs of the dmarray variable
-            this specifies the limit for the y variable [ylow, yhigh]
-        zlim : list
-            if the name "lim" is not specified in the .attrs of the dmarray variable
-            this specifies the limit for the z variable [zlow, zhigh]
-        extended_out : bool (optional)
-            if this is True add more information to the output data model (defualt False)
-
-        TODO
-        ====
-        Allow for the input of a list of SpaceData objects for different sats
-        Make "subclasses" that allow for data to be passed in directly avoiding the data model
         """
         super(spectrogram, self).__init__()
         ## setup a default dictionary to step through to set values from kwargs
