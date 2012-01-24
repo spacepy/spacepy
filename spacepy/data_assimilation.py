@@ -320,16 +320,17 @@ class ensemble(object):
     # -----------------------------------------------
     def getHPH(self,Lobs,Pfxx):
 		"""
+                compute HPH
 
 		Parameters
 		==========
-		Lobs :
+		Lobs
 
-		Pfxx :
+		Pfxx
 
 		Returns
 		=======
-		out :
+		out
 
 		Examples
 		========
