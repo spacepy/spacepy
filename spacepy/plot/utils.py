@@ -109,7 +109,12 @@ class EventClicker(object):
     >>> max(troughvals) <= -0.9 #should click near -1
     True
     >>> min(troughvals) <= -1.0 #should bottom-out at -1
-    True    
+    True
+
+    .. autosummary::
+         ~EventClicker.analyze
+         ~EventClicker.get_events
+         ~EventClicker.get_events_data
 
     .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
     .. automethod:: analyze
