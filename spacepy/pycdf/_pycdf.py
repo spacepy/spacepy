@@ -1,4 +1,4 @@
-3#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -11,7 +11,7 @@ Authors: Jon Niehof
 Institution: Los Alamos National Laboratory
 Contact: jniehof@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 
 
 """
@@ -44,24 +44,41 @@ class Library(object):
     Abstraction of the base CDF C library and its state.
 
     Not normally intended for end-user use. An instance of this class
-    is created at package load time as the :py:class:`pycdf.lib` variable, providing
+    is created at package load time as the :data:`~pycdf.lib` variable, providing
     access to the underlying C library if necessary.
 
-    Calling the C library directly requires knowledge of the
-    ctypes http://docs.python.org/library/ctypes.html package.
+    Calling the C library directly requires knowledge of
+    :mod:`ctypes`.
 
-    ``__init__()`` searches for and loads the C library; details on the
-    search are documented there.
+    Instantiating this object loads the C library, see :doc:`/pycdf` docs
+    for details.
 
-    @ivar _del_middle_rec_bug: does this version of the library have a bug
-                               when deleting a record from the middle of a
-                               variable?
-    @type _del_middle_rec_bug: Boolean
-    @ivar _library: :py:mod:`ctypes` connection to the library
-    @type _library: ctypes.CDLL
-    @ivar version: version of the CDF library, in order version, release,
-                   increment, subincrement
-    @type version: tuple
+    .. autosummary::
+        ~Library.call
+        ~Library.check_status
+        ~Library.datetime_to_epoch
+        ~Library.datetime_to_epoch16
+        ~Library.epoch_to_datetime
+        ~Library.epoch16_to_datetime
+        ~Library.set_backward
+    .. automethod:: call
+    .. automethod:: check_status
+    .. automethod:: datetime_to_epoch
+    .. automethod:: datetime_to_epoch16
+    .. automethod:: epoch_to_datetime
+    .. automethod:: epoch16_to_datetime
+    .. automethod:: set_backward
+
+    .. comment:
+        @ivar _del_middle_rec_bug: does this version of the library have a bug
+                                   when deleting a record from the middle of a
+                                   variable?
+        @type _del_middle_rec_bug: Boolean
+        @ivar _library: :py:mod:`ctypes` connection to the library
+        @type _library: ctypes.CDLL
+        @ivar version: version of the CDF library, in order version, release,
+                       increment, subincrement
+        @type version: tuple
     """
     def __init__(self):
         """Load the CDF C library.
@@ -112,6 +129,17 @@ class Library(object):
                 if candidates: #choose the latest version
                     libpath = cdfdist + \
                         sorted(candidates)[-1] + '\\lib\\dllcdf.dll'
+        if not libpath and sys.platform == 'darwin':
+            cdfdist = '/Applications/'
+            if os.path.isdir(cdfdist):
+                candidates = []
+                for d in os.listdir(cdfdist):
+                    if d[0:3]=='cdf' and \
+                           os.path.exists(cdfdist + d + '/lib/libcdf.dylib'):
+                        candidates.append(d)
+                if candidates: #choose the latest version
+                    libpath = cdfdist + \
+                        sorted(candidates)[-1] + '/lib/libcdf.dylib'
 
         if not libpath:
             raise Exception('Cannot find CDF C library. ' + \
@@ -229,10 +257,14 @@ class Library(object):
         Parameters
         ==========
         status : int
-            status returned by the C library, equivalent to C{CDFStatus}
+            status returned by the C library
+
+        Other Parameters
+        ================
         ignore : sequence of ctypes.c_long
             CDF statuses to ignore. If any of these is returned by CDF library,
-            any related warnings or exceptions will *not* be raised. (Default none).
+            any related warnings or exceptions will *not* be raised.
+            (Default none).
 
         Raises
         ======
@@ -240,8 +272,7 @@ class Library(object):
 
         Warns
         =====
-        CDFWarning : if CDF_WARN <= status < CDF_OK, indicating a warning,
-                           `and` interpreter is set to error on warnings.
+        CDFWarning : if CDF_WARN <= status < CDF_OK, indicating a warning.
 
         Returns
         =======
@@ -263,22 +294,22 @@ class Library(object):
 
         Passes all parameters directly through to the CDFlib routine of the
         CDF library's C internal interface. Checks the return value with
-        :py:meth:`pycdf.Library.check_status`.
+        :meth:`check_status`.
 
-        Terminal NULL_ is automatically added to args.
+        Terminal NULL is automatically added to args.
 
         Parameters
         ==========
-        args : various, see :py:mod:`ctypes`
+        args : various, see :mod:`ctypes`
             Passed directly to the CDF library interface. Useful
-                     constants are defined in the :py:mod:`pycdf.const` module of this package.
+            constants are defined in the :mod:`~pycdf.const` module.
 
         Other Parameters
         ================
         ignore : sequence of CDF statuses
             sequence of CDF statuses to ignore. If any of these
-                         is returned by CDF library, any related warnings or
-                         exceptions will *not* be raised.
+            is returned by CDF library, any related warnings or
+            exceptions will *not* be raised.
 
         Returns
         =======
@@ -291,7 +322,7 @@ class Library(object):
 
         Warns
         =====
-        CDFWarning : if CDF library reports a warning and interpreter is set to error on warnings.
+        CDFWarning : if CDF library reports a warning
         """
         if 'ignore' in kwargs:
             return self.check_status(self._library.CDFlib(
@@ -311,7 +342,7 @@ class Library(object):
 
         Parameters
         ==========
-        backward : Boolean
+        backward : boolean
             Set backward compatible mode if True; clear it if False.
 
         Raises
@@ -338,8 +369,9 @@ class Library(object):
 
         Returns
         =======
-        out : :py:class:`datetime.datetime`
-            date and time corresponding to epoch. Invalid values are set to usual epoch invalid value, i.e. last moment of year 9999.
+        out : :class:`datetime.datetime`
+            date and time corresponding to epoch. Invalid values are set to
+            usual epoch invalid value, i.e. last moment of year 9999.
         """
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
@@ -366,7 +398,7 @@ class Library(object):
 
         Parameters
         ==========
-        dt : :py:class:`datetime.datetime`
+        dt : :class:`datetime.datetime`
             date and time to convert
 
         Returns
@@ -399,8 +431,9 @@ class Library(object):
 
         Returns
         =======
-        out : :py:class:`datetime.datetime`
-            date and time corresponding to epoch. Invalid values are set to usual epoch invalid value, i.e. last moment of year 9999.
+        out : :class:`datetime.datetime`
+            date and time corresponding to epoch. Invalid values are set to
+            usual epoch invalid value, i.e. last moment of year 9999.
         """
         try:
             if len(epoch) != 2:
@@ -450,7 +483,7 @@ class Library(object):
 
         Parameters
         ==========
-        dt :  :py:class:`datetime.datetime`
+        dt :  :class:`datetime.datetime`
             date and time to convert
 
         Returns
@@ -470,13 +503,19 @@ class Library(object):
         return [epoch16[0], epoch16[1]]
 
 
-lib = Library()
-"""Module global library object.
-
-Initalized at module load time so all classes have ready
-access to the CDF library and a common state.
-"""
-
+try:
+    lib = Library()
+    """Module global library object.
+    
+    Initalized at module load time so all classes have ready
+    access to the CDF library and a common state.
+    """
+except:
+    if 'sphinx' in sys.argv[0]:
+        warnings.warn('CDF library did not load. '
+                      'You appear to be building docs, so ignoring this error.')
+    else:
+        raise
 
 class CDFException(Exception):
     """
@@ -657,116 +696,173 @@ class CDF(collections.MutableMapping):
     """
     Python object representing a CDF file.
 
-    Opening existing
-    ================
-    Open a CDF by creating a CDF object, e.g.:
-    C{cdffile = pycdf.CDF('cdf_filename.cdf')}
-    Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save` when done.
+    Open or create a CDF file by creating an object of this class.
 
-    CDF supports the U{with
-    <http://docs.python.org/tutorial/inputoutput.html#methods-of-file-objects>}
-    keyword, like other file objects, so::
-        with pycdf.CDF('cdf_filename.cdf') as cdffile:
-            do brilliant things with the CDF
+    Parameters
+    ==========
+    pathname : string
+        name of the file to open or create
+    masterpath : string
+        name of the master CDF file to use in creating
+        a new file. If not provided, an existing file is
+        opened; if provided but evaluates to ``False``
+        (e.g., ``''``), an empty new CDF is created.
+
+    Raises
+    ======
+    CDFError
+        if CDF library reports an error
+
+    Warns
+    =====
+    CDFWarning
+        if CDF library reports a warning and interpreter
+        is set to error on warnings.
+
+    Examples
+    ========
+    Open a CDF by creating a CDF object, e.g.:
+        >>> cdffile = pycdf.CDF('cdf_filename.cdf')
+    Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save` when
+    done.
+
+    CDF supports the `with
+    <http://docs.python.org/tutorial/inputoutput.html#methods-of-file-objects>`_
+    keyword, like other file objects, so:
+        >>> with pycdf.CDF('cdf_filename.cdf') as cdffile:
+        ...     #do brilliant things with the CDF
     will open the CDF, execute the indented statements, and close the CDF when
-    finished or when an error occurs. The U{python docs
-    <http://docs.python.org/reference/compound_stmts.html#with>} include more
+    finished or when an error occurs. The `python docs
+    <http://docs.python.org/reference/compound_stmts.html#with>`_ include more
     detail on this 'context manager' ability.
 
     CDF objects behave like a python
-    U{dictionary
-    <http://docs.python.org/tutorial/datastructures.html#dictionaries>},
+    `dictionary
+    <http://docs.python.org/tutorial/datastructures.html#dictionaries>`_,
     where the keys are names of variables in the CDF, and the values,
-    :py:class:`pycdf.Var` objects. As a dictionary, they are also U{iterable
-    <http://docs.python.org/tutorial/classes.html#iterators>} and it is easy
+    :py:class:`pycdf.Var` objects. As a dictionary, they are also `iterable
+    <http://docs.python.org/tutorial/classes.html#iterators>`_ and it is easy
     to loop over all of the variables in a file. Some examples:
-      1. List the names of all variables in the open CDF cdffile::
-         cdffile.keys()
-      2. Get a :py:class:`pycdf.Var` object corresponding to the variable named Epoch::
-         epoch = cdffile['Epoch']
-      3. Determine if a CDF contains a variable named B_GSE::
-         if 'B_GSE' in cdffile:
-           print 'B_GSE is in the file'
-         else:
-           print 'B_GSE is not in the file'
-      4. Find how many variables are in the file::
-         print len(cdffile)
-      5. Open the CDF named C{cdf_filename.cdf}, read *all* the data from all
-         variables into it, and close it when done or if an error occurs::
-           with pycdf.CDF('cdf_filename.cdf') as cdffile:
-                data = cdffile.copy()
+      #. List the names of all variables in the open CDF ``cdffile``:
+             >>> cdffile.keys()
+         Or:
+             >>> for k in cdffile:
+             ...     print(k)
+      #. Get a :py:class:`pycdf.Var` object corresponding to the variable
+         named ``Epoch``:
+             >>> epoch = cdffile['Epoch']
+      #. Determine if a CDF contains a variable named ``B_GSE``:
+             >>> if 'B_GSE' in cdffile:
+             ...     print('B_GSE is in the file')
+             ... else:
+             ...     print('B_GSE is not in the file')
+      #. Find how many variables are in the file:
+             >>> print(len(cdffile))
+      #. Delete the variable ``Epoch`` from the open CDF file ``cdffile``:
+            >>> del cdffile['Epoch']
+      #. Display a summary of variables and types in open CDF file ``cdffile``:
+            >>> print(cdffile)
+      #. Open the CDF named ``cdf_filename.cdf``, read *all* the data from all
+         variables into dictionary ``data``, and close it when done or if an
+         error occurs:
+             >>> with pycdf.CDF('cdf_filename.cdf') as cdffile:
+             ...     data = cdffile.copy()
     This last example can be very inefficient as it reads the entire CDF.
     Normally it's better to treat the CDF as a dictionary and access only
     the data needed, which will be pulled transparently from disc. See
     :py:class:`pycdf.Var` for more subtle examples.
 
     Potentially useful dictionary methods and related functions:
-      - U{in<http://docs.python.org/reference/expressions.html#in>}
-      - U{keys<http://docs.python.org/tutorial/datastructures.html#dictionaries>}
-      - U{len<http://docs.python.org/library/functions.html#len>}
-      - U{list comprehensions
-        <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>}
-      - U{sorted<http://docs.python.org/library/functions.html#sorted>}
-    See also toolbox.dictree in SpacePy.
+      - `in <http://docs.python.org/reference/expressions.html#in>`_
+      - `keys <http://docs.python.org/tutorial/datastructures.html#dictionaries>`_
+      - :py:func:`len`
+      - `list comprehensions
+        <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>`_
+      - :py:func:`sorted`
+      - :py:func:`~spacepy.toolbox.dictree`
 
-    The py:class:`pycdf.attrs` Python attribute acts as a dictionary referencing CDF
-    attributes (do not confuse the two); all the dictionary methods above
-    also work on the attribute dictionary. See :py:class:`pycdf.gAttrsList` for more on the
-    dictionary of global attributes.
+    The :py:obj:`~spacepy.pycdf.CDF.attrs` Python attribute acts as a dictionary
+    referencing CDF attributes (do not confuse the two); all the
+    dictionary methods above also work on the attribute dictionary.
+    See :py:class:`pycdf.gAttrsList` for more on the dictionary of global
+    attributes.
 
-    Creating New
-    ============
     Creating a new CDF from a master (skeleton) CDF has similar syntax to
-    opening one::
-      cdffile = pycdf.CDF('cdf_filename.cdf', 'master_cdf_filename.cdf')
-    This creates and opens C{cdf_filename.cdf} as a copy of
-    C{master_cdf_filename.cdf}
+    opening one:
+        >>> cdffile = pycdf.CDF('cdf_filename.cdf', 'master_cdf_filename.cdf')
+    This creates and opens ``cdf_filename.cdf`` as a copy of
+    ``master_cdf_filename.cdf``.
 
     Using a skeleton CDF is recommended over making a CDF entirely from
-    scratch, but this is possible by specifying a blank master::
-      cdffile = pycdf.CDF('cdf_filename.cdf', '')
+    scratch, but this is possible by specifying a blank master:
+        >>> cdffile = pycdf.CDF('cdf_filename.cdf', '')
 
     When CDFs are created in this way, they are opened read-write, see
-    L{readonly} to change.
+    :py:meth:`readonly` to change.
 
     By default, new CDFs (without a master) are created in version 2
-    (backward-compatible) format. To create a version 3 CDF::
-      pycdf.lib.set_backward(False)
-      cdffile = pycdf.CDF('cdf_filename.cdf', '')
+    (backward-compatible) format. To create a version 3 CDF:
+        >>> pycdf.lib.set_backward(False)
+        >>> cdffile = pycdf.CDF('cdf_filename.cdf', '')
 
     Add variables by direct assignment, which will automatically set type
-    and dimension based on the data provided::
-      cdffile['new_variable_name'] = [1, 2, 3, 4]
-    or, if more control is needed over the type and dimensions, use L{new}.
+    and dimension based on the data provided:
+        >>> cdffile['new_variable_name'] = [1, 2, 3, 4]
+    or, if more control is needed over the type and dimensions, use
+    :py:meth:`new`.
 
-    @ivar _handle: file handle returned from CDF library open functions.
-    @type _handle: ctypes.c_void_p
-    @ivar _opened: is the CDF open?
-    @type _opened: bool
-    @ivar _attrlistref: reference to the attribute list
+    .. :ivar _handle: (ctypes.c_void_p) file handle returned from CDF library 
+                   open functions.
+       :ivar _opened: (bool) is the CDF open?
+       :ivar _attrlistref: (weakref): reference to the attribute list
                         (use L{attrs} instead)
-    @type _attrlistref: weakref
-    @ivar pathname: filename of the CDF file
-    @type pathname: string
-    @cvar attrs: Returns global attributes for this CDF (see :py:class:`pycdf.gAttrsList`)
-    @type attrs: L{_AttrListGetter}
-    @note: CDF is opened read-only by default, see L{readonly} to change.
+       :ivar pathname: (string) filename of the CDF file
+    :cvar attrs: Returns global attributes for this CDF
+                 (see :py:class:`pycdf.gAttrsList`)
+    .. note::
+        CDF is opened read-only by default, see :py:meth:`readonly` to change.
+
+    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
+    .. automethod:: close
+    .. automethod:: save
+    .. automethod:: new
+    .. automethod:: clone
+    .. automethod:: copy
+    .. automethod:: readonly
+    .. automethod:: col_major
+    .. automethod:: checksum
+    .. automethod:: compress
+    .. automethod:: version
     """
     attrs = _AttrListGetter()
 
     def __init__(self, pathname, masterpath=None):
         """Open or create a CDF file.
 
-        @param pathname: name of the file to open or create
-        @type pathname: string
-        @param masterpath: name of the master CDF file to use in creating
-                           a new file. If not provided, an existing file is
-                           opened; if provided but evaluates to C{False}
-                           (e.g. C{''}), an empty new CDF is created.
-        @type masterpath: string
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
+        Parameters
+        ==========
+        pathname : string
+            name of the file to open or create
+        masterpath : string
+            name of the master CDF file to use in creating
+            a new file. If not provided, an existing file is
+            opened; if provided but evaluates to ``False``
+            (e.g., ``''``), an empty new CDF is created.
+
+        Raises
+        ======
+        CDFError
+            if CDF library reports an error
+        CDFWarning
+            if CDF library reports a warning and interpreter
+            is set to error on warnings.
+
+        Examples
+        ========
+        Open a CDF by creating a CDF object, e.g.:
+            >>> cdffile = pycdf.CDF('cdf_filename.cdf')
+        Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`
+        when done.
         """
         try:
             self.pathname = pathname.encode()
@@ -785,10 +881,12 @@ class CDF(collections.MutableMapping):
         self._attrlistref = weakref.ref(gAttrList(self))
 
     def __del__(self):
-        """Destructor
+        """Destructor; called when CDF object is destroyed.
 
         Close CDF file if there is still a valid handle.
-        @note: To avoid data loss, explicitly call :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`.
+        .. note::
+            To avoid data loss, explicitly call :py:meth:`pycdf.CDF.close` 
+            or :py:meth:`pycdf.CDF.save`.
         """
         if self._opened:
             self.close()
@@ -796,9 +894,17 @@ class CDF(collections.MutableMapping):
     def __delitem__(self, name):
         """Delete a zVariable in this CDF, by name or number
 
-        @param name: Name or number of the CDF variable
-        @type name: string or int
-        @note: variable numbers may change if variables are added or removed.
+        Parameters
+        ==========
+        name : string or int
+            Name or number of the CDF variable
+        .. note:
+            Variable numbers may change if variables are added or removed.
+
+        Examples
+        ========
+        Delete the variable ``Epoch`` from the open CDF file ``cdffile``.
+            >>> del cdffile['Epoch']
         """
         self[name]._delete()
 
@@ -928,11 +1034,15 @@ class CDF(collections.MutableMapping):
         """Opens the CDF file (called on init)
 
         Will open an existing CDF file read/write.
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
-        @note: Not intended for direct call; pass parameters to :py:class:`pycdf.CDF`
-               constructor.
+
+        Raises
+        ======
+        CDFError : if CDF library reports an error
+        CDFWarning : if CDF library reports a warning and interpreter
+                     is set to error on warnings.
+        .. note:
+            Not intended for direct call; pass parameters to
+            :py:class:`pycdf.CDF` constructor.
         """
 
         lib.call(const.OPEN_, const.CDF_, self.pathname, ctypes.byref(self._handle))
@@ -942,13 +1052,17 @@ class CDF(collections.MutableMapping):
     def _create(self):
         """Creates (and opens) a new CDF file
 
-        Created at L{pathname}.
+        Created at ``pathname``.
         Assumes zero-dimension r variables
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
-        @note: Not intended for direct call; pass parameters to :py:class:`pycdf.CDF`
-               constructor.
+
+        Raises
+        ======
+        CDFError : if CDF library reports an error
+        CDFWarning : if CDF library reports a warning and interpreter
+                     is set to error on warnings.
+        .. note:
+            Not intended for direct call; pass parameters to
+            :py:class:`pycdf.CDF` constructor.
         """
 
         lib.call(const.CREATE_, const.CDF_, self.pathname, ctypes.c_long(0),
@@ -958,15 +1072,21 @@ class CDF(collections.MutableMapping):
     def _from_master(self, master_path):
         """Creates a new CDF from a master CDF file
 
-        L{master_path} is copied to L{pathname} and opened.
+        ``master_path`` is copied to ``pathname`` and opened.
 
-        @param master_path: location of the master CDF file
-        @type master_path: string
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
-        @note: Not intended for direct call; pass parameters to :py:class:`pycdf.CDF`
-               constructor.
+        Parameters
+        ==========
+        master_path : string
+            location of the master CDF file
+
+        Raises
+        ======
+        CDFError : if CDF library reports an error
+        CDFWarning : if CDF library reports a warning and interpreter
+                     is set to error on warnings.
+        .. note:
+            Not intended for direct call; pass parameters to
+            :py:class:`pycdf.CDF` constructor.
         """
 
         if os.path.exists(self.pathname):
@@ -983,15 +1103,25 @@ class CDF(collections.MutableMapping):
         directly through to the CDFlib routine of the CDF library's C internal
         interface. Checks the return value with L{Library.check_status}.
 
-        @param args: Passed directly to the CDF library interface. Useful
-                     constants are defined in the :py:mod:`pycdf.const` module of this package.
-        @type args: various, see :py:mod:`ctypes`.
-        @return: CDF status from the library
-        @rtype: ctypes.c_long
-        @note: Terminal NULL_ is automatically added to L{args}.
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
+        Parameters
+        ==========
+        args : various, see :py:mod:`ctypes`.
+            Passed directly to the CDF library interface. Useful
+            constants are defined in the :doc:`const <pycdf_const>`
+            module of this package.
+
+        Returns
+        =======
+        out : ctypes.c_long
+            CDF status from the library
+
+        .. note:
+            Terminal NULL_ is automatically added to ``args``.
+        Raises
+        ======
+        CDFError : if CDF library reports an error
+        CDFWarning : if CDF library reports a warning and interpreter
+                     is set to error on warnings.
         """
         return lib.call(const.SELECT_, const.CDF_, self._handle,
                         *args, **kwargs)
@@ -1002,12 +1132,16 @@ class CDF(collections.MutableMapping):
 
         Parameters
         ==========
-        zVar : pycdf.Var
+        zVar : :py:class:`pycdf.Var`
             variable to clone
+
+        Other Parameters
+        ================
         name : str
             Name of the new variable (default: name of the original)
-        data : Boolean (optional)
-            Copy data, or only type, dimensions, variance, attributes? (default: copy data as well)
+        data : boolean (optional)
+            Copy data, or only type, dimensions, variance, attributes?
+            (default: True, copy data as well)
         """
         if name == None:
             name = zVar.name()
@@ -1025,10 +1159,13 @@ class CDF(collections.MutableMapping):
         """
         Finds the majority of this CDF file
 
-        Parameters
-        ==========
+        Other Parameters
+        ================
         new_col : Boolean
-            Specify True to change to column-major, False to change to row major, or do not specify to leave majority alone (check only)
+            Specify True to change to column-major, False to change to
+            row major, or do not specify to check the majority
+            rather than changing it.
+            (default is check only)
 
         Returns
         =======
@@ -1048,12 +1185,14 @@ class CDF(collections.MutableMapping):
         """
         Sets or check the readonly status of this CDF
 
-        If the CDF has been changed since opening, setting readonly mode will have no effect.
+        If the CDF has been changed since opening, setting readonly mode
+        will have no effect.
 
-        Parameters
-        ==========
+        Other Parameters
+        ================
         ro : Boolean
-            True to set the CDF readonly, False to set it read/write, otherwise to check
+            True to set the CDF readonly, False to set it read/write,
+            or leave out to check only.
 
         Returns
         =======
@@ -1063,7 +1202,6 @@ class CDF(collections.MutableMapping):
         Raises
         ======
         pycdf.CDFError : if bad mode is set
-
         """
         if ro == True:
             self._call(const.SELECT_, const.CDF_READONLY_MODE_,
@@ -1083,12 +1221,15 @@ class CDF(collections.MutableMapping):
 
     def checksum(self, new_val=None):
         """
-        Set or check the checksum status of this CDF
+        Set or check the checksum status of this CDF. If checksums
+        are enabled, the checksum will be verified every time the file
+        is opened.
 
         Parameters
         ==========
         new_val : Boolean (optional)
-            True to enable checksum, False to disable, or leave out to simply check.
+            True to enable checksum, False to disable, or leave out
+            to simply check.
 
         Returns
         =======
@@ -1110,16 +1251,16 @@ class CDF(collections.MutableMapping):
         Closes the CDF file
 
         Although called on object destruction :py:meth:`pycdf.CDF.__del__`,
-        to ensure all data are saved the user should explicitly call
+        to ensure all data are saved, the user should explicitly call
         :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`.
 
         Raises
         ======
-        CDFError : if CDF library reports an error
+        pycdf.CDFError : if CDF library reports an error
 
         Warns
         =====
-        CDFWarning : if CDF library reports a warning and interpreter is set to error on warnings.
+        pycdf.CDFWarning : if CDF library reports a warning
         """
 
         self._call(const.CLOSE_, const.CDF_)
@@ -1131,12 +1272,18 @@ class CDF(collections.MutableMapping):
 
         Sets compression on entire `file`, not per-variable.
 
-        Parameters
-        ==========
+        Other Parameters
+        ================
         comptype : ctypes.c_long
-            type of compression to change to, see CDF C reference manual section 4.10. Constants for this parameter are in :py:mod:`pycdf.const`. If not specified, will not change compression.
+            type of compression to change to, see CDF C reference manual
+            section 4.10. Constants for this parameter are in
+            :doc:`const </pycdf_const>`. If not specified, will not change
+            compression.
         param : ctypes.c_long
-            Compression parameter, see CDF CRM 4.10 and :py:mod:`pycdf.const`. If not specified, will choose reasonable default (5 for gzip; other types have only one possible parameter.)
+            Compression parameter, see CDF CRM 4.10 and
+            :doc:`const </pycdf_const>`.
+            If not specified, will choose reasonable default (5 for gzip;
+            other types have only one possible parameter.)
 
         Returns
         =======
@@ -1146,6 +1293,11 @@ class CDF(collections.MutableMapping):
         See Also
         ========
         pycdf.Var.compress
+
+        Examples
+        ========
+        Set file ``cdffile`` to gzip compression, compression level 9:
+            >>> cdffile.compress(pycdf.const.GZIP_COMPRESSION, 9)
         """
         return _compress(self, comptype, param)
 
@@ -1154,34 +1306,69 @@ class CDF(collections.MutableMapping):
         """
         Create a new zVariable in this CDF
 
+        .. note::
+            Either ``data`` or ``type`` must be specified. If type is not
+            specified, it is guessed from ``data``.
+
         Parameters
         ==========
         name : str
             name of the new variable
-        data : CDF type of the variable, from :py:mod:`pycdf.const` (optional)
-            data to store in the new variable
-        type : ctypes.c_long
-            CDF type of the variable, from :py:mod:`pycdf.const`
 
         Other Parameters
         ================
-        recVary : Boolean (optional)
+        data
+            data to store in the new variable
+        type : ctypes.c_long
+            CDF type of the variable, from :doc:`const </pycdf_const>`.
+        recVary : boolean
             record variance of the variable (default True)
-        dimVarys : list of Boolean (optional)
-            dimension variance of each dimension
-        dims : list of int (optional)
+        dimVarys : list of boolean
+            dimension variance of each dimension, default True for all
+            dimensions.
+        dims : list of int
             size of each dimension of this variable, default zero-dimensional
         n_elements : int
-            number of elements, should be 1 except for CDF_CHAR, for which it's the length of the string.
+            number of elements, should be 1 except for CDF_CHAR,
+            for which it's the length of the string.
 
         Returns
         =======
-        out : pycdf.Var
+        out : :py:class:`pycdf.Var`
             the newly-created zVariable
 
         Raises
         ======
-        ValueError : if neither data nor sufficient typing information is provided.
+        ValueError : if neither data nor sufficient typing information
+                     is provided.
+
+        Notes
+        =====
+        Any given data may be representable by a range of CDF types; if
+        the type is not specified, pycdf will guess which
+        the CDF types which can represent this data. This breaks down to:
+          #. Proper kind (numerical, string, time)
+          #. Proper range (stores highest and lowest number provided)
+          #. Sufficient resolution (EPOCH16 required if datetime has
+             microseconds or below.)
+
+        If more than one value satisfies the requirements, types are returned
+        in preferred order:
+          #. Type that matches precision of data first, then
+          #. integer type before float type, then
+          #. Smallest type first, then
+          #. signed type first, then
+          #. specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
+        So for example, EPOCH_16 is preferred over EPOCH if ``data`` specifies
+        below the millisecond level (rule 1), but otherwise EPOCH is preferred
+        (rule 2).
+
+        For floats, four-byte is preferred unless eight-byte is required:
+          #. absolute values between 0 and 3e-39
+          #. absolute values greater than 1.7e38
+        This will switch to an eight-byte double in some cases where four bytes
+        would be sufficient for IEEE 754 encoding, but where DEC formats would
+        require eight.
         """
         if data == None:
             if type == None:
@@ -1220,10 +1407,13 @@ class CDF(collections.MutableMapping):
         """
         Saves the CDF file but leaves it open.
 
-        If closing the CDF, :py:func:`pycdf.CDF.close` is sufficient, there is no need to call
-        :py:func:`pycdf.CDF.save` before :py:func:`pycdf.CDF.close`.
+        If closing the CDF, :py:meth:`~pycdf.CDF.close` is sufficient,
+        there is no need to call
+        :py:meth:`pycdf.CDF.save` before :py:meth:`~pycdf.CDF.close`.
 
-        Relies on an undocumented call of the CDF C library, which is also used in the Java interface.
+        .. note::
+            Relies on an undocumented call of the CDF C library, which is
+            also used in the Java interface.
 
         Raises
         ======
@@ -1231,7 +1421,7 @@ class CDF(collections.MutableMapping):
 
         Warns
         =====
-        CDFWarning : if CDF library reports a warning and interpreter is set to error on warnings.
+        CDFWarning : if CDF library reports a warning
         """
 
         self._call(const.SAVE_, const.CDF_)
@@ -1243,7 +1433,7 @@ class CDF(collections.MutableMapping):
         Returns
         =======
         out : :py:class:`pycdf.CDFCopy`
-            dict of all data
+            dictionary-like object of all data
         """
         return CDFCopy(self)
 
@@ -1254,7 +1444,7 @@ class CDF(collections.MutableMapping):
         Returns
         =======
         out : tuple
-        version of CDF library, in form (version, release, increment)
+            version of CDF library, in form (version, release, increment)
         """
         ver = ctypes.c_long(0)
         rel = ctypes.c_long(0)
@@ -1288,16 +1478,15 @@ class CDFCopy(dict):
 
 
 class Var(collections.MutableSequence):
-    """A CDF variable.
+    """
+    A CDF variable.
 
-    Reading
-    =======
     This object does not directly store the data from the CDF; rather,
     it provides access to the data in a format that looks like a Python
     list. General list information is available in the python docs:
-    U{1<http://docs.python.org/tutorial/introduction.html#lists>},
-    U{2<http://docs.python.org/tutorial/datastructures.html#more-on-lists>},
-    U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
+    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
+    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
     A record-varying variable's data are viewed as a hypercube of dimensions
     n_dims+1 and are indexed in row-major fashion, i.e. the last
@@ -1313,7 +1502,7 @@ class Var(collections.MutableSequence):
     representing the record number. If the CDF is column major,
     the data are reordered to row major. Each dimension is specified
     by standard Python
-    U{slice<http://docs.python.org/tutorial/introduction.html#strings>}
+    `slice <http://docs.python.org/tutorial/introduction.html#strings>`_
     notation, with dimensions separated by commas. The ellipsis fills in
     any missing dimensions with full slices. The returned data are
     lists; Python represents multidimensional arrays as nested lists.
@@ -1331,28 +1520,28 @@ class Var(collections.MutableSequence):
       2. Requests for multi-dimensional variables may skip the record-number
          dimension and simply specify the slice on the array itself. In that
          case, the slice of the array will be returned for all records.
-    In the event of ambiguity (i.e. single-dimension slice on a one-dimensional
+    In the event of ambiguity (e.g., single-dimension slice on a one-dimensional
     variable), case 1 takes priority.
     Otherwise, mismatch between the number of dimensions specified in
     the slice and the number of dimensions in the variable will cause
-    an IndexError to be thrown.
+    an :py:exc:IndexError to be thrown.
 
     This all sounds very complicated but it's essentially attempting
     to do the 'right thing' for a range of slices.
 
-    As a list type, variables are also U{iterable
-    <http://docs.python.org/tutorial/classes.html#iterators>}; iterating
+    As a list type, variables are also `iterable
+    <http://docs.python.org/tutorial/classes.html#iterators>`_; iterating
     over a variable returns a single complete record at a time.
 
-    This is all clearer with examples. Consider a variable B_GSM, with
+    This is all clearer with examples. Consider a variable ``B_GSM``, with
     three elements per record (x, y, z components) and fifty records in
     the CDF. Then:
-      1. C{B_GSM[0, 1]} is the y component of the first record.
-      2. C{B_GSM[10, :]} is a three-element list, containing x, y, and z
+      1. ``B_GSM[0, 1]`` is the y component of the first record.
+      2. ``B_GSM[10, :]`` is a three-element list, containing x, y, and z
          components of the 11th record. As a shortcut, if only one dimension
          is specified, it is assumed to be the record number, so this
-         could also be written C{B_GSM[10]}.
-      3. C{B_GSM[...]} reads all data for B_GSM and returns it as a
+         could also be written ``B_GSM[10]``.
+      3. ``B_GSM[...]`` reads all data for ``B_GSM`` and returns it as a
          fifty-element list, each element itself being a three-element
          list of x, y, z components.
 
@@ -1362,12 +1551,12 @@ class Var(collections.MutableSequence):
     representing (say) ten energy steps and the second, eighteen
     pitch angle bins (ten degrees wide, centered from 5 to 175 degrees).
     Assume 100 records stored in the CDF (i.e. 100 different times).
-      1. C{Flux[4]} is a list of ten elements, one per energy step,
+      1. ``Flux[4]`` is a list of ten elements, one per energy step,
          each element being a list of 18 fluxes, one per pitch bin.
          All are taken from the fifth record in the CDF.
-      2. C{Flux[4, :, 0:4]} is the same record, all energies, but
+      2. ``Flux[4, :, 0:4]`` is the same record, all energies, but
          only the first four pitch bins (roughly, field-aligned).
-      3. C{Flux[..., 0:4]} is a 100-element list (one per record),
+      3. ``Flux[..., 0:4]`` is a 100-element list (one per record),
          each element being a ten-element list (one per energy step),
          each containing fluxes for the first four pitch bins.
     This slicing notation is very flexible and allows reading
@@ -1375,63 +1564,77 @@ class Var(collections.MutableSequence):
 
     All data are, on read, converted to appropriate Python data
     types; EPOCH and EPOCH16 types are converted to
-    U{datetime<http://docs.python.org/library/datetime.html>}.
+    `datetime <http://docs.python.org/library/datetime.html>`_.
 
     Potentially useful list methods and related functions:
-      - U{count<http://docs.python.org/tutorial/datastructures.html#more-on-lists>}
-      - U{in<http://docs.python.org/reference/expressions.html#in>}
-      - U{index<http://docs.python.org/tutorial/datastructures.html#more-on-lists>}
-      - U{len<http://docs.python.org/library/functions.html#len>}
-      - U{list comprehensions
-        <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>}
-      - U{sorted<http://docs.python.org/library/functions.html#sorted>}
+      - `count <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
+      - `in <http://docs.python.org/reference/expressions.html#in>`_
+      - `index <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
+      - `len <http://docs.python.org/library/functions.html#len>`_
+      - `list comprehensions
+        <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>`_
+      - `sorted <http://docs.python.org/library/functions.html#sorted>`_
 
     The topic of array majority can be very confusing; good background material
-    is available at U{IDL Array Storage and Indexing
-    <http://www.dfanning.com/misc_tips/colrow_major.html>}. In brief,
+    is available at `IDL Array Storage and Indexing
+    <http://www.dfanning.com/misc_tips/colrow_major.html>`_. In brief,
     *regardless of the majority stored in the CDF*, pycdf will always present
     the data in the native Python majority, row-major order, also known as
-    C order. This is the default order in U{numPy
+    C order. This is the default order in `numPy
     <http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
-    #internal-memory-layout-of-an-ndarray>}.
+    #internal-memory-layout-of-an-ndarray>`_.
     However, packages that render image data may expect it in column-major
     order. If the axes seem 'swapped' this is likely the reason.
 
-    The L{attrs} Python attribute acts as a dictionary referencing zAttributes
-    attributes (do not confuse the two); all the dictionary methods above
-    also work on the attribute dictionary. See L{zAttrList} for more on the
-    dictionary of global attributes.
+    The ``attrs`` Python attribute acts as a dictionary referencing zAttributes
+    (do not confuse the two); all the dictionary methods above
+    also work on the attribute dictionary. See :py:class:zAttrList for more on
+    the dictionary of attributes.
 
-    Writing
-    =======
-    As with reading, every attempt has been made to match the behavior of
-    Python lists. You can write one record, many records, or even certain
-    elements of all records. There is one restriction: only the record
+    With writing, as with reading, every attempt has been made to match the
+    behavior of Python lists. You can write one record, many records, or even
+    certain elements of all records. There is one restriction: only the record
     dimension (i.e. dimension 0) can be resized by write, as all records
     in a variable must have the same dimensions. Similarly, only whole
     records can be deleted.
 
     For these examples, assume Flux has 100 records and dimensions [2, 3].
-      1. C{Flux[0] = [[1, 2, 3], [4, 5, 6]]} rewrites the first record
+      1. ``Flux[0] = [[1, 2, 3], [4, 5, 6]]`` rewrites the first record
          without changing the rest.
-      2. C{Flux[...] = [[1, 2, 3], [4, 5, 6]]} writes a new first record
+      2. ``Flux[...] = [[1, 2, 3], [4, 5, 6]]`` writes a new first record
          and deletes all the rest.
-      3. C{Flux[99:] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]}
+      3. ``Flux[99:] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]``
          writes a new record in the last position and adds a new record after.
-      4. C{Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]}
+      4. ``Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]``
          inserts two new records between the current number 5 and 6. This
          operation can be quite slow, as it requires reading and rewriting the
          entire variable. (CDF does not directly support record insertion.)
-      5. C{Flux[0:2, 0, 0] = [1, 2]} changes the first element of the first
+      5. ``Flux[0:2, 0, 0] = [1, 2]`` changes the first element of the first
          two records but leaves other elements alone.
-      6. C{del Flux[0]} removes the first record.
-      7. C{del Flux[5]} removes record 5 (the sixth). Due to the need to work
+      6. ``del Flux[0]`` removes the first record.
+      7. ``del Flux[5]`` removes record 5 (the sixth). Due to the need to work
          around a bug in the CDF library, this operation can be quite slow.
-      8. C{del Flux[...]} deletes *all data* from C{Flux}, but leaves the
+      8. ``del Flux[...]`` deletes *all data* from ``Flux``, but leaves the
          variable definition intact.
 
-    @ivar cdf_file: the CDF file containing this variable
-    @type cdf_file: :py:class:`pycdf.CDF`
+    .. note::
+        Not intended to be created directly; use methods of
+        :py:class:`CDF` to gain access to a variable.
+    .. note::
+        Although this interface only directly supports zVariables, zMode is
+        set on opening the CDF so rVars appear as zVars. See p.24 of the
+        CDF user's guide; pyCDF uses zMode 2.
+
+    .. automethod:: insert
+    .. automethod:: copy
+    .. automethod:: rename
+    .. automethod:: name
+    .. automethod:: compress
+    .. automethod:: type
+    .. automethod:: dv
+    .. automethod:: rv
+..  @ivar cdf_file: the CDF file containing this variable
+    @type cdf_file: :py:class:`CDF`
     @cvar attrs: Returns attributes for this zVariable (see L{zAttrList})
     @type attrs: L{_AttrListGetter}
     @ivar _name: name of this variable
@@ -1442,27 +1645,35 @@ class Var(collections.MutableSequence):
     @raise CDFError: if CDF library reports an error
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
-    @note: Not intended to be created directly; use methods of :py:class:`pycdf.CDF`
-           to gain access to a variable.
-    @note: Although this interface only directly supports zVariables, zMode is
-           set on opening the CDF so rVars appear as zVars. See p.24 of the
-           CDF user's guide; pyCDF uses zMode 2.
     """
     attrs = _AttrListGetter()
 
     def __init__(self, cdf_file, var_name, *args):
         """Create or locate a variable
 
-        @param cdf_file: CDF file containing this variable
-        @type cdf_file: :py:class:`pycdf.CDF`
-        @param var_name: name of this variable
-        @type var_name: string
-        @param args: additional arguments passed to L{_create}. If none,
-                     opens an existing variable. If provided, creates a
-                     new one.
-        @raise CDFError: if CDF library reports an error
-        @raise CDFWarning: if CDF library reports a warning and interpreter
-                           is set to error on warnings.
+        Parameters
+        ==========
+        cdf_file : :py:class:`pycdf.CDF`
+            CDF file containing this variable
+        var_name : string
+            name of this variable
+
+        Other Parameters
+        ================
+        args
+            additional arguments passed to :py:meth:`_create`. If none,
+            opens an existing variable. If provided, creates a
+            new one.
+
+        Raises
+        ======
+        CDFError
+            if CDF library reports an error
+
+        Warns
+        =====
+        CDFWarning
+            if CDF library reports a warning
         """
         self.cdf_file = cdf_file
         self._name = None
@@ -1790,17 +2001,20 @@ class Var(collections.MutableSequence):
         """
         Gets or sets whether this variable has record variance
 
-        If the variance is unknown, True is assumed (this replicates the apparent behavior of the CDF library on variable creation).
+        If the variance is unknown, True is assumed
+        (this replicates the apparent behavior of the CDF library on
+        variable creation).
 
-        Parameters
+        Other Parameters
         ==========
-        new_rv : Boolean
-            True to change to record variance, False to change to NRV (unspecified to simply check variance.)
+        new_rv : boolean
+            True to change to record variance, False to change to NRV,
+            unspecified to simply check variance.
 
         Returns
         =======
         out : Boolean
-            True if record variance, False if NRV
+            True if record varying, False if NRV
         """
         if new_rv != None:
             self._call(const.PUT_, const.zVAR_RECVARY_,
@@ -1814,19 +2028,19 @@ class Var(collections.MutableSequence):
         Gets or sets dimension variance of each dimension of variable.
 
         If the variance is unknown, True is assumed
-            (this replicates the apparent behavior of the
-            CDF library on variable creation).
+        (this replicates the apparent behavior of the
+        CDF library on variable creation).
 
         Parameters
         ==========
         new_dv : list of boolean
             Each element True to change that dimension to dimension
-                       variance, False to change to not dimension variance.
-                       (Unspecified to simply check variance.)
+            variance, False to change to not dimension variance.
+            (Unspecified to simply check variance.)
 
         Returns
         =======
-        out : lost of boolean
+        out : list of boolean
             True if that dimension has variance, else false.
         """
         ndims = self._n_dims()
@@ -1886,7 +2100,7 @@ class Var(collections.MutableSequence):
         Parameters
         ==========
         new_type : ctypes.c_long
-            the new type, see :py:mod:`pycdf.const`
+            the new type from :doc:`const </pycdf_const>`
 
         Returns
         =======
@@ -1935,24 +2149,25 @@ class Var(collections.MutableSequence):
         Set or check the compression of this variable
 
         Compression may not be changeable on variables with data already
-               written; even deleting the data may not permit the change.
+        written; even deleting the data may not permit the change.
 
-        Parameters
-        ==========
+        Other Parameters
+        ================
         comptype : ctypes.c_long
             type of compression to change to, see CDF C reference
-                         manual section 4.10. Constants for this parameter
-                         are in :py:mod:`pycdf.const`. If not specified, will not change
-                         compression.
+            manual section 4.10. Constants for this parameter
+            are in :doc:`const </pycdf_const>`. If not specified, will not
+            change compression.
         param : ctypes.c_long
-            Compression parameter, see CDF CRM 4.10 and :py:mod:`pycdf.const`.
-                      If not specified, will choose reasonable default (5 for
-                      gzip; other types have only one possible parameter.)
+            Compression parameter, see CDF CRM 4.10 and
+            :doc:`const </pycdf_const>`.
+            If not specified, will choose reasonable default (5 for
+            gzip; other types have only one possible parameter.)
 
         Returns
         =======
         out : tuple
-            (comptype, param) currently in effect
+            the (comptype, param) currently in effect
         """
         return _compress(self, comptype, param)
 
@@ -1962,7 +2177,7 @@ class Var(collections.MutableSequence):
 
         Returns
         =======
-        out : py:class:`pycdf.VarCopy`
+        out : py:class:`VarCopy`
             list of all data in record order
         """
         return VarCopy(self)
@@ -2722,28 +2937,43 @@ class Attr(collections.MutableSequence):
     """An attribute, z or g, for a CDF
 
     .. warning::
-        This class should not be used directly.
+        This class should not be used directly, but only in its
+        subclasses, :class:`gAttr` and :class:`zAttr`. The methods
+        listed here are safe to use in the subclasses.
 
     Represents a CDF attribute, providing access to the Entries in a format
     that looks like a Python
     list. General list information is available in the python docs:
-    U{1<http://docs.python.org/tutorial/introduction.html#lists>},
-    U{2<http://docs.python.org/tutorial/datastructures.html#more-on-lists>},
-    U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
+    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
+    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
     Each element of the list is a single Entry of the appropriate type.
     The index to the elements is the Entry number.
 
     Multi-dimensional slicing is *not* supported; an Entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
-    Example::
-    first_three = attribute[5, 0:3] #will fail
-    first_three = attribute[5][0:3] #first three elements of 5th Entry
+    Example:
+        >>> first_three = attribute[5, 0:3] #will fail
+        >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
-    @ivar _cdf_file: CDF file containing this attribute
-    @type _cdf_file: :py:class:`pycdf.CDF`
-    @ivar _name: Name of the attribute
-    @type _name: bytes
+    .. comment::
+        @ivar _cdf_file: CDF file containing this attribute
+        @type _cdf_file: :py:class:`pycdf.CDF`
+        @ivar _name: Name of the attribute
+        @type _name: bytes
+
+    .. autosummary::
+        ~Attr.max_idx
+        ~Attr.new
+        ~Attr.number
+        ~Attr.rename
+        ~Attr.type
+    .. automethod:: max_idx
+    .. automethod:: new
+    .. automethod:: number
+    .. automethod:: rename
+    .. automethod:: type
     """
 
     def __init__(self, cdf_file, attr_name, create=False):
@@ -3017,14 +3247,26 @@ class Attr(collections.MutableSequence):
     def type(self, number, new_type=None):
         """Find or change the CDF type of a particular Entry number
 
-        @param number: number of Entry to check or change
-        @type number: int
-        @param new_type: type to change it to, see :py:mod:`pycdf.const`
-        @type new_type: ctypes.c_long
-        @return: CDF variable type, see :py:mod:`pycdf.const`
-        @rtype: int
-        @note: If changing types, old and new must be equivalent, see CDF
-               User's Guide section 2.5.5 pg. 57
+        Parameters
+        ==========
+        number : int
+            number of Entry to check or change
+
+        Other Parameters
+        ================
+        new_type :
+            type to change it to, from :py:mod:`pycdf.const`
+            Omit to only check type.
+
+        Returns
+        =======
+        out : int
+            CDF variable type, see :py:mod:`pycdf.const`
+
+        Notes
+        =====
+        If changing types, old and new must be equivalent, see CDF
+        User's Guide section 2.5.5 pg. 57
         """
         if not self.has_entry(number):
             raise IndexError('list index ' + str(number) + ' out of range.')
@@ -3042,10 +3284,15 @@ class Attr(collections.MutableSequence):
     def has_entry(self, number):
         """Check if this attribute has a particular Entry number
 
-        @param number: number of Entry to check
-        @type number: int
-        @return: True if L{number} is a valid entry number; False if not
-        @rtype: bool
+        Parameters
+        ==========
+        number : int
+            number of Entry to check or change
+
+        Returns
+        =======
+        out : bool
+            True if ``number`` is a valid entry number; False if not
         """
         status = self._call(const.CONFIRM_, self.ENTRY_EXISTENCE_,
                             ctypes.c_long(number),
@@ -3055,8 +3302,10 @@ class Attr(collections.MutableSequence):
     def max_idx(self):
         """Maximum index of Entries for this Attr
 
-        @return: maximum Entry number
-        @rtype: int
+        Returns
+        =======
+        out : int
+            maximum Entry number
         """
         count = ctypes.c_long(0)
         self._call(const.GET_, self.ATTR_MAXENTRY_, ctypes.byref(count))
@@ -3065,10 +3314,20 @@ class Attr(collections.MutableSequence):
     def new(self, data, type=None, number=None):
         """Create a new Entry in this Attribute
 
-        @param data: data to put in the Entry
-        @param type: type of the new Entry (otherwise guessed from L{data})
-        @param number: Entry number to write, default is lowest available number.
-        @note: Will overwrite an existing Entry.
+        .. note:: Will overwrite an existing Entry.
+
+        Parameters
+        ==========
+        data
+            data to put in the Entry
+
+        Other Parameters
+        ================
+        type : int
+            type of the new Entry, from :mod:`~pycdf.const`
+            (otherwise guessed from ``data``)
+        number : int
+            Entry number to write, default is lowest available number.
         """
         if number == None:
             number = 0
@@ -3084,8 +3343,10 @@ class Attr(collections.MutableSequence):
     def number(self):
         """Find the attribute number for this attribute
 
-        @return: attribute number
-        @rtype: int
+        Returns
+        =======
+        out : int
+            attribute number
         """
         no = ctypes.c_long(0)
         self._cdf_file._call(const.GET_, const.ATTR_NUMBER_,
@@ -3095,9 +3356,10 @@ class Attr(collections.MutableSequence):
     def global_scope(self):
         """Determine scope of this attribute.
 
-        @return: True if global (i.e. gAttr)
-                 False if zAttr
-        @rtype: bool
+        Returns
+        =======
+        out : bool
+            True if global (i.e. gAttr), False if zAttr
         """
         scope = ctypes.c_long(0)
         self._call(const.GET_, const.ATTR_SCOPE_, ctypes.byref(scope))
@@ -3113,8 +3375,10 @@ class Attr(collections.MutableSequence):
 
         Renaming a zAttribute renames it for *all* zVariables in this CDF!
 
-        @param new_name: the new name of the attribute
-        @type new_name: str
+        Parameters
+        ==========
+        new_name : str
+             the new name of the attribute
         """
         try:
             enc_name = new_name.encode('ascii')
@@ -3213,7 +3477,10 @@ class Attr(collections.MutableSequence):
 class zAttr(Attr):
     """zAttribute for zVariables within a CDF.
 
-    Do not use directly.
+    .. warning::
+        Because zAttributes are shared across all variables in a CDF,
+        directly manipulating them may have unexpected consequences.
+        It is safest to operate on zEntries via :class:`zAttrList`.
     """
 
     def __init__(self, *args, **kwargs):
@@ -3236,13 +3503,13 @@ class gAttr(Attr):
     Represents a CDF attribute, providing access to the gEntries in a format
     that looks like a Python
     list. General list information is available in the python docs:
-    U{1<http://docs.python.org/tutorial/introduction.html#lists>},
-    U{2<http://docs.python.org/tutorial/datastructures.html#more-on-lists>},
-    U{3<http://docs.python.org/library/stdtypes.html#typesseq>}.
+    `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
+    `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
+    `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
-    Normally accessed by providing a key to a :py:class:`pycdf.gAttrsList`, e.g.::
-    attribute = cdffile.attrs['attribute_name']
-    first_gentry = attribute[0]
+    Normally accessed by providing a key to a :class:`gAttrList`:
+        >>> attribute = cdffile.attrs['attribute_name']
+        >>> first_gentry = attribute[0]
 
     Each element of the list is a single gEntry of the appropriate type.
     The index to the elements is the gEntry number.
@@ -3256,33 +3523,37 @@ class gAttr(Attr):
 
     Multi-dimensional slicing is *not* supported; an entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
-    Example::
-        first_three = attribute[5, 0:3] #will fail
-        first_three = attribute[5][0:3] #first three elements of 5th Entry
+    Example:
+        >>> first_three = attribute[5, 0:3] #will fail
+        >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
     gEntries are *not* necessarily contiguous; a gAttribute may have an
-    entry 0 and entry 2 without an entry 1. C{len} will return the *number*
-    of gEntries; use L{max_idx} to find the highest defined gEntry number and
-    L{has_entry} to determine if a particular gEntry number exists. Iterating
-    over all entries is also supported::
-        entrylist = [entry for entry in attribute]
+    entry 0 and entry 2 without an entry 1. :meth:`~Attr.len` will return the
+    *number* of gEntries; use :meth:`~Attr.max_idx` to find the highest defined
+    gEntry number and :meth:`~Attr.has_entry` to determine if a particular
+    gEntry number exists. Iterating over all entries is also supported::
+        >>> entrylist = [entry for entry in attribute]
 
     Deleting gEntries will leave a "hole"::
-        attribute[0:3] = [1, 2, 3]
-        del attribute[1]
-        attribute.has_entry(1) #False
-        attribute.has_entry(2) #True
-        print attribute[0:3] #[1, None, 3]
+        >>> attribute[0:3] = [1, 2, 3]
+        >>> del attribute[1]
+        >>> attribute.has_entry(1)
+            False
+        >>> attribute.has_entry(2)
+            True
+        >>> print attribute[0:3]
+            [1, None, 3]
 
     Multi-element slices over nonexistent gEntries will return None where
     no entry exists. Single-element indices for nonexistent gEntries will
     raise IndexError. Assigning None to a gEntry will delete it.
 
-    When assigning to a gEntry, the type is chosen to match the data; subject
-    to that constraint, it will try to match (in order):
+    When assigning to a gEntry, the type is chosen to match the data;
+    subject to that constraint, it will try to match
+    (in order):
       1. existing gEntry of the same number in this gAttribute
       2. other gEntries in this gAttribute
-      3. data-matching constraints described in L{_Hyperslice.types}
+      3. data-matching constraints described in :meth:`CDF.new`)
     """
 
     def __init__(self, *args, **kwargs):
@@ -3300,23 +3571,30 @@ class gAttr(Attr):
 
 
 class AttrList(collections.MutableMapping):
-    """
-    Object representing a list of attributes.
+    """Object representing a list of attributes.
 
-    Only used in its subclasses, :py:class:`pycdf.gAttrList` and :py:class:`pycdf.zAttrList`
+    .. warning::
+        This class should not be used directly, but only its
+        subclasses, :class:`gAttrList` and :class:`zAttrList`.
+        Methods listed here are safe to use from the subclasses.
 
-    @ivar _cdf_file: CDF these attributes are in
-    @type _cdf_file: :py:class:`pycdf.CDF`
-    @ivar special_entry: callable which returns a "special"
-                         entry number, used to limit results
-                         for zAttrs to those which match the zVar
-    @type special_entry: callable
-    @cvar AttrType: type of attribute in this list, L{zAttr} or L{gAttr}
-    @type AttrType: type
-    @cvar attr_name: name of attribute type, 'zAttribute' or 'gAttribute'
-    @type attr_name: str
-    @cvar global_scope: is this list scoped global (True) or variable (False)
-    @type global_scope: bool
+    .. automethod:: clone
+    .. automethod:: new
+    .. automethod:: rename
+    
+    .. comment::
+        @ivar _cdf_file: CDF these attributes are in
+        @type _cdf_file: :py:class:`pycdf.CDF`
+        @ivar special_entry: callable which returns a "special"
+            entry number, used to limit results
+            for zAttrs to those which match the zVar
+        @type special_entry: callable
+        @cvar AttrType: type of attribute in this list, L{zAttr} or L{gAttr}
+        @type AttrType: type
+        @cvar attr_name: name of attribute type, 'zAttribute' or 'gAttribute'
+        @type attr_name: str
+        @cvar global_scope: is this list scoped global (True) or variable (False)
+        @type global_scope: bool
     """
 
     def __init__(self, cdf_file, special_entry=None):
@@ -3462,16 +3740,20 @@ class AttrList(collections.MutableMapping):
 
     def clone(self, master, name=None, new_name=None):
         """
-        Clones this attribute list, or one attribute in it, from another
+        Clones another attribute list, or one attribute from it, into this
+        list.
 
         Parameters
         ==========
-        master : pycdf.AttrList
+        master : AttrList
             the attribute list to copy from
+
+        Other Parameters
+        ================
         name : str (optional)
             name of attribute to clone (default: clone entire list)
         new_name : str (optional)
-            name of the new attribute, default L{name}
+            name of the new attribute, default ``name``
         """
         if name == None:
             self._clone_list(master)
@@ -3484,7 +3766,7 @@ class AttrList(collections.MutableMapping):
 
         Returns
         =======
-        out: dict
+        out : dict
             copy of the entries for all attributes in this list
         """
         return dict((key, value[:] if isinstance(value, Attr) else value)
@@ -3498,8 +3780,14 @@ class AttrList(collections.MutableMapping):
         ==========
         name : str
             name of the new Attribute
-        data : CDF type of the first entry from :py:mod:`pycdf.const`. Only used if data are specified.
+
+        Other Parameters
+        ================
+        data : 
             data to put into the first entry in the new Attribute
+        type :
+            CDF type of the first entry from :mod:`pycdf.const`.
+            Only used if data are specified.
 
         Raises
         ======
@@ -3583,14 +3871,15 @@ class gAttrList(AttrList):
     """
     Object representing `all` the gAttributes in a CDF.
 
-    Normally accessed as an attribute of an open :py:class:`pycdf.CDF`
-    >>> global_attribs = cdffile.attrs
+    Normally accessed as an attribute of an open :py:class:`CDF`:
+        >>> global_attribs = cdffile.attrs
 
     Appears as a dictionary: keys are attribute names; each value is an
-    attribute represented by a :py:class:`pycdf.gAttr` object. To access the global
-    attribute TEXT
-    >>> text_attr = cdffile.attrs['TEXT']
+    attribute represented by a :py:class:`gAttr` object. To access the global
+    attribute TEXT:
+        >>> text_attr = cdffile.attrs['TEXT']
 
+.. comment
     Attributes
     ==========
     attr_name : str
@@ -3620,9 +3909,9 @@ class gAttrList(AttrList):
 class zAttrList(AttrList):
     """Object representing *all* the zAttributes in a zVariable.
 
-    Normally access as an attribute of a :py:class:`pycdf.Var` in an open
-    CDF::
-    epoch_attribs = cdffile['Epoch'].attrs
+    Normally accessed as an attribute of a :py:class:`Var` in an open
+    CDF:
+        >>> epoch_attribs = cdffile['Epoch'].attrs
 
     Appears as a dictionary: keys are attribute names, values are
     the value of the zEntry associated with the appropriate zVariable.
@@ -3633,19 +3922,26 @@ class zAttrList(AttrList):
     possible.
 
     Example: finding the first dependency of (ISTP-compliant) variable
-    Flux::
-    print cdffile['Flux'].attrs['DEPEND_0']
+    ``Flux``:
+        >>> print cdffile['Flux'].attrs['DEPEND_0']
 
     zAttributes are shared among zVariables, one zEntry allowed per zVariable.
     (pyCDF hides this detail.) Deleting the last zEntry for a zAttribute will
     delete the underlying zAttribute.
 
     zEntries are created and destroyed by the usual dict methods on the
-    zAttrlist::
-    epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
-    del epoch_attribs['new_entry'] #delete the zEntry
-    :py:method:`~pycdf.zAttrList.__setitem__` describes how the type of an zEntry is determined.
+    zAttrlist:
+        >>> epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
+        >>> del epoch_attribs['new_entry'] #delete the zEntry
 
+    The type of the zEntry is guessed from data provided. The type is chosen to
+    match the data; subject to that constraint, it will try to match
+    (in order):
+        #. existing zEntry corresponding to this zVar
+        #. other zEntries in this zAttribute
+        #. the type of this zVar
+        #. data-matching constraints described in :py:meth:`CDF.new`
+.. comment
     @ivar _zvar: zVariable these attributes are in
     @type _zvar: :py:class:`pycdf.Var`
     @ivar _cdf_file: CDF these attributes are in

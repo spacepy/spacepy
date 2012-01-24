@@ -18,7 +18,7 @@ Institution: Los Alamos National Laboratory
 
 Contact: smorley@lanl.gov; balarsen@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 
 
 About datamodel
@@ -110,6 +110,11 @@ class dmarray(numpy.ndarray):
     """
     Container for data within a SpaceData object
 
+    Raises
+    ------
+    NameError
+        raised is the request name was not added to the allowed attributes list
+
     Examples
     --------
     >>> import spacepy.datamodel as datamodel
@@ -130,16 +135,10 @@ class dmarray(numpy.ndarray):
     >>> name.tolist()
     'TestName'
 
-    Methods
-    -------
-    addAttribute : adds another attribute to the allowed list
-
-    Raises
-    ------
-    NameError
-        raised is the request name was not added to the allowed attributes list
-
-
+    .. currentmodule:: spacepy.datamodel
+    .. autosummary::
+        ~dmarray.addAttribute
+    .. automethod:: addAttribute
     """
     Allowed_Attributes = ['attrs']
 
@@ -216,12 +215,10 @@ class SpaceData(dict):
     """
     Datamodel class extending dict
 
-    Methods
-    -------
-    flatten
-
-    tree
-
+    .. currentmodule:: spacepy.datamodel
+    .. autosummary::
+        ~SpaceData.flatten
+    .. automethod:: flatten
     """
 
     def __init__(self, *args, **kwargs):
@@ -341,7 +338,7 @@ def convertKeysToStr(SDobject):
 
 
 def flatten(dobj):
-    '''Function to collapse datamodel to one level deep
+    '''Collapse datamodel to one level deep
 
     Examples
     --------

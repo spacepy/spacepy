@@ -7,7 +7,7 @@ Authors: Josef Koller
 Institution: Los ALamos National Laboratory
 Contaact: jkoller@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import numpy as np
@@ -44,6 +44,10 @@ class Coords(object):
     out : Coords instance
         instance with a.data, a.carsph, etc.
 
+    See Also
+    ========
+    spacepy.time.Ticktock
+
     Examples
     ========
     >>> from spacepy import coordinates as coord
@@ -55,10 +59,12 @@ class Coords(object):
     >>> newcoord = cvals.convert('GSM', 'sph')
     >>> newcoord
 
-
-    See Also
-    ========
-    spacepy.time.Ticktock
+    .. currentmodule:: spacepy.coordinates
+    .. autosummary::
+        ~Coords.append
+        ~Coords.convert
+    .. automethod:: append
+    .. automethod:: convert
     """
     def __init__(self, data, dtype, carsph, units=None, ticks=None):
 
@@ -231,10 +237,7 @@ class Coords(object):
 
     # -----------------------------------------------
     def convert(self, returntype, returncarsph):
-        """
-        a.convert( returntype, returncarsph )
-
-        Can be used to create a new Coords instance with new coordinate types
+        """Create a new Coords instance with new coordinate types
 
         Parameters
         ==========
@@ -345,10 +348,7 @@ class Coords(object):
 
     # -----------------------------------------------
     def append(self, other):
-        """
-        Ticktock.append(other)
-
-        Will be called when another Coords instance has to be appended to the current one
+        """Append another Coords instance to the current one
 
         Parameters
         ==========

@@ -1,6 +1,6 @@
 /*Library providing C support to toolbox
 
-Copyright ©2011 Los Alamos National Security, LLC.
+Copyright 2011 Los Alamos National Security, LLC.
 */
 
 #include <math.h>

@@ -8,7 +8,7 @@ Institution: Los Alamos National Laboratory
 Contact: smorley@lanl.gov, jniehof@lanl.gov, balarsen@lanl.gov, jkoller@lanl.gov, dwelling@lanl.gov
 Los Alamos National Laboratory
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
 from __future__ import absolute_import
@@ -50,7 +50,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'human_sort', 'feq', 'dictree', 'printfig', 'update', 'progressbar',
            'windowMean', 'medAbsDev', 'makePoly', 'binHisto', 'smartTimeTicks',
            'applySmartTimeTicks', 'logspace', 'geomspace', 'arraybin', 'mlt2rad',
-           'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'query_yes_no',
+           'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'listUniq', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'randomDate']
@@ -1509,6 +1509,31 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
     if draw:
         draw()
+
+def getNamedPath(name):
+    """
+    Return the full path of a parent directory with name as the leaf
+
+    Parameters
+    ==========
+    name : string
+        the name of the parent directory to locate
+
+    Examples
+    ========
+    Run from a directory
+    /mnt/projects/dream/bin/Ephem
+    with 'dream' as the name, this function 
+    would return '/mnt/projects/dream'
+    """
+    currpath = os.path.abspath('.')
+    def findNamed(path):
+        pp = os.path.split(path)
+        if pp[-1] != name:
+            path = findNamed(pp[0])
+        return path
+    op = findNamed(currpath)
+    return os.path.join(op)
 
 def query_yes_no(question, default="yes"):
     """

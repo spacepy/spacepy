@@ -18,7 +18,7 @@ class Tickdelta(object):
     Tickdelta( **kwargs )
 
     Tickdelta class holding timedelta similar to datetime.timedelta
-    This can be used to add/substract from Ticktock objects
+    This can be used to add/subtract from Ticktock objects
 
     Parameters
     ==========
@@ -44,7 +44,7 @@ class Tickdelta(object):
 
     See Also
     ========
-    spacepy.time.Ticktock class
+    Ticktock
     """
     def __init__(self, **kwargs):
         days, hours, minutes, seconds = [0,0,0,0]
@@ -182,11 +182,46 @@ class Ticktock(object):
     >>> x.DOY # Day of year
     array([ 56.,  57.])
 
-    See Also
-    ========
-    a.getCDF
-    a.getISO
-    a.getUTC
+    .. currentmodule:: spacepy.time
+    .. autosummary::
+        ~Ticktock.append
+        ~Ticktock.argsort
+        ~Ticktock.convert
+        ~Ticktock.getCDF
+        ~Ticktock.getDOY
+        ~Ticktock.getGPS
+        ~Ticktock.getISO
+        ~Ticktock.getJD
+        ~Ticktock.getMJD
+        ~Ticktock.getRDT
+        ~Ticktock.getTAI
+        ~Ticktock.getUNX
+        ~Ticktock.getUTC
+        ~Ticktock.geteDOY
+        ~Ticktock.getleapsecs
+        ~Ticktock.isoformat
+        ~Ticktock.now
+        ~Ticktock.sort
+        ~Ticktock.update_items
+    .. automethod:: append
+    .. automethod:: argsort
+    .. automethod:: convert
+    .. automethod:: getCDF
+    .. automethod:: getDOY
+    .. automethod:: getGPS
+    .. automethod:: getISO
+    .. automethod:: getJD
+    .. automethod:: getMJD
+    .. automethod:: getRDT
+    .. automethod:: getTAI
+    .. automethod:: getUNX
+    .. automethod:: getUTC
+    .. automethod:: geteDOY
+    .. automethod:: getleapsecs
+    .. automethod:: isoformat
+    .. automethod:: now
+    .. automethod:: sort
+    .. automethod:: update_items
     """
     def __init__(self, data, dtype=None):
         from numpy import ndarray
@@ -665,9 +700,9 @@ class Ticktock(object):
 
         See Also
         ========
-        a.CDF
-        a.ISO
-        a.UTC
+        CDF
+        ISO
+        UTC
         """
         newdat = eval('self.'+dtype)
         return Ticktock(newdat, dtype)
@@ -1399,7 +1434,7 @@ def doy2date(year, doy, dtobj=False, flAns=False):
 
     See Also
     ========
-    getDOY
+    Ticktock.getDOY
 
     """
     try:

@@ -38,7 +38,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphin
               'sphinx.ext.autosummary', 'sphinx.ext.extlinks', ]
 
 autosummary_generate = True
-numpydoc_show_class_members = True
+numpydoc_show_class_members = False
 
 
 # make it so TODOs will work

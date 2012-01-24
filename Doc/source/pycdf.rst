@@ -1,7 +1,7 @@
 
 
 ######################################
-pyCDF - Python interface to CDF files
+pycdf - Python interface to CDF files
 ######################################
 
 .. automodule:: spacepy.pycdf
@@ -20,7 +20,7 @@ Contents
 Quickstart
 ----------
 Create a CDF
-========
+============
 This quickstart guide should walk uses through the basics of CDF manipulation
 using pyCDF
 
@@ -187,25 +187,29 @@ If one has the hourly data file created above and only wants to read in a portio
     >>> cdf.close()
 
 
+Access to CDF constants
+=======================
+Constants defined in cdf.h and occasionally useful in accessing CDFs are
+available in the :doc:`const <pycdf_const>` module.
+
+
 Class reference
 ===============
 
-
-
 .. autosummary::
+    :template: clean_class.rst
     :toctree: autosummary
 
     CDF
-    Attr
+    Var
+    gAttrList
+    zAttrList
     zAttr
     gAttr
     AttrList
-    gAttrList
-    zAttrList
-    const
-    CDFCopy
+    Attr
     Library
-    Var
+    CDFCopy
     VarCopy
     CDFError
     CDFException

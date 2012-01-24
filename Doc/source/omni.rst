@@ -1,10 +1,12 @@
 
 
-####################################################
-omni - module top read and process NASA OMNIWEB data
-####################################################
+###################################################
+omni - module to read and process NASA OMNIWEB data
+###################################################
 
 .. automodule:: omni
+
+.. currentmodule:: spacepy.omni
 
 .. autosummary::
     :toctree: autosummary

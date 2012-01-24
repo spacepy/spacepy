@@ -7,7 +7,7 @@ Authors: Josef Koller
 Institution: Los Alamos National Laboratory
 Contact: jkoller@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 from spacepy import help
@@ -49,6 +49,37 @@ class RBmodel(object):
     Finally, visualize the results:
 
     >>> rmod.plot_summary()
+
+    .. currentmodule:: spacepy.radbelt
+    .. autosummary::
+        ~RBmodel.Gaussian_source
+        ~RBmodel.add_Lmax
+        ~RBmodel.add_Lpp
+        ~RBmodel.add_PSD_obs
+        ~RBmodel.add_PSD_twin
+        ~RBmodel.add_omni
+        ~RBmodel.add_source
+        ~RBmodel.assimilate
+        ~RBmodel.evolve
+        ~RBmodel.get_DLL
+        ~RBmodel.plot
+        ~RBmodel.plot_obs
+        ~RBmodel.set_lgrid
+        ~RBmodel.setup_ticks
+    .. automethod:: Gaussian_source
+    .. automethod:: add_Lmax
+    .. automethod:: add_Lpp
+    .. automethod:: add_PSD_obs
+    .. automethod:: add_PSD_twin
+    .. automethod:: add_omni
+    .. automethod:: add_source
+    .. automethod:: assimilate
+    .. automethod:: evolve
+    .. automethod:: get_DLL
+    .. automethod:: plot
+    .. automethod:: plot_obs
+    .. automethod:: set_lgrid
+    .. automethod:: setup_ticks
     """
 
     def __init__(self, grid='L', NL=91, const_kp=False):
@@ -541,19 +572,19 @@ class RBmodel(object):
         setting the start and end dates, and time step, using the setup_ticks
         funcion of the radiation belt model:
 
-        >> import spacepy
-        >> import datetime
-        >> from spacepy import radbelt
+        >>> import spacepy
+        >>> import datetime
+        >>> from spacepy import radbelt
 
-        >> start = datetime.datetime(2002,10,23)
-        >> end = datetime.datetime(2002,11,4)
-        >> delta = datetime.timedelta(hours=0.5)
-        >> rmod.setup_ticks(start, end, delta, dtype='UTC')
+        >>> start = datetime.datetime(2002,10,23)
+        >>> end = datetime.datetime(2002,11,4)
+        >>> delta = datetime.timedelta(hours=0.5)
+        >>> rmod.setup_ticks(start, end, delta, dtype='UTC')
 
         Once the dates and time step are specified, the data is added using the
         add_PSD function:
 
-        >> rmod.add_PSD()
+        >>> rmod.add_PSD()
 
         The observations are averaged over the time windows, whose interval is
         give by the time step.
@@ -561,13 +592,13 @@ class RBmodel(object):
         Once the dates and data are set, the assimiation is performed using the
         'assimilate' function:
 
-        >> rmod.assimilate(inflation=1)
+        >>> rmod.assimilate(inflation=1)
 
         This function will add the PSDa values, which are the analysis state of
         the radiation belt using the observations within the dates. To plot the
         analysis simply use the plot funtion:
 
-        >> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
+        >>> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
 
         """
         import spacepy.data_assimilation

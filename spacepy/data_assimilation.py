@@ -18,35 +18,55 @@ Authors: Josef Koller, Humberto Godinez
 nstitution: Los Alamos National Laboratory
 Contact: jkoller@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 # -----------------------------------------------
 # Data Assimilation class: enKF
 # -----------------------------------------------
 class ensemble(object):
+    """
+    Ensemble-based data assimilation subroutines for the Radiation Belt Model
+    
+    .. currentmodule:: spacepy.data_assimilation
+    .. autosummary::
+        ~ensemble.EnKF
+        ~ensemble.EnKF_oneobs
+        ~ensemble.add_model_error
+        ~ensemble.add_model_error_obs
+        ~ensemble.getHA
+        ~ensemble.getHAprime
+        ~ensemble.getHPH
+        ~ensemble.getInnovation
+        ~ensemble.getperturb
+    .. automethod:: EnKF
+    .. automethod:: EnKF_oneobs
+    .. automethod:: add_model_error
+    .. automethod:: add_model_error_obs
+    .. automethod:: getHA
+    .. automethod:: getHAprime
+    .. automethod:: getHPH
+    .. automethod:: getInnovation
+    .. automethod:: getperturb
+    """
 
-        """
-        Ensemble-based data assimilation subroutines for the Radiation Belt Model
-        """
+    def __init__(self, ensembles = 50):
+	    self.Nens = ensembles # number of ensemble members
 
-	def __init__(self, ensembles = 50):
-		self.Nens = ensembles # number of ensemble members
+	    return
 
-		return
+    # -----------------------------------------------
+    def __str__(self):
+	    return '<enKF instance, Nens='+self.Nens+'>'
+    __repr__ = __str__
 
-	# -----------------------------------------------
-	def __str__(self):
-		return '<enKF instance, Nens='+self.Nens+'>'
-	__repr__ = __str__
-
-	# -----------------------------------------------
-        def EnKF(self, A, Psi, Inn, HAp):
-		"""
-                analysis subroutine after code example in
-                Evensen 2003 this will take the prepared
-                matrices and calculate the analysis most
-                efficiently, A will be returned
+    # -----------------------------------------------
+    def EnKF(self, A, Psi, Inn, HAp):
+	        """
+		analysis subroutine after code example in
+		Evensen 2003 this will take the prepared
+		matrices and calculate the analysis most
+		efficiently, A will be returned
 
 		Parameters
 		==========
@@ -121,8 +141,8 @@ class ensemble(object):
 
                 return C
 
-	# -----------------------------------------------
-        def EnKF_oneobs(self, A, Psi, Inn, HAp):
+    # -----------------------------------------------
+    def EnKF_oneobs(self, A, Psi, Inn, HAp):
 		"""
                 analysis subroutine for a single observations
                 with the EnKF. This is a special case.
@@ -179,8 +199,8 @@ class ensemble(object):
 
                 return C
 
-	# -----------------------------------------------
-	def getHAprime(self, HA):
+    # -----------------------------------------------
+    def getHAprime(self, HA):
 		"""
 		calculate ensemble perturbation of HA
 		HA' = HA-HA_mean
@@ -203,8 +223,8 @@ class ensemble(object):
 		S = np.dot(HA,I-N1)
 		return S
 
-	# -----------------------------------------------
-	def getInnovation(self, y, Psi, HA):
+    # -----------------------------------------------
+    def getInnovation(self, y, Psi, HA):
 		"""
 		compute innovation ensemble D'
 
@@ -230,8 +250,8 @@ class ensemble(object):
 		D = Yens + Psi - HA
 		return D
 
-	# -----------------------------------------------
-	def getperturb(self, model, y):
+    # -----------------------------------------------
+    def getperturb(self, model, y):
 		"""
 		compute perturbations of observational vector
 
@@ -256,8 +276,8 @@ class ensemble(object):
 		#Psi = np.zeros((m,nens))
 		return Psi
 
-	# -----------------------------------------------
-	def getHA(self, model, Lobs, A):
+    # -----------------------------------------------
+    def getHA(self, model, Lobs, A):
 		"""
 		compute HA provided L vector of observations
 		and ensemble matrix A
@@ -297,8 +317,8 @@ class ensemble(object):
 			i += 1
 		return HA
 
-	# -----------------------------------------------
-	def getHPH(self,Lobs,Pfxx):
+    # -----------------------------------------------
+    def getHPH(self,Lobs,Pfxx):
 		"""
 
 		Parameters
@@ -338,8 +358,8 @@ class ensemble(object):
 		PH = Pfxx[:,idx]
 		return PH, HPH
 
-	# -----------------------------------------------
-	def add_model_error(self, model, A, PSDdata):
+    # -----------------------------------------------
+    def add_model_error(self, model, A, PSDdata):
 		"""
 		this routine will add a standard error to the ensemble states
 
@@ -416,8 +436,8 @@ class ensemble(object):
                         A[idx, :] = np.random.normal( fcst[i], stdev[i], nens )
                 return A
 
-	# -----------------------------------------------
-	def add_model_error_obs(self, model, A, Lobs, y):
+    # -----------------------------------------------
+    def add_model_error_obs(self, model, A, Lobs, y):
 		"""
 		this routine will add a standard error to the ensemble states
 
