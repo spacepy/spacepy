@@ -1483,14 +1483,18 @@ class CDF(collections.MutableMapping):
 
 class CDFCopy(dict):
     """
-    A copy of all data and attributes in a :py:class:`CDF`
+    A dictionary-like copy of all data and attributes in a :py:class:`CDF`
 
     Data are :class:`VarCopy` objects, keyed by variable name.
-    CDF attributes are in the Python attribute ``attrs``. (I.e.,
+    CDF attributes are in :attr:`attrs`. (I.e.,
     data are accessed much like from a :class:`CDF`).
 
     Do not instantiate this class directly; use :meth:`~CDF.copy`
     on an existing :class:`CDF`.
+
+    .. attribute:: attrs
+
+       Python dictionary containing attributes copied from the CDF.
     """
 
     def __init__(self, cdf):
@@ -2260,14 +2264,18 @@ class Var(collections.MutableSequence):
 
 class VarCopy(list):
     """
-    A copy of the data and attributes in a :class:`Var`
+    A list-like copy of the data and attributes in a :class:`Var`
 
     Data are in the list elements. CDF attributes are in a dict,
-    accessed through the Python attribute ``attrs``. (I.e.,
+    accessed through :attr:`attrs`. (I.e.,
     data and attributes are accessed like in a :class:`Var`.)
 
     Do not instantiate this class directly; use :meth:`~Var.copy`
     on an existing :class:`Var`.
+
+    .. attribute:: attrs
+
+       Python dictionary containing attributes copied from the zVar
     """
 
     def __init__(self, zVar):
