@@ -3007,11 +3007,13 @@ class Attr(collections.MutableSequence):
         @type _name: bytes
 
     .. autosummary::
+        ~Attr.has_entry
         ~Attr.max_idx
         ~Attr.new
         ~Attr.number
         ~Attr.rename
         ~Attr.type
+    .. automethod:: has_entry
     .. automethod:: max_idx
     .. automethod:: new
     .. automethod:: number
@@ -3524,6 +3526,10 @@ class zAttr(Attr):
         Because zAttributes are shared across all variables in a CDF,
         directly manipulating them may have unexpected consequences.
         It is safest to operate on zEntries via :class:`zAttrList`.
+
+    See Also
+    ========
+    :class:`Attr`
     """
 
     def __init__(self, *args, **kwargs):
@@ -3577,7 +3583,7 @@ class gAttr(Attr):
     gEntry number exists. Iterating over all entries is also supported::
         >>> entrylist = [entry for entry in attribute]
 
-    Deleting gEntries will leave a "hole"::
+    Deleting gEntries will leave a "hole":
         >>> attribute[0:3] = [1, 2, 3]
         >>> del attribute[1]
         >>> attribute.has_entry(1)
@@ -3587,16 +3593,20 @@ class gAttr(Attr):
         >>> print attribute[0:3]
             [1, None, 3]
 
-    Multi-element slices over nonexistent gEntries will return None where
+    Multi-element slices over nonexistent gEntries will return ``None`` where
     no entry exists. Single-element indices for nonexistent gEntries will
-    raise IndexError. Assigning None to a gEntry will delete it.
+    raise ``IndexError``. Assigning ``None`` to a gEntry will delete it.
 
     When assigning to a gEntry, the type is chosen to match the data;
     subject to that constraint, it will try to match
     (in order):
       1. existing gEntry of the same number in this gAttribute
       2. other gEntries in this gAttribute
-      3. data-matching constraints described in :meth:`CDF.new`)
+      3. data-matching constraints described in :meth:`CDF.new`.
+
+    See Also
+    ========
+    :class:`Attr`
     """
 
     def __init__(self, *args, **kwargs):
