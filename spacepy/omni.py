@@ -151,11 +151,13 @@ try:
 except:
     print("No OMNI data found. This module has limited functionality.")
     print("Run spacepy.toolbox.update(omni=True) to download OMNI data")
-if not 'ticks' in omnidata:
-    omnidata['ticks'] = time.Ticktock(omnidata['UTC'], 'UTC')
-if not 'Hr' in omnidata:
-    omnidata['Hr'] = np.fromiter((dt.hour for dt in omnidata['UTC']),
-                                dtype='int16', count=len(omnidata['UTC']))
-if not 'Year' in omnidata:
-    omnidata['Year'] = np.fromiter((dt.year for dt in omnidata['UTC']),
-                                  dtype='int16', count=len(omnidata['UTC']))
+else:
+    if not 'ticks' in omnidata:
+        omnidata['ticks'] = time.Ticktock(omnidata['UTC'], 'UTC')
+    if not 'Hr' in omnidata:
+        omnidata['Hr'] = np.fromiter((dt.hour for dt in omnidata['UTC']),
+                                     dtype='int16', count=len(omnidata['UTC']))
+    if not 'Year' in omnidata:
+        omnidata['Year'] = np.fromiter((dt.year for dt in omnidata['UTC']),
+                                       dtype='int16',
+                                       count=len(omnidata['UTC']))
