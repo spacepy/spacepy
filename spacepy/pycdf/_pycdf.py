@@ -701,6 +701,8 @@ class CDF(collections.MutableMapping):
 
     Open or create a CDF file by creating an object of this class.
 
+    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
+
     Parameters
     ==========
     pathname : string
@@ -726,8 +728,12 @@ class CDF(collections.MutableMapping):
     ========
     Open a CDF by creating a CDF object, e.g.:
         >>> cdffile = pycdf.CDF('cdf_filename.cdf')
-    Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save` when
+    Be sure to :meth:`close` or :meth:`save` when
     done.
+
+    .. note::
+        Existing CDF files are opened read-only by default, see
+        :meth:`readonly` to change.
 
     CDF supports the `with
     <http://docs.python.org/tutorial/inputoutput.html#methods-of-file-objects>`_
@@ -751,7 +757,7 @@ class CDF(collections.MutableMapping):
          Or:
              >>> for k in cdffile:
              ...     print(k)
-      #. Get a :py:class:`pycdf.Var` object corresponding to the variable
+      #. Get a :class:`Var` object corresponding to the variable
          named ``Epoch``:
              >>> epoch = cdffile['Epoch']
       #. Determine if a CDF contains a variable named ``B_GSE``:
@@ -773,7 +779,7 @@ class CDF(collections.MutableMapping):
     This last example can be very inefficient as it reads the entire CDF.
     Normally it's better to treat the CDF as a dictionary and access only
     the data needed, which will be pulled transparently from disc. See
-    :py:class:`pycdf.Var` for more subtle examples.
+    :class:`Var` for more subtle examples.
 
     Potentially useful dictionary methods and related functions:
       - `in <http://docs.python.org/reference/expressions.html#in>`_
@@ -784,10 +790,10 @@ class CDF(collections.MutableMapping):
       - :py:func:`sorted`
       - :py:func:`~spacepy.toolbox.dictree`
 
-    The :py:obj:`~spacepy.pycdf.CDF.attrs` Python attribute acts as a dictionary
+    The :attr:`~CDF.attrs` Python attribute acts as a dictionary
     referencing CDF attributes (do not confuse the two); all the
     dictionary methods above also work on the attribute dictionary.
-    See :py:class:`pycdf.gAttrsList` for more on the dictionary of global
+    See :class:`gAttrList` for more on the dictionary of global
     attributes.
 
     Creating a new CDF from a master (skeleton) CDF has similar syntax to
@@ -804,7 +810,8 @@ class CDF(collections.MutableMapping):
     :py:meth:`readonly` to change.
 
     By default, new CDFs (without a master) are created in version 2
-    (backward-compatible) format. To create a version 3 CDF:
+    (backward-compatible) format. To create a version 3 CDF, use
+    :meth:`Library.set_backward`:
         >>> pycdf.lib.set_backward(False)
         >>> cdffile = pycdf.CDF('cdf_filename.cdf', '')
 
@@ -814,28 +821,35 @@ class CDF(collections.MutableMapping):
     or, if more control is needed over the type and dimensions, use
     :py:meth:`new`.
 
-    .. :ivar _handle: (ctypes.c_void_p) file handle returned from CDF library 
-                   open functions.
-       :ivar _opened: (bool) is the CDF open?
-       :ivar _attrlistref: (weakref): reference to the attribute list
-                        (use L{attrs} instead)
-       :ivar pathname: (string) filename of the CDF file
-    :cvar attrs: Returns global attributes for this CDF
-                 (see :py:class:`pycdf.gAttrsList`)
-    .. note::
-        CDF is opened read-only by default, see :py:meth:`readonly` to change.
+    .. autosummary::
 
-    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
-    .. automethod:: close
-    .. automethod:: save
-    .. automethod:: new
-    .. automethod:: clone
-    .. automethod:: copy
-    .. automethod:: readonly
-    .. automethod:: col_major
+        ~CDF.attrs
+        ~CDF.checksum
+        ~CDF.clone
+        ~CDF.close
+        ~CDF.col_major
+        ~CDF.compress
+        ~CDF.copy
+        ~CDF.new
+        ~CDF.readonly
+        ~CDF.save
+        ~CDF.version
+
+    .. attribute:: CDF.attrs
+
+       Returns global attributes for this CDF
+       (see :class:`gAttrList`)
     .. automethod:: checksum
+    .. automethod:: clone
+    .. automethod:: close
+    .. automethod:: col_major
     .. automethod:: compress
+    .. automethod:: copy
+    .. automethod:: new
+    .. automethod:: readonly
+    .. automethod:: save
     .. automethod:: version
+
     """
     attrs = _AttrListGetter()
 
@@ -1135,7 +1149,7 @@ class CDF(collections.MutableMapping):
 
         Parameters
         ==========
-        zVar : :py:class:`pycdf.Var`
+        zVar : :py:class:`Var`
             variable to clone
 
         Other Parameters
@@ -1164,7 +1178,7 @@ class CDF(collections.MutableMapping):
 
         Other Parameters
         ================
-        new_col : Boolean
+        new_col : boolean
             Specify True to change to column-major, False to change to
             row major, or do not specify to check the majority
             rather than changing it.
@@ -1172,7 +1186,7 @@ class CDF(collections.MutableMapping):
 
         Returns
         =======
-        out : Boolean
+        out : boolean
             True if column-major, false if row-major
         """
         if new_col != None:
@@ -1204,7 +1218,7 @@ class CDF(collections.MutableMapping):
 
         Raises
         ======
-        pycdf.CDFError : if bad mode is set
+        CDFError : if bad mode is set
         """
         if ro == True:
             self._call(const.SELECT_, const.CDF_READONLY_MODE_,
@@ -1228,15 +1242,15 @@ class CDF(collections.MutableMapping):
         are enabled, the checksum will be verified every time the file
         is opened.
 
-        Parameters
-        ==========
-        new_val : Boolean (optional)
+        Other Parameters
+        ================
+        new_val : boolean
             True to enable checksum, False to disable, or leave out
             to simply check.
 
         Returns
         =======
-        out : Boolean
+        out : boolean
             True if the checksum is enabled or False if disabled
         """
         if new_val != None:
@@ -1253,17 +1267,17 @@ class CDF(collections.MutableMapping):
         """
         Closes the CDF file
 
-        Although called on object destruction :py:meth:`pycdf.CDF.__del__`,
+        Although called on object destruction (:meth:`~CDF.__del__`),
         to ensure all data are saved, the user should explicitly call
-        :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`.
+        :meth:`~CDF.close` or :meth:`~CDF.save`.
 
         Raises
         ======
-        pycdf.CDFError : if CDF library reports an error
+        CDFError : if CDF library reports an error
 
         Warns
         =====
-        pycdf.CDFWarning : if CDF library reports a warning
+        CDFWarning : if CDF library reports a warning
         """
 
         self._call(const.CLOSE_, const.CDF_)
@@ -1273,18 +1287,18 @@ class CDF(collections.MutableMapping):
         """
         Set or check the compression of this CDF
 
-        Sets compression on entire `file`, not per-variable.
+        Sets compression on entire *file*, not per-variable.
 
         Other Parameters
         ================
         comptype : ctypes.c_long
             type of compression to change to, see CDF C reference manual
             section 4.10. Constants for this parameter are in
-            :doc:`const </pycdf_const>`. If not specified, will not change
+            :mod:`~spacepy.pycdf.const`. If not specified, will not change
             compression.
         param : ctypes.c_long
             Compression parameter, see CDF CRM 4.10 and
-            :doc:`const </pycdf_const>`.
+            :mod:`~spacepy.pycdf.const`.
             If not specified, will choose reasonable default (5 for gzip;
             other types have only one possible parameter.)
 
@@ -1295,7 +1309,7 @@ class CDF(collections.MutableMapping):
 
         See Also
         ========
-        pycdf.Var.compress
+        :meth:`Var.compress`
 
         Examples
         ========
@@ -1323,7 +1337,7 @@ class CDF(collections.MutableMapping):
         data
             data to store in the new variable
         type : ctypes.c_long
-            CDF type of the variable, from :doc:`const </pycdf_const>`.
+            CDF type of the variable, from :mod:`~spacepy.pycdf.const`.
         recVary : boolean
             record variance of the variable (default True)
         dimVarys : list of boolean
@@ -1337,7 +1351,7 @@ class CDF(collections.MutableMapping):
 
         Returns
         =======
-        out : :py:class:`pycdf.Var`
+        out : :py:class:`Var`
             the newly-created zVariable
 
         Raises
@@ -1410,9 +1424,9 @@ class CDF(collections.MutableMapping):
         """
         Saves the CDF file but leaves it open.
 
-        If closing the CDF, :py:meth:`~pycdf.CDF.close` is sufficient,
+        If closing the CDF, :meth:`close` is sufficient;
         there is no need to call
-        :py:meth:`pycdf.CDF.save` before :py:meth:`~pycdf.CDF.close`.
+        :meth:`save` before :meth:`close`.
 
         .. note::
             Relies on an undocumented call of the CDF C library, which is
@@ -1435,7 +1449,7 @@ class CDF(collections.MutableMapping):
 
         Returns
         =======
-        out : :py:class:`pycdf.CDFCopy`
+        out : :py:class:`CDFCopy`
             dictionary-like object of all data
         """
         return CDFCopy(self)
