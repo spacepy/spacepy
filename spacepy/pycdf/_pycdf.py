@@ -2990,7 +2990,7 @@ class _Hyperslice(object):
 
 
 class Attr(collections.MutableSequence):
-    """An attribute, z or g, for a CDF
+    """An attribute, g or z, for a CDF
 
     .. warning::
         This class should not be used directly, but only in its
@@ -3315,14 +3315,14 @@ class Attr(collections.MutableSequence):
 
         Other Parameters
         ================
-        new_type :
-            type to change it to, from :py:mod:`pycdf.const`
+        new_type
+            type to change this Entry to, from :mod:`~spacepy.pycdf.const`.
             Omit to only check type.
 
         Returns
         =======
         out : int
-            CDF variable type, see :py:mod:`pycdf.const`
+            CDF variable type, see :mod:`~spacepy.pycdf.const`
 
         Notes
         =====
@@ -3375,7 +3375,8 @@ class Attr(collections.MutableSequence):
     def new(self, data, type=None, number=None):
         """Create a new Entry in this Attribute
 
-        .. note:: Will overwrite an existing Entry.
+        .. note:: If ``number`` is provide and an Entry with that number
+                  already exists, it will be overwritten.
 
         Parameters
         ==========
@@ -3385,7 +3386,7 @@ class Attr(collections.MutableSequence):
         Other Parameters
         ================
         type : int
-            type of the new Entry, from :mod:`~pycdf.const`
+            type of the new Entry, from :mod:`~spacepy.pycdf.const`
             (otherwise guessed from ``data``)
         number : int
             Entry number to write, default is lowest available number.
@@ -3647,7 +3648,7 @@ class AttrList(collections.MutableMapping):
     """Object representing a list of attributes.
 
     .. warning::
-        This class should not be used directly, but only its
+        This class should not be used directly, but only via its
         subclasses, :class:`gAttrList` and :class:`zAttrList`.
         Methods listed here are safe to use from the subclasses.
 
@@ -3856,10 +3857,10 @@ class AttrList(collections.MutableMapping):
 
         Other Parameters
         ================
-        data : 
+        data
             data to put into the first entry in the new Attribute
-        type :
-            CDF type of the first entry from :mod:`pycdf.const`.
+        type
+            CDF type of the first entry from :mod:`~spacepy.pycdf.const`.
             Only used if data are specified.
 
         Raises
@@ -3879,7 +3880,7 @@ class AttrList(collections.MutableMapping):
         """
         Rename an attribute in this list
 
-        Renaming a zAttribute renames it for `all` zVariables in this CDF!
+        Renaming a zAttribute renames it for *all* zVariables in this CDF!
 
         Parameters
         ==========
