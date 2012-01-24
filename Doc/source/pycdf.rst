@@ -188,10 +188,13 @@ If one has the hourly data file created above and only wants to read in a portio
     >>> cdf.close()
 
 
-Access to CDF constants
-=======================
+Access to CDF constants and the C library
+=========================================
 Constants defined in cdf.h and occasionally useful in accessing CDFs are
 available in the :mod:`~spacepy.pycdf.const` module.
+
+The underlying C library is represented by the :data:`~spacepy.pycdf.lib`
+variable.
 
 
 Class reference
@@ -216,4 +219,3 @@ Class reference
     CDFException
     CDFWarning
     EpochError
-

@@ -45,8 +45,10 @@ class Library(object):
     Abstraction of the base CDF C library and its state.
 
     Not normally intended for end-user use. An instance of this class
-    is created at package load time as the :data:`~pycdf.lib` variable, providing
-    access to the underlying C library if necessary.
+    is created at package load time as the :data:`~spacepy.pycdf.lib` variable, providing
+    access to the underlying C library if necessary. The CDF library itself
+    is described in section 2.1 of the CDF user's guide, as well as the CDF
+    C reference manual.
 
     Calling the C library directly requires knowledge of
     :mod:`ctypes`.
@@ -55,6 +57,7 @@ class Library(object):
     for details.
 
     .. autosummary::
+
         ~Library.call
         ~Library.check_status
         ~Library.datetime_to_epoch
@@ -62,6 +65,8 @@ class Library(object):
         ~Library.epoch_to_datetime
         ~Library.epoch16_to_datetime
         ~Library.set_backward
+        version
+
     .. automethod:: call
     .. automethod:: check_status
     .. automethod:: datetime_to_epoch
@@ -70,16 +75,9 @@ class Library(object):
     .. automethod:: epoch16_to_datetime
     .. automethod:: set_backward
 
-    .. comment:
-        @ivar _del_middle_rec_bug: does this version of the library have a bug
-                                   when deleting a record from the middle of a
-                                   variable?
-        @type _del_middle_rec_bug: Boolean
-        @ivar _library: :py:mod:`ctypes` connection to the library
-        @type _library: ctypes.CDLL
-        @ivar version: version of the CDF library, in order version, release,
-                       increment, subincrement
-        @type version: tuple
+    .. attribute:: version
+
+       Version of the CDF library, (version, release, increment, subincrement)
     """
     def __init__(self):
         """Load the CDF C library.
@@ -507,9 +505,12 @@ class Library(object):
 try:
     lib = Library()
     """Module global library object.
-    
+        
     Initalized at module load time so all classes have ready
-    access to the CDF library and a common state.
+    access to the CDF library and a common state. E.g:
+        >>> from spacepy import pycdf
+        >>> pycdf.lib.version
+            (3, 3, 0, ' ')
     """
 except:
     if 'sphinx' in sys.argv[0]:
