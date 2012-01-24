@@ -191,7 +191,7 @@ If one has the hourly data file created above and only wants to read in a portio
 Access to CDF constants
 =======================
 Constants defined in cdf.h and occasionally useful in accessing CDFs are
-available in the :doc:`const <pycdf_const>` module.
+available in the :mod:`~spacepy.pycdf.const` module.
 
 
 Class reference

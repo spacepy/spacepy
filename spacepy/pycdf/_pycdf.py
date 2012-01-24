@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
+.. module:: spacepy.pycdf
 pyCDF implementation
 
 This module contains the implementation details of pyCDF, the
