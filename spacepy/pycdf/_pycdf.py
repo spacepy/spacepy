@@ -749,7 +749,7 @@ class CDF(collections.MutableMapping):
     `dictionary
     <http://docs.python.org/tutorial/datastructures.html#dictionaries>`_,
     where the keys are names of variables in the CDF, and the values,
-    :py:class:`pycdf.Var` objects. As a dictionary, they are also `iterable
+    :class:`Var` objects. As a dictionary, they are also `iterable
     <http://docs.python.org/tutorial/classes.html#iterators>`_ and it is easy
     to loop over all of the variables in a file. Some examples:
       #. List the names of all variables in the open CDF ``cdffile``:
@@ -789,6 +789,9 @@ class CDF(collections.MutableMapping):
         <http://docs.python.org/tutorial/datastructures.html#list-comprehensions>`_
       - :py:func:`sorted`
       - :py:func:`~spacepy.toolbox.dictree`
+
+    The CDF user's guide section 2.2 has more background information on CDF
+    files.
 
     The :attr:`~CDF.attrs` Python attribute acts as a dictionary
     referencing CDF attributes (do not confuse the two); all the
@@ -1289,6 +1292,9 @@ class CDF(collections.MutableMapping):
 
         Sets compression on entire *file*, not per-variable.
 
+        See section 2.6 of the CDF user's guide for more information on
+        compression.
+
         Other Parameters
         ================
         comptype : ctypes.c_long
@@ -1338,6 +1344,8 @@ class CDF(collections.MutableMapping):
             data to store in the new variable
         type : ctypes.c_long
             CDF type of the variable, from :mod:`~spacepy.pycdf.const`.
+            See section 2.5 of the CDF user's guide for more information on
+            CDF data types.
         recVary : boolean
             record variance of the variable (default True)
         dimVarys : list of boolean
@@ -1506,9 +1514,11 @@ class Var(collections.MutableSequence):
     `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
     `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
+    The CDF user's guide, section 2.3, provides background on variables.
+
     .. note::
-        Not intended to be created directly; use methods of
-        :py:class:`CDF` to gain access to a variable.
+        Not intended to be created directly; use methods
+        of :class:`CDF` to gain access to a variable.
 
     A record-varying variable's data are viewed as a hypercube of dimensions
     n_dims+1 and are indexed in row-major fashion, i.e. the last
@@ -2193,6 +2203,9 @@ class Var(collections.MutableSequence):
 
         Compression may not be changeable on variables with data already
         written; even deleting the data may not permit the change.
+
+        See section 2.6 of the CDF user's guide for more information on
+        compression.
 
         Other Parameters
         ================
@@ -2991,6 +3004,9 @@ class Attr(collections.MutableSequence):
     `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
     `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
+    An introduction to CDF attributes can be found in section 2.4 of
+    the CDF user's guide.
+
     Each element of the list is a single Entry of the appropriate type.
     The index to the elements is the Entry number.
 
@@ -3526,6 +3542,10 @@ class zAttr(Attr):
         Because zAttributes are shared across all variables in a CDF,
         directly manipulating them may have unexpected consequences.
         It is safest to operate on zEntries via :class:`zAttrList`.
+
+    .. note::
+        When accessing a zAttr, pyCDF exposes only the zEntry corresponding
+        to the associated zVariable.
 
     See Also
     ========
