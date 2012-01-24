@@ -12,7 +12,7 @@ Authors: Jon Niehof
 Institution: Los Alamos National Laboratory
 Contact: jniehof@lanl.gov
 
-Copyright 2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 
 
 """
@@ -3912,7 +3912,7 @@ class AttrList(collections.MutableMapping):
 
 class gAttrList(AttrList):
     """
-    Object representing `all` the gAttributes in a CDF.
+    Object representing *all* the gAttributes in a CDF.
 
     Normally accessed as an attribute of an open :py:class:`CDF`:
         >>> global_attribs = cdffile.attrs
@@ -3922,13 +3922,9 @@ class gAttrList(AttrList):
     attribute TEXT:
         >>> text_attr = cdffile.attrs['TEXT']
 
-.. comment
-    Attributes
-    ==========
-    attr_name : str
-        the name of the attribute
-    global_scope : boolean
-        If the attribute global in scope
+    See Also
+    ========
+    :class:`AttrList`
     """
     AttrType = gAttr
     attr_name = 'gAttribute'
@@ -3952,7 +3948,7 @@ class gAttrList(AttrList):
 class zAttrList(AttrList):
     """Object representing *all* the zAttributes in a zVariable.
 
-    Normally accessed as an attribute of a :py:class:`Var` in an open
+    Normally accessed as an attribute of a :class:`Var` in an open
     CDF:
         >>> epoch_attribs = cdffile['Epoch'].attrs
 
@@ -3984,11 +3980,11 @@ class zAttrList(AttrList):
         #. other zEntries in this zAttribute
         #. the type of this zVar
         #. data-matching constraints described in :py:meth:`CDF.new`
-.. comment
-    @ivar _zvar: zVariable these attributes are in
-    @type _zvar: :py:class:`pycdf.Var`
-    @ivar _cdf_file: CDF these attributes are in
-    @type _cdf_file: :py:class:`pycdf.CDF`
+
+    See Also
+    ========
+    :class:`AttrList`
+
     """
     AttrType = zAttr
     attr_name = 'zAttribute'
