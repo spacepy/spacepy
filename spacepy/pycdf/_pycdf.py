@@ -521,15 +521,17 @@ class CDFException(Exception):
     """
     Base class for errors or warnings in the CDF library.
 
-    Not normally used directly (see subclasses :py:class:`pycdf.CDFError` and :py:class:`pycdf.CDFWarning`).
+    Not normally used directly, but in subclasses :class:`CDFError`
+    and :class:`CDFWarning`.
 
     Error messages provided by this class are looked up from the underlying
     C library.
 
-    @ivar status: CDF library status code
-    @type status: ctypes.c_long
-    @ivar string: CDF library error message for L{status}
-    @type string: string
+    .. comment:
+        @ivar status: CDF library status code
+        @type status: ctypes.c_long
+        @ivar string: CDF library error message for L{status}
+        @type string: string
     """
     def __init__(self, status):
         """
@@ -584,11 +586,11 @@ class CDFWarning(CDFException, UserWarning):
 
         Intended for use in check_status or similar wrapper function.
 
-        Parameters
-        ==========
-        level : int (optional)
-            optional (default 3), how far up the stack the warning should be reported. Passed directly to :py:class:`warnings.warn`.
-        @type level: int
+        Other Parameters
+        ================
+        level : int
+            optional (default 3), how far up the stack the warning should
+            be reported. Passed directly to :class:`warnings.warn`.
         """
         warnings.warn(self, self.__class__, level)
 
