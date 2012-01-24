@@ -1636,31 +1636,36 @@ class Var(collections.MutableSequence):
     records can be deleted.
 
     For these examples, assume Flux has 100 records and dimensions [2, 3].
-      #. Rewrite the first record without changing the rest:
-             >>> Flux[0] = [[1, 2, 3], [4, 5, 6]]
-      #. Writes a new first record and delete all the rest:
-             >>> Flux[...] = [[1, 2, 3], [4, 5, 6]]
-      #. Write a new record in the last position and add a new record after:
-             >>> Flux[99:] = [[[1, 2, 3], [4, 5, 6]],
-             ...              [[11, 12, 13], [14, 15, 16]]]
-      #. Insert two new records between the current number 5 and 6:
-             >>> Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13],
-             ...               [14, 15, 16]]]
-         This operation can be quite slow, as it requires reading and
-         rewriting the entire variable. (CDF does not directly support
-         record insertion.)
-      #. Change the first element of the first two records but leave other
-         elements alone:
-             >>> Flux[0:2, 0, 0] = [1, 2]
-      #. Remove the first record:
-             >>> del Flux[0]
-      #. Removes record 5 (the sixth):
-             >>> del Flux[5]
-         Due to the need to work
-         around a bug in the CDF library, this operation can be quite slow.
-      #. Delete *all data* from ``Flux``, but leave the variable definition
-         intact:
-             >>> del Flux[...]
+    
+    Rewrite the first record without changing the rest:
+        >>> Flux[0] = [[1, 2, 3], [4, 5, 6]]
+        
+    Writes a new first record and delete all the rest:
+        >>> Flux[...] = [[1, 2, 3], [4, 5, 6]]
+        
+    Write a new record in the last position and add a new record after:
+        >>> Flux[99:] = [[[1, 2, 3], [4, 5, 6]],
+        ...              [[11, 12, 13], [14, 15, 16]]]
+        
+    Insert two new records between the current number 5 and 6:
+        >>> Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13],
+        ...               [14, 15, 16]]]
+    This operation can be quite slow, as it requires reading and
+    rewriting the entire variable. (CDF does not directly support
+    record insertion.)
+    
+    Change the first element of the first two records but leave other
+    elements alone:
+        >>> Flux[0:2, 0, 0] = [1, 2]
+    Remove the first record:
+        >>> del Flux[0]
+    Removes record 5 (the sixth):
+        >>> del Flux[5]
+    Due to the need to work around a bug in the CDF library, this operation
+    can be quite slow.
+    
+    Delete *all data* from ``Flux``, but leave the variable definition intact:
+        >>> del Flux[...]
 
     .. note::
         Although this interface only directly supports zVariables, zMode is
