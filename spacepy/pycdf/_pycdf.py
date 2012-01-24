@@ -1506,6 +1506,10 @@ class Var(collections.MutableSequence):
     `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
     `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
+    .. note::
+        Not intended to be created directly; use methods of
+        :py:class:`CDF` to gain access to a variable.
+
     A record-varying variable's data are viewed as a hypercube of dimensions
     n_dims+1 and are indexed in row-major fashion, i.e. the last
     index changes most frequently / is contiguous in memory. If
@@ -1542,9 +1546,9 @@ class Var(collections.MutableSequence):
     variable), case 1 takes priority.
     Otherwise, mismatch between the number of dimensions specified in
     the slice and the number of dimensions in the variable will cause
-    an :py:exc:IndexError to be thrown.
+    an :exc:`~exceptions.IndexError` to be thrown.
 
-    This all sounds very complicated but it's essentially attempting
+    This all sounds very complicated but it is essentially attempting
     to do the 'right thing' for a range of slices.
 
     As a list type, variables are also `iterable
@@ -1582,7 +1586,7 @@ class Var(collections.MutableSequence):
 
     All data are, on read, converted to appropriate Python data
     types; EPOCH and EPOCH16 types are converted to
-    `datetime <http://docs.python.org/library/datetime.html>`_.
+    :class:`~datetime.datetime`.
 
     Potentially useful list methods and related functions:
       - `count <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
@@ -1598,15 +1602,15 @@ class Var(collections.MutableSequence):
     <http://www.dfanning.com/misc_tips/colrow_major.html>`_. In brief,
     *regardless of the majority stored in the CDF*, pycdf will always present
     the data in the native Python majority, row-major order, also known as
-    C order. This is the default order in `numPy
+    C order. This is the default order in `NumPy
     <http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
     #internal-memory-layout-of-an-ndarray>`_.
     However, packages that render image data may expect it in column-major
     order. If the axes seem 'swapped' this is likely the reason.
 
-    The ``attrs`` Python attribute acts as a dictionary referencing zAttributes
-    (do not confuse the two); all the dictionary methods above
-    also work on the attribute dictionary. See :py:class:zAttrList for more on
+    The :attr:`~Var.attrs` Python attribute acts as a dictionary referencing
+    zAttributes (do not confuse the two); all the dictionary methods above
+    also work on the attribute dictionary. See :class:`zAttrList` for more on
     the dictionary of attributes.
 
     With writing, as with reading, every attempt has been made to match the
@@ -1617,40 +1621,61 @@ class Var(collections.MutableSequence):
     records can be deleted.
 
     For these examples, assume Flux has 100 records and dimensions [2, 3].
-      1. ``Flux[0] = [[1, 2, 3], [4, 5, 6]]`` rewrites the first record
-         without changing the rest.
-      2. ``Flux[...] = [[1, 2, 3], [4, 5, 6]]`` writes a new first record
-         and deletes all the rest.
-      3. ``Flux[99:] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]``
-         writes a new record in the last position and adds a new record after.
-      4. ``Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13], [14, 15, 16]]]``
-         inserts two new records between the current number 5 and 6. This
-         operation can be quite slow, as it requires reading and rewriting the
-         entire variable. (CDF does not directly support record insertion.)
-      5. ``Flux[0:2, 0, 0] = [1, 2]`` changes the first element of the first
-         two records but leaves other elements alone.
-      6. ``del Flux[0]`` removes the first record.
-      7. ``del Flux[5]`` removes record 5 (the sixth). Due to the need to work
+      #. Rewrite the first record without changing the rest:
+             >>> Flux[0] = [[1, 2, 3], [4, 5, 6]]
+      #. Writes a new first record and delete all the rest:
+             >>> Flux[...] = [[1, 2, 3], [4, 5, 6]]
+      #. Write a new record in the last position and add a new record after:
+             >>> Flux[99:] = [[[1, 2, 3], [4, 5, 6]],
+             ...              [[11, 12, 13], [14, 15, 16]]]
+      #. Insert two new records between the current number 5 and 6:
+             >>> Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13],
+             ...               [14, 15, 16]]]
+         This operation can be quite slow, as it requires reading and
+         rewriting the entire variable. (CDF does not directly support
+         record insertion.)
+      #. Change the first element of the first two records but leave other
+         elements alone:
+             >>> Flux[0:2, 0, 0] = [1, 2]
+      #. Remove the first record:
+             >>> del Flux[0]
+      #. Removes record 5 (the sixth):
+             >>> del Flux[5]
+         Due to the need to work
          around a bug in the CDF library, this operation can be quite slow.
-      8. ``del Flux[...]`` deletes *all data* from ``Flux``, but leaves the
-         variable definition intact.
+      #. Delete *all data* from ``Flux``, but leave the variable definition
+         intact:
+             >>> del Flux[...]
 
-    .. note::
-        Not intended to be created directly; use methods of
-        :py:class:`CDF` to gain access to a variable.
     .. note::
         Although this interface only directly supports zVariables, zMode is
         set on opening the CDF so rVars appear as zVars. See p.24 of the
         CDF user's guide; pyCDF uses zMode 2.
 
-    .. automethod:: insert
-    .. automethod:: copy
-    .. automethod:: rename
-    .. automethod:: name
+
+    .. autosummary::
+
+        ~Var.attrs
+        ~Var.compress
+        ~Var.copy
+        ~Var.dv
+        ~Var.insert
+        ~Var.name
+        ~Var.rename
+        ~Var.rv
+        ~Var.type
+    .. attribute:: Var.attrs
+
+       Returns attributes for this variable
+       (see :class:`zAttrList`)
     .. automethod:: compress
-    .. automethod:: type
+    .. automethod:: copy
     .. automethod:: dv
+    .. automethod:: insert
+    .. automethod:: name
+    .. automethod:: rename
     .. automethod:: rv
+    .. automethod:: type
 ..  @ivar cdf_file: the CDF file containing this variable
     @type cdf_file: :py:class:`CDF`
     @cvar attrs: Returns attributes for this zVariable (see L{zAttrList})
@@ -1840,7 +1865,7 @@ class Var(collections.MutableSequence):
 
     def insert(self, index, data):
         """
-        Inserts a `single` record before an index
+        Inserts a *single* record before an index
 
         Parameters
         =========
@@ -2118,7 +2143,7 @@ class Var(collections.MutableSequence):
         Parameters
         ==========
         new_type : ctypes.c_long
-            the new type from :doc:`const </pycdf_const>`
+            the new type from :mod:`~spacepy.pycdf.const`
 
         Returns
         =======
@@ -2174,11 +2199,11 @@ class Var(collections.MutableSequence):
         comptype : ctypes.c_long
             type of compression to change to, see CDF C reference
             manual section 4.10. Constants for this parameter
-            are in :doc:`const </pycdf_const>`. If not specified, will not
+            are in :mod:`~spacepy.pycdf.const`. If not specified, will not
             change compression.
         param : ctypes.c_long
             Compression parameter, see CDF CRM 4.10 and
-            :doc:`const </pycdf_const>`.
+            :mod:`~spacepy.pycdf.const`.
             If not specified, will choose reasonable default (5 for
             gzip; other types have only one possible parameter.)
 
@@ -2195,7 +2220,7 @@ class Var(collections.MutableSequence):
 
         Returns
         =======
-        out : py:class:`VarCopy`
+        out : :class:`VarCopy`
             list of all data in record order
         """
         return VarCopy(self)
