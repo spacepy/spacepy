@@ -19,6 +19,7 @@ toolbox - Toolbox of various functions and generic utilities
     dist_to_list
     eventTimer
     feq
+    getNamedPath
     geomspace
     human_sort
     hypot
