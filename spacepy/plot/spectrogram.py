@@ -2,9 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """
-Create and plot generic spectrograms for space science.
-These are different than the standard spectrogram in other
-fields in that there is no fft used
+Create and plot generic 'spectrograms' for space science.
+This is not a signal processing routine and does not apply 
+Fourier transforms (or similar) to the data. The functionality 
+provided here is the binning (and averaging) of multi-dimensional
+to provide a 2D output map of some quantity as a function of two
+parameters. An example would be particle data from a satellite mission:
+electron flux, at a given energy, can be binned as a function of 
+both time and McIlwain L, then plotted as a 2D color-map, 
+colloquially known as a spectrogram.
+
+In many other settings 'spectrogram' refers to a transform of data 
+from the time domain to the frequency domain, and the subsequent plotting 
+of some quantity (e.g., power spectral density) as a function of time and 
+frequency. To approximate this functionality for, e.g., time-series magnetic field 
+data you would first calculate a the power spectral density and then use 
+:class:`spectrogram` to rebin the data for visualaization.
 
 Authors: Brian Larsen and Steve Morley
 Institution: Los Alamos National Laboratory
@@ -33,7 +46,7 @@ __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
 class spectrogram(dm.SpaceData):
     """
-    This class generates and then contains the data binned into he spectrogram
+    This class rebins data to produce a 2D data map that can be plotted as a spectrogram
 
     It is meant to be used on arbitrary data series.  The first series "x" is
     plotted on the abscissa and second series "y" is plotted on the ordinate and

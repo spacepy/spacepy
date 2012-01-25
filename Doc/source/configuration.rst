@@ -3,14 +3,14 @@ SpacePy Configuration
 =====================
 
 SpacePy has a few tunable options that can be altered through the ``spacepy.rc``
-config file. All options have defaults which will be used if not specified in
-the config file. These defaults are usually fine for most people and may
-change from version to version of SpacePy, so we do not recommend changing the
-config file without substantial reason.
+configuration file. All options have defaults which will be used if not specified in
+the configuration file. These defaults are usually fine for most people and may
+change between SpacePy releases, so we do not recommend changing the
+configuration file without substantial reason.
 
 ``spacepy.rc`` lives in the per-user SpacePy directory, called ``.spacepy``.
 On Unix-like operating systems, it is in a user's home directory; on Windows, 
-in the user's Document and Settings folder. If it doesn't exist, this directory
+in the user's Documents and Settings folder. If it doesn't exist, this directory
 (and ``spacepy.rc``) is automatically created when SpacePy is imported.
 
 ``spacepy.rc`` has an INI-style format, parsed by :py:mod:`ConfigParser`. It
@@ -39,7 +39,7 @@ ncpus
   Number of CPUs to use for computations that can be
   multithreaded/multiprocessed. By default, they will use the number of CPUs
   reported by :py:func:`multiprocessing.cpu_count`. You may wish to set this
-  to a lower number if SpacePy makes other processes on your machine slow.
+  to a lower number if you need to reserve other processors on your machine.
 
 omni_url
   URL containing OMNI data.
@@ -70,4 +70,4 @@ to produce a different type from a string.
 :Release: |version|
 :Doc generation date: |today|
 
-For additions or fixes to this page, contact Jon Niehof at Los Alamos.
+For additions or fixes to this page, contact the SpacePy Team at Los Alamos.

@@ -3,10 +3,17 @@ SpacePy Python Programming Tips
 ===============================
 
 One often hears that interpreted languages are too slow for whatever task someone
-needs to do.  In many cases this is exactly wrong-headed.  As the time spent
-programming/debugging in an interpreted language is less than a compiled language,
-the programmer then has time to figure out where code is slow and make it faster.  This
-page is dedicated to that idea, providing examples of code speedup and best practices.
+needs to do.  In many cases this belief is unfounded.  As the time spent
+programming and debugging in an interpreted language is of far less than for a compiled 
+language, the programmer has more time to identify bottlenecks in the code and optimize it
+where necessary.  This page is dedicated to that idea, providing examples of code speedup 
+and best practices.
+
+One often neglected way to speed up development time is to use established libraries, and 
+the time spent finding existing code that does what you want can be more productive than
+trying to write and optimize your own algorithms. We recommend exploring the SpacePy 
+documentation, as well as taking the time to learn some of the vast functionality already in
+numpy_ and the Python standard library.
 
     * `Basic examples`_
     * `Lists, for loops, and arrays`_
@@ -16,12 +23,15 @@ page is dedicated to that idea, providing examples of code speedup and best prac
 
 Basic examples
 ==============
-Python does not look like (or work like) Matlab or IDL, and as Matlab or IDL programmers
-we have to rethink how we do things.  The same mantra is true in Python however
-if you are using a for loop you are probably doing it wrong...
+Though there are some similarites, Python does not look like (or work like) Matlab or IDL. 
+As (most of us) are, or have been, Matlab or IDL programmers, we have to rethink how we do 
+things -- what is efficient in one language may not be the most efficient in another.  
+One truth that Python shares with these other lagnuages, however, is that if you are using 
+a for loop there is likely to be a faster way...
 
-Take the simple take of a large data array where you want to add one to each element
-I can think of four ways to do this of wildly varying speed.
+Take the simple case of a large data array where you want to add one to each element.
+Here wa show four of the possible ways to do this, and by using a profiling tool, we can 
+show that the speeds of the different methods can vary substantially.
 
 Create the data
     >>> data = range(10000000)
@@ -30,18 +40,18 @@ The most C-like way is just a straight up for loop
     >>> for i in range(len(data)):
     >>>     data[i] += 1
 
-For me this is 6 function calls in 2.590 CPU seconds (from :py:mod:`cProfile`)
+This is 6 function calls in 2.590 CPU seconds (from :py:mod:`cProfile`)
 
-The next more Pythonic way is with a list comprehension
+The next, more Pythonic, way is with a list comprehension
     >>> data = [val+1 for val in data]
 
-this is 4 function calls in 1.643 CPU seconds (~1.6x)
+This is 4 function calls in 1.643 CPU seconds (~1.6x)
 
 Next we introduce numpy_ and change our list to an array then add one
     >>> data = np.asarray(data)
     >>> data += 1
 
-this is 6 function calls in 1.959 CPU seconds (~1.3x), better than the for loop but worse
+This is 6 function calls in 1.959 CPU seconds (~1.3x), better than the for loop but worse
 than the list comprehension
 
 Next we do this the `right` way and just create it in numpy_ and never leave
@@ -50,19 +60,23 @@ Next we do this the `right` way and just create it in numpy_ and never leave
 
 this is 4 function calls in 0.049 CPU seconds (~53x).
 
-While this is a really simple example it shows the basic premise, start in numpy_
-and stay in numpy_
+While this is a really simple example it shows the basic premise, if you need to work 
+with numpy_, start in numpy_ and stay in numpy_. This will usually be true for 
+array-based manipulations.
 
-
+If in doubt, and speed is not a major consideration, use the most human-readable form.
+This will make your code more maintainable and encourage its use by others.
 
 
 
 Lists, for loops, and arrays
 ============================
-This example teaches the lesson that every IDL_ or Matlab_ programmer already
-knows; do everything in arrays and never use a for loop if there is another choice.
+This example teaches the lesson that most advanced IDL_ or Matlab_ programmers already
+know; do everything in arrays and never use a for loop if there is another choice. The 
+language has optimized array manipulation and it is unlikely that you will find a faster
+way with your own code.
 
-The following bit of code takes in a series of points, computes their magnitude, and drops
+The following bit of code takes in a series of coordinates, computes their displacement, and drops
 the largest 100 of them.
 
 This is how the code started out, Shell_x0_y0_z0 is an Nx3 numpy array,
@@ -104,10 +118,10 @@ is the for loop (list comprehension is a little faster but not much in this case
        100000    0.016    0.000    0.016    0.000 {method 'append' of 'list' objects}
             1    0.000    0.000    0.005    0.005 /opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/numpy/core/fromnumeric.py:45(take)
 
-Simply pulling out the addition inside the for loop makes an amazing difference
-(2.3x speedup).  We believe the difference is that pulling out the addition lets
-numpy do its thing in C once only (saving a massive overhead as array operations
-are done as for loops in C)  and not in python for each element::
+Simply moving the addition outside the for-loop gives a factor of 2.3 speedup.  
+We believe that the difference arising from moving the addition lets
+numpy (which works primarily in C) operate once only. This massively reduces the calling overhead 
+as array operations are done as for loops in C, and not in element-wise in python::
 
     def SortRemove_HighFluxPts_(Shell_x0_y0_z0, ShellCenter, Num_Pts_Removed):
         #Sort the Shell Points based on radial distance (Flux prop to 1/R^2) and remove Num_Pts_Removed points with the highest flux
@@ -155,7 +169,7 @@ the for loop (or list comprehension)::
         Shell_x0_y0_z0 = np.take(Shell_x0_y0_z0, ARG, axis = 0)  # sort based on index order
         return Shell_x0_y0_z0[:-Num_Pts_Removed,:]   #remove last points that have the "anomalously" high flux
 
-The answer is exactly the same and from where we started this is a 382x speedup::
+The answer is exactly the same and comparing to the inital version of this code we have managed a speedup of 382x::
 
     Tue Jun 14 10:21:54 2011    SortRemove_HighFluxPts_.prof
 
@@ -175,7 +189,7 @@ The answer is exactly the same and from where we started this is a 382x speedup:
             1    0.000    0.000    0.000    0.000 {isinstance}
             1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
 
-Overall think really hard before you write a for loop or a list comprehension.
+In summary, when working on arrays it's worth taking the time to think about whether you can get the results you need without for-loops or list comprehensions. The small amount of development time will likely be recouped very quickly.
 
 .. _IDL: http://www.ittvis.com/language/en-us/productsservices/idl.aspx
 .. _Matlab: http://www.mathworks.com/products/matlab/
@@ -183,11 +197,12 @@ Overall think really hard before you write a for loop or a list comprehension.
 
 Zip
 ===
-the :py:func:`zip` function is a great thing but it is really slow, if you find yourself
-using it then you probably need to reexamine the algorithm that you are using A
-good alternative, if you do need the functionality of :py:func:`zip`, is in :py:func:`itertools.izip`.
+The :py:func:`zip` function is extremly useful, but it is really slow. If you find yourself
+using it on large amounts of data then significant time-savings might be achieved by re-writing your code
+to make the :py:func:`zip` operation unnecessary. A good alternative, if you do need the functionality 
+of :py:func:`zip`, is in :py:func:`itertools.izip`. This is far more efficient as it builds an interator.
 
-This example generate evenly distributed N points on the unit sphere centered at
+This example generates N points, evenly distributed on the unit sphere centered at
 (0,0,0) using the "Golden Spiral" method.
 
 The original code::
@@ -211,7 +226,7 @@ The original code::
         x0_y0_z0 = np.array(zip(x0,y0,z0))     #combine into 3 column (x,y,z) file
         return (x0_y0_z0)
 
-Profiling this with :py:mod:`cProfile` one can see a lot of time in :py:func:`zip`::
+Profiling this with :py:mod:`cProfile` shows that a lot of time is spent in :py:func:`zip`::
 
     Tue Jun 14 09:54:41 2011    PointsOnSphere.prof
 
@@ -229,8 +244,7 @@ Profiling this with :py:mod:`cProfile` one can see a lot of time in :py:func:`zi
 
 So lets try and do a few simple rewrites to make this faster.  Using numpy.vstack
 is the first one that came to mind.  The change here is to replace building up
-the array from the elements made by :py:func:`zip` to just appending the data we already have
-to an array that we already have::
+the array from the elements made by :py:func:`zip` to just concatenating the arrays we already have::
 
     def PointsOnSphere(N):
     # Generate evenly distributed N points on the unit sphere centered at (0,0,0)
@@ -252,7 +266,7 @@ to an array that we already have::
 
 Profiling this with :py:mod:`cProfile` one can see that this is now fast enough for me,
 no more work to do.  We picked up a 48x speed increase, I'm sure this can still
-be made better and let the spacepy team know if you rewrite it and it will be
+be made better and let the SpacePy team know if you rewrite it and it will be
 included::
 
     Tue Jun 14 09:57:41 2011    PointsOnSphere.prof
@@ -294,4 +308,4 @@ Here is a collection of links that serve as a decent reference for Python and sp
 :Release: |version|
 :Doc generation date: |today|
 
-For additions or fixes to this page contact Brian Larsen at Los Alamos.
+For additions or fixes to this page contact the SpacePy team at Los Alamos.

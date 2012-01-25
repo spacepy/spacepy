@@ -1,3 +1,5 @@
+.. automodule:: spacepy
+
 *************************************
 SpacePy - A Quick Start Documentation
 *************************************
@@ -152,7 +154,7 @@ You can find out how many leap seconds were used by issuing the command::
 Tickdelta Class
 ---------------
 
-You can add/substract time from a Ticktock class instance by creating a
+You can add/subtract time from a Ticktock class instance by creating a
 Tickdelta instance first.::
 
     >>> dt = spt.Tickdelta(days=2.3)
@@ -166,9 +168,9 @@ Coords Class
 ------------
 
 The spatial coordinate class includes the following coordinate systems in
-Cartesian and sphericals.
+Cartesian and spherical forms.
 
-    * GZD:  (altitude, latitude, longitude in km, deg, deg
+    * GZD:  (altitude, latitude, longitude) in km, deg, deg
     * GEO: cartesian, Re
     * GSM: cartesian, Re
     * GSE: cartesian, Re
@@ -183,7 +185,7 @@ coordinates::
 
     >>> spaco = spc.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
 
-This will let you request for example all y-coordinates by ``spaco.y``
+This will let you request, for example, all y-coordinates by ``spaco.y``
 or if given in spherical coordinates by ``spaco.lati``. One can transform
 the coordinates by ``newcoord = spaco.convert('GSM', 'sph')``.
 This will return GSM coordinates in a spherical system. Since GSM
@@ -198,7 +200,7 @@ The radbelt Module
 ==================
 
 The radiation belt module currently includes a simple radial
-diffusion code as a class. Import the module and create a class instance::
+diffusion code as a class. Import the module and instatiate a radbelt object::
 
     >>> import spacepy.radbelt as sprb
     >>> rb = sprb.RBmodel()
@@ -226,43 +228,43 @@ presented by Evensen in 2003 (Evensen, G., Ocean dynamics, 53, pp.343--367,
 implemented. The inflation methodology is specified by the inflation
 argument, where the options are the following:
 
-   * inflation == 0: Add model error (perturbation for the ensemble) around
+   * inflation = 0: Add model error (perturbation for the ensemble) around
      model state values only where observations are available (DEFAULT).
 
-   * inflation == 1: Add model error (perturbation for the ensemble) around
+   * inflation = 1: Add model error (perturbation for the ensemble) around
      observation values only where observations are available.
 
-   * inflation == 2: Inflate around ensemble average for EnKF.
+   * inflation = 2: Inflate around ensemble average for EnKF.
 
 Prior to assimilation, a set of data values has to be specified by setting the
 start and end dates, and time step, using the ``setup_ticks`` function of the
 radiation belt model::
 
-   >> import spacepy
-   >> import datetime
-   >> from spacepy import radbelt
+   >>> import spacepy
+   >>> import datetime
+   >>> from spacepy import radbelt
 
-   >> start = datetime.datetime(2002,10,23)
-   >> end = datetime.datetime(2002,11,4)
-   >> delta = datetime.timedelta(hours=0.5)
-   >> rmod.setup_ticks(start, end, delta, dtype='UTC')
+   >>> start = datetime.datetime(2002,10,23)
+   >>> end = datetime.datetime(2002,11,4)
+   >>> delta = datetime.timedelta(hours=0.5)
+   >>> rmod.setup_ticks(start, end, delta, dtype='UTC')
 
 Once the dates and time step are specified, the data is added using the
-``add_PSD`` function::
+``add_PSD`` function (NOTE: This requires a database available from the SpacePy team)::
 
-   >> rmod.add_PSD()
+   >>> rmod.add_PSD()
 
 The observations are averaged over the time windows, whose interval is give by
 the time step. Once the dates and data are set, the assimilation is performed
 using the ``assimilate`` function::
 
-   >> rmod.assimilate(inflation=1)
+   >>> rmod.assimilate(inflation=1)
 
 This function will add the PSDa values, which are the analysis state of
 the radiation belt using the observations within the dates. To plot the
 analysis simply use the ``plot`` function::
 
-   >> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
+   >>> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
 
 Additionally, to create a summary plot of the observations use the ``plot_obs``
 function within the radbelt module. For reference, the last closed drift shell,
@@ -270,8 +272,8 @@ Dst, and Kp are all included. These can be disabled individually using the
 corresponding Boolean kwargs.
 
 The clims kwarg can be used to manually set the color bar range.  To use, set
-it equal to a two-element list containing minimum and maximum Log_10 value to
-plot.  Default action is to use [0,10] as the log_10 of the color range.  This
+it equal to a two-element list containing minimum and maximum log :sub:`10` value to
+plot.  Default action is to use [0,10] as the log :sub:`10` of the color range.  This
 is good enough for most applications. The title of the top most plot defaults
 to 'Summary Plot' but can be customized using the title kwarg.
 
@@ -283,8 +285,8 @@ Example::
 
    >>> rmod.plot_obs(clims=[-10,-6],Lmax=False,Kp=False,Dst=False,title='Observations Plot')
 
-This command would create the summary plot with a color bar range of 10^(-10)
-to 10^(-6).  The Lmax line, Kp and Dst values would be excluded.  The title of
+This command would create the summary plot with a color bar range of 10 :sup:`-10`
+to 10 :sup:`-6`.  The Lmax line, Kp and Dst values would be excluded.  The title of
 the topmost plot (phase space density) would be set to 'Observations Plot'.
 
 
@@ -301,8 +303,9 @@ a modified version of this database containing all parameters necessary
 for these magnetic field models. These data are available through ViRBO  - the Virtual
 Radiation Belt Observatory.
 
-In SpacePy this data is made available on request on install; if not downloaded
-when SpacePy is installed and attempt to import the omni module will
+In SpacePy this data is made available, at 1-hourly resolution, on request 
+on first import; if not downloaded when SpacePy is first used then any 
+attempt to import the omni module will
 ask the user whether they wish to download the data. Should the user
 require the latest data, the toolbox.update function can
 be used to fetch the latest files from ViRBO.
@@ -376,21 +379,19 @@ Other function wrapped with the IRBEM library include:
 
 * ``find_Bmirror``
 * ``find_magequator``
-* ``corrd_trans``
+* ``coord_trans``
 
 
 pyCDF - Python Access to NASA CDF Library
 =========================================
 
 pycdf provides a "pythonic" interface to the NASA CDF library. It requires
-that the base C library be properly installed.
+that the NASA CDF C-library is properly installed.
 The module can then be imported, e.g.::
 
     >>> import spacepy.pycdf as cdf
 
-Extensive documentation is provided in epydoc format in docstrings.
-
-To open and close a CDF file::
+To open and close a CDF file, we use the :class:`pycdf.CDF` class::
 
     >>> cdf_file = cdf.CDF('filename.cdf')
     >>> cdf_file.close()
@@ -435,17 +436,17 @@ data model easy. The concepts are very similar to those used in standards like H
 NASA CDF.
 
 The basic container type is analogous to a folder (on a filesystem; HDF5 calls this a
-group): Here we implement this as a dictionary-like object, a datamodel.SpaceData object, which
+group): Here we implement this as a dictionary-like object, a :class:`datamodel.SpaceData` object, which
 also carries attributes. These attributes can be considered to be global, i.e. relevant for the
 entire folder. The next container type is for storing data and is based on a numpy array, this
-class is datamodel.dmarray and also carries attributes. The dmarray class is analogous to an
+class is :class:`datamodel.dmarray` and also carries attributes. The dmarray class is analogous to an
 HDF5 dataset.
 
 
 Guide for NASA CDF users
 ------------------------
 
-By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
+By definition, a NASA CDF only has a single 'layer'. That is, a CDF contains a series of records
 (stored variables of various types) and a set of attributes that are either global or local in
 scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
 are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
@@ -464,10 +465,20 @@ Each variable will have one attribute (for this example).
     >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
 This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel,
-we can use the toolbox function dictree (which works for any dictionary-like object, including PyCDF
-file objects).
+we can use the :meth:`datamodel.SpaceData.tree` method, which is equivalent to :func:`toolbox.dictree`
+(which works for any dictionary-like object, including PyCDF file objects).
 
-    >>> import spacepy.toolbox as tb
+    >>> mydata.tree(attrs=True)
+    +
+    :|____MissionName
+    :|____PI
+    |____Counts
+        :|____Units
+    |____Epoch
+        :|____units
+    |____OrbitNumber
+        :|____StartsFrom
+    >>> import spacepy.toolbox as tb 
     >>> tb.dictree(mydata, attrs=True)
     +
     :|____MissionName
@@ -483,7 +494,7 @@ file objects).
 Attributes are denoted by a leading colon. The global attributes are those in the base level,
 and the local attributes are attached to each variable.
 
-If we have data that has nested `folders', allowed by HDF5 but not by NASA CDF, then how can this be
+If we have data that has nested 'folders', allowed by HDF5 but not by NASA CDF, then how can this be
 represented such that the data structure can be mapped directly to a NASA CDF? The data will need to
 be flattened so that it is single layered. Let us now store some ephemerides in our data structure:
 
@@ -502,8 +513,8 @@ be flattened so that it is single layered. Let us now store some ephemerides in 
     |____OrbitNumber
         :|____StartsFrom
 
-Nested dictionary-like objects is not uncommon in Python (an can be exceptionally useful for representing
-data, so to make this compatible with NASA CDF we call the object method `flatten'.
+Nested dictionary-like objects is not uncommon in Python (and can be exceptionally useful for representing
+data, so to make this compatible with NASA CDF we call the :meth:`datamodel.SpaceData.flatten` method .
 
     >>> mydata.flatten()
     >>> tb.dictree(mydata, attrs=True)
@@ -525,25 +536,28 @@ data structure is now flat again and can be mapped directly to NASA CDF.
 Converters to/from datamodel
 ----------------------------
 
-Currently converters to HDF5 and NASA CDF are under development, as are extractors that unpack data from
-these formats into a SpacePy datamodel. Also under development is the reverse of the SpaceData.flatten
-method, so that flattened objects can be restored to their former glory.
+Currently converters exist to read HDF5 and NASA CDF files directly to a SpacePy datamodel. This capability 
+also exists for JSON-headed ASCII files (RBSP/AutoPlot-compatible). A converter from the datamodel to HDF5 
+is now available and a converter to NASA CDF is under development. Also under development is the reverse of
+the SpaceData.flatten method, so that flattened objects can be restored to their former glory.
 
 
 Empiricals Module
 =================
 
 The empiricals module provides access to some useful empirical models.
-As of SpacePy 0.1.1, the models available are:
+As of SpacePy 0.1.2, the models available are:
 
-    * An empirical parametrization of the L* of the last closed drift shell
+    * :func:`empiricals.getLmax` An empirical parametrization of the L* of the last closed drift shell
       (Lmax)
-    * The plasmapause location, following either Carpenter and Anderson
+    * :func:`empiricals.getPlasmaPause` The plasmapause location, following either Carpenter and Anderson
       (1992) or Moldwin et al. (2002)
-    * The magnetopause standoff location (i.e. the sub-solar point), using
+    * :func:`empiricals.getMPstandoff` The magnetopause standoff location (i.e. the sub-solar point), using
       the Shue et al. (1997) model
+    * :func:`empiricals.vampolaPA` A conversion of omnidirectional electron flux to pitch-angle dependent
+      flux, using the sin :sup:`n` model of Vampola (1996)
 
-Each model is called by passing it a Ticktock object (see above) which then
+Each of the first three models is called by passing it a Ticktock object (see above) which then
 calculates the model output using the 1-hour Qin-Denton OMNI data (from the
 OMNI module; see above). For example::
 
@@ -551,7 +565,7 @@ OMNI module; see above). For example::
     >>> import spacepy.empiricals as emp
     >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
 
-calls the tickrange function from spacepy.time and makes a Ticktock object
+calls :func:`time.tickrange` and makes a Ticktock object
 with times from midday on January 1st 2002 to midnight January 4th 2002,
 incremented 6-hourly::
 

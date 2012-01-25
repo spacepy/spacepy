@@ -218,7 +218,9 @@ class SpaceData(dict):
     .. currentmodule:: spacepy.datamodel
     .. autosummary::
         ~SpaceData.flatten
+        ~SpaceData.tree
     .. automethod:: flatten
+    .. automethod:: tree
     """
 
     def __init__(self, *args, **kwargs):

@@ -53,8 +53,9 @@ Create some random data.
     >>> import numpy as np
     >>> data = np.random.random_sample(len(time))
 
-Create a new empty CDF.  The '' is the name of the CDF to use as a master; if
-empty, it will create an empty CDF rather than copying a master CDF.
+Create a new empty CDF.  The empty string, '', is the name of the CDF to use 
+as a master; given an empty string, an empty CDF will be created, rather than 
+copying from a master CDF.
 If a master is used, data in the master will be copied to the new CDF.
     >>> cdf = pycdf.CDF('MyCDF.cdf', '')
 
@@ -146,7 +147,8 @@ An example modifying the CDF created above:
         newVar: CDF_FLOAT [2]
     >>> cdf.close()
 
-Existing CDF files are opened in read-only mode and must be set read-write
+As before, each step in this example will now be individually explained.
+Existing CDF files are opened in read-only mode and must be set to read-write
 before modification:
     >>> cdf.readonly(False)
         False
@@ -154,7 +156,7 @@ before modification:
 Then new variables can be added
     >>> cdf['newVar'] = [1.0, 2.0]
 
-Or contents changed
+Or contents can be changed
     >>> cdf['data'][0] = 8675309
 
 The new variables appear immediately:
@@ -166,12 +168,12 @@ The new variables appear immediately:
 Closing the CDF ensures changes are written to disk:
     >>> cdf.close()
 
-Non record varying
+Non record-varying
 ==================
-Non record varying variables are usually used for data which does not vary
-over time, such as the energy channels for an instrument.
+Non record-varying (NRV) variables are usually used for data that does not vary
+with time, such as the energy channels for an instrument.
 
-NRV variables need to be created with :func:`CDF.new`.
+NRV variables need to be created with :func:`CDF.new`, specifying the keyword 'recVary' as False.
     >>> from spacepy import pycdf
     >>> cdf = pycdf.CDF('MyCDF2.cdf', '')
     >>> cdf.new('data2', [1], recVary=False)
