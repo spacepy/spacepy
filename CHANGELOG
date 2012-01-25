@@ -1,3 +1,19 @@
+Changes in Version 0.1.2
+========================
+- Overhaul of all documentation for better organization and clarify
+- New C backends speed up several functions in toolbox and time
+- Minor bugfixes throughout
+- Support for newer compilers on Windows
+- Include Fortran runtime with Windows binary installers
+Datamodel
+ - Support for JSON-headed ASCII data read/write
+Empiricals
+ - New pitch angle model
+pybats
+ - PWOM added
+plot
+ - New EventClicker to manually identify event times on a plot
+
 Changes in Version 0.1.1
 ========================
 - new config file structure

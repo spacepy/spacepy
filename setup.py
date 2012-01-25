@@ -8,7 +8,7 @@ Authors
 The SpacePy Team
 Los Alamos National Laboratory
 
-Copyright ©2010 - 2011 Los Alamos National Security, LLC.
+Copyright 2010 - 2012 Los Alamos National Security, LLC.
 """
 
 import os, sys, shutil, getopt, glob, re
@@ -546,7 +546,7 @@ toolbox_ext = Extension('spacepy.toolbox._toolbox',
                        
 # run setup from distutil
 setup(name='spacepy',
-      version='0.1.1',
+      version='0.1.2',
       description='SpacePy: Tools for Space Science Applications',
       ext_modules=[pybats_ext, dates_ext, toolbox_ext],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
