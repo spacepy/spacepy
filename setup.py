@@ -27,6 +27,21 @@ from distutils.errors import DistutilsOptionError
 import numpy
 
 
+#Patch out bad options in Python's view of mingw
+if sys.platform == 'win32':
+    import distutils.cygwinccompiler
+    _Mingw32CCompiler = distutils.cygwinccompiler.Mingw32CCompiler
+    class Mingw32CCompiler(_Mingw32CCompiler):
+        def __init__(self, *args, **kwargs):
+            _Mingw32CCompiler.__init__(self, *args, **kwargs)
+            for executable in ('compiler', 'compiler_so', 'compiler_cxx',
+                               'linker_exe', 'linker_so'):
+                exe = getattr(self, executable)
+                if '-mno-cygwin ' in exe:
+                    setattr(self, executable, exe.replace('-mno-cygwin ', ''))
+    distutils.cygwinccompiler.Mingw32CCompiler = Mingw32CCompiler
+
+
 def subst(pattern, replacement, filestr,
           pattern_matching_modifiers=None):
     """
