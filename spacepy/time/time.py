@@ -1415,17 +1415,17 @@ def doy2date(year, doy, dtobj=False, flAns=False):
 
     Parameters
     ==========
-        year : int or array of int
-            year
-        doy : int or array of int
-            day of year
+    year : int or array of int
+        year
+    doy : int or array of int
+        day of year
 
     Returns
     =======
-        month : int or array of int
-            month as integer number
-        day : int or array of int
-            as integer number
+    month : int or array of int
+        month as integer number
+    day : int or array of int
+        as integer number
 
     Examples
     ========
