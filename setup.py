@@ -23,7 +23,6 @@ import distutils.dep_util
 from distutils.dist import Distribution as _Distribution
 import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
-from os import environ as ENVIRON
 
 import numpy
 
@@ -456,7 +455,29 @@ class bdist_wininst(_bdist_wininst):
         _bdist_wininst.finalize_options(self)
         finalize_compiler_options(self)
 
+    def copy_fortran_libs(self):
+        """Copy the fortran runtime libraries into the build"""
+        fortdir = None
+        fortnames = None
+        for p in os.environ['PATH'].split(';'):
+            fortnames = [f for f in os.listdir(p)
+                         if f[-4:].lower == '.dll' and
+                         (f[:11] == 'libgfortran' or
+                          f[:8] == 'libgcc_s' or
+                          f[:11] == 'libquadmath')]
+            if len(fortnames) == 3:
+                fortdir = p
+                break
+        if fortdir is None:
+            raise RuntimeError("Can't locate fortran libraries.")
+        outdir = os.path.join(self.build_lib, 'spacepy', 'mingw')
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+        for f in fortnames:
+            shutil.copy(os.path.join(fortdir, f), outdir)
+            
     def run(self):
+        self.copy_fortran_libs()
         rebuild_static_docs(self.distribution)
         _bdist_wininst.run(self)
 
