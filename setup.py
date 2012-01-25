@@ -37,8 +37,9 @@ if sys.platform == 'win32':
             for executable in ('compiler', 'compiler_so', 'compiler_cxx',
                                'linker_exe', 'linker_so'):
                 exe = getattr(self, executable)
-                if '-mno-cygwin ' in exe:
-                    setattr(self, executable, exe.replace('-mno-cygwin ', ''))
+                if '-mno-cygwin' in exe:
+                    del exe[exe.index('-mno-cygwin')]
+                    setattr(self, executable, exe)
     distutils.cygwinccompiler.Mingw32CCompiler = Mingw32CCompiler
 
 
