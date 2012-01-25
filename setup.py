@@ -477,7 +477,7 @@ class bdist_wininst(_bdist_wininst):
         fortnames = None
         for p in os.environ['PATH'].split(';'):
             fortnames = [f for f in os.listdir(p)
-                         if f[-4:].lower == '.dll' and
+                         if f[-4:].lower() == '.dll' and
                          (f[:11] == 'libgfortran' or
                           f[:8] == 'libgcc_s' or
                           f[:11] == 'libquadmath')]
@@ -486,9 +486,9 @@ class bdist_wininst(_bdist_wininst):
                 break
         if fortdir is None:
             raise RuntimeError("Can't locate fortran libraries.")
-        outdir = os.path.join(self.build_lib, 'spacepy', 'mingw')
+        outdir = os.path.join(self.bdist_dir, 'PLATLIB', 'spacepy', 'mingw')
         if not os.path.exists(outdir):
-            os.mkdir(outdir)
+            os.makedirs(outdir)
         for f in fortnames:
             shutil.copy(os.path.join(fortdir, f), outdir)
             
