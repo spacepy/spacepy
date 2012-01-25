@@ -58,7 +58,6 @@ if sys.platform == 'win32':
 
 # Expose definitions from modules in this package.
 from .toolbox import loadpickle, savepickle, dictree, printfig
-import spacepy.time, spacepy.coordinates
 
 #package info
 __version__ = '0.1.1'
