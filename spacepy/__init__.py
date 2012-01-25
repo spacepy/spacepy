@@ -24,6 +24,7 @@ except ImportError:
 import multiprocessing
 import os
 import os.path
+import sys
 import warnings
 
 def help():
@@ -43,9 +44,20 @@ def help():
 __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 
     "irbempy", "empiricals", "radbelt", "data_assimilation"]
 
+# on windows, make sure the Fortran libs are findable
+if sys.platform == 'win32':
+    fortlibs = os.path.join(os.path.dirname(__file__), 'mingw')
+    if 'PATH' in os.environ:
+        if not fortlibs in os.environ['PATH']:
+            if os.environ['PATH']:
+                os.environ['PATH'] += (';' + fortlibs)
+            else: #empth PATH
+                os.environ['PATH'] = fortlibs
+    else:
+        os.environ['PATH'] = fortlibs
+
 # Expose definitions from modules in this package.
 from .toolbox import loadpickle, savepickle, dictree, printfig
-import spacepy.time, spacepy.coordinates
 
 #package info
 __version__ = '0.1.1'
@@ -76,6 +88,12 @@ All Rights Reserved.
  7. Nothing in this License Agreement shall be deemed to create any relationship of agency, partnership, or joint venture between LANS and Licensee. This License Agreement does not grant permission to use LANS trademarks or trade name in a trademark sense to endorse or promote products or services of Licensee, or any third party.
 
  8. By copying, installing or otherwise using SpacePy 0.1.1, Licensee agrees to be bound by the terms and conditions of this License Agreement.
+"""
+
+if sys.platform == 'win32':
+    __license__ += \
+        """
+Fortran library support provided by MinGW. The MinGW base runtime package has been placed in the public domain, and is not governed by copyright.
 """
 
 __citation__ = """When publishing research which used SpacePy, please provide appropriate

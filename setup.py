@@ -23,9 +23,24 @@ import distutils.dep_util
 from distutils.dist import Distribution as _Distribution
 import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
-from os import environ as ENVIRON
 
 import numpy
+
+
+#Patch out bad options in Python's view of mingw
+if sys.platform == 'win32':
+    import distutils.cygwinccompiler
+    _Mingw32CCompiler = distutils.cygwinccompiler.Mingw32CCompiler
+    class Mingw32CCompiler(_Mingw32CCompiler):
+        def __init__(self, *args, **kwargs):
+            _Mingw32CCompiler.__init__(self, *args, **kwargs)
+            for executable in ('compiler', 'compiler_so', 'compiler_cxx',
+                               'linker_exe', 'linker_so'):
+                exe = getattr(self, executable)
+                if '-mno-cygwin' in exe:
+                    del exe[exe.index('-mno-cygwin')]
+                    setattr(self, executable, exe)
+    distutils.cygwinccompiler.Mingw32CCompiler = Mingw32CCompiler
 
 
 def subst(pattern, replacement, filestr,
@@ -456,7 +471,29 @@ class bdist_wininst(_bdist_wininst):
         _bdist_wininst.finalize_options(self)
         finalize_compiler_options(self)
 
+    def copy_fortran_libs(self):
+        """Copy the fortran runtime libraries into the build"""
+        fortdir = None
+        fortnames = None
+        for p in os.environ['PATH'].split(';'):
+            fortnames = [f for f in os.listdir(p)
+                         if f[-4:].lower() == '.dll' and
+                         (f[:11] == 'libgfortran' or
+                          f[:8] == 'libgcc_s' or
+                          f[:11] == 'libquadmath')]
+            if len(fortnames) == 3:
+                fortdir = p
+                break
+        if fortdir is None:
+            raise RuntimeError("Can't locate fortran libraries.")
+        outdir = os.path.join(self.bdist_dir, 'PLATLIB', 'spacepy', 'mingw')
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+        for f in fortnames:
+            shutil.copy(os.path.join(fortdir, f), outdir)
+            
     def run(self):
+        self.copy_fortran_libs()
         rebuild_static_docs(self.distribution)
         _bdist_wininst.run(self)
 
