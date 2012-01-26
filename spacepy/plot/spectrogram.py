@@ -126,15 +126,15 @@ class spectrogram(dm.SpaceData):
         # check to see if the variables are in the spacedata
         for var in self.specSettings['variables']:
             if not var in data:  # TODO could check other capitalization
-                raise(KeyError('"{}" not found in the input data'.format(var) ))
+                raise(KeyError('"{0}" not found in the input data'.format(var) ))
 
         # if the variables are empty error and quit
         if len(data[self.specSettings['variables'][0]]) == 0:
-            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][0])))
+            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][0])))
         if len(data[self.specSettings['variables'][1]]) == 0:
-            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][1])))
+            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][1])))
         if len(data[self.specSettings['variables'][2]]) == 0:
-            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][2])))
+            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][2])))
 
         # set default limits
         if self.specSettings['xlim'] == None:
