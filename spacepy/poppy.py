@@ -61,6 +61,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 
 import bisect
 import sys
+import warnings
 
 import numpy as np
 from matplotlib.mlab import prctile
@@ -477,10 +478,11 @@ class PPro(object):
             #should be unsigned long, but numpy forces signed int...
             minseed = -sys.maxsize - 1
             maxseed = sys.maxsize
-            (maj, min) = numpy.__version__.split('.')[0:2]
-            if maj < 2 and min < 6:
+            (maj, minor) = np.__version__.split('.')[0:2]
+            if int(maj) < 2 and int(minor) < 6:
                 warnings.warn('Upgrade to numpy 1.6 to avoid reduced entropy.')
-                maxseed = 0
+                maxseed = sys.maxsize
+                minseed = 0
             lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
         if lib.have_libspacepy == False:
             for i in range(len(lags)):
