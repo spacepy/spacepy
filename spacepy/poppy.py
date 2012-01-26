@@ -436,6 +436,14 @@ class PPro(object):
             seed for the random number generator. If not specified,
             Python code will use numpy's RNG and its current seed;
             C code will seed from the clock.
+
+        Warnings
+        ========
+        If ``seed`` is specified on numpy 1.5 and earlier, the available
+        entropy is reduced to work around a random number generator bug.
+        Upgrade to numpy 1.6 to avoid this limitation.
+        Because of this workaround, if a seed is specified, results
+        from numpy 1.5 are not reproducible with numpy 1.6
         """
         lags = self.lags
 
@@ -447,8 +455,13 @@ class PPro(object):
             np.random.seed(seed)
             #TODO: This is a bit ugly and we potentially lose entropy
             #should be unsigned long, but numpy forces signed int...
-            lag_seeds = np.random.randint(
-                -sys.maxsize - 1, sys.maxsize, [len(lags)])
+            minseed = -sys.maxsize - 1
+            maxseed = sys.maxsize
+            (maj, min) = numpy.__version__.split('.')[0:2]
+            if maj < 2 and min < 6:
+                warnings.warn('Upgrade to numpy 1.6 to avoid reduced entropy.')
+                maxseed = 0
+            lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
         if lib.have_libspacepy == False:
             for i in range(len(lags)):
                 if seed != None:
