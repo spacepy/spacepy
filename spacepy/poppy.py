@@ -86,16 +86,35 @@ class PPro(object):
     Output can be nicely plotted with :py:meth:`plot`.
 
     .. currentmodule:: spacepy.poppy
+    
     .. autosummary::
         ~PPro.aa_ci
         ~PPro.assoc
         ~PPro.assoc_mult
+        ci
+        conf_above
         ~PPro.plot
         ~PPro.plot_mult
         ~PPro.swap
+
     .. automethod:: aa_ci
     .. automethod:: assoc
     .. automethod:: assoc_mult
+
+    .. attribute:: ci
+    
+       Contains the upper and lower confidence limits for the association
+       number as a function of lag. The first element is the array of lower
+       limits; the second, the array of upper limits. Not available until
+       after calling :meth:`aa_ci`.
+
+    .. attribute:: conf_above
+    
+       Contains the confidence that the association number, as a function
+       of lag, is above the asymptotic association number. (The confidence
+       of being below is 100 - ``conf_above``.)  Not available until
+       after calling :meth:`aa_ci`.
+
     .. automethod:: plot
     .. automethod:: plot_mult
     .. automethod:: swap
@@ -412,9 +431,10 @@ class PPro(object):
         Requires input of desired confidence interval, e.g.:
             >>> obj.aa_ci(95)
 
-        Upper and lower confidence limits are added to the ci attribute
+        Upper and lower confidence limits are added to :attr:`~PPro.ci`.
 
-        Attribute conf_above will contain the confidence (in percent) that
+        After calling, :attr:`~PPro.conf_above` will contain the confidence
+        (in percent) that
         the association number at that lag is *above* the asymptotic
         association number. (The confidence of being below is 100 - conf_above)
         For minor variations in conf_above to be meaningful, a *large* number
