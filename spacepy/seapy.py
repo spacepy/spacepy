@@ -420,7 +420,7 @@ class Sea(SeaBase):
 
     def plot(self, xquan = 'Time Since Epoch', yquan='', xunits='',
                 yunits='', epochline=False, usrlimy=[], show=True,
-                figsize=None, dpi=None, transparent=True):
+                figsize=None, dpi=None, transparent=True, color='#7F7FFF'):
         """Method called to create basic plot of superposed epoch analysis.
 
         Parameters
@@ -443,6 +443,9 @@ class Sea(SeaBase):
 	    (default = []) - override automatic y-limits on plot.
         transparent : boolean
 	    (default True): make patch for low/high bounds transparent
+        color : str
+            Color to use for the patch if not transparent.
+            (default #7F7FFF, a medium blue)
 
         Notes
         =====
@@ -486,7 +489,7 @@ class Sea(SeaBase):
             ax0.add_patch(poly)
         else:
             ax0.fill_between(self.x, self.bound_low.ravel(), self.bound_high.ravel(),
-                             edgecolor='none', facecolor='#7F7FFF', interpolate=True)
+                             edgecolor='none', facecolor=color, interpolate=True)
         plt.hold(True)
         ax0.plot(self.x, self.semedian, 'k-', lw=2.0)
         ax0.plot(self.x, self.semean, 'r--', lw=1.25)
