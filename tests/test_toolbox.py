@@ -21,6 +21,7 @@ from numpy import array
 from scipy import inf
 import spacepy.toolbox as tb
 import matplotlib.pyplot as plt
+import matplotlib
 import spacepy.time as st
 from matplotlib.text import Text
 import spacepy.lib
@@ -756,7 +757,19 @@ class PlottingTests(unittest.TestCase):
         730888.,  730889.,  730890.,  730891.])
         numpy.testing.assert_allclose(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
-        real_ans = ["Text(730882,0,u'01 Feb')",
+        if matplotlib.__version__ == '1.0.1':
+            real_ans = ["Text(0,0,'')",
+                         "Text(0,0,'')",
+                         "Text(0,0,'')",
+                         "Text(0,0,'')",
+                         "Text(0,0,'')",
+                         "Text(0,0,'')",
+                         "Text(0,0,'')",
+                         "Text(0,0,'')",
+                         "Text(0,0,'')",
+                         "Text(0,0,'')"]
+        else:
+            real_ans = ["Text(730882,0,u'01 Feb')",
                      "Text(730883,0,u'02 Feb')",
                      "Text(730884,0,u'03 Feb')",
                      "Text(730885,0,u'04 Feb')",
