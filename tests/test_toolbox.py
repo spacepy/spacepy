@@ -756,9 +756,16 @@ class PlottingTests(unittest.TestCase):
         730888.,  730889.,  730890.,  730891.])
         numpy.testing.assert_allclose(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
-        real_ans = ["Text(0,0,u'01 Feb')", "Text(0,0,u'02 Feb')", "Text(0,0,u'03 Feb')", "Text(0,0,u'04 Feb')",
-                    "Text(0,0,u'05 Feb')", "Text(0,0,u'06 Feb')", "Text(0,0,u'07 Feb')", "Text(0,0,u'08 Feb')",
-                    "Text(0,0,u'09 Feb')", "Text(0,0,u'10 Feb')"]
+        real_ans = ["Text(730882,0,u'01 Feb')",
+                     "Text(730883,0,u'02 Feb')",
+                     "Text(730884,0,u'03 Feb')",
+                     "Text(730885,0,u'04 Feb')",
+                     "Text(730886,0,u'05 Feb')",
+                     "Text(730887,0,u'06 Feb')",
+                     "Text(730888,0,u'07 Feb')",
+                     "Text(730889,0,u'08 Feb')",
+                     "Text(730890,0,u'09 Feb')",
+                     "Text(730891,0,u'10 Feb')"]
         ans = [str(ax.xaxis.get_majorticklabels()[i]) for i in range(len(ax.xaxis.get_majorticklabels()))]
         numpy.testing.assert_array_equal(real_ans, ans)
         plt.close()
