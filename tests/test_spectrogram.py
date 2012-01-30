@@ -13,7 +13,7 @@ import numpy as np
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
 
-from spacepy.plot import spectrogram
+from spacepy.plot.spectrogram import spectrogram
 
 class spectrogramTests(unittest.TestCase):
     def setUp(self):

@@ -2,9 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """
-Create and plot generic spectrograms for space science.
-These are different than the standard spectrogram in other
-fields in that there is no fft used
+Create and plot generic 'spectrograms' for space science.
+This is not a signal processing routine and does not apply 
+Fourier transforms (or similar) to the data. The functionality 
+provided here is the binning (and averaging) of multi-dimensional
+to provide a 2D output map of some quantity as a function of two
+parameters. An example would be particle data from a satellite mission:
+electron flux, at a given energy, can be binned as a function of 
+both time and McIlwain L, then plotted as a 2D color-map, 
+colloquially known as a spectrogram.
+
+In many other settings 'spectrogram' refers to a transform of data 
+from the time domain to the frequency domain, and the subsequent plotting 
+of some quantity (e.g., power spectral density) as a function of time and 
+frequency. To approximate this functionality for, e.g., time-series magnetic field 
+data you would first calculate a the power spectral density and then use 
+:class:`spectrogram` to rebin the data for visualaization.
 
 Authors: Brian Larsen and Steve Morley
 Institution: Los Alamos National Laboratory
@@ -14,6 +27,7 @@ Los Alamos National Laboratory
 Copyright 2011 Los Alamos National Security, LLC.
 
 .. autosummary::
+    :template: clean_class.rst
     :toctree: autosummary
 
     spectrogram
@@ -32,54 +46,65 @@ __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
 class spectrogram(dm.SpaceData):
     """
-    This class generates and then contains the data binned into he spectrogram
+    This class rebins data to produce a 2D data map that can be plotted as a spectrogram
 
     It is meant to be used on arbitrary data series.  The first series "x" is
     plotted on the abscissa and second series "y" is plotted on the ordinate and
     the third series "z" is plotted in color.
 
     The series are not passed in independently but instead inside a
-    spacepy.datamodel.SpaceData container.  Helper routines are provided to
+    :class:`~spacepy.datamodel.SpaceData` container.
+    
+    Parameters
+    ==========
+    data : :class:`~spacepy.datamodel.SpaceData`
+        The data for the spectrogram, the variables to be used default to
+        "Epoch" for x, "Energy" for y, and "Flux" for z.  Other names are
+        specified using the 'variables' keyword.  All keywords override .attrs
+        contents.
+
+    Other Parameters
+    ================
+    variables : list
+        keyword containing the names of the variables to use for the spectrogram
+        the list is a list of the SpaceData keys in x, y, z, order
+    bins : list
+        if the name "bins" is not specified in the .attrs of the dmarray variable
+        this specifies the bins for each variable in a
+        [[xbins], [ybins]] format
+    xlim : list
+        if the name "lim" is not specified in the .attrs of the dmarray variable
+        this specifies the limit for the x variable [xlow, xhigh]
+    ylim : list
+        if the name "lim" is not specified in the .attrs of the dmarray variable
+        this specifies the limit for the y variable [ylow, yhigh]
+    zlim : list
+        if the name "lim" is not specified in the .attrs of the dmarray variable
+        this specifies the limit for the z variable [zlow, zhigh]
+    extended_out : bool (optional)
+        if this is True add more information to the output data model (defualt False)
+
+    Notes
+    =====
+    Helper routines are planned to
     facilitate the creation of the SpaceData container if the data are not in the format.
+
+    .. autosummary::
+
+        ~spectrogram.plot
+
+    .. automethod:: plot
+
     """
 
-    ## NOTE this will need to set the sphinx var autoclass_content to "both"
+#    TODO
+#    ====
+#    Allow for the input of a list of SpaceData objects for different sats
+#    Make "subclasses" that allow for data to be passed in directly avoiding the data model
+
 
     def __init__(self, data, **kwargs):
         """
-        Parameters
-        ==========
-        data : spacepy.datamodel.SpaceData
-            The data for the spectrogram, the variables to be used default to
-            "Epoch" for x, "Energy" for y, and "Flux" for z.  Other names are
-            specified using the 'variables' keyword.  All keywords override .attrs
-            contents.
-
-        Other Parameters
-        ================
-        variables : list
-            keyword containing the names of the variables to use for the spectrogram
-            the list is a list of the SpaceData keys in x, y, z, order
-        bins : list
-            if the name "bins" is not specified in the .attrs of the dmarray variable
-            this specifies the bins for each variable in a
-            [[xbins], [ybins]] format
-        xlim : list
-            if the name "lim" is not specified in the .attrs of the dmarray variable
-            this specifies the limit for the x variable [xlow, xhigh]
-        ylim : list
-            if the name "lim" is not specified in the .attrs of the dmarray variable
-            this specifies the limit for the y variable [ylow, yhigh]
-        zlim : list
-            if the name "lim" is not specified in the .attrs of the dmarray variable
-            this specifies the limit for the z variable [zlow, zhigh]
-        extended_out : bool (optional)
-            if this is True add more information to the output data model (defualt False)
-
-        TODO
-        ====
-        Allow for the input of a list of SpaceData objects for different sats
-        Make "subclasses" that allow for data to be passed in directly avoiding the data model
         """
         super(spectrogram, self).__init__()
         ## setup a default dictionary to step through to set values from kwargs
@@ -101,15 +126,15 @@ class spectrogram(dm.SpaceData):
         # check to see if the variables are in the spacedata
         for var in self.specSettings['variables']:
             if not var in data:  # TODO could check other capitalization
-                raise(KeyError('"{}" not found in the input data'.format(var) ))
+                raise(KeyError('"{0}" not found in the input data'.format(var) ))
 
         # if the variables are empty error and quit
         if len(data[self.specSettings['variables'][0]]) == 0:
-            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][0])))
+            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][0])))
         if len(data[self.specSettings['variables'][1]]) == 0:
-            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][1])))
+            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][1])))
         if len(data[self.specSettings['variables'][2]]) == 0:
-            raise(ValueError('No {} datapassed in'.format(self.specSettings['variables'][2])))
+            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][2])))
 
         # set default limits
         if self.specSettings['xlim'] == None:

@@ -15,3 +15,5 @@ empiricals - module with heliospheric empirical modules
     getPlasmaPause
     getMPstandoff
     getDststar
+    getVampolaOrder
+    vampolaPA

@@ -6,48 +6,82 @@ toolbox - Toolbox of various functions and generic utilities
 
 .. automodule:: spacepy.toolbox
 
+- :ref:`Numerical distributions <tb-numerical>`
+- :ref:`Plotting tools <tb-plotting>`
+- :ref:`Time and date functions <tb-time>`
+- :ref:`Other functions <tb-other>`
+
+.. _tb-numerical:
+
+Numerical distributions
+-----------------------
+.. autosummary::
+    :toctree: autosummary
+
+    dist_to_list
+    geomspace
+    linspace
+    logspace
+
+.. _tb-plotting:
+
+Plotting tools
+--------------
 .. autosummary::
     :toctree: autosummary
 
     applySmartTimeTicks
+    makePoly
+    smartTimeTicks
+    printfig
+
+.. _tb-time:
+
+Time and date functions
+-----------------------
+.. autosummary::
+    :toctree: autosummary
+
+    leap_year
+    leapyear
+    randomDate
+    tCommon
+    timestamp
+    tOverlap
+    tOverlapHalf
+
+.. _tb-other:
+
+Other functions
+---------------
+.. autosummary::
+    :toctree: autosummary
+
     arraybin
     assemble
     bin_center_to_edges
     bin_edges_to_center
     binHisto
     dictree
-    dist_to_list
     eventTimer
     feq
-    geomspace
+    getNamedPath
     human_sort
     hypot
     interpol
     intsolve
-    leap_year
-    leapyear
-    linspace
     listUniq
     loadpickle
-    logspace
-    makePoly
     medAbsDev
     mlt2rad
     normalize
     pmm
-    printfig
     progressbar
     query_yes_no
     rad2mlt
-    randomDate
     savepickle
-    smartTimeTicks
-    tCommon
     thread_job
     thread_map
-    timestamp
-    tOverlap
-    tOverlapHalf
     update
     windowMean
 

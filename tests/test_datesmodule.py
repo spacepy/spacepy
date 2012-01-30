@@ -4,7 +4,7 @@ Test suite for dates
 
 As this is an exention module should have tests in C but I am too lazy
 
-Copyright ©2011 Los Alamos National Security, LLC.
+Copyright 2011 Los Alamos National Security, LLC.
 """
 import unittest
 import datetime
@@ -57,7 +57,8 @@ class num2dateTests(unittest.TestCase):
 
     def test_mpl_same(self):
         """the C version should give the same result as the matplotlib version"""
-        self.assertAlmostEqual(spt.num2date(self.num), num2date_mpl(self.num).replace(tzinfo=None))
+        self.assertEqual(spt.num2date(self.num),
+                         num2date_mpl(self.num).replace(tzinfo=None))
 
     def test_array(self):
         """output is an array if the input is an iterable"""

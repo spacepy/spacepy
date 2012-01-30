@@ -61,6 +61,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 
 import bisect
 import sys
+import warnings
 
 import numpy as np
 from matplotlib.mlab import prctile
@@ -86,16 +87,35 @@ class PPro(object):
     Output can be nicely plotted with :py:meth:`plot`.
 
     .. currentmodule:: spacepy.poppy
+    
     .. autosummary::
         ~PPro.aa_ci
         ~PPro.assoc
         ~PPro.assoc_mult
+        ci
+        conf_above
         ~PPro.plot
         ~PPro.plot_mult
         ~PPro.swap
+
     .. automethod:: aa_ci
     .. automethod:: assoc
     .. automethod:: assoc_mult
+
+    .. attribute:: ci
+    
+       Contains the upper and lower confidence limits for the association
+       number as a function of lag. The first element is the array of lower
+       limits; the second, the array of upper limits. Not available until
+       after calling :meth:`aa_ci`.
+
+    .. attribute:: conf_above
+    
+       Contains the confidence that the association number, as a function
+       of lag, is above the asymptotic association number. (The confidence
+       of being below is 100 - ``conf_above``.)  Not available until
+       after calling :meth:`aa_ci`.
+
     .. automethod:: plot
     .. automethod:: plot_mult
     .. automethod:: swap
@@ -412,9 +432,10 @@ class PPro(object):
         Requires input of desired confidence interval, e.g.:
             >>> obj.aa_ci(95)
 
-        Upper and lower confidence limits are added to the ci attribute
+        Upper and lower confidence limits are added to :attr:`~PPro.ci`.
 
-        Attribute conf_above will contain the confidence (in percent) that
+        After calling, :attr:`~PPro.conf_above` will contain the confidence
+        (in percent) that
         the association number at that lag is *above* the asymptotic
         association number. (The confidence of being below is 100 - conf_above)
         For minor variations in conf_above to be meaningful, a *large* number
@@ -436,6 +457,14 @@ class PPro(object):
             seed for the random number generator. If not specified,
             Python code will use numpy's RNG and its current seed;
             C code will seed from the clock.
+
+        Warnings
+        ========
+        If ``seed`` is specified on numpy 1.5 and earlier, the available
+        entropy is reduced to work around a random number generator bug.
+        Upgrade to numpy 1.6 to avoid this limitation.
+        Because of this workaround, if a seed is specified, results
+        from numpy 1.5 are not reproducible with numpy 1.6
         """
         lags = self.lags
 
@@ -447,8 +476,14 @@ class PPro(object):
             np.random.seed(seed)
             #TODO: This is a bit ugly and we potentially lose entropy
             #should be unsigned long, but numpy forces signed int...
-            lag_seeds = np.random.randint(
-                -sys.maxsize - 1, sys.maxsize, [len(lags)])
+            minseed = -sys.maxsize - 1
+            maxseed = sys.maxsize
+            (maj, minor) = np.__version__.split('.')[0:2]
+            if int(maj) < 2 and int(minor) < 6:
+                warnings.warn('Upgrade to numpy 1.6 to avoid reduced entropy.')
+                maxseed = sys.maxsize
+                minseed = 0
+            lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
         if lib.have_libspacepy == False:
             for i in range(len(lags)):
                 if seed != None:

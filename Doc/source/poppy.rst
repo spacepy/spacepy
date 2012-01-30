@@ -20,6 +20,7 @@ PoPPy - Point Processes in Python
 
 .. autosummary::
     :toctree: autosummary
+
     plot_two_ppro
     boots_ci
     value_percentile

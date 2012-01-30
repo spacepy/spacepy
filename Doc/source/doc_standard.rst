@@ -1,13 +1,17 @@
 Documentation Standard
 ======================
 
-SpacePy is trying to be a high quality product and as such we are striving for a
-certain amount of uniformity among modules in the package.  Please take the time
-to make you code compliant with the documentation standard.
+SpacePy aims to be a high quality product, and as such we (the SpacePy Team) encourage 
+a a high degree of uniformity in the documentation across included modules.  If you are 
+contributing to SpacePy, or hope to, please take the time to make your code compliant 
+with the documentation standard.
 
-SpacePy uses Sphinx_ as its documentation system
+SpacePy uses Sphinx_ to generate its documentation. This allows most of the documentation 
+to be built from docstrings in the code, with additional information being provided in
+reStructured Text files. This allows easy generation of high-quality, searchable HTML 
+documentation.
 
-On top of Sphinx SpacePy uses the following extensions:
+In addition to Sphinx, SpacePy uses the following extensions:
  * 'sphinx.ext.autodoc'
  * 'sphinx.ext.doctest''
  * 'sphinx.ext.intersphinx'
@@ -25,9 +29,10 @@ On top of Sphinx SpacePy uses the following extensions:
 So what do I need to do in my code?
 -----------------------------------
 Since we are using the 'numpydoc' extension there are fixed headings that may
-appear in your documentation block, there are a few things to note:
-* No other headings can appear there
-* I believe that no reStructuredText commands can either (e.g. .. Note:)
+appear in your documentation block. There are a few things to note:
+* No other headings can appear in your docstrings
+* Most reStructuredText commands cannot appear in your docstrings either (e.g. .. Note:)
+* Since 'numpydoc' is not well documented, the best way of finding out what you can do in your docstrings is to look at the source for the SpacePy documentation or the numpy documentation.
 
 Allowed headings
 ~~~~~~~~~~~~~~~~
@@ -56,12 +61,12 @@ Allowed headings
  * Signature
 
 **Examples**
- * Use them, but they must be fully stand alone, the user can just copy-paste
-   exactly what is there and it should work (think, and probably run doctest on them)
+ * Use them, but they must be fully stand alone; the user should be able to type the exact 
+   code in the example and it should work as shown (doctest can help with this)
 
-Method Example
---------------
-This code from toolbox shows what a method should look like in your code
+Function Example
+----------------
+This code from toolbox shows what a function should look like in your code
 
     .. code-block:: python
 
