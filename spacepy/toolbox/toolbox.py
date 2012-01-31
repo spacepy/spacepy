@@ -434,9 +434,6 @@ def feq(x, y, precision=0.0000005):
     compare two floating point values if they are equal
     after: http://www.lahey.com/float.htm
 
-    .. deprecated:: version 0.1.1
-    This is the same and less capable than numpy.allclose
-
     See Also
     ========
     numpy.allclose
@@ -448,7 +445,8 @@ def feq(x, y, precision=0.0000005):
     y : float or array of floats
         other numbers to compare
     precision : float (optional)
-        precision for equal (default 0.0000005)
+        Relative precision for equal (default 0.0000005)
+        Specified as a fraction of the sum of ``x`` and ``y``.
 
     Returns
     =======
@@ -465,7 +463,8 @@ def feq(x, y, precision=0.0000005):
     >>> tb.feq(x, y, 1e-3)
     True
     """
-    warnings.warn('feq has been deprecated, see numpy.allclose', DeprecationWarning)
+    x = np.asanyarray(x)
+    y = np.asanyarray(y)
     boolean = abs(x-y) <= (abs(x+y)*precision)
     return boolean
 
