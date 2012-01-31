@@ -3,11 +3,12 @@
 """
 testing	the	irbempy	module
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import unittest
 import spacepy
+import spacepy.coordinates
 import spacepy.irbempy as ib
 import glob
 import os
