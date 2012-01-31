@@ -33,6 +33,24 @@ class SpaceDataTests(unittest.TestCase):
     def tearDown(self):
         super(SpaceDataTests, self).tearDown()
 
+    def test_dmcopy(self):
+        """dmcopy should copy datamodel objects"""
+        a = dm.SpaceData()
+        a[1] = dm.dmarray([1,2,3], attrs={1:1})
+        b = dm.dmcopy(a)
+        self.assertFalse(a is b) # they are not the same memory
+        np.testing.assert_allclose(a[1], b[1])
+        self.assertEqual(a[1].attrs, b[1].attrs)
+        b = dm.dmcopy(a[1])
+        np.testing.assert_allclose(a[1], b)
+        self.assertEqual(a[1].attrs, b.attrs)
+        a = np.arange(10)
+        b = dm.dmcopy(a)
+        np.testing.assert_allclose(a, b)
+        a = [1,2,3]
+        b = dm.dmcopy(a)
+        self.assertEqual(a, b)
+
     def test_SpaceData(self):
         """Spacedata dist object has certain attributes"""
         dat = dm.SpaceData()
@@ -118,6 +136,8 @@ class dmarrayTests(unittest.TestCase):
         data2 = dm.dmarray([1,2,3], attrs={'coord':'GSM'})
         self.assertEqual(data.attrs, {})
         self.assertEqual(data2.attrs, {'coord':'GSM'})
+        data2 = dm.dmarray([1,2,3], dtype=float, attrs={'coord':'GSM'})
+        np.testing.assert_allclose([1,2,3], data2)
 
     def test_different_attrs(self):
         """Different instances of dmarray shouldn't share attrs"""
@@ -259,7 +279,7 @@ class converterTests(unittest.TestCase):
         newobj = dm.fromHDF5('dmh5test.h5')
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
-        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])        
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
     def test_HDF5Exceptions(self):
         """HDF5 has warnings and exceptions"""
@@ -271,7 +291,7 @@ class converterTests(unittest.TestCase):
         a = dm.SpaceData()
         a['foo'] = 'bar' # not an allowed type for data
         self.assertRaises(dm.DMWarning, dm.toHDF5, 'dmh5test.h5', a)
-        
+
     def test_HDF5roundtrip2(self):
         """Data can go to hdf and back again"""
         a = dm.SpaceData()
@@ -302,7 +322,7 @@ class CDFTests(unittest.TestCase):
         np.testing.assert_array_equal(dat['SpinNumbers'], SpinNumbers_ans)
         Epoch_ans = [datetime.datetime(1998, 1, 15, 0, minute) for minute in range(11)]
         np.testing.assert_array_equal(dat['Epoch'], Epoch_ans)
-                     
+
 
     def test_fromCDF_exception(self):
         """Bad file raises"""
