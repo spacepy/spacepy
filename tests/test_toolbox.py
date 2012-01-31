@@ -118,6 +118,23 @@ class PickleAssembleTests(unittest.TestCase):
 
 
 class SimpleFunctionTests(unittest.TestCase):
+    def test_getNamedPath(self):
+        """getNamedPath should have known result"""
+        ans = ['spacepy', 'tests']
+        numpy.testing.assert_equal(ans, tb.getNamedPath('tests').split(os.path.sep)[-2:])
+        numpy.testing.assert_equal(ans[0], tb.getNamedPath('spacepy').split(os.path.sep)[-1])
+
+    def test_progressbar(self):
+        """progressbar shouldhave a known output"""
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        self.assertEqual(tb.progressbar(0, 1, 100), None)
+        result = output.getvalue()
+        output.close()
+        self.assertEqual(result, "\rDownload Progress ...0%")
+        sys.stdout = realstdout
+
     def test_mlt2rad(self):
         """mlt2rad should have known output for known input"""
         self.assertAlmostEqual(-2.8797932657906435, tb.mlt2rad(1))
@@ -204,6 +221,22 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(ans, real_ans)
         numpy.testing.assert_almost_equal(tb.binHisto([100]*10), (3.3333333333333335, 3.0))
         numpy.testing.assert_almost_equal(tb.binHisto([100]), (1.0, 1.0))
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        numpy.testing.assert_almost_equal(tb.binHisto([100], verbose=True), (1.0, 1.0))
+        result = output.getvalue()
+        output.close()
+        self.assertEqual(result, "Used sqrt rule\n")
+        sys.stdout = realstdout
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        numpy.testing.assert_almost_equal(tb.binHisto([90, 100]*10, verbose=True), (7.3680629972807736, 1.0))
+        result = output.getvalue()
+        output.close()
+        self.assertEqual(result, "Used F-D rule\n")
+        sys.stdout = realstdout
 
     def test_logspace(self):
         """logspace should return know answer for known input"""
@@ -685,7 +718,7 @@ class tFunctionTests(unittest.TestCase):
                       datetime.datetime(2001, 1, 4, 12, 30)]
             numpy.testing.assert_allclose(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
-            
+
             time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
             time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
             outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
@@ -743,26 +776,26 @@ class tFunctionTests(unittest.TestCase):
 
     def test_randomDate(self):
         """randomDate should give known result"""
-        try: 
-            from matplotlib.dates import date2num, num2date 
-        except ImportError: 
+        try:
+            from matplotlib.dates import date2num, num2date
+        except ImportError:
             return # don't even do the test
         dt1 = datetime.datetime(2000, 1, 1)
         dt2 = datetime.datetime(2000, 2, 1)
         numpy.random.seed(8675309)
-        ans = numpy.array([datetime.datetime(2000,01,26,04,28,10,500070), 
-                           datetime.datetime(2000,01,24,06,46,39,156905), 
-                           datetime.datetime(2000,01,12,01,52,50,481431), 
-                           datetime.datetime(2000,01,07,06,30,26,331312), 
+        ans = numpy.array([datetime.datetime(2000,01,26,04,28,10,500070),
+                           datetime.datetime(2000,01,24,06,46,39,156905),
+                           datetime.datetime(2000,01,12,01,52,50,481431),
+                           datetime.datetime(2000,01,07,06,30,26,331312),
                            datetime.datetime(2000,01,13,16,17,48,619577)])
-        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=False))        
+        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=False))
         # check the exception
         dt11 = num2date(date2num(dt1))
         self.assertRaises(ValueError, tb.randomDate, dt11, dt2)
         ans.sort()
         numpy.random.seed(8675309)
-        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=True))        
-        
+        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=True))
+
 
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""
