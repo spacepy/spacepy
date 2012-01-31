@@ -3,17 +3,18 @@
 """
 Test suite for time module
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
-import unittest
-# import spacepy.toolbox as tb
-import spacepy.time as t
+import datetime
 import glob
 import os
-import datetime
+import unittest
+import warnings
+
 from numpy import array
 import numpy
+import spacepy.time as t
 
 
 
@@ -95,9 +96,14 @@ class tFunctionTests(unittest.TestCase):
                      [0, 0, 1],
                      [0, 0, 30],
                      [0, 59, 59] )
-        for i, val in enumerate(inval):
-            ans = t.sec2hms(*val)
-            self.assertEqual(real_ans[i], ans)
+        with warnings.catch_warnings(record=True) as w:
+            for i, val in enumerate(inval):
+                ans = t.sec2hms(*val)
+                self.assertEqual(real_ans[i], ans)
+            self.assertEqual(1, len(w))
+            self.assertEqual(
+                'Number of seconds > seconds in day. Try days keyword.',
+                str(w[0].message))
 
 class classTests(unittest.TestCase):
     def setUp(self):

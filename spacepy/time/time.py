@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from spacepy import help
 import datetime
 import dateutil.parser as dup
+import warnings
+
 import numpy as np
+from spacepy import help
 
 from . import _dates
 from _dates import date2num, num2date
@@ -1555,10 +1557,9 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
 
     """
     if not days:
-        try:
-            assert sec <= 86400
-        except:
-            print("Warning: Number of seconds > seconds in day. Try days keyword.")
+        if sec > 86400:
+            warnings.warn("Number of seconds > seconds in day. "
+                          "Try days keyword.")
     else:
         sec %= 86400
 
