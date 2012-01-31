@@ -7,16 +7,12 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import datetime
-import glob
-import os
 import unittest
 import warnings
 
-from numpy import array
 import numpy
+
 import spacepy.time as t
-
-
 
 class tFunctionTests(unittest.TestCase):
     def setUp(self):
@@ -149,11 +145,4 @@ class classTests(unittest.TestCase):
         numpy.testing.assert_equal(expected.RDT, actual_2.RDT)
 
 if __name__ == "__main__":
-    ## suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
-    ## unittest.TextTestRunner(verbosity=2).run(suite)
-
-    ## suite = unittest.TestLoader().loadTestsFromTestCase(tFunctionTests)
-    ## unittest.TextTestRunner(verbosity=2).run(suite)
-
-
     unittest.main()
