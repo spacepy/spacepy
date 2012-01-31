@@ -44,6 +44,8 @@ Copyright 2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
 
+import warnings
+
 import numpy as np
 import numpy.ma as ma
 import numbers
@@ -77,7 +79,9 @@ class SeaBase(object):
             self.window = kwargs['window']
         self.window = np.ceil(float(self.window)/float(self.delta))
         if kwargs['window'] != self.window:
-            print('Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta)
+            warnings.warn(
+                'Window size changed to {0} (points) to fit resolution ({1})'.format(
+                self.window, self.delta))
         self.bound_type = None
 
     def __str__(self):
