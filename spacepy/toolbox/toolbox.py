@@ -1073,9 +1073,10 @@ def binHisto(data, verbose=False):
     ql, qu = pul[0], pul[1]
     iqr = qu-ql
     binw = 2.*iqr/(len(data)**(1./3.))
-    nbins = round((max(data)-min(data))/binw)
+    if binw != 0:
+        nbins = round((max(data)-min(data))/binw)
     # if nbins is 0, NaN or inf dont use the F-D rule just use sqrt(num) rule
-    if nbins==0 or not np.isfinite(nbins) or binw==0:
+    if binw == 0 or nbins == 0 or not np.isfinite(nbins):
         nbins = round(np.sqrt(len(data)))
         binw = len(data)/nbins
         if verbose:

@@ -14,7 +14,13 @@ import itertools
 import math
 import os
 import random
+try:
+    import StringIO
+except:
+    import io as StringIO
+import sys
 import unittest
+import warnings
 
 import numpy
 from numpy import array
@@ -170,7 +176,12 @@ class SimpleFunctionTests(unittest.TestCase):
         """feq should return true when they are equal"""
         val1 = 1.1234
         val2 = 1.1235
-        self.assertTrue(tb.feq(val1, val2, 0.0001))
+        with warnings.catch_warnings(record=True) as w:
+            self.assertTrue(tb.feq(val1, val2, 0.0001))
+            self.assertEqual(1, len(w))
+            self.assertEqual(DeprecationWarning, w[0].category)
+            self.assertEqual('feq has been deprecated, see numpy.allclose',
+                             str(w[0].message))
 
     def testfeq_notequal(self):
         """feq should return false when they are not equal"""
@@ -256,8 +267,13 @@ class SimpleFunctionTests(unittest.TestCase):
         """listUniq should give known output for known input"""
         data = [[1,2,3], [2,3,1], [1,1,1], [1,2,3,1]]
         real_ans = [[1,2,3], [2,3,1], [1], [1,2,3]]
-        for i, val in enumerate(real_ans):
-            self.assertEqual(val, tb.listUniq(data[i]))
+        with warnings.catch_warnings(record=True) as w:
+            for i, val in enumerate(real_ans):
+                self.assertEqual(val, tb.listUniq(data[i]))
+            self.assertEqual(1, len(w))
+            self.assertEqual(DeprecationWarning, w[0].category)
+            self.assertEqual('listUniq has been deprecated, see numpy.unique',
+                             str(w[0].message))
 
     def test_leap_year(self):
         """Leap_year should give known output for known input"""
@@ -332,7 +348,7 @@ class SimpleFunctionTests(unittest.TestCase):
         """Convert probability distribution to list of values"""
         inputs = [[lambda x: x, 10, 0, 10],
                   [lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
-                   (5 * math.sqrt(2 * math.pi)), 20, -inf, inf],
+                   (5 * math.sqrt(2 * math.pi)), 20],
                   ]
         outputs = [[2.2360679774998005,
                     3.8729833462074126,
@@ -357,18 +373,6 @@ class SimpleFunctionTests(unittest.TestCase):
                    ]
         for (input, output) in zip(inputs, outputs):
             numpy.testing.assert_almost_equal(output, tb.dist_to_list(*input))
-        ans = [0.22360679689512963,
-                0.3872983331400981,
-                0.49999999808849793,
-                0.5916079760482376,
-                0.6708203906853853,
-                0.7416198458743466,
-                0.8062257717476484,
-                0.8660254004736174,
-                0.9219544422046511,
-                0.9746794307546907]
-        # test the "if max is None:" part
-        numpy.testing.assert_allclose(ans, tb.dist_to_list(lambda x: x, 10, 0))
 
     def testBinCenterToEdges(self):
         """Convert a set of bin centers to bin edges"""
@@ -424,10 +428,36 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_dictree(self):
         """dictree has known output (None)"""
         a = {'a':1, 'b':2, 'c':{'aa':11, 'bb':22}}
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
         self.assertEqual(tb.dictree(a), None)
         self.assertEqual(tb.dictree(a, attrs=True), None)
         self.assertEqual(tb.dictree(a, verbose=True), None)
+        sys.stdout = realstdout
+        result = output.getvalue()
+        output.close()
         self.assertRaises(TypeError, tb.dictree, 'bad')
+        expected = """+
+|____a
+|____b
+|____c
+     |____aa
+     |____bb
++
+|____a
+|____b
+|____c
+     |____aa
+     |____bb
++
+|____a (int)
+|____b (int)
+|____c (dict [2])
+     |____aa (int)
+     |____bb (int)
+"""
+        self.assertEqual(expected, result)
 
     def test_geomspace(self):
         """geomspace should give known output"""
