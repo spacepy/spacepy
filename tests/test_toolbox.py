@@ -615,10 +615,18 @@ class tFunctionTests(unittest.TestCase):
 
     def test_eventTimer(self):
         """eventTimer should behave in a known way"""
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
         t1 = time.time()
         time.sleep(0.25)
         t2 = tb.eventTimer('', t1)
+        sys.stdout = realstdout
+        result = output.getvalue()
+        output.close()
         numpy.testing.assert_allclose(t2-t1, 0.25, atol=0.1, rtol=0.1)
+        self.assertEqual("""('0.25', '')\n""",
+                         result)
 
     def test_smartTimeTicks(self):
         """smartTimeTicks should give known output (regression)"""
