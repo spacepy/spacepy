@@ -28,6 +28,7 @@ from test_pycdf import *
 from test_data_assimilation import *
 from test_spectrogram import *
 from test_datesmodule import *
+from test_irbempy import *
 # add others here as they are written
 
 if __name__ == '__main__':
