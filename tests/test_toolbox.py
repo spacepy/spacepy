@@ -4,7 +4,7 @@
 """
 Test suite for toolbox
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import time
@@ -14,6 +14,7 @@ import itertools
 import math
 import os
 import random
+import sys
 import unittest
 
 import numpy
@@ -745,43 +746,32 @@ class PlottingTests(unittest.TestCase):
 
     def test_applySmartTimeTicks(self):
         """applySmartTimeTicks should have known behaviour"""
-        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays = 1)
+        if sys.platform != 'darwin':
+            plt.ion()
+        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays=1)
         y = range(len(ticks))
         fig = plt.figure()
         ax = fig.add_subplot(111)
         line = ax.plot(ticks.UTC, y)
         tb.applySmartTimeTicks(ax, ticks.UTC)
         plt.draw()
+        if sys.platform != 'darwin':
+            plt.draw()
         # should not have moved the ticks
         real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
         730888.,  730889.,  730890.,  730891.])
         numpy.testing.assert_allclose(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
-        if matplotlib.__version__ == '1.0.1':
-            real_ans = ["Text(0,0,'')",
-                         "Text(0,0,'')",
-                         "Text(0,0,'')",
-                         "Text(0,0,'')",
-                         "Text(0,0,'')",
-                         "Text(0,0,'')",
-                         "Text(0,0,'')",
-                         "Text(0,0,'')",
-                         "Text(0,0,'')",
-                         "Text(0,0,'')"]
-        else:
-            real_ans = ["Text(730882,0,u'01 Feb')",
-                     "Text(730883,0,u'02 Feb')",
-                     "Text(730884,0,u'03 Feb')",
-                     "Text(730885,0,u'04 Feb')",
-                     "Text(730886,0,u'05 Feb')",
-                     "Text(730887,0,u'06 Feb')",
-                     "Text(730888,0,u'07 Feb')",
-                     "Text(730889,0,u'08 Feb')",
-                     "Text(730890,0,u'09 Feb')",
-                     "Text(730891,0,u'10 Feb')"]
-        ans = [str(ax.xaxis.get_majorticklabels()[i]) for i in range(len(ax.xaxis.get_majorticklabels()))]
+        try:
+            real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(10)]
+        except AttributeError: #Py3k
+            real_ans = ['{0:02d} Feb'.format(i+1) for i in range(10)]
+        ans = [t.get_text()
+               for t in ax.xaxis.get_majorticklabels()]
         numpy.testing.assert_array_equal(real_ans, ans)
         plt.close()
+        if sys.platform != 'darwin':
+            plt.ioff()
 
 
 if __name__ == "__main__":
