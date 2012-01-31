@@ -14,7 +14,6 @@ import itertools
 import math
 import os
 import random
-import sys
 import unittest
 
 import numpy
@@ -746,8 +745,7 @@ class PlottingTests(unittest.TestCase):
 
     def test_applySmartTimeTicks(self):
         """applySmartTimeTicks should have known behaviour"""
-        if sys.platform != 'darwin':
-            plt.ion()
+        plt.ion()
         ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays=1)
         y = range(len(ticks))
         fig = plt.figure()
@@ -755,8 +753,7 @@ class PlottingTests(unittest.TestCase):
         line = ax.plot(ticks.UTC, y)
         tb.applySmartTimeTicks(ax, ticks.UTC)
         plt.draw()
-        if sys.platform != 'darwin':
-            plt.draw()
+        plt.draw()
         # should not have moved the ticks
         real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
         730888.,  730889.,  730890.,  730891.])
@@ -770,8 +767,7 @@ class PlottingTests(unittest.TestCase):
                for t in ax.xaxis.get_majorticklabels()]
         numpy.testing.assert_array_equal(real_ans, ans)
         plt.close()
-        if sys.platform != 'darwin':
-            plt.ioff()
+        plt.ioff()
 
 
 if __name__ == "__main__":
