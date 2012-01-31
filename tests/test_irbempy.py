@@ -12,7 +12,7 @@ import spacepy.coordinates
 import spacepy.irbempy as ib
 import glob
 import os
-import numpy as n
+import numpy as np
 import numpy.testing
 from numpy import array
 
@@ -22,15 +22,57 @@ class BigTests(unittest.TestCase):
         self.ticks = spacepy.time.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
         self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
 
-    def tearDown(self):
-        pass
-
     def test_prep_irbem(self):
-        expected = spacepy.loadpickle('test_prep_irbem.pkl')
+        expected = {
+            'badval': -1e31,
+            'degalpha': [0.0] * 25,
+            'idoysat': [33.0] * 2 + [0.0] * 99998,
+            'ntime_max': 100000,
+            'nalp_max': 25,
+            'magin': np.zeros((25, 100000)),
+            'sysaxes': 1,
+            'kext': 10,
+            'iyearsat': [2002.] * 2 + [0.0] * 99998,
+            'xin3': 0.0 * 100000,
+            'xin2': 0.0 * 100000,
+            'xin1': [3., 2.] + [0.0] * 99998,
+            'utsat': [43200., 43800.] + [0.0] * 99998,
+            'options': [1, 0, 0, 0, 0],
+            }
+        expected['magin'][:, 0:2] = numpy.array(
+            [[  37.00000048,   37.00000048],
+             [ -75.        ,  -74.83333333],
+             [   9.        ,    8.94999997],
+             [ 358.        ,  362.66666671],
+             [   2.20000005,    2.23666672],
+             [  -3.        ,   -3.41666667],
+             [  -5.        ,   -5.18333332],
+             [   7.69000006,    7.82666675],
+             [  10.59000015,   10.56666676],
+             [  10.86999989,   10.59666649],
+             [   1.83500004,    1.81683336],
+             [   1.82799995,    1.80666663],
+             [   1.16999996,    1.17216663],
+             [   2.05200005,    2.02350004],
+             [   1.45000005,    1.44783338],
+             [   2.94400001,    2.89649999],
+             [   0.        ,    0.        ],
+             [   0.        ,    0.        ],
+             [   0.        ,    0.        ],
+             [   0.        ,    0.        ],
+             [   0.        ,    0.        ],
+             [   0.        ,    0.        ],
+             [   0.        ,    0.        ],
+             [   0.        ,    0.        ],
+             [   0.        ,    0.        ]]
+            )
+                            
         actual = ib.prep_irbem(self.ticks, self.loci)
         for key in expected:
-            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
-            
+            numpy.testing.assert_allclose(expected[key],
+                                          actual[key],
+                                          rtol=1e-6)        
+        
     def test_get_dtype(self):
         sysaxes = 3
         expected = ('GSE', 'car')
