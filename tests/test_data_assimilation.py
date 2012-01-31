@@ -2,23 +2,24 @@
 # -*- coding: utf-8 -*-
 
 """
-Test suite for borg
+Test suite for data_assimilation
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import unittest
 
 import numpy
 import spacepy.toolbox as tb
+import spacepy.data_assimilation as da
 
-class BorgTests(unittest.TestCase):
+class DataAssimilationTests(unittest.TestCase):
 
     def setUp(self):
-        super(BorgTests, self).setUp()
+        super(DataAssimilationTests, self).setUp()
 
     def tearDown(self):
-        super(BorgTests, self).tearDown()
+        super(DataAssimilationTests, self).tearDown()
 
     def testSomething(self):
         """example test"""
