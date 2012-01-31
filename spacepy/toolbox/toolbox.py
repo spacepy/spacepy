@@ -879,9 +879,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         time = list(range(len(data)))
         pts = True
     else:
-        try:
-            assert len(data) == len(time)
-        except:
+        if len(data) != len(time):
             raise ValueError('windowmean error: data and time must have same length')
         #First check if datetime objects
         try:
@@ -900,14 +898,14 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         #loop for fixed number of points in window
         if not isinstance(winsize, (int, long)):
             winsize = int(round(winsize))
-            print('windowmean error: non-integer windowsize, rounding to %d' \
+            warnings.warn('windowmean: non-integer windowsize, rounding to %d' \
             % winsize)
         if winsize < 1:
             winsize = 1
-            print ('windowmean error: window length < 1, defaulting to 1')
+            warnings.warn('windowmean: window length < 1, defaulting to 1')
         if overlap >= winsize:
             overlap = winsize - 1
-            print ('''windowmean error: overlap longer than window, truncated to
+            warnings.warn('''windowmean: overlap longer than window, truncated to
             %d''' % overlap)
         lastpt = winsize-1 #set last point to end of window size
         while lastpt < len(data):
