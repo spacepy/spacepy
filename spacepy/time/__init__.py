@@ -96,6 +96,6 @@ Copyright 2010 Los Alamos National Security, LLC.
 
 from time import *
 from . import _dates
-from _dates import date2num, num2date
+from _dates import _date2num, _num2date
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'

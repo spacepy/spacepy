@@ -8,7 +8,7 @@ import numpy as np
 from spacepy import help
 
 from . import _dates
-from _dates import date2num, num2date
+from _dates import _date2num, _num2date
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -1404,11 +1404,57 @@ class Ticktock(object):
         return Ticktock(dt, 'utc')
 
 
-
 # -----------------------------------------------
 # End of Ticktock class
 # -----------------------------------------------
 
+def num2date(mplnum):
+    """
+    Convert matplotlib epoch to datetime fast using an extension module
+
+    Parameters
+    ==========
+    mplnum : float or iterable of floats
+        matplotlib epoch or iterable of epochs
+
+    Returns
+    =======
+    out : np.array
+        Array of datetime objects accosicated with the matplotlib epochs
+
+    See Also
+    ========
+    matplotlib.dates.num2date
+    spacepy.time.date2num
+    """
+    mplnum = np.asanyarray(mplnum)
+    shape = mplnum.shape
+    ans = _num2date(mplnum.flatten())
+    return ans.reshape(shape)
+
+def date2num(dates):
+    """
+    Convert datetimes to matplotlib fast using an extension module
+
+    Parameters
+    ==========
+    dates : datetime.datetime or iterable of datetime.datetime
+        datetime objects to convert to matplotlib epochs
+
+    Returns
+    =======
+    out : np.array
+        Array of floats accosicated with the datetimes
+
+    See Also
+    ========
+    matplotlib.dates.date2num
+    spacepy.time.num2date
+    """
+    dates = np.asanyarray(dates)
+    shape = dates.shape
+    ans = _date2num(dates.flatten())
+    return ans.reshape(shape)
 
 def doy2date(year, doy, dtobj=False, flAns=False):
     """

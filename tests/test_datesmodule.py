@@ -38,6 +38,11 @@ class date2numTests(unittest.TestCase):
         """output is an array if the input is an iterable"""
         numpy.testing.assert_allclose(spt.date2num([self.dt]*10), date2num_mpl([self.dt]*10))
 
+    def test_2darray(self):
+        """2d arrys should come back n the same shape"""
+        numpy.testing.assert_allclose(numpy.asarray(spt.date2num([self.dt]*10)).reshape((5,2)),
+                                      date2num_mpl([self.dt]*10).reshape((5,2)))
+
 
 class num2dateTests(unittest.TestCase):
     def setUp(self):
@@ -64,6 +69,10 @@ class num2dateTests(unittest.TestCase):
         """output is an array if the input is an iterable"""
         numpy.testing.assert_array_equal(spt.num2date([self.num]*10), [val.replace(tzinfo=None) for val in num2date_mpl([self.num]*10)])
         numpy.testing.assert_array_equal(spt.num2date(numpy.asarray([self.num]*10)), [val.replace(tzinfo=None) for val in num2date_mpl([self.num]*10)])
+
+    def test_2darray(self):
+        """there was a segfault on 2d input, don't come back'"""
+        numpy.testing.assert_array_equal(spt.num2date(numpy.asarray([self.num]*10).reshape((5,2))), numpy.asarray([val.replace(tzinfo=None) for val in num2date_mpl([self.num]*10)]).reshape((5,2)))
 
     def test_intypes(self):
         """Can input float, long, or int"""

@@ -380,7 +380,8 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "O", &inval))
         return NULL;
 
-    if (PyNumber_Check(inval) & !PySequence_Check(inval)) 
+    // the input is a number or an array
+    if (PyNumber_Check(inval) & !PySequence_Check(inval))
         return (PyArrayObject *)(num2date(PyNumber_AsDouble(inval))); 
     if (!PySequence_Check(inval)) { // is the input a sequence of sorts
         PyErr_SetString(PyExc_ValueError, "Must be a numeric object or iterable of numeric objects");
@@ -405,7 +406,9 @@ static PyArrayObject *num2date_common(PyObject *self, PyObject *args) {
     // step thru all the datetimes and  convert them, putting ans in the array
     for (ind=0;ind<inval_len;ind++) {
         // as above get an item from the iterator ival and cast as needed
-        item = PySequence_GetItem(inval, ind);
+        if (!(item = PySequence_GetItem(inval, ind))) {
+            return NULL;
+        }
         // If this isn't a float error
         if (!PyNumber_Check(item)) {
             PyErr_SetString(PyExc_ValueError, "Iterable must contain numeric objects");
@@ -433,13 +436,13 @@ static PyMethodDef dates_methods[] = {
     // (PyCFunction)date2num_common: cast the c function we created and associate
     //    it in python with the name
     //  METH_VARARGS: it takes in arguments and not kwargs
-   { "date2num", (PyCFunction)date2num_common, METH_VARARGS,
+   { "_date2num", (PyCFunction)date2num_common, METH_VARARGS,
      "Return value is a floating point number (or sequence of floats) which \n"
      "gives the number of days (fraction part represents hours, minutes, seconds)\n"
      "since 0001-01-01 00:00:00 UTC, plus one. The addition of one here is a \n"
      "historical artifact. Also, note that the Gregorian calendar is assumed; \n"
      "this is not universal practice. For details, see the module docstring.\n"},
-     {"num2date", (PyCFunction)num2date_common, METH_VARARGS,
+     {"_num2date", (PyCFunction)num2date_common, METH_VARARGS,
      "Input is a float value which gives the number of days (fraction part \n"
      "represents hours, minutes, seconds) since 0001-01-01 00:00:00 UTC plus one.\n"
      "The addition of one here is a historical artifact. Also, note that the\n"

@@ -25,4 +25,6 @@ time - Time conversion, manipulation and implementation of Ticktock class
     doy2date
     tickrange
     sec2hms
+    num2date
+    date2num
 
