@@ -293,7 +293,7 @@ class converterTests(unittest.TestCase):
         self.assertRaises(dm.DMWarning, dm.toHDF5, 'dmh5test.h5', a)
 
     def test_HDF5roundtrip2(self):
-        """Data can go to hdf and back again"""
+        """Data can go to hdf without altering datetimes in the datamodel"""
         a = dm.SpaceData()
         a['foo'] = dm.SpaceData()
         dm.toHDF5('dmh5test.h5', a)
@@ -301,8 +301,7 @@ class converterTests(unittest.TestCase):
         self.assertEqual(a['foo'], newobj['foo'])
         a['bar'] = dm.dmarray([datetime.datetime(2000, 1, 1)])
         dm.toHDF5('dmh5test.h5', a)
-        newobj = dm.fromHDF5('dmh5test.h5')
-        self.assertEqual(a['bar'], newobj['bar'])
+        self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
 
 class CDFTests(unittest.TestCase):
     def setUp(self):

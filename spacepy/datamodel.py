@@ -553,20 +553,21 @@ def toHDF5(fname, SDobject, **kwargs):
     def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
         if hasattr(SDobject, 'attrs'):
             for key, value in SDobject.attrs.iteritems():
+                dumval, dumkey = copy.copy(value), copy.copy(key)
                 if type(value) in allowed_attrs:
-                    #test for datetimes in interables
+                    #test for datetimes in iterables
                     if hasattr(value, '__iter__'):
-                        value = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
+                        dumval = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
                     if value or value is 0:
                         if type(key) is unicode:
-                            key = str(key)
+                            dumkey = str(key)
                         if type(value) is unicode:
-                            value = str(value)
-                        hfile[path].attrs[key] = value
+                            dumval = str(value)
+                        hfile[path].attrs[dumkey] = dumval
                     else:
-                        hfile[path].attrs[key] = ''
+                        hfile[path].attrs[dumkey] = ''
                 else:
-                    #TODO: add support for datetime in attrs (convert to isoformat)
+                    #TODO: add support for arrays(?) in attrs (convert to isoformat)
                     warnings.warn('The following key:value pair is not permitted\n' + 
                                     'key = {0} ({1})\n'.format(key, type(key)) + 
                                     'value type {0} is not in the allowed attribute list'.format(type(value)), 
@@ -614,9 +615,10 @@ def toHDF5(fname, SDobject, **kwargs):
             try:
                 hfile[path].create_dataset(key, data=value)
             except:
+                dumval = value.copy()
                 if isinstance(value[0], datetime.datetime):
-                    for i, val in enumerate(value): value[i] = val.isoformat()
-                hfile[path].create_dataset(key, data=value.astype('|S35'))
+                    for i, val in enumerate(value): dumval[i] = val.isoformat()
+                hfile[path].create_dataset(key, data=dumval.astype('|S35'))
                 #else:
                 #    hfile[path].create_dataset(key, data=value.astype(float))
             SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
