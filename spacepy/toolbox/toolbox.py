@@ -109,9 +109,9 @@ def tOverlapHalf(ts1, ts2, presort=False):
     """
     Find overlapping elements in two lists of datetime objects
 
-    This is one-half of tOverlap, i.e. it finds only occurances where
+    This is one-half of tOverlap, i.e. it finds only occurrences where
     ts2 exists within the bounds of ts1, or the second element
-    returnd by tOverlap.
+    returned by tOverlap.
 
     Parameters
     ==========
@@ -283,7 +283,7 @@ def savepickle(fln, dict, compress=None):
         write as a gzip-compressed file
                      (.gz will be added to L{fln}).
                      If not specified, defaults to uncompressed, unless the
-                     compressed file exists and the uncomprssed does not.
+                     compressed file exists and the uncompressed does not.
 
     See Also
     ========
@@ -579,7 +579,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     current working directory with a sequence number attached. Also, a time
     stamp and the location of the file will be imprinted on the figure. The
     file ending with c.png is clean and no directory or time stamp are
-    attached (good for powerpoint presentations).
+    attached (good for PowerPoint presentations).
 
     Parameters
     ==========
@@ -1072,7 +1072,7 @@ def binHisto(data, verbose=False):
     binw = 2.*iqr/(len(data)**(1./3.))
     if binw != 0:
         nbins = round((max(data)-min(data))/binw)
-    # if nbins is 0, NaN or inf dont use the F-D rule just use sqrt(num) rule
+    # if nbins is 0, NaN or inf don't use the F-D rule just use sqrt(num) rule
     if binw == 0 or nbins == 0 or not np.isfinite(nbins):
         nbins = round(np.sqrt(len(data)))
         binw = len(data)/nbins
@@ -1204,7 +1204,7 @@ def logspace(min, max, num, **kwargs):
 
     Examples
     ========
-    >>> import sapcepy.toolbox as tb
+    >>> import spacepy.toolbox as tb
     >>> tb.logspace(1, 100, 5)
     array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
 
@@ -1447,7 +1447,7 @@ def pmm(a, *b):
     ==========
     a : numpy array
         input array
-    b : list argumants
+    b : list arguments
         some additional number of arrays
 
     Returns
@@ -1487,7 +1487,7 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
         position for the timestamp
     size : string (optional)
         text size
-    draw : bollean (optional)
+    draw : Boolean (optional)
         call draw to make sure it appears
     kwargs : keywords
         other keywords to axis.annotate
@@ -1599,8 +1599,8 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     y : array_like
         y values of the original data
     wrap : string, optional
-        for continous x data that wraps in y at 'hours' (24), 'longitude' (360),
-        or arbitary value (int, float)
+        for continuous x data that wraps in y at 'hours' (24), 'longitude' (360),
+        or arbitrary value (int, float)
     kwargs : dict
         additional keywords, currently accepts baddata that sets baddata for
         masked arrays
@@ -1996,7 +1996,7 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
             of elements to process in an array.
     args : sequence
         Arguments to pass to L{target}. If L{target} is an instance
-            method, self must be explicitly pssed in. start and
+            method, self must be explicitly passed in. start and
             subjob_size will be appended.
     kwargs : dict
         keyword arguments to pass to L{target}.
@@ -2099,7 +2099,7 @@ def eventTimer(Event, Time1):
     Event : str
         Name of the event, string is printed out by function
     Time1 : time.time
-        the time to differece in the function
+        the time to difference in the function
 
     Returns
     =======
@@ -2134,7 +2134,7 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     N : int (optional)
         the number of random dates to generate (defualt=1)
     tzinfo : bool (optional)
-        maintain thetzinfo of the input datetimes (default=False)
+        maintain the tzinfo of the input datetimes (default=False)
     sorted : bool (optional)
         return the times sorted (default=False)
 
@@ -2163,7 +2163,7 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     
 def isview(array1, array2=None):
     """
-    Returns if an object is a vew of another object.  More precicely if one array argument is specified 
+    Returns if an object is a view of another object.  More precisely if one array argument is specified 
     True is returned is the arrays owns its data.  If two arrays arguments are specified a tuple is returned
     of if the first array owns its data and the the second if they point at the same memory location
 
@@ -2174,14 +2174,14 @@ def isview(array1, array2=None):
 
     Other Parameters
     ================
-    array2 : numpy.ndarray (optional)
-        array to query if array1 is a view of this object at thespecified memory location
+    array2 : object (optional)
+        array to query if array1 is a view of this object at the specified memory location
 
     Returns
     =======
     out : bool or tuple
         If one array is specified bool is returned, True is the array owns its data.  If two arrays
-        are specified a tuple where the seond element is a bool of if the array point at the same 
+        are specified a tuple where the second element is a bool of if the array point at the same 
         memory location
 
     Examples
@@ -2199,18 +2199,21 @@ def isview(array1, array2=None):
     tb.isview(b, b)
     # (True, True)  # the conditions are met and numpy cannot tell this
     """
-    # deal with the one inpout case first
+    # deal with the one input case first
     if array2 == None:
         try:
-            return not array1.flags.owndata
+            if array1.base == None:
+                return False
+            return True                
         except AttributeError:
-            raise(ValueError('Input must be numpy array(s)'))
+            return False # if it is not an array then it is not a view
+    # there are two arrays input
     try:
-        if array1.flags.owndata:
-            return (not array1.flags.owndata, False)
-        return (not array1.flags.owndata, array1.__array_interface__['data'][0] == array2.__array_interface__['data'][0])
+        if array1.base == None:
+            return (False, False)
+        return (True, array1.base is array2)
     except AttributeError:
-        raise(ValueError('Input must be numpy array(s)'))        
+            return (False, False) # if it is not an array then it is not a view
 
 
 if __name__ == "__main__":

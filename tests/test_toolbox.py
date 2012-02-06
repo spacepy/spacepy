@@ -511,13 +511,12 @@ class SimpleFunctionTests(unittest.TestCase):
         b = a[0:10]
         self.assertTrue(tb.isview(b))
         self.assertFalse(tb.isview(a))
-        self.assertRaises(ValueError, tb.isview, [1,2,3])
-        self.assertRaises(ValueError, tb.isview, b, [1,2,3])
-        numpy.testing.assert_array_equal(tb.isview(a, [1,2,3]), [False, False]) # a bit of a pathalogical case
+        numpy.testing.assert_array_equal(tb.isview(a, [1,2,3]), [False, False]) # a bit of a pathological case
         numpy.testing.assert_array_equal(tb.isview(b, a), [True, True])
         numpy.testing.assert_array_equal(tb.isview(b, a[2:]), [True, False])
         numpy.testing.assert_array_equal(tb.isview(a, a), [False, False])
         numpy.testing.assert_array_equal(tb.isview(a[:], a), [True, True])
+        numpy.testing.assert_array_equal(tb.isview([1,2,3], 4), [False, False])
 
 
 class tFunctionTests(unittest.TestCase):
