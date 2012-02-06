@@ -70,6 +70,7 @@ Other functions
     hypot
     interpol
     intsolve
+    isview
     listUniq
     loadpickle
     medAbsDev

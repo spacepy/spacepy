@@ -505,6 +505,21 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = [1, 3.1622776601683795, 10.000000000000002]
         numpy.testing.assert_allclose(tb.geomspace(1, stop = 10, num=3), ans)
 
+    def test_isview(self):
+        """isview should have known output"""
+        a = numpy.arange(100)
+        b = a[0:10]
+        self.assertTrue(tb.isview(b))
+        self.assertFalse(tb.isview(a))
+        self.assertRaises(ValueError, tb.isview, [1,2,3])
+        self.assertRaises(ValueError, tb.isview, b, [1,2,3])
+        numpy.testing.assert_array_equal(tb.isview(a, [1,2,3]), [False, False]) # a bit of a pathalogical case
+        numpy.testing.assert_array_equal(tb.isview(b, a), [True, True])
+        numpy.testing.assert_array_equal(tb.isview(b, a[2:]), [True, False])
+        numpy.testing.assert_array_equal(tb.isview(a, a), [False, False])
+        numpy.testing.assert_array_equal(tb.isview(a[:], a), [True, True])
+
+
 class tFunctionTests(unittest.TestCase):
     def setUp(self):
         super(tFunctionTests, self).setUp()

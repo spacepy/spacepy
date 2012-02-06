@@ -53,7 +53,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'listUniq', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-           'eventTimer', 'randomDate']
+           'eventTimer', 'randomDate', 'isview']
 
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
@@ -2160,6 +2160,57 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     if sorted:
         rnd_t.sort()
     return rnd_t
+    
+def isview(array1, array2=None):
+    """
+    Returns if an object is a vew of another object.  More precicely if one array argument is specified 
+    True is returned is the arrays owns its data.  If two arrays arguments are specified a tuple is returned
+    of if the first array owns its data and the the second if they point at the same memory location
+
+    Parameters
+    ==========
+    array1 : numpy.ndarray
+        array to query if it owns its data
+
+    Other Parameters
+    ================
+    array2 : numpy.ndarray (optional)
+        array to query if array1 is a view of this object at thespecified memory location
+
+    Returns
+    =======
+    out : bool or tuple
+        If one array is specified bool is returned, True is the array owns its data.  If two arrays
+        are specified a tuple where the seond element is a bool of if the array point at the same 
+        memory location
+
+    Examples
+    ========
+    import numpy
+    import spacepy.toolbox as tb
+    a = numpy.arange(100)
+    b = a[0:10]
+    tb.isview(a)
+    # False
+    tb.isview(b)
+    # True
+    tb.isview(b, a)
+    # (True, True)   
+    tb.isview(b, b)
+    # (True, True)  # the conditions are met and numpy cannot tell this
+    """
+    # deal with the one inpout case first
+    if array2 == None:
+        try:
+            return not array1.flags.owndata
+        except AttributeError:
+            raise(ValueError('Input must be numpy array(s)'))
+    try:
+        if array1.flags.owndata:
+            return (not array1.flags.owndata, False)
+        return (not array1.flags.owndata, array1.__array_interface__['data'][0] == array2.__array_interface__['data'][0])
+    except AttributeError:
+        raise(ValueError('Input must be numpy array(s)'))        
 
 
 if __name__ == "__main__":
