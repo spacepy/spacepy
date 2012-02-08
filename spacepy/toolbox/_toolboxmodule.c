@@ -173,10 +173,8 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
                 temp_array = (PyArrayObject*)PyArray_FromArray((PyArrayObject*)temp_p, array_type, NPY_DEFAULT);
                 Py_DECREF(array_type);
                 temp_data = (double*)PyArray_DATA(temp_array);
-NPY_BEGIN_ALLOW_THREADS
                 for(j=0; j<arraySize; j++)
                     tot+=(temp_data[j] * temp_data[j]);
-NPY_END_ALLOW_THREADS
                 Py_DECREF(temp_array);
             }
             return PyFloat_FromDouble(sqrt(tot));
