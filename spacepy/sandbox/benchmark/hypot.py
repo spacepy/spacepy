@@ -49,7 +49,7 @@ plt.errorbar(x, y, yerr, color='b', fmt='o-', label='ctypes/python')
 
 ans = {}
 for ii, val in enumerate(tb.logspace(3, 1e5, 10)):
-    numpy_t = timeit.Timer("np.sqrt(np.sum(data*data))", 
+    numpy_t = timeit.Timer("np.sqrt(np.inner(data, data))", 
                            setup="import numpy as np; import ctypes;" + 
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
     python_t = timeit.Timer("math.sqrt(sum([v**2 for v in data]))", 
