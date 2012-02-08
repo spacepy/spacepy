@@ -137,7 +137,12 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
 {
     Py_ssize_t TupleSize = PyTuple_Size(args);
     Py_ssize_t i, seqSize;
+    npy_intp arraySize;
     PyObject *temp_p, *temp_seq;
+    PyArrayObject* temp_array;
+    PyArray_Descr *array_type;
+    npy_intp j;
+    double *temp_data;
     double tot=0., tmp_d;
 
     if(!TupleSize) {
@@ -153,10 +158,18 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
             return NULL;
         // if the input is an array ravel it then do the same thing
         if (PyArray_Check(temp_p)) {
-            temp_seq = PyArray_Ravel((PyArrayObject*)temp_p, 0);
-            temp_p = temp_seq;
+            temp_p = PyArray_Ravel((PyArrayObject*)temp_p, 0);
+            array_type = PyArray_DescrFromType(NPY_DOUBLE);
+            temp_array = (PyArrayObject*)PyArray_FromArray((PyArrayObject*)temp_p, array_type, NPY_DEFAULT);
+            Py_DECREF(array_type);
+            temp_data = (double*)PyArray_DATA(temp_array);
+            arraySize = PyArray_SIZE(temp_array);
+            for(j=0; j<arraySize; j++)
+                tot+=(temp_data[j] * temp_data[j]);
+            Py_DECREF(temp_array);
+            return PyFloat_FromDouble(sqrt(tot));
         }
-        if (PySequence_Check(temp_p)) { // is the input a sequence of sorts
+        else if (PySequence_Check(temp_p)) { // is the input a sequence of sorts
             seqSize =  PySequence_Length(temp_p);
             for (i=0;i<seqSize;i++) {
                 temp_seq = PySequence_GetItem(temp_p, i);  // returns a new reference

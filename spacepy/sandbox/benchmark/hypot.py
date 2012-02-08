@@ -32,9 +32,9 @@ for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
     python_t = timeit.Timer("math.sqrt(sum([v**2 for v in data]))", 
                            setup="import numpy as np; import ctypes; import math;" + 
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
-    bnh = [ctypes_t.timeit(100)/python_t.timeit(100) for v in range(100)]    
+    bnh = [ctypes_t.timeit(100)/python_t.timeit(100) for v in range(1)]    
     ans[int(val)] = [np.mean(bnh), np.std(bnh)]
-    tb.progressbar(ii, 1, len(tb.logspace(3, 1e5, 10)), 'Progress')
+    tb.progressbar(ii, 1, len(tb.logspace(3, 1e4, 10)), 'Progress')
     
 print()
 x = np.array(ans.keys())
@@ -55,9 +55,9 @@ for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
     python_t = timeit.Timer("math.sqrt(sum([v**2 for v in data]))", 
                            setup="import numpy as np; import ctypes; import math;" + 
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
-    bnh = [numpy_t.timeit(100)/python_t.timeit(100) for v in range(100)]    
+    bnh = [numpy_t.timeit(100)/python_t.timeit(100) for v in range(1)]    
     ans[int(val)] = [np.mean(bnh), np.std(bnh)]
-    tb.progressbar(ii, 1, len(tb.logspace(3, 1e5, 10)), 'Progress')
+    tb.progressbar(ii, 1, len(tb.logspace(3, 1e4, 10)), 'Progress')
     
 x = np.array(ans.keys())
 x.sort()
@@ -77,9 +77,9 @@ for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
     python_t = timeit.Timer("math.sqrt(sum([v**2 for v in data]))", 
                            setup="import numpy as np; import ctypes; import math;" + 
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
-    bnh = [extension_t.timeit(100)/python_t.timeit(100) for v in range(100)]    
+    bnh = [extension_t.timeit(100)/python_t.timeit(100) for v in range(1)]    
     ans[int(val)] = [np.mean(bnh), np.std(bnh)]
-    tb.progressbar(ii, 1, len(tb.logspace(3, 1e5, 10)), 'Progress')
+    tb.progressbar(ii, 1, len(tb.logspace(3, 1e4, 10)), 'Progress')
     
 x = np.array(ans.keys())
 x.sort()
