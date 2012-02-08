@@ -22,7 +22,7 @@ lib.hypot.restype = ctypes.c_double
 #==============================================================================
 
 ans = {}
-for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
+for ii, val in enumerate(tb.logspace(3, 1e5, 10)):
     ctypes_t = timeit.Timer("lib.hypot(data.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))", 
                             setup="import ctypes; lib = ctypes.CDLL('hypot.so'); " +
                             "lib.hypot_c.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.c_long];" +
@@ -34,7 +34,7 @@ for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
     bnh = [ctypes_t.timeit(100)/python_t.timeit(100) for v in range(1)]    
     ans[int(val)] = [np.mean(bnh), np.std(bnh)]
-    tb.progressbar(ii, 1, len(tb.logspace(3, 1e4, 10)), 'Progress')
+    tb.progressbar(ii, 1, len(tb.logspace(3, 1e5, 10)), 'Progress')
     
 print()
 x = np.array(ans.keys())
@@ -48,7 +48,7 @@ plt.errorbar(x, y, yerr, color='b', fmt='o-', label='ctypes/python')
 #==============================================================================
 
 ans = {}
-for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
+for ii, val in enumerate(tb.logspace(3, 1e5, 10)):
     numpy_t = timeit.Timer("np.sqrt(np.sum(data*data))", 
                            setup="import numpy as np; import ctypes;" + 
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
@@ -57,7 +57,7 @@ for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
     bnh = [numpy_t.timeit(100)/python_t.timeit(100) for v in range(1)]    
     ans[int(val)] = [np.mean(bnh), np.std(bnh)]
-    tb.progressbar(ii, 1, len(tb.logspace(3, 1e4, 10)), 'Progress')
+    tb.progressbar(ii, 1, len(tb.logspace(3, 1e5, 10)), 'Progress')
     
 x = np.array(ans.keys())
 x.sort()
@@ -70,7 +70,7 @@ plt.errorbar(x, y, yerr, color='r', fmt='o-', label='numpy/python')
 #==============================================================================
 
 ans = {}
-for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
+for ii, val in enumerate(tb.logspace(3, 1e5, 10)):
     extension_t = timeit.Timer("tb.hypot(data)", 
                            setup="import numpy as np; import ctypes; import spacepy.toolbox as tb;" + 
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
@@ -79,7 +79,7 @@ for ii, val in enumerate(tb.logspace(3, 1e4, 10)):
                            "data = np.arange(1, " + str(int(val)) + ", dtype=ctypes.c_double)")
     bnh = [extension_t.timeit(100)/python_t.timeit(100) for v in range(1)]    
     ans[int(val)] = [np.mean(bnh), np.std(bnh)]
-    tb.progressbar(ii, 1, len(tb.logspace(3, 1e4, 10)), 'Progress')
+    tb.progressbar(ii, 1, len(tb.logspace(3, 1e5, 10)), 'Progress')
     
 x = np.array(ans.keys())
 x.sort()

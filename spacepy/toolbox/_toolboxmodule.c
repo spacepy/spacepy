@@ -159,14 +159,24 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
         // if the input is an array ravel it then do the same thing
         if (PyArray_Check(temp_p)) {
             temp_p = PyArray_Ravel((PyArrayObject*)temp_p, 0);
-            array_type = PyArray_DescrFromType(NPY_DOUBLE);
-            temp_array = (PyArrayObject*)PyArray_FromArray((PyArrayObject*)temp_p, array_type, NPY_DEFAULT);
-            Py_DECREF(array_type);
-            temp_data = (double*)PyArray_DATA(temp_array);
-            arraySize = PyArray_SIZE(temp_array);
-            for(j=0; j<arraySize; j++)
-                tot+=(temp_data[j] * temp_data[j]);
-            Py_DECREF(temp_array);
+            arraySize = PyArray_SIZE((PyArrayObject*)temp_p);
+
+            if(arraySize >= 1000) {
+                temp_array = (PyArrayObject*)PyArray_InnerProduct(temp_p, temp_p);
+                temp_seq = PyArray_Cast(temp_array, NPY_DOUBLE);
+                Py_DECREF(temp_array);
+                tot = *((double*)PyArray_GETPTR1(temp_seq, 0));
+                Py_DECREF(temp_seq);
+            }
+            else {
+                array_type = PyArray_DescrFromType(NPY_DOUBLE);
+                temp_array = (PyArrayObject*)PyArray_FromArray((PyArrayObject*)temp_p, array_type, NPY_DEFAULT);
+                Py_DECREF(array_type);
+                temp_data = (double*)PyArray_DATA(temp_array);
+                for(j=0; j<arraySize; j++)
+                    tot+=(temp_data[j] * temp_data[j]);
+                Py_DECREF(temp_array);
+            }
             return PyFloat_FromDouble(sqrt(tot));
         }
         else if (PySequence_Check(temp_p)) { // is the input a sequence of sorts
