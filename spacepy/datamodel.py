@@ -557,13 +557,19 @@ def toHDF5(fname, SDobject, **kwargs):
                 if type(value) in allowed_attrs:
                     #test for datetimes in iterables
                     if hasattr(value, '__iter__'):
-                        dumval = [b.isoformat() for b in value if isinstance(b, datetime.datetime)]
+                        dumval = [b.isoformat() if isinstance(b, datetime.datetime) else b for b in value]
                     if value or value is 0:
                         if type(key) is unicode:
                             dumkey = str(key)
                         if type(value) is unicode:
                             dumval = str(value)
-                        hfile[path].attrs[dumkey] = dumval
+                        try:
+                            hfile[path].attrs[dumkey] = dumval
+                        except:
+                            hfile[path].attrs[dumkey] = str(dumval)
+                            warnings.warn('The following value is not permitted\n' + 
+                                    'key, value = {0} ({1})\n'.format(key, value) + 
+                                    'value has been converted to a string for output', DMWarning)
                     else:
                         hfile[path].attrs[dumkey] = ''
                 else:
