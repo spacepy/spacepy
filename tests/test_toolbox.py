@@ -10,10 +10,11 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 import time
 import datetime
 import glob
-import itertools
 import math
 import os
+import shutil
 import random
+import tempfile
 try:
     import StringIO
 except:
@@ -27,9 +28,7 @@ from numpy import array
 from scipy import inf
 import spacepy.toolbox as tb
 import matplotlib.pyplot as plt
-import matplotlib
 import spacepy.time as st
-from matplotlib.text import Text
 import spacepy.lib
 
 class PickleAssembleTests(unittest.TestCase):
@@ -49,69 +48,40 @@ class PickleAssembleTests(unittest.TestCase):
         self.D3 = D3
         self.all = {'names':['John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce'],
                     'TAI':[1,2,3,4,5,6,7,8,9]}
-
-        # make sure test file is gone before test
-        self.tearDown()
+        self.tempdir = tempfile.mkdtemp()
 
     def tearDown(self):
         super(PickleAssembleTests, self).tearDown()
-        try:  # make sure test file is gone before test
-            os.remove('test_pickle_1.pkl')
-        except:
-            pass
         try:
-            os.remove('test_pickle_2.pkl')
-        except:
-            pass
-        try:
-            os.remove('test_pickle_3.pkl')
-        except:
-            pass
-        try:
-            os.remove('test_all.pkl')
-        except:
-            pass
-        try:
-            os.remove('test_pickle_1.pkl.gz')
-        except:
-            pass
-        try:
-            os.remove('test_pickle_2.pkl.gz')
-        except:
-            pass
-        try:
-            os.remove('test_pickle_3.pkl.gz')
-        except:
-            pass
-        try:
-            os.remove('test_all.pkl.gz')
-        except:
+            shutil.rmtree(self.tempdir)
+        except OSError:
             pass
 
     def testSaveLoadPickle(self):
         """savePickle should write a pickle to disk and loadPickle should load it"""
-        tb.savepickle('test_pickle_1.pkl', self.D1)
-        files = glob.glob('*.pkl')
-        self.assertTrue('test_pickle_1.pkl' in files)
-        DD = tb.loadpickle('test_pickle_1.pkl')
+        self.pkl_file = tempfile.mkdtemp()
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
+        files = glob.glob(os.path.join(self.tempdir, '*.pkl'))
+        self.assertTrue(os.path.join(self.tempdir, 'test_pickle_1.pkl') in files)
+        DD = tb.loadpickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'))
         self.assertEqual(self.D1, DD)
 
     def testSaveLoadPickleCompress(self):
         """savePickle should write a pickle to disk and loadPickle should load it (compressed)"""
-        tb.savepickle('test_pickle_1.pkl', self.D1, compress=True)
-        files = glob.glob('*.pkl.gz')
-        self.assertTrue('test_pickle_1.pkl.gz' in files)
-        DD = tb.loadpickle('test_pickle_1.pkl')
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1, compress=True)
+        files = glob.glob(os.path.join(self.tempdir, '*.pkl.gz'))
+        self.assertTrue(os.path.join(self.tempdir,'test_pickle_1.pkl.gz') in files)
+        DD = tb.loadpickle(os.path.join(self.tempdir,'test_pickle_1.pkl'))
         self.assertEqual(self.D1, DD)
-        DD = tb.loadpickle('test_pickle_1.pkl.gz')
+        DD = tb.loadpickle(os.path.join(self.tempdir,'test_pickle_1.pkl.gz'))
         self.assertEqual(self.D1, DD)
 
     def test_assemble(self):
-        tb.savepickle('test_pickle_1.pkl', self.D1)
-        tb.savepickle('test_pickle_2.pkl', self.D2)
-        tb.savepickle('test_pickle_3.pkl', self.D3)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_2.pkl'), self.D2)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_3.pkl'), self.D3)
         expected = self.all
-        result = tb.assemble('test_pickle_[1-3].pkl', 'test_all.pkl', sortkey=None, verbose=False)
+        result = tb.assemble(os.path.join(self.tempdir, 'test_pickle_[1-3].pkl'), os.path.join(self.tempdir, 'test_all.pkl'), sortkey=None, verbose=False)
         for key in result:
             result[key] = result[key].tolist()
         self.assertEqual(expected, result)
