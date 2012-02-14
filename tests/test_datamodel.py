@@ -14,9 +14,7 @@ import os
 import tempfile
 import unittest
 import warnings
-import datetime
 
-import spacepy.toolbox as tb
 import spacepy.datamodel as dm
 import numpy as np
 
@@ -232,15 +230,13 @@ class converterTests(unittest.TestCase):
         super(converterTests, self).setUp()
         self.SDobj = dm.SpaceData(attrs={'global': 'test'})
         self.SDobj['var'] = dm.dmarray([1, 2, 3], attrs={'a': 'a'})
-        if os.path.isfile('dmh5test.h5'):
-            os.remove('dmh5test.h5')
+        self.testfile = tempfile.mkstemp()
         warnings.simplefilter('error', dm.DMWarning)
 
     def tearDown(self):
         super(converterTests, self).tearDown()
         del self.SDobj
-        if os.path.isfile('dmh5test.h5'):
-            os.remove('dmh5test.h5')
+        os.remove(self.testfile[1])
         warnings.simplefilter('default', dm.DMWarning)
 
     def test_convertKeysToStr(self):
@@ -270,38 +266,39 @@ class converterTests(unittest.TestCase):
 
     def test_HDF5roundtrip(self):
         """Data can go to hdf and back"""
-        dm.toHDF5('dmh5test.h5', self.SDobj)
-        newobj = dm.fromHDF5('dmh5test.h5')
+        dm.toHDF5(self.testfile[1], self.SDobj)
+        newobj = dm.fromHDF5(self.testfile[1])
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
-        dm.toHDF5('dmh5test.h5', self.SDobj, mode='a')
-        newobj = dm.fromHDF5('dmh5test.h5')
+        dm.toHDF5(self.testfile[1], self.SDobj, mode='a')
+        newobj = dm.fromHDF5(self.testfile[1])
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
     def test_HDF5Exceptions(self):
         """HDF5 has warnings and exceptions"""
-        dm.toHDF5('dmh5test.h5', self.SDobj)
-        self.assertRaises(IOError, dm.toHDF5, 'dmh5test.h5', self.SDobj, overwrite=False)
+        dm.toHDF5(self.testfile[1], self.SDobj)
+        self.assertRaises(IOError, dm.toHDF5, self.testfile[1], self.SDobj, overwrite=False)
         a = dm.SpaceData()
         a.attrs['foo'] = datetime.datetime.now() # not an allowed type for attrs
-        self.assertRaises(dm.DMWarning, dm.toHDF5, 'dmh5test.h5', a)
+        self.assertRaises(dm.DMWarning, dm.toHDF5, self.testfile[1], a)
         a = dm.SpaceData()
         a['foo'] = 'bar' # not an allowed type for data
-        self.assertRaises(dm.DMWarning, dm.toHDF5, 'dmh5test.h5', a)
+        self.assertRaises(dm.DMWarning, dm.toHDF5, self.testfile[1], a)
 
     def test_HDF5roundtrip2(self):
         """Data can go to hdf without altering datetimes in the datamodel"""
         a = dm.SpaceData()
         a['foo'] = dm.SpaceData()
-        dm.toHDF5('dmh5test.h5', a)
-        newobj = dm.fromHDF5('dmh5test.h5')
+        dm.toHDF5(self.testfile[1], a)
+        newobj = dm.fromHDF5(self.testfile[1])
         self.assertEqual(a['foo'], newobj['foo'])
         a['bar'] = dm.dmarray([datetime.datetime(2000, 1, 1)])
-        dm.toHDF5('dmh5test.h5', a)
+        dm.toHDF5(self.testfile[1], a)
         self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
+
 
 class CDFTests(unittest.TestCase):
     def setUp(self):
@@ -321,7 +318,6 @@ class CDFTests(unittest.TestCase):
         np.testing.assert_array_equal(dat['SpinNumbers'], SpinNumbers_ans)
         Epoch_ans = [datetime.datetime(1998, 1, 15, 0, minute) for minute in range(11)]
         np.testing.assert_array_equal(dat['Epoch'], Epoch_ans)
-
 
     def test_fromCDF_exception(self):
         """Bad file raises"""
