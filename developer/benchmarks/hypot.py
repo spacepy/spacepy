@@ -16,32 +16,34 @@ from benchmarker import Benchmarker
 
 import matplotlib.pyplot as plt
 
-lib = ctypes.CDLL('hypot.so')
-lib.hypot_c.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.c_long]
-lib.hypot.restype = ctypes.c_double
-
 
 #==============================================================================
 # Compare them all
 #==============================================================================
-max_size = 1e7
+max_size = 1e6
 data = np.arange(1, max_size , dtype=ctypes.c_double)
 
 lib = ctypes.CDLL('hypot.so')
 lib.hypot_c.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.c_long]
-lib.hypot.restype = ctypes.c_double
+lib.hypot_c.restype = ctypes.c_double
 
 def ctypes_t(n, data):
-    ans = lib.hypot(data[0:n].ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+#    ans = lib.hypot_c(data[0:n].ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+#                      len(data[0:n]))
+    ans = lib.hypot_c(data.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                      len(data))
 
 def python_t(n, data):
-    ans = math.sqrt(sum([v**2 for v in data[0:n]]))
+#    ans = math.sqrt(sum([v**2 for v in data[0:n]]))
+    ans = math.sqrt(sum([v**2 for v in data]))
 
 def numpy_t(n, data):
-    ans = np.sqrt(np.inner(data[0:n], data[0:n]))
+#    ans = np.sqrt(np.inner(data[0:n], data[0:n]))
+    ans = np.sqrt(np.inner(data, data))
 
 def extension_t(n, data):
-    ans = tb.hypot(data[0:n])
+#    ans = tb.hypot(data[0:n])
+    ans = tb.hypot(data)
 
 ans = {}
 ans['ctypes_t'] = []
@@ -49,9 +51,10 @@ ans['python_t'] = []
 ans['numpy_t'] = []
 ans['extension_t'] = []
 
-for loop in tb.logspace(3, max_size, 30):
+for loop in tb.logspace(3, max_size, 20):
     print "loop", loop
     for bm in Benchmarker(width=25, cycle=5, extra=1):
+        data = np.arange(1, loop, dtype=ctypes.c_double)
         bm.run(ctypes_t, loop, data)
         bm.run(python_t, loop, data)
         bm.run(numpy_t, loop, data)

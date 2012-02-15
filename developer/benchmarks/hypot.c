@@ -4,10 +4,12 @@
 #include <math.h>
 
 double hypot_c(double *inval, long len){
+    double *curr;
     double ans=0.0;
-    long i;
-    for (i=0;i<len;i++)
-        ans += (inval[i]*inval[i]);
+    double *max=inval+len;
+    for (curr=inval;curr<max;curr++) {
+        ans += (*curr * *curr);
+    }
     return (sqrt(ans));
 }
 

@@ -10,6 +10,7 @@
 #include <Python.h>
 #include <math.h>
 #include <numpy/arrayobject.h>
+
 #include <datetime.h>
 
 #define PyNumber_AsDouble(y) PyFloat_AsDouble(PyNumber_Float(y))
@@ -141,8 +142,7 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
     PyObject *temp_p, *temp_seq;
     PyArrayObject* temp_array;
     PyArray_Descr *array_type;
-    npy_intp j;
-    double *temp_data;
+    double *temp_data, *data_end;
     double tot=0., tmp_d;
 
     if(!TupleSize) {
@@ -161,7 +161,7 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
             temp_p = PyArray_Ravel((PyArrayObject*)temp_p, 0);
             arraySize = PyArray_SIZE((PyArrayObject*)temp_p);
 
-            if(arraySize >= 1000) {
+            if(arraySize >= 8000) {
                 temp_array = (PyArrayObject*)PyArray_InnerProduct(temp_p, temp_p);
                 temp_seq = PyArray_Cast(temp_array, NPY_DOUBLE);
                 Py_DECREF(temp_array);
@@ -170,12 +170,14 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
             }
             else {
                 array_type = PyArray_DescrFromType(NPY_DOUBLE);
-                temp_array = (PyArrayObject*)PyArray_FromArray((PyArrayObject*)temp_p, array_type, NPY_DEFAULT);
-                Py_DECREF(array_type);
+                // this steals a reference to array_type (by observation from numpy code)
+                temp_array = (PyArrayObject*)PyArray_FromAny(temp_p, array_type, 0, 0, 
+                                                            NPY_CARRAY_RO, NULL);
+                if (temp_array == NULL) return NULL;
                 temp_data = (double*)PyArray_DATA(temp_array);
-                for(j=0; j<arraySize; j++)
-                    tot+=(temp_data[j] * temp_data[j]);
-                Py_DECREF(temp_array);
+                data_end = temp_data + arraySize;
+                for(; temp_data<data_end; temp_data++)
+                    tot+=pow(*temp_data, 2); //tested, same speed as x * x
             }
             return PyFloat_FromDouble(sqrt(tot));
         }
