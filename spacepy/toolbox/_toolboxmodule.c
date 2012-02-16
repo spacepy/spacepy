@@ -141,7 +141,6 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
     npy_intp arraySize;
     PyObject *temp_p, *temp_seq;
     PyArrayObject* temp_array;
-    PyArray_Descr *array_type;
     double *temp_data, *data_end;
     double tot=0., tmp_d;
 
@@ -169,9 +168,9 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
                 Py_DECREF(temp_seq);
             }
             else {
-                array_type = PyArray_DescrFromType(NPY_DOUBLE);
-                // this steals a reference to array_type (by observation from numpy code)
-                temp_array = (PyArrayObject*)PyArray_FromAny(temp_p, array_type, 0, 0, 
+                // this steals a reference to array_type 
+                // since this steals a reference you can inline it all without a variable (via BAL Numpy list email)
+                temp_array = (PyArrayObject*)PyArray_FromAny(temp_p, PyArray_DescrFromType(NPY_DOUBLE), 0, 0, 
                                                             NPY_CARRAY_RO, NULL);
                 if (temp_array == NULL) return NULL;
                 temp_data = (double*)PyArray_DATA(temp_array);
