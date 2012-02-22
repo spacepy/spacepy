@@ -15,6 +15,9 @@ Copyright 2010 Los Alamos National Security, LLC.
 
 import numpy as np
 from spacepy import help
+import spacepy.coordinates as spc
+import spacepy.datamodel as dm
+import irbempylib as oplib
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -60,7 +63,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
 
     See Also:
     =========
-    Lstar, find_Bmirror, find_magequator
+    get_Lstar, find_Bmirror, find_magequator
 
     Version:
     ========
@@ -68,7 +71,6 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
 
     """
 
-    import spacepy.irbempy.irbempylib as oplib
     import spacepy.toolbox as tb
 
     # prepare input values for irbem call
@@ -86,7 +88,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
     xin3 = d['xin3']
     magin = d['magin']
 
-    results = {}
+    results = dm.SpaceData()
     results['Blocal'] = np.zeros(nTAI)
     results['Bvec'] = np.zeros((nTAI,3))
     for i in np.arange(nTAI):
@@ -119,7 +121,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
                             'T05', 'ALEX']
         - options (optional list or array of integers length=5) : explained in Lstar
         - omni values as dictionary (optional) : if not provided, will use lookup table 
-        - (see Lstar documentation for further explanation)
+        - (see get_Lstar documentation for further explanation)
 
     Returns:
     ========
@@ -137,16 +139,13 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
 
     See Also:
     =========
-    Lstar, get_Bfield, find_magequator
+    get_Lstar, get_Bfield, find_magequator
 
     Version:
     ========
     V1: 05-Mar-2010 (JK)
 
     """
-
-    import spacepy.irbempy.irbempylib as oplib
-    import spacepy.coordinates as c
     import spacepy.toolbox as tb
 
     # prepare input values for irbem call
@@ -166,7 +165,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     nalp_max = d['nalp_max']
     nalpha = len(alpha)
 
-    results = {}
+    results = dm.SpaceData()
     results['Blocal'] = np.zeros(nTAI)
     results['Bmirr'] = np.zeros(nTAI)
     results['loci'] = ['']*nTAI
@@ -183,7 +182,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
         results['Bmirr'][i] = bmirr	
         results['loci'][i] = GEOcoord
 
-    results['loci'] = c.Coords(results['loci'], 'GEO', 'car')
+    results['loci'] = spc.Coords(results['loci'], 'GEO', 'car')
 
     return results
 
@@ -221,16 +220,14 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
 
     See Also:
     =========
-    Lstar, get_Bfield, find_Bmirr
+    get_Lstar, get_Bfield, find_Bmirr
 
     Version:
     ========
     V1: 05-Mar-2010 (JK)
 
     """
-    import spacepy.irbempy.irbempylib as oplib
     import spacepy.toolbox as tb
-    import spacepy
 
     # prepare input values for irbem call
     d = prep_irbem(ticks, loci, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
@@ -260,7 +257,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
         results['Bmin'][i] = bmin
         results['loci'][i] = GEOcoord
 
-    results['loci'] = spacepy.coordinates.Coords(results['loci'], 'GEO', 'car')
+    results['loci'] = spc.Coords(results['loci'], 'GEO', 'car')
 
     return results
 
@@ -298,9 +295,6 @@ def coord_trans(loci, returntype, returncarsph ):
     V1: 05-Mar-2010 (JK)
 
     """
-    import spacepy.irbempy.irbempylib
-    import spacepy.irbempy as op
-
     sysaxesin = get_sysaxes( loci.dtype, loci.carsph )
     sysaxesout = get_sysaxes( returntype, returncarsph )
 
@@ -321,15 +315,15 @@ def coord_trans(loci, returntype, returncarsph ):
         secs = loci.ticks.UTC[i].hour*3600. + loci.ticks.UTC[i].minute*60. + \
             loci.ticks.UTC[i].second
             
-        xout[i,:] = spacepy.irbempy.irbempylib.coord_trans1(sysaxesin, sysaxesout, \
+        xout[i,:] = oplib.coord_trans1(sysaxesin, sysaxesout, \
             iyear, idoy, secs, loci.data[i])
         
     # add  sph to car or v/v convertion if initial sysaxesout was None
     if  aflag == True:
         if returncarsph == 'sph':
-            xout = op.car2sph(xout)
+            xout = car2sph(xout)
         else: # 'car' needs to be returned
-            xout = op.sph2car(xout)
+            xout = sph2car(xout)
 
     return xout
 
@@ -366,7 +360,7 @@ def car2sph(CARin):
     if isinstance(CARin[0], (float, int)):
         CAR = np.array([CARin])
     else:
-        CAR = np.array(CARin)
+        CAR = np.asanyarray(CARin)
 
     res = np.zeros(np.shape(CAR))
     for i in np.arange(len(CAR)):
@@ -420,7 +414,7 @@ def sph2car(SPHin):
     if isinstance(SPHin[0], (float, int)):
         SPH = np.array([SPHin])
     else:
-        SPH = np.array(SPHin)
+        SPH = np.asanyarray(SPHin)
 
     res = np.zeros(np.shape(SPH))
     for i in np.arange(len(SPH)):
@@ -545,10 +539,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     ========
     V1: 16-Nov-2010 (JK)
     """
-    
-    import spacepy
     import spacepy.toolbox as tb
-    import spacepy.irbempy.irbempylib as ib
     
     # find bad values and dimensions
     
@@ -583,13 +574,13 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     if whatf == 2: assert len(energy) == 2, 'Need energy range with this choice of fluxtype=RANGE'
     ntmax = 1
     
-    if isinstance(loci, spacepy.coordinates.Coords):
+    if isinstance(loci, spc.Coords):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
         d = prep_irbem(ticks=loci.ticks, loci=loci)
         E_array = np.zeros((2,d['nalp_max']))
         E_array[:,0] = energy
         # now get the flux
-        flux = ib.fly_in_nasa_aeap1(ntmax, d['sysaxes'], whichm, whatf, Nene, E_array, d['iyearsat'], d['idoysat'], d['utsat'], \
+        flux = oplib.fly_in_nasa_aeap1(ntmax, d['sysaxes'], whichm, whatf, Nene, E_array, d['iyearsat'], d['idoysat'], d['utsat'], \
             d['xin1'], d['xin2'], d['xin3'])
     elif isinstance(loci, (list, np.ndarray)):
         BBo, L = loci
@@ -601,7 +592,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         L_array = np.zeros(d['ntime_max'])
         L_array[0] = L
         # now get the flux
-        flux =  ib.get_ae8_ap8_flux(ntmax, whichm, whatf, Nene, E_array, B_array, L_array)
+        flux =  oplib.get_ae8_ap8_flux(ntmax, whichm, whatf, Nene, E_array, B_array, L_array)
     
     else:
         print 'Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]'
@@ -723,9 +714,7 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
     V1.1: 22-Feb-2010: fixed Blocal and Bmirr bug (JK)
     V1.2: 05-Mar-2010: ticktock, Coords support (JK)
     """
-    import spacepy
     import spacepy.toolbox as tb
-    import spacepy.irbempy.irbempylib as oplib
 
     nTAI = len(ticks)
     nalpha = len(alpha)
@@ -801,7 +790,7 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
     ========
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
-    >>> spacepy.irbempy.Lstar(t,y)
+    >>> spacepy.irbempy.get_Lstar(t,y)
     {'Blocal': array([ 1020.40493286,  3446.08845227]),
         'Bmin': array([ 1019.98404311,  3437.63865243]),
         'Lm': array([ 3.08948304,  2.06022102]),
@@ -892,6 +881,12 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
     ncalc = len(ticks)
     nalpha = len(alpha)
 
+    if ncpus>1:
+        try:
+            import pp
+        except ImportError:
+            ncpus = 1
+
     if ncpus > 1 and ncalc >= ncpus*2:
         import pp
         server = pp.Server(ncpus)
@@ -923,8 +918,6 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
                     DALL[key][ppidx,:] = d[key]
                 else:
                     DALL[key][ppidx] = d[key]
-                    
-
     # single NCPU
     else:
         DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals)
@@ -935,7 +928,6 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
 def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
     """
     """
-    import numpy as np
     import spacepy.omni as omni
 
     # setup dictionary to return input values for irbem
