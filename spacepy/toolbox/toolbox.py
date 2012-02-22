@@ -1524,14 +1524,14 @@ def getNamedPath(name):
     with 'dream' as the name, this function 
     would return '/mnt/projects/dream'
     """
-    currpath = os.path.abspath('.')
     def findNamed(path):
         pp = os.path.split(path)
+        if pp[-1] == '':
+            return None
         if pp[-1] != name:
             path = findNamed(pp[0])
         return path
-    op = findNamed(currpath)
-    return os.path.join(op)
+    return findNamed(os.getcwd())
 
 def query_yes_no(question, default="yes"):
     """
