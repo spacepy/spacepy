@@ -162,7 +162,7 @@ class dmarray(numpy.ndarray):
         if obj is None:
             return
         for val in self.Allowed_Attributes:
-            self.__setattr__(val, getattr(obj, val, {}))
+            self.__setattr__(val, copy.deepcopy(getattr(obj, val, {})))
 
     def __reduce__(self):
         """This is called when pickling, see:
@@ -801,15 +801,9 @@ def dmcopy(dobj):
     {'copy': True, 'units': 'T'}
     >>> dat.attrs
     {'units': 'T'}
-
     '''
-    if isinstance(dobj, SpaceData):
+    if isinstance(dobj, SpaceData) or isinstance(dobj, dmarray):
         return copy.deepcopy(dobj)
-    elif isinstance(dobj, dmarray):
-        arrcopy = numpy.copy(dobj)
-        attrcopy = copy.deepcopy(dobj.attrs)
-        out = dmarray(arrcopy, attrs=attrcopy)
-        return out
     elif isinstance(dobj, numpy.ndarray):
         return numpy.copy(dobj)
     else:
