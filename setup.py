@@ -185,12 +185,12 @@ class build(_build):
         if distutils.dep_util.newer(srcpath, outpath):
             os.chdir(srcdir)
             try:
-                f2py = self.f2py
+                cmd = [self.f2py]
                 if self.compiler:
-                    f2py += ' --compiler={0}'.format(self.compiler)
-                os.system(
-                    '{0} -c  LANLstar.f -m libLANLstar --fcompiler={1}'.format(
-                    f2py, self.fcompiler))
+                    cmd += ['--compiler=' + self.compiler]
+                cmd += ['-c', 'LANLstar.f', '-m', 'libLANLstar',
+                        '--fcompiler='+ self.fcompiler]
+                subprocess.check_call(cmd)
                 outpath = os.path.join('..', '..', outpath)
                 if os.path.exists(outpath):
                     os.remove(outpath)
@@ -265,6 +265,12 @@ class build(_build):
                    'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind']
         inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
         fln = 'irbempylib.pyf'
+        if not os.path.isfile(fln):
+            self.distribution.add_warning(
+                'f2py failed; '
+                'IRBEM will not be available.')
+            os.chdir(olddir)
+            return
         print('Substituting fortran intent(in/out) statements')
         with open(fln, 'r') as f:
             filestr = f.read()
