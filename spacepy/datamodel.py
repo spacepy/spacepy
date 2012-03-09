@@ -802,7 +802,7 @@ def dmcopy(dobj):
     >>> dat.attrs
     {'units': 'T'}
     '''
-    if isinstance(dobj, SpaceData) or isinstance(dobj, dmarray):
+    if isinstance(dobj, (SpaceData, dmarray)):
         return copy.deepcopy(dobj)
     elif isinstance(dobj, numpy.ndarray):
         return numpy.copy(dobj)
