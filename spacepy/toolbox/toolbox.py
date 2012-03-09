@@ -13,15 +13,14 @@ Copyright 2010 Los Alamos National Security, LLC.
 from __future__ import division
 from __future__ import absolute_import
 
-import math
+import datetime
+import glob
 import os
 import os.path
 import sys
-import zipfile
-import datetime
-import glob
-import warnings
 import time
+import warnings
+import zipfile
 
 try:
     import cPickle as pickle
@@ -29,7 +28,6 @@ except:
     import pickle
 
 import numpy as np
-import numpy
 
 try:
     from spacepy import help
@@ -53,7 +51,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'listUniq', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-           'eventTimer', 'randomDate', 'isview']
+           'eventTimer', 'randomDate', 'isview', 'interweave']
 
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
@@ -2214,6 +2212,33 @@ def isview(array1, array2=None):
         return (True, array1.base is array2)
     except AttributeError:
             return (False, False) # if it is not an array then it is not a view
+
+def interweave(a, b):
+    """
+    given two array-like variables interweave them together.  
+    Discussed here: http://stackoverflow.com/questions/5347065/interweaving-two-numpy-arrays
+    
+    Parameters
+    ==========
+    a : array-like
+        first array
+    
+    b : array-like
+        second array
+    
+    Returns
+    =======
+    out : numpy.ndarray
+        interweaved array
+    """
+    a = np.asanyarray(a)
+    b = np.asanyarray(b)    
+    ans = np.empty((a.size + b.size), dtype=a.dtype)
+    ans[0::2] = a
+    ans[1::2] = b
+    return ans
+    
+    
 
 
 if __name__ == "__main__":

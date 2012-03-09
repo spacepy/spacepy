@@ -88,6 +88,15 @@ class PickleAssembleTests(unittest.TestCase):
 
 
 class SimpleFunctionTests(unittest.TestCase):
+    def test_interweave(self):
+        """interweave should hav known result"""
+        a = numpy.arange(5)
+        b = numpy.arange(5, 10)   
+        numpy.testing.assert_equal(numpy.vstack((a,b)).reshape((-1,),order='F'), 
+                                   tb.interweave(a, b))
+        numpy.testing.assert_equal(array([0, 5, 1, 6, 2, 7, 3, 8, 4, 9]),  
+                                   tb.interweave(a, b))
+        
     def test_getNamedPath(self):
         """getNamedPath should have known result"""
         ans = ['spacepy', 'tests']

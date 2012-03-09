@@ -69,6 +69,7 @@ Other functions
     human_sort
     hypot
     interpol
+    interweave
     intsolve
     isview
     listUniq
