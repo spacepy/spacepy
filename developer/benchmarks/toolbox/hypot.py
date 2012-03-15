@@ -69,7 +69,7 @@ plt.figure()
 for key in ans:
     plt.loglog(zip(*ans[key])[0], zip(*ans[key])[1],'o-',  label=key[:-2], lw=2 )
 
-rep = dulwich.repo.Repo(os.path.abspath('../../'))
+rep = dulwich.repo.Repo(os.path.abspath('../../../'))
 refs = rep.get_refs()
 title = refs['HEAD']
 plt.title(title)
@@ -85,7 +85,7 @@ plt.figure()
 for key in ans:
     plt.loglog(np.asarray(zip(*ans[key])[0]), np.asarray(zip(*ans['python_t'])[1])/np.asarray(zip(*ans[key])[1]),'o-',  label=key[:-2], lw=2 )
 
-rep = dulwich.repo.Repo(os.path.abspath('../../'))
+rep = dulwich.repo.Repo(os.path.abspath('../../../'))
 refs = rep.get_refs()
 title = refs['HEAD']
 plt.title(title)
