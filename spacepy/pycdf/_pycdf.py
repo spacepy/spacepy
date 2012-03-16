@@ -1522,8 +1522,7 @@ class Var(collections.MutableSequence):
     The CDF user's guide, section 2.3, provides background on variables.
 
     .. note::
-        Not intended to be created directly; use methods
-        of :class:`CDF` to gain access to a variable.
+        Not intended to be created directly; use methods of :class:`CDF` to gain access to a variable.
 
     A record-varying variable's data are viewed as a hypercube of dimensions
     n_dims+1 and are indexed in row-major fashion, i.e. the last
@@ -1551,6 +1550,7 @@ class Var(collections.MutableSequence):
     which starts with 1 and ends before 2).
 
     Two special cases:
+        
       1. requesting a single-dimension slice for a
          record-varying variable will return all data for that
          record number (or those record numbers) for that variable.
@@ -1573,6 +1573,7 @@ class Var(collections.MutableSequence):
     This is all clearer with examples. Consider a variable ``B_GSM``, with
     three elements per record (x, y, z components) and fifty records in
     the CDF. Then:
+        
       1. ``B_GSM[0, 1]`` is the y component of the first record.
       2. ``B_GSM[10, :]`` is a three-element list, containing x, y, and z
          components of the 11th record. As a shortcut, if only one dimension
@@ -1588,6 +1589,7 @@ class Var(collections.MutableSequence):
     representing (say) ten energy steps and the second, eighteen
     pitch angle bins (ten degrees wide, centered from 5 to 175 degrees).
     Assume 100 records stored in the CDF (i.e. 100 different times).
+    
       1. ``Flux[4]`` is a list of ten elements, one per energy step,
          each element being a list of 18 fluxes, one per pitch bin.
          All are taken from the fifth record in the CDF.
@@ -1638,34 +1640,46 @@ class Var(collections.MutableSequence):
     For these examples, assume Flux has 100 records and dimensions [2, 3].
     
     Rewrite the first record without changing the rest:
-        >>> Flux[0] = [[1, 2, 3], [4, 5, 6]]
+        
+    >>> Flux[0] = [[1, 2, 3], [4, 5, 6]]
         
     Writes a new first record and delete all the rest:
-        >>> Flux[...] = [[1, 2, 3], [4, 5, 6]]
+
+    >>> Flux[...] = [[1, 2, 3], [4, 5, 6]]
         
     Write a new record in the last position and add a new record after:
-        >>> Flux[99:] = [[[1, 2, 3], [4, 5, 6]],
-        ...              [[11, 12, 13], [14, 15, 16]]]
-        
+
+    >>> Flux[99:] = [[[1, 2, 3], [4, 5, 6]],
+    ...              [[11, 12, 13], [14, 15, 16]]]
+    
     Insert two new records between the current number 5 and 6:
-        >>> Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13],
-        ...               [14, 15, 16]]]
+        
+    >>> Flux[5:6] = [[[1, 2, 3], [4, 5, 6]],  [[11, 12, 13],
+    ...               [14, 15, 16]]]
+
     This operation can be quite slow, as it requires reading and
     rewriting the entire variable. (CDF does not directly support
     record insertion.)
     
     Change the first element of the first two records but leave other
     elements alone:
-        >>> Flux[0:2, 0, 0] = [1, 2]
+
+    >>> Flux[0:2, 0, 0] = [1, 2]
+
     Remove the first record:
-        >>> del Flux[0]
+
+    >>> del Flux[0]
+
     Removes record 5 (the sixth):
-        >>> del Flux[5]
+
+    >>> del Flux[5]
+
     Due to the need to work around a bug in the CDF library, this operation
     can be quite slow.
     
     Delete *all data* from ``Flux``, but leave the variable definition intact:
-        >>> del Flux[...]
+
+    >>> del Flux[...]
 
     .. note::
         Although this interface only directly supports zVariables, zMode is
@@ -2069,7 +2083,7 @@ class Var(collections.MutableSequence):
         variable creation).
 
         Other Parameters
-        ==========
+        ================
         new_rv : boolean
             True to change to record variance, False to change to NRV,
             unspecified to simply check variance.
@@ -3995,7 +4009,8 @@ class zAttrList(AttrList):
 
     Normally accessed as an attribute of a :class:`Var` in an open
     CDF:
-        >>> epoch_attribs = cdffile['Epoch'].attrs
+        
+    >>> epoch_attribs = cdffile['Epoch'].attrs
 
     Appears as a dictionary: keys are attribute names, values are
     the value of the zEntry associated with the appropriate zVariable.
@@ -4007,7 +4022,8 @@ class zAttrList(AttrList):
 
     Example: finding the first dependency of (ISTP-compliant) variable
     ``Flux``:
-        >>> print cdffile['Flux'].attrs['DEPEND_0']
+
+    >>> print cdffile['Flux'].attrs['DEPEND_0']
 
     zAttributes are shared among zVariables, one zEntry allowed per zVariable.
     (pyCDF hides this detail.) Deleting the last zEntry for a zAttribute will
@@ -4015,8 +4031,9 @@ class zAttrList(AttrList):
 
     zEntries are created and destroyed by the usual dict methods on the
     zAttrlist:
-        >>> epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
-        >>> del epoch_attribs['new_entry'] #delete the zEntry
+        
+    >>> epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
+    >>> del epoch_attribs['new_entry'] #delete the zEntry
 
     The type of the zEntry is guessed from data provided. The type is chosen to
     match the data; subject to that constraint, it will try to match
