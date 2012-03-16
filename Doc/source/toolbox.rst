@@ -4,6 +4,8 @@ toolbox - Toolbox of various functions and generic utilities
 
 .. automodule:: spacepy.toolbox
 
+.. currentmodule:: spacepy.toolbox
+
 - :ref:`Numerical distributions <tb-numerical>`
 - :ref:`Plotting tools <tb-plotting>`
 - :ref:`Time and date functions <tb-time>`

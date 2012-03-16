@@ -4,6 +4,8 @@ pycdf - Python interface to CDF files
 ######################################
 
 .. automodule:: spacepy.pycdf
+.. currentmodule:: spacepy.pycdf
+
 
 Contents
 --------
