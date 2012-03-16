@@ -8,7 +8,8 @@ implemented slightly differently.
 This contains the following classes:
  * :py:class:`dmarray` - numpy arrays that support .attrs for information about the data
  * :py:class:`SpaceData` - base class that extends dict, to be extended by others
-    Currently used in GPScode and other projects
+ 
+Currently used in GPScode and other projects
 
 Authors: Steve Morley and Brian Larsen
 
@@ -38,8 +39,8 @@ HDF5 dataset.
 In fact, HDF5 can be loaded directly into a SpacePy datamodel, carrying across all attributes,
 using the function fromHDF5:
 
-    >>> import spacepy.datamodel as dm
-    >>> data = dm.fromHDF5('test.h5')
+>>> import spacepy.datamodel as dm
+>>> data = dm.fromHDF5('test.h5')
 
 
 Examples
@@ -50,27 +51,27 @@ the mission name and the instrument PI, the variables might be the
 instrument counts [n-dimensional array], timestamps[1-dimensional array and an orbit number [scalar].
 Each variable will have one attribute (for this example).
 
-    >>> import spacepy.datamodel as dm
-    >>> mydata = dm.SpaceData(attrs={'MissionName': 'BigSat1'})
-    >>> mydata['Counts'] = dm.dmarray([[42, 69, 77], [100, 200, 250]], attrs={'Units': 'cnts/s'})
-    >>> mydata['Epoch'] = dm.dmarray([1, 2, 3], attrs={'units': 'minutes'})
-    >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
-    >>> mydata.attrs['PI'] 'Prof. Big Shot'
+>>> import spacepy.datamodel as dm
+>>> mydata = dm.SpaceData(attrs={'MissionName': 'BigSat1'})
+>>> mydata['Counts'] = dm.dmarray([[42, 69, 77], [100, 200, 250]], attrs={'Units': 'cnts/s'})
+>>> mydata['Epoch'] = dm.dmarray([1, 2, 3], attrs={'units': 'minutes'})
+>>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
+>>> mydata.attrs['PI'] 'Prof. Big Shot'
 
 This has now populated a structure that can map directly to a NASA CDF or a HDF5. To visualize our datamodel,
 we can use the :py:func:`toolbox.dictree` function (which works for any dictionary-like object).
 
-    >>> import spacepy.toolbox as tb
-    >>> tb.dictree(mydata, attrs=True)
-    +
-    :|____MissionName
-    :|____PI
-    |____Counts
-         :|____Units
-    |____Epoch
-         :|____units
-    |____OrbitNumber
-         :|____StartsFrom
+>>> import spacepy.toolbox as tb
+>>> tb.dictree(mydata, attrs=True)
++
+:|____MissionName
+:|____PI
+|____Counts
+     :|____Units
+|____Epoch
+     :|____units
+|____OrbitNumber
+     :|____StartsFrom
 
 
 Guide for NASA CDF users
@@ -86,8 +87,8 @@ Opening a CDF and working directly with the contents can be easily done using th
 if you wish to load the entire contents of a CDF directly into a datamodel (complete with attributes)
 the following will make life easier:
 
-    >>> import spacepy.datamodel as dm
-    >>> data = dm.fromCDF('test.cdf')
+>>> import spacepy.datamodel as dm
+>>> data = dm.fromCDF('test.cdf')
 
 """
 

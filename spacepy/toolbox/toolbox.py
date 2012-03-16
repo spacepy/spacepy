@@ -146,7 +146,8 @@ def tOverlapHalf(ts1, ts2, presort=False):
                 if ts2[i] >= t_lower and ts2[i] <= t_upper]
 
 def tCommon(ts1, ts2, mask_only=True):
-    """Finds the elements in a list of datetime objects present in another
+    """
+    Finds the elements in a list of datetime objects present in another
 
     Parameters
     ==========
@@ -180,6 +181,7 @@ def tCommon(ts1, ts2, mask_only=True):
     >>> ts2[common_inds[1]] #values of ts2 also in ts1
 
     The latter can be found more simply by setting the mask_only keyword to False
+    
     >>> common_vals = tb.tCommon(ts1, ts2, mask_only=False)
     >>> common_vals[1]
     array([2001-03-10 02:00:00, 2001-03-10 03:00:00, 2001-03-10 04:00:00,
@@ -1256,7 +1258,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
      1.5917892219322083,
      2.9999999999999996]
 
-     To get a geometric progression with a specified ratio, say 10
+    To get a geometric progression with a specified ratio, say 10
 
     >>> import spacepy.toolbox as tb
     >>> tb.geomspace(0.01, ratio=10, num=5)
@@ -1722,6 +1724,7 @@ def listUniq(inVal):
     Maintains order (keeps the first of non-unique elements
 
     .. deprecated:: version 0.1.1
+    
     Equivalent functionality to numpy.unique
 
     Parameters

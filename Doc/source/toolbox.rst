@@ -1,3 +1,5 @@
+
+
 ############################################################
 toolbox - Toolbox of various functions and generic utilities
 ############################################################
@@ -6,12 +8,10 @@ toolbox - Toolbox of various functions and generic utilities
 
 .. currentmodule:: spacepy.toolbox
 
-- :ref:`Numerical distributions <tb-numerical>`
-- :ref:`Plotting tools <tb-plotting>`
-- :ref:`Time and date functions <tb-time>`
-- :ref:`Other functions <tb-other>`
-
-.. _tb-numerical:
+- `Numerical distributions`_
+- `Plotting tools`_
+- `Time and date functions`_
+- `Other functions`_
 
 Numerical distributions
 -----------------------
@@ -23,8 +23,6 @@ Numerical distributions
     linspace
     logspace
 
-.. _tb-plotting:
-
 Plotting tools
 --------------
 .. autosummary::
@@ -34,8 +32,6 @@ Plotting tools
     makePoly
     smartTimeTicks
     printfig
-
-.. _tb-time:
 
 Time and date functions
 -----------------------
@@ -49,8 +45,6 @@ Time and date functions
     timestamp
     tOverlap
     tOverlapHalf
-
-.. _tb-other:
 
 Other functions
 ---------------

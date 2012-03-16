@@ -7,8 +7,7 @@ import warnings
 import numpy as np
 from spacepy import help
 
-from . import _dates
-from _dates import _date2num, _num2date
+from ._dates import _date2num, _num2date
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -939,9 +938,8 @@ class Ticktock(object):
 
         Returns
         ========
-            out : numpy array
-                elapsed days since November 17, 1858
-                    (Julian date was 2,400 000)
+        out : numpy array
+            elapsed days since November 17, 1858 (Julian date was 2,400 000)
 
         Examples
         ========
@@ -974,8 +972,8 @@ class Ticktock(object):
 
         Returns
         ========
-            out : numpy array
-                elapsed secs since 1970/1/1 (not counting leap secs)
+        out : numpy array
+            elapsed secs since 1970/1/1 (not counting leap secs)
 
         Examples
         ========
@@ -1010,8 +1008,8 @@ class Ticktock(object):
 
         Returns
         ========
-            out : numpy array
-                elapsed days since 1/1/1
+        out : numpy array
+            elapsed days since 1/1/1
 
         Examples
         ========
@@ -1024,10 +1022,9 @@ class Ticktock(object):
         getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
+        #        import matplotlib.dates as mpd
 
-        import matplotlib.dates as mpd
-
-        nTAI = len(self.data)
+        # nTAI = len(self.data)
         UTC = self.UTC
         #RDT = np.zeros(nTAI)
         RDT = date2num(UTC)
@@ -1047,8 +1044,8 @@ class Ticktock(object):
 
         Returns
         ========
-            out : list of datetime objects
-                datetime object in UTC time
+        out : list of datetime objects
+            datetime object in UTC time
 
         Examples
         ========
@@ -1061,7 +1058,6 @@ class Ticktock(object):
         getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
-
         nTAI = len(self.data)
 
         if self.dtype.upper() == 'UTC':
@@ -1097,7 +1093,7 @@ class Ticktock(object):
             UTC = [datetime.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
 
         elif self.dtype.upper() == 'RDT':
-            import matplotlib.dates as mpd
+            # import matplotlib.dates as mpd
             UTC = num2date(self.data)
             UTC = [t.replace(tzinfo=None) for t in UTC]
             #for i in np.arange(nTAI):
@@ -1193,8 +1189,7 @@ class Ticktock(object):
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
 
         """
-
-        fmt = '%Y-%m-%dT%H:%M:%S'
+        # fmt = '%Y-%m-%dT%H:%M:%S'
         GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
 
         nGPS = len(self.data)
@@ -1211,7 +1206,6 @@ class Ticktock(object):
         return self.GPS
 
 
-
     # -----------------------------------------------
     def getTAI(self):
         """
@@ -1221,9 +1215,8 @@ class Ticktock(object):
 
         Returns
         =======
-            out : numpy array
-                elapsed secs since 1958/1/1 (includes leap secs,
-                    i.e. all secs have equal lengths)
+        out : numpy array
+            elapsed secs since 1958/1/1 (includes leap secs, i.e. all secs have equal lengths)
 
         Examples
         ========
@@ -1264,8 +1257,8 @@ class Ticktock(object):
 
         Returns
         =======
-            out : list of strings
-                date in ISO format
+        out : list of strings
+            date in ISO format
 
         Examples
         ========
@@ -1302,8 +1295,8 @@ class Ticktock(object):
 
         Returns
         =======
-            out : numpy array
-                leap seconds
+        out : numpy array
+            leap seconds
 
         Examples
         ========
@@ -1316,10 +1309,7 @@ class Ticktock(object):
         getTAI
 
         """
-
-        import os
         from spacepy import DOT_FLN
-
 
         tup = self.UTC
         # so you don't have to read the file every single time
@@ -1536,19 +1526,19 @@ def tickrange(start, end, deltadays, dtype='UTC'):
 
     Parameters
     ==========
-        start : string or number
-            start time
-        end : string or number
-            end time (inclusive)
-        deltadays : float or timedelta
-            step in units of days (float); or datetime timedelta object
-        dtype : string (optional)
-            data type for start, end; e.g. ISO, UTC, RTD, etc. see Ticktock for all options
+    start : string or number
+        start time
+    end : string or number
+        end time (inclusive)
+    deltadays : float or timedelta
+        step in units of days (float); or datetime timedelta object
+    dtype : string (optional)
+        data type for start, end; e.g. ISO, UTC, RTD, etc. see Ticktock for all options
 
     Returns
     =======
-        out : Ticktock instance
-            ticks
+    out : Ticktock instance
+        ticks
 
     Examples
     ========
@@ -1585,21 +1575,21 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
 
     Parameters
     ==========
-        sec : float
-            Seconds of day
+    sec : float
+        Seconds of day
 
     Other Parameters
     ================
-        rounding : boolean
-            set for integer seconds
-        days : boolean
-            set to wrap around day (i.e. modulo 86400)
-        dtobj : boolean
-            set to return a timedelta object
+    rounding : boolean
+        set for integer seconds
+    days : boolean
+        set to wrap around day (i.e. modulo 86400)
+    dtobj : boolean
+        set to return a timedelta object
 
     Returns
     =======
-        out : [hours, minutes, seconds] or datetime.timedelta
+    out : [hours, minutes, seconds] or datetime.timedelta
 
     """
     if not days:
