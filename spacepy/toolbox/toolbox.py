@@ -313,7 +313,7 @@ def savepickle(fln, dict, compress=None):
 def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     """
     assembles all pickled files matching fln_pattern into single file and
-    save as outfln. Pattern may contain simple shell-style wildcards *? a la fnmatch
+    save as outfln. Pattern may contain simple shell-style wildcards \*? a la fnmatch
     file will be assembled along time axis given by Ticktock (key: 'ticks') in dictionary
     If sortkey = None, then nothing will be sorted
 
@@ -402,17 +402,17 @@ def human_sort( l ):
     http://www.codinghorror.com/blog/2007/12/sorting-for-humans-natural-sort-order.html
 
     Parameters
-    ==========
+    ----------
     l : list
         list of objects to human sort
 
     Returns
-    =======
+    -------
     out : list
         sorted list
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> dat = ['r1.txt', 'r10.txt', 'r2.txt']
     >>> dat.sort()
@@ -433,11 +433,11 @@ def feq(x, y, precision=0.0000005):
     after: http://www.lahey.com/float.htm
 
     See Also
-    ========
+    --------
     numpy.allclose
 
     Parameters
-    ==========
+    ----------
     x : float
         a number
     y : float or array of floats
@@ -447,12 +447,12 @@ def feq(x, y, precision=0.0000005):
         Specified as a fraction of the sum of ``x`` and ``y``.
 
     Returns
-    =======
+    -------
     out : bool
         True (equal) or False (not equal)
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> x = 1 + 1e-4
     >>> y = 1 + 2e-4
@@ -471,7 +471,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     pretty print a dictionary tree
 
     Parameters
-    ==========
+    ----------
     in_dict : dict
         a complex dictionary (with substructures)
     verbose : boolean (optional)
@@ -484,7 +484,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
         display information for attributes
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> d = {'grade':{'level1':[4,5,6], 'level2':[2,3,4]}, 'name':['Mary', 'John', 'Chris']}
     >>> tb.dictree(d)
@@ -580,7 +580,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     attached (good for PowerPoint presentations).
 
     Parameters
-    ==========
+    ----------
     fignum : integer
         matplotlib figure number
     saveonly : boolean (optional)

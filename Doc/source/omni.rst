@@ -4,7 +4,7 @@
 omni - module to read and process NASA OMNIWEB data
 ###################################################
 
-.. automodule:: omni
+.. automodule:: spacepy.omni
 
 .. currentmodule:: spacepy.omni
 

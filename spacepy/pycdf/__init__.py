@@ -27,14 +27,16 @@ locations for the CDF library.
 
 If pycdf has trouble finding the library, try setting ``CDF_LIB`` before importing
 the module, e.g. if the library is in ``CDF/lib`` in the user's home directory:
-    >>> import os
-    >>> os.putenv("CDF_LIB", "~/CDF/lib")
-    >>> import pycdf
+    
+>>> import os
+>>> os.putenv("CDF_LIB", "~/CDF/lib")
+>>> import pycdf
+    
 If this works, make the environment setting permanent. Note that on OSX,
 using plists to set the environment may not carry over to Python terminal
 sessions; use ``.cshrc`` or ``.bashrc`` instead.
 
-.. currentmodule:: spacepy.pycdf
+.. currentmodule:: spacepy.pycdf1
 
 
 Authors: Jon Niehof

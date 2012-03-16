@@ -34,29 +34,34 @@ Here wa show four of the possible ways to do this, and by using a profiling tool
 show that the speeds of the different methods can vary substantially.
 
 Create the data
-    >>> data = range(10000000)
+
+>>> data = range(10000000)
 
 The most C-like way is just a straight up for loop
-    >>> for i in range(len(data)):
-    >>>     data[i] += 1
+
+>>> for i in range(len(data)):
+>>>     data[i] += 1
 
 This is 6 function calls in 2.590 CPU seconds (from :py:mod:`cProfile`)
 
 The next, more Pythonic, way is with a list comprehension
-    >>> data = [val+1 for val in data]
+
+>>> data = [val+1 for val in data]
 
 This is 4 function calls in 1.643 CPU seconds (~1.6x)
 
 Next we introduce numpy_ and change our list to an array then add one
-    >>> data = np.asarray(data)
-    >>> data += 1
+
+>>> data = np.asarray(data)
+>>> data += 1
 
 This is 6 function calls in 1.959 CPU seconds (~1.3x), better than the for loop but worse
 than the list comprehension
 
 Next we do this the `right` way and just create it in numpy_ and never leave
-    >>> data = np.arange(10000000)
-    >>> data += 1
+
+>>> data = np.arange(10000000)
+>>> data += 1
 
 this is 4 function calls in 0.049 CPU seconds (~53x).
 
@@ -303,6 +308,7 @@ Here is a collection of links that serve as a decent reference for Python and sp
 .. _`PythonSpeed PerformanceTips`: http://wiki.python.org/moin/PythonSpeed/PerformanceTips
 .. _`scipy array tip sheet`: http://pages.physics.cornell.edu/~myers/teaching/ComputationalMethods/python/arrays.html
 .. _`Python Tips, Tricks, and Hacks`: http://www.siafoo.net/article/52
+
 --------------------------
 
 :Release: |version|

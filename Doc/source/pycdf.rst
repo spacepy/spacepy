@@ -12,7 +12,7 @@ Contents
     - `Create a CDF`_
     - `Read a CDF`_
     - `Modify a CDF`_
-    - `Non record varying`_
+    - `Non record-varying`_
     - `Slicing and indexing`_
 - `Class reference`_
 
@@ -22,27 +22,30 @@ Create a CDF
 ============
 This example presents the entire sequence of creating a CDF and populating
 it with some data; the parts are explained individually below.
-    >>> from spacepy import pycdf
-    >>> import datetime
-    >>> time = [datetime.datetime(2000, 10, 1, 1, val) for val in range(60)]
-    >>> import numpy as np
-    >>> data = np.random.random_sample(len(time))
-    >>> cdf = pycdf.CDF('MyCDF.cdf', '')
-    >>> cdf['Epoch'] = time
-    >>> cdf['data'] = data
-    >>> cdf.attrs['Author'] = 'John Doe'
-    >>> cdf.attrs['CreateDate'] = datetime.datetime.now()
-    >>> cdf['data'].attrs['units'] = 'MeV'
-    >>> cdf.close()
+
+>>> from spacepy import pycdf
+>>> import datetime
+>>> time = [datetime.datetime(2000, 10, 1, 1, val) for val in range(60)]
+>>> import numpy as np
+>>> data = np.random.random_sample(len(time))
+>>> cdf = pycdf.CDF('MyCDF.cdf', '')
+>>> cdf['Epoch'] = time
+>>> cdf['data'] = data
+>>> cdf.attrs['Author'] = 'John Doe'
+>>> cdf.attrs['CreateDate'] = datetime.datetime.now()
+>>> cdf['data'].attrs['units'] = 'MeV'
+>>> cdf.close()
 
 Import the pycdf module.
-    >>> from spacepy import pycdf
+
+>>> from spacepy import pycdf
 
 Make a data set of :class:`~datetime.datetime`. These will be converted into
 CDF_EPOCH types.
-    >>> import datetime
-    >>> # make a dataset every minute for a hour
-    >>> time = [datetime.datetime(2000, 10, 1, 1, val) for val in range(60)]
+
+>>> import datetime
+>>> # make a dataset every minute for a hour
+>>> time = [datetime.datetime(2000, 10, 1, 1, val) for val in range(60)]
 
 .. warning::
     If you create a CDF in backwards compatibility mode (default),
@@ -50,14 +53,16 @@ CDF_EPOCH types.
     (millisecond resolution), not CDF_EPOCH16 (microsecond resolution).
 
 Create some random data.
-    >>> import numpy as np
-    >>> data = np.random.random_sample(len(time))
+
+>>> import numpy as np
+>>> data = np.random.random_sample(len(time))
 
 Create a new empty CDF.  The empty string, '', is the name of the CDF to use 
 as a master; given an empty string, an empty CDF will be created, rather than 
 copying from a master CDF.
 If a master is used, data in the master will be copied to the new CDF.
-    >>> cdf = pycdf.CDF('MyCDF.cdf', '')
+
+>>> cdf = pycdf.CDF('MyCDF.cdf', '')
 
 .. note::
     You cannot create a new CDF with a name that already exists on disk.
@@ -66,68 +71,80 @@ If a master is used, data in the master will be copied to the new CDF.
 
 To put data into a CDF, assign it directly to an element of the CDF.
 CDF objects behave like Python dictionaries.
-    >>> # put time into CDF variable Epoch
-    >>> cdf['Epoch'] = time
-    >>> # and the same with data (the smallest data type that fits the data is used by default)
-    >>> cdf['data'] = data
+
+>>> # put time into CDF variable Epoch
+>>> cdf['Epoch'] = time
+>>> # and the same with data (the smallest data type that fits the data is used by default)
+>>> cdf['data'] = data
 
 Adding attributes is done similarly. CDF attributes are also treated as dictionaries.
-    >>> # add some attributes to the CDF and the data
-    >>> cdf.attrs['Author'] = 'John Doe'
-    >>> cdf.attrs['CreateDate'] = datetime.datetime.now()
-    >>> cdf['data'].attrs['units'] = 'MeV'
+
+>>> # add some attributes to the CDF and the data
+>>> cdf.attrs['Author'] = 'John Doe'
+>>> cdf.attrs['CreateDate'] = datetime.datetime.now()
+>>> cdf['data'].attrs['units'] = 'MeV'
 
 Closing the CDF ensures the new data are written to disk:
-    >>> cdf.close()
+
+>>> cdf.close()
 
 CDF files, like standard Python files, act as context managers
-    >>> with cdf.CDF('filename.cdf', '') as cdf_file:
-    ...     #do brilliant things with cdf_file
-    >>> #cdf_file is automatically closed here
+
+>>> with cdf.CDF('filename.cdf', '') as cdf_file:
+...     #do brilliant things with cdf_file
+>>> #cdf_file is automatically closed here
 
 
 Read a CDF
 ==========
 Reading a CDF is very similar: the CDF object behaves like a dictionary.
 The file is only accessed when data are requested. A full example using the above CDF:
-    >>> from spacepy import pycdf
-    >>> cdf = pycdf.CDF('MyCDF.cdf')
-    >>> print(cdf)
-        Epoch: CDF_EPOCH [60]
-        data: CDF_FLOAT [60]
-    >>> cdf['data'][4]
-        0.8609974384307861
-    >>> data = cdf['data'][...] # don't forget the [...]
-    >>> cdf_dat = cdf.copy()
-    >>> cdf_dat.keys()
-        ['Epoch', 'data']
-    >>> cdf.close()
+
+>>> from spacepy import pycdf
+>>> cdf = pycdf.CDF('MyCDF.cdf')
+>>> print(cdf)
+    Epoch: CDF_EPOCH [60]
+    data: CDF_FLOAT [60]
+>>> cdf['data'][4]
+    0.8609974384307861
+>>> data = cdf['data'][...] # don't forget the [...]
+>>> cdf_dat = cdf.copy()
+>>> cdf_dat.keys()
+    ['Epoch', 'data']
+>>> cdf.close()
 
 Again import the pycdf module
-    >>> from spacepy import pycdf
+
+>>> from spacepy import pycdf
 
 Then open the CDF, this looks the same and creation, but without mention of a master CDF.
-    >>> cdf = pycdf.CDF('MyCDF.cdf')
+
+>>> cdf = pycdf.CDF('MyCDF.cdf')
 
 The default ``__str__()`` and ``__repr__()`` behavior explains the contents, type, and size but not the data.
-    >>> print(cdf)
-        Epoch: CDF_EPOCH [60]
-        data: CDF_FLOAT [60]
+
+>>> print(cdf)
+    Epoch: CDF_EPOCH [60]
+    data: CDF_FLOAT [60]
 
 To access the data one has to request specific elements of the variable that behaves like a list in this respect.
-    >>> cdf['data'][4]
-        0.8609974384307861
-    >>> data = cdf['data'][...] # don't forget the [...]
+
+>>> cdf['data'][4]
+    0.8609974384307861
+>>> data = cdf['data'][...] # don't forget the [...]
 
 :func:`CDF.copy` will return the entire contents of a CDF, including attributes:
-    >>> cdf_dat = cdf.copy()
+
+>>> cdf_dat = cdf.copy()
 
 Since CDF objects behave like dictionaries they have a ``keys()`` method and iterations are over the names in ``keys()``
-    >>> cdf_dat.keys()
-        ['Epoch', 'data']
+
+>>> cdf_dat.keys()
+    ['Epoch', 'data']
 
 Close the CDF when finished:
-    >>> cdf.close()
+
+>>> cdf.close()
 
 :func:`~spacepy.datamodel.fromCDF` provides a simple way to read a CDF into
 a SpacePy :doc:`datamodel </datamodel>`.
@@ -136,37 +153,43 @@ a SpacePy :doc:`datamodel </datamodel>`.
 Modify a CDF
 ============
 An example modifying the CDF created above:
-    >>> from spacepy import pycdf
-    >>> cdf = pycdf.CDF('MyCDF.cdf')
-    >>> cdf.readonly(False)
-        False
-    >>> cdf['newVar'] = [1.0, 2.0]
-    >>> print(cdf)
-        Epoch: CDF_EPOCH [60]
-        data: CDF_FLOAT [60]
-        newVar: CDF_FLOAT [2]
-    >>> cdf.close()
+
+>>> from spacepy import pycdf
+>>> cdf = pycdf.CDF('MyCDF.cdf')
+>>> cdf.readonly(False)
+    False
+>>> cdf['newVar'] = [1.0, 2.0]
+>>> print(cdf)
+    Epoch: CDF_EPOCH [60]
+    data: CDF_FLOAT [60]
+    newVar: CDF_FLOAT [2]
+>>> cdf.close()
 
 As before, each step in this example will now be individually explained.
 Existing CDF files are opened in read-only mode and must be set to read-write
 before modification:
-    >>> cdf.readonly(False)
-        False
+
+>>> cdf.readonly(False)
+    False
 
 Then new variables can be added
-    >>> cdf['newVar'] = [1.0, 2.0]
+
+>>> cdf['newVar'] = [1.0, 2.0]
 
 Or contents can be changed
-    >>> cdf['data'][0] = 8675309
+
+>>> cdf['data'][0] = 8675309
 
 The new variables appear immediately:
-    >>> print(cdf)
-        Epoch: CDF_EPOCH [60]
-        data: CDF_FLOAT [60]
-        newVar: CDF_FLOAT [2]
+
+>>> print(cdf)
+    Epoch: CDF_EPOCH [60]
+    data: CDF_FLOAT [60]
+    newVar: CDF_FLOAT [2]
 
 Closing the CDF ensures changes are written to disk:
-    >>> cdf.close()
+
+>>> cdf.close()
 
 Non record-varying
 ==================
@@ -174,14 +197,15 @@ Non record-varying (NRV) variables are usually used for data that does not vary
 with time, such as the energy channels for an instrument.
 
 NRV variables need to be created with :func:`CDF.new`, specifying the keyword 'recVary' as False.
-    >>> from spacepy import pycdf
-    >>> cdf = pycdf.CDF('MyCDF2.cdf', '')
-    >>> cdf.new('data2', [1], recVary=False)
-        <Var:
-        CDF_BYTE [1] NRV
-        >
-    >>> cdf['data2'][...]
-        [1]
+
+>>> from spacepy import pycdf
+>>> cdf = pycdf.CDF('MyCDF2.cdf', '')
+>>> cdf.new('data2', [1], recVary=False)
+    <Var:
+    CDF_BYTE [1] NRV
+    >
+>>> cdf['data2'][...]
+    [1]
 
 Slicing and indexing
 ====================
@@ -190,17 +214,18 @@ and indexing notation.
 
 This example uses :py:mod:`bisect` to read a subset of the data from the
 hourly data file created in earlier examples.
-    >>> from spacepy import pycdf
-    >>> cdf = pycdf.CDF('MyCDF.cdf')
-    >>> start = datetime.datetime(2000, 10, 1, 1, 9)
-    >>> stop = datetime.datetime(2000, 10, 1, 1, 35)
-    >>> import bisect
-    >>> start_ind = bisect.bisect_left(cdf['Epoch'], start)
-    >>> stop_ind = bisect.bisect_left(cdf['Epoch'], stop)
-    >>> # then grab the data we want
-    >>> time = cdf['Epoch'][start_ind:stop_ind]
-    >>> data = cdf['data'][start_ind:stop_ind]
-    >>> cdf.close()
+
+>>> from spacepy import pycdf
+>>> cdf = pycdf.CDF('MyCDF.cdf')
+>>> start = datetime.datetime(2000, 10, 1, 1, 9)
+>>> stop = datetime.datetime(2000, 10, 1, 1, 35)
+>>> import bisect
+>>> start_ind = bisect.bisect_left(cdf['Epoch'], start)
+>>> stop_ind = bisect.bisect_left(cdf['Epoch'], stop)
+>>> # then grab the data we want
+>>> time = cdf['Epoch'][start_ind:stop_ind]
+>>> data = cdf['data'][start_ind:stop_ind]
+>>> cdf.close()
 
 The :class:`Var` documentation has several additional examples.
 
@@ -211,7 +236,6 @@ available in the :mod:`~spacepy.pycdf.const` module.
 
 The underlying C library is represented by the :data:`~spacepy.pycdf.lib`
 variable.
-
 
 Class reference
 ===============

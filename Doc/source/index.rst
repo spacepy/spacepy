@@ -75,7 +75,6 @@ SpacePy Code
     pycdf
     radbelt
     seapy
-    spacepy_EnKF
     time
     toolbox
 ..  realtime

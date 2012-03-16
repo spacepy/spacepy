@@ -4,9 +4,9 @@
 SeaPy - Superposed Epoch in Python
 ##################################
 
-.. automodule:: seapy
-
 .. currentmodule:: spacepy.seapy
+
+.. automodule:: spacepy.seapy
 
 .. rubric:: Classes
 

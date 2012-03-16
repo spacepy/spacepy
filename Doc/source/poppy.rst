@@ -4,7 +4,7 @@
 PoPPy - Point Processes in Python
 ##################################
 
-.. automodule:: poppy
+.. automodule:: spacepy.poppy
 
 .. currentmodule:: spacepy.poppy
 

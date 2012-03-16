@@ -77,23 +77,23 @@ useful. The following functions are a selection of those implemented:
 
 Import this module as::
 
-    >>> import spacepy.toolbox as tb
+>>> import spacepy.toolbox as tb
 
 Examples:
 
-    >>> import spacepy.toolbox as tb
-    >>> a = {'entry1':'val1', 'entry2':2, 'recurse1':{'one':1, 'two':2}}
-    >>> tb.dictree(a)
-    +
-    |____entry1
-    |____entry2
-    |____recurse1
-         |____one
-         |____two
-    >>> import numpy as np
-    >>> dat = np.random.random_sample(100)
-    >>> tb.binHisto(dat)
-    (0.19151723370512266, 5.0)
+>>> import spacepy.toolbox as tb
+>>> a = {'entry1':'val1', 'entry2':2, 'recurse1':{'one':1, 'two':2}}
+>>> tb.dictree(a)
++
+|____entry1
+|____entry2
+|____recurse1
+     |____one
+     |____two
+>>> import numpy as np
+>>> dat = np.random.random_sample(100)
+>>> tb.binHisto(dat)
+(0.19151723370512266, 5.0)
 
 
 
@@ -103,8 +103,8 @@ Time and Coordinate Transformations
 
 Import the modules as::
 
-    >>> import spacepy.time as spt
-    >>> import spacepy.coords as spc
+>>> import spacepy.time as spt
+>>> import spacepy.coords as spc
 
 
 Ticktock Class
@@ -128,27 +128,27 @@ datetime module. The following time coordinates are provided
 To access these time coordinates, you'll create an instance of a
 Ticktock class, e.g.::
 
-    >>> t = spt.Ticktock('2002-10-25T12:30:00', 'ISO')
+>>> t = spt.Ticktock('2002-10-25T12:30:00', 'ISO')
 
 Instead of ISO you may use any of the formats listed above. You can also
 use numpy arrays or lists of time points. ``t`` has now the class
 attributes::
 
-    >>> t.dtype = 'ISO'
-    >>> t.data = '2002-10-25T12:30:00'
+>>> t.dtype = 'ISO'
+>>> t.data = '2002-10-25T12:30:00'
 
 FYI ``t.UTC`` is added automatically.
 
 If you want to convert/add a class attribute from the list above,
 simply type e.g.::
 
-    >>> t.RTD
+>>> t.RTD
 
 You can replace RTD with any from the list above.
 
 You can find out how many leap seconds were used by issuing the command::
 
-    >>> t.getleapsecs()
+>>> t.getleapsecs()
 
 
 Tickdelta Class
@@ -157,11 +157,11 @@ Tickdelta Class
 You can add/subtract time from a Ticktock class instance by creating a
 Tickdelta instance first.::
 
-    >>> dt = spt.Tickdelta(days=2.3)
+>>> dt = spt.Tickdelta(days=2.3)
 
 Then you can add by e.g.::
 
-    >>> t+dt
+>>> t+dt
 
 
 Coords Class
@@ -183,7 +183,7 @@ Cartesian and spherical forms.
 Create a Coords instance with spherical='sph' or cartesian='car'
 coordinates::
 
-    >>> spaco = spc.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
+>>> spaco = spc.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
 
 This will let you request, for example, all y-coordinates by ``spaco.y``
 or if given in spherical coordinates by ``spaco.lati``. One can transform
@@ -202,19 +202,19 @@ The radbelt Module
 The radiation belt module currently includes a simple radial
 diffusion code as a class. Import the module and instatiate a radbelt object::
 
-    >>> import spacepy.radbelt as sprb
-    >>> rb = sprb.RBmodel()
+>>> import spacepy.radbelt as sprb
+>>> rb = sprb.RBmodel()
 
 Add a time grid for a particular period that you are interested in::
 
-    >>> rb.setup_ticks('2002-02-01T00:00:00', '2002-02-10T00:00:00', 0.25)
+>>> rb.setup_ticks('2002-02-01T00:00:00', '2002-02-10T00:00:00', 0.25)
 
 This will automatically lookup required geomagnetic/solar wind conditions
 for that period. Run the diffusion solver for that setup and plot the
 results::
 
-    >>> rb.evolve()
-    >>> rb.plot()
+>>> rb.evolve()
+>>> rb.plot()
 
 
 The Data Assimilation Module
@@ -240,31 +240,31 @@ Prior to assimilation, a set of data values has to be specified by setting the
 start and end dates, and time step, using the ``setup_ticks`` function of the
 radiation belt model::
 
-   >>> import spacepy
-   >>> import datetime
-   >>> from spacepy import radbelt
+>>> import spacepy
+>>> import datetime
+>>> from spacepy import radbelt
 
-   >>> start = datetime.datetime(2002,10,23)
-   >>> end = datetime.datetime(2002,11,4)
-   >>> delta = datetime.timedelta(hours=0.5)
-   >>> rmod.setup_ticks(start, end, delta, dtype='UTC')
+>>> start = datetime.datetime(2002,10,23)
+>>> end = datetime.datetime(2002,11,4)
+>>> delta = datetime.timedelta(hours=0.5)
+>>> rmod.setup_ticks(start, end, delta, dtype='UTC')
 
 Once the dates and time step are specified, the data is added using the
 ``add_PSD`` function (NOTE: This requires a database available from the SpacePy team)::
 
-   >>> rmod.add_PSD()
+>>> rmod.add_PSD()
 
 The observations are averaged over the time windows, whose interval is give by
 the time step. Once the dates and data are set, the assimilation is performed
 using the ``assimilate`` function::
 
-   >>> rmod.assimilate(inflation=1)
+>>> rmod.assimilate(inflation=1)
 
 This function will add the PSDa values, which are the analysis state of
 the radiation belt using the observations within the dates. To plot the
 analysis simply use the ``plot`` function::
 
-   >>> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
+>>> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
 
 Additionally, to create a summary plot of the observations use the ``plot_obs``
 function within the radbelt module. For reference, the last closed drift shell,
@@ -283,7 +283,7 @@ If any of the plots are excluded, None is returned in their stead.
 
 Example::
 
-   >>> rmod.plot_obs(clims=[-10,-6],Lmax=False,Kp=False,Dst=False,title='Observations Plot')
+>>> rmod.plot_obs(clims=[-10,-6],Lmax=False,Kp=False,Dst=False,title='Observations Plot')
 
 This command would create the summary plot with a color bar range of 10 :sup:`-10`
 to 10 :sup:`-6`.  The Lmax line, Kp and Dst values would be excluded.  The title of
@@ -313,21 +313,21 @@ be used to fetch the latest files from ViRBO.
 The following example fetches the OMNI data for the storms of
 October and November, 2003.::
 
-    >>> import spacepy.time as spt
-    >>> import spacepy.omni as om
-    >>> import datetime as dt
-    >>> st = dt.datetime(2003,10,20)
-    >>> en = dt.datetime(2003,12,5)
-    >>> delta = dt.timedelta(days=1)
-    >>> ticks = spt.tickrange(st, en, delta, 'UTC')
-    >>> data = om.get_omni(ticks)
+>>> import spacepy.time as spt
+>>> import spacepy.omni as om
+>>> import datetime as dt
+>>> st = dt.datetime(2003,10,20)
+>>> en = dt.datetime(2003,12,5)
+>>> delta = dt.timedelta(days=1)
+>>> ticks = spt.tickrange(st, en, delta, 'UTC')
+>>> data = om.get_omni(ticks)
 
 *data* is a dictionary containing all the OMNI data, by variable, for the timestamps
 contained within the ``Ticktock`` object *ticks*. Now it is simple to plot Dst values
 for instance::
 
-	>>> import pyplot as p
-	>>> p.plot(ticks.eDOY, data['Dst'])
+>>> import pyplot as p
+>>> p.plot(ticks.eDOY, data['Dst'])
 
 
 The irbempy Module
@@ -351,29 +351,24 @@ orbits such that a pitch angle of 90 degrees signifies gyration perpendicular
 to the local field) anywhere in geospace, and calculation of electron drift
 shells in the inner magnetosphere.::
 
-    >>> import spacepy.time as spt
-    >>> import spacepy.coordinates as spc
-    >>> import spacepy.irbempy as ib
-    >>> t = spt.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = spc.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
-    >>> ib.get_Bfield(t,y)
-    {'Blocal': array([  976.42565251,  3396.25991675]),
-       'Bvec': array([[ -5.01738885e-01,  -1.65104338e+02,   9.62365503e+02],
-       [  3.33497974e+02,  -5.42111173e+02,   3.33608693e+03]])}
+>>> import spacepy.time as spt
+>>> import spacepy.coordinates as spc
+>>> import spacepy.irbempy as ib
+>>> t = spt.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
+>>> y = spc.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+>>> ib.get_Bfield(t,y)
+>>> # {'Blocal': array([  976.42565251,  3396.25991675]),
+>>> #    'Bvec': array([[ -5.01738885e-01,  -1.65104338e+02,   9.62365503e+02], [  3.33497974e+02,  -5.42111173e+02,   3.33608693e+03]])}
 
 One can also calculate the drift shell L* for a 90 degree pitch angle value by using::
 
-    >>> ib.get_Lstar(t,y, [90])
-    {'Bmin': array([  975.59122652,  3388.2476667 ]),
-     'Bmirr': array([[  976.42565251],
-       [ 3396.25991675]]),
-     'Lm': array([[ 3.13508015],
-       [ 2.07013638]]),
-     'Lstar': array([[ 2.86958324],
-       [ 1.95259007]]),
-     'MLT': array([ 11.97222034,  12.13378624]),
-     'Xj': array([[ 0.00081949],
-       [ 0.00270321]])}
+>>> ib.get_Lstar(t,y, [90])
+>>> # {'Bmin': array([  975.59122652,  3388.2476667 ]),
+>>> #  'Bmirr': array([[  976.42565251], [ 3396.25991675]]),
+>>> #  'Lm': array([[ 3.13508015], [ 2.07013638]]),
+>>> #  'Lstar': array([[ 2.86958324], [ 1.95259007]]),
+>>> #  'MLT': array([ 11.97222034,  12.13378624]),
+>>> #  'Xj': array([[ 0.00081949], [ 0.00270321]])}
 
 Other function wrapped with the IRBEM library include:
 
@@ -389,28 +384,27 @@ pycdf provides a "pythonic" interface to the NASA CDF library. It requires
 that the NASA CDF C-library is properly installed.
 The module can then be imported, e.g.::
 
-    >>> import spacepy.pycdf as cdf
+>>> import spacepy.pycdf as cdf
 
 To open and close a CDF file, we use the :class:`pycdf.CDF` class::
 
-    >>> cdf_file = cdf.CDF('filename.cdf')
-    >>> cdf_file.close()
+>>> cdf_file = cdf.CDF('filename.cdf')
+>>> cdf_file.close()
 
 CDF files, like standard Python files, act as context managers::
 
-    >>> with cdf.CDF('filename.cdf') as cdf_file:
-    ...     #do brilliant things with cdf_file
-    >>> #cdf_file is automatically closed here
+>>> with cdf.CDF('filename.cdf') as cdf_file:
+>>>     #do brilliant things with cdf_file
+>>> #cdf_file is automatically closed here
 
 CDF files act as Python dictionaries, holding CDF variables keyed
 by the variable name::
 
-    >>> var_names = keys(cdf_file) #list of all variables
-    >>> for var_name in cdf_file:
-    ...     print(len(cdf_file[var_name])) #number of records in each variable
-
-        #list comprehensions work, too
-    >>> lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
+>>> var_names = keys(cdf_file) #list of all variables
+>>> for var_name in cdf_file:
+>>>     print(len(cdf_file[var_name])) #number of records in each variable
+>>> #list comprehensions work, too
+>>> lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
 
 Each CDF variable acts as a Python list, one element per record.
 Multidimensional CDF variables are represented as nested lists and can be
@@ -418,14 +412,14 @@ subscripted using a multidimensional slice notation similar to numpy. Creating
 a Python Var object does not read the data from disc; data are only read as
 they are accessed::
 
-    >>> epoch = cdf_file['Epoch'] #Python object created, nothing read from disc
-    >>> epoch[0] #time of first record in CDF (datetime object)
-    >>> a = epoch[...] #copy all times to list a
-    >>> a = epoch[-5:] #copy last five times to list a
-    >>> b_gse = cdf_file['B_GSE'] #B_GSE is a 1D, three-element array
-    >>> bz = b_gse[0,2] #Z component of first record
-    >>> bx = b_gse[:,0] #copy X component of all records to bx
-    >>> bx = cdf_file['B_GSE'][:,0] #same as above
+>>> epoch = cdf_file['Epoch'] #Python object created, nothing read from disc
+>>> epoch[0] #time of first record in CDF (datetime object)
+>>> a = epoch[...] #copy all times to list a
+>>> a = epoch[-5:] #copy last five times to list a
+>>> b_gse = cdf_file['B_GSE'] #B_GSE is a 1D, three-element array
+>>> bz = b_gse[0,2] #Z component of first record
+>>> bx = b_gse[:,0] #copy X component of all records to bx
+>>> bx = cdf_file['B_GSE'][:,0] #same as above
 
 
 The datamodel Module
@@ -457,38 +451,38 @@ the global attributes might be the mission name and the instrument PI, the varia
 instrument counts [n-dimensional array], timestamps[1-dimensional array and an orbit number [scalar].
 Each variable will have one attribute (for this example).
 
-    >>> import spacepy.datamodel as dm
-    >>> mydata = dm.SpaceData(attrs={'MissionName': 'BigSat1'})
-    >>> mydata['Counts'] = dm.dmarray([[42, 69, 77], [100, 200, 250]], attrs={'Units': 'cnts/s'})
-    >>> mydata['Epoch'] = dm.dmarray([1, 2, 3], attrs={'units': 'minutes'})
-    >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
-    >>> mydata.attrs['PI'] 'Prof. Big Shot'
+>>> import spacepy.datamodel as dm
+>>> mydata = dm.SpaceData(attrs={'MissionName': 'BigSat1'})
+>>> mydata['Counts'] = dm.dmarray([[42, 69, 77], [100, 200, 250]], attrs={'Units': 'cnts/s'})
+>>> mydata['Epoch'] = dm.dmarray([1, 2, 3], attrs={'units': 'minutes'})
+>>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
+>>> mydata.attrs['PI'] 'Prof. Big Shot'
 
 This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel,
 we can use the :meth:`datamodel.SpaceData.tree` method, which is equivalent to :func:`toolbox.dictree`
 (which works for any dictionary-like object, including PyCDF file objects).
 
-    >>> mydata.tree(attrs=True)
-    +
-    :|____MissionName
-    :|____PI
-    |____Counts
-        :|____Units
-    |____Epoch
-        :|____units
-    |____OrbitNumber
-        :|____StartsFrom
-    >>> import spacepy.toolbox as tb 
-    >>> tb.dictree(mydata, attrs=True)
-    +
-    :|____MissionName
-    :|____PI
-    |____Counts
-        :|____Units
-    |____Epoch
-        :|____units
-    |____OrbitNumber
-        :|____StartsFrom
+>>> mydata.tree(attrs=True)
++
+:|____MissionName
+:|____PI
+|____Counts
+    :|____Units
+|____Epoch
+    :|____units
+|____OrbitNumber
+    :|____StartsFrom
+>>> import spacepy.toolbox as tb 
+>>> tb.dictree(mydata, attrs=True)
++
+:|____MissionName
+:|____PI
+|____Counts
+    :|____Units
+|____Epoch
+    :|____units
+|____OrbitNumber
+    :|____StartsFrom
 
 
 Attributes are denoted by a leading colon. The global attributes are those in the base level,
@@ -498,36 +492,36 @@ If we have data that has nested 'folders', allowed by HDF5 but not by NASA CDF, 
 represented such that the data structure can be mapped directly to a NASA CDF? The data will need to
 be flattened so that it is single layered. Let us now store some ephemerides in our data structure:
 
-    >>> mydata['Ephemeris'] = dm.SpaceData()
-    >>> mydata['Ephemeris']['GSM'] = dm.dmarray([[1,3,3], [1.2,4,2.5], [1.4,5,1.9]])
-    >>> tb.dictree(mydata, attrs=True)
-    +
-    :|____MissionName
-    :|____PI
-    |____Counts
-        :|____Units
-    |____Ephemeris
-        |____GSM
-    |____Epoch
-        :|____units
-    |____OrbitNumber
-        :|____StartsFrom
+>>> mydata['Ephemeris'] = dm.SpaceData()
+>>> mydata['Ephemeris']['GSM'] = dm.dmarray([[1,3,3], [1.2,4,2.5], [1.4,5,1.9]])
+>>> tb.dictree(mydata, attrs=True)
++
+:|____MissionName
+:|____PI
+|____Counts
+    :|____Units
+|____Ephemeris
+    |____GSM
+|____Epoch
+    :|____units
+|____OrbitNumber
+    :|____StartsFrom
 
 Nested dictionary-like objects is not uncommon in Python (and can be exceptionally useful for representing
 data, so to make this compatible with NASA CDF we call the :meth:`datamodel.SpaceData.flatten` method .
 
-    >>> mydata.flatten()
-    >>> tb.dictree(mydata, attrs=True)
-    +
-    :|____MissionName
-    :|____PI
-    |____Counts
-        :|____Units
-    |____Ephemeris<--GSM
-    |____Epoch
-        :|____units
-    |____OrbitNumber
-        :|____StartsFrom
+>>> mydata.flatten()
+>>> tb.dictree(mydata, attrs=True)
++
+:|____MissionName
+:|____PI
+|____Counts
+    :|____Units
+|____Ephemeris<--GSM
+|____Epoch
+    :|____units
+|____OrbitNumber
+    :|____StartsFrom
 
 Note that the nested SpaceData has been moved to a variable with a new name reflecting its origin. The
 data structure is now flat again and can be mapped directly to NASA CDF.
@@ -561,15 +555,15 @@ Each of the first three models is called by passing it a Ticktock object (see ab
 calculates the model output using the 1-hour Qin-Denton OMNI data (from the
 OMNI module; see above). For example::
 
-    >>> import spacepy.time as spt
-    >>> import spacepy.empiricals as emp
-    >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
+>>> import spacepy.time as spt
+>>> import spacepy.empiricals as emp
+>>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
 
 calls :func:`time.tickrange` and makes a Ticktock object
 with times from midday on January 1st 2002 to midnight January 4th 2002,
 incremented 6-hourly::
 
-    >>> Lpp = emp.getPlasmaPause(ticks)
+>>> Lpp = emp.getPlasmaPause(ticks)
 
 then returns the model plasmapause location using the default setting of the
 Moldwin et al. (2002) model. The Carpenter and Anderson model can be used by
@@ -579,9 +573,9 @@ The magnetopause standoff location can be called using this syntax, or can be
 called for specific solar wind parameters (ram pressure, P, and IMF Bz) passed
 through in a Python dictionary::
 
-    >>> data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
-    >>> emp.getMPstandoff(data)
-    array([ 10.29156018,   8.96790412])
+>>> data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
+>>> emp.getMPstandoff(data)
+>>>   # array([ 10.29156018,   8.96790412])
 
 
 SeaPy - Superposed Epoch Analysis in Python
@@ -604,27 +598,27 @@ intervals of the median (or mean) are also available.
 As an example we fetch OMNI data for 4 years and perform a superposed epoch analysis
 of the solar wind radial velocity, with a set of epoch times read from a text file::
 
-    >>> import spacepy.seapy as se
-    >>> import spacepy.omni as om
-    >>> import spacepy.toolbox as tb
-        #now read the epochs for the analysis
-    >>> epochs = se.readepochs('epochs_OMNI.txt', iso=True)
-    >>> st, en = datetime.datetime(2005,1,1), datetime.datetime(2009,1,1)
+>>> import spacepy.seapy as se
+>>> import spacepy.omni as om
+>>> import spacepy.toolbox as tb
+>>> # now read the epochs for the analysis
+>>> epochs = se.readepochs('epochs_OMNI.txt', iso=True)
+>>> st, en = datetime.datetime(2005,1,1), datetime.datetime(2009,1,1)
 
 The readepochs function can handle multiple formats by a user-specified format code.
 ISO 8601 format is directly supported. As an alternative to the getOMNI function used above, we
 can get the hourly data directly from the OMNI module using a toolbox function::
 
-    >>> einds, oinds = tb.tOverlap([st, en], om.omnidata['UTC'])
-    >>> omni1hr = array(om.omnidata['UTC'])[oinds]
-    >>> omniVx = om.omnidata['velo'][oinds]
+>>> einds, oinds = tb.tOverlap([st, en], om.omnidata['UTC'])
+>>> omni1hr = array(om.omnidata['UTC'])[oinds]
+>>> omniVx = om.omnidata['velo'][oinds]
 
 and these data are used for the superposed epoch analysis.
 the temporal resolution is 1 hr and the window is +/- 3 days
 
-    >>> delta = datetime.timedelta(hours=1)
-    >>> window= datetime.timedelta(days=3)
-    >>> sevx = se.Sea(omniVx, omni1hr, epochs, window, delta)
-        #rather than quartiles, we calculate the 95% confidence interval on the median
-    >>> sevx.sea(ci=True)
-    >>> sevx.plot()
+>>> delta = datetime.timedelta(hours=1)
+>>> window= datetime.timedelta(days=3)
+>>> sevx = se.Sea(omniVx, omni1hr, epochs, window, delta)
+    #rather than quartiles, we calculate the 95% confidence interval on the median
+>>> sevx.sea(ci=True)
+>>> sevx.plot()

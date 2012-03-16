@@ -4,7 +4,7 @@
 radbelt - Functions supporting radiation belt diffusion codes
 #############################################################
 
-.. automodule:: radbelt
+.. automodule:: spacepy.radbelt
 
 .. currentmodule:: spacepy.radbelt
 

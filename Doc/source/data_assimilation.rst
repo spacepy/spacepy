@@ -4,7 +4,7 @@
 data assimilation - data assimilation module
 ############################################
 
-.. automodule:: data_assimilation
+.. automodule:: spacepy.data_assimilation
 
 .. currentmodule:: spacepy.data_assimilation
 
