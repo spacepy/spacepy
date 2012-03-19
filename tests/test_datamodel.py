@@ -324,5 +324,79 @@ class CDFTests(unittest.TestCase):
         self.assertRaises(IOError, dm.fromCDF, 'bad_file.cdf')
 
 
+class JSONTests(unittest.TestCase):
+    def setUp(self):
+        super(JSONTests, self).setUp()
+        self.filename = 'data/20130218_rbspa_MagEphem.txt'
+        self.filename_bad = 'data/20130218_rbspa_MagEphem_bad.txt'
+
+    def tearDown(self):
+        super(JSONTests, self).tearDown()
+
+    def test_readJSONMetadata(self):
+        """readJSONMetadata should read in the file"""
+        dat = dm.readJSONMetadata(self.filename)
+        keys = [u'PerigeePosGeod', u'S_sc_to_pfn', u'S_pfs_to_Bmin', u'Pfs_gsm',
+                u'Pfn_ED_MLAT', u'ED_R', u'Dst', u'DateTime', u'DOY', u'ED_MLON',
+                u'IntModel', u'ApogeePosGeod', u'CD_MLON', u'S_sc_to_pfs',
+                u'GpsTime', u'JulianDate', u'M_ref', u'ED_MLT', u'Pfs_ED_MLAT',
+                u'Bfs_geo', u'Bm', u'Pfn_CD_MLON', u'CD_MLAT', u'Pfs_geo',
+                u'Rsm', u'Pmin_gsm', u'Rgei', u'Rgsm', u'Pfs_CD_MLAT', u'S_total',
+                u'Rgeod_Height', u'Date', u'Alpha', u'M_igrf', u'Pfs_CD_MLT',
+                u'ED_MLAT', u'CD_R', u'PerigeeTimes', u'UTC', u'Pfn_ED_MLT',
+                u'BoverBeq', u'Lsimple', u'Lstar', u'I', u'DipoleTiltAngle',
+                u'K', u'Bmin_gsm', u'S_Bmin_to_sc', u'Bfs_gsm', u'L',
+                u'ApogeeTimes', u'ExtModel', u'Kp', u'Pfs_geod_LatLon',
+                u'MlatFromBoverBeq', u'Pfn_gsm', u'Loss_Cone_Alpha_n', u'Bfn_geo', 
+                u'Pfn_CD_MLAT', u'Rgeod_LatLon', u'Pfs_ED_MLT', u'Pfs_CD_MLON', 
+                u'Bsc_gsm', u'Pfn_geod_Height', u'Lm_eq', u'Rgse', 
+                u'Pfn_geod_LatLon', u'CD_MLT', u'FieldLineType', u'Pfn_CD_MLT', 
+                u'Pfs_geod_Height', u'Rgeo', u'InvLat_eq', u'M_used', 
+                u'Loss_Cone_Alpha_s', u'Bfn_gsm', u'Pfn_ED_MLON', u'Pfn_geo', 
+                u'InvLat', u'Pfs_ED_MLON']
+        # make sure data has all te keys and no more or less
+        for k in dat:
+            self.assertTrue(k in keys)
+            ind = keys.index(k)
+            del keys[ind]
+        self.assertEqual(len(keys), 0)
+        
+    def test_readJSONMetadata_badfile(self):
+        """readJSONMetadata fails on bad files"""  
+        self.assertRaises(ValueError, dm.readJSONMetadata, self.filename_bad)
+
+    def test_readJSONheadedASCII(self):
+        """readJSONheadedASCII should read the test file"""
+        dat = dm.readJSONheadedASCII(self.filename)
+        keys = [u'PerigeePosGeod', u'S_sc_to_pfn', u'S_pfs_to_Bmin', u'Pfs_gsm',
+                u'Pfn_ED_MLAT', u'ED_R', u'Dst', u'DateTime', u'DOY', u'ED_MLON',
+                u'IntModel', u'ApogeePosGeod', u'CD_MLON', u'S_sc_to_pfs',
+                u'GpsTime', u'JulianDate', u'M_ref', u'ED_MLT', u'Pfs_ED_MLAT',
+                u'Bfs_geo', u'Bm', u'Pfn_CD_MLON', u'CD_MLAT', u'Pfs_geo',
+                u'Rsm', u'Pmin_gsm', u'Rgei', u'Rgsm', u'Pfs_CD_MLAT', u'S_total',
+                u'Rgeod_Height', u'Date', u'Alpha', u'M_igrf', u'Pfs_CD_MLT',
+                u'ED_MLAT', u'CD_R', u'PerigeeTimes', u'UTC', u'Pfn_ED_MLT',
+                u'BoverBeq', u'Lsimple', u'Lstar', u'I', u'DipoleTiltAngle',
+                u'K', u'Bmin_gsm', u'S_Bmin_to_sc', u'Bfs_gsm', u'L',
+                u'ApogeeTimes', u'ExtModel', u'Kp', u'Pfs_geod_LatLon',
+                u'MlatFromBoverBeq', u'Pfn_gsm', u'Loss_Cone_Alpha_n', u'Bfn_geo', 
+                u'Pfn_CD_MLAT', u'Rgeod_LatLon', u'Pfs_ED_MLT', u'Pfs_CD_MLON', 
+                u'Bsc_gsm', u'Pfn_geod_Height', u'Lm_eq', u'Rgse', 
+                u'Pfn_geod_LatLon', u'CD_MLT', u'FieldLineType', u'Pfn_CD_MLT', 
+                u'Pfs_geod_Height', u'Rgeo', u'InvLat_eq', u'M_used', 
+                u'Loss_Cone_Alpha_s', u'Bfn_gsm', u'Pfn_ED_MLON', u'Pfn_geo', 
+                u'InvLat', u'Pfs_ED_MLON']        
+        # make sure data has all te keys and no more or less
+        for k in dat:
+            self.assertTrue(k in keys)
+            ind = keys.index(k)
+            del keys[ind]
+        self.assertEqual(len(keys), 0)
+        dat = dm.readJSONheadedASCII(self.filename, convert=True)
+        np.testing.assert_array_equal(dat['DateTime'], [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
+        
+        
+        
+
 if __name__ == "__main__":
     unittest.main()

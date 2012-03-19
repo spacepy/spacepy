@@ -724,16 +724,22 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         mdata = readJSONMetadata(fname[0])
     mdata_copy = copy.copy(mdata)
     for fn in fname:
-        with open(fn) as fh:
+        with open(fn, 'rb') as fh:
             line = fh.readline()
             while line[0]==comment:
                 line = fh.readline()
+            fh.seek(-len(line), os.SEEK_CUR)
             alldata = fh.readlines()
             ncols = len(alldata[0].rstrip().split())
+            for row in xrange(len(alldata)): # reverse order
+                if not alldata[-1].rstrip(): # blank line (or al white space)
+                    alldata.pop(-1)
+                else:
+                    break                                    
             nrows = len(alldata)
             data = numpy.empty((nrows, ncols), dtype=object)
             for ridx, line in enumerate(alldata):
-                for cidx, el in enumerate(line.split()):
+                for cidx, el in enumerate(line.rstrip().split()):
                     data[ridx, cidx] = el
             keys = mdata.keys()
             for key in keys:
