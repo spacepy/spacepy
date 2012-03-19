@@ -347,12 +347,12 @@ class JSONTests(unittest.TestCase):
                 u'BoverBeq', u'Lsimple', u'Lstar', u'I', u'DipoleTiltAngle',
                 u'K', u'Bmin_gsm', u'S_Bmin_to_sc', u'Bfs_gsm', u'L',
                 u'ApogeeTimes', u'ExtModel', u'Kp', u'Pfs_geod_LatLon',
-                u'MlatFromBoverBeq', u'Pfn_gsm', u'Loss_Cone_Alpha_n', u'Bfn_geo', 
-                u'Pfn_CD_MLAT', u'Rgeod_LatLon', u'Pfs_ED_MLT', u'Pfs_CD_MLON', 
-                u'Bsc_gsm', u'Pfn_geod_Height', u'Lm_eq', u'Rgse', 
-                u'Pfn_geod_LatLon', u'CD_MLT', u'FieldLineType', u'Pfn_CD_MLT', 
-                u'Pfs_geod_Height', u'Rgeo', u'InvLat_eq', u'M_used', 
-                u'Loss_Cone_Alpha_s', u'Bfn_gsm', u'Pfn_ED_MLON', u'Pfn_geo', 
+                u'MlatFromBoverBeq', u'Pfn_gsm', u'Loss_Cone_Alpha_n', u'Bfn_geo',
+                u'Pfn_CD_MLAT', u'Rgeod_LatLon', u'Pfs_ED_MLT', u'Pfs_CD_MLON',
+                u'Bsc_gsm', u'Pfn_geod_Height', u'Lm_eq', u'Rgse',
+                u'Pfn_geod_LatLon', u'CD_MLT', u'FieldLineType', u'Pfn_CD_MLT',
+                u'Pfs_geod_Height', u'Rgeo', u'InvLat_eq', u'M_used',
+                u'Loss_Cone_Alpha_s', u'Bfn_gsm', u'Pfn_ED_MLON', u'Pfn_geo',
                 u'InvLat', u'Pfs_ED_MLON']
         # make sure data has all te keys and no more or less
         for k in dat:
@@ -360,9 +360,9 @@ class JSONTests(unittest.TestCase):
             ind = keys.index(k)
             del keys[ind]
         self.assertEqual(len(keys), 0)
-        
+
     def test_readJSONMetadata_badfile(self):
-        """readJSONMetadata fails on bad files"""  
+        """readJSONMetadata fails on bad files"""
         self.assertRaises(ValueError, dm.readJSONMetadata, self.filename_bad)
 
     def test_readJSONheadedASCII(self):
@@ -379,14 +379,14 @@ class JSONTests(unittest.TestCase):
                 u'BoverBeq', u'Lsimple', u'Lstar', u'I', u'DipoleTiltAngle',
                 u'K', u'Bmin_gsm', u'S_Bmin_to_sc', u'Bfs_gsm', u'L',
                 u'ApogeeTimes', u'ExtModel', u'Kp', u'Pfs_geod_LatLon',
-                u'MlatFromBoverBeq', u'Pfn_gsm', u'Loss_Cone_Alpha_n', u'Bfn_geo', 
-                u'Pfn_CD_MLAT', u'Rgeod_LatLon', u'Pfs_ED_MLT', u'Pfs_CD_MLON', 
-                u'Bsc_gsm', u'Pfn_geod_Height', u'Lm_eq', u'Rgse', 
-                u'Pfn_geod_LatLon', u'CD_MLT', u'FieldLineType', u'Pfn_CD_MLT', 
-                u'Pfs_geod_Height', u'Rgeo', u'InvLat_eq', u'M_used', 
-                u'Loss_Cone_Alpha_s', u'Bfn_gsm', u'Pfn_ED_MLON', u'Pfn_geo', 
-                u'InvLat', u'Pfs_ED_MLON']        
-        # make sure data has all te keys and no more or less
+                u'MlatFromBoverBeq', u'Pfn_gsm', u'Loss_Cone_Alpha_n', u'Bfn_geo',
+                u'Pfn_CD_MLAT', u'Rgeod_LatLon', u'Pfs_ED_MLT', u'Pfs_CD_MLON',
+                u'Bsc_gsm', u'Pfn_geod_Height', u'Lm_eq', u'Rgse',
+                u'Pfn_geod_LatLon', u'CD_MLT', u'FieldLineType', u'Pfn_CD_MLT',
+                u'Pfs_geod_Height', u'Rgeo', u'InvLat_eq', u'M_used',
+                u'Loss_Cone_Alpha_s', u'Bfn_gsm', u'Pfn_ED_MLON', u'Pfn_geo',
+                u'InvLat', u'Pfs_ED_MLON']
+        # make sure data has all the keys and no more or less
         for k in dat:
             self.assertTrue(k in keys)
             ind = keys.index(k)
@@ -394,9 +394,26 @@ class JSONTests(unittest.TestCase):
         self.assertEqual(len(keys), 0)
         dat = dm.readJSONheadedASCII(self.filename, convert=True)
         np.testing.assert_array_equal(dat['DateTime'], [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
-        
-        
-        
+
+    def test_idl2html(self):
+        """_idl2html should have known output"""
+        self.assertEqual('R<sub>e</sub>', dm._idl2html('R!Ie'))
+        self.assertEqual('R<sub>e</sub>', dm._idl2html('R!Ie!N'))
+        self.assertEqual('R<sup>e</sup>', dm._idl2html('R!Ee'))
+        self.assertEqual('R<sup>e</sup>', dm._idl2html('R!Ee!N'))
+        self.assertEqual('Hello World', dm._idl2html('Hello World'))
+
+    def test_toHTML(self):
+        """toHTML should give known output"""
+        t_file = tempfile.NamedTemporaryFile(delete=False)
+        t_file.close()
+        dat = dm.readJSONheadedASCII(self.filename)
+        dm.toHTML(t_file.name, dat, attrs=['DESCRIPTION', 'UNITS', 'ELEMENT_LABELS'], varLinks=True)
+        self.assertEqual(12834, os.path.getsize(t_file.name)) # not the best test but I am lazy
+        os.remove(t_file.name)
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -93,10 +93,14 @@ the following will make life easier:
 """
 
 from __future__ import division
-import numpy, copy, datetime, os, warnings
+import copy, datetime, os, warnings
 import re, json
-import dateutil.parser as dup
+import StringIO # can't use cStringIO as we might have unicode
+
 from toolbox import dictree
+import numpy
+import dateutil.parser as dup
+
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
@@ -309,8 +313,6 @@ class SpaceData(dict):
         |____5
 
         '''
-
-
         flatobj = flatten(self)
         remkeys = [key for key in self]
         for key in remkeys:
@@ -635,6 +637,107 @@ def toHDF5(fname, SDobject, **kwargs):
                               'value type {0} is not in the allowed data type list'.format(type(value)),
                                   DMWarning)
     if path=='/': hfile.close()
+
+
+def toHTML(fname, SDobject, attrs=(), varLinks=False, linkFormat=None, echo=False):
+    """
+    Create an HTML dump of the structure of a spacedata
+
+    Parameters
+    ----------
+    fname : str
+        Filename to write to
+
+    SDobject : spacepy.datamodel.SpaceData
+        SpaceData with associated attributes and variables in dmarrays
+
+    Other Parameters
+    ----------------
+    overwrite : bool (optional)
+        allow overwrite of an existing target file (default True)
+    mode : str (optional)
+        HDF5 file open mode (a, w, r) (default 'a')
+    echo : bool
+        echo the html to the screen
+    varLinks : bool
+        make the variable name a link to a stub page
+
+    """
+    output = StringIO.StringIO() # put the output into a StringIO
+    keys = SDobject.keys()
+    keys.sort()
+
+    output.write('<table border="1">\n')
+    output.write('<tr><th>{0}</th>'.format('Variable'))
+    for attr in attrs:
+        output.write('<th>{0}</th>'.format(attr))
+    output.write('</tr>')
+
+    for ii, key in enumerate(keys):
+        if ii % 2 == 0:
+            output.write('<tr>')
+        else:
+            output.write('<tr class="alt">')
+        output.write('<td>')
+        if varLinks:
+            output.write('<a href="{0}.html">'.format(key))
+        output.write('{0}'.format(key))
+        if varLinks:
+            output.write('</a>')
+        output.write('</td>')
+        
+        for attr in attrs:
+            try:
+                if not isinstance(SDobject[key].attrs[attr], (str, unicode)):
+                    tmp = str(SDobject[key].attrs[attr])
+                    output.write('<td>{0}</td>'.format(_idl2html(tmp)))
+                else:
+                    output.write('<td>{0}</td>'.format(_idl2html(SDobject[key].attrs[attr])))
+            except KeyError:
+                output.write('<td></td>')
+        output.write('</tr>\n')
+    output.write('</table>\n')
+    with open(fname, 'w') as fp:
+        fp.write(output.getvalue())
+    if echo:
+        print(output.getvalue())
+    output.close()
+
+def _idl2html(idl):
+    """
+    given an idl format string for text change it to html
+
+    Parameters
+    ==========
+    idl : str
+        idl formated string
+
+    Returns
+    =======
+    out : str
+        html formatted string
+    """
+    html = idl
+    conv = {'!!': '!',
+            '!E': '<sup>',
+            '!I': '<sub>'}
+    while True: # hate it but for now
+        ind = html.find('!')
+        if ind == -1:
+            break
+        code = html[ind:ind+2]
+        html = html.replace(code, conv[code])
+        if code == '!I':
+            if '!N' in html:
+                html = html.replace('!N', '</sub>', 1 ) # just replace 1
+            else:
+                html = html + '</sub>'
+        elif code == '!E':
+            if '!N' in html:
+                html = html.replace('!N', '</sup>', 1 ) # just replace 1
+            else:
+                html = html + '</sup>'
+    return html
 
 def readJSONMetadata(fname, **kwargs):
     '''Read JSON metadata from an ASCII data file
