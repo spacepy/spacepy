@@ -8,7 +8,7 @@ implemented slightly differently.
 This contains the following classes:
  * :py:class:`dmarray` - numpy arrays that support .attrs for information about the data
  * :py:class:`SpaceData` - base class that extends dict, to be extended by others
- 
+
 Currently used in GPScode and other projects
 
 Authors: Steve Morley and Brian Larsen
@@ -265,7 +265,7 @@ class SpaceData(dict):
         |____5
         '''
         dictree(self, **kwargs)
-    
+
     def flatten(self):
         '''
         Method to collapse datamodel to one level deep
@@ -487,8 +487,8 @@ def fromHDF5(fname, **kwargs):
                 try:
                     SDobject.attrs[key] = value
                 except:
-                    warnings.warn('The following key:value pair is not permitted\n' + 
-                                    'key = {0} ({1})\n'.format(key, type(key)) + 
+                    warnings.warn('The following key:value pair is not permitted\n' +
+                                    'key = {0} ({1})\n'.format(key, type(key)) +
                                     'value = {0} ({1})'.format(value, type(value)), DMWarning)
 
     try:
@@ -568,16 +568,16 @@ def toHDF5(fname, SDobject, **kwargs):
                             hfile[path].attrs[dumkey] = dumval
                         except:
                             hfile[path].attrs[dumkey] = str(dumval)
-                            warnings.warn('The following value is not permitted\n' + 
-                                    'key, value = {0} ({1})\n'.format(key, value) + 
+                            warnings.warn('The following value is not permitted\n' +
+                                    'key, value = {0} ({1})\n'.format(key, value) +
                                     'value has been converted to a string for output', DMWarning)
                     else:
                         hfile[path].attrs[dumkey] = ''
                 else:
                     #TODO: add support for arrays(?) in attrs (convert to isoformat)
-                    warnings.warn('The following key:value pair is not permitted\n' + 
-                                    'key = {0} ({1})\n'.format(key, type(key)) + 
-                                    'value type {0} is not in the allowed attribute list'.format(type(value)), 
+                    warnings.warn('The following key:value pair is not permitted\n' +
+                                    'key = {0} ({1})\n'.format(key, type(key)) +
+                                    'value type {0} is not in the allowed attribute list'.format(type(value)),
                                         DMWarning)
 
     try:
@@ -631,8 +631,8 @@ def toHDF5(fname, SDobject, **kwargs):
             SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
         else:
             warnings.warn('The following data is not being written as is not of an allowed type\n' +
-                           'key = {0} ({1})\n'.format(key, type(key)) + 
-                              'value type {0} is not in the allowed data type list'.format(type(value)), 
+                           'key = {0} ({1})\n'.format(key, type(key)) +
+                              'value type {0} is not in the allowed data type list'.format(type(value)),
                                   DMWarning)
     if path=='/': hfile.close()
 
@@ -668,7 +668,7 @@ def readJSONMetadata(fname, **kwargs):
         raise IOError('The input file has no valid JSON header. Must be valid JSON bounded by braces "{ }".')
     js = srch.group(1)
     inx = js.rfind('end JSON')
-    
+
     if inx == -1:
         js = ' '.join(('{', js, '}'))
         mdatadict = json.loads(js)
@@ -710,7 +710,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         ignored (default '#')
     convert: bool or dict-like (optional)
         If True, uses common names to try conversion from string. If a dict-
-        like then uses the functions specified as the dict values to convert 
+        like then uses the functions specified as the dict values to convert
         each element of 'key' to a non-string
 
     Returns
@@ -724,18 +724,19 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         mdata = readJSONMetadata(fname[0])
     mdata_copy = copy.copy(mdata)
     for fn in fname:
-        with open(fn, 'rb') as fh:
+        with open(fn, 'rb') as fh: # fixes windows bug with seek()
             line = fh.readline()
             while line[0]==comment:
                 line = fh.readline()
-            fh.seek(-len(line), os.SEEK_CUR)
+            fh.seek(-len(line), os.SEEK_CUR) # fixes the missing first data bug
             alldata = fh.readlines()
             ncols = len(alldata[0].rstrip().split())
+            # fixes None in the data from empty lines at the end
             for row in xrange(len(alldata)): # reverse order
                 if not alldata[-1].rstrip(): # blank line (or al white space)
                     alldata.pop(-1)
                 else:
-                    break                                    
+                    break
             nrows = len(alldata)
             data = numpy.empty((nrows, ncols), dtype=object)
             for ridx, line in enumerate(alldata):
@@ -755,9 +756,9 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                         try:
                             assert mdata[key]=={}
                             mdata[key] = data[:,st]
-                        except:    
+                        except:
                             mdata[key] = numpy.hstack((mdata[key], data[:,st]))
-    
+
     #now add the attributres to the variables
     for key in keys:
         mdata[key] = dmarray(mdata[key], attrs=mdata_copy[key].attrs)
