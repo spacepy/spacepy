@@ -639,7 +639,8 @@ def toHDF5(fname, SDobject, **kwargs):
     if path=='/': hfile.close()
 
 
-def toHTML(fname, SDobject, attrs=(), varLinks=False, linkFormat=None, echo=False):
+def toHTML(fname, SDobject, attrs=(), 
+           varLinks=False, linkFormat=None, echo=False, tableTag='<table border="1">'):
     """
     Create an HTML dump of the structure of a spacedata
 
@@ -667,7 +668,8 @@ def toHTML(fname, SDobject, attrs=(), varLinks=False, linkFormat=None, echo=Fals
     keys = SDobject.keys()
     keys.sort()
 
-    output.write('<table border="1">\n')
+    output.write(tableTag)
+    output.write('\n')
     output.write('<tr><th>{0}</th>'.format('Variable'))
     for attr in attrs:
         output.write('<th>{0}</th>'.format(attr))
