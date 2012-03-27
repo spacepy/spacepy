@@ -343,7 +343,7 @@ the library has changed its name to IRBEM-LIB and is maintained by a number
 of different institutions.
 
 A number of key routines in IRBEM-LIB have been made available through the
-module *irbempy*. Current functionality includes calls to calculate the local
+module :mod:`~spacepy.irbempy`. Current functionality includes calls to calculate the local
 magnetic field vectors at any point in geospace, calculation of the magnetic
 mirror point for a particle of a given pitch angle (the angle between a
 particle's velocity vector and the magnetic field line that it immediately
@@ -372,9 +372,9 @@ One can also calculate the drift shell L* for a 90 degree pitch angle value by u
 
 Other function wrapped with the IRBEM library include:
 
-* ``find_Bmirror``
-* ``find_magequator``
-* ``coord_trans``
+* :func:`~spacepy.irbempy.find_Bmirror`
+* :func:`~spacepy.irbempy.find_magequator`
+* :func:`~spacepy.irbempy.coord_trans`
 
 
 pyCDF - Python Access to NASA CDF Library

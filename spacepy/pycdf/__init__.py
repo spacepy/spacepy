@@ -36,7 +36,7 @@ If this works, make the environment setting permanent. Note that on OSX,
 using plists to set the environment may not carry over to Python terminal
 sessions; use ``.cshrc`` or ``.bashrc`` instead.
 
-.. currentmodule:: spacepy.pycdf1
+.. currentmodule:: spacepy.pycdf
 
 
 Authors: Jon Niehof
