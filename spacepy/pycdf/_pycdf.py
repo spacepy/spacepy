@@ -1823,23 +1823,11 @@ class Var(collections.MutableSequence):
         hslice = _Hyperslice(self, key)
         if hslice.counts[0] == 0:
             return []
-        buffer = hslice.create_buffer()
+        result = hslice.create_buffer()
         hslice.select()
-        lib.call(const.GET_, const.zVAR_HYPERDATA_, ctypes.byref(buffer))
-        result = hslice.unpack_buffer(buffer)
-
-        if self.type() == const.CDF_EPOCH.value:
-            if isinstance(result, float): #single value
-                result = lib.epoch_to_datetime(result)
-            else:
-                hslice.transform_each(result, lib.epoch_to_datetime)
-        elif self.type() == const.CDF_EPOCH16.value:
-            if isinstance(result[0], float): #single value
-                result = lib.epoch16_to_datetime(*result)
-            else:
-                old_e16 = lambda x: lib.epoch16_to_datetime(*x)
-                hslice.transform_each(result, old_e16)
-
+        lib.call(const.GET_, const.zVAR_HYPERDATA_,
+                 result.ctypes.data_as(ctypes.c_void_p))
+        result = hslice.convert_input_buffer(result)
         return hslice.convert_array(result)
 
     def __delitem__(self, key):
@@ -2561,22 +2549,21 @@ class _Hyperslice(object):
     def create_buffer(self):
         """Creates a ctypes array to hold the data from this slice
 
-        @return: array sized, typed, and dimensioned to hold data from
-                 this slice
-        @rtype: instance of subclass of ctypes.Array
+        Returns
+        =======
+        out : numpy.array
+            array sized, typed, and dimensioned to hold data from
+            this slice
         """
         counts = self.counts
         degens = self.degen
         if self.column:
             counts = self.reorder(counts)
             degens = self.reorder(degens)
-        cdftype = self.zvar.type()
-        constructor = self.zvar._c_type()
-        #Build array from innermost out
-        for count, degen in zip(counts[-1::-1], degens[-1::-1]):
-            if not degen:
-                constructor *= count
-        return constructor()
+        #TODO: Forcing C order for now, revert to using self.column later
+        return numpy.empty([counts[i] for i in range(len(counts))
+                            if not degen[i]],
+                           self.zvar._np_type(), order='C')
 
     def convert_array(self, array):
         """Converts a nested list-of-lists to format of this slice
@@ -2640,6 +2627,39 @@ class _Hyperslice(object):
             return buffer
         else:
             return self.c_array_to_list(buffer)
+
+    def convert_input_buffer(self, buffer):
+        """Converts a buffer of raw data from this slice
+
+        EPOCH(16) variables always need to be converted.
+        CHAR need converted to Unicode if py3k
+
+        Parameters
+        ==========
+        buffer : numpy.array
+            data as read from the CDF file
+
+        Returns
+        =======
+        out : numpy.array
+            converted data
+        """
+        cdftype = self.zvar.type()
+        if cdfype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
+           str != bytes:
+            return numpy.char.array(buffer).decode()
+        elif cdftype == const.CDF_EPOCH.value:
+            if isinstance(result, float): #single value
+                result = lib.epoch_to_datetime(result)
+            else:
+                hslice.transform_each(result, lib.epoch_to_datetime)
+        elif cdftype == const.CDF_EPOCH16.value:
+            if isinstance(result[0], float): #single value
+                result = lib.epoch16_to_datetime(*result)
+            else:
+                hslice.transform_each(result, lib.epoch16_to_datetime)
+        else:
+            return buffer
 
     def pack_buffer(self, buff, data):
         """Packs data in the form of this slice into a buffer
