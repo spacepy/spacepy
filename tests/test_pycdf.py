@@ -25,6 +25,7 @@ except NameError:
     def callable(obj):
         return isinstance(obj, collections.Callable)
 
+import numpy
 import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
@@ -914,6 +915,18 @@ class ReadCDF(CDFTests):
         for i in expected:
             self.assertEqual(expected[i],
                              self.cdf[i]._c_type())
+
+    def testNPTypes(self):
+        """Look up numpy type to match variable"""
+        expected = {'ATC': numpy.dtype((numpy.float64, 2)),
+                    'PhysRecNo': numpy.int32,
+                    'SpinNumbers': numpy.dtype((numpy.str, 2)),
+                    'MeanCharge': numpy.float32,
+                    'Epoch': numpy.float64,
+                    }
+        for i in expected:
+            self.assertEqual(expected[i],
+                             self.cdf[i]._np_type())
 
     def testCreateReadArrays(self):
         """Create an array for reading from a slice"""

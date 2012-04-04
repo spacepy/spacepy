@@ -31,6 +31,8 @@ import tempfile
 import warnings
 import weakref
 
+import numpy
+
 from . import const
 
 
@@ -227,7 +229,24 @@ class Library(object):
                              const.CDF_EPOCH.value: 'CDF_EPOCH',
                              const.CDF_EPOCH16.value: 'CDF_EPOCH16',
                              }
-
+        self.numpytypedict = {const.CDF_BYTE.value: numpy.int8,
+                              const.CDF_CHAR.value: numpy.int8,
+                              const.CDF_INT1.value: numpy.int8,
+                              const.CDF_UCHAR.value: numpy.uint8,
+                              const.CDF_UINT1.value: numpy.uint8,
+                              const.CDF_INT2.value: numpy.int16,
+                              const.CDF_UINT2.value: numpy.uint16,
+                              const.CDF_INT4.value: numpy.int32,
+                              const.CDF_UINT4.value: numpy.uint32,
+                              const.CDF_FLOAT.value: numpy.float32,
+                              const.CDF_REAL4.value: numpy.float32,
+                              const.CDF_DOUBLE.value: numpy.float64,
+                              const.CDF_REAL8.value: numpy.float64,
+                              const.CDF_EPOCH.value: numpy.float64,
+                              const.CDF_EPOCH16.value:
+                              numpy.dtype((numpy.float64, 2)),
+                              }
+        
         #Get CDF version information
         ver = ctypes.c_long(0)
         rel = ctypes.c_long(0)
@@ -2167,6 +2186,27 @@ class Var(collections.MutableSequence):
             return ctypes.c_char * self._nelems()
         try:
             return lib.ctypedict[cdftype]
+        except KeyError:
+            raise CDFError(const.BAD_DATA_TYPE)
+
+    def _np_type(self):
+        """Returns the numpy type of this variable
+
+        Raises
+        ======
+        CDFError : for library-reported error or failure to find numpy type
+
+        Returns
+        =======
+        out : dtype
+            numpy dtype that will hold value from this variable
+            
+        """
+        cdftype = self.type()
+        if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
+            return numpy.dtype((numpy.str, self._nelems()))
+        try:
+            return lib.numpytypedict[cdftype]
         except KeyError:
             raise CDFError(const.BAD_DATA_TYPE)
 
