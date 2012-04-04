@@ -67,6 +67,8 @@ class Library(object):
         ~Library.epoch_to_datetime
         ~Library.epoch16_to_datetime
         ~Library.set_backward
+        v_epoch_to_datetime
+        v_epoch16_to_datetime
         version
 
     .. automethod:: call
@@ -76,6 +78,19 @@ class Library(object):
     .. automethod:: epoch_to_datetime
     .. automethod:: epoch16_to_datetime
     .. automethod:: set_backward
+
+    .. method:: v_epoch_to_datetime(epoch)
+    
+        A vectorized version of :meth:`epoch_to_datetime` which takes a
+        numpy array of epochs as input and returns an array of datetimes.
+
+    .. method:: v_epoch16_to_datetime(epoch0, epoch1)
+    
+        A vectorized version of :meth:`epoch16_to_datetime` which takes two
+        numpy arrays of as input and returns an array of datetimes. Note
+        that the first half of all values must be passed in as `epoch0` and
+        the second half of all as `epoch1`. For an array of `epoch16` values,
+        `v_epoch16_to_datetime(epoch[:, 0], epoch[:, 1])` will usually work.
 
     .. attribute:: version
 
@@ -395,6 +410,10 @@ class Library(object):
         out : :class:`datetime.datetime`
             date and time corresponding to epoch. Invalid values are set to
             usual epoch invalid value, i.e. last moment of year 9999.
+
+        See Also
+        ========
+        v_epoch_to_datetime
         """
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
@@ -467,6 +486,9 @@ class Library(object):
             date and time corresponding to epoch. Invalid values are set to
             usual epoch invalid value, i.e. last moment of year 9999.
 
+        See Also
+        ========
+        v_epoch16_to_datetime
         """
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
