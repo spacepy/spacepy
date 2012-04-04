@@ -443,6 +443,13 @@ class Library(object):
         """
         Converts a CDF epoch16 value to a datetime
 
+        .. note::
+            The call signature has changed since SpacePy 0.1.2. Formerly
+            this method took a single argument with two values; now it
+            requires two arguments (one for each value). To convert existing
+            code, replace ``epoch16_to_datetime(epoch)`` with
+            ``epoch16_to_datetime(*epoch)``.
+
         Parameters
         ==========
         epoch0 : float
@@ -459,6 +466,7 @@ class Library(object):
         out : :class:`datetime.datetime`
             date and time corresponding to epoch. Invalid values are set to
             usual epoch invalid value, i.e. last moment of year 9999.
+
         """
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
