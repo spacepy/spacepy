@@ -246,7 +246,12 @@ class Library(object):
                               const.CDF_EPOCH16.value:
                               numpy.dtype((numpy.float64, 2)),
                               }
-        
+
+        self.v_epoch16_to_datetime = numpy.frompyfunc(
+            self.epoch16_to_datetime, 2, 1)
+        self.v_epoch_to_datetime = numpy.frompyfunc(
+            self.epoch_to_datetime, 1, 1)
+
         #Get CDF version information
         ver = ctypes.c_long(0)
         rel = ctypes.c_long(0)

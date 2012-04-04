@@ -26,6 +26,7 @@ except NameError:
         return isinstance(obj, collections.Callable)
 
 import numpy
+import numpy.testing
 import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
@@ -254,6 +255,10 @@ class NoCDF(unittest.TestCase):
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch16_to_datetime(*epoch))
+        result = cdf.lib.v_epoch16_to_datetime(numpy.array(epochs)[:,0],
+                                               numpy.array(epochs)[:,1])
+        expected = numpy.array(dts)
+        numpy.testing.assert_array_equal(expected, result)
 
     def testEpochToDatetime(self):
         epochs = [63397987200000.0,
@@ -266,6 +271,9 @@ class NoCDF(unittest.TestCase):
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch_to_datetime(epoch))
+        result = cdf.lib.v_epoch_to_datetime(numpy.array(epochs))
+        expected = numpy.array(dts)
+        numpy.testing.assert_array_equal(expected, result)
 
     def testDatetimeToEpoch16(self):
         epochs = [[63397987200.0, 0.0],
