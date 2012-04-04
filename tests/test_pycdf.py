@@ -253,9 +253,7 @@ class NoCDF(unittest.TestCase):
                datetime.datetime(9999, 12, 13, 23, 59, 59, 999999),
                ]
         for (epoch, dt) in zip(epochs, dts):
-            self.assertEqual(dt, cdf.lib.epoch16_to_datetime(epoch))
-        self.assertRaises(cdf.EpochError, cdf.lib.epoch16_to_datetime, 1.0)
-        self.assertRaises(cdf.EpochError, cdf.lib.epoch16_to_datetime, [1.0])
+            self.assertEqual(dt, cdf.lib.epoch16_to_datetime(*epoch))
 
     def testEpochToDatetime(self):
         epochs = [63397987200000.0,
@@ -299,7 +297,7 @@ class NoCDF(unittest.TestCase):
                ]
         for dt in dts:
             self.assertEqual(dt, cdf.lib.epoch16_to_datetime(
-                cdf.lib.datetime_to_epoch16(dt)))
+                *cdf.lib.datetime_to_epoch16(dt)))
 
     def testDatetimeEpochRT(self):
         """Roundtrip datetimes to epochs and back"""

@@ -434,14 +434,16 @@ class Library(object):
                                           dt.minute, dt.second,
                                           int(dt.microsecond / 1000))
 
-    def epoch16_to_datetime(self, epoch):
+    def epoch16_to_datetime(self, epoch0, epoch1):
         """
         Converts a CDF epoch16 value to a datetime
 
         Parameters
         ==========
-        epoch : list of two floats
-            epoch16 value from CDF
+        epoch0 : float
+            epoch16 value from CDF, first half
+        epoch1 : float
+            epoch16 value from CDF, second half
 
         Raises
         ======
@@ -453,11 +455,6 @@ class Library(object):
             date and time corresponding to epoch. Invalid values are set to
             usual epoch invalid value, i.e. last moment of year 9999.
         """
-        try:
-            if len(epoch) != 2:
-                raise EpochError('EPOCH16 values must be a pair of doubles.')
-        except TypeError:
-            raise EpochError('EPOCH16 values must be a pair of doubles.')
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
         dd = ctypes.c_long(0)
@@ -468,7 +465,7 @@ class Library(object):
         usec = ctypes.c_long(0)
         nsec = ctypes.c_long(0)
         psec = ctypes.c_long(0)
-        self._library.EPOCH16breakdown((ctypes.c_double * 2)(*epoch),
+        self._library.EPOCH16breakdown((ctypes.c_double * 2)(epoch0, epoch1),
                                      ctypes.byref(yyyy), ctypes.byref(mm),
                                      ctypes.byref(dd),
                                      ctypes.byref(hh), ctypes.byref(min),
@@ -1803,9 +1800,10 @@ class Var(collections.MutableSequence):
                 hslice.transform_each(result, lib.epoch_to_datetime)
         elif self.type() == const.CDF_EPOCH16.value:
             if isinstance(result[0], float): #single value
-                result = lib.epoch16_to_datetime(result)
+                result = lib.epoch16_to_datetime(*result)
             else:
-                hslice.transform_each(result, lib.epoch16_to_datetime)
+                old_e16 = lambda x: lib.epoch16_to_datetime(*x)
+                hslice.transform_each(result, old_e16)
 
         return hslice.convert_array(result)
 
@@ -3551,7 +3549,7 @@ class Attr(collections.MutableSequence):
             if cdftype == const.CDF_EPOCH.value:
                 result = [lib.epoch_to_datetime(item) for item in buff]
             elif cdftype == const.CDF_EPOCH16.value:
-                result = [lib.epoch16_to_datetime(item[:]) for item in buff]
+                result = [lib.epoch16_to_datetime(*item[:]) for item in buff]
             else:
                 #subscripting c_array usually returns Python type, not ctype
                 result = [item for item in buff]
