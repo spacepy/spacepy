@@ -1831,7 +1831,7 @@ class Var(collections.MutableSequence):
             raise TypeError('Cannot delete records from non-record-varying '
                             'variable.')
         hslice = _Hyperslice(self, key)
-        if hslice.dims > 1 and hslice.counts[1:] != hslice.dimsizes[1:]:
+        if hslice.dims > 1 and (hslice.counts[1:] != hslice.dimsizes[1:]).any():
             raise TypeError('Can only delete entire records.')
         if hslice.counts[0] == 0:
             return
@@ -2419,10 +2419,11 @@ class _Hyperslice(object):
         self.dimsizes = [len(zvar)] + \
                         zvar._dim_sizes()
         self.starts = [0] * self.dims
-        self.counts = [1] * self.dims
+        self.counts = numpy.empty((self.dims,), dtype=numpy.int32)
+        self.counts.fill(1)
         self.intervals = [1] * self.dims
-        self.degen = [False] * self.dims
-        self.rev = [False] * self.dims
+        self.degen = numpy.zeros(self.dims, dtype=numpy.bool)
+        self.rev = numpy.zeros(self.dims, dtype=numpy.bool)
         #key is:
         #1. a single value (integer or slice object) if called 1D
         #2. a tuple (of integers and/or slice objects) if called nD
@@ -3014,10 +3015,8 @@ class _Hyperslice(object):
         @return: seq with all but element 0 reversed in order
         @rtype: sequence of integers
         """
-        if hasattr(seq, '__getitem__'):
-            return seq[0:1] + seq[-1:0:-1]
-        else:
-            return seq
+        return numpy.concatenate((seq[0:1],
+                                  numpy.flipud(seq)[:-1]))
 
     @staticmethod
     def convert_range(start, stop, step, size):

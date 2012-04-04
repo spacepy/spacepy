@@ -71,8 +71,8 @@ class NoCDF(unittest.TestCase):
         input = [[1, 2, 3, 4, 5], [3, -5, 6, 12], ]
         output = [[1, 5, 4, 3, 2], [3, 12, 6, -5], ]
         for (inp, outp) in zip(input, output):
-            self.assertEqual(cdf._pycdf._Hyperslice.reorder(inp), outp)
-        self.assertEqual(1, cdf._pycdf._Hyperslice.reorder(1))
+            self.assertEqual(cdf._pycdf._Hyperslice.reorder(inp).tolist(),
+                             outp)
 
     def testHypersliceconvert(self):
         """Converts start/stop/step to CDF intervals"""
@@ -701,8 +701,8 @@ class ReadCDF(CDFTests):
             zvar = self.cdf[i]
             sliced = cdf._pycdf._Hyperslice(zvar, slices[i])
             actual = (sliced.dims, sliced.dimsizes, sliced.starts,
-                      sliced.counts, sliced.intervals, sliced.degen,
-                      sliced.rev)
+                      sliced.counts.tolist(), sliced.intervals,
+                      sliced.degen.tolist(), sliced.rev.tolist())
             self.assertEqual(tuple(expected[i]), actual,
                              '\n' + str(tuple(expected[i])) + '!=\n' +
                              str(actual) + ' variable ' + i)
@@ -1573,8 +1573,8 @@ class ReadColCDF(ColCDFTests):
             zvar = self.cdf[i]
             sliced = cdf._pycdf._Hyperslice(zvar, slices[i])
             actual = (sliced.dims, sliced.dimsizes, sliced.starts,
-                      sliced.counts, sliced.intervals, sliced.degen,
-                      sliced.rev)
+                      sliced.counts.tolist(), sliced.intervals,
+                      sliced.degen.tolist(), sliced.rev.tolist())
             self.assertEqual(tuple(expected[i]), actual,
                              '\n' + str(tuple(expected[i])) + '!=\n' +
                              str(actual) + ' variable ' + i)
