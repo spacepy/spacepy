@@ -920,7 +920,7 @@ class ReadCDF(CDFTests):
         """Look up numpy type to match variable"""
         expected = {'ATC': numpy.dtype((numpy.float64, 2)),
                     'PhysRecNo': numpy.int32,
-                    'SpinNumbers': numpy.dtype((numpy.str, 2)),
+                    'SpinNumbers': numpy.dtype('S2'),
                     'MeanCharge': numpy.float32,
                     'Epoch': numpy.float64,
                     }

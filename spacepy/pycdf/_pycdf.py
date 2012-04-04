@@ -2204,7 +2204,7 @@ class Var(collections.MutableSequence):
         """
         cdftype = self.type()
         if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
-            return numpy.dtype((numpy.str, self._nelems()))
+            return numpy.dtype('S' + str(self._nelems()))
         try:
             return lib.numpytypedict[cdftype]
         except KeyError:
