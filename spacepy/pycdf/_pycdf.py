@@ -23,6 +23,7 @@ import collections
 import ctypes
 import ctypes.util
 import datetime
+import operator
 import os
 import os.path
 import shutil
@@ -1823,12 +1824,11 @@ class Var(collections.MutableSequence):
         hslice = _Hyperslice(self, key)
         if hslice.counts[0] == 0:
             return []
-        result = hslice.create_buffer()
+        result = hslice.create_array()
         hslice.select()
         lib.call(const.GET_, const.zVAR_HYPERDATA_,
                  result.ctypes.data_as(ctypes.c_void_p))
-        result = hslice.convert_input_buffer(result)
-        return hslice.convert_array(result)
+        return hslice.convert_input_array(result)
 
     def __delitem__(self, key):
         """Removes a record (or set of records) from the CDF
@@ -1873,7 +1873,12 @@ class Var(collections.MutableSequence):
 
         if dangerous_delete:
             data = self[...]
-            del data[start:start + count * interval:interval]
+#            del data[start:start + count * interval:interval]
+            validdata = numpy.ones(data.shape[0], dtype='bool')
+            validdata[
+                numpy.arange(start, start + count * interval, interval)
+                ] = False
+            data = data[validdata]
             self[0:dimsize - count] = data
             first_rec = dimsize - count
             last_rec = dimsize - 1
@@ -2546,8 +2551,8 @@ class _Hyperslice(object):
             raise IndexError('Ellipses can only be used once per slice.')
         return result
 
-    def create_buffer(self):
-        """Creates a ctypes array to hold the data from this slice
+    def create_array(self):
+        """Creates a numpy array to hold the data from this slice
 
         Returns
         =======
@@ -2556,14 +2561,37 @@ class _Hyperslice(object):
             this slice
         """
         counts = self.counts
-        degens = self.degen
+        degen = self.degen
         if self.column:
             counts = self.reorder(counts)
-            degens = self.reorder(degens)
+            degen = self.reorder(degen)
         #TODO: Forcing C order for now, revert to using self.column later
-        return numpy.empty([counts[i] for i in range(len(counts))
-                            if not degen[i]],
-                           self.zvar._np_type(), order='C')
+        array = numpy.empty(
+            [counts[i] for i in range(len(counts)) if not degen[i]],
+            self.zvar._np_type(), order='C')
+        return numpy.require(array, requirements=('C', 'A', 'W'))
+                           
+    def create_buffer(self):
+         """Creates a ctypes array to hold the data from this slice
+ 
+         Returns
+         =======
+         out : ctypes.Array
+             array sized, typed, and dimensioned to hold data from
+             this slice
+         """
+         counts = self.counts
+         degens = self.degen
+         if self.column:
+             counts = self.reorder(counts)
+             degens = self.reorder(degens)
+         cdftype = self.zvar.type()
+         constructor = self.zvar._c_type()
+         #Build array from innermost out
+         for count, degen in zip(counts[-1::-1], degens[-1::-1]):
+             if not degen:
+                 constructor *= count
+         return constructor()
 
     def convert_array(self, array):
         """Converts a nested list-of-lists to format of this slice
@@ -2584,7 +2612,6 @@ class _Hyperslice(object):
             else:
                 #Record-number dimension is not degenerate, so keep it first
                 array = [self.flip_majority(i) for i in array]
-
         if True in self.rev:
             #Remove degenerate dimensions
             rev = [self.rev[i] for i in range(self.dims) if not self.degen[i]]
@@ -2628,7 +2655,7 @@ class _Hyperslice(object):
         else:
             return self.c_array_to_list(buffer)
 
-    def convert_input_buffer(self, buffer):
+    def convert_input_array(self, buffer):
         """Converts a buffer of raw data from this slice
 
         EPOCH(16) variables always need to be converted.
@@ -2644,22 +2671,36 @@ class _Hyperslice(object):
         out : numpy.array
             converted data
         """
+        #Convert to derived types
         cdftype = self.zvar.type()
-        if cdfype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
+        if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
            str != bytes:
-            return numpy.char.array(buffer).decode()
+            result = numpy.char.array(buffer).decode()
         elif cdftype == const.CDF_EPOCH.value:
-            if isinstance(result, float): #single value
-                result = lib.epoch_to_datetime(result)
-            else:
-                hslice.transform_each(result, lib.epoch_to_datetime)
+            result = lib.v_epoch_to_datetime(buffer)
         elif cdftype == const.CDF_EPOCH16.value:
-            if isinstance(result[0], float): #single value
-                result = lib.epoch16_to_datetime(*result)
-            else:
-                hslice.transform_each(result, lib.epoch16_to_datetime)
+            result = lib.v_epoch16_to_datetime(buffer[..., 0],
+                                           buffer[..., 1])
         else:
-            return buffer
+            result = buffer
+            
+        #Flip majority if any non-degenerate dimensions exist
+        if self.column and not min(self.degen):
+            #Record-number dim degen, swap whole thing
+            if self.degen[0]:
+                result = result.transpose()
+            #Record-number dimension is not degenerate, so keep it first
+            else:
+                result = result.transpose(
+                    [0] + list(range(len(result.shape) - 1, 0, -1)))
+        #Reverse non-degenerate dimensions in rev
+        #Remember that the degenerate indices are already gone!
+        if self.rev.any():
+            sliced = [(slice(None, None, -1) if self.rev[i] else slice(None))
+                for i in range(self.dims) if not self.degen[i]]
+            return operator.getitem(result, sliced)
+        else:
+            return result
 
     def pack_buffer(self, buff, data):
         """Packs data in the form of this slice into a buffer

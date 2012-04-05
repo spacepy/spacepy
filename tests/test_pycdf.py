@@ -441,9 +441,10 @@ class MakeCDF(unittest.TestCase):
         newcdf.close()
         os.remove(self.testfspec)
         self.assertEqual(const.CDF_EPOCH.value, newtype)
-        self.assertEqual([datetime.datetime(2000, 1, 1, 0, 0, 1),
-                          datetime.datetime(2001, 1, 1, 0, 0, 1)],
-                         newdata)
+        numpy.testing.assert_array_equal(
+            [datetime.datetime(2000, 1, 1, 0, 0, 1),
+             datetime.datetime(2001, 1, 1, 0, 0, 1)],
+            newdata)
 
     def testCreateCDFLeak(self):
         """Make a CDF that doesn't get collected"""
@@ -959,10 +960,10 @@ class ReadCDF(CDFTests):
 
     def testSubscriptVariable(self):
         """Refer to an array by subscript"""
-        self.assertEqual([3, 25, 47],
-                         self.cdf['PhysRecNo'][0:5:2])
-        self.assertEqual([1094, 1083, 1072, 1061],
-                         self.cdf['PhysRecNo'][-1:-5:-1])
+        numpy.testing.assert_array_equal([3, 25, 47],
+                                         self.cdf['PhysRecNo'][0:5:2])
+        numpy.testing.assert_array_equal([1094, 1083, 1072, 1061],
+                                         self.cdf['PhysRecNo'][-1:-5:-1])
         self.assertEqual(1.0,
                          self.cdf['SpinRateScalersCounts'][41, 2, 15])
 
@@ -983,8 +984,8 @@ class ReadCDF(CDFTests):
                     datetime.datetime(1998, 1, 15, 0, 10, 12, 313815),
                     datetime.datetime(1998, 1, 15, 0, 11, 54, 507400)
                     ]
-        self.assertEqual(expected,
-                         self.cdf['ATC'][4:8])
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['ATC'][4:8])
 
     def testReadEpoch8(self):
         """Read an Epoch value"""
@@ -996,8 +997,8 @@ class ReadCDF(CDFTests):
                     datetime.datetime(1998, 1, 15, 0, 6, 0, 0),
                     datetime.datetime(1998, 1, 15, 0, 7, 0, 0),
                     ]
-        self.assertEqual(expected,
-                         self.cdf['Epoch'][4:8])
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['Epoch'][4:8])
 
     def testRead2DEpoch(self):
         """Read an Epoch16 variable with nonzero dimension"""
@@ -1008,12 +1009,12 @@ class ReadCDF(CDFTests):
                     [datetime.datetime(2000, 1, 3),
                      datetime.datetime(2000, 1, 3, 1)],
                     ]
-        self.assertEqual(expected, self.cdf['Epoch2D'][...])
+        numpy.testing.assert_array_equal(expected, self.cdf['Epoch2D'][...])
 
     def testRead1DString(self):
         """Read a string with nonzero dimension"""
         expected = [['A', 'B', 'C'], ['D', 'E', 'F']]
-        self.assertEqual(expected, self.cdf['String1D'][...])
+        numpy.testing.assert_array_equal(expected, self.cdf['String1D'][...])
 
     def testnElems(self):
         """Read number of elements in a string variable"""
@@ -1022,24 +1023,27 @@ class ReadCDF(CDFTests):
 
     def testSubscriptString(self):
         """Refer to a string array by subscript"""
-        self.assertEqual(['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-                          '8 ', '9 ', '10', '11', '12', '13', '14', '15',
-                          '16', '17'],
-                         self.cdf['SpinNumbers'][:])
+        numpy.testing.assert_array_equal(
+            ['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
+             '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+             '16', '17'],
+            self.cdf['SpinNumbers'][:])
 
     def testSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
-        self.assertEqual(['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
-                          'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
-                          '3He', 'D', 'Molecules', 'Others'],
-                         self.cdf['RateScalerNames'][:])
+        numpy.testing.assert_array_equal(
+            ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
+             'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
+             '3He', 'D', 'Molecules', 'Others'],
+            self.cdf['RateScalerNames'][:])
 
     def testGetAllNRV(self):
         """Get an entire non record varying variable"""
-        self.assertEqual(['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-                          '8 ', '9 ', '10', '11', '12', '13', '14', '15',
-                          '16', '17'],
-                         self.cdf['SpinNumbers'][...])
+        numpy.testing.assert_array_equal(
+            ['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
+             '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+             '16', '17'],
+            self.cdf['SpinNumbers'][...])
 
     def testGetsingleNRV(self):
         """Get single element of non record varying variable"""
@@ -1048,7 +1052,8 @@ class ReadCDF(CDFTests):
 
     def testcharType(self):
         """Get a CDF_CHAR variable and make sure it's a string"""
-        self.assertTrue(isinstance(self.cdf['SpinNumbers'][0], str))
+        self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
+                         'S')
 
     def testGetVarUnicode(self):
         name = 'ATC'
@@ -1382,14 +1387,14 @@ class ReadCDF(CDFTests):
             self.assertEqual(zvar[i], zvarcopy[i])
         for i in zvarcopy.attrs:
             self.assertEqual(zvar.attrs[i], zvarcopy.attrs[i])
-        self.assertEqual(zvar[...], zvarcopy[...])
+        numpy.testing.assert_array_equal(zvar[...], zvarcopy[...])
 
     def testCDFCopy(self):
         """Make a copy of an entire CDF"""
         cdfcopy = self.cdf.copy()
         self.assertNotEqual(cdfcopy, self.cdf)
         for key in self.cdf:
-            self.assertEqual(self.cdf[key][...], cdfcopy[key])
+            numpy.testing.assert_array_equal(self.cdf[key][...], cdfcopy[key])
             self.assertNotEqual(self.cdf[key], cdfcopy[key])
         for key in self.cdf.attrs:
             self.assertEqual(self.cdf.attrs[key][:], cdfcopy.attrs[key])
@@ -1612,26 +1617,26 @@ class ReadColCDF(ColCDFTests):
         """Refer to an column-major array by subscript"""
         #NB: Should be in SAME order as row-major,
         #since converted in convert_array
-        self.assertEqual([3, 25, 47],
-                         self.cdf['PhysRecNo'][0:5:2])
-        self.assertEqual([1094, 1083, 1072, 1061],
-                         self.cdf['PhysRecNo'][-1:-5:-1])
+        numpy.testing.assert_array_equal([3, 25, 47],
+                                         self.cdf['PhysRecNo'][0:5:2])
+        numpy.testing.assert_array_equal([1094, 1083, 1072, 1061],
+                                         self.cdf['PhysRecNo'][-1:-5:-1])
         self.assertEqual(1.0,
                          self.cdf['SpinRateScalersCounts'][41, 2, 15])
 
     def testColSubscriptString(self):
         """Refer to a string array by subscript"""
-        self.assertEqual(['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-                          '8 ', '9 ', '10', '11', '12', '13', '14', '15',
-                          '16', '17'],
-                         self.cdf['SpinNumbers'][:])
+        numpy.testing.assert_array_equal(['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
+                                          '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+                                          '16', '17'],
+                                         self.cdf['SpinNumbers'][:])
 
     def testColSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
-        self.assertEqual(['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
-                          'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
-                          '3He', 'D', 'Molecules', 'Others'],
-                         self.cdf['RateScalerNames'][:])
+        numpy.testing.assert_array_equal(['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
+                                          'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
+                                          '3He', 'D', 'Molecules', 'Others'],
+                                         self.cdf['RateScalerNames'][:])
 
     def testColReadEpochs(self):
         """Read an Epoch16 value"""
@@ -1643,8 +1648,8 @@ class ReadColCDF(ColCDFTests):
                     datetime.datetime(1998, 1, 15, 0, 10, 12, 313815),
                     datetime.datetime(1998, 1, 15, 0, 11, 54, 507400)
                     ]
-        self.assertEqual(expected,
-                         self.cdf['ATC'][4:8])
+        numpy.testing.assert_array_equal(expected,
+                                         self.cdf['ATC'][4:8])
 
     def testContains(self):
         """See if variable exists in CDF"""
@@ -1751,38 +1756,43 @@ class ChangeCDF(CDFTests):
         expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
                     '8 ', '9 ']
         self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
-        self.assertEqual(expected, self.cdf['SpinNumbers'][0:10])
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['SpinNumbers'][0:10])
 
         expected = self.cdf['SectorRateScalersCounts'][...]
         expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
         self.cdf['SectorRateScalersCounts'][4, 5, 5, 8:3:-1] = \
             [101.0, 102.0, 103.0, 104.0, 105.0]
-        self.assertEqual(expected, self.cdf['SectorRateScalersCounts'][...])
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['SectorRateScalersCounts'][...])
 
         self.cdf['PhysRecNo'] = [1, 2, 3]
-        self.assertEqual([1, 2, 3], self.cdf['PhysRecNo'][...])
+        numpy.testing.assert_array_equal(
+            [1, 2, 3], self.cdf['PhysRecNo'][...])
 
     def testWriteExtend(self):
         """Write off the end of the variable"""
         additional = [2000 + i for i in range(20)]
-        expected = self.cdf['PhysRecNo'][0:95] + additional
+        expected = self.cdf['PhysRecNo'][0:95].tolist() + additional
         self.cdf['PhysRecNo'][95:] = additional
         self.assertEqual(115, len(self.cdf['PhysRecNo']))
-        self.assertEqual(expected, self.cdf['PhysRecNo'][:])
+        numpy.testing.assert_array_equal(expected, self.cdf['PhysRecNo'][:])
 
     def testInsertRecord(self):
         """Insert a record into the middle of a variable"""
-        PhysRecNoData = self.cdf['PhysRecNo'][...]
+        PhysRecNoData = self.cdf['PhysRecNo'][...].tolist()
         PhysRecNoData[5:6] = [-1, -2, -3, -4]
         self.cdf['PhysRecNo'][5:6] = [-1, -2, -3, -4]
         self.assertEqual(103, len(self.cdf['PhysRecNo']))
-        self.assertEqual(PhysRecNoData, self.cdf['PhysRecNo'][...])
+        numpy.testing.assert_array_equal(
+            PhysRecNoData, self.cdf['PhysRecNo'][...])
 
     def testWriteAndTruncate(self):
         """Write with insufficient data to fill all existing records"""
         expected = [-1 * i for i in range(20)]
         self.cdf['PhysRecNo'][:] = expected
-        self.assertEqual(expected, self.cdf['PhysRecNo'][:])
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['PhysRecNo'][:])
 
     def testWriteWrongSizeData(self):
         """Write with data sized or shaped differently from expected"""
@@ -1816,13 +1826,14 @@ class ChangeCDF(CDFTests):
         del self.cdf['PhysRecNo'][5]
         del PhysRecCopy[5]
         self.assertEqual(oldlen - 1, len(self.cdf['PhysRecNo']))
-        self.assertEqual(PhysRecCopy[0:15], self.cdf['PhysRecNo'][0:15])
+        numpy.testing.assert_array_equal(
+            PhysRecCopy[0:15], self.cdf['PhysRecNo'][0:15])
 
         oldlen = len(self.cdf['ATC'])
         ATCCopy = self.cdf['ATC'].copy()
         del self.cdf['ATC'][0::2]
         self.assertEqual(int(oldlen / 2), len(self.cdf['ATC']))
-        self.assertEqual(ATCCopy[1::2], self.cdf['ATC'][...])
+        numpy.testing.assert_array_equal(ATCCopy[1::2], self.cdf['ATC'][...])
 
         message = 'Cannot delete records from non-record-varying variable.'
         try:
@@ -1840,8 +1851,9 @@ class ChangeCDF(CDFTests):
         del SectorRateScalersCountsCopy[-1:-5:-1]
         del self.cdf['SectorRateScalersCounts'][-1:-5:-1]
         self.assertEqual(oldlen - 4, len(self.cdf['SectorRateScalersCounts']))
-        self.assertEqual(SectorRateScalersCountsCopy[...],
-                         self.cdf['SectorRateScalersCounts'][...])
+        numpy.testing.assert_array_equal(
+            SectorRateScalersCountsCopy[...],
+            self.cdf['SectorRateScalersCounts'][...])
 
         oldlen = len(self.cdf['SectorRateScalersCounts'])
         del self.cdf['SectorRateScalersCounts'][-1:-5]
@@ -1862,7 +1874,8 @@ class ChangeCDF(CDFTests):
         zvar = self.cdf['PhysRecNo']
         zvardata = zvar[...]
         zvar.rename('foobar')
-        self.assertEqual(zvardata, self.cdf['foobar'][...])
+        numpy.testing.assert_array_equal(
+            zvardata, self.cdf['foobar'][...])
         try:
             zvar = self.cdf['PhysRecNo']
         except KeyError:
@@ -2098,8 +2111,8 @@ class ChangeCDF(CDFTests):
                      const.CDF_INT4)
         self.assertTrue('newzVar' in self.cdf)
         zvar = self.cdf['newzVar']
-        self.assertEqual([[1, 2, 3], [4, 5, 6]],
-                         zvar[...])
+        numpy.testing.assert_array_equal(
+            [[1, 2, 3], [4, 5, 6]], zvar[...])
         self.assertEqual(2, len(zvar))
         self.assertEqual([3], zvar._dim_sizes())
 
@@ -2108,8 +2121,8 @@ class ChangeCDF(CDFTests):
         self.cdf['newzVar'] = [[1, 2, 3], [4, 5, 6]]
         self.assertTrue('newzVar' in self.cdf)
         zvar = self.cdf['newzVar']
-        self.assertEqual([[1, 2, 3], [4, 5, 6]],
-                         zvar[...])
+        numpy.testing.assert_array_equal(
+            [[1, 2, 3], [4, 5, 6]], zvar[...])
         self.assertEqual(2, len(zvar))
         self.assertEqual([3], zvar._dim_sizes())
 
@@ -2126,7 +2139,8 @@ class ChangeCDF(CDFTests):
         """Change the type of a variable"""
         self.cdf['new'] = [-1, -2, -3]
         self.cdf['new'].type(const.CDF_UINT1)
-        self.assertEqual([255, 254, 253], self.cdf['new'][...])
+        numpy.testing.assert_array_equal(
+            [255, 254, 253], self.cdf['new'][...])
 
     def testNewVarNoData(self):
         """Create a new variable without providing any data"""
@@ -2142,7 +2156,8 @@ class ChangeCDF(CDFTests):
         self.cdf.new('newvar2', [1, 2, 3], recVary=False)
         self.assertFalse(self.cdf['newvar2'].rv())
         self.assertEqual([3], self.cdf['newvar2']._dim_sizes())
-        self.assertEqual([1, 2, 3], self.cdf['newvar2'][...])
+        numpy.testing.assert_array_equal(
+            [1, 2, 3], self.cdf['newvar2'][...])
 
     def testChangeRV(self):
         """Change record variance"""
@@ -2226,7 +2241,8 @@ class ChangeCDF(CDFTests):
             self.assertEqual(oldvar.compress(), newvar.compress(), msg)
             self.assertEqual(oldvar.rv(), newvar.rv(), msg)
             self.assertEqual(oldvar.dv(), newvar.dv(), msg)
-            self.assertEqual(oldvar[...], newvar[...], msg)
+            numpy.testing.assert_array_equal(
+                oldvar[...], newvar[...], msg)
             oldlist = oldvar.attrs
             newlist = newvar.attrs
             for attrname in oldlist:
@@ -2357,14 +2373,14 @@ class ChangeCDF(CDFTests):
 
     def testzVarInsert(self):
         """Insert a record into a zVariable"""
-        before = self.cdf['ATC'][:]
+        before = self.cdf['ATC'][:].tolist()
         self.cdf['ATC'].insert(100, datetime.datetime(2010, 12, 31))
         before.insert(100, datetime.datetime(2010, 12, 31))
-        self.assertEqual(before, self.cdf['ATC'][:])
-        before = self.cdf['MeanCharge'][:]
+        numpy.testing.assert_array_equal(before, self.cdf['ATC'][:])
+        before = self.cdf['MeanCharge'][:].tolist()
         self.cdf['MeanCharge'].insert(20, [99] * 16)
         before.insert(20, [99] * 16)
-        self.assertEqual(before, self.cdf['MeanCharge'][:])
+        numpy.testing.assert_array_equal(before, self.cdf['MeanCharge'][:])
 
 
 class ChangeColCDF(ColCDFTests):
@@ -2387,13 +2403,14 @@ class ChangeColCDF(ColCDFTests):
         expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
                     '8 ', '9 ']
         self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
-        self.assertEqual(expected, self.cdf['SpinNumbers'][0:10])
+        numpy.testing.assert_array_equal(expected, self.cdf['SpinNumbers'][0:10])
 
         expected = self.cdf['SectorRateScalersCounts'][...]
         expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
         self.cdf['SectorRateScalersCounts'][4, 5, 5, 8:3:-1] = \
             [101.0, 102.0, 103.0, 104.0, 105.0]
-        self.assertEqual(expected, self.cdf['SectorRateScalersCounts'][...])
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['SectorRateScalersCounts'][...])
 
 
 if __name__ == '__main__':
