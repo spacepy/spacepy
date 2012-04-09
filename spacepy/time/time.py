@@ -1095,7 +1095,7 @@ class Ticktock(object):
         elif self.dtype.upper() == 'RDT':
             # import matplotlib.dates as mpd
             UTC = num2date(self.data)
-            UTC = [t.replace(tzinfo=None) for t in UTC]
+            UTC = no_tzinfo(UTC)
             #for i in np.arange(nTAI):
                 #UTC[i] = datetime.datetime(1,1,1) + \
                     #datetime.timedelta(days=np.floor(self.data[i])-1) +  \
@@ -1614,13 +1614,33 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
         return [hours, minutes, seconds]
 
 
+def no_tzinfo(dt):
+    """
+    take in an arraylike of datetime objects and return them without any tzinfo
+    
+    Parameters
+    ==========
+    dt : iterable
+        iterable of datetime.datetime objects
+        
+    Returns
+    =======
+    out : list
+        list of datetime.datetime without tzinfo
+    """
+    try:
+        return [val.replace(tzinfo=None) for val in dt]
+    except TypeError: # was not an iterable
+        return dt.replace(tzinfo=None)
+
+
 # -----------------------------------------------
 def test():
     """
     test all time conversions
 
     Returns
-    ========
+    =======
         out : int
             number of failures
 
