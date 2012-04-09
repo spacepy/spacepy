@@ -1822,12 +1822,11 @@ class Var(collections.MutableSequence):
         @raise CDFError: for errors from the CDF library
         """
         hslice = _Hyperslice(self, key)
-        if hslice.counts[0] == 0:
-            return []
         result = hslice.create_array()
-        hslice.select()
-        lib.call(const.GET_, const.zVAR_HYPERDATA_,
-                 result.ctypes.data_as(ctypes.c_void_p))
+        if hslice.counts[0] != 0:
+            hslice.select()
+            lib.call(const.GET_, const.zVAR_HYPERDATA_,
+                     result.ctypes.data_as(ctypes.c_void_p))
         return hslice.convert_input_array(result)
 
     def __delitem__(self, key):

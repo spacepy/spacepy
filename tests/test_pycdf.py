@@ -974,6 +974,12 @@ class ReadCDF(CDFTests):
         SpinRateScalersCounts = self.cdf['SpinRateScalersCounts'][...]
         self.assertEqual(100, len(SpinRateScalersCounts))
 
+    def testEmptyResults(self):
+        """Request an empty slice from a variable"""
+        data = self.cdf['SectorRateScalersCounts'][1:1]
+        self.assertEqual((0,18, 32, 9), data.shape)
+        self.assertEqual(data.dtype, numpy.float32)
+
     def testReadEpochs(self):
         """Read an Epoch16 value"""
         expected = datetime.datetime(1998, 1, 15, 0, 0, 5, 334662)
@@ -2238,7 +2244,9 @@ class ChangeCDF(CDFTests):
     def testReadEmptyList(self):
         """Read from an empty variable"""
         self.cdf['ATC'] = []
-        self.assertEqual([], self.cdf['ATC'][...])
+        data = self.cdf['ATC'][...]
+        self.assertEqual((0,), data.shape)
+        self.assertEqual(numpy.object, data.dtype)
 
     def testCopyVariable(self):
         """Copy one variable to another"""
@@ -2288,7 +2296,7 @@ class ChangeCDF(CDFTests):
             self.assertEqual(oldvar.rv(), newvar.rv(), msg)
             self.assertEqual(oldvar.dv(), newvar.dv(), msg)
             if newvar.rv():
-                self.assertEqual([], newvar[...], msg)
+                self.assertEqual(0, newvar[...].size, msg)
             oldlist = oldvar.attrs
             newlist = newvar.attrs
             for attrname in oldlist:
