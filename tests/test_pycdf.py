@@ -1435,15 +1435,29 @@ class ReadCDF(CDFTests):
         expected = {'String1D': '', 'SectorRateScalerNames': 'CATDESC: Species found in each per-sector rate scaler [CDF_CHAR]\nFIELDNAM: Sector Rate Scaler Names [CDF_CHAR]\nFORMAT: A10 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]\nVAR_NOTES: From J. Fennell revision 1997/02/28 [CDF_CHAR]', 'PhysRecNo': 'CATDESC: LZ record number for first major in this master [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: physical record [CDF_CHAR]\nFILLVAL: -2147483648 [CDF_INT4]\nFORMAT: I8 [CDF_CHAR]\nVALIDMIN: 0 [CDF_INT4]\nVALIDMAX: 20000 [CDF_INT4]\nVAR_TYPE: metadata [CDF_CHAR]', 'RateScalerNames': 'CATDESC: Species found in each rate scaler [CDF_CHAR]\nFIELDNAM: Rate Scaler Names [CDF_CHAR]\nFORMAT: A10 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]\nVAR_NOTES: From J. Fennell revision 1997/02/28 [CDF_CHAR]', 'SpinRateScalersCountsSigma': 'CATDESC: Uncertainty in counts in the per-spin rate scalers. [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: Spin rate scaler uncertainty [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: E6.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: RateScalerNames [CDF_CHAR]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVALIDMAX: 1000000.0 [CDF_FLOAT]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Combines uncertainty from RS compression and Poisson stats. Total counts accumulated over one spin (divide by SectorLength*32-58ms for rate). [CDF_CHAR]', 'SectorRateScalersCountsSigma': 'CATDESC: Uncertainty in counts in the per-sector rate scalers. [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: Sector rate scaler uncertainty [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: E12.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: SectorNumbers [CDF_CHAR]\nLABL_PTR_3: SectorRateScalerNames [CDF_CHAR]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVALIDMAX: 9.99999995904e+11 [CDF_FLOAT]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Combines uncertainty from RS compression and Poisson stats. Total counts accumulated over one sector (divide by SectorLength for rate. Subtract 58ms for sector 0) [CDF_CHAR]', 'SpinRateScalersCounts': 'CATDESC: Counts in the per-spin rate scalers [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nDEPEND_1: SpinNumbers [CDF_CHAR]\nDEPEND_2: RateScalerNames [CDF_CHAR]\nDISPLAY_TYPE: time_series [CDF_CHAR]\nFIELDNAM: Spin rate scaler number counts [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: E6.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: RateScalerNames [CDF_CHAR]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVALIDMAX: 1000000.0 [CDF_FLOAT]\nVAR_TYPE: data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Total counts accumulated over one spin (divide by SectorLength*32-58ms for rate). [CDF_CHAR]\nDELTA_PLUS_VAR: SpinRateScalersCountsSigma [CDF_CHAR]\nDELTA_MINUS_VAR: SpinRateScalersCountsSigma [CDF_CHAR]', 'SpinNumbers': 'CATDESC: Spin number within the TM Master [CDF_CHAR]\nFIELDNAM: Spin Number [CDF_CHAR]\nFORMAT: A3 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]', 'Epoch': 'CATDESC: Standard CDF Epoch time (8 byte) [CDF_CHAR]\nFIELDNAM: UTC [CDF_CHAR]\nFILLVAL: 9999-12-31 23:59:59.999000 [CDF_EPOCH]\nVALIDMIN: 1996-01-01 00:00:00 [CDF_EPOCH]\nVALIDMAX: 2008-12-31 23:59:59.999000 [CDF_EPOCH]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nMONOTON: INCREASE [CDF_CHAR]', 'SectorRateScalersCounts': 'CATDESC: Counts in the per-sector rate scalers [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nDEPEND_1: SpinNumbers [CDF_CHAR]\nDEPEND_2: SectorNumbers [CDF_CHAR]\nDEPEND_3: SectorRateScalerNames [CDF_CHAR]\nDISPLAY_TYPE: time_series [CDF_CHAR]\nFIELDNAM: Sector rate scaler counts [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: E6.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: SectorNumbers [CDF_CHAR]\nLABL_PTR_3: SectorRateScalerNames [CDF_CHAR]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVALIDMAX: 1000000.0 [CDF_FLOAT]\nVAR_TYPE: data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Total counts accumulated over one sector (divide by SectorLength for rate, subtracting 58ms for sector 0). [CDF_CHAR]\nDELTA_PLUS_VAR: SectorRateScalersCountsSigma [CDF_CHAR]\nDELTA_MINUS_VAR: SectorRateScalersCountsSigma [CDF_CHAR]', 'MeanCharge': 'CATDESC: Mean charge state [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: avg charge [CDF_CHAR]\nFILLVAL: -9.99999984824e+30 [CDF_FLOAT]\nFORMAT: F3.1 [CDF_CHAR]\nLABL_PTR_1: RateScalerNames [CDF_CHAR]\nUNITS: e [CDF_CHAR]\nVALIDMIN: 1.0 [CDF_FLOAT]\nVALIDMAX: 8.0 [CDF_FLOAT]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Mean charge state in each rate scaler. For the ENTIRE master period (i.e. summed over all energies), based on COUNTS. [CDF_CHAR]', 'SectorNumbers': 'CATDESC: Data accumulation sector number within the spin [CDF_CHAR]\nFIELDNAM: Sector Number [CDF_CHAR]\nFORMAT: A3 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]', 'MajorNumbers': 'CATDESC: major frame number within the TM Master [CDF_CHAR]\nFIELDNAM: Major Frame Number [CDF_CHAR]\nFORMAT: A2 [CDF_CHAR]\nVAR_TYPE: metadata [CDF_CHAR]', 'Epoch2D': '', 'ATC': 'CATDESC: Absolute Time Code [CDF_CHAR]\nFIELDNAM: ATC [CDF_CHAR]\nFILLVAL: 9999-12-31 23:59:59.999999 [CDF_EPOCH16]\nLABLAXIS: UT [CDF_CHAR]\nVALIDMIN: 1996-01-01 00:00:00 [CDF_EPOCH16]\nVALIDMAX: 2009-01-01 00:00:00 [CDF_EPOCH16]\nVAR_TYPE: support_data [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVAR_NOTES: Time when data in this master started accumulating. [CDF_CHAR]\nMONOTON: INCREASE [CDF_CHAR]'}
         actual = dict([(varname, str(zVar.attrs))
                         for (varname, zVar) in self.cdf.items()])
-        #Py3k and 2k display the floats differently
-        del expected['SectorRateScalersCountsSigma']
-        del actual['SectorRateScalersCountsSigma']
+        #Py3k and 2k display the floats differently,
+        #as do numpy and Python
+        ignorelist = ('SectorRateScalersCountsSigma',
+                      'SpinRateScalersCountsSigma',
+                      'SpinRateScalersCounts',
+                      'SectorRateScalersCounts',
+                      'MeanCharge',
+                      )
+        for k in ignorelist:
+            del expected[k]
+            del actual[k]
+        for k in expected:
+            if expected[k] != actual[k]:
+                print('Difference in ' + k)
+                print('Expected: ' + expected[k])
+                print('Actual: ' + actual[k])
         self.assertEqual(expected, actual)
         for idx in expected:
             expected[idx] = '<zAttrList:\n' + expected[idx] + '\n>'
         actual = dict([(varname, repr(zVar.attrs))
                         for (varname, zVar) in self.cdf.items()])
-        del actual['SectorRateScalersCountsSigma']
+        for k in ignorelist:
+            del actual[k]
         self.assertEqual(expected, actual)
 
     def testReadClosedCDF(self):
@@ -1901,7 +1915,7 @@ class ChangeCDF(CDFTests):
                                    'DEPEND_0').type(zvar._num()))
 
         zvar.attrs['FILLVAL'] = [0, 1]
-        self.assertEqual([0,1], zvar.attrs['FILLVAL'])
+        numpy.testing.assert_array_equal([0,1], zvar.attrs['FILLVAL'])
         self.assertEqual(const.CDF_INT4.value,
                          cdf.zAttr(self.cdf,
                                    'FILLVAL').type(zvar._num()))
@@ -1935,7 +1949,7 @@ class ChangeCDF(CDFTests):
                                    'NEW_ATTRIBUTE').type(zvar._num()))
 
         zvar.attrs['NEW_ATTRIBUTE2'] = [1, 2]
-        self.assertEqual([1, 2], zvar.attrs['NEW_ATTRIBUTE2'])
+        numpy.testing.assert_array_equal([1, 2], zvar.attrs['NEW_ATTRIBUTE2'])
         self.assertEqual(const.CDF_INT4.value,
                          cdf.zAttr(self.cdf,
                                    'NEW_ATTRIBUTE2').type(zvar._num()))
@@ -2061,7 +2075,7 @@ class ChangeCDF(CDFTests):
         #no type or number
         attr.new([0, 1, 2, 3])
         self.assertEqual(2, len(attr))
-        self.assertEqual([0, 1, 2, 3], attr[1])
+        numpy.testing.assert_array_equal([0, 1, 2, 3], attr[1])
         self.assertEqual(const.CDF_BYTE.value, attr.type(1))
         #explicit number
         attr.new('hello there', number=10)
@@ -2078,7 +2092,7 @@ class ChangeCDF(CDFTests):
         #explicit type
         attr.new([10, 11, 12, 13], const.CDF_REAL8)
         self.assertEqual(5, len(attr))
-        self.assertEqual([10.0, 11.0, 12.0, 13.0], attr[2])
+        numpy.testing.assert_array_equal([10.0, 11.0, 12.0, 13.0], attr[2])
         self.assertEqual(const.CDF_REAL8.value, attr.type(2))
 
     def testgAttrListNew(self):
@@ -2088,10 +2102,10 @@ class ChangeCDF(CDFTests):
         self.assertTrue('new' in attrs)
         attrs.new('new2', [1, 2, 3])
         self.assertTrue('new2' in attrs)
-        self.assertEqual([1, 2, 3], attrs['new2'][0])
+        numpy.testing.assert_array_equal([1, 2, 3], attrs['new2'][0])
         attrs.new('new3', [1, 2, 3], const.CDF_INT4)
         self.assertTrue('new3' in attrs)
-        self.assertEqual([1, 2, 3], attrs['new3'][0])
+        numpy.testing.assert_array_equal([1, 2, 3], attrs['new3'][0])
         self.assertEqual(const.CDF_INT4.value, attrs['new3'].type(0))
 
     def testzAttrListNew(self):
@@ -2099,10 +2113,10 @@ class ChangeCDF(CDFTests):
         attrs = self.cdf['ATC'].attrs
         attrs.new('new2', [1, 2, 3])
         self.assertTrue('new2' in attrs)
-        self.assertEqual([1, 2, 3], attrs['new2'])
+        numpy.testing.assert_array_equal([1, 2, 3], attrs['new2'])
         attrs.new('new3', [1, 2, 3], const.CDF_INT4)
         self.assertTrue('new3' in attrs)
-        self.assertEqual([1, 2, 3], attrs['new3'])
+        numpy.testing.assert_array_equal([1, 2, 3], attrs['new3'])
         self.assertEqual(const.CDF_INT4.value, attrs.type('new3'))
 
     def testNewVar(self):

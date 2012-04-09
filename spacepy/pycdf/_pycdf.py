@@ -3620,35 +3620,36 @@ class Attr(collections.MutableSequence):
         @return: data from entry numbered L{number}
         @rtype: list or str
         """
+        if not self.has_entry(number):
+            raise IndexError('list index ' + str(number) + ' out of range.')
         #Make a big enough buffer
         length = self._entry_len(number)
         cdftype = self.type(number)
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
-            buff = ctypes.create_string_buffer(length)
+            buff = numpy.empty((), 'S{0}'.format(length), order='C')
         else:
-            try:
-                buff = (lib.ctypedict[cdftype] * length)()
-            except KeyError:
+            if not cdftype in lib.numpytypedict:
                 raise CDFError(const.BAD_DATA_TYPE)
-
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
+            buff = numpy.empty((length,), lib.numpytypedict[cdftype],
+                               order='C')
+        buff = numpy.require(buff, requirements=('C', 'A', 'W'))
         self._call(const.SELECT_, self.ENTRY_, number,
-                   const.GET_, self.ENTRY_DATA_, ctypes.byref(buff))
+                   const.GET_, self.ENTRY_DATA_,
+                   buff.ctypes.data_as(ctypes.c_void_p))
 
         #decode
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
-            result = buff.value
-            if not isinstance(result, str):
-                result = result.decode()
+            if str == bytes: #Py2k
+                result = str(buff)
+            else: #Py3k, make unicode
+                result = str(numpy.char.array(buff).decode())
         else:
             if cdftype == const.CDF_EPOCH.value:
-                result = [lib.epoch_to_datetime(item) for item in buff]
+                result = lib.v_epoch_to_datetime(buff)
             elif cdftype == const.CDF_EPOCH16.value:
-                result = [lib.epoch16_to_datetime(*item[:]) for item in buff]
+                result = lib.v_epoch16_to_datetime(buff[:, 0], buff[:, 1])
             else:
-                #subscripting c_array usually returns Python type, not ctype
-                result = [item for item in buff]
+                result = buff
             if length == 1:
                 result = result[0]
 
