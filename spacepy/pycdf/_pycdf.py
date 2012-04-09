@@ -2403,7 +2403,7 @@ class _Hyperslice(object):
                   Final result will be the product of everything
                   in counts.
                   ('dimension counts' in CDF speak)
-    @type counts: list of int
+    @type counts: numpy.array
     @ivar intervals: interval between successive indices
                      to use for each dimension.
                      ('dimension invervals' in CDF speak)
@@ -2412,9 +2412,9 @@ class _Hyperslice(object):
                  removed in the returned dataset. A 3D array
                  with one dimension degenerate will be returned
                  as a 2D array (i.e. list-of-lists.)
-    @type degen: list of boolean
+    @type degen: numpy.array
     @ivar rev: should this dimension be returned in reverse order?
-    @type rev: list of boolean
+    @type rev: numpy.array
     @ivar column: is this slice in column-major mode (if false, row-major)
     @type column: boolean
     @ivar zvar: what CDF variable this object slices on
