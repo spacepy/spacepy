@@ -2629,31 +2629,6 @@ class _Hyperslice(object):
                         list.reverse()
         return array
 
-    def unpack_buffer(self, buffer):
-        """Unpacks a buffer of data from this slice into pythonic form
-
-        @param buffer: ctypes object created by L{create_buffer}
-        @type buffer: subclass of ctypes.Array
-        @return: list-of-lists of the data
-        """
-        cdftype = self.zvar.type()
-        if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
-            finaltype = self.zvar._c_type()
-            for count, degen in zip(self.counts[-1::-1], self.degen[-1::-1]):
-                if not degen:
-                    finaltype *= count
-            buffer = ctypes.cast(buffer, ctypes.POINTER(finaltype)).contents
-            buffer = self.c_array_to_list(buffer)
-            if str != bytes: #Need to decode output
-                if isinstance(buffer, bytes):
-                    buffer = buffer.decode()
-                else:
-                    dec = lambda x:x.decode()
-                    self.transform_each(buffer, dec)
-            return buffer
-        else:
-            return self.c_array_to_list(buffer)
-
     def convert_input_array(self, buffer):
         """Converts a buffer of raw data from this slice
 
@@ -2783,64 +2758,6 @@ class _Hyperslice(object):
                     currdim -= 1
                 else:
                     break
-
-    def c_array_to_list(self, array):
-        """Converts a ctypes array type to a python nested list
-
-        @param array: the array to convert
-        @type array: instance of ctypes.Array subclass
-        @return: contents of array
-        @rtype: list (of lists)
-        """
-        if hasattr(array, 'value'):
-            return array.value
-
-        dimsizes = []
-        counts = self.counts
-        degen = self.degen
-        if self.column:
-            counts = self.reorder(counts)
-            degen = self.reorder(degen)
-        for count, degen in zip(counts, degen):
-            if not degen:
-                dimsizes.append(count)
-
-        if self.zvar.type() == const.CDF_EPOCH16.value:
-            basetype = lib.ctypedict[const.CDF_EPOCH.value]
-            dimsizes.append(2)
-        else:
-            basetype = self.zvar._c_type()
-
-        n_elements = 1
-        for j in dimsizes:
-            n_elements *= j
-        flat_type = basetype * n_elements
-        flat = ctypes.cast(array,
-                           ctypes.POINTER(flat_type)
-                           ).contents
-
-        dims = [i for i in reversed(dimsizes)]
-        if len(dims) == 1:
-            if hasattr(flat[0], 'value'):
-                return [i.value for i in flat]
-            else:
-                return [i for i in flat]
-
-        for i in range(len(dims) - 1):
-            size = dims[i]
-            n_lists = 1
-            for j in dims[i + 1:]:
-                n_lists *= j
-            if i == 0:
-                if hasattr(flat[0], 'value'):
-                    result = [[k.value for k in flat[j * size:(j + 1) * size]]
-                              for j in range(n_lists)]
-                else:
-                    result = [[k for k in flat[j * size:(j + 1) * size]]
-                              for j in range(n_lists)]
-            else:
-                result = [result[j * size:(j + 1) * size] for j in range(n_lists)]
-        return result
 
     def transform_each(self, data, func):
         """Transforms each element of an n-D array
