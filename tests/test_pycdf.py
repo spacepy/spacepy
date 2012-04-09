@@ -816,19 +816,6 @@ class ReadCDF(CDFTests):
         for i in range(3):
             self.assertEqual(expected[i], buff[i].value)
 
-    def testHypersliceTransformEach(self):
-        """Apply the same function to every element in a hyperslice"""
-        sliced = cdf._pycdf._Hyperslice(self.cdf['SectorRateScalersCounts'],
-                                                 (0, Ellipsis))
-        #18 by 32 by 9
-        data = [[[(i * 32 + j) * 9 + k for k in range(9)]
-          for j in range(32)] for i in range(18)]
-        func = lambda x: x + 1
-        sliced.transform_each(data, func)
-        self.assertEqual([[[(i * 32 + j) * 9 + k + 1for k in range(9)]
-                           for j in range(32)] for i in range(18)],
-                         data)
-
     def testConvertArray(self):
         """Convert arrays to format of a slice"""
         sliced = cdf._pycdf._Hyperslice(self.cdf['SpinRateScalersCounts'],

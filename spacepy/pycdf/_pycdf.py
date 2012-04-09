@@ -2759,47 +2759,6 @@ class _Hyperslice(object):
                 else:
                     break
 
-    def transform_each(self, data, func):
-        """Transforms each element of an n-D array
-
-        L{data} must be dimensioned the same as this slice. Iterates
-        over each element in L{data}, applying L{func} to the element
-        and assigning the result back to the element.
-
-        L{data} must *not* be a scalar, as then it cannot be changed.
-
-        @param data: the data to transform
-        @type data: list
-        @param func: the function to call for each element in L{data}
-        @type func: callable
-        """
-        counts = self.counts
-        degen = self.degen
-        if self.column:
-            counts = self.reorder(counts)
-            degen = self.reorder(degen)
-        cdf_counts = [] #non-degenerate no. of elements in each dim., CDF order
-        for i in range(len(counts)):
-            if not degen[i]:
-                cdf_counts.append(counts[i])
-
-        lastdim = len(cdf_counts) - 1
-        idx = [0 for i in range(len(cdf_counts))]
-        while idx[0] < cdf_counts[0]:
-            parent = data
-            for i in idx[:-1]:
-                parent = parent[i]
-            parent[idx[-1]] = func(parent[idx[-1]])
-
-            currdim = lastdim
-            while currdim >= 0:
-                idx[currdim] += 1
-                if idx[currdim] >=  cdf_counts[currdim] and currdim > 0:
-                    idx[currdim] = 0
-                    currdim -= 1
-                else:
-                    break
-
     def select(self):
         """Selects this hyperslice in the CDF
 
