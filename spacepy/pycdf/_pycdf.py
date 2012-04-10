@@ -284,6 +284,10 @@ class Library(object):
             self.datetime_to_epoch, otypes=[numpy.float64])
         v_datetime_to_epoch16 = numpy.frompyfunc(
             self.datetime_to_epoch16, 1, 2)
+        #frompyfunc returns a TUPLE of the returned values,
+        #implicitly the 0th dimension. We want everything from one
+        #call paired, so this rolls the 0th dimension to the last
+        #(via the second-to-last)
         self.v_datetime_to_epoch16 = \
             lambda x: numpy.rollaxis(
                     numpy.rollaxis(
