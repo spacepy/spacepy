@@ -713,29 +713,6 @@ class ReadCDF(CDFTests):
             self.assertEqual(expected[i],
                              self.cdf[i]._np_type())
 
-    def testCreateReadArrays(self):
-        """Create an array for reading from a slice"""
-        slices = {'ATC': 1,
-                  'PhysRecNo': slice(10, 2, -2),
-                  'SpinNumbers': slice(2, None, 2),
-                  'SectorRateScalersCounts': (slice(3, 6, None),
-                                              slice(None, None, None),
-                                              slice(None, None, None)),
-                  'SpinRateScalersCounts': (Ellipsis, slice(-1, None, -1)),
-                  } #Slice objects indexed by variable
-        types = {'ATC': (ctypes.c_double * 2),
-                 'PhysRecNo': (ctypes.c_int * 4),
-                 'SpinNumbers': (ctypes.c_char * 2 * 8),
-                 'SectorRateScalersCounts': (ctypes.c_float *
-                                             9 * 32 * 3 * 100),
-                 'SpinRateScalersCounts': (ctypes.c_float * 16 * 18 * 100),
-                 } #constructors, build inside out
-        for i in types:
-            zvar = self.cdf[i]
-            sliced = cdf._pycdf._Hyperslice(zvar, slices[i])
-            actual = sliced.create_buffer().__class__
-            self.assertEqual(types[i], actual)
-
     def testSubscriptVariable(self):
         """Refer to an array by subscript"""
         numpy.testing.assert_array_equal([3, 25, 47],
@@ -1387,29 +1364,6 @@ class ReadColCDF(ColCDFTests):
             self.assertEqual(tuple(expected[i]), actual,
                              '\n' + str(tuple(expected[i])) + '!=\n' +
                              str(actual) + ' variable ' + i)
-
-    def testColCreateReadArrays(self):
-        """Create an array for reading from a slice"""
-        slices = {'ATC': 1,
-                  'PhysRecNo': slice(10, 2, -2),
-                  'SpinNumbers': slice(2, None, 2),
-                  'SectorRateScalersCounts': (slice(3, 6, None),
-                                              slice(None, None, None),
-                                              slice(None, None, None)),
-                  'SpinRateScalersCounts': (Ellipsis, slice(-1, None, -1)),
-                  } #Slice objects indexed by variable
-        types = {'ATC': (ctypes.c_double * 2),
-                 'PhysRecNo': (ctypes.c_int * 4),
-                 'SpinNumbers': (ctypes.c_char * 2 * 8),
-                 'SectorRateScalersCounts': (ctypes.c_float *
-                                             3 * 32 * 9 * 100),
-                 'SpinRateScalersCounts': (ctypes.c_float * 18 * 16 * 100),
-                 } #constructors, build inside out
-        for i in types:
-            zvar = self.cdf[i]
-            sliced = cdf._pycdf._Hyperslice(zvar, slices[i])
-            actual = sliced.create_buffer().__class__
-            self.assertEqual(types[i], actual)
 
     def testColSubscriptVariable(self):
         """Refer to an column-major array by subscript"""

@@ -2617,28 +2617,6 @@ class _Hyperslice(object):
             self.zvar._np_type(), order='C')
         return numpy.require(array, requirements=('C', 'A', 'W'))
                            
-    def create_buffer(self):
-         """Creates a ctypes array to hold the data from this slice
- 
-         Returns
-         =======
-         out : ctypes.Array
-             array sized, typed, and dimensioned to hold data from
-             this slice
-         """
-         counts = self.counts
-         degens = self.degen
-         if self.column:
-             counts = self.reorder(counts)
-             degens = self.reorder(degens)
-         cdftype = self.zvar.type()
-         constructor = self.zvar._c_type()
-         #Build array from innermost out
-         for count, degen in zip(counts[-1::-1], degens[-1::-1]):
-             if not degen:
-                 constructor *= count
-         return constructor()
-
     def convert_input_array(self, buffer):
         """Converts a buffer of raw data from this slice
 
