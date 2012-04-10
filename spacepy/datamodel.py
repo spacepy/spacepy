@@ -455,7 +455,7 @@ def fromCDF(fname, **kwargs):
         for akey in cdfdata[key].attrs:
             try:
                 data[key].attrs[akey] = cdfdata[key].attrs[akey][:]
-            except TypeError:
+            except (TypeError, IndexError):
                 data[key].attrs[akey] = cdfdata[key].attrs[akey]
     return data
 
