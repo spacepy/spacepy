@@ -146,104 +146,6 @@ class NoCDF(unittest.TestCase):
         self.assertEqual(cdf._pycdf._Hyperslice.dimensions('hi'),
                          [])
 
-    def testFlipMajority(self):
-        """Changes the majority of an array"""
-        #Code to generate this 5x5x5:
-        #[[[random.randint(0,100) for i in range(5)]
-        #  for j in range(5)] for k in range(5)]
-        three_d = [[[90, 90, 96, 71, 90], [29, 18, 90, 78, 51],
-                   [14, 29, 41, 25, 50], [73, 59, 83, 92, 24],
-                   [10, 1, 4, 61, 54]],
-                  [[40, 8, 0, 28, 47], [3, 98, 28, 9, 38],
-                   [34, 95, 7, 87, 9], [11, 73, 71, 54, 69],
-                   [42, 75, 82, 16, 73]],
-                  [[88, 40, 5, 69, 41], [35, 15, 32, 68, 8],
-                   [68, 74, 6, 30, 9], [86, 48, 52, 49, 100],
-                   [8, 35, 26, 16, 61]],
-                  [[49, 81, 57, 37, 98], [54, 64, 28, 21, 17],
-                   [73, 100, 90, 8, 25], [40, 75, 52, 41, 40],
-                   [42, 72, 55, 16, 39]],
-                  [[24, 38, 26, 85, 25], [5, 98, 63, 29, 33],
-                   [91, 100, 17, 85, 9], [59, 50, 50, 41, 82],
-                   [21, 45, 65, 51, 90]]]
-        flipped = cdf._pycdf._Hyperslice.flip_majority(three_d)
-        for i in range(5):
-            for j in range(5):
-                for k in range(5):
-                    self.assertEqual(three_d[i][j][k],
-                                     flipped[k][j][i],
-                                     'Original index ' +
-                                     str(i) + ', ' +
-                                     str(j) + ', ' +
-                                     str(k) + ' mismatch ' +
-                                     str(three_d[i][j][k]) + ' != ' +
-                                     str(flipped[k][j][i]))
-
-        #[[[[random.randint(0,100) for i in range(5)]
-        #  for j in range(4)] for k in range(3)] for l in range(2)]
-        four_d = [[[[14, 84, 79, 74, 45], [39, 47, 93, 32, 59],
-                    [15, 47, 1, 84, 44], [13, 43, 13, 88, 3]],
-                   [[65, 75, 36, 90, 93], [64, 36, 59, 39, 42],
-                    [59, 85, 21, 88, 61], [64, 29, 62, 33, 35]],
-                   [[46, 69, 3, 50, 44], [86, 15, 32, 17, 51],
-                    [79, 20, 29, 10, 55], [29, 10, 79, 7, 58]]],
-                  [[[20, 76, 81, 40, 85], [44, 56, 5, 83, 32],
-                    [34, 88, 23, 57, 74], [24, 55, 83, 39, 60]],
-                   [[79, 56, 5, 98, 29], [28, 50, 77, 33, 45],
-                    [38, 82, 82, 28, 97], [42, 14, 56, 48, 38]],
-                   [[58, 27, 38, 43, 25], [72, 91, 85, 44, 43],
-                    [17, 57, 91, 19, 35], [98, 62, 61, 14, 60]]]]
-        flipped = cdf._pycdf._Hyperslice.flip_majority(four_d)
-        for i in range(2):
-            for j in range(3):
-                for k in range(4):
-                    for l in range(5):
-                        self.assertEqual(four_d[i][j][k][l],
-                                         flipped[l][k][j][i],
-                                         'Original index ' +
-                                         str(i) + ', ' +
-                                         str(j) + ', ' +
-                                         str(k) + ', ' +
-                                         str(l) + ' mismatch ' +
-                                         str(four_d[i][j][k][l]) + ' != ' +
-                                         str(flipped[l][k][j][i]))
-
-        zero_d = 1
-        flipped = cdf._pycdf._Hyperslice.flip_majority(zero_d)
-        self.assertEqual(zero_d, flipped)
-
-        one_d = [1, 2, 3, 4]
-        flipped = cdf._pycdf._Hyperslice.flip_majority(one_d)
-        self.assertEqual(one_d, flipped)
-
-        two_d = [[6, 7, 48, 81], [61, 67, 90, 99], [71, 96, 58, 85],
-                 [35, 31, 71, 73], [77, 41, 71, 92], [74, 89, 94, 64],
-                 [64, 30, 66, 94]]
-        flipped = cdf._pycdf._Hyperslice.flip_majority(two_d)
-        for i in range(7):
-            for j in range(4):
-                self.assertEqual(two_d[i][j],
-                                 flipped[j][i],
-                                 'Original index ' +
-                                 str(i) + ', ' +
-                                 str(j) + ' mismatch ' +
-                                 str(two_d[i][j]) + ' != ' +
-                                 str(flipped[j][i]))
-
-    def testFlipMajorityBad(self):
-        """Changes the majority of an array, bad input"""
-        flip = cdf._pycdf._Hyperslice.flip_majority
-        input = [[1, 2, 3], [1, 2]]
-        message = 'Array dimensions not regular'
-        try:
-            flip(input)
-        except TypeError:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(str(v), message)
-        else:
-            self.fail('Should have raised TypeError: ' + message)
-        input = [[[1, 2, 3], [4, 5, 6]], [7, 8]]
-
     def testEpoch16ToDatetime(self):
         epochs = [[63397987199.0, 999999999999.0],
                   [-1.0, -1.0],
@@ -774,16 +676,6 @@ class ReadCDF(CDFTests):
         zvar = self.cdf['SpinNumbers']
         sliced = cdf._pycdf._Hyperslice(zvar, 2)
         self.assertEqual([1, 18], sliced.dimsizes)
-
-    def testConvertArray(self):
-        """Convert arrays to format of a slice"""
-        sliced = cdf._pycdf._Hyperslice(self.cdf['SpinRateScalersCounts'],
-                                        (slice(0, 2, 1), slice(5, 3, -1),
-                                         slice(1, 3, 1)))
-        input = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
-        expected = [[[3, 4], [1, 2]], [[7, 8], [5, 6]]]
-        output = sliced.convert_array(input)
-        self.assertEqual(expected, output)
 
     def testCDFTypes(self):
         """Look up variable type from the CDF"""

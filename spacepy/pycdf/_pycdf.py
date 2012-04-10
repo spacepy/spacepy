@@ -2639,43 +2639,6 @@ class _Hyperslice(object):
                  constructor *= count
          return constructor()
 
-    def convert_array(self, array):
-        """Converts a nested list-of-lists to format of this slice
-
-        Takes a list-of-lists returned in CDF order
-        Converts to the order specified in this slice:
-          1. Row-major (if CDF was column-major)
-          2. Reversed indices if specified in slice
-
-        @param array: data to reorder
-        @type array: list (of lists)
-        @return: array, reordered as necessary
-        @rtype: list (of lists)
-        """
-        if self.column:
-            if self.degen[0]:
-                array = self.flip_majority(array)
-            else:
-                #Record-number dimension is not degenerate, so keep it first
-                array = [self.flip_majority(i) for i in array]
-        if True in self.rev:
-            #Remove degenerate dimensions
-            rev = [self.rev[i] for i in range(self.dims) if not self.degen[i]]
-            for i in range(len(rev)):
-                if not rev[i]: #no need to reverse
-                    continue
-                if i == 0:
-                    array.reverse()
-                else:
-                    #make a flattened representation that goes to one level
-                    #above what we want to flip
-                    flatter = array
-                    for j in range(i - 1):
-                        flatter = [item for sublist in flatter for item in sublist]
-                    for list in flatter:
-                        list.reverse()
-        return array
-
     def convert_input_array(self, buffer):
         """Converts a buffer of raw data from this slice
 
@@ -2817,51 +2780,6 @@ class _Hyperslice(object):
                  slices[idx+1:]
         if Ellipsis in result:
             raise IndexError('Ellipses can only be used once per slice.')
-        return result
-
-    @staticmethod
-    def flip_majority(array):
-        """Inverts the array majority of an existing array
-
-        @param array: data to change majority of
-        @type array: list (of lists)
-        @return: array, with majority changed (return[j][i] == array[i][j])
-        @rtype: list (of lists)
-        @note: Assumes the fundamental type is not iterable--
-               this will not work for e.g. an array of tuples
-        @note: array must be 'square' / 'regular' --i.e.
-               all lists at a particular level of dimensionality
-               must have the same size
-        @raise RuntimeError: if dimensionality of result not what it
-               should be (i.e. error in *this* function).
-        """
-        try:
-            dims = [len(array)] #dimensions of array
-        except TypeError:
-            return array #scalar
-
-        flat = array #this is progressively flattened (i.e. dims stripped off)
-        while True:
-            try:
-                if isinstance(flat[0], str_classes):
-                    break
-                lengths = [len(i) for i in flat]
-            except TypeError: #Now completely flat
-                break
-            if min(lengths) != max(lengths):
-                raise TypeError('Array dimensions not regular')
-            dims.append(lengths[0])
-            flat = [item for sublist in flat for item in sublist]
-
-        result = flat
-        for i in range(len(dims) - 1):
-            stride = 1
-            for j in dims[i+1:]:
-                stride *= j
-            result = [result[j::stride] for j in range(stride)]
-        if len(result) != dims[-1]:
-            raise RuntimeError('Dimensionality mismatch: ' +
-                               len(result) + dims)
         return result
 
     @staticmethod
