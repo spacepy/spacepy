@@ -1938,7 +1938,7 @@ class Var(collections.MutableSequence):
         @param key: index or slice to store
         @type key: int or slice
         @param data: data to store
-        @type data: list
+        @type data: numpy.array
         @raise IndexError: if L{key} is out of range, mismatches dimensions,
                            or simply unparseable. IndexError will
         @raise CDFError: for errors from the CDF library
@@ -1946,27 +1946,38 @@ class Var(collections.MutableSequence):
         hslice = _Hyperslice(self, key)
         n_recs = hslice.counts[0]
         hslice.expand(data)
-        buff = hslice.create_buffer()
-        try:
-            hslice.pack_buffer(buff, data)
-        except (IndexError, TypeError):
-            #Can be thrown if data isn't same size as slice
-            #This is an expensive check, so only do it if something went wrong
-            data_dims = _Hyperslice.dimensions(data)
-            expected = hslice.expected_dims()
-            if data_dims != expected:
-                raise ValueError('attempt to assign data of dimensions ' +
-                                 str(data_dims) + ' to slice of dimensions ' +
-                                 str(expected))
-            else: #Something else went wrong
-                raise
+        cdf_type = self.type()
+        if cdf_type == const.CDF_EPOCH16.value:
+            data = numpy.require(lib.v_datetime_to_epoch16(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.float64)
+        elif cdf_type == const.CDF_EPOCH.value:
+            data = numpy.require(lib.v_datetime_to_epoch(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.float64)
+        else:
+             data = numpy.require(data, requirements=('C', 'A', 'W'),
+                                  dtype=self._np_type())
+        if cdf_type == const.CDF_EPOCH16.value:
+            datashape = data.shape[:-1]
+        else:
+            datashape = data.shape
+        #Check data sizes
+        if datashape != tuple(hslice.expected_dims()):
+             raise ValueError('attempt to assign data of dimensions ' +
+                              str(datashape) + ' to slice of dimensions ' +
+                              str(tuple(hslice.expected_dims())))
+        #Flip majority and reversed dimensions, see convert_input_array
+        data = hslice.convert_output_array(data)
+        #Handle insertions and similar weirdness
         if hslice.counts[0] > n_recs and \
                hslice.starts[0] + n_recs < hslice.dimsizes[0]:
             #Specified slice ends before last record, so insert in middle
             saved_data = self[hslice.starts[0] + n_recs:]
         if hslice.counts[0] > 0:
             hslice.select()
-            lib.call(const.PUT_, const.zVAR_HYPERDATA_, ctypes.byref(buff))
+            lib.call(const.PUT_, const.zVAR_HYPERDATA_,
+                     data.ctypes.data_as(ctypes.c_void_p))
         if hslice.counts[0] < n_recs:
             first_rec = hslice.starts[0] + hslice.counts[0]
             last_rec = hslice.dimsizes[0] - 1
@@ -2550,7 +2561,7 @@ class _Hyperslice(object):
         @type data: list
         """
         rec_slice = self.expanded_key[0]
-        if isinstance(data, str_classes) or self.degen[0] or \
+        if not self.rv or isinstance(data, str_classes) or self.degen[0] or \
                not hasattr(rec_slice, 'stop'):
             return
         if len(data) < self.counts[0]: #Truncate to fit data
@@ -2710,6 +2721,52 @@ class _Hyperslice(object):
             return operator.getitem(result, sliced)
         else:
             return result
+
+    #TODO: Huge overlap with above, try to combine?
+    def convert_output_array(self, buffer):
+        """Convert a buffer of data that will go into this slice
+         
+        Parameters
+        ==========
+        buffer : numpy.array
+        data to go into the CDF file
+
+        Returns
+        =======
+        out : numpy.array
+        input with majority flipped and dimensions reversed to be
+        suitable to pass directly to CDF library.
+        """
+        #Flip majority if any non-degenerate dimensions exist
+        if self.column and not min(self.degen):
+            cdftype = self.zvar.type()
+            #Record-number dim degen, swap whole thing
+            if self.degen[0]:
+                if cdftype == const.CDF_EPOCH16.value:
+                    #Maintain last dimension
+                    buffer = buffer.transpose(
+                        list(range(len(buffer.shape) - 2, 0, -1)) +
+                        [len(buffer.shape) - 1]
+                        )
+                else:
+                    buffer = buffer.transpose()
+            #Record-number dimension is not degenerate, so keep it first
+            else:
+                if cdftype == const.CDF_EPOCH16.value:
+                    buffer = buffer.transpose(
+                        [0] + list(range(len(buffer.shape) - 2, 0, -1)) +
+                        [len(buffer.shape) - 1]
+                        )
+                else:
+                    buffer = buffer.transpose(
+                        [0] + list(range(len(buffer.shape) - 1, 0, -1)))
+        #Reverse non-degenerate dimensions in rev
+        #Remember that the degenerate indices are already gone!
+        if self.rev.any():
+            sliced = [(slice(None, None, -1) if self.rev[i] else slice(None))
+                      for i in range(self.dims) if not self.degen[i]]
+            buffer = operator.getitem(buffer, sliced)
+        return numpy.require(buffer, requirements=('C', 'A', 'W'))
 
     def pack_buffer(self, buff, data):
         """Packs data in the form of this slice into a buffer

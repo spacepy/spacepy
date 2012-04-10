@@ -1748,8 +1748,8 @@ class ChangeCDF(CDFTests):
 
     def testWriteWrongSizeData(self):
         """Write with data sized or shaped differently from expected"""
-        message = 'attempt to assign data of dimensions [3] ' + \
-                  'to slice of dimensions [5]'
+        message = 'attempt to assign data of dimensions (3,) ' + \
+                  'to slice of dimensions (5,)'
         try:
             self.cdf['SpinNumbers'][0:5] = [b'99', b'98', b'97']
         except ValueError:
@@ -1758,8 +1758,8 @@ class ChangeCDF(CDFTests):
         else:
             self.fail('Should have raised ValueError: ' + message)
 
-        message = 'attempt to assign data of dimensions [2, 6, 2] ' + \
-                  'to slice of dimensions [3, 6, 2]'
+        message = 'attempt to assign data of dimensions (2, 6, 2) ' + \
+                  'to slice of dimensions (3, 6, 2)'
         try:
             self.cdf['SpinRateScalersCounts'][0:3, 12:, 0:4:2] = \
                 [[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [0, 1]],
