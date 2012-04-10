@@ -775,52 +775,6 @@ class ReadCDF(CDFTests):
         sliced = cdf._pycdf._Hyperslice(zvar, 2)
         self.assertEqual([1, 18], sliced.dimsizes)
 
-    def testPackBuffer(self):
-        """Pack a buffer with data"""
-        zvar = self.cdf['PhysRecNo']
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, None, 1))
-        buff = sliced.create_buffer()
-        sliced.pack_buffer(buff, list(range(100)))
-        result = [buff[i] for i in range(100)]
-        self.assertEqual(list(range(100)), result)
-
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(None, None, -1))
-        buff = sliced.create_buffer()
-        sliced.pack_buffer(buff, list(range(100)))
-        result = [buff[i] for i in range(100)]
-        self.assertEqual(list(reversed(range(100))), result)
-
-        zvar = self.cdf['SectorRateScalersCounts']
-        sliced = cdf._pycdf._Hyperslice(zvar, (0, slice(0, 3, 2),
-                                              slice(3, None, -1), 1))
-        buff = sliced.create_buffer()
-        data = [[1, 2, 3, 4],
-                [5, 6, 7, 8]]
-        expected = [[4, 3, 2, 1],
-                    [8, 7, 6, 5]]
-        sliced.pack_buffer(buff, data)
-        self.assertEqual(expected[0], list(buff[0]))
-        self.assertEqual(expected[1], list(buff[1]))
-
-        sliced = cdf._pycdf._Hyperslice(zvar, (0, 1, 1, 1))
-        buff = sliced.create_buffer()
-        sliced.pack_buffer(buff, 10)
-        self.assertEqual(10, buff.value)
-
-        zvar = self.cdf['ATC']
-        sliced = cdf._pycdf._Hyperslice(zvar, 10)
-        buff = sliced.create_buffer()
-        sliced.pack_buffer(buff, datetime.datetime(2009, 1, 1))
-        self.assertEqual(list(buff), [63397987200.0, 0.0])
-
-        zvar = self.cdf['SpinNumbers']
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, 3, None))
-        buff = sliced.create_buffer()
-        expected = [b'99', b'98', b'97']
-        sliced.pack_buffer(buff, expected)
-        for i in range(3):
-            self.assertEqual(expected[i], buff[i].value)
-
     def testConvertArray(self):
         """Convert arrays to format of a slice"""
         sliced = cdf._pycdf._Hyperslice(self.cdf['SpinRateScalersCounts'],
@@ -1607,32 +1561,6 @@ class ReadColCDF(ColCDFTests):
         """See if variable exists in CDF"""
         self.assertTrue('ATC' in self.cdf)
         self.assertFalse('notthere' in self.cdf)
-
-    def testColPackBuffer(self):
-        """Pack a buffer with data"""
-        zvar = self.cdf['PhysRecNo']
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, None, 1))
-        buff = sliced.create_buffer()
-        sliced.pack_buffer(buff, list(range(100)))
-        result = [buff[i] for i in range(100)]
-        self.assertEqual(list(range(100)), result)
-
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(None, None, -1))
-        buff = sliced.create_buffer()
-        sliced.pack_buffer(buff, list(range(100)))
-        result = [buff[i] for i in range(100)]
-        self.assertEqual(list(reversed(range(100))), result)
-
-        zvar = self.cdf['SectorRateScalersCounts']
-        sliced = cdf._pycdf._Hyperslice(zvar, (0, slice(0, 3, 2),
-                                              slice(3, None, -1), 1))
-        buff = sliced.create_buffer()
-        data = [[1, 2, 3, 4],
-                [5, 6, 7, 8]]
-        expected = [[4, 8], [3, 7], [2, 6], [1, 5]]
-        sliced.pack_buffer(buff, data)
-        for i in range(4):
-            self.assertEqual(expected[i], list(buff[i]))
 
     def testgetdimsizescol(self):
         """Get size of dimensions in zVar, column-major"""
