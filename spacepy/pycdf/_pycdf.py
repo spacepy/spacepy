@@ -288,13 +288,16 @@ class Library(object):
         #implicitly the 0th dimension. We want everything from one
         #call paired, so this rolls the 0th dimension to the last
         #(via the second-to-last)
-        self.v_datetime_to_epoch16 = \
-            lambda x: numpy.rollaxis(
-                    numpy.rollaxis(
-                        numpy.require(v_datetime_to_epoch16(x),
-                                      dtype=numpy.float64),
-                    0, -1),
-                -1, -2)
+        def _v_datetime_to_epoch16(x):
+            retval = numpy.require(v_datetime_to_epoch16(x),
+                                      dtype=numpy.float64)
+            if len(retval.shape) > 1:
+                return numpy.rollaxis(
+                    numpy.rollaxis(retval, 0, -1),
+                    -1, -2)
+            else:
+                return retval
+        self.v_datetime_to_epoch16 = _v_datetime_to_epoch16
 
         #Get CDF version information
         ver = ctypes.c_long(0)

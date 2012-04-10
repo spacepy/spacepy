@@ -188,6 +188,8 @@ class NoCDF(unittest.TestCase):
         result = cdf.lib.v_datetime_to_epoch16(numpy.array(dts))
         expected = numpy.array(epochs)
         numpy.testing.assert_array_equal(expected, result)
+        result = cdf.lib.v_datetime_to_epoch16(dts[0])
+        numpy.testing.assert_array_equal(epochs[0], result)
 
     def testDatetimeToEpoch(self):
         epochs = [63397987200000.0,
