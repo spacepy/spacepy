@@ -2111,14 +2111,7 @@ class ChangeCDF(CDFTests):
     def testCopyVariable(self):
         """Copy one variable to another"""
         varlist = list(self.cdf.keys())
-        #TODO: get rid of this when numpy rewrite is done;
-        #right now it is SLOOOOOOW
-        skiplist = ['SectorRateScalersCounts',
-                    'SectorRateScalersCountsSigma',
-                    ]
         for name in varlist:
-            if name in skiplist:
-                continue
             oldvar = self.cdf[name]
             self.cdf[name + '_2'] = oldvar
             newvar = self.cdf[name + '_2']
