@@ -68,6 +68,8 @@ class Library(object):
         ~Library.epoch_to_datetime
         ~Library.epoch16_to_datetime
         ~Library.set_backward
+        v_datetime_to_epoch
+        v_datetime_to_epoch16
         v_epoch_to_datetime
         v_epoch16_to_datetime
         version
@@ -80,6 +82,16 @@ class Library(object):
     .. automethod:: epoch16_to_datetime
     .. automethod:: set_backward
 
+    .. method:: v_datetime_to_epoch(datetime)
+    
+        A vectorized version of :meth:`datetime_to_epoch` which takes a
+        numpy array of datetimes as input and returns an array of epochs.
+
+    .. method:: v_datetime_to_epoch16(datetime)
+    
+        A vectorized version of :meth:`datetime_to_epoch16` which takes a
+        numpy array of datetimes as input and returns an array of epoch16.
+
     .. method:: v_epoch_to_datetime(epoch)
     
         A vectorized version of :meth:`epoch_to_datetime` which takes a
@@ -88,10 +100,9 @@ class Library(object):
     .. method:: v_epoch16_to_datetime(epoch0, epoch1)
     
         A vectorized version of :meth:`epoch16_to_datetime` which takes two
-        numpy arrays of as input and returns an array of datetimes. Note
-        that the first half of all values must be passed in as `epoch0` and
-        the second half of all as `epoch1`. For an array of `epoch16` values,
-        `v_epoch16_to_datetime(epoch[:, 0], epoch[:, 1])` will usually work.
+        a numpy arrays of epoch16 as input and returns an array of datetimes.
+        An epoch16 is a pair of doubles; the input array's last dimension
+        must be two (and the returned array will have one fewer dimension).
 
     .. attribute:: version
 
@@ -263,10 +274,23 @@ class Library(object):
                               numpy.dtype((numpy.float64, 2)),
                               }
 
-        self.v_epoch16_to_datetime = numpy.frompyfunc(
+        v_epoch16_to_datetime = numpy.frompyfunc(
             self.epoch16_to_datetime, 2, 1)
+        self.v_epoch16_to_datetime = \
+            lambda x: v_epoch16_to_datetime(x[..., 0], x[..., 1])
         self.v_epoch_to_datetime = numpy.frompyfunc(
             self.epoch_to_datetime, 1, 1)
+        self.v_datetime_to_epoch = numpy.vectorize(
+            self.datetime_to_epoch, otypes=[numpy.float64])
+        v_datetime_to_epoch16 = numpy.frompyfunc(
+            self.datetime_to_epoch16, 1, 2)
+        self.v_datetime_to_epoch16 = \
+            lambda x: numpy.rollaxis(
+                    numpy.rollaxis(
+                        numpy.require(v_datetime_to_epoch16(x),
+                                      dtype=numpy.float64),
+                    0, -1),
+                -1, -2)
 
         #Get CDF version information
         ver = ctypes.c_long(0)
@@ -448,6 +472,10 @@ class Library(object):
         =======
         out : float
             epoch corresponding to dt
+
+        See Also
+        ========
+        v_datetime_to_epoch
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
@@ -541,6 +569,10 @@ class Library(object):
         =======
         out : list of float
             epoch16 corresponding to dt
+
+        See Also
+        ========
+        v_datetime_to_epoch16
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
@@ -551,7 +583,7 @@ class Library(object):
                                      int(dt.microsecond / 1000),
                                      dt.microsecond % 1000, 0, 0,
                                      epoch16)
-        return [epoch16[0], epoch16[1]]
+        return (epoch16[0], epoch16[1])
 
 
 try:
@@ -2653,8 +2685,7 @@ class _Hyperslice(object):
         elif cdftype == const.CDF_EPOCH.value:
             result = lib.v_epoch_to_datetime(buffer)
         elif cdftype == const.CDF_EPOCH16.value:
-            result = lib.v_epoch16_to_datetime(buffer[..., 0],
-                                           buffer[..., 1])
+            result = lib.v_epoch16_to_datetime(buffer)
         else:
             result = buffer
             
@@ -3522,7 +3553,7 @@ class Attr(collections.MutableSequence):
             if cdftype == const.CDF_EPOCH.value:
                 result = lib.v_epoch_to_datetime(buff)
             elif cdftype == const.CDF_EPOCH16.value:
-                result = lib.v_epoch16_to_datetime(buff[:, 0], buff[:, 1])
+                result = lib.v_epoch16_to_datetime(buff)
             else:
                 result = buff
             if length == 1:

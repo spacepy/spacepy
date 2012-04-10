@@ -255,8 +255,7 @@ class NoCDF(unittest.TestCase):
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch16_to_datetime(*epoch))
-        result = cdf.lib.v_epoch16_to_datetime(numpy.array(epochs)[:,0],
-                                               numpy.array(epochs)[:,1])
+        result = cdf.lib.v_epoch16_to_datetime(numpy.array(epochs))
         expected = numpy.array(dts)
         numpy.testing.assert_array_equal(expected, result)
 
@@ -276,14 +275,17 @@ class NoCDF(unittest.TestCase):
         numpy.testing.assert_array_equal(expected, result)
 
     def testDatetimeToEpoch16(self):
-        epochs = [[63397987200.0, 0.0],
-                  [63397987200.0, 0.0],
+        epochs = [(63397987200.0, 0.0),
+                  (63397987200.0, 0.0),
                   ]
         dts = [datetime.datetime(2009, 1, 1),
                datetime.datetime(2008, 12, 31, 19, tzinfo=est_tz()),
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(epoch, cdf.lib.datetime_to_epoch16(dt))
+        result = cdf.lib.v_datetime_to_epoch16(numpy.array(dts))
+        expected = numpy.array(epochs)
+        numpy.testing.assert_array_equal(expected, result)
 
     def testDatetimeToEpoch(self):
         epochs = [63397987200000.0,
@@ -296,6 +298,9 @@ class NoCDF(unittest.TestCase):
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(epoch, cdf.lib.datetime_to_epoch(dt))
+        result = cdf.lib.v_datetime_to_epoch(numpy.array(dts))
+        expected = numpy.array(epochs)
+        numpy.testing.assert_array_equal(expected, result)
 
     def testDatetimeEpoch16RT(self):
         """Roundtrip datetimes to epoch16s and back"""
