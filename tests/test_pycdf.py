@@ -689,18 +689,6 @@ class ReadCDF(CDFTests):
             self.assertEqual(expected[i].value,
                              self.cdf[i].type())
 
-    def testCTypes(self):
-        """Look up ctype to match variable"""
-        expected = {'ATC': (ctypes.c_double * 2),
-                    'PhysRecNo': ctypes.c_int,
-                    'SpinNumbers': ctypes.c_char * 2,
-                    'MeanCharge': ctypes.c_float,
-                    'Epoch': ctypes.c_double,
-                    }
-        for i in expected:
-            self.assertEqual(expected[i],
-                             self.cdf[i]._c_type())
-
     def testNPTypes(self):
         """Look up numpy type to match variable"""
         expected = {'ATC': numpy.dtype((numpy.float64, 2)),

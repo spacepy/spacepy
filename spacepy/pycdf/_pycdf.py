@@ -2246,21 +2246,6 @@ class Var(collections.MutableSequence):
         return self.cdf_file._call(const.SELECT_, const.zVAR_NAME_, self._name,
                                    *args, **kwargs)
 
-    def _c_type(self):
-        """Returns the C type of this variable
-
-        @return: ctypes type that will hold value from this variable
-        @rtype: type
-        @raise CDFError: for library-reported error or failure to find C type
-        """
-        cdftype = self.type()
-        if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
-            return ctypes.c_char * self._nelems()
-        try:
-            return lib.ctypedict[cdftype]
-        except KeyError:
-            raise CDFError(const.BAD_DATA_TYPE)
-
     def _np_type(self):
         """Returns the numpy type of this variable
 
