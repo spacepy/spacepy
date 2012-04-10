@@ -186,60 +186,6 @@ class Library(object):
             self._library.CDFsetFileBackward.restype = None
             self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
 
-        #Set up the dictionary for CDF type - ctypes lookup
-        c_types = {}
-        c_types['unsigned'] = [ctypes.c_ubyte, ctypes.c_ushort, ctypes.c_uint,
-                      ctypes.c_ulong, ctypes.c_ulonglong]
-        c_types['signed'] = [ctypes.c_byte, ctypes.c_short, ctypes.c_int,
-                     ctypes.c_long, ctypes.c_longlong]
-        c_types['float'] = [ctypes.c_float, ctypes.c_double, ctypes.c_longdouble]
-        c_sizes = {}
-        for i in c_types:
-            c_sizes[i] = [ctypes.sizeof(j) for j in c_types[i]]
-        types_wanted = {const.CDF_BYTE.value: 'signed',
-                        const.CDF_CHAR.value: 'signed',
-                        const.CDF_INT1.value: 'signed',
-                        const.CDF_UCHAR.value: 'unsigned',
-                        const.CDF_UINT1.value: 'unsigned',
-                        const.CDF_INT2.value: 'signed',
-                        const.CDF_UINT2.value: 'unsigned',
-                        const.CDF_INT4.value: 'signed',
-                        const.CDF_UINT4.value: 'unsigned',
-                        const.CDF_FLOAT.value: 'float',
-                        const.CDF_REAL4.value: 'float',
-                        const.CDF_DOUBLE.value: 'float',
-                        const.CDF_REAL8.value: 'float',
-                        const.CDF_EPOCH.value: 'float',
-                        }
-        self.sizedict = {const.CDF_BYTE.value: 1,
-                         const.CDF_CHAR.value: 1,
-                         const.CDF_INT1.value: 1,
-                         const.CDF_UCHAR.value: 1,
-                         const.CDF_UINT1.value: 1,
-                         const.CDF_INT2.value: 2,
-                         const.CDF_UINT2.value: 2,
-                         const.CDF_INT4.value: 4,
-                         const.CDF_UINT4.value: 4,
-                         const.CDF_FLOAT.value: 4,
-                         const.CDF_REAL4.value: 4,
-                         const.CDF_DOUBLE.value: 8,
-                         const.CDF_REAL8.value: 8,
-                         const.CDF_EPOCH.value: 8,
-                         }
-        self.ctypedict = {}
-        for i in types_wanted:
-            type_wanted = types_wanted[i]
-            size_wanted = self.sizedict[i]
-            try:
-                self.ctypedict[i] = c_types[type_wanted][
-                    c_sizes[type_wanted].index(size_wanted)
-                    ]
-            except ValueError:
-                raise CDFError(const.BAD_DATA_TYPE)
-        #EPOCH16 is a double[2] (NOT doubledouble) and needs special handling
-        self.sizedict[const.CDF_EPOCH16.value] = 16
-        self.ctypedict[const.CDF_EPOCH16.value] = self.ctypedict[
-            const.CDF_EPOCH.value] * 2
         self.cdftypenames = {const.CDF_BYTE.value: 'CDF_BYTE',
                              const.CDF_CHAR.value: 'CDF_CHAR',
                              const.CDF_INT1.value: 'CDF_INT1',
