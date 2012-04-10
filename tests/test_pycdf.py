@@ -4,7 +4,7 @@
 """
 Unit test suite for pycdf
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import ctypes
