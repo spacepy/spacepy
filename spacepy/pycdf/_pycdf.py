@@ -3090,8 +3090,8 @@ class Attr(collections.MutableSequence):
                     entry_type = types[0]
             else:
                 entry_type = types[0]
-            if not entry_type in lib.ctypedict:
-                raise ValueError('Cannot find a matching ctypes type.')
+            if not entry_type in lib.numpytypedict:
+                raise ValueError('Cannot find a matching numpy type.')
             typelist.append((dims, entry_type, elements))
 
         data_idx = -1
@@ -3423,40 +3423,43 @@ class Attr(collections.MutableSequence):
 
         return result
 
-    def _write_entry(self, number, data, type, dims, elements):
+    def _write_entry(self, number, data, cdf_type, dims, elements):
         """Write an Entry to this Attr.
 
         @param number: number of Entry to write
         @type number: int
         @param data: data to write
-        @param type: the CDF type to write, from :py:mod:`pycdf.const`
+        @param cdf_type: the CDF type to write, from :py:mod:`pycdf.const`
         @param dims: dimensions of L{data}
         @type dims: list
         @param elements: number of elements in L{data}, 1 unless it is a string
         @type elements: int
         """
-        if isinstance(data, str_classes):
-            buff = ctypes.create_string_buffer(elements)
-            buff.value = data
+        if len(dims) == 0:
+            n_write = 1
         else:
-            if len(dims) == 0:
-                elements = 1
-                data = [data]
-            else:
-                elements = dims[0]
-            buff = (lib.ctypedict[type] * elements)()
-            if type == const.CDF_EPOCH16.value:
-                for j in range(elements):
-                    buff[j][:] = lib.datetime_to_epoch16(data[j])
-            elif type == const.CDF_EPOCH.value:
-                for j in range(elements):
-                    buff[j] = lib.datetime_to_epoch(data[j])
-            else:
-                for j in range(elements):
-                    buff[j] = data[j]
+            n_write = dims[0]
+        if cdf_type in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
+                                 dtype=numpy.dtype('S' + str(elements)))
+            n_write = elements
+        elif cdf_type == const.CDF_EPOCH16.value:
+            data = numpy.require(lib.v_datetime_to_epoch16(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.float64)
+        elif cdf_type == const.CDF_EPOCH.value:
+            data = numpy.require(lib.v_datetime_to_epoch(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.float64)
+        elif cdf_type in lib.numpytypedict:
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
+                                 dtype=lib.numpytypedict[cdf_type])
+        else:
+            raise CDFError(const.BAD_DATA_TYPE)
         self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
-                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(type),
-                   ctypes.c_long(elements), ctypes.byref(buff))
+                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(cdf_type),
+                   ctypes.c_long(n_write),
+                   data.ctypes.data_as(ctypes.c_void_p))
 
     def _delete(self):
         """Delete this Attribute
