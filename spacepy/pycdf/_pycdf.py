@@ -1530,6 +1530,12 @@ class CDFCopy(spacepy.datamodel.SpaceData):
     Do not instantiate this class directly; use :meth:`~CDF.copy`
     on an existing :class:`CDF`.
 
+    Examples
+    --------
+    >>> from spacepy import pycdf
+    >>> with pycdf.CDF('test.cdf') as cdffile:
+    ...     data = cdffile.copy()
+
     .. attribute:: attrs
 
        Python dictionary containing attributes copied from the CDF.

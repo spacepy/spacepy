@@ -3,7 +3,7 @@
 """
 Test suite for SpacePy's datamodel
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 
@@ -16,6 +16,7 @@ import unittest
 import warnings
 
 import spacepy.datamodel as dm
+from spacepy import pycdf
 import numpy as np
 
 try:
@@ -298,30 +299,6 @@ class converterTests(unittest.TestCase):
         a['bar'] = dm.dmarray([datetime.datetime(2000, 1, 1)])
         dm.toHDF5(self.testfile[1], a)
         self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
-
-
-class CDFTests(unittest.TestCase):
-    def setUp(self):
-        super(CDFTests, self).setUp()
-        self.cdffile = 'po_l1_cam_test.cdf'
-
-    def tearDown(self):
-        super(CDFTests, self).tearDown()
-
-    def test_fromCDF(self):
-        """from CDF should give known results"""
-        dat = dm.fromCDF(self.cdffile)
-        String1D_ans = [['A', 'B', 'C'], ['D', 'E', 'F']]
-        np.testing.assert_array_equal(dat['String1D'], String1D_ans)
-        SpinNumbers_ans = ['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ', '8 ', '9 ', '10',
-                           '11', '12', '13', '14', '15', '16', '17']
-        np.testing.assert_array_equal(dat['SpinNumbers'], SpinNumbers_ans)
-        Epoch_ans = [datetime.datetime(1998, 1, 15, 0, minute) for minute in range(11)]
-        np.testing.assert_array_equal(dat['Epoch'], Epoch_ans)
-
-    def test_fromCDF_exception(self):
-        """Bad file raises"""
-        self.assertRaises(IOError, dm.fromCDF, 'bad_file.cdf')
 
 
 class JSONTests(unittest.TestCase):

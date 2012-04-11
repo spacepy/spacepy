@@ -87,9 +87,9 @@ Opening a CDF and working directly with the contents can be easily done using th
 if you wish to load the entire contents of a CDF directly into a datamodel (complete with attributes)
 the following will make life easier:
 
->>> import spacepy.datamodel as dm
->>> data = dm.fromCDF('test.cdf')
-
+>>> from spacepy import pycdf
+>>> with pycdf.CDF('test.cdf') as cdffile:
+...     data = cdffile.copy()
 """
 
 from __future__ import division
@@ -415,6 +415,9 @@ def fromCDF(fname, **kwargs):
     '''
     Create a SpacePy datamodel representation of a NASA CDF file
 
+    .. deprecated:: 0.1.3
+        See :meth:`~spacepy.pycdf.CDF.copy` in :class:`~spacepy.pycdf.CDF`.
+
     Parameters
     ----------
     file : string
@@ -435,29 +438,10 @@ def fromCDF(fname, **kwargs):
         from spacepy import pycdf
     except ImportError:
         raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
-
-    try:
-        cdfdata = pycdf.CDF(fname)
-    except:
-        raise IOError('Could not open %s' % fname)
-    #make SpaceData and grab global attributes from CDF
-    data = SpaceData()
-    for akey in cdfdata.attrs:
-        try:
-            data.attrs[akey] = cdfdata.attrs[akey][:]
-        except TypeError:
-            #required for datetime objects, floats, etc.
-            data.attrs[akey] = cdfdata.attrs[akey]
-
-    #iterate on CDF variables and copy into dmarrays, carrying attrs
-    for key in cdfdata:
-        data[key] = dmarray(cdfdata[key][...])
-        for akey in cdfdata[key].attrs:
-            try:
-                data[key].attrs[akey] = cdfdata[key].attrs[akey][:]
-            except (TypeError, IndexError):
-                data[key].attrs[akey] = cdfdata[key].attrs[akey]
-    return data
+    warnings.warn('fromCDF is deprecated, see pycdf.CDF.copy',
+                  DeprecationWarning)
+    with pycdf.CDF(fname) as cdfdata:
+        return cdfdata.copy()
 
 def fromHDF5(fname, **kwargs):
     '''
