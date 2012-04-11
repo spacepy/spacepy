@@ -127,14 +127,15 @@ class NoCDF(unittest.TestCase):
                 [[0, 1], [2, 3], [4, 5]],
                 ]
         self.assertEqual(cdf._pycdf._Hyperslice.dimensions(data),
-                         [4, 3, 2])
+                         (4, 3, 2))
 
         data = [[[2, 3], [4, 5], [6, 7]],
                 [[8, 9], [0, 1], [2, 3]],
                 [[4, 5], [6, 7],],
                 [[0, 1], [2, 3], [4, 5]],
                 ]
-        message = 'Data irregular in dimension 1'
+        message = 'Data must be well-formed, regular array of number, ' \
+                  'string, or datetime'
         try:
             cdf._pycdf._Hyperslice.dimensions(data)
         except ValueError:
@@ -144,7 +145,7 @@ class NoCDF(unittest.TestCase):
             self.fail('Should raise ValueError: ' + message)
 
         self.assertEqual(cdf._pycdf._Hyperslice.dimensions('hi'),
-                         [])
+                         ())
 
     def testEpoch16ToDatetime(self):
         epochs = [[63397987199.0, 999999999999.0],
@@ -255,19 +256,19 @@ class NoCDF(unittest.TestCase):
                    [1.0],
                    0.0,
                    ]
-        types = [([4], [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+        types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                         const.CDF_INT2, const.CDF_UINT2,
                         const.CDF_INT4, const.CDF_UINT4,
                         const.CDF_FLOAT, const.CDF_REAL4,
                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ([2, 3], [const.CDF_FLOAT, const.CDF_REAL4,
+                 ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ([3], [const.CDF_CHAR, const.CDF_UCHAR], 9),
-                 ([], [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
-                 ([], [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
-                 ([1], [const.CDF_FLOAT, const.CDF_REAL4,
+                 ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
+                 ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ([], [const.CDF_FLOAT, const.CDF_REAL4,
+                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ]
         for (s, t) in zip(samples, types):

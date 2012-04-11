@@ -2749,71 +2749,70 @@ class _Hyperslice(object):
         @rtype: 3-tuple of lists ([int], [ctypes.c_long], [int])
         @raise ValueError: if L{data} has irregular dimensions
         """
-        if isinstance(data, str_classes):
-            dims = []
-        else:
-            try:
-                dims = [len(data)]
-            except TypeError:
-                dims = []
-        if dims:
-            flat = data
-        else:
-            flat = [data]
-
-        while True:
-            try:
-                if isinstance(flat[0], str_classes):
-                    break
-                lengths = [len(i) for i in flat]
-            except TypeError: #Now completely flat
-                break
-            except KeyError:
-                raise ValueError('zVar/Entry data cannot be dictionary-like')
-            if min(lengths) != max(lengths):
-                raise ValueError('Data irregular in dimension ' +
-                                str(len(dims)))
-            dims.append(lengths[0])
-            flat = [item for sublist in flat for item in sublist]
-
+        d = numpy.asanyarray(data)
+        dims = d.shape
         elements = 1
-        if isinstance(flat[0], str_classes):
+        types = []
+
+        if d.dtype == numpy.object: #this is probably going to be bad
+            try:
+                len(d.flat[0])
+            except TypeError: #at least it's not a list
+                pass
+            else:
+                raise ValueError(
+                    'Data must be well-formed, regular array of number, '
+                    'string, or datetime')
+        if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
-            elements = max([len(s) for s in flat])
-        elif isinstance(flat[0], datetime.datetime):
-            if max([dt.microsecond % 1000 for dt in flat]) > 0:
+            elements = d.dtype.itemsize
+        elif hasattr(d.flat[0], 'microsecond'):
+            if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH]
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16]
-        elif max([hasattr(i, 'is_integer') for i in flat]):
-            absolutes = [abs(i) for i in flat if i != 0]
-            if len(absolutes) > 0 and \
-                   (max(absolutes) > 1.7e38 or min(absolutes) < 3e-39):
-                types = [const.CDF_DOUBLE, const.CDF_REAL8]
-            else:
-                types = [const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8]
-        else:
-            minval = min(flat)
-            maxval = max([abs(i) for i in flat])
-            if minval < 0:
-                types = [const.CDF_BYTE, const.CDF_INT1,
-                         const.CDF_INT2, const.CDF_INT4,
-                         const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8]
-                cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31,
-                           1.7e38, 1.7e38, 8e307, 8e307]
-            else:
-                types = [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                         const.CDF_INT2, const.CDF_UINT2,
-                         const.CDF_INT4, const.CDF_UINT4,
-                         const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8]
-                cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
-                           2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32,
-                           1.7e38, 1.7e38, 8e307, 8e307]
-            types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
-        types = [t.value for t in types]
+        elif d is data: #numpy array came in, use its type
+            types = [k for k in lib.numpydict
+                     if lib.numpytypedict[k] is d.dtype]
+
+        if not types: #not a numpy array, or can't parse its type
+            if d.dtype.kind in ('i', 'u'): #integer
+                minval = numpy.min(d)
+                maxval = numpy.max(d)
+                if minval < 0:
+                    types = [const.CDF_BYTE, const.CDF_INT1,
+                             const.CDF_INT2, const.CDF_INT4,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8]
+                    cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31,
+                               1.7e38, 1.7e38, 8e307, 8e307]
+                else:
+                    types = [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                             const.CDF_INT2, const.CDF_UINT2,
+                             const.CDF_INT4, const.CDF_UINT4,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8]
+                    cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
+                               2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32,
+                               1.7e38, 1.7e38, 8e307, 8e307]
+                types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
+            else: #float
+                if dims is ():
+                    if d != 0 and (d > 1.7e38 or d < 3e-39):
+                        types = [const.CDF_DOUBLE, const.CDF_REAL8]
+                    else:
+                        types = [const.CDF_FLOAT, const.CDF_REAL4,
+                                 const.CDF_DOUBLE, const.CDF_REAL8]
+                else:
+                    absolutes = numpy.abs(d[d != 0])
+                    if len(absolutes) > 0 and \
+                           (numpy.max(absolutes) > 1.7e38 or
+                            numpy.min(absolutes) < 3e-39):
+                        types = [const.CDF_DOUBLE, const.CDF_REAL8]
+                    else:
+                        types = [const.CDF_FLOAT, const.CDF_REAL4,
+                                 const.CDF_DOUBLE, const.CDF_REAL8]
+        types = [t.value if hasattr(t, 'value') else t for t in types]
         return (dims, types, elements)
 
     @staticmethod
