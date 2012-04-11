@@ -2701,6 +2701,20 @@ class _Hyperslice(object):
         return result
 
     @staticmethod
+    def check_well_formed(data):
+        """Checks if input data is well-formed, regular array"""
+        d = numpy.asanyarray(data)
+        if d.dtype == numpy.object: #this is probably going to be bad
+            try:
+                len(d.flat[0])
+            except TypeError: #at least it's not a list
+                pass
+            else:
+                raise ValueError(
+                    'Data must be well-formed, regular array of number, '
+                    'string, or datetime')
+
+    @staticmethod
     def dimensions(data):
         """Finds the dimensions of a nested list-of-lists
 
@@ -2710,7 +2724,9 @@ class _Hyperslice(object):
         @rtype: list of int
         @raise ValueError: if L{data} has irregular dimensions
         """
-        return _Hyperslice.types(data)[0]
+        d = numpy.asanyarray(data)
+        _Hyperslice.check_well_formed(d)
+        return d.shape
 
     @staticmethod
     def types(data):
@@ -2754,15 +2770,7 @@ class _Hyperslice(object):
         elements = 1
         types = []
 
-        if d.dtype == numpy.object: #this is probably going to be bad
-            try:
-                len(d.flat[0])
-            except TypeError: #at least it's not a list
-                pass
-            else:
-                raise ValueError(
-                    'Data must be well-formed, regular array of number, '
-                    'string, or datetime')
+        _Hyperslice.check_well_formed(d)
         if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
             elements = d.dtype.itemsize
