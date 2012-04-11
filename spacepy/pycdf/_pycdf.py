@@ -1760,6 +1760,8 @@ class Var(collections.MutableSequence):
     @type attrs: L{_AttrListGetter}
     @ivar _name: name of this variable
     @type _name: string
+    @ivar _type: CDF type of this variable
+    @type _type: long
     @ivar _attrlistref: reference to the attribute list
                         (use L{attrs} instead)
     @type _attrlistref: weakref
@@ -1798,6 +1800,7 @@ class Var(collections.MutableSequence):
         """
         self.cdf_file = cdf_file
         self._name = None
+        self._type = None
         if len(args) == 0:
             self._get(var_name)
         else:
@@ -2241,10 +2244,13 @@ class Var(collections.MutableSequence):
             n_elements = ctypes.c_long(self._nelems())
             self._call(const.PUT_, const.zVAR_DATASPEC_,
                        new_type, n_elements)
-        cdftype = ctypes.c_long(0)
-        self._call(const.GET_, const.zVAR_DATATYPE_,
-                   ctypes.byref(cdftype))
-        return cdftype.value
+            self._type = None
+        if self._type is None:
+            cdftype = ctypes.c_long(0)
+            self._call(const.GET_, const.zVAR_DATATYPE_,
+                       ctypes.byref(cdftype))
+            self._type = cdftype.value
+        return self._type
 
     def _nelems(self):
         """Number of elements for each value in this variable
