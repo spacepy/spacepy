@@ -1133,7 +1133,7 @@ class ReadCDF(CDFTests):
         """Make a copy of an entire zVar"""
         zvar = self.cdf['PhysRecNo']
         zvarcopy = zvar.copy()
-        self.assertNotEqual(zvar, zvarcopy)
+        self.assertFalse(zvar is zvarcopy)
         for i in range(len(zvar)):
             self.assertEqual(zvar[i], zvarcopy[i])
         for i in zvarcopy.attrs:
@@ -1143,10 +1143,10 @@ class ReadCDF(CDFTests):
     def testCDFCopy(self):
         """Make a copy of an entire CDF"""
         cdfcopy = self.cdf.copy()
-        self.assertNotEqual(cdfcopy, self.cdf)
+        self.assertFalse(cdfcopy is self.cdf)
         for key in self.cdf:
             numpy.testing.assert_array_equal(self.cdf[key][...], cdfcopy[key])
-            self.assertNotEqual(self.cdf[key], cdfcopy[key])
+            self.assertFalse(self.cdf[key] is cdfcopy[key])
         for key in self.cdf.attrs:
             self.assertEqual(self.cdf.attrs[key][:], cdfcopy.attrs[key])
             self.assertNotEqual(self.cdf.attrs[key], cdfcopy.attrs[key])
@@ -1154,10 +1154,10 @@ class ReadCDF(CDFTests):
     def testSliceCDFCopy(self):
         """Slice a copy of a CDF"""
         cdfcopy = self.cdf.copy()
-        self.assertEqual([3, 25, 47],
-                         cdfcopy['PhysRecNo'][0:5:2])
-        self.assertEqual([1094, 1083, 1072, 1061],
-                         cdfcopy['PhysRecNo'][-1:-5:-1])
+        numpy.testing.assert_array_equal([3, 25, 47],
+                                         cdfcopy['PhysRecNo'][0:5:2])
+        numpy.testing.assert_array_equal([1094, 1083, 1072, 1061],
+                                         cdfcopy['PhysRecNo'][-1:-5:-1])
         self.assertEqual(1.0,
                          cdfcopy['SpinRateScalersCounts'][41, 2, 15])
 
@@ -1540,7 +1540,7 @@ class ChangeCDF(CDFTests):
         oldlen = len(self.cdf['PhysRecNo'])
         PhysRecCopy = self.cdf['PhysRecNo'].copy()
         del self.cdf['PhysRecNo'][5]
-        del PhysRecCopy[5]
+        PhysRecCopy = numpy.append(PhysRecCopy[:5], PhysRecCopy[6:], 0)
         self.assertEqual(oldlen - 1, len(self.cdf['PhysRecNo']))
         numpy.testing.assert_array_equal(
             PhysRecCopy[0:15], self.cdf['PhysRecNo'][0:15])
@@ -1564,7 +1564,10 @@ class ChangeCDF(CDFTests):
         oldlen = len(self.cdf['SectorRateScalersCounts'])
         SectorRateScalersCountsCopy = \
                                     self.cdf['SectorRateScalersCounts'].copy()
-        del SectorRateScalersCountsCopy[-1:-5:-1]
+        SectorRateScalersCountsCopy = numpy.delete(
+            SectorRateScalersCountsCopy,
+            range(*slice(-1,-5,-1).indices(len(SectorRateScalersCountsCopy))),
+            0)
         del self.cdf['SectorRateScalersCounts'][-1:-5:-1]
         self.assertEqual(oldlen - 4, len(self.cdf['SectorRateScalersCounts']))
         numpy.testing.assert_array_equal(

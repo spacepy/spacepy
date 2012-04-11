@@ -33,6 +33,7 @@ import warnings
 import weakref
 
 import numpy
+import spacepy.datamodel
 
 from . import const
 
@@ -2327,7 +2328,7 @@ class Var(collections.MutableSequence):
         self._name = enc_name
 
 
-class VarCopy(list):
+class VarCopy(spacepy.datamodel.dmarray):
     """
     A list-like copy of the data and attributes in a :class:`Var`
 
@@ -2343,25 +2344,20 @@ class VarCopy(list):
        Python dictionary containing attributes copied from the zVar
     """
 
-    def __init__(self, zVar):
+    def __new__(cls, zVar):
         """Copies all data and attributes from a zVariable
 
         @param zVar: variable to take data from
         @type zVar: :py:class:`pycdf.Var`
         """
-        self.attrs = zVar.attrs.copy()
-        super(VarCopy, self).__init__(zVar[...])
-        self._dims = [len(zVar)] + zVar._dim_sizes()
+        return super(VarCopy, cls).__new__(cls, zVar[...], zVar.attrs.copy())
 
     def __getitem__(self, key):
         """Returns a subset of the data in this copy"""
         if not hasattr(key, '__len__') and key != Ellipsis:
             return super(VarCopy, self).__getitem__(key)
-        key = _Hyperslice.expand_ellipsis(key, len(self._dims))
-        result = super(VarCopy, self).__getitem__(key[0])
-        for subkey in key[1:]:
-            result = result[subkey]
-        return result
+        key = _Hyperslice.expand_ellipsis(key, len(self.shape))
+        return super(VarCopy, self).__getitem__(key)
 
 
 class _Hyperslice(object):
