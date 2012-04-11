@@ -717,7 +717,7 @@ def _compress(obj, comptype=None, param=None):
 
 
 class _AttrListGetter(object):
-    """Descriptor to get attribute list for a :py:class:`pycdf.CDF` or :py:class:`pycdf.Var`."""
+    """Get attribute list for a :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`."""
     def __get__(self, instance, owner=None):
         if instance is None:
             return self
@@ -1411,6 +1411,7 @@ class CDF(collections.MutableMapping):
         Any given data may be representable by a range of CDF types; if
         the type is not specified, pycdf will guess which
         the CDF types which can represent this data. This breaks down to:
+          #. If input data is a numpy array, match the type of that array
           #. Proper kind (numerical, string, time)
           #. Proper range (stores highest and lowest number provided)
           #. Sufficient resolution (EPOCH16 required if datetime has
@@ -1497,7 +1498,7 @@ class CDF(collections.MutableMapping):
         Returns
         =======
         out : :py:class:`CDFCopy`
-            dictionary-like object of all data
+            :class:`~spacepy.datamodel.SpaceData`-like object of all data
         """
         return CDFCopy(self)
 
@@ -1557,8 +1558,9 @@ class Var(collections.MutableSequence):
     A CDF variable.
 
     This object does not directly store the data from the CDF; rather,
-    it provides access to the data in a format that looks like a Python
-    list. General list information is available in the python docs:
+    it provides access to the data in a format that much like a Python
+    list or numpy :class:`~numpy.ndarray`.
+    General list information is available in the python docs:
     `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
     `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
     `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
@@ -1569,10 +1571,10 @@ class Var(collections.MutableSequence):
         Not intended to be created directly; use methods of :class:`CDF` to gain access to a variable.
 
     A record-varying variable's data are viewed as a hypercube of dimensions
-    n_dims+1 and are indexed in row-major fashion, i.e. the last
-    index changes most frequently / is contiguous in memory. If
-    the CDF is column-major, the data are transformed to row-major
-    before return. The extra dimension is the record number.
+    n_dims+1 (the extra dimension is the record number). They are indexed in
+    row-major fashion, i.e. the last index changes most frequently / is
+    contiguous in memory. If the CDF is column-major, the data are
+    transformed to row-major before return.
 
     Non record-varying variables are similar, but do not have the extra
     dimension of record number.
@@ -1647,7 +1649,7 @@ class Var(collections.MutableSequence):
 
     All data are, on read, converted to appropriate Python data
     types; EPOCH and EPOCH16 types are converted to
-    :class:`~datetime.datetime`.
+    :class:`~datetime.datetime`. Data are returned in numpy arrays.
 
     Potentially useful list methods and related functions:
       - `count <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
@@ -1950,7 +1952,7 @@ class Var(collections.MutableSequence):
         Inserts a *single* record before an index
 
         Parameters
-        =========
+        ----------
         index : int
             index before which to insert the new record
         data :
