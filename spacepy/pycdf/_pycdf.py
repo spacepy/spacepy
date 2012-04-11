@@ -3531,7 +3531,15 @@ class AttrList(collections.MutableMapping):
         subclasses, :class:`gAttrList` and :class:`zAttrList`.
         Methods listed here are safe to use from the subclasses.
 
+    .. autosummary::
+
+        ~AttrList.clone
+        ~AttrList.copy
+        ~AttrList.new
+        ~AttrList.rename
+    
     .. automethod:: clone
+    .. automethod:: copy
     .. automethod:: new
     .. automethod:: rename
     
