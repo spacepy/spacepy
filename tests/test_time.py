@@ -64,7 +64,6 @@ class tFunctionTests(unittest.TestCase):
         for i, val in enumerate(ans):
             self.assertEqual(val, t.doy2date(*inval[i]))
 
-
     def test_tickrange(self):
         """tickrange should return a known value for known input"""
         inval = ( ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 1),
@@ -78,7 +77,6 @@ class tFunctionTests(unittest.TestCase):
         for i, val in enumerate(inval):
             ans = t.tickrange(*val)
             self.assertEqual(real_ans[i], ans.ISO)
-
 
     def test_sec2hms(self):
         """sec2hms should return a known value for known input"""
@@ -100,6 +98,14 @@ class tFunctionTests(unittest.TestCase):
             self.assertEqual(
                 'Number of seconds > seconds in day. Try days keyword.',
                 str(w[0].message))
+
+    def test_no_tzinfo(self):
+        """no_tzinfo should have known output"""
+        dt = datetime.datetime(2000, 1, 1, tzinfo=datetime.tzinfo('MST'))
+        self.assertEqual(dt.replace(tzinfo=None), t.no_tzinfo(dt))
+        ans = [datetime.datetime(2000, 1, 1)]*10
+        self.assertEqual(ans, t.no_tzinfo([dt]*10))       
+
 
 class classTests(unittest.TestCase):
     def setUp(self):
