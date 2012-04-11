@@ -95,9 +95,12 @@ the following will make life easier:
 from __future__ import division
 import copy, datetime, os, warnings
 import re, json
-import StringIO # can't use cStringIO as we might have unicode
+try:
+    import StringIO # can't use cStringIO as we might have unicode
+except ImportError:
+    import io as StringIO
 
-from toolbox import dictree
+from .toolbox import dictree
 import numpy
 import dateutil.parser as dup
 
