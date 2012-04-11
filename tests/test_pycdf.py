@@ -1848,7 +1848,10 @@ class ChangeCDF(CDFTests):
 
     def testNewVarUnicode(self):
         """Create a new variable with a unicode name"""
-        self.cdf[u'newzVar'] = [[1, 2, 3], [4, 5, 6]]
+        if str is bytes:
+            self.cdf['newzVar'.decode()] = [[1, 2, 3], [4, 5, 6]]
+        else:
+            self.cdf['newzVar'] = [[1, 2, 3], [4, 5, 6]]
         numpy.testing.assert_array_equal(
             [[1, 2, 3], [4, 5, 6]], self.cdf['newzVar'][...])
 
