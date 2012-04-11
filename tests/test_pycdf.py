@@ -1846,6 +1846,12 @@ class ChangeCDF(CDFTests):
         self.assertEqual(2, len(zvar))
         self.assertEqual([3], zvar._dim_sizes())
 
+    def testNewVarUnicode(self):
+        """Create a new variable with a unicode name"""
+        self.cdf[u'newzVar'] = [[1, 2, 3], [4, 5, 6]]
+        numpy.testing.assert_array_equal(
+            [[1, 2, 3], [4, 5, 6]], self.cdf['newzVar'][...])
+
     def testBadDataSize(self):
         """Attempt to assign data of the wrong size to a zVar"""
         try:

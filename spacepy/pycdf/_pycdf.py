@@ -994,7 +994,7 @@ class CDF(collections.MutableMapping):
             return Var(self, name)
         except CDFException:
             (type, value, traceback) = sys.exc_info()
-            raise KeyError(name + ': ' + str(value))
+            raise KeyError(str(name) + ': ' + str(value))
 
     def __setitem__(self, name, data):
         """Writes data to a zVariable in this CDF
