@@ -1858,12 +1858,10 @@ class Var(collections.MutableSequence):
 
         if dangerous_delete:
             data = self[...]
-#            del data[start:start + count * interval:interval]
-            validdata = numpy.ones(data.shape[0], dtype='bool')
-            validdata[
-                numpy.arange(start, start + count * interval, interval)
-                ] = False
-            data = data[validdata]
+            data = numpy.delete(
+                data,
+                numpy.arange(start, start + count * interval, interval),
+                0)
             self[0:dimsize - count] = data
             first_rec = dimsize - count
             last_rec = dimsize - 1
