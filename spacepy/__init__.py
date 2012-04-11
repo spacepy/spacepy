@@ -14,6 +14,24 @@ Detailed HTML documentation is available locally in the spacepy/doc directory
 and can be launched by typing:
 >>> spacepy.help()
 
+Most functionality is in spacepy's submodules. Each module has specific
+help available:
+
+    coordinates
+    data_assimilation
+    datamodel
+    empiricals
+    irbempy
+    LANLstar
+    omni
+    poppy
+    pybats
+    pycdf
+    radbelt
+    seapy
+    time
+    toolbox
+
 Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
@@ -57,7 +75,7 @@ if sys.platform == 'win32':
         os.environ['PATH'] = fortlibs
 
 # Expose definitions from modules in this package.
-from .toolbox import loadpickle, savepickle, dictree, printfig
+from .datamodel import dmarray, SpaceData
 
 #package info
 __version__ = '0.1.2'
