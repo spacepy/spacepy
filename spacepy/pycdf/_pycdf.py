@@ -1519,7 +1519,7 @@ class CDF(collections.MutableMapping):
         return (ver.value, rel.value, inc.value)
 
 
-class CDFCopy(dict):
+class CDFCopy(spacepy.datamodel.SpaceData):
     """
     A dictionary-like copy of all data and attributes in a :py:class:`CDF`
 
@@ -1541,9 +1541,9 @@ class CDFCopy(dict):
         @param cdf: CDF to take data from
         @type cdf: :py:class:`pycdf.CDF`
         """
-        self.attrs = cdf.attrs.copy()
-        super(CDFCopy, self).__init__((key, var.copy())
-                                      for (key, var) in cdf.items())
+        super(CDFCopy, self).__init__(((key, var.copy())
+                                      for (key, var) in cdf.items()),
+                                      attrs = cdf.attrs.copy())
 
 
 class Var(collections.MutableSequence):
