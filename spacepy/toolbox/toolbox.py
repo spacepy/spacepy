@@ -36,8 +36,6 @@ except ImportError:
 except:
     pass
 
-from spacepy.time import date2num, num2date, no_tzinfo
-
 #Py3k compatibility renamings
 try:
     xrange
@@ -189,7 +187,11 @@ def tCommon(ts1, ts2, mask_only=True):
            2001-03-10 08:00:00, 2001-03-10 09:00:00, 2001-03-10 10:00:00,
            2001-03-10 11:00:00], dtype=object)
     """
-    from matplotlib.dates import date2num, num2date
+    try:
+        from spacepy.time import date2num, num2date
+    except ImportError:
+        from matplotlib.dates import date2num, num2date
+    from spacepy.time import no_tzinfo
 
     tn1, tn2 = date2num(ts1), date2num(ts2)
 
@@ -1214,7 +1216,11 @@ def logspace(min, max, num, **kwargs):
     linspace
     """
     if isinstance(min, datetime.datetime):
-        from matplotlib.dates import date2num, num2date
+        try:
+            from spacepy.time import date2num, num2date
+        except ImportError:
+            from matplotlib.dates import date2num, num2date
+        from spacepy.time import no_tzinfo
         ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), num, **kwargs))
         ans = no_tzinfo(ans)
         return np.array(ans)
@@ -2147,6 +2153,11 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     Examples
     ========
     """
+    try:
+        from spacepy.time import date2num, num2date
+    except ImportError:
+        from matplotlib.dates import date2num, num2date
+        
     if dt1.tzinfo != dt2.tzinfo:
         raise(ValueError('tzinfo for the input and output datetimes must match'))
     dt1n = date2num(dt1)
