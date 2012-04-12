@@ -820,8 +820,12 @@ class ReadCDF(CDFTests):
 
     def testcharType(self):
         """Get a CDF_CHAR variable and make sure it's a string"""
-        self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
-                         'S')
+        if str is bytes:
+            self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
+                             'S')
+        else:
+            self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
+                             'U')
 
     def testGetVarUnicode(self):
         name = 'ATC'

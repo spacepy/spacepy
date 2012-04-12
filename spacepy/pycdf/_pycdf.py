@@ -2784,6 +2784,8 @@ class _Hyperslice(object):
         if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
             elements = d.dtype.itemsize
+            if d.dtype.kind == 'U': #UTF-8 uses 4 bytes per
+                elements //= 4
         elif hasattr(d.flat[0], 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH]
