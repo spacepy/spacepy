@@ -2547,32 +2547,6 @@ class _Hyperslice(object):
             if rec_slice.step in (None, 1):
                 self.counts[0] = len(data)
 
-    def expand_ellipsis(self, slices):
-        """Expands ellipses into the correct number of full-size slices
-
-        @param slices: tuple of slices, integers, or ellipse objects
-        @type slices: tuple
-        @return: key with ellipses replaced by appropriate number of blank slices
-        @rtype: tuple
-        @raise IndexError: if ellipses specified when already have enough dimensions
-        """
-        if not Ellipsis in slices:
-            return slices
-
-        size = len(slices)
-        extra = self.dims - size #how many dims to replace ellipsis
-        if self.rv:
-            extra += 1
-        if extra < 0:
-            raise IndexError('Too many dimensions specified to use ellipsis.')
-        idx = slices.index(Ellipsis)
-        result = slices[0:idx] + \
-                 tuple([slice(None, None, None) for i in range(extra)]) + \
-                 slices[idx+1:]
-        if Ellipsis in result:
-            raise IndexError('Ellipses can only be used once per slice.')
-        return result
-
     def create_array(self):
         """Creates a numpy array to hold the data from this slice
 
