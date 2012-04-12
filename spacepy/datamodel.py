@@ -102,7 +102,6 @@ except ImportError:
 
 from .toolbox import dictree
 import numpy
-import dateutil.parser as dup
 
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -810,6 +809,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
     mdata: spacepy.datamodel.SpaceData
         SpaceData with the data and metadata from the file
     '''
+    import dateutil.parser as dup
     if isinstance(fname, str):
         fname=[fname]
     if not mdata:
