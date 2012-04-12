@@ -574,6 +574,18 @@ class ReadCDF(CDFTests):
         for i in expected:
             self.assertEqual(self.cdf[i]._dim_sizes(), expected[i])
 
+    def testShape(self):
+        """Get numpy-like shape (n_recs plus dimensions) in zvar"""
+        expected = {'ATC': (747,), 'PhysRecNo': (100,), 'SpinNumbers': (18,),
+                    'SectorNumbers': (32,), 'RateScalerNames': (16,),
+                    'SectorRateScalerNames': (9,),
+                    'SectorRateScalersCounts': (100, 18, 32, 9),
+                    'SectorRateScalersCountsSigma': (100, 18, 32, 9),
+                    'SpinRateScalersCounts': (100, 18, 16),
+                    'SpinRateScalersCountsSigma': (100, 18, 16)}
+        for i in expected:
+            self.assertEqual(self.cdf[i].shape, expected[i])
+            
     def testgetrecvary(self):
         """Get record variance of zVar"""
         expected = {'ATC': True, 'PhysRecNo': True, 'SpinNumbers': False,
@@ -703,6 +715,10 @@ class ReadCDF(CDFTests):
         for i in expected:
             self.assertEqual(expected[i],
                              self.cdf[i]._np_type())
+        #Now access it via the dtype property
+        for i in expected:
+            self.assertEqual(expected[i],
+                             self.cdf[i].dtype)
 
     def testSubscriptVariable(self):
         """Refer to an array by subscript"""

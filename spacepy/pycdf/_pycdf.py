@@ -1738,11 +1738,13 @@ class Var(collections.MutableSequence):
         ~Var.attrs
         ~Var.compress
         ~Var.copy
+        ~Var.dtype
         ~Var.dv
         ~Var.insert
         ~Var.name
         ~Var.rename
         ~Var.rv
+        ~Var.shape
         ~Var.type
     .. attribute:: Var.attrs
 
@@ -1750,11 +1752,13 @@ class Var(collections.MutableSequence):
        (see :class:`zAttrList`)
     .. automethod:: compress
     .. automethod:: copy
+    .. autoattribute:: dtype
     .. automethod:: dv
     .. automethod:: insert
     .. automethod:: name
     .. automethod:: rename
     .. automethod:: rv
+    .. autoattribute:: shape
     .. automethod:: type
 ..  @ivar cdf_file: the CDF file containing this variable
     @type cdf_file: :py:class:`CDF`
@@ -2338,6 +2342,36 @@ class Var(collections.MutableSequence):
             raise CDFError(const.BAD_VAR_NAME)
         self._call(const.PUT_, const.zVAR_NAME_, enc_name)
         self._name = enc_name
+
+    @property
+    def shape(self):
+        """
+        Provides the numpy array-like shape of this variable.
+
+        Returns a tuple; first element is number of records (RV variable
+        only) And the rest provide the dimensionality of the variable.
+
+        .. note::
+            Assigning to this attribute will not change the shape.
+        """
+        if self.rv():
+            return tuple([len(self)] + self._dim_sizes())
+        else:
+            return tuple(self._dim_sizes())
+
+    @property
+    def dtype(self):
+        """
+        Provide the numpy dtype equivalent to the CDF type of this variable.
+
+        Data from this variable will be returned in numpy arrays of this type.
+
+        See Also
+        --------
+        type
+        """
+        return self._np_type()
+
 
 
 class VarCopy(spacepy.datamodel.dmarray):
