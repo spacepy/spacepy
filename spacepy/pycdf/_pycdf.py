@@ -1446,6 +1446,10 @@ class CDF(collections.MutableMapping):
             (guess_dims, guess_types, guess_elements) = _Hyperslice.types(data)
             if dims == None:
                 if recVary:
+                    if guess_dims == ():
+                        raise ValueError(
+                            'Record-varying data cannot be scalar. '
+                            'Specify NRV with CDF.new() or put data in array.')
                     dims = guess_dims[1:]
                 else:
                     dims = guess_dims
@@ -1611,6 +1615,22 @@ class Var(collections.MutableSequence):
 
     This all sounds very complicated but it is essentially attempting
     to do the 'right thing' for a range of slices.
+
+    An unusual case is scalar (zero-dimensional) non-record-varying variables.
+    Clearly they cannot be subscripted normally. In this case, use the
+    ``[...]`` syntax meaning 'access all data.':
+
+    >>> from spacepy import pycdf
+    >>> testcdf = pycdf.CDF('test.cdf', '')
+    >>> variable = testcdf.new('variable', recVary=False,
+    ...     type=pycdf.const.CDF_INT4)
+    >>> variable[...] = 10
+    >>> variable
+    <Var:
+    CDF_INT4 [] NRV
+    >
+    >>> variable[...]
+    10
 
     As a list type, variables are also `iterable
     <http://docs.python.org/tutorial/classes.html#iterators>`_; iterating
@@ -2784,6 +2804,8 @@ class _Hyperslice(object):
         if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
             elements = d.dtype.itemsize
+            if d.dtype.kind == 'U': #UTF-8 uses 4 bytes per
+                elements //= 4
         elif hasattr(d.flat[0], 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH]

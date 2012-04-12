@@ -820,8 +820,12 @@ class ReadCDF(CDFTests):
 
     def testcharType(self):
         """Get a CDF_CHAR variable and make sure it's a string"""
-        self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
-                         'S')
+        if str is bytes:
+            self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
+                             'S')
+        else:
+            self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
+                             'U')
 
     def testGetVarUnicode(self):
         name = 'ATC'
@@ -1451,6 +1455,18 @@ class ChangeCDF(CDFTests):
         self.assertRaises(KeyError, self.cdf.__getitem__, 'PhysRecNo')
         del self.cdf['ATC']
         self.assertFalse('ATC' in self.cdf)
+
+    def testCreateScalarRV(self):
+        """Create an RV with scalar data, check error message"""
+        msg = 'Record-varying data cannot be scalar. ' \
+              'Specify NRV with CDF.new() or put data in array.'
+        try:
+            self.cdf['value'] = 10
+        except ValueError:
+            actual = str(sys.exc_info()[1])
+            self.assertEqual(msg, actual)
+        else:
+            self.fail('Should have raised ValueError ' + msg)
 
     def testSaveCDF(self):
         """Save the CDF and make sure it's different"""
