@@ -872,6 +872,7 @@ class CDF(collections.MutableMapping):
         ~CDF.col_major
         ~CDF.compress
         ~CDF.copy
+        ~CDF.from_data
         ~CDF.new
         ~CDF.readonly
         ~CDF.save
@@ -887,6 +888,7 @@ class CDF(collections.MutableMapping):
     .. automethod:: col_major
     .. automethod:: compress
     .. automethod:: copy
+    .. automethod:: from_data
     .. automethod:: new
     .. automethod:: readonly
     .. automethod:: save
@@ -1156,6 +1158,35 @@ class CDF(collections.MutableMapping):
         self._open()
         self._opened = True
         self.readonly(False)
+
+    @classmethod
+    def from_data(cls, filename, sd):
+        """Create a new CDF file from a SpaceData object or similar
+
+        The CDF named ``filename`` is created, opened, filled with the
+        contents of ``sd`` (including attributes), and closed.
+
+        ``sd`` should be a dictionary-like object; each key will be made
+        into a variable name. An attribute called ``attrs``, if it exists,
+        will be made into global attributes for the CDF.
+
+        Each value of ``sd`` should be array-like and will be used as
+        the contents of the variable; an attribute called ``attrs``, if
+        it exists, will be made into attributes for that variable.
+
+        Parameters
+        ----------
+        filename : string
+            name of the file to create
+        sd : spacepy.datamodel.SpaceData
+            data to put in the CDF. This structure cannot be nested,
+            i.e., it must contain only :class:`~spacepy.datamodel.dmarray`
+            and no :class:`~spacepy.datamodel.Spacedata` objects.
+        """
+        with cls(filename, '') as cdffile:
+            for k in sd:
+                cdffile[k] = sd[k]
+            cdffile.attrs.from_dict(sd.attrs)
 
     def _call(self, *args, **kwargs):
         """Select this CDF as current and call the CDF internal interface

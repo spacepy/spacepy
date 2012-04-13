@@ -371,6 +371,34 @@ class MakeCDF(unittest.TestCase):
         new_garblen = len(gc.garbage)
         self.assertEqual(old_garblen, new_garblen)
 
+    def testCreateCDFFromSpaceData(self):
+        """Make a CDF from a Spacedata"""
+        sd = datamodel.SpaceData(
+            {
+            'Epoch': datamodel.dmarray([datetime.datetime(2011, 1, 1),
+                                        datetime.datetime(2011, 1, 2)],
+                                       attrs={'min':
+                                              datetime.datetime(2011, 1, 1)}),
+            'flux': datamodel.dmarray([5.0, 6.0], dtype=numpy.float64,
+                                      attrs={'type': 'data'}),
+            },
+            attrs={'project': 'junk'}
+            )
+        cdf.CDF.from_data(self.testfspec, sd)
+        with cdf.CDF(self.testfspec) as cdffile:
+            self.assertEqual(['project'], list(cdffile.attrs.keys()))
+            self.assertEqual(['min'], list(cdffile['Epoch'].attrs.keys()))
+            self.assertEqual(['type'], list(cdffile['flux'].attrs.keys()))
+            numpy.testing.assert_array_equal([datetime.datetime(2011, 1, 1)],
+                                             cdffile['Epoch'].attrs['min'])
+            self.assertEqual('data', cdffile['flux'].attrs['type'])
+            numpy.testing.assert_array_equal(
+                [datetime.datetime(2011, 1, 1), datetime.datetime(2011, 1, 2)],
+                cdffile['Epoch'][...])
+            numpy.testing.assert_array_equal(
+                [5.0, 6.0], cdffile['flux'][...])
+            self.assertEqual(cdffile['flux'].dtype, numpy.float64)
+
 
 class CDFTestsBase(unittest.TestCase):
     """Base class for tests involving existing CDF, column or row major"""
