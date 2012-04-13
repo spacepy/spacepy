@@ -255,6 +255,7 @@ class NoCDF(unittest.TestCase):
                    datetime.datetime(2009, 1, 1, 12, 15, 12, 1),
                    [1.0],
                    0.0,
+                   numpy.array([1, 2, 3], dtype=numpy.int32)
                    ]
         types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                         const.CDF_INT2, const.CDF_UINT2,
@@ -270,6 +271,7 @@ class NoCDF(unittest.TestCase):
                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((), [const.CDF_FLOAT, const.CDF_REAL4,
                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_INT4], 1),
                  ]
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])

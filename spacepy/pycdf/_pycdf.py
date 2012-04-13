@@ -2812,8 +2812,8 @@ class _Hyperslice(object):
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16]
         elif d is data: #numpy array came in, use its type
-            types = [k for k in lib.numpydict
-                     if lib.numpytypedict[k] is d.dtype]
+            types = [k for k in lib.numpytypedict
+                     if lib.numpytypedict[k] == d.dtype]
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
