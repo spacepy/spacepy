@@ -1319,6 +1319,14 @@ class ReadCDF(CDFTests):
         finally:
             self.cdf = cdf.CDF(self.testfile) #keep tearDown from failing
 
+    def testFancyIndexing(self):
+        """See if fancy indexing works on a copy"""
+        copy = self.cdf['PhysRecNo'].copy()
+        numpy.testing.assert_array_equal(
+            [3, 58],
+            copy[numpy.array([True, False, False, False, False, True]
+                             + [False] * 94)])
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""

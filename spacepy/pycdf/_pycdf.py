@@ -1631,6 +1631,9 @@ class Var(collections.MutableSequence):
     lists; Python represents multidimensional arrays as nested lists.
     The innermost set of lists represents contiguous data.
 
+    .. note::
+        numpy 'fancy indexing' is *not* supported.
+
     Degenerate dimensions are 'collapsed', i.e. no list of only one
     element will be returned if a single subscript is specified
     instead of a range. (To avoid this, specify a slice like 1:2,
@@ -2457,7 +2460,7 @@ class VarCopy(spacepy.datamodel.dmarray):
 
     def __getitem__(self, key):
         """Returns a subset of the data in this copy"""
-        if not hasattr(key, '__len__') and key != Ellipsis:
+        if not hasattr(key, '__len__') and not key is Ellipsis:
             return super(VarCopy, self).__getitem__(key)
         key = _Hyperslice.expand_ellipsis(key, len(self.shape))
         return super(VarCopy, self).__getitem__(key)
@@ -2750,7 +2753,7 @@ class _Hyperslice(object):
         @raise IndexError: if ellipses specified when already have enough
                            dimensions
         """
-        if slices == Ellipsis:
+        if slices is Ellipsis:
             return tuple([slice(None, None, None)
                           for i in range(n_dims)])
         if not Ellipsis in slices:
@@ -3061,7 +3064,7 @@ class Attr(collections.MutableSequence):
                or removed. Indexes of entries never change and there is no
                way to 'insert'.
         """
-        if key == Ellipsis:
+        if key is Ellipsis:
             key = slice(None, None, None)
         if not hasattr(key, 'indices'):
             #Single value, promote everything a dimension
@@ -3142,7 +3145,7 @@ class Attr(collections.MutableSequence):
                or removed. Indexes of entries never change and there is no
                way to 'insert'.
         """
-        if key == Ellipsis:
+        if key is Ellipsis:
             key = slice(None, None, None)
         if not hasattr(key, 'indices'):
             idx = (key, key + 1, 1)
