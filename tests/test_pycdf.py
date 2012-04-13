@@ -27,6 +27,7 @@ except NameError:
 
 import numpy
 import numpy.testing
+from spacepy import datamodel
 import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
@@ -1859,6 +1860,23 @@ class ChangeCDF(CDFTests):
         numpy.testing.assert_array_equal([1, 2, 3], attrs['new3'])
         self.assertEqual(const.CDF_INT4.value, attrs.type('new3'))
 
+    def testAttrsFromDict(self):
+        """Dump a bunch of attrs on a variable from a dict"""
+        indict = { 'CATDESC': numpy.array([1, 2, 3], dtype=numpy.int32),
+                   'b': 'hello',
+                   }
+        attrlist = self.cdf['ATC'].attrs
+        attrlist.from_dict(indict)
+        self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
+        numpy.testing.assert_array_equal(indict['CATDESC'],
+                                         attrlist['CATDESC'])
+        self.assertEqual('hello', attrlist['b'])
+        types = {'CATDESC': const.CDF_INT4.value,
+                 'b': const.CDF_CHAR.value,
+                 }
+        for k in types:
+            self.assertEqual(types[k], attrlist.type(k))
+
     def testNewVar(self):
         """Create a new variable"""
         self.cdf.new('newzVar', [[1, 2, 3], [4, 5, 6]],
@@ -1869,6 +1887,26 @@ class ChangeCDF(CDFTests):
             [[1, 2, 3], [4, 5, 6]], zvar[...])
         self.assertEqual(2, len(zvar))
         self.assertEqual([3], zvar._dim_sizes())
+
+    def testNewVarFromdmarray(self):
+        """Create a new variable with data in dmarray"""
+        indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
+                                   attrs={'name': 'bob'})
+        self.cdf.new('newzVar', indata)
+        numpy.testing.assert_array_equal(
+            indata[...], self.cdf['newzVar'][...])
+        self.assertEqual('bob', self.cdf['newzVar'].attrs['name'])
+        self.assertEqual(numpy.int8, self.cdf['newzVar'].dtype)
+
+    def testNewVarFromdmarrayAssign(self):
+        """Create a new variable by assigning from dmarray"""
+        indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
+                                   attrs={'name': 'bob'})
+        self.cdf['newzVar'] = indata
+        numpy.testing.assert_array_equal(
+            indata[...], self.cdf['newzVar'][...])
+        self.assertEqual('bob', self.cdf['newzVar'].attrs['name'])
+        self.assertEqual(numpy.int8, self.cdf['newzVar'].dtype)
 
     def testNewVarAssign(self):
         """Create a new variable by assigning to CDF element"""

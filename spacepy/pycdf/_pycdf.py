@@ -1011,6 +1011,8 @@ class CDF(collections.MutableMapping):
             self.clone(data, name)
         elif name in self:
             self[name][...] = data
+            if hasattr(data, 'attrs'):
+                self[name].attrs.from_dict(data.attrs)
         else:
             self.new(name, data)
 
@@ -1380,7 +1382,9 @@ class CDF(collections.MutableMapping):
         Other Parameters
         ================
         data
-            data to store in the new variable
+            data to store in the new variable. If this has a an ``attrs``
+            attribute (e.g., :class:`~spacepy.datamodel.dmarray`), it
+            will be used to populate attributes of the new variable.
         type : ctypes.c_long
             CDF type of the variable, from :mod:`~spacepy.pycdf.const`.
             See section 2.5 of the CDF user's guide for more information on
@@ -1470,6 +1474,8 @@ class CDF(collections.MutableMapping):
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
         if data != None:
             new_var[...] = data
+            if hasattr(data, 'attrs'):
+                new_var.attrs.from_dict(data.attrs)
         return new_var
 
     def save(self):
@@ -3580,11 +3586,13 @@ class AttrList(collections.MutableMapping):
 
         ~AttrList.clone
         ~AttrList.copy
+        ~AttrList.from_dict
         ~AttrList.new
         ~AttrList.rename
     
     .. automethod:: clone
     .. automethod:: copy
+    .. automethod:: from_dict
     .. automethod:: new
     .. automethod:: rename
     
@@ -3822,6 +3830,22 @@ class AttrList(collections.MutableMapping):
             the new name of the attribute
         """
         AttrList.__getitem__(self, old_name).rename(new_name)
+
+    def from_dict(self, in_dict):
+        """
+        Fill this list of attributes from a dictionary
+
+        Parameters
+        ----------
+        in_dict : dict
+            Attribute list is populated entirely from this dictionary;
+            all existing attributes are deleted.
+        """
+        for k in in_dict:
+            self[k] = in_dict[k]
+        for k in list(self):
+            if not k in in_dict:
+                del self[k]
 
     def _clone_attr(self, master, name, new_name=None):
         """Clones a single attribute from one in this list or another
