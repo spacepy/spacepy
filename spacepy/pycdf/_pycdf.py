@@ -2846,14 +2846,15 @@ class _Hyperslice(object):
             elements = d.dtype.itemsize
             if d.dtype.kind == 'U': #UTF-8 uses 4 bytes per
                 elements //= 4
+        elif d is data: #numpy array came in, use its type
+            types = [k for k in lib.numpytypedict
+                     if lib.numpytypedict[k] == d.dtype]
         elif hasattr(d.flat[0], 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH]
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16]
-        elif d is data: #numpy array came in, use its type
-            types = [k for k in lib.numpytypedict
-                     if lib.numpytypedict[k] == d.dtype]
+
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
