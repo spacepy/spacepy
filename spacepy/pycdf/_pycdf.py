@@ -33,6 +33,7 @@ import warnings
 import weakref
 
 import numpy
+import numpy.ma
 import spacepy.datamodel
 
 from . import const
@@ -2840,19 +2841,14 @@ class _Hyperslice(object):
         elements = 1
         types = []
 
-        if numpy.ma.isMaskedArray(d):
-            # this is not great... a copy of the data seems to be always made
-            element_1 = d.compressed()[0] 
-        else:
-            element_1 = d.flat[0]
-
+        data0 = numpy.ma.getdata(d).flat[0]
         _Hyperslice.check_well_formed(d)
         if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
             elements = d.dtype.itemsize
             if d.dtype.kind == 'U': #UTF-8 uses 4 bytes per
                 elements //= 4
-        elif hasattr(element_1, 'microsecond'):
+        elif hasattr(data0, 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH]
             else:
