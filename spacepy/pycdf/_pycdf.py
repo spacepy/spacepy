@@ -2840,21 +2840,26 @@ class _Hyperslice(object):
         elements = 1
         types = []
 
+        if numpy.ma.isMaskedArray(d):
+            # this is not great... a copy of the data seems to be always made
+            element_1 = d.compressed()[0] 
+        else:
+            element_1 = d.flat[0]
+
         _Hyperslice.check_well_formed(d)
         if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
             elements = d.dtype.itemsize
             if d.dtype.kind == 'U': #UTF-8 uses 4 bytes per
                 elements //= 4
-        elif d is data: #numpy array came in, use its type
-            types = [k for k in lib.numpytypedict
-                     if lib.numpytypedict[k] == d.dtype]
-        elif hasattr(d.flat[0], 'microsecond'):
+        elif hasattr(element_1, 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH]
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16]
-
+        elif d is data: #numpy array came in, use its type
+            types = [k for k in lib.numpytypedict
+                     if lib.numpytypedict[k] == d.dtype]
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
