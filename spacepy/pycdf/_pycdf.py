@@ -23,6 +23,7 @@ import collections
 import ctypes
 import ctypes.util
 import datetime
+import operator
 import os
 import os.path
 import shutil
@@ -30,6 +31,9 @@ import sys
 import tempfile
 import warnings
 import weakref
+
+import numpy
+import spacepy.datamodel
 
 from . import const
 
@@ -65,6 +69,10 @@ class Library(object):
         ~Library.epoch_to_datetime
         ~Library.epoch16_to_datetime
         ~Library.set_backward
+        v_datetime_to_epoch
+        v_datetime_to_epoch16
+        v_epoch_to_datetime
+        v_epoch16_to_datetime
         version
 
     .. automethod:: call
@@ -74,6 +82,28 @@ class Library(object):
     .. automethod:: epoch_to_datetime
     .. automethod:: epoch16_to_datetime
     .. automethod:: set_backward
+
+    .. method:: v_datetime_to_epoch(datetime)
+    
+        A vectorized version of :meth:`datetime_to_epoch` which takes a
+        numpy array of datetimes as input and returns an array of epochs.
+
+    .. method:: v_datetime_to_epoch16(datetime)
+    
+        A vectorized version of :meth:`datetime_to_epoch16` which takes a
+        numpy array of datetimes as input and returns an array of epoch16.
+
+    .. method:: v_epoch_to_datetime(epoch)
+    
+        A vectorized version of :meth:`epoch_to_datetime` which takes a
+        numpy array of epochs as input and returns an array of datetimes.
+
+    .. method:: v_epoch16_to_datetime(epoch0, epoch1)
+    
+        A vectorized version of :meth:`epoch16_to_datetime` which takes two
+        a numpy arrays of epoch16 as input and returns an array of datetimes.
+        An epoch16 is a pair of doubles; the input array's last dimension
+        must be two (and the returned array will have one fewer dimension).
 
     .. attribute:: version
 
@@ -157,60 +187,6 @@ class Library(object):
             self._library.CDFsetFileBackward.restype = None
             self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
 
-        #Set up the dictionary for CDF type - ctypes lookup
-        c_types = {}
-        c_types['unsigned'] = [ctypes.c_ubyte, ctypes.c_ushort, ctypes.c_uint,
-                      ctypes.c_ulong, ctypes.c_ulonglong]
-        c_types['signed'] = [ctypes.c_byte, ctypes.c_short, ctypes.c_int,
-                     ctypes.c_long, ctypes.c_longlong]
-        c_types['float'] = [ctypes.c_float, ctypes.c_double, ctypes.c_longdouble]
-        c_sizes = {}
-        for i in c_types:
-            c_sizes[i] = [ctypes.sizeof(j) for j in c_types[i]]
-        types_wanted = {const.CDF_BYTE.value: 'signed',
-                        const.CDF_CHAR.value: 'signed',
-                        const.CDF_INT1.value: 'signed',
-                        const.CDF_UCHAR.value: 'unsigned',
-                        const.CDF_UINT1.value: 'unsigned',
-                        const.CDF_INT2.value: 'signed',
-                        const.CDF_UINT2.value: 'unsigned',
-                        const.CDF_INT4.value: 'signed',
-                        const.CDF_UINT4.value: 'unsigned',
-                        const.CDF_FLOAT.value: 'float',
-                        const.CDF_REAL4.value: 'float',
-                        const.CDF_DOUBLE.value: 'float',
-                        const.CDF_REAL8.value: 'float',
-                        const.CDF_EPOCH.value: 'float',
-                        }
-        self.sizedict = {const.CDF_BYTE.value: 1,
-                         const.CDF_CHAR.value: 1,
-                         const.CDF_INT1.value: 1,
-                         const.CDF_UCHAR.value: 1,
-                         const.CDF_UINT1.value: 1,
-                         const.CDF_INT2.value: 2,
-                         const.CDF_UINT2.value: 2,
-                         const.CDF_INT4.value: 4,
-                         const.CDF_UINT4.value: 4,
-                         const.CDF_FLOAT.value: 4,
-                         const.CDF_REAL4.value: 4,
-                         const.CDF_DOUBLE.value: 8,
-                         const.CDF_REAL8.value: 8,
-                         const.CDF_EPOCH.value: 8,
-                         }
-        self.ctypedict = {}
-        for i in types_wanted:
-            type_wanted = types_wanted[i]
-            size_wanted = self.sizedict[i]
-            try:
-                self.ctypedict[i] = c_types[type_wanted][
-                    c_sizes[type_wanted].index(size_wanted)
-                    ]
-            except ValueError:
-                raise CDFError(const.BAD_DATA_TYPE)
-        #EPOCH16 is a double[2] (NOT doubledouble) and needs special handling
-        self.sizedict[const.CDF_EPOCH16.value] = 16
-        self.ctypedict[const.CDF_EPOCH16.value] = self.ctypedict[
-            const.CDF_EPOCH.value] * 2
         self.cdftypenames = {const.CDF_BYTE.value: 'CDF_BYTE',
                              const.CDF_CHAR.value: 'CDF_CHAR',
                              const.CDF_INT1.value: 'CDF_INT1',
@@ -227,6 +203,48 @@ class Library(object):
                              const.CDF_EPOCH.value: 'CDF_EPOCH',
                              const.CDF_EPOCH16.value: 'CDF_EPOCH16',
                              }
+        self.numpytypedict = {const.CDF_BYTE.value: numpy.int8,
+                              const.CDF_CHAR.value: numpy.int8,
+                              const.CDF_INT1.value: numpy.int8,
+                              const.CDF_UCHAR.value: numpy.uint8,
+                              const.CDF_UINT1.value: numpy.uint8,
+                              const.CDF_INT2.value: numpy.int16,
+                              const.CDF_UINT2.value: numpy.uint16,
+                              const.CDF_INT4.value: numpy.int32,
+                              const.CDF_UINT4.value: numpy.uint32,
+                              const.CDF_FLOAT.value: numpy.float32,
+                              const.CDF_REAL4.value: numpy.float32,
+                              const.CDF_DOUBLE.value: numpy.float64,
+                              const.CDF_REAL8.value: numpy.float64,
+                              const.CDF_EPOCH.value: numpy.float64,
+                              const.CDF_EPOCH16.value:
+                              numpy.dtype((numpy.float64, 2)),
+                              }
+
+        v_epoch16_to_datetime = numpy.frompyfunc(
+            self.epoch16_to_datetime, 2, 1)
+        self.v_epoch16_to_datetime = \
+            lambda x: v_epoch16_to_datetime(x[..., 0], x[..., 1])
+        self.v_epoch_to_datetime = numpy.frompyfunc(
+            self.epoch_to_datetime, 1, 1)
+        self.v_datetime_to_epoch = numpy.vectorize(
+            self.datetime_to_epoch, otypes=[numpy.float64])
+        v_datetime_to_epoch16 = numpy.frompyfunc(
+            self.datetime_to_epoch16, 1, 2)
+        #frompyfunc returns a TUPLE of the returned values,
+        #implicitly the 0th dimension. We want everything from one
+        #call paired, so this rolls the 0th dimension to the last
+        #(via the second-to-last)
+        def _v_datetime_to_epoch16(x):
+            retval = numpy.require(v_datetime_to_epoch16(x),
+                                      dtype=numpy.float64)
+            if len(retval.shape) > 1:
+                return numpy.rollaxis(
+                    numpy.rollaxis(retval, 0, -1),
+                    -1, -2)
+            else:
+                return retval
+        self.v_datetime_to_epoch16 = _v_datetime_to_epoch16
 
         #Get CDF version information
         ver = ctypes.c_long(0)
@@ -371,6 +389,10 @@ class Library(object):
         out : :class:`datetime.datetime`
             date and time corresponding to epoch. Invalid values are set to
             usual epoch invalid value, i.e. last moment of year 9999.
+
+        See Also
+        ========
+        v_epoch_to_datetime
         """
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
@@ -404,6 +426,10 @@ class Library(object):
         =======
         out : float
             epoch corresponding to dt
+
+        See Also
+        ========
+        v_datetime_to_epoch
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
@@ -415,14 +441,23 @@ class Library(object):
                                           dt.minute, dt.second,
                                           int(dt.microsecond / 1000))
 
-    def epoch16_to_datetime(self, epoch):
+    def epoch16_to_datetime(self, epoch0, epoch1):
         """
         Converts a CDF epoch16 value to a datetime
 
+        .. note::
+            The call signature has changed since SpacePy 0.1.2. Formerly
+            this method took a single argument with two values; now it
+            requires two arguments (one for each value). To convert existing
+            code, replace ``epoch16_to_datetime(epoch)`` with
+            ``epoch16_to_datetime(*epoch)``.
+
         Parameters
         ==========
-        epoch : list of two floats
-            epoch16 value from CDF
+        epoch0 : float
+            epoch16 value from CDF, first half
+        epoch1 : float
+            epoch16 value from CDF, second half
 
         Raises
         ======
@@ -433,12 +468,11 @@ class Library(object):
         out : :class:`datetime.datetime`
             date and time corresponding to epoch. Invalid values are set to
             usual epoch invalid value, i.e. last moment of year 9999.
+
+        See Also
+        ========
+        v_epoch16_to_datetime
         """
-        try:
-            if len(epoch) != 2:
-                raise EpochError('EPOCH16 values must be a pair of doubles.')
-        except TypeError:
-            raise EpochError('EPOCH16 values must be a pair of doubles.')
         yyyy = ctypes.c_long(0)
         mm = ctypes.c_long(0)
         dd = ctypes.c_long(0)
@@ -449,7 +483,7 @@ class Library(object):
         usec = ctypes.c_long(0)
         nsec = ctypes.c_long(0)
         psec = ctypes.c_long(0)
-        self._library.EPOCH16breakdown((ctypes.c_double * 2)(*epoch),
+        self._library.EPOCH16breakdown((ctypes.c_double * 2)(epoch0, epoch1),
                                      ctypes.byref(yyyy), ctypes.byref(mm),
                                      ctypes.byref(dd),
                                      ctypes.byref(hh), ctypes.byref(min),
@@ -489,6 +523,10 @@ class Library(object):
         =======
         out : list of float
             epoch16 corresponding to dt
+
+        See Also
+        ========
+        v_datetime_to_epoch16
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
@@ -499,7 +537,7 @@ class Library(object):
                                      int(dt.microsecond / 1000),
                                      dt.microsecond % 1000, 0, 0,
                                      epoch16)
-        return [epoch16[0], epoch16[1]]
+        return (epoch16[0], epoch16[1])
 
 
 try:
@@ -679,7 +717,7 @@ def _compress(obj, comptype=None, param=None):
 
 
 class _AttrListGetter(object):
-    """Descriptor to get attribute list for a :py:class:`pycdf.CDF` or :py:class:`pycdf.Var`."""
+    """Get attribute list for a :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`."""
     def __get__(self, instance, owner=None):
         if instance is None:
             return self
@@ -834,6 +872,7 @@ class CDF(collections.MutableMapping):
         ~CDF.col_major
         ~CDF.compress
         ~CDF.copy
+        ~CDF.from_data
         ~CDF.new
         ~CDF.readonly
         ~CDF.save
@@ -849,6 +888,7 @@ class CDF(collections.MutableMapping):
     .. automethod:: col_major
     .. automethod:: compress
     .. automethod:: copy
+    .. automethod:: from_data
     .. automethod:: new
     .. automethod:: readonly
     .. automethod:: save
@@ -956,7 +996,7 @@ class CDF(collections.MutableMapping):
             return Var(self, name)
         except CDFException:
             (type, value, traceback) = sys.exc_info()
-            raise KeyError(name + ': ' + str(value))
+            raise KeyError(str(name) + ': ' + str(value))
 
     def __setitem__(self, name, data):
         """Writes data to a zVariable in this CDF
@@ -973,6 +1013,8 @@ class CDF(collections.MutableMapping):
             self.clone(data, name)
         elif name in self:
             self[name][...] = data
+            if hasattr(data, 'attrs'):
+                self[name].attrs.from_dict(data.attrs)
         else:
             self.new(name, data)
 
@@ -1116,6 +1158,35 @@ class CDF(collections.MutableMapping):
         self._open()
         self._opened = True
         self.readonly(False)
+
+    @classmethod
+    def from_data(cls, filename, sd):
+        """Create a new CDF file from a SpaceData object or similar
+
+        The CDF named ``filename`` is created, opened, filled with the
+        contents of ``sd`` (including attributes), and closed.
+
+        ``sd`` should be a dictionary-like object; each key will be made
+        into a variable name. An attribute called ``attrs``, if it exists,
+        will be made into global attributes for the CDF.
+
+        Each value of ``sd`` should be array-like and will be used as
+        the contents of the variable; an attribute called ``attrs``, if
+        it exists, will be made into attributes for that variable.
+
+        Parameters
+        ----------
+        filename : string
+            name of the file to create
+        sd : spacepy.datamodel.SpaceData
+            data to put in the CDF. This structure cannot be nested,
+            i.e., it must contain only :class:`~spacepy.datamodel.dmarray`
+            and no :class:`~spacepy.datamodel.Spacedata` objects.
+        """
+        with cls(filename, '') as cdffile:
+            for k in sd:
+                cdffile[k] = sd[k]
+            cdffile.attrs.from_dict(sd.attrs)
 
     def _call(self, *args, **kwargs):
         """Select this CDF as current and call the CDF internal interface
@@ -1342,7 +1413,9 @@ class CDF(collections.MutableMapping):
         Other Parameters
         ================
         data
-            data to store in the new variable
+            data to store in the new variable. If this has a an ``attrs``
+            attribute (e.g., :class:`~spacepy.datamodel.dmarray`), it
+            will be used to populate attributes of the new variable.
         type : ctypes.c_long
             CDF type of the variable, from :mod:`~spacepy.pycdf.const`.
             See section 2.5 of the CDF user's guide for more information on
@@ -1373,6 +1446,7 @@ class CDF(collections.MutableMapping):
         Any given data may be representable by a range of CDF types; if
         the type is not specified, pycdf will guess which
         the CDF types which can represent this data. This breaks down to:
+          #. If input data is a numpy array, match the type of that array
           #. Proper kind (numerical, string, time)
           #. Proper range (stores highest and lowest number provided)
           #. Sufficient resolution (EPOCH16 required if datetime has
@@ -1407,6 +1481,10 @@ class CDF(collections.MutableMapping):
             (guess_dims, guess_types, guess_elements) = _Hyperslice.types(data)
             if dims == None:
                 if recVary:
+                    if guess_dims == ():
+                        raise ValueError(
+                            'Record-varying data cannot be scalar. '
+                            'Specify NRV with CDF.new() or put data in array.')
                     dims = guess_dims[1:]
                 else:
                     dims = guess_dims
@@ -1427,6 +1505,8 @@ class CDF(collections.MutableMapping):
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
         if data != None:
             new_var[...] = data
+            if hasattr(data, 'attrs'):
+                new_var.attrs.from_dict(data.attrs)
         return new_var
 
     def save(self):
@@ -1459,7 +1539,7 @@ class CDF(collections.MutableMapping):
         Returns
         =======
         out : :py:class:`CDFCopy`
-            dictionary-like object of all data
+            :class:`~spacepy.datamodel.SpaceData`-like object of all data
         """
         return CDFCopy(self)
 
@@ -1481,7 +1561,7 @@ class CDF(collections.MutableMapping):
         return (ver.value, rel.value, inc.value)
 
 
-class CDFCopy(dict):
+class CDFCopy(spacepy.datamodel.SpaceData):
     """
     A dictionary-like copy of all data and attributes in a :py:class:`CDF`
 
@@ -1491,6 +1571,12 @@ class CDFCopy(dict):
 
     Do not instantiate this class directly; use :meth:`~CDF.copy`
     on an existing :class:`CDF`.
+
+    Examples
+    --------
+    >>> from spacepy import pycdf
+    >>> with pycdf.CDF('test.cdf') as cdffile:
+    ...     data = cdffile.copy()
 
     .. attribute:: attrs
 
@@ -1503,9 +1589,9 @@ class CDFCopy(dict):
         @param cdf: CDF to take data from
         @type cdf: :py:class:`pycdf.CDF`
         """
-        self.attrs = cdf.attrs.copy()
-        super(CDFCopy, self).__init__((key, var.copy())
-                                      for (key, var) in cdf.items())
+        super(CDFCopy, self).__init__(((key, var.copy())
+                                      for (key, var) in cdf.items()),
+                                      attrs = cdf.attrs.copy())
 
 
 class Var(collections.MutableSequence):
@@ -1513,8 +1599,9 @@ class Var(collections.MutableSequence):
     A CDF variable.
 
     This object does not directly store the data from the CDF; rather,
-    it provides access to the data in a format that looks like a Python
-    list. General list information is available in the python docs:
+    it provides access to the data in a format that much like a Python
+    list or numpy :class:`~numpy.ndarray`.
+    General list information is available in the python docs:
     `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
     `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
     `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
@@ -1525,10 +1612,10 @@ class Var(collections.MutableSequence):
         Not intended to be created directly; use methods of :class:`CDF` to gain access to a variable.
 
     A record-varying variable's data are viewed as a hypercube of dimensions
-    n_dims+1 and are indexed in row-major fashion, i.e. the last
-    index changes most frequently / is contiguous in memory. If
-    the CDF is column-major, the data are transformed to row-major
-    before return. The extra dimension is the record number.
+    n_dims+1 (the extra dimension is the record number). They are indexed in
+    row-major fashion, i.e. the last index changes most frequently / is
+    contiguous in memory. If the CDF is column-major, the data are
+    transformed to row-major before return.
 
     Non record-varying variables are similar, but do not have the extra
     dimension of record number.
@@ -1565,6 +1652,22 @@ class Var(collections.MutableSequence):
 
     This all sounds very complicated but it is essentially attempting
     to do the 'right thing' for a range of slices.
+
+    An unusual case is scalar (zero-dimensional) non-record-varying variables.
+    Clearly they cannot be subscripted normally. In this case, use the
+    ``[...]`` syntax meaning 'access all data.':
+
+    >>> from spacepy import pycdf
+    >>> testcdf = pycdf.CDF('test.cdf', '')
+    >>> variable = testcdf.new('variable', recVary=False,
+    ...     type=pycdf.const.CDF_INT4)
+    >>> variable[...] = 10
+    >>> variable
+    <Var:
+    CDF_INT4 [] NRV
+    >
+    >>> variable[...]
+    10
 
     As a list type, variables are also `iterable
     <http://docs.python.org/tutorial/classes.html#iterators>`_; iterating
@@ -1603,7 +1706,7 @@ class Var(collections.MutableSequence):
 
     All data are, on read, converted to appropriate Python data
     types; EPOCH and EPOCH16 types are converted to
-    :class:`~datetime.datetime`.
+    :class:`~datetime.datetime`. Data are returned in numpy arrays.
 
     Potentially useful list methods and related functions:
       - `count <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
@@ -1692,11 +1795,13 @@ class Var(collections.MutableSequence):
         ~Var.attrs
         ~Var.compress
         ~Var.copy
+        ~Var.dtype
         ~Var.dv
         ~Var.insert
         ~Var.name
         ~Var.rename
         ~Var.rv
+        ~Var.shape
         ~Var.type
     .. attribute:: Var.attrs
 
@@ -1704,11 +1809,13 @@ class Var(collections.MutableSequence):
        (see :class:`zAttrList`)
     .. automethod:: compress
     .. automethod:: copy
+    .. autoattribute:: dtype
     .. automethod:: dv
     .. automethod:: insert
     .. automethod:: name
     .. automethod:: rename
     .. automethod:: rv
+    .. autoattribute:: shape
     .. automethod:: type
 ..  @ivar cdf_file: the CDF file containing this variable
     @type cdf_file: :py:class:`CDF`
@@ -1716,6 +1823,8 @@ class Var(collections.MutableSequence):
     @type attrs: L{_AttrListGetter}
     @ivar _name: name of this variable
     @type _name: string
+    @ivar _type: CDF type of this variable
+    @type _type: long
     @ivar _attrlistref: reference to the attribute list
                         (use L{attrs} instead)
     @type _attrlistref: weakref
@@ -1754,6 +1863,7 @@ class Var(collections.MutableSequence):
         """
         self.cdf_file = cdf_file
         self._name = None
+        self._type = None
         if len(args) == 0:
             self._get(var_name)
         else:
@@ -1770,25 +1880,12 @@ class Var(collections.MutableSequence):
         @raise CDFError: for errors from the CDF library
         """
         hslice = _Hyperslice(self, key)
-        if hslice.counts[0] == 0:
-            return []
-        buffer = hslice.create_buffer()
-        hslice.select()
-        lib.call(const.GET_, const.zVAR_HYPERDATA_, ctypes.byref(buffer))
-        result = hslice.unpack_buffer(buffer)
-
-        if self.type() == const.CDF_EPOCH.value:
-            if isinstance(result, float): #single value
-                result = lib.epoch_to_datetime(result)
-            else:
-                hslice.transform_each(result, lib.epoch_to_datetime)
-        elif self.type() == const.CDF_EPOCH16.value:
-            if isinstance(result[0], float): #single value
-                result = lib.epoch16_to_datetime(result)
-            else:
-                hslice.transform_each(result, lib.epoch16_to_datetime)
-
-        return hslice.convert_array(result)
+        result = hslice.create_array()
+        if hslice.counts[0] != 0:
+            hslice.select()
+            lib.call(const.GET_, const.zVAR_HYPERDATA_,
+                     result.ctypes.data_as(ctypes.c_void_p))
+        return hslice.convert_input_array(result)
 
     def __delitem__(self, key):
         """Removes a record (or set of records) from the CDF
@@ -1812,7 +1909,7 @@ class Var(collections.MutableSequence):
             raise TypeError('Cannot delete records from non-record-varying '
                             'variable.')
         hslice = _Hyperslice(self, key)
-        if hslice.dims > 1 and hslice.counts[1:] != hslice.dimsizes[1:]:
+        if hslice.dims > 1 and (hslice.counts[1:] != hslice.dimsizes[1:]).any():
             raise TypeError('Can only delete entire records.')
         if hslice.counts[0] == 0:
             return
@@ -1833,7 +1930,10 @@ class Var(collections.MutableSequence):
 
         if dangerous_delete:
             data = self[...]
-            del data[start:start + count * interval:interval]
+            data = numpy.delete(
+                data,
+                numpy.arange(start, start + count * interval, interval),
+                0)
             self[0:dimsize - count] = data
             first_rec = dimsize - count
             last_rec = dimsize - 1
@@ -1858,7 +1958,7 @@ class Var(collections.MutableSequence):
         @param key: index or slice to store
         @type key: int or slice
         @param data: data to store
-        @type data: list
+        @type data: numpy.array
         @raise IndexError: if L{key} is out of range, mismatches dimensions,
                            or simply unparseable. IndexError will
         @raise CDFError: for errors from the CDF library
@@ -1866,27 +1966,38 @@ class Var(collections.MutableSequence):
         hslice = _Hyperslice(self, key)
         n_recs = hslice.counts[0]
         hslice.expand(data)
-        buff = hslice.create_buffer()
-        try:
-            hslice.pack_buffer(buff, data)
-        except (IndexError, TypeError):
-            #Can be thrown if data isn't same size as slice
-            #This is an expensive check, so only do it if something went wrong
-            data_dims = _Hyperslice.dimensions(data)
-            expected = hslice.expected_dims()
-            if data_dims != expected:
-                raise ValueError('attempt to assign data of dimensions ' +
-                                 str(data_dims) + ' to slice of dimensions ' +
-                                 str(expected))
-            else: #Something else went wrong
-                raise
+        cdf_type = self.type()
+        if cdf_type == const.CDF_EPOCH16.value:
+            data = numpy.require(lib.v_datetime_to_epoch16(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.float64)
+        elif cdf_type == const.CDF_EPOCH.value:
+            data = numpy.require(lib.v_datetime_to_epoch(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.float64)
+        else:
+             data = numpy.require(data, requirements=('C', 'A', 'W'),
+                                  dtype=self._np_type())
+        if cdf_type == const.CDF_EPOCH16.value:
+            datashape = data.shape[:-1]
+        else:
+            datashape = data.shape
+        #Check data sizes
+        if datashape != tuple(hslice.expected_dims()):
+             raise ValueError('attempt to assign data of dimensions ' +
+                              str(datashape) + ' to slice of dimensions ' +
+                              str(tuple(hslice.expected_dims())))
+        #Flip majority and reversed dimensions, see convert_input_array
+        data = hslice.convert_output_array(data)
+        #Handle insertions and similar weirdness
         if hslice.counts[0] > n_recs and \
                hslice.starts[0] + n_recs < hslice.dimsizes[0]:
             #Specified slice ends before last record, so insert in middle
             saved_data = self[hslice.starts[0] + n_recs:]
         if hslice.counts[0] > 0:
             hslice.select()
-            lib.call(const.PUT_, const.zVAR_HYPERDATA_, ctypes.byref(buff))
+            lib.call(const.PUT_, const.zVAR_HYPERDATA_,
+                     data.ctypes.data_as(ctypes.c_void_p))
         if hslice.counts[0] < n_recs:
             first_rec = hslice.starts[0] + hslice.counts[0]
             last_rec = hslice.dimsizes[0] - 1
@@ -1902,7 +2013,7 @@ class Var(collections.MutableSequence):
         Inserts a *single* record before an index
 
         Parameters
-        =========
+        ----------
         index : int
             index before which to insert the new record
         data :
@@ -2155,18 +2266,24 @@ class Var(collections.MutableSequence):
         return self.cdf_file._call(const.SELECT_, const.zVAR_NAME_, self._name,
                                    *args, **kwargs)
 
-    def _c_type(self):
-        """Returns the C type of this variable
+    def _np_type(self):
+        """Returns the numpy type of this variable
 
-        @return: ctypes type that will hold value from this variable
-        @rtype: type
-        @raise CDFError: for library-reported error or failure to find C type
+        Raises
+        ======
+        CDFError : for library-reported error or failure to find numpy type
+
+        Returns
+        =======
+        out : dtype
+            numpy dtype that will hold value from this variable
+            
         """
         cdftype = self.type()
         if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
-            return ctypes.c_char * self._nelems()
+            return numpy.dtype('S' + str(self._nelems()))
         try:
-            return lib.ctypedict[cdftype]
+            return lib.numpytypedict[cdftype]
         except KeyError:
             raise CDFError(const.BAD_DATA_TYPE)
 
@@ -2190,10 +2307,13 @@ class Var(collections.MutableSequence):
             n_elements = ctypes.c_long(self._nelems())
             self._call(const.PUT_, const.zVAR_DATASPEC_,
                        new_type, n_elements)
-        cdftype = ctypes.c_long(0)
-        self._call(const.GET_, const.zVAR_DATATYPE_,
-                   ctypes.byref(cdftype))
-        return cdftype.value
+            self._type = None
+        if self._type is None:
+            cdftype = ctypes.c_long(0)
+            self._call(const.GET_, const.zVAR_DATATYPE_,
+                       ctypes.byref(cdftype))
+            self._type = cdftype.value
+        return self._type
 
     def _nelems(self):
         """Number of elements for each value in this variable
@@ -2280,8 +2400,38 @@ class Var(collections.MutableSequence):
         self._call(const.PUT_, const.zVAR_NAME_, enc_name)
         self._name = enc_name
 
+    @property
+    def shape(self):
+        """
+        Provides the numpy array-like shape of this variable.
 
-class VarCopy(list):
+        Returns a tuple; first element is number of records (RV variable
+        only) And the rest provide the dimensionality of the variable.
+
+        .. note::
+            Assigning to this attribute will not change the shape.
+        """
+        if self.rv():
+            return tuple([len(self)] + self._dim_sizes())
+        else:
+            return tuple(self._dim_sizes())
+
+    @property
+    def dtype(self):
+        """
+        Provide the numpy dtype equivalent to the CDF type of this variable.
+
+        Data from this variable will be returned in numpy arrays of this type.
+
+        See Also
+        --------
+        type
+        """
+        return self._np_type()
+
+
+
+class VarCopy(spacepy.datamodel.dmarray):
     """
     A list-like copy of the data and attributes in a :class:`Var`
 
@@ -2297,25 +2447,20 @@ class VarCopy(list):
        Python dictionary containing attributes copied from the zVar
     """
 
-    def __init__(self, zVar):
+    def __new__(cls, zVar):
         """Copies all data and attributes from a zVariable
 
         @param zVar: variable to take data from
         @type zVar: :py:class:`pycdf.Var`
         """
-        self.attrs = zVar.attrs.copy()
-        super(VarCopy, self).__init__(zVar[...])
-        self._dims = [len(zVar)] + zVar._dim_sizes()
+        return super(VarCopy, cls).__new__(cls, zVar[...], zVar.attrs.copy())
 
     def __getitem__(self, key):
         """Returns a subset of the data in this copy"""
         if not hasattr(key, '__len__') and key != Ellipsis:
             return super(VarCopy, self).__getitem__(key)
-        key = _Hyperslice.expand_ellipsis(key, len(self._dims))
-        result = super(VarCopy, self).__getitem__(key[0])
-        for subkey in key[1:]:
-            result = result[subkey]
-        return result
+        key = _Hyperslice.expand_ellipsis(key, len(self.shape))
+        return super(VarCopy, self).__getitem__(key)
 
 
 class _Hyperslice(object):
@@ -2337,7 +2482,7 @@ class _Hyperslice(object):
                   Final result will be the product of everything
                   in counts.
                   ('dimension counts' in CDF speak)
-    @type counts: list of int
+    @type counts: numpy.array
     @ivar intervals: interval between successive indices
                      to use for each dimension.
                      ('dimension invervals' in CDF speak)
@@ -2346,9 +2491,9 @@ class _Hyperslice(object):
                  removed in the returned dataset. A 3D array
                  with one dimension degenerate will be returned
                  as a 2D array (i.e. list-of-lists.)
-    @type degen: list of boolean
+    @type degen: numpy.array
     @ivar rev: should this dimension be returned in reverse order?
-    @type rev: list of boolean
+    @type rev: numpy.array
     @ivar column: is this slice in column-major mode (if false, row-major)
     @type column: boolean
     @ivar zvar: what CDF variable this object slices on
@@ -2379,10 +2524,11 @@ class _Hyperslice(object):
         self.dimsizes = [len(zvar)] + \
                         zvar._dim_sizes()
         self.starts = [0] * self.dims
-        self.counts = [1] * self.dims
+        self.counts = numpy.empty((self.dims,), dtype=numpy.int32)
+        self.counts.fill(1)
         self.intervals = [1] * self.dims
-        self.degen = [False] * self.dims
-        self.rev = [False] * self.dims
+        self.degen = numpy.zeros(self.dims, dtype=numpy.bool)
+        self.rev = numpy.zeros(self.dims, dtype=numpy.bool)
         #key is:
         #1. a single value (integer or slice object) if called 1D
         #2. a tuple (of integers and/or slice objects) if called nD
@@ -2448,7 +2594,7 @@ class _Hyperslice(object):
         @type data: list
         """
         rec_slice = self.expanded_key[0]
-        if isinstance(data, str_classes) or self.degen[0] or \
+        if not self.rv or isinstance(data, str_classes) or self.degen[0] or \
                not hasattr(rec_slice, 'stop'):
             return
         if len(data) < self.counts[0]: #Truncate to fit data
@@ -2458,296 +2604,117 @@ class _Hyperslice(object):
             if rec_slice.step in (None, 1):
                 self.counts[0] = len(data)
 
-    def expand_ellipsis(self, slices):
-        """Expands ellipses into the correct number of full-size slices
+    def create_array(self):
+        """Creates a numpy array to hold the data from this slice
 
-        @param slices: tuple of slices, integers, or ellipse objects
-        @type slices: tuple
-        @return: key with ellipses replaced by appropriate number of blank slices
-        @rtype: tuple
-        @raise IndexError: if ellipses specified when already have enough dimensions
-        """
-        if not Ellipsis in slices:
-            return slices
-
-        size = len(slices)
-        extra = self.dims - size #how many dims to replace ellipsis
-        if self.rv:
-            extra += 1
-        if extra < 0:
-            raise IndexError('Too many dimensions specified to use ellipsis.')
-        idx = slices.index(Ellipsis)
-        result = slices[0:idx] + \
-                 tuple([slice(None, None, None) for i in range(extra)]) + \
-                 slices[idx+1:]
-        if Ellipsis in result:
-            raise IndexError('Ellipses can only be used once per slice.')
-        return result
-
-    def create_buffer(self):
-        """Creates a ctypes array to hold the data from this slice
-
-        @return: array sized, typed, and dimensioned to hold data from
-                 this slice
-        @rtype: instance of subclass of ctypes.Array
+        Returns
+        =======
+        out : numpy.array
+            array sized, typed, and dimensioned to hold data from
+            this slice
         """
         counts = self.counts
-        degens = self.degen
+        degen = self.degen
         if self.column:
             counts = self.reorder(counts)
-            degens = self.reorder(degens)
-        cdftype = self.zvar.type()
-        constructor = self.zvar._c_type()
-        #Build array from innermost out
-        for count, degen in zip(counts[-1::-1], degens[-1::-1]):
-            if not degen:
-                constructor *= count
-        return constructor()
+            degen = self.reorder(degen)
+        #TODO: Forcing C order for now, revert to using self.column later
+        array = numpy.empty(
+            [counts[i] for i in range(len(counts)) if not degen[i]],
+            self.zvar._np_type(), order='C')
+        return numpy.require(array, requirements=('C', 'A', 'W'))
+                           
+    def convert_input_array(self, buffer):
+        """Converts a buffer of raw data from this slice
 
-    def convert_array(self, array):
-        """Converts a nested list-of-lists to format of this slice
+        EPOCH(16) variables always need to be converted.
+        CHAR need converted to Unicode if py3k
 
-        Takes a list-of-lists returned in CDF order
-        Converts to the order specified in this slice:
-          1. Row-major (if CDF was column-major)
-          2. Reversed indices if specified in slice
+        Parameters
+        ==========
+        buffer : numpy.array
+            data as read from the CDF file
 
-        @param array: data to reorder
-        @type array: list (of lists)
-        @return: array, reordered as necessary
-        @rtype: list (of lists)
+        Returns
+        =======
+        out : numpy.array
+            converted data
         """
-        if self.column:
+        #Convert to derived types
+        cdftype = self.zvar.type()
+        if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
+           str != bytes:
+            result = numpy.char.array(buffer).decode()
+        elif cdftype == const.CDF_EPOCH.value:
+            result = lib.v_epoch_to_datetime(buffer)
+        elif cdftype == const.CDF_EPOCH16.value:
+            result = lib.v_epoch16_to_datetime(buffer)
+        else:
+            result = buffer
+            
+        #Flip majority if any non-degenerate dimensions exist
+        if self.column and not min(self.degen):
+            #Record-number dim degen, swap whole thing
             if self.degen[0]:
-                array = self.flip_majority(array)
+                result = result.transpose()
+            #Record-number dimension is not degenerate, so keep it first
             else:
-                #Record-number dimension is not degenerate, so keep it first
-                array = [self.flip_majority(i) for i in array]
-
-        if True in self.rev:
-            #Remove degenerate dimensions
-            rev = [self.rev[i] for i in range(self.dims) if not self.degen[i]]
-            for i in range(len(rev)):
-                if not rev[i]: #no need to reverse
-                    continue
-                if i == 0:
-                    array.reverse()
-                else:
-                    #make a flattened representation that goes to one level
-                    #above what we want to flip
-                    flatter = array
-                    for j in range(i - 1):
-                        flatter = [item for sublist in flatter for item in sublist]
-                    for list in flatter:
-                        list.reverse()
-        return array
-
-    def unpack_buffer(self, buffer):
-        """Unpacks a buffer of data from this slice into pythonic form
-
-        @param buffer: ctypes object created by L{create_buffer}
-        @type buffer: subclass of ctypes.Array
-        @return: list-of-lists of the data
-        """
-        cdftype = self.zvar.type()
-        if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
-            finaltype = self.zvar._c_type()
-            for count, degen in zip(self.counts[-1::-1], self.degen[-1::-1]):
-                if not degen:
-                    finaltype *= count
-            buffer = ctypes.cast(buffer, ctypes.POINTER(finaltype)).contents
-            buffer = self.c_array_to_list(buffer)
-            if str != bytes: #Need to decode output
-                if isinstance(buffer, bytes):
-                    buffer = buffer.decode()
-                else:
-                    dec = lambda x:x.decode()
-                    self.transform_each(buffer, dec)
-            return buffer
+                result = result.transpose(
+                    [0] + list(range(len(result.shape) - 1, 0, -1)))
+        #Reverse non-degenerate dimensions in rev
+        #Remember that the degenerate indices are already gone!
+        if self.rev.any():
+            sliced = [(slice(None, None, -1) if self.rev[i] else slice(None))
+                for i in range(self.dims) if not self.degen[i]]
+            return operator.getitem(result, sliced)
         else:
-            return self.c_array_to_list(buffer)
+            return result
 
-    def pack_buffer(self, buff, data):
-        """Packs data in the form of this slice into a buffer
+    #TODO: Huge overlap with above, try to combine?
+    def convert_output_array(self, buffer):
+        """Convert a buffer of data that will go into this slice
+         
+        Parameters
+        ==========
+        buffer : numpy.array
+        data to go into the CDF file
 
-
-        @param buff: ctypes object created by L{create_buffer}
-        @type buff: subclass of ctypes.Array
-        @param data: data to pack into L{buff}
-        @type data: list-of-lists
+        Returns
+        =======
+        out : numpy.array
+        input with majority flipped and dimensions reversed to be
+        suitable to pass directly to CDF library.
         """
-        counts = self.counts
-        degen = self.degen
-        rev = self.rev
-        if self.column:
-            counts = self.reorder(counts)
-            degen = self.reorder(degen)
-            rev = self.reorder(rev)
-        cdf_type = self.zvar.type()
-
-        #Handle completely degenerate case, i.e. scalar
-        if min(degen):
-            if cdf_type == const.CDF_EPOCH16.value:
-                buff[:] = lib.datetime_to_epoch16(data)
-            elif cdf_type == const.CDF_EPOCH.value:
-                buff.value = lib.datetime_to_epoch(data)
-            else:
-                buff.value = data
-            return
-
-        cdf_counts = [] #non-degenerate no. of elements in each dim., CDF order
-        cdf_rev = [] #is this dimension reversed? CDF order
-        for i in range(len(counts)):
-            if not degen[i]:
-                cdf_counts.append(counts[i])
-                cdf_rev.append(rev[i])
-        lastdim = len(cdf_counts) - 1
-        record_degen = self.degen[0]
-        reordered = max(cdf_rev) or self.column #python and CDF order differ?
-
-        cdf_idx = [0 for i in range(len(cdf_counts))]
-        while cdf_idx[0] < cdf_counts[0]:
-            #Calculate the Python index
-            py_idx = cdf_idx[:]
-            if reordered:
-                for i in range(lastdim + 1):
-                    if self.column and (record_degen or i != 0):
-                        if cdf_rev[i]:
-                            py_idx[lastdim - i] = \
-                                           cdf_counts[i] - cdf_idx[i] - 1
-                        else:
-                            py_idx[lastdim - i] = cdf_idx[i]
-                    else:
-                        if cdf_rev[i]:
-                            py_idx[i] = cdf_counts[i] - cdf_idx[i] - 1
-                        else:
-                            py_idx[i] = cdf_idx[i]
-
-            py_obj = data
-            cdf_obj = buff
-            for i in range(lastdim):
-                py_obj = py_obj[py_idx[i]]
-                cdf_obj = cdf_obj[cdf_idx[i]]
-            if cdf_type == const.CDF_EPOCH16.value:
-                cdf_obj[cdf_idx[lastdim]][:] = lib.datetime_to_epoch16(
-                    py_obj[py_idx[lastdim]])
-            elif cdf_type == const.CDF_EPOCH.value:
-                cdf_obj[cdf_idx[lastdim]] = lib.datetime_to_epoch(
-                    py_obj[py_idx[lastdim]])
-            elif cdf_type == const.CDF_CHAR.value or \
-                     cdf_type == const.CDF_UCHAR.value:
-                cdf_obj[cdf_idx[lastdim]].value = py_obj[py_idx[lastdim]]
-            else:
-                cdf_obj[cdf_idx[lastdim]] = py_obj[py_idx[lastdim]]
-
-            #Switch to the next index
-            currdim = lastdim
-            while currdim >= 0:
-                cdf_idx[currdim] += 1
-                if cdf_idx[currdim] >= cdf_counts[currdim] and currdim > 0:
-                    cdf_idx[currdim] = 0
-                    currdim -= 1
+        #Flip majority if any non-degenerate dimensions exist
+        if self.column and not min(self.degen):
+            cdftype = self.zvar.type()
+            #Record-number dim degen, swap whole thing
+            if self.degen[0]:
+                if cdftype == const.CDF_EPOCH16.value:
+                    #Maintain last dimension
+                    buffer = buffer.transpose(
+                        list(range(len(buffer.shape) - 2, 0, -1)) +
+                        [len(buffer.shape) - 1]
+                        )
                 else:
-                    break
-
-    def c_array_to_list(self, array):
-        """Converts a ctypes array type to a python nested list
-
-        @param array: the array to convert
-        @type array: instance of ctypes.Array subclass
-        @return: contents of array
-        @rtype: list (of lists)
-        """
-        if hasattr(array, 'value'):
-            return array.value
-
-        dimsizes = []
-        counts = self.counts
-        degen = self.degen
-        if self.column:
-            counts = self.reorder(counts)
-            degen = self.reorder(degen)
-        for count, degen in zip(counts, degen):
-            if not degen:
-                dimsizes.append(count)
-
-        if self.zvar.type() == const.CDF_EPOCH16.value:
-            basetype = lib.ctypedict[const.CDF_EPOCH.value]
-            dimsizes.append(2)
-        else:
-            basetype = self.zvar._c_type()
-
-        n_elements = 1
-        for j in dimsizes:
-            n_elements *= j
-        flat_type = basetype * n_elements
-        flat = ctypes.cast(array,
-                           ctypes.POINTER(flat_type)
-                           ).contents
-
-        dims = [i for i in reversed(dimsizes)]
-        if len(dims) == 1:
-            if hasattr(flat[0], 'value'):
-                return [i.value for i in flat]
+                    buffer = buffer.transpose()
+            #Record-number dimension is not degenerate, so keep it first
             else:
-                return [i for i in flat]
-
-        for i in range(len(dims) - 1):
-            size = dims[i]
-            n_lists = 1
-            for j in dims[i + 1:]:
-                n_lists *= j
-            if i == 0:
-                if hasattr(flat[0], 'value'):
-                    result = [[k.value for k in flat[j * size:(j + 1) * size]]
-                              for j in range(n_lists)]
+                if cdftype == const.CDF_EPOCH16.value:
+                    buffer = buffer.transpose(
+                        [0] + list(range(len(buffer.shape) - 2, 0, -1)) +
+                        [len(buffer.shape) - 1]
+                        )
                 else:
-                    result = [[k for k in flat[j * size:(j + 1) * size]]
-                              for j in range(n_lists)]
-            else:
-                result = [result[j * size:(j + 1) * size] for j in range(n_lists)]
-        return result
-
-    def transform_each(self, data, func):
-        """Transforms each element of an n-D array
-
-        L{data} must be dimensioned the same as this slice. Iterates
-        over each element in L{data}, applying L{func} to the element
-        and assigning the result back to the element.
-
-        L{data} must *not* be a scalar, as then it cannot be changed.
-
-        @param data: the data to transform
-        @type data: list
-        @param func: the function to call for each element in L{data}
-        @type func: callable
-        """
-        counts = self.counts
-        degen = self.degen
-        if self.column:
-            counts = self.reorder(counts)
-            degen = self.reorder(degen)
-        cdf_counts = [] #non-degenerate no. of elements in each dim., CDF order
-        for i in range(len(counts)):
-            if not degen[i]:
-                cdf_counts.append(counts[i])
-
-        lastdim = len(cdf_counts) - 1
-        idx = [0 for i in range(len(cdf_counts))]
-        while idx[0] < cdf_counts[0]:
-            parent = data
-            for i in idx[:-1]:
-                parent = parent[i]
-            parent[idx[-1]] = func(parent[idx[-1]])
-
-            currdim = lastdim
-            while currdim >= 0:
-                idx[currdim] += 1
-                if idx[currdim] >=  cdf_counts[currdim] and currdim > 0:
-                    idx[currdim] = 0
-                    currdim -= 1
-                else:
-                    break
+                    buffer = buffer.transpose(
+                        [0] + list(range(len(buffer.shape) - 1, 0, -1)))
+        #Reverse non-degenerate dimensions in rev
+        #Remember that the degenerate indices are already gone!
+        if self.rev.any():
+            sliced = [(slice(None, None, -1) if self.rev[i] else slice(None))
+                      for i in range(self.dims) if not self.degen[i]]
+            buffer = operator.getitem(buffer, sliced)
+        return numpy.require(buffer, requirements=('C', 'A', 'W'))
 
     def select(self):
         """Selects this hyperslice in the CDF
@@ -2801,49 +2768,18 @@ class _Hyperslice(object):
         return result
 
     @staticmethod
-    def flip_majority(array):
-        """Inverts the array majority of an existing array
-
-        @param array: data to change majority of
-        @type array: list (of lists)
-        @return: array, with majority changed (return[j][i] == array[i][j])
-        @rtype: list (of lists)
-        @note: Assumes the fundamental type is not iterable--
-               this will not work for e.g. an array of tuples
-        @note: array must be 'square' / 'regular' --i.e.
-               all lists at a particular level of dimensionality
-               must have the same size
-        @raise RuntimeError: if dimensionality of result not what it
-               should be (i.e. error in *this* function).
-        """
-        try:
-            dims = [len(array)] #dimensions of array
-        except TypeError:
-            return array #scalar
-
-        flat = array #this is progressively flattened (i.e. dims stripped off)
-        while True:
+    def check_well_formed(data):
+        """Checks if input data is well-formed, regular array"""
+        d = numpy.asanyarray(data)
+        if d.dtype == numpy.object: #this is probably going to be bad
             try:
-                if isinstance(flat[0], str_classes):
-                    break
-                lengths = [len(i) for i in flat]
-            except TypeError: #Now completely flat
-                break
-            if min(lengths) != max(lengths):
-                raise TypeError('Array dimensions not regular')
-            dims.append(lengths[0])
-            flat = [item for sublist in flat for item in sublist]
-
-        result = flat
-        for i in range(len(dims) - 1):
-            stride = 1
-            for j in dims[i+1:]:
-                stride *= j
-            result = [result[j::stride] for j in range(stride)]
-        if len(result) != dims[-1]:
-            raise RuntimeError('Dimensionality mismatch: ' +
-                               len(result) + dims)
-        return result
+                len(d.flat[0])
+            except TypeError: #at least it's not a list
+                pass
+            else:
+                raise ValueError(
+                    'Data must be well-formed, regular array of number, '
+                    'string, or datetime')
 
     @staticmethod
     def dimensions(data):
@@ -2855,7 +2791,9 @@ class _Hyperslice(object):
         @rtype: list of int
         @raise ValueError: if L{data} has irregular dimensions
         """
-        return _Hyperslice.types(data)[0]
+        d = numpy.asanyarray(data)
+        _Hyperslice.check_well_formed(d)
+        return d.shape
 
     @staticmethod
     def types(data):
@@ -2894,71 +2832,64 @@ class _Hyperslice(object):
         @rtype: 3-tuple of lists ([int], [ctypes.c_long], [int])
         @raise ValueError: if L{data} has irregular dimensions
         """
-        if isinstance(data, str_classes):
-            dims = []
-        else:
-            try:
-                dims = [len(data)]
-            except TypeError:
-                dims = []
-        if dims:
-            flat = data
-        else:
-            flat = [data]
-
-        while True:
-            try:
-                if isinstance(flat[0], str_classes):
-                    break
-                lengths = [len(i) for i in flat]
-            except TypeError: #Now completely flat
-                break
-            except KeyError:
-                raise ValueError('zVar/Entry data cannot be dictionary-like')
-            if min(lengths) != max(lengths):
-                raise ValueError('Data irregular in dimension ' +
-                                str(len(dims)))
-            dims.append(lengths[0])
-            flat = [item for sublist in flat for item in sublist]
-
+        d = numpy.asanyarray(data)
+        dims = d.shape
         elements = 1
-        if isinstance(flat[0], str_classes):
+        types = []
+
+        _Hyperslice.check_well_formed(d)
+        if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
-            elements = max([len(s) for s in flat])
-        elif isinstance(flat[0], datetime.datetime):
-            if max([dt.microsecond % 1000 for dt in flat]) > 0:
+            elements = d.dtype.itemsize
+            if d.dtype.kind == 'U': #UTF-8 uses 4 bytes per
+                elements //= 4
+        elif hasattr(d.flat[0], 'microsecond'):
+            if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH]
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16]
-        elif max([hasattr(i, 'is_integer') for i in flat]):
-            absolutes = [abs(i) for i in flat if i != 0]
-            if len(absolutes) > 0 and \
-                   (max(absolutes) > 1.7e38 or min(absolutes) < 3e-39):
-                types = [const.CDF_DOUBLE, const.CDF_REAL8]
-            else:
-                types = [const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8]
-        else:
-            minval = min(flat)
-            maxval = max([abs(i) for i in flat])
-            if minval < 0:
-                types = [const.CDF_BYTE, const.CDF_INT1,
-                         const.CDF_INT2, const.CDF_INT4,
-                         const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8]
-                cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31,
-                           1.7e38, 1.7e38, 8e307, 8e307]
-            else:
-                types = [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                         const.CDF_INT2, const.CDF_UINT2,
-                         const.CDF_INT4, const.CDF_UINT4,
-                         const.CDF_FLOAT, const.CDF_REAL4,
-                         const.CDF_DOUBLE, const.CDF_REAL8]
-                cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
-                           2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32,
-                           1.7e38, 1.7e38, 8e307, 8e307]
-            types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
-        types = [t.value for t in types]
+        elif d is data: #numpy array came in, use its type
+            types = [k for k in lib.numpytypedict
+                     if lib.numpytypedict[k] == d.dtype]
+
+        if not types: #not a numpy array, or can't parse its type
+            if d.dtype.kind in ('i', 'u'): #integer
+                minval = numpy.min(d)
+                maxval = numpy.max(d)
+                if minval < 0:
+                    types = [const.CDF_BYTE, const.CDF_INT1,
+                             const.CDF_INT2, const.CDF_INT4,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8]
+                    cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31,
+                               1.7e38, 1.7e38, 8e307, 8e307]
+                else:
+                    types = [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                             const.CDF_INT2, const.CDF_UINT2,
+                             const.CDF_INT4, const.CDF_UINT4,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8]
+                    cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
+                               2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32,
+                               1.7e38, 1.7e38, 8e307, 8e307]
+                types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
+            else: #float
+                if dims is ():
+                    if d != 0 and (d > 1.7e38 or d < 3e-39):
+                        types = [const.CDF_DOUBLE, const.CDF_REAL8]
+                    else:
+                        types = [const.CDF_FLOAT, const.CDF_REAL4,
+                                 const.CDF_DOUBLE, const.CDF_REAL8]
+                else:
+                    absolutes = numpy.abs(d[d != 0])
+                    if len(absolutes) > 0 and \
+                           (numpy.max(absolutes) > 1.7e38 or
+                            numpy.min(absolutes) < 3e-39):
+                        types = [const.CDF_DOUBLE, const.CDF_REAL8]
+                    else:
+                        types = [const.CDF_FLOAT, const.CDF_REAL4,
+                                 const.CDF_DOUBLE, const.CDF_REAL8]
+        types = [t.value if hasattr(t, 'value') else t for t in types]
         return (dims, types, elements)
 
     @staticmethod
@@ -2974,10 +2905,8 @@ class _Hyperslice(object):
         @return: seq with all but element 0 reversed in order
         @rtype: sequence of integers
         """
-        if hasattr(seq, '__getitem__'):
-            return seq[0:1] + seq[-1:0:-1]
-        else:
-            return seq
+        return numpy.concatenate((seq[0:1],
+                                  numpy.flipud(seq)[:-1]))
 
     @staticmethod
     def convert_range(start, stop, step, size):
@@ -3189,8 +3118,8 @@ class Attr(collections.MutableSequence):
                     entry_type = types[0]
             else:
                 entry_type = types[0]
-            if not entry_type in lib.ctypedict:
-                raise ValueError('Cannot find a matching ctypes type.')
+            if not entry_type in lib.numpytypedict:
+                raise ValueError('Cannot find a matching numpy type.')
             typelist.append((dims, entry_type, elements))
 
         data_idx = -1
@@ -3487,74 +3416,78 @@ class Attr(collections.MutableSequence):
         @return: data from entry numbered L{number}
         @rtype: list or str
         """
+        if not self.has_entry(number):
+            raise IndexError('list index ' + str(number) + ' out of range.')
         #Make a big enough buffer
         length = self._entry_len(number)
         cdftype = self.type(number)
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
-            buff = ctypes.create_string_buffer(length)
+            buff = numpy.empty((), 'S{0}'.format(length), order='C')
         else:
-            try:
-                buff = (lib.ctypedict[cdftype] * length)()
-            except KeyError:
+            if not cdftype in lib.numpytypedict:
                 raise CDFError(const.BAD_DATA_TYPE)
-
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
+            buff = numpy.empty((length,), lib.numpytypedict[cdftype],
+                               order='C')
+        buff = numpy.require(buff, requirements=('C', 'A', 'W'))
         self._call(const.SELECT_, self.ENTRY_, number,
-                   const.GET_, self.ENTRY_DATA_, ctypes.byref(buff))
+                   const.GET_, self.ENTRY_DATA_,
+                   buff.ctypes.data_as(ctypes.c_void_p))
 
         #decode
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
-            result = buff.value
-            if not isinstance(result, str):
-                result = result.decode()
+            if str == bytes: #Py2k
+                result = str(buff)
+            else: #Py3k, make unicode
+                result = str(numpy.char.array(buff).decode())
         else:
             if cdftype == const.CDF_EPOCH.value:
-                result = [lib.epoch_to_datetime(item) for item in buff]
+                result = lib.v_epoch_to_datetime(buff)
             elif cdftype == const.CDF_EPOCH16.value:
-                result = [lib.epoch16_to_datetime(item[:]) for item in buff]
+                result = lib.v_epoch16_to_datetime(buff)
             else:
-                #subscripting c_array usually returns Python type, not ctype
-                result = [item for item in buff]
+                result = buff
             if length == 1:
                 result = result[0]
 
         return result
 
-    def _write_entry(self, number, data, type, dims, elements):
+    def _write_entry(self, number, data, cdf_type, dims, elements):
         """Write an Entry to this Attr.
 
         @param number: number of Entry to write
         @type number: int
         @param data: data to write
-        @param type: the CDF type to write, from :py:mod:`pycdf.const`
+        @param cdf_type: the CDF type to write, from :py:mod:`pycdf.const`
         @param dims: dimensions of L{data}
         @type dims: list
         @param elements: number of elements in L{data}, 1 unless it is a string
         @type elements: int
         """
-        if isinstance(data, str_classes):
-            buff = ctypes.create_string_buffer(elements)
-            buff.value = data
+        if len(dims) == 0:
+            n_write = 1
         else:
-            if len(dims) == 0:
-                elements = 1
-                data = [data]
-            else:
-                elements = dims[0]
-            buff = (lib.ctypedict[type] * elements)()
-            if type == const.CDF_EPOCH16.value:
-                for j in range(elements):
-                    buff[j][:] = lib.datetime_to_epoch16(data[j])
-            elif type == const.CDF_EPOCH.value:
-                for j in range(elements):
-                    buff[j] = lib.datetime_to_epoch(data[j])
-            else:
-                for j in range(elements):
-                    buff[j] = data[j]
+            n_write = dims[0]
+        if cdf_type in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
+                                 dtype=numpy.dtype('S' + str(elements)))
+            n_write = elements
+        elif cdf_type == const.CDF_EPOCH16.value:
+            data = numpy.require(lib.v_datetime_to_epoch16(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.float64)
+        elif cdf_type == const.CDF_EPOCH.value:
+            data = numpy.require(lib.v_datetime_to_epoch(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.float64)
+        elif cdf_type in lib.numpytypedict:
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
+                                 dtype=lib.numpytypedict[cdf_type])
+        else:
+            raise CDFError(const.BAD_DATA_TYPE)
         self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
-                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(type),
-                   ctypes.c_long(elements), ctypes.byref(buff))
+                   const.PUT_, self.ENTRY_DATA_, ctypes.c_long(cdf_type),
+                   ctypes.c_long(n_write),
+                   data.ctypes.data_as(ctypes.c_void_p))
 
     def _delete(self):
         """Delete this Attribute
@@ -3680,7 +3613,17 @@ class AttrList(collections.MutableMapping):
         subclasses, :class:`gAttrList` and :class:`zAttrList`.
         Methods listed here are safe to use from the subclasses.
 
+    .. autosummary::
+
+        ~AttrList.clone
+        ~AttrList.copy
+        ~AttrList.from_dict
+        ~AttrList.new
+        ~AttrList.rename
+    
     .. automethod:: clone
+    .. automethod:: copy
+    .. automethod:: from_dict
     .. automethod:: new
     .. automethod:: rename
     
@@ -3918,6 +3861,22 @@ class AttrList(collections.MutableMapping):
             the new name of the attribute
         """
         AttrList.__getitem__(self, old_name).rename(new_name)
+
+    def from_dict(self, in_dict):
+        """
+        Fill this list of attributes from a dictionary
+
+        Parameters
+        ----------
+        in_dict : dict
+            Attribute list is populated entirely from this dictionary;
+            all existing attributes are deleted.
+        """
+        for k in in_dict:
+            self[k] = in_dict[k]
+        for k in list(self):
+            if not k in in_dict:
+                del self[k]
 
     def _clone_attr(self, master, name, new_name=None):
         """Clones a single attribute from one in this list or another

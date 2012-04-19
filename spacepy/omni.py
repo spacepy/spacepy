@@ -113,7 +113,8 @@ def get_omni(ticks):
 #-----------------------------------------------
 
 # load omni file during import
-from spacepy import DOT_FLN, loadpickle, help, time
+from spacepy import DOT_FLN, help, time
+from spacepy.toolbox import loadpickle
 import os
 #dotfln = os.environ['HOME']+'/.spacepy'
 omnifln = DOT_FLN+'/data/omnidata.pkl'

@@ -87,19 +87,21 @@ Opening a CDF and working directly with the contents can be easily done using th
 if you wish to load the entire contents of a CDF directly into a datamodel (complete with attributes)
 the following will make life easier:
 
->>> import spacepy.datamodel as dm
->>> data = dm.fromCDF('test.cdf')
-
+>>> from spacepy import pycdf
+>>> with pycdf.CDF('test.cdf') as cdffile:
+...     data = cdffile.copy()
 """
 
 from __future__ import division
 import copy, datetime, os, warnings
 import re, json
-import StringIO # can't use cStringIO as we might have unicode
+try:
+    import StringIO # can't use cStringIO as we might have unicode
+except ImportError:
+    import io as StringIO
 
-from toolbox import dictree
+from .toolbox import dictree
 import numpy
-import dateutil.parser as dup
 
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -415,6 +417,9 @@ def fromCDF(fname, **kwargs):
     '''
     Create a SpacePy datamodel representation of a NASA CDF file
 
+    .. deprecated:: 0.1.3
+        See :meth:`~spacepy.pycdf.CDF.copy` in :class:`~spacepy.pycdf.CDF`.
+
     Parameters
     ----------
     file : string
@@ -435,29 +440,10 @@ def fromCDF(fname, **kwargs):
         from spacepy import pycdf
     except ImportError:
         raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
-
-    try:
-        cdfdata = pycdf.CDF(fname)
-    except:
-        raise IOError('Could not open %s' % fname)
-    #make SpaceData and grab global attributes from CDF
-    data = SpaceData()
-    for akey in cdfdata.attrs:
-        try:
-            data.attrs[akey] = cdfdata.attrs[akey][:]
-        except TypeError:
-            #required for datetime objects, floats, etc.
-            data.attrs[akey] = cdfdata.attrs[akey]
-
-    #iterate on CDF variables and copy into dmarrays, carrying attrs
-    for key in cdfdata:
-        data[key] = dmarray(cdfdata[key][...])
-        for akey in cdfdata[key].attrs:
-            try:
-                data[key].attrs[akey] = cdfdata[key].attrs[akey][:]
-            except TypeError:
-                data[key].attrs[akey] = cdfdata[key].attrs[akey]
-    return data
+    warnings.warn('fromCDF is deprecated, see pycdf.CDF.copy',
+                  DeprecationWarning)
+    with pycdf.CDF(fname) as cdfdata:
+        return cdfdata.copy()
 
 def fromHDF5(fname, **kwargs):
     '''
@@ -639,7 +625,8 @@ def toHDF5(fname, SDobject, **kwargs):
     if path=='/': hfile.close()
 
 
-def toHTML(fname, SDobject, attrs=(), varLinks=False, linkFormat=None, echo=False):
+def toHTML(fname, SDobject, attrs=(), 
+           varLinks=False, linkFormat=None, echo=False, tableTag='<table border="1">'):
     """
     Create an HTML dump of the structure of a spacedata
 
@@ -667,7 +654,8 @@ def toHTML(fname, SDobject, attrs=(), varLinks=False, linkFormat=None, echo=Fals
     keys = SDobject.keys()
     keys.sort()
 
-    output.write('<table border="1">\n')
+    output.write(tableTag)
+    output.write('\n')
     output.write('<tr><th>{0}</th>'.format('Variable'))
     for attr in attrs:
         output.write('<th>{0}</th>'.format(attr))
@@ -821,6 +809,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
     mdata: spacepy.datamodel.SpaceData
         SpaceData with the data and metadata from the file
     '''
+    import dateutil.parser as dup
     if isinstance(fname, str):
         fname=[fname]
     if not mdata:
@@ -850,17 +839,17 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                 if 'START_COLUMN' in mdata_copy[key].attrs:
                     st = mdata_copy[key].attrs['START_COLUMN']
                     if 'DIMENSION' in mdata_copy[key].attrs:
-                        en = mdata_copy[key].attrs['DIMENSION'][0] + st
+                        en = int(mdata_copy[key].attrs['DIMENSION'][0]) + int(st)
                         try:
-                            mdata[key] = numpy.vstack((mdata[key], data[:,st:en]))
+                            mdata[key] = numpy.vstack((mdata[key], data[:,int(st):int(en)]))
                         except ValueError:
-                            mdata[key] = data[:,st:en]
+                            mdata[key] = data[:,int(st):int(en)]
                     else:
                         try:
                             assert mdata[key]=={}
-                            mdata[key] = data[:,st]
-                        except:
-                            mdata[key] = numpy.hstack((mdata[key], data[:,st]))
+                            mdata[key] = data[:,int(st)]
+                        except AssertionError:
+                            mdata[key] = numpy.hstack((mdata[key], data[:,int(st)]))
 
     #now add the attributres to the variables
     for key in keys:

@@ -129,13 +129,14 @@ The default ``__str__()`` and ``__repr__()`` behavior explains the contents, typ
     Epoch: CDF_EPOCH [60]
     data: CDF_FLOAT [60]
 
-To access the data one has to request specific elements of the variable that behaves like a list in this respect.
+To access the data one has to request specific elements of the variable, similar to a Python list.
 
 >>> cdf['data'][4]
     0.8609974384307861
 >>> data = cdf['data'][...] # don't forget the [...]
 
-:func:`CDF.copy` will return the entire contents of a CDF, including attributes:
+:func:`CDF.copy` will return the entire contents of a CDF, including
+attributes, as a :class:`~spacepy.datamodel.SpaceData` object:
 
 >>> cdf_dat = cdf.copy()
 
@@ -147,9 +148,6 @@ Since CDF objects behave like dictionaries they have a ``keys()`` method and ite
 Close the CDF when finished:
 
 >>> cdf.close()
-
-:func:`~spacepy.datamodel.fromCDF` provides a simple way to read a CDF into
-a SpacePy :doc:`datamodel </datamodel>`.
 
 
 Modify a CDF

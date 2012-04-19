@@ -36,8 +36,6 @@ except ImportError:
 except:
     pass
 
-from spacepy.time import date2num, num2date
-
 #Py3k compatibility renamings
 try:
     xrange
@@ -189,7 +187,11 @@ def tCommon(ts1, ts2, mask_only=True):
            2001-03-10 08:00:00, 2001-03-10 09:00:00, 2001-03-10 10:00:00,
            2001-03-10 11:00:00], dtype=object)
     """
-    from matplotlib.dates import date2num, num2date
+    try:
+        from spacepy.time import date2num, num2date
+    except ImportError:
+        from matplotlib.dates import date2num, num2date
+    from spacepy.time import no_tzinfo
 
     tn1, tn2 = date2num(ts1), date2num(ts2)
 
@@ -210,8 +212,8 @@ def tCommon(ts1, ts2, mask_only=True):
         time2 = np.ma.masked_array(tn2, mask=truemask2)
         dum1 = num2date(time1.compressed())
         dum2 = num2date(time2.compressed())
-        dum1 = [val.replace(tzinfo=None) for val in dum1]
-        dum2 = [val.replace(tzinfo=None) for val in dum2]
+        dum1 = no_tzinfo(dum1)
+        dum2 = no_tzinfo(dum2)
         if type(ts1)==np.ndarray or type(ts2)==np.ndarray:
             dum1 = np.array(dum1)
             dum2 = np.array(dum2)
@@ -1214,9 +1216,13 @@ def logspace(min, max, num, **kwargs):
     linspace
     """
     if isinstance(min, datetime.datetime):
-        from matplotlib.dates import date2num, num2date
+        try:
+            from spacepy.time import date2num, num2date
+        except ImportError:
+            from matplotlib.dates import date2num, num2date
+        from spacepy.time import no_tzinfo
         ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), num, **kwargs))
-        ans = [val.replace(tzinfo=None) for val in ans]
+        ans = no_tzinfo(ans)
         return np.array(ans)
     else:
         return np.logspace(np.log10(min), np.log10(max), num, **kwargs)
@@ -2147,6 +2153,11 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     Examples
     ========
     """
+    try:
+        from spacepy.time import date2num, num2date
+    except ImportError:
+        from matplotlib.dates import date2num, num2date
+        
     if dt1.tzinfo != dt2.tzinfo:
         raise(ValueError('tzinfo for the input and output datetimes must match'))
     dt1n = date2num(dt1)

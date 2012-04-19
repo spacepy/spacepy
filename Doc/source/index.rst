@@ -69,6 +69,7 @@ SpacePy Code
     datamodel
     data_assimilation
     empiricals
+    irbempy
     lanlstar
     omni
     plot

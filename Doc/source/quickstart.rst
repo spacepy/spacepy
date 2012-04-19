@@ -343,7 +343,7 @@ the library has changed its name to IRBEM-LIB and is maintained by a number
 of different institutions.
 
 A number of key routines in IRBEM-LIB have been made available through the
-module *irbempy*. Current functionality includes calls to calculate the local
+module :mod:`~spacepy.irbempy`. Current functionality includes calls to calculate the local
 magnetic field vectors at any point in geospace, calculation of the magnetic
 mirror point for a particle of a given pitch angle (the angle between a
 particle's velocity vector and the magnetic field line that it immediately
@@ -372,9 +372,9 @@ One can also calculate the drift shell L* for a 90 degree pitch angle value by u
 
 Other function wrapped with the IRBEM library include:
 
-* ``find_Bmirror``
-* ``find_magequator``
-* ``coord_trans``
+* :func:`~spacepy.irbempy.find_Bmirror`
+* :func:`~spacepy.irbempy.find_magequator`
+* :func:`~spacepy.irbempy.coord_trans`
 
 
 pyCDF - Python Access to NASA CDF Library
@@ -386,7 +386,7 @@ The module can then be imported, e.g.::
 
 >>> import spacepy.pycdf as cdf
 
-To open and close a CDF file, we use the :class:`pycdf.CDF` class::
+To open and close a CDF file, we use the :class:`~pycdf.CDF` class::
 
 >>> cdf_file = cdf.CDF('filename.cdf')
 >>> cdf_file.close()
@@ -406,11 +406,13 @@ by the variable name::
 >>> #list comprehensions work, too
 >>> lengths = [len(cdf_file[var_name]) for var_name in cdf_file]
 
-Each CDF variable acts as a Python list, one element per record.
-Multidimensional CDF variables are represented as nested lists and can be
-subscripted using a multidimensional slice notation similar to numpy. Creating
-a Python Var object does not read the data from disc; data are only read as
-they are accessed::
+Each CDF variable acts like a numpy array, where the first dimension is the
+record number. Multidimensional CDF variables can be subscripted using 
+numpy's multidimensional slice notation. Many common list operations are also
+implemented, where each record acts as one element of the list and can be
+independently deleted, inserted, etc. Creating a Python :class:`~pycdf.Var`
+object does not read the data from disc; data are only read as they are
+accessed::
 
 >>> epoch = cdf_file['Epoch'] #Python object created, nothing read from disc
 >>> epoch[0] #time of first record in CDF (datetime object)
