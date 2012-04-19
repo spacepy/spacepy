@@ -70,6 +70,7 @@ SpacePy Code
     data_assimilation
     empiricals
     irbempy
+    lanlstar
     omni
     plot
     poppy

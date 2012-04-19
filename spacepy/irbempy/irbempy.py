@@ -6,6 +6,7 @@ Reference for this library
 https://sourceforge.net/projects/irbem/
 D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 
+
 Authors
 -------
 Josef Koller, Steve Morley 
@@ -707,12 +708,9 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
             - 1 = Eccentric tilted dipole
             - 2 = Jensen&Cain 1960
             - 3 = GSFC 12/66 updated to 1970
+            - 4 = User-defined model (Default: Centred dipole + uniform [Dungey open model] )
+            - 5 = Centred dipole
             
-    Version:
-    ========
-    V1: 03-Feb-2010 (JK)
-    V1.1: 22-Feb-2010: fixed Blocal and Bmirr bug (JK)
-    V1.2: 05-Mar-2010: ticktock, Coords support (JK)
     """
     import spacepy.toolbox as tb
 
@@ -863,12 +861,9 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
             - 1 = Eccentric tilted dipole
             - 2 = Jensen&Cain 1960
             - 3 = GSFC 12/66 updated to 1970
-            
-    Version:
-    ========
-    V1: 03-Feb-2010 (JK)
-    V1.1: 22-Feb-2010: fixed Blocal and Bmirr bug (JK)
-    V1.2: 05-Mar-2010: ticktock, Coords support (JK)
+            - 4 = User-defined model (Default: Centred dipole + uniform [Dungey open model] )
+            - 5 = Centred dipole
+
     """
 
     import spacepy

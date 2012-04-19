@@ -8,6 +8,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 import unittest
 import spacepy
+import spacepy.time
 import spacepy.coordinates
 import spacepy.irbempy as ib
 import glob
