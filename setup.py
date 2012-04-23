@@ -210,7 +210,7 @@ class build(_build):
         # 64 bit or 32 bit?"
         bit = len('%x' % sys.maxsize)*4
         fcompiler = self.fcompiler
-        irbemdir = 'irbem-lib-2010-12-21-rev275'
+        irbemdir = 'irbem-lib-2012-03-05-rev388'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')

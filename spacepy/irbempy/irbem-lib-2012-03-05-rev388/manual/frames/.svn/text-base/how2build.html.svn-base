@@ -1,0 +1,134 @@
+<!-- %***************************************************************************************************
+% Copyright 2004, 2006, 2008 S. Bourdarie
+%
+% This file is part of IRBEM-LIB.
+%
+%    IRBEM-LIB is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU Lesser General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    IRBEM-LIB is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU Lesser General Public License for more details.
+%
+%    You should have received a copy of the GNU Lesser General Public License
+%    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
+% -->
+<html>
+<head>
+</head>
+<body>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">INTRODUCTION</font></font> 
+    </h2>
+    <br>
+    <p><font face="ARIAL, HELVETICA"><font size=+1>
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+        <br><br>
+        &nbsp; &nbsp;You must have a Fortran compiler in order to build the ONERA_DESP_LIB
+        distribution. 
+        <br><br>
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+        <br><br>
+        Requests for assistance or documentation should be sent to: sebastien.bourdarie@onera.fr 
+        <br><br>
+        If you get the distribution, please send to sebastien.bourdarie@onera.fr a message
+        so we can put you on our mailing list. That way you will be notified of new releases. 
+        <br><br>
+        The use of the Makefile to build the library is highly recommended. Old scripts distributed
+        before are still provided but will not be maintained any more. The new Makefile allows
+        to build the library on various platforms, either 32 or 64 bits computers. It solves
+        the problems being encounter to built the library on new 64 bit linux box and run
+        it with IDL. </font></font>
+      <br><br><br><br>  
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">INSTALLATION INSTRUCTIONS</font></font>&nbsp; 
+    </h2>
+    <br>
+    <p><font face="ARIAL, HELVETICA"><font size=+1>
+        ONERA_DESP_LIB has a makefile setup to automatically build the library. The following
+        steps should be taken to build and install ONERA_DESP_LIB. <br><br>
+    
+        1. <u><strong>Set your current directory</strong></u> (cd) to the top level ONERA_DESP_LIB
+        directory. 
+    <br>
+    <br>
+        2. <strong><u>Compile/link the distribution</u></strong>. First enter... 
+    <br>
+    <br>
+        make all.help 
+    <br>
+    <br>
+        For example, to build the distribution on a SunOS system using the gnu Fortran compiler
+        enter... 
+    <br>
+    <br>
+        make OS=sunos ENV=gnu64 all 
+    <br>
+    <br>
+        The `OS' and `ENV' variables are described in the `make all.help' part of this step. 
+    <br>
+    <br>
+    <br>
+        3. <strong><u>Install the libraries.</u></strong> First enter... 
+    <br>
+    <br>
+        make install.help 
+    <br>
+    <br>
+        To determine the required/optional `make' variables to be used. 
+    <br>
+    <br>
+        Then enter... 
+    <br>
+    <br>
+        make `make variables...' install 
+    <br>
+    <br>
+        The appropriate files will be copied to the `matlab' and top level ONERA_DESP_LIB
+        directories (from the `source/...' directory). 
+    <br>
+    <br>
+        For example, to install the distribution in `/usr/local/onera_desp_lib' enter... 
+    <br>
+    <br>
+        make INSTALLDIR=/usr/local/onera_desp_lib install 
+    <br>
+    <br>
+        The `INSTALLDIR' variable is described in the `make install.help' part of this step. 
+    <br>
+    <br>
+    <br>
+        4. <strong><u>Test</u></strong> that the distribution was built correctly. 
+    <br>
+    <br>
+        First enter... 
+    <br>
+    <br>
+        make test.help 
+    <br>
+    <br>
+        To determine the required/optional `make' variables to be used. 
+    <br>
+    <br>
+        Then enter... 
+    <br>
+    <br>
+        make `make variables...' test 
+    <br>
+    <br>
+        The name of each test executed and results will be displayed. 
+    <br>
+    <br>
+    <br>
+        5. <strong><u>Delete the libraries, object files, and executables</u></strong> in
+        the `source/...' directory by entering... 
+    <br>
+    <br>
+        make clean 
+    <br>
+    </font></font>
+    </p>
+</body>
+</html>
