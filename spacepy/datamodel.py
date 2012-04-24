@@ -609,10 +609,10 @@ def toHDF5(fname, SDobject, **kwargs):
 
     SDcarryattrs(SDobject,hfile,path,allowed_attrs)
     for key, value in SDobject.iteritems():
-        if type(value) is allowed_elems[0]:
+        if isinstance(value, allowed_elems[0]):
             hfile[path].create_group(key)
             toHDF5(hfile, SDobject[key], path=path+'/'+key)
-        elif type(value) is allowed_elems[1]:
+        elif isinstance(value, allowed_elems[1]):
             try:
                 hfile[path].create_dataset(key, data=value)
             except:
