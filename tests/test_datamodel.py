@@ -13,6 +13,8 @@ import datetime
 import os
 import tempfile
 import unittest
+import StringIO
+import sys
 import warnings
 
 import spacepy.datamodel as dm
@@ -114,6 +116,20 @@ class SpaceDataTests(unittest.TestCase):
         val = a.keys()
         val.sort()
         self.assertEqual(val, ans)
+        
+    def test_tree(self):
+        """.tree() should call dictree"""
+        a = dm.SpaceData()
+        a['foo'] = dm.dmarray([1,2,3])
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        self.assertEqual(a.tree(), None)
+        sys.stdout = realstdout
+        result = output.getvalue()
+        output.close()
+        expected = "+\n|____foo\n"   
+        self.assertEqual(result, expected)
 
 
 class dmarrayTests(unittest.TestCase):
