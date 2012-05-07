@@ -392,7 +392,11 @@ class build(_build):
                               'spacepy', 'Doc')
         cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
             builddir, indir, outdir)
-        subprocess.check_call(cmd.split())
+        try:
+            subprocess.check_call(cmd.split())
+        except:
+            self.distribution.add_warning(
+                "Building docs failed. Help will not be available.")
 
     def run(self):
         """Actually perform the build"""
