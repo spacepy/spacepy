@@ -253,7 +253,6 @@ class RBmodel(object):
             K value for the observations
         """
 
-        import spacepy.sandbox.PSDdata as PD
         import pdb
 
         assert 'ticks' in self.__dict__ , \
@@ -267,6 +266,7 @@ class RBmodel(object):
         if (PSD == None):
         # PSD data not provided,
         # extract from database
+        import spacepy.sandbox.PSDdata as PD
 
             for i, Tnow, Tfut in zip(np.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
                 start_end = spacepy.time.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
