@@ -299,9 +299,6 @@ class converterTests(unittest.TestCase):
         dm.toHDF5(self.testfile[1], self.SDobj)
         self.assertRaises(IOError, dm.toHDF5, self.testfile[1], self.SDobj, overwrite=False)
         a = dm.SpaceData()
-        a.attrs['foo'] = datetime.datetime.now() # not an allowed type for attrs
-        self.assertRaises(dm.DMWarning, dm.toHDF5, self.testfile[1], a)
-        a = dm.SpaceData()
         a['foo'] = 'bar' # not an allowed type for data
         self.assertRaises(dm.DMWarning, dm.toHDF5, self.testfile[1], a)
 
