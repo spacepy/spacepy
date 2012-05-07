@@ -1558,12 +1558,21 @@ class ChangeCDF(CDFTests):
         numpy.testing.assert_array_equal(
             [1, 2, 3], self.cdf['PhysRecNo'][...])
 
-    def testWriteExtend(self):
-        """Write off the end of the variable"""
+    def testWriteOffEnd(self):
+        """Extend variable by writing off the end"""
         additional = [2000 + i for i in range(20)]
         expected = self.cdf['PhysRecNo'][0:95].tolist() + additional
         self.cdf['PhysRecNo'][95:] = additional
         self.assertEqual(115, len(self.cdf['PhysRecNo']))
+        numpy.testing.assert_array_equal(expected, self.cdf['PhysRecNo'][:])
+
+    def testWriteExtend(self):
+        """Extend variable with explicit extend call"""
+        additional = [2000 + i for i in range(20)]
+        oldlen = len(self.cdf['PhysRecNo'])
+        expected = self.cdf['PhysRecNo'][...].tolist() + additional
+        self.cdf['PhysRecNo'].extend(additional)
+        self.assertEqual(oldlen + 20, len(self.cdf['PhysRecNo']))
         numpy.testing.assert_array_equal(expected, self.cdf['PhysRecNo'][:])
 
     def testInsertRecord(self):

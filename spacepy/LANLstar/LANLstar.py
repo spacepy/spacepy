@@ -114,6 +114,8 @@ def LANLstar(inputdict, extMag):
     npt = len(inputdict['Year'])
     Lstar_out = {} 
     
+    if isinstance(extMag, str): extMag = [extMag]
+
     for key in extMag:
         Lstar_out[key] = np.zeros(npt)
         Lstar_out[key] = Bmodel[key](inputdict)
@@ -206,6 +208,8 @@ def LANLmax(inputdict, extMag):
     
     npt = len(inputdict['Year'])
     Lmax_out = {} 
+    
+    if isinstance(extMag, str): extMag = [extMag]
     
     for key in extMag:
         Lmax_out[key] = np.zeros(npt)

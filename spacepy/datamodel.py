@@ -561,6 +561,11 @@ def toHDF5(fname, SDobject, **kwargs):
                                     'value has been converted to a string for output', DMWarning)
                     else:
                         hfile[path].attrs[dumkey] = ''
+                elif isinstance(value, datetime.datetime):
+                    dumval = value.isoformat()
+                    if type(key) is unicode:
+                        dumkey = str(key)
+                    hfile[path].attrs[dumkey] = dumval
                 else:
                     #TODO: add support for arrays(?) in attrs (convert to isoformat)
                     warnings.warn('The following key:value pair is not permitted\n' +
@@ -595,7 +600,8 @@ def toHDF5(fname, SDobject, **kwargs):
     else:
         path = '/'
 
-    allowed_attrs = [int, long, float, str, unicode, numpy.ndarray, list, tuple, numpy.string_]
+    allowed_attrs = [int, long, float, str, unicode, numpy.ndarray, list, tuple,
+                     numpy.float32, numpy.float64, numpy.string_]
     allowed_elems = [SpaceData, dmarray]
 
     #first convert non-string keys to str
@@ -603,10 +609,10 @@ def toHDF5(fname, SDobject, **kwargs):
 
     SDcarryattrs(SDobject,hfile,path,allowed_attrs)
     for key, value in SDobject.iteritems():
-        if type(value) is allowed_elems[0]:
+        if isinstance(value, allowed_elems[0]):
             hfile[path].create_group(key)
             toHDF5(hfile, SDobject[key], path=path+'/'+key)
-        elif type(value) is allowed_elems[1]:
+        elif isinstance(value, allowed_elems[1]):
             try:
                 hfile[path].create_dataset(key, data=value)
             except:

@@ -2012,6 +2012,20 @@ class Var(collections.MutableSequence):
             #Put saved data in after inserted data
             self[hslice.starts[0] + hslice.counts[0]:] = saved_data
 
+    def extend(self, data):
+        """
+        Append multiple values to the end of this variable
+
+        This is an efficiency function which overrides the base implementation
+        in MutableSequence.
+
+        Parameters
+        ----------
+        data :
+            the data to append
+        """
+        self[len(self):] = data
+
     def insert(self, index, data):
         """
         Inserts a *single* record before an index
