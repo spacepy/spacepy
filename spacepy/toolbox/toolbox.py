@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import datetime
 import glob
+import itertools
 import os
 import os.path
 import sys
@@ -191,7 +192,6 @@ def tCommon(ts1, ts2, mask_only=True):
         from spacepy.time import date2num, num2date
     except ImportError:
         from matplotlib.dates import date2num, num2date
-    from spacepy.time import no_tzinfo
 
     tn1, tn2 = date2num(ts1), date2num(ts2)
 
@@ -212,8 +212,23 @@ def tCommon(ts1, ts2, mask_only=True):
         time2 = np.ma.masked_array(tn2, mask=truemask2)
         dum1 = num2date(time1.compressed())
         dum2 = num2date(time2.compressed())
-        dum1 = no_tzinfo(dum1)
-        dum2 = no_tzinfo(dum2)
+        #        dum1 = [val.replace(tzinfo=None) for val in dum1] # this hits ValueError: microsecond must be in 0..999999
+        #        dum2 = [val.replace(tzinfo=None) for val in dum2]
+        dum11 = []
+        dum22 = []
+        for v1, v2 in itertools.izip(dum1, dum2):
+            try:
+                dum11.append(v1.replace(tzinfo=None))
+            except ValueError: # ValueError: microsecond must be in 0..999999
+                dum11.append((datetime.datetime(v1.year, v1.month, v1.day, v1.hour, v1.minute, v1.second, 0) + 
+                             datetime.timedelta(seconds=1)).replace(tzinfo=None))
+            try:
+                dum22.append(v2.replace(tzinfo=None))
+            except ValueError: # ValueError: microsecond must be in 0..999999
+                dum22.append((datetime.datetime(v2.year, v2.month, v2.day, v2.hour, v2.minute, v2.second, 0) + 
+                             datetime.timedelta(seconds=1)).replace(tzinfo=None))            
+        dum1 = dum11
+        dum2 = dum22
         if type(ts1)==np.ndarray or type(ts2)==np.ndarray:
             dum1 = np.array(dum1)
             dum2 = np.array(dum2)
@@ -675,7 +690,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
-    from spacepy import savepickle, DOT_FLN, config
+    from spacepy import DOT_FLN, config
 
     if sys.version_info[0]<3:
         import urllib as u
@@ -1220,9 +1235,8 @@ def logspace(min, max, num, **kwargs):
             from spacepy.time import date2num, num2date
         except ImportError:
             from matplotlib.dates import date2num, num2date
-        from spacepy.time import no_tzinfo
         ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), num, **kwargs))
-        ans = no_tzinfo(ans)
+        ans = [val.replace(tzinfo=None) for val in ans]
         return np.array(ans)
     else:
         return np.logspace(np.log10(min), np.log10(max), num, **kwargs)

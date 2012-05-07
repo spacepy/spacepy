@@ -262,9 +262,8 @@ class Library(object):
         sub = sub.value
         self.version = (ver, rel, inc, sub)
         self._del_middle_rec_bug = ver < 3 or (ver == 3 and
-                                               (rel < 3 or
-                                                (rel == 3 and inc < 1)))
-
+                                               (rel < 4 or
+                                                (rel == 4 and inc < 1)))
         #Default to V2 CDF
         self.set_backward(True)
 
