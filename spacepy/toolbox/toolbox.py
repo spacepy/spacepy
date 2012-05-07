@@ -675,7 +675,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
-    from spacepy import savepickle, DOT_FLN, config
+    from spacepy import DOT_FLN, config
 
     if sys.version_info[0]<3:
         import urllib as u
