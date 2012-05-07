@@ -1899,7 +1899,7 @@ class Var(collections.MutableSequence):
 
         Deleting records from the middle of a variable may be very slow in
         some circumstances. To work around a bug in CDF library versions
-        before 3.3.1, all the data must be read in, the requested deletions
+        3.4.0 and before, all the data must be read in, the requested deletions
         done, and then all written back out.
 
         @param key: index or slice to delete
