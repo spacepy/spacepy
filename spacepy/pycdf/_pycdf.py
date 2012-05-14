@@ -1470,6 +1470,8 @@ class CDF(collections.MutableMapping):
         would be sufficient for IEEE 754 encoding, but where DEC formats would
         require eight.
         """
+        if type == const.CDF_EPOCH16 and self.version()[0] < 3:
+            raise ValueError('Cannot use EPOCH16 in backward-compatible CDF')
         if data == None:
             if type == None:
                 raise ValueError('Must provide either data or a CDF type.')
