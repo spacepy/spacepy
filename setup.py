@@ -146,18 +146,26 @@ compiler_options = [
         ]
 
 
-def rebuild_static_docs(dist=None):
+def rebuild_static_docs(dist=None, pythondir=None):
     """Rebuild the 'static' documentation in Doc/build"""
+    if pythondir:
+        env = os.environ.copy()
+        if 'PYTHONPATH' in env:
+            env['PYTHONPATH'] = pythondir + ':' + env['PYTHONPATH']
+        else:
+            env['PYTHONPATH'] = pythondir
+    else:
+        env = None
     builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
     indir = os.path.join('Doc', 'source')
     outdir = os.path.join('Doc', 'build', 'html')
     cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
         builddir, indir, outdir)
-    subprocess.check_call(cmd.split())
+    subprocess.check_call(cmd.split(), env=env)
     os.chdir('Doc')
     try:
         cmd = 'make latexpdf'
-        subprocess.check_call(cmd.split())
+        subprocess.check_call(cmd.split(), env=env)
     except:
         if dist != None:
             dist.add_warning(
@@ -411,10 +419,15 @@ class build(_build):
         indir = os.path.join('Doc', 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'Doc')
+        env = os.environ.copy()
+        if 'PYTHONPATH' in env:
+            env['PYTHONPATH'] = self.build_lib + ':' + env['PYTHONPATH']
+        else:
+            env['PYTHONPATH'] = self.build_lib
         cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
             builddir, indir, outdir)
         try:
-            subprocess.check_call(cmd.split())
+            subprocess.check_call(cmd.split(), env=env)
         except:
             self.distribution.add_warning(
                 "Building docs failed. Help will not be available.")
@@ -424,11 +437,11 @@ class build(_build):
         self.compile_irbempy()
         self.compile_LANLstar()
         self.compile_libspacepy()
+        _build.run(self)
         if self.build_docs:
             self.make_docs()
         else:
             self.copy_docs()
-        _build.run(self)
 
 
 class install(_install):
@@ -525,15 +538,28 @@ class bdist_wininst(_bdist_wininst):
             
     def run(self):
         self.copy_fortran_libs()
-        rebuild_static_docs(self.distribution)
+        rebuild_static_docs(self.distribution,
+                            self.get_finalized_command('build').build_lib)
         _bdist_wininst.run(self)
 
 
 class sdist(_sdist):
     """Rebuild the docs before making a source distribution"""
 
+    user_options = _sdist.user_options + compiler_options
+
+    def initialize_options(self):
+        initialize_compiler_options(self)
+        _sdist.initialize_options(self)
+
+    def finalize_options(self):
+        _sdist.finalize_options(self)
+        finalize_compiler_options(self)
+
     def run(self):
-        rebuild_static_docs(self.distribution)
+        buildcmd = self.get_finalized_command('build')
+        buildcmd.run()
+        rebuild_static_docs(self.distribution, buildcmd.build_lib)
         _sdist.run(self)
 
 
