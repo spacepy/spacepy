@@ -1082,10 +1082,10 @@ class Ticktock(collections.MutableSequence):
         """
         nTAI = len(self.data)
 
-        if self.dtype.upper() == 'UTC':
+        if self.data.attrs['dtype'].upper() == 'UTC':
             UTC = self.data # return
 
-        elif self.dtype.upper() == 'ISO':
+        elif self.data.attrs['dtype'].upper() == 'ISO':
             UTC = [dup.parse(isot) for isot in self.data]
 
         elif self.data.attrs['dtype'].upper() == 'TAI':
