@@ -1,0 +1,82 @@
+<!-- %***************************************************************************************************
+% Copyright 2004,2006, S. Bourdarie
+%
+% This file is part of IRBEM-LIB.
+%
+%    IRBEM-LIB is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU Lesser General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    IRBEM-LIB is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU Lesser General Public License for more details.
+%
+%    You should have received a copy of the GNU Lesser General Public License
+%    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
+% -->
+<html>
+<head>
+</head>
+<body>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">INTRODUCTION</font></font> 
+    </h2>
+    <br>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>We provide a set of&nbsp;IDL wrappers
+        for the ONERA/DESP FORTRAN library through the use of a shared library file (.dll
+        on windows, .so on Unix). IDL access to any FORTRAN function with the use of the IDL
+        function CALL_EXTERNAL (see IDL manual for more details).</font></font> 
+    </p>
+    <p>
+    </p>
+    <p>
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">INSTALLATION</font></font> 
+    </h2>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>The ONERA/DESP compile scripts will create
+        the shared library file for use with IDL (or Matlab) and is given a name "onera_desp_lib_OS.dll"
+        or "onera_desp_lib_OS.so" depending on the platform, where OS can be either sunos_sparc,
+        sunos_sparcV9, linux_x86, linux_x86_64, Win32_x86. The lib_name can be defined from
+        IDL by the following: </font></font>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>case !version.os of</font></font> 
+        <br />
+        <font face="ARIAL, HELVETICA"><font size=+1>&nbsp;&nbsp; 'linux':ext='so'</font></font> <font face="ARIAL, HELVETICA">
+        <br />
+        <font size=+1>&nbsp;&nbsp; 'sunos':ext='so'</font></font> <font face="ARIAL, HELVETICA">
+        <br />
+        <font size=+1>&nbsp;&nbsp; 'Win32':ext='dll'</font></font> <font face="ARIAL, HELVETICA">
+        <br />
+        <font size=+1>endcase</font></font> <font face="ARIAL, HELVETICA">
+        <br />
+        <font size=+1>lib_name=onera_desp_lib_+'_'+!version.os+'_'+!version.arch+'.'+ext</font></font> 
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>Thus, in order to access the library and
+        the wrappers, the user needs only&nbsp;to use the CALL_EXTERNAL function&nbsp;where&nbsp;"image"
+        (here refers as lib_name in the detailled function descriptions) provide the path+name
+        of the shared library file.&nbsp;</font></font><font face="ARIAL, HELVETICA"><font size=+1> 
+        <br />
+        &nbsp; </font></font>
+    </p>
+    <p>
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">USE OF THE LIBRARY</font></font> 
+    </h2>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>When calling from IDL using call_external,
+        ALL input and output variables <span style="TEXT-DECORATION: underline">have</span> to
+        be declared in the correct&nbsp; type. Failure to do this will result in a very ungracefull
+        idl exit with no error messages or possibility of tracing! In general, integers need
+        to be declared as longs and floats as double.&nbsp;</font></font> 
+    </p>
+</body>
+</html>

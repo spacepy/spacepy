@@ -16,9 +16,16 @@ following flags are supported: gnu95, gnu, pg. You can invoke these by, e.g.
 >>> python setup.py install --fcompiler=gnu   (will use g77)
 >>> python setup.py install --fcompiler=gnu95 (default option for using gfortran)
 
-The installer will create a .spacepy directory in your $HOME folder. If you prefer a different location
-for this directory, set the environment variable $SPACEPY to a location of your choice. For example,
-with a csh, or tcsh you would
+By default, the installer will copy pre-built documentation. If it cannot find
+the pre-built docs, it will attempt to build them (requires Sphinx and numpydoc,
+http://sphinx.pocoo.org/ and http://pypi.python.org/pypi/numpydoc). To force a
+fresh build of the documentation, use the --build-docs option to either the build
+or install commands.
+
+When first imported, SpacePy  will create a .spacepy directory in your $HOME
+directory. If you prefer a different location for this directory, set the
+environment variable $SPACEPY to a location of your choice. For example, with
+a csh, or tcsh you would
 
 >>> setenv SPACEPY /a/different/dir
 

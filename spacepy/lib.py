@@ -9,19 +9,18 @@ be callable as attributes of spacepy.lib. If the C library is not
 found, spacepy.lib.have_libspacepy will be False. See Poppy
 for an example.
 
-Authors
--------
-Jon Niehof
+Authors: Jon Niehof
+Institution: Los Alamos National Laboratory
+Contact: jniehof@lanl.gov
 
-jniehof@lanl.gov
-Los Alamos National Laboratory
-
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import ctypes
 import os.path
 import sys
+
+__contact__ = 'Jon Niehof, jniehof@lanl.gov'
 
 #Handy shortcut types
 dptr = ctypes.POINTER(ctypes.c_double)
@@ -41,7 +40,8 @@ functions = {
     'aa_ci': [None, ulptr, ulptr, ctypes.c_ulong, ctypes.c_ulong,
               ctypes.c_ulong, ulptr, ctypes.c_int],
     'solve_cn': [None, dptr, dptr, dptr, dptr, dptr, dptr, 
-                 ctypes.c_double, ctypes.c_int, dptr]
+                 ctypes.c_double, ctypes.c_int, dptr], 
+    'hypot_tb': [ctypes.c_double, dptr, ctypes.c_long]
     }
 
 
@@ -67,10 +67,7 @@ def load_lib():
         libpath = os.path.join(libdir, 'libspacepy.so')
     if not os.path.exists(libpath):
         return None
-    if sys.platform == 'win32':
-        return ctypes.WinDLL(libpath)
-    else:
-        return ctypes.CDLL(libpath)
+    return ctypes.CDLL(libpath)
 
 
 def load_call_dict(call_dict, lib):

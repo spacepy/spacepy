@@ -4,7 +4,7 @@
 Classes, functions, and methods for reading, writing, and plotting output
 from the Ridley Ionosphere Model (RIM).
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 '''
 
 def get_iono_cb(ct_name='bwr'):
@@ -202,11 +202,13 @@ class Iono(object):
         lct = MultipleLocator(10)
         minz = self.north[var].min()
         if minz < 0.0:
-            maxz = max([abs(minz),self.north[var].max()])
+            if not maxz:
+                maxz = max([abs(minz),self.north[var].max()])
             crange = Normalize(vmin=-1.*maxz, vmax=maxz)
             levs = linspace(-1.*maxz, maxz, n)
         else:
-            maxz = self.north[var].max()
+            if not maxz:
+                maxz = self.north[var].max()
             crange = Normalize(vmin=0., vmax=maxz)
             levs = linspace(0., maxz, n)
 

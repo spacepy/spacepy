@@ -3,19 +3,16 @@
 """
 Test suite for time module
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
-import unittest
-# import spacepy.toolbox as tb
-import spacepy.time as t
-import glob
-import os
 import datetime
-from numpy import array
+import unittest
+import warnings
+
 import numpy
 
-        
+import spacepy.time as t
 
 class tFunctionTests(unittest.TestCase):
     def setUp(self):
@@ -25,7 +22,7 @@ class tFunctionTests(unittest.TestCase):
     def tearDown(self):
         #super(tFunctionTests, self).tearDown()
         pass
-    
+
     def test_doy2dateconvert(self):
         """doy2date should return a known value for known input"""
         inval = [ (2000, 1),
@@ -49,7 +46,7 @@ class tFunctionTests(unittest.TestCase):
                                  ([ans2[0].month], [ans2[0].day]))
             except TypeError:
                 self.assertEqual(real_ans[i], (ans2.month , ans2.day))
-            
+
     def test_doy2datefail(self):
         '''doy2date should fail for bad input'''
         inval = ([[2007],[0.5]],
@@ -66,22 +63,20 @@ class tFunctionTests(unittest.TestCase):
                   (2000, 2, True, True)]
         for i, val in enumerate(ans):
             self.assertEqual(val, t.doy2date(*inval[i]))
-    
 
     def test_tickrange(self):
         """tickrange should return a known value for known input"""
         inval = ( ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 1),
                   ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 0.5) )
-        real_ans = ( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00', 
+        real_ans = ( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
                       '2002-02-04T00:00:00'],
-                     ['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00', 
+                     ['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
                       '2002-02-02T12:00:00', '2002-02-03T00:00:00', '2002-02-03T12:00:00',
                       '2002-02-04T00:00:00'] )
 
         for i, val in enumerate(inval):
             ans = t.tickrange(*val)
             self.assertEqual(real_ans[i], ans.ISO)
-                             
 
     def test_sec2hms(self):
         """sec2hms should return a known value for known input"""
@@ -95,9 +90,28 @@ class tFunctionTests(unittest.TestCase):
                      [0, 0, 1],
                      [0, 0, 30],
                      [0, 59, 59] )
-        for i, val in enumerate(inval):
-            ans = t.sec2hms(*val)
-            self.assertEqual(real_ans[i], ans)
+        with warnings.catch_warnings(record=True) as w:
+            for i, val in enumerate(inval):
+                ans = t.sec2hms(*val)
+                self.assertEqual(real_ans[i], ans)
+            self.assertEqual(1, len(w))
+            self.assertEqual(
+                'Number of seconds > seconds in day. Try days keyword.',
+                str(w[0].message))
+
+    def test_no_tzinfo(self):
+        """no_tzinfo should have known output"""
+        dt = datetime.datetime(2000, 1, 1, tzinfo=datetime.tzinfo('MST'))
+        self.assertEqual(dt.replace(tzinfo=None), t.no_tzinfo(dt))
+        ans = [datetime.datetime(2000, 1, 1)]*10
+        self.assertEqual(ans, t.no_tzinfo([dt]*10))
+
+    def test_num2date_rt(self):
+        """round-trip num2date should have same output as input"""
+        indate = datetime.datetime(2000, 11, 12, 1, 0)
+        self.assertEqual(indate,
+                         t.num2date(t.date2num(indate)))
+
 
 class classTests(unittest.TestCase):
     def setUp(self):
@@ -130,9 +144,9 @@ class classTests(unittest.TestCase):
     def test_TickTock_with_xrange(self):
         t0 = 1663236947
         iter_ex = range(t0, t0+5000, 500)
-        range_ex = list(range(t0, t0+5000, 500)) 
+        range_ex = list(range(t0, t0+5000, 500))
         self.assertEqual(t.Ticktock(iter_ex, 'TAI').TAI, t.Ticktock(range_ex, 'TAI').TAI)
-        
+
     def test_append(self):
         t1 = t.Ticktock(['2002-01-01', '2002-01-02'])
         t2 = t.Ticktock(['2002-01-03', '2002-01-04'])
@@ -141,18 +155,6 @@ class classTests(unittest.TestCase):
         actual_2 = t1.append(t2.convert('UTC'))
         numpy.testing.assert_equal(expected.RDT, actual_1.RDT)
         numpy.testing.assert_equal(expected.RDT, actual_2.RDT)
-        
+
 if __name__ == "__main__":
-    ## suite = unittest.TestLoader().loadTestsFromTestCase(SimpleFunctionTests)
-    ## unittest.TextTestRunner(verbosity=2).run(suite)
-
-    ## suite = unittest.TestLoader().loadTestsFromTestCase(tFunctionTests)
-    ## unittest.TextTestRunner(verbosity=2).run(suite)
-
-
     unittest.main()
-
-
-
-
-

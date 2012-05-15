@@ -3,54 +3,13 @@
 A set of routines for fast field line tracing.
 "Number crunching" is performed in C for speed.
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 '''
 
-def trace2d_eul(fieldx, fieldy, xstart, ystart, gridx, gridy, 
-                maxstep=20000, ds=0.01):
-    '''
-    Given a 2D vector field, trace a streamline from a given point
-    to the edge of the vector field.  The field is integrated using
-    Euler's method.  While this is faster than rk4, it is less accurate.
-    
-    Only valid for regular grid with coordinates gridx, gridy.
-    If gridx and gridy are not given, assume that xstart and ystart
-    are normalized coordinates (e.g., position in terms of array
-    indices.)
-    '''
-    from . import ctrace2d as ct
+from . import ctrace2d
 
-    out = ct.cEuler(maxstep, ds, xstart, ystart, gridx, gridy,
-                    fieldx.transpose(), fieldy.transpose())
-    x = out[0][0:out[2][0]-1]
-    y = out[1][0:out[2][0]-1]
-
-    return(x,y)
-
-def trace2d_rk4(fieldx, fieldy, xstart, ystart, gridx, gridy, 
-                maxstep=20000, ds=0.01):
-    '''
-    Given a 2D vector field, trace a streamline from a given point
-    to the edge of the vector field.  The field is integrated using
-    Runge Kutta 4.  Slower than Euler, but more accurate.  The 
-    higher accuracy allows for larger step sizes (ds kwarg).  For
-    a demonstration of the improved accuracy, run test_asymtote and
-    test_dipole, bouth found in the pybats.trace2d module.
-    
-    Only valid for regular grid with coordinates gridx, gridy.
-    If gridx and gridy are not given, assume that xstart and ystart
-    are normalized coordinates (e.g., position in terms of array
-    indices.)
-    '''
-    from . import ctrace2d as ct
-
-    out = ct.cRk4(maxstep, ds, xstart, ystart, gridx, gridy,
-                    fieldx.transpose(), fieldy.transpose())
-    x = out[0][0:out[2][0]-1]
-    y = out[1][0:out[2][0]-1]
-
-    return(x,y)
-
+trace2d_eul = ctrace2d.cEuler
+trace2d_rk4 = ctrace2d.cRk4
 
 ###################################################
 # TEST SUITE  #

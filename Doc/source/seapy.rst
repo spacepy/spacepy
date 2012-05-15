@@ -1,10 +1,28 @@
 
 
 ##################################
-SeaPy Ð Superposed Epoch in Python
+SeaPy - Superposed Epoch in Python
 ##################################
 
-.. todolist::
+.. currentmodule:: spacepy.seapy
 
-.. automodule:: seapy
-    :members:
+.. automodule:: spacepy.seapy
+
+.. rubric:: Classes
+
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    Sea
+    Sea2d
+
+.. rubric:: Functions
+
+.. autosummary::
+    :toctree: autosummary
+
+    seadict
+    multisea
+    readepochs
+    sea_signif

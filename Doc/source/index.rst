@@ -28,18 +28,18 @@ this reliance will be diminished.
 
 
 When publishing research which used SpacePy, please provide appropriate
-credit to the SpacePy team via citation or acknowledgement.
+credit to the SpacePy team via citation or acknowledgment.
 
 To cite SpacePy in publications, use (BibTeX code):
-@INPROCEEDINGS{spacepy11,
-author = {{Morley}, S.~K. and {Koller}, J. and {Welling}, D.~T. and {Larsen}, B.~A. and {Henderson}, M.~G. and {Niehof}, J.~T.},
-title = "{Spacepy - A Python-based library of tools for the space sciences}",
-booktitle = "{Proceedings of the 9th Python in science conference (SciPy 2010)}",
-year = 2011,
-address = {Austin, TX}
-}
+    @INPROCEEDINGS{spacepy11,
+    author = {{Morley}, S.~K. and {Koller}, J. and {Welling}, D.~T. and {Larsen}, B.~A. and {Henderson}, M.~G. and {Niehof}, J.~T.},
+    title = "{Spacepy - A Python-based library of tools for the space sciences}",
+    booktitle = "{Proceedings of the 9th Python in science conference (SciPy 2010)}",
+    year = 2011,
+    address = {Austin, TX}
+    }
 
-Certain modules may provide additional citations in the __citation__
+Certain modules may provide additional citations in the ``__citation__``
 attribute. Contact a module's author before publication or public
 presentation of analysis performed by that module. This allows the author
 to validate the analysis and receive appropriate credit for his or her
@@ -48,34 +48,42 @@ work.
 
 .. module:: spacepy
 
-SpacePy Documents:
+SpacePy Documents
+=================
 
 .. toctree::
     :maxdepth: 1
 
+    quickstart
     doc_standard
     tips
+    configuration
 
-SpacePy Code:
+SpacePy Code
+============
 
 .. toctree::
     :maxdepth: 1
 
-    borg
     coordinates
     datamodel
+    data_assimilation
     empiricals
+    irbempy
+    lanlstar
     omni
+    plot
     poppy
+    pycdf
     radbelt
     seapy
     time
     toolbox
-
+..  realtime
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

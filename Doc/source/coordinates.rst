@@ -4,7 +4,12 @@
 coordinates - module for coordinate transforms
 ##############################################
 
-.. todolist::
+.. automodule:: spacepy.coordinates
 
-.. automodule:: coordinates
-    :members:
+.. currentmodule:: spacepy.coordinates
+
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    Coords

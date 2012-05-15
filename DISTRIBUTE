@@ -1,0 +1,16 @@
+Building spacepy for distribution (20110824)
+============================================
+Since this has to happen on multiple platforms, a single script doesn't work.
+On a Unix machine:
+check out the latest from git.
+The latest must be installed for the docs to be built properly.
+    python setup.py install
+    python setup.py sdist --formats=gztar,zip
+Tarball and zip are in the dist directory.
+
+On Windows with Sphinx installed:
+copy SpacePy.pdf from the Unix build above into the Doc directory,
+since LaTeX is unlikely to work on Windows
+    python setup.py install
+    python setup.py bdist_wininst
+installer exe is in the dist directory.

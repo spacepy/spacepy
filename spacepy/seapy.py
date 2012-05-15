@@ -40,9 +40,11 @@ the plot() method is recommended for 2D SEA.
 smorley@lanl.gov
 Los Alamos National Laboratory
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
+
+import warnings
 
 import numpy as np
 import numpy.ma as ma
@@ -53,6 +55,7 @@ from spacepy import help
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 
+__contact__ = 'Steve Morley, smorley@lanl.gov'
 
 class SeaBase(object):
     """SeaPy Superposed epoch analysis base class
@@ -61,7 +64,7 @@ class SeaBase(object):
 
     """
     def __init__(self, data, times, epochs, **kwargs):
-        self.data = np.array(data, dtype=float)
+        self.data = np.asarray(data, dtype=float)
         self.times = times
         self.epochs = epochs
         self.verbose = kwargs['verbose']
@@ -76,34 +79,17 @@ class SeaBase(object):
             self.window = kwargs['window']
         self.window = np.ceil(float(self.window)/float(self.delta))
         if kwargs['window'] != self.window:
-            print('Window size changed to %s (points) to fit resolution' % self.window, '(%s)' % self.delta)
+            warnings.warn(
+                'Window size changed to {0} (points) to fit resolution ({1})'.format(
+                self.window, self.delta))
         self.bound_type = None
-
-
-class Sea(SeaBase):
-    """SeaPy Superposed epoch analysis object
-
-    Initialize object with data, times, epochs, window (half-width) and delta (optional).
-    'times' and epochs should be in some useful format
-    Includes method to perform superposed epoch analysis of input data series
-
-    Output can be nicely plotted with plot method, or for multiple objects
-    use the seamulti function
-
-    """
-    def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
-        super(Sea, self).__init__(data, times, epochs, \
-              window=window, delta=delta, verbose=verbose)
 
     def __str__(self):
         """Define String Representation of Sea object"""
 
         strhead = 'Superposed Epoch Object:'
-        str1 = 'Data array - %s; ' % self.data.shape
-        str2 = 'Epochs - %d ; ' % len(self.epochs)
-        str3 = 'Window - %d' % self.window
-
-        return strhead+str1+str2+str3
+        strtail = 'Data array - {0}; #Epochs - {1}'.format(self.data.shape, len(self.epochs))
+        return ' '.join((strhead, strtail))
 
     __repr__ = __str__
 
@@ -169,16 +155,54 @@ class Sea(SeaBase):
 
             self.epochs = t_epoch[kinds]
             t_epoch = t_epoch[kinds]
-
+            if len(self.epochs)==0:
+                raise RuntimeError('No valid epochs for data supplied')
         return time, t_epoch
+
+
+
+class Sea(SeaBase):
+    """SeaPy Superposed epoch analysis object
+
+    Initialize object with data, times, epochs, window (half-width) and delta (optional).
+    'times' and epochs should be in some useful format
+    Includes method to perform superposed epoch analysis of input data series
+
+    Parameters
+    ==========
+    data : array_like
+        list or array of data
+    times : array_like
+        list of datetime objects (or list of serial times)
+    epochs : array_like
+        list of datetime objects (or serial times) for zero epochs in SEA
+    window : datetime.timedelta
+        size of the half-window for the SEA (can also be given as serial time)
+    delta : datetime.timedelta
+        resolution of the input data series, which must be uniform (can also be
+        given as serial time)
+
+    Notes
+    =====
+    Output can be nicely plotted with :py:meth:`plot`, or for multiple objects
+    use the :py:func:`multisea` function
+
+    .. currentmodule:: spacepy.seapy
+    .. autosummary::
+        ~Sea.sea
+        ~Sea.plot
+    .. automethod:: sea
+    .. automethod:: plot
+    """
+    def __init__(self, data, times, epochs, window=3., delta=1., verbose=True):
+        super(Sea, self).__init__(data, times, epochs, \
+              window=window, delta=delta, verbose=verbose)
 
     def sea(self, **kwargs):
         """Method called to perform superposed epoch analysis on data in object.
 
-        Parameters
-	==========
-        Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
-        all of which must be available on instantiation.
+        Uses object attributes obj.data, obj.times, obj.epochs, obj.delta,
+        obj.window, all of which must be available on instantiation.
 
 	Other Parameters
         ================
@@ -188,12 +212,14 @@ class Sea(SeaBase):
 	    calculates the quartiles as the upper and lower bounds (and is default);
         ci : float
 	    will find the bootstrapped confidence intervals (and requires ci_quan to be set);
-        mad : flaot
+        mad : float
 	    will use +/- the median absolute deviation for the bounds;
         ci_quan : string
 	    can be set to 'median' or 'mean'
 
-        A basic plot can be raised with the obj.plot() method
+        Notes
+        =====
+        A basic plot can be raised with :meth:`plot`
         """
         #check this hasn't already been done
         #TODO: find out why doing two .sea() calls back-to-back fails 2nd time
@@ -212,7 +238,7 @@ class Sea(SeaBase):
         if isinstance(self.data, np.ndarray):
             y = self.data
         else:
-            y = np.array(self.data, dtype=float)
+            y = np.asarray(self.data, dtype=float)
 
         if kwargs['ci']:
             kwargs['quartiles'], kwargs['mad'] = False, False
@@ -297,7 +323,7 @@ class Sea(SeaBase):
     #ci_quan='median'):
         #"""Method for normalized superposed epoch analysis (creates new object)
 
-        #Example:
+        #Examples
         #Assuming an already instantiated Sea object, xampl
 
         #>>> xampl_norm = xampl.sea_norm(epoch2)
@@ -309,7 +335,7 @@ class Sea(SeaBase):
         #all of which must be available on instantiation.
         #Also requires second set of epochs.
 
-        #Optional keyword(s):
+        #Other Parameters
         #nbins (default = 100) - number of bins for normalized SEA
         #storedata (default = False) - saves matrix of epoch windows as obj.datacube
         #quartiles calculates the quartiles as the upper and lower bounds (and is default);
@@ -398,7 +424,7 @@ class Sea(SeaBase):
 
     def plot(self, xquan = 'Time Since Epoch', yquan='', xunits='',
                 yunits='', epochline=False, usrlimy=[], show=True,
-                figsize=None, dpi=None, transparent=True):
+                figsize=None, dpi=None, transparent=True, color='#7F7FFF'):
         """Method called to create basic plot of superposed epoch analysis.
 
         Parameters
@@ -421,7 +447,12 @@ class Sea(SeaBase):
 	    (default = []) - override automatic y-limits on plot.
         transparent : boolean
 	    (default True): make patch for low/high bounds transparent
+        color : str
+            Color to use for the patch if not transparent.
+            (default #7F7FFF, a medium blue)
 
+        Notes
+        =====
         If both quan and units are supplied, axis label will read
         'Quantity Entered By User [Units]'
         """
@@ -462,7 +493,7 @@ class Sea(SeaBase):
             ax0.add_patch(poly)
         else:
             ax0.fill_between(self.x, self.bound_low.ravel(), self.bound_high.ravel(),
-                             edgecolor='none', facecolor='#7F7FFF', interpolate=True)
+                             edgecolor='none', facecolor=color, interpolate=True)
         plt.hold(True)
         ax0.plot(self.x, self.semedian, 'k-', lw=2.0)
         ax0.plot(self.x, self.semean, 'r--', lw=1.25)
@@ -496,18 +527,42 @@ class Sea(SeaBase):
 class Sea2d(SeaBase):
     """SeaPy 2D Superposed epoch analysis object
 
-    Initialize object with data, times, epochs, window (half-width),
-    delta (optional), and y (two-element vector with max and min of y;optional)
+    Initialize object with data (n element vector), times(y*n array), 
+    epochs, window (half-width), delta (optional), and 
+    y (two-element vector with max and min of y;optional)
     'times' and epochs should be in some useful format
     Includes method to perform superposed epoch analysis of input data series
 
-    Output can be nicely plotted with plot method, or for multiple
-    objects use the seamulti function
+    Parameters
+    ==========
+    data : array_like
+        2-D array of data (0th dimension is quantity y, 1st dimension is time)
+    times : array_like
+        list of datetime objects (or list of serial times)
+    epochs : array_like
+        list of datetime objects (or serial times) for zero epochs in SEA
+    window : datetime.timedelta
+        size of the half-window for the SEA (can also be given as serial time)
+    delta : datetime.timedelta
+        resolution of the input data series, which must be uniform (can also be
+        given as serial time)
 
+    Notes
+    =====
+    Output can be nicely plotted with :meth:`plot`, or for multiple
+    objects use the :func:`multisea` function
+
+
+    .. currentmodule:: spacepy.seapy
+    .. autosummary::
+        ~Sea2d.sea
+        ~Sea2d.plot
+    .. automethod:: sea
+    .. automethod:: plot
     """
     def __init__(self, data, times, epochs, window=3., delta=1., verbose=False, y=[]):
         super(Sea2d, self).__init__(data, times, epochs, window=window, \
-              delta=1., verbose=False, y=[])
+              delta=delta, verbose=False, y=[])
 
         if y:
             self.y = np.linspace(y[0], y[1], data.shape[0]+1)
@@ -515,27 +570,34 @@ class Sea2d(SeaBase):
             self.y = np.linspace(0, data.shape[0]-1, data.shape[0]+1)
 
     def sea(self, storedata=False, quartiles=True, ci=False, mad=False,
-        ci_quan='median', nmask=1):
-        """Method called to perform 2D superposed epoch analysis on data in object.
+        ci_quan='median', nmask=1, **kwargs):
+        """Perform 2D superposed epoch analysis on data in object
 
-        Inputs:
-        =======
-        Uses object attributes obj.data, obj.times, obj.epochs, obj.delta, obj.window,
-        all of which must be available on instantiation.
+        Uses object attributes obj.data, obj.times, obj.epochs, obj.delta,
+        obj.window, all of which must be available on instantiation.
 
-        Optional keyword(s):
-        ====================
-            - storedata (default = False) - saves matrix of epoch windows as obj.datacube
-            - quartiles calculates the inter-quartile range to show the spread (and is default);
-            - ci will find the bootstrapped confidence interval (and requires ci_quan to be set);
-            - mad will use the median absolute deviation for the spread;
-            - ci_quan can be set to 'median' or 'mean'
+        Other Parameters
+        ================
+        storedata : boolean
+            saves matrix of epoch windows as obj.datacube (default = False)
+        quartiles : list
+            calculates the inter-quartile range to show the spread
+            (and is default);
+        ci : float
+            will find the bootstrapped confidence interval
+            (and requires ci_quan to be set)
+        mad : float
+            will use the median absolute deviation for the spread;
+        ci_quan : string
+            can be set to 'median' or 'mean'
 
-        A basic plot can be raised with the obj.plot() method
+        Notes
+        =====
+        A basic plot can be raised with :meth:`plot`
         """
         #ensure all input is np array or correct form
         delt = float(self.delta)
-        y = np.array(self.data, dtype=float)
+        y = np.asarray(self.data, dtype=float)
         time,t_epoch = self._timeepoch(delt)
         if not nmask:
             nmask = 0 #set mask to exclude none
@@ -553,7 +615,14 @@ class Sea2d(SeaBase):
             y_sea[:,:,i] = sea_slice
 
         #find SEA mean, median and percentiles - exclude NaNs
-        y_sea_m = ma.masked_where(y_sea < 0., y_sea)
+        #y_sea_m = ma.masked_where(y_sea < 0., y_sea)
+        try:
+            badval = kwargs['badval']
+        except KeyError:
+            badval = np.nan
+            y_sea_m = ma.masked_where(np.isnan(y_sea), y_sea)
+        else:
+            y_sea_m = ma.masked_values(y_sea, badval)
         #now get SEA quantities
         self.semean, self.semedian, self.countmask = np.empty((l,m)), np.empty((l,m)), np.empty((l,m))
         yj=0
@@ -583,28 +652,37 @@ class Sea2d(SeaBase):
             self.datacube = y_sea_m
             print('sea(): datacube added as new attribute')
 
-        return 'Superposed epoch analysis complete'
+        if self.verbose:
+            print('Superposed epoch analysis complete')
 
     def plot(self, xquan = 'Time Since Epoch', yquan='', xunits='',
                 yunits='', zunits='', epochline=False, usrlimy=[],
                 show=True, zlog=True, figsize=None, dpi=300):
         """Method called to create basic plot of 2D superposed epoch analysis.
 
-        Inputs:
-        =======
-        Uses object attributes created by the obj.sea() method.
+        Uses object attributes created by :meth:`sea`.
 
-        Optional keyword(s):
-        ====================
-            - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
-            - x(y/z)units (default = None (None)) - x(y/z)-axis units.
-            - epochline (default = False) - put vertical line at zero epoch.
-            - usrlimy (default = []) - override automatic y-limits on plot.
-            - show (default = True) - shows plot; set to false to output plot object to variable
-            - figsize - tuple of (width, height) in inches
-            - dpi (default=300) - figure resolution in dots per inch
+        Other Parameters
+        ================
+        x(y)quan : str
+            x(y)-axis label.  (default = 'Time since epoch' (None))
+        x(y/z)units : str
+            x(y/z)-axis units. (default = None (None))
+        epochline : boolean
+            put vertical line at zero epoch. (default = False)
+        usrlimy : list
+            override automatic y-limits on plot. (default = [])
+        show : boolean
+            shows plot; set to false to output plot object to variable
+            (default = True)
+        figsize : tuple
+            (width, height) in inches
+        dpi : int
+            figure resolution in dots per inch (default=300)
 
-        If both ?quan and ?units are supplied, axis label will read
+        Notes
+        =====
+        If both quan and units are supplied, axis label will read
         'Quantity Entered By User [Units]'
         """
         try:
@@ -681,13 +759,13 @@ class Sea2d(SeaBase):
 def seadict(objlist, namelist):
     """Function to create dictionary of SeaPy.Sea objects.
 
-    Inputs:
-    =======
+    Parameters
+    ==========
         - objlist: List of Sea objects.
         - namelist: List of variable labels for input objects.
 
-    Optional keyword(s):
-    ====================
+    Other Parameters
+    ================
     namelist = List containing names for y-axes.
 
     """
@@ -714,12 +792,12 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     xunits='', show=True, zunits='', zlog=True, figsize=None, dpi=300):
     """Function to create multipanel plot of superposed epoch analyses.
 
-    Inputs:
-    =======
+    Parameters
+    ==========
     Dictionary of Sea objects (from superposedepoch.seadict()).
 
-    Optional keyword(s):
-    ====================
+    Other Parameters
+    ================
         - epochline (default = False) - put vertical line at zero epoch.
         - usrlimy (default = []) - override automatic y-limits on plot (same for all plots).
         - show (default = True) - shows plot; set to false to output plot object to variable
@@ -728,7 +806,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         - dpi (default=300) - figure resolution in dots per inch
         - n_cols - Number of columns: not yet implemented.
 
-    Output:
+    Returns
     =======
     Plot of input object median and bounds (ci, mad, quartiles - see sea()).
     If keyword 'show' is False, output is a plot object.
@@ -826,16 +904,16 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
 def readepochs(fname, iso=False, isofmt="%Y-%m-%dT%H:%M:%S"):
     """Read epochs from text file assuming YYYY MM DD hh mm ss format
 
-    Input:
-    ======
+    Parameters
+    ==========
     Filename (include path)
 
-    Optional inputs:
+    Other Parameters
     ================
     iso (default = False), read in ISO date format
     isofmt (default is YYYY-mm-ddTHH:MM:SS, code is %Y-%m-%dT%H:%M:%S)
 
-    Output:
+    Returns
     =======
     epochs (type=list)
 
@@ -868,11 +946,11 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         yquan='', xunits='', yunits='', epochline=True, usrlimy=[]):
     """Test for similarity between distributions at each lag in two 1-D SEAs
 
-    Inputs:
+    Parameters
     =======
     Two seapy.Sea() instances for comparison
 
-    Optional keyword(s):
+    Other Parameters
     ====================
         - show (default = True)
         - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
@@ -880,7 +958,7 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
         - epochline (default = True) - put vertical line at zero epoch.
         - usrlimy (default = []) - override automatic y-limits on plot.
 
-    Example:
+    Examples
     ========
     >>> obj1 = seapy.Sea(data1, times1, epochs1)
     >>> obj2 = seapy.Sea(data2, times2, epochs2)

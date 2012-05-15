@@ -23,4 +23,9 @@ def readconfig(my_cfg, config_filepath):
     if cfg.has_option("service", "log_records"):
         my_cfg["LOG_RECORDS"]=cfg.get("service", "log_records")
     return
-                    
+
+# usage
+# a = {}
+# readconfig(a, 'test.cfg')
+
+

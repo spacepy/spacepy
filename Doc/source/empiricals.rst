@@ -1,10 +1,19 @@
 
 
-########################################################
+#######################################################
 empiricals - module with heliospheric empirical modules
-########################################################
+#######################################################
 
-.. todolist::
+.. automodule:: spacepy.empiricals
 
-.. automodule:: empiricals
-    :members:
+.. currentmodule:: spacepy.empiricals
+
+.. autosummary::
+    :toctree: autosummary
+
+    getLmax
+    getPlasmaPause
+    getMPstandoff
+    getDststar
+    getVampolaOrder
+    vampolaPA

@@ -3,20 +3,18 @@
 """
 Implementation of Coords class functions for coordinate transformations
 
-Authors
--------
-Josef Koller
+Authors: Josef Koller
+Institution: Los ALamos National Laboratory
+Contaact: jkoller@lanl.gov
 
-jkoller@lanl.gov
-Los Alamos National Laboratory
-
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import numpy as np
 from spacepy import help
 import spacepy
 
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 # -----------------------------------------------
 # space coordinate class
@@ -46,6 +44,10 @@ class Coords(object):
     out : Coords instance
         instance with a.data, a.carsph, etc.
 
+    See Also
+    ========
+    spacepy.time.Ticktock
+
     Examples
     ========
     >>> from spacepy import coordinates as coord
@@ -57,10 +59,12 @@ class Coords(object):
     >>> newcoord = cvals.convert('GSM', 'sph')
     >>> newcoord
 
-
-    See Also
-    ========
-    time.Ticktock class
+    .. currentmodule:: spacepy.coordinates
+    .. autosummary::
+        ~Coords.append
+        ~Coords.convert
+    .. automethod:: append
+    .. automethod:: convert
     """
     def __init__(self, data, dtype, carsph, units=None, ticks=None):
 
@@ -233,10 +237,7 @@ class Coords(object):
 
     # -----------------------------------------------
     def convert(self, returntype, returncarsph):
-        """
-        a.convert( returntype, returncarsph )
-
-        Can be used to create a new Coords instance with new coordinate types
+        """Create a new Coords instance with new coordinate types
 
         Parameters
         ==========
@@ -303,7 +304,7 @@ class Coords(object):
         # now convert to other coordinate system
         if (self.dtype != returntype) :
             assert NewCoords.ticks, "Time information required; add a.ticks attribute"
-            NewCoords.data = op.coord_trans( Coords, returntype, returncarsph)
+            NewCoords.data = op.coord_trans( self, returntype, returncarsph)
             NewCoords.dtype = returntype
             NewCoords.carsph = returncarsph
             NewCoords.sysaxes = op.get_sysaxes(returntype, returncarsph)
@@ -314,9 +315,9 @@ class Coords(object):
             if NewCoords.__dict__.has_key('x'): NewCoords.__delattr__('x')
             if NewCoords.__dict__.has_key('y'): NewCoords.__delattr__('y')
             if NewCoords.__dict__.has_key('z'): NewCoords.__delattr__('z')
-            NewCoords.radi = Coords.data[:,0]
-            NewCoords.lati = Coords.data[:,1]
-            NewCoords.long = Coords.data[:,2]
+            NewCoords.radi = self.data[:,0]
+            NewCoords.lati = self.data[:,1]
+            NewCoords.long = self.data[:,2]
         else: # 'car'
             NewCoords.units =  [units[0]]*3
             if NewCoords.__dict__.has_key('radi'): NewCoords.__delattr__('radi')
@@ -347,10 +348,7 @@ class Coords(object):
 
     # -----------------------------------------------
     def append(self, other):
-        """
-        a.append(other)
-
-        Will be called when another Coords instance has to be appended to the current one
+        """Append another Coords instance to the current one
 
         Parameters
         ==========

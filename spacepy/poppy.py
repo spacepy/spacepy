@@ -52,17 +52,16 @@ The plot method will then add the 95% confidence intervals as a semi-
 transparent patch.
 
 
-Authors
-=======
-Steve Morley and Jon Niehof
+Authors: Steve Morley and Jon Niehof
+Institution: Los Alamos National Laboratory
+Contact: smorley@lanl.gov, jniehof@lanl.gov
 
-smorley@lanl.gov, jniehof@lanl.gov
-Los Alamos National Laboratory
-
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import bisect
+import sys
+import warnings
 
 import numpy as np
 from matplotlib.mlab import prctile
@@ -76,6 +75,7 @@ if lib.have_libspacepy:
     import ctypes
 import spacepy.toolbox as tb
 
+__contact__ = 'Steve Morley, smorley@lanl.gov'
 
 class PPro(object):
     """PoPPy point process object
@@ -84,8 +84,41 @@ class PPro(object):
     events, given as lists, arrays, or lists of datetime objects.
     Includes method to perform association analysis of input series
 
-    Output can be nicely plotted with plot method
+    Output can be nicely plotted with :py:meth:`plot`.
 
+    .. currentmodule:: spacepy.poppy
+    
+    .. autosummary::
+        ~PPro.aa_ci
+        ~PPro.assoc
+        ~PPro.assoc_mult
+        ci
+        conf_above
+        ~PPro.plot
+        ~PPro.plot_mult
+        ~PPro.swap
+
+    .. automethod:: aa_ci
+    .. automethod:: assoc
+    .. automethod:: assoc_mult
+
+    .. attribute:: ci
+    
+       Contains the upper and lower confidence limits for the association
+       number as a function of lag. The first element is the array of lower
+       limits; the second, the array of upper limits. Not available until
+       after calling :meth:`aa_ci`.
+
+    .. attribute:: conf_above
+    
+       Contains the confidence that the association number, as a function
+       of lag, is above the asymptotic association number. (The confidence
+       of being below is 100 - ``conf_above``.)  Not available until
+       after calling :meth:`aa_ci`.
+
+    .. automethod:: plot
+    .. automethod:: plot_mult
+    .. automethod:: swap
     """
     #NB: P2 is the "master" timescale, P1 gets shifted by lags
     #Add lag to p1 to reach p2's timescale, subtract lag from p2 to reach p1's
@@ -295,8 +328,8 @@ class PPro(object):
              xlabel='Time lag', xscale=None, ylabel=None, title=None, transparent=True):
         """Create basic plot of association analysis.
 
-        Uses object attributes created by the assoc method and,
-        optionally, aa_ci.
+        Uses object attributes created by :py:meth:`assoc` and,
+        optionally, :py:meth:`aa_ci`.
 
         Parameters
         ==========
@@ -396,22 +429,23 @@ class PPro(object):
     def aa_ci(self, inter, n_boots=1000, seed=None):
         """Get bootstrap confidence intervals for association number
 
-        Requires input of desired confidence interval, e.g.,
-        >>> obj.aa_ci(95)
+        Requires input of desired confidence interval, e.g.:
+            >>> obj.aa_ci(95)
 
-        Upper and lower confidence limits are added to the ci attribute
+        Upper and lower confidence limits are added to :attr:`~PPro.ci`.
 
-        Attribute conf_above will contain the confidence (in percent) that
-        the association number at that lag is I{above} the asymptotic
+        After calling, :attr:`~PPro.conf_above` will contain the confidence
+        (in percent) that
+        the association number at that lag is *above* the asymptotic
         association number. (The confidence of being below is 100 - conf_above)
-        For minor variations in conf_above to be meaningful, a I{large} number
+        For minor variations in conf_above to be meaningful, a *large* number
         of bootstraps is required. (Rougly, 1000 to be meaningful to the
         nearest percent; 10000 to be meaningful to a tenth of a percent.) A
         conf_above of 100 usually indicates an insufficient sample size to
-        resolve, I{not} perfect certainty.
+        resolve, *not* perfect certainty.
 
         Note also that a 95% chance of being above indicates an exclusion
-        from the *90*% confidence interval!
+        from the *90%* confidence interval!
 
         Parameters
         ==========
@@ -423,6 +457,14 @@ class PPro(object):
             seed for the random number generator. If not specified,
             Python code will use numpy's RNG and its current seed;
             C code will seed from the clock.
+
+        Warnings
+        ========
+        If ``seed`` is specified on numpy 1.5 and earlier, the available
+        entropy is reduced to work around a random number generator bug.
+        Upgrade to numpy 1.6 to avoid this limitation.
+        Because of this workaround, if a seed is specified, results
+        from numpy 1.5 are not reproducible with numpy 1.6
         """
         lags = self.lags
 
@@ -432,7 +474,16 @@ class PPro(object):
 
         if seed != None:
             np.random.seed(seed)
-            lag_seeds = np.random.randint(0, 2 ** 32, [len(lags)])
+            #TODO: This is a bit ugly and we potentially lose entropy
+            #should be unsigned long, but numpy forces signed int...
+            minseed = -sys.maxsize - 1
+            maxseed = sys.maxsize
+            (maj, minor) = np.__version__.split('.')[0:2]
+            if int(maj) < 2 and int(minor) < 6:
+                warnings.warn('Upgrade to numpy 1.6 to avoid reduced entropy.')
+                maxseed = sys.maxsize
+                minseed = 0
+            lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
         if lib.have_libspacepy == False:
             for i in range(len(lags)):
                 if seed != None:

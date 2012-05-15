@@ -1,0 +1,91 @@
+This is the function being run
+####
+from spacepy import pycdf
+
+def foo():
+    cdf = pycdf.CDF('runAll_data.cdf')  # 2.4G CDF
+    a = cdf['angleToNorm'][:]
+####
+
+
+
+5158baa2fdfad1c8436c949a073055ad4738293f
+out of the box
+In [2]: import pstats
+
+In [3]: p = pstats.Stats('fooprof')
+
+In [4]: p.sort_stats('cumulative').print_stats(10)
+Thu Mar 29 09:48:05 2012    fooprof
+
+         172 function calls in 42.915 seconds
+
+   Ordered by: cumulative time
+   List reduced from 62 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.058    0.058   42.915   42.915 <string>:1(<module>)
+        1    0.838    0.838   42.853   42.853 /Users/balarsen/Downloads/profile_cdf.py:15(foo)
+        1    0.000    0.000   29.272   29.272 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1763(__getitem__)
+        1    0.000    0.000   22.185   22.185 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:2545(unpack_buffer)
+        1   22.184   22.184   22.185   22.185 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:2653(c_array_to_list)
+       21   10.189    0.485   10.189    0.485 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:290(call)
+        1    0.000    0.000    9.472    9.472 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/datamodel.py:150(__new__)
+        1    0.000    0.000    9.472    9.472 /opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/numpy/core/numeric.py:167(asarray)
+        1    9.472    9.472    9.472    9.472 {numpy.core.multiarray.array}
+        1    0.000    0.000    3.270    3.270 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:860(__init__)
+
+
+
+
+d93a4712723513f298a4fc310bff0a96769f45dc
+In [7]: p.sort_stats('cumulative').print_stats(10)
+Thu Mar 29 09:58:58 2012    fooprof
+
+         204 function calls in 0.588 seconds
+
+   Ordered by: cumulative time
+   List reduced from 85 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.588    0.588 <string>:1(<module>)
+        1    0.000    0.000    0.586    0.586 /Users/balarsen/Downloads/profile_cdf.py:15(foo)
+        1    0.000    0.000    0.475    0.475 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1765(__getitem__)
+       21    0.411    0.020    0.411    0.020 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:292(call)
+        1    0.175    0.175    0.175    0.175 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:2489(create_buffer)
+        1    0.000    0.000    0.111    0.111 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:862(__init__)
+        1    0.000    0.000    0.111    0.111 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1056(_open)
+       18    0.000    0.000    0.004    0.000 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1122(_call)
+        1    0.000    0.000    0.003    0.003 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1207(readonly)
+        1    0.000    0.000    0.001    0.001 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:906(__del__)
+
+
+
+d4c6de2a073c1d4a311d37c98441c37ba189bebf
+In [20]: p.sort_stats('cumulative').print_stats(10)
+Mon Apr  9 16:11:51 2012    fooprof
+
+         125 function calls in 0.612 seconds
+
+   Ordered by: cumulative time
+   List reduced from 50 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.031    0.031    0.612    0.612 <string>:1(<module>)
+       16    0.580    0.036    0.580    0.036 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:330(call)
+        1    0.000    0.000    0.579    0.579 /Volumes/RBSP2-D2/FIREBIRD_geant4_data/foo.py:3(foo)
+        1    0.000    0.000    0.466    0.466 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1815(__getitem__)
+        1    0.000    0.000    0.113    0.113 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:912(__init__)
+        1    0.000    0.000    0.113    0.113 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1106(_open)
+       13    0.000    0.000    0.004    0.000 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1172(_call)
+        1    0.000    0.000    0.003    0.003 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1257(readonly)
+        1    0.000    0.000    0.002    0.002 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:956(__del__)
+        1    0.000    0.000    0.002    0.002 /Users/balarsen/.local/lib/python2.7/lib/python/site-packages/spacepy/pycdf/_pycdf.py:1322(close)
+
+
+Out[20]: <pstats.Stats instance at 0x1054151b8>
+
+
+
+
+

@@ -4,26 +4,32 @@
 Module with some useful empirical models (plasmapause, magnetopause, Lmax)
 
 
-Authors
--------
-Steve Morley, Josef Koller
+Authors: Steve Morley, Josef Koller
+Institution: Los Alamos National Laboratory
+Contact: smorley@lanl.gov
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 import datetime
-
-import datetime
-
+from functools import partial
 import numpy as np
 
+import scipy.integrate as integ
 from spacepy import help
 import spacepy.toolbox as tb
 import spacepy.omni as om
 import spacepy.time as spt
 
+__contact__ = 'Steve Morley, smorley@lanl.gov'
+
 def getLmax(ticks, model='JKemp'):
     """
     calculate a simple empirical model for Lmax - last closed drift-shell
+
+    Uses the parametrized Lmax from:
+    Koller and Morley (2010)
+    'Magnetopause shadowing effects for radiation belt models during high-speed solar wind streams'
+    American Geophysical Union, Fall Meeting 2010, abstract #SM13A-1787
 
     Parameters
     ==========
@@ -45,9 +51,6 @@ def getLmax(ticks, model='JKemp'):
     >>> ticks = st.tickrange(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 3), deltadays=1)
     array([ 7.4928412,  8.3585632,  8.6463423])
 
-    See Also
-    ========
-    What is the paper this model is from?  Put it here!
 
     """
     omni = om.get_omni(ticks)
@@ -56,11 +59,15 @@ def getLmax(ticks, model='JKemp'):
     if model is 'JKemp':
         for i, iDst in enumerate(Dst):
             Lmax[i] = 6.07e-5*iDst*iDst + 0.0436*iDst + 9.37
+    else:
+        raise ValueError('Invalid model selection')
     return Lmax
 
 def getPlasmaPause(ticks, model='M2002', LT='all'):
     """
     Plasmapause location model(s)
+
+    We need to list the references here!
 
     Parameters
     ==========
@@ -87,10 +94,6 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
     array([ 6.42140002,  6.42140002,  6.42140002,  6.42140002,  6.42140002,
         6.42140002,  6.42140002,  6.26859998,  5.772     ,  5.6574    ,
         5.6574    ])
-
-    See Also
-    ========
-    We need to list the references here!
     """
     def calcLpp(Kpmax, A, B):
         currLpp = A - B*Kpmax
@@ -147,6 +150,8 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
 def getMPstandoff(ticks):
     """Calculates the Shue et al. (1997) subsolar magnetopause radius
 
+    Lets put the full reference here
+
     Parameters
     ==========
     ticks : spacepy.time.Ticktock
@@ -171,10 +176,6 @@ def getMPstandoff(ticks):
     >>> data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
     >>> emp.ShueMP(data)
     array([ 9.96096838,  8.96790412])
-
-    See Also
-    ========
-    Lets put the full reference here
     """
     if type(ticks) == spt.Ticktock:
         omni = om.get_omni(ticks)
@@ -213,8 +214,10 @@ def getMPstandoff(ticks):
 def getDststar(ticks, model='OBrien'):
     """Calculate the pressure-corrected Dst index, Dst*
 
-    Paramters
-    =========
+    We need to add in the references to the models here!
+
+    Parameters
+    ==========
     ticks : spacepy.time.Ticktock
         TickTock object of desired times (will be interpolated from hourly OMNI data)
         OR dictionary including 'Pdyn' and 'Dst' keys where data are lists or arrays
@@ -259,9 +262,6 @@ def getDststar(ticks, model='OBrien'):
             dststar = getDststar(ticks, model=model)
             plt.plot(ticks.UTC, dststar, col)
 
-    See Also
-    ========
-    We need to add in the references to the models here!
     """
     model_params = {'Burton': (15.8, 20),
                     'OBrien': (7.26, 11),
@@ -290,6 +290,114 @@ def getDststar(ticks, model='OBrien'):
     Dststar = Dst - b*P**0.5 + c
 
     return Dststar
+
+
+def vampolaPA(omniflux, **kwargs):
+    '''Pitch angle model of sin^n form
+
+    Parameters
+    ==========
+    omniflux : arraylike or float
+        omnidirectional number flux data
+
+    order : integer or float (optional)
+        order of sin^n functional form for distribution (default=2)
+
+    alphas : arraylike (optional)
+        pitch angles at which to evaluate the differential number flux
+        (default is 5 to 90 degrees in 36 steps)
+
+    Returns
+    =======
+    dnflux : array
+        differential number flux corresponding to pitch angles alphas
+    alphas : array
+        pitch angles at which the differential number flux was evaluated
+
+    Examples
+    ========
+    Omnidirectional number flux of [3000, 6000]
+
+    >>> from spacepy.empiricals import pamodel
+    >>> pamodel.vampolaPA(3000, alpha=[45, 90])
+    (array([  954.92965855,  1909.8593171 ]), [45, 90])
+    >>> data, pas = pamodel.vampolaPA([3000, 6000], alpha=[45, 90])
+    >>> pas
+    [45, 90]
+    >>> data
+    array([[  954.92965855,  1909.8593171 ],
+           [ 1909.8593171 ,  3819.71863421]])
+    '''
+    defaults = {'order': 2,
+                'alpha': tb.linspace(5,90,18)}
+
+    if hasattr(omniflux, '__iter__'):
+        omniflux = np.asanyarray(omniflux)
+    else:
+        omniflux = np.asanyarray([omniflux])
+
+    #substitute defaults
+    for key in defaults:
+        if key not in kwargs:
+            kwargs[key] = defaults[key]
+
+    if hasattr(kwargs['order'], '__iter__'):
+        try:
+            assert len(kwargs['order'])==len(omniflux)
+        except AssertionError:
+            raise ValueError('order must be either single-valued or the same length as omniflux')
+    else:
+        kwargs['order'] = np.asanyarray([kwargs['order']]*len(omniflux))
+    normfac = np.empty(len(kwargs['order']), dtype=float)
+    
+    def sinfunc(x, order=kwargs['order']): #define distribution function
+        dum = np.sin(x)
+        return dum**order
+
+    for idx, tmporder in enumerate(kwargs['order']):
+        #def partial function so that  order is fixed
+        sinfunc_o = partial(sinfunc, order=tmporder)
+        normfac[idx] = integ.quad(sinfunc_o, 0, np.pi)[0] #quad returns (val, accuracy)
+
+    #now make the differential number flux
+    dnflux = np.zeros((len(kwargs['alpha']), len(omniflux))).squeeze()
+    for i, a_val in enumerate(np.deg2rad(kwargs['alpha'])):
+        dnflux[i] = omniflux * sinfunc(a_val) / normfac
+
+    return dnflux, kwargs['alpha']
+
+
+def getVampolaOrder(L):
+    '''Empirical lookup of power for sin^n pitch angle model from Vampola (1996)
+
+    Vampola, A.L. Outer zone energetic electron environment update, 
+    Final Report of ESA/ESTEC/WMA/P.O. 151351, ESA-ESTEC, Noordwijk, 
+    The Netherlands, 1996.
+
+    Parameters
+    ==========
+    L : arraylike or float
+        
+    Returns
+    =======
+    order : array
+        coefficient for sin^n model corresponding to McIlwain L (computed for OP77?)
+
+    '''
+    lmc = np.arange(3,8.00001,0.25)
+    vamp_n = [5.38, 5.078, 4.669, 3.916, 3.095, 2.494, 2.151, 1.998, 1.899,
+              1.942, 1.974, 1.939, 1.970, 2.136, 1.775, 1.438, 1.254, 1.194,
+              1.046, 0.989, 0.852]
+    
+    if not hasattr(L, '__iter__'): L = [L]
+    L = np.asanyarray(L)
+    #if outside valid range, use end value
+    L[L<=3] = 3
+    L[L>=8] = 8
+    #interpolate to get order for the given L
+    order = np.interp(L, lmc, vamp_n)
+
+    return order
 
 
 ShueMP = getMPstandoff

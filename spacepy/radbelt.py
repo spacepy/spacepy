@@ -3,19 +3,22 @@
 """
 Functions supporting radiation belt diffusion codes
 
-Authors
--------
-Josef Koller
+Authors: Josef Koller
+Institution: Los Alamos National Laboratory
+Contact: jkoller@lanl.gov
 
-jkoller@lanl.gov
-Los Alamos National Laboratory
-
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 """
 
 from spacepy import help
 import ctypes
 import numpy as np
+import spacepy.time as st
+import pdb
+import spacepy.toolbox as tb
+
+__contact__ = 'Josef Koller, jkoller@lanl.gov'
+
 
 # -----------------------------------------------
 # RBmodel class
@@ -46,13 +49,43 @@ class RBmodel(object):
     Finally, visualize the results:
 
     >>> rmod.plot_summary()
+
+    .. currentmodule:: spacepy.radbelt
+    .. autosummary::
+        ~RBmodel.Gaussian_source
+        ~RBmodel.add_Lmax
+        ~RBmodel.add_Lpp
+        ~RBmodel.add_PSD_obs
+        ~RBmodel.add_PSD_twin
+        ~RBmodel.add_omni
+        ~RBmodel.add_source
+        ~RBmodel.assimilate
+        ~RBmodel.evolve
+        ~RBmodel.get_DLL
+        ~RBmodel.plot
+        ~RBmodel.plot_obs
+        ~RBmodel.set_lgrid
+        ~RBmodel.setup_ticks
+    .. automethod:: Gaussian_source
+    .. automethod:: add_Lmax
+    .. automethod:: add_Lpp
+    .. automethod:: add_PSD_obs
+    .. automethod:: add_PSD_twin
+    .. automethod:: add_omni
+    .. automethod:: add_source
+    .. automethod:: assimilate
+    .. automethod:: evolve
+    .. automethod:: get_DLL
+    .. automethod:: plot
+    .. automethod:: plot_obs
+    .. automethod:: set_lgrid
+    .. automethod:: setup_ticks
     """
 
     def __init__(self, grid='L', NL=91, const_kp=False):
         """
         format for grid e.g., L-PA-E
         """
-        import spacepy.time as st
         import spacepy.lib
 
         self.const_kp=const_kp
@@ -71,14 +104,18 @@ class RBmodel(object):
                 self.DLL_model = 'BA2000'
                 self.Lmax_model = 'JKemp'
                 self.Lpp_model = 'CA1992'
-                self.SRC_model = 'JK1'
-                self.SRCmagn = st.Tickdelta(days=1e-1) # relative acceleration per day
+                #self.SRC_model = 'JK1'
+                #self.SRCmagn = st.Tickdelta(days=1e-1) # relative acceleration per day
                 self.MPloss = st.Tickdelta(minutes=0.1) # minutes time scale
                 self.PPloss = st.Tickdelta(days=10.) # days time scale
                 self.set_lgrid(NL)
                 self.MODerr = 5. # relative factor * PSD
-                self.PSDerr = 0.3 # relative observational error
+                #self.PSDerr = 0.3 # relative observational error
+                self.PSDerr = 0.25 # relative observational error
                 self.MIN_PSD = 1e-99
+
+        # source term flag set to false
+        self.source = False
 
     # -----------------------------------------------
     def __str__(self):
@@ -118,9 +155,6 @@ class RBmodel(object):
         >>> delta = datetime.timedelta(hours=1)
         >>> rmod.setup_ticks(start, end, delta, dtype='UTC')
         """
-
-        import spacepy.time as st
-
         self.ticks = st.tickrange(start, end, delta, dtype)
 
     # -----------------------------------------------
@@ -175,30 +209,292 @@ class RBmodel(object):
         self.params['Lpp'] = em.get_plasma_pause(self.ticks, Lpp_model)
 
     # -----------------------------------------------
-    def add_PSD(self, satlist=None):
+    def add_PSD_obs(self, time=None, PSD=None, Lstar=None, satlist=None):
 
         """
-        add observations from PSD database using the ticks list
+        add PSD observations
+
+        Parameters
+        ----------
+
+        time : Ticktock datetime array
+            array of observation times
+
+        PSD : list of numpy arrays
+            PSD observational data for each time. Each entry in the list is a
+            numpy array with the observations for the corresponding time
+
+        Lstar : list of numpy arrays
+            Lstar location of each PSD observations. Each entry in the list is
+            a numpy array with the location of the observations for the
+            corresponding time
+
+        satlist : list of satellite names
+
+        Returns
+        -------
+        out : list of dicts
+            Information of the observational data, where each entry
+            contains the observations and locations of observations for each
+            time specified in the time array. Each list entry is a dictionary
+            with the following information:
+
+        Ticks : Ticktock array
+            time of observations
+        Lstar : numpy array
+            location of observations
+        PSD   : numpy array
+            PSD observation values
+        sat   : list of strings
+            satellite names
+        MU    : scalar value
+            Mu value for the observations
+        K     : scalar value
+            K value for the observations
         """
 
-        import spacepy.sandbox.PSDdata as PD
-        import spacepy.time
+        import pdb
 
         assert 'ticks' in self.__dict__ , \
             "Provide tick range with 'setup_ticks'"
         Tgrid = self.ticks
         nTAI = len(Tgrid)
 
+        # initialize PSDdata list
+        self.PSDdata = ['']*(nTAI-1)
+
+        if (PSD == None):
+        # PSD data not provided,
+        # extract from database
+            import spacepy.sandbox.PSDdata as PD
+
+            for i, Tnow, Tfut in zip(np.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
+                start_end = spacepy.time.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
+                self.PSDdata[i] = PD.get_PSD(start_end, self.MU, self.K, satlist)
+
+        else:
+        # PSD data arrays provided
+
+            # model grid
+            Lgrid = self.Lgrid
+
+            itime = 0
+            # loop over time defined for the model integration
+            for i, Tnow, Tfut in zip(np.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
+
+                # empty array
+                lstar = np.array([],dtype=float)
+                time_idx = np.array([],dtype=int)
+
+                # loop over observation time
+                for itime in np.arange(len(time)):
+
+                    if (Tnow <= time[itime] and time[itime] <= Tfut):
+                        #print 'match!! '
+                        #print itime
+                        #print i
+                        #print time[itime]
+                        #print Tnow
+                        #print Tfut
+
+                        # concatenate to lstar
+                        lstar = np.concatenate((lstar,Lstar[itime]))
+                        lstar = np.unique(lstar)
+                        #idx = lstar.argsort()
+
+                        #pdb.set_trace()
+                        # add time index
+                        time_idx = np.append(time_idx,itime)
+                #end loop
+
+
+                #pdb.set_trace()
+                if (time_idx.shape[0] > 0):
+
+                    # initialize PSD array
+                    psd = np.zeros_like(lstar)
+
+                    # initialize number of obs array
+                    num_obs = np.zeros_like(lstar)
+
+                    # sort time index
+                    time_idx = np.unique(time_idx)
+
+                    # loop over time index
+                    for itime in time_idx:
+
+                        # sort observations
+                        idx = Lstar[itime].argsort()
+                        tmplstar = Lstar[itime][idx]
+                        tmppsd = PSD[itime][idx]
+
+                        # run through all unique grid-points and compute
+                        # average observation
+                        for j, iL in enumerate(lstar):
+                            # identify idex of grid-point
+                            idx = np.where(tb.feq(iL,tmplstar))
+                            # assign observation for grid-point
+                            psd[j] = psd[j] + tmppsd[idx]
+                            # add for number of observations
+                            num_obs[j] = num_obs[j] + 1.0
+
+                    psd = psd/num_obs
+
+                    # assign time for observations
+                    #Ticks = time[itime]
+                    Ticks = Tfut
+                    # determine position of observations
+                    #lstar = Lstar[itime]
+                    # determine observations PSD
+                    #psd = PSD[itime]
+                    # provide MU
+                    MU = self.MU*np.ones_like(lstar)
+                    # provide K
+                    K = self.K*np.ones_like(lstar)
+                    # empy satellite
+                    sat = ['']
+
+                    # add to dictionary
+                    self.PSDdata[i] = {'Ticks':Ticks, 'Lstar':lstar, \
+                                       'PSD':psd, 'sat':sat, \
+                                       'MU':MU, 'K':K}
+
+
+        # adjust initial conditions to these PSD values
+        mval = np.mean(self.PSDdata[0]['PSD'])
+        self.PSDinit = mval*np.exp(-(self.Lgrid - 5.5)**2/0.8)
+
+        return
+    # -----------------------------------------------
+###    def add_PSD(self, satlist=None):
+###
+###        """
+###        add observations from PSD database using the ticks list
+###        """
+###
+###        import spacepy.sandbox.PSDdata as PD
+###        import spacepy.time
+###
+###        assert 'ticks' in self.__dict__ , \
+###            "Provide tick range with 'setup_ticks'"
+###        Tgrid = self.ticks
+###        nTAI = len(Tgrid)
+###
+###        self.PSDdata = ['']*(nTAI-1)
+###        for i, Tnow, Tfut in zip(np.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
+###            start_end = spacepy.time.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
+###            self.PSDdata[i] = PD.get_PSD(start_end, self.MU, self.K, satlist)
+###
+###        # adjust initial conditions to these PSD values
+###        mval = np.mean(self.PSDdata[0]['PSD'])
+###        #self.PSDinit = mval*np.exp(-(self.Lgrid - 5.5)**2/0.2)
+###        self.PSDinit = mval*np.exp(-(self.Lgrid - 5.5)**2/0.8)
+###
+###        return
+###    # -----------------------------------------------
+    def add_PSD_twin(self,dt=0,Lt=1):
+
+        """
+        add observations from PSD database using the ticks list
+        the arguments are the following:
+            dt = observation time delta in seconds
+            Lt = observation space delta
+        """
+        assert 'ticks' in self.__dict__ , \
+            "Provide tick range with 'setup_ticks'"
+        Tgrid = self.ticks
+        nTAI = len(Tgrid)
+
+        # compute time delta
+        delta = Tgrid[1].UTC[0]-Tgrid[0].UTC[0]
+        delta = delta.seconds
+
+        # compute observations time delta
+        #dt = 2*60*60
+
         self.PSDdata = ['']*(nTAI-1)
         for i, Tnow, Tfut in zip(np.arange(nTAI-1), Tgrid[:-1], Tgrid[1:]):
-            start_end = spacepy.time.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
-            self.PSDdata[i] = PD.get_PSD(start_end, self.MU, self.K, satlist)
+            # get observations every dt
+            if (np.mod(i*delta,dt) == 0):
+                # assign time for observations
+                Ticks = Tnow
+                # determine position of observations
+                lstar = self.Lgrid[0:len(self.Lgrid):Lt]
+                # determine observations PSD
+                psd = self.PSD[0:len(self.Lgrid):Lt,i]
+                # provide MU
+                MU = self.MU*np.ones_like(lstar)
+                # provide K
+                K = self.K*np.ones_like(lstar)
+                # empy satellite
+                sat = np.zeros_like(lstar)
+                # add to dictionary
+                self.PSDdata[i] = {'Ticks':Ticks, 'Lstar':lstar, \
+                                   'PSD':psd, 'sat':sat, \
+                                   'MU':MU, 'K':K}
+            else:
+                self.PSDdata[i] = {}
 
         # adjust initial conditions to these PSD values
         mval = np.mean(self.PSDdata[0]['PSD'])
         self.PSDinit = mval*np.exp(-(self.Lgrid - 5.5)**2/0.2)
 
         return
+    # -----------------------------------------------
+    def add_source(self,source=True,A=1.0e-8,mu=5.0,sigma=0.5):
+
+        """
+        add source parameters A, mu, and sigma for the Gaussian source function
+        """
+
+        # set source term flag
+        self.source = source
+
+        # define height of Gaussian function
+        self.source_A = A
+
+        # define center of Gaussian function
+        self.source_mu = mu
+
+        # define amplitude
+        self.source_sigma = sigma
+
+        return
+    # -----------------------------------------------
+    def Gaussian_source(self):
+        """
+        Gaussian source term added to radiation belt model. The source term is
+        given by the equation:
+
+        S = A exp{-(L-mu)^2/(2*sigma^2)}
+
+        with A=10^(-8), mu=5.0, and sigma=0.5 as default values
+        """
+
+        Lgrid = self.Lgrid
+
+        # determine whether to include source or not
+        if self.source:
+
+            # define height of Gaussian function
+            A = self.source_A
+
+            # define center of Gaussian function
+            mu = self.source_mu
+
+            # define amplitude
+            sigma = self.source_sigma
+
+        else:
+
+            A = 0.0
+            mu = 1.0
+            sigma = 1.0
+
+        # Gaussian function
+        S = A*np.exp(-(Lgrid-mu)**2/(2.0*sigma**2))
+
+        return S
 
     # -----------------------------------------------
     def evolve(self):
@@ -215,7 +511,7 @@ class RBmodel(object):
         nTAI = len(Tgrid)
         Lgrid = self.Lgrid
         self.PSD  = np.zeros( (len(f),len(Tgrid)), dtype=ctypes.c_double)
-        self.PSD[:,0] = f
+        self.PSD[:,0] = f.copy()
 
         # add omni if not already given
         if 'omni' not in self.__dict__:
@@ -229,8 +525,8 @@ class RBmodel(object):
         # setup params dictionary
         params = {}
         params['DLL_model'] = self.DLL_model
-        params['SRC_model'] = self.SRC_model
-        params['SRCmagn'] = self.SRCmagn
+        #params['SRC_model'] = self.SRC_model
+        #params['SRCmagn'] = self.SRCmagn
         params['MPloss'] = self.MPloss
         params['PPloss'] = self.PPloss
         if 'SRCartif' in self.__dict__:
@@ -246,10 +542,15 @@ class RBmodel(object):
                 params[key] = self.params[key][i]
             # now integrate from Tnow to Tfut
             f = diff_LL(self, Lgrid, f, Tdelta, Telapse, params=params)
-            self.PSD[:,i] = f
+
+            # add Gaussian source term
+            f = f + self.Gaussian_source()
+
+            # copy to PSD
+            self.PSD[:,i] = f.copy()
 
     # -----------------------------------------------
-    def assimilate(self, method='enKF',inflation=0):
+    def assimilate(self, method='EnKF',inflation=0):
         """
         Assimilates data for the radiation belt model using the Ensemble
         Kalman Filter. The algorithm used is the SVD method presented by
@@ -271,19 +572,19 @@ class RBmodel(object):
         setting the start and end dates, and time step, using the setup_ticks
         funcion of the radiation belt model:
 
-        >> import spacepy
-        >> import datetime
-        >> from spacepy import radbelt
+        >>> import spacepy
+        >>> import datetime
+        >>> from spacepy import radbelt
 
-        >> start = datetime.datetime(2002,10,23)
-        >> end = datetime.datetime(2002,11,4)
-        >> delta = datetime.timedelta(hours=0.5)
-        >> rmod.setup_ticks(start, end, delta, dtype='UTC')
+        >>> start = datetime.datetime(2002,10,23)
+        >>> end = datetime.datetime(2002,11,4)
+        >>> delta = datetime.timedelta(hours=0.5)
+        >>> rmod.setup_ticks(start, end, delta, dtype='UTC')
 
         Once the dates and time step are specified, the data is added using the
         add_PSD function:
 
-        >> rmod.add_PSD()
+        >>> rmod.add_PSD()
 
         The observations are averaged over the time windows, whose interval is
         give by the time step.
@@ -291,21 +592,18 @@ class RBmodel(object):
         Once the dates and data are set, the assimiation is performed using the
         'assimilate' function:
 
-        >> rmod.assimilate(inflation=1)
+        >>> rmod.assimilate(inflation=1)
 
         This function will add the PSDa values, which are the analysis state of
         the radiation belt using the observations within the dates. To plot the
         analysis simply use the plot funtion:
 
-        >> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
+        >>> rmod.plot(values=rmod.PSDa,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
 
         """
-        import spacepy.borg
+        import spacepy.data_assimilation
         import spacepy.sandbox.PSDdata as PD
-        import spacepy.time as st
         import copy as c
-        import pdb
-        import spacepy.toolbox as tb
 
         # add PSD observations with add_PSD,
         # this has to be done to the class
@@ -317,13 +615,13 @@ class RBmodel(object):
         #pdb.set_trace()
 
         # setup method
-        assert method in ['enKF'], 'DA method='+method+' not implemented'
+        assert method in ['EnKF','insert'], 'data assimilation method='+method+' not implemented'
 
         nTAI = len(self.ticks)
 
         # enKF method
-        if method == 'enKF':
-            da = spacepy.borg.enKF()
+        if method == 'EnKF':
+            da = spacepy.data_assimilation.ensemble()
 
             # initialize A with initial condition
             # the initial condition is ones, have to change this to initialize
@@ -335,9 +633,31 @@ class RBmodel(object):
             self.PSDa[:,0] = self.PSDinit
             self.PSDf[:,0] = self.PSDinit
 
+            # diagnostic tools:
+            # observations-minus-background
+            self.PSD_omb = ['']*(nTAI)
+            # observations-minus-analysis
+            self.PSD_oma = ['']*(nTAI)
+            # analysis-minus-background
+            self.PSD_amb = np.zeros( (self.PSDinit.shape[0], nTAI) )
+
             # add model error (perturbation) in the ensemble initial conditionp.
-            A = da.add_model_error(self, A, self.PSDdata[0])
+            #A = da.add_model_error(self, A, self.PSDdata[0])
+            std = 0.35
+            normal = np.random.randn( da.Nens )
+            for iens in np.arange(da.Nens):
+                A[:,iens] = A[:,iens] + std*normal[iens]*A[:,iens]
             A[np.where(A < self.MIN_PSD)] = self.MIN_PSD
+
+            # ==========================================
+            # DEBUG
+            #np.savetxt('ensemble_IC.dat',A)
+            #np.savetxt('model_IC.dat',self.PSDinit)
+            #np.savetxt('model_grid_IC.dat',self.Lgrid)
+            # ==========================================
+
+            # create temporary RB class instance
+            rbtemp = c.copy(self)
 
             # time loop
             for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
@@ -346,13 +666,11 @@ class RBmodel(object):
                 # make forecast using all ensembles in A
                 iens = 0
                 for f in A.T:
-                    # create temporary RB class instance
-                    rbtemp = c.copy(self)
                     rbtemp.ticks = st.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
-                    rbtemp.PSDinit = f
+                    rbtemp.PSDinit = f.copy()
                     rbtemp.evolve()
                     #rbtemp.PSDdata = self.PSDdata[i-1]
-                    A[:,iens] = rbtemp.PSD[:,1]
+                    A[:,iens] = rbtemp.PSD[:,1].copy()
                     iens += 1
 
                 # save result in ff
@@ -366,7 +684,7 @@ class RBmodel(object):
 
                 if len(self.PSDdata[i-1]) > 0:
                     # get observations for time window ]Tnow-Twindow,Tnow]
-                    Lobs, y = spacepy.borg.average_window(self.PSDdata[i-1], self.Lgrid)
+                    Lobs, y = spacepy.data_assimilation.average_window(self.PSDdata[i-1], self.Lgrid)
                 else:
                     y = np.array([])
                     Lobs = np.array([])
@@ -374,8 +692,22 @@ class RBmodel(object):
                 print Lobs
                 print y
 
+                # ==========================================
+                # DEBUG
+                #np.savetxt('obs_location_IC.dat',Lobs)
+                #np.savetxt('obs_IC.dat',y)
+                #pdb.set_trace()
+                # ==========================================
+
                 # then assimilate otherwise do another forcast
                 if len(y) > 0:
+
+                    ### check for minimum PSD values
+                    ### A[np.where(A<self.MIN_PSD)] = self.MIN_PSD
+                    ### # insert observations directly
+                    ### A = da.add_model_error_obs(self, A, Lobs, y)
+                    ### # dictionary
+                    ### self.PSDa[:,i] = np.mean(A, axis=1)
 
                     # INFLATION SCHEMES
                     if inflation == 0:
@@ -411,8 +743,7 @@ class RBmodel(object):
                             A[:,iens] = inflation_factor*(ens - ens_avg) + ens_avg
                             iens += 1
 
-                        A[np.where(A < self.MIN_PSD)] = self.MIN_PSD
-
+                    A[np.where(A < self.MIN_PSD)] = self.MIN_PSD
 
                     # prepare assimilation analysis
 
@@ -428,12 +759,21 @@ class RBmodel(object):
                     # calculate ensemble perturbation HA' = HA-HA_mean
                     HAp = da.getHAprime(HA)
 
+                    # calculate prior diagnostics
+                    # observation minus background
+                    omb = y-np.average(HA,axis=1)
+                    self.PSD_omb[i] = {
+                            'Lobs':Lobs,
+                            'y':y,
+                            'omb':omb,
+                            }
+                    xf_avg = np.average(A,axis=1)
+
                     # now call the main analysis routine
                     if len(y) == 1:
-                        A = da.analysis_oneobs(A, Psi, Inn, HAp)
+                        A = da.EnKF_oneobs(A, Psi, Inn, HAp)
                     else:
-                        #A = da.analysis(A, Psi, Inn, HAp)
-                        A = da.analysis_Evensen(A, Psi, Inn, HAp)
+                        A = da.EnKF(A, Psi, Inn, HAp)
 
                     # check for minimum PSD values
                     A[np.where(A<self.MIN_PSD)] = self.MIN_PSD
@@ -441,6 +781,20 @@ class RBmodel(object):
                     # average A from analysis step and save in results
                     # dictionary
                     self.PSDa[:,i] = np.mean(A, axis=1)
+
+                    # calculate posterior diagnostics
+                    # observation minus analysis
+                    Hanalysis = da.getHA(self, Lobs, A)
+                    oma = y-np.average(Hanalysis,axis=1)
+                    self.PSD_oma[i] = {
+                            'Lobs':Lobs,
+                            'y':y,
+                            'omb':oma,
+                            }
+                    # analysis minus background
+                    xa_avg = np.average(A,axis=1)
+                    self.PSD_amb[:,i] = xa_avg - xf_avg
+                    #pdb.set_trace()
 
                     # print assimilated result
                     Hx = np.zeros_like(y)
@@ -461,11 +815,88 @@ class RBmodel(object):
                 # print message
                 print('Tnow: ', self.ticks[i].ISO)
 
+        # insert obsrvations for data assimilation
+        elif method == 'insert':
+
+            da = spacepy.data_assimilation.ensemble()
+
+            A = np.ones( (self.NL, 1) )*self.PSDinit[:,np.newaxis]
+
+            self.PSDf = np.zeros( (self.PSDinit.shape[0], nTAI) )
+            self.PSDa = np.zeros( (self.PSDinit.shape[0], nTAI) )
+            self.PSDa[:,0] = self.PSDinit
+            self.PSDf[:,0] = self.PSDinit
+
+            # add model error (perturbation) in the ensemble initial condition.
+            std = 0.15
+            normal = np.random.randn( self.NL )
+            A[:,0] = (1.0 + std*normal)*A[:,0]
+            A[np.where(A < self.MIN_PSD)] = self.MIN_PSD
+
+            rbtemp = c.copy(self)
+
+            # time loop
+            for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
+
+                # evolve solution
+                rbtemp.ticks = st.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
+                rbtemp.PSDinit = A[:,0]
+                rbtemp.evolve()
+                A[:,0] = rbtemp.PSD[:,1]
+
+                # save result in ff
+                Tnow = Tfut
+                self.PSDf[:,i] = A[:,0]
+
+                # verify that there are data points within the interval, if
+                # there are data points then extract average observations
+                # within the window, if not return empty observation array y
+                # and Lobs.
+                if len(self.PSDdata[i-1]) > 0:
+                    Lobs, y = spacepy.data_assimilation.average_window(self.PSDdata[i-1], self.Lgrid)
+                else:
+                    y = np.array([])
+                    Lobs = np.array([])
+
+                print Lobs
+                print y
+
+                #pdb.set_trace()
+                # then assimilate otherwise do another forcast
+                if len(y) > 0:
+
+                    # check for minimum PSD values
+                    A[np.where(A<self.MIN_PSD)] = self.MIN_PSD
+
+                    # create index of obs location
+                    idx = np.array([],dtype=int)
+                    for Lval in Lobs:
+                        Lidx = np.where( fp_equality.eq(Lval,self.Lgrid) )[0]
+                        idx = np.append(idx,np.array([int(Lidx)]))
+
+                    # insert observations directly
+                    A[idx,0] = y
+
+                    #A = da.add_model_error_obs(self, A, Lobs, y)
+                    # dictionary
+                    self.PSDa[:,i] = A[:,0]
+
+                elif len(y) == 0:
+
+                    print 'no observations within this window'
+
+                    self.PSDa[:,i] = self.PSDf[:,i]
+
+                    continue #
+
+                # print message
+                print('Tnow: ', self.ticks[i].ISO)
+
     # -----------------------------------------------
     def plot(self, Lmax=True, Lpp=False, Kp=True, Dst=True,
-             clims=[0,10], title='Summary Plot', values=None):
+             clims=[0,10], title=None, values=None):
         """
-        Create a summary plot of the RadBelt object distribution functionp.
+        Create a summary plot of the RadBelt object distribution function.
         For reference, the last closed drift shell, Dst, and Kp are all
         included.  These can be disabled individually using the corresponding
         Boolean kwargs.
@@ -498,6 +929,11 @@ class RBmodel(object):
         from matplotlib.colors  import LogNorm
         from matplotlib.ticker  import (LogLocator, LogFormatter,
                                         LogFormatterMathtext)
+        import pdb
+
+        # debugging command
+        #pdb.set_trace()
+
         # test for default values
         if values is None:
             values = self.PSD
@@ -522,7 +958,9 @@ class RBmodel(object):
                              vmin=10.0**clims[0], vmax=10.0**clims[1],
                              norm=LogNorm())
         ax1.set_ylabel('L*')
-        ax1.set_title(title)
+
+        if title is not None:
+            ax1.set_title(title)
         # Add color bar.
         cbar = p.colorbar(map, pad=0.01, shrink=.85, ticks=LogLocator(),
                           format=LogFormatterMathtext())
@@ -563,13 +1001,13 @@ class RBmodel(object):
             ax3.set_ylabel('Kp')
             ax3.set_xlim([self.ticks.eDOY[0], self.ticks.eDOY[-1]])
 
-        p.show()
+        #p.show()
 
         return fig, ax1, ax2, ax3
 
     # -----------------------------------------------
     def plot_obs(self, Lmax=True, Lpp=False, Kp=True, Dst=True,
-             clims=[0,10], title='Summary Plot', values=None):
+             clims=[0,10], title=None, values=None):
         """
         Create a summary plot of the observations.  For reference, the last
         closed drift shell, Dst, and Kp are all included.  These can be
@@ -599,7 +1037,7 @@ class RBmodel(object):
         The title of the topmost plot (phase space density) would be set to
         'Good work!'.
         """
-        import spacepy.borg
+        import spacepy.data_assimilation
         import matplotlib.pyplot as p
         from matplotlib.colors  import LogNorm
         from matplotlib.ticker  import (LogLocator, LogFormatter,
@@ -631,7 +1069,7 @@ class RBmodel(object):
         for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
             if len(values[i-1]) > 0:
                 # get observations for time window ]Tnow-Twindow,Tnow]
-                Lobs_tmp, y_tmp = spacepy.borg.average_window(values[i-1], self.Lgrid)
+                Lobs_tmp, y_tmp = spacepy.data_assimilation.average_window(values[i-1], self.Lgrid)
                 y = np.append(y,y_tmp)
                 Lobs = np.append(Lobs,Lobs_tmp)
                 eDOYobs = np.append(eDOYobs,np.ones(len(y_tmp))*self.ticks.eDOY[i-1])
@@ -646,7 +1084,10 @@ class RBmodel(object):
                           vmin=10.0**clims[0], vmax=10.0**clims[1],
                           edgecolor='none')
         ax1.set_ylabel('L*')
-        ax1.set_title(title)
+
+        if title is not None:
+            ax1.set_title(title)
+
         ax1.set_ylim(self.Lgrid[0],self.Lgrid[len(self.Lgrid)-1])
         # Add color bar.
         cbar = p.colorbar(map, pad=0.01, shrink=.85, ticks=LogLocator(),
@@ -862,10 +1303,10 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
               src.ctypes.data_as(dptr))
 
    # add source according to values in SRC...
-    if params['SRC_model']:
-        # setup source vector
-        S = get_local_accel(Lgrid, params, SRC_model='JK1')
-        f = f + S*Tdelta
+#    if params['SRC_model']:
+#        # setup source vector
+#        S = get_local_accel(Lgrid, params, SRC_model='JK1')
+#        f = f + S*Tdelta
 
     # add losses through magnetopause shadowing, time scale taken from MPloss
     if params['MPloss'].seconds > 0.0:

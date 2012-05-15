@@ -1,10 +1,26 @@
 
 
-#################################
-PoPPy Ð Point Processes in Python
-#################################
+##################################
+PoPPy - Point Processes in Python
+##################################
 
-.. todolist::
+.. automodule:: spacepy.poppy
 
-.. automodule:: poppy
-    :members:
+.. currentmodule:: spacepy.poppy
+
+.. rubric:: Classes
+
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    PPro
+
+.. rubric:: Functions
+
+.. autosummary::
+    :toctree: autosummary
+
+    plot_two_ppro
+    boots_ci
+    value_percentile

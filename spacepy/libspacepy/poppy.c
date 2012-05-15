@@ -1,6 +1,6 @@
 /*Library providing C support to poppy
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 */
 
 #include "randomkit.h"
@@ -9,7 +9,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
  *p2: list of times in process 2 (count: n_p2)
  *p1: list of times in process 1 (count: n_p1)
  *lags: lag times between p1 and p2 (n_lags)
- *n_assoc: 2D arry of resulting association numbers (n_lags, n_p1)
+ *n_assoc: 2D array of resulting association numbers (n_lags, n_p1)
  *winhalf: window half-size between p1, p2
  */
 void assoc(double* p2, double* p1, double* lags, long* n_assoc,
@@ -62,7 +62,7 @@ void boots(double* surrogates, double* data,
     *curr_surr = data[rk_interval(max, &state)];
 }
 
-/*Perfoms inner loop of association analysis confidence interval, including
+/*Performs inner loop of association analysis confidence interval, including
  *bootstrapping and summing on the bootstraps.
  *n_assoc: number of associations for each lag, each time in process1 
  *         (n_lags * n_p1)

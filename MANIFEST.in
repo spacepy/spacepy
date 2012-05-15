@@ -1,0 +1,25 @@
+# this is the file that distutils parses for what to include
+#top-level docs
+include INSTALL
+include CHANGELOG
+include README.windows
+#Sphinx docs and source
+graft Doc/build/html
+include Doc/Makefile
+graft Doc/source
+include Doc/build/latex/SpacePy.pdf
+#Data. Despite distutils docs, package_data not auto-included.
+graft spacepy/data
+graft spacepy/pybats/sample_data
+#C and Fortan sources, not in extension modules
+graft spacepy/irbempy/irbem-lib-*
+include spacepy/LANLstar/LANLstar.f
+include spacepy/libspacepy/*.h
+include spacepy/libspacepy/*.c
+include spacepy/pybats/ctrace2dtest.c
+#Tests
+graft tests
+prune tests/htmlcov
+#Cruft to keep out
+recursive-exclude * *.o *.pyc *~ *.bak
+recursive-exclude spacepy realtime.*

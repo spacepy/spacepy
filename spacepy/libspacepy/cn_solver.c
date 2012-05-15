@@ -44,7 +44,7 @@ length nL.
 L is the L grid.
 The next four arguments are the temporally and spatially dependent 
 diffusion coefficients at present time (old), present time + dt (new), and 
-inbetween each gridpoint (m for "minus", p for "plus" one half grid spacing).
+in between each grid point (m for "minus", p for "plus" one half grid spacing).
 Each is a vector of the same length as L.
 dt is the timestep, a scalar double.
 N is the number of gridpoints as a scalar integer.
@@ -58,12 +58,12 @@ This must be done before passing the vector to this routine.
 
 caveats: 
 This code allows to input the diffusion coefficient D at two times, 
-when D is a function of time. One can alway put the two equals.
+when D is a function of time. One can always put the two equals.
 The boundary conditions are Dirichlet type (i.e. f=0)
 The routine solves the linear system by performing a LU decomposition, 
 and returns the vector f at the new time.
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 */
 
 

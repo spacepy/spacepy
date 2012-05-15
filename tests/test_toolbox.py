@@ -4,16 +4,24 @@
 """
 Test suite for toolbox
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
+import time
 import datetime
 import glob
-import itertools
 import math
 import os
+import shutil
 import random
+import tempfile
+try:
+    import StringIO
+except:
+    import io as StringIO
+import sys
 import unittest
+import warnings
 
 import numpy
 from numpy import array
@@ -21,7 +29,7 @@ from scipy import inf
 import spacepy.toolbox as tb
 import matplotlib.pyplot as plt
 import spacepy.time as st
-from matplotlib.text import Text
+import spacepy.lib
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -40,76 +48,72 @@ class PickleAssembleTests(unittest.TestCase):
         self.D3 = D3
         self.all = {'names':['John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce', 'John', 'Joe', 'Joyce'],
                     'TAI':[1,2,3,4,5,6,7,8,9]}
-
-        # make sure test file is gone before test
-        self.tearDown()
+        self.tempdir = tempfile.mkdtemp()
 
     def tearDown(self):
         super(PickleAssembleTests, self).tearDown()
-        try:  # make sure test file is gone before test
-            os.remove('test_pickle_1.pkl')
-        except:
-            pass
         try:
-            os.remove('test_pickle_2.pkl')
-        except:
-            pass
-        try:
-            os.remove('test_pickle_3.pkl')
-        except:
-            pass
-        try:
-            os.remove('test_all.pkl')
-        except:
-            pass
-        try:
-            os.remove('test_pickle_1.pkl.gz')
-        except:
-            pass
-        try:
-            os.remove('test_pickle_2.pkl.gz')
-        except:
-            pass
-        try:
-            os.remove('test_pickle_3.pkl.gz')
-        except:
-            pass
-        try:
-            os.remove('test_all.pkl.gz')
-        except:
+            shutil.rmtree(self.tempdir)
+        except OSError:
             pass
 
     def testSaveLoadPickle(self):
         """savePickle should write a pickle to disk and loadPickle should load it"""
-        tb.savepickle('test_pickle_1.pkl', self.D1)
-        files = glob.glob('*.pkl')
-        self.assertTrue('test_pickle_1.pkl' in files)
-        DD = tb.loadpickle('test_pickle_1.pkl')
+        self.pkl_file = tempfile.mkdtemp()
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
+        files = glob.glob(os.path.join(self.tempdir, '*.pkl'))
+        self.assertTrue(os.path.join(self.tempdir, 'test_pickle_1.pkl') in files)
+        DD = tb.loadpickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'))
         self.assertEqual(self.D1, DD)
 
     def testSaveLoadPickleCompress(self):
         """savePickle should write a pickle to disk and loadPickle should load it (compressed)"""
-        tb.savepickle('test_pickle_1.pkl', self.D1, compress=True)
-        files = glob.glob('*.pkl.gz')
-        self.assertTrue('test_pickle_1.pkl.gz' in files)
-        DD = tb.loadpickle('test_pickle_1.pkl')
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1, compress=True)
+        files = glob.glob(os.path.join(self.tempdir, '*.pkl.gz'))
+        self.assertTrue(os.path.join(self.tempdir,'test_pickle_1.pkl.gz') in files)
+        DD = tb.loadpickle(os.path.join(self.tempdir,'test_pickle_1.pkl'))
         self.assertEqual(self.D1, DD)
-        # this doesn't but should also work
-        # DD = tb.loadpickle('test_pickle_1.pkl.gz')
-        # self.assertEqual(self.D1, DD)
+        DD = tb.loadpickle(os.path.join(self.tempdir,'test_pickle_1.pkl.gz'))
+        self.assertEqual(self.D1, DD)
 
     def test_assemble(self):
-        tb.savepickle('test_pickle_1.pkl', self.D1)
-        tb.savepickle('test_pickle_2.pkl', self.D2)
-        tb.savepickle('test_pickle_3.pkl', self.D3)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_2.pkl'), self.D2)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_3.pkl'), self.D3)
         expected = self.all
-        result = tb.assemble('test_pickle_[1-3].pkl', 'test_all.pkl', sortkey=None, verbose=False)
+        result = tb.assemble(os.path.join(self.tempdir, 'test_pickle_[1-3].pkl'), os.path.join(self.tempdir, 'test_all.pkl'), sortkey=None, verbose=False)
         for key in result:
             result[key] = result[key].tolist()
         self.assertEqual(expected, result)
 
 
 class SimpleFunctionTests(unittest.TestCase):
+    def test_interweave(self):
+        """interweave should hav known result"""
+        a = numpy.arange(5)
+        b = numpy.arange(5, 10)   
+        numpy.testing.assert_equal(numpy.vstack((a,b)).reshape((-1,),order='F'), 
+                                   tb.interweave(a, b))
+        numpy.testing.assert_equal(array([0, 5, 1, 6, 2, 7, 3, 8, 4, 9]),  
+                                   tb.interweave(a, b))
+        
+    def test_getNamedPath(self):
+        """getNamedPath should have known result"""
+        ans = ['spacepy', 'tests']
+        numpy.testing.assert_equal(ans, tb.getNamedPath('tests').split(os.path.sep)[-2:])
+        numpy.testing.assert_equal(ans[0], tb.getNamedPath('spacepy').split(os.path.sep)[-1])
+
+    def test_progressbar(self):
+        """progressbar shouldhave a known output"""
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        self.assertEqual(tb.progressbar(0, 1, 100), None)
+        result = output.getvalue()
+        output.close()
+        self.assertEqual(result, "\rDownload Progress ...0%")
+        sys.stdout = realstdout
+
     def test_mlt2rad(self):
         """mlt2rad should have known output for known input"""
         self.assertAlmostEqual(-2.8797932657906435, tb.mlt2rad(1))
@@ -169,6 +173,12 @@ class SimpleFunctionTests(unittest.TestCase):
         val1 = 1.1234
         val2 = 1.1235
         self.assertTrue(tb.feq(val1, val2, 0.0001))
+        numpy.testing.assert_array_equal(
+            [False, True, False, False],
+            tb.feq([1., 2., 3., 4.],
+                   [1.25, 2.05, 2.2, 500.1],
+                   0.1)
+            )
 
     def testfeq_notequal(self):
         """feq should return false when they are not equal"""
@@ -191,6 +201,22 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(ans, real_ans)
         numpy.testing.assert_almost_equal(tb.binHisto([100]*10), (3.3333333333333335, 3.0))
         numpy.testing.assert_almost_equal(tb.binHisto([100]), (1.0, 1.0))
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        numpy.testing.assert_almost_equal(tb.binHisto([100], verbose=True), (1.0, 1.0))
+        result = output.getvalue()
+        output.close()
+        self.assertEqual(result, "Used sqrt rule\n")
+        sys.stdout = realstdout
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        numpy.testing.assert_almost_equal(tb.binHisto([90, 100]*10, verbose=True), (7.3680629972807736, 1.0))
+        result = output.getvalue()
+        output.close()
+        self.assertEqual(result, "Used F-D rule\n")
+        sys.stdout = realstdout
 
     def test_logspace(self):
         """logspace should return know answer for known input"""
@@ -235,6 +261,13 @@ class SimpleFunctionTests(unittest.TestCase):
         else:
             numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
 
+    def test_linspace_bug(self):
+        """This catches a linspace datetime bug with 0-d arrays (regression)"""
+        ## remove this as the bug is fixed
+        t1 = datetime.datetime(2000, 1, 1)
+        t2 = datetime.datetime(2000, 1, 10)
+        self.assertRaises(TypeError, tb.linspace, numpy.array(t1), numpy.array(t2), 5)
+
     def test_pmm(self):
         """pmm should give known output for known input"""
         data = [[1,3,5,2,5,6,2], array([5,9,23,24,6]), [6,23,12,67.34] ]
@@ -247,8 +280,13 @@ class SimpleFunctionTests(unittest.TestCase):
         """listUniq should give known output for known input"""
         data = [[1,2,3], [2,3,1], [1,1,1], [1,2,3,1]]
         real_ans = [[1,2,3], [2,3,1], [1], [1,2,3]]
-        for i, val in enumerate(real_ans):
-            self.assertEqual(val, tb.listUniq(data[i]))
+        with warnings.catch_warnings(record=True) as w:
+            for i, val in enumerate(real_ans):
+                self.assertEqual(val, tb.listUniq(data[i]))
+            self.assertEqual(1, len(w))
+            self.assertEqual(DeprecationWarning, w[0].category)
+            self.assertEqual('listUniq has been deprecated, see numpy.unique',
+                             str(w[0].message))
 
     def test_leap_year(self):
         """Leap_year should give known output for known input"""
@@ -323,7 +361,7 @@ class SimpleFunctionTests(unittest.TestCase):
         """Convert probability distribution to list of values"""
         inputs = [[lambda x: x, 10, 0, 10],
                   [lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
-                   (5 * math.sqrt(2 * math.pi)), 20, -inf, inf],
+                   (5 * math.sqrt(2 * math.pi)), 20],
                   ]
         outputs = [[2.2360679774998005,
                     3.8729833462074126,
@@ -348,29 +386,25 @@ class SimpleFunctionTests(unittest.TestCase):
                    ]
         for (input, output) in zip(inputs, outputs):
             numpy.testing.assert_almost_equal(output, tb.dist_to_list(*input))
-        ans = [0.22360679689512963,
-                0.3872983331400981,
-                0.49999999808849793,
-                0.5916079760482376,
-                0.6708203906853853,
-                0.7416198458743466,
-                0.8062257717476484,
-                0.8660254004736174,
-                0.9219544422046511,
-                0.9746794307546907]
-        # test the "if max is None:" part
-        numpy.testing.assert_almost_equal(ans, tb.dist_to_list(lambda x: x, 10, 0))
 
     def testBinCenterToEdges(self):
         """Convert a set of bin centers to bin edges"""
         inputs = [[1, 2, 3, 4, 5],
-                  [12.4, 77, 100],
-                  ]
+                  [12.4, 77, 100],]
         outputs = [[0.5, 1.5, 2.5, 3.5, 4.5, 5.5],
-                   [-19.9, 44.7, 88.5, 111.5],
-                   ]
-        for (input, output) in itertools.izip(inputs, outputs):
-            self.assertEqual(output, tb.bin_center_to_edges(input))
+                   [-19.9, 44.7, 88.5, 111.5],]
+        for i, val in enumerate(inputs):
+            numpy.testing.assert_allclose(outputs[i], tb.bin_center_to_edges(val))
+
+    def testBinEdgesToCenters(self):
+        """Convert a set of bin edges to bin centers"""
+        inputs = [[1, 2, 3, 4, 5],
+                  [1,2,3,7,10,20],
+                  ]
+        outputs = [[1.5, 2.5, 3.5, 4.5],
+                   [1.5, 2.5, 5, 8.5, 15],]
+        for i, val in enumerate(inputs):
+            numpy.testing.assert_allclose(outputs[i], tb.bin_edges_to_center(val))
 
     def test_hypot(self):
         """hypot should have known output"""
@@ -378,6 +412,12 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = [ 5, 7.0710678118654755, 16.73320053068151, 3.7416573867739413 ]
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(*tst))
+        for i, tst in enumerate(invals):
+            self.assertAlmostEqual(ans[i], tb.hypot(tst))
+        self.assertEqual(5.0, tb.hypot(5.0))
+        if spacepy.lib.have_libspacepy:
+            self.assertEqual(tb.hypot(numpy.array([3.,4.])), 5.0)
+            self.assertEqual(tb.hypot(numpy.array([3,4])), 5.0)
 
     def testThreadJob(self):
         """Multithread the square of an array"""
@@ -397,6 +437,65 @@ class SimpleFunctionTests(unittest.TestCase):
         totals = tb.thread_map(numpy.sum, inputs)
         expected = [numpy.sum(i) for i in inputs]
         self.assertEqual(expected, totals)
+
+    def test_dictree(self):
+        """dictree has known output (None)"""
+        a = {'a':1, 'b':2, 'c':{'aa':11, 'bb':22}}
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        self.assertEqual(tb.dictree(a), None)
+        self.assertEqual(tb.dictree(a, attrs=True), None)
+        self.assertEqual(tb.dictree(a, verbose=True), None)
+        sys.stdout = realstdout
+        result = output.getvalue()
+        output.close()
+        self.assertRaises(TypeError, tb.dictree, 'bad')
+        expected = """+
+|____a
+|____b
+|____c
+     |____aa
+     |____bb
++
+|____a
+|____b
+|____c
+     |____aa
+     |____bb
++
+|____a (int)
+|____b (int)
+|____c (dict [2])
+     |____aa (int)
+     |____bb (int)
+"""
+        self.assertEqual(expected, result)
+
+    def test_geomspace(self):
+        """geomspace should give known output"""
+        ans = [1, 10, 100, 1000]
+        numpy.testing.assert_array_equal(tb.geomspace(1, 10, 1000), ans)
+        ans = [1, 10.0, 100.0]
+        numpy.testing.assert_array_equal(tb.geomspace(1, stop = 100, num=3), ans)
+        ans = [1, 10, 100]
+        numpy.testing.assert_array_equal(tb.geomspace(1, ratio = 10, num=3), ans)
+        # there was a rounding issue that this test catches
+        ans = [1, 3.1622776601683795, 10.000000000000002]
+        numpy.testing.assert_allclose(tb.geomspace(1, stop = 10, num=3), ans)
+
+    def test_isview(self):
+        """isview should have known output"""
+        a = numpy.arange(100)
+        b = a[0:10]
+        self.assertTrue(tb.isview(b))
+        self.assertFalse(tb.isview(a))
+        numpy.testing.assert_array_equal(tb.isview(a, [1,2,3]), [False, False]) # a bit of a pathological case
+        numpy.testing.assert_array_equal(tb.isview(b, a), [True, True])
+        numpy.testing.assert_array_equal(tb.isview(b, a[2:]), [True, False])
+        numpy.testing.assert_array_equal(tb.isview(a, a), [False, False])
+        numpy.testing.assert_array_equal(tb.isview(a[:], a), [True, True])
+        numpy.testing.assert_array_equal(tb.isview([1,2,3], 4), [False, False])
 
 
 class tFunctionTests(unittest.TestCase):
@@ -433,7 +532,7 @@ class tFunctionTests(unittest.TestCase):
         random.shuffle(self.dt_a)
         random.shuffle(self.dt_b)
         ans = tb.tOverlap(self.dt_a, self.dt_b)
-        self.assertEqual(real_ans, ans)
+        numpy.testing.assert_array_equal(real_ans, ans)
 
     def test_tOverlapHalf(self):
         """Get overlap of only one list"""
@@ -459,14 +558,14 @@ class tFunctionTests(unittest.TestCase):
                     [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
                      30, 31, 32, 33, 34, 35, 36, 37, 38, 39])
         ans = tb.tOverlap(self.dt_a, self.dt_b, presort=True)
-        self.assertEqual(real_ans, ans)
+        numpy.testing.assert_array_equal(real_ans, ans)
 
     def test_tOverlapHalfSorted(self):
         """Get overlap of only one list, exploiting the sort"""
         real_ans = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
                     30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
         ans = tb.tOverlapHalf(self.dt_a, self.dt_b, presort=True)
-        self.assertEqual(real_ans, ans)
+        numpy.testing.assert_array_equal(real_ans, ans)
 
     def test_tCommon(self):
         """tCommon should return a known value for known input"""
@@ -541,6 +640,21 @@ class tFunctionTests(unittest.TestCase):
         numpy.testing.assert_equal(real_ans2[0], ans[0])
         numpy.testing.assert_equal(real_ans2[1], ans[1])
 
+    def test_eventTimer(self):
+        """eventTimer should behave in a known way"""
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        t1 = time.time()
+        time.sleep(0.25)
+        t2 = tb.eventTimer('', t1)
+        sys.stdout = realstdout
+        result = output.getvalue()
+        output.close()
+        numpy.testing.assert_allclose(t2-t1, 0.25, atol=0.1, rtol=0.1)
+        self.assertEqual("""('0.25', '')\n""",
+                         result)
+
     def test_smartTimeTicks(self):
         """smartTimeTicks should give known output (regression)"""
         # hits all the different cases
@@ -571,70 +685,73 @@ class tFunctionTests(unittest.TestCase):
 
     def test_windowMean(self):
         """windowMean should give known results (regression)"""
-        wsize = datetime.timedelta(days=1)
-        olap = datetime.timedelta(hours=12)
-        data = [10, 20]*50
-        time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
-        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
-        od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
-        ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
-                    datetime.datetime(2001, 1, 2, 0, 0),
-                    datetime.datetime(2001, 1, 2, 12, 0),
-                    datetime.datetime(2001, 1, 3, 0, 0),
-                    datetime.datetime(2001, 1, 3, 12, 0),
-                    datetime.datetime(2001, 1, 4, 0, 0),
-                    datetime.datetime(2001, 1, 4, 12, 0)]
-        numpy.testing.assert_almost_equal(od_ans, outdata)
-        self.assertEqual(ot_ans, outtime)
-        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
-        od_ans = [14.8, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8]
-        ot_ans = [datetime.datetime(2001, 1, 1, 12, 30),
-                    datetime.datetime(2001, 1, 2, 0, 30),
-                    datetime.datetime(2001, 1, 2, 12, 30),
-                    datetime.datetime(2001, 1, 3, 0, 30),
-                    datetime.datetime(2001, 1, 3, 12, 30),
-                    datetime.datetime(2001, 1, 4, 0, 30),
-                    datetime.datetime(2001, 1, 4, 12, 30)]
-        numpy.testing.assert_almost_equal(od_ans, outdata)
-        self.assertEqual(ot_ans, outtime)
+        with warnings.catch_warnings(record=True) as w:
+            wsize = datetime.timedelta(days=1)
+            olap = datetime.timedelta(hours=12)
+            data = [10, 20]*50
+            time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+            outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+            od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
+            ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
+                      datetime.datetime(2001, 1, 2, 0, 0),
+                      datetime.datetime(2001, 1, 2, 12, 0),
+                      datetime.datetime(2001, 1, 3, 0, 0),
+                      datetime.datetime(2001, 1, 3, 12, 0),
+                      datetime.datetime(2001, 1, 4, 0, 0),
+                      datetime.datetime(2001, 1, 4, 12, 0)]
+            numpy.testing.assert_allclose(od_ans, outdata)
+            self.assertEqual(ot_ans, outtime)
+            outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
+            od_ans = [14.8, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8]
+            ot_ans = [datetime.datetime(2001, 1, 1, 12, 30),
+                      datetime.datetime(2001, 1, 2, 0, 30),
+                      datetime.datetime(2001, 1, 2, 12, 30),
+                      datetime.datetime(2001, 1, 3, 0, 30),
+                      datetime.datetime(2001, 1, 3, 12, 30),
+                      datetime.datetime(2001, 1, 4, 0, 30),
+                      datetime.datetime(2001, 1, 4, 12, 30)]
+            numpy.testing.assert_allclose(od_ans, outdata)
+            self.assertEqual(ot_ans, outtime)
 
-        time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
-        time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
-        outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
-        od_ans = [ 15.,  15.,  15.,  15.,  15.,  numpy.nan,  numpy.nan,  15.,  15.,  15.,  15.]
-        ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
-                  datetime.datetime(2001, 1, 2, 0, 0),
-                  datetime.datetime(2001, 1, 2, 12, 0),
-                  datetime.datetime(2001, 1, 3, 0, 0),
-                  datetime.datetime(2001, 1, 3, 12, 0),
-                  datetime.datetime(2001, 1, 4, 0, 0),
-                  datetime.datetime(2001, 1, 4, 12, 0),
-                  datetime.datetime(2001, 1, 5, 0, 0),
-                  datetime.datetime(2001, 1, 5, 12, 0),
-                  datetime.datetime(2001, 1, 6, 0, 0),
-                  datetime.datetime(2001, 1, 6, 12, 0)]
-        numpy.testing.assert_almost_equal(od_ans, outdata)
-        self.assertEqual(ot_ans, outtime)
+            time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+            time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
+            outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+            od_ans = [ 15.,  15.,  15.,  15.,  15.,  numpy.nan,  numpy.nan,  15.,  15.,  15.,  15.]
+            ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
+                      datetime.datetime(2001, 1, 2, 0, 0),
+                      datetime.datetime(2001, 1, 2, 12, 0),
+                      datetime.datetime(2001, 1, 3, 0, 0),
+                      datetime.datetime(2001, 1, 3, 12, 0),
+                      datetime.datetime(2001, 1, 4, 0, 0),
+                      datetime.datetime(2001, 1, 4, 12, 0),
+                      datetime.datetime(2001, 1, 5, 0, 0),
+                      datetime.datetime(2001, 1, 5, 12, 0),
+                      datetime.datetime(2001, 1, 6, 0, 0),
+                      datetime.datetime(2001, 1, 6, 12, 0)]
+            numpy.testing.assert_allclose(od_ans, outdata)
+            self.assertEqual(ot_ans, outtime)
 
-        # now test the pointwise
-        outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
-        od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
-        ot_ans = [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0]
-        numpy.testing.assert_almost_equal(ot_ans, outtime)
-        numpy.testing.assert_almost_equal(od_ans, outdata)
-        # winsize tests
-        outdata, outtime = tb.windowMean(data, winsize=24.6, overlap=12)
-        od_ans, ot_ans = tb.windowMean(data, winsize=24.6, overlap=12)
-        numpy.testing.assert_almost_equal(ot_ans, outtime)
-        numpy.testing.assert_almost_equal(od_ans, outdata)
-        outdata, outtime = tb.windowMean(data, winsize=0.4)
-        od_ans, ot_ans = tb.windowMean(data, winsize=1.0)
-        numpy.testing.assert_almost_equal(ot_ans, outtime)
-        numpy.testing.assert_almost_equal(od_ans, outdata)
-        outdata, outtime = tb.windowMean(data, winsize=1.0, overlap=2)
-        od_ans, ot_ans = tb.windowMean(data, winsize=1.0, overlap=0)
-        numpy.testing.assert_almost_equal(ot_ans, outtime)
-        numpy.testing.assert_almost_equal(od_ans, outdata)
+            # now test the pointwise
+            outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
+            od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
+            ot_ans = [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0]
+            numpy.testing.assert_allclose(ot_ans, outtime)
+            numpy.testing.assert_allclose(od_ans, outdata)
+            # winsize tests
+            outdata, outtime = tb.windowMean(data, winsize=24.6, overlap=12)
+            od_ans, ot_ans = tb.windowMean(data, winsize=24.6, overlap=12)
+            numpy.testing.assert_allclose(ot_ans, outtime)
+            numpy.testing.assert_allclose(od_ans, outdata)
+            outdata, outtime = tb.windowMean(data, winsize=0.4)
+            od_ans, ot_ans = tb.windowMean(data, winsize=1.0)
+            numpy.testing.assert_allclose(ot_ans, outtime)
+            numpy.testing.assert_allclose(od_ans, outdata)
+            outdata, outtime = tb.windowMean(data, winsize=1.0, overlap=2)
+            od_ans, ot_ans = tb.windowMean(data, winsize=1.0, overlap=0)
+            numpy.testing.assert_allclose(ot_ans, outtime)
+            numpy.testing.assert_allclose(od_ans, outdata)
+
+            self.assertEqual(5, len(w))
 
     def test_windowMeanInputs(self):
         """windowMean does some input checking (regression)"""
@@ -650,6 +767,28 @@ class tFunctionTests(unittest.TestCase):
         self.assertRaises(ValueError, tb.windowMean, data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
         time = range(len(time))
         self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
+
+    def test_randomDate(self):
+        """randomDate should give known result"""
+        try:
+            from matplotlib.dates import date2num, num2date
+        except ImportError:
+            return # don't even do the test
+        dt1 = datetime.datetime(2000, 1, 1)
+        dt2 = datetime.datetime(2000, 2, 1)
+        numpy.random.seed(8675309)
+        ans = numpy.array([datetime.datetime(2000,01,26,04,28,10,500070),
+                           datetime.datetime(2000,01,24,06,46,39,156905),
+                           datetime.datetime(2000,01,12,01,52,50,481431),
+                           datetime.datetime(2000,01,07,06,30,26,331312),
+                           datetime.datetime(2000,01,13,16,17,48,619577)])
+        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=False))
+        # check the exception
+        dt11 = num2date(date2num(dt1))
+        self.assertRaises(ValueError, tb.randomDate, dt11, dt2)
+        ans.sort()
+        numpy.random.seed(8675309)
+        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=True))
 
 
 class ArrayBinTests(unittest.TestCase):
@@ -674,24 +813,29 @@ class PlottingTests(unittest.TestCase):
 
     def test_applySmartTimeTicks(self):
         """applySmartTimeTicks should have known behaviour"""
-        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays = 1)
+        plt.ion()
+        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays=1)
         y = range(len(ticks))
         fig = plt.figure()
         ax = fig.add_subplot(111)
         line = ax.plot(ticks.UTC, y)
         tb.applySmartTimeTicks(ax, ticks.UTC)
         plt.draw()
+        plt.draw()
         # should not have moved the ticks
         real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
         730888.,  730889.,  730890.,  730891.])
-        numpy.testing.assert_array_almost_equal(real_ans, ax.get_xticks())
+        numpy.testing.assert_allclose(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
-        real_ans = ["Text(0,0,u'01 Feb')", "Text(0,0,u'02 Feb')", "Text(0,0,u'03 Feb')", "Text(0,0,u'04 Feb')",
-                    "Text(0,0,u'05 Feb')", "Text(0,0,u'06 Feb')", "Text(0,0,u'07 Feb')", "Text(0,0,u'08 Feb')",
-                    "Text(0,0,u'09 Feb')", "Text(0,0,u'10 Feb')"]
-        ans = [str(ax.xaxis.get_majorticklabels()[i]) for i in range(len(ax.xaxis.get_majorticklabels()))]
+        try:
+            real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(10)]
+        except AttributeError: #Py3k
+            real_ans = ['{0:02d} Feb'.format(i+1) for i in range(10)]
+        ans = [t.get_text()
+               for t in ax.xaxis.get_majorticklabels()]
         numpy.testing.assert_array_equal(real_ans, ans)
-
+        plt.close()
+        plt.ioff()
 
 
 if __name__ == "__main__":
