@@ -75,6 +75,26 @@ def default_f2py():
         return 'f2py'
 
 
+def f2py_environment(fcompiler):
+    """Prepare an OS environment for the f2py call
+    This puts in the shared options if LDFLAGS is set
+    """
+    if not 'LDFLAGS' in os.environ:
+        return None
+    env = os.environ.copy()
+    import numpy.distutils.fcompiler
+    numpy.distutils.fcompiler.load_all_fcompiler_classes()
+    if not fcompiler in numpy.distutils.fcompiler.fcompiler_class:
+        return None #and hope for the best
+    fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]()
+    fcomp.customize()
+    currflags = env['LDFLAGS'].split()
+    for f in fcomp.get_flags_linker_so():
+        if not f in currflags:
+            env['LDFLAGS'] += (' ' + f)
+    return env
+
+
 def initialize_compiler_options(cmd):
     """Initialize the compiler options for a command"""
     cmd.fcompiler = None
@@ -190,7 +210,7 @@ class build(_build):
                     cmd += ['--compiler=' + self.compiler]
                 cmd += ['-c', 'LANLstar.f', '-m', 'libLANLstar',
                         '--fcompiler='+ self.fcompiler]
-                subprocess.check_call(cmd)
+                subprocess.check_call(cmd, env=f2py_environment(self.fcompiler))
                 outpath = os.path.join('..', '..', outpath)
                 if os.path.exists(outpath):
                     os.remove(outpath)
@@ -311,10 +331,11 @@ class build(_build):
             os.system('ar -r libBL2.a *.o')
             os.system('ranlib libBL2.a')            
         os.chdir('..')
-        os.system(
+        subprocess.check_call(
             '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
             '{1}'.format(
-            self.f2py, f2py_flags))
+            self.f2py, f2py_flags),
+            shell=True, env=f2py_environment(self.fcompiler))
         try:
             shutil.move(libfile, sofile)
         except:
