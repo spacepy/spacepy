@@ -23,8 +23,8 @@ def LANLstar(inputdict, extMag):
     Parameters
     ==========
     extMag : list of string(s)
-        containing one or more of the following external Magnetic field models: 
-        'OPDyn', 'OPQuiet', 'T89', 'T96', 'T01Quiet', 'T03Storm', 'TS05'
+        containing one or more of the following external magnetic field models: 
+        'OPDyn', 'OPQuiet', 'T89', 'T96', 'T01QUIET', 'T01STORM', 'T05'
     
     inputdict : dictionary
         containing the following keys, each entry is a list or array. Note the keys for the above models are different.
@@ -45,15 +45,15 @@ def LANLstar(inputdict, extMag):
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 
           'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
        
-        -- For T01Quiet:
+        -- For T01QUIET:
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'G1', 'G2', 
           'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
 
-        -- For T03Storm:
+        -- For T01STORM:
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'G2', 'G3', 
           'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
 
-        -- For TS05:
+        -- For T05:
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'W1','W2','W3','W4','W5','W6',
           'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
 
@@ -98,18 +98,18 @@ def LANLstar(inputdict, extMag):
     >>> inputdict['latGSM'] = [36.44696 ]             # latitude coordiante in GSM [deg]
     >>> inputdict['PA']     = [57.3874  ]             # pitch angle [deg]
     >>> 
-    >>> LS.LANLstar(inputdict, ['OPDyn','OPQuiet','T01Quiet','T03Storm','T89','T96','TS05'])
+    >>> LS.LANLstar(inputdict, ['OPDyn','OPQuiet','T01QUIET','T01STORM','T89','T96','T05'])
     {'OPDyn': array([4.7171]),
      'OPQuiet': array([4.6673]),
-     'T01Quiet': array([4.8427]),
-     'T03Storm': array([4.8669]), 
+     'T01QUIET': array([4.8427]),
+     'T01STORM': array([4.8669]), 
      'T89': array([4.5187]),
      'T96': array([4.6439]),
      'TS05': array([4.7174])}
     """
     
-    Bmodel = {'OPDyn':_LANLstar_OPDyn, 'OPQuiet':_LANLstar_OPQuiet, 'T01Quiet':_LANLstar_T01Quiet,
-              'T03Storm':_LANLstar_T03Storm,'TS05':_LANLstar_TS05, 'T89':_LANLstar_T89, 'T96':_LANLstar_T96}
+    Bmodel = {'OPDyn':_LANLstar_OPDyn, 'OPQuiet':_LANLstar_OPQuiet, 'T01QUIET':_LANLstar_T01Quiet,
+              'T01STORM':_LANLstar_T01Storm,'T05':_LANLstar_TS05, 'T89':_LANLstar_T89, 'T96':_LANLstar_T96}
 
     npt = len(inputdict['Year'])
     Lstar_out = {} 
@@ -132,7 +132,7 @@ def LANLmax(inputdict, extMag):
     ==========
     extMag : list of string(s)
         containing one or more of the following external Magnetic field models: 
-        'OPDyn', 'OPQuiet', 'T89', 'T96', 'T01Quiet', 'T03Storm'
+        'OPDyn', 'OPQuiet', 'T89', 'T96', 'T01QUIET', 'T01STORM', 'T05'
     
     inputdict : dictionary
         containing the following keys, each entry is a list or array. Note the keys for the above models are different.
@@ -149,13 +149,13 @@ def LANLmax(inputdict, extMag):
         -- For T96:
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF','PA']
        
-        -- For T01Quiet:
+        -- For T01QUIET:
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'G1', 'G2','PA']
 
-        -- For T03Storm:
+        -- For T01STORM:
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'G2', 'G3', 'PA']
 
-        -- For TS05:
+        -- For T05:
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'W1','W2','W3','W4','W5','W6', 'PA']
 
         Dictionaries with numpy vectors are allowed.
@@ -193,18 +193,18 @@ def LANLmax(inputdict, extMag):
     >>>
     >>> inputdict['PA']     = [57.3874  ]             # pitch angle [deg]
     >>> 
-    >>> LS.LANLmax(inputdict, ['OPDyn','OPQuiet','T01Quiet','T03Storm','T89','T96','TS05'])
+    >>> LS.LANLmax(inputdict, ['OPDyn','OPQuiet','T01QUIET','T01STORM','T89','T96','T05'])
     {'OPDyn': array([10.6278]),
      'OPQuiet': array([9.3352]),
-     'T01Quiet': array([10.0538]),
-     'T03Storm': array([9.9300]), 
+     'T01QUIET': array([10.0538]),
+     'T03STORM': array([9.9300]), 
      'T89': array([8.2888]),
      'T96': array([9.2410]),
-     'TS05': array([9.9295])}
+     'T05': array([9.9295])}
      """
 
-    Bmodel = {'OPDyn':_LANLmax_OPDyn, 'OPQuiet':_LANLmax_OPQuiet, 'T01Quiet':_LANLmax_T01Quiet,
-              'T03Storm':_LANLmax_T03Storm, 'TS05':_LANLmax_TS05,'T89':_LANLmax_T89, 'T96':_LANLmax_T96}
+    Bmodel = {'OPDyn':_LANLmax_OPDyn, 'OPQuiet':_LANLmax_OPQuiet, 'T01QUIET':_LANLmax_T01Quiet,
+              'T01STORM':_LANLmax_T01Storm, 'T05':_LANLmax_TS05,'T89':_LANLmax_T89, 'T96':_LANLmax_T96}
     
     npt = len(inputdict['Year'])
     Lmax_out = {} 
@@ -317,7 +317,7 @@ def _LANLstar_T01Quiet(inputdict):
     
     
 # --------------------------------------------------------------
-def _LANLstar_T03Storm(inputdict):
+def _LANLstar_T01Storm(inputdict):
     """
     This will calculate Lstar based on the artificial neural network LANLstar which
     was trained with the Tsyganenko 2003  model.
