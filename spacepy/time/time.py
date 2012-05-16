@@ -284,7 +284,7 @@ class Ticktock(collections.MutableSequence):
         >>> a
         Ticktock( ['2002-02-02T12:00:00'], dtype=ISO)
         """
-        return 'Ticktock( '+str(self.data) + ', dtype='+str(self.data.attrs['dtype'])
+        return 'Ticktock( '+str(self.data) + ', dtype='+str(self.data.attrs['dtype'] +')')
     __repr__ = __str__
 
     # -----------------------------------------------
