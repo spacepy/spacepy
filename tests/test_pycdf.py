@@ -399,6 +399,19 @@ class MakeCDF(unittest.TestCase):
                 [5.0, 6.0], cdffile['flux'][...])
             self.assertEqual(cdffile['flux'].dtype, numpy.float64)
 
+    def testEPCOH16inBackward(self):
+        """Create backward-compatible CDF with EPOCH16"""
+        msg = 'Cannot use EPOCH16 in backward-compatible CDF'
+        newcdf = cdf.CDF(self.testfspec, '')
+        try:
+            newcdf.new('foo', type=const.CDF_EPOCH16)
+        except ValueError:
+            self.assertEqual(msg, str(sys.exc_info()[1]))
+        else:
+            self.fail('Should have raised ValueError: ' + msg)
+        newcdf.close()
+        os.remove(self.testfspec)
+
 
 class CDFTestsBase(unittest.TestCase):
     """Base class for tests involving existing CDF, column or row major"""

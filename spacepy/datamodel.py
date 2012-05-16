@@ -506,9 +506,9 @@ def fromHDF5(fname, **kwargs):
                 SDobject[key] = SpaceData()
                 SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
             elif type(value) is allowed_elems[1]: #if a dataset
-                if len(value) != 0:
+                try:
                     SDobject[key] = dmarray(value)
-                else:
+                except TypeError:
                     SDobject[key] = dmarray(None)
                 hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
         except:
