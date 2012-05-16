@@ -45,13 +45,13 @@ class lanlstarTest(unittest.TestCase):
     def test_get_lanlstar(self):
         expected_lstar = {'OPDyn'   : array([4.7171]),
                           'OPQuiet' : array([4.6673]),
-                          'T01Quiet': array([4.8427]),
-                          'T03Storm': array([4.8669]),
+                          'T01QUIET': array([4.8427]),
+                          'T01STORM': array([4.8669]),
                           'T89'     : array([4.5187]),
                           'T96'     : array([4.6439]),
-                          'TS05'    : array([4.7174])}
+                          'T05'    : array([4.7174])}
 
-        Bmodels = ['OPDyn','OPQuiet','T01Quiet','T03Storm','T89','T96','TS05']
+        Bmodels = ['OPDyn','OPQuiet','T01QUIET','T01STORM','T89','T96','T05']
         actual = sl.LANLstar(self.dat, Bmodels)
         for key in Bmodels:
             numpy.testing.assert_almost_equal(expected_lstar[key], actual[key], decimal=4)
@@ -59,13 +59,13 @@ class lanlstarTest(unittest.TestCase):
     def test_get_lanlmax(self):
         expected_lmax = {'OPDyn'   : array([10.6278]),
                           'OPQuiet' : array([9.3352]),
-                          'T01Quiet': array([10.0538]),
-                          'T03Storm': array([9.9300]),
+                          'T01QUIET': array([10.0538]),
+                          'T01STORM': array([9.9300]),
                           'T89'     : array([8.2888]),
                           'T96'     : array([9.2410]),
-                          'TS05'    : array([9.9295])}
+                          'T05'    : array([9.9295])}
 
-        Bmodels = ['OPDyn','OPQuiet','T01Quiet','T03Storm','T89','T96','TS05']
+        Bmodels = ['OPDyn','OPQuiet','T01QUIET','T01STORM','T89','T96','T05']
         actual = sl.LANLmax(self.dat, Bmodels)
         for key in Bmodels:
             numpy.testing.assert_almost_equal(expected_lmax[key], actual[key], decimal=4)
