@@ -551,7 +551,7 @@ def _LANLmax_T01Quiet(inputdict):
     
     
 #--------------------------------------------------------------
-def _LANLmax_T03Storm(inputdict):
+def _LANLmax_T01Storm(inputdict):
     """
     This will calculate Lstar_max (last closed drift shell) based on the artificial neural network LANLstar which
     was trained with the Tsyganenko 2003 model.
