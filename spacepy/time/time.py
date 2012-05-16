@@ -255,7 +255,7 @@ class Ticktock(collections.MutableSequence):
             if self.data[0].find('T') == -1: # then assume midnight
                 self.data = dmarray([el + 'T00:00:00' for el in self.data], attrs={'dtype': dtype.upper()})
             self.ISO = self.data
-            self.update_items(self, 'data')
+        self.update_items(self, 'data')
         if dtype.upper() == 'TAI': self.TAI = self.data
         if dtype.upper() == 'JD': self.JD = self.data
         if dtype.upper() == 'MJD': self.MJD = self.data
@@ -1114,7 +1114,7 @@ class Ticktock(collections.MutableSequence):
             UNX0 = datetime.datetime(1970,1,1)
             UTC = [datetime.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
 
-        elif self.dtype.upper() == 'RDT':
+        elif self.data.attrs['dtype'].upper() == 'RDT':
             # import matplotlib.dates as mpd
             UTC = num2date(self.data)
             UTC = no_tzinfo(UTC)
@@ -1126,7 +1126,7 @@ class Ticktock(collections.MutableSequence):
                 # roundoff the microseconds
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
 
-        elif self.dtype.upper() == 'CDF':
+        elif self.data.attrs['dtype'].upper() == 'CDF':
             UTC = [datetime.timedelta(days=cdft/86400000.) +
                         datetime.datetime(1,1,1) - datetime.timedelta(days=366) for cdft in self.data]
                 #UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
