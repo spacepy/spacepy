@@ -88,10 +88,7 @@ def f2py_environment(fcompiler):
         return None #and hope for the best
     fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]()
     fcomp.customize()
-    currflags = env['LDFLAGS'].split()
-    for f in fcomp.get_flags_linker_so():
-        if not f in currflags:
-            env['LDFLAGS'] += (' ' + f)
+    env['LDFLAGS'] = ' '.join(fcomp.get_flags_linker_so())
     return env
 
 

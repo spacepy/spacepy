@@ -15,6 +15,102 @@ import libLANLstar
 import numpy as np
 
 # ------------------------------------------------
+def _LANLcommon(inputdict, extMag, domax):
+    """
+    Shared code between LANLstar and LANLmax
+
+    domax is True for LANLmax, False for LANLstar
+    """
+    lstar_keylists = {
+        'OPDyn': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF',
+                  'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
+        'OPQuiet': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo','BzIMF',
+                    'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
+        'T01QUIET': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
+                     'G1', 'G2','Lm', 'Bmirr', 'PA', 'rGSM',
+                     'latGSM', 'lonGSM'],
+        'T01STORM': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
+                     'G2', 'G3', 'Lm', 'Bmirr', 'PA', 'rGSM',
+                     'latGSM', 'lonGSM'],
+        'T05': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF','BzIMF',
+                'W1','W2','W3','W4','W5','W6',
+                'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
+        'T89': ['Year', 'DOY', 'Hr', 'Kp', 'Pdyn', 'ByIMF','BzIMF',
+                'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
+        'T96': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF','BzIMF',
+                'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
+                 }
+    lmax_keylists = {
+        'OPDyn': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 'PA'],
+        'OPQuiet': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF','PA'],
+        'T01QUIET': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
+                     'G1','G2','PA'],
+        'T01STORM': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
+                     'G2','G3','PA'],
+        'T05': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 
+                'W1','W2','W3','W4','W5','W6','PA'],
+        'T89': ['Year', 'DOY', 'Hr', 'Kp', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
+        'T96': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
+                 }
+    lstar_funcs = { 'OPDyn': libLANLstar.lanlstar_opdyn,
+                    'OPQuiet': libLANLstar.lanlstar_opquiet,
+                    'T01QUIET': libLANLstar.lanlstar_t01quiet,
+                    'T01STORM': libLANLstar.lanlstar_t03storm,
+                    'T05': libLANLstar.lanlstar_ts05,
+                    'T89': libLANLstar.lanlstar_t89,
+                    'T96': libLANLstar.lanlstar_t96,
+                    }
+    lmax_funcs = { 'OPDyn': libLANLstar.lanlmax_opdyn,
+                    'OPQuiet': libLANLstar.lanlmax_opquiet,
+                    'T01QUIET': libLANLstar.lanlmax_t01quiet,
+                    'T01STORM': libLANLstar.lanlmax_t03storm,
+                    'T05': libLANLstar.lanlmax_ts05,
+                    'T89': libLANLstar.lanlmax_t89,
+                    'T96': libLANLstar.lanlmax_t96,
+                    }
+    
+    npt = len(inputdict['Year'])
+    Lstar_out = {} 
+    
+    if isinstance(extMag, str): extMag = [extMag]
+
+    for modelkey in extMag:
+        if domax:
+            keylist = lmax_keylists[modelkey]
+        else:
+            keylist = lstar_keylists[modelkey]
+        #T89 checks Kp, everything else Dst
+        specialkey = 'Dst' if 'Dst' in keylist else 'Kp'
+        if isinstance(inputdict[specialkey], float):
+            arrayflag = False
+            for key in inputdict.keys():
+                inputdict[key] = [inputdict[key]]
+        else:
+            arrayflag = True
+	    ncalc = len(inputdict['Dst'])
+        Lstar = np.zeros(ncalc)
+	
+        ncalc = len(inputdict[specialkey])
+        Lstar = np.zeros(ncalc)
+        inpar = np.zeros(len(keylist))
+    
+        for i in range(ncalc):	
+            # copy over keylist into inpar
+            for ikey, key in enumerate(keylist):
+    		inpar[ikey] = inputdict[key][i]
+            if domax:
+                Lstar[i] = lmax_funcs[modelkey](inpar)
+            else:
+                Lstar[i] = lstar_funcs[modelkey](inpar)
+            
+        if arrayflag is False:
+            Lstar_out[modelkey] = Lstar[0]
+        else:
+            Lstar_out[modelkey] = Lstar
+
+    return Lstar_out
+
+# ------------------------------------------------
 def LANLstar(inputdict, extMag):
     """
     This will calculate Lstar based on the L* artificial neural network (ANN) trained from 
@@ -107,20 +203,7 @@ def LANLstar(inputdict, extMag):
      'T96': array([4.6439]),
      'TS05': array([4.7174])}
     """
-    
-    Bmodel = {'OPDyn':_LANLstar_OPDyn, 'OPQuiet':_LANLstar_OPQuiet, 'T01QUIET':_LANLstar_T01Quiet,
-              'T01STORM':_LANLstar_T01Storm,'T05':_LANLstar_TS05, 'T89':_LANLstar_T89, 'T96':_LANLstar_T96}
-
-    npt = len(inputdict['Year'])
-    Lstar_out = {} 
-    
-    if isinstance(extMag, str): extMag = [extMag]
-
-    for key in extMag:
-        Lstar_out[key] = np.zeros(npt)
-        Lstar_out[key] = Bmodel[key](inputdict)
-
-    return Lstar_out
+    return _LANLcommon(inputdict, extMag, False)
 
 def LANLmax(inputdict, extMag):
 
@@ -202,482 +285,4 @@ def LANLmax(inputdict, extMag):
      'T96': array([9.2410]),
      'T05': array([9.9295])}
      """
-
-    Bmodel = {'OPDyn':_LANLmax_OPDyn, 'OPQuiet':_LANLmax_OPQuiet, 'T01QUIET':_LANLmax_T01Quiet,
-              'T01STORM':_LANLmax_T01Storm, 'T05':_LANLmax_TS05,'T89':_LANLmax_T89, 'T96':_LANLmax_T96}
-    
-    npt = len(inputdict['Year'])
-    Lmax_out = {} 
-    
-    if isinstance(extMag, str): extMag = [extMag]
-    
-    for key in extMag:
-        Lmax_out[key] = np.zeros(npt)
-        Lmax_out[key] = Bmodel[key](inputdict)
-
-    return Lmax_out
-
-# ------------------------------------------------------
-def _LANLstar_OPDyn(inputdict):
-    """
-    This will calculate Lstar based on the artificial neural network LANLstar which
-    was trained with the Olson-Pfitzer Dynamic model.
-    
-    """    
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-	
-    ncalc = len(inputdict['Dst'])
-    Lstar = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo','BzIMF', \
-                   'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-    	# copy over keylist into inpar
-    	for ikey, key in enumerate(keylist):
-    		inpar[ikey] = inputdict[key][i]
-    	Lstar[i] = libLANLstar.lanlstar_opdyn(inpar)
-
-    if arrayflag is False:
-    	return Lstar[0]
-    else:
-        return Lstar
-    
-
-# ----------------------------------------------------------------
-def _LANLstar_OPQuiet(inputdict):
-    """
-    This will calculate Lstar based on the artificial neural network LANLstar which
-    was trained with the Olson-Pfitzer Quiet model.
-    
-    """    	
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-    	
-    ncalc = len(inputdict['Dst'])
-    Lstar = np.zeros(ncalc)
-    	
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo','BzIMF', \
-                   'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
-    inpar = np.zeros(len(keylist))
-    	
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lstar[i] = libLANLstar.lanlstar_opquiet(inpar)
-    
-    if arrayflag is False:
-        return Lstar[0]
-    else:
-        return Lstar
-    
-    
-# --------------------------------------------------------------
-def _LANLstar_T01Quiet(inputdict):
-    """
-    This will calculate Lstar based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko 2001 model.
-    
-    """
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lstar = np.zeros(ncalc)
-        
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', \
-                   'G1', 'G2','Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
-    inpar = np.zeros(len(keylist))
-        
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lstar[i] = libLANLstar.lanlstar_t01quiet(inpar)
-    
-    if arrayflag is False:
-        return Lstar[0]
-    else:
-        return Lstar
-    
-    
-# --------------------------------------------------------------
-def _LANLstar_T01Storm(inputdict):
-    """
-    This will calculate Lstar based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko 2003  model.
-
-    """
-
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lstar = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF','BzIMF', \
-                   'G2', 'G3', 'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lstar[i] = libLANLstar.lanlstar_t03storm(inpar)
-        
-    if arrayflag is False:
-        return Lstar[0]
-    else:
-        return Lstar
-    
-    
-# --------------------------------------------------------------
-def _LANLstar_TS05(inputdict):
-    """
-    This will calculate Lstar based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko & Sitnov (2005) model.
- 
-    """
-        
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lstar = np.zeros(ncalc)
-        
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF','BzIMF', \
-                   'W1','W2','W3','W4','W5','W6', \
-                   'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
-    inpar = np.zeros(len(keylist))
-        
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lstar[i] = libLANLstar.lanlstar_ts05(inpar)
-        
-    if arrayflag is False:
-        return Lstar[0]
-    else:
-        return Lstar
-    
-    
-# --------------------------------------------------------------
-def _LANLstar_T89(inputdict):
-    """
-    This will calculate Lstar based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko 1989 model.
-    
-    """
-        
-    if isinstance(inputdict['Kp'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Kp'])
-    Lstar = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Kp', 'Pdyn', 'ByIMF','BzIMF', \
-                   'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lstar[i] = libLANLstar.lanlstar_t89(inpar)
-    
-    if arrayflag is False:
-        return Lstar[0]
-    else:
-        return Lstar
-    
-    
-# --------------------------------------------------------------
-def _LANLstar_T96(inputdict):
-    """
-    This will calculate Lstar based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko 1996 model.
-    
-    """        
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lstar = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF','BzIMF', \
-                   'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lstar[i] = libLANLstar.lanlstar_t96(inpar)
-        
-    if arrayflag is False:
-        return Lstar[0]
-    else:
-        return Lstar
-    
-    
-# --------------------------------------------------------------
-def _LANLmax_OPDyn(inputdict):
-    """
-    This will calculate Lstar_max (last closed drift shell) based on the artificial neural network LANLstar which
-    was trained with the Olson-Pfitzer Dynamic model.
-        
-    """    
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lmax = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 'PA']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lmax[i] = libLANLstar.lanlmax_opdyn(inpar)
-        
-    if arrayflag is False:
-        return Lmax[0]
-    else:
-        return Lmax
-    
-    
-#--------------------------------------------------------------
-def _LANLmax_OPQuiet(inputdict):
-    """
-    This will calculate Lstar_max (last closed drift shell) based on the artificial neural network LANLstar which
-    was trained with the Olson-Pfitzer Quiet model.
-    
-    """
-    
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lmax = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF','PA']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lmax[i] = libLANLstar.lanlmax_opquiet(inpar)
-        
-    if arrayflag is False:
-        return Lmax[0]
-    else:
-        return Lmax
-    
-    
-# --------------------------------------------------------------
-def _LANLmax_T01Quiet(inputdict):
-    """
-    This will calculate Lstar_max (last closed drift shell) based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko 2001 model.
-        
-    """    
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lmax = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', \
-                   'G1','G2','PA']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lmax[i] = libLANLstar.lanlmax_t01quiet(inpar)
-    
-    if arrayflag is False:
-        return Lmax[0]
-    else:
-        return Lmax
-    
-    
-#--------------------------------------------------------------
-def _LANLmax_T01Storm(inputdict):
-    """
-    This will calculate Lstar_max (last closed drift shell) based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko 2003 model.
-
-    """
-    
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lmax = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', \
-                   'G2','G3','PA']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lmax[i] = libLANLstar.lanlmax_t03storm(inpar)
-        
-    if arrayflag is False:
-        return Lmax[0]
-    else:
-        return Lmax
-
-# --------------------------------------------------------------
-def _LANLmax_TS05(inputdict):
-    """
-    This will calculate Lstar_max (last closed drift shell) based on the artificial neural network LANLstar which 
-    was trained with the Tsyganenko & Sitnov (2005) model.
-    """
-
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lmax = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 
-               'W1','W2','W3','W4','W5','W6','PA']
-    inpar = np.zeros(len(keylist))
-        
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lmax[i] = libLANLstar.lanlmax_ts05(inpar)
-    
-    if arrayflag is False:
-        return Lmax[0]
-    else:
-        return Lmax
-        
-# --------------------------------------------------------------
-def _LANLmax_T89(inputdict):
-    """
-    This will calculate Lstar_max (last closed drift shell) based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko 1989 model.
-        
-    """
-        
-    if isinstance(inputdict['Kp'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Kp'])
-    Lmax = np.zeros(ncalc)
-    
-    keylist = ['Year', 'DOY', 'Hr', 'Kp', 'Pdyn', 'ByIMF', 'BzIMF', 'PA']
-    inpar = np.zeros(len(keylist))
-        
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lmax[i] = libLANLstar.lanlmax_t89(inpar)
-    
-    if arrayflag is False:
-        return Lmax[0]
-    else:
-        return Lmax
-    
-    
-# --------------------------------------------------------------
-def _LANLmax_T96(inputdict):
-    """
-    This will calculate Lstar_max (last closed drift shell) based on the artificial neural network LANLstar which
-    was trained with the Tsyganenko 1996 model.
-        
-    """
-
-    if isinstance(inputdict['Dst'], float):
-        arrayflag = False
-        for key in inputdict.keys():
-            inputdict[key] = [inputdict[key]]
-    else:
-        arrayflag = True
-        
-    ncalc = len(inputdict['Dst'])
-    Lmax = np.zeros(ncalc)
-        
-    keylist = ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'PA']
-    inpar = np.zeros(len(keylist))
-    
-    for i in range(ncalc):	
-        # copy over keylist into inpar
-        for ikey, key in enumerate(keylist):
-            inpar[ikey] = inputdict[key][i]
-        Lmax[i] = libLANLstar.lanlmax_t96(inpar)
-        
-    if arrayflag is False:
-        return Lmax[0]
-    else:
-        return Lmax
-
-    
+    return _LANLcommon(inputdict, extMag, True)
