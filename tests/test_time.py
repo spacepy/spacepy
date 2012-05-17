@@ -145,7 +145,7 @@ class classTests(unittest.TestCase):
         t0 = 1663236947
         iter_ex = range(t0, t0+5000, 500)
         range_ex = list(range(t0, t0+5000, 500))
-        self.assertEqual(t.Ticktock(iter_ex, 'TAI').TAI, t.Ticktock(range_ex, 'TAI').TAI)
+        numpy.testing.assert_equal(t.Ticktock(iter_ex, 'TAI').TAI, t.Ticktock(range_ex, 'TAI').TAI)
 
     def test_append(self):
         t1 = t.Ticktock(['2002-01-01', '2002-01-02'])
