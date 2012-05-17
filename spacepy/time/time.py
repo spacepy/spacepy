@@ -578,7 +578,6 @@ class Ticktock(collections.MutableSequence):
         """
         return self.__add__(other)
 
-
     # -----------------------------------------------
     def __getattr__(self, name):
         """
