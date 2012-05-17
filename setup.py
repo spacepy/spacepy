@@ -557,7 +557,7 @@ packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.plot', 'spacepy.pybats', 'spacepy.time', 
             'spacepy.toolbox']
 #If adding to package_data, also put in MANIFEST.in
-package_data = ['data/*', 'pybats/sample_data/*', 'data/LANLstar/*']
+package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
 pybats_ext = Extension('spacepy.pybats.ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],
                        include_dirs=[numpy.get_include()])
