@@ -3,12 +3,25 @@
 """
 Lstar and Lmax calculation using artificial neural network (ANN) technique.
 
+This module requires the `ffnet <http://ffnet.sourceforge.net/>`_ package.
+
 Authors: Josef Koller, Yiqun Yu
 Institution: Los Alamos National Laboratory
 Contact: jkoller@lanl.gov, yiqun@lanl.gov
 
 Copyright 2012 Los Alamos National Security, LLC.
 
+.. currentmodule:: spacepy.LANLstar
+
+.. autosummary::
+    :toctree: autosummary
+
+    LANLstar
+    LANLmax
+
+.. autofunction:: LANLstar
+
+.. autofunction:: LANLmax
 """
 import os.path
 
@@ -129,7 +142,9 @@ def _LANLcommon(inputdict, extMag, domax):
 # ------------------------------------------------
 def LANLstar(inputdict, extMag):
     """
-    This will calculate Lstar based on the L* artificial neural network (ANN) trained from 
+    Calculate Lstar
+
+    Based on the L* artificial neural network (ANN) trained from 
     different magnetospheric field models.
 
     Parameters
@@ -224,7 +239,9 @@ def LANLstar(inputdict, extMag):
 def LANLmax(inputdict, extMag):
 
     """
-    This will calculate the last closed drift shell Lmax based on the L* artificial neural network (ANN) trained from 
+    Calculate last closed drift shell (Lmax)
+
+    Based on the L* artificial neural network (ANN) trained from 
     different magnetospheric field models.
 
     Parameters
