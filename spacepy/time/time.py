@@ -32,7 +32,7 @@ class Tickdelta(object):
     minutes : float
         number of minutes for the delta
     seconds : float
-        number of secondes for the delta
+        number of seconds for the delta
 
     Returns
     =======
@@ -463,7 +463,7 @@ class Ticktock(collections.MutableSequence):
         """
         a.__sub__(other)
 
-        Will be called if a Tickdelta object is substracted to this instance and
+        Will be called if a Tickdelta object is subtracted from this instance and
         returns a new Ticktock instance
 
         Paramters
@@ -480,10 +480,11 @@ class Ticktock(collections.MutableSequence):
 
         See Also
         ========
-        __sub__
+        __add__
         """
-        nTAI = len(self.data)
-        if isinstance(other, Tickdelta):
+        if isinstance(other, datetime.timedelta):
+            newobj = Ticktock(self.UTC - other, 'UTC')
+        elif isinstance(other, Tickdelta):
             newUTC = ['']*nTAI
             for i in range(nTAI):
                 newUTC[i] = self.UTC[i] - other.timedelta
@@ -491,34 +492,36 @@ class Ticktock(collections.MutableSequence):
             newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
             newobj.dtype = self.data.attrs['dtype']
             newobj.update_items(self, 'data')
-            return newobj
-
         elif isinstance(other, Ticktock):
-            newTAI = ['']*nTAI
-            for i in range(nTAI):
+            newTAI = ['']*len(self.data)
+            for i in range(len(self.data)):
                 newTAI[i] = self.TAI[i] - other.TAI
             deltas = [Tickdelta(seconds=val) for val in newTAI ]
             return deltas
+        else:
+            raise TypeError("unsupported operand type(s) for -: {0} and {1}".format(type(other),type(self)))
+        return newobj
 
     # -----------------------------------------------
     def __add__(self, other):
         """
         a.__add__(other)
 
-        Will be called if a Tickdelta object is substracted to this instance and
+        Will be called if a Tickdelta object is added to this instance and
         returns a new Ticktock instance
 
-        Paramters
-        =========
-        other : Ticktock or Tickdelta
+        Parameters
+        ==========
+        other : datetime.timedelta
             instance for comparison
 
         Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
-        >>> dt = Tickdelta(3)
-        >>> a + dt
-        Ticktock( ['2002-02-05T12:00:00'] ), dtype=ISO
+        >>> import datetime as dt
+        >>> delt = dt.timedelta(minutes=1)
+        >>> a + delt
+        Ticktock( ['2002-02-02T12:01:00'] , dtype=ISO)
 
 
         See Also
@@ -526,8 +529,9 @@ class Ticktock(collections.MutableSequence):
         __sub__
 
         """
-        nTAI = len(self.data)
-        if isinstance(other, Tickdelta):
+        if isinstance(other, datetime.timedelta):
+            newobj = Ticktock(self.UTC + other, 'UTC')
+        elif isinstance(other, Tickdelta):
             newUTC = ['']*nTAI
             for i in range(nTAI):
                 newUTC[i] = self.UTC[i] + other.timedelta
@@ -535,14 +539,45 @@ class Ticktock(collections.MutableSequence):
             newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
             newobj.dtype = self.data.attrs['dtype']
             newobj.update_items(self, 'data')
-            return newobj
-
         elif isinstance(other, Ticktock):
-            newTAI = ['']*nTAI
-            for i in range(nTAI):
+            newTAI = ['']*len(self.data)
+            for i in range(len(self.data)):
                 newTAI[i] = self.TAI[i] + other.TAI
             deltas = [Tickdelta(seconds=val) for val in newTAI ]
             return deltas
+        else:
+            raise TypeError("unsupported operand type(s) for -: {0} and {1}".format(type(other),type(self)))
+
+        return newobj
+
+    def __radd__(self, other):
+        """
+        a.__radd__(other)
+
+        reverse add -- Will be called if this object is added to a datetime.timedelta and
+        returns a new Ticktock instance
+
+        Parameters
+        ==========
+        other : datetime.timedelta
+            instance for comparison
+
+        Examples
+        ========
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
+        >>> import datetime as dt
+        >>> delt = dt.timedelta(minutes=1)
+        >>> a + delt
+        Ticktock( ['2002-02-02T12:01:00'] , dtype=ISO)
+
+
+        See Also
+        ========
+        __sub__
+
+        """
+        return self.__add__(other)
+
 
     # -----------------------------------------------
     def __getattr__(self, name):
@@ -1568,7 +1603,7 @@ def tickrange(start, end, deltadays, dtype='UTC'):
     >>> ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays = 1)
     >>> ticks
     Ticktock( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
-    '2002-02-04T00:00:00'] ), dtype=ISO
+    '2002-02-04T00:00:00'] , dtype=ISO)
 
     See Also
     ========
