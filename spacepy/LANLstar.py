@@ -15,14 +15,19 @@ import os.path
 try:
     import ffnet
 except ImportError:
-    raise RuntimeError('LANLstar requires the ffnet package')
+    raise RuntimeError(
+        'LANLstar requires ffnet (http://ffnet.sourceforge.net/)')
 import numpy as np
 
 
 def _get_net_path(filename):
     """Gets the full path for a network file given the filename"""
-    return os.path.join(
+    fpsec = os.path.join(
         os.path.split(__file__)[0], 'data', 'LANLstar', filename)
+    if os.path.exists(fspec):
+        return fspec
+    else:
+        raise RuntimeError("Could not find neural network file " + filename)
 
 # ------------------------------------------------
 def _LANLcommon(inputdict, extMag, domax):
