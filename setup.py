@@ -199,41 +199,6 @@ class build(_build):
             if self.build_docs == None:
                 self.build_docs = False
 
-    def compile_LANLstar(self):
-        outdir = os.path.join(self.build_lib, 'spacepy', 'LANLstar')
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
-        if sys.platform == 'win32':
-            libfile = 'libLANLstar.pyd'
-        else:
-            libfile = 'libLANLstar.so'
-        outpath = os.path.join(outdir, libfile)
-        srcdir = os.path.join('spacepy', 'LANLstar')
-        srcpath = os.path.join(srcdir, 'LANLstar.f')
-        if distutils.dep_util.newer(srcpath, outpath):
-            os.chdir(srcdir)
-            try:
-                cmd = [self.f2py]
-                if self.compiler:
-                    cmd += ['--compiler=' + self.compiler]
-                cmd += ['-c', 'LANLstar.f', '-m', 'libLANLstar',
-                        '--fcompiler='+ self.fcompiler]
-                subprocess.check_call(cmd, env=f2py_environment(self.fcompiler))
-                outpath = os.path.join('..', '..', outpath)
-                if os.path.exists(outpath):
-                    os.remove(outpath)
-                shutil.move(libfile,
-                            os.path.join('..', '..', outdir))
-            except:
-                self.distribution.add_warning(
-                    'LANLstar compile failed; LANLstar will not be available.')
-                print('LANLstar compile failed:')
-                (t, v, tb) = sys.exc_info()
-                print(v)
-            finally:
-                os.chdir('..')
-                os.chdir('..')
-
     def compile_irbempy(self):
         # 64 bit or 32 bit?"
         bit = len('%x' % sys.maxsize)*4
@@ -435,7 +400,6 @@ class build(_build):
     def run(self):
         """Actually perform the build"""
         self.compile_irbempy()
-        self.compile_LANLstar()
         self.compile_libspacepy()
         _build.run(self)
         if self.build_docs:
@@ -490,7 +454,10 @@ class install(_install):
         #before directories containing them!
         #Paths are relative to spacepy. Unix path separators are OK
         #Don't forget to delete the .pyc
-        deletefiles = ['toolbox.py', 'toolbox.pyc']
+        deletefiles = ['toolbox.py', 'toolbox.pyc', 'LANLstar/LANLstar.py',
+                       'LANLstar/LANLstar.pyc', 'LANLstar/libLANLstar.so',
+                       'LANLstar/LANLstar.pyd', 'LANLstar/__init__.py',
+                        'LANLstar/__init__.pyc', 'LANLstar']
         for f in deletefiles:
             path = os.path.join(self.install_lib, 'spacepy',
                                 os.path.normpath(f)) #makes pathing portable
@@ -586,11 +553,11 @@ class Distribution(_Distribution):
         self.print_warnings()
 
 
-packages = ['spacepy', 'spacepy.irbempy', 'spacepy.LANLstar',
-            'spacepy.pycdf', 'spacepy.plot', 'spacepy.pybats', 'spacepy.time', 
+packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
+            'spacepy.plot', 'spacepy.pybats', 'spacepy.time', 
             'spacepy.toolbox']
 #If adding to package_data, also put in MANIFEST.in
-package_data = ['data/*', 'pybats/sample_data/*']
+package_data = ['data/*', 'pybats/sample_data/*', 'data/LANLstar/*']
 pybats_ext = Extension('spacepy.pybats.ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],
                        include_dirs=[numpy.get_include()])

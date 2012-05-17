@@ -13,7 +13,6 @@ graft spacepy/data
 graft spacepy/pybats/sample_data
 #C and Fortan sources, not in extension modules
 graft spacepy/irbempy/irbem-lib-*
-include spacepy/LANLstar/LANLstar.f
 include spacepy/libspacepy/*.h
 include spacepy/libspacepy/*.c
 include spacepy/pybats/ctrace2dtest.c
