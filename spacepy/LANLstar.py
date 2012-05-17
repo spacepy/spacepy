@@ -7,12 +7,22 @@ Authors: Josef Koller, Yiqun Yu
 Institution: Los Alamos National Laboratory
 Contact: jkoller@lanl.gov, yiqun@lanl.gov
 
-Copyright ?2012 Los Alamos National Security, LLC.
+Copyright 2012 Los Alamos National Security, LLC.
 
 """
+import os.path
 
-import libLANLstar
+try:
+    import ffnet
+except ImportError:
+    raise RuntimeError('LANLstar requires the ffnet package')
 import numpy as np
+
+
+def _get_net_path(filename):
+    """Gets the full path for a network file given the filename"""
+    return os.path.join(
+        os.path.split(__file__)[0], 'data', 'LANLstar', filename)
 
 # ------------------------------------------------
 def _LANLcommon(inputdict, extMag, domax):
