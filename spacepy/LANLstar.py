@@ -22,7 +22,7 @@ import numpy as np
 
 def _get_net_path(filename):
     """Gets the full path for a network file given the filename"""
-    fpsec = os.path.join(
+    fspec = os.path.join(
         os.path.split(__file__)[0], 'data', 'LANLstar', filename)
     if os.path.exists(fspec):
         return fspec
@@ -67,21 +67,21 @@ def _LANLcommon(inputdict, extMag, domax):
         'T89': ['Year', 'DOY', 'Hr', 'Kp', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
         'T96': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
                  }
-    lstar_funcs = { 'OPDyn'   : ffnet.loadnet(_get_net_path('LANLstar_OPDyn.net')),    #libLANLstar.lanlstar_opdyn,
-                    'OPQuiet' : ffnet.loadnet(_get_net_path('LANLstar_OPQuiet.net')),  #libLANLstar.lanlstar_opquiet,
-                    'T01QUIET': ffnet.loadnet(_get_net_path('LANLstar_T01QUIET.net')), #libLANLstar.lanlstar_t01quiet,
-                    'T01STORM': ffnet.loadnet(_get_net_path('LANLstar_T01STORM.net')), #libLANLstar.lanlstar_t03storm,
-                    'T05': ffnet.loadnet(_get_net_path('LANLstar_T05.net')),           #libLANLstar.lanlstar_ts05,
-                    'T89': ffnet.loadnet(_get_net_path('LANLstar_T89.net')),           #libLANLstar.lanlstar_t89,
-                    'T96': ffnet.loadnet(_get_net_path('LANLstar_T96.net')),           #libLANLstar.lanlstar_t96,
+    lstar_nets = { 'OPDyn'   : 'LANLstar_OPDyn.net',
+                    'OPQuiet' : 'LANLstar_OPQuiet.net',
+                    'T01QUIET': 'LANLstar_T01QUIET.net',
+                    'T01STORM': 'LANLstar_T01STORM.net',
+                    'T05': 'LANLstar_T05.net',
+                    'T89': 'LANLstar_T89.net',
+                    'T96': 'LANLstar_T96.net',
                     }
-    lmax_funcs = {  'OPDyn'   : ffnet.loadnet(_get_net_path('Lmax_OPDyn.net')),    #libLANLstar.lanlmax_opdyn,
-                    'OPQuiet' : ffnet.loadnet(_get_net_path('Lmax_OPQuiet.net')),  #libLANLstar.lanlmax_opquiet,
-                    'T01QUIET': ffnet.loadnet(_get_net_path('Lmax_T01QUIET.net')), #libLANLstar.lanlmax_t01quiet,
-                    'T01STORM': ffnet.loadnet(_get_net_path('Lmax_T01STORM.net')), #libLANLstar.lanlmax_t03storm,
-                    'T05': ffnet.loadnet(_get_net_path('Lmax_T05.net')),           #libLANLstar.lanlmax_ts05,
-                    'T89': ffnet.loadnet(_get_net_path('Lmax_T89.net')),           #libLANLstar.lanlmax_t89,
-                    'T96': ffnet.loadnet(_get_net_path('Lmax_T96.net')),           #libLANLstar.lanlmax_t96,
+    lmax_nets = {  'OPDyn'   : 'Lmax_OPDyn.net',
+                    'OPQuiet' : 'Lmax_OPQuiet.net',
+                    'T01QUIET': 'Lmax_T01QUIET.net',
+                    'T01STORM': 'Lmax_T01STORM.net',
+                    'T05': 'Lmax_T05.net',
+                    'T89': 'Lmax_T89.net',
+                    'T96': 'Lmax_T96.net',
                     }
     
     npt = len(inputdict['Year'])
@@ -103,20 +103,21 @@ def _LANLcommon(inputdict, extMag, domax):
         else:
             arrayflag = True
 	    ncalc = len(inputdict['Dst'])
-        Lstar = np.zeros(ncalc)
 	
         ncalc = len(inputdict[specialkey])
         Lstar = np.zeros(ncalc)
         inpar = np.zeros(len(keylist))
-    
+
+        if domax:
+            netfile = lmax_nets[modelkey]
+        else:
+            netfile = lstar_nets[modelkey]
+        network = ffnet.loadnet(_get_net_path(netfile))
         for i in range(ncalc):	
             # copy over keylist into inpar
             for ikey, key in enumerate(keylist):
     		inpar[ikey] = inputdict[key][i]
-            if domax:
-                Lstar[i] = lmax_funcs[modelkey](inpar)
-            else:
-                Lstar[i] = lstar_funcs[modelkey](inpar)
+            Lstar[i] = network(inpar)
             
         if arrayflag is False:
             Lstar_out[modelkey] = Lstar[0]
