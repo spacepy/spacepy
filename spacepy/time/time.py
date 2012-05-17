@@ -485,8 +485,8 @@ class Ticktock(collections.MutableSequence):
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC - other, 'UTC')
         elif isinstance(other, Tickdelta):
-            newUTC = ['']*nTAI
-            for i in range(nTAI):
+            newUTC = ['']*len(self.data)
+            for i in range(len(self.data)):
                 newUTC[i] = self.UTC[i] - other.timedelta
             newobj = Ticktock(newUTC, 'UTC')
             newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
@@ -532,8 +532,8 @@ class Ticktock(collections.MutableSequence):
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC + other, 'UTC')
         elif isinstance(other, Tickdelta):
-            newUTC = ['']*nTAI
-            for i in range(nTAI):
+            newUTC = ['']*len(self.data)
+            for i in range(len(self.data)):
                 newUTC[i] = self.UTC[i] + other.timedelta
             newobj = Ticktock(newUTC, 'UTC')
             newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
@@ -1219,7 +1219,7 @@ class Ticktock(collections.MutableSequence):
             print("ERROR: Data type ", self.data.attrs['dtype'], ' in getUTC() not supported')
             return
 
-        UTC = dmarray(UTC, attrs={'System': 'UTC'})
+        UTC = dmarray(UTC, attrs={'dtype': 'UTC'})
         self.UTC = UTC
         return UTC
 
