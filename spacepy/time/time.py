@@ -50,6 +50,8 @@ class Tickdelta(object):
     Ticktock
     """
     def __init__(self, **kwargs):
+        warnings.warn('Tickdelta is deprecated, use datetime.timedelta',
+                  DeprecationWarning)
         days, hours, minutes, seconds = [0,0,0,0]
         if 'days' in kwargs:  days = kwargs['days']
         if 'hours' in kwargs: hours = kwargs['hours']
