@@ -441,8 +441,7 @@ def fromCDF(fname, **kwargs):
         from spacepy import pycdf
     except ImportError:
         raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
-    warnings.warn('fromCDF is deprecated, see pycdf.CDF.copy',
-                  DeprecationWarning)
+    
     with pycdf.CDF(fname) as cdfdata:
         return cdfdata.copy()
 
