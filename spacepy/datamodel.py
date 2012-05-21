@@ -417,9 +417,6 @@ def fromCDF(fname, **kwargs):
     '''
     Create a SpacePy datamodel representation of a NASA CDF file
 
-    .. deprecated:: 0.1.3
-        See :meth:`~spacepy.pycdf.CDF.copy` in :class:`~spacepy.pycdf.CDF`.
-
     Parameters
     ----------
     file : string
@@ -434,6 +431,10 @@ def fromCDF(fname, **kwargs):
     --------
     >>> import spacepy.datamodel as dm
     >>> data = dm.fromCDF('test.cdf')
+
+    See Also
+    --------
+    spacepy.pycdf.CDF.copy
     '''
     #TODO: add unflatten keyword and restore flattened variables
     try:
