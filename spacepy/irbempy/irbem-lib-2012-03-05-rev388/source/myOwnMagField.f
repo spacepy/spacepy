@@ -8,6 +8,7 @@ C
        REAL*8 x(3)
        REAL*8 B(3)
        REAL*8 Bo
+       REAL*8 pi,rad
        REAL*8 rr,tt,pp,Br,Bt,Bp,BxGEO,ByGEO,BzGEO
        common /rconst/rad,pi
 C      COMMON /dipigrf/Bo,xc,yc,zc,ct,st,cp,sp
@@ -31,6 +32,10 @@ C
      &          + Bp*COS(pp)
        BzGEO = Br*COS(tt) - Bt*SIN(tt) - 14.74
 C
+       B(1) = BxGEO
+       B(2) = ByGEO
+       B(3) = BzGEO 
+       
        RETURN
        END
 
