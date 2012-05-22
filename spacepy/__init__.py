@@ -154,7 +154,8 @@ def _read_config(rcfile):
     global config
     defaults = {'enable_deprecation_warning': str(True),
                 'ncpus': str(multiprocessing.cpu_count()),
-                'omni_url': 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
+                'qindenton_url': 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
+                'omni2_url': 'ftp://virbo.org/OMNI/OMNI2/merged/latest/OMNI_OMNI2-latest.cdf.zip',
                 'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
                 }
