@@ -126,8 +126,8 @@ class BigTests(unittest.TestCase):
 
     def test_get_AEP8(self):
         """test get_AEP8"""
-        c=self.loci[0]
-        c.ticks = self.ticks[0]
+        c=self.loci
+        c.ticks = self.ticks
         E = 2.0 # energy in MeV
         expected = 99492.059080021136
         actual = ib.get_AEP8(E, c)
