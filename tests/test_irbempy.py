@@ -102,27 +102,27 @@ class BigTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(expected, ib.coord_trans(self.loci, 'GSM', 'car'))
         
     def test_find_Bmirror(self):
-        expected = {'Blocal': array([  976.42565251,  3396.25991675]),
-            'Bmirr': array([ 2363.11489391,  8219.45619451])}
+        expected = {'Blocal': array([977.70182354,  3398.91281775]),
+            'Bmirr': array([2366.26469914,  8226.02095512])}
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], ib.find_Bmirror(self.ticks, self.loci, [40])[key], decimal=6)
 
     def test_find_magequator(self):
-        expected = {'Bmin': array([  975.59122652,  3388.2476667 ])}
-        Bmin_loci = [[ 2.99926479,  0.00642609, -0.03738477],
-            [ 2.00291585, -0.00726614,  0.04502799]] 
+        expected = {'Bmin': array([976.95969476,  3390.67989733])}
+        Bmin_loci =  [[ 2.99929568,  0.0061249 , -0.03561588],
+                      [ 2.00296095, -0.00739215,  0.04580058]]
         actual = ib.find_magequator(self.ticks, self.loci)
         numpy.testing.assert_almost_equal(expected['Bmin'], actual['Bmin'], decimal=6)
         numpy.testing.assert_almost_equal(Bmin_loci, actual['loci'].data, decimal=6)
             
     def test_get_Bfield(self):
         """test get_Bfield"""	
-        expected = {'Blocal': array([ 976.42565251, 3396.25991675]),
-        'Bvec':	array([[ -5.01738885e-01, -1.65104338e+02, 9.62365503e+02],
-        [3.33497974e+02, -5.42111173e+02, 3.33608693e+03]])}
+        expected = {'Blocal': array([ 977.70182354,  3398.91281775]),
+        'Bvec':	array([[6.56029545e-01, -1.65416734e+02, 9.63606626e+02],
+                      [3.35038317e+02, -5.42656917e+02, 3.33854476e+03]])}
         actual = ib.get_Bfield(self.ticks, self.loci)
         for key in expected.keys():
-            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
+            numpy.testing.assert_allclose(actual[key], expected[key], atol=1e-6)
 
     def test_get_AEP8(self):
         """test get_AEP8"""
@@ -133,25 +133,26 @@ class BigTests(unittest.TestCase):
         actual = ib.get_AEP8(E, c)
         numpy.testing.assert_almost_equal(expected, actual)
         
-    def test_get_Lstar(self):
+    def test_get_Lstar_T01(self):
         # test T01STORM
-        expected = {'Xj': array([[ 0.00081949], [ 0.00270321]]), 
-            'Lstar': array([[ 2.93026048], [ 2.02637415]]), 
-            'Bmirr': array([[  976.42565251], [ 3396.25991676]]), 
-            'Lm': array([[ 3.13508015], [ 2.07013638]]), 
-            'Bmin': array([  975.59122652,  3388.2476667 ]), 
+        expected = {'Xj': array([[ 0.00068834], [ 0.00279593]]), 
+            'Lstar': array([[ 2.92660617], [ 2.0246814 ]]), 
+            'Bmirr': array([[  977.70182354], [ 3398.91281775]]), 
+            'Lm': array([[3.13365664], [2.06963969]]), 
+            'Bmin': array([  976.95969476,  3390.67989733]), 
             'MLT': array([ 11.97222034,  12.13378624])}    
         actual = ib.get_Lstar(self.ticks, self.loci, [90])
         for key in expected.keys():
             numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
-        
+    
+    def test_get_Lstari_T05(self):
         # test T05
-        expected = {'Xj': array([[ 0.24624075], [ 0.18225978]]), 
-            'Lstar': array([[ 2.90982109], [ 2.0244982 ]]), 
-            'Bmirr': array([[ 1092.90563696], [ 3834.94812575]]), 
-            'Lm': array([[ 3.12907517], [ 2.06810695]]), 
-            'Bmin': array([  964.11250645,  3378.36534029]), 
-            'MLT': array([ 11.97222034,  12.13378624])}
+        expected = {'Xj': array([[ 0.25023298], [ 0.1833702 ]]), 
+                    'Lstar': array([[ 2.92777304], [ 2.02445757]]), 
+                    'Bmirr': array([[ 1096.4439606 ], [ 3842.38188155]]), 
+                    'Lm': array([[ 3.1275911 ], [ 2.06731527]]), 
+                    'Bmin': array([  967.49112103,  3384.64545328]), 
+                    'MLT': array([ 11.97222034,  12.13378624])}
         actual = ib.get_Lstar(self.ticks, self.loci, [70], extMag='T05')
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
