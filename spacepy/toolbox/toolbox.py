@@ -666,7 +666,7 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
                 os.popen('lpr '+fln+'.png')
     return
 
-def update(all=True, omni=False, leapsecs=False, PSDdata=False):
+def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     """
     Download and update local database for omni, leapsecs etc
 
@@ -675,7 +675,9 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     all : boolean (optional)
         if True, update all of them
     omni : boolean (optional)
-        if True. update only onmi
+        if True. update only onmi (Qin & Denton)
+    omni2 : boolean (optional)
+        if True, update only original OMNI2
     leapsecs : boolean (optional)
         if True, update only leapseconds
 
@@ -690,7 +692,7 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
-    from spacepy import DOT_FLN, config
+    from spacepy import DOT_FLN, config, pycdf
 
     if sys.version_info[0]<3:
         import urllib as u
@@ -708,8 +710,10 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
     # define location for getting omni
     #omni_url = 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip'
     omni_fname_zip = os.path.join(datadir, 'WGhour-latest.d.zip')
+    omni2_fname_zip = os.path.join(datadir, 'omni2-latest.cdf.zip')
     omni_fname_pkl = os.path.join(datadir, 'omnidata.pkl')
-
+    omni2_fname_pkl = os.path.join(datadir, 'omni2data.pkl')
+    
     PSDdata_fname = os.path.join('psd_dat.sqlite')
 
     if all == True:
@@ -718,8 +722,8 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
 
     if omni == True:
         # retrieve omni, unzip and save as table
-        print("Retrieving omni file ...")
-        u.urlretrieve(config['omni_url'], omni_fname_zip, reporthook=progressbar)
+        print("Retrieving Qin_Denton file ...")
+        u.urlretrieve(config['qindenton_url'], omni_fname_zip, reporthook=progressbar)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         A = np.array(data.split('\n'))
@@ -795,6 +799,31 @@ def update(all=True, omni=False, leapsecs=False, PSDdata=False):
 
         # delete left-overs
         os.remove(omni_fname_zip)
+
+
+    if omni2 == True:
+        # adding missing values from original omni2
+        print("Retrieving OMNI2 file ...")
+        u.urlretrieve(config['omni2_url'], omni2_fname_zip, reporthook=progressbar)
+        fh_zip = zipfile.ZipFile(omni2_fname_zip)
+        fh_zip.extractall();
+        fh_zip.close()
+        omnicdf = pycdf.CDF(fh_zip.namelist()[0])
+        # convert into regular dictionary
+        omni2 = {}
+        for key in omnicdf.keys():
+            omni2[key] = omnicdf[key][:]
+        
+        omni2['ticks'] = Ticktock(omni2['Epoch'])
+        omni2['RDT'] = omni2['ticks'].RDT
+        
+        # save as pickle
+        savepickle(omni2_fname_pkl, omni2)
+
+        # delete left-overs
+        os.remove(omni2_fname_zip)
+
+        
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")

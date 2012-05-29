@@ -3,16 +3,44 @@
 """
 Lstar and Lmax calculation using artificial neural network (ANN) technique.
 
+This module requires the `ffnet <http://ffnet.sourceforge.net/>`_ package.
+
 Authors: Josef Koller, Yiqun Yu
 Institution: Los Alamos National Laboratory
 Contact: jkoller@lanl.gov, yiqun@lanl.gov
 
-Copyright ?2012 Los Alamos National Security, LLC.
+Copyright 2012 Los Alamos National Security, LLC.
 
+.. currentmodule:: spacepy.LANLstar
+
+.. autosummary::
+    :toctree: autosummary
+
+    LANLstar
+    LANLmax
+
+.. autofunction:: LANLstar
+
+.. autofunction:: LANLmax
 """
+import os.path
 
-import libLANLstar
+try:
+    import ffnet
+except ImportError:
+    raise RuntimeError(
+        'LANLstar requires ffnet (http://ffnet.sourceforge.net/)')
 import numpy as np
+
+
+def _get_net_path(filename):
+    """Gets the full path for a network file given the filename"""
+    fspec = os.path.join(
+        os.path.split(__file__)[0], 'data', 'LANLstar', filename)
+    if os.path.exists(fspec):
+        return fspec
+    else:
+        raise RuntimeError("Could not find neural network file " + filename)
 
 # ------------------------------------------------
 def _LANLcommon(inputdict, extMag, domax):
@@ -52,21 +80,21 @@ def _LANLcommon(inputdict, extMag, domax):
         'T89': ['Year', 'DOY', 'Hr', 'Kp', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
         'T96': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
                  }
-    lstar_funcs = { 'OPDyn': libLANLstar.lanlstar_opdyn,
-                    'OPQuiet': libLANLstar.lanlstar_opquiet,
-                    'T01QUIET': libLANLstar.lanlstar_t01quiet,
-                    'T01STORM': libLANLstar.lanlstar_t03storm,
-                    'T05': libLANLstar.lanlstar_ts05,
-                    'T89': libLANLstar.lanlstar_t89,
-                    'T96': libLANLstar.lanlstar_t96,
+    lstar_nets = { 'OPDyn'   : 'LANLstar_OPDyn.net',
+                    'OPQuiet' : 'LANLstar_OPQuiet.net',
+                    'T01QUIET': 'LANLstar_T01QUIET.net',
+                    'T01STORM': 'LANLstar_T01STORM.net',
+                    'T05': 'LANLstar_T05.net',
+                    'T89': 'LANLstar_T89.net',
+                    'T96': 'LANLstar_T96.net',
                     }
-    lmax_funcs = { 'OPDyn': libLANLstar.lanlmax_opdyn,
-                    'OPQuiet': libLANLstar.lanlmax_opquiet,
-                    'T01QUIET': libLANLstar.lanlmax_t01quiet,
-                    'T01STORM': libLANLstar.lanlmax_t03storm,
-                    'T05': libLANLstar.lanlmax_ts05,
-                    'T89': libLANLstar.lanlmax_t89,
-                    'T96': libLANLstar.lanlmax_t96,
+    lmax_nets = {  'OPDyn'   : 'Lmax_OPDyn.net',
+                    'OPQuiet' : 'Lmax_OPQuiet.net',
+                    'T01QUIET': 'Lmax_T01QUIET.net',
+                    'T01STORM': 'Lmax_T01STORM.net',
+                    'T05': 'Lmax_T05.net',
+                    'T89': 'Lmax_T89.net',
+                    'T96': 'Lmax_T96.net',
                     }
     
     npt = len(inputdict['Year'])
@@ -88,20 +116,21 @@ def _LANLcommon(inputdict, extMag, domax):
         else:
             arrayflag = True
 	    ncalc = len(inputdict['Dst'])
-        Lstar = np.zeros(ncalc)
 	
         ncalc = len(inputdict[specialkey])
         Lstar = np.zeros(ncalc)
         inpar = np.zeros(len(keylist))
-    
+
+        if domax:
+            netfile = lmax_nets[modelkey]
+        else:
+            netfile = lstar_nets[modelkey]
+        network = ffnet.loadnet(_get_net_path(netfile))
         for i in range(ncalc):	
             # copy over keylist into inpar
             for ikey, key in enumerate(keylist):
     		inpar[ikey] = inputdict[key][i]
-            if domax:
-                Lstar[i] = lmax_funcs[modelkey](inpar)
-            else:
-                Lstar[i] = lstar_funcs[modelkey](inpar)
+            Lstar[i] = network(inpar)
             
         if arrayflag is False:
             Lstar_out[modelkey] = Lstar[0]
@@ -113,7 +142,9 @@ def _LANLcommon(inputdict, extMag, domax):
 # ------------------------------------------------
 def LANLstar(inputdict, extMag):
     """
-    This will calculate Lstar based on the L* artificial neural network (ANN) trained from 
+    Calculate Lstar
+
+    Based on the L* artificial neural network (ANN) trained from 
     different magnetospheric field models.
 
     Parameters
@@ -208,7 +239,9 @@ def LANLstar(inputdict, extMag):
 def LANLmax(inputdict, extMag):
 
     """
-    This will calculate the last closed drift shell Lmax based on the L* artificial neural network (ANN) trained from 
+    Calculate last closed drift shell (Lmax)
+
+    Based on the L* artificial neural network (ANN) trained from 
     different magnetospheric field models.
 
     Parameters

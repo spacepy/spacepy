@@ -4,13 +4,37 @@
 """
 test the LANLstar module
 
-Copyright 2011 Los Alamos National Security, LLC.
+Copyright 2011-2012 Los Alamos National Security, LLC.
 """
 
+import os.path
+import sys
 import unittest
+
+import spacepy
 import spacepy.LANLstar as sl
 import numpy
 from numpy import array
+
+
+class LANLStarFunctionsTest(unittest.TestCase):
+    """Tests of simple support functions for LANLStar"""
+
+    def testNetPath(self):
+        """Get the path to a .net file"""
+        #okay, this is stupid since it's really the same code,
+        #but at least it checks for syntax errors....
+        self.assertEqual(
+            os.path.join(
+            os.path.split(spacepy.__file__)[0], 'data', 'LANLstar', 'Lmax_T89.net'),
+            sl._get_net_path('Lmax_T89.net'))
+        try:
+            q = sl._get_net_path('sample.net')
+        except RuntimeError:
+            self.assertEqual(
+                'Could not find neural network file sample.net',
+                str(sys.exc_info()[1]))
+
 
 class lanlstarTest(unittest.TestCase):
 

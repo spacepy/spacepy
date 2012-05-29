@@ -105,6 +105,26 @@ def get_omni(ticks):
     # return warning if values outside of omni data range
     if np.any(np.isnan(omnival['Kp'])): print("Warning: time is outside of omni data range")
 
+    # add original omni2 to output
+    try:
+        omni2keys = omni2data.keys()
+    except:
+        return omnival   #return omnival only and don't add omni2
+    
+    # remove duplicate keys
+    delkeys = ['Epoch', 'RDT', 'Hour', 'Year', 'ticks']
+    for key in delkeys: omni2keys.remove(key)
+    for key in omni2keys:
+        omnival[key] = dmarray(np.interp(RDTvals, omni2data['RDT'], omni2data[key], left=np.NaN, right=np.NaN))
+        #set attributes/units
+        
+        if ('B' in key) or ('Dst' in key):
+            omnival[key].attrs['Units'] = 'nT'
+        elif 'dens' in key:
+            omnival[key].attrs['Units'] = 'cm^{-3}'
+        elif 'Pdyn' in key:
+            omnival[key].attrs['Units'] = 'nPa'
+
 
     return omnival
 
@@ -117,7 +137,8 @@ from spacepy import DOT_FLN, help, time
 from spacepy.toolbox import loadpickle
 import os
 #dotfln = os.environ['HOME']+'/.spacepy'
-omnifln = DOT_FLN+'/data/omnidata.pkl'
+omnifln = os.path.join(DOT_FLN,'data','omnidata.pkl')
+omni2fln = os.path.join(DOT_FLN,'data','omni2data.pkl')
 try:
     omnidata = loadpickle(omnifln)
 except:
@@ -133,3 +154,9 @@ else:
         omnidata['Year'] = np.fromiter((dt.year for dt in omnidata['UTC']),
                                        dtype='int16',
                                        count=len(omnidata['UTC']))
+                                       
+try:
+    omni2data = loadpickle(omni2fln)
+except:
+    print("HINT: Run spacepy.toolbox.update(all=False, omni2=True) to download the full OMNI2 data.")
+    print("You need to have a working CDF library installed.")
