@@ -218,9 +218,12 @@ to put into a script. Copy all of the following and paste it into a file called 
 
 Now this script can be run with ``python fix_esp_data.py``.
 
-Actually reading the resulting file is simple by comparison:
+Actually reading the resulting file is simple:
 
 >>> import numpy
 >>> datadir = os.path.join('..', 'data')
 >>> fname = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
->>> esp_data = numpy.genfromtxt(fname, skip_header=15)
+>>> esp_fluxes = numpy.loadtxt(fname, skiprows=15, usecols=[2,])
+>>> convert = lambda x: datetime.datetime.strptime(x, '%Y-%m-%d')
+>>> esp_times = numpy.loadtxt(fname, skiprows=15, usecols=[0,],
+...                           converters={0: convert}, dtype=numpy.object)
