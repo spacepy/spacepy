@@ -549,8 +549,8 @@ def toHDF5(fname, SDobject, **kwargs):
                         dumval = [b.isoformat() if isinstance(b, datetime.datetime) else b for b in value]
                     truth = False
                     try:
-                        if value.any(): truth = True
-                    except AttributeError:
+                        if value.nbytes: truth = True #empty arrays of any dimension are nbytes=0
+                    except AttributeError: #not an array
                         if value or value is 0: truth = True
 
                     if truth:
