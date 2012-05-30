@@ -547,7 +547,13 @@ def toHDF5(fname, SDobject, **kwargs):
                     #test for datetimes in iterables
                     if hasattr(value, '__iter__'):
                         dumval = [b.isoformat() if isinstance(b, datetime.datetime) else b for b in value]
-                    if value or value is 0:
+                    truth = False
+                    try:
+                        if value.any(): truth = True
+                    except AttributeError:
+                        if value or value is 0: truth = True
+
+                    if truth:
                         if type(key) is unicode:
                             dumkey = str(key)
                         if type(value) is unicode:
