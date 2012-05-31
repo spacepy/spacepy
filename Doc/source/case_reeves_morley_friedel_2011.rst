@@ -23,18 +23,58 @@ detector, available in the paper's `auxiliary material
 ESP data are in Data Set S1. Save this file to the ``data`` directory;
 the filename is assumed to be ``2010ja015735-ds01.txt``.
 
-Change to the ``code`` directory and start your Python
-interpreter. (`IPython <http://ipython.org/>`_ is recommended, but not
-required.) First we set up a variable to hold the location of the data:
+The data file was corrupted on upload to AGU, and the code to fix it
+is non-trivial, so this is a good chance to learn how to run someone
+else's code. (:ref:`appendix` has step-by-step information on each
+portion of this process.) Copy all of the following and paste it into
+a file called ``fix_esp_dta.py`` in the ``code`` directory.
+
+.. code-block:: python
+
+    import os.path
+
+
+    datadir = os.path.join('..', 'data')
+    in_name = os.path.join(datadir, '2010ja015735-ds01.txt')
+    out_name = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
+    infile = open(in_name, 'r')
+    outfile = open(out_name, 'w')
+    data = infile.read()
+    infile.close()
+
+    data = data.replace('\r', '\n')
+    data = data.replace('\n\n', '\n')
+    data = data.split('\n')
+
+    for i in range(15):
+        outfile.write(data.pop(0) + '\n')
+    oldline = None
+    for line in data:
+        if line[0:2] in ['19', '20', '2']:
+            if not oldline is None:
+                outfile.write(oldline + '\n')
+            oldline = line
+        else:
+            oldline += line
+    outfile.write(oldline + '\n')
+    outfile.close()
+
+Now this script can be run with ``python fix_esp_data.py``. It should
+create a file called ``2010ja015735-ds01_FIXED.txt`` in the ``data``
+directory.
+
+Code fixed, we can load and begin examining the data.  Change to the
+``code`` directory and start your Python interpreter. (`IPython
+<http://ipython.org/>`_ is recommended, but not required.)
+
+In the following examples, do not type the leading ``>>>``; this is
+the Python interpreter prompt. IPython has a different prompt that
+looks like ``In [1]``.
 
 >>> import os.path
 >>> datadir = os.path.join('..', 'data')
 >>> print(datadir)
 ../data
-
-(In these examples, do not type the leading ``>>>``; this is the
-Python interpreter prompt. IPython has a different prompt that looks
-like ``In [1]``.)
 
 The first line imports the :py:mod:`os.path` module from the Python
 standard library. Python has a huge `standard library
@@ -62,7 +102,7 @@ or even:
 
 The full path can also be used (and this is a better case for using a
 variable.) For example, I am preparing this example in a directory
-``reeves_morley_friedel_2011` in my home directory, so I could use:
+``reeves_morley_friedel_2011`` in my home directory, so I could use:
 
 >>> datadir = os.path.join('home', 'jniehof', 'reeves_morley_friedel_2011',
 ...                        'data')
@@ -70,6 +110,98 @@ variable.) For example, I am preparing this example in a directory
 This very long line can be typed across two lines in Python, and
 because the line break happens within parentheses, a line continuation
 character is not required.
+
+Returning to reading the ESP data:
+
+>>> fname = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
+
+creates a variable holding the full path to the fixed file.
+
+>>> import numpy
+
+The import statement imports any installed `module <http://docs.python.org/tutorial/modules.html>`_, just as if it were in the standard library. Here we import the very useful :mod:`numpy` module, which is a prerequisite for SpacePy and useful in its own right.
+
+>>> esp_fluxes = numpy.loadtxt(fname, skiprows=15, usecols=[2])
+
+:func:`~numpy.loadtxt` makes it easy to load data from a file into a numpy :class:`~numpy.ndarray`, a very useful data container. ``skiprows`` skips the header information, and specifying only column 2 with ``usecols`` will only load the fluxes for 1.8-3.5MeV. We only load the fluxes at this point because they can be represented as floats, which numpy arrays store very efficiently.
+
+>>> import datetime
+
+The :mod:`datetime` module provides Python objects which can manipulate dates and times and have some understanding of the meanings of dates, making for easy comparisons between dates, date arithmetic, and other useful features.
+
+>>> convert = lambda x: datetime.datetime.strptime(x, '%Y-%m-%d')
+
+This line sets up a converter to be used later. :meth:`~datetime.datetime.strptime` creates a :class:`~datetime.datetime` from a string, given a format definition (here specified as year-month-day). So:
+
+>>> print(datetime.datetime.strptime('2010-01-02', '%Y-%m-%d'))
+2010-01-02 00:00:00
+
+`lambda
+<http://docs.python.org/tutorial/controlflow.html#lambda-forms>`_ is a
+simple shortcut for a one-liner function; wherever ``convert(x)`` is
+used after the definition, it functions like
+``datetime.datetime.strptime(x, '%Y-%m-%d')``. This makes it easier to
+parse a date string without specifying the format all the time:
+
+>>> print(convert('2010-01-02'))
+
+This converter can be used with :func:`~numpy.loadtxt`:
+
+>>> esp_times = numpy.loadtxt(fname, skiprows=15, usecols=[0,],
+...                           converters={0: convert}, dtype=numpy.object)
+
+The ``converters`` option takes a Python `dictionary
+<http://docs.python.org/tutorial/datastructures.html#dictionaries>`_. The
+default `dtype
+<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_ is
+float, which cannot store datetimes; using ``numpy.object``
+allows storage of any Python object.
+
+Since it would be useful to be able to load the data without typing so
+many lines, create a file called ``common.py`` in the ``code``
+directory with the following contents:
+
+.. code-block:: python
+
+    import datetime
+    import os.path
+
+    import numpy
+
+
+    datadir = os.path.join('..', 'data')
+
+    def load_esp():
+        fname = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
+        esp_fluxes = numpy.loadtxt(fname, skiprows=15, usecols=[2])
+        convert = lambda x: datetime.datetime.strptime(x, '%Y-%m-%d')
+        esp_times = numpy.loadtxt(fname, skiprows=15, usecols=[0,],
+                                  converters={0: convert}, dtype=numpy.object)
+        return (esp_times, esp_fluxes)
+
+All needed imports are at the top of the file, with one blank line
+between standard library imports and other imports and two blank lines
+after them. ``datadir`` is defined as a global variable, outside of
+the function (but notice that it is available to the ``load_esp``
+function.)
+
+The rest of the file defines a `function
+<http://docs.python.org/tutorial/controlflow.html#defining-functions>`_
+which returns the dates and fluxes in a `tuple
+<http://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_. The
+next section shows how to use this function.
+
+.. _appendix:
+
+Appendix: Fixing the ESP data
+=============================
+This appendix provides a detailed explanation of the script that fixes
+the ESP data file.
+
+First set up a variable to hold the location of the data, as above:
+
+>>> import os.path
+>>> datadir = os.path.join('..', 'data')
 
 Examining the data file, it is clear that something is odd: lines
 appear to have been broken inappropriately; for example, the data for
@@ -174,56 +306,13 @@ this isn't the first time around the loop, and then the *previous*
 line (which we know ended cleanly) is written out. The currently-read
 line then becomes the new "previous" line.
 
-The ``2`` is a special case: if the line is less than two characters long, ``line[0:2]`` will return the entire line, and it so happens that these cases always correspond to the previous line being whole.
+The ``2`` is a special case: if the line is less than two characters
+long, ``line[0:2]`` will return the entire line, and it so happens
+that these cases always correspond to the previous line being whole.
 
 If this test fails, everything under ``else`` is executed. Here the
 assumption is that the previous line didn't end cleanly and the
 current line is actually a continuation of it, so the current line is
 appended to the previous. ``a += b`` is a shortcut for ``a = a + b``.
 
-Once the loop terminates, the last line is written out, and then the file closed.
-
-This is all rather a mess to type by hand every time, so it's easiest
-to put into a script. Copy all of the following and paste it into a file called ``fix_esp_dta.py`` in the ``code`` directory.
-
-.. code-block:: python
-
-    import os.path
-
-
-    datadir = os.path.join('..', 'data')
-    in_name = os.path.join(datadir, '2010ja015735-ds01.txt')
-    out_name = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
-    infile = open(in_name, 'r')
-    outfile = open(out_name, 'w')
-    data = infile.read()
-    infile.close()
-
-    data = data.replace('\r', '\n')
-    data = data.replace('\n\n', '\n')
-    data = data.split('\n')
-
-    for i in range(15):
-        outfile.write(data.pop(0) + '\n')
-    oldline = None
-    for line in data:
-        if line[0:2] in ['19', '20', '2']:
-            if not oldline is None:
-                outfile.write(oldline + '\n')
-            oldline = line
-        else:
-            oldline += line
-    outfile.write(oldline + '\n')
-    outfile.close()
-
-Now this script can be run with ``python fix_esp_data.py``.
-
-Actually reading the resulting file is simple:
-
->>> import numpy
->>> datadir = os.path.join('..', 'data')
->>> fname = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
->>> esp_fluxes = numpy.loadtxt(fname, skiprows=15, usecols=[2,])
->>> convert = lambda x: datetime.datetime.strptime(x, '%Y-%m-%d')
->>> esp_times = numpy.loadtxt(fname, skiprows=15, usecols=[0,],
-...                           converters={0: convert}, dtype=numpy.object)
+Once the loop terminates, the last line is written out, and the file closed.
