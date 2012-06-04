@@ -63,7 +63,11 @@ Now this script can be run with ``python fix_esp_data.py``. It should
 create a file called ``2010ja015735-ds01_FIXED.txt`` in the ``data``
 directory.
 
-Code fixed, we can load and begin examining the data.  Change to the
+Edit this with your favorite text editor and fix the fluxes for 1993-4-13,
+1996-4-24, 2000-1-7, 2009-9-10. Each of these is missing the decimal point
+in the flux.
+
+Data fixed, we can load and begin examining the data.  Change to the
 ``code`` directory and start your Python interpreter. (`IPython
 <http://ipython.org/>`_ is recommended, but not required.)
 
@@ -190,6 +194,133 @@ The rest of the file defines a `function
 which returns the dates and fluxes in a `tuple
 <http://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_. The
 next section shows how to use this function.
+
+Solar Wind data and averaging
+=============================
+
+The top panel of figure 1 shows the ESP fluxes overplotted with the
+solar wind velocity. Fortunately, the :mod:`~spacepy.omni` module of
+SpacePy provides an interface to the hourly solar wind dataset,
+OMNI. The data are stored in a `dictionary
+<http://docs.python.org/tutorial/datastructures.html#dictionaries>`_
+called ``omnidata``, which we will access directly since we do not
+need the interpolation functions of :func:`~spacepy.omni.get_omni`:
+
+>>> import spacepy.omni
+>>> vsw = spacepy.omni.omnidata['velo']
+>>> vsw_times = spacepy.omni.omnidata['UTC']
+
+We'll also load the esp data:
+
+>>> import common
+>>> esp_times, esp_flux = common.load_esp()
+
+Even though we have not installed ``common.py``, the ``import``
+statement finds it because it is in the current directory.
+
+``load_esp`` returns a `tuple
+<http://docs.python.org/release/2.6.7/tutorial/datastructures.html#tuples-and-sequences>`_,
+which can be *unpacked* into separate variables.
+
+Now we need to produce 27-day running averages of both the flux and
+the solar wind speed. Fortunately there are no gaps in the time
+series:
+
+>>> import numpy
+>>> d = numpy.diff(vsw_times)
+>>> print(d.min())
+1:00:00
+>>> print(d.max())
+1:00:00
+>>> d = numpy.diff(esp_times)
+>>> print(d.min())
+1 day, 0:00:00
+>>> print(d.max())
+1 day, 0:00:00
+
+:func:`numpy.diff` returns the difference between every element of an
+array and the previous element. :meth:`~numpy.ndarray.min` and
+:meth:`~numpy.ndarray.max` do exactly what they sound like. So this
+code confirms that every time in the vsw data is on a continuous one
+hour cadence, and the ESP data is on a continuous one day cadence.
+
+>>> import scipy
+>>> esp_flux_av = numpy.empty(shape=esp_flux.shape, dtype=esp_flux.dtype)
+>>> for i in range(len(esp_flux_av)):
+...     esp_flux_av[i] = scipy.stats.nanmean(esp_flux[i - 13:i + 14])
+
+:func:`numpy.empty` creates an empty array, taking the ``shape`` and
+``dtype`` from the ``esp_flux`` array. ``empty`` does not initalize
+the data in the array, so it is essentially random junk; use
+:func:`~numpy.zeros` to create an array filled with zeros.
+
+:func:`len` returns the length of an array, and :func:`range` then
+iterates over each number from 0 to length minus 1, i.e. the entire
+array. Each element is then set to a 27-day average: from 13 days
+before a day's measurement through 13 days after. (Python slices do
+not include the last element listed; they are half-open). Note that
+these slices can happily run off the end or the beginning of the
+``esp_flux`` array.
+
+:func:`~scipy.stats.stats.nanmean` takes the mean of a numpy array,
+but skips any elements with a value of "not a number" (nan), which is
+often used for fill.  (This is our first exposure to the :mod:`scipy`
+module.)
+
+The solar wind data covers from 1963, whereas the ESP data starts in
+1989.  Although for proper averaging we want to keep some solar wind
+data "off the end" of the ESP data, 35 years is a bit much. So let's
+cut out the solar wind data from before 1989:
+
+>>> import bisect
+>>> import datetime
+>>> idx = bisect.bisect_left(vsw_times, datetime.datetime(1989, 1, 1))
+>>> vsw_times = vsw_times[idx:]
+>>> vsw = vsw[idx:]
+
+:mod:`bisect` provides fast functions for searching in sorted data;
+:func:`~bisect.bisect_left` is roughly a find-the-position-of function.
+Having found the position of the start of 1989, we then keep times
+from then on (specifying a start index without a stop index in Python
+means "from start to end of the list.") Note that, although ``bisect``
+is meant to work on lists, it works fine on numpy arrays; this is a
+common feature of Python known as
+`duck typing <http://en.wikipedia.org/wiki/Duck_typing#In_Python>`_.
+
+For the solar wind averaging, the times need to cover the 24 * 13.5 = 324
+hours previous, and 324 hours following (non-inclusive). There is also a 
+more efficient way than using an explicit loop:
+
+>>> vsw_av = numpy.fromiter((scipy.stats.nanmean(vsw[i - 324:i + 324])
+...                         for i in range(len(vsw))),
+...                         count=len(vsw), dtype=vsw.dtype)
+
+:func:`~numpy.fromiter` makes a numpy array from an `iterator
+<http://docs.python.org/library/stdtypes.html#iterator-types>`_, which
+is like a list except that it holds information on generating each
+element in a sequence rather than creating the entire
+sequence. ``count`` provides numpy with the number of elements in the
+output (so it can make the entire array at once); ``dtype`` here is
+just copied from the input.
+
+The type of iterator used here is a `generator expression
+<http://www.python.org/dev/peps/pep-0289/>`_, closely related to a
+`list comprehension
+<http://docs.python.org/tutorial/datastructures.html#list-comprehensions>`_.
+These are among the most powerful and most difficult to understand
+concepts in Python. An illustrative, although not useful, example:
+
+>>> for i in (x + 1 for x in range(10)):
+...     print(i)
+
+Here ``(x + 1 for x in range(10))`` is a generator expression that
+creates an iterator, which will return the numbers 1 through 10. At no
+point is the complete list of all numbers constructed, saving memory.
+
+In our calculation of ``esp_flux_av``, we created an explicit loop in
+Python. The generator expression used to compute ``vsw_av`` has no
+explicit loop, and the actual looping is handled in (much faster)
+compiled C code.
 
 .. _appendix:
 
