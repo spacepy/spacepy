@@ -325,7 +325,7 @@ compiled C code.
 .. _appendix:
 
 Appendix: Fixing the ESP data file
-=============================
+==================================
 This appendix provides a detailed explanation of the script that fixes
 the ESP data file.
 
