@@ -493,8 +493,9 @@ it'll be really small. And the font isn't that great.
 
 Now the font is bigger and it's rendered using TeX, which should match
 the body of the paper better (assuming the paper is in LaTeX). The
-larger font means tweaking the bounding box. Matplotlib has many more
-options for `customization
+larger font means tweaking the bounding box. ``unicode_minus`` fixes a
+problem where negative numbers on the axis don't render properly in
+TeX. Matplotlib has many more options for `customization
 <http://matplotlib.sourceforge.net/users/customizing.html>`_.
 
 The end result is a nice figure that can be printed full-size, put in
