@@ -193,7 +193,7 @@ next section shows how to use this function.
 
 .. _appendix:
 
-Appendix: Fixing the ESP data
+Appendix: Fixing the ESP data file
 =============================
 This appendix provides a detailed explanation of the script that fixes
 the ESP data file.
