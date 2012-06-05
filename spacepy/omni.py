@@ -157,6 +157,9 @@ else:
                                        
 try:
     omni2data = loadpickle(omni2fln)
-except:
+except IOError:
+    print("The full OMNI2 dataset has not been not found. This may limit some functionality.")
     print("HINT: Run spacepy.toolbox.update(all=False, omni2=True) to download the full OMNI2 data.")
-    print("You need to have a working CDF library installed.")
+except ImportError:
+    print("ImportError: You may not have a working CDF library installed.")
+    print("HINT: Run spacepy.toolbox.update(all=False, omni2=True) to download the full OMNI2 data.")
