@@ -24,6 +24,8 @@ Copyright 2012 Los Alamos National Security, LLC.
 .. autofunction:: LANLmax
 """
 import os.path
+import sys
+import warnings
 
 try:
     import ffnet
@@ -31,8 +33,9 @@ except ImportError:
     if 'sphinx' in sys.argv[0]:
         warnings.warn('LANLstar requires ffnet. '
                       'You appear to be building docs, so ignoring this error.')
-    raise RuntimeError(
-        'LANLstar requires ffnet (http://ffnet.sourceforge.net/)')
+    else:
+        raise RuntimeError(
+            'LANLstar requires ffnet (http://ffnet.sourceforge.net/)')
 import numpy as np
 
 

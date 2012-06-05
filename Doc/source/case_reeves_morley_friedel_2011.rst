@@ -111,7 +111,7 @@ This very long line can be typed across two lines in Python, and
 because the line break happens within parentheses, a line continuation
 character is not required.
 
-Returning to reading the ESP data:
+Returning to reading the ESP data file:
 
 >>> fname = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
 
