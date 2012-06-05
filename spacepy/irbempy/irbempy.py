@@ -19,6 +19,7 @@ from spacepy import help
 import spacepy.coordinates as spc
 import spacepy.datamodel as dm
 import irbempylib as oplib
+import spacepy.toolbox as tb
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -34,8 +35,8 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
     call get_bfield in irbem lib and return a dictionary with the B-field vector and 
     strenght.
 
-    Input:
-    ======
+    Parameters
+    ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - extMag (string) : optional; will choose the external magnetic field model 
@@ -46,11 +47,11 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
         - omni values as dictionary (optional) : if not provided, will use lookup table
         - (see Lstar documentation for further explanation)
 
-    Returns:
-    ========
+    Returns
+    =======
         - results (dictionary) : containing keys: Bvec, and Blocal
 
-    Example:
+    Examples
     ========
     >>> import spacepy.time as spt
     >>> import spacepy.coordinates as spc
@@ -62,17 +63,11 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
        'Bvec': array([[ -5.01738885e-01,  -1.65104338e+02,   9.62365503e+02],
        [  3.33497974e+02,  -5.42111173e+02,   3.33608693e+03]])}
 
-    See Also:
-    =========
+    See Also
+    ========
     get_Lstar, find_Bmirror, find_magequator
 
-    Version:
-    ========
-    V1: 05-Mar-2010 (JK)
-
     """
-
-    import spacepy.toolbox as tb
 
     # prepare input values for irbem call
     d = prep_irbem(ticks, loci, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
@@ -111,24 +106,31 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     call find_mirror_point from irbem library and return a dictionary with values for 
     Blocal, Bmirr and the GEO (cartesian) coordinates of the mirror point
 
-    Input:
-    ======
-        - ticks (Ticktock class) : containing time information
-        - loci (Coords class) : containing spatial information
-        - alpha (list or ndarray) : containing the pitch angles
-        - extMag (string) : optional; will choose the external magnetic field model 
-                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
-        - options (optional list or array of integers length=5) : explained in Lstar
-        - omni values as dictionary (optional) : if not provided, will use lookup table 
-        - (see get_Lstar documentation for further explanation)
+    Parameters
+    ==========
+        ticks : Ticktock class
+            containing time information
+        loci : Coords class
+            containing spatial information
+        alpha : array-like
+            containing the pitch angles
+        extMag : str
+            optional; will choose the external magnetic field model 
+            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
+            OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+            'T05', 'ALEX']
+        options : array-like (optional)
+            length=5 : explained in Lstar
+        omnivals : dict (optional)
+            if not provided, will use lookup table 
+            (see get_Lstar documentation for further explanation)
 
-    Returns:
-    ========
-        - results (dictionary) : containing keys: Blocal, Bmirr, GEOcar
+    Returns
+    =======
+        results : dictionary
+            containing keys: Blocal, Bmirr, GEOcar
 
-    Example:
+    Examples
     ========
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
@@ -142,12 +144,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     =========
     get_Lstar, get_Bfield, find_magequator
 
-    Version:
-    ========
-    V1: 05-Mar-2010 (JK)
-
     """
-    import spacepy.toolbox as tb
 
     # prepare input values for irbem call
     d = prep_irbem(ticks, loci, alpha, extMag=extMag, options=options, omnivals=omnivals)
@@ -193,8 +190,8 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
     call find_magequator from irbem library and return a dictionary with values for
     Bmin and the GEO (cartesian) coordinates of the magnetic equator
 
-    Input:
-    ======
+    Parameters
+    ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - extMag (string) : optional; will choose the external magnetic field model 
@@ -205,12 +202,12 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
         - omni values as dictionary (optional) : if not provided, will use lookup table 
         - (see Lstar documentation for further explanation)
 
-    Returns:
-    ========
+    Returns
+    =======
         - results (dictionary) : containing keys: Bmin, Coords instance with GEO coordinates of 
             the magnetic equator
 
-    Example:
+    Examples
     ========
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
@@ -219,17 +216,10 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
         'loci': Coords( [[ 2.99938371  0.00534151 -0.03213603]
         [ 2.00298822 -0.0073077   0.04584859]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
 
-    See Also:
-    =========
-    get_Lstar, get_Bfield, find_Bmirr
-
-    Version:
+    See Also
     ========
-    V1: 05-Mar-2010 (JK)
-
+    get_Lstar, get_Bfield, find_Bmirr
     """
-    import spacepy.toolbox as tb
-
     # prepare input values for irbem call
     d = prep_irbem(ticks, loci, alpha=[], extMag=extMag, options=options, omnivals=omnivals)
     nTAI = len(ticks)
@@ -269,17 +259,17 @@ def coord_trans(loci, returntype, returncarsph ):
     thin layer to call coor_trans1 from irbem lib
     this will convert between systems GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
 
-    Input:
-    ======
+    Parameters
+    ==========
         - loci (Coords instance) : containing coordinate information, can contain n points
         - returntype (str) : describing system as GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
         - returncarsph (str) : cartesian or spherical units 'car', 'sph'
         
-    Returns:
-    ========
+    Returns
+    =======
         - xout (ndarray) : values after transformation in (n,3) dimensions
         
-    Example:
+    Examples
     ========
     >>> c = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
     >>> c.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
@@ -287,13 +277,9 @@ def coord_trans(loci, returntype, returncarsph ):
     array([[ 2.8639301 , -0.01848784,  0.89306361],
     [ 1.9124434 ,  0.07209424,  0.58082929]])
 
-    See Also:
-    =========
-    sph2car, car2sph
-
-    Version:
+    See Also
     ========
-    V1: 05-Mar-2010 (JK)
+    sph2car, car2sph
 
     """
     sysaxesin = get_sysaxes( loci.dtype, loci.carsph )
@@ -333,29 +319,24 @@ def car2sph(CARin):
     """
     coordinate transformation from cartesian to spherical
 
-    Input:
-    ======
+    Parameters
+    ==========
         - CARin (list or ndarray) : coordinate points in (n,3) shape with n coordinate points in
             units of [Re, Re, Re] = [x,y,z]
         
-    Returns:
-    ========
+    Returns
+    =======
         - results (ndarray) : values after conversion to spherical coordinates in
             radius, latitude, longitude in units of [Re, deg, deg]
         
-    Example:
+    Examples
     ========
     >>> sph2car([1,45,0])
     array([ 0.70710678,  0.        ,  0.70710678])
 
-    See Also:
-    =========
-    sph2car
-
-    Version:
+    See Also
     ========
-    V1: 05-Mar-2010 (JK)
-
+    sph2car
     """	
 
     if isinstance(CARin[0], (float, int)):
@@ -540,8 +521,6 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     ========
     V1: 16-Nov-2010 (JK)
     """
-    import spacepy.toolbox as tb
-    
     # find bad values and dimensions
     
     if particles.lower() == 'e': # then choose electron model
@@ -712,8 +691,6 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
             - 5 = Centred dipole
             
     """
-    import spacepy.toolbox as tb
-
     nTAI = len(ticks)
     nalpha = len(alpha)
     d = prep_irbem(ticks, loci, alpha, extMag, options, omnivals)

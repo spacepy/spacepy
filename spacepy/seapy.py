@@ -947,11 +947,11 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
     """Test for similarity between distributions at each lag in two 1-D SEAs
 
     Parameters
-    =======
+    ==========
     Two seapy.Sea() instances for comparison
 
     Other Parameters
-    ====================
+    ================
         - show (default = True)
         - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
         - x(y)units (default = None (None)) - x(y)-axis units.
