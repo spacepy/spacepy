@@ -54,7 +54,7 @@ def help():
         fspec = os.path.join(__path__[0], '..',
                              'Doc', 'build', 'html', 'index.html')
     if os.path.exists(fspec):
-        webbrowser.open(fspec)
+        webbrowser.open('file://' + fspec)
     else:
         print("Can't find help files in {0}".format(__path__[0]))
 
@@ -93,7 +93,7 @@ All Rights Reserved.
 
  1. This LICENSE AGREEMENT is between the Los Alamos National Security, LLC ("LANS"), and the Individual or Organization ("Licensee") accessing and otherwise using SpacePy 0.1.2 software in source or binary form and its associated documentation.
 
- 2. Subject to the terms and conditions of this License Agreement, LANS hereby grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce, analyze, test, perform and/or display publicly, prepare derivative works, distribute, and otherwise use SpacePy 0.1.2 alone or in any derivative version, provided, however, that LANS’ License Agreement and LANS’ notice of copyright, i.e., "Copyright (c) 2010 Los Alamos National Security, LLC; All Rights Reserved" are retained in SpacePy 0.1.2 alone or in any derivative version prepared by Licensee.
+ 2. Subject to the terms and conditions of this License Agreement, LANS hereby grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce, analyze, test, perform and/or display publicly, prepare derivative works, distribute, and otherwise use SpacePy 0.1.2 alone or in any derivative version, provided, however, that LANS' License Agreement and LANS' notice of copyright, i.e., "Copyright (c) 2010 Los Alamos National Security, LLC; All Rights Reserved" are retained in SpacePy 0.1.2 alone or in any derivative version prepared by Licensee.
 
  3. In the event Licensee prepares a derivative work that is based on or incorporates SpacePy 0.1.2 or any part thereof, and wants to make the derivative work available to others as provided herein, then Licensee hereby agrees to include in any such work a brief summary of the changes made to SpacePy 0.1.2.
 
