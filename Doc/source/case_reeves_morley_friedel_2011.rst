@@ -63,11 +63,7 @@ Now this script can be run with ``python fix_esp_data.py``. It should
 create a file called ``2010ja015735-ds01_FIXED.txt`` in the ``data``
 directory.
 
-Edit this with your favorite text editor and fix the fluxes for 1993-4-13,
-1996-4-24, 2000-1-7, 2009-9-10. Each of these is missing the decimal point
-in the flux.
-
-Data fixed, we can load and begin examining the data.  Change to the
+File fixed, we can load and begin examining the data.  Change to the
 ``code`` directory and start your Python interpreter. (`IPython
 <http://ipython.org/>`_ is recommended, but not required.)
 
@@ -125,9 +121,15 @@ creates a variable holding the full path to the fixed file.
 
 The import statement imports any installed `module <http://docs.python.org/tutorial/modules.html>`_, just as if it were in the standard library. Here we import the very useful :mod:`numpy` module, which is a prerequisite for SpacePy and useful in its own right.
 
->>> esp_fluxes = numpy.loadtxt(fname, skiprows=15, usecols=[2])
+>>> esp_fluxes = numpy.loadtxt(fname, skiprows=14, usecols=[1])
 
-:func:`~numpy.loadtxt` makes it easy to load data from a file into a numpy :class:`~numpy.ndarray`, a very useful data container. ``skiprows`` skips the header information, and specifying only column 2 with ``usecols`` will only load the fluxes for 1.8-3.5MeV. We only load the fluxes at this point because they can be represented as floats, which numpy arrays store very efficiently.
+:func:`~numpy.loadtxt` makes it easy to load data from a file into a
+numpy :class:`~numpy.ndarray`, a very useful data
+container. ``skiprows`` skips the header information, and specifying
+only column 1 (first column is column 0) with ``usecols`` will only
+load the fluxes for 1.8-3.5MeV. We only load the fluxes at this point
+because they can be represented as floats, which numpy arrays store
+very efficiently.
 
 >>> import datetime
 
@@ -151,7 +153,7 @@ parse a date string without specifying the format all the time:
 
 This converter can be used with :func:`~numpy.loadtxt`:
 
->>> esp_times = numpy.loadtxt(fname, skiprows=15, usecols=[0,],
+>>> esp_times = numpy.loadtxt(fname, skiprows=14, usecols=[0],
 ...                           converters={0: convert}, dtype=numpy.object)
 
 The ``converters`` option takes a Python `dictionary
@@ -177,9 +179,9 @@ directory with the following contents:
 
     def load_esp():
         fname = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
-        esp_fluxes = numpy.loadtxt(fname, skiprows=15, usecols=[2])
+        esp_fluxes = numpy.loadtxt(fname, skiprows=14, usecols=[1])
         convert = lambda x: datetime.datetime.strptime(x, '%Y-%m-%d')
-        esp_times = numpy.loadtxt(fname, skiprows=15, usecols=[0,],
+        esp_times = numpy.loadtxt(fname, skiprows=14, usecols=[0],
                                   converters={0: convert}, dtype=numpy.object)
         return (esp_times, esp_fluxes)
 
@@ -247,7 +249,8 @@ hour cadence, and the ESP data is on a continuous one day cadence.
 >>> import scipy
 >>> esp_flux_av = numpy.empty(shape=esp_flux.shape, dtype=esp_flux.dtype)
 >>> for i in range(len(esp_flux_av)):
-...     esp_flux_av[i] = scipy.stats.nanmean(esp_flux[i - 13:i + 14])
+...     esp_flux_av[i] = scipy.stats.nanmean(
+...         esp_flux[max(i - 13, 0):i + 14])
 
 :func:`numpy.empty` creates an empty array, taking the ``shape`` and
 ``dtype`` from the ``esp_flux`` array. ``empty`` does not initalize
@@ -259,8 +262,9 @@ iterates over each number from 0 to length minus 1, i.e. the entire
 array. Each element is then set to a 27-day average: from 13 days
 before a day's measurement through 13 days after. (Python slices do
 not include the last element listed; they are half-open). Note that
-these slices can happily run off the end or the beginning of the
-``esp_flux`` array.
+these slices can happily run off the end of the ``esp_flux`` array,
+but we use :func:`max` to ensure the first index does not go negative.
+(Negative indices have special meaning in Python.)
 
 :func:`~scipy.stats.stats.nanmean` takes the mean of a numpy array,
 but skips any elements with a value of "not a number" (nan), which is
@@ -291,7 +295,8 @@ For the solar wind averaging, the times need to cover the 24 * 13.5 = 324
 hours previous, and 324 hours following (non-inclusive). There is also a 
 more efficient way than using an explicit loop:
 
->>> vsw_av = numpy.fromiter((scipy.stats.nanmean(vsw[i - 324:i + 324])
+>>> vsw_av = numpy.fromiter((scipy.stats.nanmean(
+                            vsw[max(0, i - 324):i + 324])
 ...                         for i in range(len(vsw))),
 ...                         count=len(vsw), dtype=vsw.dtype)
 
@@ -321,6 +326,181 @@ In our calculation of ``esp_flux_av``, we created an explicit loop in
 Python. The generator expression used to compute ``vsw_av`` has no
 explicit loop, and the actual looping is handled in (much faster)
 compiled C code.
+
+Making Figure 1
+===============
+
+To actually plot, we need access to the :mod:`~matplotlib.pyplot` module:
+
+>>> import matplotlib.pyplot as plt
+>>> plt.ion()
+
+This alternate form of the import statement shouldn't be overused (it can
+make code harder to read by masking the origin of functions), but is
+conventional for matplotlib.
+
+:func:`~matplotlib.pyplot.ion` turns on interactive mode so plots appear
+and are updated as they're created.
+
+>>> plt.semilogy(esp_times, 10 ** esp_flux_av, 'b')
+>>> plt.draw()
+>>> plt.draw()
+
+:func:`~matplotlib.pyplot.semilogy` creates a semilog plot, log
+on the Y axis. The first two arguments are a list of X and Y values;
+after that there are many options to specify formatting (such as the
+color, used here.)
+
+The ESP fluxes are stored as the log of the flux; ``**`` is the
+exponentiation operator so the (geometric!) average is plotted
+properly.
+
+:func:`~matplotlib.pyplot.draw` draws the updated plot; sometimes it
+needs to be called repeatedly. Use it whenever you want the plot updated;
+it will not be included from here on.
+
+>>> plt.xlabel('Year')
+>>> plt.ylabel('Electron Flux\n1.8-3.5 MeV', color='blue')
+>>> plt.ylim(1e-2, 10)
+(0.01, 10)
+
+:func:`~matplotlib.pyplot.xlabel` and :func:`~matplotlib.pyplot.ylabel`
+set the labels for the axes. Note the newline (``\n``) in the string for
+the Y label. :func:`~matplotlib.pyplot.ylim` sets the lower and upper
+limits for the Y axis; there is, of course, :func:`~matplotlib.pyplot.xlim`
+as well.
+
+These are the simplest, although not most flexible, ways to work with plots.
+To produce the full Figure 1, we'll move out of interactive mode:
+
+>>> plt.ioff()
+>>> plt.show()
+
+:func:`~matplotlib.pyplot.ioff` turns off interactive mode. Once
+interactive mode is off, :func:`~matplotlib.pyplot.show` displays
+the full plot, including controls for panning, zooming, etc. Until
+the plot is closed, nothing further can happen in the Python window.
+
+>>> fig = plt.figure(figsize=[11, 8.5])
+
+:func:`~matplotlib.pyplot.figure` creates a new
+:class:`~matplotlib.figure.Figure`; the size specified here is
+US-letter paper, landscape orientation.
+
+>>> ax = fig.add_subplot(111)
+
+:meth:`~matplotlib.figure.Figure.add_subplot` creates an
+:class:`~matplotlib.axes.Axes` object, which can contain an actual
+plot. ``111`` here means that the figure will have 1 subplot and the
+new subplot should be in position (1, 1); more on this later.
+
+>>> fluxline = ax.plot(esp_times, 10 ** esp_flux_av, 'b')
+
+:meth:`~matplotlib.axes.Axes.plot` puts the relevant data into the
+plot; again specifying a blue line. It returns a list of 
+:class:`~matplotlib.lines.Line2D` objects, which we save for later
+use.
+
+>>> ax.set_yscale('log')
+
+:meth:`~matplotlib.axes.Axes.set_yscale` switches the Y axis between
+log and linear (:meth:`~matplotlib.axes.Axes.set_xscale` for the X axis).
+
+>>> ax.set_ylim(1e-2, 10)
+>>> ax.set_xlabel('Year')
+>>> ax.set_ylabel('Electron Flux\n1.8-3.5 MeV', color='b')
+
+:meth:`~matplotlib.axes.Axes.set_ylim` (and 
+:meth:`~matplotlib.axes.Axes.set_xlim`),
+:meth:`~matplotlib.axes.Axes.set_xlabel`, and
+:meth:`~matplotlib.axes.Axes.set_ylabel` function much as above, but
+operate on a particular :class:`~matplotlib.axes.Axes` object.
+
+>>> ax2 = ax.twinx()
+
+:meth:`~matplotlib.axes.Axes.twinx` establishes a second
+Y axis (two values twinned on one X axis) on the same plot.
+
+>>> vswline = ax2.plot(vsw_times, vsw_av, 'r')
+>>> ax2.set_ylim(300, 650)
+>>> ax2.set_ylabel('Solar Wind Speed', color='r', rotation=270)
+
+The resulting :class:`~matplotlib.axes.Axes` object has all the
+methods that we've used before. Note ``rotation`` on
+:meth:`~matplotlib.axes.Axes.set_ylabel` to make the text run
+top-to-bottom rather than bottom-to-top.
+
+>>> ax.set_xlim(esp_times[0], esp_times[-1])
+
+Since the solar wind data extends beyond the ESP data, this sets
+the X axis to match the ESP data. Note ``-1`` to refer to the last
+element of the array.
+
+>>> leg = ax.legend([fluxline[0], vswline[0]], ['Flux', 'Vsw'],
+...                 loc='upper left', frameon=False)
+
+:meth:`~matplotlib.axes.Axes.legend`, as may be expected, creates a 
+:class:`~matplotlib.legend.Legend` on the axes. The first parameter is
+a list of the matplotlib objects to make a legend for; since the
+plotting commands return these, we can pass them back in. Each plotting
+command returns a *list*. In this case we just take the 0th element of
+each list since we know there's only one line from each plotting command.
+The second parameter is the text used to annotate each line.
+
+>>> fluxtext, vswtext = leg.get_texts()
+>>> fluxtext.set_color(fluxline[0].get_color())
+>>> vswtext.set_color(vswline[0].get_color())
+
+The default text color is black, so we use
+:meth:`~matplotlib.legend.Legend.get_texts` to get the
+:class:`~matplotlib.text.Text` objects for the annotations. Again, we
+know there are two (we just created the legend). Then
+:meth:`~matplotlib.text.Text.set_color` sets the color based on the
+the existing color for each line (:meth:`~matplotlib.lines.Line2D.get_color`).
+
+To see the results:
+
+>>> plt.show()
+
+Close the window when done. Now we want to save the output:
+
+>>> fig_fname = os.path.join('..', 'plots', 'fig1a.eps')
+>>> fig.savefig(fig_fname)
+
+:meth:`~matplotlib.figure.Figure.savefig` saves the figure, in this case
+as an encapsulated PostScript file (to the ``plots`` directory).
+
+Let's tweak a few things. For one, there's a lot of padding around the figure,
+which can make it difficult to properly scale for publication. The way around
+this is to specify a :class:`~matplotlib.transforms.Bbox` (bounding box),
+basically the lower left and upper right corners (in inches) to include
+in the saved figure. Getting this right tends to be a matter of trial and error.
+
+>>> import matplotlib.transforms
+>>> bob = matplotlib.transforms.Bbox([[0.52, 0.35], [10.5, 7.95]])
+>>> fig.savefig(fig_fname, bbox_inches=bob, pad_inches=0.0)
+
+Better, but all the text is awfully small. Once the figure is fit in the paper
+it'll be really small. And the font isn't that great.
+
+>>> import matplotlib
+>>> matplotlib.rcParams['axes.unicode_minus'] = False
+>>> matplotlib.rcParams['text.usetex']= True
+>>> matplotlib.rcParams['font.family'] = 'serif'
+>>> matplotlib.rcParams['font.size'] = 16
+>>> bob = matplotlib.transforms.Bbox([[0.4, 0.35], [10.7, 7.95]])
+>>> fig.savefig(fig_fname, bbox_inches=bob, pad_inches=0.0)
+
+Now the font is bigger and it's rendered using TeX, which should match
+the body of the paper better (assuming the paper is in LaTeX). The
+larger font means tweaking the bounding box. ``unicode_minus`` fixes a
+problem where negative numbers on the axis don't render properly in
+TeX. Matplotlib has many more options for `customization
+<http://matplotlib.sourceforge.net/users/customizing.html>`_.
+
+The end result is a nice figure that can be printed full-size, put in
+a PDF, or included directly in a paper.
+
 
 .. _appendix:
 
