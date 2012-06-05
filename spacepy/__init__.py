@@ -54,7 +54,7 @@ def help():
         fspec = os.path.join(__path__[0], '..',
                              'Doc', 'build', 'html', 'index.html')
     if os.path.exists(fspec):
-        webbrowser.open(fspec)
+        webbrowser.open('file://' + fspec)
     else:
         print("Can't find help files in {0}".format(__path__[0]))
 
