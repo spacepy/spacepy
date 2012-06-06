@@ -16,6 +16,8 @@ import spacepy.LANLstar as sl
 import numpy
 from numpy import array
 
+__all__ = ['LANLStarFunctionsTest', 'lanlstarTest']
+
 
 class LANLStarFunctionsTest(unittest.TestCase):
     """Tests of simple support functions for LANLStar"""

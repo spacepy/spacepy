@@ -18,6 +18,9 @@ try:
 except ImportError:
     from spacepy import seapy
 
+__all__ = ['SEATestsUniform', 'SEATestsUniWithBad', 'SeaClassExceptions']
+
+
 class SEATestsUniform(unittest.TestCase):
     """Tests of the sea method using uniform input"""
 

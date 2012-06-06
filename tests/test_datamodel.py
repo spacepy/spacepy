@@ -26,6 +26,8 @@ try:
 except:
     import pickle
 
+__all__ = ['SpaceDataTests', 'dmarrayTests', 'converterTests', 'JSONTests']
+
 
 class SpaceDataTests(unittest.TestCase):
     def setUp(self):

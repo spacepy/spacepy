@@ -15,6 +15,8 @@ import spacepy.toolbox as tb
 
 from spacepy.plot.spectrogram import spectrogram
 
+__all__ = ['spectrogramTests']
+
 class spectrogramTests(unittest.TestCase):
     def setUp(self):
         super(spectrogramTests, self).setUp()

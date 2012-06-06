@@ -8,6 +8,8 @@ from numpy import array
 import numpy as n
 from spacepy.time import Ticktock
 
+__all__ = ['coordsTest']
+
 
 class coordsTest(unittest.TestCase):
     def setUp(self):

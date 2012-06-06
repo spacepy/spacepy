@@ -31,6 +31,9 @@ from spacepy import datamodel
 import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
+__all__ = ['NoCDF', 'MakeCDF', 'CDFTestsBase', 'CDFTests', 'ColCDFTests',
+           'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ChangeCDF', 'ChangeColCDF']
+
 
 class est_tz(datetime.tzinfo):
     """Eastern Standard timezone (no daylight time"""
