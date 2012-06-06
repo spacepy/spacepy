@@ -441,7 +441,7 @@ def fromCDF(fname, **kwargs):
         from spacepy import pycdf
     except ImportError:
         raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
-    
+
     with pycdf.CDF(fname) as cdfdata:
         return cdfdata.copy()
 
@@ -593,7 +593,7 @@ def toHDF5(fname, SDobject, **kwargs):
     if 'overwrite' not in kwargs: kwargs['overwrite'] = True
     if type(fname) == str:
         if os.path.isfile(fname) and not kwargs['overwrite']:
-            raise(IOError('Cannot write HDF5, file exists (see overwrite)'))
+            raise(IOError('Cannot write HDF5, file exists (see overwrite) "{0!s}"'.format(fname)))
         if os.path.isfile(fname) and kwargs['overwrite']:
             os.remove(fname)
         hfile = hdf.File(fname, mode=wr_mo)
@@ -637,7 +637,7 @@ def toHDF5(fname, SDobject, **kwargs):
     if path=='/': hfile.close()
 
 
-def toHTML(fname, SDobject, attrs=(), 
+def toHTML(fname, SDobject, attrs=(),
            varLinks=False, linkFormat=None, echo=False, tableTag='<table border="1">'):
     """
     Create an HTML dump of the structure of a spacedata
@@ -685,7 +685,7 @@ def toHTML(fname, SDobject, attrs=(),
         if varLinks:
             output.write('</a>')
         output.write('</td>')
-        
+
         for attr in attrs:
             try:
                 if not isinstance(SDobject[key].attrs[attr], (str, unicode)):
