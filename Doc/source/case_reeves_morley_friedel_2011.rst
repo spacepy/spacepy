@@ -246,11 +246,10 @@ array and the previous element. :meth:`~numpy.ndarray.min` and
 code confirms that every time in the vsw data is on a continuous one
 hour cadence, and the ESP data is on a continuous one day cadence.
 
->>> import scipy
+>>> import scipy.stats
 >>> esp_flux_av = numpy.empty(shape=esp_flux.shape, dtype=esp_flux.dtype)
 >>> for i in range(len(esp_flux_av)):
-...     esp_flux_av[i] = scipy.stats.nanmean(
-...         esp_flux[max(i - 13, 0):i + 14])
+...     esp_flux_av[i] = scipy.stats.nanmean(esp_flux[max(i - 13, 0):i + 14])
 
 :func:`numpy.empty` creates an empty array, taking the ``shape`` and
 ``dtype`` from the ``esp_flux`` array. ``empty`` does not initalize
@@ -295,10 +294,9 @@ For the solar wind averaging, the times need to cover the 24 * 13.5 = 324
 hours previous, and 324 hours following (non-inclusive). There is also a 
 more efficient way than using an explicit loop:
 
->>> vsw_av = numpy.fromiter((scipy.stats.nanmean(
-                            vsw[max(0, i - 324):i + 324])
+>>> vsw_av = numpy.fromiter((scipy.stats.nanmean(vsw[max(0, i - 324):i + 324])
 ...                         for i in range(len(vsw))),
-...                         count=len(vsw), dtype=vsw.dtype)
+...			    count=len(vsw), dtype=vsw.dtype)
 
 :func:`~numpy.fromiter` makes a numpy array from an `iterator
 <http://docs.python.org/library/stdtypes.html#iterator-types>`_, which
@@ -359,8 +357,8 @@ properly.
 needs to be called repeatedly. Use it whenever you want the plot updated;
 it will not be included from here on.
 
->>> plt.xlabel('Year')
->>> plt.ylabel('Electron Flux\n1.8-3.5 MeV', color='blue')
+>>> plt.xlabel('Year', weight='bold')
+>>> plt.ylabel('Electron Flux\n1.8-3.5 MeV', color='blue', weight='bold')
 >>> plt.ylim(1e-2, 10)
 (0.01, 10)
 
@@ -407,8 +405,8 @@ use.
 log and linear (:meth:`~matplotlib.axes.Axes.set_xscale` for the X axis).
 
 >>> ax.set_ylim(1e-2, 10)
->>> ax.set_xlabel('Year')
->>> ax.set_ylabel('Electron Flux\n1.8-3.5 MeV', color='b')
+>>> ax.set_xlabel('Year', weight='bold')
+>>> ax.set_ylabel('Electron Flux\n1.8-3.5 MeV', color='b', weight='bold')
 
 :meth:`~matplotlib.axes.Axes.set_ylim` (and 
 :meth:`~matplotlib.axes.Axes.set_xlim`),
@@ -423,7 +421,7 @@ Y axis (two values twinned on one X axis) on the same plot.
 
 >>> vswline = ax2.plot(vsw_times, vsw_av, 'r')
 >>> ax2.set_ylim(300, 650)
->>> ax2.set_ylabel('Solar Wind Speed', color='r', rotation=270)
+>>> ax2.set_ylabel('Solar Wind Speed', color='r', rotation=270, weight='bold')
 
 The resulting :class:`~matplotlib.axes.Axes` object has all the
 methods that we've used before. Note ``rotation`` on
@@ -487,7 +485,7 @@ it'll be really small. And the font isn't that great.
 >>> matplotlib.rcParams['axes.unicode_minus'] = False
 >>> matplotlib.rcParams['text.usetex']= True
 >>> matplotlib.rcParams['font.family'] = 'serif'
->>> matplotlib.rcParams['font.size'] = 16
+>>> matplotlib.rcParams['font.size'] = 14
 >>> bob = matplotlib.transforms.Bbox([[0.4, 0.35], [10.7, 7.95]])
 >>> fig.savefig(fig_fname, bbox_inches=bob, pad_inches=0.0)
 
@@ -501,6 +499,184 @@ TeX. Matplotlib has many more options for `customization
 The end result is a nice figure that can be printed full-size, put in
 a PDF, or included directly in a paper.
 
+Now we need the bototm half of Figure 1. From
+`SIDC <http://sidc.oma.be/sunspot-data/>`_, download the "monthly and
+monthly smoothed sunspot number" (``monthssn.dat``). Put it in the ``data``
+directory.
+
+>>> monthfile = os.path.join(common.datadir, 'monthssn.dat')
+>>> convert = lambda x: datetime.datetime.strptime(x, '%Y%m')
+>>> ssn_data = numpy.genfromtxt(monthfile, skip_header=2400, usecols=[0, 2, 3],
+...                             converters={0: convert}, dtype=numpy.object,
+...                             skip_footer=24)
+>>> idx = bisect.bisect_left(ssn_data[:, 0], datetime.datetime(1989, 1, 1))
+>>> ssn_data = ssn_data[idx:]
+>>> ssn_times = ssn_data[:, 0]
+>>> ssn = numpy.asarray(ssn_data[:, 1], dtype=numpy.float64)
+>>> smooth_ssn = numpy.asarray(ssn_data[:, 2], dtype=numpy.float64)
+>>> ssn_times += datetime.timedelta(days=15)
+
+Much of this should be familiar. :func:`~numpy.genfromtxt` is a little more
+flexible than :func:`~numpy.loadtxt`; here it allows the skipping of lines
+at the end as well as the beginning (skipping 200 years at the start, 2 at 
+the end, where data are provisional.) Here we load both times and the
+sunspot numbers in the same command so that if any lines don't load, they 
+will not wind up in any of the arrays. We then use :func:`~numpy.asarray`
+to convert the ``ssn`` and ``smooth_ssn`` columns to float arrays. Note
+the slice notation: ``[:, 0]`` means take all indices of the first dimension
+(line number) and only the 0th index of the second dimension (column in the
+line). Finally, we use :class:`~datetime.timedelta` to shift the date
+associated with a month from the beginning to roughly the middle of the month.
+Adding a scalar to an array does an elementwise addition.
+
+>>> import matplotlib.figure
+>>> fig = plt.figure(figsize=[11, 8.5],
+...                  subplotpars=matplotlib.figure.SubplotParams(hspace=0.1))
+>>> ax = fig.add_subplot(211)
+
+When creating the figure this time, we use
+:class:`~matplotlib.figure.SubplotParams` to choose a slightly smaller vertical
+spacing between adjacent subplots.
+
+Then we create a subplot with the information that there will be 2 rows, 1
+column, and this is the first subplot. Now everything acting on ax, above,
+can be repeated, although we skip setting the xlabel since only the bottom
+axis will be labelled.
+
+>>> fluxline = ax.plot(esp_times, 10 ** esp_flux_av, 'b')
+>>> ax.set_yscale('log')
+>>> ax.set_ylim(1e-2, 10)
+>>> ax.set_ylabel('Electron Flux\n1.8-3.5 MeV', color='b', weight='bold')
+>>> ax2 = ax.twinx()
+>>> vswline = ax2.plot(vsw_times, vsw_av, 'r')
+>>> ax2.set_ylim(300, 650)
+>>> ax2.set_ylabel('Solar Wind Speed', color='r', rotation=270, weight='bold')
+>>> ax.set_xlim(esp_times[0], esp_times[-1])
+>>> leg = ax.legend([fluxline[0], vswline[0]], ['Flux', 'Vsw'],
+...                 loc='upper left', frameon=False)
+>>> fluxtext, vswtext = leg.get_texts()
+>>> fluxtext.set_color(fluxline[0].get_color())
+>>> vswtext.set_color(vswline[0].get_color())
+
+Then we move on to adding the solar wind:
+
+>>> ax3 = fig.add_subplot(212, sharex=ax)
+
+This adds another subplot, the second in the 2x1 array. Its x axis is
+shared with the existing ``ax``. (This is poorly documented; see this
+`example
+<http://matplotlib.sourceforge.net/examples/pylab_examples/shared_axis_demo.html>`_)
+
+>>> plt.setp(ax.get_xticklabels(), visible=False)
+>>> plt.setp(ax2.get_xticklabels(), visible=False)
+
+:func:`~matplotlib.pyplot.setp` sets a
+property. :meth:`~matplotlib.axes.Axes.get_xticklabels` returns all the
+tick labels (:class:`~matplotlib.text.Text`) fot the x axis; ``setp``
+then sets ``visible`` to ``False`` for all of them. This hides the
+labelling on the axis for the upper subfigure.
+
+>>> ax3.set_xlabel('Year', weight='bold')
+>>> ax3.set_ylabel('Sunspot Number', weight='bold')
+>>> smoothline = ax3.plot(ssn_times, smooth_ssn, lw=2.0, color='k')
+>>> ssnline = ax3.plot(ssn_times, ssn, color='k', linestyle='dotted')
+
+There is nothing new here except for the specifications of ``linewidth``
+and ``linestyle``; see :meth:`~matplotlib.axes.Axes.plot` for details.
+Note ``k`` as the abbreviation for black (to avoid confusion with blue.)
+
+>>> leg2 = ax3.legend([ssnline[0], smoothline[0]],
+...                   ['Sunspot Number', 'Smoothed SSN'],
+...                   loc='upper right', frameon=False)
+>>> ax3.set_ylim(0, 200)
+>>> ax3.set_xlim(esp_times[0], esp_times[-1])
+
+>>> fig_fname = os.path.join('..', 'plots', 'fig1.eps')
+>>> fig.savefig(fig_fname, bbox_inches=bob, pad_inches=0.0)
+
+All of this has been seen for the top half of figure 1.
+
+Following is the complete code to reproduce Figure 1.
+
+.. code-block:: python
+
+    import bisect
+    import datetime
+
+    import common
+    import matplotlib
+    import matplotlib.figure
+    import matplotlib.pyplot as plt
+    import matplotlib.transforms
+    import numpy
+    import scipy
+    import scipy.stats
+    import spacepy.omni
+
+
+    matplotlib.rcParams['axes.unicode_minus'] = False
+    matplotlib.rcParams['text.usetex']= True
+    matplotlib.rcParams['font.family'] = 'serif'
+    matplotlib.rcParams['font.size'] = 14
+    bob = matplotlib.transforms.Bbox([[0.4, 0.35], [10.7, 7.95]])
+
+    vsw = spacepy.omni.omnidata['velo']
+    vsw_times = spacepy.omni.omnidata['UTC']
+    esp_times, esp_flux = common.load_esp()
+    esp_flux_av = numpy.empty(shape=esp_flux.shape, dtype=esp_flux.dtype)
+    for i in range(len(esp_flux_av)):
+        esp_flux_av[i] = scipy.stats.nanmean(esp_flux[max(i - 13, 0):i + 14])
+    idx = bisect.bisect_left(vsw_times, datetime.datetime(1989, 1, 1))
+    vsw_times = vsw_times[idx:]
+    vsw = vsw[idx:]
+    vsw_av = numpy.fromiter((scipy.stats.nanmean(vsw[max(0, i - 324):i + 324])
+                             for i in range(len(vsw))),
+                             count=len(vsw), dtype=vsw.dtype)
+    monthfile = os.path.join(common.datadir, 'monthssn.dat')
+    convert = lambda x: datetime.datetime.strptime(x, '%Y%m')
+    ssn_data = numpy.genfromtxt(monthfile, skip_header=2400, usecols=[0, 2, 3],
+                                converters={0: convert}, dtype=numpy.object,
+                                skip_footer=24)
+    idx = bisect.bisect_left(ssn_data[:, 0], datetime.datetime(1989, 1, 1))
+    ssn_data = ssn_data[idx:]
+    ssn_times = ssn_data[:, 0]
+    ssn = numpy.asarray(ssn_data[:, 1], dtype=numpy.float64)
+    smooth_ssn = numpy.asarray(ssn_data[:, 2], dtype=numpy.float64)
+    ssn_times += datetime.timedelta(days=15)
+
+    fig = plt.figure(figsize=[11, 8.5],
+                     subplotpars=matplotlib.figure.SubplotParams(hspace=0.1))
+    ax = fig.add_subplot(211)
+    fluxline = ax.plot(esp_times, 10 ** esp_flux_av, 'b')
+    ax.set_yscale('log')
+    ax.set_ylim(1e-2, 10)
+    ax.set_ylabel('Electron Flux\n1.8-3.5 MeV', color='b', weight='bold')
+    ax2 = ax.twinx()
+    vswline = ax2.plot(vsw_times, vsw_av, 'r')
+    ax2.set_ylim(300, 650)
+    ax2.set_ylabel('Solar Wind Speed', color='r', rotation=270, weight='bold')
+    ax.set_xlim(esp_times[0], esp_times[-1])
+    leg = ax.legend([fluxline[0], vswline[0]], ['Flux', 'Vsw'],
+                    loc='upper left', frameon=False)
+    fluxtext, vswtext = leg.get_texts()
+    fluxtext.set_color(fluxline[0].get_color())
+    vswtext.set_color(vswline[0].get_color())
+
+    ax3 = fig.add_subplot(212, sharex=ax)
+    plt.setp(ax.get_xticklabels(), visible=False)
+    plt.setp(ax2.get_xticklabels(), visible=False)
+    ax3.set_xlabel('Year', weight='bold')
+    ax3.set_ylabel('Sunspot Number', weight='bold')
+    smoothline = ax3.plot(ssn_times, smooth_ssn, lw=2.0, color='k')
+    ssnline = ax3.plot(ssn_times, ssn, color='k', linestyle='dotted')
+    leg2 = ax3.legend([ssnline[0], smoothline[0]],
+                      ['Sunspot Number', 'Smoothed SSN'],
+                      loc='upper right', frameon=False)
+    ax3.set_ylim(0, 200)
+    ax3.set_xlim(esp_times[0], esp_times[-1])
+
+    fig_fname = os.path.join('..', 'plots', 'fig1.eps')
+    fig.savefig(fig_fname, bbox_inches=bob, pad_inches=0.0)
 
 .. _appendix:
 
