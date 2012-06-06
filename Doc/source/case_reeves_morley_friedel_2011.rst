@@ -473,6 +473,8 @@ which can make it difficult to properly scale for publication. The way around
 this is to specify a :class:`~matplotlib.transforms.Bbox` (bounding box),
 basically the lower left and upper right corners (in inches) to include
 in the saved figure. Getting this right tends to be a matter of trial and error.
+(:meth:`~matplotlib.figure.Figure.get_tightbbox` is supposed to help with this,
+but it doesn't quite work yet.)
 
 >>> import matplotlib.transforms
 >>> bob = matplotlib.transforms.Bbox([[0.52, 0.35], [10.5, 7.95]])
@@ -535,8 +537,9 @@ Adding a scalar to an array does an elementwise addition.
 >>> ax = fig.add_subplot(211)
 
 When creating the figure this time, we use
-:class:`~matplotlib.figure.SubplotParams` to choose a slightly smaller vertical
-spacing between adjacent subplots.
+:class:`~matplotlib.figure.SubplotParams` to choose a slightly smaller
+vertical spacing between adjacent subplots. Tweaking ``SubplotParams``
+also provides an alternative to tweaking bounding boxes.
 
 Then we create a subplot with the information that there will be 2 rows, 1
 column, and this is the first subplot. Now everything acting on ax, above,
