@@ -27,7 +27,7 @@ The data file was corrupted on upload to AGU, and the code to fix it
 is non-trivial, so this is a good chance to learn how to run someone
 else's code. (:ref:`appendix` has step-by-step information on each
 portion of this process.) Copy all of the following and paste it into
-a file called ``fix_esp_dta.py`` in the ``code`` directory.
+a file called ``fix_esp_data.py`` in the ``code`` directory.
 
 .. code-block:: python
 
