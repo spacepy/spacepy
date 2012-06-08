@@ -888,6 +888,10 @@ class Ticktock(object):
 
         # include offset if given
         JD = np.zeros(nTAI)
+        
+        twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
+        sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
+        
         for i in np.arange(nTAI):
             offset = UTCdata[i].utcoffset()
             if offset:
@@ -917,8 +921,8 @@ class Ticktock(object):
                 JD[i] = JD[i]+2-JA+int(0.25*JA)
 
             # add this to num.recipes to get fractional days
-            twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
-            sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
+            # twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
+            # sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
             JD[i] = decimal.Decimal(str(JD[i])) + (decimal.Decimal(str(UTCdata[i].hour))-twelve)/twofour + \
                 decimal.Decimal(str(UTCdata[i].minute/1440.)) + (decimal.Decimal(str(UTCdata[i].second))/sind) + \
                 (decimal.Decimal(str(UTCdata[i].microsecond))/usind)
