@@ -229,23 +229,26 @@ class Ticktock(collections.MutableSequence):
     .. automethod:: update_items
     """
     def __init__(self, data, dtype=None):
-        from numpy import ndarray
-        from datetime import datetime
-        try:
-            dmarray(data)[0]
-        except IndexError:
-            self.data = dmarray([data])
-        else:
-            self.data = dmarray(data)
-        
-        if isinstance(self.data[0], str):
-            dtype = 'ISO'
-        elif isinstance(self.data[0], datetime):
-            dtype = 'UTC'
-        elif self.data[0] > 1e13:
-            dtype = 'CDF'
         keylist = ['UTC','TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS']
-        assert dtype.upper() in keylist, "data type " + dtype +" not provided, only "+str(keylist)
+
+        if isinstance(data, Ticktock):
+            dtype = data.data.attrs['dtype']
+            self.data = data.data
+        else:
+            try:
+                dmarray(data)[0]
+            except IndexError:
+                self.data = dmarray([data])
+            else:
+                self.data = dmarray(data)
+
+            if isinstance(self.data[0], str):
+                dtype = 'ISO'
+            elif isinstance(self.data[0], datetime.datetime):
+                dtype = 'UTC'
+            elif self.data[0] > 1e13:
+                dtype = 'CDF'
+            assert dtype.upper() in keylist, "data type " + dtype +" not provided, only "+str(keylist)
         self.data.attrs['dtype'] = dtype.upper()
         self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
         self.__isofmt = self.__isoformatstr['seconds']
@@ -265,8 +268,20 @@ class Ticktock(collections.MutableSequence):
         if dtype.upper() == 'RDT': self.RDT = self.data
         if dtype.upper() == 'CDF': self.CDF = self.data
         if dtype.upper() == 'UTC': self.UTC = self.data
-        
+
         return
+
+## Brian and Steve were looking at this to see about making plot work directly on the object
+## is also making iterate as an array of datetimes
+#    def __iter__(self):
+#        i = 0
+#        try:
+#            while True:
+#                v = self[i].UTC[0]
+#                yield v
+#                i += 1
+#        except IndexError:
+#            return
 
     # -----------------------------------------------
     def __str__(self):
@@ -334,7 +349,6 @@ class Ticktock(collections.MutableSequence):
         a.__setitem__
 
         """
-
         return Ticktock(self.UTC[idx])
 
     # -----------------------------------------------
@@ -360,21 +374,23 @@ class Ticktock(collections.MutableSequence):
         ========
         a.__getitem__
         """
-        self[idx] = vals
+        tmp = Ticktock(vals)
+        if len(tmp) > 1:
+            self.data[idx] = tmp.__getattribute__(self.data.attrs['dtype'])[...]
+        else:
+            self.data[idx] = tmp.__getattribute__(self.data.attrs['dtype'])[0]
         self.update_items(self, 'data')
-
-        return
 
     # -----------------------------------------------
     def __delitem__(self, idx):
         """
         a.__delitem(index)
-        
+
         will be called when deleting items in the sequence
         """
         del self.data[idx]
         self.update_items(self, 'data')
-    
+
     # -----------------------------------------------
     def __len__(self):
         """
@@ -946,10 +962,10 @@ class Ticktock(collections.MutableSequence):
 
         # include offset if given
         JD = dmarray(np.zeros(nTAI))
-        
+
         twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
         sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
-        
+
         for i in np.arange(nTAI):
             offset = UTCdata[i].utcoffset()
             if offset:
@@ -1680,12 +1696,12 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
 def no_tzinfo(dt):
     """
     take in an arraylike of datetime objects and return them without any tzinfo
-    
+
     Parameters
     ==========
     dt : iterable
         iterable of datetime.datetime objects
-        
+
     Returns
     =======
     out : list
