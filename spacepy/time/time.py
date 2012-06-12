@@ -335,7 +335,7 @@ class Ticktock(collections.MutableSequence):
 
         """
 
-        return self.UTC[idx]
+        return Ticktock(self.UTC[idx])
 
     # -----------------------------------------------
     def __setitem__(self, idx, vals):
