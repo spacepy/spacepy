@@ -129,6 +129,13 @@ class TimeClassTests(unittest.TestCase):
         """Tickdelta should function"""
         tst = t.Tickdelta(hours=12)
         self.assertEqual(43200.0, tst.seconds)
+    
+    def test_sliceTicktock(self):
+        """a ticktock sliced returns a ticktock"""
+        n1 = t.Ticktock(['2002-03-01T11:23:11', 
+                         '2002-03-01T12:23:11',
+                         '2002-03-01T13:23:11'], 'ISO')
+        self.assertTrue(isinstance(n1[:2], t.Ticktock))
 
     def test_subTicktock(self):
         """a ticktock minus a ticktock is a tickdelta"""
