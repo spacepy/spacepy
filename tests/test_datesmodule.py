@@ -15,6 +15,8 @@ import numpy
 
 import spacepy.time as spt
 
+__all__ = ['date2numTests', 'num2dateTests']
+
 class date2numTests(unittest.TestCase):
     def setUp(self):
         super(date2numTests, self).setUp()

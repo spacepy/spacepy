@@ -13,6 +13,8 @@ import numpy
 import spacepy.toolbox as tb
 import spacepy.data_assimilation as da
 
+__all__ = ['DataAssimilationTests']
+
 class DataAssimilationTests(unittest.TestCase):
 
     def setUp(self):

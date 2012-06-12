@@ -8,6 +8,9 @@ import spacepy.toolbox as tb
 import spacepy.empiricals as em
 import scipy.integrate as integ
 
+__all__ = ['empFunctionTests', 'PAmodelTests']
+
+
 class empFunctionTests(unittest.TestCase):
     def setUp(self):
         super(empFunctionTests, self).setUp()

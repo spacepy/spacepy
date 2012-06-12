@@ -58,6 +58,8 @@ SpacePy Documents
     doc_standard
     tips
     configuration
+    case_studies
+    publications
 
 SpacePy Code
 ============

@@ -417,9 +417,6 @@ def fromCDF(fname, **kwargs):
     '''
     Create a SpacePy datamodel representation of a NASA CDF file
 
-    .. deprecated:: 0.1.3
-        See :meth:`~spacepy.pycdf.CDF.copy` in :class:`~spacepy.pycdf.CDF`.
-
     Parameters
     ----------
     file : string
@@ -434,14 +431,17 @@ def fromCDF(fname, **kwargs):
     --------
     >>> import spacepy.datamodel as dm
     >>> data = dm.fromCDF('test.cdf')
+
+    See Also
+    --------
+    spacepy.pycdf.CDF.copy
     '''
     #TODO: add unflatten keyword and restore flattened variables
     try:
         from spacepy import pycdf
     except ImportError:
         raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
-    warnings.warn('fromCDF is deprecated, see pycdf.CDF.copy',
-                  DeprecationWarning)
+
     with pycdf.CDF(fname) as cdfdata:
         return cdfdata.copy()
 
@@ -547,7 +547,13 @@ def toHDF5(fname, SDobject, **kwargs):
                     #test for datetimes in iterables
                     if hasattr(value, '__iter__'):
                         dumval = [b.isoformat() if isinstance(b, datetime.datetime) else b for b in value]
-                    if value or value is 0:
+                    truth = False
+                    try:
+                        if value.nbytes: truth = True #empty arrays of any dimension are nbytes=0
+                    except AttributeError: #not an array
+                        if value or value is 0: truth = True
+
+                    if truth:
                         if type(key) is unicode:
                             dumkey = str(key)
                         if type(value) is unicode:
@@ -587,7 +593,7 @@ def toHDF5(fname, SDobject, **kwargs):
     if 'overwrite' not in kwargs: kwargs['overwrite'] = True
     if type(fname) == str:
         if os.path.isfile(fname) and not kwargs['overwrite']:
-            raise(IOError('Cannot write HDF5, file exists (see overwrite)'))
+            raise(IOError('Cannot write HDF5, file exists (see overwrite) "{0!s}"'.format(fname)))
         if os.path.isfile(fname) and kwargs['overwrite']:
             os.remove(fname)
         hfile = hdf.File(fname, mode=wr_mo)
@@ -631,7 +637,7 @@ def toHDF5(fname, SDobject, **kwargs):
     if path=='/': hfile.close()
 
 
-def toHTML(fname, SDobject, attrs=(), 
+def toHTML(fname, SDobject, attrs=(),
            varLinks=False, linkFormat=None, echo=False, tableTag='<table border="1">'):
     """
     Create an HTML dump of the structure of a spacedata
@@ -679,7 +685,7 @@ def toHTML(fname, SDobject, attrs=(),
         if varLinks:
             output.write('</a>')
         output.write('</td>')
-        
+
         for attr in attrs:
             try:
                 if not isinstance(SDobject[key].attrs[attr], (str, unicode)):
@@ -785,9 +791,7 @@ def readJSONMetadata(fname, **kwargs):
 
     if 'verbose' in kwargs:
         if kwargs['verbose']:
-            #pretty-print config_dict
-            config_dict.tree(verbose=True, attrs=True)
-
+            mdata.tree(verbose=True, attrs=True)
     return mdata
 
 def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
@@ -816,8 +820,12 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         SpaceData with the data and metadata from the file
     '''
     import dateutil.parser as dup
-    if isinstance(fname, str):
-        fname=[fname]
+    try:
+        if isinstance(fname, (str, unicode)):
+            fname=[fname]
+    except NameError: # for Py3
+        if isinstance(fname, str):
+            fname=[fname]
     if not mdata:
         mdata = readJSONMetadata(fname[0])
     mdata_copy = copy.copy(mdata)

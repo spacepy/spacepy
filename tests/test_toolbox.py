@@ -31,6 +31,9 @@ import matplotlib.pyplot as plt
 import spacepy.time as st
 import spacepy.lib
 
+__all__ = ['PickleAssembleTests', 'SimpleFunctionTests', 'TBTimeFunctionTests',
+           'ArrayBinTests', 'PlottingTests']
+
 class PickleAssembleTests(unittest.TestCase):
 
     def setUp(self):
@@ -498,9 +501,9 @@ class SimpleFunctionTests(unittest.TestCase):
         numpy.testing.assert_array_equal(tb.isview([1,2,3], 4), [False, False])
 
 
-class tFunctionTests(unittest.TestCase):
+class TBTimeFunctionTests(unittest.TestCase):
     def setUp(self):
-        super(tFunctionTests, self).setUp()
+        super(TBTimeFunctionTests, self).setUp()
         dt1 = datetime.datetime(2000, 11, 12)
         self.dt_a = [dt1 + datetime.timedelta(hours=val)
                      for val in range(100)]
@@ -510,7 +513,7 @@ class tFunctionTests(unittest.TestCase):
                      for val in range(-20, -2)]
 
     def tearDown(self):
-        super(tFunctionTests, self).tearDown()
+        super(TBTimeFunctionTests, self).tearDown()
 
     def test_tOverlap(self):
         """tOverlap should return a known value for known input"""

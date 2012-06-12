@@ -14,7 +14,10 @@ import numpy
 
 import spacepy.time as t
 
-class tFunctionTests(unittest.TestCase):
+__all__ = ['TimeFunctionTests', 'TimeClassTests']
+
+
+class TimeFunctionTests(unittest.TestCase):
     def setUp(self):
         #super(tFunctionTests, self).setUp()
         pass
@@ -113,7 +116,7 @@ class tFunctionTests(unittest.TestCase):
                          t.num2date(t.date2num(indate)))
 
 
-class classTests(unittest.TestCase):
+class TimeClassTests(unittest.TestCase):
     def setUp(self):
         #super(tFunctionTests, self).setUp()
         pass

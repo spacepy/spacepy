@@ -16,7 +16,9 @@ import numpy as n
 import numpy.testing
 from numpy import array
 
-class BigTests(unittest.TestCase):
+__all__ = ['OmniBigTests'] 
+
+class OmniBigTests(unittest.TestCase):
 
     def setUp(self):
         self.ticks = spacepy.time.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')

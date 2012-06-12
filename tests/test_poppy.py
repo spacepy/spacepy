@@ -22,6 +22,8 @@ except ImportError:
     from spacepy import poppy
 from spacepy import toolbox
 
+__all__ = ['BaseTests', 'BootstrapTests', 'AssocTests', 'ValuePercentileTests']
+
 
 class BaseTests(unittest.TestCase):
     """Tests of basic functions in poppy"""

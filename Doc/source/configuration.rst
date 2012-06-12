@@ -41,8 +41,13 @@ ncpus
   reported by :py:func:`multiprocessing.cpu_count`. You may wish to set this
   to a lower number if you need to reserve other processors on your machine.
 
-omni_url
-  URL containing OMNI data.
+omni2_url
+  URL containing the OMNI2 data.
+  :py:func:`toolbox.update` will download from the URL.
+  The default should almost always be acceptable.
+
+qindenton_url
+  URL containing Qin-Denton packaging of OMNI data.
   :py:func:`toolbox.update` will download from the URL.
   The default should almost always be acceptable.
 

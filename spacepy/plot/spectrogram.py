@@ -316,9 +316,6 @@ class spectrogram(dm.SpaceData):
             array like 2 element that overrides (interior) the spectrogram zlim (default spectrogram.specSettings['zlim'])
         figsize : tuple (optional)
             tuple of size to pass to figure(), None does the default
-
-        TODO
-        ====
         """
         # go through the passed in kwargs to plot and look at defaults
         import matplotlib.pyplot as plt
