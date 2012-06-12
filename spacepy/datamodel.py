@@ -791,9 +791,7 @@ def readJSONMetadata(fname, **kwargs):
 
     if 'verbose' in kwargs:
         if kwargs['verbose']:
-            #pretty-print config_dict
-            config_dict.tree(verbose=True, attrs=True)
-
+            mdata.tree(verbose=True, attrs=True)
     return mdata
 
 def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
@@ -822,8 +820,12 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         SpaceData with the data and metadata from the file
     '''
     import dateutil.parser as dup
-    if isinstance(fname, str):
-        fname=[fname]
+    try:
+        if isinstance(fname, (str, unicode)):
+            fname=[fname]
+    except NameError: # for Py3
+        if isinstance(fname, str):
+            fname=[fname]
     if not mdata:
         mdata = readJSONMetadata(fname[0])
     mdata_copy = copy.copy(mdata)
