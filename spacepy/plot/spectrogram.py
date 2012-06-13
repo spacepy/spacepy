@@ -3,20 +3,20 @@
 
 """
 Create and plot generic 'spectrograms' for space science.
-This is not a signal processing routine and does not apply 
-Fourier transforms (or similar) to the data. The functionality 
+This is not a signal processing routine and does not apply
+Fourier transforms (or similar) to the data. The functionality
 provided here is the binning (and averaging) of multi-dimensional
 to provide a 2D output map of some quantity as a function of two
 parameters. An example would be particle data from a satellite mission:
-electron flux, at a given energy, can be binned as a function of 
-both time and McIlwain L, then plotted as a 2D color-map, 
+electron flux, at a given energy, can be binned as a function of
+both time and McIlwain L, then plotted as a 2D color-map,
 colloquially known as a spectrogram.
 
-In many other settings 'spectrogram' refers to a transform of data 
-from the time domain to the frequency domain, and the subsequent plotting 
-of some quantity (e.g., power spectral density) as a function of time and 
-frequency. To approximate this functionality for, e.g., time-series magnetic field 
-data you would first calculate a the power spectral density and then use 
+In many other settings 'spectrogram' refers to a transform of data
+from the time domain to the frequency domain, and the subsequent plotting
+of some quantity (e.g., power spectral density) as a function of time and
+frequency. To approximate this functionality for, e.g., time-series magnetic field
+data you would first calculate a the power spectral density and then use
 :class:`spectrogram` to rebin the data for visualaization.
 
 Authors: Brian Larsen and Steve Morley
@@ -54,7 +54,7 @@ class spectrogram(dm.SpaceData):
 
     The series are not passed in independently but instead inside a
     :class:`~spacepy.datamodel.SpaceData` container.
-    
+
     Parameters
     ==========
     data : :class:`~spacepy.datamodel.SpaceData`
@@ -285,7 +285,7 @@ class spectrogram(dm.SpaceData):
         # turn off the mask by setting sum and count to zero where it masked for self an be sure b mask doesnt it self
         self['spectrogram']['count'][self['spectrogram']['count'].mask] = 0
         b['spectrogram']['count'][b['spectrogram']['count'].mask] = 0
-        # put the mask back they are both bad        
+        # put the mask back they are both bad
         self['spectrogram']['count'].mask = mask
         b['spectrogram']['count'].mask = mask
         self['spectrogram']['count'] += b['spectrogram']['count']
@@ -422,6 +422,9 @@ class spectrogram(dm.SpaceData):
             axis.yaxis.set_major_formatter(timeFmt)
             axis.get_figure().autofmt_ydate()
 
+    def __str__(self):
+        return "<spectrogram object>"
 
+    __repr__ = __str__
 
 
