@@ -229,7 +229,7 @@ class Ticktock(collections.MutableSequence):
     .. automethod:: update_items
     """
     def __init__(self, data, dtype=None):
-        keylist = ['UTC','TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS']
+        self._keylist = ['UTC','TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
 
         if isinstance(data, Ticktock):
             dtype = data.data.attrs['dtype']
@@ -248,7 +248,7 @@ class Ticktock(collections.MutableSequence):
                 dtype = 'UTC'
             elif self.data[0] > 1e13:
                 dtype = 'CDF'
-            assert dtype.upper() in keylist, "data type " + dtype +" not provided, only "+str(keylist)
+            assert dtype.upper() in self._keylist, "data type " + dtype +" not provided, only "+str(self._keylist)
         self.data.attrs['dtype'] = dtype.upper()
         self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
         self.__isofmt = self.__isoformatstr['seconds']
@@ -262,14 +262,13 @@ class Ticktock(collections.MutableSequence):
             self.ISO = self.data
         self.update_items(self, 'data')
         if dtype.upper() == 'TAI': self.TAI = self.data
-        if dtype.upper() == 'JD': self.JD = self.data
+        if dtype.upper() == 'JD' : self.JD = self.data
         if dtype.upper() == 'MJD': self.MJD = self.data
         if dtype.upper() == 'UNX': self.UNX = self.data
         if dtype.upper() == 'RDT': self.RDT = self.data
         if dtype.upper() == 'CDF': self.CDF = self.data
         if dtype.upper() == 'UTC': self.UTC = self.data
 
-        return
 
 ## Brian and Steve were looking at this to see about making plot work directly on the object
 ## is also making iterate as an array of datetimes
@@ -376,7 +375,7 @@ class Ticktock(collections.MutableSequence):
         """
         tmp = Ticktock(vals)
         if len(tmp) > 1:
-            self.data[idx] = tmp.__getattribute__(self.data.attrs['dtype'])[...]
+            self.data[idx] = tmp.__getattribute__(self.data.attrs['dtype'])[:]
         else:
             self.data[idx] = tmp.__getattribute__(self.data.attrs['dtype'])[0]
         self.update_items(self, 'data')
@@ -409,41 +408,7 @@ class Ticktock(collections.MutableSequence):
         >>> a.len
         1
         """
-        from numpy import ndarray
-        if isinstance(self.data, (list, ndarray)):
-            return len(self.data)
-        else:
-            return 1
-        return
-    # -----------------------------------------------
-    def __cmp__(self, other):
-        """
-        a.__cmp__(other)
-
-        Will be called when two Ticktock instances are compared
-
-        Paramters
-        =========
-        other : Ticktock
-            instance for comparison
-
-        Returns
-        ========
-        out : boolean
-            True or False
-
-        Examples
-        ========
-        >>> a = Ticktock('2002-02-02T12:00:03', 'ISO')
-        >>> b = Ticktock('2002-02-02T12:00:00', 'ISO')
-        >>> a > b
-        True
-
-        See Also
-        ========
-        Ticktock.__add__, Ticktock.__sub__
-        """
-        return cmp(self.UNX, other.UNX)
+        return len(self.data)
 
     # -----------------------------------------------
     def __gt__(self, other):
@@ -616,9 +581,7 @@ class Ticktock(collections.MutableSequence):
 
 
         """
-
-        keylist = ['TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'DOY', 'eDOY', 'leaps', 'GPS']
-        assert name in keylist, "data type "+str(name)+" not provided, only "+str(keylist)
+        assert name in self._keylist, "data type "+str(name)+" not provided, only "+str(self._keylist)
         if name.upper() == 'TAI': self.TAI = self.getTAI()
         if name.upper() == 'ISO': self.ISO = self.getISO()
         if name.upper() == 'JD': self.JD = self.getJD()
@@ -701,7 +664,7 @@ class Ticktock(collections.MutableSequence):
                 self.__isofmt = self.__isoformatstr[fmt]
                 self.update_items(self, 'data')
             except KeyError:
-                print('Not a valid option: Use %s' % list(self.__isoformatstr.keys()))
+                raise(ValueError('Not a valid option: Use %s' % list(self.__isoformatstr.keys())))
 
         return
 
@@ -957,8 +920,8 @@ class Ticktock(collections.MutableSequence):
         UTCdata = self.UTC
 
         if UTCdata[0] < datetime.datetime(1582,10,15):
-            print("WARNING: Calendar date before the switch from Julian to Gregorian")
-            print("    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
+            warnings.warn("Calendar date before the switch from Julian to Gregorian\n" +
+                "    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         # include offset if given
         JD = dmarray(np.zeros(nTAI))
@@ -1032,8 +995,8 @@ class Ticktock(collections.MutableSequence):
         """
 
         if self.UTC[0] < datetime.datetime(1582,10,15):
-            print("WARNING: Calendar date before the switch from Julian to Gregorian")
-            print("Calendar 1582-Oct-15: Use Julian Calendar dates as input")
+            warnings.warn("WARNING: Calendar date before the switch from Julian to Gregorian\n" +
+                "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         MJD = self.JD - 2400000.5
 
@@ -1234,8 +1197,8 @@ class Ticktock(collections.MutableSequence):
                 UTC[i] = datetime.datetime(year, month, day) + datetime.timedelta(hours=12) + \
                     datetime.timedelta(seconds = p*86400)
                 if UTC[i] < datetime.datetime(1582,10,15):
-                    print("WARNING: Calendar date before the switch from Julian to Gregorian")
-                    print("Calendar 1582-Oct-15: Use Julian Calendar dates as input")
+                    warnings.warn("WARNING: Calendar date before the switch from Julian to Gregorian\n" +
+                       "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         else:
             print("ERROR: Data type ", self.data.attrs['dtype'], ' in getUTC() not supported')
@@ -1712,135 +1675,3 @@ def no_tzinfo(dt):
     except TypeError: # was not an iterable
         return dt.replace(tzinfo=None)
 
-
-# -----------------------------------------------
-def test():
-    """
-    test all time conversions
-
-    Returns
-    =======
-        out : int
-            number of failures
-
-    Examples
-    ========
-    >>> test()
-    testing ticks: PASSED TEST 1
-    testing ticks: PASSED TEST 2
-    0
-
-    """
-    from . import time as st
-    from . import toolbox as tb
-    import sys, datetime
-
-    def timecomp(x,yarr):
-        x=x[0]
-        delta = datetime.timedelta(microseconds=1000000)
-        truth = [(y[0] <= x + delta) & (y[0] >= x - delta) for y in yarr]
-        return truth
-
-    # number of failures
-    nFAIL = 0
-
-    # time types
-    alldtypes = ['UNX', 'TAI', 'JD', 'MJD', 'RDT', 'UTC', 'ISO', 'CDF']
-
-    # pick a start time
-    data = '2002-02-25T12:20:30.1'
-    dtype = 'ISO'
-    t = st.Ticktock(data,dtype)
-
-    out = ['']*(len(alldtypes))
-    back = ['']*(len(alldtypes))
-    # cycle (keep the sequence the same as in alldtypes!!)
-    out[0] = t.getUNX()[0]
-    out[1] = t.getTAI()[0]
-    out[2] = t.getJD()[0]
-    out[3] = t.getMJD()[0]
-    out[4] = t.getRDT()[0]
-    out[5] = t.getUTC()[0]
-    out[6] = t.getISO()[0]
-    out[7] = t.getCDF()[0]
-
-    # compare all to UTC (datetime format)
-    for i, datatype in enumerate(alldtypes):
-        back[i] = t.getUTC()[0]
-    comp = [st.Ticktock(data,'ISO').getUTC()[0]]*len(alldtypes)
-    #
-    if back == comp and tb.feq(round(out[2],5),2452331.01424) and \
-    tb.feq(out[0],1014639630.1):
-        print("testing Ticktock: PASSED TEST simple")
-    else:
-        print("testing Ticktock: FAILED TEST simple")
-        nFAIL =+ 1
-
-    # now test the class
-    foo = ['']*(len(alldtypes))
-    bar = ['']*(len(alldtypes))
-    UNX = ['']*(len(alldtypes))
-    TAI = ['']*(len(alldtypes))
-    JD  = ['']*(len(alldtypes))
-    MJD = ['']*(len(alldtypes))
-    RDT = ['']*(len(alldtypes))
-    UTC = ['']*(len(alldtypes))
-    ISO = ['']*(len(alldtypes))
-    CDF = ['']*(len(alldtypes))
-    for i, dtype in enumerate(alldtypes):
-        foo[i] = st.Ticktock(out[i], dtype)
-        foo[i].isoformat('microseconds')
-
-    # now compare and make sure they are all the same
-    for i, dtype in enumerate(alldtypes):
-        UNX[i] = foo[i].getUNX()
-        TAI[i] = foo[i].getTAI()
-        JD[i] = foo[i].getJD()
-        MJD[i] = foo[i].getMJD()
-        RDT[i]  = foo[i].getRDT()
-        UTC[i] = foo[i].getUTC()
-        ISO[i] = foo[i].getISO()
-        CDF[i] = foo[i].getCDF()
-
-
-    prec = 5./86400000000.
-    testTAI = np.where(tb.feq(TAI[0],TAI, precision=prec))
-    testUNX = np.where(tb.feq(UNX[0],UNX, precision=prec))
-    testJD = np.where(tb.feq(JD[0],JD, precision=prec))
-    testMJD = np.where(tb.feq(MJD[0],MJD, precision=prec))
-    testRDT = np.where(tb.feq(RDT[0],RDT, precision=prec))
-    testUTC = timecomp(UTC[0],UTC)
-    testCDF = np.where(tb.feq(CDF[0],CDF, precision=prec))
-    try:
-        assert len(testUNX[0]) == len(alldtypes)
-        assert len(testTAI[0]) == len(alldtypes)
-        assert len(testJD[0]) == len(alldtypes)
-        assert len(testMJD[0]) == len(alldtypes)
-        assert len(testRDT[0]) == len(alldtypes)
-        assert False not in testUTC
-        assert len(testCDF[0]) == len(alldtypes)
-        #assert len(np.unique(ISO)) == 1
-
-        print("testing Ticktock: PASSED TEST all combinations")
-    except AssertionError:
-        print("testing Ticktock: FAILED TEST all combinations")
-        nFAIL =+ 1
-
-    # test with arrays
-    try:
-        for i, dtype in enumerate(alldtypes):
-            foo = st.Ticktock( np.array([out[i], out[i], out[i]]), dtype)
-        print("testing Ticktock: PASSED TEST arrays")
-    except:
-        print("testing Ticktock: FAILED TEST arrays")
-        nFAIL =+ 1
-
-    # test DOY
-    try:
-        foo.DOY
-        print("testing Ticktock: PASSED TEST DOY")
-    except:
-        print("testing Ticktock: FAILED TEST DOY")
-        nFAIL =+ 1
-
-    return nFAIL
