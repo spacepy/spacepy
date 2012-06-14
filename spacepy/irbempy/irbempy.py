@@ -14,6 +14,7 @@ Josef Koller, Steve Morley
 Copyright 2010 Los Alamos National Security, LLC.
 """
 
+import itertools
 import numpy as np
 from spacepy import help
 import spacepy.coordinates as spc
@@ -843,59 +844,95 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
 
     """
 
-    import spacepy
+    from spacepy import config as config_dict
+
+    def get_ov(fullov, stind, enind):
+        '''Chop up omni data for multiprocessing'''
+        out = dm.SpaceData()
+        keylist = fullov.keys()
+        dum = keylist.pop(keylist.index('Qbits'))
+        for key in keylist:
+            out[key] = fullov[key][stind:enind]
+        for key in fullov['Qbits']:
+            out['Qbits'][key] = fullov['Qbits'][key][stind:enind]
+        return out
+    
+    def reassemble(result):
+        '''Reassemble the results from the multiprocessing'''
+        funcs = {'Bmin': np.hstack,
+                 'Bmirr': np.vstack,
+                 'Lm': np.vstack,
+                 'Lstar': np.vstack,
+                 'MLT': np.hstack,
+                 'Xj': np.vstack}
+        keylist = result[0].keys()
+        out = dm.SpaceData() 
+        for el in result:
+            for key in keylist:
+                if key in out.keys(): #not first chunk
+                    out[key] = funcs[key]([out[key], el[key]])
+                else: #first chunk
+                    out[key] = el[key].copy()
+        return out
 
     if isinstance(alpha, (float,int)):
         alpha = [alpha]
-    assert len(alpha) is 1, 'len(alpha) needs to be 1'	#TODO:should this be here?? - SKM
+    assert len(alpha) is 1, 'len(alpha) currently needs to be 1' #TODO:should this be here?? - SKM
 
-    ncpus = spacepy.config['ncpus']
+    ncpus = config_dict['ncpus']
     ncalc = len(ticks)
     nalpha = len(alpha)
 
     if ncpus>1:
-        try:
-            import pp
-        except ImportError:
-            ncpus = 1
+        import __main__ as main
+        if hasattr(main, '__file__'):
+            try:
+                from multiprocessing import Pool
+                pool = Pool(ncpus)
+            except ImportError:
+                ncpus = 1
+        else:
+            ncpus = 1 #won't multiprocess in interactive mode
 
     if ncpus > 1 and ncalc >= ncpus*2:
-        import pp
-        server = pp.Server(ncpus)
-        ncalc = len(ticks)
-        jobs = []
-
-        for ijob in range(ncpus):
-            ppidx = list(range(ijob, ncalc, ncpus))
-            jobs.append(server.submit(_get_Lstar, (ticks[ppidx], loci[ppidx], alpha, \
-                extMag, options, omnivals), depfuncs=(prep_irbem,), modules=() ))
-            
-        # retrieve results from all jobs
-        RES = []
-        for job in jobs:
-            RES.append(job())
-
-        # setup dictionary
-        DALL = {}
-        for key in RES[0]:
-            if len(np.shape(RES[0][key])) is 2:
-                DALL[key] = np.zeros((ncalc, nalpha))
+        nblocks = ncpus
+        blocklen = np.floor_divide(ncalc, ncpus)
+        tt = []
+        if omnivals:
+            ov = []
+        else:
+            ov = [None]
+        for block in range(nblocks):
+            startind = block*blocklen
+            if block != nblocks-1: #not last block
+                endind = block*blocklen + blocklen
             else:
-                DALL[key] = np.zeros(ncalc)
-            
-        for i, d in enumerate(RES):
-            ppidx = list(range(i, ncalc, ncpus))
-            for key in DALL:
-                if len(np.shape(d[key])) is 2:
-                    DALL[key][ppidx,:] = d[key]
-                else:
-                    DALL[key][ppidx] = d[key]
-    # single NCPU
-    else:
+                endind = block*blocklen + 2*blocklen #going past the end of an array in a slice is fine
+            tt.append(ticks[startind:endind])
+            if omnivals:
+                ov.append(get_ov(omnivals, startind, endind))
+        inputs = list(itertools.product(tt,loci,[alpha],[extMag],[options],ov))
+        result = pool.map(_multi_get_Lstar, inputs)
+        DALL = reassemble(result)
+    else: # single NCPU
         DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals)
 
     return DALL
-	
+
+
+def _multi_get_Lstar(inputs):
+    '''
+    '''
+    ticks = inputs[0]
+    loci = inputs[1]
+    alpha = inputs[2]
+    extMag = inputs[3]
+    options = inputs[4]
+    omnivals = inputs[5]
+    DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals)
+    
+    return DALL
+
 # -----------------------------------------------
 def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
     """
