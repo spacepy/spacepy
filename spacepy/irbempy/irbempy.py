@@ -736,6 +736,46 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
     return results
 
 # -----------------------------------------------
+def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omnivals=None):
+    """
+    Input
+    =====
+        - ticks (Ticktock class) : containing time information
+        - loci (Coords class) : containing spatial information
+        - alpha (list or ndarray) : optional pitch angles in degrees
+        - extMag (string) : optional; will choose the external magnetic field model 
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+                            'T05', 'ALEX']
+        - intMag (string) : optional: select the internal field model
+                            possible values ['IGRF','EDIP','JC','GSFC','DUN','CDIP']
+                            For full details see get_Lstar
+        - omni values as dictionary (optional) : if not provided, will use lookup table 
+
+    Returns
+    =======
+        - results (dictionary) : containing keys: Lm, Bmin, Blocal (or Bmirr), Xj, MLT 
+            if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
+            is returned if not provided, then "Blocal" at spacecraft is returned.
+
+    """
+    intMaglookup = {'IGRF': 0, 'EDIP': 1, 'JC': 2, 'GSFC': 3, 'DUN': 4, 'CDIP': 5}
+    if intMag not in intMaglookup:
+        raise ValueError('Invalid value of intMag: valid values are: {0}'.format(intMaglookup.keys()))
+    if IGRFset != 0:
+        try:
+            assert IGRFset > 0
+            ##TODO: test for numeric type
+        except AssertionError:
+            raise ValueError('IGRFset must be positive-valued and numeric')
+        
+    opts = [0, IGRFset, 0, 0, intMaglookup[intMag]]
+
+    results = get_Lstar(ticks, loci, alpha, extMag=extMag, options=opts, omnivals=omnivals)
+    dum = results.pop('Lstar')
+    return results
+
+# -----------------------------------------------
 def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
     This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
