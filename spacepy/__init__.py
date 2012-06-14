@@ -133,18 +133,6 @@ to validate the analysis and receive appropriate credit for his or her
 work.
 """
 
-__notice__ = """SpacePy: Space Science Tools for Python
-SpacePy is released under license.
-See __licence__ for details, __citation__ for citation information,
-and help() for HTML help."""
-
-__licence__ = __license__ #for those who speak English, rather than an odd dialect
-
-try: #if in iPython interactive shell, print licence notice
-    if __IPYTHON__active == 1: print(__notice__)
-except NameError: #otherwise print single line notice
-    print("SpacePy is released under license. See __licence__ and __citation__ for details, and help() for HTML help.")
-
 #Global spacepy configuration information
 config = {}
 
@@ -158,11 +146,13 @@ def _read_config(rcfile):
                 'omni2_url': 'ftp://virbo.org/OMNI/OMNI2/merged/latest/OMNI_OMNI2-latest.cdf.zip',
                 'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
+                'notice' : str(True),
                 }
     #Functions to cast a config value; if not specified, value is a string
     str2bool = lambda x: x.lower() in ('1', 'yes', 'true', 'on')
     caster = {'enable_deprecation_warning': str2bool,
               'ncpus': int,
+              'notice': str2bool,
               }
     cp = ConfigParser.SafeConfigParser(defaults)
     try:
@@ -217,3 +207,22 @@ else:
 if config['enable_deprecation_warning']:
     warnings.filterwarnings('default', '', DeprecationWarning,
                             '^spacepy', 0, False)
+
+##########
+# deal with showing license info
+##########
+
+__notice__ = """SpacePy: Space Science Tools for Python
+SpacePy is released under license.
+See __licence__ for details, __citation__ for citation information,
+and help() for HTML help."""
+
+__licence__ = __license__ #for those who speak English, rather than an odd dialect
+
+if config['notice']:
+    import __main__
+    if not hasattr(__main__, '__file__'): #if in interactive shell, print licence notice
+        print(__notice__)
+    else:  #otherwise print single line notice
+        print("SpacePy is released under license. See __licence__ and __citation__ for details, and help() for HTML help.")
+
