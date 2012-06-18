@@ -126,7 +126,7 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
     calltuple = PyTuple_Pack(1, outval);
     outval  = callmeth(datetime_module, "num2date", calltuple, NULL);
     Py_DECREF(calltuple);
-    Py_DECREF(datetime_module);
+    Py_XDECREF(datetime_module);
     return outval;
 }
 
