@@ -71,15 +71,15 @@ class TimeFunctionTests(unittest.TestCase):
         """tickrange should return a known value for known input"""
         inval = ( ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 1),
                   ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 0.5) )
-        real_ans = ( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
-                      '2002-02-04T00:00:00'],
-                     ['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
+        real_ans = ( numpy.array(['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
+                      '2002-02-04T00:00:00'], dtype='|S19'),
+                     numpy.array(['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
                       '2002-02-02T12:00:00', '2002-02-03T00:00:00', '2002-02-03T12:00:00',
-                      '2002-02-04T00:00:00'] )
+                      '2002-02-04T00:00:00'], dtype='|S19'))
 
         for i, val in enumerate(inval):
             ans = t.tickrange(*val)
-            self.assertEqual(real_ans[i], ans.ISO)
+            numpy.testing.assert_equal(real_ans[i], ans.ISO)
 
     def test_sec2hms(self):
         """sec2hms should return a known value for known input"""
