@@ -63,7 +63,7 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
                 return NULL;
             }
         // need to call the spacepy.time.date2num
-        if (!(datetime_module = PyImport_ImportModule("spacepy.time")))
+        if (!(datetime_module = PyImport_ImportModule("matplotlib.dates")))
             return NULL;
         calltuple = PyTuple_Pack(1, startDT);
         startVal = PyFloat_AsDouble(callmeth(datetime_module, "date2num", calltuple, NULL));
@@ -168,9 +168,9 @@ static PyObject *hypot_tb(PyObject *self, PyObject *args)
                 Py_DECREF(temp_seq);
             }
             else {
-                // this steals a reference to array_type 
+                // this steals a reference to array_type
                 // since this steals a reference you can inline it all without a variable (via BAL Numpy list email)
-                temp_array = (PyArrayObject*)PyArray_FromAny(temp_p, PyArray_DescrFromType(NPY_DOUBLE), 0, 0, 
+                temp_array = (PyArrayObject*)PyArray_FromAny(temp_p, PyArray_DescrFromType(NPY_DOUBLE), 0, 0,
                                                             NPY_CARRAY_RO, NULL);
                 if (temp_array == NULL) return NULL;
                 temp_data = (double*)PyArray_DATA(temp_array);

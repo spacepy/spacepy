@@ -180,7 +180,7 @@ def tCommon(ts1, ts2, mask_only=True):
     >>> ts2[common_inds[1]] #values of ts2 also in ts1
 
     The latter can be found more simply by setting the mask_only keyword to False
-    
+
     >>> common_vals = tb.tCommon(ts1, ts2, mask_only=False)
     >>> common_vals[1]
     array([2001-03-10 02:00:00, 2001-03-10 03:00:00, 2001-03-10 04:00:00,
@@ -188,10 +188,7 @@ def tCommon(ts1, ts2, mask_only=True):
            2001-03-10 08:00:00, 2001-03-10 09:00:00, 2001-03-10 10:00:00,
            2001-03-10 11:00:00], dtype=object)
     """
-    try:
-        from spacepy.time import date2num, num2date
-    except ImportError:
-        from matplotlib.dates import date2num, num2date
+    from matplotlib.dates import date2num, num2date
 
     tn1, tn2 = date2num(ts1), date2num(ts2)
 
@@ -220,13 +217,13 @@ def tCommon(ts1, ts2, mask_only=True):
             try:
                 dum11.append(v1.replace(tzinfo=None))
             except ValueError: # ValueError: microsecond must be in 0..999999
-                dum11.append((datetime.datetime(v1.year, v1.month, v1.day, v1.hour, v1.minute, v1.second, 0) + 
+                dum11.append((datetime.datetime(v1.year, v1.month, v1.day, v1.hour, v1.minute, v1.second, 0) +
                              datetime.timedelta(seconds=1)).replace(tzinfo=None))
             try:
                 dum22.append(v2.replace(tzinfo=None))
             except ValueError: # ValueError: microsecond must be in 0..999999
-                dum22.append((datetime.datetime(v2.year, v2.month, v2.day, v2.hour, v2.minute, v2.second, 0) + 
-                             datetime.timedelta(seconds=1)).replace(tzinfo=None))            
+                dum22.append((datetime.datetime(v2.year, v2.month, v2.day, v2.hour, v2.minute, v2.second, 0) +
+                             datetime.timedelta(seconds=1)).replace(tzinfo=None))
         dum1 = dum11
         dum2 = dum22
         if type(ts1)==np.ndarray or type(ts2)==np.ndarray:
@@ -713,7 +710,7 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     omni2_fname_zip = os.path.join(datadir, 'omni2-latest.cdf.zip')
     omni_fname_pkl = os.path.join(datadir, 'omnidata.pkl')
     omni2_fname_pkl = os.path.join(datadir, 'omni2data.pkl')
-    
+
     PSDdata_fname = os.path.join('psd_dat.sqlite')
 
     if all == True:
@@ -813,17 +810,17 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         omni2 = {}
         for key in omnicdf.keys():
             omni2[key] = omnicdf[key][:]
-        
+
         omni2['ticks'] = Ticktock(omni2['Epoch'])
         omni2['RDT'] = omni2['ticks'].RDT
-        
+
         # save as pickle
         savepickle(omni2_fname_pkl, omni2)
 
         # delete left-overs
         os.remove(omni2_fname_zip)
 
-        
+
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
@@ -1260,10 +1257,7 @@ def logspace(min, max, num, **kwargs):
     linspace
     """
     if isinstance(min, datetime.datetime):
-        try:
-            from spacepy.time import date2num, num2date
-        except ImportError:
-            from matplotlib.dates import date2num, num2date
+        from matplotlib.dates import date2num, num2date
         ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), num, **kwargs))
         ans = [val.replace(tzinfo=None) for val in ans]
         return np.array(ans)
@@ -1570,7 +1564,7 @@ def getNamedPath(name):
     ========
     Run from a directory
     /mnt/projects/dream/bin/Ephem
-    with 'dream' as the name, this function 
+    with 'dream' as the name, this function
     would return '/mnt/projects/dream'
     """
     def findNamed(path):
@@ -1773,7 +1767,7 @@ def listUniq(inVal):
     Maintains order (keeps the first of non-unique elements
 
     .. deprecated:: version 0.1.1
-    
+
     Equivalent functionality to numpy.unique
 
     Parameters
@@ -2196,11 +2190,8 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     Examples
     ========
     """
-    try:
-        from spacepy.time import date2num, num2date
-    except ImportError:
-        from matplotlib.dates import date2num, num2date
-        
+    from matplotlib.dates import date2num, num2date
+
     if dt1.tzinfo != dt2.tzinfo:
         raise(ValueError('tzinfo for the input and output datetimes must match'))
     dt1n = date2num(dt1)
@@ -2215,10 +2206,10 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     if sorted:
         rnd_t.sort()
     return rnd_t
-    
+
 def isview(array1, array2=None):
     """
-    Returns if an object is a view of another object.  More precisely if one array argument is specified 
+    Returns if an object is a view of another object.  More precisely if one array argument is specified
     True is returned is the arrays owns its data.  If two arrays arguments are specified a tuple is returned
     of if the first array owns its data and the the second if they point at the same memory location
 
@@ -2236,7 +2227,7 @@ def isview(array1, array2=None):
     =======
     out : bool or tuple
         If one array is specified bool is returned, True is the array owns its data.  If two arrays
-        are specified a tuple where the second element is a bool of if the array point at the same 
+        are specified a tuple where the second element is a bool of if the array point at the same
         memory location
 
     Examples
@@ -2250,7 +2241,7 @@ def isview(array1, array2=None):
     tb.isview(b)
     # True
     tb.isview(b, a)
-    # (True, True)   
+    # (True, True)
     tb.isview(b, b)
     # (True, True)  # the conditions are met and numpy cannot tell this
     """
@@ -2259,7 +2250,7 @@ def isview(array1, array2=None):
         try:
             if array1.base == None:
                 return False
-            return True                
+            return True
         except AttributeError:
             return False # if it is not an array then it is not a view
     # there are two arrays input
@@ -2272,30 +2263,30 @@ def isview(array1, array2=None):
 
 def interweave(a, b):
     """
-    given two array-like variables interweave them together.  
+    given two array-like variables interweave them together.
     Discussed here: http://stackoverflow.com/questions/5347065/interweaving-two-numpy-arrays
-    
+
     Parameters
     ==========
     a : array-like
         first array
-    
+
     b : array-like
         second array
-    
+
     Returns
     =======
     out : numpy.ndarray
         interweaved array
     """
     a = np.asanyarray(a)
-    b = np.asanyarray(b)    
+    b = np.asanyarray(b)
     ans = np.empty((a.size + b.size), dtype=a.dtype)
     ans[0::2] = a
     ans[1::2] = b
     return ans
-    
-    
+
+
 
 
 if __name__ == "__main__":

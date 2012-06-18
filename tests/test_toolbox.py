@@ -94,12 +94,12 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_interweave(self):
         """interweave should hav known result"""
         a = numpy.arange(5)
-        b = numpy.arange(5, 10)   
-        numpy.testing.assert_equal(numpy.vstack((a,b)).reshape((-1,),order='F'), 
+        b = numpy.arange(5, 10)
+        numpy.testing.assert_equal(numpy.vstack((a,b)).reshape((-1,),order='F'),
                                    tb.interweave(a, b))
-        numpy.testing.assert_equal(array([0, 5, 1, 6, 2, 7, 3, 8, 4, 9]),  
+        numpy.testing.assert_equal(array([0, 5, 1, 6, 2, 7, 3, 8, 4, 9]),
                                    tb.interweave(a, b))
-        
+
     def test_getNamedPath(self):
         """getNamedPath should have known result"""
         ans = ['spacepy', 'tests']
@@ -223,6 +223,10 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_logspace(self):
         """logspace should return know answer for known input"""
+        try:
+            from matplotlib.dates import date2num
+        except ImportError: # just pass if matplotlib is not installed
+            return
         real_ans = array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
         numpy.testing.assert_almost_equal(real_ans, tb.logspace(1, 100, 5) , 4)
         t1 = datetime.datetime(2000, 1, 1)
@@ -238,15 +242,14 @@ class SimpleFunctionTests(unittest.TestCase):
             datetime.datetime(2000, 1, 1, 21, 19, 59, 994124),
             datetime.datetime(2000, 1, 2, 0, 0, 0, 30)]
         ans = tb.logspace(t1, t2, 10)
-        try:
-            from matplotlib.dates import date2num
-        except ImportError:
-            pass
-        else:
-            numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
+        numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
 
     def test_linspace(self):
         """linspace should return know answer for known input"""
+        try:
+            from matplotlib.dates import date2num
+        except ImportError:  # just pass if matplotlib is not installed
+            return
         # should exactly match here since it is the same
         numpy.testing.assert_equal(tb.linspace(10, 100, 200), numpy.linspace(10,100, 200))
         t1 = datetime.datetime(2000, 1, 1)
@@ -257,12 +260,7 @@ class SimpleFunctionTests(unittest.TestCase):
              datetime.datetime(2000, 1, 7, 18, 0),
              datetime.datetime(2000, 1, 10, 0, 0)]
         ans = tb.linspace(t1, t2, 5)
-        try:
-            from matplotlib.dates import date2num
-        except ImportError:
-            pass
-        else:
-            numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
+        numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
 
     def test_linspace_bug(self):
         """This catches a linspace datetime bug with 0-d arrays (regression)"""

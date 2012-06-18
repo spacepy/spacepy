@@ -98,7 +98,7 @@ def initialize_compiler_options(cmd):
     cmd.f2py = None
     cmd.compiler = None
 
-    
+
 def finalize_compiler_options(cmd):
     """Finalize compiler options for a command
 
@@ -216,7 +216,7 @@ class build(_build):
             return
         if not sys.platform in ('darwin', 'linux2', 'win32'):
             self.distribution.add_warning(
-                '%s not supported at this time. ' % sys.platform + 
+                '%s not supported at this time. ' % sys.platform +
                 'IRBEM will not be available')
             return
         if self.fcompiler == 'pg' and sys.platform == 'darwin':
@@ -299,7 +299,7 @@ class build(_build):
             os.system('ranlib libBL2.a')
         elif sys.platform == 'win32':
             os.system('ar -r libBL2.a *.o')
-            os.system('ranlib libBL2.a')            
+            os.system('ranlib libBL2.a')
         os.chdir('..')
         subprocess.check_call(
             '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
@@ -499,7 +499,7 @@ class bdist_wininst(_bdist_wininst):
             os.makedirs(outdir)
         for f in fortnames:
             shutil.copy(os.path.join(fortdir, f), outdir)
-            
+
     def run(self):
         self.copy_fortran_libs()
         rebuild_static_docs(self.distribution,
@@ -551,25 +551,22 @@ class Distribution(_Distribution):
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
-            'spacepy.plot', 'spacepy.pybats', 'spacepy.time', 
+            'spacepy.plot', 'spacepy.pybats', 'spacepy.time',
             'spacepy.toolbox']
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
 pybats_ext = Extension('spacepy.pybats.ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],
                        include_dirs=[numpy.get_include()])
-dates_ext = Extension('spacepy.time._dates',
-                                sources=['spacepy/time/_datesmodule.c'], 
-                       include_dirs=[numpy.get_include()])
 toolbox_ext = Extension('spacepy.toolbox._toolbox',
-                                sources=['spacepy/toolbox/_toolboxmodule.c'], 
+                                sources=['spacepy/toolbox/_toolboxmodule.c'],
                        include_dirs=[numpy.get_include()])
-                       
+
 # run setup from distutil
 setup(name='spacepy',
       version='0.1.2',
       description='SpacePy: Tools for Space Science Applications',
-      ext_modules=[pybats_ext, dates_ext, toolbox_ext],
+      ext_modules=[pybats_ext, toolbox_ext],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',

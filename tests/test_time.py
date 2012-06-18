@@ -109,12 +109,6 @@ class TimeFunctionTests(unittest.TestCase):
         ans = [datetime.datetime(2000, 1, 1)]*10
         self.assertEqual(ans, t.no_tzinfo([dt]*10))
 
-    def test_num2date_rt(self):
-        """round-trip num2date should have same output as input"""
-        indate = datetime.datetime(2000, 11, 12, 1, 0)
-        self.assertEqual(indate,
-                         t.num2date(t.date2num(indate)))
-
 
 class TimeClassTests(unittest.TestCase):
     def setUp(self):

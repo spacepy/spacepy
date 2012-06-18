@@ -9,7 +9,6 @@ import dateutil.parser as dup
 import warnings
 
 import numpy as np
-from ._dates import _date2num, _num2date
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -1063,6 +1062,7 @@ class Ticktock(collections.MutableSequence):
         getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
+        from matplotlib.dates import date2num, num2date
         #        import matplotlib.dates as mpd
 
         # nTAI = len(self.data)
@@ -1099,6 +1099,8 @@ class Ticktock(collections.MutableSequence):
         getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
+        from matplotlib.dates import date2num, num2date
+
         nTAI = len(self.data)
 
         if self.data.attrs['dtype'].upper() == 'UTC':
@@ -1440,9 +1442,14 @@ class Ticktock(collections.MutableSequence):
 # End of Ticktock class
 # -----------------------------------------------
 
-def num2date(mplnum):
+#TODO add the deprication decorator when we have it
+def num2date(*args, **kwargs):
     """
     Convert matplotlib epoch to datetime fast using an extension module
+
+    .. deprecated:: 0.1.3
+
+    Equivalent functionality to matplotlib.dates.num2date
 
     Parameters
     ==========
@@ -1457,16 +1464,18 @@ def num2date(mplnum):
     See Also
     ========
     matplotlib.dates.num2date
-    spacepy.time.date2num
     """
-    mplnum = np.asanyarray(mplnum)
-    shape = mplnum.shape
-    ans = _num2date(mplnum.flatten())
-    return ans.reshape(shape)
+    warnings.warn('num2date has been deprecated, see matplotlib.dates.num2date', DeprecationWarning)
+    from matplotlib.dates import num2date
+    return num2date(*args, **kwargs)
 
-def date2num(dates):
+def date2num(*args, **kwargs):
     """
     Convert datetimes to matplotlib fast using an extension module
+
+    .. deprecated:: 0.1.3
+
+    Equivalent functionality to matplotlib.dates.date2num
 
     Parameters
     ==========
@@ -1481,12 +1490,10 @@ def date2num(dates):
     See Also
     ========
     matplotlib.dates.date2num
-    spacepy.time.num2date
     """
-    dates = np.asanyarray(dates)
-    shape = dates.shape
-    ans = _date2num(dates.flatten())
-    return ans.reshape(shape)
+    warnings.warn('date2num has been deprecated, see matplotlib.dates.date2num', DeprecationWarning)
+    from matplotlib.dates import date2num
+    return date2num(*args, **kwargs)
 
 def doy2date(year, doy, dtobj=False, flAns=False):
     """
@@ -1674,4 +1681,5 @@ def no_tzinfo(dt):
         return [val.replace(tzinfo=None) for val in dt]
     except TypeError: # was not an iterable
         return dt.replace(tzinfo=None)
+
 
