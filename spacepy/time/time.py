@@ -386,8 +386,12 @@ class Ticktock(collections.MutableSequence):
 
         will be called when deleting items in the sequence
         """
-        del self.data[idx]
+        self.data = np.delete(self.data, idx)
+        
         self.update_items(self, 'data')
+
+        #del self.data[idx]
+        #self.update_items(self, 'data')
 
     # -----------------------------------------------
     def __len__(self):
@@ -598,20 +602,25 @@ class Ticktock(collections.MutableSequence):
     # -----------------------------------------------
     def insert(self, idx, val, dtype=None):
 
-        #TODO: Fix so that this works for dtypre other than that of self.data
+        fmt = self.data.attrs['dtype']
         if not dtype:
-            dtype = 'data'
-            tsys = self.data.attrs['dtype']
+           dum = Ticktock(val)
         else:
-            tsys = dtype
-        #try:
-        #    dum = eval('self.' + dtype)
-        #except:
-        #    raise AttributeError('Invalid time system selected')
-        self.data = eval('np.insert(self.' + dtype  + ', idx, val)')
-        self.data.attrs['dtype'] = tsys
-        self.update_items(self, tsys)
+           dum = Ticktock(val, dtype=dtype)
+        ival = eval('dum.{0}'.format(fmt))[0]
+        self.data = np.insert(self.data, idx, ival)
+        
+        self.update_items(self, 'data')
+    
+    # -----------------------------------------------
+    def remove(self, idx):
+        """
+        a.remove(idx)
 
+        This will remove the Ticktock value at index idx
+        """
+        del self[idx]
+    
     # -----------------------------------------------
     def sort(self):
         """
@@ -1318,6 +1327,7 @@ class Ticktock(collections.MutableSequence):
 
         nTAI = len(self.data)
         ISO = ['']*nTAI
+        self.TAI = self.getTAI()
         for i in range(nTAI):
             ISO[i] = self.UTC[i].strftime(self.__isofmt)
 
@@ -1328,7 +1338,7 @@ class Ticktock(collections.MutableSequence):
                 ISO[i] = a+':'+b+':'+cnew
 
         self.ISO = dmarray(ISO)
-        return ISO
+        return self.ISO
 
     # -----------------------------------------------
     def getleapsecs(self):

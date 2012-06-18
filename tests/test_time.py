@@ -71,15 +71,15 @@ class TimeFunctionTests(unittest.TestCase):
         """tickrange should return a known value for known input"""
         inval = ( ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 1),
                   ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 0.5) )
-        real_ans = ( ['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
-                      '2002-02-04T00:00:00'],
-                     ['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
+        real_ans = ( numpy.array(['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
+                      '2002-02-04T00:00:00'], dtype='|S19'),
+                     numpy.array(['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
                       '2002-02-02T12:00:00', '2002-02-03T00:00:00', '2002-02-03T12:00:00',
-                      '2002-02-04T00:00:00'] )
+                      '2002-02-04T00:00:00'], dtype='|S19'))
 
         for i, val in enumerate(inval):
             ans = t.tickrange(*val)
-            self.assertEqual(real_ans[i], ans.ISO)
+            numpy.testing.assert_equal(real_ans[i], ans.ISO)
 
     def test_sec2hms(self):
         """sec2hms should return a known value for known input"""
@@ -187,11 +187,18 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_equal(expected, t1.ISO)
 
     def test_delitem(self):
-        """delitem should error"""
+        """delitem should remove item"""
         t1 = t.Ticktock(['2002-01-01', '2002-01-02'])
-        expected = ['2002-01-01T00:00:00', '2002-01-02T00:00:00']
+        expected = ['2002-01-02T00:00:00']
+        del t1[0]
         numpy.testing.assert_equal(expected, t1.ISO)
-        self.assertRaises(ValueError, t1.__delitem__, 0)
+    
+    def test_removeitem(self):
+        """remove should remove item"""
+        t1 = t.Ticktock(['2002-01-01', '2002-01-02'])
+        expected = ['2002-01-02T00:00:00']
+        t1.remove(0)
+        numpy.testing.assert_equal(expected, t1.ISO)
 
     def test_eq_ne(self):
         """the boolean operations should work"""
