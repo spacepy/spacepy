@@ -387,8 +387,12 @@ class Ticktock(collections.MutableSequence):
 
         will be called when deleting items in the sequence
         """
-        del self.data[idx]
+        self.data = np.delete(self.data, idx)
+        
         self.update_items(self, 'data')
+
+        #del self.data[idx]
+        #self.update_items(self, 'data')
 
     # -----------------------------------------------
     def __len__(self):
@@ -599,7 +603,6 @@ class Ticktock(collections.MutableSequence):
     # -----------------------------------------------
     def insert(self, idx, val, dtype=None):
 
-        #TODO: Fix so that this works for dtypre other than that of self.data
         fmt = self.data.attrs['dtype']
         if not dtype:
            dum = Ticktock(val)
@@ -608,11 +611,17 @@ class Ticktock(collections.MutableSequence):
         ival = eval('dum.{0}'.format(fmt))[0]
         self.data = np.insert(self.data, idx, ival)
         
-        
-        #self.data = eval('np.insert(self.' + dtype  + ', idx, val)')
-        #self.data.attrs['dtype'] = tsys
         self.update_items(self, 'data')
+    
+    # -----------------------------------------------
+    def remove(self, idx):
+        """
+        a.remove(idx)
 
+        This will remove the Ticktock value at index idx
+        """
+        del self[idx]
+    
     # -----------------------------------------------
     def sort(self):
         """
