@@ -39,6 +39,7 @@ try:
     import ConfigParser
 except ImportError:
     import configparser as ConfigParser
+import functools
 import multiprocessing
 import os
 import os.path
@@ -90,6 +91,7 @@ def deprecated(version, message):
     #actual decorator, with version and message curried in
     def _deprecator(func):
         #this is the actual, deprecated function
+        @functools.wraps(func)
         def _deprecated(*args, **kwargs):
             warnings.warn(message, DeprecationWarning)
             return func(*args, **kwargs)
