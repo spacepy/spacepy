@@ -65,10 +65,11 @@ def default_f2py():
     """
     interp = os.path.basename(sys.executable)
     if interp[0:6] == 'python':
-        candidate = 'f2py' + interp[6:]
-        for dir in os.environ['PATH'].split(os.pathsep):
-            if os.path.isfile(os.path.join(dir, candidate)):
-                return candidate
+        for candidate in ['f2py' + interp[6:],
+                          'f2py-' + interp[6:]]:
+            for d in os.environ['PATH'].split(os.pathsep):
+                if os.path.isfile(os.path.join(d, candidate)):
+                    return candidate
     if sys.platform == 'win32':
         return 'f2py.py'
     else:
