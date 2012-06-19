@@ -461,8 +461,6 @@ class Sea(SeaBase):
         except AssertionError:
             raise ValueError('No superposed epoch results to plot')
 
-        from spacepy.toolbox import makePoly
-
         if len(xunits)<1:
             xlstr = '%s' % xquan
         else:
@@ -489,8 +487,8 @@ class Sea(SeaBase):
         #ax0.plot(self.x, self.bound_high, 'k-.', lw=2)
 
         if transparent:
-            poly = makePoly(self.x, self.bound_low.ravel(), self.bound_high.ravel(), alpha=0.25)
-            ax0.add_patch(poly)
+            ax0.fill_between(self.x, self.bound_low.ravel(), self.bound_high.ravel(),
+                             edgecolor='none', facecolor=color, interpolate=True, alpha=0.25)
         else:
             ax0.fill_between(self.x, self.bound_low.ravel(), self.bound_high.ravel(),
                              edgecolor='none', facecolor=color, interpolate=True)

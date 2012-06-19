@@ -55,7 +55,6 @@ Plotting tools
     :toctree: autosummary
 
     applySmartTimeTicks
-    makePoly
     printfig
     smartTimeTicks
     timestamp

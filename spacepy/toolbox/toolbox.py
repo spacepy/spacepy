@@ -47,7 +47,7 @@ except NameError:
 
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
            'human_sort', 'feq', 'dictree', 'printfig', 'update', 'progressbar',
-           'windowMean', 'medAbsDev', 'makePoly', 'binHisto', 'smartTimeTicks',
+           'windowMean', 'medAbsDev', 'binHisto', 'smartTimeTicks',
            'applySmartTimeTicks', 'logspace', 'geomspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'listUniq', 'intsolve', 'dist_to_list',
@@ -1032,44 +1032,6 @@ def medAbsDev(series):
     perc50 = np.median(series.compressed())
     mad = np.median(abs(series.compressed()-perc50))
     return mad
-
-@spacepy.deprecated(
-    0.1, "Use :func:`matplotlib.pyplot.fill_between` instead of makePoly.")
-def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
-    """
-    Make filled polygon for plotting
-
-    Parameters
-    ==========
-    x : list
-        List of x start and stop values
-    y1 : list
-        List of y lower bounds for fill
-    y2 : list
-        List of y upper bounds for fill
-    face : string (optional)
-        color of the fill (default blue)
-    alpha : float (optional)
-        alpha of the fill (default 0.5)
-
-    Examples
-    ========
-    >>> import spacepy.toolbox as tb
-    >>> poly0c = tb.makePoly(x, ci_low, ci_high, face='red', alpha=0.8)
-    >>> ax0.add_patch(poly0qc)
-
-    See Also
-    ========
-    matplotlib.pyplot.fill_between
-    """
-    import matplotlib as mpl
-    x2, y1 = x[-1::-1], y1[-1::-1]
-    polyx = np.concatenate((x,x2))
-    polyy = np.concatenate((y2,y1))
-    xy = np.empty((len(polyy),2))
-    xy[:,0], xy[:,1] = polyx, polyy
-    madePoly = mpl.patches.Polygon(xy, facecolor = face, alpha = alpha)
-    return madePoly
 
 def binHisto(data, verbose=False):
     """
