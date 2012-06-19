@@ -37,6 +37,8 @@ except ImportError:
 except:
     pass
 
+import spacepy
+
 #Py3k compatibility renamings
 try:
     xrange
@@ -1031,12 +1033,11 @@ def medAbsDev(series):
     mad = np.median(abs(series.compressed()-perc50))
     return mad
 
+@spacepy.deprecated(
+    0.1, "Use :func:`matplotlib.pyplot.fill_between` instead of makePoly.")
 def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     """
     Make filled polygon for plotting
-
-    .. deprecated:: 0.1
-       Equivalent functionality to built-in matplotlib function fill_between
 
     Parameters
     ==========
@@ -1061,7 +1062,6 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     ========
     matplotlib.pyplot.fill_between
     """
-    warnings.warn('makePoly has been deprecated, see matplotlib.pyplot.fill_between', DeprecationWarning)
     import matplotlib as mpl
     x2, y1 = x[-1::-1], y1[-1::-1]
     polyx = np.concatenate((x,x2))
