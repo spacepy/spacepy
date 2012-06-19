@@ -387,7 +387,7 @@ class Ticktock(collections.MutableSequence):
         will be called when deleting items in the sequence
         """
         self.data = np.delete(self.data, idx)
-        
+
         self.update_items(self, 'data')
 
         #del self.data[idx]
@@ -601,17 +601,31 @@ class Ticktock(collections.MutableSequence):
 
     # -----------------------------------------------
     def insert(self, idx, val, dtype=None):
+        """
+        insert values into the TickTock object
 
+        .. note:: If more than one value to insert a slice must be specified
+        as the index.  See numpy.insert
+
+        Parameters
+        ==========
+            idx : int, slice or sequence of ints
+                Object that defines the index or indices before which `val` is inserted.
+            val : array_like
+                values to insert
+            dtype : str (optional)
+                must be specified if not CDF, ISO, or UTC
+        """
         fmt = self.data.attrs['dtype']
         if not dtype:
            dum = Ticktock(val)
         else:
            dum = Ticktock(val, dtype=dtype)
-        ival = eval('dum.{0}'.format(fmt))[0]
+        ival = eval('dum.{0}'.format(fmt))
         self.data = np.insert(self.data, idx, ival)
-        
+
         self.update_items(self, 'data')
-    
+
     # -----------------------------------------------
     def remove(self, idx):
         """
@@ -620,7 +634,7 @@ class Ticktock(collections.MutableSequence):
         This will remove the Ticktock value at index idx
         """
         del self[idx]
-    
+
     # -----------------------------------------------
     def sort(self):
         """
