@@ -8,13 +8,27 @@ toolbox - Toolbox of various functions and generic utilities
 
 .. currentmodule:: spacepy.toolbox
 
-- `Numerical distributions`_
+- `Array binning`_
+- `Array creation`_
+- `Array searching and masking`_
 - `Plotting tools`_
 - `Time and date functions`_
 - `Other functions`_
+- `Multithreading and multiprocessing`_
+- `System tools`_
 
-Numerical distributions
------------------------
+Array binning
+-------------
+.. autosummary::
+    :toctree: autosummary
+
+    arraybin
+    bin_center_to_edges
+    bin_edges_to_center
+    binHisto
+
+Array creation
+--------------
 .. autosummary::
     :toctree: autosummary
 
@@ -23,6 +37,18 @@ Numerical distributions
     linspace
     logspace
 
+Array searching and masking
+---------------------------
+.. autosummary::
+    :toctree: autosummary
+
+    interweave
+    isview
+    tCommon
+    tOverlap
+    tOverlapHalf
+
+
 Plotting tools
 --------------
 .. autosummary::
@@ -30,8 +56,9 @@ Plotting tools
 
     applySmartTimeTicks
     makePoly
-    smartTimeTicks
     printfig
+    smartTimeTicks
+    timestamp
 
 Time and date functions
 -----------------------
@@ -41,21 +68,13 @@ Time and date functions
     leap_year
     leapyear
     randomDate
-    tCommon
-    timestamp
-    tOverlap
-    tOverlapHalf
 
 Other functions
 ---------------
 .. autosummary::
     :toctree: autosummary
 
-    arraybin
     assemble
-    bin_center_to_edges
-    bin_edges_to_center
-    binHisto
     dictree
     eventTimer
     feq
@@ -63,23 +82,30 @@ Other functions
     human_sort
     hypot
     interpol
-    interweave
     intsolve
-    isview
     listUniq
-    loadpickle
     medAbsDev
     mlt2rad
     normalize
     pmm
-    progressbar
-    query_yes_no
     rad2mlt
-    savepickle
-    thread_job
-    thread_map
-    update
     windowMean
 
+Multithreading and multiprocessing
+----------------------------------
+.. autosummary::
+    :toctree: autosummary
 
+    thread_job
+    thread_map
 
+System tools
+------------
+.. autosummary::
+    :toctree: autosummary
+
+    loadpickle
+    progressbar
+    query_yes_no
+    savepickle
+    update
