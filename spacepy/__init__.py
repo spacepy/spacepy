@@ -39,6 +39,7 @@ try:
     import ConfigParser
 except ImportError:
     import configparser as ConfigParser
+import functools
 import multiprocessing
 import os
 import os.path
@@ -73,6 +74,47 @@ if sys.platform == 'win32':
                 os.environ['PATH'] = fortlibs
     else:
         os.environ['PATH'] = fortlibs
+
+def deprecated(version, message):
+    """Decorator to deprecate a function/method
+
+    Parameters
+    ==========
+    version : str
+        What is the first version where this was deprecated?
+
+    message : str
+        Message to include in the documentation and the warning message.
+    """
+    message = str(message)
+    version = str(version)
+    #actual decorator, with version and message curried in
+    def _deprecator(func):
+        #this is the actual, deprecated function
+        @functools.wraps(func)
+        def _deprecated(*args, **kwargs):
+            warnings.warn(message, DeprecationWarning)
+            return func(*args, **kwargs)
+        doclines = func.__doc__.split('\n')
+        #first non-blank line
+        idx = next((i for i in range(len(doclines)) if doclines[i].strip()),
+                   None)
+        if idx is None: #no non-blank
+            leading = '    '
+            idx = len(doclines) #insert at end
+        else:
+            first = doclines[idx]
+            #copy whitespace
+            leading = first[0:len(first) - len(first.lstrip())]
+            idx += 1 #insert just after first non-blank
+        #REVERSE order since insert goes before
+        doclines.insert(idx, leading)
+        doclines.insert(idx, leading + '   ' + message)
+        doclines.insert(idx, leading + '.. deprecated:: ' + version)
+        doclines.insert(idx, leading)
+        _deprecated.__doc__ = '\n'.join(doclines) + '\n'
+        return _deprecated
+    return _deprecator
 
 # Expose definitions from modules in this package.
 from .datamodel import dmarray, SpaceData

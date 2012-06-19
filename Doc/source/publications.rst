@@ -10,6 +10,21 @@ appropriate, in your paper.
 Peer-reviewed papers
 ====================
 
+* Turner, D. L., V. Angelopoulos, Y. Shprits, A. Kellerman, P. Cruce and 
+  D. Larson (2012), Radial distributions of equatorial phase space density 
+  for outer radiation belt electrons, Geophys. Res. Lett., 39, L09101, 
+  `doi:10.1029/2012GL051722 <http://dx.doi.org/10.1029/2012GL051722>`_.
+
+* Welling, D.T. and A.J. Ridley (2010), Exploring sources of magnetospheric 
+  plasma using multispecies MHD, Journal of Geophysical Research, 115,
+  4201, `doi:10.1029/2009JA014596 <http://dx.doi.org/10.1029/2009JA014596>`_.
+
+* Morley, S.K., R.H.W. Friedel, E.L. Spanswick, G.D. Reeves, J.T. Steinberg, 
+  J. Koller, T. Cayton and E. Noveroske (2010), Dropouts of the outer electron 
+  radiation belt in response to solar wind stream interfaces: Global 
+  Positioning System observations, Proceedings of the Royal Society A,
+  `doi:10.1098/rspa.2010.0078 <http://dx.doi.org/10.1098/rspa.2010.0078>`_.
+
 Other publications and presentations
 ====================================
 
@@ -17,3 +32,18 @@ Other publications and presentations
   associations between two series of discrete events: bootstrap methods,
   Tech Report LA-14453, Los Alamos National Laboratory, Los Alamos, NM,
   `doi:10.2172/1035497 <http://dx.doi.org/10.2172/1035497>`_.
+
+* Morley, S.K., J. Koller, D.T. Welling, B.A. Larsen and M.G. Henderson 
+  (in press, 2012), SpacePy - A Python-based library of tools for the space 
+  sciences, Proceedings of the 9th Python in Science Conference (SciPy 2010), 
+  presented in Austin, TX, June 30 - July 1, 2010 
+  `preprint <http://spacepy.lanl.gov/publications/SciPy_proceeding.pdf>`_.
+
+* The SpacePy Developer Team (2010), SpacePy - Python-Based of Tools for the Space 
+  Science Community, A Tri-Fold
+  `pdf <http://spacepy.lanl.gov/publications/spacepy_trifold.pdf>`_.
+
+* Morley, S.K., D.T. Welling, J. Koller, B.A. Larsen, M.G. Henderson (2010), 
+  SpacePy - Data Analysis and Visualization Tools for the Space Sciences, 
+  presented at GEM 2010 Summer Workshop, Snowmass, CO, June 20-25
+  `pdf <http://spacepy.lanl.gov/publications/spacepy.poster.final.pdf>`_.
