@@ -50,7 +50,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'windowMean', 'medAbsDev', 'binHisto', 'smartTimeTicks',
            'applySmartTimeTicks', 'logspace', 'geomspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
-           'interpol', 'normalize', 'listUniq', 'intsolve', 'dist_to_list',
+           'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'randomDate', 'isview', 'interweave']
 
@@ -1722,40 +1722,6 @@ def normalize(vec):
         ptp = np.ptp(vec)
         out = [(val -  vecmin)/ptp for val in vec]
     return out
-
-def listUniq(inVal):
-    """
-    Given an input iterable (list, deque) return a list of the unique elements.
-    Maintains order (keeps the first of non-unique elements
-
-    .. deprecated:: version 0.1.1
-
-    Equivalent functionality to numpy.unique
-
-    Parameters
-    ==========
-    inVal : iterable
-        Input iterable
-
-    Returns
-    =======
-    out : list
-        list of unique elements from iterable
-
-    Examples
-    ========
-    >>> import spacepy.toolbox as tb
-    >>> a = [1,1,2,3,3,4,5,5]
-    >>> tb.listUniq(a)
-    [1, 2, 3, 4, 5]
-
-    See Also
-    ========
-    numpy.unique
-    """
-    warnings.warn('listUniq has been deprecated, see numpy.unique', DeprecationWarning)
-    seen = set()
-    return [ x for x in inVal if x not in seen and not seen.add(x)]
 
 def intsolve(func, value, start=None, stop=None, maxit=1000):
     """

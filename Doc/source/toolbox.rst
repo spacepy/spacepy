@@ -82,7 +82,6 @@ Other functions
     hypot
     interpol
     intsolve
-    listUniq
     medAbsDev
     mlt2rad
     normalize

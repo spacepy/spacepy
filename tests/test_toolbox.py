@@ -277,18 +277,6 @@ class SimpleFunctionTests(unittest.TestCase):
             self.assertEqual(val, tb.pmm(data[i]))
         self.assertEqual([[1, 6], [5, 24], [6.0, 67.340000000000003]], tb.pmm(*data) )
 
-    def test_listUniq(self):
-        """listUniq should give known output for known input"""
-        data = [[1,2,3], [2,3,1], [1,1,1], [1,2,3,1]]
-        real_ans = [[1,2,3], [2,3,1], [1], [1,2,3]]
-        with warnings.catch_warnings(record=True) as w:
-            for i, val in enumerate(real_ans):
-                self.assertEqual(val, tb.listUniq(data[i]))
-            self.assertEqual(1, len(w))
-            self.assertEqual(DeprecationWarning, w[0].category)
-            self.assertEqual('listUniq has been deprecated, see numpy.unique',
-                             str(w[0].message))
-
     def test_leap_year(self):
         """Leap_year should give known output for known input"""
         leaps = [1600, 1604, 1608, 1612, 1616, 1620, 1624, 1628, 1632, 1636,
