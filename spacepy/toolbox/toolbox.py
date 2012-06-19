@@ -1035,6 +1035,9 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
     """
     Make filled polygon for plotting
 
+    .. deprecated:: 0.1
+       Equivalent functionality to built-in matplotlib function fill_between
+
     Parameters
     ==========
     x : list
@@ -1047,9 +1050,6 @@ def makePoly(x, y1, y2, face = 'blue', alpha=0.5):
         color of the fill (default blue)
     alpha : float (optional)
         alpha of the fill (default 0.5)
-
-    .. deprecated:: version 0.1
-    Equivalent functionality to built-in matplotlib function fill_between
 
     Examples
     ========
