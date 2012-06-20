@@ -1,6 +1,6 @@
-*****************
-Publications List
-*****************
+****************
+Publication List
+****************
 
 The following publications have been prepared using SpacePy. If you have
 published a paper using SpacePy, contact the SpacePy team to be added
