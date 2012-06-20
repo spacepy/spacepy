@@ -1130,9 +1130,11 @@ class Ticktock(collections.MutableSequence):
             UTC = self.data # return
 
         elif self.data.attrs['dtype'].upper() == 'ISO':
+            self.ISO = self.data
             UTC = [dup.parse(isot) for isot in self.data]
 
         elif self.data.attrs['dtype'].upper() == 'TAI':
+            self.TAI = self.data
             TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
             UTC = [datetime.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
             # add leap seconds after UTC is created
@@ -1144,6 +1146,7 @@ class Ticktock(collections.MutableSequence):
                 if tmpleaps == leapsecs[i]-1: self.UTC[i] = self.UTC[i]+datetime.timedelta(seconds=1)
 
         elif self.data.attrs['dtype'].upper() == 'GPS':
+            self.GPS = self.data
             GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
             UTC = [datetime.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
             # add leap seconds after UTC is created
@@ -1155,10 +1158,12 @@ class Ticktock(collections.MutableSequence):
                     datetime.timedelta(seconds=19)
 
         elif self.data.attrs['dtype'].upper() == 'UNX':
+            self.UNX = self.data
             UNX0 = datetime.datetime(1970,1,1)
             UTC = [datetime.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
 
         elif self.data.attrs['dtype'].upper() == 'RDT':
+            self.RDT = self.data
             # import matplotlib.dates as mpd
             UTC = num2date(self.data)
             UTC = no_tzinfo(UTC)
@@ -1171,6 +1176,7 @@ class Ticktock(collections.MutableSequence):
                 #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
 
         elif self.data.attrs['dtype'].upper() == 'CDF':
+            self.CDF = self.data
             UTC = [datetime.timedelta(days=cdft/86400000.) +
                         datetime.datetime(1,1,1) - datetime.timedelta(days=366) for cdft in self.data]
                 #UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
@@ -1181,7 +1187,10 @@ class Ticktock(collections.MutableSequence):
 
         elif self.data.attrs['dtype'].upper() in ['JD', 'MJD']:
             if self.data.attrs['dtype'].upper() == 'MJD':
-                self.JD = np.array(self.data) + 2400000.5
+                self.JD = self.data + 2400000.5
+                self.MJD = self.data
+            else:
+                self.JD = self.data
             UTC = ['']*nTAI
             for i in np.arange(nTAI):
                 # extract partial days
@@ -1673,10 +1682,7 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
         sec %= 86400
 
     hours = int(sec)//3600
-    try:
-        minutes = int((sec - hours*3600) // 60) % 60
-    except ZeroDivisionError:
-        minutes = 0
+    minutes = int((sec - hours*3600) // 60) % 60
     seconds = sec % 60
     if rounding:
         seconds = int(round(seconds))

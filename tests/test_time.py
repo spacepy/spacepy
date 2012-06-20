@@ -8,6 +8,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 import datetime
 import unittest
+import pickle
 import warnings
 
 import numpy
@@ -76,7 +77,19 @@ class TimeFunctionTests(unittest.TestCase):
                      numpy.array(['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
                       '2002-02-02T12:00:00', '2002-02-03T00:00:00', '2002-02-03T12:00:00',
                       '2002-02-04T00:00:00'], dtype='|S19'))
+        for i, val in enumerate(inval):
+            ans = t.tickrange(*val)
+            numpy.testing.assert_equal(real_ans[i], ans.ISO)
 
+    def test_tickrange2(self):
+        """tickrange should return a known value for known input (timedelta)"""
+        inval = ( ('2002-02-01T00:00:00', '2002-02-04T00:00:00', datetime.timedelta(days=1)),
+                  ('2002-02-01T00:00:00', '2002-02-04T00:00:00', datetime.timedelta(hours=12)) )
+        real_ans = ( numpy.array(['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
+                      '2002-02-04T00:00:00'], dtype='|S19'),
+                     numpy.array(['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
+                      '2002-02-02T12:00:00', '2002-02-03T00:00:00', '2002-02-03T12:00:00',
+                      '2002-02-04T00:00:00'], dtype='|S19'))
         for i, val in enumerate(inval):
             ans = t.tickrange(*val)
             numpy.testing.assert_equal(real_ans[i], ans.ISO)
@@ -101,6 +114,7 @@ class TimeFunctionTests(unittest.TestCase):
             self.assertEqual(
                 'Number of seconds > seconds in day. Try days keyword.',
                 str(w[0].message))
+        self.assertEqual(t.sec2hms(12, False, False, True), datetime.timedelta(seconds=12))
 
     def test_no_tzinfo(self):
         """no_tzinfo should have known output"""
@@ -121,8 +135,11 @@ class TimeClassTests(unittest.TestCase):
 
     def test_Tickdelta(self):
         """Tickdelta should function"""
-        tst = t.Tickdelta(hours=12)
-        self.assertEqual(43200.0, tst.seconds)
+        with warnings.catch_warnings(record=True) as w:
+            tst = t.Tickdelta(hours=12)
+            self.assertEqual(43200.0, tst.seconds)
+            self.assertEqual(1, len(w))
+            self.assertEqual(DeprecationWarning, w[0].category)
 
     def test_sliceTicktock(self):
         """a ticktock sliced returns a ticktock"""
@@ -192,7 +209,7 @@ class TimeClassTests(unittest.TestCase):
         expected = ['2002-01-02T00:00:00']
         del t1[0]
         numpy.testing.assert_equal(expected, t1.ISO)
-    
+
     def test_removeitem(self):
         """remove should remove item"""
         t1 = t.Ticktock(['2002-01-01', '2002-01-02'])
@@ -256,6 +273,86 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = [ 0.04166667,  1.        ]
         numpy.testing.assert_allclose(expected, t1.eDOY)
+
+    def test_str(self):
+        """TickTock __str__ should give known results"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        self.assertEqual(str(t1), "Ticktock( ['2002-01-01T01:00:00' '2002-01-02'], dtype=ISO)")
+
+    def test_pickle(self):
+        """TickTock objects should pickle"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        pkl = pickle.dumps(t1)
+        t2 = pickle.loads(pkl)
+        self.assertTrue((t1 == t2).all())
+
+    def test_add(self):
+        """TickTocks should add properly"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        expected = t.Ticktock( ["2002-01-01T01:45:00",  "2002-01-02T00:45:00"], dtype='UTC')
+        self.assertTrue((t1 + datetime.timedelta(minutes=45) == expected).all())
+        self.assertTrue((datetime.timedelta(minutes=45) + t1 == expected).all())
+
+    def test_insert(self):
+        """you can insert to a TickTock"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00'])
+        expected = t.Ticktock( ["2002-01-01T01:00:00",  "2002-01-02T00:00:00"], dtype='UTC')
+        t1.insert(1, '2002-01-02')
+        self.assertTrue((t1 == expected).all())
+        t1 = t.Ticktock(['2002-01-01T01:00:00'])
+        t1.insert(1, '2002-01-02', dtype='ISO')
+        self.assertTrue((t1 == expected).all())
+
+    def test_MJD(self):
+        """conversions to MJD should work"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        expected = numpy.asarray([ 52275.04166667,  52276.        ])
+        numpy.testing.assert_allclose(t1.MJD, expected)
+
+    def test_GPS(self):
+        """conversions to GPS should work"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        expected = numpy.asarray([  6.93882013e+08,   6.93964813e+08])
+        numpy.testing.assert_allclose(t1.GPS, expected)
+
+    def test_now(self):
+        """now() is at least deterministic"""
+        v1 = t.Ticktock.now()
+        v2 = t.Ticktock.now()
+        self.assertTrue(v1 < v2)
+
+    def test_UTCGPS(self):
+        """testing get UTC from GPS"""
+        t1 = t.Ticktock([  6.93882013e+08,   6.93964813e+08], 'GPS')
+        expected = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        self.assertTrue((t1 == expected).all())
+
+    def test_UTCUNX(self):
+        """testing get UTC from UNX"""
+        t1 = t.Ticktock([  1.00984680e+09,   1.00992960e+09], 'UNX')
+        expected = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        self.assertTrue((t1 == expected).all())
+
+    def test_UTCJD(self):
+        """testing get UTC from JD/MJD"""
+        expected = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        t1 = t.Ticktock([ 52275.04166667,  52276.        ], 'MJD')
+        numpy.testing.assert_allclose(t1.UNX, expected.UNX)
+        t1 = t.Ticktock([ 2452275.54166667,  2452276.5       ], 'JD')
+        self.assertTrue((t1.ISO == expected.ISO).all())
+
+    def test_JD(self):
+        """test converting to JD"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        expected = numpy.asarray([ 2452275.54166667,  2452276.5       ])
+        numpy.testing.assert_allclose(t1.JD, expected)
+        with warnings.catch_warnings(record=True) as w:
+            t2 = t.Ticktock(datetime.datetime(1582,10,14))
+            ans = t2.JD
+            self.assertEqual(1, len(w))
+            self.assertEqual(UserWarning, w[0].category)
+            numpy.testing.assert_allclose(ans, [2299169.5])
+
 
 
 
