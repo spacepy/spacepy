@@ -217,6 +217,14 @@ class dmarray(numpy.ndarray):
         self.Allowed_Attributes.append(name)
         self.__setattr__(name, value)
 
+    def count(self, srchval):
+        """
+        Equivalent to count method on list
+
+        """
+        mask = self == srchval
+        return int(mask.sum())
+
 
 class SpaceData(dict):
     """
