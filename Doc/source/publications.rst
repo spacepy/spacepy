@@ -7,8 +7,11 @@ published a paper using SpacePy, contact the SpacePy team to be added
 to this list. Please also provide a citation or acknowledgement, as
 appropriate, in your paper.
 
-Peer-reviewed papers
+Papers using SpacePy
 ====================
+
+Peer-reviewed papers
+--------------------
 
 * Turner, D. L., V. Angelopoulos, Y. Shprits, A. Kellerman, P. Cruce and 
   D. Larson (2012), Radial distributions of equatorial phase space density 
@@ -26,18 +29,29 @@ Peer-reviewed papers
   `doi:10.1098/rspa.2010.0078 <http://dx.doi.org/10.1098/rspa.2010.0078>`_.
 
 Other publications and presentations
-====================================
+------------------------------------
 
 * Niehof, J. T. and S. K. Morley (2012), Determining the significance of
   associations between two series of discrete events: bootstrap methods,
   Tech Report LA-14453, Los Alamos National Laboratory, Los Alamos, NM,
   `doi:10.2172/1035497 <http://dx.doi.org/10.2172/1035497>`_.
 
-* Morley, S.K., J. Koller, D.T. Welling, B.A. Larsen and M.G. Henderson 
-  (in press, 2012), SpacePy - A Python-based library of tools for the space 
-  sciences, Proceedings of the 9th Python in Science Conference (SciPy 2010), 
-  presented in Austin, TX, June 30 - July 1, 2010 
+
+
+Papers using SpacePy
+====================
+
+Peer-reviewed papers
+--------------------
+
+* Morley, S.K., J. Koller, D.T. Welling, B.A. Larsen and M.G. Henderson
+  (in press, 2012), SpacePy - A Python-based library of tools for the space
+  sciences, Proceedings of the 9th Python in Science Conference (SciPy 2010),
+  presented in Austin, TX, June 30 - July 1, 2010
   `preprint <http://spacepy.lanl.gov/publications/SciPy_proceeding.pdf>`_.
+        
+Other publications and presentations
+------------------------------------
 
 * The SpacePy Developer Team (2010), SpacePy - Python-Based of Tools for the Space 
   Science Community, A Tri-Fold
