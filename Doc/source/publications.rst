@@ -38,7 +38,7 @@ Other publications and presentations
 
 
 
-Papers using SpacePy
+Papers about SpacePy
 ====================
 
 Peer-reviewed papers
