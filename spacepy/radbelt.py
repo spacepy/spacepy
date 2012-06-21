@@ -10,8 +10,10 @@ Contact: jkoller@lanl.gov
 Copyright 2010 Los Alamos National Security, LLC.
 """
 
-from spacepy import help
 import ctypes
+import datetime
+
+from spacepy import help
 import numpy as np
 import spacepy.time as st
 import pdb
@@ -106,8 +108,8 @@ class RBmodel(object):
                 self.Lpp_model = 'CA1992'
                 #self.SRC_model = 'JK1'
                 #self.SRCmagn = st.Tickdelta(days=1e-1) # relative acceleration per day
-                self.MPloss = st.Tickdelta(minutes=0.1) # minutes time scale
-                self.PPloss = st.Tickdelta(days=10.) # days time scale
+                self.MPloss = datetime.timedelta(minutes=0.1) # minutes time scale
+                self.PPloss = datetime.timedelta(days=10.) # days time scale
                 self.set_lgrid(NL)
                 self.MODerr = 5. # relative factor * PSD
                 #self.PSDerr = 0.3 # relative observational error
@@ -1309,17 +1311,21 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
 #        f = f + S*Tdelta
 
     # add losses through magnetopause shadowing, time scale taken from MPloss
-    if params['MPloss'].seconds > 0.0:
+    mp_sec = params['MPloss'].days * 86400.0 + params['MPloss'].seconds + \
+             params['MPloss'].microseconds / 1000000.0
+    if mp_sec > 0.0:
         # setup loss vector
         LSS = np.zeros(NL)
-        LSS[np.where(Lgrid>params['Lmax'])] = -1./params['MPloss'].seconds
+        LSS[np.where(Lgrid>params['Lmax'])] = -1./mp_sec
         f = f*np.exp(LSS*Tdelta)
 
     # add losses inside plasma pause, time scale taken from PPloss
-    if params['PPloss'].seconds > 0.0:
+    pp_sec = params['PPloss'].days * 86400.0 + params['PPloss'].seconds + \
+             params['PPloss'].microseconds / 1000000.0
+    if pp_sec > 0.0:
         # calculate plasma pause location after Carpenter & Anderson 1992
         LSS = np.zeros(NL)
-        LSS[np.where(Lgrid<params['Lpp'])] = -1./params['PPloss'].seconds
+        LSS[np.where(Lgrid<params['Lpp'])] = -1./pp_sec
         f = f*np.exp(LSS*Tdelta)
 
     return f
