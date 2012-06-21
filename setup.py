@@ -459,7 +459,7 @@ class install(_install):
             import ffnet
         except:
             self.distribution.add_warning(
-                'h5py not found; required for LANLstar.')
+                'ffnet not found; required for LANLstar.')
             bad = True
         if not bad:
             print('Dependencies OK.')
