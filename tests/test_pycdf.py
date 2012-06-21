@@ -248,6 +248,10 @@ class NoCDF(unittest.TestCase):
         if cdf.lib.version == (3, 3, 0, ' '):
             self.assertTrue(cdf.lib._del_middle_rec_bug)
         elif cdf.lib.version == (3, 3, 1, ' '):
+            self.assertTrue(cdf.lib._del_middle_rec_bug)
+        elif cdf.lib.version == (3, 4, 0, '0'):
+            self.assertTrue(cdf.lib._del_middle_rec_bug)
+        elif cdf.lib.version == (3, 4, 1, '0'):
             self.assertFalse(cdf.lib._del_middle_rec_bug)
 
     def testTypeGuessing(self):
