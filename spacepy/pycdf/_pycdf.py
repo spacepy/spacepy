@@ -67,20 +67,25 @@ class Library(object):
         ~Library.check_status
         ~Library.datetime_to_epoch
         ~Library.datetime_to_epoch16
+        ~Library.datetime_to_tt2000
         ~Library.epoch_to_datetime
         ~Library.epoch16_to_datetime
         ~Library.set_backward
         supports_int8
+        ~Library.tt2000_to_datetime
         v_datetime_to_epoch
         v_datetime_to_epoch16
+        v_datetime_to_tt2000
         v_epoch_to_datetime
         v_epoch16_to_datetime
+        v_tt2000_to_datetime
         version
 
     .. automethod:: call
     .. automethod:: check_status
     .. automethod:: datetime_to_epoch
     .. automethod:: datetime_to_epoch16
+    .. automethod:: datetime_to_tt2000
     .. automethod:: epoch_to_datetime
     .. automethod:: epoch16_to_datetime
     .. automethod:: set_backward
@@ -88,6 +93,8 @@ class Library(object):
     .. attribute:: supports_int8
 
        True if this library supports INT8 and TIME_TT2000 types; else False.
+
+    .. automethod:: tt2000_to_datetime
 
     .. method:: v_datetime_to_epoch(datetime)
     
@@ -98,6 +105,11 @@ class Library(object):
     
         A vectorized version of :meth:`datetime_to_epoch16` which takes a
         numpy array of datetimes as input and returns an array of epoch16.
+
+    .. method:: v_datetime_to_tt2000(datetime)
+    
+        A vectorized version of :meth:`datetime_to_tt2000` which takes a
+        numpy array of datetimes as input and returns an array of TT2000.
 
     .. method:: v_epoch_to_datetime(epoch)
     
@@ -110,6 +122,11 @@ class Library(object):
         a numpy arrays of epoch16 as input and returns an array of datetimes.
         An epoch16 is a pair of doubles; the input array's last dimension
         must be two (and the returned array will have one fewer dimension).
+
+    .. method:: v_tt2000_to_datetime(tt2000)
+    
+        A vectorized version of :meth:`tt2000_to_datetime` which takes
+        a numpy array of tt2000 as input and returns an array of datetimes.
 
     .. attribute:: version
 
@@ -192,6 +209,14 @@ class Library(object):
         if hasattr(self._library, 'CDFsetFileBackward'):
             self._library.CDFsetFileBackward.restype = None
             self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
+        if hasattr(self._library, 'CDF_TT2000_from_UTC_parts'):
+            self._library.CDF_TT2000_from_UTC_parts.restype = ctypes.c_longlong
+            self._library.CDF_TT2000_from_UTC_parts.argtypes = \
+                [ctypes.c_double] *9
+        if hasattr(self._library, 'CDF_TT2000_to_UTC_parts'):
+            self._library.CDF_TT2000_to_UTC_parts.restype = None
+            self._library.CDF_TT2000_to_UTC_parts.argtypes = \
+                [ctypes.c_longlong] + [ctypes.POINTER(ctypes.c_double)] * 9
 
         #Get CDF version information
         ver = ctypes.c_long(0)
@@ -257,6 +282,8 @@ class Library(object):
             lambda x: v_epoch16_to_datetime(x[..., 0], x[..., 1])
         self.v_epoch_to_datetime = numpy.frompyfunc(
             self.epoch_to_datetime, 1, 1)
+        self.v_tt2000_to_datetime = numpy.frompyfunc(
+            self.tt2000_to_datetime, 1, 1)
         self.v_datetime_to_epoch = numpy.vectorize(
             self.datetime_to_epoch, otypes=[numpy.float64])
         v_datetime_to_epoch16 = numpy.frompyfunc(
@@ -275,6 +302,13 @@ class Library(object):
             else:
                 return retval
         self.v_datetime_to_epoch16 = _v_datetime_to_epoch16
+        self.v_datetime_to_tt2000 = numpy.vectorize(
+            self.datetime_to_tt2000, otypes=[numpy.int64])
+        if not self.supports_int8:
+            self.datetime_to_tt2000 = self._bad_tt2000
+            self.tt2000_to_datetime = self._bad_tt2000
+            self.v_datetime_to_tt2000 = self._bad_tt2000
+            self.v_tt2000_to_datetime = self._bad_tt2000
 
         #Default to V2 CDF
         self.set_backward(True)
@@ -550,6 +584,105 @@ class Library(object):
                                      dt.microsecond % 1000, 0, 0,
                                      epoch16)
         return (epoch16[0], epoch16[1])
+
+    def tt2000_to_datetime(self, tt2000):
+        """
+        Converts a CDF TT2000 value to a datetime
+
+        .. note::
+            Although TT2000 values support leapseconds, Python's datetime
+            object does not. Any times after 23:59:59.999999 will
+            be truncated to 23:59:59.999999.
+
+
+        Parameters
+        ==========
+        tt2000 : int
+            TT2000 value from CDF
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : :class:`datetime.datetime`
+            date and time corresponding to epoch. Invalid values are set to
+            usual epoch invalid value, i.e. last moment of year 9999.
+
+        See Also
+        ========
+        v_tt2000_to_datetime
+        """
+        yyyy = ctypes.c_double(0)
+        mm = ctypes.c_double(0)
+        dd = ctypes.c_double(0)
+        hh = ctypes.c_double(0)
+        min = ctypes.c_double(0)
+        sec = ctypes.c_double(0)
+        msec = ctypes.c_double(0)
+        usec = ctypes.c_double(0)
+        nsec = ctypes.c_double(0)
+        self._library.CDF_TT2000_to_UTC_parts(
+            ctypes.c_longlong(tt2000),
+            ctypes.byref(yyyy), ctypes.byref(mm), ctypes.byref(dd),
+            ctypes.byref(hh), ctypes.byref(min), ctypes.byref(sec),
+            ctypes.byref(msec), ctypes.byref(usec), ctypes.byref(nsec))
+        if yyyy.value <= 0:
+            return datetime.datetime(9999, 12, 13, 23, 59, 59, 999999)
+        sec = int(sec.value)
+        if sec >= 60:
+            return datetime.datetime(
+                int(yyyy.value), int(mm.value), int(dd.value),
+                int(hh.value), int(min.value), 59, 999999)
+        micro = int(msec.value * 1000 + usec.value + nsec.value / 1000 + 0.5)
+        if micro < 1000000:
+            return datetime.datetime(
+                int(yyyy.value), int(mm.value), int(dd.value),
+                int(hh.value), int(min.value), sec, micro)
+        else:
+            add_sec = int(micro / 1000000)
+            try:
+                return datetime.datetime(
+                    int(yyyy.value), int(mm.value), int(dd.value),
+                    int(hh.value), int(min.value), sec,
+                    micro - add_sec * 1000000) + \
+                    datetime.timedelta(seconds=add_sec)
+            except OverflowError:
+                return datetime.datetime(datetime.MAXYEAR, 12, 31,
+                                         23, 59, 59, 999999)
+
+    def datetime_to_tt2000(self, dt):
+        """
+        Converts a Python datetime to a CDF Epoch16 value
+
+        Parameters
+        ==========
+        dt :  :class:`datetime.datetime`
+            date and time to convert
+
+        Returns
+        =======
+        out : int
+            tt2000 corresponding to dt
+
+        See Also
+        ========
+        v_datetime_to_tt2000
+        """
+        if dt.tzinfo != None and dt.utcoffset() != None:
+            dt = dt - dt.utcoffset()
+        dt.replace(tzinfo=None)
+        return self._library.CDF_TT2000_from_UTC_parts(
+            dt.year, dt.month, dt.day, dt.hour,
+            dt.minute, dt.second,
+            int(dt.microsecond / 1000),
+            dt.microsecond % 1000, 0)
+
+    def _bad_tt2000(*args, **kwargs):
+        """Convenience function for complaining that TT2000 not supported"""
+        raise NotImplementedError(
+            'TT2000 functions require CDF library 3.4.0 or later')
 
 
 try:

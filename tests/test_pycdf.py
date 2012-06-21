@@ -151,6 +151,21 @@ class NoCDF(unittest.TestCase):
         self.assertEqual(cdf._pycdf._Hyperslice.dimensions('hi'),
                          ())
 
+    def testTT2000ToDatetime(self):
+        if not cdf.lib.supports_int8:
+            self.assertRaises(NotImplementedError, cdf.lib.tt2000_to_datetime,
+                              1)
+            return
+        epochs = [284040066184000000,
+                  ]
+        dts = [datetime.datetime(2009, 1, 1),
+               ]
+        for (epoch, dt) in zip(epochs, dts):
+            self.assertEqual(dt, cdf.lib.tt2000_to_datetime(epoch))
+        result = cdf.lib.v_tt2000_to_datetime(numpy.array(epochs))
+        expected = numpy.array(dts)
+        numpy.testing.assert_array_equal(expected, result)
+
     def testEpoch16ToDatetime(self):
         epochs = [[63397987199.0, 999999999999.0],
                   [-1.0, -1.0],
@@ -179,6 +194,22 @@ class NoCDF(unittest.TestCase):
             self.assertEqual(dt, cdf.lib.epoch_to_datetime(epoch))
         result = cdf.lib.v_epoch_to_datetime(numpy.array(epochs))
         expected = numpy.array(dts)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testDatetimeToTT2000(self):
+        if not cdf.lib.supports_int8:
+            self.assertRaises(NotImplementedError, cdf.lib.datetime_to_tt2000,
+                              datetime.datetime(2009, 1, 1))
+            return
+        epochs = [284040066184000000,
+                  284040066184000000]
+        dts = [datetime.datetime(2009, 1, 1),
+               datetime.datetime(2008, 12, 31, 19, tzinfo=est_tz()),
+               ]
+        for (epoch, dt) in zip(epochs, dts):
+            self.assertEqual(epoch, cdf.lib.datetime_to_tt2000(dt))
+        result = cdf.lib.v_datetime_to_tt2000(numpy.array(dts))
+        expected = numpy.array(epochs)
         numpy.testing.assert_array_equal(expected, result)
 
     def testDatetimeToEpoch16(self):
@@ -223,6 +254,8 @@ class NoCDF(unittest.TestCase):
 
     def testDatetimeEpochRT(self):
         """Roundtrip datetimes to epochs and back"""
+        if not cdf.lib.supports_int8:
+            return
         dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
                datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
                datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
@@ -230,6 +263,18 @@ class NoCDF(unittest.TestCase):
         for dt in dts:
             self.assertEqual(dt, cdf.lib.epoch_to_datetime(
                 cdf.lib.datetime_to_epoch(dt)))
+
+    def testDatetimeTT2000RT(self):
+        """Roundtrip datetimes to TT2000 and back"""
+        if not cdf.lib.supports_int8:
+            return
+        dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
+               datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
+               datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
+               ]
+        for dt in dts:
+            self.assertEqual(dt, cdf.lib.tt2000_to_datetime(
+                cdf.lib.datetime_to_tt2000(dt)))
 
     def testIgnoreErrors(self):
         """Call the library and ignore particular error"""
