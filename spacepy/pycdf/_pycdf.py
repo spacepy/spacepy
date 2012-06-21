@@ -654,7 +654,7 @@ class Library(object):
 
     def datetime_to_tt2000(self, dt):
         """
-        Converts a Python datetime to a CDF Epoch16 value
+        Converts a Python datetime to a CDF TT2000 value
 
         Parameters
         ==========
