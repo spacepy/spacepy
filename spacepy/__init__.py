@@ -151,6 +151,10 @@ All Rights Reserved.
  7. Nothing in this License Agreement shall be deemed to create any relationship of agency, partnership, or joint venture between LANS and Licensee. This License Agreement does not grant permission to use LANS trademarks or trade name in a trademark sense to endorse or promote products or services of Licensee, or any third party.
 
  8. By copying, installing or otherwise using SpacePy 0.1.2, Licensee agrees to be bound by the terms and conditions of this License Agreement.
+
+ The modified version of IRBEMlib distributed with SpacePy, and its use through the irbempy module, is covered by the Lesser GNU Public License (LGPL).
+
+ The LANLstar module depends on the ffnet package which is distributed under the GNU Public License (GPL). The use of LANLstar is therefore covered by the GPL.
 """
 
 if sys.platform == 'win32':
