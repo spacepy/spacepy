@@ -4,7 +4,11 @@ Changes in Version 0.1.3
   - including publication list, case studies
 - Minor bugfixes throughout
 - Expanded unit testing
-- Several functions deprecated, previously deprecated functions removed
+- Several functions deprecated:
+  - toolbox.leap_year (use time.leapyear)
+- Several previously deprecated functions removed:
+- Several functions moved:
+  - leapyear: from toolbox to time
 - Number of base level imports limited
 - MAJOR BUG in IRBEM library (T01S and TS04 models) fixed.
 datamodel

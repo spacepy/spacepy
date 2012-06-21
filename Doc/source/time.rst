@@ -29,4 +29,4 @@ time - Time conversion, manipulation and implementation of Ticktock class
     sec2hms
     num2date
     date2num
-
+    leapyear

@@ -1713,3 +1713,46 @@ def no_tzinfo(dt):
         return dt.replace(tzinfo=None)
 
 
+def leapyear(year, numdays=False):
+    """
+    return an array of boolean leap year,
+    a lot faster than the mod method that is normally seen
+
+    Parameters
+    ==========
+    year : array_like
+        array of years
+    numdays : boolean (optional)
+        optionally return the number of days in the year
+
+    Returns
+    =======
+    out : numpy array
+        an array of boolean leap year, or array of number of days
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.time
+    >>> spacepy.time.leapyear(numpy.arange(15)+1998)
+    [False, False,  True, False, False, False,  True, False, False,
+          False,  True, False, False, False,  True]
+    """
+    if not isinstance(year, (tuple, np.ndarray, list)):
+        year = [year]
+    mask400 = [(val % 400) == 0 for val in year]   # this is a leap year
+    mask100 = [(val % 100) == 0 for val in year ]   # these are not leap years
+    mask4   = [(val % 4) == 0 for val in year ]   # this is a leap year
+    if numdays:
+        numdays=365
+        ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
+        if len(ans) == 1:
+            return ans[0]
+        else:
+            return ans
+    else:
+        ans = [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]
+        if len(ans) == 1:
+            return ans[0]
+        else:
+            return ans

@@ -64,8 +64,6 @@ Time and date functions
 .. autosummary::
     :toctree: autosummary
 
-    leap_year
-    leapyear
     randomDate
 
 Other functions

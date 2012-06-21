@@ -49,7 +49,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'human_sort', 'feq', 'dictree', 'printfig', 'update', 'progressbar',
            'windowMean', 'medAbsDev', 'binHisto', 'smartTimeTicks',
            'applySmartTimeTicks', 'logspace', 'geomspace', 'arraybin', 'mlt2rad',
-           'rad2mlt', 'leap_year', 'leapyear', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
+           'rad2mlt', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'randomDate', 'isview', 'interweave']
@@ -1398,51 +1398,14 @@ def rad2mlt(rad, midnight=False):
     mlt_arr=rad_arr*(12/np.pi) + 12
     return mlt_arr
 
-def leap_year(year, numdays=False):
-    """
-    return an array of boolean leap year,
-    a lot faster than the mod method that is normally seen
+@spacepy.deprecated(
+    '0.1.3',
+    'Use :func:`spacepy.time.leapyear` not ``toolbox.leapyear``')
+def leapyear(*args, **kwargs):
+    import spacepy.time
+    return spacepy.time.leapyear(*args, **kwargs)
 
-    Parameters
-    ==========
-    year : array_like
-        array of years
-    numdays : boolean (optional)
-        optionally return the number of days in the year
-
-    Returns
-    =======
-    out : numpy array
-        an array of boolean leap year, or array of number of days
-
-    Examples
-    ========
-    >>> import numpy
-    >>> import spacepy.toolbox as tb
-    >>> leap_year(numpy.arange(15)+1998)
-    array([False, False,  True, False, False, False,  True, False, False,
-    ... False,  True, False, False, False,  True], dtype=bool)
-    """
-    if not isinstance(year, (tuple, np.ndarray, list)):
-        year = [year]
-    mask400 = [(val % 400) == 0 for val in year]   # this is a leap year
-    mask100 = [(val % 100) == 0 for val in year ]   # these are not leap years
-    mask4   = [(val % 4) == 0 for val in year ]   # this is a leap year
-    if numdays:
-        numdays=365
-        ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
-        if len(ans) == 1:
-            return ans[0]
-        else:
-            return ans
-    else:
-        ans = [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]
-        if len(ans) == 1:
-            return ans[0]
-        else:
-            return ans
-
-leapyear = leap_year
+leap_year = leapyear
 
 def pmm(a, *b):
     """
