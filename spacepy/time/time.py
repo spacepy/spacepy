@@ -471,11 +471,10 @@ class Ticktock(collections.MutableSequence):
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC - other, 'UTC')
         elif isinstance(other, Tickdelta):
-            newUTC = ['']*len(self.data)
-            for i in range(len(self.data)):
-                newUTC[i] = self.UTC[i] - other.timedelta
+            newUTC = [t - other.timedelta for t in self.UTC]
             newobj = Ticktock(newUTC, 'UTC')
-            newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
+            newobj.data = getattr(newobj, 'get' + self.data.attrs['dtype'])()
+            newobj.data.attrs['dtype'] = self.data.attrs['dtype']
             newobj.dtype = self.data.attrs['dtype']
             newobj.update_items(self, 'data')
         elif isinstance(other, Ticktock):

@@ -198,6 +198,13 @@ class TimeClassTests(unittest.TestCase):
     def test_subTickdelta(self):
         """a ticktock minus a Tickdelta is a ticktock"""
         n1 = t.Ticktock('2002-03-01T11:23:11', 'ISO')
+        with warnings.catch_warnings(record=True) as w:
+            de = t.Tickdelta(hours=12, seconds=2)
+        self.assertEqual(t.Ticktock( '2002-02-28T23:23:09', 'ISO'), n1-de)
+
+    def test_subtimedelta(self):
+        """a ticktock minus a timedelta is a ticktock"""
+        n1 = t.Ticktock('2002-03-01T11:23:11', 'ISO')
         de = datetime.timedelta(hours=12, seconds=2) #t.Tickdelta(hours=12, seconds=2)
         self.assertEqual(t.Ticktock( '2002-02-28T23:23:09', 'ISO'), n1-de)
 
