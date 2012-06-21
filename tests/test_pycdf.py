@@ -263,24 +263,54 @@ class NoCDF(unittest.TestCase):
                    datetime.datetime(2009, 1, 1, 12, 15, 12, 1),
                    [1.0],
                    0.0,
-                   numpy.array([1, 2, 3], dtype=numpy.int32)
+                   numpy.array([1, 2, 3], dtype=numpy.int32),
+                   numpy.array([1, 2, 3], dtype=numpy.int64),
+                   2 ** 62,
                    ]
-        types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                        const.CDF_INT2, const.CDF_UINT2,
-                        const.CDF_INT4, const.CDF_UINT4,
-                        const.CDF_FLOAT, const.CDF_REAL4,
-                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
+        if cdf.lib.supports_int8:
+            types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                             const.CDF_INT2, const.CDF_UINT2,
+                             const.CDF_INT4, const.CDF_UINT4, const.CDF_INT8,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
+                               const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                     ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
+                     ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                     ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
-                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
-                 ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
-                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
-                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_INT4], 1),
-                 ]
+                     ((3,), [const.CDF_INT4], 1),
+                     ((3,), [const.CDF_INT8], 1),
+                     ((), [const.CDF_INT8, const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ]
+        else:
+            types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                             const.CDF_INT2, const.CDF_UINT2,
+                             const.CDF_INT4, const.CDF_UINT4,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
+                               const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                     ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
+                     ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                     ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((3,), [const.CDF_INT4], 1),
+                     ((3,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                             const.CDF_INT2, const.CDF_UINT2,
+                             const.CDF_INT4, const.CDF_UINT4,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ]
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
             self.assertEqual(t, cdf._pycdf._Hyperslice.types(s))
@@ -2263,6 +2293,14 @@ class ChangeCDF(CDFTests):
         self.cdf['MeanCharge'].insert(20, [99] * 16)
         before.insert(20, [99] * 16)
         numpy.testing.assert_array_equal(before, self.cdf['MeanCharge'][:])
+
+    def testInt8(self):
+        """Create a new INT8 zVar"""
+        self.cdf['foobar'] = numpy.array([1, 2, 3], dtype=numpy.int64)
+        if cdf.lib.supports_int8:
+            self.assertEqual(self.cdf['foobar'].type(), const.CDF_INT8.value)
+        else:
+            self.assertEqual(self.cdf['foobar'].type(), const.CDF_BYTE.value)
 
 
 class ChangeColCDF(ColCDFTests):

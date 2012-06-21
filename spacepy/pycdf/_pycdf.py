@@ -70,6 +70,7 @@ class Library(object):
         ~Library.epoch_to_datetime
         ~Library.epoch16_to_datetime
         ~Library.set_backward
+        supports_int8
         v_datetime_to_epoch
         v_datetime_to_epoch16
         v_epoch_to_datetime
@@ -83,6 +84,10 @@ class Library(object):
     .. automethod:: epoch_to_datetime
     .. automethod:: epoch16_to_datetime
     .. automethod:: set_backward
+
+    .. attribute:: supports_int8
+
+       True if this library supports INT8 and TIME_TT2000 types; else False.
 
     .. method:: v_datetime_to_epoch(datetime)
     
@@ -188,6 +193,25 @@ class Library(object):
             self._library.CDFsetFileBackward.restype = None
             self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
 
+        #Get CDF version information
+        ver = ctypes.c_long(0)
+        rel = ctypes.c_long(0)
+        inc = ctypes.c_long(0)
+        sub = ctypes.c_char(b' ')
+        self.call(const.GET_, const.LIB_VERSION_, ctypes.byref(ver),
+                  const.GET_, const.LIB_RELEASE_, ctypes.byref(rel),
+                  const.GET_, const.LIB_INCREMENT_, ctypes.byref(inc),
+                  const.GET_, const.LIB_subINCREMENT_, ctypes.byref(sub))
+        ver = ver.value
+        rel = rel.value
+        inc = inc.value
+        sub = sub.value
+        self.version = (ver, rel, inc, sub)
+        self._del_middle_rec_bug = ver < 3 or (ver == 3 and
+                                               (rel < 4 or
+                                                (rel == 4 and inc < 1)))
+        self.supports_int8 = (ver > 3 or (ver == 3 and rel >=4))
+
         self.cdftypenames = {const.CDF_BYTE.value: 'CDF_BYTE',
                              const.CDF_CHAR.value: 'CDF_CHAR',
                              const.CDF_INT1.value: 'CDF_INT1',
@@ -197,6 +221,7 @@ class Library(object):
                              const.CDF_UINT2.value: 'CDF_UINT2',
                              const.CDF_INT4.value: 'CDF_INT4',
                              const.CDF_UINT4.value: 'CDF_UINT4',
+                             const.CDF_INT8.value: 'CDF_INT8',
                              const.CDF_FLOAT.value: 'CDF_FLOAT',
                              const.CDF_REAL4.value: 'CDF_REAL4',
                              const.CDF_DOUBLE.value: 'CDF_DOUBLE',
@@ -213,6 +238,7 @@ class Library(object):
                               const.CDF_UINT2.value: numpy.uint16,
                               const.CDF_INT4.value: numpy.int32,
                               const.CDF_UINT4.value: numpy.uint32,
+                              const.CDF_INT8.value: numpy.int64,
                               const.CDF_FLOAT.value: numpy.float32,
                               const.CDF_REAL4.value: numpy.float32,
                               const.CDF_DOUBLE.value: numpy.float64,
@@ -221,6 +247,9 @@ class Library(object):
                               const.CDF_EPOCH16.value:
                               numpy.dtype((numpy.float64, 2)),
                               }
+        if not self.supports_int8:
+            del self.cdftypenames[const.CDF_INT8.value]
+            del self.numpytypedict[const.CDF_INT8.value]
 
         v_epoch16_to_datetime = numpy.frompyfunc(
             self.epoch16_to_datetime, 2, 1)
@@ -247,23 +276,6 @@ class Library(object):
                 return retval
         self.v_datetime_to_epoch16 = _v_datetime_to_epoch16
 
-        #Get CDF version information
-        ver = ctypes.c_long(0)
-        rel = ctypes.c_long(0)
-        inc = ctypes.c_long(0)
-        sub = ctypes.c_char(b' ')
-        self.call(const.GET_, const.LIB_VERSION_, ctypes.byref(ver),
-                  const.GET_, const.LIB_RELEASE_, ctypes.byref(rel),
-                  const.GET_, const.LIB_INCREMENT_, ctypes.byref(inc),
-                  const.GET_, const.LIB_subINCREMENT_, ctypes.byref(sub))
-        ver = ver.value
-        rel = rel.value
-        inc = inc.value
-        sub = sub.value
-        self.version = (ver, rel, inc, sub)
-        self._del_middle_rec_bug = ver < 3 or (ver == 3 and
-                                               (rel < 4 or
-                                                (rel == 4 and inc < 1)))
         #Default to V2 CDF
         self.set_backward(True)
 
@@ -2878,21 +2890,24 @@ class _Hyperslice(object):
                 maxval = numpy.max(d)
                 if minval < 0:
                     types = [const.CDF_BYTE, const.CDF_INT1,
-                             const.CDF_INT2, const.CDF_INT4,
+                             const.CDF_INT2, const.CDF_INT4, const.CDF_INT8,
                              const.CDF_FLOAT, const.CDF_REAL4,
                              const.CDF_DOUBLE, const.CDF_REAL8]
-                    cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31,
+                    cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31, 2 ** 63,
                                1.7e38, 1.7e38, 8e307, 8e307]
                 else:
                     types = [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                              const.CDF_INT2, const.CDF_UINT2,
                              const.CDF_INT4, const.CDF_UINT4,
+                             const.CDF_INT8,
                              const.CDF_FLOAT, const.CDF_REAL4,
                              const.CDF_DOUBLE, const.CDF_REAL8]
                     cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
-                               2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32,
+                               2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32, 2 ** 63,
                                1.7e38, 1.7e38, 8e307, 8e307]
                 types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
+                if not lib.supports_int8 and const.CDF_INT8 in types:
+                    del types[types.index(const.CDF_INT8)]
             else: #float
                 if dims is ():
                     if d != 0 and (d > 1.7e38 or d < 3e-39):
