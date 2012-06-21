@@ -151,6 +151,21 @@ class NoCDF(unittest.TestCase):
         self.assertEqual(cdf._pycdf._Hyperslice.dimensions('hi'),
                          ())
 
+    def testTT2000ToDatetime(self):
+        if not cdf.lib.supports_int8:
+            self.assertRaises(NotImplementedError, cdf.lib.tt2000_to_datetime,
+                              1)
+            return
+        epochs = [284040066184000000,
+                  ]
+        dts = [datetime.datetime(2009, 1, 1),
+               ]
+        for (epoch, dt) in zip(epochs, dts):
+            self.assertEqual(dt, cdf.lib.tt2000_to_datetime(epoch))
+        result = cdf.lib.v_tt2000_to_datetime(numpy.array(epochs))
+        expected = numpy.array(dts)
+        numpy.testing.assert_array_equal(expected, result)
+
     def testEpoch16ToDatetime(self):
         epochs = [[63397987199.0, 999999999999.0],
                   [-1.0, -1.0],
@@ -179,6 +194,22 @@ class NoCDF(unittest.TestCase):
             self.assertEqual(dt, cdf.lib.epoch_to_datetime(epoch))
         result = cdf.lib.v_epoch_to_datetime(numpy.array(epochs))
         expected = numpy.array(dts)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testDatetimeToTT2000(self):
+        if not cdf.lib.supports_int8:
+            self.assertRaises(NotImplementedError, cdf.lib.datetime_to_tt2000,
+                              datetime.datetime(2009, 1, 1))
+            return
+        epochs = [284040066184000000,
+                  284040066184000000]
+        dts = [datetime.datetime(2009, 1, 1),
+               datetime.datetime(2008, 12, 31, 19, tzinfo=est_tz()),
+               ]
+        for (epoch, dt) in zip(epochs, dts):
+            self.assertEqual(epoch, cdf.lib.datetime_to_tt2000(dt))
+        result = cdf.lib.v_datetime_to_tt2000(numpy.array(dts))
+        expected = numpy.array(epochs)
         numpy.testing.assert_array_equal(expected, result)
 
     def testDatetimeToEpoch16(self):
@@ -223,6 +254,8 @@ class NoCDF(unittest.TestCase):
 
     def testDatetimeEpochRT(self):
         """Roundtrip datetimes to epochs and back"""
+        if not cdf.lib.supports_int8:
+            return
         dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
                datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
                datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
@@ -230,6 +263,18 @@ class NoCDF(unittest.TestCase):
         for dt in dts:
             self.assertEqual(dt, cdf.lib.epoch_to_datetime(
                 cdf.lib.datetime_to_epoch(dt)))
+
+    def testDatetimeTT2000RT(self):
+        """Roundtrip datetimes to TT2000 and back"""
+        if not cdf.lib.supports_int8:
+            return
+        dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
+               datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
+               datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
+               ]
+        for dt in dts:
+            self.assertEqual(dt, cdf.lib.tt2000_to_datetime(
+                cdf.lib.datetime_to_tt2000(dt)))
 
     def testIgnoreErrors(self):
         """Call the library and ignore particular error"""
@@ -248,6 +293,10 @@ class NoCDF(unittest.TestCase):
         if cdf.lib.version == (3, 3, 0, ' '):
             self.assertTrue(cdf.lib._del_middle_rec_bug)
         elif cdf.lib.version == (3, 3, 1, ' '):
+            self.assertTrue(cdf.lib._del_middle_rec_bug)
+        elif cdf.lib.version == (3, 4, 0, '0'):
+            self.assertTrue(cdf.lib._del_middle_rec_bug)
+        elif cdf.lib.version == (3, 4, 1, '0'):
             self.assertFalse(cdf.lib._del_middle_rec_bug)
 
     def testTypeGuessing(self):
@@ -259,24 +308,54 @@ class NoCDF(unittest.TestCase):
                    datetime.datetime(2009, 1, 1, 12, 15, 12, 1),
                    [1.0],
                    0.0,
-                   numpy.array([1, 2, 3], dtype=numpy.int32)
+                   numpy.array([1, 2, 3], dtype=numpy.int32),
+                   numpy.array([1, 2, 3], dtype=numpy.int64),
+                   2 ** 62,
                    ]
-        types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                        const.CDF_INT2, const.CDF_UINT2,
-                        const.CDF_INT4, const.CDF_UINT4,
-                        const.CDF_FLOAT, const.CDF_REAL4,
-                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
+        if cdf.lib.supports_int8:
+            types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                             const.CDF_INT2, const.CDF_UINT2,
+                             const.CDF_INT4, const.CDF_UINT4, const.CDF_INT8,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
+                               const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                     ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
+                     ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                     ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
-                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
-                 ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
-                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
-                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                 ((3,), [const.CDF_INT4], 1),
-                 ]
+                     ((3,), [const.CDF_INT4], 1),
+                     ((3,), [const.CDF_INT8], 1),
+                     ((), [const.CDF_INT8, const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ]
+        else:
+            types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                             const.CDF_INT2, const.CDF_UINT2,
+                             const.CDF_INT4, const.CDF_UINT4,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
+                               const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                     ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
+                     ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                     ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((3,), [const.CDF_INT4], 1),
+                     ((3,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                             const.CDF_INT2, const.CDF_UINT2,
+                             const.CDF_INT4, const.CDF_UINT4,
+                             const.CDF_FLOAT, const.CDF_REAL4,
+                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ]
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
             self.assertEqual(t, cdf._pycdf._Hyperslice.types(s))
@@ -2259,6 +2338,14 @@ class ChangeCDF(CDFTests):
         self.cdf['MeanCharge'].insert(20, [99] * 16)
         before.insert(20, [99] * 16)
         numpy.testing.assert_array_equal(before, self.cdf['MeanCharge'][:])
+
+    def testInt8(self):
+        """Create a new INT8 zVar"""
+        self.cdf['foobar'] = numpy.array([1, 2, 3], dtype=numpy.int64)
+        if cdf.lib.supports_int8:
+            self.assertEqual(self.cdf['foobar'].type(), const.CDF_INT8.value)
+        else:
+            self.assertEqual(self.cdf['foobar'].type(), const.CDF_BYTE.value)
 
 
 class ChangeColCDF(ColCDFTests):

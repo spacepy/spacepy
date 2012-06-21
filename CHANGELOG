@@ -30,6 +30,7 @@ pycdf
  - Convert to numpy-based backend, substantially faster/more flexible
  - Speed up extending variables with additional data (roughly 4x as fast)
  - Better integration with datamodel
+ - Deletion bug is still present in CDF 3.4, extend workaround to later version
 time
  - Ticktock is now iterable and adds/subtracts datetime.timedeltas
  - Ticktock time storage is array-based and now has insert and remove methods

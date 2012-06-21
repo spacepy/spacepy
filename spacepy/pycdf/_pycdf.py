@@ -67,22 +67,34 @@ class Library(object):
         ~Library.check_status
         ~Library.datetime_to_epoch
         ~Library.datetime_to_epoch16
+        ~Library.datetime_to_tt2000
         ~Library.epoch_to_datetime
         ~Library.epoch16_to_datetime
         ~Library.set_backward
+        supports_int8
+        ~Library.tt2000_to_datetime
         v_datetime_to_epoch
         v_datetime_to_epoch16
+        v_datetime_to_tt2000
         v_epoch_to_datetime
         v_epoch16_to_datetime
+        v_tt2000_to_datetime
         version
 
     .. automethod:: call
     .. automethod:: check_status
     .. automethod:: datetime_to_epoch
     .. automethod:: datetime_to_epoch16
+    .. automethod:: datetime_to_tt2000
     .. automethod:: epoch_to_datetime
     .. automethod:: epoch16_to_datetime
     .. automethod:: set_backward
+
+    .. attribute:: supports_int8
+
+       True if this library supports INT8 and TIME_TT2000 types; else False.
+
+    .. automethod:: tt2000_to_datetime
 
     .. method:: v_datetime_to_epoch(datetime)
     
@@ -93,6 +105,11 @@ class Library(object):
     
         A vectorized version of :meth:`datetime_to_epoch16` which takes a
         numpy array of datetimes as input and returns an array of epoch16.
+
+    .. method:: v_datetime_to_tt2000(datetime)
+    
+        A vectorized version of :meth:`datetime_to_tt2000` which takes a
+        numpy array of datetimes as input and returns an array of TT2000.
 
     .. method:: v_epoch_to_datetime(epoch)
     
@@ -105,6 +122,11 @@ class Library(object):
         a numpy arrays of epoch16 as input and returns an array of datetimes.
         An epoch16 is a pair of doubles; the input array's last dimension
         must be two (and the returned array will have one fewer dimension).
+
+    .. method:: v_tt2000_to_datetime(tt2000)
+    
+        A vectorized version of :meth:`tt2000_to_datetime` which takes
+        a numpy array of tt2000 as input and returns an array of datetimes.
 
     .. attribute:: version
 
@@ -187,65 +209,14 @@ class Library(object):
         if hasattr(self._library, 'CDFsetFileBackward'):
             self._library.CDFsetFileBackward.restype = None
             self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
-
-        self.cdftypenames = {const.CDF_BYTE.value: 'CDF_BYTE',
-                             const.CDF_CHAR.value: 'CDF_CHAR',
-                             const.CDF_INT1.value: 'CDF_INT1',
-                             const.CDF_UCHAR.value: 'CDF_UCHAR',
-                             const.CDF_UINT1.value: 'CDF_UINT1',
-                             const.CDF_INT2.value: 'CDF_INT2',
-                             const.CDF_UINT2.value: 'CDF_UINT2',
-                             const.CDF_INT4.value: 'CDF_INT4',
-                             const.CDF_UINT4.value: 'CDF_UINT4',
-                             const.CDF_FLOAT.value: 'CDF_FLOAT',
-                             const.CDF_REAL4.value: 'CDF_REAL4',
-                             const.CDF_DOUBLE.value: 'CDF_DOUBLE',
-                             const.CDF_REAL8.value: 'CDF_REAL8',
-                             const.CDF_EPOCH.value: 'CDF_EPOCH',
-                             const.CDF_EPOCH16.value: 'CDF_EPOCH16',
-                             }
-        self.numpytypedict = {const.CDF_BYTE.value: numpy.int8,
-                              const.CDF_CHAR.value: numpy.int8,
-                              const.CDF_INT1.value: numpy.int8,
-                              const.CDF_UCHAR.value: numpy.uint8,
-                              const.CDF_UINT1.value: numpy.uint8,
-                              const.CDF_INT2.value: numpy.int16,
-                              const.CDF_UINT2.value: numpy.uint16,
-                              const.CDF_INT4.value: numpy.int32,
-                              const.CDF_UINT4.value: numpy.uint32,
-                              const.CDF_FLOAT.value: numpy.float32,
-                              const.CDF_REAL4.value: numpy.float32,
-                              const.CDF_DOUBLE.value: numpy.float64,
-                              const.CDF_REAL8.value: numpy.float64,
-                              const.CDF_EPOCH.value: numpy.float64,
-                              const.CDF_EPOCH16.value:
-                              numpy.dtype((numpy.float64, 2)),
-                              }
-
-        v_epoch16_to_datetime = numpy.frompyfunc(
-            self.epoch16_to_datetime, 2, 1)
-        self.v_epoch16_to_datetime = \
-            lambda x: v_epoch16_to_datetime(x[..., 0], x[..., 1])
-        self.v_epoch_to_datetime = numpy.frompyfunc(
-            self.epoch_to_datetime, 1, 1)
-        self.v_datetime_to_epoch = numpy.vectorize(
-            self.datetime_to_epoch, otypes=[numpy.float64])
-        v_datetime_to_epoch16 = numpy.frompyfunc(
-            self.datetime_to_epoch16, 1, 2)
-        #frompyfunc returns a TUPLE of the returned values,
-        #implicitly the 0th dimension. We want everything from one
-        #call paired, so this rolls the 0th dimension to the last
-        #(via the second-to-last)
-        def _v_datetime_to_epoch16(x):
-            retval = numpy.require(v_datetime_to_epoch16(x),
-                                      dtype=numpy.float64)
-            if len(retval.shape) > 1:
-                return numpy.rollaxis(
-                    numpy.rollaxis(retval, 0, -1),
-                    -1, -2)
-            else:
-                return retval
-        self.v_datetime_to_epoch16 = _v_datetime_to_epoch16
+        if hasattr(self._library, 'CDF_TT2000_from_UTC_parts'):
+            self._library.CDF_TT2000_from_UTC_parts.restype = ctypes.c_longlong
+            self._library.CDF_TT2000_from_UTC_parts.argtypes = \
+                [ctypes.c_double] *9
+        if hasattr(self._library, 'CDF_TT2000_to_UTC_parts'):
+            self._library.CDF_TT2000_to_UTC_parts.restype = None
+            self._library.CDF_TT2000_to_UTC_parts.argtypes = \
+                [ctypes.c_longlong] + [ctypes.POINTER(ctypes.c_double)] * 9
 
         #Get CDF version information
         ver = ctypes.c_long(0)
@@ -264,6 +235,81 @@ class Library(object):
         self._del_middle_rec_bug = ver < 3 or (ver == 3 and
                                                (rel < 4 or
                                                 (rel == 4 and inc < 1)))
+        self.supports_int8 = (ver > 3 or (ver == 3 and rel >=4))
+
+        self.cdftypenames = {const.CDF_BYTE.value: 'CDF_BYTE',
+                             const.CDF_CHAR.value: 'CDF_CHAR',
+                             const.CDF_INT1.value: 'CDF_INT1',
+                             const.CDF_UCHAR.value: 'CDF_UCHAR',
+                             const.CDF_UINT1.value: 'CDF_UINT1',
+                             const.CDF_INT2.value: 'CDF_INT2',
+                             const.CDF_UINT2.value: 'CDF_UINT2',
+                             const.CDF_INT4.value: 'CDF_INT4',
+                             const.CDF_UINT4.value: 'CDF_UINT4',
+                             const.CDF_INT8.value: 'CDF_INT8',
+                             const.CDF_FLOAT.value: 'CDF_FLOAT',
+                             const.CDF_REAL4.value: 'CDF_REAL4',
+                             const.CDF_DOUBLE.value: 'CDF_DOUBLE',
+                             const.CDF_REAL8.value: 'CDF_REAL8',
+                             const.CDF_EPOCH.value: 'CDF_EPOCH',
+                             const.CDF_EPOCH16.value: 'CDF_EPOCH16',
+                             }
+        self.numpytypedict = {const.CDF_BYTE.value: numpy.int8,
+                              const.CDF_CHAR.value: numpy.int8,
+                              const.CDF_INT1.value: numpy.int8,
+                              const.CDF_UCHAR.value: numpy.uint8,
+                              const.CDF_UINT1.value: numpy.uint8,
+                              const.CDF_INT2.value: numpy.int16,
+                              const.CDF_UINT2.value: numpy.uint16,
+                              const.CDF_INT4.value: numpy.int32,
+                              const.CDF_UINT4.value: numpy.uint32,
+                              const.CDF_INT8.value: numpy.int64,
+                              const.CDF_FLOAT.value: numpy.float32,
+                              const.CDF_REAL4.value: numpy.float32,
+                              const.CDF_DOUBLE.value: numpy.float64,
+                              const.CDF_REAL8.value: numpy.float64,
+                              const.CDF_EPOCH.value: numpy.float64,
+                              const.CDF_EPOCH16.value:
+                              numpy.dtype((numpy.float64, 2)),
+                              }
+        if not self.supports_int8:
+            del self.cdftypenames[const.CDF_INT8.value]
+            del self.numpytypedict[const.CDF_INT8.value]
+
+        v_epoch16_to_datetime = numpy.frompyfunc(
+            self.epoch16_to_datetime, 2, 1)
+        self.v_epoch16_to_datetime = \
+            lambda x: v_epoch16_to_datetime(x[..., 0], x[..., 1])
+        self.v_epoch_to_datetime = numpy.frompyfunc(
+            self.epoch_to_datetime, 1, 1)
+        self.v_tt2000_to_datetime = numpy.frompyfunc(
+            self.tt2000_to_datetime, 1, 1)
+        self.v_datetime_to_epoch = numpy.vectorize(
+            self.datetime_to_epoch, otypes=[numpy.float64])
+        v_datetime_to_epoch16 = numpy.frompyfunc(
+            self.datetime_to_epoch16, 1, 2)
+        #frompyfunc returns a TUPLE of the returned values,
+        #implicitly the 0th dimension. We want everything from one
+        #call paired, so this rolls the 0th dimension to the last
+        #(via the second-to-last)
+        def _v_datetime_to_epoch16(x):
+            retval = numpy.require(v_datetime_to_epoch16(x),
+                                      dtype=numpy.float64)
+            if len(retval.shape) > 1:
+                return numpy.rollaxis(
+                    numpy.rollaxis(retval, 0, -1),
+                    -1, -2)
+            else:
+                return retval
+        self.v_datetime_to_epoch16 = _v_datetime_to_epoch16
+        self.v_datetime_to_tt2000 = numpy.vectorize(
+            self.datetime_to_tt2000, otypes=[numpy.int64])
+        if not self.supports_int8:
+            self.datetime_to_tt2000 = self._bad_tt2000
+            self.tt2000_to_datetime = self._bad_tt2000
+            self.v_datetime_to_tt2000 = self._bad_tt2000
+            self.v_tt2000_to_datetime = self._bad_tt2000
+
         #Default to V2 CDF
         self.set_backward(True)
 
@@ -538,6 +584,105 @@ class Library(object):
                                      dt.microsecond % 1000, 0, 0,
                                      epoch16)
         return (epoch16[0], epoch16[1])
+
+    def tt2000_to_datetime(self, tt2000):
+        """
+        Converts a CDF TT2000 value to a datetime
+
+        .. note::
+            Although TT2000 values support leapseconds, Python's datetime
+            object does not. Any times after 23:59:59.999999 will
+            be truncated to 23:59:59.999999.
+
+
+        Parameters
+        ==========
+        tt2000 : int
+            TT2000 value from CDF
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : :class:`datetime.datetime`
+            date and time corresponding to epoch. Invalid values are set to
+            usual epoch invalid value, i.e. last moment of year 9999.
+
+        See Also
+        ========
+        v_tt2000_to_datetime
+        """
+        yyyy = ctypes.c_double(0)
+        mm = ctypes.c_double(0)
+        dd = ctypes.c_double(0)
+        hh = ctypes.c_double(0)
+        min = ctypes.c_double(0)
+        sec = ctypes.c_double(0)
+        msec = ctypes.c_double(0)
+        usec = ctypes.c_double(0)
+        nsec = ctypes.c_double(0)
+        self._library.CDF_TT2000_to_UTC_parts(
+            ctypes.c_longlong(tt2000),
+            ctypes.byref(yyyy), ctypes.byref(mm), ctypes.byref(dd),
+            ctypes.byref(hh), ctypes.byref(min), ctypes.byref(sec),
+            ctypes.byref(msec), ctypes.byref(usec), ctypes.byref(nsec))
+        if yyyy.value <= 0:
+            return datetime.datetime(9999, 12, 13, 23, 59, 59, 999999)
+        sec = int(sec.value)
+        if sec >= 60:
+            return datetime.datetime(
+                int(yyyy.value), int(mm.value), int(dd.value),
+                int(hh.value), int(min.value), 59, 999999)
+        micro = int(msec.value * 1000 + usec.value + nsec.value / 1000 + 0.5)
+        if micro < 1000000:
+            return datetime.datetime(
+                int(yyyy.value), int(mm.value), int(dd.value),
+                int(hh.value), int(min.value), sec, micro)
+        else:
+            add_sec = int(micro / 1000000)
+            try:
+                return datetime.datetime(
+                    int(yyyy.value), int(mm.value), int(dd.value),
+                    int(hh.value), int(min.value), sec,
+                    micro - add_sec * 1000000) + \
+                    datetime.timedelta(seconds=add_sec)
+            except OverflowError:
+                return datetime.datetime(datetime.MAXYEAR, 12, 31,
+                                         23, 59, 59, 999999)
+
+    def datetime_to_tt2000(self, dt):
+        """
+        Converts a Python datetime to a CDF TT2000 value
+
+        Parameters
+        ==========
+        dt :  :class:`datetime.datetime`
+            date and time to convert
+
+        Returns
+        =======
+        out : int
+            tt2000 corresponding to dt
+
+        See Also
+        ========
+        v_datetime_to_tt2000
+        """
+        if dt.tzinfo != None and dt.utcoffset() != None:
+            dt = dt - dt.utcoffset()
+        dt.replace(tzinfo=None)
+        return self._library.CDF_TT2000_from_UTC_parts(
+            dt.year, dt.month, dt.day, dt.hour,
+            dt.minute, dt.second,
+            int(dt.microsecond / 1000),
+            dt.microsecond % 1000, 0)
+
+    def _bad_tt2000(*args, **kwargs):
+        """Convenience function for complaining that TT2000 not supported"""
+        raise NotImplementedError(
+            'TT2000 functions require CDF library 3.4.0 or later')
 
 
 try:
@@ -2878,21 +3023,24 @@ class _Hyperslice(object):
                 maxval = numpy.max(d)
                 if minval < 0:
                     types = [const.CDF_BYTE, const.CDF_INT1,
-                             const.CDF_INT2, const.CDF_INT4,
+                             const.CDF_INT2, const.CDF_INT4, const.CDF_INT8,
                              const.CDF_FLOAT, const.CDF_REAL4,
                              const.CDF_DOUBLE, const.CDF_REAL8]
-                    cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31,
+                    cutoffs = [2 ** 7, 2 ** 7, 2 ** 15, 2 ** 31, 2 ** 63,
                                1.7e38, 1.7e38, 8e307, 8e307]
                 else:
                     types = [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                              const.CDF_INT2, const.CDF_UINT2,
                              const.CDF_INT4, const.CDF_UINT4,
+                             const.CDF_INT8,
                              const.CDF_FLOAT, const.CDF_REAL4,
                              const.CDF_DOUBLE, const.CDF_REAL8]
                     cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
-                               2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32,
+                               2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32, 2 ** 63,
                                1.7e38, 1.7e38, 8e307, 8e307]
                 types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
+                if not lib.supports_int8 and const.CDF_INT8 in types:
+                    del types[types.index(const.CDF_INT8)]
             else: #float
                 if dims is ():
                     if d != 0 and (d > 1.7e38 or d < 3e-39):
