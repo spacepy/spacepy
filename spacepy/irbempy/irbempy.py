@@ -530,16 +530,16 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         elif model.upper() == 'MAX':
             whichm = 2
         else:
-            print 'Warning: model='+model+' is not implemented: Choose MIN or MAX'
+            print('Warning: model='+model+' is not implemented: Choose MIN or MAX')
     elif particles.lower() == 'p': # then choose proton model
         if model.upper() == 'MIN':
             whichm = 3
         elif model.upper() == 'MAX':
             whichm = 4
         else:
-            print 'Warning: model='+model+' is not implemented: Choose MIN or MAX'
+            print('Warning: model='+model+' is not implemented: Choose MIN or MAX')
     else:
-        print 'Warning: particles='+particles+' is not available: choose e or p'
+        print('Warning: particles='+particles+' is not available: choose e or p')
     
     if fluxtype.upper() == 'DIFF':
         whatf = 1
@@ -548,7 +548,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     elif fluxtype.upper() == 'INT':
         whatf = 3
     else:
-        print 'Warning: fluxtype='+fluxtype+' is not implemented: Choose DIFF, INT or RANGE'
+        print('Warning: fluxtype='+fluxtype+' is not implemented: Choose DIFF, INT or RANGE')
     
     # need range if whatf=2
     Nene  = 1
@@ -576,7 +576,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         flux =  oplib.get_ae8_ap8_flux(ntmax, whichm, whatf, Nene, E_array, B_array, L_array)
     
     else:
-        print 'Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]'
+        print('Warning: coords need to be either a spacepy.coordinates.Coords instance or a list of [BBo, L]')
         
     
     flux[np.where( tb.feq(flux, d['badval'])) ] = np.NaN

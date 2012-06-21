@@ -309,10 +309,8 @@ class RBmodel(object):
                         time_idx = np.append(time_idx,itime)
                 #end loop
 
-
                 #pdb.set_trace()
                 if (time_idx.shape[0] > 0):
-
                     # initialize PSD array
                     psd = np.zeros_like(lstar)
 
@@ -324,7 +322,6 @@ class RBmodel(object):
 
                     # loop over time index
                     for itime in time_idx:
-
                         # sort observations
                         idx = Lstar[itime].argsort()
                         tmplstar = Lstar[itime][idx]
@@ -360,7 +357,6 @@ class RBmodel(object):
                     self.PSDdata[i] = {'Ticks':Ticks, 'Lstar':lstar, \
                                        'PSD':psd, 'sat':sat, \
                                        'MU':MU, 'K':K}
-
 
         # adjust initial conditions to these PSD values
         mval = np.mean(self.PSDdata[0]['PSD'])
@@ -448,7 +444,6 @@ class RBmodel(object):
         """
         add source parameters A, mu, and sigma for the Gaussian source function
         """
-
         # set source term flag
         self.source = source
 
@@ -472,12 +467,10 @@ class RBmodel(object):
 
         with A=10^(-8), mu=5.0, and sigma=0.5 as default values
         """
-
         Lgrid = self.Lgrid
 
         # determine whether to include source or not
         if self.source:
-
             # define height of Gaussian function
             A = self.source_A
 
@@ -486,9 +479,7 @@ class RBmodel(object):
 
             # define amplitude
             sigma = self.source_sigma
-
         else:
-
             A = 0.0
             mu = 1.0
             sigma = 1.0
@@ -691,8 +682,8 @@ class RBmodel(object):
                     y = np.array([])
                     Lobs = np.array([])
 
-                print Lobs
-                print y
+                print(Lobs)
+                print(y)
 
                 # ==========================================
                 # DEBUG
@@ -713,25 +704,18 @@ class RBmodel(object):
 
                     # INFLATION SCHEMES
                     if inflation == 0:
-
-                        print 'inflation around model state values at observation locations'
+                        print('inflation around model state values at observation locations')
                         # Add model error (perturbation for the ensemble) around model
                         # state values.  This acts as an inflation scheme for EnKF
                         A = da.add_model_error(self, A, self.PSDdata[i-1])
-
                     elif inflation == 1:
-
-                        print 'inflation around observation values at observation locations'
+                        print('inflation around observation values at observation locations')
                         # Add model error (perturbation for the ensemble) around
                         # observation values. This acts as an inflation scheme for EnKF
                         A = da.add_model_error_obs(self, A, Lobs, y)
-
                     elif inflation == 2:
-
-
-                        print 'inflation around ensemble average'
+                        print('inflation around ensemble average')
                         # Inflate around ensemble average for EnKF
-
                         # ensemble average
                         ens_avg = np.mean(A, axis=1)
 
@@ -744,11 +728,9 @@ class RBmodel(object):
                             # inflate ensemble
                             A[:,iens] = inflation_factor*(ens - ens_avg) + ens_avg
                             iens += 1
-
                     A[np.where(A < self.MIN_PSD)] = self.MIN_PSD
 
                     # prepare assimilation analysis
-
                     # project ensemble states to obs. grid
                     HA = da.getHA(self, Lobs, A)
 
@@ -803,23 +785,18 @@ class RBmodel(object):
                     for iL,Lstar in enumerate(Lobs):
                         idx = np.where(tb.feq(self.Lgrid,Lstar))
                         Hx[iL] = self.PSDa[idx,i]
-                    print Hx
-                    print HA
+                    print(Hx)
+                    print(HA)
 
                 elif len(y) == 0:
-
-                    print 'no observations within this window'
-
+                    print('no observations within this window')
                     self.PSDa[:,i] = self.PSDf[:,i]
-
                     continue #
 
                 # print message
                 print('Tnow: ', self.ticks[i].ISO)
-
         # insert obsrvations for data assimilation
         elif method == 'insert':
-
             da = spacepy.data_assimilation.ensemble()
 
             A = np.ones( (self.NL, 1) )*self.PSDinit[:,np.newaxis]
@@ -839,7 +816,6 @@ class RBmodel(object):
 
             # time loop
             for i, Tnow, Tfut in zip(np.arange(nTAI-1)+1, self.ticks[:-1], self.ticks[1:]):
-
                 # evolve solution
                 rbtemp.ticks = st.Ticktock([Tnow.UTC[0], Tfut.UTC[0]], 'UTC')
                 rbtemp.PSDinit = A[:,0]
@@ -860,13 +836,12 @@ class RBmodel(object):
                     y = np.array([])
                     Lobs = np.array([])
 
-                print Lobs
-                print y
+                print(Lobs)
+                print(y)
 
                 #pdb.set_trace()
                 # then assimilate otherwise do another forcast
                 if len(y) > 0:
-
                     # check for minimum PSD values
                     A[np.where(A<self.MIN_PSD)] = self.MIN_PSD
 
@@ -884,11 +859,8 @@ class RBmodel(object):
                     self.PSDa[:,i] = A[:,0]
 
                 elif len(y) == 0:
-
-                    print 'no observations within this window'
-
+                    print('no observations within this window')
                     self.PSDa[:,i] = self.PSDf[:,i]
-
                     continue #
 
                 # print message
@@ -1342,6 +1314,5 @@ def get_local_accel(Lgrid, params, SRC_model='JK1'):
         Lwidth = 0.3
         Kp = params['Kp']
         S = magn*np.exp(-(Lgrid-Lcenter)**2/(2*Lwidth**2))*Kp*Kp
-
 
     return S
