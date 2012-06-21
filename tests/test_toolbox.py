@@ -637,6 +637,7 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_windowMean(self):
         """windowMean should give known results (regression)"""
+        warnings.simplefilter('default')
         with warnings.catch_warnings(record=True) as w:
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
