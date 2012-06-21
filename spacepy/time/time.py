@@ -524,9 +524,6 @@ class Ticktock(collections.MutableSequence):
             newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
             newobj.dtype = self.data.attrs['dtype']
             newobj.update_items(self, 'data')
-        elif isinstance(other, Ticktock):
-            return [datetime.timedelta(seconds=t + other.TAI[0])
-                    for t in self.TAI]
         else:
             raise TypeError("unsupported operand type(s) for +: {0} and {1}".format(type(other),type(self)))
 
