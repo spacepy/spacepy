@@ -187,12 +187,13 @@ class TimeClassTests(unittest.TestCase):
         self.assertTrue(isinstance(n1[:2], t.Ticktock))
 
     def test_subTicktock(self):
-        """a ticktock minus a ticktock is a tickdelta"""
+        """a ticktock minus a ticktock is a timedelta"""
         n1 = t.Ticktock('2002-03-01T11:23:11', 'ISO')
         n2 = t.Ticktock('2002-02-01T00:00:00', 'ISO')
         self.assertTrue(isinstance(n2 - n1, list))
-        self.assertTrue(isinstance((n2 - n1)[0], t.Tickdelta))
-        self.assertAlmostEqual(28.47443287, (n1-n2)[0].days, places=8)
+        self.assertTrue(isinstance((n2 - n1)[0], datetime.timedelta))
+        self.assertEqual(28, (n1-n2)[0].days)
+        self.assertEqual(40991, (n1-n2)[0].seconds)
 
     def test_subTickdelta(self):
         """a ticktock minus a Tickdelta is a ticktock"""
