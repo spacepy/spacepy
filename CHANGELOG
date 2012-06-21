@@ -7,6 +7,7 @@ Changes in Version 0.1.3
 - Several functions deprecated:
   - toolbox.leap_year (use time.leapyear)
 - Several previously deprecated functions removed:
+  - toolbox.makePoly (use matplotlib.pyplot.fill_between)
 - Several functions moved:
   - leapyear: from toolbox to time
 - Number of base level imports limited
