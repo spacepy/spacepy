@@ -434,6 +434,7 @@ class install(_install):
             raise Exception("""SpacePy requires Python 2.X, where X>=6.\n
             Numpy, Scipy and Matplotlib(>=0.99) are also required\n
             Please install suitable versions.""")
+        bad = False
         try:
             print ('Checking for scipy...')
             import scipy
@@ -443,9 +444,24 @@ class install(_install):
                 matplotlib.__version__, '0.99.0')
         except:
             self.distribution.add_warning(
-                'SciPy and matplotlib were not found.'
+                'SciPy and matplotlib were not found. '
                 'They are required for large parts of SpacePy.')
-        else:
+            bad = True
+        try:
+            print ('Checking for h5py...')
+            import h5py
+        except:
+            self.distribution.add_warning(
+                'h5py not found; required for parts of datamodel.')
+            bad = True
+        try:
+            print ('Checking for ffnet...')
+            import ffnet
+        except:
+            self.distribution.add_warning(
+                'h5py not found; required for LANLstar.')
+            bad = True
+        if not bad:
             print('Dependencies OK.')
         _install.run(self)
         #Files will be deleted in the order specified, so list files
