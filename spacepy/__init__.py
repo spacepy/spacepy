@@ -95,7 +95,10 @@ def deprecated(version, message):
         def _deprecated(*args, **kwargs):
             warnings.warn(message, DeprecationWarning)
             return func(*args, **kwargs)
-        doclines = func.__doc__.split('\n')
+        if func.__doc__ is None:
+            doclines = []
+        else:
+            doclines = func.__doc__.split('\n')
         #first non-blank line
         idx = next((i for i in range(len(doclines)) if doclines[i].strip()),
                    None)

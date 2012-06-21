@@ -16,6 +16,9 @@ import spacepy
 class SpacepyFuncTests(unittest.TestCase):
     """Tests for functions in core spacepy library"""
 
+    def setUp(self):
+        warnings.simplefilter('always')
+
     def testDeprecation(self):
         """Test the deprecation decorator"""
         @spacepy.deprecated(0.1, 'pithy message')
@@ -36,6 +39,23 @@ class SpacepyFuncTests(unittest.TestCase):
             "\n"
             "            this will test things\n"
             "            \n",
+            testfunc.__doc__)
+        with warnings.catch_warnings(record=True) as w:
+            self.assertEqual(2, testfunc(1))
+            self.assertEqual(1, len(w))
+            self.assertEqual(DeprecationWarning, w[0].category)
+            self.assertEqual('pithy message', str(w[0].message))
+
+    def testDeprecationNone(self):
+        """Test the deprecation decorator with no docstring"""
+        @spacepy.deprecated(0.1, 'pithy message')
+        def testfunc(x):
+            return x + 1
+        self.assertEqual(
+            "    \n"
+            "    .. deprecated:: 0.1\n"
+            "       pithy message\n"
+            "    \n",
             testfunc.__doc__)
         with warnings.catch_warnings(record=True) as w:
             self.assertEqual(2, testfunc(1))
