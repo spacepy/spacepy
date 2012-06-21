@@ -458,8 +458,9 @@ class install(_install):
             print ('Checking for ffnet...')
             import ffnet
         except:
-            self.distribution.add_warning(
-                'ffnet not found; required for LANLstar.')
+            wtext = 'ffnet not found; required for LANLstar.\n' + \
+                    '  - see http://ffnet.sourceforge.net/install.html'
+            self.distribution.add_warning(wtext)
             bad = True
         if not bad:
             print('Dependencies OK.')
