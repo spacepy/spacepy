@@ -22,6 +22,9 @@ class Tickdelta(object):
     Tickdelta class holding timedelta similar to datetime.timedelta
     This can be used to add/subtract from Ticktock objects
 
+    .. deprecated:: 0.1.3
+       Use :class:`datetime.timedelta` instead.
+
     Parameters
     ==========
     days : float

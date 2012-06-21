@@ -33,6 +33,7 @@ pycdf
 time
  - Ticktock is now iterable and adds/subtracts datetime.timedeltas
  - Ticktock time storage is array-based and now has insert and remove methods
+ - Timedelta has been deprecated (use datetime.timedelta)
 toolbox
  - hypot function speed-up
 
