@@ -152,7 +152,7 @@ All Rights Reserved.
 
  8. By copying, installing or otherwise using SpacePy 0.1.2, Licensee agrees to be bound by the terms and conditions of this License Agreement.
 
- The modified version of IRBEMlib distributed with SpacePy, and its use through the irbempy module, is covered by the Lesser GNU Public License (LGPL).
+ The modified version of IRBEMlib distributed with SpacePy is covered by the Lesser GNU Public License (LGPL).
 
  The LANLstar module depends on the ffnet package which is distributed under the GNU Public License (GPL). The use of LANLstar is therefore covered by the GPL.
 """
