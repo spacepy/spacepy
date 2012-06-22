@@ -1298,7 +1298,10 @@ class ReadCDF(CDFTests):
         cdfcopy = self.cdf.copy()
         self.assertFalse(cdfcopy is self.cdf)
         for key in self.cdf:
-            numpy.testing.assert_array_equal(self.cdf[key][...], cdfcopy[key])
+            orig = self.cdf[key][...]
+            cp = cdfcopy[key]
+            self.assertEqual(orig.shape, cp.shape)
+            numpy.testing.assert_array_equal(orig.flat, cp.flat)
             self.assertFalse(self.cdf[key] is cdfcopy[key])
         for key in self.cdf.attrs:
             self.assertEqual(self.cdf.attrs[key][:], cdfcopy.attrs[key])
@@ -1766,9 +1769,12 @@ class ChangeCDF(CDFTests):
             0)
         del self.cdf['SectorRateScalersCounts'][-1:-5:-1]
         self.assertEqual(oldlen - 4, len(self.cdf['SectorRateScalersCounts']))
+        self.assertEqual(
+            SectorRateScalersCountsCopy[...].shape,
+            self.cdf['SectorRateScalersCounts'][...].shape)
         numpy.testing.assert_array_equal(
-            SectorRateScalersCountsCopy[...],
-            self.cdf['SectorRateScalersCounts'][...])
+            SectorRateScalersCountsCopy[...].flat,
+            self.cdf['SectorRateScalersCounts'][...].flat)
 
         oldlen = len(self.cdf['SectorRateScalersCounts'])
         del self.cdf['SectorRateScalersCounts'][-1:-5]
