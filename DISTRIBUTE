@@ -8,7 +8,6 @@ Change version in setup.py, actual call to setup near bottom.
 Change __version__ around line 126 of __init__.py. Also change all through
     the license.
 
-
 On a Unix machine:
 check out the latest from git.
     python setup.py sdist --formats=gztar,zip
@@ -17,6 +16,23 @@ Tarball and zip are in the dist directory.
 Note: building the source distribution will do a binary build as well, since
 binaries are needed to build the docs. Thus, sdist will accept compiler
 options (and may need them.)
+
+Windows build:
+Grab latest mingwget from http://sourceforge.net/projects/mingw/files/
+(Installer/mingw-get)
+Unzip it, on windows, into C:\MinGW
+Put C:\MinGW\bin on the path (right click my computer, properties,
+    advanced, environment variables)
+Start a command line
+mingw-get install gcc g++ mingw32-make fortran
+Make a snapshot of the VM, you'll be coming back to this
+Install python 2.6 (msi from python.org)
+edit path again, append ;c:\Python26;c:\Python26\Scripts
+Install numpy, scipy, matplotlib, setuptools from downloaded exe
+Make C:\Python26\Lib\distutils\distutils.cfg, containing:
+    [build]
+    compiler=mingw32
+easy_install ffnet sphinx numpydoc
 
 On Windows with Sphinx installed:
 copy SpacePy.pdf from the Unix build above into the Doc directory,

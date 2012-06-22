@@ -58,6 +58,10 @@ Download the latest `mingwget <http://sourceforge.net/projects/mingw/files/Autom
 
 See also `the mingw docs <http://www.mingw.org/wiki/Getting_Started>`_
 
+The following filenames are given for Python 2.6 and were the latest
+as of this writing; download the appropriate file for your version of
+Python and the latest version available of the required package.
+
 Download and install `numpy-1.6.1-win32-superpack-python2.6.exe
 <http://sourceforge.net/projects/numpy/files/>`_.
 
@@ -70,9 +74,18 @@ Download and install `matplotlib-1.0.1.win32-py2.6.exe
 Download and install `setuptools-0.6c11.win32-py2.6.exe
 <http://pypi.python.org/pypi/setuptools>`_.
 
+Download and install `h5py-2.0.1.win32-py2.6.msi
+<http://code.google.com/p/h5py/downloads/list>`_.
+
+Create a file ``distutils.cfg`` in ``C:\Python26\Lib\distutils``
+(change appropriately for Python 2.7). It should contain::
+
+    [build]
+    compiler=mingw32
+
 From a command prompt, run::
 
-    easy_install ffnet h5py sphinx numpydoc
+    easy_install ffnet sphinx numpydoc
 
 If you wish to use CDF files, download and install the `NASA CDF library
 <http://cdf.gsfc.nasa.gov/>`_. Again, the 32-bit installer is required, e.g.
