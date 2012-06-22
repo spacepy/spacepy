@@ -4,6 +4,21 @@ Linux Installation
 
 Dependencies
 ============
+To ensure that you have all dependencies for SpacePy satisfied, there are two
+approaches. The first is to download a single software suite that installs a
+comprehensive set of Python libraries; the second is to install the core 
+dependencies yourself.
+
+The Easy Way
+------------
+Either the `Enthought Python Distribution (EPD) <http://www.enthought.com/>`_
+or the `Python(x,y) distribution <https://code.google.com/p/pythonxy-linux/>`_
+will provide Python, numpy, scipy, matplotlib and a host of other useful
+3rd-party libraries. In both cases you will still need to install :ref:`ffnet` 
+by hand.
+
+If you are installing by hand, follow the instructions for your linux
+distribution below.
 
 Debian and Ubuntu
 -----------------

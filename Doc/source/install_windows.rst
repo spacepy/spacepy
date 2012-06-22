@@ -18,6 +18,10 @@ supports numpy, scipy, and other scientific Python development, from
 which we all benefit.) SpacePy ONLY supports 32-bit Python under
 Windows; 32-bit Python should run fine on 64-bit Windows.
 
+An alternative to the EPD is the `Python(x,y) distribution 
+<http://code.google.com/p/pythonxy/>`_. This currently only supports 32-bit
+but will run on 64-bit machines.
+
 If you wish to use CDF files, download and install the `NASA CDF library
 <http://cdf.gsfc.nasa.gov/>`_. Again, the 32-bit installer is required, e.g.
 CDF33_1-SETUP-32.EXE. The default installation directory is recommended to
