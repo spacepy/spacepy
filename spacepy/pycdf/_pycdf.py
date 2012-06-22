@@ -274,6 +274,9 @@ class Library(object):
                               numpy.dtype((numpy.float64, 2)),
                               const.CDF_TIME_TT2000.value: numpy.int64,
                               }
+        self.timetypes = [const.CDF_EPOCH.value,
+                          const.CDF_EPOCH16.value,
+                          const.CDF_TIME_TT2000.value]
         if not self.supports_int8:
             del self.cdftypenames[const.CDF_INT8.value]
             del self.numpytypedict[const.CDF_INT8.value]
@@ -3038,7 +3041,8 @@ class _Hyperslice(object):
                          const.CDF_TIME_TT2000]
         elif d is data: #numpy array came in, use its type
             types = [k for k in lib.numpytypedict
-                     if lib.numpytypedict[k] == d.dtype]
+                     if lib.numpytypedict[k] == d.dtype
+                     and not k in lib.timetypes]
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
