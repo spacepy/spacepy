@@ -13,33 +13,7 @@ Mike Henderson)
 Installation
 ============
 
-Option 1) to install it in a standard location (depending on your system)::
-
-    python setup.py install
-
-or::
-
-    sudo python setup.py install
-
-or::
-
-    python setup.py install --user
-
-If you do not have administrative privileges, or you will be developing for SpacePy,
-the latter is recommended.
-
-Option 2) to install in custom location, e.g.::
-
-    python setup.py install --home=/n/packages/lib/python
-
-It is also possible to select a specific compiler for installing the IRBEM-LIB library as part
-of SpacePy. Currently the
-following flags are supported: gnu95, gnu, pg. You can invoke these by using one of the
-following commands below but not all of them are supported on all platforms:
-
-* ``python setup.py install --fcompiler=pg``      #(will use pgi compiler suite)
-* ``python setup.py install --fcompiler=gnu``    #(will use g77)
-* ``python setup.py install --fcompiler=gnu95``   #(default option for using gfortran)
+See :doc:`install`.
 
 Toolbox - A Box Full of Tools
 =============================
