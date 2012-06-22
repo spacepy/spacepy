@@ -32,7 +32,7 @@ enable_deprecation_warning
 
 leapsec_url
   URL of the leapsecond database used by time conversions.
-  :py:func:`toolbox.update` will download from the URL.
+  :py:func:`~spacepy.toolbox.update` will download from the URL.
   The default should almost always be acceptable.
 
 ncpus
@@ -47,17 +47,17 @@ notice
 
 omni2_url
   URL containing the OMNI2 data.
-  :py:func:`toolbox.update` will download from the URL.
+  :py:func:`~spacepy.toolbox.update` will download from the URL.
   The default should almost always be acceptable.
 
 qindenton_url
   URL containing Qin-Denton packaging of OMNI data.
-  :py:func:`toolbox.update` will download from the URL.
+  :py:func:`~spacepy.toolbox.update` will download from the URL.
   The default should almost always be acceptable.
 
 psddata_url
   URL containing PSD data.
-  :py:func:`toolbox.update` will download from the URL if requested.
+  :py:func:`~spacepy.toolbox.update` will download from the URL if requested.
   The default should almost always be acceptable.
 
 
