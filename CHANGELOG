@@ -38,6 +38,7 @@ time
  - Timedelta has been deprecated (use datetime.timedelta)
 toolbox
  - hypot function speed-up
+ - update function:can specify HTTP User Agent in config file
 
 Changes in Version 0.1.2
 ========================
