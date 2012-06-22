@@ -253,6 +253,7 @@ class Library(object):
                              const.CDF_REAL8.value: 'CDF_REAL8',
                              const.CDF_EPOCH.value: 'CDF_EPOCH',
                              const.CDF_EPOCH16.value: 'CDF_EPOCH16',
+                             const.CDF_TIME_TT2000.value: 'CDF_TIME_TT2000',
                              }
         self.numpytypedict = {const.CDF_BYTE.value: numpy.int8,
                               const.CDF_CHAR.value: numpy.int8,
@@ -271,10 +272,13 @@ class Library(object):
                               const.CDF_EPOCH.value: numpy.float64,
                               const.CDF_EPOCH16.value:
                               numpy.dtype((numpy.float64, 2)),
+                              const.CDF_TIME_TT2000.value: numpy.int64,
                               }
         if not self.supports_int8:
             del self.cdftypenames[const.CDF_INT8.value]
             del self.numpytypedict[const.CDF_INT8.value]
+            del self.cdftypenames[const.CDF_TIME_TT2000.value]
+            del self.numpytypedict[const.CDF_TIME_TT2000.value]
 
         v_epoch16_to_datetime = numpy.frompyfunc(
             self.epoch16_to_datetime, 2, 1)
@@ -1615,8 +1619,13 @@ class CDF(collections.MutableMapping):
         would be sufficient for IEEE 754 encoding, but where DEC formats would
         require eight.
         """
-        if type == const.CDF_EPOCH16 and self.version()[0] < 3:
-            raise ValueError('Cannot use EPOCH16 in backward-compatible CDF')
+        if type in (const.CDF_EPOCH16, const.CDF_INT8, const.CDF_TIME_TT2000) \
+                and self.version()[0] < 3:
+            raise ValueError('Cannot use EPOCH16, INT8, or TIME_TT2000 '
+                             'in backward-compatible CDF')
+        if not lib.supports_int8 and \
+                type in (const.CDF_INT8, const.CDF_TIME_TT2000):
+            raise ValueError('INT8 and TIME_TT2000 require CDF library 3.4.0')
         if data == None:
             if type == None:
                 raise ValueError('Must provide either data or a CDF type.')
@@ -1855,8 +1864,14 @@ class Var(collections.MutableSequence):
     specifically the desired data from the CDF.
 
     All data are, on read, converted to appropriate Python data
-    types; EPOCH and EPOCH16 types are converted to
+    types; EPOCH, EPOCH16, and TIME_TT2000 types are converted to
     :class:`~datetime.datetime`. Data are returned in numpy arrays.
+
+    .. note::
+        Although pycdf supports TIME_TT2000 variables, the Python
+        :class:`~datetime.datetime` object does not support leap
+        seconds. Thus, on read, any seconds past 59 are truncated
+        to 59.999999 (59 seconds, 999 milliseconds, 999 microseconds).
 
     Potentially useful list methods and related functions:
       - `count <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_
@@ -2125,6 +2140,10 @@ class Var(collections.MutableSequence):
             data = numpy.require(lib.v_datetime_to_epoch(data),
                                  requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
+        elif cdf_type == const.CDF_TIME_TT2000.value:
+            data = numpy.require(lib.v_datetime_to_tt2000(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.int64)
         else:
              data = numpy.require(data, requirements=('C', 'A', 'W'),
                                   dtype=self._np_type())
@@ -2813,6 +2832,8 @@ class _Hyperslice(object):
             result = lib.v_epoch_to_datetime(buffer)
         elif cdftype == const.CDF_EPOCH16.value:
             result = lib.v_epoch16_to_datetime(buffer)
+        elif cdftype == const.CDF_TIME_TT2000.value:
+            result = lib.v_tt2000_to_datetime(buffer)
         else:
             result = buffer
             
@@ -3010,9 +3031,11 @@ class _Hyperslice(object):
                 elements //= 4
         elif hasattr(data0, 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
-                types = [const.CDF_EPOCH16, const.CDF_EPOCH]
+                types = [const.CDF_EPOCH16, const.CDF_EPOCH,
+                         const.CDF_TIME_TT2000]
             else:
-                types = [const.CDF_EPOCH, const.CDF_EPOCH16]
+                types = [const.CDF_EPOCH, const.CDF_EPOCH16,
+                         const.CDF_TIME_TT2000]
         elif d is data: #numpy array came in, use its type
             types = [k for k in lib.numpytypedict
                      if lib.numpytypedict[k] == d.dtype]
@@ -3612,6 +3635,8 @@ class Attr(collections.MutableSequence):
                 result = lib.v_epoch_to_datetime(buff)
             elif cdftype == const.CDF_EPOCH16.value:
                 result = lib.v_epoch16_to_datetime(buff)
+            elif cdftype == const.CDF_TIME_TT2000.value:
+                result = lib.v_tt2000_to_datetime(buff)
             else:
                 result = buff
             if length == 1:
@@ -3647,6 +3672,10 @@ class Attr(collections.MutableSequence):
             data = numpy.require(lib.v_datetime_to_epoch(data),
                                  requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
+        elif cdf_type == const.CDF_TIME_TT2000.value:
+            data = numpy.require(lib.v_datetime_to_tt2000(data),
+                                 requirements=('C', 'A', 'W'),
+                                 dtype=numpy.int64)
         elif cdf_type in lib.numpytypedict:
             data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=lib.numpytypedict[cdf_type])

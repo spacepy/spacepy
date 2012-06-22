@@ -321,8 +321,10 @@ class NoCDF(unittest.TestCase):
                      ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
                                const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
-                     ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
-                     ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                     ((), [const.CDF_EPOCH, const.CDF_EPOCH16,
+                           const.CDF_TIME_TT2000], 1),
+                     ((), [const.CDF_EPOCH16, const.CDF_EPOCH,
+                           const.CDF_TIME_TT2000], 1),
                      ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
                              const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ((), [const.CDF_FLOAT, const.CDF_REAL4,
@@ -483,7 +485,8 @@ class MakeCDF(unittest.TestCase):
 
     def testEPCOH16inBackward(self):
         """Create backward-compatible CDF with EPOCH16"""
-        msg = 'Cannot use EPOCH16 in backward-compatible CDF'
+        msg = 'Cannot use EPOCH16, INT8, or TIME_TT2000 ' \
+            'in backward-compatible CDF'
         newcdf = cdf.CDF(self.testfspec, '')
         try:
             newcdf.new('foo', type=const.CDF_EPOCH16)
@@ -2346,6 +2349,26 @@ class ChangeCDF(CDFTests):
             self.assertEqual(self.cdf['foobar'].type(), const.CDF_INT8.value)
         else:
             self.assertEqual(self.cdf['foobar'].type(), const.CDF_BYTE.value)
+
+    def testTT2000New(self):
+        """Create a new TT2000 zVar"""
+        expected = [datetime.datetime(2010, 1, 1) + 
+                    datetime.timedelta(days=i) for i in range(5)]
+        if cdf.lib.supports_int8:
+            self.cdf.new('foobar', data=expected, type=const.CDF_TIME_TT2000)
+            self.assertEqual(self.cdf['foobar'].type(),
+                             const.CDF_TIME_TT2000.value)
+            numpy.testing.assert_array_equal(expected,
+                                             self.cdf['foobar'][...])
+        else:
+            message = 'INT8 and TIME_TT2000 require CDF library 3.4.0'
+            try:
+                self.cdf.new('foobar', data=expected,
+                             type=const.CDF_TIME_TT2000)
+            except ValueError:
+                self.assertEqual(message, str(sys.exc_info()[1]))
+            else:
+                self.fail('Should have raised ValueError: ' + message)
 
 
 class ChangeColCDF(ColCDFTests):
