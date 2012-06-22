@@ -1,6 +1,14 @@
-Building spacepy for distribution (20120515)
+Building spacepy for distribution (20120622)
 ============================================
 Since this has to happen on multiple platforms, a single script doesn't work.
+
+Edit Doc/source/conf.py. Around line 124, remove (DRAFT) from the title.
+    Change version around line 68 (two places!)
+Change version in setup.py, actual call to setup near bottom.
+Change __version__ around line 126 of __init__.py. Also change all through
+    the license.
+
+
 On a Unix machine:
 check out the latest from git.
     python setup.py sdist --formats=gztar,zip

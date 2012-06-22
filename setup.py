@@ -582,7 +582,7 @@ toolbox_ext = Extension('spacepy.toolbox._toolbox',
 
 # run setup from distutil
 setup(name='spacepy',
-      version='0.1.2',
+      version='0.1.3',
       description='SpacePy: Tools for Space Science Applications',
       ext_modules=[pybats_ext, toolbox_ext],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
