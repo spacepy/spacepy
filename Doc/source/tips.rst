@@ -23,10 +23,10 @@ numpy_ and the Python standard library.
 
 Basic examples
 ==============
-Though there are some similarites, Python does not look like (or work like) Matlab or IDL. 
+Though there are some similarities, Python does not look like (or work like) Matlab or IDL. 
 As (most of us) are, or have been, Matlab or IDL programmers, we have to rethink how we do 
 things -- what is efficient in one language may not be the most efficient in another.  
-One truth that Python shares with these other lagnuages, however, is that if you are using 
+One truth that Python shares with these other languages, however, is that if you are using 
 a for loop there is likely to be a faster way...
 
 Take the simple case of a large data array where you want to add one to each element.
@@ -174,7 +174,7 @@ the for loop (or list comprehension)::
         Shell_x0_y0_z0 = np.take(Shell_x0_y0_z0, ARG, axis = 0)  # sort based on index order
         return Shell_x0_y0_z0[:-Num_Pts_Removed,:]   #remove last points that have the "anomalously" high flux
 
-The answer is exactly the same and comparing to the inital version of this code we have managed a speedup of 382x::
+The answer is exactly the same and comparing to the initial version of this code we have managed a speedup of 382x::
 
     Tue Jun 14 10:21:54 2011    SortRemove_HighFluxPts_.prof
 
@@ -202,7 +202,7 @@ In summary, when working on arrays it's worth taking the time to think about whe
 
 Zip
 ===
-The :py:func:`zip` function is extremly useful, but it is really slow. If you find yourself
+The :py:func:`zip` function is extremely useful, but it is really slow. If you find yourself
 using it on large amounts of data then significant time-savings might be achieved by re-writing your code
 to make the :py:func:`zip` operation unnecessary. A good alternative, if you do need the functionality 
 of :py:func:`zip`, is in :py:func:`itertools.izip`. This is far more efficient as it builds an interator.

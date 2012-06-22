@@ -76,7 +76,7 @@ and thus :mod:`~spacepy.LANLstar`.
 
 h5py
 ----
-`h5py <http://code.google.com/p/h5py/>`_ provies a Python interface to
+`h5py <http://code.google.com/p/h5py/>`_ provides a Python interface to
 HDF5 files. It is required for the HDF import/export capability of
 :mod:`~spacepy.datamodel`.
 

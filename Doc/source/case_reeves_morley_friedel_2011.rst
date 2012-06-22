@@ -4,7 +4,7 @@ Paulikas and Blake revisited (Reeves et al. 2011)
 
 This case study reproduces the figures of Reeves et al. (2011),
 "On the relationship between relativistic electron flux and solar wind
-velocity: Paulikas and Blake revisisted"
+velocity: Paulikas and Blake revisited"
 (`doi:10.1029/2010JA015735 <http://dx.doi.org/10.1029/2010JA015735>`_).
 
 Setup
@@ -501,7 +501,7 @@ TeX. Matplotlib has many more options for `customization
 The end result is a nice figure that can be printed full-size, put in
 a PDF, or included directly in a paper.
 
-Now we need the bototm half of Figure 1. From
+Now we need the bottom half of Figure 1. From
 `SIDC <http://sidc.oma.be/sunspot-data/>`_, download the "monthly and
 monthly smoothed sunspot number" (``monthssn.dat``). Put it in the ``data``
 directory.
@@ -544,7 +544,7 @@ also provides an alternative to tweaking bounding boxes.
 Then we create a subplot with the information that there will be 2 rows, 1
 column, and this is the first subplot. Now everything acting on ax, above,
 can be repeated, although we skip setting the xlabel since only the bottom
-axis will be labelled.
+axis will be labeled.
 
 >>> fluxline = ax.plot(esp_times, 10 ** esp_flux_av, 'b')
 >>> ax.set_yscale('log')
@@ -575,9 +575,9 @@ shared with the existing ``ax``. (This is poorly documented; see this
 
 :func:`~matplotlib.pyplot.setp` sets a
 property. :meth:`~matplotlib.axes.Axes.get_xticklabels` returns all the
-tick labels (:class:`~matplotlib.text.Text`) fot the x axis; ``setp``
+tick labels (:class:`~matplotlib.text.Text`) for the x axis; ``setp``
 then sets ``visible`` to ``False`` for all of them. This hides the
-labelling on the axis for the upper subfigure.
+labeling on the axis for the upper subfigure.
 
 >>> ax3.set_xlabel('Year', weight='bold')
 >>> ax3.set_ylabel('Sunspot Number', weight='bold')
@@ -766,7 +766,7 @@ c
 
 Indentation is significant in Python! Normally indents are four spaces and the tab key will do the job. (In the above example, you may need to hit enter twice after the print statement, the second to terminate the indentation.)
 
-`pop <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_ returns one element from a list, and deletes it from the list. Using ``0`` pops off the first element, and :meth:`~file.write` writes a string to a file. ``+`` can be used to concatenate two strings togther. Since :meth:`~str.split` removed the newlines, they need to be readded.
+`pop <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_ returns one element from a list, and deletes it from the list. Using ``0`` pops off the first element, and :meth:`~file.write` writes a string to a file. ``+`` can be used to concatenate two strings together. Since :meth:`~str.split` removed the newlines, they need to be readded.
 
 So this little block of code splits the data into a list on newlines and, repeating fifteen times, takes the first element of that list and writes it, with a newline, to the output. Now ``data`` contains only the actual lines of data.
 

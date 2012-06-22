@@ -4,7 +4,7 @@ Publication List
 
 The following publications have been prepared using SpacePy. If you have
 published a paper using SpacePy, contact the SpacePy team to be added
-to this list. Please also provide a citation or acknowledgement, as
+to this list. Please also provide a citation or acknowledgment, as
 appropriate, in your paper.
 
 Papers using SpacePy
