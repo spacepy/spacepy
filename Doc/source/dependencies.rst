@@ -3,7 +3,7 @@ SpacePy Dependencies
 ********************
 
 SpacePy relies on several other pieces of software for complete
-functionality.  :doc:`Installing SpacePy` links to details on
+functionality.  :doc:`install` links to details on
 installing the required software for each platform.
 
 Hard Dependencies
