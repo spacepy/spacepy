@@ -24,9 +24,10 @@ time - Time conversion, manipulation and implementation of Ticktock class
 .. autosummary::
     :toctree: autosummary
 
-    doy2date
-    tickrange
-    sec2hms
-    num2date
     date2num
+    doy2date
     leapyear
+    num2date
+    randomDate
+    sec2hms
+    tickrange

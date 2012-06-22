@@ -721,28 +721,6 @@ class TBTimeFunctionTests(unittest.TestCase):
         time = range(len(time))
         self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
 
-    def test_randomDate(self):
-        """randomDate should give known result"""
-        try:
-            from matplotlib.dates import date2num, num2date
-        except ImportError:
-            return # don't even do the test
-        dt1 = datetime.datetime(2000, 1, 1)
-        dt2 = datetime.datetime(2000, 2, 1)
-        numpy.random.seed(8675309)
-        ans = numpy.array([datetime.datetime(2000,01,26,04,28,10,500070),
-                           datetime.datetime(2000,01,24,06,46,39,156905),
-                           datetime.datetime(2000,01,12,01,52,50,481431),
-                           datetime.datetime(2000,01,07,06,30,26,331312),
-                           datetime.datetime(2000,01,13,16,17,48,619577)])
-        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=False))
-        # check the exception
-        dt11 = num2date(date2num(dt1))
-        self.assertRaises(ValueError, tb.randomDate, dt11, dt2)
-        ans.sort()
-        numpy.random.seed(8675309)
-        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=True))
-
 
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""

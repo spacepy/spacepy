@@ -52,7 +52,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'rad2mlt', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-           'eventTimer', 'randomDate', 'isview', 'interweave']
+           'eventTimer', 'isview', 'interweave', 'randomDate']
 
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
@@ -2058,50 +2058,14 @@ def eventTimer(Event, Time1):
     print("%4.2f" % (Time2 - Time1), Event)
     return Time2
 
-def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
-    """
-    Return a (or many) random datetimes between two given dates, this is done under the convention dt <=1 rand < dt2
 
-    Parameters
-    ==========
-    dt1 : datetime.datetime
-        start date for the the random date
-    dt2 : datetime.datetime
-        stop date for the the random date
+@spacepy.deprecated(
+    '0.1.3',
+    'Use :func:`spacepy.time.randomDate` not ``toolbox.randomDate``')
+def randomDate(*args, **kwargs):
+    import spacepy.time
+    return spacepy.time.randomDate(*args, **kwargs)
 
-    Other Parameters
-    ================
-    N : int (optional)
-        the number of random dates to generate (defualt=1)
-    tzinfo : bool (optional)
-        maintain the tzinfo of the input datetimes (default=False)
-    sorted : bool (optional)
-        return the times sorted (default=False)
-
-    Returns
-    =======
-    out : datetime.datetime or numpy.ndarray of datetime.datetime
-        the new time for the next call to EventTimer
-
-    Examples
-    ========
-    """
-    from matplotlib.dates import date2num, num2date
-
-    if dt1.tzinfo != dt2.tzinfo:
-        raise(ValueError('tzinfo for the input and output datetimes must match'))
-    dt1n = date2num(dt1)
-    dt2n = date2num(dt2)
-    rnd_tn = np.random.uniform(dt1n, dt2n, size=N)
-    rnd_t = num2date(rnd_tn)
-    if not tzinfo:
-        tzinfo = None
-    else:
-        tzinfo = dt1.tzinfo
-    rnd_t = np.asarray([val.replace(tzinfo=tzinfo) for val in rnd_t])
-    if sorted:
-        rnd_t.sort()
-    return rnd_t
 
 def isview(array1, array2=None):
     """

@@ -12,7 +12,6 @@ toolbox - Toolbox of various functions and generic utilities
 - `Array creation`_
 - `Array searching and masking`_
 - `Plotting tools`_
-- `Time and date functions`_
 - `Other functions`_
 - `Multithreading and multiprocessing`_
 - `System tools`_
@@ -58,13 +57,6 @@ Plotting tools
     printfig
     smartTimeTicks
     timestamp
-
-Time and date functions
------------------------
-.. autosummary::
-    :toctree: autosummary
-
-    randomDate
 
 Other functions
 ---------------
