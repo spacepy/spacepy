@@ -28,6 +28,11 @@ NumPy 1.4+
 high-performance array data structure used throughout SpacePy. Version
 1.4 or later is required; 1.6 or later recommended.
 
+C compiler
+----------
+If you are installing SpacePy from source, a working C compiler
+is required. (Not necessary for the Windows binary installer.)
+
 Soft Dependencies
 =================
 Without these packages, SpacePy will install, but certain features may
@@ -81,3 +86,10 @@ NASA's `CDF <http://cdf.gsfc.nasa.gov/>`_ library provides access to
 Common Data Format files. It is required for :mod:`~spacepy.pycdf`,
 and thus for the CDF import/export capability of
 :mod:`~spacepy.datamodel`.
+
+Fortran compiler
+----------------
+If installing from source, :mod:`~spacepy.irbempy` requires a Fortran
+compiler. (This is not required for the Windows binary installer).
+Supported compilers are the GNU compiler ``gfortran``, the older GNU
+compiler ``g77``, and the Portland Group PGI compiler.
