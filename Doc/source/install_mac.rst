@@ -81,7 +81,7 @@ Expert MacPorts Install Instructions
 ====================================
 These were current as of 22-June-2012, path especially go out of date quickly.
 
-REQUIRED OR STRONGLY RECOMMENDED[D[D[C[C
+REQUIRED OR STRONGLY RECOMMENDED
 --------------------------------
 
     #. Install xcode from the app store
