@@ -79,7 +79,7 @@ Or install for all users on the system::
 
     sudo python setup.py install
 
-Normally the correct Fortan compiler will be found; if compilation
+Normally the correct Fortran compiler will be found; if compilation
 fails, try specifying the older GNU compiler at the build step::
 
     python setup.py build --fcompiler=gnu
@@ -92,12 +92,12 @@ Build::
 
      python setup.py build
 
-If this fails, specify a fortran compiler::
+If this fails, specify a Fortran compiler::
 
     python setup.py build --fcompiler=gnu
 
 (``python setup.py build --help-fcompiler`` will list options for
-Fortan compilers.)
+Fortran compilers.)
 
 Install for one user::
 

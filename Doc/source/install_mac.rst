@@ -15,7 +15,7 @@ From a command prompt, run::
 
     easy_install ffnet h5py
 
-Finally, install SpacePy using the installer tarbal. 
+Finally, install SpacePy using the installer tarball. 
 
 .. _CDF:
 
@@ -44,7 +44,7 @@ Or install for all users on the system::
 
     sudo python setup.py install
 
-Normally the correct Fortan compiler will be found; if compilation
+Normally the correct Fortran compiler will be found; if compilation
 fails, try specifying the older GNU compiler at the build step::
 
     python setup.py build --fcompiler=gnu
@@ -58,12 +58,12 @@ Build::
 
      python setup.py build
 
-If this fails, specify a fortran compiler::
+If this fails, specify a Fortran compiler::
 
     python setup.py build --fcompiler=gnu
 
 (``python setup.py build --help-fcompiler`` will list options for
-Fortan compilers.)
+Fortran compilers.)
 
 Install for one user::
 
@@ -79,15 +79,15 @@ Or install for all users on the system::
 
 Expert MacPorts Install Instructions
 ====================================
-These were current as of 22-June-2012, path especually go out of date quickly.
+These were current as of 22-June-2012, path especially go out of date quickly.
 
-REQUIRED OR STRONGLY RECCOMENDED
+REQUIRED OR STRONGLY RECOMMENDED[D[D[C[C
 --------------------------------
 
     #. Install xcode from the app store
     #. Open xcode
     #. Xcode -> preferences -> Downloads -> install command line tools
-    #. Install macports (http://www.macports.org/install.php)
+    #. Install MacPorts (http://www.macports.org/install.php)
     #. Setup proxies if needed
     #. sudo port -v selfupdate
     #. sudo xcode-select -switch /Applications/Xcode.app
