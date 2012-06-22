@@ -79,6 +79,11 @@ psddata_url
   :py:func:`~spacepy.toolbox.update` will download from the URL if requested.
   The default should almost always be acceptable.
 
+user_agent
+  User Agent for network access. If this is set,
+  :func:`~spacepy.toolbox.update` will use this User Agent string on all
+  HTTP requests. Normally leaving this unset should be fine.
+
 
 Developer documentation
 =======================

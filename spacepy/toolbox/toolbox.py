@@ -698,6 +698,11 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     else:
         import urllib.request as u
 
+    if 'user_agent' in config and config['user_agent']:
+        class AppURLopener(u.FancyURLopener):
+            version = config['user_agent']
+        u._urlopener = AppURLopener()
+
     datadir = os.path.join(DOT_FLN, 'data')
     if not os.path.exists(datadir):
         os.mkdir(datadir)
