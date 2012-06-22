@@ -192,6 +192,17 @@ class Library(object):
                 if candidates: #choose the latest version
                     libpath = cdfdist + \
                         sorted(candidates)[-1] + '/lib/libcdf.dylib'
+        if not libpath and sys.platform == 'linux2':
+            cdfdist = '/usr/local/'
+            if os.path.isdir(cdfdist):
+                candidates = []
+                for d in os.listdir(cdfdist):
+                    if d[0:3]=='cdf' and \
+                           os.path.exists(cdfdist + d + '/lib/libcdf.so'):
+                        candidates.append(d)
+                if candidates: #choose the latest version
+                    libpath = cdfdist + \
+                        sorted(candidates)[-1] + '/lib/libcdf.so'
 
         if not libpath:
             raise Exception('Cannot find CDF C library. ' + \
