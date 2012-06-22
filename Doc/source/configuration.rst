@@ -16,8 +16,27 @@ in the user's Documents and Settings folder. If it doesn't exist, this directory
 ``spacepy.rc`` has an INI-style format, parsed by :py:mod:`ConfigParser`. It
 contains a single section, ``[spacepy]``.
 
+    * `The spacepy directory`_
     * `Available configuration options`_
     * `Developer documentation`_
+
+The spacepy directory
+=====================
+
+When first imported, spacepy will create a ``.spacepy`` directory in
+your ``$HOME`` folder. If you prefer a different location for this
+directory, set the environment variable ``$SPACEPY`` to a location of
+your choice. For example, with a ``csh``, or ``tcsh`` you would::
+
+	setenv SPACEPY /a/different/dir
+
+for the ``bash`` shell you would:
+
+	export SPACEPY=/a/different/dir
+
+If you change the default location, make sure you add the environment
+variable ``$SPACEPY`` to your ``.cshrc, .tcshrc,`` or ``.bashrc``
+script.
 
 
 Available configuration options

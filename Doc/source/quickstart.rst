@@ -41,19 +41,6 @@ following commands below but not all of them are supported on all platforms:
 * ``python setup.py install --fcompiler=gnu``    #(will use g77)
 * ``python setup.py install --fcompiler=gnu95``   #(default option for using gfortran)
 
-The installer will create a ``.spacepy`` directory in your ``$HOME`` folder. If you prefer a different location
-for this directory, set the environment variable ``$SPACEPY`` to a location of your choice. For example,
-with a ``csh``, or ``tcsh`` you would::
-
-	setenv SPACEPY /a/different/dir
-
-for the ``bash`` shell you would:
-
-	export SPACEPY=/a/different/dir
-
-Make sure you add the environment variable ``$SPACEPY`` to your ``.cshrc, .tcshrc,`` or ``.bashrc`` script.
-
-
 Toolbox - A Box Full of Tools
 =============================
 
