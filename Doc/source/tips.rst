@@ -297,6 +297,13 @@ included::
 
 External links
 ==============
+To learn about NumPy from a MatLab user's perspective
+    * `NumPy for MatLab users`_
+    * `Mathesaurus`_
+
+And if you're coming from an IDL, or R, background
+    * `Mathesaurus`_
+
 Here is a collection of links that serve as a decent reference for Python and speed
     * `PythonSpeed PerformanceTips`_
     * `scipy array tip sheet`_
@@ -305,6 +312,8 @@ Here is a collection of links that serve as a decent reference for Python and sp
 
 
 .. _numpy: http://docs.scipy.org/doc/numpy/reference/
+.. _`NumPy for MatLab users`: http://www.scipy.org/NumPy_for_Matlab_Users
+.. _`Mathesaurus`: http://mathesaurus.sourceforge.net/
 .. _`PythonSpeed PerformanceTips`: http://wiki.python.org/moin/PythonSpeed/PerformanceTips
 .. _`scipy array tip sheet`: http://pages.physics.cornell.edu/~myers/teaching/ComputationalMethods/python/arrays.html
 .. _`Python Tips, Tricks, and Hacks`: http://www.siafoo.net/article/52
