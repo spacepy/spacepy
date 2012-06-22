@@ -27,12 +27,11 @@ import numpy
 from numpy import array
 from scipy import inf
 import spacepy.toolbox as tb
-import matplotlib.pyplot as plt
 import spacepy.time as st
 import spacepy.lib
 
 __all__ = ['PickleAssembleTests', 'SimpleFunctionTests', 'TBTimeFunctionTests',
-           'ArrayBinTests', 'PlottingTests']
+           'ArrayBinTests']
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -607,34 +606,6 @@ class TBTimeFunctionTests(unittest.TestCase):
         self.assertEqual("""('0.25', '')\n""",
                          result)
 
-    def test_smartTimeTicks(self):
-        """smartTimeTicks should give known output (regression)"""
-        # hits all the different cases
-        # else
-        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 10), 20)
-        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
-        self.assertEqual('%d %b', fmt.fmt)
-        # elif nHours < 4:
-        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 1), 20)
-        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
-        self.assertEqual('%H:%M UT', fmt.fmt)
-        # elif nHours < 24:
-        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 13), 20)
-        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
-        self.assertEqual('%H:%M UT', fmt.fmt)
-        # elif nHours < 12:
-        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 11), 20)
-        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
-        self.assertEqual('%H:%M UT', fmt.fmt)
-        # if nHours < 1:
-        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 0, 30), 20)
-        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
-        self.assertEqual('%H:%M UT', fmt.fmt)
-        # elif nHours < 48:
-        t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 2, 0, 30), 20)
-        Mtick, mtick, fmt = tb.smartTimeTicks(t1)
-        self.assertEqual('%H:%M UT', fmt.fmt)
-
     def test_windowMean(self):
         """windowMean should give known results (regression)"""
         warnings.simplefilter('default')
@@ -721,28 +692,6 @@ class TBTimeFunctionTests(unittest.TestCase):
         time = range(len(time))
         self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
 
-    def test_randomDate(self):
-        """randomDate should give known result"""
-        try:
-            from matplotlib.dates import date2num, num2date
-        except ImportError:
-            return # don't even do the test
-        dt1 = datetime.datetime(2000, 1, 1)
-        dt2 = datetime.datetime(2000, 2, 1)
-        numpy.random.seed(8675309)
-        ans = numpy.array([datetime.datetime(2000,01,26,04,28,10,500070),
-                           datetime.datetime(2000,01,24,06,46,39,156905),
-                           datetime.datetime(2000,01,12,01,52,50,481431),
-                           datetime.datetime(2000,01,07,06,30,26,331312),
-                           datetime.datetime(2000,01,13,16,17,48,619577)])
-        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=False))
-        # check the exception
-        dt11 = num2date(date2num(dt1))
-        self.assertRaises(ValueError, tb.randomDate, dt11, dt2)
-        ans.sort()
-        numpy.random.seed(8675309)
-        numpy.testing.assert_array_equal(ans, tb.randomDate(dt1, dt2, 5, sorted=True))
-
 
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""
@@ -761,34 +710,6 @@ class ArrayBinTests(unittest.TestCase):
             self.assertEqual(output,
                              tb.arraybin(*input))
 
-class PlottingTests(unittest.TestCase):
-    """Tests for plotting functionality"""
-
-    def test_applySmartTimeTicks(self):
-        """applySmartTimeTicks should have known behaviour"""
-        plt.ion()
-        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays=1)
-        y = range(len(ticks))
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        line = ax.plot(ticks.UTC, y)
-        tb.applySmartTimeTicks(ax, ticks.UTC)
-        plt.draw()
-        plt.draw()
-        # should not have moved the ticks
-        real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
-        730888.,  730889.,  730890.,  730891.])
-        numpy.testing.assert_allclose(real_ans, ax.get_xticks())
-        # should have named them 01 Feb, 02 Feb etc
-        try:
-            real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(10)]
-        except AttributeError: #Py3k
-            real_ans = ['{0:02d} Feb'.format(i+1) for i in range(10)]
-        ans = [t.get_text()
-               for t in ax.xaxis.get_majorticklabels()]
-        numpy.testing.assert_array_equal(real_ans, ans)
-        plt.close()
-        plt.ioff()
 
 
 if __name__ == "__main__":

@@ -10,6 +10,9 @@ Changes in Version 0.1.3
   - toolbox.makePoly (use matplotlib.pyplot.fill_between)
 - Several functions moved:
   - leapyear: from toolbox to time
+  - randomDate: from toolbox to time
+  - applySmartTimeTicks, smartTimeTicks, printfig, timestamp:
+    from toolbox to plot.utils
 - Number of base level imports limited
 - MAJOR BUG in IRBEM library (T01S and TS04 models) fixed.
 datamodel
@@ -38,6 +41,7 @@ time
  - Timedelta has been deprecated (use datetime.timedelta)
 toolbox
  - hypot function speed-up
+ - update function:can specify HTTP User Agent in config file
 
 Changes in Version 0.1.2
 ========================

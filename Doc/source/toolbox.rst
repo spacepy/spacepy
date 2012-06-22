@@ -11,8 +11,6 @@ toolbox - Toolbox of various functions and generic utilities
 - `Array binning`_
 - `Array creation`_
 - `Array searching and masking`_
-- `Plotting tools`_
-- `Time and date functions`_
 - `Other functions`_
 - `Multithreading and multiprocessing`_
 - `System tools`_
@@ -47,24 +45,6 @@ Array searching and masking
     tCommon
     tOverlap
     tOverlapHalf
-
-
-Plotting tools
---------------
-.. autosummary::
-    :toctree: autosummary
-
-    applySmartTimeTicks
-    printfig
-    smartTimeTicks
-    timestamp
-
-Time and date functions
------------------------
-.. autosummary::
-    :toctree: autosummary
-
-    randomDate
 
 Other functions
 ---------------

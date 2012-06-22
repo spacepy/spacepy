@@ -11,11 +11,25 @@ Copyright 2012 Los Alamos National Security, LLC.
 
 .. currentmodule:: spacepy.plot.utils
 
+Classes
+-------
+
 .. autosummary::
     :template: clean_class.rst
     :toctree: autosummary
 
     EventClicker
+
+Functions
+---------
+
+.. autosummary::
+    :toctree: autosummary
+
+    applySmartTimeTicks
+    printfig
+    smartTimeTicks
+    timestamp
 """
 
 __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
@@ -23,9 +37,9 @@ __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
 import bisect
 import datetime
 
+import matplotlib.dates
 import matplotlib.pyplot as plt
 import numpy
-import spacepy.time
 
 class EventClicker(object):
     """
@@ -249,7 +263,7 @@ class EventClicker(object):
                                              datetime.datetime)
             if self._x_is_datetime:
                 self._xydata = numpy.column_stack(
-                    (spacepy.time.date2num(self._xdata), self._ydata))
+                    (matplotlib.dates.date2num(self._xdata), self._ydata))
             else:
                 self._xydata = numpy.column_stack((self._xdata, self._ydata))
             if self._ymin is None: #Make the clipping comparison always fail
@@ -262,8 +276,8 @@ class EventClicker(object):
         if self.interval is None:
             (left, right) = self.ax.get_xaxis().get_view_interval()
             if self._x_is_datetime:
-                right = spacepy.time.num2date(right)
-                left = spacepy.time.num2date(left)
+                right = matplotlib.dates.num2date(right)
+                left = matplotlib.dates.num2date(left)
             self.interval = right - left
 
         if not self._xdata is None:
@@ -338,7 +352,7 @@ class EventClicker(object):
             self._data_events[-1, self._curr_phase] = \
                                   [self._xdata[idx], self._ydata[idx]]
         if self._x_is_datetime:
-            xval = spacepy.time.num2date(xval)
+            xval = matplotlib.dates.num2date(xval)
         if self._events is None:
             self._events = numpy.array([[[xval, yval]] * self.n_phases])
         self._events[-1, self._curr_phase] = [xval, yval]
@@ -413,7 +427,7 @@ class EventClicker(object):
         if event.key == ' ':
             rightside = self.ax.xaxis.get_view_interval()[1]
             if self._x_is_datetime:
-                rightside = spacepy.time.num2date(rightside)
+                rightside = matplotlib.dates.num2date(rightside)
             self._relim(rightside)
         if event.key == 'delete':
             self._delete_event_phase()
@@ -447,3 +461,202 @@ class EventClicker(object):
             self.ax.set_xlim(xmin, xmax)
             self.ax.autoscale_view(scalex=True, scaley=False)
         self.fig.canvas.draw()
+
+def applySmartTimeTicks(ax, time, dolimit = True):
+    """
+    Given an axis 'ax' and a list/array of datetime objects, 'time',
+    use the smartTimeTicks function to build smart time ticks and
+    then immediately apply them to the given axis.  The first and
+    last elements of the time list will be used as bounds for the
+    x-axis range.
+
+    The range of the 'time' input value will be used to set the limits
+    of the x-axis as well.  Set kwarg 'dolimit' to False to override
+    this behavior.
+
+    Parameters
+    ==========
+    ax : matplotlib.pyplot.Axes
+        A matplotlib Axis object.
+    time : list
+        list of datetime objects
+    dolimit : boolean (optional)
+        The range of the 'time' input value will be used to set the limits
+        of the x-axis as well. Setting this overrides this behavior.
+
+    See Also
+    ========
+    smartTimeTicks
+    """
+    Mtick, mtick, fmt = smartTimeTicks(time)
+    ax.xaxis.set_major_locator(Mtick)
+    ax.xaxis.set_minor_locator(mtick)
+    ax.xaxis.set_major_formatter(fmt)
+    if dolimit:
+        ax.set_xlim([time[0], time[-1]])
+
+def smartTimeTicks(time):
+    """
+    Returns major ticks, minor ticks and format for time-based plots
+
+    smartTimeTicks takes a list of datetime objects and uses the range
+    to calculate the best tick spacing and format.  Returned to the user
+    is a tuple containing the major tick locator, minor tick locator, and
+    a format string -- all necessary to apply the ticks to an axis.
+
+    It is suggested that, unless the user explicitly needs this info,
+    to use the convenience function applySmartTimeTicks to place the
+    ticks directly on a given axis.
+
+    Parameters
+    ==========
+    time : list
+        list of datetime objects
+
+    Returns
+    =======
+    out : tuple
+        tuple of Mtick - major ticks, mtick - minor ticks, fmt - format
+
+    See Also
+    ========
+    applySmartTimeTicks
+    """
+    from matplotlib.dates import (MinuteLocator, HourLocator,
+                                  DayLocator, DateFormatter)
+    deltaT = time[-1] - time[0]
+    nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
+    if nHours < 1:
+        Mtick = MinuteLocator(byminute = [0,15,30,45])
+        mtick = MinuteLocator(byminute = list(range(60)), interval = 5)
+        fmt = DateFormatter('%H:%M UT')
+    elif nHours < 4:
+        Mtick = MinuteLocator(byminute = [0,30])
+        mtick = MinuteLocator(byminute = list(range(60)), interval = 10)
+        fmt = DateFormatter('%H:%M UT')
+    elif nHours < 12:
+        Mtick = HourLocator(byhour = list(range(24)), interval = 2)
+        mtick = MinuteLocator(byminute = [0,15,30,45])
+        fmt = DateFormatter('%H:%M UT')
+    elif nHours < 24:
+        Mtick = HourLocator(byhour = [0,3,6,9,12,15,18,21])
+        mtick = HourLocator(byhour = list(range(24)))
+        fmt = DateFormatter('%H:%M UT')
+    elif nHours < 48:
+        Mtick = HourLocator(byhour = [0,6,12,18])
+        mtick = HourLocator(byhour = list(range(24)))
+        fmt = DateFormatter('%H:%M UT')
+    else:
+        Mtick = DayLocator(bymonthday = list(range(1,32)))
+        mtick = HourLocator(byhour = [0,6,12,18])
+        fmt = DateFormatter('%d %b')
+
+    return (Mtick, mtick, fmt)
+
+def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
+    """save current figure to file and call lpr (print).
+
+    This routine will create a total of 3 files (png, ps and c.png) in the
+    current working directory with a sequence number attached. Also, a time
+    stamp and the location of the file will be imprinted on the figure. The
+    file ending with c.png is clean and no directory or time stamp are
+    attached (good for PowerPoint presentations).
+
+    Parameters
+    ----------
+    fignum : integer
+        matplotlib figure number
+    saveonly : boolean (optional)
+        True (don't print and save only to file)  False (print and save)
+    pngolny : boolean (optional)
+        True (only save png files and print png directly) False (print ps file, and generate png, ps; can be slow)
+    clean : boolean (optional)
+        True (print and save only clean files without directory info) False (print and save directory location as well)
+    filename : string (optional)
+        None (If specified then the filename is set and code does not use the sequence number)
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> p = plt.plot([1,2,3],[2,3,2])
+    >>> spacepy.plot.utils.printfig(1, pngonly=True, saveonly=True)
+    """
+    import matplotlib.pyplot as plt
+
+    try:
+        nfigs = len(fignum)
+    except:
+        nfigs = 1
+        fignum = [fignum]
+
+    for ifig in fignum:
+        # active this figure
+        plt.figure(ifig)
+
+        if filename == None:
+            # create a filename for the figure
+            cwd = os.getcwd()
+            num = len(glob.glob('*.png'))
+            fln = cwd+'/figure_'+str(num)
+        else:
+            fln = filename
+        # truncate fln if too long
+        if len(fln) > 60:
+            flnstamp = '[...]'+fln[-60:]
+        else:
+            flnstamp = fln
+
+        # save a clean figure without timestamps
+        if clean == True:
+            plt.savefig(fln+'_clean.png')
+            plt.savefig(fln+'_clena.ps')
+
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S  ")
+        # add the filename to the figure for reference
+        plt.figtext(0.01, 0.01, timestamp+flnstamp+'.png', rotation='vertical', va='bottom', size=8)
+
+        # now save the figure to this filename
+        if pngonly == False:
+            plt.savefig(fln+'.ps')
+
+        plt.savefig(fln+'.png')
+
+        # send it to the printer
+        if saveonly != True:
+            if pngonly == False:
+                os.popen('lpr '+fln+'.ps')
+            else:
+                os.popen('lpr '+fln+'.png')
+    return
+
+def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
+    """
+    print a timestamp on the current plot, vertical lower right
+
+    Parameters
+    ==========
+    position : list
+        position for the timestamp
+    size : string (optional)
+        text size
+    draw : Boolean (optional)
+        call draw to make sure it appears
+    kwargs : keywords
+        other keywords to axis.annotate
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> from pylab import plot, arange
+    >>> plot(arange(11))
+    [<matplotlib.lines.Line2D object at 0x49072b0>]
+    >>> spacepy.plot.utils.timestamp()
+    """
+    from matplotlib.pyplot import gca, draw
+    now = datetime.datetime.now()
+    strnow = now.strftime("%d%b%Y %H:%M")
+    ax=gca()
+    ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
+    if draw:
+        draw()
