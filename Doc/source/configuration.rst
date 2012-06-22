@@ -41,6 +41,10 @@ ncpus
   reported by :py:func:`multiprocessing.cpu_count`. You may wish to set this
   to a lower number if you need to reserve other processors on your machine.
 
+notice
+  True to display the SpacePy license and other information on import (default);
+  False to omit.
+
 omni2_url
   URL containing the OMNI2 data.
   :py:func:`toolbox.update` will download from the URL.
