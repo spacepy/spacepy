@@ -33,7 +33,7 @@ Install the CDF library
 Make C:\Python26\Lib\distutils\distutils.cfg, containing:
     [build]
     compiler=mingw32
-easy_install ffnet sphinx numpydoc
+easy_install networkx ffnet sphinx numpydoc
 unzip the source distribution from the Unix side
     python setup.py bdist_wininst
 installer exe is in the dist directory. Don't worry about the PDF failing.

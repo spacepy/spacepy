@@ -30,7 +30,7 @@ help SpacePy find the library.
 The other dependencies should be installable with ``easy_install``.
 From a command prompt, run::
 
-    easy_install ffnet h5py
+    easy_install networkx ffnet h5py
 
 Finally, install SpacePy using the installer EXE. Be sure to choose the
 installer that matches your version of Python, either 2.6 or 2.7.
@@ -85,7 +85,7 @@ Create a file ``distutils.cfg`` in ``C:\Python26\Lib\distutils``
 
 From a command prompt, run::
 
-    easy_install ffnet sphinx numpydoc
+    easy_install networkx ffnet sphinx numpydoc
 
 If you wish to use CDF files, download and install the `NASA CDF library
 <http://cdf.gsfc.nasa.gov/>`_. Again, the 32-bit installer is required, e.g.
