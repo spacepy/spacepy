@@ -1,6 +1,9 @@
 SpacePy Installation Instructions:
 ======================+===========
 
+For detailed, platform-specific installation information,
+see Doc/build/html/install.html
+
 Option 1) to install it in the standard loction (depending on your system)
 
 >>> python setup.py install
