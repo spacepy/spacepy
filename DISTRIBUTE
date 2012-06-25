@@ -40,3 +40,28 @@ installer exe is in the dist directory. Don't worry about the PDF failing.
 Run the installer and make sure it works. Copy it out.
 
 Now revert to the snapshot and do it ALL OVER for Python 2.7!
+
+Website is in /n/www/html/spacepy/external
+newgroup spacepy
+umask 002
+under repository, make spacepy-VERSION directory
+In here should go:
+-.zip and .tar.gz of source
+-2.6 and 2.7 of Windows installer
+-PDF documentation, called spacepy-VER-doc.pdf
+-html documentation spacepy-VER-html_docs.zip. Rooted at build/html.
+(DOUBLE CHECK PERMISSIONS)
+(in Doc/build/html, zip -r spacepy-VER-html_docs.zip *)
+Edit repository.shtml, copy previous version and edit.
+Edit download.shtml and update the version number
+Unzip the new docs into doc-VER
+Move old docs (doc) to doc-OLDVER
+Move new docs to doc
+Copy new pdf docs into doc, named SpacePy.pdf
+(DOUBLE CHECK PERMISSIONS ON DOCS)
+edit cgi-bin/register.py, replace old version with new version
+
+TODO/flesh out:
+Put CHANGELOG on website?
+Upload to sourceforge
+update pypi
