@@ -61,7 +61,20 @@ Copy new pdf docs into doc, named SpacePy.pdf
 (DOUBLE CHECK PERMISSIONS ON DOCS)
 edit cgi-bin/register.py, replace old version with new version
 
+Now get the latest on sourceforge:
+log in, click on files
+in spacepy folder, add folder (spacepy-VER)
+upload everything that went into repository on website:
+scp * USER@frs.sourceforge.net:/home/frs/project/spacepy/spacepy/spacepy-VER
+
+Log in to pypi.python.org
+Click on "SpacePy" under "your packages"
+Open "show" link for previous version in another window--you will need to copy this all!
+Now click "package submission"--yes, it's as if it's new
+Copy/paste all that junk over
+hide the release until it's propagated out
+upload the zip file for the latest documentation
+
 TODO/flesh out:
 Put CHANGELOG on website?
-Upload to sourceforge
-update pypi
+
