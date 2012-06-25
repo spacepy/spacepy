@@ -66,6 +66,7 @@ log in, click on files
 in spacepy folder, add folder (spacepy-VER)
 upload everything that went into repository on website:
 scp * USER@frs.sourceforge.net:/home/frs/project/spacepy/spacepy/spacepy-VER
+In the version folder, click on the "i" next to .tar.gz; set as default for BSD, Linux, Solaris. .zip as default for other, mac; exe as default for windows.
 
 Log in to pypi.python.org
 Click on "SpacePy" under "your packages"
