@@ -10,10 +10,10 @@ Download and install the `Enthought Python Distribution (EPD)
 considering purchasing a subscription, keep in mind that Enthought
 supports numpy, scipy, and other scientific Python development)
 
-The other dependencies should be installable with ``easy_install``.
+The other dependencies (except ffnet) should be installable with ``easy_install``.
 From a command prompt, run::
 
-    easy_install ffnet h5py
+    easy_install h5py
 
 Finally, install SpacePy using the installer tarball. 
 
