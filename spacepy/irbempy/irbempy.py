@@ -141,8 +141,8 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
         'loci': Coords( [[ NaN  NaN  NaN]
         [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
 
-    See Also:
-    =========
+    See Also
+    ========
     get_Lstar, get_Bfield, find_magequator
 
     """
@@ -371,27 +371,24 @@ def sph2car(SPHin):
     """
     coordinate transformation from spherical to cartesian
 
-    Input:
-    ======
+    Parameters
+    ==========
         - SPHin (list or ndarray) : coordinate points in (n,3) shape with n coordinate points in
             units of [Re, deg, deg] = [r, latitude, longitude]
         
-    Returns:
-    ========
+    Returns
+    =======
         - results (ndarray) : values after conversion to cartesian coordinates x,y,z
         
-    Example:
-    ========
+    Example
+    =======
     >>> sph2car([1,45,45])
     array([ 0.5       ,  0.5       ,  0.70710678])
 
-    See Also:
-    =========
+    See Also
+    ========
     car2sph
 
-    Version:
-    ========
-    V1: 05-Mar-2010 (JK)
     """
 
     if isinstance(SPHin[0], (float, int)):
@@ -419,29 +416,25 @@ def get_sysaxes(dtype, carsph):
     """
     will return the sysaxes according to the irbem library
 
-    Input:
-    ======
+    Parameters
+    ==========
         - dtype (str) : coordinate system, possible values: GDZ, GEO, GSM, GSE, SM, 
                 GEI, MAG, SPH, RLL
         - carsph (str) : cartesian or spherical, possible values: 'sph', 'car'
         
-    Returns:
-    ========
+    Returns
+    =======
         - sysaxes (int) : value after oner_desp library from 0-8 (or None if not available)
         
-    Example:
-    ========
+    Example
+    =======
     >>> get_sysaxes('GSM', 'car')
     2
 
-    See Also:
-    =========
+    See Also
+    ========
     get_dtype
 
-    Version:
-    ========
-    V1: 05-Mar-2010 (JK)
-    V2: 10-May-2010 (SM)
     """
 
     #typedict = {'GDZ': {'sph': 0, 'car': 10},
@@ -460,28 +453,24 @@ def get_dtype(sysaxes):
     """
     will return the coordinate system type as string
 
-    Input:
-    ======
+    Parameters
+    ==========
         - sysaxes (int) : number according to the irbem, possible values: 0-8
         
-    Returns:
-    ========
+    Returns
+    =======
         - dtype (str) : coordinate system GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
         - carsph (str) : cartesian or spherical 'car', 'sph'
 
-    Example:
-    ========
+    Example
+    =======
     >>> get_dtype(3)
     ('GSE', 'car')
 
-    See Also:
-    =========
+    See Also
+    ========
     get_sysaxes
 
-    Version:
-    ========
-    V1: 05-Mar-2010 (JK)
-    V2: 14-Sep-2010 (JK)
     """
 
     for key in SYSAXES_TYPES:
@@ -497,8 +486,8 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     """
     will return the flux from the AE8-AP8 model
 
-    Input:
-    ======
+    Parameters
+    ==========
         - energy (float) : center energy in MeV; if fluxtype=RANGE, then needs to be a list [Emin, Emax]
         - loci (Coords)  : a Coords instance with the location inside the magnetosphere
              optional      instead of a Coords instance, one can also provide a list with [BBo, L] combination
@@ -506,21 +495,18 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
         - fluxtype (str) : DIFF, RANGE, INT are possible types
         - particles (str): e or p or electrons or protons
         
-    Returns:
-    ========
+    Returns
+    =======
         - float : flux from AE8/AP8 model
         
-    Example:
-    ========
+    Example
+    =======
     >>> spacepy.irbempy.get_aep8()
 
-    See Also:
-    =========
+    See Also
+    ========
     
 
-    Version:
-    ========
-    V1: 16-Nov-2010 (JK)
     """
     # find bad values and dimensions
     
@@ -592,8 +578,8 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
     are provided, drift shell splitting will be calculated and "Bmirr" will be returned. If they
     are not provided, then no drift shell splitting is calculated and "Blocal" is returned.
 
-    Input:
-    ======
+    Parameters
+    ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : optional pitch angles in degrees; if provided will 
@@ -605,14 +591,14 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
         - options (optional list or array of integers length=5) : explained below
         - omni values as dictionary (optional) : if not provided, will use lookup table 
 
-    Returns:
-    ========
+    Returns
+    =======
         - results (dictionary) : containing keys: Lm, Lstar, Bmin, Blocal (or Bmirr), Xj, MLT 
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
             is returned if not provided, then "Blocal" at spacecraft is returned.
 
-    Example:
-    ========
+    Example
+    =======
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
     >>> spacepy.irbempy.Lstar(t,y)
@@ -624,8 +610,9 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
         'Xj': array([ 0.00112884,  0.00286955])}
 
 
-    External Magnetic Field:
-    ========================
+    Notes
+    =====
+    External Field
         - 0	   : no external field
         - MEAD	: Mead & Fairfield [1975] (uses 0<=Kp<=9 - Valid for rGEO<=17. Re)
         - T87SHORT: Tsyganenko short [1987] (uses 0<=Kp<=9 - Valid for rGEO<=30. Re)
@@ -644,8 +631,7 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
         - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF, 
             W1, W2, W3, W4, W5, W6 - no upper or lower limit for inputs - Valid for xGSM>=-15. Re)
 
-    OMNI Values:
-    ============
+    OMNI contents
         - Kp: value of Kp as in OMNI2 files but has to be double instead of integer type
         - Dst: Dst index (nT)
         - dens: Solar Wind density (cm-3)
@@ -664,8 +650,7 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
         - W1 - W6: see definition in (JGR-A, v.110(A3), 2005.) (PDF 1.2MB)
         - AL: the auroral index
 
-    Options:
-    ========
+    Options
         - 1st element: 0 - don't compute L* or phi ;  1 - compute L*; 2- compute phi
         - 2nd element: 0 - initialize IGRF field once per year (year.5);  
             n - n is the  frequency (in days) starting on January 1st of each year 
@@ -738,8 +723,10 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
 # -----------------------------------------------
 def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omnivals=None):
     """
-    Input
-    =====
+    Return the MacIlwain L value for a given location, time and model
+
+    Parameters
+    ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : optional pitch angles in degrees
@@ -757,6 +744,15 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
         - results (dictionary) : containing keys: Lm, Bmin, Blocal (or Bmirr), Xj, MLT 
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
             is returned if not provided, then "Blocal" at spacecraft is returned.
+
+    Example
+    =======
+
+
+    Notes
+    =====
+
+
 
     """
     intMaglookup = {'IGRF': 0, 'EDIP': 1, 'JC': 2, 'GSFC': 3, 'DUN': 4, 'CDIP': 5}
@@ -783,8 +779,8 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
     are provided, drift shell splitting will be calculated and "Bmirr" will be returned. If they
     are not provided, then no drift shell splitting is calculated and "Blocal" is returned.
 
-    Input:
-    ======
+    Parameters
+    ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
         - alpha (list or ndarray) : optional pitch angles in degrees; if provided will 
@@ -796,17 +792,17 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
         - options (optional list or array of integers length=5) : explained below
         - omni values as dictionary (optional) : if not provided, will use lookup table 
 
-    Returns:
-    ========
+    Returns
+    =======
         - results (dictionary) : containing keys: Lm, Lstar, Bmin, Blocal (or Bmirr), Xj, MLT 
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
             is returned if not provided, then "Blocal" at spacecraft is returned.
 
-    Example:
-    ========
+    Example
+    =======
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
-    >>> spacepy.irbempy.get_Lstar(t,y)
+    >>> spacepy.irbempy.Lstar(t,y)
     {'Blocal': array([ 1020.40493286,  3446.08845227]),
         'Bmin': array([ 1019.98404311,  3437.63865243]),
         'Lm': array([ 3.08948304,  2.06022102]),
@@ -815,28 +811,28 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
         'Xj': array([ 0.00112884,  0.00286955])}
 
 
-    External Magnetic Field:
-    ========================
-        - 0    : no external field
-        - MEAD  : Mead & Fairfield [1975] (uses 0<=Kp<=9 - Valid for rGEO<=17. Re)
+    Notes
+    =====
+    External Field
+        - 0	   : no external field
+        - MEAD	: Mead & Fairfield [1975] (uses 0<=Kp<=9 - Valid for rGEO<=17. Re)
         - T87SHORT: Tsyganenko short [1987] (uses 0<=Kp<=9 - Valid for rGEO<=30. Re)
         - T87LONG : Tsyganenko long [1987] (uses 0<=Kp<=9 - Valid for rGEO<=70. Re)
-        - T89    : Tsyganenko [1989] (uses 0<=Kp<=9 - Valid for rGEO<=70. Re)
+        - T89	 : Tsyganenko [1989] (uses 0<=Kp<=9 - Valid for rGEO<=70. Re)
         - OPQUIET : Olson & Pfitzer quiet [1977] (default - Valid for rGEO<=15. Re)
         - OPDYN   : Olson & Pfitzer dynamic [1988] (uses 5.<=dens<=50., 300.<=velo<=500., 
             -100.<=Dst<=20. - Valid for rGEO<=60. Re)
-        - T96    : Tsyganenko [1996] (uses -100.<=Dst (nT)<=20., 0.5<=Pdyn (nPa)<10., 
+        - T96	 : Tsyganenko [1996] (uses -100.<=Dst (nT)<=20., 0.5<=Pdyn (nPa)<10., 
             |ByIMF| (nT)<1=0., |BzIMF| (nT)<=10. - Valid for rGEO<=40. Re)
-        - OSTA  : Ostapenko & Maltsev [1997] (uses dst,Pdyn,BzIMF, Kp)
+        - OSTA	: Ostapenko & Maltsev [1997] (uses dst,Pdyn,BzIMF, Kp)
             T01QUIET: Tsyganenko [2002a,b] (uses -50.<Dst (nT)<20., 0.5<Pdyn (nPa)<=5., 
             |ByIMF| (nT)<=5., |BzIMF| (nT)<=5., 0.<=G1<=10., 0.<=G2<=10. - Valid for xGSM>=-15. Re)
         - T01STORM: Tsyganenko, Singer & Kasper [2003] storm  (uses Dst, Pdyn, ByIMF, BzIMF, G2, G3 - 
             there is no upper or lower limit for those inputs - Valid for xGSM>=-15. Re)
-        - T05    : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF, 
+        - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF, 
             W1, W2, W3, W4, W5, W6 - no upper or lower limit for inputs - Valid for xGSM>=-15. Re)
 
-    OMNI Values:
-    ============
+    OMNI contents
         - Kp: value of Kp as in OMNI2 files but has to be double instead of integer type
         - Dst: Dst index (nT)
         - dens: Solar Wind density (cm-3)
@@ -855,8 +851,7 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
         - W1 - W6: see definition in (JGR-A, v.110(A3), 2005.) (PDF 1.2MB)
         - AL: the auroral index
 
-    Options:
-    ========
+    Options
         - 1st element: 0 - don't compute L* or phi ;  1 - compute L*; 2- compute phi
         - 2nd element: 0 - initialize IGRF field once per year (year.5);  
             n - n is the  frequency (in days) starting on January 1st of each year 
@@ -881,7 +876,7 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
             - 3 = GSFC 12/66 updated to 1970
             - 4 = User-defined model (Default: Centred dipole + uniform [Dungey open model] )
             - 5 = Centred dipole
-
+            
     """
 
     from spacepy import config as config_dict

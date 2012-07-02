@@ -19,14 +19,15 @@ Copyright 2010 Los Alamos National Security, LLC.
 .. autosummary::
     :toctree: autosummary
 
+    get_AEP8
     get_Bfield
+    get_Lm
+    get_Lstar
     find_Bmirror
     find_magequator
-    coord_trans
     car2sph
     sph2car
+    coord_trans
     get_sysaxes
     get_dtype
-    get_AEP8
-    get_Lstar
     prep_irbem
