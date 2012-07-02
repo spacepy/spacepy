@@ -38,7 +38,10 @@ import bisect
 import datetime
 
 import matplotlib.dates
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except RuntimeError:
+    pass
 import numpy
 
 class EventClicker(object):
