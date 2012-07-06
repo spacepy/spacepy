@@ -865,18 +865,24 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                 if 'START_COLUMN' in mdata_copy[key].attrs:
                     st = mdata_copy[key].attrs['START_COLUMN']
                     if 'DIMENSION' in mdata_copy[key].attrs:
+                        varDims = numpy.array(mdata_copy[key].attrs['DIMENSION'])
+                        singleDim = True
+                        if len(varDims)>1 or varDims[0]>1:
+                            singleDim = False
+                    if ('DIMENSION' in mdata_copy[key].attrs) and not singleDim:
                         en = int(mdata_copy[key].attrs['DIMENSION'][0]) + int(st)
                         try:
-                            mdata[key] = numpy.vstack((mdata[key], data[:,int(st):int(en)]))
-                        except ValueError:
+                            assert mdata[key]=={}
                             mdata[key] = data[:,int(st):int(en)]
+                        except AssertionError:
+                            mdata[key] = numpy.vstack((mdata[key], data[:,int(st):int(en)]))
                     else:
                         try:
                             assert mdata[key]=={}
                             mdata[key] = data[:,int(st)]
                         except AssertionError:
                             mdata[key] = numpy.hstack((mdata[key], data[:,int(st)]))
-
+    
     #now add the attributres to the variables
     for key in keys:
         mdata[key] = dmarray(mdata[key], attrs=mdata_copy[key].attrs)
