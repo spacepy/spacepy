@@ -133,7 +133,7 @@ def get_omni(ticks):
 #-----------------------------------------------
 
 # load omni file during import
-from spacepy import DOT_FLN, help, time
+from spacepy import DOT_FLN, help
 from spacepy.toolbox import loadpickle
 import os
 #dotfln = os.environ['HOME']+'/.spacepy'
@@ -146,7 +146,7 @@ except:
     print("Run spacepy.toolbox.update(omni=True) to download OMNI data")
 else:
     if not 'ticks' in omnidata:
-        omnidata['ticks'] = time.Ticktock(omnidata['UTC'], 'UTC')
+        omnidata['ticks'] = st.Ticktock(omnidata['UTC'], 'UTC')
     if not 'Hr' in omnidata:
         omnidata['Hr'] = np.fromiter((dt.hour for dt in omnidata['UTC']),
                                      dtype='int16', count=len(omnidata['UTC']))
@@ -154,9 +154,13 @@ else:
         omnidata['Year'] = np.fromiter((dt.year for dt in omnidata['UTC']),
                                        dtype='int16',
                                        count=len(omnidata['UTC']))
-                                       
+                           
 try:
     omni2data = loadpickle(omni2fln)
 except IOError:
     print("The full OMNI2 dataset has not been not found. This may limit some functionality.")
     print("HINT: Run spacepy.toolbox.update(all=False, omni2=True) to download the full OMNI2 data.")
+except ImportError:
+    print("The OMNI2 dataset file format has changed.")
+    print("Run spacepy.toolbox.update(all=False, omni2=True) to redownload the full OMNI2 data.")
+    
