@@ -746,9 +746,6 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         for key in omnicdf.keys():
             omni2[key] = omnicdf[key][:]
 
-        omni2['ticks'] = Ticktock(omni2['Epoch'])
-        omni2['RDT'] = omni2['ticks'].RDT
-
         # save as pickle
         savepickle(omni2_fname_pkl, omni2)
 

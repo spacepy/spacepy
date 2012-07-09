@@ -163,4 +163,8 @@ except IOError:
 except ImportError:
     print("The OMNI2 dataset file format has changed.")
     print("Run spacepy.toolbox.update(all=False, omni2=True) to redownload the full OMNI2 data.")
-    
+else:
+    if not 'ticks' in omni2data:
+        omni2data['ticks'] = st.Ticktock(omni2data['Epoch'])
+    if not 'RDT' in omni2data:
+        omni2data['RDT'] = omni2data['ticks'].RDT
