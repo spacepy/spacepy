@@ -472,7 +472,11 @@ class install(_install):
         deletefiles = ['toolbox.py', 'toolbox.pyc', 'LANLstar/LANLstar.py',
                        'LANLstar/LANLstar.pyc', 'LANLstar/libLANLstar.so',
                        'LANLstar/LANLstar.pyd', 'LANLstar/__init__.py',
-                        'LANLstar/__init__.pyc', 'LANLstar']
+                        'LANLstar/__init__.pyc', 'LANLstar',
+                       'time/__init__.py', 'time/__init__.pyc',
+                       'time/_dates.so', 'time/_dates.dylib',
+                       'time/_dates.pyd',
+                       'time/time.py', 'time/time.pyc', 'time']
         for f in deletefiles:
             path = os.path.join(self.install_lib, 'spacepy',
                                 os.path.normpath(f)) #makes pathing portable
@@ -569,8 +573,7 @@ class Distribution(_Distribution):
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
-            'spacepy.plot', 'spacepy.pybats', 'spacepy.time',
-            'spacepy.toolbox']
+            'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox']
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
 pybats_ext = Extension('spacepy.pybats.ctrace2d',
