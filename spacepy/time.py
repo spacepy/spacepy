@@ -94,7 +94,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 """
 
 from spacepy import help
-from spacepy.datamodel import dmarray
+import spacepy.datamodel
 
 import datetime, collections
 import dateutil.parser as dup
@@ -330,11 +330,11 @@ class Ticktock(collections.MutableSequence):
             self.data = data.data
         else:
             try:
-                dmarray(data)[0]
+                spacepy.datamodel.dmarray(data)[0]
             except IndexError:
-                self.data = dmarray([data])
+                self.data = spacepy.datamodel.dmarray([data])
             else:
-                self.data = dmarray(data)
+                self.data = spacepy.datamodel.dmarray(data)
 
             if isinstance(self.data[0], str):
                 dtype = 'ISO'
@@ -352,7 +352,7 @@ class Ticktock(collections.MutableSequence):
                 for i in range(len(self.data)):
                     self.data[i] = self.data[i].split('Z')[0]
             if self.data[0].find('T') == -1: # then assume midnight
-                self.data = dmarray([el + 'T00:00:00' for el in self.data], attrs={'dtype': dtype.upper()})
+                self.data = spacepy.datamodel.dmarray([el + 'T00:00:00' for el in self.data], attrs={'dtype': dtype.upper()})
             self.ISO = self.data
         self.update_items(self, 'data')
         if dtype.upper() == 'TAI': self.TAI = self.data
@@ -938,7 +938,7 @@ class Ticktock(collections.MutableSequence):
         geteDOY
         """
         nTAI = len(self.data)
-        DOY = dmarray(np.zeros(nTAI))
+        DOY = spacepy.datamodel.dmarray(np.zeros(nTAI))
 
         for i in np.arange(nTAI):
             DOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal() + 1
@@ -978,7 +978,7 @@ class Ticktock(collections.MutableSequence):
         """
 
         nTAI = len(self.data)
-        eDOY = dmarray(np.zeros(nTAI))
+        eDOY = spacepy.datamodel.dmarray(np.zeros(nTAI))
 
         for i in np.arange(nTAI):
             eDOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal()
@@ -1031,7 +1031,7 @@ class Ticktock(collections.MutableSequence):
                 "    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         # include offset if given
-        JD = dmarray(np.zeros(nTAI))
+        JD = spacepy.datamodel.dmarray(np.zeros(nTAI))
 
         twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
         sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
@@ -1139,7 +1139,7 @@ class Ticktock(collections.MutableSequence):
 
         UNX0 = datetime.datetime(1970,1,1)
         d = ['']*nTAI
-        UNX = dmarray(np.zeros(nTAI))
+        UNX = spacepy.datamodel.dmarray(np.zeros(nTAI))
         for i in np.arange(nTAI):
             d[i] = self.UTC[i] - UNX0 # timedelta object (only days, seconds, microsecs are stored)
             UNX[i] = (d[i].days)*86400 + d[i].seconds + d[i].microseconds/1.e6
@@ -1323,7 +1323,7 @@ class Ticktock(collections.MutableSequence):
             print("ERROR: Data type ", self.data.attrs['dtype'], ' in getUTC() not supported')
             return
 
-        UTC = dmarray(UTC, attrs={'dtype': 'UTC'})
+        UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
         self.UTC = UTC
         return UTC
 
@@ -1363,7 +1363,7 @@ class Ticktock(collections.MutableSequence):
             GPStup[i] = UTC[i] - GPS0 + datetime.timedelta(seconds=int(leapsec[i])) - datetime.timedelta(seconds=19)
             GPS[i] = GPStup[i].days*86400 + GPStup[i].seconds + GPStup[i].microseconds/1.e6
 
-        self.GPS = dmarray(GPS)#.astype(int)
+        self.GPS = spacepy.datamodel.dmarray(GPS)#.astype(int)
         return self.GPS
 
 
@@ -1406,7 +1406,7 @@ class Ticktock(collections.MutableSequence):
             TAItup[i] = UTC[i] - TAI0 + datetime.timedelta(seconds=int(leapsec[i]))
             TAI[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
 
-        self.TAI = dmarray(TAI)
+        self.TAI = spacepy.datamodel.dmarray(TAI)
         return self.TAI
 
     # -----------------------------------------------
@@ -1445,7 +1445,7 @@ class Ticktock(collections.MutableSequence):
                 cnew = c.replace('59','60')
                 ISO[i] = a+':'+b+':'+cnew
 
-        self.ISO = dmarray(ISO)
+        self.ISO = spacepy.datamodel.dmarray(ISO)
         return self.ISO
 
     # -----------------------------------------------

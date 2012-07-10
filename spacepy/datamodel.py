@@ -100,7 +100,7 @@ try:
 except ImportError:
     import io as StringIO
 
-from .toolbox import dictree
+from . import toolbox
 import numpy
 
 
@@ -278,7 +278,7 @@ class SpaceData(dict):
              |____cat
         |____5
         '''
-        dictree(self, **kwargs)
+        toolbox.dictree(self, **kwargs)
 
     def flatten(self):
         '''

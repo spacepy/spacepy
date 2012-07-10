@@ -120,7 +120,10 @@ def deprecated(version, message):
     return _deprecator
 
 # Expose definitions from modules in this package.
-from .datamodel import dmarray, SpaceData
+# since datamodel depends on top level, delay the variable binding
+from . import datamodel
+dmarray = datamodel.dmarray
+SpaceData = datamodel.SpaceData
 
 #package info
 __version__ = '0.1.3'
