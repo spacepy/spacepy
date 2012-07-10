@@ -26,6 +26,14 @@ class Coords(object):
     A class holding spatial coordinates in Cartesian/spherical
     in units of Re and degrees
 
+    Coordinate transforms are based on the IRBEM library; `its manual
+    <http://irbem.svn.sourceforge.net/viewvc/irbem/trunk/manual/user_guide.html>`_
+    may prove useful. There is good background information on space
+    physics coordinate systems at `SPENVIS
+    <http://www.spenvis.oma.be/help/background/coortran/coortran.html>`_
+    and `RAL
+    <http://sspg1.bnsc.rl.ac.uk/Share/Coordinates/systems.htm>`_
+
     Parameters
     ==========
     data : list or ndarray, dim = (n,3)
