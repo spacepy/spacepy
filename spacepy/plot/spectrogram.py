@@ -33,11 +33,13 @@ Copyright 2011 Los Alamos National Security, LLC.
     spectrogram
 """
 
+import bisect
 import datetime
 
 import numpy as np
 import matplotlib
 from matplotlib.dates import date2num
+from matplotlib.colors import LogNorm
 
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
@@ -309,7 +311,7 @@ class spectrogram(dm.SpaceData):
         DateFormatter : matplotlib.dates.DateFormatter
             The formatting to use on the dates on the x-axis (default matplotlib.dates.DateFormatter("%d %b %Y"))
         zlog : bool
-            plot the log of the z variable (default True)
+            plot the z variable on a log scale (default True)
         colorbar : bool
             plot the colorbar (default True)
         zlim : np.array
@@ -380,11 +382,12 @@ class spectrogram(dm.SpaceData):
         else:
             fig = plt.figure(fignum)
         ax = fig.add_subplot(111)
+        bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
         if self.plotSettings['zlog']:
-            bb = np.ma.log10(np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim']))
+            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb,
+                                norm=LogNorm())
         else:
-            bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
-        pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb)
+            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb)
         if self.specSettings['axisDates'][0]:
             time_ticks = self._set_ticks_to_time(ax, 'x')
         elif self.specSettings['axisDates'][1]:
@@ -405,6 +408,58 @@ class spectrogram(dm.SpaceData):
             cb =plt.colorbar(pcm)
             cb.set_label(self.plotSettings['colorbar_label'])
         return fig
+
+    def vslice(self, value):
+        """
+        slice a spectrogram at a given position along the x axis, maintains
+        variable names from spectrogram
+
+        Parameters
+        ==========
+        value : float or datetime.datetime
+            the value to slice the spectrogram at
+
+        Return
+        ======
+        out : datamodel.SpaceData
+            spacedata containing the slice
+        """
+        # using bisect find the index of the spectrogram to use
+        if isinstance(value, datetime.datetime):
+            value = date2num(value)
+        ind = bisect.bisect_right(self['spectrogram']['xedges'], value)
+        ans = dm.SpaceData()
+        ans[self['spectrogram'].attrs['variables'][1]] = tb.bin_edges_to_center(self['spectrogram']['yedges'])
+        ans['yedges'] = self['spectrogram']['yedges'].copy()
+        ans['xedges'] = self['spectrogram']['xedges'][ind:ind+2].copy()
+        ans[self['spectrogram'].attrs['variables'][2]] = self['spectrogram']['spectrogram'][:,ind:ind+1]
+        return ans
+
+    def hslice(self, value):
+        """
+        slice a spectrogram at a given position along the y axis, maintains
+        variable names from spectrogram
+
+        Parameters
+        ==========
+        value : float or datetime.datetime
+            the value to slice the spectrogram at
+
+        Return
+        ======
+        out : datamodel.SpaceData
+            spacedata containing the slice
+        """
+        # using bisect find the index of the spectrogram to use
+        if isinstance(value, datetime.datetime):
+            value = date2num(value)
+        ind = bisect.bisect_right(self['spectrogram']['yedges'], value)
+        ans = dm.SpaceData()
+        ans[self['spectrogram'].attrs['variables'][0]] = tb.bin_edges_to_center(self['spectrogram']['xedges'])
+        ans['yedges'] = self['spectrogram']['yedges'][ind:ind+2].copy()
+        ans['xedges'] = self['spectrogram']['xedges'].copy()
+        ans[self['spectrogram'].attrs['variables'][2]] = self['spectrogram']['spectrogram'][ind, :]
+        return ans
 
     def _set_ticks_to_time(self, axis, xy):
         """
