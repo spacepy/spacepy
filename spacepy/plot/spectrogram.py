@@ -294,7 +294,7 @@ class spectrogram(dm.SpaceData):
         self['spectrogram']['sum'] += b['spectrogram']['sum']
         self['spectrogram']['spectrogram'][...] = np.ma.divide(self['spectrogram']['sum'], self['spectrogram']['count'])
 
-    def plot(self, fignum=None, **kwargs):
+    def plot(self, fignum=None, axis=None, **kwargs):
         """
         Plot the spectrogram
 
@@ -314,6 +314,8 @@ class spectrogram(dm.SpaceData):
             plot the z variable on a log scale (default True)
         colorbar : bool
             plot the colorbar (default True)
+        axis : matplotlib axis object
+            axis to plot the spectrogram to
         zlim : np.array
             array like 2 element that overrides (interior) the spectrogram zlim (default spectrogram.specSettings['zlim'])
         figsize : tuple (optional)
@@ -371,7 +373,7 @@ class spectrogram(dm.SpaceData):
         else:
             self.plotSettings['ylim'] = None
 
-        if fignum == None:
+        if fignum is None and axis is None:
             if 'figsize' in kwargs:
                 if kwargs['figsize'] != None:
                     fig = plt.figure(figsize=kwargs['figsize'])
@@ -379,9 +381,12 @@ class spectrogram(dm.SpaceData):
                     fig = plt.figure()
             else:
                 fig = plt.figure()
-        else:
+            ax = fig.add_subplot(111)
+        elif axis is None:
             fig = plt.figure(fignum)
-        ax = fig.add_subplot(111)
+            ax = fig.add_subplot(111)
+        else:
+            ax = axis
         bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
         if self.plotSettings['zlog']:
             pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb,
@@ -407,7 +412,7 @@ class spectrogram(dm.SpaceData):
                 self.plotSettings['cmap'] = matplotlib.cm.rainbow
             cb =plt.colorbar(pcm)
             cb.set_label(self.plotSettings['colorbar_label'])
-        return fig
+        return ax
 
     def vslice(self, value):
         """
