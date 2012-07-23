@@ -38,7 +38,6 @@ except:
     pass
 
 import spacepy
-import spacepy.plot.utils
 
 #Py3k compatibility renamings
 try:
@@ -589,9 +588,12 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
         pass
     return None
 
+def printfig(*args, **kwargs):
+    import spacepy.plot.utils
+    return spacepy.plot.utils.printfig(*args, **kwargs)
 printfig = spacepy.deprecated('0.1.3',
     'Use :func:`spacepy.plot.utils.printfig` not '
-    '``toolbox.printfig``')(spacepy.plot.utils.printfig)
+    '``toolbox.printfig``')(printfig)
 
 def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     """
@@ -1018,13 +1020,19 @@ def binHisto(data, verbose=False):
             print("Used F-D rule")
     return (binw, nbins)
 
+def smartTimeTicks(*args, **kwargs):
+    import spacepy.plot.utils
+    return spacepy.plot.utils.smartTimeTicks(*args, **kwargs)
 smartTimeTicks = spacepy.deprecated('0.1.3',
     'Use :func:`spacepy.plot.utils.smartTimeTicks` not '
-    '``toolbox.smartTimeTicks``')(spacepy.plot.utils.smartTimeTicks)
+    '``toolbox.smartTimeTicks``')(smartTimeTicks)
 
+def applySmartTimeTicks(*args, **kwargs):
+    import spacepy.plot.utils
+    return spacepy.plot.utils.applySmartTimeTicks(*args, **kwargs)
 applySmartTimeTicks = spacepy.deprecated('0.1.3',
     'Use :func:`spacepy.plot.utils.applySmartTimeTicks` not '
-    '``toolbox.applySmartTimeTicks``')(spacepy.plot.utils.applySmartTimeTicks)
+    '``toolbox.applySmartTimeTicks``')(applySmartTimeTicks)
 
 def logspace(min, max, num, **kwargs):
     """
@@ -1292,9 +1300,12 @@ def pmm(a, *b):
             ans.append( [np.min(val_tmp[ind]), np.max(val_tmp[ind])] )
     return ans
 
+def timestamp(*args, **kwargs):
+    import spacepy.plot.utils
+    return spacepy.plot.utils(*args, **kwargs)
 timestamp = spacepy.deprecated('0.1.3',
     'Use :func:`spacepy.plot.utils.timestamp` not '
-    '``toolbox.timestamp``')(spacepy.plot.utils.timestamp)
+    '``toolbox.timestamp``')(timestamp)
 
 def getNamedPath(name):
     """
