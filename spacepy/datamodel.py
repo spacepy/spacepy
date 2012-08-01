@@ -228,7 +228,7 @@ class dmarray(numpy.ndarray):
 
 class SpaceData(dict):
     """
-    Datamodel class extending dict
+    Datamodel class extending dict by adding attributes.
 
     .. currentmodule:: spacepy.datamodel
     .. autosummary::
