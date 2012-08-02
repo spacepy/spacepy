@@ -1627,7 +1627,6 @@ def dist_to_list(func, length, min=None, max=None):
     """
     from scipy import inf
     from scipy.integrate import quad
-    from warnings import warn
     if min is None:
         min = -inf
     if max is None:

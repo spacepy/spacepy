@@ -98,6 +98,7 @@ import spacepy.datamodel
 
 import datetime, collections
 import dateutil.parser as dup
+import itertools
 import warnings
 
 import numpy as np
@@ -1759,24 +1760,21 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
     out : [hours, minutes, seconds] or datetime.timedelta
 
     """
+    if rounding:
+        sec = int(round(sec))
     if not days:
         if sec > 86400:
             warnings.warn("Number of seconds > seconds in day. "
                           "Try days keyword.")
     else:
         sec %= 86400
-
-    hours = int(sec)//3600
-    minutes = int((sec - hours*3600) // 60) % 60
-    seconds = sec % 60
-    if rounding:
-        seconds = int(round(seconds))
-
-    if dtobj:
-        return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    if dtobj: # no need to do the computation
+        return datetime.timedelta(seconds=sec)
     else:
+        hours = int(sec)//3600
+        minutes = int((sec - hours*3600) // 60) % 60
+        seconds = sec % 60
         return [hours, minutes, seconds]
-
 
 def no_tzinfo(dt):
     """
@@ -1796,7 +1794,6 @@ def no_tzinfo(dt):
         return [val.replace(tzinfo=None) for val in dt]
     except TypeError: # was not an iterable
         return dt.replace(tzinfo=None)
-
 
 def leapyear(year, numdays=False):
     """
@@ -1830,13 +1827,13 @@ def leapyear(year, numdays=False):
     mask4   = [(val % 4) == 0 for val in year ]   # this is a leap year
     if numdays:
         numdays=365
-        ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
+        ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in itertools.izip(mask400, mask100, mask4)]
         if len(ans) == 1:
             return ans[0]
         else:
             return ans
     else:
-        ans = [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]
+        ans = [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in itertools.izip(mask400, mask100, mask4)]
         if len(ans) == 1:
             return ans[0]
         else:
