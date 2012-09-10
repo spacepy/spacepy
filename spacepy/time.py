@@ -99,6 +99,7 @@ import spacepy.datamodel
 import datetime, collections
 import dateutil.parser as dup
 import itertools
+import re
 import warnings
 
 import numpy as np
@@ -1884,3 +1885,41 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     if sorted:
         rnd_t.sort()
     return rnd_t
+
+def extract_YYYYMMDD(filename):
+    """
+    go through the string and extract the first valid YYYYMMDD as a datetime
+
+    Parameters
+    ==========
+    filename : str
+        string to parse for a YYYYMMDD format
+
+    Returns
+    =======
+    out : (None, datetime.datetime)
+        the datetime found in the string or None
+    """
+    # cmp = re.compile("[12][90]\d2[01]\d[0-3]\d")
+    # return a datetime if there is one from YYYYMMDD
+    try:
+        dt = datetime.datetime.strptime(re.search("[12][90]\d\d[01]\d[0-3]\d", filename).group(), "%Y%m%d")
+    except (ValueError, AttributeError): # there is not one
+        return None
+    if dt < datetime.datetime(1957, 10, 4, 19, 28, 34): # Sputnik 1 launch datetime
+        dt = None
+    # better not still be using this... present to help with random numbers combinations
+    elif dt > datetime.datetime(2050, 1, 1):
+        dt = None
+    return dt
+
+def valid_YYYYMMDD(inval):
+    """
+    if inval is valid YYYYMMDD return True, False otherwise
+    """
+    try:
+        ans = datetime.datetime.strptime(inval, "%Y%m%d")
+    except ValueError:
+        return False
+    if isinstance(ans, datetime.datetime):
+        return True
