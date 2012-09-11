@@ -37,6 +37,16 @@ class RSTTests(unittest.TestCase):
         self.assertEqual('.. csv-table:: \n\t:header: \n\t:widths: 6, 6, 6\n\n\tlist11, list21, list31\n\tlist12, list22, list32\n\tlist13, list23, list33\n',
                          rst.listToTable(self.list2))
 
+    def test_strToHeading(self):
+        """strToHeading"""
+        ans = ['hello world\n===== =====\n', 'hello world\n----- -----\n',
+               'hello world\n~~~~~ ~~~~~\n', '----- -----\nhello world\n----- -----\n',
+               '===== =====\nhello world\n===== =====\n']
+        levels = [0,1,2,-1,-2]
+        for ii, level in enumerate(levels):
+            self.assertEqual(ans[ii], rst.strToHeading('hello world', level) )
+        self.assertRaises(ValueError, rst.strToHeading, 'hello world', 999)
+
 
 if __name__ == "__main__":
     unittest.main()

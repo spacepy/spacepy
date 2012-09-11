@@ -49,6 +49,31 @@ def listToTable(data, header='', title=''):
     output = code_header + '\n' + header + '\n' + widths + '\n\n' + data_out
     return output
 
+def strToHeading(string, level=0):
+    """
+    return a rst heading from the given string (soplit on spaces)
+    document title: === aboce and below (-2)
+    document subtitle: --- above and below (-1)
+    section 1: ==== (0)
+    subsection 1.1: ---- (1)
+    subsubsection 1.1.1: ~~~~ (2)
+    """
+    lens = [len(v) for v in string.split()]
+    if level in [0, -2]:
+        mark = '='
+    elif level in [1, -1]:
+        mark = '-'
+    elif level == 2:
+        mark = '~'
+    else:
+        raise(ValueError('Bad level given'))
+    marks = ' '.join([mark*v for v in lens])
+    if level < 0:
+        out_string = marks + '\n' + string
+    else:
+        out_string = string
+    out_string += '\n' + marks + '\n'
+    return out_string
 
 
 
