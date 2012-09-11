@@ -39,9 +39,9 @@ class RSTTests(unittest.TestCase):
 
     def test_strToHeading(self):
         """strToHeading"""
-        ans = ['hello world\n===== =====\n', 'hello world\n----- -----\n',
-               'hello world\n~~~~~ ~~~~~\n', '----- -----\nhello world\n----- -----\n',
-               '===== =====\nhello world\n===== =====\n']
+        ans = ['hello world\n===========\n', 'hello world\n-----------\n',
+               'hello world\n~~~~~~~~~~~\n', '-----------\nhello world\n-----------\n',
+               '===========\nhello world\n===========\n']
         levels = [0,1,2,-1,-2]
         for ii, level in enumerate(levels):
             self.assertEqual(ans[ii], rst.strToHeading('hello world', level) )

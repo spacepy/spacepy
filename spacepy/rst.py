@@ -67,7 +67,7 @@ def strToHeading(string, level=0):
         mark = '~'
     else:
         raise(ValueError('Bad level given'))
-    marks = ' '.join([mark*v for v in lens])
+    marks = mark.join([mark*v for v in lens])
     if level < 0:
         out_string = marks + '\n' + string
     else:
