@@ -5,25 +5,30 @@ Created on Mon Sep 10 13:09:11 2012
 @author: balarsen
 """
 
-def listToEnumerate(inList, startingNum=1):
+def listToEnumerate(inList, startingNum=1, makeBlock=True):
     """
     starting from a python list return a string that is the RST equlivant of
     the list in enumerated list
+    makeBlock : make the text into a text block in rst if there are \n in the string
     """
     outVal = ''
     for i, val in enumerate(inList):
+        if makeBlock:
+            val = val.replace('\n', '\n    ') # makes it a text block
         outVal += '{0}. {1}\n'.format(i+startingNum, val)
     outVal += '\n'
     return outVal
 
-def listToList(inList):
+def listToList(inList, makeBlock=True):
     """
     starting from a python list return a string that is the RST equlivant of
     the list in a bulleted list
     """
     outVal = ''
     for i, val in enumerate(inList):
-        outVal += '- {0}\n'.format(val)
+        if makeBlock:
+            val = val.replace('\n', '\n    ') # makes it a text block
+            outVal += '- {0}\n'.format(val)
     outVal += '\n'
     return outVal
 
