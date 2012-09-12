@@ -469,6 +469,9 @@ class install(_install):
         #before directories containing them!
         #Paths are relative to spacepy. Unix path separators are OK
         #Don't forget to delete the .pyc
+        #These are files that are no longer in spacepy (or have been moved)
+        # having this here makes sure that during an upgrade old versios are
+        # not hanging out
         deletefiles = ['toolbox.py', 'toolbox.pyc', 'LANLstar/LANLstar.py',
                        'LANLstar/LANLstar.pyc', 'LANLstar/libLANLstar.so',
                        'LANLstar/LANLstar.pyd', 'LANLstar/__init__.py',
