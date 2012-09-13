@@ -138,16 +138,28 @@ class spectrogram(dm.SpaceData):
         if len(data[self.specSettings['variables'][2]]) == 0:
             raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][2])))
 
-        # set default limits
+        # set limits, keywords override those in the data
         if self.specSettings['xlim'] == None:
-            self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
-                                np.max(data[self.specSettings['variables'][0]]))
+            if 'lim' in data[self.specSettings['variables'][0]].attrs:
+                self.specSettings['xlim'] = (data[self.specSettings['variables'][0]].attrs['lim'][0],
+                                            data[self.specSettings['variables'][0]].attrs['lim'][1])
+            else:
+                self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
+                                            np.max(data[self.specSettings['variables'][0]]))
         if self.specSettings['ylim'] == None:
-            self.specSettings['ylim'] = (np.min(data[self.specSettings['variables'][1]]),
-                                np.max(data[self.specSettings['variables'][1]]))
+            if 'lim' in data[self.specSettings['variables'][1]].attrs:
+                self.specSettings['ylim'] = (data[self.specSettings['variables'][1]].attrs['lim'][0],
+                                            data[self.specSettings['variables'][1]].attrs['lim'][1])
+            else:
+                self.specSettings['ylim'] = (np.min(data[self.specSettings['variables'][1]]),
+                                            np.max(data[self.specSettings['variables'][1]]))
         if self.specSettings['zlim'] == None:
-            self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
-                                np.max(data[self.specSettings['variables'][2]]))
+            if 'lim' in data[self.specSettings['variables'][2]].attrs:
+                self.specSettings['zlim'] = (data[self.specSettings['variables'][2]].attrs['lim'][0],
+                                            data[self.specSettings['variables'][2]].attrs['lim'][1])
+            else:
+                self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
+                                            np.max(data[self.specSettings['variables'][2]]))
 
         # are the axis dates?
         forcedate = [False] * 2
@@ -354,6 +366,8 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['DateFormatter'] = matplotlib.dates.DateFormatter("%d %b %Y")
         if 'zlim' in kwargs:
             self.plotSettings['zlim'] = kwargs['zlim']
+        elif 'zlim' in self.specSettings:
+            self.plotSettings['zlim'] = self.specSettings['zlim']
         else:
             self.plotSettings['zlim'] = self.specSettings['zlim']
         if 'colorbar' in kwargs:
@@ -366,10 +380,14 @@ class spectrogram(dm.SpaceData):
             self.plotSettings['colorbar_label'] = ''
         if 'xlim' in kwargs:
             self.plotSettings['xlim'] = kwargs['xlim']
+        elif 'xlim' in self.specSettings:
+            self.plotSettings['xlim'] = self.specSettings['xlim']
         else:
             self.plotSettings['xlim'] = None
         if 'ylim' in kwargs:
             self.plotSettings['ylim'] = kwargs['ylim']
+        elif 'ylim' in self.specSettings:
+            self.plotSettings['ylim'] = self.specSettings['ylim']
         else:
             self.plotSettings['ylim'] = None
 
