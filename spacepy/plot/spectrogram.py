@@ -140,24 +140,36 @@ class spectrogram(dm.SpaceData):
 
         # set limits, keywords override those in the data
         if self.specSettings['xlim'] == None:
-            if 'lim' in data[self.specSettings['variables'][0]].attrs:
-                self.specSettings['xlim'] = (data[self.specSettings['variables'][0]].attrs['lim'][0],
-                                            data[self.specSettings['variables'][0]].attrs['lim'][1])
-            else:
+            try:
+                if 'lim' in data[self.specSettings['variables'][0]].attrs:
+                    self.specSettings['xlim'] = (data[self.specSettings['variables'][0]].attrs['lim'][0],
+                                                data[self.specSettings['variables'][0]].attrs['lim'][1])
+                else:
+                    self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
+                                                np.max(data[self.specSettings['variables'][0]]))
+            except AttributeError: # was a numpy array not dmarray
                 self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
                                             np.max(data[self.specSettings['variables'][0]]))
         if self.specSettings['ylim'] == None:
-            if 'lim' in data[self.specSettings['variables'][1]].attrs:
-                self.specSettings['ylim'] = (data[self.specSettings['variables'][1]].attrs['lim'][0],
-                                            data[self.specSettings['variables'][1]].attrs['lim'][1])
-            else:
+            try:
+                if 'lim' in data[self.specSettings['variables'][1]].attrs:
+                    self.specSettings['ylim'] = (data[self.specSettings['variables'][1]].attrs['lim'][0],
+                                                data[self.specSettings['variables'][1]].attrs['lim'][1])
+                else:
+                    self.specSettings['ylim'] = (np.min(data[self.specSettings['variables'][1]]),
+                                                np.max(data[self.specSettings['variables'][1]]))
+            except AttributeError: # was a numpy array not dmarray
                 self.specSettings['ylim'] = (np.min(data[self.specSettings['variables'][1]]),
                                             np.max(data[self.specSettings['variables'][1]]))
         if self.specSettings['zlim'] == None:
-            if 'lim' in data[self.specSettings['variables'][2]].attrs:
-                self.specSettings['zlim'] = (data[self.specSettings['variables'][2]].attrs['lim'][0],
-                                            data[self.specSettings['variables'][2]].attrs['lim'][1])
-            else:
+            try:
+                if 'lim' in data[self.specSettings['variables'][2]].attrs:
+                    self.specSettings['zlim'] = (data[self.specSettings['variables'][2]].attrs['lim'][0],
+                                                data[self.specSettings['variables'][2]].attrs['lim'][1])
+                else:
+                    self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
+                                                np.max(data[self.specSettings['variables'][2]]))
+            except AttributeError: # was a numpy array not dmarray
                 self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
                                             np.max(data[self.specSettings['variables'][2]]))
 
