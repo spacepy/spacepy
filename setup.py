@@ -479,16 +479,18 @@ class install(_install):
                        'time/__init__.py', 'time/__init__.pyc',
                        'time/_dates.so', 'time/_dates.dylib',
                        'time/_dates.pyd',
-                       'time/time.py', 'time/time.pyc', 'time']
+                       'time/time.py', 'time/time.pyc', 'time',
+                       'data/LANLstar/*.net']
         for f in deletefiles:
             path = os.path.join(self.install_lib, 'spacepy',
                                 os.path.normpath(f)) #makes pathing portable
-            if os.path.exists(path):
-                print('Deleting {0} from old version of spacepy.'.format(path))
-                if os.path.isdir(path):
-                    os.rmdir(path)
-                else:
-                    os.remove(path)
+            for p in glob.glob(path):
+                if os.path.exists(p):
+                    print('Deleting {0} from old version of spacepy.'.format(p))
+                    if os.path.isdir(p):
+                        os.rmdir(p)
+                    else:
+                        os.remove(p)
 
 
 class bdist_wininst(_bdist_wininst):

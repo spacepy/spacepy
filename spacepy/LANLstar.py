@@ -37,13 +37,14 @@ except ImportError:
         raise RuntimeError(
             'LANLstar requires ffnet (http://ffnet.sourceforge.net/)')
 import numpy as np
+from . import toolbox
 
 
 def _get_net_path(filename):
     """Gets the full path for a network file given the filename"""
     fspec = os.path.join(
         os.path.split(__file__)[0], 'data', 'LANLstar', filename)
-    if os.path.exists(fspec):
+    if os.path.exists(fspec) or os.path.exists(fspec + '.gz'):
         return fspec
     else:
         raise RuntimeError("Could not find neural network file " + filename)
@@ -131,7 +132,7 @@ def _LANLcommon(inputdict, extMag, domax):
             netfile = lmax_nets[modelkey]
         else:
             netfile = lstar_nets[modelkey]
-        network = ffnet.loadnet(_get_net_path(netfile))
+        network = toolbox.loadpickle(_get_net_path(netfile))
         for i in range(ncalc):	
             # copy over keylist into inpar
             for ikey, key in enumerate(keylist):
