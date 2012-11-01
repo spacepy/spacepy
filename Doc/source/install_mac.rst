@@ -97,7 +97,7 @@ REQUIRED OR STRONGLY RECOMMENDED
     #. sudo port select --set ipython ipython27
     #. sudo port install py27-sphinx wget 
     #. sudo port select --set sphinx py27-sphinx
-    #. wget ftp://cdaweb.gsfc.nasa.gov/pub/cdf/dist/cdf34_0/macosX/cdf34_0-setup_universal_binary.tar.gz
+    #. wget ftp://cdaweb.gsfc.nasa.gov/pub/software/cdf/dist/cdf34_0/macosX/cdf34_0-setup_universal_binary.tar.gz
     #. tar -zxvf cdf34_0-setup_universal_binary.tar.gz 
     #. sudo /usr/sbin/installer -pkg CDF3400ub.pkg -target /
 
