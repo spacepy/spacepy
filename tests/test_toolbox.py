@@ -139,6 +139,9 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = numpy.ma.masked_array([0.5, 1.5, 2.5, 3.5, 4.5],
             mask = [False,  True,  True, False, False], fill_value = 1e+20)
         numpy.testing.assert_equal(ans, tb.interpol(numpy.arange(5)+0.5, x, y, baddata=2))
+        #test with baddata at end of array
+        ans = array([1.0, 9.0])
+        numpy.testing.assert_equal(ans, tb.interpol([-1,12], x, y, baddata=0))
         # test wrap hour
         y = range(24)*2
         x = range(len(y))

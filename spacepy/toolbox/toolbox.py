@@ -1429,11 +1429,10 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     >>> tb.interpol([1.5, 10.5, 23.5], x, y)
     array([  1.5,  10.5,  11.5])
     """
-    import scipy as sci
-
     if 'baddata' in kwargs:
-        x = np.ma.masked_where(y==kwargs['baddata'], x)
-        y = np.ma.masked_where(y==kwargs['baddata'], y)
+        y = np.ma.masked_equal(y, kwargs['baddata'])
+        x = np.ma.masked_array(x)
+        x.mask = y.mask
         kwargs.__delitem__('baddata')
     else:
         tst = np.ma.core.MaskedArray
@@ -1446,10 +1445,10 @@ def interpol(newx, x, y, wrap=None, **kwargs):
         dpsect=360/sect
         yc = np.cos(np.deg2rad(y*dpsect))
         ys = np.sin(np.deg2rad(y*dpsect))
-        new_yc = sci.interp(newx, x.compressed(), yc.compressed(), **kwargs)
-        new_ys = sci.interp(newx, x.compressed(), ys.compressed(), **kwargs)
+        new_yc = np.interp(newx, x.compressed(), yc.compressed(), **kwargs)
+        new_ys = np.interp(newx, x.compressed(), ys.compressed(), **kwargs)
         try:
-            new_bad = sci.interp(newx, x, y.mask)
+            new_bad = np.interp(newx, x, y.mask)
         except ValueError:
             new_bad = np.zeros((len(newx)))
         newy = np.rad2deg(np.arctan(new_ys/new_yc))/dpsect
@@ -1477,13 +1476,7 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     elif type(wrap)==int:
         newy = wrap_interp(newx, x.compressed(), y.compressed(), wrap)
     else:
-        newy = sci.interp(newx, x.compressed(), y.compressed(), **kwargs)
-        try:
-            new_bad = sci.interp(newx, x, y.mask)
-            new_bad = np.ma.make_mask(new_bad)
-            newy = np.ma.masked_array(newy, mask=new_bad)
-        except:
-            pass
+        newy = np.interp(newx, x.compressed(), y.compressed(), **kwargs)
     return newy
 
 # -----------------------------------------------
