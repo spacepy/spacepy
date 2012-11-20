@@ -251,6 +251,9 @@ static PyObject *ctrace2d_common(PyObject *self,
     return NULL;
 
   array_type = PyArray_DescrFromType(NPY_DOUBLE);
+   /*FromArray, FromDescr steal ref to type, so need 6 total*/
+  for(count=0; count<5; count++)
+    Py_INCREF(array_type);
   /*For all of these, we are throwing away the borrowed ref
    *to the original, and creating a new object with a new ref.
    *So the new ref will be freed, but the borrowed ref is left alone.
@@ -264,7 +267,6 @@ static PyObject *ctrace2d_common(PyObject *self,
   indims[0] = maxstep;
   outx = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
   outy = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
-  Py_DECREF(array_type);
 
   gridxd = (double*)PyArray_DATA(gridx);
   gridyd = (double*)PyArray_DATA(gridy);
