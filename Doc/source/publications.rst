@@ -44,11 +44,12 @@ Papers about SpacePy
 Peer-reviewed papers
 --------------------
 
-* Morley, S.K., J. Koller, D.T. Welling, B.A. Larsen and M.G. Henderson
-  (in press, 2012), SpacePy - A Python-based library of tools for the space
-  sciences, Proceedings of the 9th Python in Science Conference (SciPy 2010),
-  presented in Austin, TX, June 30 - July 1, 2010
-  `preprint <http://spacepy.lanl.gov/publications/SciPy_proceeding.pdf>`_.
+* Morley, S.K., D.T. Welling, J. Koller, B.A. Larsen, M.G. Henderson and J. Niehof (2010), 
+  SpacePy - A Python-based library of tools for the space sciences, Proceedings of 
+  the 9th Python in Science Conference (SciPy 2010), presented in Austin, TX, 
+  June 30 - July 1, 2010
+  `pdf <http://conference.scipy.org/proceedings/scipy2010/pdfs/morley.pdf>`_.
+  `full proceedings <http://conference.scipy.org/proceedings/scipy2010/>`_
         
 Other publications and presentations
 ------------------------------------
