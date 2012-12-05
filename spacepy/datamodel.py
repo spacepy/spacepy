@@ -516,7 +516,7 @@ def fromHDF5(fname, **kwargs):
             elif type(value) is allowed_elems[1]: #if a dataset
                 try:
                     SDobject[key] = dmarray(value)
-                except TypeError:
+                except (TypeError, ZeroDivisionError): #ZeroDivisionError catches zero-sized DataSets
                     SDobject[key] = dmarray(None)
                 hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
         except:
