@@ -908,7 +908,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                 pass #this will skip any unspecified string fields
     return mdata
 
-def writeJSONMetadata(insd, depend0=None, order=None, verbose=False):
+def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
     '''Scrape metadata from SpaceData object and make a JSON header '''
     js_out = {}
 
@@ -963,12 +963,12 @@ def writeJSONMetadata(insd, depend0=None, order=None, verbose=False):
     idx = 0
     for key in keylist:
         js_out[key] = insd[key].attrs.copy()
-        #TODO Mark these as data and add metadata for dimensionality and start column
+        #TODO Mark these as data and add metadata for start column
         if len(insd[key]) == datalen: #is data
             if verbose: print('data: {0}'.format(key))
             js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
             if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
-            js_out[key]['ORDER'] = idx
+            js_out[key]['START_COLUMN'] = idx
             idx += 1
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
@@ -986,7 +986,8 @@ def writeJSONMetadata(insd, depend0=None, order=None, verbose=False):
     json_str = ''.join(['#', json_str])
     json_str = '\n#'.join(json_str.split('\n'))
     
-    return json_str
+    with open(fname,'w') as fh:
+        fh.writelines(json_str)
 
 def dmcopy(dobj):
     '''Generic copy utility to return a copy of a (datamodel) object
