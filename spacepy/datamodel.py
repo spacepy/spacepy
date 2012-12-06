@@ -909,7 +909,29 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
     return mdata
 
 def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
-    '''Scrape metadata from SpaceData object and make a JSON header '''
+    '''Scrape metadata from SpaceData object and make a JSON header
+
+    Parameters
+    ----------
+    fname : str
+        Filename to write to
+
+    insd : spacepy.datamodel.SpaceData
+        SpaceData with associated attributes and variables in dmarrays
+
+    Other Parameters
+    ----------------
+    depend0 : str (optional)
+        variable name to use to indicate parameter on which other data depend (e.g. Time)
+    order : list (optional)
+        list of key names in order of start column in output JSON file
+    verbose: bool (optional)
+        verbose output
+
+    Returns
+    -------
+    None
+    '''
     js_out = {}
 
     def stripNL(text):
