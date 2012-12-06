@@ -908,6 +908,85 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                 pass #this will skip any unspecified string fields
     return mdata
 
+def writeJSONMetadata(insd, depend0=None, order=None, verbose=False):
+    '''Scrape metadata from SpaceData object and make a JSON header '''
+    js_out = {}
+
+    def stripNL(text):
+        out = text.group().replace('\n','').replace(' ','')
+        return out
+
+    #if required, identify depend0 for deciding what's data/metadata
+    if depend0 is None:
+        #search for DEPEND_0 in metadata
+        for key in insd:
+            if insd[key].attrs.has_key('DEPEND_0'):
+                depend0 = insd[key].attrs['DEPEND_0']
+                if not isinstance(depend0, str):
+                    #assume it's a singleton list
+                    depend0 = depend0[0]
+                if not isinstance(depend0, str):
+                    depend0 = None #Failed to get a depend0
+                else:
+                    break #we're done here
+        if depend0 is None:
+            #fall back to most common var length
+            tmp, keylist = [], insd.keys()
+            for key in keylist:
+                tmp.append(len(insd[key]))
+            depend0 = keylist[tmp.index(np.bincount(tmp).argmax())]
+            #TODO Set using Time, or Epoch, or similar...
+    else:
+        if not insd.has_key(depend0): raise KeyError('Invalid key supplied for ordering metadata on write')
+    datalen = len(insd[depend0])
+    
+    #start with global attrs
+    if insd.attrs:
+        for key in insd.attrs:
+            js_out[key] = insd.attrs[key].copy()
+            #TODO Mark these as global somehow (by omission of some metadata?)
+            try:
+                js_out[key] = js_out[key].tolist()
+            except:
+                pass
+    #collect keys and put in order for output
+    #TODO first check for extant START_COLUMN
+    #then check dimensionality so that start column and dims can be added, if not present
+    if hasattr(order, '__iter__'):
+        keylist = order
+        #now make sure that all missing keys are added to end
+        for key in keys:
+            if key not in order: keylist.append(key)
+    else:
+        keylist = sorted(insd.keys())
+    
+    idx = 0
+    for key in keylist:
+        js_out[key] = insd[key].attrs.copy()
+        #TODO Mark these as data and add metadata for dimensionality and start column
+        if len(insd[key]) == datalen: #is data
+            if verbose: print('data: {0}'.format(key))
+            js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
+            if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
+            js_out[key]['ORDER'] = idx
+            idx += 1
+        else: #is metadata
+            if verbose: print('metadata: {0}'.format(key))
+            js_out[key]['VALUES'] = insd[key].copy()[:]
+        for kk in js_out[key]:
+            try:
+                js_out[key][kk] = js_out[key][kk].tolist()
+            except:
+                pass
+    json_str = json.dumps(js_out, indent=4)
+    reob = re.compile('\[.*?\]', re.DOTALL)
+    json_str = re.sub(reob, stripNL, json_str) #put lists back onto one line
+    #add comment field for header
+    json_str = ''.join(['#', json_str])
+    json_str = '\n#'.join(json_str.split('\n'))
+    
+    return json_str
+
 def dmcopy(dobj):
     '''Generic copy utility to return a copy of a (datamodel) object
 
