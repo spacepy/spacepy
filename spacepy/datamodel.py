@@ -913,7 +913,7 @@ def writeJSONMetadata(insd, depend0=None, order=None, verbose=False):
     js_out = {}
 
     def stripNL(text):
-        out = text.group().replace('\n','').replace(' ','')
+        out = text.group().replace('\n','').replace('  ','')
         return out
 
     #if required, identify depend0 for deciding what's data/metadata
@@ -972,6 +972,7 @@ def writeJSONMetadata(insd, depend0=None, order=None, verbose=False):
             idx += 1
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
+            if key=='PhaseSpaceDensity': 1/0
             js_out[key]['VALUES'] = insd[key].copy()[:]
         for kk in js_out[key]:
             try:
