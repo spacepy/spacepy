@@ -884,7 +884,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                             mdata[key] = data[:,int(st)]
                         except AssertionError:
                             mdata[key] = numpy.hstack((mdata[key], data[:,int(st)]))
-    
+
     #now add the attributres to the variables
     for key in keys:
         mdata[key] = dmarray(mdata[key], attrs=mdata_copy[key].attrs)
@@ -963,7 +963,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
     else:
         if not insd.has_key(depend0): raise KeyError('Invalid key supplied for ordering metadata on write')
     datalen = len(insd[depend0])
-    
+
     #start with global attrs
     if insd.attrs:
         for key in insd.attrs:
@@ -979,11 +979,12 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
     if hasattr(order, '__iter__'):
         keylist = order
         #now make sure that all missing keys are added to end
-        for key in keys:
+        for key in keylist:
             if key not in order: keylist.append(key)
     else:
+        ##TODO do we want to have DEPEND0 first in order by default?
         keylist = sorted(insd.keys())
-    
+
     idx = 0
     for key in keylist:
         js_out[key] = insd[key].attrs.copy()
@@ -1009,9 +1010,12 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
     #add comment field for header
     json_str = ''.join(['#', json_str])
     json_str = '\n#'.join(json_str.split('\n'))
-    
+
     with open(fname,'w') as fh:
         fh.writelines(json_str)
+    #TODO maybe if fname is None don't write to file
+    #TODO maybe a keyword retstring that returns json_str
+
 
 def dmcopy(dobj):
     '''Generic copy utility to return a copy of a (datamodel) object
