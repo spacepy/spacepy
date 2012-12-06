@@ -844,10 +844,12 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
     for fn in fname:
         with open(fn, 'rb') as fh: # fixes windows bug with seek()
             line = fh.readline()
-            while line[0]==comment:
+            while (line and line[0]==comment):
                 line = fh.readline()
             fh.seek(-len(line), os.SEEK_CUR) # fixes the missing first data bug
             alldata = fh.readlines()
+            if not alldata:
+                return mdata
             ncols = len(alldata[0].rstrip().split())
             # fixes None in the data from empty lines at the end
             for row in xrange(len(alldata)): # reverse order
@@ -956,7 +958,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
             tmp, keylist = [], insd.keys()
             for key in keylist:
                 tmp.append(len(insd[key]))
-            depend0 = keylist[tmp.index(np.bincount(tmp).argmax())]
+            depend0 = keylist[tmp.index(numpy.bincount(tmp).argmax())]
             #TODO Set using Time, or Epoch, or similar...
     else:
         if not insd.has_key(depend0): raise KeyError('Invalid key supplied for ordering metadata on write')
