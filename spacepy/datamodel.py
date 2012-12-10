@@ -769,8 +769,11 @@ def readJSONMetadata(fname, **kwargs):
     mdata: spacepy.datamodel.SpaceData
         SpaceData with the metadata from the file
     '''
-    with open(fname, 'r') as f:
-        lines = f.read()
+    if hasattr(fname, 'read'):
+        lines = fname.read()
+    else:
+        with open(fname, 'r') as f:
+            lines = f.read()
 
     # isolate header
     p_srch = re.compile(r"^#(.*)$", re.M)
@@ -832,60 +835,70 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         SpaceData with the data and metadata from the file
     '''
     import dateutil.parser as dup
+    filelike = False
     try:
         if isinstance(fname, (str, unicode)):
             fname=[fname]
+        elif hasattr(fname, 'readlines'):
+            fname = [fname]
+            filelike = True
     except NameError: # for Py3
         if isinstance(fname, str):
             fname=[fname]
     if not mdata:
         mdata = readJSONMetadata(fname[0])
     mdata_copy = dmcopy(mdata)
-    for fn in fname:
-        with open(fn, 'rb') as fh: # fixes windows bug with seek()
+    def innerloop(fh):
+        line = fh.readline()
+        while (line and line[0]==comment):
             line = fh.readline()
-            while (line and line[0]==comment):
-                line = fh.readline()
-            fh.seek(-len(line), os.SEEK_CUR) # fixes the missing first data bug
-            alldata = fh.readlines()
-            if not alldata:
-                return mdata
-            ncols = len(alldata[0].rstrip().split())
-            # fixes None in the data from empty lines at the end
-            for row in xrange(len(alldata)): # reverse order
-                if not alldata[-1].rstrip(): # blank line (or al white space)
-                    alldata.pop(-1)
+        fh.seek(-len(line), os.SEEK_CUR) # fixes the missing first data bug
+        alldata = fh.readlines()
+        if not alldata:
+            return mdata
+        ncols = len(alldata[0].rstrip().split())
+        # fixes None in the data from empty lines at the end
+        for row in xrange(len(alldata)): # reverse order
+            if not alldata[-1].rstrip(): # blank line (or al white space)
+                alldata.pop(-1)
+            else:
+                break
+        nrows = len(alldata)
+        data = numpy.empty((nrows, ncols), dtype=object)
+        for ridx, line in enumerate(alldata):
+            for cidx, el in enumerate(line.rstrip().split()):
+                data[ridx, cidx] = el
+        keys = mdata.keys()
+        for key in keys:
+            if 'START_COLUMN' in mdata_copy[key].attrs:
+                st = mdata_copy[key].attrs['START_COLUMN']
+                if 'DIMENSION' in mdata_copy[key].attrs:
+                    varDims = numpy.array(mdata_copy[key].attrs['DIMENSION'])
+                    singleDim = True
+                    if len(varDims)>1 or varDims[0]>1:
+                        singleDim = False
+                if ('DIMENSION' in mdata_copy[key].attrs) and not singleDim:
+                    en = int(mdata_copy[key].attrs['DIMENSION'][0]) + int(st)
+                    try:
+                        assert mdata[key]=={}
+                        mdata[key] = data[:,int(st):int(en)]
+                    except AssertionError:
+                        mdata[key] = numpy.vstack((mdata[key], data[:,int(st):int(en)]))
                 else:
-                    break
-            nrows = len(alldata)
-            data = numpy.empty((nrows, ncols), dtype=object)
-            for ridx, line in enumerate(alldata):
-                for cidx, el in enumerate(line.rstrip().split()):
-                    data[ridx, cidx] = el
-            keys = mdata.keys()
-            for key in keys:
-                if 'START_COLUMN' in mdata_copy[key].attrs:
-                    st = mdata_copy[key].attrs['START_COLUMN']
-                    if 'DIMENSION' in mdata_copy[key].attrs:
-                        varDims = numpy.array(mdata_copy[key].attrs['DIMENSION'])
-                        singleDim = True
-                        if len(varDims)>1 or varDims[0]>1:
-                            singleDim = False
-                    if ('DIMENSION' in mdata_copy[key].attrs) and not singleDim:
-                        en = int(mdata_copy[key].attrs['DIMENSION'][0]) + int(st)
-                        try:
-                            assert mdata[key]=={}
-                            mdata[key] = data[:,int(st):int(en)]
-                        except AssertionError:
-                            mdata[key] = numpy.vstack((mdata[key], data[:,int(st):int(en)]))
-                    else:
-                        try:
-                            assert mdata[key]=={}
-                            mdata[key] = data[:,int(st)]
-                        except AssertionError:
-                            mdata[key] = numpy.hstack((mdata[key], data[:,int(st)]))
-
+                    try:
+                        assert mdata[key]=={}
+                        mdata[key] = data[:,int(st)]
+                    except AssertionError:
+                        mdata[key] = numpy.hstack((mdata[key], data[:,int(st)]))
+        return mdata
+    for fn in fname:
+        if not filelike:
+            with open(fn, 'rb') as fh: # fixes windows bug with seek()
+                mdata = innerloop(fh)
+        else:
+            mdata = innerloop(fh)
     #now add the attributres to the variables
+    keys = mdata.keys()
     for key in keys:
         mdata[key] = dmarray(mdata[key], attrs=mdata_copy[key].attrs)
 
@@ -982,7 +995,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     if hasattr(order, '__iter__'):
         keylist = order
         #now make sure that all missing keys are added to end
-        for key in insd:
+        for key in sorted(insd.keys()):
             if key not in order: keylist.append(key)
     else:
         ##TODO do we want to have DEPEND0 first in order by default?
@@ -991,7 +1004,6 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     idx = 0
     for key in keylist:
         js_out[key] = dmcopy(insd[key].attrs)
-        #TODO Mark these as data and add metadata for start column
         if len(insd[key]) == datalen: #is data
             if verbose: print('data: {0}'.format(key))
             js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
@@ -1028,7 +1040,18 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
         return json_str
 
     if returnString: return json_str
-        
+
+
+def toJSONheadedASCII(fname, insd, metadata=None):
+    ''' '''
+    if not metadata:
+        import StringIO
+        metadata = StringIO.StringIO()
+        writeJSONMetadata(metadata, insd)
+        metadata.seek(0) #rewind StringIO object to start
+    hdr = readJSONMetadata(metadata)
+
+
 
 def dmcopy(dobj):
     '''Generic copy utility to return a copy of a (datamodel) object
