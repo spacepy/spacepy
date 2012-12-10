@@ -59,10 +59,10 @@ Each variable will have one attribute (for this example).
 >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
 This has now populated a structure that can map directly to a NASA CDF or a HDF5. To visualize our datamodel,
-we can use the :py:func:`toolbox.dictree` function (which works for any dictionary-like object).
+we can use tree method (which can be applied to any dictionary-like object using the 
+:py:func:`toolbox.dictree` function).
 
->>> import spacepy.toolbox as tb
->>> tb.dictree(mydata, attrs=True)
+>>> mydata.tree(attrs=True)
 +
 :|____MissionName
 :|____PI
@@ -840,7 +840,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
             fname=[fname]
     if not mdata:
         mdata = readJSONMetadata(fname[0])
-    mdata_copy = copy.copy(mdata)
+    mdata_copy = dmcopy(mdata)
     for fn in fname:
         with open(fn, 'rb') as fh: # fixes windows bug with seek()
             line = fh.readline()
@@ -910,13 +910,14 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                 pass #this will skip any unspecified string fields
     return mdata
 
-def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
+def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, returnString=False):
     '''Scrape metadata from SpaceData object and make a JSON header
 
     Parameters
     ----------
     fname : str
-        Filename to write to
+        Filename to write to (can also use a file-like object)
+        None can be given in conjunction with the returnString keyword to skip writing output
 
     insd : spacepy.datamodel.SpaceData
         SpaceData with associated attributes and variables in dmarrays
@@ -929,10 +930,12 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
         list of key names in order of start column in output JSON file
     verbose: bool (optional)
         verbose output
+    returnString: bool (optional)
+        return JSON header as string instead of returning None
 
     Returns
     -------
-    None
+    None  (unless returnString keyword is True)
     '''
     js_out = {}
 
@@ -967,7 +970,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
     #start with global attrs
     if insd.attrs:
         for key in insd.attrs:
-            js_out[key] = insd.attrs[key].copy()
+            js_out[key] = dmcopy(insd.attrs[key])
             #TODO Mark these as global somehow (by omission of some metadata?)
             try:
                 js_out[key] = js_out[key].tolist()
@@ -987,7 +990,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
 
     idx = 0
     for key in keylist:
-        js_out[key] = insd[key].attrs.copy()
+        js_out[key] = dmcopy(insd[key].attrs)
         #TODO Mark these as data and add metadata for start column
         if len(insd[key]) == datalen: #is data
             if verbose: print('data: {0}'.format(key))
@@ -998,7 +1001,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
             if key=='PhaseSpaceDensity': 1/0
-            js_out[key]['VALUES'] = insd[key].copy()[:]
+            js_out[key]['VALUES'] = dmcopy(insd[key])
         for kk in js_out[key]:
             try:
                 js_out[key][kk] = js_out[key][kk].tolist()
@@ -1011,11 +1014,16 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False):
     json_str = ''.join(['#', json_str])
     json_str = '\n#'.join(json_str.split('\n'))
 
-    with open(fname,'w') as fh:
-        fh.writelines(json_str)
-    #TODO maybe if fname is None don't write to file
-    #TODO maybe a keyword retstring that returns json_str
+    if isinstance(fname, str):
+        with open(fname,'w') as fh:
+            fh.writelines(json_str)
+    elif hasattr(fname, 'writelines'):
+        fname.writelines(json_str)
+    elif (fname is None) and (returnString):
+        return json_str
 
+    if returnString: return json_str
+        
 
 def dmcopy(dobj):
     '''Generic copy utility to return a copy of a (datamodel) object
