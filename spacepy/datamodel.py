@@ -997,10 +997,15 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
             js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
             if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
             js_out[key]['START_COLUMN'] = idx
-            idx += int(tuple(js_out[key]['DIMENSION'])[0])
+            dims = js_out[key]['DIMENSION']
+            idx += int(dims[0])
+            if len(dims)>1:
+                l1 = 'The data cannot be properly represented in JSON-headed ASCII as it has too high a rank\n'
+                warnings.warn(''.join([l1, 'key = {0} ({1})\n'.format(key, insd[key].shape),
+                                        'Maximum allowed number of dimensions is 2']), DMWarning)
+
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
-            if key=='PhaseSpaceDensity': 1/0
             js_out[key]['VALUES'] = dmcopy(insd[key])
         for kk in js_out[key]:
             try:
