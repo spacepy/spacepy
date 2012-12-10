@@ -982,7 +982,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     if hasattr(order, '__iter__'):
         keylist = order
         #now make sure that all missing keys are added to end
-        for key in keylist:
+        for key in insd:
             if key not in order: keylist.append(key)
     else:
         ##TODO do we want to have DEPEND0 first in order by default?
@@ -1001,9 +1001,9 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
             idx += int(dims[0])
             if len(dims)>1:
                 l1 = 'The data cannot be properly represented in JSON-headed ASCII as it has too high a rank\n'
-                warnings.warn(''.join([l1, 'key = {0} ({1})\n'.format(key, insd[key].shape),
-                                        'Maximum allowed number of dimensions is 2']), DMWarning)
-
+                l2 = 'key = {0} ({1})\n'.format(key, insd[key].shape)
+                l3 = 'Maximum allowed number of dimensions is 2\n'
+                warnings.warn(''.join([l1, l2, l3]), DMWarning)
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
             js_out[key]['VALUES'] = dmcopy(insd[key])
