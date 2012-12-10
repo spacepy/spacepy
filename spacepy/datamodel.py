@@ -997,7 +997,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
             js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
             if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
             js_out[key]['START_COLUMN'] = idx
-            idx += 1
+            idx += int(tuple(js_out[key]['DIMENSION'])[0])
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
             if key=='PhaseSpaceDensity': 1/0
