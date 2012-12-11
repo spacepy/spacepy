@@ -1057,7 +1057,15 @@ def toJSONheadedASCII(fname, insd, metadata=None):
         metadata.seek(0) #rewind StringIO object to start
     hdr = readJSONMetadata(metadata)
 
+    datlist = []
+    for key in hdr:
+        if hdr[key].attrs.has_key('START_COLUMN'):
+            #add to list of (start_col, keyname) pairs
+            datlist.append((hdr[key].attrs['START_COLUMN'], key))
+    datlist.sort()
 
+    #now open file (file-like) and for each line in len(data)
+    #write the line using start_column, name, dimension
 
 
 
