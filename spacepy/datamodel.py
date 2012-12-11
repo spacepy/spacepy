@@ -1036,6 +1036,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     #add comment field for header
     json_str = ''.join(['#', json_str])
     json_str = '\n#'.join(json_str.split('\n'))
+    json_str = ''.join([json_str,'\n'])
 
     if isinstance(fname, str):
         with open(fname,'w') as fh:
@@ -1048,24 +1049,48 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     if returnString: return json_str
 
 
-def toJSONheadedASCII(fname, insd, metadata=None):
+def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kwargs):
     ''' '''
+    kwarg_dict = {'sep': ' '}
+    for key in kwarg_dict.keys():
+        if key in kwargs:
+            kwarg_dict[key] = kwargs[key]
+    import StringIO
     if not metadata:
-        import StringIO
         metadata = StringIO.StringIO()
-        writeJSONMetadata(metadata, insd)
+        writeJSONMetadata(metadata, insd, depend0=depend0, order=order)
         metadata.seek(0) #rewind StringIO object to start
     hdr = readJSONMetadata(metadata)
-
+    
     datlist = []
     for key in hdr:
         if hdr[key].attrs.has_key('START_COLUMN'):
             #add to list of (start_col, keyname) pairs
-            datlist.append((hdr[key].attrs['START_COLUMN'], key))
+            datlist.append((hdr[key].attrs['START_COLUMN'], key, hdr[key].attrs['DIMENSION'][0]))
+            #also use for data length
+            datlen = len(insd[key])
+            if datlen==0:
+                raise ValueError('No data present to write: Use writeJSONmetadata')
+                #TODO: Set this to just default to writing the header out and raise a warning
     datlist.sort()
+    ncols = datlist[-1][0]+datlist[-1][-1]
 
     #now open file (file-like) and for each line in len(data)
     #write the line using start_column, name, dimension
+    data = numpy.zeros([datlen,ncols], dtype=object)
+    for trip in datlist:
+        stcol, name, dim = trip
+        if dim==1:
+            data[:, stcol] = insd[name]
+        else:
+            data[:, stcol:stcol+dim] = insd[name]
+    
+    hdstr = writeJSONMetadata(None, hdr, depend0=depend0, order=order, returnString=True)
+    with open(fname, 'w') as fh:
+        fh.writelines(hdstr)
+        for line in data:
+            prline = kwarg_dict['sep'].join([str(el) for el in line])
+            fh.write(''.join([prline,'\n']))
 
 
 
