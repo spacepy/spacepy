@@ -848,7 +848,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
     if not mdata:
         mdata = readJSONMetadata(fname[0])
     mdata_copy = dmcopy(mdata)
-    def innerloop(fh):
+    def innerloop(fh, mdata, mdata_copy):
         line = fh.readline()
         while (line and line[0]==comment):
             line = fh.readline()
@@ -894,13 +894,16 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
     for fn in fname:
         if not filelike:
             with open(fn, 'rb') as fh: # fixes windows bug with seek()
-                mdata = innerloop(fh)
+                mdata = innerloop(fh, mdata, mdata_copy)
         else:
-            mdata = innerloop(fh)
+            mdata = innerloop(fh, mdata, mdata_copy)
     #now add the attributres to the variables
     keys = mdata.keys()
     for key in keys:
-        mdata[key] = dmarray(mdata[key], attrs=mdata_copy[key].attrs)
+        if isinstance(mdata[key], SpaceData):
+            mdata[key] = dmarray(None, attrs=mdata_copy[key].attrs)
+        else:
+            mdata[key] = dmarray(mdata[key], attrs=mdata_copy[key].attrs)
 
     if convert:
         if isinstance(convert, dict):
@@ -1006,7 +1009,10 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
         js_out[key] = dmcopy(insd[key].attrs)
         if len(insd[key]) == datalen: #is data
             if verbose: print('data: {0}'.format(key))
-            js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
+            try:
+                js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
+            except AttributeError: #AttrErr if just metadata
+                js_out[key]['DIMENSION'] = insd[key].attrs['DIMENSION']
             if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
             js_out[key]['START_COLUMN'] = idx
             dims = js_out[key]['DIMENSION']
@@ -1050,6 +1056,8 @@ def toJSONheadedASCII(fname, insd, metadata=None):
         writeJSONMetadata(metadata, insd)
         metadata.seek(0) #rewind StringIO object to start
     hdr = readJSONMetadata(metadata)
+
+
 
 
 
