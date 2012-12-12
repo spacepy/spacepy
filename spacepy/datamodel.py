@@ -1073,8 +1073,33 @@ def _dateToISO(indict):
     
 
 def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kwargs):
-    ''' '''
-    kwarg_dict = {'sep': ' '}
+    '''Write JSON-headed ASCII file of data with metadata from SpaceData object
+
+    Parameters
+    ----------
+    fname : str
+        Filename to write to (can also use a file-like object)
+        None can be given in conjunction with the returnString keyword to skip writing output
+
+    insd : spacepy.datamodel.SpaceData
+        SpaceData with associated attributes and variables in dmarrays
+
+    Other Parameters
+    ----------------
+    depend0 : str (optional)
+        variable name to use to indicate parameter on which other data depend (e.g. Time)
+    order : list (optional)
+        list of key names in order of start column in output JSON file
+    metadata: str or file-like (optional)
+        filename with JSON header to use (or file-like with JSON metadata)
+    delimiter: str
+        delimiter to use in ASCII output (default is whitespace), for tab, use '\t'
+
+    Returns
+    -------
+    None
+    '''
+    kwarg_dict = {'delimiter': ' '}
     for key in kwarg_dict.keys():
         if key in kwargs:
             kwarg_dict[key] = kwargs[key]
@@ -1110,7 +1135,7 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
     with open(fname, 'w') as fh:
         fh.writelines(hdstr)
         for line in data:
-            prline = kwarg_dict['sep'].join([str(el) for el in line])
+            prline = kwarg_dict['delimiter'].join([str(el) for el in line])
             fh.write(''.join([prline,'\n']))
 
 
