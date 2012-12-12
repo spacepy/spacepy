@@ -237,7 +237,6 @@ else:
 rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
 if not os.path.exists(DOT_FLN):
     import shutil, sys
-    from . import toolbox
     datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            'data')
     dataout = os.path.join(DOT_FLN, 'data')
@@ -247,10 +246,8 @@ if not os.path.exists(DOT_FLN):
     print('SpacePy data installed to ' + DOT_FLN)
     print('If you wish to start fresh in the future, delete this directory.')
     _read_config(rcfile)
-    if sys.version_info[0] < 3 and \
-           toolbox.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no") == 'yes':
-        toolbox.update()
-    print('Regular OMNI updates are recommended: spacepy.toolbox.update()')
+    print('Downloading OMNI database and leap seconds table is recommended:'
+          '\n\timport spacepy.toolbox; spacepy.toolbox.update()')
     print('Thanks for using SpacePy!')
 else:
     _read_config(rcfile)
