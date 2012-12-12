@@ -1013,17 +1013,18 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
             if verbose: print('data: {0}'.format(key))
             try:
                 js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
+                if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
+                js_out[key]['START_COLUMN'] = idx
+                dims = js_out[key]['DIMENSION']
+                idx += int(dims[0])
+                if len(dims)>1:
+                    l1 = 'The data cannot be properly represented in JSON-headed ASCII as it has too high a rank\n'
+                    l2 = 'key = {0} ({1})\n'.format(key, insd[key].shape)
+                    l3 = 'Maximum allowed number of dimensions is 2\n'
+                    warnings.warn(''.join([l1, l2, l3]), DMWarning)
             except AttributeError: #AttrErr if just metadata
-                js_out[key]['DIMENSION'] = insd[key].attrs['DIMENSION']
-            if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
-            js_out[key]['START_COLUMN'] = idx
-            dims = js_out[key]['DIMENSION']
-            idx += int(dims[0])
-            if len(dims)>1:
-                l1 = 'The data cannot be properly represented in JSON-headed ASCII as it has too high a rank\n'
-                l2 = 'key = {0} ({1})\n'.format(key, insd[key].shape)
-                l3 = 'Maximum allowed number of dimensions is 2\n'
-                warnings.warn(''.join([l1, l2, l3]), DMWarning)
+                #js_out[key]['DIMENSION'] = insd[key].attrs['DIMENSION']
+                pass
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
             js_out[key]['VALUES'] = dmcopy(_dateToISO(insd[key]))

@@ -404,7 +404,20 @@ class JSONTests(unittest.TestCase):
         self.assertEqual(12834, os.path.getsize(t_file.name)) # not the best test but I am lazy
         os.remove(t_file.name)
 
-
+    def test_writeJSONMetadata(self):
+        """reading metadata should give same keys as original datamodel"""
+        dat = dm.readJSONMetadata(self.filename)
+        # make sure data has all te keys and no more or less
+        t_file = tempfile.NamedTemporaryFile(delete=False)
+        t_file.close()
+        dm.writeJSONMetadata(t_file.name, dat)
+        dat2 = dm.readJSONheadedASCII(t_file.name)
+        os.remove(t_file.name)
+        keylist1 = sorted(dat.keys())
+        keylist2 = sorted(dat2.keys())
+        self.assertTrue(keylist1==keylist2)
+        #now test that values in some metadata are identical
+        self.assertTrue((dat['PerigeePosGeod'] == dat2['PerigeePosGeod']).all())
 
 
 if __name__ == "__main__":
