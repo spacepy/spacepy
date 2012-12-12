@@ -46,13 +46,13 @@ except NameError:
     xrange = range
 
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
-           'human_sort', 'feq', 'dictree', 'printfig', 'update', 'progressbar',
-           'windowMean', 'medAbsDev', 'binHisto', 'smartTimeTicks',
-           'applySmartTimeTicks', 'logspace', 'geomspace', 'arraybin', 'mlt2rad',
-           'rad2mlt', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
+           'human_sort', 'feq', 'dictree', 'update', 'progressbar',
+           'windowMean', 'medAbsDev', 'binHisto', 
+           'logspace', 'geomspace', 'arraybin', 'mlt2rad',
+           'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-           'eventTimer', 'isview', 'interweave', 'randomDate']
+           'eventTimer', 'isview', 'interweave']
 
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
@@ -588,13 +588,6 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
         pass
     return None
 
-def printfig(*args, **kwargs):
-    import spacepy.plot.utils
-    return spacepy.plot.utils.printfig(*args, **kwargs)
-printfig = spacepy.deprecated('0.1.3',
-    'Use :func:`spacepy.plot.utils.printfig` not '
-    '``toolbox.printfig``')(printfig)
-
 def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     """
     Download and update local database for omni, leapsecs etc
@@ -1020,20 +1013,6 @@ def binHisto(data, verbose=False):
             print("Used F-D rule")
     return (binw, nbins)
 
-def smartTimeTicks(*args, **kwargs):
-    import spacepy.plot.utils
-    return spacepy.plot.utils.smartTimeTicks(*args, **kwargs)
-smartTimeTicks = spacepy.deprecated('0.1.3',
-    'Use :func:`spacepy.plot.utils.smartTimeTicks` not '
-    '``toolbox.smartTimeTicks``')(smartTimeTicks)
-
-def applySmartTimeTicks(*args, **kwargs):
-    import spacepy.plot.utils
-    return spacepy.plot.utils.applySmartTimeTicks(*args, **kwargs)
-applySmartTimeTicks = spacepy.deprecated('0.1.3',
-    'Use :func:`spacepy.plot.utils.applySmartTimeTicks` not '
-    '``toolbox.applySmartTimeTicks``')(applySmartTimeTicks)
-
 def logspace(min, max, num, **kwargs):
     """
     Returns log-spaced bins. Same as numpy.logspace except the min and max are the min and max
@@ -1253,15 +1232,6 @@ def rad2mlt(rad, midnight=False):
     mlt_arr=rad_arr*(12/np.pi) + 12
     return mlt_arr
 
-@spacepy.deprecated(
-    '0.1.3',
-    'Use :func:`spacepy.time.leapyear` not ``toolbox.leapyear``')
-def leapyear(*args, **kwargs):
-    import spacepy.time
-    return spacepy.time.leapyear(*args, **kwargs)
-
-leap_year = leapyear
-
 def pmm(a, *b):
     """
     print min and max of input arrays
@@ -1299,13 +1269,6 @@ def pmm(a, *b):
             val_tmp = np.asarray(val)
             ans.append( [np.min(val_tmp[ind]), np.max(val_tmp[ind])] )
     return ans
-
-def timestamp(*args, **kwargs):
-    import spacepy.plot.utils
-    return spacepy.plot.utils(*args, **kwargs)
-timestamp = spacepy.deprecated('0.1.3',
-    'Use :func:`spacepy.plot.utils.timestamp` not '
-    '``toolbox.timestamp``')(timestamp)
 
 def getNamedPath(name):
     """
@@ -1875,14 +1838,6 @@ def eventTimer(Event, Time1):
     Time2 = time.time()
     print("%4.2f" % (Time2 - Time1), Event)
     return Time2
-
-
-@spacepy.deprecated(
-    '0.1.3',
-    'Use :func:`spacepy.time.randomDate` not ``toolbox.randomDate``')
-def randomDate(*args, **kwargs):
-    import spacepy.time
-    return spacepy.time.randomDate(*args, **kwargs)
 
 
 def isview(array1, array2=None):

@@ -198,13 +198,11 @@ def _read_config(rcfile):
                 'omni2_url': 'ftp://virbo.org/OMNI/OMNI2/merged/latest/OMNI_OMNI2-latest.cdf.zip',
                 'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
-                'notice' : str(True),
                 }
     #Functions to cast a config value; if not specified, value is a string
     str2bool = lambda x: x.lower() in ('1', 'yes', 'true', 'on')
     caster = {'enable_deprecation_warning': str2bool,
               'ncpus': int,
-              'notice': str2bool,
               }
     cp = ConfigParser.SafeConfigParser(defaults)
     try:
@@ -236,21 +234,19 @@ else:
                                '.spacepy')
 rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
 if not os.path.exists(DOT_FLN):
+    print("""SpacePy: Space Science Tools for Python
+  See __licence__ and __citation__ for licensing, and help() for HTML help.""")
     import shutil, sys
-    from . import toolbox
     datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            'data')
     dataout = os.path.join(DOT_FLN, 'data')
     os.mkdir(DOT_FLN)
     os.mkdir(dataout)
     shutil.copy(os.path.join(datadir, 'tai-utc.dat'), dataout)
-    print('SpacePy data installed to ' + DOT_FLN)
-    print('If you wish to start fresh in the future, delete this directory.')
+    print('Data and configuration installed to ' + DOT_FLN)
     _read_config(rcfile)
-    if sys.version_info[0] < 3 and \
-           toolbox.query_yes_no("\nDo you want to update OMNI database and leap seconds table? (Internet connection required)", default = "no") == 'yes':
-        toolbox.update()
-    print('Regular OMNI updates are recommended: spacepy.toolbox.update()')
+    print('Downloading OMNI database and leap seconds table is recommended:'
+          '\n\timport spacepy.toolbox; spacepy.toolbox.update()')
     print('Thanks for using SpacePy!')
 else:
     _read_config(rcfile)
@@ -259,22 +255,3 @@ else:
 if config['enable_deprecation_warning']:
     warnings.filterwarnings('default', '', DeprecationWarning,
                             '^spacepy', 0, False)
-
-##########
-# deal with showing license info
-##########
-
-__notice__ = """SpacePy: Space Science Tools for Python
-SpacePy is released under license.
-See __licence__ for details, __citation__ for citation information,
-and help() for HTML help."""
-
-__licence__ = __license__ #for those who speak English, rather than an odd dialect
-
-if config['notice']:
-    import __main__
-    if not hasattr(__main__, '__file__'): #if in interactive shell, print licence notice
-        print(__notice__)
-    else:  #otherwise print single line notice
-        print("SpacePy is released under license. See __licence__ and __citation__ for details, and help() for HTML help.")
-

@@ -57,10 +57,6 @@ Options are: [('seconds', '%Y-%m-%dT%H:%M:%S'), ('microseconds', '%Y-%m-%dT%H:%M
 
 Time manipulation
 
->>> tdelt  = spt.Tickdelta(days=1, hours=6)
->>> tdelt
-Tickdelta( days=1.25 )
-
 >>> new_dts = dts + tdelt
 >>> new_dts.UTC
 [datetime.datetime(2009, 12, 2, 18, 0),
@@ -105,142 +101,6 @@ import warnings
 import numpy as np
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
-
-# -----------------------------------------------
-# Tickdelta class
-# -----------------------------------------------
-class Tickdelta(object):
-    """
-    Tickdelta( **kwargs )
-
-    Tickdelta class holding timedelta similar to datetime.timedelta
-    This can be used to add/subtract from Ticktock objects
-
-    .. deprecated:: 0.1.3
-       Use :class:`datetime.timedelta` instead.
-
-    Parameters
-    ==========
-    days : float
-        number of days in for the delta
-    hours : float
-        number of hours for the delta
-    minutes : float
-        number of minutes for the delta
-    seconds : float
-        number of seconds for the delta
-
-    Returns
-    =======
-    out : Tickdelta
-        instance with self.days, self.secs, self.timedelta
-
-    Examples
-    ========
-    >>> dt = Tickdelta(days=3.5, hours=12)
-    >>> dt
-    Tickdelta( days=4.0 )
-
-    See Also
-    ========
-    Ticktock
-    """
-    def __init__(self, **kwargs):
-        warnings.warn('Tickdelta is deprecated, use datetime.timedelta',
-                  DeprecationWarning)
-        days, hours, minutes, seconds = [0,0,0,0]
-        if 'days' in kwargs:  days = kwargs['days']
-        if 'hours' in kwargs: hours = kwargs['hours']
-        if 'minutes' in kwargs: minutes = kwargs['minutes']
-        if 'seconds' in kwargs: seconds = kwargs['seconds']
-        self.days = days + hours/24. + minutes/1440. + seconds/86400.
-        self.hours = self.days*24.
-        self.minutes = self.hours*60.
-        self.seconds = self.minutes*60.
-        self.timedelta = datetime.timedelta(days=float(self.days))
-        return
-
-    # -----------------------------------------------
-    def __str__(self):
-        """
-        dt.__str__() or dt
-
-        Will be called when printing Tickdelta instance dt
-
-        Returns
-        =======
-        out : string
-            string representation of the time
-
-        Examples
-        ========
-        >>> dt = Tickdelta(3)
-        >>> dt
-        Tickdelta( days=3 )
-
-        """
-        return 'Tickdelta( days='+str(self.days) + ' )'
-    __repr__ = __str__
-
-    # -----------------------------------------------
-    def __add__(self, other):
-        """
-        See Also
-        ========
-        Ticktock.__add__
-
-        """
-        # call add routine from Ticktock
-        newobj = Ticktock.__add__(other, self)
-        return newobj
-
-    # -----------------------------------------------
-    def __sub__(self, other):
-        """
-        See Also
-        ========
-        Ticktock.__sub__
-
-        """
-        # call add routine from Ticktock
-        newobj = Ticktock.__sub__(other, self)
-        return newobj
-
-    # -----------------------------------------------
-    def __mul__(self, other):
-        """
-        See Also
-        ========
-        Ticktock.__sub__
-
-        """
-        # call add routine from Ticktock
-        newobj = self.timedelta.__mul__(other)
-        days = newobj.days + newobj.seconds/86400.
-        return Tickdelta(days)
-
-    # -----------------------------------------------
-    def __getstate__(self):
-        """
-        Is called when pickling
-
-        See Also
-        ========
-        http://docs.python.org/library/pickle.html
-        """
-        odict = self.__dict__.copy() # copy the dict since we change it
-        return odict
-
-    def __setstate__(self, dict):
-        """
-        Is called when unpickling
-
-        See Also
-        ========
-        http://docs.python.org/library/pickle.html
-        """
-        self.__dict__.update(dict)
-        return
 
 
 # -----------------------------------------------
@@ -546,18 +406,18 @@ class Ticktock(collections.MutableSequence):
         """
         a.__sub__(other)
 
-        Will be called if a Tickdelta object is subtracted from this instance and
+        Will be called if a timedelta object is subtracted from this instance and
         returns a new Ticktock instance
 
         Paramters
         =========
-        other : Ticktock or Tickdelta
+        other : Ticktock or datetime.timedelta
             instance for comparison
 
         Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
-        >>> dt = Tickdelta(3)
+        >>> dt = datetime.timedelta(3)
         >>> a - dt
         Ticktock( ['2002-02-05T12:00:00'] ), dtype=ISO
 
@@ -567,13 +427,6 @@ class Ticktock(collections.MutableSequence):
         """
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC - other, 'UTC')
-        elif isinstance(other, Tickdelta):
-            newUTC = [t - other.timedelta for t in self.UTC]
-            newobj = Ticktock(newUTC, 'UTC')
-            newobj.data = getattr(newobj, 'get' + self.data.attrs['dtype'])()
-            newobj.data.attrs['dtype'] = self.data.attrs['dtype']
-            newobj.dtype = self.data.attrs['dtype']
-            newobj.update_items(self, 'data')
         elif isinstance(other, Ticktock):
             return [datetime.timedelta(seconds=t - other.TAI[0])
                     for t in self.TAI]
@@ -1562,59 +1415,6 @@ class Ticktock(collections.MutableSequence):
 # End of Ticktock class
 # -----------------------------------------------
 
-#TODO add the deprication decorator when we have it
-def num2date(*args, **kwargs):
-    """
-    Convert matplotlib epoch to datetime fast using an extension module
-
-    .. deprecated:: 0.1.3
-
-    Equivalent functionality to matplotlib.dates.num2date
-
-    Parameters
-    ==========
-    mplnum : float or iterable of floats
-        matplotlib epoch or iterable of epochs
-
-    Returns
-    =======
-    out : np.array
-        Array of datetime objects accosicated with the matplotlib epochs
-
-    See Also
-    ========
-    matplotlib.dates.num2date
-    """
-    warnings.warn('num2date has been deprecated, see matplotlib.dates.num2date', DeprecationWarning)
-    from matplotlib.dates import num2date
-    return num2date(*args, **kwargs)
-
-def date2num(*args, **kwargs):
-    """
-    Convert datetimes to matplotlib fast using an extension module
-
-    .. deprecated:: 0.1.3
-
-    Equivalent functionality to matplotlib.dates.date2num
-
-    Parameters
-    ==========
-    dates : datetime.datetime or iterable of datetime.datetime
-        datetime objects to convert to matplotlib epochs
-
-    Returns
-    =======
-    out : np.array
-        Array of floats accosicated with the datetimes
-
-    See Also
-    ========
-    matplotlib.dates.date2num
-    """
-    warnings.warn('date2num has been deprecated, see matplotlib.dates.date2num', DeprecationWarning)
-    from matplotlib.dates import date2num
-    return date2num(*args, **kwargs)
-
 def doy2date(year, doy, dtobj=False, flAns=False):
     """
     convert integer day-of-year doy into a month and day
@@ -1888,7 +1688,7 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
 
 def extract_YYYYMMDD(filename):
     """
-    go through the string and extract the first valid YYYYMMDD as a datetime
+    go through a string and extract the first valid YYYYMMDD as a datetime
 
     Parameters
     ==========
@@ -1900,26 +1700,21 @@ def extract_YYYYMMDD(filename):
     out : (None, datetime.datetime)
         the datetime found in the string or None
     """
-    # cmp = re.compile("[12][90]\d2[01]\d[0-3]\d")
     # return a datetime if there is one from YYYYMMDD
-    try:
-        dt = datetime.datetime.strptime(re.search("[12][90]\d\d[01]\d[0-3]\d", filename).group(), "%Y%m%d")
-    except (ValueError, AttributeError): # there is not one
+    # be picky so don't match random numbers (1950-2049)
+    m = re.search(r"(19[5-9]|20[0-4])\d(0\d|1[0-2])([0-2]\d|3[01])",
+                  os.path.basename(filename))
+    if not m:
         return None
-    if dt < datetime.datetime(1957, 10, 4, 19, 28, 34): # Sputnik 1 launch datetime
-        dt = None
-    # better not still be using this... present to help with random numbers combinations
-    elif dt > datetime.datetime(2050, 1, 1):
-        dt = None
-    return dt
+    else:
+        return datetime.datetime.strptime(m.group(), '%Y%m%d')
 
 def valid_YYYYMMDD(inval):
     """
     if inval is valid YYYYMMDD return True, False otherwise
     """
-    try:
-        ans = datetime.datetime.strptime(inval, "%Y%m%d")
-    except ValueError:
-        return False
-    if isinstance(ans, datetime.datetime):
+    if re.search(r"(19[5-9]|20[0-4])\d(0\d|1[0-2])([0-2]\d|3[01])",
+                 inval):
         return True
+    else:
+        return False
