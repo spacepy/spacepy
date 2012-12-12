@@ -118,7 +118,7 @@ class SpaceDataTests(unittest.TestCase):
         val = a.keys()
         val.sort()
         self.assertEqual(val, ans)
-        
+
     def test_tree(self):
         """.tree() should call dictree"""
         a = dm.SpaceData()
@@ -130,7 +130,7 @@ class SpaceDataTests(unittest.TestCase):
         sys.stdout = realstdout
         result = output.getvalue()
         output.close()
-        expected = "+\n|____foo\n"   
+        expected = "+\n|____foo\n"
         self.assertEqual(result, expected)
 
 
@@ -142,6 +142,13 @@ class dmarrayTests(unittest.TestCase):
     def tearDown(self):
         super(dmarrayTests, self).tearDown()
         del self.dat
+
+    def test_count(self):
+        """count should work like on a list"""
+        self.assertEqual(1, self.dat.count(1))
+        self.assertEqual(0, self.dat.count(10))
+        self.assertEqual(3, dm.dmarray([1,1,1, 3, 4, 5, 4]).count(1))
+        self.assertEqual(2, dm.dmarray([1,1,1, 3, 4, 5, 4]).count(4))
 
     def test_creation_dmarray(self):
         """When a dmarray is created it should have attrs empty or not"""
