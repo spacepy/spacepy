@@ -59,7 +59,7 @@ Each variable will have one attribute (for this example).
 >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
 This has now populated a structure that can map directly to a NASA CDF or a HDF5. To visualize our datamodel,
-we can use tree method (which can be applied to any dictionary-like object using the 
+we can use tree method (which can be applied to any dictionary-like object using the
 :py:func:`toolbox.dictree` function).
 
 >>> mydata.tree(attrs=True)
@@ -1066,12 +1066,12 @@ def _dateToISO(indict):
         if isinstance(indict, datetime.datetime):
             retdict = retdict.isoformat()
         elif hasattr(indict, '__iter__'):
-            dum = numpy.asanyarray(indict)
+            retdict = numpy.asanyarray(indict)
             for idx, el in numpy.ndenumerate(indict):
                 if isinstance(el, datetime.datetime):
                     retdict[idx] = el.isoformat()
     return retdict
-    
+
 
 def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kwargs):
     '''Write JSON-headed ASCII file of data with metadata from SpaceData object
@@ -1131,7 +1131,7 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
         if dim==1:
             data[:, stcol] = _dateToISO(insd[name])
         else:
-            data[:, stcol:stcol+dim] = _dateToISO(insd[name])    
+            data[:, stcol:stcol+dim] = _dateToISO(insd[name])
     hdstr = writeJSONMetadata(None, hdr, depend0=depend0, order=order, returnString=True)
     with open(fname, 'w') as fh:
         fh.writelines(hdstr)

@@ -322,6 +322,20 @@ class converterTests(unittest.TestCase):
         dm.toHDF5(self.testfile[1], a)
         self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
 
+    def test_dateToISO(self):
+        """dateToISO shold recurce properly"""
+        d1 = {'k1':datetime.datetime(2012,12,21)}
+        self.assertEqual({'k1': '2012-12-21T00:00:00'}, dm._dateToISO(d1))
+        d1 = {'k1':{'k2':datetime.datetime(2012,12,21)}}
+        # regession, it does not traverse nested dicts
+        self.assertEqual({'k1': {'k2': datetime.datetime(2012, 12, 21, 0, 0)}}, dm._dateToISO(d1))
+        d1 = {'k1':[datetime.datetime(2012,12,21), datetime.datetime(2012,12,22)] }
+        self.assertEqual({'k1': ['2012-12-21T00:00:00', '2012-12-22T00:00:00']}, dm._dateToISO(d1))
+        d1 = datetime.datetime(2012,12,21)
+        self.assertEqual('2012-12-21T00:00:00', dm._dateToISO(d1))
+        d1 = [datetime.datetime(2012,12,21), datetime.datetime(2012,12,22)]
+        np.testing.assert_array_equal(['2012-12-21T00:00:00', '2012-12-22T00:00:00'], dm._dateToISO(d1))
+
 
 class JSONTests(unittest.TestCase):
     def setUp(self):
