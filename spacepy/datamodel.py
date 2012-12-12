@@ -1061,7 +1061,7 @@ def _dateToISO(indict):
             elif hasattr(indict[key], '__iter__'):
                 for idx, el in enumerate(indict[key]):
                     if isinstance(el, datetime.datetime):
-                        retdict[idx] = el.isoformat()
+                        retdict[key][idx] = el.isoformat()
     else:
         if isinstance(indict, datetime.datetime):
             retdict = retdict.isoformat()
