@@ -1053,6 +1053,9 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
 
 
 def _dateToISO(indict):
+    """
+    covert datetimes to iso strings inside of datamodel attributes
+    """
     retdict = dmcopy(indict)
     if isinstance(indict, dict):
         for key in indict:
