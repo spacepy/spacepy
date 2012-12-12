@@ -984,9 +984,11 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     datalen = len(insd[depend0])
 
     #start with global attrs
+    #TODO: check for datetime objs in attributes
     if insd.attrs:
-        for key in insd.attrs:
-            js_out[key] = dmcopy(insd.attrs[key])
+        glattr = _dateToISO(insd.attrs)
+        for key in glattr:
+            js_out[key] = dmcopy(glattr[key])
             #TODO Mark these as global somehow (by omission of some metadata?)
             try:
                 js_out[key] = js_out[key].tolist()
@@ -1006,7 +1008,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
 
     idx = 0
     for key in keylist:
-        js_out[key] = dmcopy(insd[key].attrs)
+        js_out[key] = dmcopy(_dateToISO(insd[key].attrs))
         if len(insd[key]) == datalen: #is data
             if verbose: print('data: {0}'.format(key))
             try:
@@ -1024,7 +1026,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
                 warnings.warn(''.join([l1, l2, l3]), DMWarning)
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
-            js_out[key]['VALUES'] = dmcopy(insd[key])
+            js_out[key]['VALUES'] = dmcopy(_dateToISO(insd[key]))
         for kk in js_out[key]:
             try:
                 js_out[key][kk] = js_out[key][kk].tolist()
@@ -1049,6 +1051,27 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     if returnString: return json_str
 
 
+def _dateToISO(indict):
+    retdict = dmcopy(indict)
+    if isinstance(indict, dict):
+        for key in indict:
+            if isinstance(indict[key], datetime.datetime):
+                retdict[key] = retdict[key].isoformat()
+            elif hasattr(indict[key], '__iter__'):
+                for idx, el in enumerate(indict[key]):
+                    if isinstance(el, datetime.datetime):
+                        retdict[idx] = el.isoformat()
+    else:
+        if isinstance(indict, datetime.datetime):
+            retdict = retdict.isoformat()
+        elif hasattr(indict, '__iter__'):
+            dum = numpy.asanyarray(indict)
+            for idx, el in numpy.ndenumerate(indict):
+                if isinstance(el, datetime.datetime):
+                    retdict[idx] = el.isoformat()
+    return retdict
+    
+
 def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kwargs):
     ''' '''
     kwarg_dict = {'sep': ' '}
@@ -1061,7 +1084,7 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
         writeJSONMetadata(metadata, insd, depend0=depend0, order=order)
         metadata.seek(0) #rewind StringIO object to start
     hdr = readJSONMetadata(metadata)
-    
+
     datlist = []
     for key in hdr:
         if hdr[key].attrs.has_key('START_COLUMN'):
@@ -1078,13 +1101,11 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
     #now open file (file-like) and for each line in len(data)
     #write the line using start_column, name, dimension
     data = numpy.zeros([datlen,ncols], dtype=object)
-    for trip in datlist:
-        stcol, name, dim = trip
+    for stcol, name, dim in datlist:
         if dim==1:
-            data[:, stcol] = insd[name]
+            data[:, stcol] = _dateToISO(insd[name])
         else:
-            data[:, stcol:stcol+dim] = insd[name]
-    
+            data[:, stcol:stcol+dim] = _dateToISO(insd[name])    
     hdstr = writeJSONMetadata(None, hdr, depend0=depend0, order=order, returnString=True)
     with open(fname, 'w') as fh:
         fh.writelines(hdstr)
