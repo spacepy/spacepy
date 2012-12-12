@@ -193,14 +193,6 @@ class TimeClassTests(unittest.TestCase):
         #super(tFunctionTests, self).tearDown()
         pass
 
-    def test_Tickdelta(self):
-        """Tickdelta should function"""
-        with warnings.catch_warnings(record=True) as w:
-            tst = t.Tickdelta(hours=12)
-            self.assertEqual(43200.0, tst.seconds)
-            self.assertEqual(1, len(w))
-            self.assertEqual(DeprecationWarning, w[0].category)
-
     def test_sliceTicktock(self):
         """a ticktock sliced returns a ticktock"""
         n1 = t.Ticktock(['2002-03-01T11:23:11',
@@ -217,17 +209,10 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual(28, (n1-n2)[0].days)
         self.assertEqual(40991, (n1-n2)[0].seconds)
 
-    def test_subTickdelta(self):
-        """a ticktock minus a Tickdelta is a ticktock"""
-        n1 = t.Ticktock('2002-03-01T11:23:11', 'ISO')
-        with warnings.catch_warnings(record=True) as w:
-            de = t.Tickdelta(hours=12, seconds=2)
-        self.assertEqual(t.Ticktock( '2002-02-28T23:23:09', 'ISO'), n1-de)
-
     def test_subtimedelta(self):
         """a ticktock minus a timedelta is a ticktock"""
         n1 = t.Ticktock('2002-03-01T11:23:11', 'ISO')
-        de = datetime.timedelta(hours=12, seconds=2) #t.Tickdelta(hours=12, seconds=2)
+        de = datetime.timedelta(hours=12, seconds=2)
         self.assertEqual(t.Ticktock( '2002-02-28T23:23:09', 'ISO'), n1-de)
 
     def test_TickTock_with_xrange(self):

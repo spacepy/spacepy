@@ -1,5 +1,16 @@
 Changes in Version 0.1.3
 ========================
+- Removed deprecated functions/classes
+  - time
+    - Tickdelta class (use datetime.timedelta)
+    - num2date, date2num functions (use matplotlib.dates)
+  - toolbox
+    - printfig, smartTimeTicks, applySmartTimeTicks, timestamp functions
+      (moved to plot.utils)
+    - leapyear, randomDate functions (moved to time)
+
+Changes in Version 0.1.3
+========================
 - Substantial updates to documentation
   - including publication list, case studies
 - Minor bugfixes throughout
