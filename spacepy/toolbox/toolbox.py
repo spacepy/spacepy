@@ -46,13 +46,13 @@ except NameError:
     xrange = range
 
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
-           'human_sort', 'feq', 'dictree', 'printfig', 'update', 'progressbar',
-           'windowMean', 'medAbsDev', 'binHisto', 'smartTimeTicks',
-           'applySmartTimeTicks', 'logspace', 'geomspace', 'arraybin', 'mlt2rad',
-           'rad2mlt', 'pmm', 'timestamp', 'getNamedPath', 'query_yes_no',
+           'human_sort', 'feq', 'dictree', 'update', 'progressbar',
+           'windowMean', 'medAbsDev', 'binHisto', 
+           'logspace', 'geomspace', 'arraybin', 'mlt2rad',
+           'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-           'eventTimer', 'isview', 'interweave', 'randomDate']
+           'eventTimer', 'isview', 'interweave']
 
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
