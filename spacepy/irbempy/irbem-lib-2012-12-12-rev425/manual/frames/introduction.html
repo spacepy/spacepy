@@ -1,0 +1,153 @@
+<!-- %***************************************************************************************************
+% Copyright 2004,2006, 2008 S. Bourdarie
+%
+% This file is part of IRBEM-LIB.
+%
+%    IRBEM-LIB is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU Lesser General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    IRBEM-LIB is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU Lesser General Public License for more details.
+%
+%    You should have received a copy of the GNU Lesser General Public License
+%    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
+% -->
+<html>
+<head>
+</head>
+<body>
+    <!-- Insert content here -->
+    <div style="TEXT-ALIGN: center"><big><big><font face="ARIAL, HELVETICA"><font color="#0000ff"><font size="-2"><big><big>Version
+        4.4.0 - August 2012</big></big></font></font></font> 
+        <br />
+        <font face="ARIAL, HELVETICA"><font color="#0000ff"><font size="-2"><big><big><span style="TEXT-DECORATION: underline">Authors:</span> D.
+        Boscher, S. Bourdarie - ONERA-DESP, Toulouse France (Fortran code and IDL wrappers)</big></big></font></font></font></big></big> 
+        <br />
+        <font face="ARIAL, HELVETICA"><font color="#0000ff"><font size="-2"><big><big><span style="TEXT-DECORATION: underline"></span>T.
+        Guild - The Aerospace Corporation - USA&nbsp; (Fortran code)</big></big></font></font></font> 
+    </div>
+    <div style="TEXT-ALIGN: center"><big><big><font face="ARIAL, HELVETICA"><font color="#0000ff"><font size="-2"><big><big>Paul
+        O'Brien - The Aerospace Corporation - USA&nbsp; (MATLAB wrappers)<br />Daniel
+        Heynderickx - DH Consultancy BVBA - Belgium&nbsp; (preparation of this release)</big></big></font></font></font></big></big><big><big>&nbsp;<br />
+        <font face="ARIAL, HELVETICA"><font color="#0000ff"><font size="-2"><big><big>For
+        any questions or to report bugs please contact</big></big></font></font></font> 
+        <br />
+        <font face="ARIAL, HELVETICA"><font color="#0000ff"><font size="-2"><big><big><a href="mailto:Sebastien.Bourdarie@onecert.fr">Dr.
+        Sebastien Bourdarie</a> or <a href="mailto:Daniel.Boscher@onecert.fr">Dr. Daniel Boscher</a>&nbsp;or <a href="mailto:Paul.OBRIEN@aero.org">Dr.
+        Paul O'Brien</a> </big></big></font></font></font></big></big>
+    </div>
+    <BR>
+    <BR>
+    <p>
+    <font face="ARIAL, HELVETICA"><font size=+1>The International Radiation Belt Environment Modeling (IRBEM) library is freely distributed under the
+    umbrella of the PRBEM COSPAR panel (<a href="http://cosparhq.cnes.fr/Scistr/Scistr.htm#PRBEM">
+    http://cosparhq.cnes.fr/Scistr/Scistr.htm#PRBEM</a>).<BR>
+    In 2003 ONERA-DESP (space environment department) decided to put together a set of source codes into a 
+    library dedicated to radiation belt modeling. The toolkit was then called ONERA-DESP-LIB. Because the project has grown
+    along time, and because its development is nowadays more like an international collaborative effort, it has been decided in 2008,
+    after COSPAR 2008 Montreal assembly, to move the library name to IRBEM-LIB (which refers to COSPAR PRBEM panel) and to
+    distribute it under COSPAR PRBEM umbrella (a neutral body).</font></font>
+    </p>
+    <p>
+        <br />
+        <font face="ARIAL, HELVETICA"><font size=+1>The following document describes how to
+        use the IRBEM fortran library (formerly the ONERA-DESP library) to compute magnetic coordinates and drift shells
+        using various external magnetic field models.&nbsp; Further routines are provided
+        for&nbsp; various coordinate and time format transformations.</font></font> 
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>The library can be called from FORTRAN
+        or C code and from IDL&nbsp;or MATLAB code. For IDL and MATLAB wrappers are provided
+        in the distribution package.</font></font>&nbsp; 
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>The package includes a Makefile 
+        to built the library on various platform, install
+        it&nbsp;and test it (See section installation for more details).&nbsp;</font></font> 
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>Two libraries are created, one for access
+        from IDL or MATLAB and one for access from fortran or some other language.</font></font> 
+        <br />
+    </p>
+    <p>
+    </p>
+    <p>
+        <span style="FONT-WEIGHT: bold"><font face="ARIAL, HELVETICA">Notes:</font> 
+        <br />
+        </span>
+    </p>
+    <p>
+        <span style="FONT-WEIGHT: bold"><font face="ARIAL, HELVETICA">1.&nbsp;</font></span><b><font face="ARIAL, HELVETICA">The
+        bad value flag is set to&nbsp; -1.d31 throughout.</font></b> 
+        <br />
+        <br />
+    </p>
+    <p>
+        <span style="FONT-STYLE: italic"><font face="ARIAL, HELVETICA"><span style="TEXT-DECORATION: underline">Rule
+        of use: </span>This library is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.<BR>
+    COSPAR does not warrant or assume any legal liability or responsibility for the accuracy, completeness, use, 
+    or usefulness of any information, apparatus, product, or process disclosed in documents and software available 
+    from the IRBEM library or developed as a result of the use of information or software made available from the library. <BR>
+    <BR>
+     If you want to fully refer to this
+        library in publications or reports, use the following: "D. Boscher<sup>1</sup>, S.
+        Bourdarie<sup>1</sup>, P. O'Brien<sup>2</sup>, T. Guild<sup>2</sup>,(<sup>1</sup> ONERA-DESP,
+        Toulouse France; <sup>2</sup> Aerospace Corporation, Washington DC, USA),&nbsp;IRBEM
+        library V4.3, 2004-2008".<br />
+        </font></span>
+    </p>
+    <p>
+        <span style="FONT-STYLE: italic"><font face="ARIAL, HELVETICA"><span style="TEXT-DECORATION: underline">Acknowledgments:</span> The
+        authors whish to thanks:<br />
+        </font></span>
+    </p>
+    <div style="MARGIN-LEFT: 40px">
+        <ul>
+            <li>
+                <span style="FONT-STYLE: italic"><font face="ARIAL, HELVETICA">K. Pfitzer, N. Tsyganenko,
+                I. Alexeev and their co-authors for providing us magnetic field model source codes
+                and for good discussions on how to use their model correctly.&nbsp;</font></span><span style="FONT-STYLE: italic"></span> 
+            </li>
+            <li>
+                <span style="FONT-STYLE: italic"><font face="ARIAL, HELVETICA">R. Friedel (LANL),
+                Y. Dotan and M. Redding (Aerospace corporation) for good discussions, advices and
+                bug reports which are always very helpfull when one attemps to develop such a tool.</font></span> 
+            </li>
+            <li>
+                <span style="FONT-STYLE: italic"><font face="ARIAL, HELVETICA">D. Bilitza for his
+                help regarding the use of IGRF magnetic field model and MSIS models.</font></span> 
+            </li>
+            <li>
+                <span style="FONT-STYLE: italic"><font face="ARIAL, HELVETICA">D. Brautigam for providing
+                us CRRES models.</font></span> 
+            </li>
+            <li>
+                <span style="FONT-STYLE: italic"><font face="ARIAL, HELVETICA">D. Vallado for providing&nbsp;free
+                of use&nbsp;source code for orbit propagator (SGP4).<br />
+                </font></span>
+            </li>
+        </ul>
+    </div>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"></font>
+    </p>
+</body>
+</html>

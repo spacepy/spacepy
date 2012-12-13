@@ -8,6 +8,7 @@ Changes in Version 0.1.4
     - printfig, smartTimeTicks, applySmartTimeTicks, timestamp functions
       (moved to plot.utils)
     - leapyear, randomDate functions (moved to time)
+- Updated to latest revision of IRBEM library (rev425)
 
 Changes in Version 0.1.3
 ========================

@@ -201,7 +201,7 @@ class build(_build):
         # 64 bit or 32 bit?"
         bit = len('%x' % sys.maxsize)*4
         fcompiler = self.fcompiler
-        irbemdir = 'irbem-lib-2012-05-24-rev401'
+        irbemdir = 'irbem-lib-2012-12-12-rev425'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')
@@ -238,6 +238,10 @@ class build(_build):
             shutil.rmtree(builddir)
         shutil.copytree(os.path.join('spacepy', 'irbempy', irbemdir),
                         builddir)
+        shutil.copy(
+            os.path.join(builddir, 'source', 'wrappers_{0}.inc'.format(bit)),
+            os.path.join(builddir, 'source', 'wrappers.inc'.format(bit)))
+                             
         # compile irbemlib
         olddir = os.getcwd()
         os.chdir(builddir)
@@ -281,12 +285,15 @@ class build(_build):
             }
         compile_cmd64 = {
             'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
-            'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
+            'gnu': 'g77 -c -w -m64 -mno-align-double -O2 -fPIC -fno-second-underscore *.f',
             'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             }
         f2py_flags = '--fcompiler={0}'.format(fcompiler)
         if fcompiler == 'gnu':
-            f2py_flags += ' --f77flags=-fno-second-underscore'
+            if bit == 32:
+                f2py_flags += ' --f77flags=-fno-second-underscore,-mno-align-double'
+            else:
+                f2py_flags += ' --f77flags=-fno-second-underscore,-mno-align-double,-m64'
         if self.compiler:
             f2py_flags += ' --compiler={0}'.format(self.compiler)
         if bit == 32:

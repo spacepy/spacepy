@@ -1,0 +1,486 @@
+<!-- %***************************************************************************************************
+% Copyright 2004,2006, S. Bourdarie
+%
+% This file is part of IRBEM-LIB.
+%
+%    IRBEM-LIB is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU Lesser General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    IRBEM-LIB is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU Lesser General Public License for more details.
+%
+%    You should have received a copy of the GNU Lesser General Public License
+%    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
+% -->
+<html>
+<head>
+    <style type="text/css">
+		a
+		{text-decoration: none;}
+
+		.title
+		{position: absolute;
+		width: 240px;
+		height: 20px;
+		left: 10px;
+		z-index: 10;
+		font-family: verdana, helvetica, sans-serif;
+		font-weight: bold;
+		font-size: 12px;}
+
+		.submenu
+		{position: absolute;
+		left: 25px;
+		width: 175px;
+		border: 1px solid black;
+		background-color: #e7e7e7;
+		COLOR: white;
+		layer-background-color: #e7e7e7;
+		font-family: verdana, helvetica, sans-serif;
+		font-size: 10px;
+		visibility: hidden;}
+	</style>
+    <script language="JavaScript">
+// A cascading menu script by Fredrik Fridsten 2000 (c)
+// Feel free to use this, but please mention in a comment in the code.
+
+// To configure the script:
+// Change the nom value to the number of menus that you want to use
+// Note: Always make sure that this is correct, otherwise you might get a javascript error.
+
+// The phrases "images/opened.gif" and "images/closed.gif" should be referring to the
+// pictures you might use.
+// If you don't want to use images, just remove the picopen and picclose functions.
+// Also remove the lines in the toggle function that refer to those.
+
+// The input variables to the toggle function are the number of the submenu to open/close,
+// starting with 1, and the number of pixels to move the objects below.
+// For example toggle(2,60) opens/closes the second submenu and moves the objects below 60 pixels.
+
+var nom = 10; // Number of menus
+
+var tits = new Array(); // An array for the title objects
+var subs = new Array(); // An array for the submenu objects
+var lastn;
+var lastmove;
+var isIE4;
+var isNav4;
+var isNav6;
+var re = new RegExp('px');
+
+function setbrowser() {
+	if (navigator.appVersion.charAt(0) == "4") {
+		if (navigator.appName.indexOf("Explorer") >= 0) {
+			isIE4 = true;
+		}
+		else {
+			isNav4 = true;
+		}
+	}
+	else if (navigator.appVersion.charAt(0) > "4") {
+		isNav6 = true;
+	}
+	if (isNav4) { // Setting the visibility for NN and IE
+		visible = 'show';
+		hidden = 'hide';
+	}
+	else if (isIE4) {
+		visible = 'visible';
+		hidden = 'hidden';
+	}
+	else if (isNav6) {
+		visible = 'visible';
+		hidden = 'hidden';
+	}
+}
+
+function bgsetting() { // Give the titles their background colour
+	for (var i = 1; i <= (nom); i++) {
+		if (isNav4) {
+			document.layers[tits[i]].bgColor = "#e7e7e7";
+		}
+		else if (isIE4) {
+			document.all(tits[i]).style.backgroundColor = "#e7e7e7";
+		}
+		else if (isNav6) {
+			document.getElementById(tits[i]).style.backgroundColor = "#e7e7e7";
+		}
+	}
+}
+
+
+for (var i = 1; i <= nom; i++) { // Fills the arrays with title and submenu objects
+	tits[i] = ('title' + i);
+	subs[i] = ('submenu' +i);
+}
+
+// A couple of small functions that changes the image by the clicked menu
+function picopen(n) {
+	title = ('title' + n);
+	pic = ('pic' + n);
+	if (isNav4) {
+		document.layers[title].document.images[pic].src = "opened.gif";
+	}
+	else if (isIE4) {
+		document.all(pic).src = "opened.gif";
+	}
+	else if (isNav6) {
+		document.getElementById(pic).src = "opened.gif";
+	}
+}
+
+function picclose(n) {
+	title = ('title' + n);
+	pic = ('pic' + n);
+	if (isNav4) {
+		document.layers[title].document.images[pic].src = "closed.gif";
+	}
+	else if (isIE4) {
+		document.all(pic).src = "closed.gif";
+	}
+	else if (isNav6) {
+		document.getElementById(pic).src = "closed.gif";
+	}
+}
+
+// The main script for toggling the selected menu
+// Input variables:
+// n = the number of the submenu to show/hide
+// move = the number of pixels for moving the objects below
+
+lastn = (nom + 1);
+lastmove = 0;
+
+function lasttoggle(n,move) {
+	if (n <= nom) {
+		menu = ('submenu' + n);
+		if (isNav4) {
+			submenu = document.layers[menu];
+		}
+		else if (isIE4) {
+			submenu = document.all(menu).style;
+		}
+		else if (isNav6) {
+			submenu = document.getElementById(menu).style;
+		}
+		if (submenu.visibility.toLowerCase() == visible) {
+			submenu.visibility = hidden;
+			picclose(n); // Remove this if you don't use pictures
+			for (var i = (n+1); i <= nom; i++) {
+				if (isNav4) {
+					var tit = document.layers[tits[i]];
+					var subm = document.layers[subs[i]];
+				}
+				else if (isIE4) {
+					var tit = document.all(tits[i]).style;
+					var subm = document.all(subs[i]).style;
+				}
+				else if (isNav6) {
+					var tit = document.getElementById(tits[i]).style;
+					var subm = document.getElementById(subs[i]).style;
+				}
+				var tmptit = parseInt(tit.top);
+				var tmpsub = parseInt(subm.top);
+				if (isNav4) {
+					tit.top = (tmptit - move);
+					subm.top = (tmpsub - move);
+				} else {
+					tit.top = (tmptit - move) + "px";
+					subm.top = (tmpsub - move) + "px";
+				}
+			}
+		}
+	}
+}
+
+function toggle(n,move) {
+	var menu = ('submenu' + n);
+	if (isNav4) {
+		submenu = document.layers[menu];
+	}
+	else if (isIE4) {
+		submenu = document.all(menu).style;
+	}
+	else if (isNav6) {
+		submenu = document.getElementById(menu).style;
+	}
+	if (submenu.visibility.toLowerCase() == visible) {
+		submenu.visibility = hidden;
+		picclose(n); // Remove this if you don't use pictures
+		for (var i = (n+1); i <= nom; i++) {
+			if (isNav4) {
+				var tit = document.layers[tits[i]];
+				var subm = document.layers[subs[i]];
+			}
+			else if (isIE4) {
+				var tit = document.all(tits[i]).style;
+				var subm = document.all(subs[i]).style;
+			}
+			else if (isNav6) {
+				var tit = document.getElementById(tits[i]).style;
+				var subm = document.getElementById(subs[i]).style;
+			}
+			var tmptit = parseInt(tit.top);
+			var tmpsub = parseInt(subm.top);
+			if (isNav4) {
+				tit.top = (tmptit - move);
+				subm.top = (tmpsub - move);
+			} else {
+				tit.top = (tmptit - move) + "px";
+				subm.top = (tmpsub - move) + "px";
+			}
+		}
+	}
+	else {
+		submenu.visibility = visible;
+		picopen(n); // Remove this if you don't use pictures
+		if (lastn != n) {
+			lasttoggle(lastn,lastmove);
+		}
+		for (var i = (n+1); i <= nom; i++) {
+			if (isNav4) {
+				var tit = document.layers[tits[i]];
+				var subm = document.layers[subs[i]];
+			}
+			else if (isIE4) {
+				var tit = document.all(tits[i]).style;
+				var subm = document.all(subs[i]).style;
+			}
+			else if (isNav6) {
+				var tit = document.getElementById(tits[i]).style;
+				var subm = document.getElementById(subs[i]).style;
+			}
+			var tmptit = parseInt(tit.top);
+			var tmpsub = parseInt(subm.top);
+			if (isNav4) {
+				tit.top = (tmptit + move);
+				subm.top = (tmpsub + move);
+			} else {
+				tit.top = (tmptit + move) + "px";
+				subm.top = (tmpsub + move) + "px";
+			}
+		}
+	}
+	lastn = n;
+	lastmove = move;
+}
+
+function hilite(object) {
+	if (isNav4) {
+		document.layers[object].bgColor = "#ff0000";
+	}
+	else if (isIE4) {
+		document.all(object).style.backgroundColor = "#ff0000";
+	}
+	else if (isNav6) {
+		document.getElementById(object).style.bgColor = "#ff0000";
+	}
+}
+
+function lolite(object) {
+	if (isNav4) {
+		document.layers[object].bgColor = "#ffff00";
+	}
+	else if (isIE4) {
+		document.all(object).style.backgroundColor = "#ffff00";
+	}
+	else if (isNav6) {
+		document.getElementById(object).style.bgColor = "#ffff00";
+	}
+}
+
+function init() {
+	setbrowser();
+	bgsetting();
+}
+
+// -->
+</script>
+</head>
+<body bgcolor="#e7e7e7" onload="init();">
+    <a style="COLOR: red" href="introduction.html" target="right" >Introduction</a>
+    <div class="title" id="title1" style="TOP: 40px"><a style="COLOR: red" onclick="javascript: toggle(1,70); return false" href="#"><img id="pic1" src="closed.gif" border="0" name="pic1" />Installation
+        and use</a>
+    </div>
+    <div class="submenu" id="submenu1" style="TOP: 60px">
+        <a href="how2build.html" target="right">How to build it</a>
+        <br />
+        <a href="matlab.html" target="right">With MATLAB</a>
+        <br />
+        <a href="idl.html" target="right">With IDL</a>
+        <br />
+        <a href="fortran.html" target="right">With FORTRAN</a>
+      <br />
+        <a href="frames.html#COMMON_ARGS" target="right">Common Argument Definitions</a>
+    </div>
+    
+    <div class="title" id="title2" style="TOP: 60px"><a style="COLOR: red" onclick="javascript: toggle(2,80); return false" href="#"><img id="pic2" src="closed.gif" border="0" name="pic2" />Library information functions</a>
+    </div>
+    <div class="submenu" id="submenu2" style="TOP: 80px">
+        <a href="frames.html#IRBEM_FORTRAN_VERSION" target="right">IRBEM_FORTRAN_VERSION</a>
+        <br />
+        <a href="frames.html#IRBEM_FORTRAN_RELEASE" target="right">IRBEM_FORTRAN_RELEASE</a>
+        <br />
+        <a href="frames.html#GET_IRBEM_NTIME_MAX" target="right">GET_IRBEM_NTIME_MAX</a>
+        <br />
+    </div>
+    
+    <div class="title" id="title3" style="TOP: 80px"><a style="COLOR: red" onclick="javascript: toggle(3,270); return false" href="#"><img id="pic3" src="closed.gif" border="0" name="pic3" />Magnetic
+        coordinates and fields</a>
+    </div>
+    <div class="submenu" id="submenu3" style="TOP: 100px"><a href="frames.html#MAKE_LSTAR" target="right">MAKE_LSTAR</a>
+        <br />
+        <a href="frames.html#MAKE_LSTAR_SHELL_SPLITTING" target="right">MAKE_LSTAR_SHELL_SPLITTING</a>
+        <br />
+        <a href="frames.html#LANDI2LSTAR" target="right">LANDI2LSTAR</a>
+        <br />
+        <a href="frames.html#EMPIRICALLSTAR" target="right">EMPIRICALLSTAR</a>
+        <br />
+        <a href="frames.html#LANDI2LSTAR_SHELL_SPLITTING" target="right">LANDI2LSTAR_SHELL_SPLITTING</a>
+        <br />
+        <a href="frames.html#DRIFT_SHELL" target="right">DRIFT_SHELL</a>
+        <br />
+        <a href="frames.html#DRIFT_BOUNCE_ORBIT" target="right">DRIFT_BOUNCE_ORBIT</a>
+        <br />
+        <a href="frames.html#FIND_MIRROR_POINT" target="right">FIND_MIRROR_POINT</a>
+        <br />
+        <a href="frames.html#FIND_FOOT_POINT" target="right">FIND_FOOT_POINT</a>
+        <br />
+        <a href="frames.html#FIND_MAGEQUATOR" target="right">FIND_MAGEQUATOR</a>
+        <br />
+        <a href="frames.html#GET_FIELD_MULTI" target="right">GET_FIELD_MULTI</a>
+        <br />
+        <a href="frames.html#GET_BDERIVS" target="right">GET_BDERIVS</a>
+        <br />
+        <a href="frames.html#COMPUTE_GRAD_CURV_CURL" target="right">COMPUTE_GRAD_CURV_CURL</a>
+        <br />
+        <a href="frames.html#TRACE_FIELD_LINE" target="right">TRACE_FIELD_LINE</a>
+        <br />
+        <a href="frames.html#TRACE_FIELD_LINE_TOWARD_EARTH" target="right">TRACE_FIELD_LINE_TOWARD_EARTH</a>
+        <br />
+        <a href="frames.html#GET_MLT" target="right">GET_MLT</a>
+        <br />
+        <a href="frames.html#GET_HEMI_MULTI" target="right">GET_HEMI_MULTI</a>
+        <br />
+        <a href="frames.html#LSTAR_PHI" target="right">LSTAR_PHI</a>
+    </div>
+    
+    <div class="title" id="title4" style="TOP: 100px"><a style="COLOR: red" onclick="javascript: toggle(4,320); return false" href="#"><img id="pic4" src="closed.gif" border="0" name="pic4" />Geographic
+        coordinates transformation</a>
+    </div>
+    <div class="submenu" id="submenu4" style="TOP: 140px">
+        <a href="frames.html#COORDTRANSVEC" target="right">COORD_TRANS_VEC</a>
+        <br />
+        <a href="frames.html#GEO2GSM" target="right">GEO2GSM </a>
+        <br />
+        <a href="frames.html#GSM2GEO" target="right">GSM2GEO</a>
+        <br />
+        <a href="frames.html#GEO2GSE" target="right">GEO2GSE</a>
+        <br />
+        <a href="frames.html#GSE2GEO" target="right">GSE2GEO</a>
+        <br />
+        <a href="frames.html#GDZ2GEO" target="right">GDZ2GEO</a>
+        <br />
+        <a href="frames.html#GEO2GDZ" target="right">GEO2GDZ</a>
+        <br />
+        <a href="frames.html#GEO2GEI" target="right">GEO2GEI</a>
+        <br />
+        <a href="frames.html#GEI2GEO" target="right">GEI2GEO</a>
+        <br />
+        <a href="frames.html#GEO2SM" target="right">GEO2SM</a>
+        <br />
+        <a href="frames.html#SM2GEO" target="right">SM2GEO</a>
+        <br />
+        <a href="frames.html#GSM2SM" target="right">GSM2SM</a>
+        <br />
+        <a href="frames.html#SM2GSM" target="right">SM2GSM</a>
+        <br />
+        <a href="frames.html#GEO2MAG" target="right">GEO2MAG</a>
+        <br />
+        <a href="frames.html#MAG2GEO" target="right">MAG2GEO</a>
+        <br />
+        <a href="frames.html#EPH2CAR" target="right">SPH2CAR</a>
+        <br />
+        <a href="frames.html#CAR2EPH" target="right">CAR2SPH</a>
+        <br />
+        <a href="frames.html#RLL2GDZ" target="right">RLL2GDZ</a>
+    </div>
+    
+    <div class="title" id="title5" style="TOP: 130px"><a style="COLOR: red" onclick="javascript: toggle(5,45); return false" href="#"><img id="pic5" src="closed.gif" border="0" name="pic5" />Geographic
+        to heliospheric and vice versa coordinate transformations</a>
+    </div>
+    <div class="submenu" id="submenu5" style="TOP: 175px">
+        <a href="frames.html#GSE2HEE" target="right">GSE2HEE</a>
+        <br />
+        <a href="frames.html#HEE2GSE" target="right">HEE2GSE</a>
+    </div>
+    <div class="title" id="title6" style="TOP: 175px"><a style="COLOR: red" onclick="javascript: toggle(6,70); return false" href="#"><img id="pic6" src="closed.gif" border="0" name="pic6" />Heliospheric
+        coordinate transformations</a>
+    </div>
+    <div class="submenu" id="submenu6" style="TOP: 210px"><a href="frames.html#HEE2HAE" target="right">HEE2HAE</a>
+        <br />
+        <a href="frames.html#HAE2HEE" target="right">HAE2HEE</a>
+        <br />
+        <a href="frames.html#HAE2HEEQ" target="right">HAE2HEEQ</a>
+        <br />
+        <a href="frames.html#HEEQ2HAE" target="right">HEEQ2HAE</a>
+    </div>
+    <div class="title" id="title7" style="TOP: 205px"><a style="COLOR: red" onclick="javascript: toggle(7,120); return false" href="#"><img id="pic7" src="closed.gif" border="0" name="pic7" />Date
+        and time functions</a>
+    </div>
+    <div class="submenu" id="submenu7" style="TOP: 225px"><a href="frames.html#JULDAY" target="right">JULDAY</a>
+        <br />
+        <a href="frames.html#CALDAT" target="right">CALDAT</a>
+        <br />
+        <a href="frames.html#GET_DOY" target="right">GET_DOY</a>
+        <br />
+        <a href="frames.html#DECY2DATE_AND_TIME" target="right">DECY2DATE_AND_TIME</a>
+        <br />
+        <a href="frames.html#DATE_AND_TIME2DECY" target="right">DATE_AND_TIME2DECY</a>
+        <br />
+        <a href="frames.html#DOY_AND_UT2DATE_AND_TIME" target="right">DOY_AND_UT2DATE_AND_TIME</a>
+    </div>
+    <div class="title" id="title8" style="TOP: 225px"><a style="COLOR: red" onclick="javascript: toggle(8,100); return false" href="#"><img id="pic8" src="closed.gif" border="0" name="pic8" />Radiation
+        belt and effect models</a>
+    </div>
+    <div class="submenu" id="submenu8" style="TOP: 245px"><a href="frames.html#FLY_IN_NASA_AEAP" target="right">FLY_IN_NASA_AEAP</a>
+        <br />
+        <a href="frames.html#GET_AE8_AP8_FLUX" target="right">GET_AE8_AP8_FLUX</a>
+        <br />
+        <a href="frames.html#FLY_IN_AFRL_CRRES" target="right">FLY_IN_AFRL_CRRES</a>
+        <br />
+        <a href="frames.html#GET_CRRES_FLUX" target="right">GET_CRRES_FLUX</a>
+        <br />
+        <a href="frames.html#FLY_IN_IGE" target="right">FLY_IN_IGE</a>
+        <br />
+        <a href="frames.html#FLY_IN_MEO_GNSS" target="right">FLY_IN_MEO_GNSS</a>
+        <br />
+        <a href="frames.html#SHIELDOSE2" target="right">SHIELDOSE2</a>
+        <br />
+    </div>
+    <div class="title" id="title9" style="TOP: 245px"><a style="COLOR: red" onclick="javascript: toggle(9,70); return false" href="#"><img id="pic9" src="closed.gif" border="0" name="pic9" />Atmospheric
+        models</a>
+    </div>
+    <div class="submenu" id="submenu9" style="TOP: 265px"><a href="frames.html#MSIS86" target="right">MSIS86</a>
+        <br />
+        <a href="frames.html#MSISE90" target="right">MSISE90</a>
+        <br />
+        <a href="frames.html#NRLMSIS00" target="right">NRLMSIS00</a>
+        <br />
+    </div>
+    <div class="title" id="title10" style="TOP: 265px"><a style="COLOR: red" onclick="javascript: toggle(10,50); return false" href="#"><img id="pic10" src="closed.gif" border="0" name="pic10" />Orbit
+        propagator</a>
+    </div>
+    <div class="submenu" id="submenu10" style="TOP: 285px"><a href="frames.html#SGP4_TLE" target="right">SGP4_TLE</a>
+        <br />
+        <a href="frames.html#SGP4_ORB" target="right">SGP4_ELE</a>
+        <br />
+        <a href="frames.html#RV2COE" target="right">RV2COE</a>
+        <br />
+    </div>
+</body>
+</html>
