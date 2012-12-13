@@ -919,11 +919,11 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
             except:
                 print('Key {0} for conversion not found in file'.format(conkey))
                 #this should be a warning, not a print
-        for remkey in keys:
-            try:
-                mdata[remkey] = numpy.asanyarray(mdata[remkey], dtype=float)
-            except ValueError:
-                pass #this will skip any unspecified string fields
+    for remkey in keys:
+        try:
+            mdata[remkey] = numpy.asanyarray(mdata[remkey], dtype=float)
+        except ValueError:
+            pass #this will skip any unspecified string fields
     return mdata
 
 def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, returnString=False):
