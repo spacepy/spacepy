@@ -440,6 +440,30 @@ class JSONTests(unittest.TestCase):
         #now test that values in some metadata are identical
         self.assertTrue((dat['PerigeePosGeod'] == dat2['PerigeePosGeod']).all())
 
+    def test_toJSONheadedASCII(self):
+        """Write known datamodel to JSON-headed ASCII and ensure it has right stuff added"""
+        a = dm.SpaceData()
+        a.attrs['Global'] = 'A global attribute'
+        a['Var1'] = dm.dmarray([1,2,3,4,5], attrs={'Local1': 'A local attribute'})
+        a['Var2'] = dm.dmarray([[8,9],[9,1],[3,4],[8,9],[7,8]])
+        a['MVar'] = dm.dmarray([7.8], attrs={'Note': 'Metadata'})
+        t_file = tempfile.NamedTemporaryFile(delete=False)
+        t_file.close()
+        dm.toJSONheadedASCII(t_file.name, a, depend0='Var1', order=['Var1','Var2'])
+        dat2 = dm.readJSONheadedASCII(t_file.name)
+        #test global attr
+        self.assertTrue(a.attrs==dat2.attrs)
+        #test that metadata is back and unchanged
+        self.assertTrue(a['MVar'].attrs==dat2['MVar'].attrs)
+        np.testing.assert_array_equal(a['MVar'], dat2['MVar'])
+        #test vars are right
+        np.testing.assert_allclose(a['Var1'], dat2['Var1'])
+        np.testing.assert_allclose(a['Var2'], dat2['Var2'])
+        #test for added dimension and start col
+        self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
+        self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
+        
+
 
 if __name__ == "__main__":
     unittest.main()
