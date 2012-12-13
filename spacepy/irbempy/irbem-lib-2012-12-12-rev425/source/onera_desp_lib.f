@@ -1190,7 +1190,7 @@ c
 	           iyear=iyearsat
 	           dec_year=iyear+0.5d0
 	           CALL INIT_DTD(dec_year)
-		   if (kint .eq. 5) CALL INIT_CD
+		   if (kint .eq. 4 .or. kint .eq. 5) CALL INIT_CD
 	        endif
 	      else
 	        if (iyearsat .ne. iyear .or.
