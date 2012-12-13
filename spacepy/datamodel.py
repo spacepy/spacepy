@@ -59,7 +59,7 @@ Each variable will have one attribute (for this example).
 >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
 This has now populated a structure that can map directly to a NASA CDF or a HDF5. To visualize our datamodel,
-we can use tree method (which can be applied to any dictionary-like object using the 
+we can use tree method (which can be applied to any dictionary-like object using the
 :py:func:`toolbox.dictree` function).
 
 >>> mydata.tree(attrs=True)
@@ -1013,17 +1013,18 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
             if verbose: print('data: {0}'.format(key))
             try:
                 js_out[key]['DIMENSION'] = list(insd[key].shape[1:])
+                if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
+                js_out[key]['START_COLUMN'] = idx
+                dims = js_out[key]['DIMENSION']
+                idx += int(dims[0])
+                if len(dims)>1:
+                    l1 = 'The data cannot be properly represented in JSON-headed ASCII as it has too high a rank\n'
+                    l2 = 'key = {0} ({1})\n'.format(key, insd[key].shape)
+                    l3 = 'Maximum allowed number of dimensions is 2\n'
+                    warnings.warn(''.join([l1, l2, l3]), DMWarning)
             except AttributeError: #AttrErr if just metadata
-                js_out[key]['DIMENSION'] = insd[key].attrs['DIMENSION']
-            if not js_out[key]['DIMENSION']: js_out[key]['DIMENSION'] = [1]
-            js_out[key]['START_COLUMN'] = idx
-            dims = js_out[key]['DIMENSION']
-            idx += int(dims[0])
-            if len(dims)>1:
-                l1 = 'The data cannot be properly represented in JSON-headed ASCII as it has too high a rank\n'
-                l2 = 'key = {0} ({1})\n'.format(key, insd[key].shape)
-                l3 = 'Maximum allowed number of dimensions is 2\n'
-                warnings.warn(''.join([l1, l2, l3]), DMWarning)
+                #js_out[key]['DIMENSION'] = insd[key].attrs['DIMENSION']
+                pass
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
             js_out[key]['VALUES'] = dmcopy(_dateToISO(insd[key]))
@@ -1052,6 +1053,9 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
 
 
 def _dateToISO(indict):
+    """
+    covert datetimes to iso strings inside of datamodel attributes
+    """
     retdict = dmcopy(indict)
     if isinstance(indict, dict):
         for key in indict:
@@ -1060,17 +1064,17 @@ def _dateToISO(indict):
             elif hasattr(indict[key], '__iter__'):
                 for idx, el in enumerate(indict[key]):
                     if isinstance(el, datetime.datetime):
-                        retdict[idx] = el.isoformat()
+                        retdict[key][idx] = el.isoformat()
     else:
         if isinstance(indict, datetime.datetime):
             retdict = retdict.isoformat()
         elif hasattr(indict, '__iter__'):
-            dum = numpy.asanyarray(indict)
+            retdict = numpy.asanyarray(indict)
             for idx, el in numpy.ndenumerate(indict):
                 if isinstance(el, datetime.datetime):
                     retdict[idx] = el.isoformat()
     return retdict
-    
+
 
 def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kwargs):
     '''Write JSON-headed ASCII file of data with metadata from SpaceData object
@@ -1130,7 +1134,7 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
         if dim==1:
             data[:, stcol] = _dateToISO(insd[name])
         else:
-            data[:, stcol:stcol+dim] = _dateToISO(insd[name])    
+            data[:, stcol:stcol+dim] = _dateToISO(insd[name])
     hdstr = writeJSONMetadata(None, hdr, depend0=depend0, order=order, returnString=True)
     with open(fname, 'w') as fh:
         fh.writelines(hdstr)

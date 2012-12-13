@@ -118,7 +118,7 @@ class SpaceDataTests(unittest.TestCase):
         val = a.keys()
         val.sort()
         self.assertEqual(val, ans)
-        
+
     def test_tree(self):
         """.tree() should call dictree"""
         a = dm.SpaceData()
@@ -130,7 +130,7 @@ class SpaceDataTests(unittest.TestCase):
         sys.stdout = realstdout
         result = output.getvalue()
         output.close()
-        expected = "+\n|____foo\n"   
+        expected = "+\n|____foo\n"
         self.assertEqual(result, expected)
 
 
@@ -142,6 +142,13 @@ class dmarrayTests(unittest.TestCase):
     def tearDown(self):
         super(dmarrayTests, self).tearDown()
         del self.dat
+
+    def test_count(self):
+        """count should work like on a list"""
+        self.assertEqual(1, self.dat.count(1))
+        self.assertEqual(0, self.dat.count(10))
+        self.assertEqual(3, dm.dmarray([1,1,1, 3, 4, 5, 4]).count(1))
+        self.assertEqual(2, dm.dmarray([1,1,1, 3, 4, 5, 4]).count(4))
 
     def test_creation_dmarray(self):
         """When a dmarray is created it should have attrs empty or not"""
@@ -315,6 +322,20 @@ class converterTests(unittest.TestCase):
         dm.toHDF5(self.testfile[1], a)
         self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
 
+    def test_dateToISO(self):
+        """dateToISO shold recurce properly"""
+        d1 = {'k1':datetime.datetime(2012,12,21)}
+        self.assertEqual({'k1': '2012-12-21T00:00:00'}, dm._dateToISO(d1))
+        d1 = {'k1':{'k2':datetime.datetime(2012,12,21)}}
+        # regession, it does not traverse nested dicts
+        self.assertEqual({'k1': {'k2': datetime.datetime(2012, 12, 21, 0, 0)}}, dm._dateToISO(d1))
+        d1 = {'k1':[datetime.datetime(2012,12,21), datetime.datetime(2012,12,22)] }
+        self.assertEqual({'k1': ['2012-12-21T00:00:00', '2012-12-22T00:00:00']}, dm._dateToISO(d1))
+        d1 = datetime.datetime(2012,12,21)
+        self.assertEqual('2012-12-21T00:00:00', dm._dateToISO(d1))
+        d1 = [datetime.datetime(2012,12,21), datetime.datetime(2012,12,22)]
+        np.testing.assert_array_equal(['2012-12-21T00:00:00', '2012-12-22T00:00:00'], dm._dateToISO(d1))
+
 
 class JSONTests(unittest.TestCase):
     def setUp(self):
@@ -404,7 +425,20 @@ class JSONTests(unittest.TestCase):
         self.assertEqual(12834, os.path.getsize(t_file.name)) # not the best test but I am lazy
         os.remove(t_file.name)
 
-
+    def test_writeJSONMetadata(self):
+        """reading metadata should give same keys as original datamodel"""
+        dat = dm.readJSONMetadata(self.filename)
+        # make sure data has all te keys and no more or less
+        t_file = tempfile.NamedTemporaryFile(delete=False)
+        t_file.close()
+        dm.writeJSONMetadata(t_file.name, dat)
+        dat2 = dm.readJSONheadedASCII(t_file.name)
+        os.remove(t_file.name)
+        keylist1 = sorted(dat.keys())
+        keylist2 = sorted(dat2.keys())
+        self.assertTrue(keylist1==keylist2)
+        #now test that values in some metadata are identical
+        self.assertTrue((dat['PerigeePosGeod'] == dat2['PerigeePosGeod']).all())
 
 
 if __name__ == "__main__":
