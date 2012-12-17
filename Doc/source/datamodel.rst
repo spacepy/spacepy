@@ -27,5 +27,7 @@ datamodel - easy to use general data model
     fromCDF
     fromHDF5
     toHDF5
+    toJSONheadedASCII
     readJSONMetadata
     readJSONheadedASCII
+    writeJSONMetadata
