@@ -42,6 +42,11 @@ using the function fromHDF5:
 >>> import spacepy.datamodel as dm
 >>> data = dm.fromHDF5('test.h5')
 
+Functions are also available to directly load data and metadata into a SpacePy datamodel from 
+NASA CDF as well as JSON-headed ASCII. Writers also exist to output a SpacePy datamodel directly 
+to HDF5 or JSON-headed ASCII. See :py:func:`datamodel.fromCDF`, :py:func:`datamodel.readJSONheadedASCII`,
+:py:func:`datamodel.toHDF5`, and :py:func:`datamodel.toJSONheadedASCII` for more details.
+
 
 Examples
 --------
@@ -58,9 +63,9 @@ Each variable will have one attribute (for this example).
 >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
 >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
-This has now populated a structure that can map directly to a NASA CDF or a HDF5. To visualize our datamodel,
-we can use tree method (which can be applied to any dictionary-like object using the
-:py:func:`toolbox.dictree` function).
+This has now populated a structure that can map directly to a NASA CDF, HDF5 or JSON-headed ASCII file. 
+To visualize our datamodel, we can use tree method (which can be applied to any dictionary-like object 
+using the :py:func:`toolbox.dictree` function).
 
 >>> mydata.tree(attrs=True)
 +
@@ -87,9 +92,70 @@ Opening a CDF and working directly with the contents can be easily done using th
 if you wish to load the entire contents of a CDF directly into a datamodel (complete with attributes)
 the following will make life easier:
 
->>> from spacepy import pycdf
->>> with pycdf.CDF('test.cdf') as cdffile:
-...     data = cdffile.copy()
+>>> import spacepy.datamodel as dm
+>>> data = dm.fromCDF('inFile.cdf')
+
+
+A quick guide to JSON-headed ASCII
+----------------------------------
+In many cases it is preferred to have a human-readable ASCII file, rather than a binary file like CDF
+or HDF5. To make it easier to carry all the same metadata that is available in HDF5 or CDF we have 
+developed an ASCII data storage format that encodes the metadata using JSON (JavaScript Object Notation).
+This notation supports two basic datatypes: key/value collections (like a SpaceData) and ordered lists 
+(which can represent arrays). JSON is human-readable, but if large arrays are stored in metadata is quickly 
+becomes difficult to read. For this reason we use JSON to encode the metadata (usually smaller datasets) 
+and store the data in a standard flat-ASCII format. The metadata is provided as a header that describes 
+the contents of the file.
+
+
+To use JSON for storing only metadata associated with the data to be written to an ASCII file a minimal
+metadata standard must be implemented. We use the following attribute names: DIMENSION and START_COLUMN.
+We also recommend using the NASA ISTP metadata standard to assign attribute names. The biggest limitation
+of flat ASCII is that sensibly formatting datasets of more than 2-dimensions (i.e. ranks greater than 2)
+is not possible. For this reason if you have datasets of rank 3 or greater then we recommend using HDF5.
+If text is absolutely required then it is possible to encode multi-dimensional arrays in the JSON metadata, 
+but this is not recommended.
+
+
+This format is best understood by illustration. The following example builds a toy SpacePy datamodel and
+writes it to a JSON-headed ASCII file. The contents of the file are then shown.
+
+>>> import spacepy.datamodel as dm
+>>> data = dm.SpaceData()
+>>> data.attrs['Global'] = 'A global attribute'
+>>> data['Var1'] = dm.dmarray([1,2,3,4,5], attrs={'Local1': 'A local attribute'})
+>>> data['Var2'] = dm.dmarray([[8,9],[9,1],[3,4],[8,9],[7,8]])
+>>> data['MVar'] = dm.dmarray([7.8], attrs={'Note': 'Metadata'})
+>>> dm.toJSONheadedASCII('outFile.txt', data, depend0='Var1', order=['Var1'])
+#Note that not all field names are required, those not given will be listed
+#alphabetically after those that are specified
+
+The file looks like:
+
+.. code-block:: none
+
+    #{
+    #    "MVar": {
+    #        "Note": "Metadata", 
+    #        "VALUES": [7.8]
+    #    }, 
+    #    "Global": "A global attribute", 
+    #    "Var1": {
+    #        "Local1": "A local attribute", 
+    #        "DIMENSION": [1], 
+    #        "START_COLUMN": 0
+    #    }, 
+    #    "Var2": {
+    #        "DIMENSION": [2], 
+    #        "START_COLUMN": 2
+    #    }
+    #}
+    1 8 9
+    2 9 1
+    3 3 4
+    4 8 9
+    5 7 8
+
 """
 
 from __future__ import division
@@ -1102,6 +1168,18 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
     Returns
     -------
     None
+
+    Examples
+    --------
+    >>> import spacepy.datamodel as dm
+    >>> data = dm.SpaceData()
+    >>> data.attrs['Global'] = 'A global attribute'
+    >>> data['Var1'] = dm.dmarray([1,2,3,4,5], attrs={'Local1': 'A local attribute'})
+    >>> data['Var2'] = dm.dmarray([[8,9],[9,1],[3,4],[8,9],[7,8]])
+    >>> data['MVar'] = dm.dmarray([7.8], attrs={'Note': 'Metadata'})
+    >>> dm.toJSONheadedASCII('outFile.txt', data, depend0='Var1', order=['Var1'])
+    #Note that not all field names are required, those not given will be listed
+    #alphabetically after those that are specified
     '''
     kwarg_dict = {'delimiter': ' '}
     for key in kwarg_dict.keys():
