@@ -1033,7 +1033,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
                 js_out[key][kk] = js_out[key][kk].tolist()
             except:
                 pass
-    json_str = json.dumps(js_out, indent=4)
+    json_str = json.dumps(js_out, indent=4, sort_keys=True)
     reob = re.compile('\[.*?\]', re.DOTALL)
     json_str = re.sub(reob, stripNL, json_str) #put lists back onto one line
     #add comment field for header
