@@ -42,8 +42,8 @@ using the function fromHDF5:
 >>> import spacepy.datamodel as dm
 >>> data = dm.fromHDF5('test.h5')
 
-Functions are also available to directly load data and metadata into a SpacePy datamodel from 
-NASA CDF as well as JSON-headed ASCII. Writers also exist to output a SpacePy datamodel directly 
+Functions are also available to directly load data and metadata into a SpacePy datamodel from
+NASA CDF as well as JSON-headed ASCII. Writers also exist to output a SpacePy datamodel directly
 to HDF5 or JSON-headed ASCII. See :py:func:`datamodel.fromCDF`, :py:func:`datamodel.readJSONheadedASCII`,
 :py:func:`datamodel.toHDF5`, and :py:func:`datamodel.toJSONheadedASCII` for more details.
 
@@ -63,8 +63,8 @@ Each variable will have one attribute (for this example).
 >>> mydata['OrbitNumber'] = dm.dmarray(16, attrs={'StartsFrom': 1})
 >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
-This has now populated a structure that can map directly to a NASA CDF, HDF5 or JSON-headed ASCII file. 
-To visualize our datamodel, we can use tree method (which can be applied to any dictionary-like object 
+This has now populated a structure that can map directly to a NASA CDF, HDF5 or JSON-headed ASCII file.
+To visualize our datamodel, we can use tree method (which can be applied to any dictionary-like object
 using the :py:func:`toolbox.dictree` function).
 
 >>> mydata.tree(attrs=True)
@@ -99,12 +99,12 @@ the following will make life easier:
 A quick guide to JSON-headed ASCII
 ----------------------------------
 In many cases it is preferred to have a human-readable ASCII file, rather than a binary file like CDF
-or HDF5. To make it easier to carry all the same metadata that is available in HDF5 or CDF we have 
+or HDF5. To make it easier to carry all the same metadata that is available in HDF5 or CDF we have
 developed an ASCII data storage format that encodes the metadata using JSON (JavaScript Object Notation).
-This notation supports two basic datatypes: key/value collections (like a SpaceData) and ordered lists 
-(which can represent arrays). JSON is human-readable, but if large arrays are stored in metadata is quickly 
-becomes difficult to read. For this reason we use JSON to encode the metadata (usually smaller datasets) 
-and store the data in a standard flat-ASCII format. The metadata is provided as a header that describes 
+This notation supports two basic datatypes: key/value collections (like a SpaceData) and ordered lists
+(which can represent arrays). JSON is human-readable, but if large arrays are stored in metadata is quickly
+becomes difficult to read. For this reason we use JSON to encode the metadata (usually smaller datasets)
+and store the data in a standard flat-ASCII format. The metadata is provided as a header that describes
 the contents of the file.
 
 
@@ -113,7 +113,7 @@ metadata standard must be implemented. We use the following attribute names: DIM
 We also recommend using the NASA ISTP metadata standard to assign attribute names. The biggest limitation
 of flat ASCII is that sensibly formatting datasets of more than 2-dimensions (i.e. ranks greater than 2)
 is not possible. For this reason if you have datasets of rank 3 or greater then we recommend using HDF5.
-If text is absolutely required then it is possible to encode multi-dimensional arrays in the JSON metadata, 
+If text is absolutely required then it is possible to encode multi-dimensional arrays in the JSON metadata,
 but this is not recommended.
 
 
@@ -136,17 +136,17 @@ The file looks like:
 
     #{
     #    "MVar": {
-    #        "Note": "Metadata", 
+    #        "Note": "Metadata",
     #        "VALUES": [7.8]
-    #    }, 
-    #    "Global": "A global attribute", 
+    #    },
+    #    "Global": "A global attribute",
     #    "Var1": {
-    #        "Local1": "A local attribute", 
-    #        "DIMENSION": [1], 
+    #        "Local1": "A local attribute",
+    #        "DIMENSION": [1],
     #        "START_COLUMN": 0
-    #    }, 
+    #    },
     #    "Var2": {
-    #        "DIMENSION": [2], 
+    #        "DIMENSION": [2],
     #        "START_COLUMN": 2
     #    }
     #}
@@ -1094,6 +1094,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
         else: #is metadata
             if verbose: print('metadata: {0}'.format(key))
             js_out[key]['VALUES'] = dmcopy(_dateToISO(insd[key]))
+            js_out[key]['DIMENSION'] = [len(js_out[key]['VALUES'])]
         for kk in js_out[key]:
             try:
                 js_out[key][kk] = js_out[key][kk].tolist()
