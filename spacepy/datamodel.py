@@ -1029,6 +1029,8 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     if depend0 is None:
         #search for DEPEND_0 in metadata
         for key in insd:
+            if not hasattr(insd[key], 'attrs'):
+                insd[key] = dmarray(insd[key])
             if insd[key].attrs.has_key('DEPEND_0'):
                 depend0 = insd[key].attrs['DEPEND_0']
                 if not isinstance(depend0, str):
