@@ -74,7 +74,9 @@ def _LANLcommon(inputdict, extMag, domax):
                 'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
         'T96': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF','BzIMF',
                 'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
-                 }
+        'RAMSCB':['Year','DOY','Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
+                  'PA','SMx', 'SMy', 'SMz'],
+         }
     lmax_keylists = {
         'OPDyn': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 'PA'],
         'OPQuiet': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF','PA'],
@@ -88,20 +90,21 @@ def _LANLcommon(inputdict, extMag, domax):
         'T96': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
                  }
     lstar_nets = { 'OPDyn'   : 'LANLstar_OPDyn.net',
-                    'OPQuiet' : 'LANLstar_OPQuiet.net',
-                    'T01QUIET': 'LANLstar_T01QUIET.net',
-                    'T01STORM': 'LANLstar_T01STORM.net',
-                    'T05': 'LANLstar_T05.net',
-                    'T89': 'LANLstar_T89.net',
-                    'T96': 'LANLstar_T96.net',
+                   'OPQuiet' : 'LANLstar_OPQuiet.net',
+                   'T01QUIET': 'LANLstar_T01QUIET.net',
+                   'T01STORM': 'LANLstar_T01STORM.net',
+                   'RAMSCB': 'LANLstar_RAMSCB.net',
+                   'T05': 'LANLstar_T05.net',
+                   'T89': 'LANLstar_T89.net',
+                   'T96': 'LANLstar_T96.net',
                     }
     lmax_nets = {  'OPDyn'   : 'Lmax_OPDyn.net',
-                    'OPQuiet' : 'Lmax_OPQuiet.net',
-                    'T01QUIET': 'Lmax_T01QUIET.net',
-                    'T01STORM': 'Lmax_T01STORM.net',
-                    'T05': 'Lmax_T05.net',
-                    'T89': 'Lmax_T89.net',
-                    'T96': 'Lmax_T96.net',
+                   'OPQuiet' : 'Lmax_OPQuiet.net',
+                   'T01QUIET': 'Lmax_T01QUIET.net',
+                   'T01STORM': 'Lmax_T01STORM.net',
+                   'T05': 'Lmax_T05.net',
+                   'T89': 'Lmax_T89.net',
+                   'T96': 'Lmax_T96.net',
                     }
     
     npt = len(inputdict['Year'])
@@ -191,6 +194,9 @@ def LANLstar(inputdict, extMag):
           ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'W1','W2','W3','W4','W5','W6',
           'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
 
+        -- For RAMSCB:
+          ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 
+          'PA', 'SMx','SMy','SMz']
        
        Dictionaries with numpy vectors are allowed.
             
@@ -231,16 +237,20 @@ def LANLstar(inputdict, extMag):
     >>> inputdict['lonGSM'] = [-40.2663 ]             # longitude coodrinate in GSM [deg]
     >>> inputdict['latGSM'] = [36.44696 ]             # latitude coordiante in GSM [deg]
     >>> inputdict['PA']     = [57.3874  ]             # pitch angle [deg]
+    >>> inputdict['SMx']    = [3.9783   ]
+    >>> inputdict['SMy']    = [-2.51335 ]
+    >>> inputdict['SMz']    = [1.106617 ]
     >>> 
-    >>> LS.LANLstar(inputdict, ['OPDyn','OPQuiet','T01QUIET','T01STORM','T89','T96','T05'])
+    >>> LS.LANLstar(inputdict, ['OPDyn','OPQuiet','T01QUIET','T01STORM','T89','T96','T05','RAMSCB'])
     {'OPDyn': array([4.7171]),
      'OPQuiet': array([4.6673]),
      'T01QUIET': array([4.8427]),
      'T01STORM': array([4.8669]), 
      'T89': array([4.5187]),
      'T96': array([4.6439]),
-     'TS05': array([4.7174])}
-    """
+     'TS05': array([4.7174]),
+     'RAMSCB','array([5.9609])}
+     """
     return _LANLcommon(inputdict, extMag, False)
 
 def LANLmax(inputdict, extMag):
@@ -320,7 +330,7 @@ def LANLmax(inputdict, extMag):
     {'OPDyn': array([10.6278]),
      'OPQuiet': array([9.3352]),
      'T01QUIET': array([10.0538]),
-     'T03STORM': array([9.9300]), 
+     'T01STORM': array([9.9300]), 
      'T89': array([8.2888]),
      'T96': array([9.2410]),
      'T05': array([9.9295])}
