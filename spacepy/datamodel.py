@@ -633,12 +633,17 @@ def toCDF(fname, SDobject, **kwargs):
             if isinstance(SDobject[key], dict):
                 raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
             if not defaults['skeleton']:
-                outdata[key] = SDobject[key]
+                try:
+                    outdata[key] = SDobject[key]
+                except ValueError:
+                    outdata[key] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs))
             else:
                 outdata[key][...] = SDobject[key][...]
                 for akey in outdata[key].attrs:
                     try:
                         outdata[key].attrs[akey] = dmcopy(SDobject[key].attrs[akey])
+                    except ValueError:
+                        outdata[key][...] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs))
                     except KeyError:
                         pass
     return None
