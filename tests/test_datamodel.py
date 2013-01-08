@@ -143,6 +143,11 @@ class dmarrayTests(unittest.TestCase):
         super(dmarrayTests, self).tearDown()
         del self.dat
 
+    def test_append(self):
+        """append should maintain all Allowed_Attributes"""
+        d2 = dm.dmarray.append(self.dat, -1)
+        np.testing.assert_array_equal([1,2,3, 4, -1], d2)
+
     def test_count(self):
         """count should work like on a list"""
         self.assertEqual(1, self.dat.count(1))

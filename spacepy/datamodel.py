@@ -291,6 +291,25 @@ class dmarray(numpy.ndarray):
         mask = self == srchval
         return int(mask.sum())
 
+    @classmethod
+    def append(self, one, other):
+        """
+        append data to an existing dmarray
+        """
+        Allowed_Attributes = one.Allowed_Attributes
+        backup = []
+        for atr in Allowed_Attributes:
+            backup.append( (atr, one.__getattribute__(atr) ) )
+        outarr = dmarray(numpy.append(one, other))
+        for key, val in backup:
+            if key != 'attrs':
+                try:
+                    outarr.addAttribute(key)
+                except NameError:
+                    pass
+            outarr.__setattr__(key, val)
+        return outarr
+
 
 class SpaceData(dict):
     """
