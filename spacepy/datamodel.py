@@ -295,7 +295,7 @@ class dmarray(numpy.ndarray):
         Allowed_Attributes = self.Allowed_Attributes
         backup = []
         for atr in Allowed_Attributes:
-            backup.append( (atr, self.__getattribute__(atr) ) )
+            backup.append( (atr, dmcopy(self.__getattribute__(atr)) ) )
         return backup
 
     @classmethod

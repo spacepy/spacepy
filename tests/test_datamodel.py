@@ -148,6 +148,7 @@ class dmarrayTests(unittest.TestCase):
         d2 = dm.dmarray.append(self.dat, -1)
         np.testing.assert_array_equal([1,2,3, 4, -1], d2)
         self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
 
     def test_vstack(self):
         """vstack should maintain all Allowed_Attributes"""
@@ -155,6 +156,7 @@ class dmarrayTests(unittest.TestCase):
         np.testing.assert_array_equal(
             np.asarray([[ 1,  2,  3,  4],[-1, -2, -3, -4]]), d2)
         self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
 
     def test_hstack(self):
         """hstack should maintain all Allowed_Attributes"""
@@ -162,6 +164,7 @@ class dmarrayTests(unittest.TestCase):
         np.testing.assert_array_equal(
             np.asarray([ 1,  2,  3,  4, -1, -2, -3, -4]), d2)
         self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
 
     def test_dstack(self):
         """dstack should maintain all Allowed_Attributes"""
@@ -169,6 +172,7 @@ class dmarrayTests(unittest.TestCase):
         np.testing.assert_array_equal(
             np.asarray([[[ 1, -1], [ 2, -2], [ 3, -3], [ 4, -4]]]), d2)
         self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
 
     def test_concatenate(self):
         """concatenate should maintain all Allowed_Attributes"""
@@ -176,6 +180,7 @@ class dmarrayTests(unittest.TestCase):
         np.testing.assert_array_equal(
             np.asarray([ 1,  2,  3,  4, -1, -2, -3, -4]), d2)
         self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
 
     def test_count(self):
         """count should work like on a list"""
