@@ -519,6 +519,68 @@ def fromCDF(fname, **kwargs):
     with pycdf.CDF(fname) as cdfdata:
         return cdfdata.copy()
 
+def toCDF(fname, SDobject, **kwargs):
+    '''
+    Create a CDF file from a SpacePy datamodel representation
+
+    Parameters
+    ----------
+    fname : str
+        Filename to write to
+
+    SDobject : spacepy.datamodel.SpaceData
+        SpaceData with associated attributes and variables in dmarrays
+
+    Other Parameters
+    ----------------
+    skeleton : str (optional)
+        create new CDF from a skeleton file (default '')
+
+    flatten : bool (optional)
+        flatten incoming datamodel - if SpaceData objects are nested (default False)
+
+    overwrite : bool (optional)
+        allow overwrite of an existing target file (default False)
+
+    Returns
+    -------
+    None
+    '''
+    defaults = {'skeleton': '',
+                'flatten': False,
+                'overwrite': False}
+    for key in kwargs:
+        if key in defaults:
+            defaults[key] = kwargs[key]
+
+    if defaults['flatten']:
+        SDobject = SDobject.flatten()
+    if defaults['overwrite']:
+        raise NotImplementedError('Overwriting CDFs is not currently enabled - please remove the file manually')
+
+    try:
+        from spacepy import pycdf
+    except ImportError:
+        raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
+
+    with pycdf.CDF(fname, defaults['skeleton']) as outdata:
+        if hasattr(SDobject, 'attrs'):
+            outdata.attrs = dmcopy(SDobject.attrs)
+        for key in SDobject:
+            if isinstance(SDobject[key], dict):
+                raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
+            if not defaults['skeleton']:
+                outdata[key] = SDobject[key]
+            else:
+                outdata[key][...] = SDobject[key][...]
+                for akey in outdata[key].attrs:
+                    try:
+                        outdata[key].attrs[akey] = dmcopy(SDobject[key].attrs[akey])
+                    except KeyError:
+                        pass
+    return None
+    
+
 def fromHDF5(fname, **kwargs):
     '''
     Create a SpacePy datamodel representation of an HDF5 file
