@@ -74,9 +74,8 @@ Copyright 2010 Los Alamos National Security, LLC.
 // Cranck-Nicholson solver
 void solve_cn(double *f, double *L, double *Dm_old,  double *Dm_new, 
 	      double *Dp_old, double *Dp_new, double dt, int N, double *S){
-FILE * pFile;
 double a[N][3],r[N],al[N];
-double betam[N],betap[N],Lp[N],Lm[N],D[N],Dllp[N],Dllm[N];
+double betam[N],betap[N],Lp[N],Lm[N],Dllp[N],Dllm[N];
 int i,l,k,j;
 int indx[N];
 double d,dum;

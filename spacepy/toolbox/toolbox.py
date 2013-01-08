@@ -47,7 +47,7 @@ except NameError:
 
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
            'human_sort', 'feq', 'dictree', 'update', 'progressbar',
-           'windowMean', 'medAbsDev', 'binHisto', 
+           'windowMean', 'medAbsDev', 'binHisto',
            'logspace', 'geomspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
@@ -1200,7 +1200,7 @@ def mlt2rad(mlt, midnight = False):
 
 def rad2mlt(rad, midnight=False):
     """
-    Convert radian values to mlt
+    Convert radians values to mlt
     transform radians from -pi to pi to mlt
     referenced from noon by default
 
@@ -1357,7 +1357,7 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     newx : array_like
         x values where we want the interpolated values
     x : array_like
-        x values of the original data
+        x values of the original data (must be monotonically increasing or wrapping)
     y : array_like
         y values of the original data
     wrap : string, optional

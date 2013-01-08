@@ -97,20 +97,20 @@ REQUIRED OR STRONGLY RECOMMENDED
     #. sudo port select --set ipython ipython27
     #. sudo port install py27-sphinx wget 
     #. sudo port select --set sphinx py27-sphinx
-    #. wget ftp://cdaweb.gsfc.nasa.gov/pub/software/cdf/dist/cdf34_0/macosX/cdf34_0-setup_universal_binary.tar.gz
-    #. tar -zxvf cdf34_0-setup_universal_binary.tar.gz 
-    #. sudo /usr/sbin/installer -pkg CDF3400ub.pkg -target /
+    #. wget ftp://cdaweb.gsfc.nasa.gov/pub/software/cdf/dist/cdf34_1/macosX/cdf34_1-setup_universal_binary.tar.gz
+    #. tar -zxvf cdf34_1-setup_universal_binary.tar.gz
+    #. sudo /usr/sbin/installer -pkg CDF3410ub.pkg -target /
 
 OPTIONAL (ALSO RECOMMENDED)
 ---------------------------
     #. sudo port install py27-spyder py27-xlrd py27-xlwt  py27-coverage py27-pyside (I have to run this exact command multiple times)
     #. install xquartz (http://xquartz.macosforge.org/landing/)
-    #. wget http://xquartz.macosforge.org/downloads/SL/XQuartz-2.7.1.dmg
-    #. hdiutil attach XQuartz-2.7.1.dmg 
-    #. cd /Volumes/XQuartz-2.7.1/
+    #. wget http://xquartz.macosforge.org/downloads/SL/XQuartz-2.7.2.dmg
+    #. hdiutil attach XQuartz-2.7.2.dmg 
+    #. cd /Volumes/XQuartz-2.7.2/
     #. sudo /usr/sbin/installer -pkg XQuartz.pkg -target /
     #. cd ~
-    #. hdiutil detach /Volumes/XQuartz-2.7.1
+    #. hdiutil detach /Volumes/XQuartz-2.7.2
     #. sudo port install git-core
     #. Install numpydoc (http://pypi.python.org/pypi/numpydoc)
     #. wget http://pypi.python.org/packages/source/n/numpydoc/numpydoc-0.4.tar.gz#md5=e5bdd98f84f2bb220373819e20c27091

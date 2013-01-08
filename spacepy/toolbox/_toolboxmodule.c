@@ -46,7 +46,7 @@ static PyObject *linspace_tb(PyObject *self, PyObject *args, PyObject *kwargs)
     Py_ssize_t num, ii;
     short endpoint=TRUE, retstep=FALSE, forcedate=FALSE;
     PyObject *outval, *outtuple, *calltuple;
-    PyObject *datetime_module;
+    PyObject *datetime_module=NULL;
 
     static char *kwlist[] = {"startVal", "stopVal", "num", "endpoint", "retstep", "forcedate", NULL};
 

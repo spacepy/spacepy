@@ -143,6 +143,45 @@ class dmarrayTests(unittest.TestCase):
         super(dmarrayTests, self).tearDown()
         del self.dat
 
+    def test_append(self):
+        """append should maintain all Allowed_Attributes"""
+        d2 = dm.dmarray.append(self.dat, -1)
+        np.testing.assert_array_equal([1,2,3, 4, -1], d2)
+        self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
+
+    def test_vstack(self):
+        """vstack should maintain all Allowed_Attributes"""
+        d2 = dm.dmarray.vstack(self.dat, [-1,-2,-3,-4])
+        np.testing.assert_array_equal(
+            np.asarray([[ 1,  2,  3,  4],[-1, -2, -3, -4]]), d2)
+        self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
+
+    def test_hstack(self):
+        """hstack should maintain all Allowed_Attributes"""
+        d2 = dm.dmarray.hstack(self.dat, [-1,-2,-3,-4])
+        np.testing.assert_array_equal(
+            np.asarray([ 1,  2,  3,  4, -1, -2, -3, -4]), d2)
+        self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
+
+    def test_dstack(self):
+        """dstack should maintain all Allowed_Attributes"""
+        d2 = dm.dmarray.dstack(self.dat, [-1,-2,-3,-4])
+        np.testing.assert_array_equal(
+            np.asarray([[[ 1, -1], [ 2, -2], [ 3, -3], [ 4, -4]]]), d2)
+        self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
+
+    def test_concatenate(self):
+        """concatenate should maintain all Allowed_Attributes"""
+        d2 = dm.dmarray.concatenate(self.dat, [-1,-2,-3,-4])
+        np.testing.assert_array_equal(
+            np.asarray([ 1,  2,  3,  4, -1, -2, -3, -4]), d2)
+        self.assertEqual(d2.attrs, self.dat.attrs)
+        self.assertFalse(d2.attrs is self.dat.attrs)
+
     def test_count(self):
         """count should work like on a list"""
         self.assertEqual(1, self.dat.count(1))
@@ -323,11 +362,11 @@ class converterTests(unittest.TestCase):
         self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
 
     def test_dateToISO(self):
-        """dateToISO shold recurce properly"""
+        """dateToISO should recurse properly"""
         d1 = {'k1':datetime.datetime(2012,12,21)}
         self.assertEqual({'k1': '2012-12-21T00:00:00'}, dm._dateToISO(d1))
         d1 = {'k1':{'k2':datetime.datetime(2012,12,21)}}
-        # regession, it does not traverse nested dicts
+        # regression, it does not traverse nested dicts
         self.assertEqual({'k1': {'k2': datetime.datetime(2012, 12, 21, 0, 0)}}, dm._dateToISO(d1))
         d1 = {'k1':[datetime.datetime(2012,12,21), datetime.datetime(2012,12,22)] }
         self.assertEqual({'k1': ['2012-12-21T00:00:00', '2012-12-22T00:00:00']}, dm._dateToISO(d1))
@@ -367,7 +406,7 @@ class JSONTests(unittest.TestCase):
                 u'Pfs_geod_Height', u'Rgeo', u'InvLat_eq', u'M_used',
                 u'Loss_Cone_Alpha_s', u'Bfn_gsm', u'Pfn_ED_MLON', u'Pfn_geo',
                 u'InvLat', u'Pfs_ED_MLON']
-        # make sure data has all te keys and no more or less
+        # make sure data has all the keys and no more or less
         for k in dat:
             self.assertTrue(k in keys)
             ind = keys.index(k)
@@ -453,8 +492,9 @@ class JSONTests(unittest.TestCase):
         dat2 = dm.readJSONheadedASCII(t_file.name)
         #test global attr
         self.assertTrue(a.attrs==dat2.attrs)
-        #test that metadata is back and unchanged
-        self.assertTrue(a['MVar'].attrs==dat2['MVar'].attrs)
+        #test that metadata is back and all original keys are present
+        for key in a['MVar'].attrs:
+            self.assertTrue(key in dat2['MVar'].attrs)
         np.testing.assert_array_equal(a['MVar'], dat2['MVar'])
         #test vars are right
         np.testing.assert_allclose(a['Var1'], dat2['Var1'])
@@ -462,7 +502,7 @@ class JSONTests(unittest.TestCase):
         #test for added dimension and start col
         self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
         self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
-        
+
 
 
 if __name__ == "__main__":
