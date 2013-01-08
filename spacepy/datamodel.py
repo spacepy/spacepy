@@ -628,7 +628,8 @@ def toCDF(fname, SDobject, **kwargs):
 
     with pycdf.CDF(fname, defaults['skeleton']) as outdata:
         if hasattr(SDobject, 'attrs'):
-            outdata.attrs = dmcopy(SDobject.attrs)
+            for akey in SDobject.attrs:
+                outdata.attrs[akey] = dmcopy(SDobject.attrs[akey])
         for key in SDobject:
             if isinstance(SDobject[key], dict):
                 raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
