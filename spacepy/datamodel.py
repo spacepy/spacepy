@@ -291,24 +291,68 @@ class dmarray(numpy.ndarray):
         mask = self == srchval
         return int(mask.sum())
 
-    @classmethod
-    def append(self, one, other):
-        """
-        append data to an existing dmarray
-        """
-        Allowed_Attributes = one.Allowed_Attributes
+    def _saveAttrs(self):
+        Allowed_Attributes = self.Allowed_Attributes
         backup = []
         for atr in Allowed_Attributes:
-            backup.append( (atr, one.__getattribute__(atr) ) )
-        outarr = dmarray(numpy.append(one, other))
+            backup.append( (atr, self.__getattribute__(atr) ) )
+        return backup
+
+    @classmethod
+    def _replaceAttrs(cls, arr, backup):
         for key, val in backup:
             if key != 'attrs':
                 try:
-                    outarr.addAttribute(key)
+                    arr.addAttribute(key)
                 except NameError:
                     pass
-            outarr.__setattr__(key, val)
-        return outarr
+            arr.__setattr__(key, val)
+        return arr
+
+    @classmethod
+    def append(cls, one, other):
+        """
+        append data to an existing dmarray
+        """
+        backup = one._saveAttrs()
+        outarr = dmarray(numpy.append(one, other))
+        return cls._replaceAttrs(outarr, backup)
+
+    @classmethod
+    def vstack(cls, one, other):
+        """
+        vstack data to an existing dmarray
+        """
+        backup = one._saveAttrs()
+        outarr = dmarray(numpy.vstack( (one, other) ))
+        return cls._replaceAttrs(outarr, backup)
+
+    @classmethod
+    def hstack(cls, one, other):
+        """
+        hstack data to an existing dmarray
+        """
+        backup = one._saveAttrs()
+        outarr = dmarray(numpy.hstack( (one, other) ))
+        return cls._replaceAttrs(outarr, backup)
+
+    @classmethod
+    def dstack(cls, one, other):
+        """
+        dstack data to an existing dmarray
+        """
+        backup = one._saveAttrs()
+        outarr = dmarray(numpy.dstack( (one, other) ))
+        return cls._replaceAttrs(outarr, backup)
+
+    @classmethod
+    def concatenate(cls, one, other, axis=0):
+        """
+        concatenate data to an existing dmarray
+        """
+        backup = one._saveAttrs()
+        outarr = dmarray(numpy.concatenate( (one, other) , axis=axis ))
+        return cls._replaceAttrs(outarr, backup)
 
 
 class SpaceData(dict):
