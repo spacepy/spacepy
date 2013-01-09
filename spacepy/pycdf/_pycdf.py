@@ -3050,6 +3050,8 @@ class _Hyperslice(object):
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16,
                          const.CDF_TIME_TT2000]
+            if not lib.supports_int8:
+                del types[-1]
         elif d is data: #numpy array came in, use its type
             types = [k for k in lib.numpytypedict
                      if lib.numpytypedict[k] == d.dtype
