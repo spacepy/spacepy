@@ -2015,6 +2015,8 @@ class Var(collections.MutableSequence):
     @ivar _attrlistref: reference to the attribute list
                         (use L{attrs} instead)
     @type _attrlistref: weakref
+    @ivar _raw: skip all data conversions (raw access), default False
+    @ivar _raw: False
     @raise CDFError: if CDF library reports an error
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
@@ -2051,6 +2053,7 @@ class Var(collections.MutableSequence):
         self.cdf_file = cdf_file
         self._name = None
         self._type = None
+        self._raw = False
         if len(args) == 0:
             self._get(var_name)
         else:
@@ -2155,16 +2158,28 @@ class Var(collections.MutableSequence):
         hslice.expand(data)
         cdf_type = self.type()
         if cdf_type == const.CDF_EPOCH16.value:
-            data = numpy.require(lib.v_datetime_to_epoch16(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_epoch16(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_EPOCH.value:
-            data = numpy.require(lib.v_datetime_to_epoch(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_epoch(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_TIME_TT2000.value:
-            data = numpy.require(lib.v_datetime_to_tt2000(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_tt2000(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.int64)
         else:
              data = numpy.require(data, requirements=('C', 'A', 'W'),

@@ -2405,6 +2405,41 @@ class ChangeCDF(CDFTests):
         self.assertEqual('hi', self.cdf['teststr'][0])
         self.assertEqual('there', self.cdf['teststr'][1])
 
+    def testFloatEpoch(self):
+        """Write floats to an Epoch variable"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH)
+        data = numpy.array([62987673600000.0,
+                            62987760000000.0], dtype=numpy.float64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
+
+    def testFloatEpoch16(self):
+        """Write floats to an Epoch16 variable"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH16)
+        data = numpy.array([[62987673600.0, 0.0],
+                            [62987760000.0, 0.0]], dtype=numpy.float64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
+
+    def testInt8TT2000(self):
+        """Write integers to a TT2000 variable"""
+        if not cdf.lib.supports_int8:
+            return
+        self.cdf.new('epochtest', type=const.CDF_TIME_TT2000)
+        data = numpy.array([-126273537816000000L,
+                            -126187137816000000L], dtype=numpy.int64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
+
 
 class ChangeColCDF(ColCDFTests):
     """Tests that modify an existing colum-major CDF"""
