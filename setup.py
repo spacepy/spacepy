@@ -462,6 +462,14 @@ class install(_install):
                 'h5py not found; required for parts of datamodel.')
             bad = True
         try:
+            print ('Checking for networkx...')
+            import networkx
+        except:
+            wtext = 'networkx not found; required for LANLstar.\n' + \
+                    '  - see http://networkx.github.com/'
+            self.distribution.add_warning(wtext)
+            bad = True            
+        try:
             print ('Checking for ffnet...')
             import ffnet
         except:
