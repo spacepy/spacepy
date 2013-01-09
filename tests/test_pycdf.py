@@ -2395,6 +2395,16 @@ class ChangeCDF(CDFTests):
             else:
                 self.fail('Should have raised ValueError: ' + message)
 
+    def testUnicodeString(self):
+        """Write Unicode to a string variable"""
+        if str != bytes: #py3k:
+            data = [ 'hi', 'there']
+        else:
+            data = ['hi'.decode(), 'there'.decode()]
+        self.cdf['teststr'] = data
+        self.assertEqual('hi', self.cdf['teststr'][0])
+        self.assertEqual('there', self.cdf['teststr'][1])
+
 
 class ChangeColCDF(ColCDFTests):
     """Tests that modify an existing colum-major CDF"""
