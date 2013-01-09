@@ -486,13 +486,29 @@ class MakeCDF(unittest.TestCase):
                 [5.0, 6.0], cdffile['flux'][...])
             self.assertEqual(cdffile['flux'].dtype, numpy.float64)
 
-    def testEPCOH16inBackward(self):
+    def testEPOCH16inBackward(self):
         """Create backward-compatible CDF with EPOCH16"""
         msg = 'Cannot use EPOCH16, INT8, or TIME_TT2000 ' \
             'in backward-compatible CDF'
         newcdf = cdf.CDF(self.testfspec, '')
         try:
             newcdf.new('foo', type=const.CDF_EPOCH16)
+        except ValueError:
+            self.assertEqual(msg, str(sys.exc_info()[1]))
+        else:
+            self.fail('Should have raised ValueError: ' + msg)
+        newcdf.close()
+        os.remove(self.testfspec)
+
+    def testInt64inBackward(self):
+        """Create backward-compatible CDF with INT8"""
+        if not cdf.lib.supports_int8:
+            return
+        msg = 'Data requires EPOCH16, INT8, or TIME_TT2000; ' \
+            'incompatible with backward-compatible CDF'
+        newcdf = cdf.CDF(self.testfspec, '')
+        try:
+            newcdf.new('foo', data=numpy.array([1,2,3], dtype=numpy.int64))
         except ValueError:
             self.assertEqual(msg, str(sys.exc_info()[1]))
         else:

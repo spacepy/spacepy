@@ -1672,6 +1672,14 @@ class CDF(collections.MutableMapping):
                     for dimVary in dimVarys]
         if not hasattr(type, 'value'):
             type = ctypes.c_long(type)
+        if type.value == const.CDF_INT8.value and not lib.supports_int8:
+            raise ValueError(
+                '64-bit integer support require CDF library 3.4.0')
+        if type.value in (const.CDF_EPOCH16.value, const.CDF_INT8.value,
+                    const.CDF_TIME_TT2000.value) \
+                and self.version()[0] < 3:
+            raise ValueError('Data requires EPOCH16, INT8, or TIME_TT2000; '
+                             'incompatible with backward-compatible CDF')
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
         if data != None:
             new_var[...] = data
