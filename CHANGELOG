@@ -8,7 +8,19 @@ Changes in Version 0.1.4
     - printfig, smartTimeTicks, applySmartTimeTicks, timestamp functions
       (moved to plot.utils)
     - leapyear, randomDate functions (moved to time)
-- Updated to latest revision of IRBEM library (rev425)
+- Minor bugfixes and speed-ups across package
+- Expanded unit-testing
+- Changed download prompt on install to information only
+datamodel
+ - output from datamodel to JSON-headed ASCII added
+ - output from datamodel to NASA CDF added
+ - new methods on dmarrays (append, concatenate, h/v/dstack)
+irbempy
+ - updated to latest revision of IRBEM library (rev425)
+ - consistent with IRBEMlib release version 4.4.0
+LANL*
+ - added new neural network trained on RAM-SCB model (valid inside 6.6Re)
+
 
 Changes in Version 0.1.3
 ========================
