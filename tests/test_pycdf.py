@@ -1461,6 +1461,52 @@ class ReadCDF(CDFTests):
             copy[numpy.array([True, False, False, False, False, True]
                              + [False] * 94)])
 
+    def testReadEpoch16Raw(self):
+        """Read an Epoch16 value, raw mode"""
+        expected = numpy.array([63052041605.0, 334662000000.0],
+                               dtype=numpy.float64)
+        numpy.testing.assert_array_equal(
+            expected, self.cdf.raw_var('ATC')[0])
+        expected = numpy.array([
+            [63052042008.0, 231000000.0],
+            [63052042110.0, 157015000000.0],
+            [63052042212.0, 313815000000.0],
+            [63052042314.0, 507400000000.0]
+            ], dtype=numpy.float64)
+        numpy.testing.assert_array_equal(
+            expected, self.cdf.raw_var('ATC')[4:8])
+
+    def testReadEpoch8Raw(self):
+        """Read an Epoch value, raw mode"""
+        expected = 63052041600000.0
+        self.assertEqual(expected,
+                         self.cdf.raw_var('Epoch')[0])
+        expected = numpy.array([63052041840000.0,
+                                63052041900000.0,
+                                63052041960000.0,
+                                63052042020000.0,
+                                ], dtype=numpy.float64)
+        numpy.testing.assert_array_equal(
+            expected, self.cdf.raw_var('Epoch')[4:8])
+
+    def testReadEpoch8AttrRaw(self):
+        """Read an Epoch attribute, raw mode"""
+        expected = 62987673600000.0
+        self.assertEqual(expected,
+                         self.cdf.raw_var('Epoch').attrs['VALIDMIN'])
+
+    def testReadCharRaw(self):
+        """Read a string, raw mode"""
+        #Verify that we're getting bytes, not unicode
+        self.assertEqual('S',
+                         self.cdf['RateScalerNames'][...].dtype.char)
+
+    def testReadCharConverted(self):
+        """Read a string, not raw mode"""
+        #verify getting unicode on py3k
+        self.assertEqual('U' if str != bytes else 'S',
+                         self.cdf['RateScalerNames'][...].dtype.char)
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
@@ -2415,6 +2461,18 @@ class ChangeCDF(CDFTests):
             numpy.array([datetime.datetime(1996, 1, 1),
                          datetime.datetime(1996, 1, 2)]),
             self.cdf['epochtest'][:])
+
+    def testEpochForceRaw(self):
+        """Try to write datetime to a forced-raw Epoch"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH)
+        try:
+            self.cdf.raw_var('epochtest')[:] = [
+                datetime.datetime(1996, 1, 1),
+                datetime.datetime(1996, 1, 2)]
+        except TypeError:
+            pass
+        else:
+            self.fail('Should have raised TypeError')
 
     def testFloatEpoch16(self):
         """Write floats to an Epoch16 variable"""

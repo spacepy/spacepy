@@ -1037,6 +1037,7 @@ class CDF(collections.MutableMapping):
         ~CDF.copy
         ~CDF.from_data
         ~CDF.new
+        ~CDF.raw_var
         ~CDF.readonly
         ~CDF.save
         ~CDF.version
@@ -1053,6 +1054,7 @@ class CDF(collections.MutableMapping):
     .. automethod:: copy
     .. automethod:: from_data
     .. automethod:: new
+    .. automethod:: raw_var
     .. automethod:: readonly
     .. automethod:: save
     .. automethod:: version
@@ -1686,6 +1688,28 @@ class CDF(collections.MutableMapping):
             if hasattr(data, 'attrs'):
                 new_var.attrs.from_dict(data.attrs)
         return new_var
+
+    def raw_var(self, name):
+        """
+        Get a "raw" :class:`Var` object.
+
+        Normally a :class:`Var` will perform translation of values for
+        certain types (to/from Unicode for CHAR variables on Py3k,
+        and to/from datetime for all time types). A "raw" object
+        does not perform this translation, on read or write.
+
+        This does *not* affect the data on disk, and in fact it
+        is possible to maintain multiple Python objects with access
+        to the same zVariable.
+
+        Parameters
+        ==========
+        name : str
+            name or number of the zVariable
+        """
+        v = self[name]
+        v._raw = True
+        return v
 
     def save(self):
         """
@@ -2860,39 +2884,22 @@ class _Hyperslice(object):
         out : numpy.array
             converted data
         """
+        result = self._flip_array(buffer)
+
         #Convert to derived types
         cdftype = self.zvar.type()
-        if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
-           str != bytes:
-            result = numpy.char.array(buffer).decode()
-        elif cdftype == const.CDF_EPOCH.value:
-            result = lib.v_epoch_to_datetime(buffer)
-        elif cdftype == const.CDF_EPOCH16.value:
-            result = lib.v_epoch16_to_datetime(buffer)
-        elif cdftype == const.CDF_TIME_TT2000.value:
-            result = lib.v_tt2000_to_datetime(buffer)
-        else:
-            result = buffer
-            
-        #Flip majority if any non-degenerate dimensions exist
-        if self.column and not min(self.degen):
-            #Record-number dim degen, swap whole thing
-            if self.degen[0]:
-                result = result.transpose()
-            #Record-number dimension is not degenerate, so keep it first
-            else:
-                result = result.transpose(
-                    [0] + list(range(len(result.shape) - 1, 0, -1)))
-        #Reverse non-degenerate dimensions in rev
-        #Remember that the degenerate indices are already gone!
-        if self.rev.any():
-            sliced = [(slice(None, None, -1) if self.rev[i] else slice(None))
-                for i in range(self.dims) if not self.degen[i]]
-            return operator.getitem(result, sliced)
-        else:
-            return result
+        if not self.zvar._raw:
+            if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
+                    str != bytes:
+                result = numpy.char.array(result).decode()
+            elif cdftype == const.CDF_EPOCH.value:
+                result = lib.v_epoch_to_datetime(result)
+            elif cdftype == const.CDF_EPOCH16.value:
+                result = lib.v_epoch16_to_datetime(result)
+            elif cdftype == const.CDF_TIME_TT2000.value:
+                result = lib.v_tt2000_to_datetime(result)
+        return result
 
-    #TODO: Huge overlap with above, try to combine?
     def convert_output_array(self, buffer):
         """Convert a buffer of data that will go into this slice
          
@@ -2907,36 +2914,45 @@ class _Hyperslice(object):
         input with majority flipped and dimensions reversed to be
         suitable to pass directly to CDF library.
         """
+        buffer = self._flip_array(buffer)
+        return numpy.require(buffer, requirements=('C', 'A', 'W'))
+
+    def _flip_array(self, data):
+        """
+        Operations for majority, etc. common between convert_input and _output
+        """
+        cdftype = self.zvar.type()
         #Flip majority if any non-degenerate dimensions exist
         if self.column and not min(self.degen):
-            cdftype = self.zvar.type()
             #Record-number dim degen, swap whole thing
             if self.degen[0]:
                 if cdftype == const.CDF_EPOCH16.value:
                     #Maintain last dimension
-                    buffer = buffer.transpose(
-                        list(range(len(buffer.shape) - 2, 0, -1)) +
-                        [len(buffer.shape) - 1]
+                    data = data.transpose(
+                        list(range(len(data.shape) - 2, 0, -1)) +
+                        [len(data.shape) - 1]
                         )
                 else:
-                    buffer = buffer.transpose()
+                    data = data.transpose()
             #Record-number dimension is not degenerate, so keep it first
             else:
                 if cdftype == const.CDF_EPOCH16.value:
-                    buffer = buffer.transpose(
-                        [0] + list(range(len(buffer.shape) - 2, 0, -1)) +
-                        [len(buffer.shape) - 1]
+                    data = data.transpose(
+                        [0] + list(range(len(data.shape) - 2, 0, -1)) +
+                        [len(data.shape) - 1]
                         )
                 else:
-                    buffer = buffer.transpose(
-                        [0] + list(range(len(buffer.shape) - 1, 0, -1)))
+                    data = data.transpose(
+                        [0] + list(range(len(data.shape) - 1, 0, -1)))
         #Reverse non-degenerate dimensions in rev
         #Remember that the degenerate indices are already gone!
         if self.rev.any():
             sliced = [(slice(None, None, -1) if self.rev[i] else slice(None))
                       for i in range(self.dims) if not self.degen[i]]
-            buffer = operator.getitem(buffer, sliced)
-        return numpy.require(buffer, requirements=('C', 'A', 'W'))
+            if cdftype == const.CDF_EPOCH16.value: #don't reverse last dim
+                sliced.extend(slice(None))
+            data = operator.getitem(data, sliced)
+        return data
 
     def select(self):
         """Selects this hyperslice in the CDF
@@ -3236,6 +3252,7 @@ class Attr(collections.MutableSequence):
         @type create: bool
         """
         self._cdf_file = cdf_file
+        self._raw = False
         if isinstance(attr_name, str_classes):
             try:
                 self._name = attr_name.encode('ascii')
@@ -3666,17 +3683,20 @@ class Attr(collections.MutableSequence):
 
         #decode
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
-            if str == bytes: #Py2k
-                result = str(buff)
+            if str == bytes or self._raw: #Py2k, leave as bytes
+                result = bytes(buff)
             else: #Py3k, make unicode
                 result = str(numpy.char.array(buff).decode())
         else:
-            if cdftype == const.CDF_EPOCH.value:
-                result = lib.v_epoch_to_datetime(buff)
-            elif cdftype == const.CDF_EPOCH16.value:
-                result = lib.v_epoch16_to_datetime(buff)
-            elif cdftype == const.CDF_TIME_TT2000.value:
-                result = lib.v_tt2000_to_datetime(buff)
+            if not self._raw:
+                if cdftype == const.CDF_EPOCH.value:
+                    result = lib.v_epoch_to_datetime(buff)
+                elif cdftype == const.CDF_EPOCH16.value:
+                    result = lib.v_epoch16_to_datetime(buff)
+                elif cdftype == const.CDF_TIME_TT2000.value:
+                    result = lib.v_tt2000_to_datetime(buff)
+                else:
+                    result = buff
             else:
                 result = buff
             if length == 1:
@@ -3705,16 +3725,28 @@ class Attr(collections.MutableSequence):
                                  dtype=numpy.dtype('S' + str(elements)))
             n_write = elements
         elif cdf_type == const.CDF_EPOCH16.value:
-            data = numpy.require(lib.v_datetime_to_epoch16(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_epoch16(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_EPOCH.value:
-            data = numpy.require(lib.v_datetime_to_epoch(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_epoch(data),
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_TIME_TT2000.value:
-            data = numpy.require(lib.v_datetime_to_tt2000(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_tt2000(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.int64)
         elif cdf_type in lib.numpytypedict:
             data = numpy.require(data, requirements=('C', 'A', 'W'),
@@ -4271,6 +4303,7 @@ class zAttrList(AttrList):
         attrib = super(zAttrList, self).__getitem__(name)
         zvar_num = self._zvar._num()
         if attrib.has_entry(zvar_num):
+            attrib._raw = self._zvar._raw
             return attrib[zvar_num]
         else:
             raise KeyError(name + ': no such attribute for variable ' +
@@ -4319,6 +4352,7 @@ class zAttrList(AttrList):
         except KeyError:
             attr = zAttr(self._cdf_file, name, True)
         zvar_num = self._zvar._num()
+        attr._raw = self._zvar._raw
         attr[zvar_num] = data
 
     def __len__(self):

@@ -22,7 +22,8 @@ LANL*
  - added new neural network trained on RAM-SCB model (valid inside 6.6Re)
 pycdf
  - fix bug in time types with pre-3.4.1 CDF library
-
+ - provide new CDF.raw_var method to give access to variables without
+   any translation.
 
 Changes in Version 0.1.3
 ========================
