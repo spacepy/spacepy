@@ -50,9 +50,10 @@ def help():
     """Launches web browser with local HTML help"""
     
     import webbrowser
-    fspec = os.path.join(__path__[0], 'Doc', 'index.html')
+    fspec = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'Doc', 'index.html')
     if not os.path.exists(fspec):
-        fspec = os.path.join(__path__[0], '..',
+        fspec = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
                              'Doc', 'build', 'html', 'index.html')
     if os.path.exists(fspec):
         webbrowser.open('file://' + fspec)
