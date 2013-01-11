@@ -69,17 +69,27 @@ class Library(object):
         ~Library.datetime_to_epoch16
         ~Library.datetime_to_tt2000
         ~Library.epoch_to_datetime
+        ~Library.epoch_to_epoch16
+        ~Library.epoch_to_tt2000
         ~Library.epoch16_to_datetime
+        ~Library.epoch16_to_epoch
+        ~Library.epoch16_to_tt2000
         ~Library.set_backward
         supports_int8
         ~Library.tt2000_to_datetime
+        ~Library.tt2000_to_epoch
+        ~Library.tt2000_to_epoch16
         v_datetime_to_epoch
         v_datetime_to_epoch16
         v_datetime_to_tt2000
         v_epoch_to_datetime
+        v_epoch_to_tt2000
         v_epoch16_to_datetime
+        v_epoch16_to_tt2000
         v_tt2000_to_datetime
-        version
+        v_tt2000_to_epoch
+        v_tt2000_to_epoch16
+        ~Library.version
 
     .. automethod:: call
     .. automethod:: check_status
@@ -87,7 +97,11 @@ class Library(object):
     .. automethod:: datetime_to_epoch16
     .. automethod:: datetime_to_tt2000
     .. automethod:: epoch_to_datetime
+    .. automethod:: epoch_to_epoch16
+    .. automethod:: epoch_to_tt2000
     .. automethod:: epoch16_to_datetime
+    .. automethod:: epoch16_to_epoch
+    .. automethod:: epoch16_to_tt2000
     .. automethod:: set_backward
 
     .. attribute:: supports_int8
@@ -95,6 +109,8 @@ class Library(object):
        True if this library supports INT8 and TIME_TT2000 types; else False.
 
     .. automethod:: tt2000_to_datetime
+    .. automethod:: tt2000_to_epoch
+    .. automethod:: tt2000_to_epoch16
 
     .. method:: v_datetime_to_epoch(datetime)
     
@@ -116,10 +132,22 @@ class Library(object):
         A vectorized version of :meth:`epoch_to_datetime` which takes a
         numpy array of epochs as input and returns an array of datetimes.
 
+    .. method:: v_epoch_to_tt2000(epoch)
+    
+        A vectorized version of :meth:`epoch_to_tt2000` which takes a
+        numpy array of epochs as input and returns an array of tt2000s.
+
     .. method:: v_epoch16_to_datetime(epoch0, epoch1)
     
-        A vectorized version of :meth:`epoch16_to_datetime` which takes two
-        a numpy arrays of epoch16 as input and returns an array of datetimes.
+        A vectorized version of :meth:`epoch16_to_datetime` which takes
+        a numpy array of epoch16 as input and returns an array of datetimes.
+        An epoch16 is a pair of doubles; the input array's last dimension
+        must be two (and the returned array will have one fewer dimension).
+
+    .. method:: v_epoch16_to_tt2000(epoch16)
+    
+        A vectorized version of :meth:`epoch16_to_tt2000` which takes
+        a numpy array of epoch16 as input and returns an array of tt2000s.
         An epoch16 is a pair of doubles; the input array's last dimension
         must be two (and the returned array will have one fewer dimension).
 
@@ -127,6 +155,16 @@ class Library(object):
     
         A vectorized version of :meth:`tt2000_to_datetime` which takes
         a numpy array of tt2000 as input and returns an array of datetimes.
+
+    .. method:: v_tt2000_to_epoch(tt2000)
+    
+        A vectorized version of :meth:`tt2000_to_epoch` which takes
+        a numpy array of tt2000 as input and returns an array of epochs.
+
+    .. method:: v_tt2000_to_epoch16(tt2000)
+    
+        A vectorized version of :meth:`tt2000_to_epoch16` which takes
+        a numpy array of tt2000 as input and returns an array of epoch16.
 
     .. attribute:: version
 
@@ -228,6 +266,21 @@ class Library(object):
             self._library.CDF_TT2000_to_UTC_parts.restype = None
             self._library.CDF_TT2000_to_UTC_parts.argtypes = \
                 [ctypes.c_longlong] + [ctypes.POINTER(ctypes.c_double)] * 9
+        if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH'):
+            self._library.CDF_TT2000_to_UTC_EPOCH.restype = ctypes.c_double
+            self._library.CDF_TT2000_to_UTC_EPOCH.argtypes = [ctypes.c_longlong]
+        if hasattr(self._library, 'CDF_TT2000_from_UTC_EPOCH'):
+            self._library.CDF_TT2000_from_UTC_EPOCH.restype = ctypes.c_longlong
+            self._library.CDF_TT2000_from_UTC_EPOCH.argtypes = [ctypes.c_double]
+        if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH16'):
+            self._library.CDF_TT2000_to_UTC_EPOCH16.restype = None
+            self._library.CDF_TT2000_to_UTC_EPOCH16.argtypes = \
+                [ctypes.c_longlong, ctypes.POINTER(ctypes.c_double * 2)]
+        if hasattr(self._library, 'CDF_TT2000_from_UTC_EPOCH16'):
+            self._library.CDF_TT2000_from_UTC_EPOCH16.restype = \
+                ctypes.c_longlong
+            self._library.CDF_TT2000_from_UTC_EPOCH16.argtypes = \
+                [ctypes.POINTER(ctypes.c_double * 2)]
 
         #Get CDF version information
         ver = ctypes.c_long(0)
@@ -322,11 +375,43 @@ class Library(object):
         self.v_datetime_to_epoch16 = _v_datetime_to_epoch16
         self.v_datetime_to_tt2000 = numpy.vectorize(
             self.datetime_to_tt2000, otypes=[numpy.int64])
+        self.v_epoch_to_tt2000 = numpy.vectorize(
+            self.epoch_to_tt2000, otypes=[numpy.int64])
+        self.v_tt2000_to_epoch = numpy.vectorize(
+            self.tt2000_to_epoch, otypes=[numpy.float64])
+        v_epoch16_to_tt2000 = numpy.frompyfunc(
+            self.epoch16_to_tt2000, 2, 1)
+        self.v_epoch16_to_tt2000 = \
+            lambda x: v_epoch16_to_tt2000(x[..., 0], x[..., 1])
+        v_tt2000_to_epoch16 = numpy.frompyfunc(
+            self.tt2000_to_epoch16, 1, 2)
+        #frompyfunc returns a TUPLE of the returned values,
+        #implicitly the 0th dimension. We want everything from one
+        #call paired, so this rolls the 0th dimension to the last
+        #(via the second-to-last)
+        def _v_tt2000_to_epoch16(x):
+            retval = numpy.require(v_tt2000_to_epoch16(x),
+                                      dtype=numpy.float64)
+            if len(retval.shape) > 1:
+                return numpy.rollaxis(
+                    numpy.rollaxis(retval, 0, -1),
+                    -1, -2)
+            else:
+                return retval
+        self.v_tt2000_to_epoch16 = _v_tt2000_to_epoch16
         if not self.supports_int8:
             self.datetime_to_tt2000 = self._bad_tt2000
             self.tt2000_to_datetime = self._bad_tt2000
             self.v_datetime_to_tt2000 = self._bad_tt2000
             self.v_tt2000_to_datetime = self._bad_tt2000
+            self.epoch_to_tt2000 = self._bad_tt2000
+            self.v_epoch_to_tt2000 = self._bad_tt2000
+            self.tt2000_to_epoch = self._bad_tt2000
+            self.v_tt2000_to_epoch = self._bad_tt2000
+            self.epoch_16_to_tt2000 =  self._bad_tt2000
+            self.v_epoch16_to_tt2000 = self._bad_tt2000
+            self.tt2000_to_epoch16 = self._bad_tt2000
+            self.v_tt2000_to_epoch16 = self._bad_tt2000
 
         #Default to V2 CDF
         self.set_backward(True)
@@ -603,6 +688,49 @@ class Library(object):
                                      epoch16)
         return (epoch16[0], epoch16[1])
 
+    def epoch_to_epoch16(self, epoch):
+        """
+        Converts a CDF EPOCH to a CDF EPOCH16 value
+
+        Parameters
+        ==========
+        epoch : double
+            EPOCH to convert. Lists and numpy arrays are acceptable.
+
+        Returns
+        =======
+        out : (double, double)
+            EPOCH16 corresponding to epoch
+        """
+        e = numpy.require(epoch, numpy.float64)
+        s = numpy.trunc(e / 1000.0)
+        #ugly numpy stuff, probably a better way....
+        res = numpy.hstack((s, (e - s * 1000.0) * 1e9))
+        if len(res) <= 2:
+            return res
+        newshape = list(res.shape[0:-2])
+        newshape.append(res.shape[-1] / 2)
+        newshape.append(2)
+        return numpy.rollaxis(res.reshape(newshape), -1, -2)
+
+    def epoch16_to_epoch(self, epoch16):
+        """
+        Converts a CDF EPOCH16 to a CDF EPOCH value
+
+        Parameters
+        ==========
+        epoch16 : (double, double)
+            EPOCH16 to convert. Lists and numpy arrays are acceptable.
+            LAST dimension should be 2: the two pairs of EPOCH16
+
+        Returns
+        =======
+        out : double
+            EPOCH corresponding to epoch16
+        """
+        e = numpy.require(epoch16, numpy.float64)
+        return e[..., 0] * 1000.0 + numpy.trunc(e[..., 1] / 1e9)
+
     def tt2000_to_datetime(self, tt2000):
         """
         Converts a CDF TT2000 value to a datetime
@@ -696,6 +824,121 @@ class Library(object):
             dt.minute, dt.second,
             int(dt.microsecond / 1000),
             dt.microsecond % 1000, 0)
+
+    def epoch_to_tt2000(self, epoch):
+        """
+        Converts a CDF EPOCH to a CDF TT2000 value
+
+        Parameters
+        ==========
+        epoch : double
+            EPOCH to convert
+
+        Returns
+        =======
+        out : int
+            tt2000 corresponding to epoch
+
+        See Also
+        ========
+        v_epoch_to_tt2000
+        """
+        return self._library.CDF_TT2000_from_UTC_EPOCH(epoch)
+
+    def tt2000_to_epoch(self, tt2000):
+        """
+        Converts a CDF TT2000 value to a CDF EPOCH
+
+        .. note::
+            Although TT2000 values support leapseconds, CDF EPOCH values
+            do not. Times during leapseconds are rounded up to beginning
+            of the next day.
+
+
+        Parameters
+        ==========
+        tt2000 : int
+            TT2000 value from CDF
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : double
+            EPOCH corresponding to the TT2000 input time
+
+        See Also
+        ========
+        v_tt2000_to_epoch
+        """
+        return self._library.CDF_TT2000_to_UTC_EPOCH(tt2000)
+
+    def epoch16_to_tt2000(self, epoch0, epoch1):
+        """
+        Converts a CDF epoch16 value to TT2000
+
+        .. note::
+            Because TT2000 does not support picoseconds, the picoseconds
+            value in epoch is ignored (i.e., truncated.)
+
+        Parameters
+        ==========
+        epoch0 : float
+            epoch16 value from CDF, first half
+        epoch1 : float
+            epoch16 value from CDF, second half
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : long
+            TT2000 corresponding to epoch.
+
+        See Also
+        ========
+        v_epoch16_to_tt2000
+        """
+        return self._library.CDF_TT2000_from_UTC_EPOCH16(
+            (ctypes.c_double * 2)(epoch0, epoch1))
+
+    def tt2000_to_epoch16(self, tt2000):
+        """
+        Converts a CDF TT2000 value to a CDF EPOCH16
+
+        .. note::
+            Although TT2000 values support leapseconds, CDF EPOCH16 values
+            do not. Times during leapseconds are rounded up to beginning
+            of the next day.
+
+        Parameters
+        ==========
+        tt2000 : int
+            TT2000 value from CDF
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : double, double
+            EPOCH16 corresponding to the TT2000 input time
+
+        See Also
+        ========
+        v_tt2000_to_epoch16
+        """
+        epoch16 = numpy.empty((2,), dtype=numpy.float64)
+        self._library.CDF_TT2000_to_UTC_EPOCH16(
+            tt2000, numpy.ctypeslib.as_ctypes(epoch16))
+        #without this, vectorized version breaks
+        str(epoch16)
+        return (epoch16[0], epoch16[1])
 
     def _bad_tt2000(*args, **kwargs):
         """Convenience function for complaining that TT2000 not supported"""

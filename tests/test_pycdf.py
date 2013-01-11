@@ -242,6 +242,99 @@ class NoCDF(unittest.TestCase):
         expected = numpy.array(epochs)
         numpy.testing.assert_array_equal(expected, result)
 
+    def testEpochToTT2000(self):
+        """Epoch to TT2000"""
+        if not cdf.lib.supports_int8:
+            self.assertRaises(NotImplementedError, cdf.lib.epoch_to_tt2000,
+                              63397987200000.0)
+            return
+        epochs = [63397987200000.0,
+                  63397987200001.0,
+                  ]
+        tt2000s = [284040066184000000L,
+                   284040066185000000L,
+                   ]
+        for (epoch, tt2000) in zip(epochs, tt2000s):
+            self.assertEqual(
+                tt2000, cdf.lib.epoch_to_tt2000(epoch))
+        result = cdf.lib.v_epoch_to_tt2000(epochs)
+        expected = numpy.array(tt2000s)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testTT2000ToEpoch(self):
+        """TT2000 to Epoch"""
+        if not cdf.lib.supports_int8:
+            self.assertRaises(NotImplementedError, cdf.lib.tt2000_to_epoch,
+                              284040066184000000L)
+            return
+        epochs = [63397987200000.0,
+                  63397987200001.0,
+                  ]
+        tt2000s = [284040066184000000L,
+                   284040066185000000L,
+                   ]
+        for (epoch, tt2000) in zip(epochs, tt2000s):
+            self.assertEqual(
+                epoch, cdf.lib.tt2000_to_epoch(tt2000))
+        result = cdf.lib.v_tt2000_to_epoch(tt2000s)
+        expected = numpy.array(epochs)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testEpoch16ToTT2000(self):
+        epochs = [[63397987199.0, 999999999999.0],
+                  [63400665600.0, 100000000.0],
+                  ]
+        tt2000s = [284040065183999999L,
+                   286718466184100000L,
+                   ]
+        for (epoch, tt2000) in zip(epochs, tt2000s):
+            self.assertEqual(tt2000, cdf.lib.epoch16_to_tt2000(*epoch))
+        result = cdf.lib.v_epoch16_to_tt2000(numpy.array(epochs))
+        expected = numpy.array(tt2000s)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testTT2000ToEpoch16(self):
+        epochs = [[63366364799.0, 999999999000.0],
+                  [63400665600.0, 100000000.0],
+                  ]
+        tt2000s = [252417665183999999L,
+                   286718466184100000L,
+                   ]
+        result = cdf.lib.v_tt2000_to_epoch16(numpy.array(tt2000s))
+        expected = numpy.array(epochs)
+        numpy.testing.assert_array_equal(expected, result)
+        for (epoch, tt2000) in zip(epochs, tt2000s):
+            self.assertEqual(epoch, list(cdf.lib.tt2000_to_epoch16(tt2000)))
+
+    def testEpochtoEpoch16(self):
+        """Convert an Epoch to Epoch16"""
+        epochs = [63397987200000.0,
+                  63397987200001.0,
+                  ]
+        epoch16s = [(63397987200.0, 0.0),
+                   (63397987200.0, 1000000000.0),
+                   ]
+        for (epoch, epoch16) in zip(epochs, epoch16s):
+            numpy.testing.assert_array_equal(
+                epoch16, cdf.lib.epoch_to_epoch16(epoch))
+        result = cdf.lib.epoch_to_epoch16(epochs)
+        expected = numpy.array(epoch16s)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testEpoch16toEpoch(self):
+        """Convert an Epoch16 to Epoch"""
+        epochs = [63397987200000.0,
+                  63397987200001.0,
+                  ]
+        epoch16s = [(63397987200.0, 0.0),
+                   (63397987200.0, 1000000000.0),
+                   ]
+        for (epoch, epoch16) in zip(epochs, epoch16s):
+            self.assertEqual(epoch, cdf.lib.epoch16_to_epoch(epoch16))
+        result = cdf.lib.epoch16_to_epoch(epoch16s)
+        expected = numpy.array(epochs)
+        numpy.testing.assert_array_equal(expected, result)
+
     def testDatetimeEpoch16RT(self):
         """Roundtrip datetimes to epoch16s and back"""
         dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),

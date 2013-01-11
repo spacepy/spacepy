@@ -24,6 +24,8 @@ pycdf
  - fix bug in time types with pre-3.4.1 CDF library
  - provide new CDF.raw_var method to give access to variables without
    any translation.
+ - added functions to translate between EPOCH, EPOCH16, TT2000 without going
+   through datetime.
 
 Changes in Version 0.1.3
 ========================
