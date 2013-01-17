@@ -21,17 +21,19 @@ class empFunctionTests(unittest.TestCase):
 
     def test_getPlasmaPause_regress(self):
         """regression test for plasmapause location"""
-        real_ans = np.array([ 6.3475,  6.3475,  6.3475,  6.3475,  6.3475,  6.3475,  6.3475,
-                           6.1775,  5.625 ,  5.4975,  5.4975])
+        real_ans = np.array([ 4.05249998,  4.05249998,  4.05249998,  4.05249998,  4.05249998,
+                            4.05249998,  4.05249998,  4.22250002,  4.775     ,  4.90250001,
+                            4.90250001])
         ans = em.getPlasmaPause(self.ticks, LT=12)
+        np.testing.assert_allclose(real_ans, ans)
 
         real_ans = np.array([ 3.76 ,  3.76 ,  4.358,  4.358,  4.358,  4.358,  4.358,  4.358,
                             4.358,  4.542,  5.14])
         ans = em.getPlasmaPause(self.ticks, 'CA1992')
         np.testing.assert_allclose(real_ans, ans)
 
-        real_ans = np.array([ 6.4214,  6.4214,  6.4214,  6.4214,  6.4214,  6.4214,  6.4214,
-                            6.2686,  5.772 ,  5.6574,  5.6574])
+        real_ans = np.array([ 4.35859998, 4.35859998, 4.35859998, 4.35859998, 4.35859998, 
+                            4.35859998, 4.35859998, 4.51140002, 5.008, 5.1226, 5.1226])
         ans = em.getPlasmaPause(self.ticks)
         np.testing.assert_allclose(real_ans, ans)
 

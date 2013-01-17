@@ -111,7 +111,7 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
 
     if LT=='all':
         parA = {'CA1992': 5.6, 'M2002': 5.39}
-        parB = {'CA1992': 0.46, 'M2002': -0.382}
+        parB = {'CA1992': 0.46, 'M2002': 0.382}
         priorvals = {'CA1992': datetime.timedelta(hours=24),
                      'M2002': datetime.timedelta(hours=12)}
         A, B = parA[model], parB[model]
@@ -124,7 +124,7 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
         parA = {'CA1992': [5.6]*24,
                 'M2002': [5.7]*3+[6.05]*6+[5.2]*6+[4.45]*6+[5.7]*3}
         parB = {'CA1992': [0.46]*24,
-                'M2002': [-0.42]*3+[-0.573]*6+[-0.425]*6+[-0.167]*6+[-0.42]*3}
+                'M2002': [0.42]*3+[0.573]*6+[0.425]*6+[0.167]*6+[0.42]*3}
         priorvals = {'CA1992': [datetime.timedelta(hours=24)]*24,
                      'M2002': [datetime.timedelta(hours=12)]*24}
         LThr = long(LT)
