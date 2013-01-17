@@ -40,9 +40,10 @@ To cite SpacePy in publications, use (BibTeX code):
     }
 
 Certain modules may provide additional citations in the ``__citation__``
-attribute. Contact a module's author before publication or public
-presentation of analysis performed by that module. This allows the author
-to validate the analysis and receive appropriate credit for his or her
+attribute. Contact a module's author (details in the ``__citation__`` attribute) 
+before publication or public presentation of analysis performed by that 
+module, or in case of questions about the module. This allows the author to 
+validate the analysis and receive appropriate credit for his or her
 work.
 
 
