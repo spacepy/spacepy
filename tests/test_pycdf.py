@@ -242,6 +242,99 @@ class NoCDF(unittest.TestCase):
         expected = numpy.array(epochs)
         numpy.testing.assert_array_equal(expected, result)
 
+    def testEpochToTT2000(self):
+        """Epoch to TT2000"""
+        if not cdf.lib.supports_int8:
+            self.assertRaises(NotImplementedError, cdf.lib.epoch_to_tt2000,
+                              63397987200000.0)
+            return
+        epochs = [63397987200000.0,
+                  63397987200001.0,
+                  ]
+        tt2000s = [284040066184000000L,
+                   284040066185000000L,
+                   ]
+        for (epoch, tt2000) in zip(epochs, tt2000s):
+            self.assertEqual(
+                tt2000, cdf.lib.epoch_to_tt2000(epoch))
+        result = cdf.lib.v_epoch_to_tt2000(epochs)
+        expected = numpy.array(tt2000s)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testTT2000ToEpoch(self):
+        """TT2000 to Epoch"""
+        if not cdf.lib.supports_int8:
+            self.assertRaises(NotImplementedError, cdf.lib.tt2000_to_epoch,
+                              284040066184000000L)
+            return
+        epochs = [63397987200000.0,
+                  63397987200001.0,
+                  ]
+        tt2000s = [284040066184000000L,
+                   284040066185000000L,
+                   ]
+        for (epoch, tt2000) in zip(epochs, tt2000s):
+            self.assertEqual(
+                epoch, cdf.lib.tt2000_to_epoch(tt2000))
+        result = cdf.lib.v_tt2000_to_epoch(tt2000s)
+        expected = numpy.array(epochs)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testEpoch16ToTT2000(self):
+        epochs = [[63397987199.0, 999999999999.0],
+                  [63400665600.0, 100000000.0],
+                  ]
+        tt2000s = [284040065183999999L,
+                   286718466184100000L,
+                   ]
+        for (epoch, tt2000) in zip(epochs, tt2000s):
+            self.assertEqual(tt2000, cdf.lib.epoch16_to_tt2000(*epoch))
+        result = cdf.lib.v_epoch16_to_tt2000(numpy.array(epochs))
+        expected = numpy.array(tt2000s)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testTT2000ToEpoch16(self):
+        epochs = [[63366364799.0, 999999999000.0],
+                  [63400665600.0, 100000000.0],
+                  ]
+        tt2000s = [252417665183999999L,
+                   286718466184100000L,
+                   ]
+        result = cdf.lib.v_tt2000_to_epoch16(numpy.array(tt2000s))
+        expected = numpy.array(epochs)
+        numpy.testing.assert_array_equal(expected, result)
+        for (epoch, tt2000) in zip(epochs, tt2000s):
+            self.assertEqual(epoch, list(cdf.lib.tt2000_to_epoch16(tt2000)))
+
+    def testEpochtoEpoch16(self):
+        """Convert an Epoch to Epoch16"""
+        epochs = [63397987200000.0,
+                  63397987200001.0,
+                  ]
+        epoch16s = [(63397987200.0, 0.0),
+                   (63397987200.0, 1000000000.0),
+                   ]
+        for (epoch, epoch16) in zip(epochs, epoch16s):
+            numpy.testing.assert_array_equal(
+                epoch16, cdf.lib.epoch_to_epoch16(epoch))
+        result = cdf.lib.epoch_to_epoch16(epochs)
+        expected = numpy.array(epoch16s)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testEpoch16toEpoch(self):
+        """Convert an Epoch16 to Epoch"""
+        epochs = [63397987200000.0,
+                  63397987200001.0,
+                  ]
+        epoch16s = [(63397987200.0, 0.0),
+                   (63397987200.0, 1000000000.0),
+                   ]
+        for (epoch, epoch16) in zip(epochs, epoch16s):
+            self.assertEqual(epoch, cdf.lib.epoch16_to_epoch(epoch16))
+        result = cdf.lib.epoch16_to_epoch(epoch16s)
+        expected = numpy.array(epochs)
+        numpy.testing.assert_array_equal(expected, result)
+
     def testDatetimeEpoch16RT(self):
         """Roundtrip datetimes to epoch16s and back"""
         dts = [datetime.datetime(2008, 12, 15, 3, 12, 5, 1000),
@@ -1461,6 +1554,52 @@ class ReadCDF(CDFTests):
             copy[numpy.array([True, False, False, False, False, True]
                              + [False] * 94)])
 
+    def testReadEpoch16Raw(self):
+        """Read an Epoch16 value, raw mode"""
+        expected = numpy.array([63052041605.0, 334662000000.0],
+                               dtype=numpy.float64)
+        numpy.testing.assert_array_equal(
+            expected, self.cdf.raw_var('ATC')[0])
+        expected = numpy.array([
+            [63052042008.0, 231000000.0],
+            [63052042110.0, 157015000000.0],
+            [63052042212.0, 313815000000.0],
+            [63052042314.0, 507400000000.0]
+            ], dtype=numpy.float64)
+        numpy.testing.assert_array_equal(
+            expected, self.cdf.raw_var('ATC')[4:8])
+
+    def testReadEpoch8Raw(self):
+        """Read an Epoch value, raw mode"""
+        expected = 63052041600000.0
+        self.assertEqual(expected,
+                         self.cdf.raw_var('Epoch')[0])
+        expected = numpy.array([63052041840000.0,
+                                63052041900000.0,
+                                63052041960000.0,
+                                63052042020000.0,
+                                ], dtype=numpy.float64)
+        numpy.testing.assert_array_equal(
+            expected, self.cdf.raw_var('Epoch')[4:8])
+
+    def testReadEpoch8AttrRaw(self):
+        """Read an Epoch attribute, raw mode"""
+        expected = 62987673600000.0
+        self.assertEqual(expected,
+                         self.cdf.raw_var('Epoch').attrs['VALIDMIN'])
+
+    def testReadCharRaw(self):
+        """Read a string, raw mode"""
+        #Verify that we're getting bytes, not unicode
+        self.assertEqual('S',
+                         self.cdf['RateScalerNames'][...].dtype.char)
+
+    def testReadCharConverted(self):
+        """Read a string, not raw mode"""
+        #verify getting unicode on py3k
+        self.assertEqual('U' if str != bytes else 'S',
+                         self.cdf['RateScalerNames'][...].dtype.char)
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
@@ -2394,6 +2533,63 @@ class ChangeCDF(CDFTests):
                 self.assertEqual(message, str(sys.exc_info()[1]))
             else:
                 self.fail('Should have raised ValueError: ' + message)
+
+    def testUnicodeString(self):
+        """Write Unicode to a string variable"""
+        if str != bytes: #py3k:
+            data = [ 'hi', 'there']
+        else:
+            data = ['hi'.decode(), 'there'.decode()]
+        self.cdf['teststr'] = data
+        self.assertEqual('hi', self.cdf['teststr'][0])
+        self.assertEqual('there', self.cdf['teststr'][1])
+
+    def testFloatEpoch(self):
+        """Write floats to an Epoch variable"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH)
+        data = numpy.array([62987673600000.0,
+                            62987760000000.0], dtype=numpy.float64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
+
+    def testEpochForceRaw(self):
+        """Try to write datetime to a forced-raw Epoch"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH)
+        try:
+            self.cdf.raw_var('epochtest')[:] = [
+                datetime.datetime(1996, 1, 1),
+                datetime.datetime(1996, 1, 2)]
+        except TypeError:
+            pass
+        else:
+            self.fail('Should have raised TypeError')
+
+    def testFloatEpoch16(self):
+        """Write floats to an Epoch16 variable"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH16)
+        data = numpy.array([[62987673600.0, 0.0],
+                            [62987760000.0, 0.0]], dtype=numpy.float64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
+
+    def testInt8TT2000(self):
+        """Write integers to a TT2000 variable"""
+        if not cdf.lib.supports_int8:
+            return
+        self.cdf.new('epochtest', type=const.CDF_TIME_TT2000)
+        data = numpy.array([-126273537816000000L,
+                            -126187137816000000L], dtype=numpy.int64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
 
 
 class ChangeColCDF(ColCDFTests):

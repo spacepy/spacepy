@@ -69,17 +69,27 @@ class Library(object):
         ~Library.datetime_to_epoch16
         ~Library.datetime_to_tt2000
         ~Library.epoch_to_datetime
+        ~Library.epoch_to_epoch16
+        ~Library.epoch_to_tt2000
         ~Library.epoch16_to_datetime
+        ~Library.epoch16_to_epoch
+        ~Library.epoch16_to_tt2000
         ~Library.set_backward
         supports_int8
         ~Library.tt2000_to_datetime
+        ~Library.tt2000_to_epoch
+        ~Library.tt2000_to_epoch16
         v_datetime_to_epoch
         v_datetime_to_epoch16
         v_datetime_to_tt2000
         v_epoch_to_datetime
+        v_epoch_to_tt2000
         v_epoch16_to_datetime
+        v_epoch16_to_tt2000
         v_tt2000_to_datetime
-        version
+        v_tt2000_to_epoch
+        v_tt2000_to_epoch16
+        ~Library.version
 
     .. automethod:: call
     .. automethod:: check_status
@@ -87,7 +97,11 @@ class Library(object):
     .. automethod:: datetime_to_epoch16
     .. automethod:: datetime_to_tt2000
     .. automethod:: epoch_to_datetime
+    .. automethod:: epoch_to_epoch16
+    .. automethod:: epoch_to_tt2000
     .. automethod:: epoch16_to_datetime
+    .. automethod:: epoch16_to_epoch
+    .. automethod:: epoch16_to_tt2000
     .. automethod:: set_backward
 
     .. attribute:: supports_int8
@@ -95,6 +109,8 @@ class Library(object):
        True if this library supports INT8 and TIME_TT2000 types; else False.
 
     .. automethod:: tt2000_to_datetime
+    .. automethod:: tt2000_to_epoch
+    .. automethod:: tt2000_to_epoch16
 
     .. method:: v_datetime_to_epoch(datetime)
     
@@ -116,10 +132,22 @@ class Library(object):
         A vectorized version of :meth:`epoch_to_datetime` which takes a
         numpy array of epochs as input and returns an array of datetimes.
 
+    .. method:: v_epoch_to_tt2000(epoch)
+    
+        A vectorized version of :meth:`epoch_to_tt2000` which takes a
+        numpy array of epochs as input and returns an array of tt2000s.
+
     .. method:: v_epoch16_to_datetime(epoch0, epoch1)
     
-        A vectorized version of :meth:`epoch16_to_datetime` which takes two
-        a numpy arrays of epoch16 as input and returns an array of datetimes.
+        A vectorized version of :meth:`epoch16_to_datetime` which takes
+        a numpy array of epoch16 as input and returns an array of datetimes.
+        An epoch16 is a pair of doubles; the input array's last dimension
+        must be two (and the returned array will have one fewer dimension).
+
+    .. method:: v_epoch16_to_tt2000(epoch16)
+    
+        A vectorized version of :meth:`epoch16_to_tt2000` which takes
+        a numpy array of epoch16 as input and returns an array of tt2000s.
         An epoch16 is a pair of doubles; the input array's last dimension
         must be two (and the returned array will have one fewer dimension).
 
@@ -127,6 +155,16 @@ class Library(object):
     
         A vectorized version of :meth:`tt2000_to_datetime` which takes
         a numpy array of tt2000 as input and returns an array of datetimes.
+
+    .. method:: v_tt2000_to_epoch(tt2000)
+    
+        A vectorized version of :meth:`tt2000_to_epoch` which takes
+        a numpy array of tt2000 as input and returns an array of epochs.
+
+    .. method:: v_tt2000_to_epoch16(tt2000)
+    
+        A vectorized version of :meth:`tt2000_to_epoch16` which takes
+        a numpy array of tt2000 as input and returns an array of epoch16.
 
     .. attribute:: version
 
@@ -228,6 +266,21 @@ class Library(object):
             self._library.CDF_TT2000_to_UTC_parts.restype = None
             self._library.CDF_TT2000_to_UTC_parts.argtypes = \
                 [ctypes.c_longlong] + [ctypes.POINTER(ctypes.c_double)] * 9
+        if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH'):
+            self._library.CDF_TT2000_to_UTC_EPOCH.restype = ctypes.c_double
+            self._library.CDF_TT2000_to_UTC_EPOCH.argtypes = [ctypes.c_longlong]
+        if hasattr(self._library, 'CDF_TT2000_from_UTC_EPOCH'):
+            self._library.CDF_TT2000_from_UTC_EPOCH.restype = ctypes.c_longlong
+            self._library.CDF_TT2000_from_UTC_EPOCH.argtypes = [ctypes.c_double]
+        if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH16'):
+            self._library.CDF_TT2000_to_UTC_EPOCH16.restype = None
+            self._library.CDF_TT2000_to_UTC_EPOCH16.argtypes = \
+                [ctypes.c_longlong, ctypes.POINTER(ctypes.c_double * 2)]
+        if hasattr(self._library, 'CDF_TT2000_from_UTC_EPOCH16'):
+            self._library.CDF_TT2000_from_UTC_EPOCH16.restype = \
+                ctypes.c_longlong
+            self._library.CDF_TT2000_from_UTC_EPOCH16.argtypes = \
+                [ctypes.POINTER(ctypes.c_double * 2)]
 
         #Get CDF version information
         ver = ctypes.c_long(0)
@@ -322,11 +375,43 @@ class Library(object):
         self.v_datetime_to_epoch16 = _v_datetime_to_epoch16
         self.v_datetime_to_tt2000 = numpy.vectorize(
             self.datetime_to_tt2000, otypes=[numpy.int64])
+        self.v_epoch_to_tt2000 = numpy.vectorize(
+            self.epoch_to_tt2000, otypes=[numpy.int64])
+        self.v_tt2000_to_epoch = numpy.vectorize(
+            self.tt2000_to_epoch, otypes=[numpy.float64])
+        v_epoch16_to_tt2000 = numpy.frompyfunc(
+            self.epoch16_to_tt2000, 2, 1)
+        self.v_epoch16_to_tt2000 = \
+            lambda x: v_epoch16_to_tt2000(x[..., 0], x[..., 1])
+        v_tt2000_to_epoch16 = numpy.frompyfunc(
+            self.tt2000_to_epoch16, 1, 2)
+        #frompyfunc returns a TUPLE of the returned values,
+        #implicitly the 0th dimension. We want everything from one
+        #call paired, so this rolls the 0th dimension to the last
+        #(via the second-to-last)
+        def _v_tt2000_to_epoch16(x):
+            retval = numpy.require(v_tt2000_to_epoch16(x),
+                                      dtype=numpy.float64)
+            if len(retval.shape) > 1:
+                return numpy.rollaxis(
+                    numpy.rollaxis(retval, 0, -1),
+                    -1, -2)
+            else:
+                return retval
+        self.v_tt2000_to_epoch16 = _v_tt2000_to_epoch16
         if not self.supports_int8:
             self.datetime_to_tt2000 = self._bad_tt2000
             self.tt2000_to_datetime = self._bad_tt2000
             self.v_datetime_to_tt2000 = self._bad_tt2000
             self.v_tt2000_to_datetime = self._bad_tt2000
+            self.epoch_to_tt2000 = self._bad_tt2000
+            self.v_epoch_to_tt2000 = self._bad_tt2000
+            self.tt2000_to_epoch = self._bad_tt2000
+            self.v_tt2000_to_epoch = self._bad_tt2000
+            self.epoch_16_to_tt2000 =  self._bad_tt2000
+            self.v_epoch16_to_tt2000 = self._bad_tt2000
+            self.tt2000_to_epoch16 = self._bad_tt2000
+            self.v_tt2000_to_epoch16 = self._bad_tt2000
 
         #Default to V2 CDF
         self.set_backward(True)
@@ -603,6 +688,49 @@ class Library(object):
                                      epoch16)
         return (epoch16[0], epoch16[1])
 
+    def epoch_to_epoch16(self, epoch):
+        """
+        Converts a CDF EPOCH to a CDF EPOCH16 value
+
+        Parameters
+        ==========
+        epoch : double
+            EPOCH to convert. Lists and numpy arrays are acceptable.
+
+        Returns
+        =======
+        out : (double, double)
+            EPOCH16 corresponding to epoch
+        """
+        e = numpy.require(epoch, numpy.float64)
+        s = numpy.trunc(e / 1000.0)
+        #ugly numpy stuff, probably a better way....
+        res = numpy.hstack((s, (e - s * 1000.0) * 1e9))
+        if len(res) <= 2:
+            return res
+        newshape = list(res.shape[0:-2])
+        newshape.append(res.shape[-1] / 2)
+        newshape.append(2)
+        return numpy.rollaxis(res.reshape(newshape), -1, -2)
+
+    def epoch16_to_epoch(self, epoch16):
+        """
+        Converts a CDF EPOCH16 to a CDF EPOCH value
+
+        Parameters
+        ==========
+        epoch16 : (double, double)
+            EPOCH16 to convert. Lists and numpy arrays are acceptable.
+            LAST dimension should be 2: the two pairs of EPOCH16
+
+        Returns
+        =======
+        out : double
+            EPOCH corresponding to epoch16
+        """
+        e = numpy.require(epoch16, numpy.float64)
+        return e[..., 0] * 1000.0 + numpy.trunc(e[..., 1] / 1e9)
+
     def tt2000_to_datetime(self, tt2000):
         """
         Converts a CDF TT2000 value to a datetime
@@ -696,6 +824,121 @@ class Library(object):
             dt.minute, dt.second,
             int(dt.microsecond / 1000),
             dt.microsecond % 1000, 0)
+
+    def epoch_to_tt2000(self, epoch):
+        """
+        Converts a CDF EPOCH to a CDF TT2000 value
+
+        Parameters
+        ==========
+        epoch : double
+            EPOCH to convert
+
+        Returns
+        =======
+        out : int
+            tt2000 corresponding to epoch
+
+        See Also
+        ========
+        v_epoch_to_tt2000
+        """
+        return self._library.CDF_TT2000_from_UTC_EPOCH(epoch)
+
+    def tt2000_to_epoch(self, tt2000):
+        """
+        Converts a CDF TT2000 value to a CDF EPOCH
+
+        .. note::
+            Although TT2000 values support leapseconds, CDF EPOCH values
+            do not. Times during leapseconds are rounded up to beginning
+            of the next day.
+
+
+        Parameters
+        ==========
+        tt2000 : int
+            TT2000 value from CDF
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : double
+            EPOCH corresponding to the TT2000 input time
+
+        See Also
+        ========
+        v_tt2000_to_epoch
+        """
+        return self._library.CDF_TT2000_to_UTC_EPOCH(tt2000)
+
+    def epoch16_to_tt2000(self, epoch0, epoch1):
+        """
+        Converts a CDF epoch16 value to TT2000
+
+        .. note::
+            Because TT2000 does not support picoseconds, the picoseconds
+            value in epoch is ignored (i.e., truncated.)
+
+        Parameters
+        ==========
+        epoch0 : float
+            epoch16 value from CDF, first half
+        epoch1 : float
+            epoch16 value from CDF, second half
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : long
+            TT2000 corresponding to epoch.
+
+        See Also
+        ========
+        v_epoch16_to_tt2000
+        """
+        return self._library.CDF_TT2000_from_UTC_EPOCH16(
+            (ctypes.c_double * 2)(epoch0, epoch1))
+
+    def tt2000_to_epoch16(self, tt2000):
+        """
+        Converts a CDF TT2000 value to a CDF EPOCH16
+
+        .. note::
+            Although TT2000 values support leapseconds, CDF EPOCH16 values
+            do not. Times during leapseconds are rounded up to beginning
+            of the next day.
+
+        Parameters
+        ==========
+        tt2000 : int
+            TT2000 value from CDF
+
+        Raises
+        ======
+        EpochError : if input invalid
+
+        Returns
+        =======
+        out : double, double
+            EPOCH16 corresponding to the TT2000 input time
+
+        See Also
+        ========
+        v_tt2000_to_epoch16
+        """
+        epoch16 = numpy.empty((2,), dtype=numpy.float64)
+        self._library.CDF_TT2000_to_UTC_EPOCH16(
+            tt2000, numpy.ctypeslib.as_ctypes(epoch16))
+        #without this, vectorized version breaks
+        str(epoch16)
+        return (epoch16[0], epoch16[1])
 
     def _bad_tt2000(*args, **kwargs):
         """Convenience function for complaining that TT2000 not supported"""
@@ -1037,6 +1280,7 @@ class CDF(collections.MutableMapping):
         ~CDF.copy
         ~CDF.from_data
         ~CDF.new
+        ~CDF.raw_var
         ~CDF.readonly
         ~CDF.save
         ~CDF.version
@@ -1053,6 +1297,7 @@ class CDF(collections.MutableMapping):
     .. automethod:: copy
     .. automethod:: from_data
     .. automethod:: new
+    .. automethod:: raw_var
     .. automethod:: readonly
     .. automethod:: save
     .. automethod:: version
@@ -1687,6 +1932,28 @@ class CDF(collections.MutableMapping):
                 new_var.attrs.from_dict(data.attrs)
         return new_var
 
+    def raw_var(self, name):
+        """
+        Get a "raw" :class:`Var` object.
+
+        Normally a :class:`Var` will perform translation of values for
+        certain types (to/from Unicode for CHAR variables on Py3k,
+        and to/from datetime for all time types). A "raw" object
+        does not perform this translation, on read or write.
+
+        This does *not* affect the data on disk, and in fact it
+        is possible to maintain multiple Python objects with access
+        to the same zVariable.
+
+        Parameters
+        ==========
+        name : str
+            name or number of the zVariable
+        """
+        v = self[name]
+        v._raw = True
+        return v
+
     def save(self):
         """
         Saves the CDF file but leaves it open.
@@ -2015,6 +2282,8 @@ class Var(collections.MutableSequence):
     @ivar _attrlistref: reference to the attribute list
                         (use L{attrs} instead)
     @type _attrlistref: weakref
+    @ivar _raw: skip all data conversions (raw access), default False
+    @ivar _raw: False
     @raise CDFError: if CDF library reports an error
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
@@ -2051,6 +2320,7 @@ class Var(collections.MutableSequence):
         self.cdf_file = cdf_file
         self._name = None
         self._type = None
+        self._raw = False
         if len(args) == 0:
             self._get(var_name)
         else:
@@ -2155,16 +2425,28 @@ class Var(collections.MutableSequence):
         hslice.expand(data)
         cdf_type = self.type()
         if cdf_type == const.CDF_EPOCH16.value:
-            data = numpy.require(lib.v_datetime_to_epoch16(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_epoch16(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_EPOCH.value:
-            data = numpy.require(lib.v_datetime_to_epoch(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_epoch(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_TIME_TT2000.value:
-            data = numpy.require(lib.v_datetime_to_tt2000(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_tt2000(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.int64)
         else:
              data = numpy.require(data, requirements=('C', 'A', 'W'),
@@ -2845,39 +3127,22 @@ class _Hyperslice(object):
         out : numpy.array
             converted data
         """
+        result = self._flip_array(buffer)
+
         #Convert to derived types
         cdftype = self.zvar.type()
-        if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
-           str != bytes:
-            result = numpy.char.array(buffer).decode()
-        elif cdftype == const.CDF_EPOCH.value:
-            result = lib.v_epoch_to_datetime(buffer)
-        elif cdftype == const.CDF_EPOCH16.value:
-            result = lib.v_epoch16_to_datetime(buffer)
-        elif cdftype == const.CDF_TIME_TT2000.value:
-            result = lib.v_tt2000_to_datetime(buffer)
-        else:
-            result = buffer
-            
-        #Flip majority if any non-degenerate dimensions exist
-        if self.column and not min(self.degen):
-            #Record-number dim degen, swap whole thing
-            if self.degen[0]:
-                result = result.transpose()
-            #Record-number dimension is not degenerate, so keep it first
-            else:
-                result = result.transpose(
-                    [0] + list(range(len(result.shape) - 1, 0, -1)))
-        #Reverse non-degenerate dimensions in rev
-        #Remember that the degenerate indices are already gone!
-        if self.rev.any():
-            sliced = [(slice(None, None, -1) if self.rev[i] else slice(None))
-                for i in range(self.dims) if not self.degen[i]]
-            return operator.getitem(result, sliced)
-        else:
-            return result
+        if not self.zvar._raw:
+            if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
+                    str != bytes:
+                result = numpy.char.array(result).decode()
+            elif cdftype == const.CDF_EPOCH.value:
+                result = lib.v_epoch_to_datetime(result)
+            elif cdftype == const.CDF_EPOCH16.value:
+                result = lib.v_epoch16_to_datetime(result)
+            elif cdftype == const.CDF_TIME_TT2000.value:
+                result = lib.v_tt2000_to_datetime(result)
+        return result
 
-    #TODO: Huge overlap with above, try to combine?
     def convert_output_array(self, buffer):
         """Convert a buffer of data that will go into this slice
          
@@ -2892,36 +3157,45 @@ class _Hyperslice(object):
         input with majority flipped and dimensions reversed to be
         suitable to pass directly to CDF library.
         """
+        buffer = self._flip_array(buffer)
+        return numpy.require(buffer, requirements=('C', 'A', 'W'))
+
+    def _flip_array(self, data):
+        """
+        Operations for majority, etc. common between convert_input and _output
+        """
+        cdftype = self.zvar.type()
         #Flip majority if any non-degenerate dimensions exist
         if self.column and not min(self.degen):
-            cdftype = self.zvar.type()
             #Record-number dim degen, swap whole thing
             if self.degen[0]:
                 if cdftype == const.CDF_EPOCH16.value:
                     #Maintain last dimension
-                    buffer = buffer.transpose(
-                        list(range(len(buffer.shape) - 2, 0, -1)) +
-                        [len(buffer.shape) - 1]
+                    data = data.transpose(
+                        list(range(len(data.shape) - 2, 0, -1)) +
+                        [len(data.shape) - 1]
                         )
                 else:
-                    buffer = buffer.transpose()
+                    data = data.transpose()
             #Record-number dimension is not degenerate, so keep it first
             else:
                 if cdftype == const.CDF_EPOCH16.value:
-                    buffer = buffer.transpose(
-                        [0] + list(range(len(buffer.shape) - 2, 0, -1)) +
-                        [len(buffer.shape) - 1]
+                    data = data.transpose(
+                        [0] + list(range(len(data.shape) - 2, 0, -1)) +
+                        [len(data.shape) - 1]
                         )
                 else:
-                    buffer = buffer.transpose(
-                        [0] + list(range(len(buffer.shape) - 1, 0, -1)))
+                    data = data.transpose(
+                        [0] + list(range(len(data.shape) - 1, 0, -1)))
         #Reverse non-degenerate dimensions in rev
         #Remember that the degenerate indices are already gone!
         if self.rev.any():
             sliced = [(slice(None, None, -1) if self.rev[i] else slice(None))
                       for i in range(self.dims) if not self.degen[i]]
-            buffer = operator.getitem(buffer, sliced)
-        return numpy.require(buffer, requirements=('C', 'A', 'W'))
+            if cdftype == const.CDF_EPOCH16.value: #don't reverse last dim
+                sliced.extend(slice(None))
+            data = operator.getitem(data, sliced)
+        return data
 
     def select(self):
         """Selects this hyperslice in the CDF
@@ -3221,6 +3495,7 @@ class Attr(collections.MutableSequence):
         @type create: bool
         """
         self._cdf_file = cdf_file
+        self._raw = False
         if isinstance(attr_name, str_classes):
             try:
                 self._name = attr_name.encode('ascii')
@@ -3651,17 +3926,20 @@ class Attr(collections.MutableSequence):
 
         #decode
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
-            if str == bytes: #Py2k
-                result = str(buff)
+            if str == bytes or self._raw: #Py2k, leave as bytes
+                result = bytes(buff)
             else: #Py3k, make unicode
                 result = str(numpy.char.array(buff).decode())
         else:
-            if cdftype == const.CDF_EPOCH.value:
-                result = lib.v_epoch_to_datetime(buff)
-            elif cdftype == const.CDF_EPOCH16.value:
-                result = lib.v_epoch16_to_datetime(buff)
-            elif cdftype == const.CDF_TIME_TT2000.value:
-                result = lib.v_tt2000_to_datetime(buff)
+            if not self._raw:
+                if cdftype == const.CDF_EPOCH.value:
+                    result = lib.v_epoch_to_datetime(buff)
+                elif cdftype == const.CDF_EPOCH16.value:
+                    result = lib.v_epoch16_to_datetime(buff)
+                elif cdftype == const.CDF_TIME_TT2000.value:
+                    result = lib.v_tt2000_to_datetime(buff)
+                else:
+                    result = buff
             else:
                 result = buff
             if length == 1:
@@ -3690,16 +3968,28 @@ class Attr(collections.MutableSequence):
                                  dtype=numpy.dtype('S' + str(elements)))
             n_write = elements
         elif cdf_type == const.CDF_EPOCH16.value:
-            data = numpy.require(lib.v_datetime_to_epoch16(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_epoch16(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_EPOCH.value:
-            data = numpy.require(lib.v_datetime_to_epoch(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_epoch(data),
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_TIME_TT2000.value:
-            data = numpy.require(lib.v_datetime_to_tt2000(data),
-                                 requirements=('C', 'A', 'W'),
+            if not self._raw:
+                try:
+                    data = lib.v_datetime_to_tt2000(data)
+                except AttributeError:
+                    pass
+            data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.int64)
         elif cdf_type in lib.numpytypedict:
             data = numpy.require(data, requirements=('C', 'A', 'W'),
@@ -4256,6 +4546,7 @@ class zAttrList(AttrList):
         attrib = super(zAttrList, self).__getitem__(name)
         zvar_num = self._zvar._num()
         if attrib.has_entry(zvar_num):
+            attrib._raw = self._zvar._raw
             return attrib[zvar_num]
         else:
             raise KeyError(name + ': no such attribute for variable ' +
@@ -4304,6 +4595,7 @@ class zAttrList(AttrList):
         except KeyError:
             attr = zAttr(self._cdf_file, name, True)
         zvar_num = self._zvar._num()
+        attr._raw = self._zvar._raw
         attr[zvar_num] = data
 
     def __len__(self):
