@@ -63,7 +63,7 @@ def getLmax(ticks, model='JKemp'):
         raise ValueError('Invalid model selection')
     return Lmax
 
-def getPlasmaPause(ticks, model='M2002', LT='all'):
+def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     """
     Plasmapause location model(s)
 
@@ -79,6 +79,8 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
         M2002 returns the Moldwin et al. model
     LT : int, float
         requested local time sector, 'all' is valid option
+    omnivals : spacepy.datamodel.SpaceData, dict
+        dict-like containing UTC (datetimes) and Kp keys
 
     Returns
     =======
@@ -131,9 +133,24 @@ def getPlasmaPause(ticks, model='M2002', LT='all'):
 
     #TODO: allow calling with ticks as dict of Kp (will also need UT for Kpmax)
     st, en = ticks.UTC[0]-prior, ticks.UTC[-1]
-    einds, oinds = tb.tOverlap([st, en], om.omnidata['UTC'])
-    utc = np.array(om.omnidata['UTC'])[oinds]
-    Kp = np.array(om.omnidata['Kp'])[oinds]
+    if omnivals is None:
+        omdat = om.omnidata
+    else:
+        #now test for sanity of input
+        try:
+            isinstance(omnivals, dict)
+        except:
+            raise TypeError('Not a valid input type for omnivals, expected spacepy.datamodel.SpaceData')
+        try:
+            assert 'UTC' in omnivals
+            assert 'Kp' in omnivals
+        except:
+            raise KeyError('Required data not found in input dict-like (omnivals)')
+        omdat = omnivals
+
+    einds, oinds = tb.tOverlap([st, en], omdat['UTC'])
+    utc = np.array(omdat['UTC'])[oinds]
+    Kp = np.array(omdat['Kp'])[oinds]
     Lpp = np.zeros(len(ticks))
 
     for i, t1 in enumerate(ticks.UTC):
