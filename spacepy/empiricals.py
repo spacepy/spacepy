@@ -197,7 +197,7 @@ def getMPstandoff(ticks):
     if type(ticks) == spt.Ticktock:
         omni = om.get_omni(ticks)
         P, Bz = omni['Pdyn'], omni['BzIMF']
-    elif type(ticks) == dict:
+    elif isinstance(ticks, dict): 
         P, Bz = ticks['P'], ticks['Bz']
         try:
             len(P)
