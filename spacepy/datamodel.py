@@ -1079,13 +1079,13 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                     try:
                         assert mdata[key]=={}
                         mdata[key] = data[:,int(st):int(en)]
-                    except AssertionError:
+                    except (AssertionError, ValueError):
                         mdata[key] = numpy.vstack((mdata[key], data[:,int(st):int(en)]))
                 else:
                     try:
                         assert mdata[key]=={}
                         mdata[key] = data[:,int(st)]
-                    except AssertionError:
+                    except (AssertionError, ValueError):
                         mdata[key] = numpy.hstack((mdata[key], data[:,int(st)]))
         return mdata
     for fn in fname:
