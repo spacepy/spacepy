@@ -407,10 +407,11 @@ class Ticktock(collections.MutableSequence):
         a.__sub__(other)
 
         Will be called if a timedelta object is subtracted from this instance and
-        returns a new Ticktock instance
+        returns a new Ticktock instance. If a Ticktock is subtracted from another
+        Ticktock then a list of timedeltas is returned.
 
-        Paramters
-        =========
+        Parameters
+        ==========
         other : Ticktock or datetime.timedelta
             instance for comparison
 
@@ -428,8 +429,35 @@ class Ticktock(collections.MutableSequence):
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC - other, 'UTC')
         elif isinstance(other, Ticktock):
-            return [datetime.timedelta(seconds=t - other.TAI[0])
-                    for t in self.TAI]
+            try:
+                assert (len(other)==len(self.data)) or (len(other)==1)
+            except:
+                raise ValueError('Ticktock lengths are mismatched, subtraction is not possible')
+            else:
+                same = True
+                if len(other)==1: same = False
+                if same:
+                    return [datetime.timedelta(seconds=t - other.TAI[i])
+                            for i,t in enumerate(self.TAI)]
+                else:
+                    return [datetime.timedelta(seconds=t - other.TAI[0])
+                            for t in self.TAI]
+        elif hasattr(other, '__iter__'):
+            try:
+                assert isinstance(other[0], datetime.timedelta)
+                assert (len(other)==len(self.data)) or (len(other)==1)
+            except:
+                raise TypeError("Data supplied for addition is of the wrong type or shape")
+            else:
+                same = True
+                if len(other)==1: same = False
+                newUTC = ['']*len(self.data)
+                for i in range(len(self.data)):
+                    if same:
+                        newUTC[i] = self.UTC[i] - other[i]
+                    else:
+                        newUTC[i] = self.UTC[i] - other
+                newobj = Ticktock(newUTC, 'UTC')
         else:
             raise TypeError("unsupported operand type(s) for -: {0} and {1}".format(type(other),type(self)))
         return newobj
@@ -439,7 +467,7 @@ class Ticktock(collections.MutableSequence):
         """
         a.__add__(other)
 
-        Will be called if a Tickdelta object is added to this instance and
+        Will be called if an iterable of datetime.timedeltas is added to this instance and
         returns a new Ticktock instance
 
         Parameters
@@ -463,14 +491,22 @@ class Ticktock(collections.MutableSequence):
         """
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC + other, 'UTC')
-        elif isinstance(other, Tickdelta):
-            newUTC = ['']*len(self.data)
-            for i in range(len(self.data)):
-                newUTC[i] = self.UTC[i] + other.timedelta
-            newobj = Ticktock(newUTC, 'UTC')
-            newobj.data = eval('newobj.get'+self.data.attrs['dtype']+'()')
-            newobj.dtype = self.data.attrs['dtype']
-            newobj.update_items(self, 'data')
+        elif hasattr(other, '__iter__'):
+            try:
+                assert isinstance(other[0], datetime.timedelta)
+                assert (len(other)==len(self.data)) or (len(other)==1)
+            except:
+                raise TypeError("Data supplied for addition is of the wrong type or shape")
+            else:
+                same = True
+                if len(other)==1: same = False
+                newUTC = ['']*len(self.data)
+                for i in range(len(self.data)):
+                    if same:
+                        newUTC[i] = self.UTC[i] + other[i]
+                    else:
+                        newUTC[i] = self.UTC[i] + other
+                newobj = Ticktock(newUTC, 'UTC')
         else:
             raise TypeError("unsupported operand type(s) for +: {0} and {1}".format(type(other),type(self)))
 

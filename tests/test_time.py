@@ -209,6 +209,14 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual(28, (n1-n2)[0].days)
         self.assertEqual(40991, (n1-n2)[0].seconds)
 
+    def test_subtimedeltalist(self):
+        """a ticktock minus a list of timedeltas is a ticktock"""
+        n1 = t.Ticktock(['2002-03-01T11:23:11', '2002-03-01T11:23:12'])
+        diff = datetime.timedelta(hours=11, minutes=23)
+        de = [diff, diff]
+        res = t.Ticktock(['2002-03-01T00:00:11', '2002-03-01T00:00:12'])
+        numpy.testing.assert_equal(res.UTC, (n1-de).UTC)
+
     def test_subtimedelta(self):
         """a ticktock minus a timedelta is a ticktock"""
         n1 = t.Ticktock('2002-03-01T11:23:11', 'ISO')
@@ -338,6 +346,14 @@ class TimeClassTests(unittest.TestCase):
         pkl = pickle.dumps(t1)
         t2 = pickle.loads(pkl)
         self.assertTrue((t1 == t2).all())
+
+    def test_add_list(self):
+        """TickTocks should add properly"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        expected = t.Ticktock( ["2002-01-01T01:45:00",  "2002-01-02T00:45:00"], dtype='UTC')
+        addme = [datetime.timedelta(minutes=45), datetime.timedelta(minutes=45)]
+        self.assertTrue((t1 + addme == expected).all())
+        self.assertTrue((addme + t1 == expected).all())
 
     def test_add(self):
         """TickTocks should add properly"""
