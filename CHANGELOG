@@ -17,6 +17,7 @@ datamodel
  - new methods on dmarrays (append, concatenate, h/v/dstack)
 empiricals
  - fixed bug in getPlasmaPause implementation of Moldwin et al., 2002 model
+ - getPlasmaPause accepts optional dict-like of inputs instead of calling omni module
 irbempy
  - updated to latest revision of IRBEM library (rev425)
  - consistent with IRBEMlib release version 4.4.0
