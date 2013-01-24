@@ -101,9 +101,9 @@ rmod.plot_obs(clims=[-10,-6],Lmax=False,Kp=False,Dst=False,title='Observations P
 
 
 if (iassim > 0):
-    print '=================================================='
-    print '                   ASSIMILATING'
-    print '=================================================='
+    print('==================================================')
+    print('                   ASSIMILATING')
+    print('==================================================')
 
     # ASSIMILATE DATA
     # there are three different inflation methodologies within this data
@@ -121,9 +121,9 @@ if (iassim > 0):
     if (len(sys.argv) > 1):
         inflation_opt = int(sys.argv[1])
     else:
-        print 'default inflation technique'
+        print('default inflation technique')
         inflation_opt = 1
-    print 'inflation option',inflation_opt
+    print('inflation option',inflation_opt)
 
     if (igauss == 1):
         # neglect Gaussian source term

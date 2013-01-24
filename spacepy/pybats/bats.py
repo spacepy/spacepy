@@ -142,9 +142,9 @@ class Bats2d(IdlBin):
 
         # Check for necessary variables:
         if not self.has_key('rho'):
-            raise AttributeError, "Number density not found; required."
+            raise AttributeError("Number density not found; required.")
         if not self.has_key('p'):
-            raise AttributeError, "Pressure not found."
+            raise AttributeError("Pressure not found.")
         
         # Calculate value then adjust units.
         self['t'] = self['p'] / self['rho']
@@ -155,7 +155,7 @@ class Bats2d(IdlBin):
         elif units == 'k':
             self['t'] = self['t'] * 72432275.82
         else:
-            raise ValueError, "Units of type %s not recognized."%units
+            raise ValueError("Units of type %s not recognized." % units)
         self['t'].attrs={'units':units}
 
     def calc_b(self):
@@ -191,7 +191,7 @@ class Bats2d(IdlBin):
 
         # Check units.  Should be nT(=Volt*s/m^2) and km/s.
         if (bx.attrs['units']!='nT') or (ux.attrs['units']!='km/s'):
-            raise Exception, 'Incorrect units!  Should be km/s and nT.'
+            raise Exception('Incorrect units!  Should be km/s and nT.')
 
         # Calculate; return in millivolts per meter
         self['ex'] = -1.0*(uy*bz - uz*by) / 1000.0
@@ -269,7 +269,7 @@ class Bats2d(IdlBin):
                 try:
                     eval('self.'+command+'()')
                 except AttributeError, Error:
-                    print 'WARNING: Did not perform %s: %s' % (command, Error)
+                    print('WARNING: Did not perform %s: %s' % (command, Error))
 
     #####################
     # Other calculations
@@ -297,8 +297,8 @@ class Bats2d(IdlBin):
 
         if self.gridtype != 'Regular':
             if not cellsize:
-                raise ValueError, 'Grid must be regular or ' + \
-                    'cellsize must be given.'
+                raise ValueError('Grid must be regular or ' + \
+                    'cellsize must be given.')
             self.regrid(cellsize, dim1range=dim1range, dim2range=dim2range)
 
         # Order our dimensions alphabetically.
@@ -323,7 +323,7 @@ class Bats2d(IdlBin):
         
         # Order our dimensions alphabetically.
         dims = self['grid'].attrs['dims']
-        if debug: print "Ordered dimensions: ", dims
+        if debug: print("Ordered dimensions: ", dims)
 
         # Check to see if dimranges are 2-element lists.
         # If not, either set defaults or raise exceptions.
@@ -332,19 +332,19 @@ class Bats2d(IdlBin):
         else:
             if isinstance(dim1range, ( type(()), type([]) ) ):
                 if len(dim1range) != 2:
-                    raise ValueError, 'dim1range must have two elements!'
-            else: raise TypeError, 'dim1range must be a tuple or list!'
+                    raise ValueError('dim1range must have two elements!')
+            else: raise TypeError('dim1range must be a tuple or list!')
         if dim2range == -1:
             dim2range = [self[dims[1]].min(),self[dims[1]].max()]
         else:
             if isinstance(dim2range, ( type(()), type([]) ) ):
                 if len(dim2range) != 2:
-                    raise ValueError, 'dim2range must have two elements!'
-            else: raise TypeError, 'dim2range must be a tuple or list!'
+                    raise ValueError('dim2range must have two elements!')
+            else: raise TypeError('dim2range must be a tuple or list!')
 
         if debug:
-            print '%s range = %f, %f' % (dims[0], dim1range[0], dim1range[1])
-            print '%s range = %f, %f' % (dims[1], dim2range[0], dim2range[1])
+            print('%s range = %f, %f' % (dims[0], dim1range[0], dim1range[1]))
+            print('%s range = %f, %f' % (dims[1], dim2range[0], dim2range[1]))
 
         # Now, Regrid.
         grid1 = np.arange(dim1range[0], dim1range[1]+cellsize, cellsize)
@@ -610,7 +610,7 @@ class Bats2d(IdlBin):
         from matplotlib.patches import Circle, Wedge
 
         if not self.attrs.has_key('rbody'):
-            raise KeyError, 'rbody not found in self.para!'
+            raise KeyError('rbody not found in self.para!')
 
         body = Circle((0,0), rad, fc='w', zorder=1000, **extra_kwargs)
         arch = Wedge((0,0), rad, 90.+ang, -90.+ang, fc='k', 
@@ -638,7 +638,7 @@ class Bats2d(IdlBin):
         from matplotlib.patches import Ellipse
 
         if not self.attrs.has_key('rbody'):
-            raise KeyError, 'rbody not found in self.para!'
+            raise KeyError('rbody not found in self.para!')
 
         dbody = 2.0 * self.attrs['rbody']
         body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=999,
@@ -963,9 +963,8 @@ class MagFile(object):
         self.namemag = names.split()
         # Check nmags vs number of mags in header.
         if nmags != len(self.namemag):
-            raise BaseException, \
-                'ERROR: GM file claims %i magnetomers, lists %i'\
-                % (nmags, len(self.namemag))
+            raise BaseException('ERROR: GM file claims %i magnetomers, lists %i'
+                % (nmags, len(self.namemag)))
         trash=lines.pop(0)
         self.gm_namevar = trash.split()[12:] #Vars skipping time, iter, and loc.
         self.nmag=len(self.namemag)
@@ -981,17 +980,16 @@ class MagFile(object):
             iestats=(trash.split(':')[1]).split()
             # Check nmags vs number of mags in header.
             if nmags != len(iestats):
-                raise BaseException, \
-                    'ERROR: IE file claims %i magnetomers, lists %i' \
-                    % (nmags, len(self.namemag))
+                raise BaseException('ERROR: IE file claims %i magnetomers, lists %i' % 
+                                    (nmags, len(self.namemag)))
             if iestats != self.namemag:
-                raise RuntimeError, "Files do not have matching stations!"
+                raise RuntimeError("Files do not have matching stations!")
             self.ie_namevar=ielns.pop(0).split()[11:]
             if (len(ielns)/self.nmag) != (nlines-1):
                 #raise RuntimeError, "Files do nat have same number of lines!"
                 # Adjust number of lines read to match (GM often has more.)
-                print 'Number of lines do not match: GM=%d, IE=%d!' % \
-                    (nlines-1, len(ielns)/self.nmag)
+                print('Number of lines do not match: GM=%d, IE=%d!' % \
+                    (nlines-1, len(ielns)/self.nmag))
                 nlines=min(ielns, nlines-1)
         else:
             self.ie_namevar=()
@@ -1089,7 +1087,7 @@ class GeoIndFile(LogFile):
         try:
             import spacepy.pybats.kyoto as kt
         except ImportError:
-            print "kyotodst package unavailable."
+            print("kyotodst package unavailable.")
             return fig, ax
         
         try:
@@ -1098,7 +1096,7 @@ class GeoIndFile(LogFile):
                 self.obs_kp = kt.kpwebfetch(stime.year, stime.month, 
                                             etime.year, etime.month)
         except BaseException, args:
-            print 'WARNING! Failed to fetch Kyoto Kp: ', args
+            print('WARNING! Failed to fetch Kyoto Kp: ', args)
         else:
             self.obs_kp.histplot(target=ax, color='k', ls='--')
             ax.legend()

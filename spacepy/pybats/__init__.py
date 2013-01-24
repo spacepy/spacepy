@@ -159,7 +159,7 @@ class PbData(SpaceData):
         Display contents of container.
         '''
         from spacepy import dictree
-        print type(self)
+        print(type(self))
         dictree(self, attrs=True, verbose=True)
         return ''
 
@@ -174,7 +174,7 @@ class PbData(SpaceData):
         form="%%%is:%%s"%length
         for key in keys:
             if self[key].attrs.has_key('units'):
-                print form%(key, self[key].attrs['units'])
+                print(form%(key, self[key].attrs['units']))
         
 class IdlBin(PbData):
  
@@ -340,7 +340,7 @@ class IdlBin(PbData):
                 for j in range(int(self['grid'][i])):
                     self[names[i]][j] = tempgrid[j*int(prod[i])]
             else:
-                raise ValueError, 'Unknown grid type: %s'%self.gridtype
+                raise ValueError('Unknown grid type: %s'%self.gridtype)
             # Add units to grid.
             self[names[i]].attrs['units']=units.pop(nSkip)
 
@@ -427,8 +427,8 @@ class LogFile(PbData):
         # Convert starttime from tuple to datetime object.
         if type(starttime) != dt.datetime:
             if len(starttime) != 6:
-                raise ValueError, 'starttime must be a length 6 Tuple ' +\
-                    'or a datetime.datetime object'
+                raise ValueError('starttime must be a length 6 Tuple ' +
+                    'or a datetime.datetime object')
             starttime=dt.datetime(starttime[0], starttime[1], starttime[2],
                                   starttime[3], starttime[4], starttime[5])
 
@@ -572,7 +572,7 @@ class LogFile(PbData):
                 self.obs_dst = kt.fetch('dst', stime, etime)
 
         except BaseException, args:
-            print 'WARNING! Failed to fetch Kyoto Dst: ', args
+            print('WARNING! Failed to fetch Kyoto Dst: ', args)
         else:
             ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
                     'k--', label='Obs. Dst')
@@ -674,17 +674,17 @@ class ImfInput(PbData):
 
         # Number of variables check:
         if len(var) != len(key):
-            print 'Number of listed variables is incorrect:'
-            print '\t%i listed, %i actual.\n' % (len(var),len(key))
+            print('Number of listed variables is incorrect:')
+            print('\t%i listed, %i actual.\n' % (len(var),len(key)))
             return False
         # Each variable corresponds to only one in the dict 
         # and occurs only once:
         for v in var:
             if v not in key:
-                print 'Variable %s listed but does not exist.\n' % v
+                print('Variable %s listed but does not exist.\n' % v)
                 return False
             if var.count(v) != 1:
-                print 'Variable %s listed multiple times.\n' % v
+                print('Variable %s listed multiple times.\n' % v)
                 return False
         # Success!
         return True
@@ -748,7 +748,7 @@ class ImfInput(PbData):
             elif param == '#START':
                 break
             else:
-                raise Exception, 'Unknown file parameter: '+param
+                raise Exception('Unknown file parameter: ' + param)
 
         # Create containers for data.
         npoints = len(lines)
@@ -782,8 +782,7 @@ class ImfInput(PbData):
     
         # Check that the var attribute agrees with the data dictionary.
         if not self.varcheck():
-            raise Exception, \
-                'Number of variables does not match variable order.'
+            raise Exception('Number of variables does not match variable order.')
 
         if not outfile:
             if self.attrs['file']!=None:
@@ -1025,7 +1024,7 @@ class SatOrbit(object):
         try:
             outfile = open(self.filename, 'w')
         except:
-            print 'Could not open self.filename!'
+            print('Could not open self.filename!')
             raise
         
         # Start by writing header, coordinate system, and then #START.

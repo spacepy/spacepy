@@ -28,7 +28,7 @@ class ClickTracer(object):
         if event.inaxes != self.ax: 
             return
         if self.debug:
-            print 'click at %.3f, %.3f' % (event.xdata, event.ydata)
+            print('click at %.3f, %.3f' % (event.xdata, event.ydata))
         stream = self.bats.get_stream(event.xdata, event.ydata,
                                       self.xfield, self.yfield)
         ylims = self.ax.get_ylim()

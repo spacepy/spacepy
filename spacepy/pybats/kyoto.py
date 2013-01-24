@@ -198,12 +198,12 @@ def fetch(dtype, tstart, tstop, debug=False):
         elif type(t)==type( () ) or type(t)==type( [] ):
             time.append(t)
         else:
-            raise ValueError, 'Unrecognized type for input time.'
+            raise ValueError('Unrecognized type for input time.')
 
     if debug:
-        print 'Fetching from datetuple ', t[0], ' to ', t[1]
-        print 'Using functions for ', dtype
-        print 'Calling with ', time[0][0], time[0][1], time[1][0], time[1][1]
+        print('Fetching from datetuple ', t[0], ' to ', t[1])
+        print('Using functions for ', dtype)
+        print('Calling with ', time[0][0], time[0][1], time[1][0], time[1][1])
     lines=funcs[dtype](time[0][0], time[0][1], time[1][0], time[1][1])
     obj=objts[dtype]()
     obj._parse(lines)
@@ -353,7 +353,7 @@ def parse_iaga(lines, iagacode=None):
     # Begin by parsing header; ensuring the correct file format.
     fmt=(lines.pop(0)).split()
     if (fmt[0]!='Format') or (fmt[1]!='IAGA-2002'):
-        raise Exception, 'Data is not in IAGA-2002 format.'
+        raise Exception('Data is not in IAGA-2002 format.')
 
     # Parse mandatory IAGA header lines.
     source=(lines.pop(0)).split()[1]
@@ -365,7 +365,7 @@ def parse_iaga(lines, iagacode=None):
     # Check Iaga Code as necessary.
     if iagacode:
         if iagacode != code:
-            raise Exception, "IAGA Code does not match required code."
+            raise Exception("IAGA Code does not match required code.")
 
     # Loop through and count optional header lines.
     nHead=12

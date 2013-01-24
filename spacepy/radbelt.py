@@ -1146,8 +1146,7 @@ class RBmodel(object):
             DLL  = np.zeros(len(Lgrid), dtype=ctypes.c_double)+10.
             # approximately BA2000 for Kp=1, L=1.
         else:
-            raise ValueError, \
-                "Radial diffusion model %s not implemented" % DLL_model
+            raise ValueError("Radial diffusion model %s not implemented" % DLL_model)
 
 
         if (DLL_model!='const'): DLL = alpha * Lgrid ** beta

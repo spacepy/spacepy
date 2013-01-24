@@ -19,7 +19,7 @@ class QTree(object):
         (self.d, self.npoints) = grid.shape
 
         if(self.d != 2):
-            raise NotImplementedError, "Sorry, QTrees are for 2D grids only."
+            raise NotImplementedError("Sorry, QTrees are for 2D grids only.")
         self.tree = {}
         
         # Find limits of cell-centered grid.

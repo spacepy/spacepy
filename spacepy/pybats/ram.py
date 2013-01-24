@@ -563,7 +563,7 @@ class RamSat(object):
         elif self.data.has_key(key):
             return self.data[key]
         else:
-            raise KeyError, 'Key not found in object.'
+            raise KeyError('Key not found in object.')
     def __setitem__(self, key,value):
         self.data[key]=value
         self.namevars.append(key)
@@ -601,7 +601,7 @@ class RamSat(object):
             try:
                 import Nio
             except ImportError:
-                raise ImportError, 'PyNIO required, not found.'
+                raise ImportError('PyNIO required, not found.')
 
         f=Nio.open_file(self.filename,'r')
         self.namevars=f.variables.keys()
@@ -753,7 +753,7 @@ class RamSat(object):
         import matplotlib.pyplot as plt
         
         if ['XY','XZ','YZ'].count(plane)==0:
-            raise ValueError, "'%s' is not a valid plot plane."%plane
+            raise ValueError("'%s' is not a valid plot plane."%plane)
 
         if type(target) == plt.Figure:
             fig = target
@@ -847,8 +847,7 @@ class RamSat(object):
         if not self.has_key(nameflux):
             self.create_omniflux()
             if not self.has_key(nameflux):
-                raise KeyError, \
-                    '%s is not a valid omnidirectional flux.' % nameflux
+                raise KeyError('%s is not a valid omnidirectional flux.' % nameflux)
         # Create a time vector that binds each pixel correctly.
         time=np.zeros(self.time.size+1)
         time[0]=date2num(self.time[0]-dt.timedelta(seconds=self.dt/2.0))
@@ -1396,7 +1395,7 @@ class LogFile(PbData):
             if not hasattr(self, 'obs_dst'):
                 self.obs_dst = kt.fetch('dst',stime,etime)
         except BaseException, args:
-            print 'WARNING! Failed to fetch Kyoto Dst: ', args
+            print('WARNING! Failed to fetch Kyoto Dst: ', args)
         else:
             ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
                     'k--', label='Obs. Dst')
@@ -1459,7 +1458,7 @@ class IonoPotScb(object):
         elif self.data.has_key(key):
             return self.data[key]
         else:
-            raise KeyError, 'Key not found in object.'
+            raise KeyError('Key not found in object.')
     def __setitem__(self, key,value):
         self.data[key]=value
 
@@ -1476,7 +1475,7 @@ class IonoPotScb(object):
             try:
                 import Nio
             except ImportError:
-                raise ImportError, 'PyNIO required, not found.'
+                raise ImportError('PyNIO required, not found.')
 
         self.filename=filename
         
@@ -1588,7 +1587,7 @@ class Currents(object):
         elif self.data.has_key(key):
             return self.data[key]
         else:
-            raise KeyError, 'Key not found in object.'
+            raise KeyError('Key not found in object.')
     def __setitem__(self, key,value):
         self.data[key]=value
 
@@ -1605,7 +1604,7 @@ class Currents(object):
             try:
                 import Nio
             except ImportError:
-                raise ImportError, 'PyNIO required, not found.'
+                raise ImportError('PyNIO required, not found.')
 
         self.filename=filename
         
@@ -1815,7 +1814,7 @@ class GeoMltFile(object):
         if lastflux:
             # Check lastflux.
             if lastflux.shape != (self.lgrid.size, self.egrid.size):
-                raise ValueError, "Shape of lastflux is incorrect."
+                raise ValueError("Shape of lastflux is incorrect.")
             self.flux[0,self.flux[0,:,:]<=0.0]=lastflux[self.flux[0,:,:]<=0.0]
         else:
             self.flux[0,self.flux[0,:,:]<=0.0]=0.0
