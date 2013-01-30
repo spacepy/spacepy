@@ -1067,7 +1067,7 @@ class Ticktock(collections.MutableSequence):
         # nTAI = len(self.data)
         UTC = self.UTC
         #RDT = np.zeros(nTAI)
-        RDT = date2num(UTC)
+        RDT = spacepy.datamodel.dmarray(date2num(UTC))
         #for i in np.arange(nTAI):
             #RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
                 #UTC[i].second/86400. + UTC[i].microsecond/86400000000.
