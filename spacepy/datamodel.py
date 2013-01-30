@@ -612,14 +612,17 @@ def unflatten(dobj, marker='<--'):
     for key in dobj:
         if isinstance(dobj[key], dict):
             raise TypeError('Flat datamodel should not contain dict-likes')
-        if marker in key:
-            #get 'group'
-            group = key.split(marker)[0]
-            if not group in keydict.keys():
-                keydict[group] = {key: ''}
-            else:
-                keydict[group][key] = ''
-        else: #not nested, just copy key
+        try:
+            if marker in key:
+                #get 'group'
+                group = key.split(marker)[0]
+                if not group in keydict.keys():
+                    keydict[group] = {key: ''}
+                else:
+                    keydict[group][key] = ''
+            else: #not nested, just copy key
+                addme[key] = dmcopy(dobj[key])
+        except:
             addme[key] = dmcopy(dobj[key])
     #now we have all the groups at this level
     #move members of groups into new SpaceDatas

@@ -85,16 +85,13 @@ class SpaceDataTests(unittest.TestCase):
         a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
         a['4'] = dm.SpaceData(cat = 'kitty')
         a['5'] = 4
+        a[9] = dm.dmarray([1,2,3])
         b = dm.flatten(a)
         c = dm.unflatten(b)
         self.assertEqual(sorted(a.keys()), sorted(c.keys()))
         self.assertEqual(sorted(a['1'].keys()), sorted(c['1'].keys()))
         self.assertEqual(sorted(a['1']['pig'].keys()), sorted(c['1']['pig'].keys()))
         self.assertEqual(sorted(a['1']['pig']['fish'].keys()), sorted(c['1']['pig']['fish'].keys()))
-        # was a bug with non string keys
-        a = dm.SpaceData()
-        a[1] = dm.dmarray([1,2,3])
-        self.assertEqual(sorted(a.keys()), sorted(dm.unflatten(a).keys()))
 
     def test_flatten_method(self):
         """Flatten should flatted a nested dict"""
