@@ -421,7 +421,7 @@ class SpaceData(dict):
         >>> a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
         >>> a['4'] = dm.SpaceData(cat = 'kitty')
         >>> a['5'] = 4
-        >>> tb.dictree(a)
+        >>> a.tree()
         +
         |____1
              |____dog
@@ -434,7 +434,7 @@ class SpaceData(dict):
         |____5
 
         >>> b = dm.flatten(a)
-        >>> tb.dictree(b)
+        >>> b.tree()
         +
         |____1<--dog
         |____1<--pig<--fish<--a
@@ -443,7 +443,7 @@ class SpaceData(dict):
         |____5
 
         >>> a.flatten()
-        >>> tb.dictree(a)
+        >>> a.tree()
         +
         |____1<--dog
         |____1<--pig<--fish<--a
@@ -493,7 +493,7 @@ def flatten(dobj):
     >>> a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
     >>> a['4'] = dm.SpaceData(cat = 'kitty')
     >>> a['5'] = 4
-    >>> tb.dictree(a)
+    >>> a.tree()
     +
     |____1
          |____dog
@@ -506,7 +506,7 @@ def flatten(dobj):
     |____5
 
     >>> b = dm.flatten(a)
-    >>> tb.dictree(b)
+    >>> b.tree()
     +
     |____1<--dog
     |____1<--pig<--fish<--a
@@ -515,7 +515,7 @@ def flatten(dobj):
     |____5
 
     >>> a.flatten()
-    >>> tb.dictree(a)
+    >>> a.tree()
     +
     |____1<--dog
     |____1<--pig<--fish<--a
@@ -526,6 +526,7 @@ def flatten(dobj):
 
     See Also
     --------
+    unflatten
     SpaceData.flatten
 
     '''
@@ -549,6 +550,87 @@ def flatten(dobj):
         else:
             addme[key] = copy.copy(dobj[key])
     return addme
+
+def unflatten(dobj, marker='<--'):
+    '''Collapse datamodel to one level deep
+
+    Examples
+    --------
+
+    >>> import spacepy.datamodel as dm
+    >>> import spacepy.toolbox as tb
+    >>> a = dm.SpaceData()
+    >>> a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
+    >>> a['4'] = dm.SpaceData(cat = 'kitty')
+    >>> a['5'] = 4
+    >>> a.tree()
+    +
+    |____1
+         |____dog
+         |____pig
+              |____fish
+                   |____a
+                   |____b
+    |____4
+         |____cat
+    |____5
+
+    >>> b = dm.flatten(a)
+    >>> b.tree()
+    +
+    |____1<--dog
+    |____1<--pig<--fish<--a
+    |____1<--pig<--fish<--b
+    |____4<--cat
+    |____5
+
+    >>> c = dm.unflatten(b)
+    >>> c.tree()
+    +
+    |____1
+         |____dog
+         |____pig
+              |____fish
+                   |____a
+                   |____b
+    |____4
+         |____cat
+    |____5
+
+
+    '''
+    #set up a new object for return
+    try:
+        addme = dobj.__class__()
+    except (TypeError):
+        addme = SpaceData()
+    #the input is assumed to be single level (i.e. it is flat)
+
+    #find all keys that have at least one marker,
+    #then unpack. Recurse over these until no more markers are found.
+    keydict = {}
+    for key in dobj:
+        if isinstance(dobj[key], dict):
+            raise TypeError('Flat datamodel should not contain dict-likes')
+        if marker in key:
+            #get 'group'
+            group = key.split(marker)[0]
+            if not group in keydict.keys():
+                keydict[group] = {key: ''}
+            else:
+                keydict[group][key] = ''
+        else: #not nested, just copy key
+            addme[key] = dmcopy(dobj[key])
+    #now we have all the groups at this level
+    #move members of groups into new SpaceDatas
+    for grp in keydict.keys():
+        addme[grp] = SpaceData()
+        for key in keydict[grp].keys():
+            newkey = marker.join(key.split(marker)[1:])
+            addme[grp][newkey] = dmcopy(dobj[key])
+        addme[grp] = unflatten(addme[grp], marker=marker) #recurse to make sure everything inside is unpacked
+    return addme
+    
 
 def fromCDF(fname, **kwargs):
     '''

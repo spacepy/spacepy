@@ -62,7 +62,7 @@ class SpaceDataTests(unittest.TestCase):
         self.assertEqual(dat.attrs['foo'], 'bar')
 
     def test_flatten_function(self):
-        """Flatten should flatted a nested dict"""
+        """Flatten should flatten a nested SpaceData"""
         a = dm.SpaceData()
         a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
         a['4'] = dm.SpaceData(cat = 'kitty')
@@ -78,6 +78,19 @@ class SpaceDataTests(unittest.TestCase):
         # might be possible that list order is not preserved and this fails,
         # if so change to a bunch of self.assertTrue and in statements
         self.assertEqual(b.keys(), ['1<--pig<--fish<--a', '4<--cat', '1<--dog', '1<--pig<--fish<--b', '5'])
+
+    def test_unflatten_function(self):
+        """Unflatten should unflatten a flattened SpaceData"""
+        a = dm.SpaceData()
+        a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
+        a['4'] = dm.SpaceData(cat = 'kitty')
+        a['5'] = 4
+        b = dm.flatten(a)
+        c = dm.unflatten(b)
+        self.assertEqual(sorted(a.keys()), sorted(c.keys()))
+        self.assertEqual(sorted(a['1'].keys()), sorted(c['1'].keys()))
+        self.assertEqual(sorted(a['1']['pig'].keys()), sorted(c['1']['pig'].keys()))
+        self.assertEqual(sorted(a['1']['pig']['fish'].keys()), sorted(c['1']['pig']['fish'].keys()))
 
     def test_flatten_method(self):
         """Flatten should flatted a nested dict"""
