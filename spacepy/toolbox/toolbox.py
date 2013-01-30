@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import datetime
 import glob
+import StringIO
 import itertools
 import os
 import os.path
@@ -614,6 +615,7 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
+    from spacepy.datamodel import SpaceData, dmarray, writeJSONMetadata, toJSONheadedASCII
     from spacepy import DOT_FLN, config, pycdf
 
     if sys.version_info[0]<3:
@@ -639,6 +641,7 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     omni_fname_zip = os.path.join(datadir, 'WGhour-latest.d.zip')
     omni2_fname_zip = os.path.join(datadir, 'omni2-latest.cdf.zip')
     omni_fname_pkl = os.path.join(datadir, 'omnidata.pkl')
+    omni_fname_json = os.path.join(datadir, 'omnidata.txt')
     omni2_fname_pkl = os.path.join(datadir, 'omni2data.pkl')
 
     PSDdata_fname = os.path.join('psd_dat.sqlite')
@@ -654,7 +657,7 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         A = np.array(data.split('\n'))
-        print("Now pickling (this will take a few minutes) ...")
+        print("Now processing (this may take a few minutes) ...")
 
         # create a keylist
         keys = A[0].split()
@@ -684,24 +687,24 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         stat8 = np.array(stat8)[idx]
         stat6 = np.array(stat6)[idx]
 
-        omnidata = {}
+        omnidata = SpaceData()
         # sort through and make an omni dictionary
         # extract keys from line above
         for ikey, i  in zip(keys,range(len(keys))):
             if ikey in ('Year', 'DOY', 'Hr', 'Dst'):
-                omnidata[ikey] = np.array(tab[:, i], dtype='int16')
+                omnidata[ikey] = dmarray(tab[:, i], dtype='int16')
             else:
-                omnidata[ikey] = tab[:,i]
+                omnidata[ikey] = dmarray(tab[:,i])
 
         # add TAI to omnidata
         nTAI = len(omnidata['DOY'])
 
         # add interpolation quality flags
-        omnidata['Qbits'] = {}
-        arr = np.array(list(np.array(stat8).tostring()), dtype=np.byte).reshape((8,nTAI))
+        omnidata['Qbits'] = SpaceData()
+        arr = dmarray(list(np.array(stat8).tostring()), dtype=np.byte).reshape((8,nTAI))
         for ik, key in enumerate(['ByIMF', 'BzIMF', 'velo', 'dens', 'Pdyn', 'G1', 'G2', 'G3']):
             omnidata['Qbits'][key] = arr[ik,:]
-        arr = np.array(list(np.array(stat6).tostring()), dtype=np.byte).reshape((6,nTAI))
+        arr = dmarray(list(np.array(stat6).tostring()), dtype=np.byte).reshape((6,nTAI))
         for ik, key in enumerate(['W1', 'W2', 'W3', 'W4', 'W5', 'W6']):
             omnidata['Qbits'][key] = arr[ik,:]
 
@@ -710,10 +713,10 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         foo = omnidata.pop('8_status')
 
         # add time information to omni pickle (long loop)
-        omnidata['UTC'] = [datetime.datetime(int(omnidata['Year'][i]), 1, 1) +
+        omnidata['UTC'] = dmarray([datetime.datetime(int(omnidata['Year'][i]), 1, 1) +
                  datetime.timedelta(days=int(omnidata['DOY'][i]) - 1,
                                     hours=int(omnidata['Hr'][i]))
-                 for i in range(nTAI)]
+                 for i in range(nTAI)])
 
         omnidata['ticks'] = Ticktock(omnidata['UTC'], 'UTC')
         omnidata['RDT'] = omnidata['ticks'].RDT
@@ -721,8 +724,18 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         del omnidata['Year']
         del omnidata['Hr']
 
-        # save as pickle
-        savepickle(omni_fname_pkl, omnidata)
+        print("Now saving... please be patient")
+        #flatten datamodel
+        omnidata.flatten()
+        #make JSON header
+        hdr = StringIO.StringIO()
+        writeJSONMetadata(hdr, omnidata, depend0='UTC', order=['UTC', 'RDT'])
+        hdr.seek(0)
+        #for now, make one file -- think about whether monthly/annual files makes sense
+        toJSONheadedASCII(omni_fname_json, omnidata, metadata=hdr, depend0='UTC', order=['UTC', 'RDT'])
+
+        ## save as pickle
+        #savepickle(omni_fname_pkl, omnidata)
 
         # delete left-overs
         os.remove(omni_fname_zip)

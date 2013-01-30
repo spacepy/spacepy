@@ -3,9 +3,9 @@
 """
 tools to read and process omni data
 
-Authors: Josef Koller
+Authors: Josef Koller, Steve Morley
 Institution: Los Alamos National Laboratory
-Contact: jkoller@lanl.gov
+Contact: jkoller@lanl.gov, smorley@lanl.gov
 
 Copyright 2010 Los Alamos National Security, LLC.
 
