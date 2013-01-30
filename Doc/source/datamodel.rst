@@ -26,8 +26,10 @@ datamodel - easy to use general data model
     flatten
     fromCDF
     fromHDF5
+    toCDF
     toHDF5
     toJSONheadedASCII
+    unflatten
     readJSONMetadata
     readJSONheadedASCII
     writeJSONMetadata
