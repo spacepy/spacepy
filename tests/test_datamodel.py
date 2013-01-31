@@ -85,6 +85,7 @@ class SpaceDataTests(unittest.TestCase):
         a['1'] = dm.SpaceData(dog = 5, pig = dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
         a['4'] = dm.SpaceData(cat = 'kitty')
         a['5'] = 4
+        a[9] = dm.dmarray([1,2,3])
         b = dm.flatten(a)
         c = dm.unflatten(b)
         self.assertEqual(sorted(a.keys()), sorted(c.keys()))
