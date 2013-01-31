@@ -133,20 +133,32 @@ def get_omni(ticks):
 #-----------------------------------------------
 
 # load omni file during import
+import os, datetime
 from spacepy import DOT_FLN, help
 from spacepy.toolbox import loadpickle
-import os
-#dotfln = os.environ['HOME']+'/.spacepy'
-omnifln = os.path.join(DOT_FLN,'data','omnidata.pkl')
-omni2fln = os.path.join(DOT_FLN,'data','omni2data.pkl')
 try:
-    omnidata = loadpickle(omnifln)
+    from spacepy.datamodel import fromHDF5
+    _QDext = '.h5'
+except ImportError:
+    _QDext = '.pkl'
+
+#dotfln = os.environ['HOME']+'/.spacepy'
+omnifln = os.path.join(DOT_FLN,'data','omnidata{0}'.format(_QDext))
+omni2fln = os.path.join(DOT_FLN,'data','omni2data.pkl')
+
+try: #TODO:this whole step should probably be omitted in favour of on-demand load with getOMNI (SKM)
+    if _QDext=='.h5':
+        omnidata = fromHDF5(omnifln)
+    else:
+        omnidata = loadpickle(omnifln)
 except:
     print("No OMNI data found. This module has limited functionality.")
     print("Run spacepy.toolbox.update(omni=True) to download OMNI data")
 else:
     if not 'ticks' in omnidata:
-        omnidata['ticks'] = st.Ticktock(omnidata['UTC'], 'UTC')
+        omnidata['ticks'] = st.Ticktock(omnidata['RDT'], 'RDT')
+    if not isinstance(omnidata['UTC'][0], datetime.datetime):
+        omnidata['UTC'] = omnidata['ticks'].UTC
     if not 'Hr' in omnidata:
         omnidata['Hr'] = np.fromiter((dt.hour for dt in omnidata['UTC']),
                                      dtype='int16', count=len(omnidata['UTC']))
@@ -154,7 +166,8 @@ else:
         omnidata['Year'] = np.fromiter((dt.year for dt in omnidata['UTC']),
                                        dtype='int16',
                                        count=len(omnidata['UTC']))
-                           
+omnidata.attrs['filename'] = omnifln
+
 try:
     omni2data = loadpickle(omni2fln)
 except IOError:

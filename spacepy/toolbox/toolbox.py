@@ -615,7 +615,7 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
-    from spacepy.datamodel import SpaceData, dmarray, writeJSONMetadata, toJSONheadedASCII
+    from spacepy.datamodel import SpaceData, dmarray, toHDF5, writeJSONMetadata, toJSONheadedASCII
     from spacepy import DOT_FLN, config, pycdf
 
     if sys.version_info[0]<3:
@@ -642,6 +642,7 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     omni2_fname_zip = os.path.join(datadir, 'omni2-latest.cdf.zip')
     omni_fname_pkl = os.path.join(datadir, 'omnidata.pkl')
     omni_fname_json = os.path.join(datadir, 'omnidata.txt')
+    omni_fname_h5 = os.path.join(datadir, 'omnidata.h5')
     omni2_fname_pkl = os.path.join(datadir, 'omni2data.pkl')
 
     PSDdata_fname = os.path.join('psd_dat.sqlite')
@@ -727,12 +728,13 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         print("Now saving... please be patient")
         #flatten datamodel
         omnidata.flatten()
-        #make JSON header
-        hdr = StringIO.StringIO()
-        writeJSONMetadata(hdr, omnidata, depend0='UTC', order=['UTC', 'RDT'])
-        hdr.seek(0)
-        #for now, make one file -- think about whether monthly/annual files makes sense
-        toJSONheadedASCII(omni_fname_json, omnidata, metadata=hdr, depend0='UTC', order=['UTC', 'RDT'])
+        ##make JSON header
+        #hdr = StringIO.StringIO()
+        #writeJSONMetadata(hdr, omnidata, depend0='UTC', order=['UTC', 'RDT'])
+        #hdr.seek(0)
+        ##for now, make one file -- think about whether monthly/annual files makes sense
+        #toJSONheadedASCII(omni_fname_json, omnidata, metadata=hdr, depend0='UTC', order=['UTC', 'RDT'])
+        toHDF5(omni_fname_h5, omnidata)
 
         ## save as pickle
         #savepickle(omni_fname_pkl, omnidata)
