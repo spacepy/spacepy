@@ -658,7 +658,7 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         A = np.array(data.split('\n'))
-        print("Now processing (this may take a few minutes) ...")
+        print("Now processing (this may take a minute) ...")
 
         # create a keylist
         keys = A[0].split()
@@ -725,9 +725,9 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         del omnidata['Year']
         del omnidata['Hr']
 
-        print("Now saving... please be patient")
-        #flatten datamodel
-        omnidata.flatten()
+        print("Now saving... ")
+        ##flatten datamodel
+        #omnidata.flatten()
         ##make JSON header
         #hdr = StringIO.StringIO()
         #writeJSONMetadata(hdr, omnidata, depend0='UTC', order=['UTC', 'RDT'])
