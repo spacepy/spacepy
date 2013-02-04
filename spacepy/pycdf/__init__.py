@@ -30,7 +30,7 @@ the module, e.g. if the library is in ``CDF/lib`` in the user's home directory:
     
 >>> import os
 >>> os.putenv("CDF_LIB", "~/CDF/lib")
->>> import pycdf
+>>> from spacepy import pycdf
     
 If this works, make the environment setting permanent. Note that on OSX,
 using plists to set the environment may not carry over to Python terminal

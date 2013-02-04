@@ -584,7 +584,7 @@ class Library(object):
             dt = dt - dt.utcoffset()
         dt.replace(tzinfo=None)
         micro = dt.microsecond % 1000
-        if micro >= 500:
+        if micro >= 500 and dt.year < 9999:
             dt += datetime.timedelta(0, 0, 1000)
         return self._library.computeEPOCH(dt.year, dt.month, dt.day, dt.hour,
                                           dt.minute, dt.second,
