@@ -1653,7 +1653,10 @@ class CDF(collections.MutableMapping):
         self[name].compress(*zVar.compress())
         self[name].attrs.clone(zVar.attrs)
         if data:
-            self[name][...] = zVar[...]
+            r = zVar._raw
+            zVar._raw = True
+            self.raw_var(name)[...] = zVar[...]
+            zVar._raw = r
 
     def col_major(self, new_col=None):
         """
