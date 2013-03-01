@@ -140,7 +140,7 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     #TODO: allow calling with ticks as dict of Kp (will also need UT for Kpmax)
     st, en = ticks.UTC[0]-prior, ticks.UTC[-1]
     if omnivals is None:
-        omdat = om.omnidata
+        omdat = om.get_omni(spt.tickrange(st, en, 1.0/24.0), dbase='QDhourly')
     else:
         #now test for sanity of input
         try:
