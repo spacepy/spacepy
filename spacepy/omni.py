@@ -104,14 +104,16 @@ def get_omni(ticks, dbase='QDhourly'):
             omnivals[key] = dmarray(hfile[key][sl_op]) #TODO: add attrs from h5
             omnivals[key].attrs = getattrs(hfile, key)
         for key in hfile['Qbits'].keys():
-            omnivals['Qbits<--{0}'.format(key)] = dmarray(hfile[key][sl_op])
+            omnivals['Qbits<--{0}'.format(key)] = dmarray(hfile['/Qbits/{0}'.format(key)][sl_op])
             omnivals['Qbits<--{0}'.format(key)].attrs = getattrs(hfile, '/Qbits/{0}'.format(key))
 
     omniout = SpaceData(attrs=dmcopy(omnivals.attrs))
     omniout.attrs['filename'] = fname
     for key in omnivals.keys():
-        #if 'Qbits' in key: continue #skip these for now, also fix flattened Qbits
         omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT'], omnivals[key], left=np.NaN, right=np.NaN))
+        if 'Qbits' in key:
+            #Qbits are integer vals, higher is better, so floor to get best representation of interpolated val
+            omniout[key] = np.floor(omniout[key]) 
         #set metadata -- assume this has been set properly in d/l'd file to match ECT-SOC files
         omniout[key].attrs = dmcopy(omnivals[key].attrs)
     omniout['ticks'] = ticks

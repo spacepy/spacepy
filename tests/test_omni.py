@@ -46,18 +46,18 @@ class OmniBigTests(unittest.TestCase):
         'Pdyn': array([ 2.2       ,  2.23666667]),
         'Qbits': {'ByIMF': array([2, 2]),
                   'BzIMF': array([2, 2]),
-        'G1': array([2, 2]),
-        'G2': array([2, 2]),
-        'G3': array([2, 2]),
-        'Pdyn': array([2, 2]),
-        'W1': array([0, 0]),
-        'W2': array([1, 1]),
-        'W3': array([0, 0]),
-        'W4': array([0, 0]),
-        'W5': array([2, 2]),
-        'W6': array([2, 2]),
-        'dens': array([0, 0]),
-        'velo': array([2, 2])},
+                  'G1': array([2, 2]),
+                  'G2': array([2, 2]),
+                  'G3': array([2, 2]),
+                  'Pdyn': array([2, 2]),
+                  'W1': array([0, 0]),
+                  'W2': array([1, 1]),
+                  'W3': array([0, 0]),
+                  'W4': array([0, 0]),
+                  'W5': array([2, 2]),
+                  'W6': array([2, 2]),
+                  'dens': array([0, 0]),
+                  'velo': array([2, 2])},
         'RDT': array([ 730883.5       ,  730883.50694444]),
         'UTC': [datetime.datetime(2002, 2, 2, 12, 0),
                 datetime.datetime(2002, 2, 2, 12, 10)],
@@ -82,6 +82,11 @@ class OmniBigTests(unittest.TestCase):
         for key in actual['Qbits']:
             numpy.testing.assert_almost_equal(expected['Qbits'][key], actual['Qbits'][key])
         self.assertTrue( (expected['ticks'].data == actual['ticks'].data).all() )
+
+    def test_get_omni_outside_range(self):
+        ticks = spacepy.time.Ticktock(['2525-01-01T12:00:00', '2525-01-03T12:10:00'], 'ISO')
+        self.assertRaises(ValueError, om.get_omni, ticks)
+
 
 
 # -----------------------------------------------------------------------
