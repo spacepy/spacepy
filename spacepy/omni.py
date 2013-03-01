@@ -82,11 +82,21 @@ def get_omni(ticks, dbase='QDhourly'):
                     pass
         return out
 
+    def HrFromDT(indt):
+        hour = indt.hour
+        minute = indt.minute
+        second = indt.second
+        musecond = indt.microsecond
+        return hour+(minute/60.0)+(second/3600.0)+(musecond/3600.0e3)
+
     with h5.File(omnifln) as hfile:
         keylist = [kk for kk in hfile.keys() if kk not in ['Qbits', 'UTC']]
         st, en = ticks[0].RDT, ticks[-1].RDT
+        ##check that requested requested times are within range of data
+        if (ticks[0].UTC>omnirange(dbase=dbase)[1]) or (ticks[-1]<omnirange(dbase=dbase)[0]):
+            raise ValueError('Requested dates are outside data range')
         inds = tOverlapHalf([st, en], hfile['RDT'], presort=True) #returns an xrange
-        sl_op = slice(inds[0], inds[-1]+1)
+        sl_op = slice(inds[0]-1, inds[-1]+2)
 
         omnivals = SpaceData(attrs=getattrs(hfile,'/'))
         fname = hfile.filename
@@ -102,81 +112,54 @@ def get_omni(ticks, dbase='QDhourly'):
         omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT'], omnivals[key], left=np.NaN, right=np.NaN))
         #set metadata -- assume this has been set properly in d/l'd file to match ECT-SOC files
         omniout[key].attrs = dmcopy(omnivals[key].attrs)
-    omniout['UTC'] = ticks.UTC
     omniout['ticks'] = ticks
+    omniout['UTC'] = ticks.UTC
+    omniout['Hr'] = dmarray([HrFromDT(val) for val in omniout['UTC']])
+    omniout['Year'] = dmarray([val.year for val in omniout['UTC']])
+
+    # return warning if values outside of omni data range
+    if np.any(np.isnan(omniout['Kp'])):
+        print('Warning: some times are outside of the omni data range\n{0}'.format(omnirange(dbase=dbase)))
 
     #TODO: Before returning, interpolate Qbits to the requested timebase.
     return omniout
 
 
-# # -----------------------------------------------
-# def get_omni(ticks):
-#     if not isinstance(ticks, spt.Ticktock):
-#         try:
-#             ticks = spt.Ticktock(ticks, 'UTC')
-#         except:
-#             raise TypeError('get_omni: Input times must be a Ticktock object or a list of datetime objects')
-# 
-#     # extract RTD from ticks
-#     RDTvals = ticks.RDT
-#     nRDT = len(ticks)
-# 
-#     omnikeys = omnidata.keys()
-#     omnikeys.remove('Qbits') # remove this item because it is a string (cannot interpolate)
-#     omnikeys.remove('UTC')
-#     omnikeys.remove('RDT')
-#     omnikeys.remove('ticks')
-# 
-#     omnival = SpaceData(attrs={'URL': 'http://virbo.org/QinDenton'})
-#     for key in omnikeys:
-#         omnival[key] = dmarray(np.interp(RDTvals, omnidata['RDT'], omnidata[key], left=np.NaN, right=np.NaN))
-#         #set attributes/units
-#         if ('B' in key) or ('Dst' in key):
-#             omnival[key].attrs['Units'] = 'nT'
-#         elif 'dens' in key:
-#             omnival[key].attrs['Units'] = 'cm^{-3}'
-#         elif 'Pdyn' in key:
-#             omnival[key].attrs['Units'] = 'nPa'
-# 
-# 
-#     # interpolate in Quality bits as well
-#     omnival['Qbits'] = SpaceData()
-#     for key in omnidata['Qbits'].keys():
-#         omnival['Qbits'][key] = dmarray(np.interp(RDTvals, omnidata['RDT'], omnidata['Qbits'][key], \
-#             left=np.NaN, right=np.NaN))
-#         #floor interpolation values
-#         omnival['Qbits'][key] = omnival['Qbits'][key].astype('int')
-# 
-#     # add time information back in
-#     omnival['UTC'] = ticks.UTC
-#     omnival['RDT'] = ticks.RDT #TODO:do we need this, since it's already in ticks?
-#     omnival['ticks'] = ticks
-# 
-#     # return warning if values outside of omni data range
-#     if np.any(np.isnan(omnival['Kp'])): print("Warning: time is outside of omni data range")
-# 
-#     # add original omni2 to output
-#     try:
-#         omni2keys = omni2data.keys()
-#     except:
-#         return omnival   #return omnival only and don't add omni2
-#     
-#     # remove duplicate keys
-#     delkeys = ['Epoch', 'RDT', 'Hour', 'Year', 'ticks']
-#     for key in delkeys: omni2keys.remove(key)
-#     for key in omni2keys:
-#         omnival[key] = dmarray(np.interp(RDTvals, omni2data['RDT'], omni2data[key], left=np.NaN, right=np.NaN))
-#         #set attributes/units
-#         
-#         if ('B' in key) or ('Dst' in key):
-#             omnival[key].attrs['Units'] = 'nT'
-#         elif 'dens' in key:
-#             omnival[key].attrs['Units'] = 'cm^{-3}'
-#         elif 'Pdyn' in key:
-#             omnival[key].attrs['Units'] = 'nPa'
-# 
-# 
-#     return omnival
+def omnirange(dbase='QDhourly'):
+    '''Returns datetimes giving start and end times in the OMNI/Qin-Denton data
+
+    The update function in toolbox retrieves all available hourly Qin-Denton data, 
+    and this function accesses that and looks up the start and end times,
+    returning them as datetime objects.
+
+    Parameters
+    ==========
+    dbase : string (optional)
+        name of omni database to check. Currently only 'QDhourly'
+
+    Returns
+    =======
+    omnirange : tuple
+        containing two datetimes giving the start and end times of the available data
+
+    Examples
+    ========
+    >>> import spacepy.omni as om
+    >>> om.omnirange()
+    (datetime.datetime(1963, 1, 1, 0, 0), datetime.datetime(2011, 11, 30, 23, 0))
+
+    '''
+    
+    import h5py as h5
+    infile = {'QDhourly': omnifln}
+    if dbase not in infile:
+        raise NotImplementedError('')
+    with h5.File(omnifln) as hfile:
+        start, end = hfile['RDT'][0], hfile['RDT'][-1]
+        start = spt.Ticktock(start, 'RDT').UTC[0]
+        end = spt.Ticktock(end, 'RDT').UTC[0]
+    
+    return start, end
 
 
 
@@ -204,29 +187,3 @@ try:
 except:
     print("No OMNI data found. This module has limited functionality.")
     print("Run spacepy.toolbox.update(omni=True) to download OMNI data")
-# else:
-#     if not 'ticks' in omnidata:
-#         omnidata['ticks'] = spt.Ticktock(omnidata['RDT'], 'RDT')
-#     if not isinstance(omnidata['UTC'][0], datetime.datetime):
-#         omnidata['UTC'] = omnidata['ticks'].UTC
-#     if not 'Hr' in omnidata:
-#         omnidata['Hr'] = np.fromiter((dt.hour for dt in omnidata['UTC']),
-#                                      dtype='int16', count=len(omnidata['UTC']))
-#     if not 'Year' in omnidata:
-#         omnidata['Year'] = np.fromiter((dt.year for dt in omnidata['UTC']),
-#                                        dtype='int16',
-#                                        count=len(omnidata['UTC']))
-
-# try:
-#     omni2data = loadpickle(omni2fln)
-# except IOError:
-#     print("The full OMNI2 dataset has not been not found. This may limit some functionality.")
-#     print("HINT: Run spacepy.toolbox.update(all=False, omni2=True) to download the full OMNI2 data.")
-# except ImportError:
-#     print("The OMNI2 dataset file format has changed.")
-#     print("Run spacepy.toolbox.update(all=False, omni2=True) to redownload the full OMNI2 data.")
-# else:
-#     if not 'ticks' in omni2data:
-#         omni2data['ticks'] = spt.Ticktock(omni2data['Epoch'])
-#     if not 'RDT' in omni2data:
-#         omni2data['RDT'] = omni2data['ticks'].RDT
