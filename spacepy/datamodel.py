@@ -824,6 +824,8 @@ def toHDF5(fname, SDobject, **kwargs):
         allow overwrite of an existing target file (default True)
     mode : str (optional)
         HDF5 file open mode (a, w, r) (default 'a')
+    compression : str (optional)
+        Enable compression of a given type (e.g. 'gzip')
 
     Returns
     -------
@@ -879,6 +881,12 @@ def toHDF5(fname, SDobject, **kwargs):
         wr_mo = 'a'
     else:
         wr_mo = kwargs['mode']
+    if 'compression' not in kwargs:
+        h5_compr_type = None
+    else:
+        h5_compr_type = kwargs['compression']
+        if kwargs['compression'] not in ['gzip', 'szip']:
+            raise NotImplementedError('Specified compression type not supported')
 
     if 'overwrite' not in kwargs: kwargs['overwrite'] = True
     if type(fname) == str:
@@ -914,12 +922,12 @@ def toHDF5(fname, SDobject, **kwargs):
             toHDF5(hfile, SDobject[key], path=path+'/'+key)
         elif isinstance(value, allowed_elems[1]):
             try:
-                hfile[path].create_dataset(key, data=value)
+                hfile[path].create_dataset(key, data=value, compression=h5_compr_type)
             except:
                 dumval = value.copy()
                 if isinstance(value[0], datetime.datetime):
                     for i, val in enumerate(value): dumval[i] = val.isoformat()
-                hfile[path].create_dataset(key, data=dumval.astype('|S35'))
+                hfile[path].create_dataset(key, data=dumval.astype('|S35'), compression=h5_compr_type)
                 #else:
                 #    hfile[path].create_dataset(key, data=value.astype(float))
             SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
