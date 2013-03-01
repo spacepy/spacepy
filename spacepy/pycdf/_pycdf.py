@@ -584,7 +584,7 @@ class Library(object):
             dt = dt - dt.utcoffset()
         dt.replace(tzinfo=None)
         micro = dt.microsecond % 1000
-        if micro >= 500:
+        if micro >= 500 and dt.year < 9999:
             dt += datetime.timedelta(0, 0, 1000)
         return self._library.computeEPOCH(dt.year, dt.month, dt.day, dt.hour,
                                           dt.minute, dt.second,
@@ -1653,7 +1653,10 @@ class CDF(collections.MutableMapping):
         self[name].compress(*zVar.compress())
         self[name].attrs.clone(zVar.attrs)
         if data:
-            self[name][...] = zVar[...]
+            r = zVar._raw
+            zVar._raw = True
+            self.raw_var(name)[...] = zVar[...]
+            zVar._raw = r
 
     def col_major(self, new_col=None):
         """
