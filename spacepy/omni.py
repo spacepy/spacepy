@@ -13,7 +13,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 """
 import bisect
 import numpy as np
-from spacepy.datamodel import SpaceData, dmarray, dmcopy
+from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten
 import spacepy.time as spt
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -101,14 +101,16 @@ def get_omni(ticks, dbase='QDhourly'):
         omnivals = SpaceData(attrs=getattrs(hfile,'/'))
         fname = hfile.filename
         for key in keylist:
-            if 'Qbits' in key: continue #skip these for now
             omnivals[key] = dmarray(hfile[key][sl_op]) #TODO: add attrs from h5
             omnivals[key].attrs = getattrs(hfile, key)
+        for key in hfile['Qbits'].keys():
+            omnivals['Qbits<--{0}'.format(key)] = dmarray(hfile[key][sl_op])
+            omnivals['Qbits<--{0}'.format(key)].attrs = getattrs(hfile, '/Qbits/{0}'.format(key))
 
     omniout = SpaceData(attrs=dmcopy(omnivals.attrs))
     omniout.attrs['filename'] = fname
-    for key in keylist:
-        if 'Qbits' in key: continue #skip these for now, also fix flattened Qbits and kill load on import
+    for key in omnivals.keys():
+        #if 'Qbits' in key: continue #skip these for now, also fix flattened Qbits
         omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT'], omnivals[key], left=np.NaN, right=np.NaN))
         #set metadata -- assume this has been set properly in d/l'd file to match ECT-SOC files
         omniout[key].attrs = dmcopy(omnivals[key].attrs)
@@ -116,12 +118,12 @@ def get_omni(ticks, dbase='QDhourly'):
     omniout['UTC'] = ticks.UTC
     omniout['Hr'] = dmarray([HrFromDT(val) for val in omniout['UTC']])
     omniout['Year'] = dmarray([val.year for val in omniout['UTC']])
+    omniout = unflatten(omniout)
 
     # return warning if values outside of omni data range
     if np.any(np.isnan(omniout['Kp'])):
-        print('Warning: some times are outside of the omni data range\n{0}'.format(omnirange(dbase=dbase)))
+        print('Warning: some times are outside of the omni data range\nRange: {0}'.format(omnirange(dbase=dbase)))
 
-    #TODO: Before returning, interpolate Qbits to the requested timebase.
     return omniout
 
 
@@ -185,5 +187,8 @@ try:
     else:
         present = os.path.isfile(omnifln)
 except:
-    print("No OMNI data found. This module has limited functionality.")
+    if present:
+        print("OMNI data not found in current format. This module has limited functionality.")
+    else:
+        print("No OMNI data found. This module has limited functionality.")
     print("Run spacepy.toolbox.update(omni=True) to download OMNI data")
