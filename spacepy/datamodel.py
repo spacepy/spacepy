@@ -1156,6 +1156,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
                 st = mdata_copy[key].attrs['START_COLUMN']
                 if 'DIMENSION' in mdata_copy[key].attrs:
                     varDims = numpy.array(mdata_copy[key].attrs['DIMENSION'])
+                    if not varDims.shape: varDims = numpy.array([varDims])
                     singleDim = True
                     if len(varDims)>1 or varDims[0]>1:
                         singleDim = False
