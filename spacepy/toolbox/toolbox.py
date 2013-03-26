@@ -589,7 +589,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
         pass
     return None
 
-def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
+def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     """
     Download and update local database for omni, leapsecs etc
 
@@ -598,9 +598,11 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     all : boolean (optional)
         if True, update all of them
     omni : boolean (optional)
-        if True. update only onmi (Qin & Denton)
+        if True. update only omni (Qin-Denton)
     omni2 : boolean (optional)
         if True, update only original OMNI2
+    QDomni : boolean (optional)
+        if True, update OMNI2 and Qin-Denton
     leapsecs : boolean (optional)
         if True, update only leapseconds
 
@@ -615,7 +617,7 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     >>> tb.update(omni=True)
     """
     from spacepy.time import Ticktock, doy2date
-    from spacepy.datamodel import SpaceData, dmarray, toHDF5, writeJSONMetadata, toJSONheadedASCII
+    from spacepy.datamodel import SpaceData, dmarray, fromCDF, toHDF5, writeJSONMetadata, toJSONheadedASCII
     from spacepy import DOT_FLN, config, pycdf
 
     if sys.version_info[0]<3:
@@ -643,14 +645,21 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     omni_fname_pkl = os.path.join(datadir, 'omnidata.pkl')
     omni_fname_json = os.path.join(datadir, 'omnidata.txt')
     omni_fname_h5 = os.path.join(datadir, 'omnidata.h5')
-    omni2_fname_pkl = os.path.join(datadir, 'omni2data.pkl')
+    omni2_fname_h5 = os.path.join(datadir, 'omni2data.h5')
 
     PSDdata_fname = os.path.join('psd_dat.sqlite')
+
+    if (omni or omni2 or QDomni or leapsecs or PSDdata):
+        all = False #if an option is explicitly selected, turn 'all' off
 
     if all == True:
         omni = True
         leapsecs = True
 
+    if QDomni == True:
+        omni = True
+        omni2 = True
+    
     if omni == True:
         # retrieve omni, unzip and save as table
         print("Retrieving Qin_Denton file ...")
@@ -726,18 +735,8 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         del omnidata['Hr']
 
         print("Now saving... ")
-        ##flatten datamodel
-        #omnidata.flatten()
-        ##make JSON header
-        #hdr = StringIO.StringIO()
-        #writeJSONMetadata(hdr, omnidata, depend0='UTC', order=['UTC', 'RDT'])
-        #hdr.seek(0)
         ##for now, make one file -- think about whether monthly/annual files makes sense
-        #toJSONheadedASCII(omni_fname_json, omnidata, metadata=hdr, depend0='UTC', order=['UTC', 'RDT'])
         toHDF5(omni_fname_h5, omnidata)
-
-        ## save as pickle
-        #savepickle(omni_fname_pkl, omnidata)
 
         # delete left-overs
         os.remove(omni_fname_zip)
@@ -750,19 +749,12 @@ def update(all=True, omni=False, omni2=False, leapsecs=False, PSDdata=False):
         fh_zip = zipfile.ZipFile(omni2_fname_zip)
         fh_zip.extractall();
         fh_zip.close()
-        omnicdf = pycdf.CDF(fh_zip.namelist()[0])
-        # convert into regular dictionary
-        omni2 = {}
-        for key in omnicdf.keys():
-            omni2[key] = omnicdf[key][:]
-
-        # save as pickle
-        savepickle(omni2_fname_pkl, omni2)
-
+        omnicdf = fromCDF(fh_zip.namelist()[0])
+        
+        # save as HDF5
+        toHDF5(omni2_fname_h5, omnicdf)
         # delete left-overs
         os.remove(omni2_fname_zip)
-
-
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")

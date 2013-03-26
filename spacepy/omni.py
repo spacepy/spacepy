@@ -38,7 +38,7 @@ def get_omni(ticks, dbase='QDhourly'):
     Returns
     =======
     out : spacepy.datamodel.SpaceData
-        containing all omni values at times given by ticks
+        containing all Qin-Denton values at times given by ticks
 
     Examples
     ========
@@ -46,11 +46,39 @@ def get_omni(ticks, dbase='QDhourly'):
     >>> import spacepy.omni as om
     >>> ticks = spt.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> d = om.get_omni(ticks)
-    >>> print(d.keys())
-    ['velo', 'Bz6', 'Bz5', 'Bz4', 'Bz3', 'Bz2', 'Bz1', 'RDT', 'Dst',
-    'akp3', 'DOY', 'Qbits', 'G3', 'G2', 'G1', 'Hr', 'ticks', 'BzIMF',
-    'UTC', 'Kp', 'Pdyn', 'dens', 'ByIMF', 'W6', 'W5', 'W4', 'W3', 'W2',
-    'W1', 'Year']
+    >>> d.tree(levels=1)
+    +
+    |____ByIMF
+    |____Bz1
+    |____Bz2
+    |____Bz3
+    |____Bz4
+    |____Bz5
+    |____Bz6
+    |____BzIMF
+    |____DOY
+    |____Dst
+    |____G1
+    |____G2
+    |____G3
+    |____Hr
+    |____Kp
+    |____Pdyn
+    |____Qbits
+    |____RDT
+    |____UTC
+    |____W1
+    |____W2
+    |____W3
+    |____W4
+    |____W5
+    |____W6
+    |____Year
+    |____akp3
+    |____dens
+    |____ticks
+    |____velo
+
 
     Notes
     =====
@@ -175,22 +203,26 @@ from spacepy import DOT_FLN, help
 from spacepy.toolbox import loadpickle
 try:
     import h5py
-    _QDext = '.h5'
+    _ext = '.h5'
 except ImportError:
-    _QDext = '.pkl'
+    _ext = '.pkl'
 
 #dotfln = os.environ['HOME']+'/.spacepy'
-omnifln = os.path.join(DOT_FLN,'data','omnidata{0}'.format(_QDext))
-omni2fln = os.path.join(DOT_FLN,'data','omni2data.pkl')
+omnifln = os.path.join(DOT_FLN,'data','omnidata{0}'.format(_ext))
+omni2fln = os.path.join(DOT_FLN,'data','omni2data{0}'.format(_ext))
 
-try: 
-    if _QDext=='.h5':
-        present = h5py.is_hdf5(omnifln)
+if _ext=='.h5':
+    presentQD = h5py.is_hdf5(omnifln)
+    presentO2 = h5py.is_hdf5(omni2fln)
+    if not (presentQD and presentO2):
+        print("Qin-Denton/OMNI2 data not found in current format. This module has limited functionality.")
+        print("Run spacepy.toolbox.update(QDomni=True) to download data")
+else:
+    presentQD = os.path.isfile(omnifln)
+    presentO2 = os.path.isfile(omni2fln)
+    if not (presentQD and presentO2):
+        print("No Qin-Denton/OMNI2 data found. This module has limited functionality.")
+        print("Run spacepy.toolbox.update(QDomni=True) to download data")
     else:
-        present = os.path.isfile(omnifln)
-except:
-    if present:
-        print("OMNI data not found in current format. This module has limited functionality.")
-    else:
-        print("No OMNI data found. This module has limited functionality.")
-    print("Run spacepy.toolbox.update(omni=True) to download OMNI data")
+        print("Qin-Denton/OMNI2 data not found in current format. This module has limited functionality.")
+        print("Run spacepy.toolbox.update(QDomni=True) to download data")
