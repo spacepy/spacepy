@@ -60,9 +60,9 @@ class empFunctionTests(unittest.TestCase):
 
     def test_getMPstandoff(self):
         """getMPstandoff should give known results (regression)"""
-        real_ans = np.array([ 10.57319537,  10.91327764,  10.75086873,  10.77577207,
-            9.78180261,  11.0374474 ,  11.4065    ,  11.27555451,
-            11.47988573,  11.8202582 ,  11.23834814])
+        real_ans = np.array([ 10.52909163,  10.91327764,  10.71260773,  10.69958165,
+                               9.75129057,  10.76640718,  11.18228247,  11.05199603,
+                              11.42648675,  11.8202582 ,  11.18712131])
         ans = em.ShueMP(self.ticks)
         np.testing.assert_allclose(real_ans, ans)
         self.assertRaises(TypeError, em.ShueMP, 'bad')
@@ -73,9 +73,9 @@ class empFunctionTests(unittest.TestCase):
 
     def test_getDststar(self):
         """getDststar should give known results (regression)"""
-        real_ans = np.array([-30.68169714, -26.85289053, -11.14932976, -17.77229149,
-             -16.05975098, -13.07617265, -14.26      ,  -9.96354744,
-            -21.11331813,  -8.49354146,  -3.18703339])
+        real_ans = np.array([-30.80228229, -26.85289053, -11.2457748 , -17.98012397,
+                             -16.1640001 , -13.64888467, -14.75155876, -10.43928609,
+                             -21.22360883,  -8.49354146,  -3.29620967])
         ans = em.getDststar(self.ticks)
         np.testing.assert_allclose(real_ans, ans)
         self.assertRaises(ValueError, em.getDststar, self.ticks, model='bad')
