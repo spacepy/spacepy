@@ -19,7 +19,6 @@ import spacepy.time as spt
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
-#new get_omni
 def get_omni(ticks, dbase='QDhourly'):
     '''
     Returns Qin-Denton OMNI values, interpolated to any time-base from 1-hourly resolution
@@ -158,7 +157,8 @@ def get_omni(ticks, dbase='QDhourly'):
             O2keylist = [kk for kk in hfile.keys() if kk not in ['Epoch','RDT']]
             st, en = ticks[0].RDT, ticks[-1].RDT
             ##check that requested requested times are within range of data
-            if (ticks[0].UTC>omnirange(dbase=ldb)[1]) or (ticks[-1]<omnirange(dbase=ldb)[0]):
+            enval, stval = omnirange(dbase=ldb)[1], omnirange(dbase=ldb)[0]
+            if (ticks[0].UTC>enval) or (ticks[-1]<stval):
                 raise ValueError('Requested dates are outside data range')
             if (ticks[-1].UTC>enval) or (ticks[0]<stval):
                 print('Warning: Some requested dates are outside data range ({0})'.format(ldb))
@@ -168,12 +168,20 @@ def get_omni(ticks, dbase='QDhourly'):
             sl_op = slice(inds[0]-1, inds[-1]+2)
         
             fname = ','.join([fname,hfile.filename])
-            omnivals.attrs = getattrs(hfile, '/')
+            omnivals.attrs = getattrs(hfile, '/') #TODO: This overwrites the previous set on Merged load... Fix!
             omnivals['RDT_OMNI'] = dmarray(hfile['RDT'][sl_op])
             for key in O2keylist:
                 omnivals[key] = dmarray(hfile[key][sl_op]) #TODO: add attrs from h5
                 omnivals[key].attrs = getattrs(hfile, key)
-        
+
+    if dbase_options[dbase] == 3:
+        #prune "merged" SpaceData
+        sigmas = [key for key in omnivals if 'sigma' in key]
+        for sk in sigmas: del omnivals[sk]
+        bees = [key for key in omnivals if re.search('B._', key)]
+        for bs in bees: del omnivals[bs]
+        aves = [key for key in omnivals if ('_ave' in key) or ('ave_' in key)]
+        for av in aves: del omnivals[av]
 
     omniout = SpaceData(attrs=dmcopy(omnivals.attrs))
     omniout.attrs['filename'] = fname[1:]
@@ -195,10 +203,6 @@ def get_omni(ticks, dbase='QDhourly'):
     omniout['Hr'] = dmarray([HrFromDT(val) for val in omniout['UTC']])
     omniout['Year'] = dmarray([val.year for val in omniout['UTC']])
     omniout = unflatten(omniout)
-
-    ## return warning if values outside of omni data range
-    #if np.any(np.isnan(omniout['Kp'])):
-    #    print('Warning: some times are outside of the omni data range\nRange: {0}'.format(omnirange(dbase=dbase)))
 
     return omniout
 
