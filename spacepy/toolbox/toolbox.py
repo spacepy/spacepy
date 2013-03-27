@@ -53,7 +53,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-           'eventTimer', 'isview', 'interweave']
+           'eventTimer', 'isview', 'interweave', 'indsFromXrange']
 
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
@@ -750,9 +750,16 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         fh_zip.extractall();
         fh_zip.close()
         omnicdf = fromCDF(fh_zip.namelist()[0])
+        #add RDT
+        omnicdf['RDT'] = Ticktock(omnicdf['Epoch'],'UTC').RDT
+        #remove keys that get in the way
+        del omnicdf['Hour']
+        del omnicdf['Year']
+        del omnicdf['Decimal_Day']
         
         # save as HDF5
         toHDF5(omni2_fname_h5, omnicdf)
+
         # delete left-overs
         os.remove(omni2_fname_zip)
 
@@ -764,6 +771,37 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         print("Retrieving PSD sql database")
         u.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=progressbar)
     return datadir
+
+def indsFromXrange(inxrange):
+    '''return the start and end indices implied by an xrange, useful when xrange is zero-length
+
+    Parameters
+    ==========
+    inxrange : xrange
+        input xrange object to parse
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> foo = xrange(23, 39)
+    >>> foo[0]
+    23
+    >>> tb.indsFromXrange(foo)
+    [23, 39]
+    >>> foo1 = xrange(23, 23)
+    >>> tb.indsFromXrange(foo) #indexing won't work in this case
+    [23, 23]
+    '''
+    import re
+    if not isinstance(inxrange, xrange): return None
+    valstr = inxrange.__str__()
+    if ',' not in valstr:
+        res = re.search('(\d+)', valstr)
+        retval = [int(0), int(res.group(1))]
+    else:
+        res = re.search('(\d+), (\d+)', valstr)
+        retval = [int(res.group(1)), int(res.group(2))]
+    return retval
 
 def progressbar(count, blocksize, totalsize, text='Download Progress'):
     """
@@ -787,7 +825,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     Parameters
     ==========
     data : array_like
-        1D series of points;
+        1D series of points
     time : list (optional)
         series of timestamps, optional (format as numeric or datetime)
         For non-overlapping windows set overlap to zero.

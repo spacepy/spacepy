@@ -11,9 +11,10 @@ Copyright 2010 Los Alamos National Security, LLC.
 
 
 """
-import bisect
+import bisect, re
 import numpy as np
 from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten
+from spacepy.toolbox import tOverlapHalf, indsFromXrange
 import spacepy.time as spt
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -34,6 +35,9 @@ def get_omni(ticks, dbase='QDhourly'):
     ==========
     ticks : Ticktock class
         time values for desired output
+
+    dbase : str (optional)
+        Select data source, options are 'QDhourly', 'OMNI2', 'Mergedhourly'
 
     Returns
     =======
@@ -90,10 +94,13 @@ def get_omni(ticks, dbase='QDhourly'):
     lower the status variable, the less confident you should be in the value.
 
     '''
-    if not dbase=='QDhourly': raise NotImplementedError
+    dbase_options = {'QDhourly'    : 1,
+                     'OMNI2hourly' : 2,
+                     'Mergedhourly': 3
+                     }
+    if not dbase in dbase_options: raise NotImplementedError
 
     import h5py as h5
-    from spacepy.toolbox import tOverlapHalf
     if not isinstance(ticks, spt.Ticktock):
         try:
             ticks = spt.Ticktock(ticks, 'UTC')
@@ -117,42 +124,81 @@ def get_omni(ticks, dbase='QDhourly'):
         musecond = indt.microsecond
         return hour+(minute/60.0)+(second/3600.0)+(musecond/3600.0e3)
 
-    with h5.File(omnifln) as hfile:
-        keylist = [kk for kk in hfile.keys() if kk not in ['Qbits', 'UTC']]
-        st, en = ticks[0].RDT, ticks[-1].RDT
-        ##check that requested requested times are within range of data
-        if (ticks[0].UTC>omnirange(dbase=dbase)[1]) or (ticks[-1]<omnirange(dbase=dbase)[0]):
-            raise ValueError('Requested dates are outside data range')
-        inds = tOverlapHalf([st, en], hfile['RDT'], presort=True) #returns an xrange
-        sl_op = slice(inds[0]-1, inds[-1]+2)
+    fname, QDkeylist, O2keylist = '', [], []
+    omnivals = SpaceData()
+    if dbase_options[dbase] == 1 or dbase_options[dbase] == 3:
+        ldb = 'QDhourly'
+        with h5.File(omnifln) as hfile:
+            QDkeylist = [kk for kk in hfile.keys() if kk not in ['Qbits', 'UTC']]
+            st, en = ticks[0].RDT, ticks[-1].RDT
+            ##check that requested requested times are within range of data
+            enval, stval = omnirange(dbase=ldb)[1], omnirange(dbase=ldb)[0]
+            if (ticks[0].UTC>enval) or (ticks[-1]<stval):
+                raise ValueError('Requested dates are outside data range')
+            if (ticks[-1].UTC>enval) or (ticks[0]<stval):
+                print('Warning: Some requested dates are outside data range ({0})'.format(ldb))
+            inds = tOverlapHalf([st, en], hfile['RDT'], presort=True) #returns an xrange
+            inds = indsFromXrange(inds)
+            if inds[0] < 1: inds[0] = 1
+            sl_op = slice(inds[0]-1, inds[-1]+2)
+    
+            fname = ','.join([fname,hfile.filename])
+            omnivals.attrs = getattrs(hfile, '/')
+            for key in QDkeylist:
+                omnivals[key] = dmarray(hfile[key][sl_op]) #TODO: add attrs from h5
+                omnivals[key].attrs = getattrs(hfile, key)
+            for key in hfile['Qbits'].keys():
+                omnivals['Qbits<--{0}'.format(key)] = dmarray(hfile['/Qbits/{0}'.format(key)][sl_op])
+                omnivals['Qbits<--{0}'.format(key)].attrs = getattrs(hfile, '/Qbits/{0}'.format(key))
+                QDkeylist.append('Qbits<--{0}'.format(key))
 
-        omnivals = SpaceData(attrs=getattrs(hfile,'/'))
-        fname = hfile.filename
-        for key in keylist:
-            omnivals[key] = dmarray(hfile[key][sl_op]) #TODO: add attrs from h5
-            omnivals[key].attrs = getattrs(hfile, key)
-        for key in hfile['Qbits'].keys():
-            omnivals['Qbits<--{0}'.format(key)] = dmarray(hfile['/Qbits/{0}'.format(key)][sl_op])
-            omnivals['Qbits<--{0}'.format(key)].attrs = getattrs(hfile, '/Qbits/{0}'.format(key))
+    if dbase_options[dbase] == 2 or dbase_options[dbase] == 3:
+        ldb = 'OMNI2hourly'
+        with h5.File(omni2fln) as hfile:
+            O2keylist = [kk for kk in hfile.keys() if kk not in ['Epoch','RDT']]
+            st, en = ticks[0].RDT, ticks[-1].RDT
+            ##check that requested requested times are within range of data
+            if (ticks[0].UTC>omnirange(dbase=ldb)[1]) or (ticks[-1]<omnirange(dbase=ldb)[0]):
+                raise ValueError('Requested dates are outside data range')
+            if (ticks[-1].UTC>enval) or (ticks[0]<stval):
+                print('Warning: Some requested dates are outside data range ({0})'.format(ldb))
+            inds = tOverlapHalf([st, en], hfile['RDT'], presort=True) #returns an xrange
+            inds = indsFromXrange(inds)
+            if inds[0] < 1: inds[0] = 1
+            sl_op = slice(inds[0]-1, inds[-1]+2)
+        
+            fname = ','.join([fname,hfile.filename])
+            omnivals.attrs = getattrs(hfile, '/')
+            omnivals['RDT_OMNI'] = dmarray(hfile['RDT'][sl_op])
+            for key in O2keylist:
+                omnivals[key] = dmarray(hfile[key][sl_op]) #TODO: add attrs from h5
+                omnivals[key].attrs = getattrs(hfile, key)
+        
 
     omniout = SpaceData(attrs=dmcopy(omnivals.attrs))
-    omniout.attrs['filename'] = fname
+    omniout.attrs['filename'] = fname[1:]
+    ###print('QDkeys: {0}\n\nO2keys: {1}'.format(QDkeylist, O2keylist))
     for key in omnivals.keys():
-        omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT'], omnivals[key], left=np.NaN, right=np.NaN))
+        if key in O2keylist:
+            omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT_OMNI'], omnivals[key], left=np.NaN, right=np.NaN))
+            #set metadata -- assume this has been set properly in d/l'd file to match ECT-SOC files
+            omniout[key].attrs = dmcopy(omnivals[key].attrs)
+        elif key in QDkeylist:
+            omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT'], omnivals[key], left=np.NaN, right=np.NaN))
+            omniout[key].attrs = dmcopy(omnivals[key].attrs)
         if 'Qbits' in key:
             #Qbits are integer vals, higher is better, so floor to get best representation of interpolated val
             omniout[key] = np.floor(omniout[key]) 
-        #set metadata -- assume this has been set properly in d/l'd file to match ECT-SOC files
-        omniout[key].attrs = dmcopy(omnivals[key].attrs)
+            omniout[key].attrs = dmcopy(omnivals[key].attrs)
     omniout['ticks'] = ticks
     omniout['UTC'] = ticks.UTC
     omniout['Hr'] = dmarray([HrFromDT(val) for val in omniout['UTC']])
     omniout['Year'] = dmarray([val.year for val in omniout['UTC']])
     omniout = unflatten(omniout)
 
-    # return warning if values outside of omni data range
-    if np.any(np.isnan(omniout['Kp'])):
-        print('Warning: some times are outside of the omni data range\nRange: {0}'.format(omnirange(dbase=dbase)))
+    ## return warning if values outside of omni data range
+    #if np.any(np.isnan(omniout['Kp'])):
+    #    print('Warning: some times are outside of the omni data range\nRange: {0}'.format(omnirange(dbase=dbase)))
 
     return omniout
 
@@ -167,7 +213,7 @@ def omnirange(dbase='QDhourly'):
     Parameters
     ==========
     dbase : string (optional)
-        name of omni database to check. Currently only 'QDhourly'
+        name of omni database to check. Currently 'QDhourly' and 'OMNI2hourly'
 
     Returns
     =======
@@ -179,11 +225,14 @@ def omnirange(dbase='QDhourly'):
     >>> import spacepy.omni as om
     >>> om.omnirange()
     (datetime.datetime(1963, 1, 1, 0, 0), datetime.datetime(2011, 11, 30, 23, 0))
+    >>> om.omnirange(dbase='OMNI2hourly')
+    (datetime.datetime(1963, 1, 1, 0, 0), datetime.datetime(2011, 11, 30, 23, 0))
 
     '''
     
     import h5py as h5
-    infile = {'QDhourly': omnifln}
+    infile = {'QDhourly': omnifln,
+              'OMNI2hourly': omni2fln}
     if dbase not in infile:
         raise NotImplementedError('')
     with h5.File(omnifln) as hfile:
