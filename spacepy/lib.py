@@ -20,6 +20,8 @@ import ctypes
 import os.path
 import sys
 
+import numpy as np
+
 __contact__ = 'Jon Niehof, jniehof@lanl.gov'
 
 #Handy shortcut types
@@ -39,11 +41,12 @@ functions = {
               ctypes.c_long],
     'aa_ci': [None, ulptr, ulptr, ctypes.c_ulong, ctypes.c_ulong,
               ctypes.c_ulong, ulptr, ctypes.c_int],
-    'solve_cn': [None, dptr, dptr, dptr, dptr, dptr, dptr, 
-                 ctypes.c_double, ctypes.c_int, dptr], 
-    'hypot_tb': [ctypes.c_double, dptr, ctypes.c_long]
+    'solve_cn': [None, dptr, dptr, dptr, dptr, dptr, dptr,
+                 ctypes.c_double, ctypes.c_int, dptr],
+    'hypot_tb': [ctypes.c_double,
+                 np.ctypeslib.ndpointer(dtype=ctypes.c_double, flags='C_CONTIGUOUS'),
+                 ctypes.c_long]
     }
-
 
 def load_lib():
     """Find and load libspacepy

@@ -40,6 +40,13 @@ except:
 import spacepy
 from spacepy import time as spt
 
+#Try to pull in the C version. Assumption is that if you import this module,
+#you want to do some association analysis, so the overhead in the import
+#is OK.
+from spacepy import lib
+if lib.have_libspacepy:
+    import ctypes
+
 #Py3k compatibility renamings
 try:
     xrange
@@ -72,6 +79,16 @@ def hypot(*args):
     out : float
         N-dimensional hypot of a number
 
+    Notes
+    =====
+    This function has a complicated speed function.
+     - if a numpy array of floats is input this is passed off to C
+     - if iterables are passed in they are made into numpy arrays and comptaton is done local
+     - if many scalar agruments are passed in calculation is done in a loop
+    For max speed:
+     - <20 elements expand them into scalars  tb.hypot(*[vals]) or tb.hypot(vals[0], vals[1]...)
+     - >20 elements premake them into a numpy array of doubles
+
     Examples
     ========
     >>> from spacepy import toolbox as tb
@@ -79,7 +96,35 @@ def hypot(*args):
     5.0
     >>> print tb.hypot(3,4)
     5.0
+    >>> # Benchmark ####
+    >>> from spacepy import toolbox as tb
+    >>> import numpy as np
+    >>> import timeit
+    >>> num_list = []
+    >>> num_np = []
+    >>> num_np_double = []
+    >>> num_scalar = []
+    >>> tot = 500
+    >>> for num in tb.logspace(1, tot, 10):
+    >>>     print num
+    >>>     num_list.append(timeit.timeit(stmt='tb.hypot(a)', setup='from spacepy import toolbox as tb; import numpy as np; a = [3]*{0}'.format(int(num)), number=10000))
+    >>>     num_np.append(timeit.timeit(stmt='tb.hypot(a)', setup='from spacepy import toolbox as tb; import numpy as np; a = np.asarray([3]*{0})'.format(int(num)), number=10000))
+    >>>     num_scalar.append(timeit.timeit(stmt='tb.hypot(*a)', setup='from spacepy import toolbox as tb; import numpy as np; a = [3]*{0}'.format(int(num)), number=10000))
+    >>> from pylab import *
+    >>> loglog(tb.logspace(1, tot, 10),  num_list, lw=2, label='list')
+    >>> loglog(tb.logspace(1, tot, 10),  num_np, lw=2, label='numpy->ctypes')
+    >>> loglog(tb.logspace(1, tot, 10),  num_scalar, lw=2, label='scalar')
+    >>> legend(shadow=True, fancybox=1, loc='upper left')
+    >>> title('Different hypot times for 10000 runs')
+    >>> ylabel('Time [s]')
+    >>> xlabel('Size')
+
+    .. image:: ../../source/images/hypot_no_extension_speeds_3cases.png
     """
+    if lib.have_libspacepy:
+        if len(args) == 1 and hasattr(args, 'ndim'): # it is an array
+                ans = lib.hypot_tb(args[0], np.product(args[0].shape))
+                return ans
     ans = 0.0
     for arg in args:
         if hasattr(arg, '__iter__'):
