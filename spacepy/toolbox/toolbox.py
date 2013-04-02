@@ -53,10 +53,41 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-           'eventTimer', 'isview', 'interweave']
+           'eventTimer', 'isview', 'interweave', 'hypot']
 
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
+
+def hypot(*args):
+    """
+    compute the N-dimensional hypot of an iterable or mnay arguments
+
+    Parameters
+    ==========
+    args : many numbers or array-like
+        array like or many inputs to compute from
+
+    Returns
+    =======
+    out : float
+        N-dimensional hypot of a number
+
+    Examples
+    ========
+    >>> from spacepy import toolbox as tb
+    >>> print tb.hypot([3,4])
+    5.0
+    >>> print tb.hypot(3,4)
+    5.0
+    """
+    ans = 0.0
+    for arg in args:
+        if hasattr(arg, '__iter__'):
+            tmp = np.asanyarray(arg)
+            ans += np.sum(tmp**2)
+        else:
+            ans += arg**2
+    return np.sqrt(ans)
 
 def tOverlap(ts1, ts2, *args, **kwargs):
     """

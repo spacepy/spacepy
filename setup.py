@@ -241,7 +241,7 @@ class build(_build):
         shutil.copy(
             os.path.join(builddir, 'source', 'wrappers_{0}.inc'.format(bit)),
             os.path.join(builddir, 'source', 'wrappers.inc'.format(bit)))
-                             
+
         # compile irbemlib
         olddir = os.getcwd()
         os.chdir(builddir)
@@ -468,7 +468,7 @@ class install(_install):
             wtext = 'networkx not found; required for LANLstar.\n' + \
                     '  - see http://networkx.github.com/'
             self.distribution.add_warning(wtext)
-            bad = True            
+            bad = True
         try:
             print ('Checking for ffnet...')
             import ffnet
@@ -599,15 +599,12 @@ package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
 pybats_ext = Extension('spacepy.pybats.ctrace2d',
                        sources=['spacepy/pybats/ctrace2dmodule.c'],
                        include_dirs=[numpy.get_include()])
-toolbox_ext = Extension('spacepy.toolbox._toolbox',
-                                sources=['spacepy/toolbox/_toolboxmodule.c'],
-                       include_dirs=[numpy.get_include()])
 
 # run setup from distutil
 setup(name='spacepy',
       version='0.1.3',
       description='SpacePy: Tools for Space Science Applications',
-      ext_modules=[pybats_ext, toolbox_ext],
+      ext_modules=[pybats_ext, ],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',
