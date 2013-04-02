@@ -38,6 +38,7 @@ except:
     pass
 
 import spacepy
+from spacepy import time as spt
 
 #Py3k compatibility renamings
 try:
@@ -48,7 +49,7 @@ except NameError:
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
            'human_sort', 'feq', 'dictree', 'update', 'progressbar',
            'windowMean', 'medAbsDev', 'binHisto',
-           'logspace', 'geomspace', 'arraybin', 'mlt2rad',
+           'logspace', 'geomspace', 'linspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
@@ -1055,10 +1056,57 @@ def logspace(min, max, num, **kwargs):
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
         ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), num, **kwargs))
-        ans = [val.replace(tzinfo=None) for val in ans]
+        ans = spt.no_tzinfo(ans)
         return np.array(ans)
     else:
         return np.logspace(np.log10(min), np.log10(max), num, **kwargs)
+
+def linspace(min, max, num, **kwargs):
+    """
+    Returns linear-spaced bins. Same as numpy.linspace except works with datetime
+    and is faster
+
+    Parameters
+    ==========
+    min : float, datetime
+        minimum value
+    max : float, datetime
+        maximum value
+    num : integer
+        number of linear spaced bins
+
+    Other Parameters
+    ================
+    kwargs : dict
+        additional keywords passed into matplotlib.dates.num2date
+
+    Returns
+    =======
+    out : array
+        linear-spaced bins from min to max in a numpy array
+
+    Notes
+    =====
+    This function works on both numbers and datetime objects
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.linspace(1, 10, 4)
+    array([  1.,   4.,   7.,  10.])
+
+    See Also
+    ========
+    geomspace
+    logspace
+    """
+    if isinstance(min, datetime.datetime):
+        from matplotlib.dates import date2num, num2date
+        ans = num2date(np.linspace(date2num(min), date2num(max), num, **kwargs))
+        ans = spt.no_tzinfo(ans)
+        return np.array(ans)
+    else:
+        return np.linspace(min, max, num, **kwargs)
 
 def geomspace(start, ratio=None, stop=False, num=50):
     """

@@ -15,11 +15,10 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 from .toolbox import *
 try:
-    from _toolbox import hypot, linspace
+    from _toolbox import hypot
 except ImportError:
     #probably py3k, use slow python versions for now
     import numpy
-    linspace = numpy.linspace
     def hypot(*args):
         """
         Compute sqrt(vals[0] **2 + vals[1] **2 ...), i.e.
