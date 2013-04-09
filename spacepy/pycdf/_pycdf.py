@@ -1808,7 +1808,7 @@ class CDF(collections.MutableMapping):
         return _compress(self, comptype, param)
 
     def new(self, name, data=None, type=None, recVary=True, dimVarys=None,
-            dims=None, n_elements=None):
+            dims=None, n_elements=None, compress=None, compress_param=None):
         """
         Create a new zVariable in this CDF
 
@@ -1841,6 +1841,12 @@ class CDF(collections.MutableMapping):
         n_elements : int
             number of elements, should be 1 except for CDF_CHAR,
             for which it's the length of the string.
+        compress : ctypes.c_long
+            Compression to apply to this variable, default None.
+            See :py:meth:`Var.compress`.
+        compress_param : ctypes.c_long
+            Compression parameter if compression used; reasonable default
+            is chosen. See :py:meth:`Var.compress`.
 
         Returns
         =======
@@ -1929,6 +1935,8 @@ class CDF(collections.MutableMapping):
             raise ValueError('Data requires EPOCH16, INT8, or TIME_TT2000; '
                              'incompatible with backward-compatible CDF')
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
+        if compress != None:
+            new_var.compress(compress, compress_param)
         if data != None:
             new_var[...] = data
             if hasattr(data, 'attrs'):

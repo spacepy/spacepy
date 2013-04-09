@@ -2209,6 +2209,21 @@ class ChangeCDF(CDFTests):
         self.assertEqual(2, len(zvar))
         self.assertEqual([3], zvar._dim_sizes())
 
+    def testNewVarCompress(self):
+        """Create a new, compressed variable"""
+        data = numpy.arange(1000) #big enough to actually compress
+        self.cdf.new('newzVar', data,
+                     const.CDF_INT4,
+                     compress=const.GZIP_COMPRESSION, compress_param=9)
+        self.assertTrue('newzVar' in self.cdf)
+        zvar = self.cdf['newzVar']
+        numpy.testing.assert_array_equal(
+            data, zvar[...])
+        self.assertEqual(1000, len(zvar))
+        (comptype, compparam) = zvar.compress()
+        self.assertEqual(const.GZIP_COMPRESSION, comptype)
+        self.assertEqual(9, compparam)
+
     def testNewVarFromdmarray(self):
         """Create a new variable with data in dmarray"""
         indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
