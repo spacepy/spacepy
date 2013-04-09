@@ -1744,13 +1744,10 @@ class ReadColCDF(ColCDFTests):
             self.assertEqual(self.cdf[i]._dim_sizes(), expected[i])
 
 
-class ChangeCDF(CDFTests):
-    """Tests that modify an existing CDF"""
-    def __init__(self, *args):
-        super(ChangeCDF, self).__init__(*args)
-
+class ChangeCDFBase(CDFTests):
+    """Base for tests that modify an existing CDF"""
     def setUp(self):
-        super(ChangeCDF, self).setUp()
+        super(ChangeCDFBase, self).setUp()
         shutil.copy(self.testmaster, self.testfile)
         self.cdf = cdf.CDF(self.testfile)
         self.cdf.readonly(False)
@@ -1759,8 +1756,11 @@ class ChangeCDF(CDFTests):
         self.cdf.close()
         del self.cdf
         os.remove(self.testfile)
-        super(ChangeCDF, self).tearDown()
+        super(ChangeCDFBase, self).tearDown()
 
+    
+class ChangeCDF(ChangeCDFBase):
+    """Tests that modify an existing CDF, not otherwise specified"""
     def testDeletezVar(self):
         """Delete a zVar"""
         self.cdf['PhysRecNo']._delete()
@@ -1812,139 +1812,6 @@ class ChangeCDF(CDFTests):
             (type, val, traceback) = sys.exc_info()
             self.fail('Raised exception ' + str(val))
 
-    def testWriteSubscripted(self):
-        """Write data to a slice of a zVar"""
-        expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
-                    '8 ', '9 ']
-        self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
-        numpy.testing.assert_array_equal(
-            expected, self.cdf['SpinNumbers'][0:10])
-
-        expected = self.cdf['SectorRateScalersCounts'][...]
-        expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
-        self.cdf['SectorRateScalersCounts'][4, 5, 5, 8:3:-1] = \
-            [101.0, 102.0, 103.0, 104.0, 105.0]
-        numpy.testing.assert_array_equal(
-            expected, self.cdf['SectorRateScalersCounts'][...])
-
-        self.cdf['PhysRecNo'] = [1, 2, 3]
-        numpy.testing.assert_array_equal(
-            [1, 2, 3], self.cdf['PhysRecNo'][...])
-
-    def testWriteOffEnd(self):
-        """Extend variable by writing off the end"""
-        additional = [2000 + i for i in range(20)]
-        expected = self.cdf['PhysRecNo'][0:95].tolist() + additional
-        self.cdf['PhysRecNo'][95:] = additional
-        self.assertEqual(115, len(self.cdf['PhysRecNo']))
-        numpy.testing.assert_array_equal(expected, self.cdf['PhysRecNo'][:])
-
-    def testWriteExtend(self):
-        """Extend variable with explicit extend call"""
-        additional = [2000 + i for i in range(20)]
-        oldlen = len(self.cdf['PhysRecNo'])
-        expected = self.cdf['PhysRecNo'][...].tolist() + additional
-        self.cdf['PhysRecNo'].extend(additional)
-        self.assertEqual(oldlen + 20, len(self.cdf['PhysRecNo']))
-        numpy.testing.assert_array_equal(expected, self.cdf['PhysRecNo'][:])
-
-    def testInsertRecord(self):
-        """Insert a record into the middle of a variable"""
-        PhysRecNoData = self.cdf['PhysRecNo'][...].tolist()
-        PhysRecNoData[5:6] = [-1, -2, -3, -4]
-        self.cdf['PhysRecNo'][5:6] = [-1, -2, -3, -4]
-        self.assertEqual(103, len(self.cdf['PhysRecNo']))
-        numpy.testing.assert_array_equal(
-            PhysRecNoData, self.cdf['PhysRecNo'][...])
-
-    def testWriteAndTruncate(self):
-        """Write with insufficient data to fill all existing records"""
-        expected = [-1 * i for i in range(20)]
-        self.cdf['PhysRecNo'][:] = expected
-        numpy.testing.assert_array_equal(
-            expected, self.cdf['PhysRecNo'][:])
-
-    def testWriteWrongSizeData(self):
-        """Write with data sized or shaped differently from expected"""
-        message = 'attempt to assign data of dimensions (3,) ' + \
-                  'to slice of dimensions (5,)'
-        try:
-            self.cdf['SpinNumbers'][0:5] = [b'99', b'98', b'97']
-        except ValueError:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(message, str(v))
-        else:
-            self.fail('Should have raised ValueError: ' + message)
-
-        message = 'attempt to assign data of dimensions (2, 6, 2) ' + \
-                  'to slice of dimensions (3, 6, 2)'
-        try:
-            self.cdf['SpinRateScalersCounts'][0:3, 12:, 0:4:2] = \
-                [[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [0, 1]],
-                 [[2, 3], [4, 5], [6, 7], [8, 9], [0, 1], [2, 3]],
-                 ]
-        except ValueError:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(message, str(v))
-        else:
-            self.fail('Should have raised ValueError: ' + message)
-
-    def testDeleteRecord(self):
-        """Delete records from a variable"""
-        oldlen = len(self.cdf['PhysRecNo'])
-        PhysRecCopy = self.cdf['PhysRecNo'].copy()
-        del self.cdf['PhysRecNo'][5]
-        PhysRecCopy = numpy.append(PhysRecCopy[:5], PhysRecCopy[6:], 0)
-        self.assertEqual(oldlen - 1, len(self.cdf['PhysRecNo']))
-        numpy.testing.assert_array_equal(
-            PhysRecCopy[0:15], self.cdf['PhysRecNo'][0:15])
-
-        oldlen = len(self.cdf['ATC'])
-        ATCCopy = self.cdf['ATC'].copy()
-        del self.cdf['ATC'][0::2]
-        self.assertEqual(int(oldlen / 2), len(self.cdf['ATC']))
-        numpy.testing.assert_array_equal(ATCCopy[1::2], self.cdf['ATC'][...])
-
-        message = 'Cannot delete records from non-record-varying variable.'
-        try:
-            del self.cdf['SpinNumbers'][0]
-        except:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(t, TypeError)
-            self.assertEqual(str(v), message)
-        else:
-            self.fail('Should have raised TypeError: ' + message)
-
-        oldlen = len(self.cdf['SectorRateScalersCounts'])
-        SectorRateScalersCountsCopy = \
-                                    self.cdf['SectorRateScalersCounts'].copy()
-        SectorRateScalersCountsCopy = numpy.delete(
-            SectorRateScalersCountsCopy,
-            range(*slice(-1,-5,-1).indices(len(SectorRateScalersCountsCopy))),
-            0)
-        del self.cdf['SectorRateScalersCounts'][-1:-5:-1]
-        self.assertEqual(oldlen - 4, len(self.cdf['SectorRateScalersCounts']))
-        self.assertEqual(
-            SectorRateScalersCountsCopy[...].shape,
-            self.cdf['SectorRateScalersCounts'][...].shape)
-        numpy.testing.assert_array_equal(
-            SectorRateScalersCountsCopy[...].flat,
-            self.cdf['SectorRateScalersCounts'][...].flat)
-
-        oldlen = len(self.cdf['SectorRateScalersCounts'])
-        del self.cdf['SectorRateScalersCounts'][-1:-5]
-        self.assertEqual(oldlen, len(self.cdf['SectorRateScalersCounts']))
-
-        message = 'Can only delete entire records.'
-        try:
-            del self.cdf['SpinRateScalersCounts'][0, 12, 0:5]
-        except:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(t, TypeError)
-            self.assertEqual(str(v), message)
-        else:
-            self.fail('Should have raised TypeError: ' + message)
-
     def testRenameVar(self):
         """Rename a variable"""
         zvar = self.cdf['PhysRecNo']
@@ -1966,237 +1833,6 @@ class ChangeCDF(CDFTests):
             self.assertEqual(v.status, cdf.const.BAD_VAR_NAME)
         else:
             self.fail('Should have raised CDFError')
-
-    def testChangezEntry(self):
-        """Write new or changed zEntry"""
-        zvar = self.cdf['PhysRecNo']
-        zvar.attrs['DEPEND_0'] = 'foobar'
-        self.assertEqual('foobar', zvar.attrs['DEPEND_0'])
-        self.assertEqual(const.CDF_CHAR.value,
-                         cdf.zAttr(self.cdf,
-                                   'DEPEND_0').type(zvar._num()))
-
-        zvar.attrs['FILLVAL'] = [0, 1]
-        numpy.testing.assert_array_equal([0,1], zvar.attrs['FILLVAL'])
-        self.assertEqual(const.CDF_INT4.value,
-                         cdf.zAttr(self.cdf,
-                                   'FILLVAL').type(zvar._num()))
-
-        message = 'Entry strings must be scalar.'
-        try:
-            zvar.attrs['CATDESC'] = ['hi', 'there']
-        except ValueError:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(message, str(v))
-        else:
-            self.fail('Should have raised ValueError: ' + message)
-
-        message = 'Entries must be scalar or 1D.'
-        try:
-            zvar.attrs['FILLVAL'] = [[1, 2], [3, 4]]
-        except ValueError:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(message, str(v))
-        else:
-            self.fail('Should have raised ValueError: ' + message)
-
-    def testNewzAttr(self):
-        """Write a zEntry for a zAttribute that doesn't exist"""
-        zvar = self.cdf['PhysRecNo']
-        zvar.attrs['NEW_ATTRIBUTE'] = 1
-        self.assertTrue('NEW_ATTRIBUTE' in zvar.attrs)
-        self.assertEqual(1, zvar.attrs['NEW_ATTRIBUTE'])
-        self.assertEqual(const.CDF_INT4.value,
-                         cdf.zAttr(self.cdf,
-                                   'NEW_ATTRIBUTE').type(zvar._num()))
-
-        zvar.attrs['NEW_ATTRIBUTE2'] = [1, 2]
-        numpy.testing.assert_array_equal([1, 2], zvar.attrs['NEW_ATTRIBUTE2'])
-        self.assertEqual(const.CDF_INT4.value,
-                         cdf.zAttr(self.cdf,
-                                   'NEW_ATTRIBUTE2').type(zvar._num()))
-
-        zvar = self.cdf['SpinNumbers']
-        zvar.attrs['NEW_ATTRIBUTE3'] = 1
-        self.assertEqual(1, zvar.attrs['NEW_ATTRIBUTE3'])
-        self.assertEqual(const.CDF_BYTE.value,
-                         cdf.zAttr(self.cdf,
-                                   'NEW_ATTRIBUTE3').type(zvar._num()))
-
-    def testDelzAttr(self):
-        """Delete a zEntry"""
-        del self.cdf['PhysRecNo'].attrs['DEPEND_0']
-        self.assertFalse('DEPEND_0' in self.cdf['PhysRecNo'].attrs)
-        #Make sure attribute still exists
-        attrib = cdf.zAttr(self.cdf, 'DEPEND_0')
-
-        del self.cdf['SectorRateScalersCounts'].attrs['DEPEND_3']
-        self.assertFalse('DEPEND_3' in
-                         self.cdf['SectorRateScalersCounts'].attrs)
-        try:
-            attrib = cdf.zAttr(self.cdf, 'DEPEND_3')
-        except cdf.CDFError:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(const.NO_SUCH_ATTR, v.status)
-        else:
-            self.fail('Should have raised CDFError')
-
-    def testChangegAttr(self):
-        """Change an existing gEntry"""
-        self.cdf.attrs['Project'][0] = 'not much'
-        self.assertEqual('not much',
-                         self.cdf.attrs['Project'][0])
-
-        self.cdf.attrs['Source_name'][0] = datetime.datetime(2009, 1, 1)
-        self.assertEqual([datetime.datetime(2009, 1, 1)],
-                         self.cdf.attrs['Source_name'][:])
-
-        self.cdf.attrs['Data_type'] = 'stuff'
-        self.assertEqual('stuff',
-                         self.cdf.attrs['Data_type'][0])
-        self.cdf.attrs['Data_type'] = ['stuff', 'more stuff']
-        self.assertEqual(['stuff', 'more stuff'],
-                         self.cdf.attrs['Data_type'][:])
-
-    def testNewgAttr(self):
-        """Create a new gAttr by adding a gEntry"""
-        self.cdf.attrs['new_attr'] = 1.5
-        self.assertEqual([1.5],
-                         self.cdf.attrs['new_attr'][:])
-
-        self.cdf.attrs['new_attr2'] = []
-        self.assertTrue('new_attr2' in self.cdf.attrs)
-        self.cdf.attrs['new_attr2'][0:6:2] = [1, 2, 3]
-        self.assertEqual([1, None, 2, None, 3],
-                         self.cdf.attrs['new_attr2'][:])
-
-        self.cdf.attrs['new_attr3'] = ['hello', 'there']
-        self.assertEqual(['hello', 'there'],
-                         self.cdf.attrs['new_attr3'][:])
-
-    def testDelgAttr(self):
-        """Delete a gEntry"""
-        del self.cdf.attrs['TEXT'][0]
-        self.assertTrue('TEXT' in self.cdf.attrs)
-
-        del self.cdf.attrs['Project'][0]
-        self.assertTrue('Project' in self.cdf.attrs)
-
-        del self.cdf.attrs['PI_name']
-        self.assertFalse('PI_name' in self.cdf.attrs)
-
-    def testRenamegAttr(self):
-        """Rename a gAttribute"""
-        textcopy = self.cdf.attrs['TEXT'][:]
-        self.cdf.attrs['TEXT'].rename('notTEXT')
-        self.assertTrue('notTEXT' in self.cdf.attrs)
-        self.assertFalse('TEXT' in self.cdf.attrs)
-        self.assertEqual(textcopy, self.cdf.attrs['notTEXT'][:])
-
-    def testRenamezAttr(self):
-        """Rename a zAttribute"""
-        prn_attrs = self.cdf['PhysRecNo'].attrs
-        prn_depend = prn_attrs['DEPEND_0']
-        mc_attrs = self.cdf['MeanCharge'].attrs
-        mc_depend = mc_attrs['DEPEND_0']
-        prn_attrs.rename('DEPEND_0', 'notDEPEND_0')
-        self.assertTrue('notDEPEND_0' in prn_attrs)
-        self.assertTrue('notDEPEND_0' in mc_attrs)
-        self.assertFalse('DEPEND_0' in prn_attrs)
-        self.assertFalse('DEPEND_0' in mc_attrs)
-        self.assertEqual(prn_depend, prn_attrs['notDEPEND_0'])
-        self.assertEqual(mc_depend, mc_attrs['notDEPEND_0'])
-
-    def testChangegEntryType(self):
-        """Change the type of a gEntry"""
-        attrs = self.cdf.attrs
-        attrs['new_attr'] = []
-        attrs['new_attr'][0] = [ord('a'), ord('b'), ord('c')]
-        attrs['new_attr'].type(0, const.CDF_CHAR)
-        self.assertEqual(attrs['new_attr'][0], 'abc')
-        try:
-            attrs['new_attr'].type(0, const.CDF_INT2)
-        except cdf.CDFError:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(v.status, const.CANNOT_CHANGE)
-        else:
-            self.fail('Should have raised CDFError')
-
-    def testChangezEntryType(self):
-        """Change the type of a zEntry"""
-        attrs = self.cdf['ATC'].attrs
-        attrs['new_attr'] = [ord('a'), ord('b'), ord('c')]
-        attrs.type('new_attr', const.CDF_CHAR)
-        self.assertEqual(attrs['new_attr'], 'abc')
-        self.assertEqual(const.CDF_CHAR.value,
-                         attrs.type('new_attr'))
-
-    def testgAttrNewEntry(self):
-        """Create a new gEntry using Attr.new()"""
-        attr = self.cdf.attrs['Project']
-        #no type or number
-        attr.new([0, 1, 2, 3])
-        self.assertEqual(2, len(attr))
-        numpy.testing.assert_array_equal([0, 1, 2, 3], attr[1])
-        self.assertEqual(const.CDF_BYTE.value, attr.type(1))
-        #explicit number
-        attr.new('hello there', number=10)
-        self.assertEqual(3, len(attr))
-        self.assertEqual(10, attr.max_idx())
-        self.assertEqual('hello there', attr[10])
-        self.assertEqual(const.CDF_CHAR.value, attr.type(10))
-        #explicit type and number
-        attr.new(10, const.CDF_INT4, 15)
-        self.assertEqual(4, len(attr))
-        self.assertEqual(15, attr.max_idx())
-        self.assertEqual(10, attr[15])
-        self.assertEqual(const.CDF_INT4.value, attr.type(15))
-        #explicit type
-        attr.new([10, 11, 12, 13], const.CDF_REAL8)
-        self.assertEqual(5, len(attr))
-        numpy.testing.assert_array_equal([10.0, 11.0, 12.0, 13.0], attr[2])
-        self.assertEqual(const.CDF_REAL8.value, attr.type(2))
-
-    def testgAttrListNew(self):
-        """Create a new gAttr and/or gEntry using gAttrList.new"""
-        attrs = self.cdf.attrs
-        attrs.new('new')
-        self.assertTrue('new' in attrs)
-        attrs.new('new2', [1, 2, 3])
-        self.assertTrue('new2' in attrs)
-        numpy.testing.assert_array_equal([1, 2, 3], attrs['new2'][0])
-        attrs.new('new3', [1, 2, 3], const.CDF_INT4)
-        self.assertTrue('new3' in attrs)
-        numpy.testing.assert_array_equal([1, 2, 3], attrs['new3'][0])
-        self.assertEqual(const.CDF_INT4.value, attrs['new3'].type(0))
-
-    def testzAttrListNew(self):
-        """Create a new zEntry using zAttrList.new"""
-        attrs = self.cdf['ATC'].attrs
-        attrs.new('new2', [1, 2, 3])
-        self.assertTrue('new2' in attrs)
-        numpy.testing.assert_array_equal([1, 2, 3], attrs['new2'])
-        attrs.new('new3', [1, 2, 3], const.CDF_INT4)
-        self.assertTrue('new3' in attrs)
-        numpy.testing.assert_array_equal([1, 2, 3], attrs['new3'])
-        self.assertEqual(const.CDF_INT4.value, attrs.type('new3'))
-
-    def testAttrsFromDict(self):
-        """Dump a bunch of attrs on a variable from a dict"""
-        indict = { 'CATDESC': numpy.array([1, 2, 3], dtype=numpy.int32),
-                   'b': 'hello',
-                   }
-        attrlist = self.cdf['ATC'].attrs
-        attrlist.from_dict(indict)
-        self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
-        numpy.testing.assert_array_equal(indict['CATDESC'],
-                                         attrlist['CATDESC'])
-        self.assertEqual('hello', attrlist['b'])
-        types = {'CATDESC': const.CDF_INT4.value,
-                 'b': const.CDF_CHAR.value,
-                 }
-        for k in types:
-            self.assertEqual(types[k], attrlist.type(k))
 
     def testNewVar(self):
         """Create a new variable"""
@@ -2432,64 +2068,6 @@ class ChangeCDF(CDFTests):
         self.assertEqual([False, True],
                          self.cdf['foobar'].dv())
 
-    def testCopyAttr(self):
-        """Assign a gAttribute to another"""
-        self.cdf.attrs['new_attr'] = self.cdf.attrs['TEXT']
-        old_attr = self.cdf.attrs['TEXT']
-        new_attr = self.cdf.attrs['new_attr']
-        for i in range(self.cdf.attrs['TEXT'].max_idx()):
-            self.assertEqual(old_attr.has_entry(i),
-                             new_attr.has_entry(i))
-            if old_attr.has_entry(i):
-                self.assertEqual(old_attr[i], new_attr[i])
-                self.assertEqual(old_attr.type(i),
-                                 new_attr.type(i))
-
-    def testCloneAttrList(self):
-        """Copy an entire attribute list from one CDF to another"""
-        try:
-            with cdf.CDF('attrcopy.cdf', '') as newcdf:
-                newcdf.attrs['deleteme'] = ['hello']
-                newcdf.attrs.clone(self.cdf.attrs)
-                for attrname in self.cdf.attrs:
-                    self.assertTrue(attrname in newcdf.attrs)
-                    old_attr = self.cdf.attrs[attrname]
-                    new_attr = newcdf.attrs[attrname]
-                    self.assertEqual(old_attr.max_idx(),
-                                     new_attr.max_idx())
-                    for i in range(old_attr.max_idx()):
-                        self.assertEqual(old_attr.has_entry(i),
-                                         new_attr.has_entry(i))
-                        if old_attr.has_entry(i):
-                            self.assertEqual(old_attr[i], new_attr[i])
-                            self.assertEqual(old_attr.type(i),
-                                             new_attr.type(i))
-                for attrname in newcdf.attrs:
-                    self.assertTrue(attrname in self.cdf.attrs)
-        finally:
-            os.remove('attrcopy.cdf')
-
-    def testClonezAttrList(self):
-        """Copy entire attribute list from one zVar to another"""
-        oldlist = self.cdf['ATC'].attrs
-        newlist = self.cdf['PhysRecNo'].attrs
-        newlist.clone(oldlist)
-        for attrname in oldlist:
-            self.assertTrue(attrname in newlist)
-            self.assertEqual(oldlist[attrname], newlist[attrname])
-            self.assertEqual(oldlist.type(attrname),
-                             newlist.type(attrname))
-        oldlist = self.cdf['Epoch'].attrs
-        newlist = self.cdf['MeanCharge'].attrs
-        newlist.clone(oldlist)
-        for attrname in oldlist:
-            self.assertTrue(attrname in newlist,
-                            'Attribute {0} not found in copy.'.format(attrname)
-                            )
-            self.assertEqual(oldlist[attrname], newlist[attrname])
-            self.assertEqual(oldlist.type(attrname),
-                             newlist.type(attrname))
-
     def testAssignEpoch16Entry(self):
         """Assign to an Epoch16 entry"""
         self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
@@ -2509,17 +2087,6 @@ class ChangeCDF(CDFTests):
         namelist = list(self.cdf.attrs.keys())
         self.assertTrue('hi' in namelist)
         self.assertFalse('hi ' in namelist)
-
-    def testzVarInsert(self):
-        """Insert a record into a zVariable"""
-        before = self.cdf['ATC'][:].tolist()
-        self.cdf['ATC'].insert(100, datetime.datetime(2010, 12, 31))
-        before.insert(100, datetime.datetime(2010, 12, 31))
-        numpy.testing.assert_array_equal(before, self.cdf['ATC'][:])
-        before = self.cdf['MeanCharge'][:].tolist()
-        self.cdf['MeanCharge'].insert(20, [99] * 16)
-        before.insert(20, [99] * 16)
-        numpy.testing.assert_array_equal(before, self.cdf['MeanCharge'][:])
 
     def testInt8(self):
         """Create a new INT8 zVar"""
@@ -2605,6 +2172,447 @@ class ChangeCDF(CDFTests):
             numpy.array([datetime.datetime(1996, 1, 1),
                          datetime.datetime(1996, 1, 2)]),
             self.cdf['epochtest'][:])
+
+
+class ChangezVar(ChangeCDFBase):
+    """Tests that modify a zVar"""
+
+    def testWriteSubscripted(self):
+        """Write data to a slice of a zVar"""
+        expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
+                    '8 ', '9 ']
+        self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['SpinNumbers'][0:10])
+
+        expected = self.cdf['SectorRateScalersCounts'][...]
+        expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
+        self.cdf['SectorRateScalersCounts'][4, 5, 5, 8:3:-1] = \
+            [101.0, 102.0, 103.0, 104.0, 105.0]
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['SectorRateScalersCounts'][...])
+
+        self.cdf['PhysRecNo'] = [1, 2, 3]
+        numpy.testing.assert_array_equal(
+            [1, 2, 3], self.cdf['PhysRecNo'][...])
+
+    def testWriteOffEnd(self):
+        """Extend variable by writing off the end"""
+        additional = [2000 + i for i in range(20)]
+        expected = self.cdf['PhysRecNo'][0:95].tolist() + additional
+        self.cdf['PhysRecNo'][95:] = additional
+        self.assertEqual(115, len(self.cdf['PhysRecNo']))
+        numpy.testing.assert_array_equal(expected, self.cdf['PhysRecNo'][:])
+
+    def testWriteExtend(self):
+        """Extend variable with explicit extend call"""
+        additional = [2000 + i for i in range(20)]
+        oldlen = len(self.cdf['PhysRecNo'])
+        expected = self.cdf['PhysRecNo'][...].tolist() + additional
+        self.cdf['PhysRecNo'].extend(additional)
+        self.assertEqual(oldlen + 20, len(self.cdf['PhysRecNo']))
+        numpy.testing.assert_array_equal(expected, self.cdf['PhysRecNo'][:])
+
+    def testInsertRecord(self):
+        """Insert a record into the middle of a variable"""
+        PhysRecNoData = self.cdf['PhysRecNo'][...].tolist()
+        PhysRecNoData[5:6] = [-1, -2, -3, -4]
+        self.cdf['PhysRecNo'][5:6] = [-1, -2, -3, -4]
+        self.assertEqual(103, len(self.cdf['PhysRecNo']))
+        numpy.testing.assert_array_equal(
+            PhysRecNoData, self.cdf['PhysRecNo'][...])
+
+    def testzVarInsert(self):
+        """Insert a record into a zVariable"""
+        before = self.cdf['ATC'][:].tolist()
+        self.cdf['ATC'].insert(100, datetime.datetime(2010, 12, 31))
+        before.insert(100, datetime.datetime(2010, 12, 31))
+        numpy.testing.assert_array_equal(before, self.cdf['ATC'][:])
+        before = self.cdf['MeanCharge'][:].tolist()
+        self.cdf['MeanCharge'].insert(20, [99] * 16)
+        before.insert(20, [99] * 16)
+        numpy.testing.assert_array_equal(before, self.cdf['MeanCharge'][:])
+
+    def testWriteAndTruncate(self):
+        """Write with insufficient data to fill all existing records"""
+        expected = [-1 * i for i in range(20)]
+        self.cdf['PhysRecNo'][:] = expected
+        numpy.testing.assert_array_equal(
+            expected, self.cdf['PhysRecNo'][:])
+
+    def testWriteWrongSizeData(self):
+        """Write with data sized or shaped differently from expected"""
+        message = 'attempt to assign data of dimensions (3,) ' + \
+                  'to slice of dimensions (5,)'
+        try:
+            self.cdf['SpinNumbers'][0:5] = [b'99', b'98', b'97']
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should have raised ValueError: ' + message)
+
+        message = 'attempt to assign data of dimensions (2, 6, 2) ' + \
+                  'to slice of dimensions (3, 6, 2)'
+        try:
+            self.cdf['SpinRateScalersCounts'][0:3, 12:, 0:4:2] = \
+                [[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [0, 1]],
+                 [[2, 3], [4, 5], [6, 7], [8, 9], [0, 1], [2, 3]],
+                 ]
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should have raised ValueError: ' + message)
+
+    def testDeleteRecord(self):
+        """Delete records from a variable"""
+        oldlen = len(self.cdf['PhysRecNo'])
+        PhysRecCopy = self.cdf['PhysRecNo'].copy()
+        del self.cdf['PhysRecNo'][5]
+        PhysRecCopy = numpy.append(PhysRecCopy[:5], PhysRecCopy[6:], 0)
+        self.assertEqual(oldlen - 1, len(self.cdf['PhysRecNo']))
+        numpy.testing.assert_array_equal(
+            PhysRecCopy[0:15], self.cdf['PhysRecNo'][0:15])
+
+        oldlen = len(self.cdf['ATC'])
+        ATCCopy = self.cdf['ATC'].copy()
+        del self.cdf['ATC'][0::2]
+        self.assertEqual(int(oldlen / 2), len(self.cdf['ATC']))
+        numpy.testing.assert_array_equal(ATCCopy[1::2], self.cdf['ATC'][...])
+
+        message = 'Cannot delete records from non-record-varying variable.'
+        try:
+            del self.cdf['SpinNumbers'][0]
+        except:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(t, TypeError)
+            self.assertEqual(str(v), message)
+        else:
+            self.fail('Should have raised TypeError: ' + message)
+
+        oldlen = len(self.cdf['SectorRateScalersCounts'])
+        SectorRateScalersCountsCopy = \
+                                    self.cdf['SectorRateScalersCounts'].copy()
+        SectorRateScalersCountsCopy = numpy.delete(
+            SectorRateScalersCountsCopy,
+            range(*slice(-1,-5,-1).indices(len(SectorRateScalersCountsCopy))),
+            0)
+        del self.cdf['SectorRateScalersCounts'][-1:-5:-1]
+        self.assertEqual(oldlen - 4, len(self.cdf['SectorRateScalersCounts']))
+        self.assertEqual(
+            SectorRateScalersCountsCopy[...].shape,
+            self.cdf['SectorRateScalersCounts'][...].shape)
+        numpy.testing.assert_array_equal(
+            SectorRateScalersCountsCopy[...].flat,
+            self.cdf['SectorRateScalersCounts'][...].flat)
+
+        oldlen = len(self.cdf['SectorRateScalersCounts'])
+        del self.cdf['SectorRateScalersCounts'][-1:-5]
+        self.assertEqual(oldlen, len(self.cdf['SectorRateScalersCounts']))
+
+        message = 'Can only delete entire records.'
+        try:
+            del self.cdf['SpinRateScalersCounts'][0, 12, 0:5]
+        except:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(t, TypeError)
+            self.assertEqual(str(v), message)
+        else:
+            self.fail('Should have raised TypeError: ' + message)
+
+
+class ChangeAttr(ChangeCDFBase):
+    """Tests that modify Attributes and Attribute lists"""
+
+    def testChangezEntry(self):
+        """Write new or changed zEntry"""
+        zvar = self.cdf['PhysRecNo']
+        zvar.attrs['DEPEND_0'] = 'foobar'
+        self.assertEqual('foobar', zvar.attrs['DEPEND_0'])
+        self.assertEqual(const.CDF_CHAR.value,
+                         cdf.zAttr(self.cdf,
+                                   'DEPEND_0').type(zvar._num()))
+
+        zvar.attrs['FILLVAL'] = [0, 1]
+        numpy.testing.assert_array_equal([0,1], zvar.attrs['FILLVAL'])
+        self.assertEqual(const.CDF_INT4.value,
+                         cdf.zAttr(self.cdf,
+                                   'FILLVAL').type(zvar._num()))
+
+        message = 'Entry strings must be scalar.'
+        try:
+            zvar.attrs['CATDESC'] = ['hi', 'there']
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should have raised ValueError: ' + message)
+
+        message = 'Entries must be scalar or 1D.'
+        try:
+            zvar.attrs['FILLVAL'] = [[1, 2], [3, 4]]
+        except ValueError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(message, str(v))
+        else:
+            self.fail('Should have raised ValueError: ' + message)
+
+    def testNewzAttr(self):
+        """Write a zEntry for a zAttribute that doesn't exist"""
+        zvar = self.cdf['PhysRecNo']
+        zvar.attrs['NEW_ATTRIBUTE'] = 1
+        self.assertTrue('NEW_ATTRIBUTE' in zvar.attrs)
+        self.assertEqual(1, zvar.attrs['NEW_ATTRIBUTE'])
+        self.assertEqual(const.CDF_INT4.value,
+                         cdf.zAttr(self.cdf,
+                                   'NEW_ATTRIBUTE').type(zvar._num()))
+
+        zvar.attrs['NEW_ATTRIBUTE2'] = [1, 2]
+        numpy.testing.assert_array_equal([1, 2], zvar.attrs['NEW_ATTRIBUTE2'])
+        self.assertEqual(const.CDF_INT4.value,
+                         cdf.zAttr(self.cdf,
+                                   'NEW_ATTRIBUTE2').type(zvar._num()))
+
+        zvar = self.cdf['SpinNumbers']
+        zvar.attrs['NEW_ATTRIBUTE3'] = 1
+        self.assertEqual(1, zvar.attrs['NEW_ATTRIBUTE3'])
+        self.assertEqual(const.CDF_BYTE.value,
+                         cdf.zAttr(self.cdf,
+                                   'NEW_ATTRIBUTE3').type(zvar._num()))
+
+    def testDelzAttr(self):
+        """Delete a zEntry"""
+        del self.cdf['PhysRecNo'].attrs['DEPEND_0']
+        self.assertFalse('DEPEND_0' in self.cdf['PhysRecNo'].attrs)
+        #Make sure attribute still exists
+        attrib = cdf.zAttr(self.cdf, 'DEPEND_0')
+
+        del self.cdf['SectorRateScalersCounts'].attrs['DEPEND_3']
+        self.assertFalse('DEPEND_3' in
+                         self.cdf['SectorRateScalersCounts'].attrs)
+        try:
+            attrib = cdf.zAttr(self.cdf, 'DEPEND_3')
+        except cdf.CDFError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(const.NO_SUCH_ATTR, v.status)
+        else:
+            self.fail('Should have raised CDFError')
+
+    def testChangegAttr(self):
+        """Change an existing gEntry"""
+        self.cdf.attrs['Project'][0] = 'not much'
+        self.assertEqual('not much',
+                         self.cdf.attrs['Project'][0])
+
+        self.cdf.attrs['Source_name'][0] = datetime.datetime(2009, 1, 1)
+        self.assertEqual([datetime.datetime(2009, 1, 1)],
+                         self.cdf.attrs['Source_name'][:])
+
+        self.cdf.attrs['Data_type'] = 'stuff'
+        self.assertEqual('stuff',
+                         self.cdf.attrs['Data_type'][0])
+        self.cdf.attrs['Data_type'] = ['stuff', 'more stuff']
+        self.assertEqual(['stuff', 'more stuff'],
+                         self.cdf.attrs['Data_type'][:])
+
+    def testNewgAttr(self):
+        """Create a new gAttr by adding a gEntry"""
+        self.cdf.attrs['new_attr'] = 1.5
+        self.assertEqual([1.5],
+                         self.cdf.attrs['new_attr'][:])
+
+        self.cdf.attrs['new_attr2'] = []
+        self.assertTrue('new_attr2' in self.cdf.attrs)
+        self.cdf.attrs['new_attr2'][0:6:2] = [1, 2, 3]
+        self.assertEqual([1, None, 2, None, 3],
+                         self.cdf.attrs['new_attr2'][:])
+
+        self.cdf.attrs['new_attr3'] = ['hello', 'there']
+        self.assertEqual(['hello', 'there'],
+                         self.cdf.attrs['new_attr3'][:])
+
+    def testDelgAttr(self):
+        """Delete a gEntry"""
+        del self.cdf.attrs['TEXT'][0]
+        self.assertTrue('TEXT' in self.cdf.attrs)
+
+        del self.cdf.attrs['Project'][0]
+        self.assertTrue('Project' in self.cdf.attrs)
+
+        del self.cdf.attrs['PI_name']
+        self.assertFalse('PI_name' in self.cdf.attrs)
+
+    def testRenamegAttr(self):
+        """Rename a gAttribute"""
+        textcopy = self.cdf.attrs['TEXT'][:]
+        self.cdf.attrs['TEXT'].rename('notTEXT')
+        self.assertTrue('notTEXT' in self.cdf.attrs)
+        self.assertFalse('TEXT' in self.cdf.attrs)
+        self.assertEqual(textcopy, self.cdf.attrs['notTEXT'][:])
+
+    def testRenamezAttr(self):
+        """Rename a zAttribute"""
+        prn_attrs = self.cdf['PhysRecNo'].attrs
+        prn_depend = prn_attrs['DEPEND_0']
+        mc_attrs = self.cdf['MeanCharge'].attrs
+        mc_depend = mc_attrs['DEPEND_0']
+        prn_attrs.rename('DEPEND_0', 'notDEPEND_0')
+        self.assertTrue('notDEPEND_0' in prn_attrs)
+        self.assertTrue('notDEPEND_0' in mc_attrs)
+        self.assertFalse('DEPEND_0' in prn_attrs)
+        self.assertFalse('DEPEND_0' in mc_attrs)
+        self.assertEqual(prn_depend, prn_attrs['notDEPEND_0'])
+        self.assertEqual(mc_depend, mc_attrs['notDEPEND_0'])
+
+    def testChangegEntryType(self):
+        """Change the type of a gEntry"""
+        attrs = self.cdf.attrs
+        attrs['new_attr'] = []
+        attrs['new_attr'][0] = [ord('a'), ord('b'), ord('c')]
+        attrs['new_attr'].type(0, const.CDF_CHAR)
+        self.assertEqual(attrs['new_attr'][0], 'abc')
+        try:
+            attrs['new_attr'].type(0, const.CDF_INT2)
+        except cdf.CDFError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(v.status, const.CANNOT_CHANGE)
+        else:
+            self.fail('Should have raised CDFError')
+
+    def testChangezEntryType(self):
+        """Change the type of a zEntry"""
+        attrs = self.cdf['ATC'].attrs
+        attrs['new_attr'] = [ord('a'), ord('b'), ord('c')]
+        attrs.type('new_attr', const.CDF_CHAR)
+        self.assertEqual(attrs['new_attr'], 'abc')
+        self.assertEqual(const.CDF_CHAR.value,
+                         attrs.type('new_attr'))
+
+    def testgAttrNewEntry(self):
+        """Create a new gEntry using Attr.new()"""
+        attr = self.cdf.attrs['Project']
+        #no type or number
+        attr.new([0, 1, 2, 3])
+        self.assertEqual(2, len(attr))
+        numpy.testing.assert_array_equal([0, 1, 2, 3], attr[1])
+        self.assertEqual(const.CDF_BYTE.value, attr.type(1))
+        #explicit number
+        attr.new('hello there', number=10)
+        self.assertEqual(3, len(attr))
+        self.assertEqual(10, attr.max_idx())
+        self.assertEqual('hello there', attr[10])
+        self.assertEqual(const.CDF_CHAR.value, attr.type(10))
+        #explicit type and number
+        attr.new(10, const.CDF_INT4, 15)
+        self.assertEqual(4, len(attr))
+        self.assertEqual(15, attr.max_idx())
+        self.assertEqual(10, attr[15])
+        self.assertEqual(const.CDF_INT4.value, attr.type(15))
+        #explicit type
+        attr.new([10, 11, 12, 13], const.CDF_REAL8)
+        self.assertEqual(5, len(attr))
+        numpy.testing.assert_array_equal([10.0, 11.0, 12.0, 13.0], attr[2])
+        self.assertEqual(const.CDF_REAL8.value, attr.type(2))
+
+    def testgAttrListNew(self):
+        """Create a new gAttr and/or gEntry using gAttrList.new"""
+        attrs = self.cdf.attrs
+        attrs.new('new')
+        self.assertTrue('new' in attrs)
+        attrs.new('new2', [1, 2, 3])
+        self.assertTrue('new2' in attrs)
+        numpy.testing.assert_array_equal([1, 2, 3], attrs['new2'][0])
+        attrs.new('new3', [1, 2, 3], const.CDF_INT4)
+        self.assertTrue('new3' in attrs)
+        numpy.testing.assert_array_equal([1, 2, 3], attrs['new3'][0])
+        self.assertEqual(const.CDF_INT4.value, attrs['new3'].type(0))
+
+    def testzAttrListNew(self):
+        """Create a new zEntry using zAttrList.new"""
+        attrs = self.cdf['ATC'].attrs
+        attrs.new('new2', [1, 2, 3])
+        self.assertTrue('new2' in attrs)
+        numpy.testing.assert_array_equal([1, 2, 3], attrs['new2'])
+        attrs.new('new3', [1, 2, 3], const.CDF_INT4)
+        self.assertTrue('new3' in attrs)
+        numpy.testing.assert_array_equal([1, 2, 3], attrs['new3'])
+        self.assertEqual(const.CDF_INT4.value, attrs.type('new3'))
+
+    def testAttrsFromDict(self):
+        """Dump a bunch of attrs on a variable from a dict"""
+        indict = { 'CATDESC': numpy.array([1, 2, 3], dtype=numpy.int32),
+                   'b': 'hello',
+                   }
+        attrlist = self.cdf['ATC'].attrs
+        attrlist.from_dict(indict)
+        self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
+        numpy.testing.assert_array_equal(indict['CATDESC'],
+                                         attrlist['CATDESC'])
+        self.assertEqual('hello', attrlist['b'])
+        types = {'CATDESC': const.CDF_INT4.value,
+                 'b': const.CDF_CHAR.value,
+                 }
+        for k in types:
+            self.assertEqual(types[k], attrlist.type(k))
+
+    def testCopyAttr(self):
+        """Assign a gAttribute to another"""
+        self.cdf.attrs['new_attr'] = self.cdf.attrs['TEXT']
+        old_attr = self.cdf.attrs['TEXT']
+        new_attr = self.cdf.attrs['new_attr']
+        for i in range(self.cdf.attrs['TEXT'].max_idx()):
+            self.assertEqual(old_attr.has_entry(i),
+                             new_attr.has_entry(i))
+            if old_attr.has_entry(i):
+                self.assertEqual(old_attr[i], new_attr[i])
+                self.assertEqual(old_attr.type(i),
+                                 new_attr.type(i))
+
+    def testCloneAttrList(self):
+        """Copy an entire attribute list from one CDF to another"""
+        try:
+            with cdf.CDF('attrcopy.cdf', '') as newcdf:
+                newcdf.attrs['deleteme'] = ['hello']
+                newcdf.attrs.clone(self.cdf.attrs)
+                for attrname in self.cdf.attrs:
+                    self.assertTrue(attrname in newcdf.attrs)
+                    old_attr = self.cdf.attrs[attrname]
+                    new_attr = newcdf.attrs[attrname]
+                    self.assertEqual(old_attr.max_idx(),
+                                     new_attr.max_idx())
+                    for i in range(old_attr.max_idx()):
+                        self.assertEqual(old_attr.has_entry(i),
+                                         new_attr.has_entry(i))
+                        if old_attr.has_entry(i):
+                            self.assertEqual(old_attr[i], new_attr[i])
+                            self.assertEqual(old_attr.type(i),
+                                             new_attr.type(i))
+                for attrname in newcdf.attrs:
+                    self.assertTrue(attrname in self.cdf.attrs)
+        finally:
+            os.remove('attrcopy.cdf')
+
+    def testClonezAttrList(self):
+        """Copy entire attribute list from one zVar to another"""
+        oldlist = self.cdf['ATC'].attrs
+        newlist = self.cdf['PhysRecNo'].attrs
+        newlist.clone(oldlist)
+        for attrname in oldlist:
+            self.assertTrue(attrname in newlist)
+            self.assertEqual(oldlist[attrname], newlist[attrname])
+            self.assertEqual(oldlist.type(attrname),
+                             newlist.type(attrname))
+        oldlist = self.cdf['Epoch'].attrs
+        newlist = self.cdf['MeanCharge'].attrs
+        newlist.clone(oldlist)
+        for attrname in oldlist:
+            self.assertTrue(attrname in newlist,
+                            'Attribute {0} not found in copy.'.format(attrname)
+                            )
+            self.assertEqual(oldlist[attrname], newlist[attrname])
+            self.assertEqual(oldlist.type(attrname),
+                             newlist.type(attrname))
 
 
 class ChangeColCDF(ColCDFTests):
