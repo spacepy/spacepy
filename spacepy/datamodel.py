@@ -633,7 +633,7 @@ def unflatten(dobj, marker='<--'):
             addme[grp][newkey] = dmcopy(dobj[key])
         addme[grp] = unflatten(addme[grp], marker=marker) #recurse to make sure everything inside is unpacked
     return addme
-    
+
 
 def fromCDF(fname, **kwargs):
     '''
@@ -733,7 +733,7 @@ def toCDF(fname, SDobject, **kwargs):
                     except KeyError:
                         pass
     return None
-    
+
 
 def fromHDF5(fname, **kwargs):
     '''
@@ -825,11 +825,26 @@ def toHDF5(fname, SDobject, **kwargs):
     mode : str (optional)
         HDF5 file open mode (a, w, r) (default 'a')
     compression : str (optional)
+<<<<<<< HEAD
         Enable compression of a given type (e.g. 'gzip')
+=======
+        compress all the variables using this method (default None) (gzip, shuffle, fletcher32, szip, lzf)
+    compression_opts : str (optional)
+        options to the compression, see h5py documentation for more details
+>>>>>>> master
 
     Returns
     -------
     None
+
+    Examples
+    --------
+    >>> import spacepy.datamodel as dm
+    >>> a = dm.SpaceData()
+    >>> a['data'] = dm.dmarray(range(100000), dtype=float)
+    >>> dm.toHDF5('test_gzip.h5', a, overwrite=True, compression='gzip')
+    >>> dm.toHDF5('test.h5', a, overwrite=True)
+    >>> # test_gzip.h5 was 118k, test.h5 was 785k
     '''
     def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
         if hasattr(SDobject, 'attrs'):
@@ -885,8 +900,12 @@ def toHDF5(fname, SDobject, **kwargs):
         h5_compr_type = None
     else:
         h5_compr_type = kwargs['compression']
-        if kwargs['compression'] not in ['gzip', 'szip']:
+        if h5_compr_type not in ['gzip', 'szip', 'lzf']:
             raise NotImplementedError('Specified compression type not supported')
+    if ('compression_opts' not in kwargs) or (h5_compr_type == 'lzf'): 
+        kwargs['compression_opts'] = None
+    else:
+        h5_compr_opts = kwargs['compression_opts']
 
     if 'overwrite' not in kwargs: kwargs['overwrite'] = True
     if type(fname) == str:
@@ -914,20 +933,20 @@ def toHDF5(fname, SDobject, **kwargs):
 
     #first convert non-string keys to str
     SDobject = convertKeysToStr(SDobject)
-
     SDcarryattrs(SDobject,hfile,path,allowed_attrs)
+
     for key, value in SDobject.iteritems():
         if isinstance(value, allowed_elems[0]):
             hfile[path].create_group(key)
             toHDF5(hfile, SDobject[key], path=path+'/'+key)
         elif isinstance(value, allowed_elems[1]):
             try:
-                hfile[path].create_dataset(key, data=value, compression=h5_compr_type)
+                hfile[path].create_dataset(key, data=value, compression=h5_compr_type, compression_opts=h5_compr_opts)
             except:
                 dumval = value.copy()
                 if isinstance(value[0], datetime.datetime):
                     for i, val in enumerate(value): dumval[i] = val.isoformat()
-                hfile[path].create_dataset(key, data=dumval.astype('|S35'), compression=h5_compr_type)
+                hfile[path].create_dataset(key, data=dumval.astype('|S35'), compression=h5_compr_type, compression_opts=h5_compr_opts)
                 #else:
                 #    hfile[path].create_dataset(key, data=value.astype(float))
             SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)

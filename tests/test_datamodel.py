@@ -356,6 +356,19 @@ class converterTests(unittest.TestCase):
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
+    def test_HDF5roundtripGZIP(self):
+        """Data can go to hdf and back with compression"""
+        dm.toHDF5(self.testfile[1], self.SDobj, compression='gzip')
+        newobj = dm.fromHDF5(self.testfile[1])
+        self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
+        np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
+        dm.toHDF5(self.testfile[1], self.SDobj, mode='a', compression='gzip')
+        newobj = dm.fromHDF5(self.testfile[1])
+        self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
+        np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
+
     def test_HDF5Exceptions(self):
         """HDF5 has warnings and exceptions"""
         dm.toHDF5(self.testfile[1], self.SDobj)
@@ -373,6 +386,17 @@ class converterTests(unittest.TestCase):
         self.assertEqual(a['foo'], newobj['foo'])
         a['bar'] = dm.dmarray([datetime.datetime(2000, 1, 1)])
         dm.toHDF5(self.testfile[1], a)
+        self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
+
+    def test_HDF5roundtrip2GZIP(self):
+        """Data can go to hdf without altering datetimes in the datamodel with compression"""
+        a = dm.SpaceData()
+        a['foo'] = dm.SpaceData()
+        dm.toHDF5(self.testfile[1], a, compression='gzip')
+        newobj = dm.fromHDF5(self.testfile[1])
+        self.assertEqual(a['foo'], newobj['foo'])
+        a['bar'] = dm.dmarray([datetime.datetime(2000, 1, 1)])
+        dm.toHDF5(self.testfile[1], a, compression='gzip')
         self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
 
     def test_dateToISO(self):

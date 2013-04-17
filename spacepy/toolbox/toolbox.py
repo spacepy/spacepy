@@ -39,6 +39,14 @@ except:
     pass
 
 import spacepy
+from spacepy import time as spt
+
+#Try to pull in the C version. Assumption is that if you import this module,
+#you want to do some association analysis, so the overhead in the import
+#is OK.
+from spacepy import lib
+if lib.have_libspacepy:
+    import ctypes
 
 #Py3k compatibility renamings
 try:
@@ -49,14 +57,87 @@ except NameError:
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
            'human_sort', 'feq', 'dictree', 'update', 'progressbar',
            'windowMean', 'medAbsDev', 'binHisto',
-           'logspace', 'geomspace', 'arraybin', 'mlt2rad',
+           'logspace', 'geomspace', 'linspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
+<<<<<<< HEAD
            'eventTimer', 'isview', 'interweave', 'indsFromXrange']
+=======
+           'eventTimer', 'isview', 'interweave', 'hypot']
+>>>>>>> master
 
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
+
+def hypot(*args):
+    """
+    compute the N-dimensional hypot of an iterable or mnay arguments
+
+    Parameters
+    ==========
+    args : many numbers or array-like
+        array like or many inputs to compute from
+
+    Returns
+    =======
+    out : float
+        N-dimensional hypot of a number
+
+    Notes
+    =====
+    This function has a complicated speed function.
+     - if a numpy array of floats is input this is passed off to C
+     - if iterables are passed in they are made into numpy arrays and comptaton is done local
+     - if many scalar agruments are passed in calculation is done in a loop
+    For max speed:
+     - <20 elements expand them into scalars  tb.hypot(*[vals]) or tb.hypot(vals[0], vals[1]...)
+     - >20 elements premake them into a numpy array of doubles
+
+    Examples
+    ========
+    >>> from spacepy import toolbox as tb
+    >>> print tb.hypot([3,4])
+    5.0
+    >>> print tb.hypot(3,4)
+    5.0
+    >>> # Benchmark ####
+    >>> from spacepy import toolbox as tb
+    >>> import numpy as np
+    >>> import timeit
+    >>> num_list = []
+    >>> num_np = []
+    >>> num_np_double = []
+    >>> num_scalar = []
+    >>> tot = 500
+    >>> for num in tb.logspace(1, tot, 10):
+    >>>     print num
+    >>>     num_list.append(timeit.timeit(stmt='tb.hypot(a)', setup='from spacepy import toolbox as tb; import numpy as np; a = [3]*{0}'.format(int(num)), number=10000))
+    >>>     num_np.append(timeit.timeit(stmt='tb.hypot(a)', setup='from spacepy import toolbox as tb; import numpy as np; a = np.asarray([3]*{0})'.format(int(num)), number=10000))
+    >>>     num_scalar.append(timeit.timeit(stmt='tb.hypot(*a)', setup='from spacepy import toolbox as tb; import numpy as np; a = [3]*{0}'.format(int(num)), number=10000))
+    >>> from pylab import *
+    >>> loglog(tb.logspace(1, tot, 10),  num_list, lw=2, label='list')
+    >>> loglog(tb.logspace(1, tot, 10),  num_np, lw=2, label='numpy->ctypes')
+    >>> loglog(tb.logspace(1, tot, 10),  num_scalar, lw=2, label='scalar')
+    >>> legend(shadow=True, fancybox=1, loc='upper left')
+    >>> title('Different hypot times for 10000 runs')
+    >>> ylabel('Time [s]')
+    >>> xlabel('Size')
+
+    .. image:: ../../source/images/hypot_no_extension_speeds_3cases.png
+    """
+    if lib.have_libspacepy:
+        if len(args) == 1 and hasattr(args, 'ndim'): # it is an array
+                ans = lib.hypot_tb(args[0], np.product(args[0].shape))
+                return ans
+    ans = 0.0
+    for arg in args:
+        if hasattr(arg, '__iter__'):
+            tmp = np.asanyarray(arg)
+            ans += np.sum(tmp**2)
+        else:
+            ans += arg**2
+    return np.sqrt(ans)
 
 def tOverlap(ts1, ts2, *args, **kwargs):
     """
@@ -1100,10 +1181,57 @@ def logspace(min, max, num, **kwargs):
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
         ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), num, **kwargs))
-        ans = [val.replace(tzinfo=None) for val in ans]
+        ans = spt.no_tzinfo(ans)
         return np.array(ans)
     else:
         return np.logspace(np.log10(min), np.log10(max), num, **kwargs)
+
+def linspace(min, max, num, **kwargs):
+    """
+    Returns linear-spaced bins. Same as numpy.linspace except works with datetime
+    and is faster
+
+    Parameters
+    ==========
+    min : float, datetime
+        minimum value
+    max : float, datetime
+        maximum value
+    num : integer
+        number of linear spaced bins
+
+    Other Parameters
+    ================
+    kwargs : dict
+        additional keywords passed into matplotlib.dates.num2date
+
+    Returns
+    =======
+    out : array
+        linear-spaced bins from min to max in a numpy array
+
+    Notes
+    =====
+    This function works on both numbers and datetime objects
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.linspace(1, 10, 4)
+    array([  1.,   4.,   7.,  10.])
+
+    See Also
+    ========
+    geomspace
+    logspace
+    """
+    if isinstance(min, datetime.datetime):
+        from matplotlib.dates import date2num, num2date
+        ans = num2date(np.linspace(date2num(min), date2num(max), num, **kwargs))
+        ans = spt.no_tzinfo(ans)
+        return np.array(ans)
+    else:
+        return np.linspace(min, max, num, **kwargs)
 
 def geomspace(start, ratio=None, stop=False, num=50):
     """
