@@ -1744,13 +1744,10 @@ class ReadColCDF(ColCDFTests):
             self.assertEqual(self.cdf[i]._dim_sizes(), expected[i])
 
 
-class ChangeCDF(CDFTests):
-    """Tests that modify an existing CDF"""
-    def __init__(self, *args):
-        super(ChangeCDF, self).__init__(*args)
-
+class ChangeCDFBase(CDFTests):
+    """Base for tests that modify an existing CDF"""
     def setUp(self):
-        super(ChangeCDF, self).setUp()
+        super(ChangeCDFBase, self).setUp()
         shutil.copy(self.testmaster, self.testfile)
         self.cdf = cdf.CDF(self.testfile)
         self.cdf.readonly(False)
@@ -1759,8 +1756,11 @@ class ChangeCDF(CDFTests):
         self.cdf.close()
         del self.cdf
         os.remove(self.testfile)
-        super(ChangeCDF, self).tearDown()
+        super(ChangeCDFBase, self).tearDown()
 
+    
+class ChangeCDF(ChangeCDFBase):
+    """Tests that modify an existing CDF, not otherwise specified"""
     def testDeletezVar(self):
         """Delete a zVar"""
         self.cdf['PhysRecNo']._delete()
@@ -1812,6 +1812,371 @@ class ChangeCDF(CDFTests):
             (type, val, traceback) = sys.exc_info()
             self.fail('Raised exception ' + str(val))
 
+    def testRenameVar(self):
+        """Rename a variable"""
+        zvar = self.cdf['PhysRecNo']
+        zvardata = zvar[...]
+        zvar.rename('foobar')
+        numpy.testing.assert_array_equal(
+            zvardata, self.cdf['foobar'][...])
+        try:
+            zvar = self.cdf['PhysRecNo']
+        except KeyError:
+            pass
+        else:
+            self.fail('Should have raised KeyError')
+
+        try:
+            zvar.rename('a' * 300)
+        except cdf.CDFError:
+            (t, v, tb) = sys.exc_info()
+            self.assertEqual(v.status, cdf.const.BAD_VAR_NAME)
+        else:
+            self.fail('Should have raised CDFError')
+
+    def testNewVar(self):
+        """Create a new variable"""
+        self.cdf.new('newzVar', [[1, 2, 3], [4, 5, 6]],
+                     const.CDF_INT4)
+        self.assertTrue('newzVar' in self.cdf)
+        zvar = self.cdf['newzVar']
+        numpy.testing.assert_array_equal(
+            [[1, 2, 3], [4, 5, 6]], zvar[...])
+        self.assertEqual(2, len(zvar))
+        self.assertEqual([3], zvar._dim_sizes())
+
+    def testNewVarCompress(self):
+        """Create a new, compressed variable"""
+        data = numpy.arange(1000) #big enough to actually compress
+        self.cdf.new('newzVar', data,
+                     const.CDF_INT4,
+                     compress=const.GZIP_COMPRESSION, compress_param=9)
+        self.assertTrue('newzVar' in self.cdf)
+        zvar = self.cdf['newzVar']
+        numpy.testing.assert_array_equal(
+            data, zvar[...])
+        self.assertEqual(1000, len(zvar))
+        (comptype, compparam) = zvar.compress()
+        self.assertEqual(const.GZIP_COMPRESSION, comptype)
+        self.assertEqual(9, compparam)
+
+    def testNewVarFromdmarray(self):
+        """Create a new variable with data in dmarray"""
+        indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
+                                   attrs={'name': 'bob'})
+        self.cdf.new('newzVar', indata)
+        numpy.testing.assert_array_equal(
+            indata[...], self.cdf['newzVar'][...])
+        self.assertEqual('bob', self.cdf['newzVar'].attrs['name'])
+        self.assertEqual(numpy.int8, self.cdf['newzVar'].dtype)
+
+    def testNewVarFromdmarrayAssign(self):
+        """Create a new variable by assigning from dmarray"""
+        indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
+                                   attrs={'name': 'bob'})
+        self.cdf['newzVar'] = indata
+        numpy.testing.assert_array_equal(
+            indata[...], self.cdf['newzVar'][...])
+        self.assertEqual('bob', self.cdf['newzVar'].attrs['name'])
+        self.assertEqual(numpy.int8, self.cdf['newzVar'].dtype)
+
+    def testNewVarAssign(self):
+        """Create a new variable by assigning to CDF element"""
+        self.cdf['newzVar'] = [[1, 2, 3], [4, 5, 6]]
+        self.assertTrue('newzVar' in self.cdf)
+        zvar = self.cdf['newzVar']
+        numpy.testing.assert_array_equal(
+            [[1, 2, 3], [4, 5, 6]], zvar[...])
+        self.assertEqual(2, len(zvar))
+        self.assertEqual([3], zvar._dim_sizes())
+
+    def testNewVarUnicode(self):
+        """Create a new variable with a unicode name"""
+        if str is bytes:
+            self.cdf['newzVar'.decode()] = [[1, 2, 3], [4, 5, 6]]
+        else:
+            self.cdf['newzVar'] = [[1, 2, 3], [4, 5, 6]]
+        numpy.testing.assert_array_equal(
+            [[1, 2, 3], [4, 5, 6]], self.cdf['newzVar'][...])
+
+    def testBadDataSize(self):
+        """Attempt to assign data of the wrong size to a zVar"""
+        try:
+            self.cdf['MeanCharge'] = [1.0, 2.0, 3.0]
+        except ValueError:
+            pass
+        else:
+            self.fail('Should have raised ValueError')
+
+    def testChangeVarType(self):
+        """Change the type of a variable"""
+        self.cdf['new'] = [-1, -2, -3]
+        self.cdf['new'].type(const.CDF_UINT1)
+        numpy.testing.assert_array_equal(
+            [255, 254, 253], self.cdf['new'][...])
+
+    def testNewVarNoData(self):
+        """Create a new variable without providing any data"""
+        self.assertRaises(ValueError, self.cdf.new, 'newvar')
+        self.cdf.new('newvar', None, const.CDF_INT4)
+        self.assertEqual([], self.cdf['newvar']._dim_sizes())
+
+        self.cdf.new('newvar2', None, const.CDF_CHAR, dims=[])
+        self.assertEqual(1, self.cdf['newvar2']._nelems())
+
+    def testNewVarNRV(self):
+        """Create a new non-record-varying variable"""
+        self.cdf.new('newvar2', [1, 2, 3], recVary=False)
+        self.assertFalse(self.cdf['newvar2'].rv())
+        self.assertEqual([3], self.cdf['newvar2']._dim_sizes())
+        numpy.testing.assert_array_equal(
+            [1, 2, 3], self.cdf['newvar2'][...])
+
+    def testChangeRV(self):
+        """Change record variance"""
+        zVar = self.cdf.new('newvar', dims=[], type=const.CDF_INT4)
+        self.assertTrue(zVar.rv())
+        zVar.rv(False)
+        self.assertFalse(zVar.rv())
+        zVar.rv(True)
+        self.assertTrue(zVar.rv())
+
+    def testChecksum(self):
+        """Change checksumming on the CDF"""
+        self.cdf.checksum(True)
+        self.assertTrue(self.cdf.checksum())
+        self.cdf.checksum(False)
+        self.assertFalse(self.cdf.checksum())
+
+    def testCompress(self):
+        """Change compression on the CDF"""
+        self.cdf.compress(const.GZIP_COMPRESSION)
+        (comptype, parm) = self.cdf.compress()
+        self.assertEqual(const.GZIP_COMPRESSION, comptype),
+        self.assertEqual(5, parm)
+        self.cdf.compress(const.NO_COMPRESSION)
+        (comptype, parm) = self.cdf.compress()
+        self.assertEqual(const.NO_COMPRESSION, comptype),
+        self.assertEqual(0, parm)
+
+    def testVarCompress(self):
+        """Change compression on a variable"""
+        zvar = self.cdf.new('newvar', type=const.CDF_INT4, dims=[])
+        zvar.compress(const.GZIP_COMPRESSION)
+        (comptype, parm) = zvar.compress()
+        self.assertEqual(const.GZIP_COMPRESSION, comptype),
+        self.assertEqual(5, parm)
+        zvar.compress(const.NO_COMPRESSION)
+        (comptype, parm) = zvar.compress()
+        self.assertEqual(const.NO_COMPRESSION, comptype),
+        self.assertEqual(0, parm)
+
+    def testWarnings(self):
+        """Bizarre way to force a warning"""
+        attrnum = ctypes.c_long(0)
+        with warnings.catch_warnings(record=True) as w:
+            self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_,
+                           'this is a very long string intended to get up to '
+                           '257 characters or so because the maximum length '
+                           'of an attribute name is 256 characters and '
+                           'attribute name truncated is just about the ONLY '
+                           'warning I can figure out how to raise in the CDF '
+                           'library and this is really a serious pain in just '
+                           'about every portion of the anatomy.',
+                           cdf.const.GLOBAL_SCOPE, ctypes.byref(attrnum))
+            for curr_warn in w:
+                self.assertTrue(isinstance(curr_warn.message, cdf.CDFWarning))
+                self.assertEqual('ATTR_NAME_TRUNC: Attribute name truncated.',
+                                 str(curr_warn.message))
+
+    def testAssignEmptyList(self):
+        """Assign an empty list to a variable"""
+        self.cdf['ATC'] = []
+        self.assertEqual(0, len(self.cdf['ATC']))
+
+    def testReadEmptyList(self):
+        """Read from an empty variable"""
+        self.cdf['ATC'] = []
+        data = self.cdf['ATC'][...]
+        self.assertEqual((0,), data.shape)
+        self.assertEqual(numpy.object, data.dtype)
+
+    def testCopyVariable(self):
+        """Copy one variable to another"""
+        varlist = list(self.cdf.keys())
+        for name in varlist:
+            oldvar = self.cdf[name]
+            self.cdf[name + '_2'] = oldvar
+            newvar = self.cdf[name + '_2']
+            msg = 'Variable ' + name + ' failed.'
+            self.assertEqual(oldvar._n_dims(), newvar._n_dims(), msg)
+            self.assertEqual(oldvar._dim_sizes(), newvar._dim_sizes(), msg)
+            self.assertEqual(oldvar.type(), newvar.type(), msg)
+            self.assertEqual(oldvar._nelems(), newvar._nelems(), msg)
+            self.assertEqual(oldvar.compress(), newvar.compress(), msg)
+            self.assertEqual(oldvar.rv(), newvar.rv(), msg)
+            self.assertEqual(oldvar.dv(), newvar.dv(), msg)
+            numpy.testing.assert_array_equal(
+                oldvar[...], newvar[...], msg)
+            oldlist = oldvar.attrs
+            newlist = newvar.attrs
+            for attrname in oldlist:
+                self.assertTrue(attrname in newlist)
+                self.assertEqual(oldlist[attrname], newlist[attrname])
+                self.assertEqual(oldlist.type(attrname),
+                                 newlist.type(attrname))
+
+    def testCloneVariable(self):
+        """Clone a variable's type, dims, etc. to another"""
+        varlist = list(self.cdf.keys())
+        for name in varlist:
+            oldvar = self.cdf[name]
+            self.cdf.clone(oldvar, name + '_2', False)
+            newvar = self.cdf[name + '_2']
+            msg = 'Variable ' + name + ' failed.'
+            self.assertEqual(oldvar._n_dims(), newvar._n_dims(), msg)
+            self.assertEqual(oldvar._dim_sizes(), newvar._dim_sizes(), msg)
+            self.assertEqual(oldvar.type(), newvar.type(), msg)
+            self.assertEqual(oldvar._nelems(), newvar._nelems(), msg)
+            self.assertEqual(oldvar.compress(), newvar.compress(), msg)
+            self.assertEqual(oldvar.rv(), newvar.rv(), msg)
+            self.assertEqual(oldvar.dv(), newvar.dv(), msg)
+            if newvar.rv():
+                self.assertEqual(0, newvar[...].size, msg)
+            oldlist = oldvar.attrs
+            newlist = newvar.attrs
+            for attrname in oldlist:
+                self.assertTrue(
+                    attrname in newlist,
+                    'Attribute {0} not found in copy of {1}'.format(
+                    attrname, name))
+                self.assertEqual(oldlist[attrname], newlist[attrname])
+                self.assertEqual(oldlist.type(attrname),
+                                 newlist.type(attrname))
+
+    def testDimVariance(self):
+        """Check and change dimension variance of a variable"""
+        self.assertEqual([True],
+            self.cdf['SpinNumbers'].dv())
+        self.assertEqual([True, True, True],
+            self.cdf['SectorRateScalersCounts'].dv())
+        self.cdf.new('foobar', type=const.CDF_INT1,
+                     dims=[2, 3], dimVarys=[True, False])
+        self.assertEqual([True, False],
+                         self.cdf['foobar'].dv())
+        self.cdf['foobar'].dv([False, True])
+        self.assertEqual([False, True],
+                         self.cdf['foobar'].dv())
+
+    def testAssignEpoch16Entry(self):
+        """Assign to an Epoch16 entry"""
+        self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
+        self.assertEqual(datetime.datetime(2010,1,1),
+                         self.cdf['ATC'].attrs['FILLVAL'])
+
+    def testVarTrailingSpaces(self):
+        """Cut trailing spaces from names of vars"""
+        self.cdf['foobar  '] = [1, 2, 3]
+        namelist = list(self.cdf.keys())
+        self.assertTrue('foobar' in namelist)
+        self.assertFalse('foobar  ' in namelist)
+
+    def testAttrTrailingSpaces(self):
+        """Cut trailing spaces from names of attributes"""
+        self.cdf.attrs['hi '] = 'hello'
+        namelist = list(self.cdf.attrs.keys())
+        self.assertTrue('hi' in namelist)
+        self.assertFalse('hi ' in namelist)
+
+    def testInt8(self):
+        """Create a new INT8 zVar"""
+        self.cdf['foobar'] = numpy.array([1, 2, 3], dtype=numpy.int64)
+        if cdf.lib.supports_int8:
+            self.assertEqual(self.cdf['foobar'].type(), const.CDF_INT8.value)
+        else:
+            self.assertEqual(self.cdf['foobar'].type(), const.CDF_BYTE.value)
+
+    def testTT2000New(self):
+        """Create a new TT2000 zVar"""
+        expected = [datetime.datetime(2010, 1, 1) + 
+                    datetime.timedelta(days=i) for i in range(5)]
+        if cdf.lib.supports_int8:
+            self.cdf.new('foobar', data=expected, type=const.CDF_TIME_TT2000)
+            self.assertEqual(self.cdf['foobar'].type(),
+                             const.CDF_TIME_TT2000.value)
+            numpy.testing.assert_array_equal(expected,
+                                             self.cdf['foobar'][...])
+        else:
+            message = 'INT8 and TIME_TT2000 require CDF library 3.4.0'
+            try:
+                self.cdf.new('foobar', data=expected,
+                             type=const.CDF_TIME_TT2000)
+            except ValueError:
+                self.assertEqual(message, str(sys.exc_info()[1]))
+            else:
+                self.fail('Should have raised ValueError: ' + message)
+
+    def testUnicodeString(self):
+        """Write Unicode to a string variable"""
+        if str != bytes: #py3k:
+            data = [ 'hi', 'there']
+        else:
+            data = ['hi'.decode(), 'there'.decode()]
+        self.cdf['teststr'] = data
+        self.assertEqual('hi', self.cdf['teststr'][0])
+        self.assertEqual('there', self.cdf['teststr'][1])
+
+    def testFloatEpoch(self):
+        """Write floats to an Epoch variable"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH)
+        data = numpy.array([62987673600000.0,
+                            62987760000000.0], dtype=numpy.float64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
+
+    def testEpochForceRaw(self):
+        """Try to write datetime to a forced-raw Epoch"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH)
+        try:
+            self.cdf.raw_var('epochtest')[:] = [
+                datetime.datetime(1996, 1, 1),
+                datetime.datetime(1996, 1, 2)]
+        except TypeError:
+            pass
+        else:
+            self.fail('Should have raised TypeError')
+
+    def testFloatEpoch16(self):
+        """Write floats to an Epoch16 variable"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH16)
+        data = numpy.array([[62987673600.0, 0.0],
+                            [62987760000.0, 0.0]], dtype=numpy.float64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
+
+    def testInt8TT2000(self):
+        """Write integers to a TT2000 variable"""
+        if not cdf.lib.supports_int8:
+            return
+        self.cdf.new('epochtest', type=const.CDF_TIME_TT2000)
+        data = numpy.array([-126273537816000000L,
+                            -126187137816000000L], dtype=numpy.int64)
+        self.cdf['epochtest'][:] = data
+        numpy.testing.assert_array_equal(
+            numpy.array([datetime.datetime(1996, 1, 1),
+                         datetime.datetime(1996, 1, 2)]),
+            self.cdf['epochtest'][:])
+
+
+class ChangezVar(ChangeCDFBase):
+    """Tests that modify a zVar"""
+
     def testWriteSubscripted(self):
         """Write data to a slice of a zVar"""
         expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
@@ -1856,6 +2221,17 @@ class ChangeCDF(CDFTests):
         self.assertEqual(103, len(self.cdf['PhysRecNo']))
         numpy.testing.assert_array_equal(
             PhysRecNoData, self.cdf['PhysRecNo'][...])
+
+    def testzVarInsert(self):
+        """Insert a record into a zVariable"""
+        before = self.cdf['ATC'][:].tolist()
+        self.cdf['ATC'].insert(100, datetime.datetime(2010, 12, 31))
+        before.insert(100, datetime.datetime(2010, 12, 31))
+        numpy.testing.assert_array_equal(before, self.cdf['ATC'][:])
+        before = self.cdf['MeanCharge'][:].tolist()
+        self.cdf['MeanCharge'].insert(20, [99] * 16)
+        before.insert(20, [99] * 16)
+        numpy.testing.assert_array_equal(before, self.cdf['MeanCharge'][:])
 
     def testWriteAndTruncate(self):
         """Write with insufficient data to fill all existing records"""
@@ -1945,27 +2321,9 @@ class ChangeCDF(CDFTests):
         else:
             self.fail('Should have raised TypeError: ' + message)
 
-    def testRenameVar(self):
-        """Rename a variable"""
-        zvar = self.cdf['PhysRecNo']
-        zvardata = zvar[...]
-        zvar.rename('foobar')
-        numpy.testing.assert_array_equal(
-            zvardata, self.cdf['foobar'][...])
-        try:
-            zvar = self.cdf['PhysRecNo']
-        except KeyError:
-            pass
-        else:
-            self.fail('Should have raised KeyError')
 
-        try:
-            zvar.rename('a' * 300)
-        except cdf.CDFError:
-            (t, v, tb) = sys.exc_info()
-            self.assertEqual(v.status, cdf.const.BAD_VAR_NAME)
-        else:
-            self.fail('Should have raised CDFError')
+class ChangeAttr(ChangeCDFBase):
+    """Tests that modify Attributes and Attribute lists"""
 
     def testChangezEntry(self):
         """Write new or changed zEntry"""
@@ -2198,225 +2556,6 @@ class ChangeCDF(CDFTests):
         for k in types:
             self.assertEqual(types[k], attrlist.type(k))
 
-    def testNewVar(self):
-        """Create a new variable"""
-        self.cdf.new('newzVar', [[1, 2, 3], [4, 5, 6]],
-                     const.CDF_INT4)
-        self.assertTrue('newzVar' in self.cdf)
-        zvar = self.cdf['newzVar']
-        numpy.testing.assert_array_equal(
-            [[1, 2, 3], [4, 5, 6]], zvar[...])
-        self.assertEqual(2, len(zvar))
-        self.assertEqual([3], zvar._dim_sizes())
-
-    def testNewVarFromdmarray(self):
-        """Create a new variable with data in dmarray"""
-        indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
-                                   attrs={'name': 'bob'})
-        self.cdf.new('newzVar', indata)
-        numpy.testing.assert_array_equal(
-            indata[...], self.cdf['newzVar'][...])
-        self.assertEqual('bob', self.cdf['newzVar'].attrs['name'])
-        self.assertEqual(numpy.int8, self.cdf['newzVar'].dtype)
-
-    def testNewVarFromdmarrayAssign(self):
-        """Create a new variable by assigning from dmarray"""
-        indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
-                                   attrs={'name': 'bob'})
-        self.cdf['newzVar'] = indata
-        numpy.testing.assert_array_equal(
-            indata[...], self.cdf['newzVar'][...])
-        self.assertEqual('bob', self.cdf['newzVar'].attrs['name'])
-        self.assertEqual(numpy.int8, self.cdf['newzVar'].dtype)
-
-    def testNewVarAssign(self):
-        """Create a new variable by assigning to CDF element"""
-        self.cdf['newzVar'] = [[1, 2, 3], [4, 5, 6]]
-        self.assertTrue('newzVar' in self.cdf)
-        zvar = self.cdf['newzVar']
-        numpy.testing.assert_array_equal(
-            [[1, 2, 3], [4, 5, 6]], zvar[...])
-        self.assertEqual(2, len(zvar))
-        self.assertEqual([3], zvar._dim_sizes())
-
-    def testNewVarUnicode(self):
-        """Create a new variable with a unicode name"""
-        if str is bytes:
-            self.cdf['newzVar'.decode()] = [[1, 2, 3], [4, 5, 6]]
-        else:
-            self.cdf['newzVar'] = [[1, 2, 3], [4, 5, 6]]
-        numpy.testing.assert_array_equal(
-            [[1, 2, 3], [4, 5, 6]], self.cdf['newzVar'][...])
-
-    def testBadDataSize(self):
-        """Attempt to assign data of the wrong size to a zVar"""
-        try:
-            self.cdf['MeanCharge'] = [1.0, 2.0, 3.0]
-        except ValueError:
-            pass
-        else:
-            self.fail('Should have raised ValueError')
-
-    def testChangeVarType(self):
-        """Change the type of a variable"""
-        self.cdf['new'] = [-1, -2, -3]
-        self.cdf['new'].type(const.CDF_UINT1)
-        numpy.testing.assert_array_equal(
-            [255, 254, 253], self.cdf['new'][...])
-
-    def testNewVarNoData(self):
-        """Create a new variable without providing any data"""
-        self.assertRaises(ValueError, self.cdf.new, 'newvar')
-        self.cdf.new('newvar', None, const.CDF_INT4)
-        self.assertEqual([], self.cdf['newvar']._dim_sizes())
-
-        self.cdf.new('newvar2', None, const.CDF_CHAR, dims=[])
-        self.assertEqual(1, self.cdf['newvar2']._nelems())
-
-    def testNewVarNRV(self):
-        """Create a new non-record-varying variable"""
-        self.cdf.new('newvar2', [1, 2, 3], recVary=False)
-        self.assertFalse(self.cdf['newvar2'].rv())
-        self.assertEqual([3], self.cdf['newvar2']._dim_sizes())
-        numpy.testing.assert_array_equal(
-            [1, 2, 3], self.cdf['newvar2'][...])
-
-    def testChangeRV(self):
-        """Change record variance"""
-        zVar = self.cdf.new('newvar', dims=[], type=const.CDF_INT4)
-        self.assertTrue(zVar.rv())
-        zVar.rv(False)
-        self.assertFalse(zVar.rv())
-        zVar.rv(True)
-        self.assertTrue(zVar.rv())
-
-    def testChecksum(self):
-        """Change checksumming on the CDF"""
-        self.cdf.checksum(True)
-        self.assertTrue(self.cdf.checksum())
-        self.cdf.checksum(False)
-        self.assertFalse(self.cdf.checksum())
-
-    def testCompress(self):
-        """Change compression on the CDF"""
-        self.cdf.compress(const.GZIP_COMPRESSION)
-        (comptype, parm) = self.cdf.compress()
-        self.assertEqual(const.GZIP_COMPRESSION, comptype),
-        self.assertEqual(5, parm)
-        self.cdf.compress(const.NO_COMPRESSION)
-        (comptype, parm) = self.cdf.compress()
-        self.assertEqual(const.NO_COMPRESSION, comptype),
-        self.assertEqual(0, parm)
-
-    def testVarCompress(self):
-        """Change compression on a variable"""
-        zvar = self.cdf.new('newvar', type=const.CDF_INT4, dims=[])
-        zvar.compress(const.GZIP_COMPRESSION)
-        (comptype, parm) = zvar.compress()
-        self.assertEqual(const.GZIP_COMPRESSION, comptype),
-        self.assertEqual(5, parm)
-        zvar.compress(const.NO_COMPRESSION)
-        (comptype, parm) = zvar.compress()
-        self.assertEqual(const.NO_COMPRESSION, comptype),
-        self.assertEqual(0, parm)
-
-    def testWarnings(self):
-        """Bizarre way to force a warning"""
-        attrnum = ctypes.c_long(0)
-        with warnings.catch_warnings(record=True) as w:
-            self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_,
-                           'this is a very long string intended to get up to '
-                           '257 characters or so because the maximum length '
-                           'of an attribute name is 256 characters and '
-                           'attribute name truncated is just about the ONLY '
-                           'warning I can figure out how to raise in the CDF '
-                           'library and this is really a serious pain in just '
-                           'about every portion of the anatomy.',
-                           cdf.const.GLOBAL_SCOPE, ctypes.byref(attrnum))
-            for curr_warn in w:
-                self.assertTrue(isinstance(curr_warn.message, cdf.CDFWarning))
-                self.assertEqual('ATTR_NAME_TRUNC: Attribute name truncated.',
-                                 str(curr_warn.message))
-
-    def testAssignEmptyList(self):
-        """Assign an empty list to a variable"""
-        self.cdf['ATC'] = []
-        self.assertEqual(0, len(self.cdf['ATC']))
-
-    def testReadEmptyList(self):
-        """Read from an empty variable"""
-        self.cdf['ATC'] = []
-        data = self.cdf['ATC'][...]
-        self.assertEqual((0,), data.shape)
-        self.assertEqual(numpy.object, data.dtype)
-
-    def testCopyVariable(self):
-        """Copy one variable to another"""
-        varlist = list(self.cdf.keys())
-        for name in varlist:
-            oldvar = self.cdf[name]
-            self.cdf[name + '_2'] = oldvar
-            newvar = self.cdf[name + '_2']
-            msg = 'Variable ' + name + ' failed.'
-            self.assertEqual(oldvar._n_dims(), newvar._n_dims(), msg)
-            self.assertEqual(oldvar._dim_sizes(), newvar._dim_sizes(), msg)
-            self.assertEqual(oldvar.type(), newvar.type(), msg)
-            self.assertEqual(oldvar._nelems(), newvar._nelems(), msg)
-            self.assertEqual(oldvar.compress(), newvar.compress(), msg)
-            self.assertEqual(oldvar.rv(), newvar.rv(), msg)
-            self.assertEqual(oldvar.dv(), newvar.dv(), msg)
-            numpy.testing.assert_array_equal(
-                oldvar[...], newvar[...], msg)
-            oldlist = oldvar.attrs
-            newlist = newvar.attrs
-            for attrname in oldlist:
-                self.assertTrue(attrname in newlist)
-                self.assertEqual(oldlist[attrname], newlist[attrname])
-                self.assertEqual(oldlist.type(attrname),
-                                 newlist.type(attrname))
-
-    def testCloneVariable(self):
-        """Clone a variable's type, dims, etc. to another"""
-        varlist = list(self.cdf.keys())
-        for name in varlist:
-            oldvar = self.cdf[name]
-            self.cdf.clone(oldvar, name + '_2', False)
-            newvar = self.cdf[name + '_2']
-            msg = 'Variable ' + name + ' failed.'
-            self.assertEqual(oldvar._n_dims(), newvar._n_dims(), msg)
-            self.assertEqual(oldvar._dim_sizes(), newvar._dim_sizes(), msg)
-            self.assertEqual(oldvar.type(), newvar.type(), msg)
-            self.assertEqual(oldvar._nelems(), newvar._nelems(), msg)
-            self.assertEqual(oldvar.compress(), newvar.compress(), msg)
-            self.assertEqual(oldvar.rv(), newvar.rv(), msg)
-            self.assertEqual(oldvar.dv(), newvar.dv(), msg)
-            if newvar.rv():
-                self.assertEqual(0, newvar[...].size, msg)
-            oldlist = oldvar.attrs
-            newlist = newvar.attrs
-            for attrname in oldlist:
-                self.assertTrue(
-                    attrname in newlist,
-                    'Attribute {0} not found in copy of {1}'.format(
-                    attrname, name))
-                self.assertEqual(oldlist[attrname], newlist[attrname])
-                self.assertEqual(oldlist.type(attrname),
-                                 newlist.type(attrname))
-
-    def testDimVariance(self):
-        """Check and change dimension variance of a variable"""
-        self.assertEqual([True],
-            self.cdf['SpinNumbers'].dv())
-        self.assertEqual([True, True, True],
-            self.cdf['SectorRateScalersCounts'].dv())
-        self.cdf.new('foobar', type=const.CDF_INT1,
-                     dims=[2, 3], dimVarys=[True, False])
-        self.assertEqual([True, False],
-                         self.cdf['foobar'].dv())
-        self.cdf['foobar'].dv([False, True])
-        self.assertEqual([False, True],
-                         self.cdf['foobar'].dv())
-
     def testCopyAttr(self):
         """Assign a gAttribute to another"""
         self.cdf.attrs['new_attr'] = self.cdf.attrs['TEXT']
@@ -2474,122 +2613,6 @@ class ChangeCDF(CDFTests):
             self.assertEqual(oldlist[attrname], newlist[attrname])
             self.assertEqual(oldlist.type(attrname),
                              newlist.type(attrname))
-
-    def testAssignEpoch16Entry(self):
-        """Assign to an Epoch16 entry"""
-        self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
-        self.assertEqual(datetime.datetime(2010,1,1),
-                         self.cdf['ATC'].attrs['FILLVAL'])
-
-    def testVarTrailingSpaces(self):
-        """Cut trailing spaces from names of vars"""
-        self.cdf['foobar  '] = [1, 2, 3]
-        namelist = list(self.cdf.keys())
-        self.assertTrue('foobar' in namelist)
-        self.assertFalse('foobar  ' in namelist)
-
-    def testAttrTrailingSpaces(self):
-        """Cut trailing spaces from names of attributes"""
-        self.cdf.attrs['hi '] = 'hello'
-        namelist = list(self.cdf.attrs.keys())
-        self.assertTrue('hi' in namelist)
-        self.assertFalse('hi ' in namelist)
-
-    def testzVarInsert(self):
-        """Insert a record into a zVariable"""
-        before = self.cdf['ATC'][:].tolist()
-        self.cdf['ATC'].insert(100, datetime.datetime(2010, 12, 31))
-        before.insert(100, datetime.datetime(2010, 12, 31))
-        numpy.testing.assert_array_equal(before, self.cdf['ATC'][:])
-        before = self.cdf['MeanCharge'][:].tolist()
-        self.cdf['MeanCharge'].insert(20, [99] * 16)
-        before.insert(20, [99] * 16)
-        numpy.testing.assert_array_equal(before, self.cdf['MeanCharge'][:])
-
-    def testInt8(self):
-        """Create a new INT8 zVar"""
-        self.cdf['foobar'] = numpy.array([1, 2, 3], dtype=numpy.int64)
-        if cdf.lib.supports_int8:
-            self.assertEqual(self.cdf['foobar'].type(), const.CDF_INT8.value)
-        else:
-            self.assertEqual(self.cdf['foobar'].type(), const.CDF_BYTE.value)
-
-    def testTT2000New(self):
-        """Create a new TT2000 zVar"""
-        expected = [datetime.datetime(2010, 1, 1) + 
-                    datetime.timedelta(days=i) for i in range(5)]
-        if cdf.lib.supports_int8:
-            self.cdf.new('foobar', data=expected, type=const.CDF_TIME_TT2000)
-            self.assertEqual(self.cdf['foobar'].type(),
-                             const.CDF_TIME_TT2000.value)
-            numpy.testing.assert_array_equal(expected,
-                                             self.cdf['foobar'][...])
-        else:
-            message = 'INT8 and TIME_TT2000 require CDF library 3.4.0'
-            try:
-                self.cdf.new('foobar', data=expected,
-                             type=const.CDF_TIME_TT2000)
-            except ValueError:
-                self.assertEqual(message, str(sys.exc_info()[1]))
-            else:
-                self.fail('Should have raised ValueError: ' + message)
-
-    def testUnicodeString(self):
-        """Write Unicode to a string variable"""
-        if str != bytes: #py3k:
-            data = [ 'hi', 'there']
-        else:
-            data = ['hi'.decode(), 'there'.decode()]
-        self.cdf['teststr'] = data
-        self.assertEqual('hi', self.cdf['teststr'][0])
-        self.assertEqual('there', self.cdf['teststr'][1])
-
-    def testFloatEpoch(self):
-        """Write floats to an Epoch variable"""
-        self.cdf.new('epochtest', type=const.CDF_EPOCH)
-        data = numpy.array([62987673600000.0,
-                            62987760000000.0], dtype=numpy.float64)
-        self.cdf['epochtest'][:] = data
-        numpy.testing.assert_array_equal(
-            numpy.array([datetime.datetime(1996, 1, 1),
-                         datetime.datetime(1996, 1, 2)]),
-            self.cdf['epochtest'][:])
-
-    def testEpochForceRaw(self):
-        """Try to write datetime to a forced-raw Epoch"""
-        self.cdf.new('epochtest', type=const.CDF_EPOCH)
-        try:
-            self.cdf.raw_var('epochtest')[:] = [
-                datetime.datetime(1996, 1, 1),
-                datetime.datetime(1996, 1, 2)]
-        except TypeError:
-            pass
-        else:
-            self.fail('Should have raised TypeError')
-
-    def testFloatEpoch16(self):
-        """Write floats to an Epoch16 variable"""
-        self.cdf.new('epochtest', type=const.CDF_EPOCH16)
-        data = numpy.array([[62987673600.0, 0.0],
-                            [62987760000.0, 0.0]], dtype=numpy.float64)
-        self.cdf['epochtest'][:] = data
-        numpy.testing.assert_array_equal(
-            numpy.array([datetime.datetime(1996, 1, 1),
-                         datetime.datetime(1996, 1, 2)]),
-            self.cdf['epochtest'][:])
-
-    def testInt8TT2000(self):
-        """Write integers to a TT2000 variable"""
-        if not cdf.lib.supports_int8:
-            return
-        self.cdf.new('epochtest', type=const.CDF_TIME_TT2000)
-        data = numpy.array([-126273537816000000L,
-                            -126187137816000000L], dtype=numpy.int64)
-        self.cdf['epochtest'][:] = data
-        numpy.testing.assert_array_equal(
-            numpy.array([datetime.datetime(1996, 1, 1),
-                         datetime.datetime(1996, 1, 2)]),
-            self.cdf['epochtest'][:])
 
 
 class ChangeColCDF(ColCDFTests):

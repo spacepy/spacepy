@@ -29,6 +29,8 @@ pycdf
    any translation.
  - added functions to translate between EPOCH, EPOCH16, TT2000 without going
    through datetime.
+ - add options to CDF.new to allow specification of variable compression
+   at creation time.
 time
  - fixed bug in addition/subtraction of Ticktocks
 
