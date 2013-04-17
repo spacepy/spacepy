@@ -145,8 +145,9 @@ class spectrogram(dm.SpaceData):
                     self.specSettings['xlim'] = (data[self.specSettings['variables'][0]].attrs['lim'][0],
                                                 data[self.specSettings['variables'][0]].attrs['lim'][1])
                 else:
-                    self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
-                                                np.max(data[self.specSettings['variables'][0]]))
+                    dum1 = np.min(data[self.specSettings['variables'][0]]).tolist() #TODO: tolist here is a workaround for a bug in
+                    dum2 = np.max(data[self.specSettings['variables'][0]]).tolist() #      datamodel's min method
+                    self.specSettings['xlim'] = (dum1, dum2)
             except AttributeError: # was a numpy array not dmarray
                 self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
                                             np.max(data[self.specSettings['variables'][0]]))
@@ -173,7 +174,7 @@ class spectrogram(dm.SpaceData):
                 self.specSettings['zlim'] = (np.min(data[self.specSettings['variables'][2]]),
                                             np.max(data[self.specSettings['variables'][2]]))
 
-        # are the axis dates?
+        # are the axes dates?
         forcedate = [False] * 2
         if isinstance(data[self.specSettings['variables'][0]][0], datetime.datetime):
             forcedate[0] = True
@@ -193,10 +194,10 @@ class spectrogram(dm.SpaceData):
                 # use the toolbox version of linspace so it works on dates
                 self.specSettings['bins'] = [dm.dmarray(tb.linspace(self.specSettings['xlim'][0],
                                                  self.specSettings['xlim'][1],
-                                                 np.sqrt(len(data[self.specSettings['variables'][0]])), forcedate=forcedate[0])),
+                                                 np.sqrt(len(data[self.specSettings['variables'][0]])))),
                     dm.dmarray(tb.linspace(self.specSettings['ylim'][0],
                                                  self.specSettings['ylim'][1],
-                                                 np.sqrt(len(data[self.specSettings['variables'][1]])), forcedate=forcedate[1]))]
+                                                 np.sqrt(len(data[self.specSettings['variables'][1]]))))]
 
         # copy all the used keys
         for key in self.specSettings['variables']:

@@ -9,6 +9,7 @@ Copyright ©2010 Los Alamos National Security, LLC.
 import unittest
 
 import numpy as np
+import datetime as dt
 
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
@@ -101,7 +102,44 @@ class spectrogramTests(unittest.TestCase):
         np.testing.assert_allclose(a['spectrogram']['count'], count)
         np.testing.assert_allclose(a['spectrogram']['sum'], sm)
         np.testing.assert_allclose(a['spectrogram']['spectrogram'], spect)
-     
-     
+
+class spectrogramDateTests(unittest.TestCase):
+    def setUp(self):
+        super(spectrogramDateTests, self).setUp()
+        self.kwargs = {}
+        self.kwargs['variables'] = ['xval', 'yval', 'zval']
+        np.random.seed(8675309)
+        self.data = dm.SpaceData(xval = dm.dmarray([dt.datetime(2000,1,1)+dt.timedelta(days=nn) for nn in range(200)]), 
+                            yval = dm.dmarray(np.random.random_sample(200)), 
+                            zval = dm.dmarray(np.random.random_sample(200)))
+
+
+    def tearDown(self):
+        super(spectrogramDateTests, self).tearDown()
+
+    def test_defaults(self):
+        """run it and check that defaults were set correctly"""
+        a = spectrogram(self.data, variables=self.kwargs['variables'])
+        ans = {'bins': [dm.dmarray([ 730120.0,  730135.30769231,  730150.61538462,
+        730165.92307692,  730181.23076923,  730196.53846154,
+        730211.84615385,  730227.15384615,  730242.46153846,
+        730257.76923077,  730273.07692308,  730288.38461538,
+        730303.69230769,  730319.        ]),
+                   dm.dmarray([ 0.00169679,  0.07848775,  0.1552787 ,  0.23206965,  0.30886061,
+                               0.38565156,  0.46244251,  0.53923347,  0.61602442,  0.69281538,
+                               0.76960633,  0.84639728,  0.92318824,  0.99997919])],
+                'variables': ['xval', 'yval', 'zval'],
+                'ylim': (0.0012085702179961411, 0.99323954710300699),
+                'zlim': (0.001696792515639145, 0.99997919064162388)}
+        for key in ans:
+            if key == 'variables':
+                self.assertEqual(a.specSettings[key], ans[key])
+            else:
+                if key == 'bins':
+                    np.testing.assert_allclose(a.specSettings[key], ans[key], atol=1e-2, rtol=1e-3)
+                else:
+                    np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+        self.assertRaises(NotImplementedError, a.add_data, self.data)
+
 if __name__ == "__main__":
     unittest.main()
