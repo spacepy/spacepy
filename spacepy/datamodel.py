@@ -899,7 +899,7 @@ def toHDF5(fname, SDobject, **kwargs):
         if h5_compr_type not in ['gzip', 'szip', 'lzf', 'shuffle', 'fletcher32']:
             raise NotImplementedError('Specified compression type not supported')
     if ('compression_opts' not in kwargs) or (h5_compr_type == 'lzf'): 
-        kwargs['compression_opts'] = None
+        h5_compr_opts = None
     else:
         h5_compr_opts = kwargs['compression_opts']
 
