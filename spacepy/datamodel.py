@@ -825,13 +825,9 @@ def toHDF5(fname, SDobject, **kwargs):
     mode : str (optional)
         HDF5 file open mode (a, w, r) (default 'a')
     compression : str (optional)
-<<<<<<< HEAD
-        Enable compression of a given type (e.g. 'gzip')
-=======
         compress all the variables using this method (default None) (gzip, shuffle, fletcher32, szip, lzf)
     compression_opts : str (optional)
         options to the compression, see h5py documentation for more details
->>>>>>> master
 
     Returns
     -------
@@ -900,7 +896,7 @@ def toHDF5(fname, SDobject, **kwargs):
         h5_compr_type = None
     else:
         h5_compr_type = kwargs['compression']
-        if h5_compr_type not in ['gzip', 'szip', 'lzf']:
+        if h5_compr_type not in ['gzip', 'szip', 'lzf', 'shuffle', 'fletcher32']:
             raise NotImplementedError('Specified compression type not supported')
     if ('compression_opts' not in kwargs) or (h5_compr_type == 'lzf'): 
         kwargs['compression_opts'] = None
