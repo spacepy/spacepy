@@ -61,12 +61,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-<<<<<<< HEAD
-           'eventTimer', 'isview', 'interweave', 'indsFromXrange']
-=======
-           'eventTimer', 'isview', 'interweave', 'hypot']
->>>>>>> master
-
+           'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot']
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
