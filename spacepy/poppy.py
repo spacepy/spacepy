@@ -62,6 +62,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 import bisect
 import sys
 import warnings
+import datetime as dt
 
 import numpy as np
 from matplotlib.mlab import prctile
@@ -190,6 +191,7 @@ class PPro(object):
                 return None
 
         import matplotlib as mpl
+        import matplotlib.dates as mpd
         from matplotlib import mlab
         if lib.have_libspacepy == False:
             dtype = 'int64'
@@ -214,30 +216,48 @@ class PPro(object):
                 first_idx = [bisect.bisect_left(p2, starts[nss] + self.lags[ilag])
                              for nss in nss_list]
                 self.n_assoc[ilag, :] = [last_idx[i] - first_idx[i] for i in nss_list]
+            pul = mlab.prctile_rank(lags, p=(20,80))
         else:
+            def fracday(dd):
+                '''turn a timedelta into a fractional day'''
+                #NOTE: If 2.6 compatibility is ever dropped, can use dd.total_seconds()/86400
+                return dd.days + dd.seconds/86400.0 + dd.microseconds/(86400.0 * 10**6)
+            #test for datetime input and try to convert to numeric
+            if isinstance(p1[0], dt.datetime):
+                p1 = [mpd.date2num(pp) for pp in p1]
+            if isinstance(p2[0], dt.datetime):
+                p2 = [mpd.date2num(pp) for pp in p2]
+            #TODO: convert lags and winhalf from timedelta to fractional days
+            if isinstance(self.lags[0], dt.timedelta):
+                lags = [fracday(dd) for dd in self.lags]
+            else:
+                lags = self.lags
+            if isinstance(self.winhalf, dt.timedelta):
+                winhalf = fracday(self.winhalf)
+            else:
+                winhalf = self.winhalf
             p2 = (ctypes.c_double * len(p2))(*p2)
             p1 = (ctypes.c_double * len(p1))(*p1)
-            lags = (ctypes.c_double * len(self.lags))(*self.lags)
+            lags = (ctypes.c_double * len(lags))(*lags)
             n_assoc = self.n_assoc.ctypes.data_as(lib.lptr)
             lib.assoc(p2, p1, lags, n_assoc,
-                      self.winhalf,
-                      len(p2), len(p1), len(self.lags))
+                      winhalf, len(p2), len(p1), len(self.lags))
+            pul = mlab.prctile_rank(lags, p=(20,80))
         self.assoc_total = np.sum(self.n_assoc, axis=1)
-        pul = mlab.prctile_rank(self.lags, p=(20,80))
         valsL = self.assoc_total[pul==0]
         valsR = self.assoc_total[pul==2]
         self.asympt_assoc = np.mean([np.mean(valsL), np.mean(valsR)])
 
         self.expected = np.empty([len(self.lags)], dtype='float64')
         for i in range(len(self.lags)):
-            start_time = max([p1[0] + lags[i], p2[0]]) - self.winhalf
-            stop_time = min([p1[-1] + lags[i], p2[-1]]) + self.winhalf
+            start_time = max([p1[0] + lags[i], p2[0]]) - winhalf
+            stop_time = min([p1[-1] + lags[i], p2[-1]]) + winhalf
             if start_time != stop_time:
                 n1 = bisect.bisect_right(p1, stop_time - lags[i]) - \
                      bisect.bisect_left(p1, start_time - lags[i])
                 n2 = bisect.bisect_right(p2, stop_time) - \
                      bisect.bisect_left(p2, start_time)
-                self.expected[i] = 2.0 * n1 * n2 * self.winhalf / \
+                self.expected[i] = 2.0 * n1 * n2 * winhalf / \
                                        (stop_time - start_time)
             else:
                 self.expected[i] = 0.0
