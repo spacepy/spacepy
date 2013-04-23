@@ -237,6 +237,14 @@ class dmarray(numpy.ndarray):
         for val in self.Allowed_Attributes:
             self.__setattr__(val, copy.deepcopy(getattr(obj, val, {})))
 
+    def __array_wrap__(self, out_arr, context=None):
+        #check for zero-dims (numpy bug means subclass behaviour isn't consistent with ndarray
+        #this traps most of the bad behaviour ( std() and var() still problems)
+        if out_arr.ndim > 0:
+            return numpy.ndarray.__array_wrap__(self, out_arr, context)
+        else:
+            return numpy.ndarray.__array_wrap__(self, out_arr, context).tolist()
+
     def __reduce__(self):
         """This is called when pickling, see:
         http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
