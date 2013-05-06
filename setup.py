@@ -485,7 +485,7 @@ class install(_install):
         #Paths are relative to spacepy. Unix path separators are OK
         #Don't forget to delete the .pyc
         #These are files that are no longer in spacepy (or have been moved)
-        # having this here makes sure that during an upgrade old versios are
+        # having this here makes sure that during an upgrade old versions are
         # not hanging out
         deletefiles = ['toolbox.py', 'toolbox.pyc', 'LANLstar/LANLstar.py',
                        'LANLstar/LANLstar.pyc', 'LANLstar/libLANLstar.so',
@@ -495,7 +495,8 @@ class install(_install):
                        'time/_dates.so', 'time/_dates.dylib',
                        'time/_dates.pyd',
                        'time/time.py', 'time/time.pyc', 'time',
-                       'data/LANLstar/*.net']
+                       'data/LANLstar/*.net',
+                       'pycdf/_pycdf.*']
         for f in deletefiles:
             path = os.path.join(self.install_lib, 'spacepy',
                                 os.path.normpath(f)) #makes pathing portable
