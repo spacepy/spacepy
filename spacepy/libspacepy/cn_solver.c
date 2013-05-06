@@ -129,7 +129,7 @@ for (k=0;k<N;k++){
       }
     }
     indx[k]=i+1;
-    if (dum=0.0) a[k][0]=1.0e-20;
+    if (dum==0.0) a[k][0]=1.0e-20;
     if (i!=k){
       d=-d;
       for (j=0;j<3;j++) SWAP(a[k][j],a[i][j]);
