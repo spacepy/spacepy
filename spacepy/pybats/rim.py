@@ -4,7 +4,7 @@
 Classes, functions, and methods for reading, writing, and plotting output
 from the Ridley Ionosphere Model (RIM).
 
-Copyright 2010 Los Alamos National Security, LLC.
+Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
 def get_iono_cb(ct_name='bwr'):
@@ -169,7 +169,7 @@ class Iono(object):
                                       (self.ntheta, self.nphi), 'F')
 
     def add_cont(self, ax, var, n=24, maxz=False, lines=True, 
-                 cmap=False, add_cbar=False, **kwargs):
+                 cmap=False, add_cbar=False, label=None, **kwargs):
         '''
         Create a polar contour of variable 'var' and add the resulting artist
         to axis 'ax'.  Make sure that 'ax' is a polar axes or you'll be sorry.
@@ -197,7 +197,9 @@ class Iono(object):
         from matplotlib.pyplot import clabel, colorbar
 
         # Set levels and ticks:
-        lt_labels = ['06',    tex_label(var), '18',   '00']
+        if label==None:
+            label=tex_label(var)
+        lt_labels = ['06',    label, '18',   '00']
         xticks    = [   0,   pi/2,   pi, 3*pi/2]
         lct = MultipleLocator(10)
         minz = self.north[var].min()

@@ -10,6 +10,70 @@ import datetime as dt
 from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray
 
+class Efile(PbData):
+    '''
+    Class for loading and parsing ionospheric electrodynamics ascii files.
+    
+    '''
+    
+    def __init__(self, filename, starttime=None, *args, **kwargs):
+        super(Efile, self).__init__(*args, **kwargs)
+        self.attrs['file']=filename
+        if not starttime:
+            starttime=dt.datetime(2000,1,1,0,0)
+        self._read(filename, starttime)
+
+    def _read(self, filename, starttime):
+        '''
+        Read, parse, and load data into data structure.
+        Should only be called by __init__.
+        '''
+        
+        from re import match, search
+        from spacepy.pybats import parse_tecvars
+
+        # Save time (starttime + run time)
+        # Run time must be found in file name.
+        m=search('Time(\d+)\.dat', filename)
+        if m:
+            self.attrs['runtime']=int(m.group(1))
+        else:
+            self.attrs['runtime']=0
+        self.attrs['time']=starttime + dt.timedelta(
+            seconds=self.attrs['runtime'])
+
+        # Open file
+        f=open(filename, 'r')
+        
+        # Parse header.
+        varlist = parse_tecvars(f.readline())
+        print varlist
+        m = search('.*I\=\s*(\d+)\,\s*J\=\s*(\d+)',f.readline()).groups()
+        nLat, nLon = int(m[0]), int(m[1])
+        self.attrs['nLat']=nLat
+        self.attrs['nLon']=nLon
+
+        # Create arrays.
+        for k, u in varlist:
+            self[k]=dmarray(np.zeros( (nLat*nLon) ), attrs={'units':u})
+
+        for i in range(nLat*nLon):
+            #for j in range(nLon):
+            parts=f.readline().split()
+            for k, (key, u) in enumerate(varlist):
+                self[key][i]=float(parts[k])
+
+        # Lat, CoLat, and Lon:
+        #self['lon'] = dmarray(np.pi/2 - np.arctan(self['y']/self['x']),
+        #                      attrs={'units','deg'})*180.0/np.pi
+        #self['lon'][self['x']==0.0] = 0.0
+        xy=np.sqrt(self['x']**2+self['y']**2)+0.0000001
+        self['lon']=np.arcsin(self['y']/xy)
+        self['lat']  =dmarray(np.arcsin(self['z']), {'units','deg'})*180.0/np.pi
+        self['colat']=90.0 - self['lat']
+
+        f.close()
+
 class Line(PbData):
     '''
     Class for loading a single field line output file.
@@ -94,7 +158,7 @@ class Lines(PbData):
 
     def __repr__(self):
         return 'PWOM field line group of %i separate line files.' %\
-            (self.attrs('nFile'))
+            (self.attrs['nFile'])
 
     def _read(self, lines):
         '''
@@ -110,6 +174,7 @@ class Lines(PbData):
         nA=l1.attrs['nAlt']
         nT=l1.attrs['nTime']
         nF=len(self['files'])
+        self['r'] = l1['r']
         
         self.attrs['nAlt']=nA; self.attrs['nTime']=nT; self.attrs['nFile']=nF
         self['time']=l1['time']
@@ -135,3 +200,9 @@ class Lines(PbData):
             for v in l1._rawvar:
                 self[v][i+1,:,:]=l[v]
 
+
+    def add_slice(alt, var):
+        '''
+        Plot a 2D slice at altitude *alt* of variable *var*.
+        '''
+        pass
