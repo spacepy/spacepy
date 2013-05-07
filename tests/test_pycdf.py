@@ -76,7 +76,7 @@ class NoCDF(unittest.TestCase):
         input = [[1, 2, 3, 4, 5], [3, -5, 6, 12], ]
         output = [[1, 5, 4, 3, 2], [3, 12, 6, -5], ]
         for (inp, outp) in zip(input, output):
-            self.assertEqual(cdf._pycdf._Hyperslice.reorder(inp).tolist(),
+            self.assertEqual(cdf._Hyperslice.reorder(inp).tolist(),
                              outp)
 
     def testHypersliceconvert(self):
@@ -118,7 +118,7 @@ class NoCDF(unittest.TestCase):
                   [14, 1, 10, True],
                   ]
         for (inp, outp) in zip(input, output):
-            result = cdf._pycdf._Hyperslice.convert_range(*inp)
+            result = cdf._Hyperslice.convert_range(*inp)
             self.assertEqual(tuple(outp), result,
                              str(tuple(outp)) + ' != ' + str(result) +
                              ' for input ' + str(inp))
@@ -130,7 +130,7 @@ class NoCDF(unittest.TestCase):
                 [[4, 5], [6, 7], [8, 9]],
                 [[0, 1], [2, 3], [4, 5]],
                 ]
-        self.assertEqual(cdf._pycdf._Hyperslice.dimensions(data),
+        self.assertEqual(cdf._Hyperslice.dimensions(data),
                          (4, 3, 2))
 
         data = [[[2, 3], [4, 5], [6, 7]],
@@ -141,14 +141,14 @@ class NoCDF(unittest.TestCase):
         message = 'Data must be well-formed, regular array of number, ' \
                   'string, or datetime'
         try:
-            cdf._pycdf._Hyperslice.dimensions(data)
+            cdf._Hyperslice.dimensions(data)
         except ValueError:
             (t, v, tb) = sys.exc_info()
             self.assertEqual(message, str(v))
         else:
             self.fail('Should raise ValueError: ' + message)
 
-        self.assertEqual(cdf._pycdf._Hyperslice.dimensions('hi'),
+        self.assertEqual(cdf._Hyperslice.dimensions('hi'),
                          ())
 
     def testTT2000ToDatetime(self):
@@ -456,7 +456,7 @@ class NoCDF(unittest.TestCase):
                      ]
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
-            self.assertEqual(t, cdf._pycdf._Hyperslice.types(s))
+            self.assertEqual(t, cdf._Hyperslice.types(s))
 
 
 class MakeCDF(unittest.TestCase):
@@ -869,18 +869,18 @@ class ReadCDF(CDFTests):
                     }
         for i in expected:
             zvar = self.cdf[i]
-            sliced = cdf._pycdf._Hyperslice(zvar, slices[i])
+            sliced = cdf._Hyperslice(zvar, slices[i])
             actual = (sliced.dims, sliced.dimsizes, sliced.starts,
                       sliced.counts.tolist(), sliced.intervals,
                       sliced.degen.tolist(), sliced.rev.tolist())
             self.assertEqual(tuple(expected[i]), actual,
                              '\n' + str(tuple(expected[i])) + '!=\n' +
                              str(actual) + ' variable ' + i)
-        self.assertRaises(IndexError, cdf._pycdf._Hyperslice,
+        self.assertRaises(IndexError, cdf._Hyperslice,
                           self.cdf['ATC'], (1, 2))
-        self.assertRaises(IndexError, cdf._pycdf._Hyperslice,
+        self.assertRaises(IndexError, cdf._Hyperslice,
                           self.cdf['ATC'], 800)
-        self.assertRaises(IndexError, cdf._pycdf._Hyperslice,
+        self.assertRaises(IndexError, cdf._Hyperslice,
                           self.cdf['ATC'], -1000)
 
     def testHyperslices2(self):
@@ -893,7 +893,7 @@ class ReadCDF(CDFTests):
                     }
         for i in expected:
             zvar = self.cdf[i]
-            sliced = cdf._pycdf._Hyperslice(zvar, slices[i])
+            sliced = cdf._Hyperslice(zvar, slices[i])
             actual = (sliced.dims, sliced.dimsizes, sliced.starts,
                       sliced.counts, sliced.intervals, sliced.degen,
                       sliced.rev)
@@ -904,33 +904,33 @@ class ReadCDF(CDFTests):
     def testHypersliceExpand(self):
         """Expand a slice to store the data passed in"""
         zvar = self.cdf['PhysRecNo']
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, None, 1))
+        sliced = cdf._Hyperslice(zvar, slice(0, None, 1))
         self.assertEqual(100, sliced.counts[0])
         sliced.expand(list(range(110)))
         self.assertEqual(110, sliced.counts[0])
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, 100, 2))
+        sliced = cdf._Hyperslice(zvar, slice(0, 100, 2))
         sliced.expand(list(range(110)))
         self.assertEqual(50, sliced.counts[0])
 
     def testHypersliceExpectedDims(self):
         """Find dimensions expected by a slice"""
         zvar = self.cdf['PhysRecNo']
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, None, 1))
+        sliced = cdf._Hyperslice(zvar, slice(0, None, 1))
         self.assertEqual([100], sliced.expected_dims())
         sliced.expand(list(range(110)))
         self.assertEqual([110], sliced.expected_dims())
-        sliced = cdf._pycdf._Hyperslice(zvar, slice(0, 100, 2))
+        sliced = cdf._Hyperslice(zvar, slice(0, 100, 2))
         sliced.expand(list(range(110)))
         self.assertEqual([50], sliced.expected_dims())
 
         zvar = self.cdf['SpinRateScalersCounts']
-        sliced = cdf._pycdf._Hyperslice(zvar, (slice(None, None, None),
+        sliced = cdf._Hyperslice(zvar, (slice(None, None, None),
                                                slice(None, None, 2),
                                                slice(0, None, 3)))
         self.assertEqual([100, 9, 6], sliced.expected_dims())
 
         zvar = self.cdf['SpinNumbers']
-        sliced = cdf._pycdf._Hyperslice(zvar, 2)
+        sliced = cdf._Hyperslice(zvar, 2)
         self.assertEqual([1, 18], sliced.dimsizes)
 
     def testCDFTypes(self):
@@ -1680,7 +1680,7 @@ class ReadColCDF(ColCDFTests):
                     }
         for i in expected:
             zvar = self.cdf[i]
-            sliced = cdf._pycdf._Hyperslice(zvar, slices[i])
+            sliced = cdf._Hyperslice(zvar, slices[i])
             actual = (sliced.dims, sliced.dimsizes, sliced.starts,
                       sliced.counts.tolist(), sliced.intervals,
                       sliced.degen.tolist(), sliced.rev.tolist())

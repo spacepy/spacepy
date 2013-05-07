@@ -95,12 +95,12 @@ class spectrogramTests(unittest.TestCase):
         xbins = np.arange(-0.5, 3.5, 2.0)
         ybins = np.arange(-0.5, 3.5, 2.0)
         a = spectrogram(self.data, variables=self.kwargs['variables'], extended_out=True)
-        count = a['spectrogram']['count'][:]
-        sm = a['spectrogram']['sum'][:]
-        spect = a['spectrogram']['spectrogram'][:]
+        count = a['spectrogram']['count'][:].copy()
+        sm = a['spectrogram']['sum'][:].copy()
+        spect = a['spectrogram']['spectrogram'][:].copy()
         a.add_data(self.data) # add te same data back, sum, count will double, spectrogram stays the same
-        np.testing.assert_allclose(a['spectrogram']['count'], count)
-        np.testing.assert_allclose(a['spectrogram']['sum'], sm)
+        np.testing.assert_allclose(a['spectrogram']['count'].filled(), (count*2).filled())
+        np.testing.assert_allclose(a['spectrogram']['sum'], sm*2)
         np.testing.assert_allclose(a['spectrogram']['spectrogram'], spect)
 
 class spectrogramDateTests(unittest.TestCase):
