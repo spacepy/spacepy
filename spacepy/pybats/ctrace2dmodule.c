@@ -35,13 +35,14 @@ static double bilin_reg(double x, double y, double Q00,
 }
 
 /* Check to see if we should break out of an integration */
+/* As set now, code will extrapolate up to 1 point outside of current block. */
 static int DoBreak(int iloc, int jloc, int iSize, int jSize)
 {
   int ibreak = 0;
   //printf("At %i, %i with limits %i, %i\n", iloc, jloc, iSize, jSize);
-  if (iloc >= iSize-1 || jloc >= jSize-1)
+  if (iloc >= iSize || jloc >= jSize)
     ibreak = 1;
-  if (iloc <= 0 || jloc <= 0)
+  if (iloc < -1 || jloc < -1)
     ibreak = 1;
 
   return ibreak;
@@ -61,6 +62,10 @@ static void make_unit(int iSize, int jSize, double *ux, double *uy)
 
   return;
 }
+
+/* Min and MAX: */
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 /*Interpolate a value from a grid
  *double x, double y: X and Y of location to interp
@@ -96,7 +101,7 @@ static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
   make_unit(iSize, jSize, ux, uy);
 
   /* Perform tracing using Euler's method */
-  for(n=0; n<maxstep; n++)
+  for(n=0; n<maxstep-1; n++)
     {
       /* Find surrounding points */
       xloc = floor(x[n]);
@@ -104,15 +109,18 @@ static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
 
       /* Break if we leave the domain */
       if (DoBreak(xloc, yloc, iSize, jSize))
-	break;
-
+      break;
+      if(xloc>iSize-2) xloc=iSize-2;
+      if(xloc<0)       xloc=0;
+      if(yloc>iSize-2) yloc=iSize-2;
+      if(yloc<0)       yloc=0;
       /* Interpolate unit vectors to current location */
       fx = grid_interp(x[n], y[n], ux, xloc, yloc, iSize, jSize);
       fy = grid_interp(x[n], y[n], uy, xloc, yloc, iSize, jSize);
       
       /* Detect NaNs in function values */
-      if (isnan(fx) || isnan(fy) || isinf(fx) || isinf(fy))
-	break;
+      //if (isnan(fx) || isnan(fy) || isinf(fx) || isinf(fy))
+      //break;
 
       /* Perform single step */
       x[n+1] = x[n] + ds * fx;
@@ -125,7 +133,7 @@ static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
       x[i] = x[i]*dx + xGrid[0];
       y[i] = y[i]*dy + yGrid[0];
     }
-  //printf("Used %i points\n",n);
+  //printf("Used %i of %i points\n",n,maxstep);
   //printf("Breaking at %.3f, %.3f\n", x[n], y[n]);
   return n;
 }
@@ -154,13 +162,19 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
   make_unit(iSize, jSize, ux, uy);
 
   /* Perform tracing using RK4 */
-  for(n=0; n<maxstep; n++){
+  for(n=0; n<maxstep-1; n++){
     /* See Euler's method for more descriptive comments. */
     /* SUBSTEP #1 */
     xloc = floor(x[n]);
     yloc = floor(y[n]);
     if (DoBreak(xloc, yloc, iSize, jSize))
       break;
+    if(xloc>iSize-2) xloc=iSize-2;
+    if(xloc<1)       xloc=1;
+    if(yloc>iSize-2) yloc=iSize-2;
+    if(yloc<1)       yloc=1;
+    //xloc=MAX(0, MIN(iSize-2, xloc));
+    //yloc=MAX(0, MIN(jSize-2, yloc));
     f1x = grid_interp(x[n], y[n], ux, xloc, yloc, iSize, jSize);
     f1y = grid_interp(x[n], y[n], uy, xloc, yloc, iSize, jSize);
     if (isnan(f1x) || isnan(f1y) || isinf(f1x) || isinf(f1y))
@@ -173,6 +187,12 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
     yloc = floor(ypos);
     if (DoBreak(xloc, yloc, iSize, jSize))
       break;
+    if(xloc>iSize-2) xloc=iSize-2;
+    if(xloc<1)       xloc=1;
+    if(yloc>iSize-2) yloc=iSize-2;
+    if(yloc<1)       yloc=1;
+    //xloc=MAX(0, MIN(iSize-2, xloc));
+    //yloc=MAX(0, MIN(jSize-2, yloc));
     f2x = grid_interp(xpos, ypos, ux, xloc, yloc, iSize, jSize);
     f2y = grid_interp(xpos, ypos, uy, xloc, yloc, iSize, jSize);
 
@@ -186,6 +206,12 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
     yloc = floor(ypos);
     if (DoBreak(xloc, yloc, iSize, jSize))
       break;
+    if(xloc>iSize-2) xloc=iSize-2;
+    if(xloc<1)       xloc=1;
+    if(yloc>iSize-2) yloc=iSize-2;
+    if(yloc<1)       yloc=1;
+    //xloc=MAX(0, MIN(iSize-2, xloc));
+    //yloc=MAX(0, MIN(jSize-2, yloc));
     f3x = grid_interp(xpos, ypos, ux, xloc, yloc, iSize, jSize);
     f3y = grid_interp(xpos, ypos, uy, xloc, yloc, iSize, jSize);
     if (isnan(f3x) || isnan(f3y) || isinf(f3x) || isinf(f3y))
@@ -198,6 +224,12 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
     yloc = floor(ypos);
     if (DoBreak(xloc, yloc, iSize, jSize))
       break;
+    if(xloc>iSize-2) xloc=iSize-2;
+    if(xloc<1)       xloc=1;
+    if(yloc>iSize-2) yloc=iSize-2;
+    if(yloc<1)       yloc=1;
+    //xloc=MAX(0, MIN(iSize-2, xloc));
+    //yloc=MAX(0, MIN(jSize-2, yloc));
     f4x = grid_interp(xpos, ypos, ux, xloc, yloc, iSize, jSize);
     f4y = grid_interp(xpos, ypos, uy, xloc, yloc, iSize, jSize);
     if (isnan(f4x) || isnan(f4y) || isinf(f4x) || isinf(f4y))
@@ -251,9 +283,11 @@ static PyObject *ctrace2d_common(PyObject *self,
     return NULL;
 
   array_type = PyArray_DescrFromType(NPY_DOUBLE);
+  /* NEXT LINES COMMENTED OUT; CAUSED ISSUES BETWEEN NUMPY AND C.*/
    /*FromArray, FromDescr steal ref to type, so need 6 total*/
-  for(count=0; count<5; count++)
-    Py_INCREF(array_type);
+  //for(count=0; count<5; count++)
+  //  Py_INCREF(array_type);
+
   /*For all of these, we are throwing away the borrowed ref
    *to the original, and creating a new object with a new ref.
    *So the new ref will be freed, but the borrowed ref is left alone.
@@ -267,6 +301,7 @@ static PyObject *ctrace2d_common(PyObject *self,
   indims[0] = maxstep;
   outx = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
   outy = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
+  //Py_DECREF(array_type);
 
   gridxd = (double*)PyArray_DATA(gridx);
   gridyd = (double*)PyArray_DATA(gridy);
@@ -280,10 +315,10 @@ NPY_BEGIN_ALLOW_THREADS
 		 gridxd, gridyd, fieldxd, fieldyd, outxd, outyd);
 NPY_END_ALLOW_THREADS
 
-  Py_DECREF(gridx);
-  Py_DECREF(gridy);
-  Py_DECREF(fieldx);
-  Py_DECREF(fieldy);
+  //Py_DECREF(gridx);
+  //Py_DECREF(gridy);
+  //Py_DECREF(fieldx);
+  //Py_DECREF(fieldy);
 
   outdims[0] = count;
   if (!PyArray_Resize(outx, &outshape, 1, NPY_CORDER))

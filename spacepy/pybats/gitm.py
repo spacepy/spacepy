@@ -25,6 +25,7 @@ class GitmBin(PbData):
         super(GitmBin, self).__init__(*args, **kwargs) # Init as PbData.
         self.attrs['file']=filename
         self._read()
+        self.calc_deg()
 
     def __repr__(self):
         return 'GITM binary output file %s' % (self.attrs['file'])
@@ -71,7 +72,7 @@ class GitmBin(PbData):
             var.append(unpack(endChar+'%is'%(recLen),f.read(recLen))[0])
             (oldLen, recLen)=unpack(endChar+'2l',f.read(8))
 
-        # Extract time.
+        # Extract time. 
         (yy,mm,dd,hh,mn,ss,ms)=unpack(endChar+'lllllll',f.read(recLen))
         self['time']=dt.datetime(yy,mm,dd,hh,mn,ss,ms/1000)
         (oldLen)=unpack(endChar+'l',f.read(4))
@@ -91,6 +92,19 @@ class GitmBin(PbData):
                 order='fortran')
             f.read(4)
 
+
+    def calc_deg(self):
+        '''
+        Gitm defaults to radians for lat and lon, which is sometimes difficult
+        to use.  This method creates *dLat* and *dLon*, which is lat and lon
+        in degrees.
+        '''
+        from numpy import pi
+        self['dLat'] = dmarray(self['Latitude']*180.0/pi, 
+                               attrs={'units':'degrees'})
+        self['dLon'] = dmarray(self['Longitude']*180.0/pi, 
+                               attrs={'units':'degrees'})
+        
 
 #    def add_alt_slice(alt, var, target=None):
 #        '''
