@@ -2,17 +2,92 @@
 '''
 PyBats!  An open source Python-based interface for reading, manipulating,
 and visualizing BATS-R-US and SWMF output.
+For more information on the SWMF, please visit the
+`Center for Space Environment Modeling<http://csem.engin.umich.edu>`_. 
 
-Copyright 2010 Los Alamos National Security, LLC.
+Introduction
+------------
+
+At its most fundamental level, PyBats provides access to output files written
+by the Space Weather Modeling Framework and the codes contained within.  
+The key task performed by PyBats is loading simulation data into a Spacepy
+data model object so that the user can move on to the important tasks of 
+analyzing and visualizing the values.  The secondary goal of PyBats is to make
+common tasks performed with these data as easy as possible.  The result is that
+most SWMF output can be opened and visualized using only a few lines of code.
+Many complicated tasks, such as field line integration, is included as well.
+
+Organization
+------------
+
+Many output files in the SWMF share a common format.  Objects to handle broad
+formats like these are found in the base module.  The base module has classes
+to handle SWMF *input* files, as well.
+
+The rest of the classes are organized by code, i.e. classes and functions 
+specifically relevant to BATS-R-US can be found in 
+:module:`spacepy.pybats.bats`.  Whenever a certain code included in the SWMF
+requires a independent class or a subclass from the PyBats base module, it
+will receive its own submodule.
+
+Conventions and Prefixes
+------------------------
+
+Nearly every class in PyBats inherits from :class:`spacepy.datamodel.SpaceData`,
+so it is important for users to understand how to employ and explore SpaceData
+objects.  There are a few exceptions, so always pay close attention to the
+docstrings and examples.  Legacy code that does not adhere to this pattern is
+slowly being brought up-to-date with each release.
+
+Visualization methods have two prefixes: *plot_* and *add_*.  Whenever a method
+begins with *plot_*, a quick-look product will be created that is not highly-
+configurable.  These methods are meant to yeild either simple
+diagnostic plots or static, often-used products.  There are few methods that use
+this prefix.  The prefix *add_* is always followed by *plot_type*; it indicates
+a plotting method that is highly configurable and meant to be combined with
+other *add_*-like methods and matplotlib commands.
+
+Common calculations, such as calculating Alfven wave speeds of MHD results,
+are strewn about PyBats' classes.  They are always given the method prefix
+*calc_*, i.e. *calc_alfven*.  Methods called *calc_all* will search for all
+class methods with the *calc_* prefix and call them.
+
+
+Copyright ©2010 Los Alamos National Security, LLC.
 '''
 
-__contact__ = 'Dan Welling, dwelling@lanl.gov'
+__contact__ = 'Dan Welling, dwelling@umich.edu'
 
 # Global imports (used ubiquitously throughout this module.
 from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
 
 # Some common, global functions.
+def parse_tecvars(line):
+    '''
+    Parse the VARIABLES line from a TecPlot-formatted ascii data file.  Create
+    a list of name-unit tuples for each variable.
+    '''
+    
+    import re
+
+    # Create return list.
+    ret = []
+
+    # Ensure that the input line is a TecPlot variable line.
+    if "VARIABLES" not in line:
+        raise ValueError('Input line is not a TecPlot VARIABLES line.')
+
+    # Strip out "VARIABLES = "
+    line=re.sub('(^\s*VARIABLES\s*\=\s*)|(")', '', line)
+
+    # break into individual vars using commas.
+    for s in line.split(','):
+        m=re.match('\s*(\w+)\s*(\[(.*)\])*\s*', s)
+        ret.append( (m.group(1).lower(), m.group(3)) )
+
+    return ret
+
 def smart_timeticks(time):
     '''
     Given a list or array of time values, create intelligent timeticks based
@@ -22,6 +97,14 @@ def smart_timeticks(time):
 
     Example:
     >>>Mtick, mtick, fmt = smart_timeticks([time1, time2])
+
+    One could then apply these to an axis object as follows:
+    >>>ax.xaxis.set_major_locator(Mtick)
+    >>>ax.xaxis.set_minor_locator(mtick)
+    >>>ax.xaxis.set_major_formatter(fmt)
+
+    Often, it is much easier to just use 
+    :func:`spacepy.pybats.apply_smart_timeticks`.
     '''
     
     import matplotlib.dates as mdt
@@ -72,13 +155,16 @@ def smart_timeticks(time):
 
 def apply_smart_timeticks(ax, time, dolimit=True, dolabel=False):
     '''
-    Given an axis 'ax' and a list/array of datetime objects, 'time', 
+    Given an axis *ax* and a list/array of datetime objects, *time*, 
     use the smart_timeticks function to built smart time ticks and
     then immediately apply them to the give axis.
 
-    The range of the 'time' input value will be used to set the limits
-    of the x-axis as well.  Set kwarg 'dolimit' to False to override 
+    The range of the *time* input value will be used to set the limits
+    of the x-axis as well.  Set kwarg *dolimit* to False to override 
     this behavior.
+
+    If you wish to auto-label the X axis with ISO-formatted date and time
+    taken from ``time[0]``, use the kwarg *dolabel* (defaults to **False**).
     '''
 
     Mtick, mtick, fmt = smart_timeticks(time)
@@ -93,9 +179,9 @@ def apply_smart_timeticks(ax, time, dolimit=True, dolabel=False):
 
 def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
     '''
-    Creates a circle of radius=self.para['rbody'] and returns the
+    Creates a circle of ``radius=self.para['rbody']`` and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
-    using the "ax" keyword, the patch is added to the plot.
+    using the *ax* keyword, the patch is added to the plot.
     
     Unlike the add_body method, the circle is colored half white (dayside)
     and half black (nightside) to coincide with the direction of the 
@@ -144,8 +230,28 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True,
 class PbData(SpaceData):
     '''
     The base class for all PyBats data container classes.  Inherits from
-    spacepy.SpaceData and has additional methods for quickly exploring
-    a dataset.
+    :class:`spacepy.datamodel.SpaceData` but has additional methods for quickly 
+    exploring an SWMF dataset.
+
+    Just like :class:`spacepy.datamodel.SpaceData` objects, *PbData* objects
+    work just like dictionaries except they have special **attr** dictionary
+    attributes for both the top-level object and most values.  This means that
+    the following syntax can be used to explore a generic *PbData* object:
+    
+    >>>print obj.keys()
+    >>>print obj.attrs
+    >>>value = obj[key]
+
+    Printing *PbData* objects will produce a tree of contents and attributes;
+    calling ``self.listunits()`` will print all values that have the 'units'
+    attribute and the associated units.  Hence, it is often most instructive
+    to use the following two lines to quickly learn a *PbData*'s contents:
+    
+    >>>print obj
+    >>>obj.listunits()
+
+    *PbData* is the main organizational tool for Pybats datasets, so the
+    information here is applicable to nearly all Pybats classes.
     '''
 
     def __init__(self, *args, **kwargs):
@@ -158,9 +264,8 @@ class PbData(SpaceData):
         '''
         Display contents of container.
         '''
-        from spacepy import dictree
-        print(type(self))
-        dictree(self, attrs=True, verbose=True)
+        print type(self)
+        self.tree(attrs=True, verbose=True)
         return ''
 
     def listunits(self):
@@ -179,15 +284,20 @@ class PbData(SpaceData):
 class IdlBin(PbData):
  
     '''
-    An object class to hold information from an IDL-format SWMF binary
-    output file.  Upon instantiation, the file name given to __init__() will
-    be opened and read into the class instance.
+    An object class that reads/parses a binary output file from the SWMF
+    and places it into a :class:spacepy.pybats.PbData object.
+
+    Usage:
+    >>>data = spacepy.pybats.IdlBin('binary_file.out')
+
+    See :class:`spacepy.pybats.PbData` for information on how to explore
+    data contained within the returned object.
 
     This class serves as a parent class to SWMF component-specific derivative
     classes that do more preprocessing of the data before returning the 
     object.  Hence, using this class to read binary files is typically not
     the most efficient way to proceed.  Look for a PyBats sub module that suits
-    your specific needs, or use this base object to write your own!
+    your specific needs, or use this base object to write your own.
 
     A note on byte-swapping: PyBats assumes little endian byte ordering because
     this is what most machines use.  However, there is an autodetect feature
@@ -195,19 +305,6 @@ class IdlBin(PbData):
     entry, or RecLen), it will proceed using big endian ordering.  If this
     doesn't work, the error will manifest itself through the "struct" package
     as an "unpack requires a string of argument length 'X'".
-
-    Class Attibutes:
-    filename: File opened and read into object.
-    iter: Simulation iteration when file was created.
-    time: Time elapsed, in seconds, from beginning of simulation.
-    ndim, nvar, npara: number of dimensions, variables, and parameters.
-    namevar: list of string names of variables saved in file.
-    namepara: list of string names of parameters saved in file.
-    gridtype: Either Regular, Generalized, or Unstructured.
-    gridsize: An array listing the number of elements in each dimension.
-    grid: A dictionary of dimension name and corresponding gridpoints.
-    data: A dictionary of variable names and corresponding data arrays.
-    para: A dictionary of parameter names and corresponding values.
     '''
 
     def __init__(self, filename, *args, **kwargs):
@@ -224,7 +321,6 @@ class IdlBin(PbData):
         the data into the object.  The file read is self.filename which is
         set when the object is instantiation.
         '''
-        from math import pi
         import numpy as np
         import struct
 
@@ -362,7 +458,7 @@ class IdlBin(PbData):
             offset = 0.0  # The offset ensures no repeating vals while sorting.
             for key in self['grid'].attrs['dims']:
                 gridtotal = gridtotal + offset + self[key]
-                offset = offset + pi/2.0
+                offset = offset + np.pi/2.0
                 SortIndex = np.argsort(gridtotal)
             for key in self.keys():
                 if key=='grid': continue
@@ -373,39 +469,54 @@ class IdlBin(PbData):
 class LogFile(PbData):
     ''' An object to read and handle SWMF-type logfiles.
 
-    logfile objects read and hold all information in an SWMF
-    ascii logfile.  The file is read upon instantiation.
+    *LogFile* objects read and hold all information in an SWMF
+    ascii time-varying logfile.  The file is read upon instantiation.  
+    Many SWMF codes
+    produce flat ascii files that can be read by this class; the most
+    frequently used ones have their own classes that inherit from this.
+
+    See :class:`spacepy.pybats.PbData` for information on how to explore
+    data contained within the returned object.
+
+    Usage:
+    >>>data = spacepy.pybats.LogFile('filename.log')
+
+    =========  ===========================================
+    kwarg      Description
+    ---------  -------------------------------------------
+    starttime  Manually set the start time of the data.
+    =========  ===========================================
 
     Time is handled by Python's datetime package.  Given that time
     may or may not be given in the logfile, there are three options
     for how time is returned:
-        1. if the full date and time are listed in the file, self.time
-        is a list of datetime objects corresponding to the entries.  The
+        
+        1. if the full date and time are listed in the file, ``self['time']``
+        is an array of datetime objects corresponding to the entries.  The
         starttime kwarg is ignored.
+        
         2. If only the runtime (seconds from start of simulation) is given,
-        self.time is a list of datetime objects that either start from
-        the given starttime kwarg or starting from 1/1/1 00:00UT.
+        self['time'] is an array of datetime objects that starts from
+        the given *starttime* kwarg which defaults to  1/1/1 00:00UT.
+        
         3. If neither of the above are given, the time is assumed to 
         advance one second per line starting from either the starttime kwarg
         or from 2000/1/1 00:00UT + the first iteration (if given in file.)
         As you can imagine, this is sketchy at best.
+
+    This time issue is output dependent: some SWMF models place the full date
+    and time into the log by default while others will almost never include the
+    full date and time.  The variable ``self['runtime']`` contains the more
+    generic seconds from simulation start values.
     
     Example usage:
 
-    >>> import pybats
-    >>> file1 = pybats.logfile('satfile_n000000.dat')
-    >>> file1.namevar
-    ['it', 't', 'rho', 'dst','bx', 'by', 'bz']
-    
-    This file does not have the time clearly set, only time from the 
-    beginning of the run.  Let's set the start time and plot Dst:
-
-    >>> import pybats
+    >>> import spacepy.pybats as pb
     >>> import pylab as plt
     >>> import datetime as dt
     >>> time1 = dt.datetime(2009,11,30,9,0)
-    >>> file1 = pybats.logfile('satfile_n000000.dat', starttime=time1)
-    >>> plt.plot(file1.time, file1.data['dst'])
+    >>> file1 = pb.logfile('satfile_n000000.dat', starttime=time1)
+    >>> plt.plot(file1['time'], file1['dst'])
 
     '''
 
@@ -428,7 +539,7 @@ class LogFile(PbData):
         if type(starttime) != dt.datetime:
             if len(starttime) != 6:
                 raise ValueError('starttime must be a length 6 Tuple ' +
-                    'or a datetime.datetime object')
+                                 'or a datetime.datetime object')
             starttime=dt.datetime(starttime[0], starttime[1], starttime[2],
                                   starttime[3], starttime[4], starttime[5])
 
@@ -530,66 +641,231 @@ class LogFile(PbData):
             self['time']   =time
             self['runtime']=runtime
 
-    def add_dst_quicklook(self, target=None):
+    def add_dst_quicklook(self, target=None, loc=111, showObs=True):
         '''
-        Create a quick-look plot of Dst.  If kyotodst module is
-        installed, compare to observed Dst.
+        Create a quick-look plot of Dst (if variable present in file) 
+        and compare against observations.
 
-        If kwarg 'target' is None (default), a new figure is 
-        generated from scratch.  If target is a matplotlib Figure
-        object, a new axis is created to fill that figure.
-        if target is a matplotlib Axes object, the plot is placed
-        into that axis.
+        Like all *add_\* * methods in Pybats, the *target* kwarg determines
+        where to place the plot.
+        If kwarg *target* is **None** (default), a new figure is 
+        generated from scratch.  If *target* is a matplotlib Figure
+        object, a new axis is created to fill that figure at subplot location
+        *loc* (defaults to 111).  If target is a matplotlib Axes object, 
+        the plot is placed into that axis at subplot location *loc*.
+
+        Observed Dst is automatically fetched from the Kyoto World Data Center
+        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoDst` object, which holds the observed
+        Dst, is stored as *self.obs_dst* for future use.
+
+        The figure and axes objects are returned to the user.
         '''
         
         import matplotlib.pyplot as plt
         
+        if 'dst' not in self.keys():
+            return None, None
+
         if type(target) == plt.Figure:
             fig = target
-            ax = fig.add_subplot(111)
+            ax = fig.add_subplot(loc)
         elif type(target).__base__ == plt.Axes:
             ax = target
             fig = ax.figure
         else:
             fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(111)
+            ax = fig.add_subplot(loc)
 
-        ax.plot(self['time'], self['dst'], label='BATS-R-US Dst (Biot-Savart)')
+        ax.plot(self['time'], self['dst'], 
+                label='BATS-R-US $D_{ST}$ (Biot-Savart)')
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
         apply_smart_timeticks(ax, self['time'])
         ax.set_ylabel('Dst ($nT$)')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
-        try:
-            import spacepy.pybats.kyoto as kt
-        except ImportError:
-            return fig, ax
+        if(showObs):
+            try:
+                import spacepy.pybats.kyoto as kt
+            except ImportError:
+                return fig, ax
         
-        try:
-            stime = self['time'][0]; etime = self['time'][-1]
-            if not hasattr(self, 'obs_dst'):
-                self.obs_dst = kt.fetch('dst', stime, etime)
+            try:
+                stime = self['time'][0]; etime = self['time'][-1]
+                if not hasattr(self, 'obs_dst'):
+                    self.obs_dst = kt.fetch('dst', stime, etime)
 
-        except BaseException, args:
-            print('WARNING! Failed to fetch Kyoto Dst: ', args)
+            except BaseException as args:
+                print('WARNING! Failed to fetch Kyoto Dst: '+ args)
+            else:
+                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
+                        'k--', label='Obs. Dst')
+                ax.legend(loc='best')
+                apply_smart_timeticks(ax, self['time'])
         else:
-            ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
-                    'k--', label='Obs. Dst')
-            ax.legend()
-            apply_smart_timeticks(ax, self['time'])
+            ax.legend(loc='best')
+            
 
         return fig, ax
 
+class NgdcIndex(PbData):
+    '''
+    Many models incorporated into the SWMF rely on National Geophysical Data
+    Center (NGDC) provided index files (especially F10.7 and Kp).  These
+    files, albeit simple ascii, have a unique format and expansive header
+    that can be cumbersome to handle.  Data files can be obtained from
+    http://spidr.ngdc.noaa.gov .
+
+    NgdcIndex objects aid in reading, creating, and visualizing these files.
+
+    Creating an :class:`NgdcIndex` object is simple:
+    
+    >>> from spacepy import pybats
+    >>> obj=pybats.NgdcIndex(filename='ngdc_example.dat')
+
+
+    Upon instantiation, if *filename* is a valid file AND kwarg *load* is set
+    to boolean True, the contents of *filename* are loaded into the object
+    and no other work needs to be done.
+
+    If *filename* is False or *load* is False, a blank :class:`NgdcIndex`
+    is created for the user to manipulate.  
+    The user can set the time array and the ssociated data values to any values 
+    desired and use the method *obj.write()* to dump the contents to an NGDC
+    formatted input file.  See the documentation for the write method for 
+    more details.
+
+    This class is a work-in-progress.  It is especially tuned for SWMF-needs
+    and cannot be considered a general function for the handling of generic
+    NGDC files.
+    
+    =========== ============================================================
+    Kwarg       Description
+    ----------- ------------------------------------------------------------
+    filename    Set the input/output file name.
+    load        Read file upon instantiation?  Defaults to **True**
+    =========== ============================================================
+
+    '''
+
+    def __init__(self, filename=None, load=True, *args, **kwargs):
+        
+        super(NgdcIndex, self).__init__(*args, **kwargs)
+        # Set key information.
+        self.attrs['file'] = filename
+        self.attrs['comments'] = []
+        
+        if load:
+            self._read()
+
+    def _read(self):
+        '''
+        Read an existing NGDC file into memory.  Should only be called upon
+        instantiation.
+        '''
+        from dateutil.parser import parse
+
+        # Start by reading the header.
+        infile = open(self.attrs['file'], 'r')
+        temp = infile.readline()
+        while temp != '#'+50*'-'+'\n': #Detect start of file.
+            # Skip blank comments, save substantive ones.
+            if temp == '#\n': 
+                temp = infile.readline()
+                continue
+            self.attrs['comments'].append(temp)
+            temp = infile.readline()
+            
+        # Skip "data start" marker.
+        infile.readline()
+
+        # Continue to read and sort all data in file.
+        def read_one_var():
+            attrs = {}
+            # Get current variable.  Strip out all but name.
+            varname = infile.readline().split(':')[-1].strip()
+            temp = infile.readline()
+            while temp != '#>\n':
+                if temp != '#\n':
+                    parts = temp[1:].split(':')
+                    attrs[parts[0].strip()] = parts[-1].strip()
+                temp = infile.readline()
+
+            # Create some dummy arrays.
+            t = []
+            d = []
+
+            # Skip the sub-header.
+            temp = infile.readline()
+            temp = infile.readline()
+
+            # Parse data until next variable or EOF.
+            while (temp != '#>\n') and (temp != ''):
+                parts = temp.split()
+                t.append(parse(' '.join(parts[0:2])))
+                d.append(float(parts[2]))
+                temp = infile.readline()
+
+            # Put the variable together.
+            self[varname] = dmarray([t, d], attrs=attrs)
+
+            # Make judgement as to whether there is more data or not.
+            return (temp == '#>\n')
+
+        IsData = True
+        while IsData:
+            IsData = read_one_var()
+
+
+    def write(self, outfile=False):
+        '''
+        Write the :class:`NgdcIndex` object to file.  Kwarg *outfile* can be
+        used to specify the path of the output file; if it is not set, 
+        *self.attrs['file']* is used.  If this is not set, default to 
+        "ngdc_index.dat".
+        '''
+        
+        import datetime as dt
+    
+        if not outfile:
+            if self.attrs['file']!=None:
+                outfile=self.attrs['file']
+            else:
+                outfile='imfinput.dat'
+
+        out = open(outfile, 'w')
+        
+        # Write header.
+        for c in self.attrs['comments']:
+            out.write(c)
+        out.write(2*'#\n'+'#'+50*'-'+'\n')
+        
+        # Write variables.
+        for k in self.keys():
+            out.write('#>\n')
+            out.write('#%s: %s\n' % ('Element', k))
+            for a in self[k].attrs.keys():
+            #for a in ['Table','Description','Measure units','Origin']:
+                out.write('#%s: %s\n' % (a, self[k].attrs[a]))
+            #out.write(2*'#\n')
+            #for a in ['Sampling', 'Missing value']:
+            #    out.write('#%s: %s\n' % (a, self[k].attrs[a]))
+            out.write('#>\n#yyyy-MM-dd HH:mm value qualifier description\n')
+            for i in range(len(self[k][0,:])):
+                t = self[k][0,i]; d = self[k][1,i]
+                out.write('%04i-%02i-%02i %02i:%02i%7.1f\t""\t""\n' % 
+                          (t.year,t.month,t.day,t.hour,t.minute, d))
+
 class ImfInput(PbData):
     '''
-    An object to read, write, manipulate, and visualize solar wind upstream
+    A class to read, write, manipulate, and visualize solar wind upstream
     input files for SWMF simulations.  More about such files can be found
     in the SWMF/BATS-R-US documentation for the \#SOLARWINDFILE command.
 
     Creating an :class:`ImfInput` object is simple:
     
-    >>> import pybats
+    >>> from spacepy import pybats
     >>> obj=pybats.ImfInput(filename='test.dat', load=True)
 
     Upon instantiation, if *filename* is a valid file AND kwarg *load* is set
@@ -599,7 +875,7 @@ class ImfInput(PbData):
     If *filename* is False or *load* is False, a blank :class:`ImfInput file`
     is created for the user to manipulate.  
     The user can set the time array and the 
-    associated data values (see *obj.namevar* for a list) to any values 
+    associated data values (see *obj.attrs['var']* for a list) to any values 
     desired and use the method *obj.write()* to dump the contents to an SWMF
     formatted input file.  See the documentation for the write method for 
     more details.
@@ -617,7 +893,14 @@ class ImfInput(PbData):
     >>> import numpy as np
     >>> v = np.sqrt(obj['vx']**2 + obj['vy']**2 + obj['vz']**2)
     >>> obj['v']=v
-
+       
+    =========== ============================================================
+    Kwarg       Description
+    ----------- ------------------------------------------------------------
+    filename    Set the input/output file name.
+    load        Read file upon instantiation?  Defaults to **True**
+    npoints     For empty data sets, sets number of points (default is 0)
+    =========== ============================================================
     '''
     
     def __init__(self, filename=False, load=True, npoints=0, *args, **kwargs):
@@ -775,7 +1058,8 @@ class ImfInput(PbData):
         '''
         Write the :class:`ImfInput` object to file.  Kwarg *outfile* can be
         used to specify the path of the output file; if it is not set, 
-        *self.filename* is used.  If this is not set, default to "imfinput.dat".
+        *self.attrs['file']* is used.  If this is not set, default to 
+        "imfinput.dat".
         '''
         
         import datetime as dt
@@ -893,30 +1177,31 @@ class ImfInput(PbData):
 
         return fig
 
-class SatOrbit(object):
+class SatOrbit(PbData):
     '''
     An class to load, read, write, and handle BATS-R-US satellite orbit
     input files.  These files are used to fly virtual satellites through
     the MHD domain.  Note that the output files should be handled by 
     the :class:`LogFile` and not this satorbit object.  The object's 
-    attributes are:
-
-    Attributes
-    ----------
-    time : A list or numpy vector.
-           More stuff.
+    required and always present attributes are:
 
     ============ ==============================================================
     Attribute    Description
     ============ ==============================================================
-    time         A list or numpy vector of datetime objects
-    position     A 3 x len(time) numpy array of x,y,z coordinates associated
-                 with the time vector.
-    header       A list of header lines for the file that contain comments.
-    coord_system The three-letter code (see SWMF doc) of the coord system.
-    filename     Location of the file to read/write.
+    head         A list of header lines for the file that contain comments.
+    coor         The three-letter code (see SWMF doc) of the coord system.
+    file         Location of the file to read/write.
     ============ ==============================================================
 
+
+    The object should always have the following two data keys:
+    ============ ==============================================================
+    Key          Description
+    ============ ==============================================================
+    time         A list or numpy vector of datetime objects
+    xyz          A 3 x len(time) numpy array of x,y,z coordinates associated
+                 with the time vector.
+    ============ ==============================================================
 
     A "blank" instantiation will create an empty object for the user to fill.
     This is desired if the user wants to create a new orbit, either from
@@ -924,19 +1209,20 @@ class SatOrbit(object):
     an example with a "stationary probe" type orbit where the attributes are
     filled and then dropped to file:
 
-    >>> from pybats import *
+    >>> from spacepy.pybats import SatOrbit
     >>> import datetime as dt
+    >>> import numpy as np
     >>> sat = SatOrbit()
-    >>> sat.time = [ dt.datetime(2000,1,1), dt.datetime(2000,1,2) ]
+    >>> sat['time'] = [ dt.datetime(2000,1,1), dt.datetime(2000,1,2) ]
     >>> pos = np.zeros( (3,2) )
     >>> pos[:,0]=[6.6, 0, 0]
     >>> pos[:,1]=[6.6, 0, 0]
-    >>> sat.position=pos
-    >>> sat.coord_system='SMG'
-    >>> sat.filename='noon_probe.dat'
+    >>> sat['xyz'] = pos
+    >>> sat.attrs['coor'] = 'SMG'
+    >>> sat.attrs['file'] = 'noon_probe.dat'
     >>> sat.write()
 
-    If instantiated with a filename, the filename is loaded into the object.
+    If instantiated with a file name, the name is loaded into the object.
     For example,
 
     >>> sat=SatOrbit('a_sat_orbit_file.dat')
@@ -962,9 +1248,9 @@ class SatOrbit(object):
         if filename:
             try:
                 self.read()
-            except IOError:
+            except IOError as reason:
                 self['xyz'] = dmarray(np.zeros( (3,1) ))
-                raise
+                raise IOError(reason)
         else:
             # fill with empty stuff.
             self['xyz'] = dmarray(np.zeros( (3,1) ))
@@ -977,10 +1263,7 @@ class SatOrbit(object):
         import datetime as dt
         # Try to open the file.  If we fail, pass the exception
         # to the caller.
-        try:
-            infile = open(self.attrs['file'], 'r')
-        except IOError, reason:
-            raise
+        infile = open(self.attrs['file'], 'r')
 
         # Slurp contents
         raw = infile.readlines()
@@ -1000,10 +1283,10 @@ class SatOrbit(object):
         # Read and store all values.
         npts = len(raw)
         self['xyz'] = dmarray(np.zeros( (3,npts) ))
-        self['time']=dmarray(zeros(npts, dtype=object))
+        self['time']=dmarray(np.zeros(npts, dtype=object))
         for i, line in enumerate(raw):
             parts = line.split()
-            self['time'].append(dt.datetime(
+            self['time'][i]=dt.datetime(
                     int(parts[0]), #year
                     int(parts[1]), #month
                     int(parts[2]), #day
@@ -1011,7 +1294,7 @@ class SatOrbit(object):
                     int(parts[4]), #min
                     int(parts[5]), #sec
                     int(parts[6]) * 1000 #micro seconds
-                    ) )
+                    )
             self['xyz'][:,i] = parts[7:]
 
     def write(self):
@@ -1022,16 +1305,15 @@ class SatOrbit(object):
         '''
 
         try:
-            outfile = open(self.filename, 'w')
+            outfile = open(self.attrs['file'], 'w')
         except:
-            print('Could not open self.filename!')
-            raise
+            raise Exception('Could not open self.filename!')
         
         # Start by writing header, coordinate system, and then #START.
-        for line in self.header:
+        for line in self.attrs['head']:
             outfile.write(line)
         outfile.write('\n')
-        outfile.write('#COOR\n%s\n\n' % self.coord_system)
+        outfile.write('#COOR\n%s\n\n' % self.attrs['coor'])
         outfile.write('#START\n')
 
         # Write the rest of the orbit.

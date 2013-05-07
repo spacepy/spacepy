@@ -4,7 +4,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 '''
 
 import numpy as np
-from spacepy.pybats import IdlBin, LogFile
+from spacepy.pybats import PbData, IdlBin, LogFile
 
 class Stream(object):
     '''
@@ -38,16 +38,16 @@ class Stream(object):
         self.method = method
 
         # Do tracing:
-        self.trace(bats, extract)
+        self.treetrace(bats, extract)
 
         # Set style
         self.set_style(style)
 
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass
+    #def __repr__(self):
+    #    pass
+    #
+    #def __str__(self):
+    #    pass
 
     def set_style(self, style):
         '''
@@ -65,6 +65,82 @@ class Stream(object):
                 self.style = 'w-'
         else:
             self.style = style
+
+    def treetrace(self, bats, extract=False, maxPoints=20000):
+        '''
+        Trace through the vector field using the quad tree.
+        '''
+        from numpy import array, sqrt, append
+        if self.method == 'euler':
+            from spacepy.pybats.trace2d import trace2d_eul as trc
+        elif self.method == 'rk4':
+            from spacepy.pybats.trace2d import trace2d_rk4 as trc
+
+        # Get name of dimensions in order.
+        grid = bats['grid'].attrs['dims']
+
+        # Find starting block and set starting locations.
+        block = bats.find_block(self.xstart, self.ystart)
+        xfwd=[self.xstart]; yfwd=[self.ystart]
+        xnow, ynow = self.xstart, self.ystart
+
+        # Trace forwards.
+        while(block):
+            #print "Inside block: ", block
+            # Grab indices of all values inside current block.
+            loc = bats.qtree[block].locs
+            # Trace through this block.
+            x, y = trc(bats[self.xvar][loc], bats[self.yvar][loc], 
+                       xnow, ynow, bats[grid[0]][loc][0,:], 
+                       bats[grid[1]][loc][:,0], ds=0.01)
+            # Update location and block:
+            #print "Advanced from %f, %f to %f, %f in %i points." % (
+            #    x[0], y[0], x[-1], y[-1], len(x))
+            xnow, ynow = x[-1], y[-1]
+            newblock = bats.find_block(xnow,ynow)
+            # If we didn't leave the block, stop tracing.
+            # Additionally, if inside rBody, stop.
+            if(block==newblock) or (xnow**2+ynow**2)<1 :
+                block=False
+            else:
+                block=newblock
+            # Append to full trace vectors.
+            xfwd = np.append(xfwd, x[1:])
+            yfwd = np.append(yfwd, y[1:])
+            # It's possible to get stuck swirling around across
+            # a few blocks.  If we spend a lot of time tracing,
+            # call it quits.
+            if xfwd.size>maxPoints: block=False
+
+        # Trace backwards.  Same Procedure as above.
+        block = bats.find_block(self.xstart, self.ystart)
+        xbwd=[self.xstart]; ybwd=[self.ystart]
+        xnow, ynow = self.xstart, self.ystart
+        while(block):
+            loc = bats.qtree[block].locs
+            x, y = trc(bats[self.xvar][loc], bats[self.yvar][loc], 
+                       xnow, ynow, bats[grid[0]][loc][0,:], 
+                       bats[grid[1]][loc][:,0], ds=-0.01)
+            xnow, ynow = x[-1], y[-1]
+            newblock = bats.find_block(xnow,ynow)
+            if(block==newblock) or (xnow**2+ynow**2)<1 :
+                block=False
+            else:
+                block=newblock
+            # Append to full trace vectors.
+            xbwd = np.append(x[:0:-1], xbwd)
+            ybwd = np.append(y[:0:-1], ybwd)
+            if xbwd.size>maxPoints: block=False
+        # Combine foward and backward traces.
+        self.x = np.append(xbwd[:-1],xfwd)
+        self.y = np.append(ybwd[:-1],yfwd)
+
+        # Check if line is closed to body.
+        if bats.attrs.has_key('rbody'):
+            r1 = sqrt(self.x[0]**2.0  + self.y[0]**2.0)
+            r2 = sqrt(self.x[-1]**2.0 + self.y[-1]**2.0)
+            if (r1 < bats.attrs['rbody']) and (r2 < bats.attrs['rbody']):
+                self.open = False
 
     def trace(self, bats, extract=False):
         '''
@@ -122,7 +198,8 @@ class Bats2d(IdlBin):
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
             xdim, ydim = self['grid'].attrs['dims'][0:2]
-            self.tree=qo.QTree(array([self[xdim],self[ydim]]))
+            self.qtree=qo.QTree(array([self[xdim],self[ydim]]))
+            self.find_block = self.qtree.find_leaf
             
 
     ####################
@@ -131,32 +208,40 @@ class Bats2d(IdlBin):
 
     def calc_temp(self, units='eV'):
         '''
-        If pressure and number density are available, calculate temperature
-        for each species using P = nkT.  Current version works for single
-        species only.
+        Calculate plasma temperature for each fluid.  Number density is
+        calculated using *calc_ndens* if it hasn't been done so already.
+        
+        Temperature is obtained via density and pressure through the simple
+        relationship P=nkT.
 
         Use the units kwarg to set output units.  Current choices are
         KeV, eV, and K.  Default is eV.
         '''
+
+        from spacepy.datamodel import dmarray
+
         units = units.lower()
 
-        # Check for necessary variables:
-        if not self.has_key('rho'):
-            raise AttributeError("Number density not found; required.")
-        if not self.has_key('p'):
-            raise AttributeError("Pressure not found.")
+        # Create dictionary of unit conversions.
+        conv  = {'ev' : 6241.50935,  # nPa/cm^3 --> eV.
+                 'kev': 6.24150935,  # nPa/cm^3 --> KeV.
+                 'k'  : 72429626.47} # nPa/cm^3 --> K.
+
+        # Calculate number density if not done already.
+        if not 'N' in self.keys():
+            self.calc_ndens()
         
-        # Calculate value then adjust units.
-        self['t'] = self['p'] / self['rho']
-        if units == 'ev':
-            self['t'] = self['t'] * 6250.0
-        elif units == 'kev':
-            self['t'] = self['t'] * 6.250
-        elif units == 'k':
-            self['t'] = self['t'] * 72432275.82
-        else:
-            raise ValueError("Units of type %s not recognized." % units)
-        self['t'].attrs={'units':units}
+        # Find all number density variables.
+        for key in self.keys():
+            # Next variable if not number density:
+            if key[-1] != 'N':
+                continue
+            # Next variable if no matching pressure:
+            if not key[:-1]+'p' in self.keys():
+                continue
+            self[key[:-1]+'t'] = dmarray(
+                conv[units] * self[key[:-1]+'p']/self[key],
+                attrs = {'units':units})
 
     def calc_b(self):
         '''
@@ -202,6 +287,71 @@ class Bats2d(IdlBin):
         self['ez'].attrs={'units':'mV/m'}
         
 
+    def calc_ndens(self):
+        '''
+        Calculate number densities for each fluid.  Species mass is 
+        ascertained either by searching file parameters or by assuming
+        mass density from the species name (e.g. OpRho is clearly oxygen).
+        If neither can be found, an exception is raised.
+
+        New values are saved using the keys *SpeciesN* (e.g. *OpN*).
+        '''
+
+        from spacepy.datamodel import dmarray
+
+        mass={'hp':1.0, 'op':16.0, 'hep':4.0, 'sw':1.0, 'o':16.0, 'h':1.0}
+        species = []
+
+        # Find all species, the variable names end in "Rho".
+        for k in self.keys():
+            if (k[-3:] == 'rho')   \
+                    and (k!='rho') \
+                    and (k[:-3]+'N' not in self.keys()):
+                species.append(k)
+        # Individual number density
+        for s in species:
+            self[s[:-3]+'N'] = dmarray(self[s] / mass[s[:2]], 
+                                       attrs={'units':'$cm^{-3}$'})
+
+        # Total N is sum of individual  number densities.
+        self['N'] = dmarray(np.zeros(self['rho'].shape), 
+                            attrs={'units':'$cm^{-3}$'}) 
+        if species:
+            for s in species: self['N']+=self[s[:-3]+'N']
+        else:
+            self['N'] += self['rho']
+                                
+    def calc_comp(self):
+        '''
+        Calculate composition by percent number for "minor" species
+        (e.g. oxygen, helium).  If the required values are not present
+        (i.e. 'rhoo', 'rhohe'), then the calculation is skipped without
+        raising exceptions.
+        '''
+
+        from spacepy.datamodel import dmarray
+
+        # Recognized mass densities.
+        mass={'h':1.0,'he':4.0,'o':16.0}
+
+        # Find all mass density variables that are species-specific.
+        species = []
+        for k in self.keys():
+            if ('rho' in k) and (len(k)>3):
+                species.append(k.lower())
+        if not k: return # No composition?  No calculation!
+
+        # Create total number density.
+        self['n'] = dmarray(np.zeros(self['rho'].shape), attrs={'units':'cm-3'})
+        for s in species:
+            self['n']+=self[s]/mass[s[3:]]
+
+        # Loop through species calculating composition for each.
+        # Create new variables with new attrs.
+        for s in species:
+            self['comp_'+s[3:]] = 100.0*self[s]/mass[s[3:]]/self['n']
+            self['comp_'+s[3:]].attrs = {'units':'Percent'}
+
     def calc_beta(self):
         '''
         Calculates plasma beta (ratio of plasma to magnetic pressure, 
@@ -229,33 +379,143 @@ class Bats2d(IdlBin):
         '''
         Calculates the JxB force assuming:
         -Units of J are uA/m2, units of B are nT.
-        Under these assumptions, the value returned is force density (N/m^3).
+        Under these assumptions, the value returned is force density (nN/m^3).
         '''
         from numpy import sqrt
-        # Unit conversion (nT, uA, cm^-3 -> T, A, m^-3) to N/m^3.
-        conv = 1E-15
-        #conv = 1E-21 / self['rho'] <- old conversion to pure force (N).
-        # Calculate curl, convert units.
-        self['jbx']=(self['jy']*self['bz']-self['jz']*self['by'])*conv
-        self['jby']=(self['jz']*self['bx']-self['jx']*self['bz'])*conv
-        self['jbz']=(self['jx']*self['by']-self['jy']*self['bx'])*conv
-        self['jb']=sqrt(self['jbx']**2 +
-                        self['jby']**2 +
-                        self['jbz']**2)
+        from spacepy.datamodel import dmarray
+
+        # Unit conversion (nT, uA, cm^-3 -> nT, A, m^-3) to nN/m^3.
+        conv = 1E-6
+        # Calculate cross product, convert units.
+        self['jbx']=dmarray( (self['jy']*self['bz']-self['jz']*self['by'])*conv,
+                             {'units':'nN/m^3'})
+        self['jby']=dmarray( (self['jz']*self['bx']-self['jx']*self['bz'])*conv,
+                             {'units':'nN/m^3'})
+        self['jbz']=dmarray( (self['jx']*self['by']-self['jy']*self['bx'])*conv,
+                             {'units':'nN/m^3'})
+        self['jb'] =dmarray( sqrt(self['jbx']**2 +
+                                  self['jby']**2 +
+                                  self['jbz']**2), {'units':'nN/m^3'})
 
     def calc_alfven(self):
         '''
-        Calculate the Alfven speed, B/(mu*rho)^(1/2) in km/s.
+        Calculate the Alfven speed, B/(mu*rho)^(1/2) in km/s.  This is performed
+        for each species and the total fluid.
         The variable is saved under key "alfven" in self.data.
         '''
         from numpy import sqrt, pi
+        from spacepy.datamodel import dmarray
+        
         if not self.has_key('b'):
             self.calc_b()
         #M_naught * conversion from #/cm^3 to kg/m^3
         mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
-        # Alfven speed in km/s:
-        self['alfven']= (self['b']*1E-9) / sqrt(mu_naught*self['rho']) /1000.
-        self['alfven'].attrs={'units':'km/s'}
+
+        for k in self.keys():
+            if (k[-3:]) == 'rho':
+                # Alfven speed in km/s:
+                self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 / 
+                                                 sqrt(mu_naught*self[k]),
+                                                 attrs={'units':'km/s'})
+
+    def calc_gradP(self):
+        '''
+        Calculate the pressure gradient force.
+        '''
+
+        from spacepy.datamodel import dmarray
+        from spacepy.pybats.batsmath import d_dx, d_dy
+
+        if 'p' not in self.keys():
+            raise KeyError('Pressure not found in object!')
+
+        # Create new arrays to hold pressure.
+        dims = self['grid'].attrs['dims']
+        size = self['p'].shape
+        self['gradP'] = dmarray(np.zeros(size), {'units':'nN/cm^3'})
+        for d in dims:
+            self['gradP_'+d] = dmarray(np.zeros(size), {'units':'nN/cm^3'})
+
+        for k in self.qtree.keys():
+            # Plot only leafs of the tree.
+            if not self.qtree[k].isLeaf: continue
+
+            # Extract leaf; place pressure into 2D array.
+            leaf=self.qtree[k]
+            z=self['p'][leaf.locs]
+            
+            # Calculate derivatives; place into new dmarrays.
+            # Unit conversion: P=>nPa=nN/cm3, dx=Re
+            # Convert to nN/cm3 by multiplying by 100^3 * 6378000m**-1.
+            # Clever indexing maps values back to "unordered" array so that
+            # values can be plotted like all others.
+            conv = 100.0**3/-6378000.0
+            self['gradP_'+dims[0]][leaf.locs] = d_dx(z, leaf.dx)*conv
+            self['gradP_'+dims[1]][leaf.locs] = d_dy(z, leaf.dx)*conv
+
+        
+        # Scalar magnitude:
+        for d in dims:
+            self['gradP'] += self['gradP_'+d]**2
+        self['gradP'] = np.sqrt(self['gradP'])
+
+    def calc_utotal(self):
+        '''
+        Calculate bulk velocity magnitude: $u^2 = u_X^2 + u_Y^2 + u_Z^2$.
+        This is done on a per-fluid basis.
+        '''
+
+        from numpy import sqrt
+        from spacepy.datamodel import dmarray
+
+        species = []
+
+        # Find all species, the variable names end in "ux".
+        for k in self.keys():
+            if (k[-2:] == 'ux')   \
+                    and (k[:-2]+'u' not in self.keys()):
+                species.append(k[:-2])
+
+        units = self['ux'].attrs['units']
+
+        for s in species:
+            self[s+'u'] = dmarray(sqrt( self[s+'ux']**2+
+                                        self[s+'uy']**2+
+                                        self[s+'uz']**2), 
+                                  attrs={'units':units})
+
+    def calc_Ekin(self, units='eV'):
+        '''
+        Calculate average kinetic energy per particle using 
+        $E=\frac{1}{2}mv^2$.  Note that this is not the same as energy
+        density.  Units are $eV$.
+        '''
+        from numpy import sqrt
+        from spacepy.datamodel import dmarray
+
+        print("WARNING - self.calc_Ekin: I think this is wrong!")
+        
+        conv =  0.5 * 0.0103783625 # km^2-->m^2, amu-->kg, J-->eV.
+        if units.lower == 'kev':
+            conv=conv/1000.0
+
+        mass={'hp':1.0, 'op':16.0, 'hep':4.0, 'sw':1.0, '':1.0}
+        species = []
+
+        # Find all species, the variable names end in "Rho".
+        for k in self.keys():
+            #and (k!='rho') \
+            if (k[-3:] == 'rho') and (k[:-3]+'Ekin' not in self.keys()):
+                species.append(k[:-3])
+
+        for s in species:
+            #THIS IS WRONG HERE: 1/2mV**2?  Notsomuch.
+            self[s+'Ekin'] = dmarray(sqrt( self[s+'ux']**2+
+                                           self[s+'uy']**2+
+                                           self[s+'uz']**2)
+                                     * conv * mass[s],
+                                     attrs={'units':units})
+
 
     def calc_all(self):
         '''
@@ -297,8 +557,8 @@ class Bats2d(IdlBin):
 
         if self.gridtype != 'Regular':
             if not cellsize:
-                raise ValueError('Grid must be regular or ' + \
-                    'cellsize must be given.')
+                raise ValueError,('Grid must be regular or ' +
+                                  'cellsize must be given.')
             self.regrid(cellsize, dim1range=dim1range, dim2range=dim2range)
 
         # Order our dimensions alphabetically.
@@ -361,6 +621,62 @@ class Bats2d(IdlBin):
         self['grid'].attrs['npoints'] = len(grid1) * len(grid2)
         self['grid'].attrs['resolution'] = cellsize
         self[dims[0]] = grid1; self[dims[1]] = grid2
+
+
+
+    #############################
+    # EXTRACTION/INTERPOLATION
+    #############################
+    def extract(self, x, y, vars='All'):
+        '''
+        For x, y of a 1D curve, extract values along that curve
+        and return slice as a new data set.
+        '''
+
+        from spacepy.pybats import PbData, dmarray
+        from spacepy.pybats.batsmath import interp_2d_reg
+
+        # If our x, y locations are not numpy arrays, fix that.
+        # Additionally, convert scalars to 1-element vectors.
+        x, y = np.array(x), np.array(y)
+        if not x.shape: x=x.reshape(1)
+        if not y.shape: y=y.reshape(1)
+
+        # Default: all variables are extracted except coordinates.
+        if vars == 'All':
+            vars = self.keys()
+            for var in ('x','y','z','grid'):
+                if var in vars: vars.remove(var)
+
+        # Create data object for holding extracted values.
+        # One vector for each value w/ same units as parent object.
+        out = PbData(attrs=self.attrs)
+        for var, val in zip(self['grid'].attrs['dims'], (x, y)):
+            out[var] = dmarray(val, attrs=self[var].attrs)
+        nPts = len(x)
+        for var in vars:
+            out[var]=dmarray(np.zeros(nPts), attrs=self[var].attrs)
+
+        # Some helpers:
+        xAll = self[self['grid'].attrs['dims'][0]]
+        yAll = self[self['grid'].attrs['dims'][1]]
+
+        # Navigate the quad tree, interpolating as we go.
+        for k in self.qtree.keys():
+            # Only leafs, of course!
+            if not self.qtree[k].isLeaf: continue
+            # Find all points that lie in this block.
+            # If there are none, just keep going.
+            pts = \
+                (x >= self.qtree[k].lim[0]) & (x <= self.qtree[k].lim[1]) & \
+                (y >= self.qtree[k].lim[2]) & (y <= self.qtree[k].lim[3])
+            if not pts.any(): continue
+            locs = self.qtree[k].locs
+            for var in vars:
+                out[var][pts] = interp_2d_reg(x[pts], y[pts], xAll[locs], 
+                                              yAll[locs], self[var][locs])
+
+        return out
 
     ######################
     # TRACING TOOLS
@@ -430,13 +746,13 @@ class Bats2d(IdlBin):
             ax = fig.add_subplot(loc)
             ax.set_aspect('equal')
         # Set plot range based on quadtree.
-        ax.set_xlim([self.tree[1].lim[0],self.tree[1].lim[1]])
-        ax.set_ylim([self.tree[1].lim[2],self.tree[1].lim[3]])
+        ax.set_xlim([self.qtree[1].lim[0],self.qtree[1].lim[1]])
+        ax.set_ylim([self.qtree[1].lim[2],self.qtree[1].lim[3]])
         # Plot.
 
-        for key in self.tree.keys():
-            self.tree[key].plotbox(ax)
-        self.tree.plot_res(ax)
+        for key in self.qtree.keys():
+            self.qtree[key].plotbox(ax)
+        self.qtree.plot_res(ax)
 
         # Customize plot.
         ax.set_xlabel('GSM %s' % xdim.upper())
@@ -451,11 +767,16 @@ class Bats2d(IdlBin):
         return fig, ax
 
 
-    def planet_add_closed(self, ax, style='mag', DoImf=False, DoOpen=False):
+    def add_b_magsphere(self, target=None, loc=111, style='mag', 
+                        DoImf=False, DoOpen=False, DoTail=False, **kwargs):
         '''
         Create an array of field lines closed to the central body in the
-        domain.  Add these lines to axes "ax".  Default line style is
-        white solid.
+        domain.  Add these lines to Matplotlib target object *target*.
+        If no *target* is specified, a new figure and axis are created.
+
+        A tuple containing the figure, axes, and LineCollection object
+        is returned.  Any additional kwargs are handed to the LineCollection
+        object.
 
         Note that this should currently only be used for GSM y=0 cuts
         of the magnetosphere.
@@ -476,10 +797,26 @@ class Bats2d(IdlBin):
         closed field line.  This is repeated until open lines are found.
         '''
         
+        import matplotlib.pyplot as plt
+        from matplotlib.collections import LineCollection
         from numpy import (arctan, cos, sin, where, pi, log, 
-                           arange, sqrt, linspace)
+                           arange, sqrt, linspace, array)
+        
+        # Set ax and fig based on given target.
+        if type(target) == plt.Figure:
+            fig = target
+            ax  = fig.add_subplot(loc)
+        elif type(target).__base__ == plt.Axes:
+            ax  = target
+            fig = ax.figure
+        else:
+            fig = plt.figure(figsize=(10,10))
+            ax  = fig.add_subplot(loc)
 
-        # Approximate the central body.
+        lines = []
+        colors= []
+
+        # Approximate the dipole tilt of the central body.
         stream = self.get_stream(3.0, 0, 'bx', 'bz')
         r = stream.x**2 + stream.y**2
         loc, = where(r==r.max())
@@ -493,14 +830,15 @@ class Bats2d(IdlBin):
         n = arange(25)+1.0
         angle = tilt + 5.0*pi*log(n)/(12.0*log(n[-1]))
         for theta in angle:
-            x = self.para['rbody'] * cos(theta)
-            y = self.para['rbody'] * sin(theta)
+            x = self.attrs['rbody'] * cos(theta)
+            y = self.attrs['rbody'] * sin(theta)
             stream = self.get_stream(x,y,'bx','bz', style=style)
-            if stream.y[0] > self.para['rbody']:
+            if (stream.y[0] > self.attrs['rbody']) or (stream.style[0]=='k'):
                 daymax = theta
                 break
             savestream = stream
-            stream.plot(ax)
+            lines.append(array([stream.x, stream.y]).transpose())
+            colors.append(stream.style[0])
 
         # Add IMF field lines.
         if DoImf:
@@ -514,30 +852,37 @@ class Bats2d(IdlBin):
                 # From dayside x-line out and up:
                 y =y_mp-x_mp+x
                 stream = self.get_stream(x, y, 'bx', 'bz', style=style)
-                stream.plot(ax)
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
+
                 # From top of magnetosphere down:
                 y =x_mp+15.0-x+delx/3.0
                 stream = self.get_stream(x-delx/3.0, y, 'bx', 
                                          'bz', style=style)
-                stream.plot(ax)
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
+
                 # From bottom of mag'sphere down:
                 y =x_mp-10.0-x+2.0*delx/3.0
                 stream = self.get_stream(x-2.0*delx/3.0, y, 'bx', 
                                          'bz', style=style)
-                stream.plot(ax)
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
 
         # Night side:
         angle = pi + tilt + pi*log(n)/(2.5*log(n[-1]))
         for theta in angle:
-            x = self.para['rbody'] * cos(theta)
-            y = self.para['rbody'] * sin(theta)
+            x = self.attrs['rbody'] * cos(theta)
+            y = self.attrs['rbody'] * sin(theta)
             stream = self.get_stream(x,y,'bx','bz', style=style)
             if stream.open:
                 nightmax = theta
                 break
             savestream = stream
-            stream.plot(ax)
+            lines.append(array([stream.x, stream.y]).transpose())
+            colors.append(stream.style[0])
 
+        
         # March down tail.
         stream = savestream
         r = sqrt(stream.x**2 + stream.y**2)
@@ -546,14 +891,15 @@ class Bats2d(IdlBin):
         y1 = stream.y[loc[0]]
         x = x1
         y = y1
-        while (x-1.5)>min(self.grid['x']):
+        while (x-1.5)>self['x'].min():
             #print "Closed extension at ", x-1.5, y
             #ax.plot(x-1.5, y, 'g^', ms=10)
             stream = self.get_stream(x-1.5, y, 'bx', 'bz', style=style)
             r = sqrt(stream.x**2 + stream.y**2)
             if stream.open:
                 break
-            stream.plot(ax)
+            lines.append(array([stream.x, stream.y]).transpose())
+            colors.append(stream.style[0])
             loc, = where(r==r.max())
             x = stream.x[loc[0]]
             y = stream.y[loc[0]]
@@ -565,36 +911,230 @@ class Bats2d(IdlBin):
             x1 = stream.x[loc[0]]
             y1 = stream.y[loc[0]]
 
-#        # Add more along neutral sheet.
-#        m = (y-y1)/(x-x1)
-#        #print "Slope = ", m
-#        #print "From y, y1 = ", y, y1
-#        #print "and x, x1 = ", x, x1
-#        #ax.plot([x,x1],[y,y1], 'wo', ms=10)
-#        xmore = arange(x, self.grid['x'].min(), -1.5)
-#        ymore = m*(xmore-x)+y
-#        for x, y  in zip(xmore[1:], ymore[1:]):
-#            #print "Starting at x, y = ", x, y
-#            stream = self.get_stream(x, y, 'bx', 'bz', style=style)
-#            stream.plot(ax)
-#        #ax.plot(xmore, ymore, 'r+')
+        ## Add more along neutral sheet.
+        if DoTail:
+            m = (y-y1)/(x-x1)
+        #print "Slope = ", m
+        #print "From y, y1 = ", y, y1
+        #print "and x, x1 = ", x, x1
+        #ax.plot([x,x1],[y,y1], 'wo', ms=10)
+            xmore = arange(x, -100, -3.0)
+            ymore = m*(xmore-x)+y
+            for x, y  in zip(xmore[1:], ymore[1:]):
+                stream = self.get_stream(x, y, 'bx', 'bz', style=style)
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
+        #ax.plot(xmore, ymore, 'r+')
 
         # Add open field lines.
         if DoOpen:
             for theta in linspace(daymax,0.99*(2.0*(pi+tilt))-nightmax, 15):
-                x = self.para['rbody'] * cos(theta)
-                y = self.para['rbody'] * sin(theta)
+                x = self.attrs['rbody'] * cos(theta)
+                y = self.attrs['rbody'] * sin(theta)
                 stream = self.get_stream(x,y,'bx','bz')
-                if stream.open: stream.plot(ax)
-                x = self.para['rbody'] * cos(theta+pi)
-                y = self.para['rbody'] * sin(theta+pi)
+                if stream.open: 
+                    lines.append(array([stream.x, stream.y]).transpose())
+                    colors.append(stream.style[0])
+                x = self.attrs['rbody'] * cos(theta+pi)
+                y = self.attrs['rbody'] * sin(theta+pi)
                 stream = self.get_stream(x,y,'bx','bz')
-                if stream.open: stream.plot(ax)
+                if stream.open:
+                    lines.append(array([stream.x, stream.y]).transpose())
+                    colors.append(stream.style[0])
+
+        if 'colors' in kwargs:
+            colors=kwargs['colors']
+            kwargs.pop('colors')
+        collect = LineCollection(lines, colors=colors, **kwargs)
+        ax.add_collection(collect)
+
+        return fig, ax, collect
+
+    def add_b_magsphere2(self, target=None, loc=111, style='mag', 
+                         DoImf=False, DoOpen=False, DoTail=False, **kwargs):
+        '''
+        Create an array of field lines closed to the central body in the
+        domain.  Add these lines to Matplotlib target object *target*.
+        If no *target* is specified, a new figure and axis are created.
+
+        A tuple containing the figure, axes, and LineCollection object
+        is returned.  Any additional kwargs are handed to the LineCollection
+        object.
+
+        Note that this should currently only be used for GSM y=0 cuts
+        of the magnetosphere.
+
+        Method:
+        First, the title angle is approximated by tracing a dipole-like
+        field line and finding the point of maximum radial distance on
+        that line.  This is used as the magnetic equator.  From this 
+        equator, many lines are traced starting at the central body
+        radius.  More lines are grouped together at higher magnetic
+        latitude to give good coverage at larger L-shells.  Once an
+        open field line is detected, no more lines are traced.  This
+        is done on the day and night side of the central body.
+
+        Because this method rarely captures the position of the night
+        side x-line, more field lines are traced by marching radially
+        outwards away from the furthest point from the last traced and
+        closed field line.  This is repeated until open lines are found.
+        '''
+        
+        import matplotlib.pyplot as plt
+        from matplotlib.collections import LineCollection
+        from numpy import (arctan, cos, sin, where, pi, log, 
+                           arange, sqrt, linspace, array)
+        
+        # Set ax and fig based on given target.
+        if type(target) == plt.Figure:
+            fig = target
+            ax  = fig.add_subplot(loc)
+        elif type(target).__base__ == plt.Axes:
+            ax  = target
+            fig = ax.figure
+        else:
+            fig = plt.figure(figsize=(10,10))
+            ax  = fig.add_subplot(loc)
+
+        lines = []
+        colors= []
+
+
+        # Approximate the dipole tilt of the central body.
+        stream = self.get_stream(3.0, 0, 'bx', 'bz')
+        r = stream.x**2 + stream.y**2
+        loc, = where(r==r.max())
+        tilt = arctan(stream.y[loc[0]]/stream.x[loc[0]])
+        
+        # Initial values:
+        daymax   = tilt + pi/2.0
+        nightmax = tilt + 3.0*pi/2.0
+
+        # Day side:
+        n = arange(25)+1.0
+        angle = tilt + 5.0*pi*log(n)/(12.0*log(n[-1]))
+        for theta in angle:
+            x = self.attrs['rbody'] * cos(theta)
+            y = self.attrs['rbody'] * sin(theta)
+            stream = self.get_stream(x,y,'bx','bz', style=style)
+            if (stream.y[0] > self.attrs['rbody']) or (stream.style[0]=='k'):
+                daymax = theta
+                break
+            savestream = stream
+            lines.append(array([stream.x, stream.y]).transpose())
+            colors.append(stream.style[0])
+
+        # Add IMF field lines.
+        if DoImf:
+            stream = savestream
+            r = sqrt(stream.x**2 + stream.y**2)
+            loc, = where(r==r.max())
+            x_mp = stream.x[loc[0]]+0.15
+            y_mp = stream.y[loc[0]]
+            delx = 2.0
+            for i, x in enumerate(arange(x_mp, 15.0, delx)):
+                # From dayside x-line out and up:
+                y =y_mp-x_mp+x
+                stream = self.get_stream(x, y, 'bx', 'bz', style=style)
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
+
+                # From top of magnetosphere down:
+                y =x_mp+15.0-x+delx/3.0
+                stream = self.get_stream(x-delx/3.0, y, 'bx', 
+                                         'bz', style=style)
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
+
+                # From bottom of mag'sphere down:
+                y =x_mp-10.0-x+2.0*delx/3.0
+                stream = self.get_stream(x-2.0*delx/3.0, y, 'bx', 
+                                         'bz', style=style)
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
+
+        # Night side:
+        angle = pi + tilt + pi*log(n)/(2.5*log(n[-1]))
+        for theta in angle:
+            x = self.attrs['rbody'] * cos(theta)
+            y = self.attrs['rbody'] * sin(theta)
+            stream = self.get_stream(x,y,'bx','bz', style=style)
+            if stream.open:
+                nightmax = theta
+                break
+            savestream = stream
+            lines.append(array([stream.x, stream.y]).transpose())
+            colors.append(stream.style[0])
+
+        
+        # March down tail.
+        stream = savestream
+        r = sqrt(stream.x**2 + stream.y**2)
+        loc, = where(r==r.max())
+        x1 = stream.x[loc[0]]
+        y1 = stream.y[loc[0]]
+        x = x1
+        y = y1
+        while (x-1.5)>self['x'].min():
+            #print "Closed extension at ", x-1.5, y
+            #ax.plot(x-1.5, y, 'g^', ms=10)
+            stream = self.get_stream(x-1.5, y, 'bx', 'bz', style=style)
+            r = sqrt(stream.x**2 + stream.y**2)
+            if stream.open:
+                break
+            lines.append(array([stream.x, stream.y]).transpose())
+            colors.append(stream.style[0])
+            loc, = where(r==r.max())
+            x = stream.x[loc[0]]
+            y = stream.y[loc[0]]
+
+        if x1 == x:
+            stream = self.get_stream(x1+1.0, y1, 'bx', 'bz')
+            r = sqrt(stream.x**2 + stream.y**2)
+            loc, = where(r==r.max())
+            x1 = stream.x[loc[0]]
+            y1 = stream.y[loc[0]]
+
+        ## Add more along neutral sheet.
+        if DoTail:
+            m = (y-y1)/(x-x1)
+        #print "Slope = ", m
+        #print "From y, y1 = ", y, y1
+        #print "and x, x1 = ", x, x1
+        #ax.plot([x,x1],[y,y1], 'wo', ms=10)
+            xmore = arange(x, -100, -3.0)
+            ymore = m*(xmore-x)+y
+            for x, y  in zip(xmore[1:], ymore[1:]):
+                stream = self.get_stream(x, y, 'bx', 'bz', style=style)
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
+        #ax.plot(xmore, ymore, 'r+')
+
+        # Add open field lines.
+        if DoOpen:
+            # Find IMF angle.  Add 180
+            point = self.extract(25, 0)
+            theta = arctan(point['bz'][0]/point['bx'][0])+pi.
+
+            # Create rake of stream starting points, rotate to be
+            # perpendicular to IMF direction to get even coverage.
+            nImf=80
+            rake = linspace(-40, 40, nImf)
+            xRake = 30.*cos(theta) - rake*sin(theta)
+            yRake = 30.*sin(theta) - rake*cos(theta)
+
+        if 'colors' in kwargs:
+            colors=kwargs['colors']
+            kwargs.pop('colors')
+        collect = LineCollection(lines, colors=colors, **kwargs)
+        ax.add_collection(collect)
+
+        return fig, ax, collect
 
 
     def add_planet(self, ax=None, rad=1.0, ang=0.0, **extra_kwargs):
         '''
-        Creates a circle of radius=self.para['rbody'] and returns the
+        Creates a circle of radius=self.attrs['rbody'] and returns the
         MatPlotLib Ellipse patch object for plotting.  If an axis is specified
         using the "ax" keyword, the patch is added to the plot.
 
@@ -610,7 +1150,7 @@ class Bats2d(IdlBin):
         from matplotlib.patches import Circle, Wedge
 
         if not self.attrs.has_key('rbody'):
-            raise KeyError('rbody not found in self.para!')
+            raise KeyError('rbody not found in self.attrs!')
 
         body = Circle((0,0), rad, fc='w', zorder=1000, **extra_kwargs)
         arch = Wedge((0,0), rad, 90.+ang, -90.+ang, fc='k', 
@@ -625,7 +1165,7 @@ class Bats2d(IdlBin):
     def add_body(self, ax=None, facecolor='lightgrey', DoPlanet=True, ang=0.0, 
                  **extra_kwargs):
         '''
-        Creates a circle of radius=self.para['rbody'] and returns the
+        Creates a circle of radius=self.attrs['rbody'] and returns the
         MatPlotLib Ellipse patch object for plotting.  If an axis is specified
         using the "ax" keyword, the patch is added to the plot.
         Default color is light grey; extra keywords are handed to the Ellipse
@@ -638,7 +1178,7 @@ class Bats2d(IdlBin):
         from matplotlib.patches import Ellipse
 
         if not self.attrs.has_key('rbody'):
-            raise KeyError('rbody not found in self.para!')
+            raise KeyError('rbody not found in self.attrs!')
 
         dbody = 2.0 * self.attrs['rbody']
         body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=999,
@@ -652,10 +1192,11 @@ class Bats2d(IdlBin):
     def add_pcolor(self, dim1, dim2, value, zlim=None, target=None, loc=111, 
                    title=None, xlabel=None, ylabel=None, dolabel=True,
                    ylim=None, xlim=None, add_cbar=False, clabel=None,
-                   add_body=True, *args, **kwargs):
+                   add_body=True, dolog=False, *args, **kwargs):
         '''doc forthcoming'''
 
         import matplotlib.pyplot as plt
+        from matplotlib.colors import LogNorm
 
         # Set ax and fig based on given target.
         if type(target) == plt.Figure:
@@ -672,6 +1213,16 @@ class Bats2d(IdlBin):
         if zlim==None:
             zlim=[0,0]
             zlim[0]=self[value].min(); zlim[1]=self[value].max()
+            if dolog and zlim[0]<=0:
+                zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
+
+        # Logarithmic scale?
+        if dolog:
+            z=np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
+            norm=LogNorm()
+        else:
+            z=self[value]
+            norm=None
 
         if self['grid'].attrs['gtype']=='Regular':
             pass
@@ -679,14 +1230,15 @@ class Bats2d(IdlBin):
             # Indices corresponding to QTree dimensions:
             ix=self['grid'].attrs['dims'].index(dim1)
             iy=self['grid'].attrs['dims'].index(dim2)
-            for k in self.tree.keys():
+            for k in self.qtree.keys():
                 # Plot only leafs of the tree.
-                if not self.tree[k].isLeaf: continue
-                leaf=self.tree[k]
+                if not self.qtree[k].isLeaf: continue
+                leaf=self.qtree[k]
                 x=leaf.cells[ix]
                 y=leaf.cells[iy]
-                z=self[value][leaf.locs]
-                pcol=ax.pcolormesh(x,y,z,vmin=zlim[0],vmax=zlim[1],**kwargs)
+                z_local=z[leaf.locs]
+                pcol=ax.pcolormesh(x,y,z_local,vmin=zlim[0],vmax=zlim[1],
+                                   norm=norm,**kwargs)
 
         # Add cbar if necessary.
         if add_cbar:
@@ -718,6 +1270,8 @@ class Bats2d(IdlBin):
                     filled=True, add_body=True, dolog=False, logrange=[.01,50.],
                     *args, **kwargs):
         '''doc forthcoming.'''
+
+        # SEE DGCPM CODE FOR <fixing> THE <goshdern> LOG <poop>.
         
         import matplotlib.pyplot as plt
         from matplotlib.colors import (LogNorm, Normalize)
@@ -798,28 +1352,45 @@ class Bats2d(IdlBin):
 
         return fig, ax, cont, cbar
 
-class BatsMag(object):
+class Mag(PbData):
     '''
-    Holds data for a single magnetometer station.
-    '''
-    def __getitem__(self, key):
-        return self.data[key]
-    def __setitem__(self, key, value):
-        self.data[key]=value
-    def keys(self):
-        return self.data.keys()
+    A container for data from a single BATS-R-US virtual magnetometer.  These
+    work just like a typical :class:`spacepy.pybats.PbData` object.  Beyond
+    raw magnetometer data, additional values are calculated and stored,
+    including total pertubations (the sum of all global and ionospheric 
+    pertubations as measured by the magnetometer).  Users will be interested
+    in methods :meth:`~spacepy.pybats.bats.Mag.add_plot` and 
+    :meth:`~spacepy.pybats.bats.Mag.recalc`.
 
-    def __init__(self, nlines, time, gmvars=(), ievars=()):
+    Instantiation is best done through :class: `spacepy.pybats.MagFile`
+    objects, which load and parse organize many virtual magnetometers from a 
+    single output file into a single object.  However, they can be created
+    manually, though painfully.  Users must instantiate by handing the 
+    new object the number of lines that will be parsed (rather, the number
+    of data points that will be needed), a time vector, and (optionally) 
+    the list of variables coming from the GM and IE module.  While the 
+    latter two are keyword arguments, at least one should be provided.
+    Next, the arrays whose keys were given by the *gmvars* and *ievars*
+    keyword arguments in the instantiation step can either be filled manually
+    or by using the :meth:`~spacepy.pybats.bats.Mag.parse_gmline` and
+    :meth:`~spacepy.pybats.bats.Mag.parse_ieline` methods to parse lines of 
+    ascii data from a magnetometer output file.  Finally, the
+    :meth:`~spacepy.pybats.bats.Mag.recalc` method should be called to 
+    calculate total perturbation.
+    '''
+
+
+    def __init__(self, nlines, time, gmvars=(), ievars=(), *args, **kwargs):
         from numpy import zeros
 
-        self.time=time
-        self.nlines=nlines
+        super(Mag, self).__init__(*args, **kwargs)  # Init as PbData.
+
+        self['time']=time
+        self.attrs['nlines']=nlines
         
-        self.data={}
-        self.loc ={}
-        self.loc['x']=np.zeros(nlines)
-        self.loc['y']=np.zeros(nlines)
-        self.loc['z']=np.zeros(nlines)
+        self['x']=np.zeros(nlines)
+        self['y']=np.zeros(nlines)
+        self['z']=np.zeros(nlines)
 
         # Create IE and GM specific containers.
         for key in gmvars:
@@ -830,25 +1401,38 @@ class BatsMag(object):
     def parse_gmline(self, i, line, namevar):
         '''
         Parse a single line from a GM_mag*.out file and put into
-        the proper place in the magnetometer arrays.
+        the proper place in the magnetometer arrays.  The line should 
+        have the same number of variables as was initially given to the
+        :class:`~spacepy.pybats.bats.Mag` object.  This method is best
+        used through the :class:`~spacepy.pybats.bats.MagFile` class interface.
 
-        Usage: self.parse_gmline(i, line, namevar)
+        Usage: 
+
+        >>> self.parse_gmline(i, line, namevar)
+
         where i is the entry number, line is the raw ascii line, and
         namevar is the list of variable names.
         '''
         parts=line.split()
-        self.loc['x'][i]=float(parts[9])
-        self.loc['y'][i]=float(parts[10])
-        self.loc['z'][i]=float(parts[11])
+        self['x'][i]=float(parts[9])
+        self['y'][i]=float(parts[10])
+        self['z'][i]=float(parts[11])
         for j, key in enumerate(namevar):
             self['gm_'+key][i]=float(parts[j+12])
 
     def parse_ieline(self, i, line, namevar):
         '''
         Parse a single line from a IE_mag*.out file and put into
-        the proper place in the magnetometer arrays.
+        the proper place in the magnetometer arrays.  The line should 
+        have the same number of variables as was initially given to the
+        :class:`~spacepy.pybats.bats.Mag` object.  This method is best
+        used through the :class:`~spacepy.pybats.bats.MagFile` class interface.
 
-        Usage: self.parse_gmline(i, line, namevar)
+
+        Usage: 
+
+        >>> self.parse_gmline(i, line, namevar)
+
         where i is the entry number, line is the raw ascii line, and
         namevar is the list of variable names.
         '''
@@ -858,14 +1442,16 @@ class BatsMag(object):
 
     def recalc(self):
         '''
-        Calculate total dB from GM and IE; compute H-component.
+        Calculate total :math:`\Delta B` from GM and IE; store under object keys 
+        *totaln*, *totale*, and *totald* (one for each component of the HEZ 
+        coordinate system).
         '''
         from numpy import sqrt, zeros
 
         # New containers:
-        self['totaln']=np.zeros(self.nlines)
-        self['totale']=np.zeros(self.nlines)
-        self['totald']=np.zeros(self.nlines)
+        self['totaln']=np.zeros(self.attrs['nlines'])
+        self['totale']=np.zeros(self.attrs['nlines'])
+        self['totald']=np.zeros(self.attrs['nlines'])
 
         for key in self.keys():
             if key[-2:]=='Bn':
@@ -876,24 +1462,43 @@ class BatsMag(object):
                 self['totald']=self['totald']+self[key]
         #self['totalh']=sqrt(self['totaln']**2.0 + self['totale']**2.0)
 
-    def plot(self, value, target=None, loc=111, label=None, **kwargs):
+    def add_plot(self, value, style='-', target=None, loc=111, label=None, 
+                 **kwargs):
         '''
-        Plot value 'value' against self.time onto target "target" given as a 
-        kwarg.  Target may be a figure or axis but defaults to None, in 
-        which a new figure and axis are created.  If target is a matplotlib
-        figure, a new axis is created at subplot location 111 (can be changed
-        using kwarg "loc").  If target is a matplotlib Axes object, the line
-        is added to the plot as if Axes.plot() was used.  The line label 
+        Plot **value**, which should be a key corresponding to a data vector
+        stored in the :class:`~spacepy.pybats.bats.Mag` object,
+        against the object's *time*.  The **target** kwarg specifies the
+        destination of the plot.  If not set, **target** defaults to None and
+        a new figure and axis will be created.  If target is a matplotlib
+        figure, a new axis is created at subplot location 111 (which can be 
+        changed
+        using kwarg **loc**).  If target is a matplotlib Axes object, the line
+        is added to the plot as if ``Axes.plot()`` was used.  The line label,
+        which is used for setting labels on figure legends,
         defaults to the value key but can be customized with the "label"
-        kwarg.  All extra kwargs are handed to Axes.plot.
+        kwarg.  The **style** keyword accepts basic Matplotlib line style
+        strings such as '--r' or '+g'.  This string will be passed on to the
+        plot command to customize the line.
+
+        All extra kwargs are handed to ``Axes.plot``, allowing the user to set
+        any additional options (e.g., line color and style, etc.).
 
         Three values are returned: the Figure object, Axis object, and 
         newly created line object.  These can be used to further customize
         the figure, axis, and line as necessary.
 
-        Example: Plot dBn onto an existing axis with line color blue, 
-        line style dashed, and line label "Wow!":
-        self.plot(ax, 'dBn', label='Wow!', lc='b')
+        Example: Plot total :math:`\Delta B_N` onto an existing axis with line 
+        color blue, line style dashed, and line label "Wow!":
+
+        >>> self.plot('totaln', target='ax', label='Wow!', lc='b', ls='--')
+
+        Example: Plot total :math:`\Delta B_N` on a new figure, save returned
+        values and overplot additional values on the returned axis.  Default 
+        labels and line styles are used in this example.
+        
+        >>> fig, ax, line = self.plot('totaln')
+        >>> self.plot('gm_dBe', target = ax)
+
         '''
 
         import matplotlib.pyplot as plt
@@ -905,44 +1510,136 @@ class BatsMag(object):
         if type(target) == plt.Figure:
             fig = target
             ax = fig.add_subplot(loc)
-            line=ax.plot(self.time, self[value], label=label, **kwargs)
-            apply_smart_timeticks(ax, self.time, dolabel=True)
         elif type(target).__base__ == plt.Axes:
             ax = target
             fig = ax.figure
-            line=ax.plot(self.time, self[value], label=label, **kwargs)
         else:
             fig = plt.figure(figsize=(10,4))
             ax = fig.add_subplot(loc)
-            line=ax.plot(self.time, self[value], label=label, **kwargs)
-            apply_smart_timeticks(ax, self.time, dolabel=True)
 
+        line=ax.plot(self['time'], self[value], style, label=label, **kwargs)
+        apply_smart_timeticks(ax, self['time'], dolabel=True)
+        
         return fig, ax, line
 
-class MagFile(object):
+    def add_comp_plot(self, direc, target=None, loc=111):
+        '''
+        Create a plot with,  or add to an existing plot, an illustration of 
+        how the
+        separate components sum together to make the total disturbance in a
+        given orthongal direction (arg **direc**).  The three possible 
+        components are 'n' (northwards, towards the magnetic pole), 'e'
+        (eastwards), or 'd' (downwards towards the center of the Earth.)  The
+        components of the total disturbance in any on direction are 
+        magnetospheric currents ('gm_dB'), gap-region field-aligned currents
+        ('gm_facdB'), and ionospheric Hall and Pederson currents ('ie_Jp' and
+        'ie_Jh').  
+
+        Example usage:
+        
+        >>> self.add_comp_plot('n')
+
+        This will create a new plot with the total disturbance in the 'n' 
+        direction along with line plots of each component that builds this
+        total.  This method uses the familiar PyBats **target** kwarg system
+        to allow users to add these plots to existing figures or axes.
+        '''
+
+        import matplotlib.pyplot as plt
+        from spacepy.pybats import apply_smart_timeticks
+
+        # Set plot targets.
+        if type(target) == plt.Figure:
+            fig = target
+            ax = fig.add_subplot(loc)
+        elif type(target).__base__ == plt.Axes:
+            ax = target
+            fig = ax.figure
+        else:
+            fig = plt.figure(figsize=(10,4))
+            ax = fig.add_subplot(loc)
+
+        # Use a dictionary to assign line styles, widths.
+        styles={'gm':'--', 'ie':'-.', 'to':'-'}
+        widths={'gm':1.0,  'ie':1.0,  'to':1.5}
+        colors={'gm_dB':'#FF6600', 'gm_facdB':'r', 'ie_JhdB':'b', 
+                'ie_JpB':'c','total':'k'}
+        
+        # Labels:
+        labels={'gm_dB':r'$J_{Mag}$', 'gm_facdB':r'$J_{Gap}$', 
+                'ie_JhdB':r'$J_{Hall}$', 'ie_JpB':r'$J_{Peder}$',
+                'total':r'Total $\Delta B$'}
+
+        # Plot.
+        for k in sorted(self):
+            if (k[-1]!=direc) or (k=='time'): continue
+            ax.plot(self['time'], self[k], label=labels[k[:-1]],
+                    ls=styles[k[:2]], lw=widths[k[:2]], c=colors[k[:-1]])
+
+        # Ticks, zero-line, and legend:
+        apply_smart_timeticks(ax, self['time'], True, True)
+        ax.hlines(0.0, self['time'][0], self['time'][-1], 
+                  linestyles=':', lw=2.0, colors='k')
+        ax.legend(ncol=3, loc='best')
+    
+        # Axis labels:
+        ax.set_ylabel(r'$\Delta B_{%s}$ ($nT$)'%(direc.upper()))
+
+
+class MagFile(PbData):
     '''
     BATS-R-US magnetometer files are powerful tools for both research and
-    operations.  BatsMag objects open, parse, and visualize such output.
+    operations.  :class:`~spacepy.pybats.bats.MagFile` objects open, parse, 
+    and visualize such output.
 
-    The dB calculated by the SWMF requires two components: GM (BATSRUS)
+    The $\delta B$ calculated by the SWMF requires two components: GM (BATSRUS)
     and IE (Ridley_serial).  The data is spread across two files: GM_mag*.dat
-    and IE_mag*.dat.  The former contains dB caused by FACs and the changing
-    global field.  The latter contains the dB caused by Pederson and Hall 
-    currents in the ionosphere. 
+    and IE_mag*.dat.  The former contains $\delta B$ caused by gap-region 
+    (i.e., inside the inner boundary) FACs and the changing global field.  
+    The latter contains the $\delta B$ caused by Pederson and Hall 
+    currents in the ionosphere.  :class:`~spacepy.pybats.bats.MagFile objects
+    can open one or both of these files at a time; when both are opened, the
+    total $\delta B$ is calculated and made available to the user.
+
+    Usage: 
+
+    >>> # Open up the GM magnetometer file only.
+    >>> obj = spacepy.pybats.bats.MagFile('GM_file.mag')
+    >>>
+    >>> # Open up both the GM and IE file.
+    >>> obj = spacepy.pybats.bats.MagFile('GM_file.mag', 'IE_file.mag')
+    >>>
+    >>> # Open up the GM magnetometer file; search for the IE file.
+    >>> obj = spacepy.pybats.bats.MagFile('GM_file.mag', find_ie=True)
+
+    Note that the **find_ie** kwarg uses a simple search assuming the data 
+    remain in a typical SWMF-output organizational tree (i.e., if the results
+    of a simulation are in folder *results*, the GM magnetometer file can be 
+    found in *results/GM/* or *results/GM/IO2/* while the IE file can be found
+    in *results/IE/* or *results/IE/ionosphere/*).  It will also search the
+    present working directory.  This method is not robust; the user must take
+    care to ensure that the two files correspond to each other.
     '''
     
-    def __init__(self, filename, ie_name=None, find_ie=False):
-        self.gmfile=filename
-        self.iefile=ie_name
+    def __init__(self, filename, ie_name=None, find_ie=False, *args, **kwargs):
+        from glob import glob
+        super(MagFile, self).__init__(*args, **kwargs)  # Init as PbData.
+        self.attrs['gmfile']=filename
+        if(find_ie and not ie_name):
+            # Try to find the IE file based on our current location.
+            basedir = filename[0:filename.rfind('/')+1]
+            if glob(basedir + '../IE/IE_mag_*.mag'):
+                self.attrs['iefile']=glob(basedir + '../IE/IE_mag_*.mag')[-1]
+            elif glob(basedir + '../../IE/ionosphere/IE_mag_*.mag'):
+                self.attrs['iefile'] = \
+                    glob(basedir + '../../IE/ionosphere/IE_mag_*.mag')[-1]
+            elif glob(basedir + '/IE_mag_*.mag'):
+                self.attrs['iefile']= glob(basedir + '/IE_mag_*.mag')[-1]
+            else:
+                self.attrs['iefile']=None
+        else:
+            self.attrs['iefile']=ie_name
         self.readfiles()
-
-    def __getitem__(self, key):
-        'Grab item from self.mag[key]'
-        return self.mag[key]
-
-    def __setitem__(self, key, value):
-        'Set item in self.mag[key].'
-        self.mag[key]=value
 
     def readfiles(self):
         '''
@@ -952,7 +1649,7 @@ class MagFile(object):
         from numpy import zeros
 
         # Slurp lines.
-        infile = open(self.gmfile, 'r')
+        infile = open(self.attrs['gmfile'], 'r')
         lines=infile.readlines()
         infile.close()
 
@@ -960,19 +1657,22 @@ class MagFile(object):
         trash=lines.pop(0) # Get station names.
         nmags=int((trash.split(':')[0]).split()[0])
         names=trash.split(':')[1] # Remove number of magnetometers.
-        self.namemag = names.split()
+        namemag = names.split()
+        self.attrs['namemag']=namemag
         # Check nmags vs number of mags in header.
-        if nmags != len(self.namemag):
-            raise BaseException('ERROR: GM file claims %i magnetomers, lists %i'
-                % (nmags, len(self.namemag)))
+        if nmags != len(namemag):
+            raise BaseException(
+                'ERROR: GM file claims %i magnetomers, lists %i'
+                % (nmags, len(namemag)))
         trash=lines.pop(0)
-        self.gm_namevar = trash.split()[12:] #Vars skipping time, iter, and loc.
-        self.nmag=len(self.namemag)
-        nlines = len(lines)/self.nmag
+        gm_namevar = trash.split()[12:] #Vars skipping time, iter, and loc.
+        self.attrs['gm_namevar']=gm_namevar
+        self.attrs['nmag']=len(namemag)
+        nlines = len(lines)/nmags
 
         # If there is an IE file, Parse that header, too.
-        if self.iefile:
-            infile=open(self.iefile, 'r')
+        if self.attrs['iefile']:
+            infile=open(self.attrs['iefile'], 'r')
             ielns =infile.readlines()
             infile.close()
             trash=ielns.pop(0)
@@ -980,34 +1680,33 @@ class MagFile(object):
             iestats=(trash.split(':')[1]).split()
             # Check nmags vs number of mags in header.
             if nmags != len(iestats):
-                raise BaseException('ERROR: IE file claims %i magnetomers, lists %i' % 
-                                    (nmags, len(self.namemag)))
-            if iestats != self.namemag:
-                raise RuntimeError("Files do not have matching stations!")
-            self.ie_namevar=ielns.pop(0).split()[11:]
-            if (len(ielns)/self.nmag) != (nlines-1):
-                #raise RuntimeError, "Files do nat have same number of lines!"
-                # Adjust number of lines read to match (GM often has more.)
-                print('Number of lines do not match: GM=%d, IE=%d!' % \
-                    (nlines-1, len(ielns)/self.nmag))
+                raise BaseException(
+                    'ERROR: IE file claims %i magnetomers, lists %i'
+                    % (nmags, len(namemag)))
+            if iestats != self.attrs['namemag']:
+                raise RuntimeError("Files do not have matching stations.")
+            ie_namevar=ielns.pop(0).split()[11:]
+            self.attrs['ie_namevar']=ie_namevar
+            if (len(ielns)/self.attrs['nmag']) != (nlines-1):
+                print('Number of lines do not match: GM=%d, IE=%d!' %
+                      (nlines-1, len(ielns)/self.attrs['nmag']))
                 nlines=min(ielns, nlines-1)
         else:
-            self.ie_namevar=()
+            ie_namevar=()
+            self.attrs['ie_namevar']=()
 
         # Build containers.
-        self.time=np.zeros(nlines, dtype=object)
-        self.iter=np.zeros(nlines)
-        self.mag={}
-        for name in self.namemag:
-            self[name]=BatsMag(nlines, self.time, 
-                               self.gm_namevar, self.ie_namevar)
+        self['time']=np.zeros(nlines, dtype=object)
+        self['iter']=np.zeros(nlines, dtype=float)
+        for name in namemag:
+            self[name]=Mag(nlines, self['time'], gm_namevar, ie_namevar)
 
         # Read file data.
         for i in range(nlines):
             line = lines.pop(0)
             parts=line.split()
-            self.iter[i]=int(parts[0])
-            self.time[i]=dt.datetime(
+            self['iter'][i]=parts[0]
+            self['time'][i]=dt.datetime(
                 int(parts[1]), #year
                 int(parts[2]), #month
                 int(parts[3]), #day
@@ -1016,33 +1715,28 @@ class MagFile(object):
                 int(parts[6]), #second
                 int(parts[7])*1000 #microsec
                 )
-            self[self.namemag[0]].parse_gmline(i, line, self.gm_namevar)
-            for j in range(1, self.nmag):
-                self[self.namemag[j]].parse_gmline(i, lines.pop(0), 
-                                                   self.gm_namevar)
-            if self.iefile and i>0:
+            self[namemag[0]].parse_gmline(i, line, gm_namevar)
+            for j in range(1, nmags):
+                self[namemag[j]].parse_gmline(i, lines.pop(0), gm_namevar)
+            if self.attrs['iefile'] and i>0:
                 line=ielns.pop(0)
-                self[self.namemag[0]].parse_ieline(i, line, self.ie_namevar)
-                for j in range(1, self.nmag):
-                    self[self.namemag[j]].parse_ieline(i, ielns.pop(0), 
-                                                       self.ie_namevar)
+                self[namemag[0]].parse_ieline(i, line, ie_namevar)
+                for j in range(1, nmags):
+                    self[namemag[j]].parse_ieline(i, ielns.pop(0), ie_namevar)
         self.recalc()
         
         # Get time res.
-        self.dt=(self.time[1]-self.time[0]).seconds/60.0
-
-        
+        self.attrs['dt']=(self['time'][1]-self['time'][0]).seconds/60.0
         
     def recalc(self):
         '''
-        Recalculate the values for each magnetometer.  This involves:
-        -summing GM and IE contributions.
-        -Calculating the H component.
+        Sum all contributions from all models/regions to get total 
+        :math:`\Delta B`.
         '''
-        for mag in self.namemag:
+        for mag in self.attrs['namemag']:
             self[mag].recalc()
 
-class GeoIndFile(LogFile):
+class GeoIndexFile(LogFile):
     '''
     Geomagnetic Index files are a specialized BATS-R-US output that contain
     geomagnetic indices calculated from simulated ground-based magnetometers.
@@ -1054,8 +1748,32 @@ class GeoIndFile(LogFile):
     comparisons, and more.
     '''
 
-    def kp_quicklook(self, target=None, pos=111, label='fa$K$e$_{P}$', 
-                     **kwargs):
+    def __repr__(self):
+        return 'GeoIndexFile object at %s' % (self.attrs['file'])
+
+    def __init__(self, filename, *args, **kwargs):
+        '''
+        Load ascii file located at self.attrs['file'].  
+        '''
+        # Call super __init__:
+        super(GeoIndexFile, self).__init__(filename, *args, **kwargs)
+
+        # Re-parse the file header; look for key info.
+        head  = (self.attrs['descrip']).replace('=',' ')
+        parts = head.split()
+        if 'DtOutput=' in head:
+            self.attrs['dt'] = float(parts[parts.index('DtOutput=')+1])
+        if 'SizeKpWindow' in head:
+            self.attrs['window'] = float(parts[parts.index(
+                        'SizeKpWindow(Mins)')+1])
+        if 'Lat' in head:
+            self.attrs['lat'] = float(parts[parts.index('Lat')+1])
+        if 'K9' in head:
+            self.attrs['k9']  = float(parts[parts.index('K9') +1])
+                                         
+
+    def add_kp_quicklook(self, target=None, pos=111, label=None, 
+                         plot_obs=True, **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
         Kp from the web and plots it alongside the Kp read from the GeoInd file.
@@ -1068,7 +1786,9 @@ class GeoIndFile(LogFile):
         kwargs are passed to pyplot.plot.
         '''
         import matplotlib.pyplot as plt
-        
+        from spacepy.pybats import apply_smart_timeticks
+
+        # Set up plot target.
         if type(target) == plt.Figure:
             fig = target
             ax = fig.add_subplot(pos)
@@ -1079,27 +1799,91 @@ class GeoIndFile(LogFile):
             fig = plt.figure(figsize=(10,4))
             ax = fig.add_subplot(111)
         
-        ax.plot(self.time, self['Kp'], label=label,**kwargs)
-        ax.set_ylabel('$K_{P}$')
-        ax.set_xlabel('Time from '+ self.time[0].isoformat()+' UTC')
-        apply_smart_timeticks(ax, self.time)
+        # Create label:
+        if not(label):
+            label = 'fa$K$e$_{P}$'
+            if ('lat' in self.attrs) and ('k9' in self.attrs):
+                label += ' (Lat=%04.1f$^{\circ}$, K9=%03i)' % \
+                    (self.attrs['lat'], self.attrs['k9'])
 
-        try:
-            import spacepy.pybats.kyoto as kt
-        except ImportError:
-            print("kyotodst package unavailable.")
-            return fig, ax
+        ax.plot(self['time'], self['Kp'], label=label,**kwargs)
+        ax.set_ylabel('$K_{P}$')
+        ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
+        apply_smart_timeticks(ax, self['time'])
+
+        if plot_obs:
+            try:
+                import spacepy.pybats.kyoto as kt
+            except ImportError:
+                print("kyotodst package unavailable.")
+                return fig, ax
         
-        try:
-            stime = self.time[0]; etime = self.time[-1]
-            if not hasattr(self, 'obs_kp'):
-                self.obs_kp = kt.kpwebfetch(stime.year, stime.month, 
-                                            etime.year, etime.month)
-        except BaseException, args:
-            print('WARNING! Failed to fetch Kyoto Kp: ', args)
+            try:
+                stime = self['time'][0]; etime = self['time'][-1]
+                if not hasattr(self, 'obs_kp'):
+                    self.obs_kp = kt.fetch('kp', (stime.year, stime.month), 
+                                           (etime.year, etime.month))
+            except BaseException, args:
+                print('WARNING! Failed to fetch Kyoto Kp: ' + args)
+            else:
+                self.obs_kp.add_histplot(target=ax, color='k', ls='--', lw=3.0)
+                ax.legend()
+                apply_smart_timeticks(ax, self['time'])
+                
+        return fig, ax
+
+class VirtSat(LogFile):
+    '''
+    A :class:`spacepy.pybats.LogFile` object tailored to virtual satellite
+    output; includes special satellite-specific plotting methods.
+    '''
+
+    def __repr__(self):
+        return 'GeoIndexFile object at %s' % (self.attrs['file'])
+
+    def add_orbit_plot(self, plane='XY', target=None, loc=111, rbody=1.0,
+                       title=None):
+        '''
+        Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
+        '''
+        
+        from spacepy.pybats.ram import add_body, grid_zeros
+        import matplotlib.pyplot as plt
+
+        if type(target) == plt.Figure:
+            fig = target
+            ax = fig.add_subplot(loc)
+        elif type(target).__base__ == plt.Axes:
+            ax = target
+            fig = ax.figure
         else:
-            self.obs_kp.histplot(target=ax, color='k', ls='--')
-            ax.legend()
-            apply_smart_timeticks(ax, self.time)
+            fig = plt.figure(figsize=(5,5))
+            ax = fig.add_subplot(loc)
+
+        plane=plane.upper()
+
+        # Extract orbit X, Y, or Z.
+        if plane[0] in ['X','Y','Z']:
+            x = self[plane[0]]
+        else:
+            raise ValueError('Bad dimension specifier: ' + plane[0])
+        if (plane[1] in ['X','Y','Z']) and (plane[0]!=plane[1]):
+            y = self[plane[1]]
+        else:
+            raise ValueError('Bad dimension specifier: ' + plane[1])
+                
+
+        ax.plot(x, y, 'g.')
+        add_body(ax, rad=rbody, add_night=('X' in plane))
+
+        # Finish customizing axis.
+        ax.axis('equal')
+        ax.set_xlabel('GSM %s'%(plane[0]))
+        ax.set_ylabel('GSM %s'%(plane[1]))
+        if title:
+            ax.set_title(title)
+        grid_zeros(ax)
+        ax.grid()
+        #set_orb_ticks(ax)
 
         return fig, ax

@@ -847,7 +847,8 @@ class RamSat(object):
         if not self.has_key(nameflux):
             self.create_omniflux()
             if not self.has_key(nameflux):
-                raise KeyError('%s is not a valid omnidirectional flux.' % nameflux)
+                raise KeyError('%s is not a valid omnidirectional flux.' 
+                               % nameflux)
         # Create a time vector that binds each pixel correctly.
         time=np.zeros(self.time.size+1)
         time[0]=date2num(self.time[0]-dt.timedelta(seconds=self.dt/2.0))
@@ -915,14 +916,19 @@ class RamSat(object):
         return fig
 
 ############################################################################
-class plasmaboundary(object):
+class PlasmaBoundary(PbData):
     '''
     Opens an ascii-format boundary file written from 
     IM_wrapper.f90:IM_put_from_gm
     '''
 
-    def __init__(self,file, time=None):
-        self.filename = file
+    def __init__(self,filename, time=None, *args, **kwargs):
+        
+        # Init base object.
+        super(PlasmaBoundary, self).__init__(*args, **kwargs)
+
+        # Set up this instance:
+        self.attrs['file']=filename
         self.read(time)
 
     def read(self, time=None):
@@ -932,64 +938,216 @@ class plasmaboundary(object):
         import datetime as dt
 
         # Read contents, slurp.
-        infile = open(self.filename, 'r')
+        infile = open(self.attrs['file'], 'r')
         raw = infile.readlines()
         infile.close()
 
         # First line of header has date and time.
         if time:
-            self.time=time
+            self.attrs['time']=time
             raw.pop(0)
         else:
             parts = raw.pop(0).split()
-            self.elapsed=float(parts[0])
-            self.time = dt.datetime(int(parts[1]), #year
+            self.attrs['elapsed']=float(parts[0])
+            self.attrs['time'] = dt.datetime(int(parts[1]), #year
                                     int(parts[2]), #month
                                     int(parts[3]), #day
                                     int(parts[4]), #hour
                                     int(parts[5]), #min
                                     int(parts[6])) #sec
-        # Throw away rest of header.
+        # Save header info that is useful.
         raw.pop(0)
-        raw.pop(0)
-
-        # Parse remaining data into a dictionary:
-        self.npoints = len(raw)
-        self.namevar = ['lt', 'RhoH', 'RhoHe', 'RhoO', 'tH', 'tHe', 'tO']
-        self.data = {}
+        self.attrs['namevar']=raw.pop(0).split()
+        self.attrs['npoints']=len(raw)
         
-        for name in self.namevar:
-            self.data[name] = np.zeros(self.npoints)
+        # Parse remaining data into a dictionary:
+        units = {'l':'hours', 'R':'cm-3', 'p':'eV'}
+        for name in self.attrs['namevar']:
+            self[name] = dmarray(np.zeros(self.attrs['npoints']), 
+                                 attrs={'units':units[name[0]]})
 
         for i, line in enumerate(raw):
             vals = line.split()
-            for j, name in enumerate(self.namevar):
+            for j, name in enumerate(self.attrs['namevar']):
                 if vals[j] == '*************':
                     vals[j] = 100000.0
-                self.data[name][i] = float(vals[j])
+                self[name][i] = float(vals[j])
 
     def write(self):
         '''
         Write self to self.filename.
         '''
         # Open file:
-        out = open(self.filename, 'w')
+        out = open(self.attrs['file'], 'w')
         # Write header:
-        out.write(' Time tag forthcoming.\n')
+        out.write('%10.5E %4i %2i %2i %2i %2i %2i\n'%
+                  (self.attrs['elapsed'], self.attrs['time'].year,
+                   self.attrs['time'].month, self.attrs['time'].day,
+                   self.attrs['time'].hour, self.attrs['time'].minute,
+                   self.attrs['time'].second)
+                  )
         out.write(' Units are Hours, cm-3, and eV\n')
-        out.write(' lt RhoH RhoHe RhoO pH pHe pO\n')
+        out.write(' '+' '.join(self.attrs['namevar'])+'\n')
         # Write data and close.
-        for i in range(self.npoints):
-            out.write('%02i %13.7f %13.7f %13.7f %13.7f %13.7f %13.7f\n' %
-                      (self.data['lt'][i],
-                       self.data['RhoH'][i],
-                       self.data['RhoHe'][i],
-                       self.data['RhoO'][i],
-                       self.data['tH'][i],
-                       self.data['tHe'][i],
-                       self.data['tO'][i]))
+        for i in range(self.attrs['npoints']):
+            out.write('%02i %13.6E %13.6E %13.6E %13.6E %13.6E %13.6E\n' %
+                      (self[self.attrs['namevar'][0]][i],
+                       self[self.attrs['namevar'][1]][i],
+                       self[self.attrs['namevar'][2]][i],
+                       self[self.attrs['namevar'][3]][i],
+                       self[self.attrs['namevar'][4]][i],
+                       self[self.attrs['namevar'][5]][i],
+                       self[self.attrs['namevar'][6]][i]))
         out.close()
 
+
+############################################################################
+class BoundaryGroup(PbData):
+    '''
+    A class that collects many PlasmaBoundary objects together to work as
+    a coherent group.
+    '''
+
+    def __init__(self, path='.', rotate=True, *args, **kwargs):
+        from glob import glob
+        from matplotlib.dates import date2num
+
+        # Init base object.
+        super(BoundaryGroup, self).__init__(*args, **kwargs)
+        
+        # Load files and count them!
+        files = glob(path+'/bound_plasma*.out')
+        nfiles=len(files)
+        if nfiles==0:
+            raise ValueError('No files found in path='+indir)
+
+        # Use info from first file to set up data structures.
+        temp = PlasmaBoundary(files[0])
+        namevar = temp.attrs['namevar']
+        self['time'] = dmarray(np.zeros(nfiles, dtype=object))
+
+        for name in namevar:
+            self[name] = dmarray(np.zeros((25,nfiles)), 
+                                 attrs={'units':temp[name].attrs['units']})
+
+        for i, f in enumerate(files):
+            temp = PlasmaBoundary(f)
+            for name in namevar:
+                self[name][:,i] = temp[name]
+            self['time'][i]=(temp.attrs['time'])
+        
+        # Create some new values to plot:
+        self['nAll'] = dmarray(self['RhoH'] + self[namevar[2]] + self['RhoO'],
+                               attrs={'units':'cm-3'})
+        self['ratO']= dmarray(100.0*self['RhoO']/self['nAll'], 
+                              attrs={'units':'\%'})
+
+        if rotate:
+            for val in self.keys():
+                if val == 'time': continue
+                temparray = self[val].copy()
+                temparray[0:12,  :] = self[val][13:25, :]
+                temparray[12:25, :] = self[val][0:13,  :]
+                self[val][:,:]   = temparray[:,:]
+
+        # Put pressure/temp in keV.
+        for val in self.keys():
+            if (val[0] == 'p') and (self[val].attrs['units']=='eV'):
+                self[val] /= 1000.0
+                self[val].attrs['units'] = 'keV'
+
+        # Internals for plotting:
+        self._y         = np.arange(0,26) - 0.5
+        self._lt_labels = ['Dusk', 'Midnight','Dawn']
+        self._yticks    = [   6.0,       12.0,  18.0]
+        self._dtime     = date2num(self['time']) # create decimal time.
+        self._zlims     = {'p':[0,40], 'R':[0,8], 'r':[0,60], 'n':[0,8]}
+
+    def add_ltut(self, var, target=None, loc=111, cbar='jet', zlim=None, 
+                 add_cbar=True, clabel=None, xlabel='full', title=None,
+                 grid=True, ntick=5):
+        '''
+        Plot variable *var* as a contour against local time (y-axis) and
+        universal time (x-axis) using the PyBats *target* method of other
+        standard plotting methods.  Four items are returned: the Matplotlib
+        Figure, Axes, Mesh, and ColorBar objects used (if cbar is set to
+        **False**, the returned ColorBar object is simply set to **False**.)
+
+        ========== =======================================================
+        Kwarg      Description
+        ---------- -------------------------------------------------------
+        target     Select plot destination.  Defaults to new figure/axis.
+        loc        The location of any generated subplots.  Default is 111.
+        add_cbar   Toggles the automatic colorbar.  Default is**True**.
+        cbar       Selects Matplotlib color table.  Defaults to *jet*.
+        zlim       Limits for z-axis.  Defaults to best-guess.
+        clabel     Sets colorbar label.  Defaults to *var* units.
+        xlabel     Sets x-axis limits, use 'full', 'ticks', or **None**.
+        title      Sets axis title; defaults to **None**.
+        grid       Show white dotted grid?  Defaults to **True**
+        ntick      Number of attempted cbar ticks.  Defaults to 5.
+        ========== =======================================================
+        
+        '''
+
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import MultipleLocator
+        from spacepy.pybats import apply_smart_timeticks
+
+        # Set ax and fig based on given target.
+        if type(target) == plt.Figure:
+            fig = target
+            ax  = fig.add_subplot(loc)
+        elif type(target).__base__ == plt.Axes:
+            ax  = target
+            fig = ax.figure
+        else:
+            fig = plt.figure()
+            ax  = fig.add_subplot(loc)
+
+        # Set up z-limits; use variable-specific defaults.
+        if zlim==None:
+            try:
+                zlim = self._zlims[var[0]]
+            except ValueError:
+                print "No default zlimits for ", var
+                zlim=None
+            
+        # Create plot:
+        mesh = ax.pcolormesh(self._dtime, self._y, self[var], 
+                             cmap=plt.get_cmap(cbar), 
+                             vmin=zlim[0], vmax=zlim[-1])
+        # Use LT ticks and markers on y-axis:
+        ax.set_yticks(self._yticks)
+        ax.set_yticklabels(self._lt_labels)
+        ax.set_ylim([4,20])
+
+        # White ticks, slightly thicker:
+        ax.tick_params(axis='both', which='both', color='w', width=1.2)
+
+        # Grid marks:
+        if grid: ax.grid(c='w')
+
+        if title: ax.set_title(title)
+        if xlabel == 'full':
+            # Both ticks and label.
+            apply_smart_timeticks(ax, self['time'], dolabel=True)
+        elif xlabel == 'ticks':
+            # Ticks, but no date label.
+            apply_smart_timeticks(ax, self['time'], dolabel=False)
+        else:
+            # A blank x-axis is often useful.
+            apply_smart_timeticks(ax, self['time'], dolabel=False)
+            ax.set_xticklabels('')
+        # Add cbar as necessary:
+        if add_cbar:
+            lct = MultipleLocator(np.ceil(10*(zlim[1]-zlim[0])/(ntick-1))/10.0)
+            cbar=plt.colorbar(mesh, ax=ax, pad=0.01, shrink=0.85, ticks=lct)
+            cbar.set_label(clabel)
+        else:
+            cbar=None
+            
+        return fig, ax, mesh, cbar
 
 ############################################################################
 class PressureFile(PbData):
@@ -1202,6 +1360,8 @@ class BoundaryFluxFile(object):
             self.read_dsbnd()
 
     def read_dsbnd(self):
+        from datetime import datetime
+        from re import search
         from numpy import zeros, linspace
         f=open(self.filename, 'r')
         lines = f.readlines()
@@ -1209,6 +1369,19 @@ class BoundaryFluxFile(object):
 
         parts=lines[0].split()
         self.rtime=float(parts[-1])
+
+        # Try to get run time, species from filename.
+        match = search('ds(\w{2})\_d(\d{4})(\d{2})(\d{2})\_t(\d{2})(\d{2})(\d{2})', 
+                  self.filename)
+        if match:
+            # New filename format! Huzzah!
+            t = match.groups()
+            self.species=t[0].strip('_')
+            self.time = datetime(int(t[1]), int(t[2]), int(t[3]), 
+                                 int(t[4]), int(t[5]), int(t[6]))
+        else:
+            self.time = None
+            self.species=None
 
         # Determine size of file and allocate array.
         self.nE = len(lines) - 1
@@ -1248,7 +1421,7 @@ class BoundaryFluxFile(object):
         # Set up local time grid.
         self.LT = linspace(0, 24, self.nLT)
 
-    def quickplot(self):
+    def quickplot(self, zlim=[10,1E7]):
         '''
         A quick plot of input flux on a fresh axis.
         '''
@@ -1263,14 +1436,15 @@ class BoundaryFluxFile(object):
         egrid = array(range(self.nE))
         flux = self.flux.transpose()
         flux[flux<0.01] = 0.01
-        flx = ax.pcolor(self.LT, egrid, flux, norm=LogNorm(),
-                        vmin=0.01, vmax=1e10, cmap=plt.get_cmap('gnuplot2'))
+        flx = ax.pcolor(self.LT, egrid, flux, norm=LogNorm(), vmin=zlim[0],
+                        vmax=zlim[-1], cmap=plt.get_cmap('gnuplot2'))
         cbar = plt.colorbar(flx, pad=0.01, shrink=0.85, ticks=LogLocator(),
                             format=LogFormatterMathtext())
         cbar.set_label('$cm^{-2}s^{-1}ster^{-1}keV^{-1}$')
         ax.set_xlim([0,24])
         ax.set_ylim([0,self.nE-1])
-        ax.set_title('Flux at Boundary - %s'%self.filename)
+        if self.time:
+            ax.set_title(self.time.isoformat())
         ax.set_xlabel('Local Time Sector')
         if hasattr(self, 'E'):
             ax.set_ylabel('Energy (keV)')
@@ -1352,7 +1526,8 @@ class LogFile(PbData):
             for j, name in enumerate(namevar):
                 self[name][i] = float(vals[loc[name]])
 
-    def add_dst_quicklook(self, target=None, loc=111):
+    def add_dst_quicklook(self, target=None, loc=111, showObs=True,
+                          showBiot=True):
         '''
         Create a quick-look plot of Dst.  If kyotodst module is
         installed, compare to observed Dst.
@@ -1362,6 +1537,19 @@ class LogFile(PbData):
         object, a new axis is created to fill that figure.
         if target is a matplotlib Axes object, the plot is placed
         into that axis.
+
+        Two values are returned: the matplotlib Figure and Axes objects
+        used to generate the plot (in that order.)
+
+        =========== ================================================
+        Kwarg       Description
+        ----------- ------------------------------------------------
+        target      Set plot destination.  Defaults to new figure.
+        loc         Set subplot location.  Defaults to 111.
+        showObs     Show observed Dst?  Defaults to **True**
+        showBiot    Show Biot-Savart Dst?  Defaults to **True**
+        =========== ================================================
+
         '''
         
         import matplotlib.pyplot as plt
@@ -1377,7 +1565,7 @@ class LogFile(PbData):
             ax = fig.add_subplot(loc)
         
         ax.plot(self['time'], self['dstRam'], label='RAM Dst (DPS)')
-        if self.has_key('dstBiot'):
+        if self.has_key('dstBiot') and showBiot:
             ax.plot(self['time'], self['dstBiot'], label='RAM Dst (Biot)')
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
@@ -1390,17 +1578,20 @@ class LogFile(PbData):
         except ImportError:
             return fig, ax
         
-        try:
-            stime = self['time'][0]; etime = self['time'][-1]
-            if not hasattr(self, 'obs_dst'):
-                self.obs_dst = kt.fetch('dst',stime,etime)
-        except BaseException, args:
-            print('WARNING! Failed to fetch Kyoto Dst: ', args)
+        if showObs:
+            try:
+                stime = self['time'][0]; etime = self['time'][-1]
+                if not hasattr(self, 'obs_dst'):
+                    self.obs_dst = kt.fetch('dst',stime,etime)
+            except BaseException, args:
+                print 'WARNING! Failed to fetch Kyoto Dst: ', args
+            else:
+                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
+                        'k--', label='Obs. Dst')
+                ax.legend(loc='best')
+                apply_smart_timeticks(ax, self['time'])
         else:
-            ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
-                    'k--', label='Obs. Dst')
-            ax.legend()
-            apply_smart_timeticks(ax, self['time'])
+            ax.legend(loc='best')
 
         return fig, ax
 
@@ -1823,6 +2014,37 @@ class GeoMltFile(object):
             self.flux[i,self.flux[i,:,:]<=0.0] = \
                 self.flux[i-1,self.flux[i,:,:]<=0.0]
                                
+
+    def __iadd__(self, other):
+        '''
+        Append another **GeoMltFile** object to this one.
+        '''
+
+        if type(self) != type(other):
+            raise TypeError(
+                'object can only be combined with one of same type.')
+
+        # Grid checks:
+        if any(self.egrid != other.egrid):
+            raise ValueError('both items must have identical energy grids!')
+        if any(self.lgrid != other.lgrid):
+            raise ValueError('both items must have identical MLT grids!')
+        if self.particle != other.particle:
+            raise ValueError('both items must have identical partilces!')
+
+        # Append data together:
+        self.time = np.append(self.time, other.time)
+        self.flux = np.append(self.flux, other.flux, 0)
+        self.nsats= np.append(self.nsats, other.nsats, 0)
+
+        # Append file names:
+        if type(self.filename)==str:
+            self.filename = [self.filename]
+        self.filename.append(other.filename)
+
+        return self
+
+
     def plot_epoch_flux(self, epoch=0, target=None, loc=111):
         '''
         Plot fluxes for a single file epoch.
