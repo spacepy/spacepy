@@ -69,7 +69,7 @@ class Efile(PbData):
         #self['lon'][self['x']==0.0] = 0.0
         xy=np.sqrt(self['x']**2+self['y']**2)+0.0000001
         self['lon']=np.arcsin(self['y']/xy)
-        self['lat']  =dmarray(np.arcsin(self['z']), {'units','deg'})*180.0/np.pi
+        self['lat']  =dmarray(np.arcsin(self['z']), {'units': 'deg'})*180.0/np.pi
         self['colat']=90.0 - self['lat']
 
         f.close()
