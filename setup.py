@@ -63,13 +63,15 @@ def default_f2py():
     Assumes any suffix to python should also apply to f2py.
     This picks up .exe, version numbers, etc.
     """
-    interp = os.path.basename(sys.executable)
+    interpdir, interp = os.path.split(sys.executable)
     if interp[0:6] == 'python':
         for candidate in ['f2py' + interp[6:],
                           'f2py-' + interp[6:]]:
-            for d in os.environ['PATH'].split(os.pathsep):
+            for d in [interpdir] + os.environ['PATH'].split(os.pathsep):
                 if os.path.isfile(os.path.join(d, candidate)):
                     return candidate
+                if os.path.isfile(os.path.join(d, candidate + '.py')):
+                    return candidate + '.py'
     if sys.platform == 'win32':
         return 'f2py.py'
     else:
