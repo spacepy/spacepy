@@ -441,6 +441,12 @@ class install(_install):
             raise Exception("""SpacePy requires Python 2.X, where X>=6.\n
             Numpy, Scipy and Matplotlib(>=0.99) are also required\n
             Please install suitable versions.""")
+        try:
+            print('Checking for dateutil...')
+            import dateutil
+        except:
+            raise Exception("""SpacePy requires dateutil.\n
+            matplotlib is the recommended way of meeing this requirement.""")
         bad = False
         try:
             print ('Checking for scipy...')
