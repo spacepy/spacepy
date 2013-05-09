@@ -31,6 +31,7 @@ pycdf
    through datetime.
  - add options to CDF.new to allow specification of variable compression
    at creation time.
+ - sort lists of variables, attributes by name instead of number.
 time
  - fixed bug in addition/subtraction of Ticktocks
 
