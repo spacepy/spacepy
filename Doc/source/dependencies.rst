@@ -28,6 +28,12 @@ NumPy 1.4+
 high-performance array data structure used throughout SpacePy. Version
 1.4 or later is required; 1.6 or later recommended.
 
+dateutil
+--------
+If you choose not to install :ref:`matplotlib <dependencies_mpl>`,
+`dateutil <http://labix.org/python-dateutil>`_ is required.
+(Installing matplotlib will fulfill this dependency.)
+
 C compiler
 ----------
 If you are installing SpacePy from source, a working C compiler
@@ -48,6 +54,9 @@ without SciPy:
     * :mod:`~spacepy.empiricals`
     * :mod:`~spacepy.seapy`
     * :mod:`~spacepy.toolbox`
+
+
+.. _dependencies_mpl:
 
 matplotlib
 ----------
