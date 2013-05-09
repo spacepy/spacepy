@@ -15,10 +15,10 @@ from __future__ import absolute_import
 
 import datetime
 import glob
-import StringIO
 import itertools
 import os
 import os.path
+import re
 import sys
 import time
 import warnings
@@ -440,7 +440,6 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
     {'ticks': array([1, 2, 3, 4, 5, 6, 7, 8, 9])}
     """
     # done this way so it works before install
-    from spacepy import time as t
     from spacepy import coordinates as c
 
     filelist = glob.glob(fln_pattern)
@@ -466,7 +465,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
             dim = np.array(np.shape(d[fln][key]))
             ax = np.where(dim==TAIcount)[0]
             if len(ax) == 1: # then match with TAI length is given (jump over otherwise like for 'parameters')
-                if isinstance(dcomb[key], t.Ticktock):
+                if isinstance(dcomb[key], spt.Ticktock):
                     dcomb[key] = dcomb[key].append(d[fln][key])
                 elif isinstance(dcomb[key], c.Coords):
                     dcomb[key] = dcomb[key].append(d[fln][key])
@@ -474,7 +473,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
                     dcomb[key] = np.append(dcomb[key], d[fln][key], axis=ax)
 
     if sortkey:    #  then sort
-        if isinstance(dcomb[sortkey], t.Ticktock):
+        if isinstance(dcomb[sortkey], spt.Ticktock):
             idx = np.argsort(dcomb[sortkey].RDT)
         else:
             idx = np.argsort(dcomb[sortkey])
@@ -516,7 +515,6 @@ def human_sort( l ):
     >>> tb.human_sort(dat)
     ['r1.txt', 'r2.txt', 'r10.txt']
     """
-    import re
     convert = lambda text: int(text) if text.isdigit() else text
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
     l.sort( key=alphanum_key )
@@ -692,9 +690,8 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     >>> import spacepy.toolbox as tb
     >>> tb.update(omni=True)
     """
-    from spacepy.time import Ticktock, doy2date
-    from spacepy.datamodel import SpaceData, dmarray, fromCDF, toHDF5, writeJSONMetadata, toJSONheadedASCII
-    from spacepy import DOT_FLN, config, pycdf
+    from spacepy.datamodel import SpaceData, dmarray, fromCDF, toHDF5
+    from spacepy import DOT_FLN, config
 
     if sys.version_info[0]<3:
         import urllib as u
@@ -735,7 +732,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     if QDomni == True:
         omni = True
         omni2 = True
-    
+
     if omni == True:
         # retrieve omni, unzip and save as table
         print("Retrieving Qin_Denton file ...")
@@ -804,7 +801,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
                                     hours=int(omnidata['Hr'][i]))
                  for i in range(nTAI)])
 
-        omnidata['ticks'] = Ticktock(omnidata['UTC'], 'UTC')
+        omnidata['ticks'] = spt.Ticktock(omnidata['UTC'], 'UTC')
         omnidata['RDT'] = omnidata['ticks'].RDT
         del omnidata['ticks'] #Can be quickly regenerated on import
         del omnidata['Year']
@@ -827,12 +824,12 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         fh_zip.close()
         omnicdf = fromCDF(fh_zip.namelist()[0])
         #add RDT
-        omnicdf['RDT'] = Ticktock(omnicdf['Epoch'],'UTC').RDT
+        omnicdf['RDT'] = spt.Ticktock(omnicdf['Epoch'],'UTC').RDT
         #remove keys that get in the way
         del omnicdf['Hour']
         del omnicdf['Year']
         del omnicdf['Decimal_Day']
-        
+
         # save as HDF5
         toHDF5(omni2_fname_h5, omnicdf)
 
@@ -868,7 +865,6 @@ def indsFromXrange(inxrange):
     >>> tb.indsFromXrange(foo) #indexing won't work in this case
     [23, 23]
     '''
-    import re
     if not isinstance(inxrange, xrange): return None
     valstr = inxrange.__str__()
     if ',' not in valstr:
