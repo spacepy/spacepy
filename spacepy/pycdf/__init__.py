@@ -4329,7 +4329,7 @@ class AttrList(collections.MutableMapping):
             return '\n'.join([key + ': ' + (
                 ('\n' + ' ' * (len(key) + 2)).join(
                 [str(value[i]) + ' [' + lib.cdftypenames[value.type(i)] + ']'
-                 for i in range(len(value))])
+                 for i in range(value.max_idx() + 1) if value.has_entry(i)])
                 if isinstance(value, Attr)
                 else str(value) +
                 ' [' + lib.cdftypenames[self.type(key)] + ']'
