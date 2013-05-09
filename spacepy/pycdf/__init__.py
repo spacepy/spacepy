@@ -1529,7 +1529,9 @@ class CDF(collections.MutableMapping):
         """
         if self._opened:
             return '\n'.join([key + ': ' + str(value)
-                              for (key, value) in self.items()])
+                              for (key, value) in sorted(self.items())])
+            #can get away with this sort because second value in tuple isn't
+            #compared unless first are different, and variable name is unique.
         else:
             if isinstance(self.pathname, str):
                 return 'Closed CDF {0}'.format(self.pathname)
@@ -4332,7 +4334,7 @@ class AttrList(collections.MutableMapping):
                 else str(value) +
                 ' [' + lib.cdftypenames[self.type(key)] + ']'
                 )
-                for (key, value) in self.items()])
+                for (key, value) in sorted(self.items())])
         else:
             if isinstance(self._cdf_file.pathname, str):
                 return 'Attribute list in closed CDF {0}'.format(
