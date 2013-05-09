@@ -11,7 +11,14 @@ Copyright 2010 - 2011  Los Alamos National Security, LLC. */
 
 /*************************************************************************/
 #include <Python.h>
+#include <numpy/numpyconfig.h>
+#ifdef NPY_1_7_API_VERSION
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif
 #include <numpy/arrayobject.h>
+#ifndef NPY_ARRAY_DEFAULT
+#define NPY_ARRAY_DEFAULT NPY_DEFAULT
+#endif
 #include <math.h>
 
 /* Bilinear interpolation for x1,y1=0 and x2,y2=1     */
@@ -292,10 +299,10 @@ static PyObject *ctrace2d_common(PyObject *self,
    *to the original, and creating a new object with a new ref.
    *So the new ref will be freed, but the borrowed ref is left alone.
    */
-  gridx = (PyArrayObject*)PyArray_FromArray(gridx, array_type, NPY_DEFAULT);
-  gridy = (PyArrayObject*)PyArray_FromArray(gridy, array_type, NPY_DEFAULT);
-  fieldx = (PyArrayObject*)PyArray_FromArray(fieldx, array_type, NPY_DEFAULT);
-  fieldy = (PyArrayObject*)PyArray_FromArray(fieldy, array_type, NPY_DEFAULT);
+  gridx = (PyArrayObject*)PyArray_FromArray(gridx, array_type, NPY_ARRAY_DEFAULT);
+  gridy = (PyArrayObject*)PyArray_FromArray(gridy, array_type, NPY_ARRAY_DEFAULT);
+  fieldx = (PyArrayObject*)PyArray_FromArray(fieldx, array_type, NPY_ARRAY_DEFAULT);
+  fieldy = (PyArrayObject*)PyArray_FromArray(fieldy, array_type, NPY_ARRAY_DEFAULT);
   xsize = (int)PyArray_DIM(gridx, 0);
   ysize = (int)PyArray_DIM(gridy, 0);
   indims[0] = maxstep;
