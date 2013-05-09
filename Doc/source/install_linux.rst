@@ -14,8 +14,8 @@ The Easy Way
 Either the `Enthought Python Distribution (EPD) <http://www.enthought.com/>`_
 or the `Python(x,y) distribution <https://code.google.com/p/pythonxy-linux/>`_
 will provide Python, numpy, scipy, matplotlib and a host of other useful
-3rd-party libraries. In both cases you will still need to install :ref:`ffnet` 
-by hand.
+3rd-party libraries. In both cases you will still need to install
+:ref:`ffnet <linux_ffnet>` and :ref:`CDF <linux_CDF>` by hand.
 
 If you are installing by hand, follow the instructions for your linux
 distribution below.
@@ -32,15 +32,15 @@ been checked for Ubuntu 11.10 and Debian 7.0 "wheezy"::
 You can also, of course, install the same packages via synaptic or
 other package manager of your choice.
 
-Since no packages are available for them, install :ref:`CDF`
-and :ref:`ffnet` by hand.
+Since no packages are available for them, install :ref:`CDF <linux_CDF>`
+and :ref:`ffnet <linux_ffnet>` by hand.
 
 Other distributions
 -------------------
 For other distributions, check :doc:`dependencies` and install by hand or via your package manager. Once you figure it out, please contact the SpacePy team so we can update this documentation.
 
 
-.. _CDF:
+.. _linux_CDF:
 
 CDF
 ---
@@ -60,7 +60,7 @@ Install::
 This will install the library into the default location ``/usr/local/cdf``, where SpacePy can find it. If you choose to install elsewhere, see the CDF documentation, particularly the notes on the ``CDF_BASE`` and ``CDF_LIB`` environment variables. SpacePy uses these variables to find the library.
 
 
-.. _ffnet:
+.. _linux_ffnet:
 
 ffnet
 -----
