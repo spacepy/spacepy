@@ -906,7 +906,7 @@ def toHDF5(fname, SDobject, **kwargs):
         h5_compr_type = kwargs['compression']
         if h5_compr_type not in ['gzip', 'szip', 'lzf', 'shuffle', 'fletcher32']:
             raise NotImplementedError('Specified compression type not supported')
-    if ('compression_opts' not in kwargs) or (h5_compr_type == 'lzf'): 
+    if ('compression_opts' not in kwargs) or (h5_compr_type == 'lzf'):
         h5_compr_opts = None
     else:
         h5_compr_opts = kwargs['compression_opts']
@@ -942,7 +942,7 @@ def toHDF5(fname, SDobject, **kwargs):
     for key, value in SDobject.iteritems():
         if isinstance(value, allowed_elems[0]):
             hfile[path].create_group(key)
-            toHDF5(hfile, SDobject[key], path=path+'/'+key)
+            toHDF5(hfile, SDobject[key], path=path+'/'+key, compression=h5_compr_type, compression_opts=h5_compr_opts)
         elif isinstance(value, allowed_elems[1]):
             try:
                 hfile[path].create_dataset(key, data=value, compression=h5_compr_type, compression_opts=h5_compr_opts)
