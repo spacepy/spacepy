@@ -218,70 +218,7 @@ class Library(object):
         if not 'CDF_TMP' in os.environ:
             os.environ['CDF_TMP'] = tempfile.gettempdir()
 
-        if 'CDF_LIB' in os.environ:
-            libdir = os.environ['CDF_LIB']
-        elif 'CDF_BASE' in os.environ:
-            libdir = os.path.join(os.environ['CDF_BASE'], 'lib')
-        else:
-            libdir = None
-        libpath = None
-        if libdir:
-            if sys.platform == 'win32':
-                libpath = os.path.join(libdir, 'dllcdf.dll')
-            elif sys.platform == 'darwin':
-                libpath = os.path.join(libdir, 'libcdf.dylib')
-                if not os.path.exists(libpath):
-                    libpath = os.path.join(libdir, 'cdf.dylib')
-            else:
-                libpath = os.path.join(libdir, 'libcdf.so')
-            if not os.path.exists(libpath):
-                libpath = None
-
-        if libpath == None:
-            if sys.platform == 'win32':
-                libpath = ctypes.util.find_library('dllcdf.dll')
-            else:
-                libpath = ctypes.util.find_library('cdf')
-
-        #Last-ditch check-the-default
-        if not libpath and sys.platform == 'win32':
-            cdfdist = 'c:\\CDF Distribution\\'
-            if os.path.isdir(cdfdist):
-                candidates = []
-                for d in os.listdir(cdfdist):
-                    if os.path.exists(cdfdist + d + '\\lib\\dllcdf.dll'):
-                        candidates.append(d)
-                if candidates: #choose the latest version
-                    libpath = cdfdist + \
-                        sorted(candidates)[-1] + '\\lib\\dllcdf.dll'
-        if not libpath and sys.platform == 'darwin':
-            cdfdist = '/Applications/'
-            if os.path.isdir(cdfdist):
-                candidates = []
-                for d in os.listdir(cdfdist):
-                    if d[0:3]=='cdf' and \
-                           os.path.exists(cdfdist + d + '/lib/libcdf.dylib'):
-                        candidates.append(d)
-                if candidates: #choose the latest version
-                    libpath = cdfdist + \
-                        sorted(candidates)[-1] + '/lib/libcdf.dylib'
-        if not libpath and sys.platform == 'linux2':
-            cdfdist = '/usr/local/'
-            if os.path.isdir(cdfdist):
-                candidates = []
-                for d in os.listdir(cdfdist):
-                    if d[0:3]=='cdf' and \
-                           os.path.exists(cdfdist + d + '/lib/libcdf.so'):
-                        candidates.append(d)
-                if candidates: #choose the latest version
-                    libpath = cdfdist + \
-                        sorted(candidates)[-1] + '/lib/libcdf.so'
-
-        if not libpath:
-            raise Exception('Cannot find CDF C library. ' + \
-                            'Try os.putenv("CDF_LIB", library_directory) ' + \
-                            'before import.')
-
+        libpath = self._find_lib()
         self._library = ctypes.CDLL(libpath)
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long
@@ -450,6 +387,78 @@ class Library(object):
 
         #Default to V2 CDF
         self.set_backward(True)
+
+    def _find_lib(self):
+        """
+        Search for the CDF library
+        """
+        #What the library might be named
+        names = { 'win32': ['dllcdf.dll'],
+                  'darwin': ['libcdf.dylib', 'cdf.dylib'],
+                  'linux2': ['libcdf.so'],
+                  None: ['libcdf.so'],
+                  }
+        names = names[sys.platform] if sys.platform in names else names[None]
+        #search a directory for these names
+        search_dir = lambda x: next(
+            (os.path.join(x, fname) for fname in names
+             if os.path.exists(os.path.join(x, fname))), None)
+        #Directories that might have the library, in desired search order
+        dirs = []
+
+        #Search the environment-specified places first
+        if 'CDF_LIB' in os.environ:
+            dirs.append(os.environ['CDF_LIB'])
+        if 'CDF_BASE' in os.environ:
+            dirs.append(os.path.join(os.environ['CDF_BASE'], 'lib'))
+        for d in dirs:
+            libpath = search_dir(d)
+            if libpath:
+                return libpath
+
+        #Now give ctypes a chance
+        if sys.platform == 'win32':
+            libpath = ctypes.util.find_library('dllcdf.dll')
+        else:
+            libpath = ctypes.util.find_library('cdf')
+        if libpath:
+            return libpath
+
+        #Failure. Check all sorts of other places.
+        dirs = []
+        #default places CDF gets installed under
+        #CDF_BASE is usually a subdir of these (with "cdf" in the name)
+        #Searched in order given here!
+        cdfdists = { 'win32': ['c:\\CDF Distribution\\'],
+                    'darwin': ['/Applications/', os.path.expanduser('~')],
+                    'linux2': ['/usr/local/', os.path.expanduser('~')],
+                    }
+        if sys.platform in cdfdists:
+            for cdfdist in cdfdists[sys.platform]:
+                if os.path.isdir(cdfdist):
+                    cand = []
+                    for d in os.listdir(cdfdist):
+                        if d[0:3].lower() == 'cdf':
+                            #checking src in case BUILT but not INSTALLED
+                            for subdir in ['lib', os.path.join('src', 'lib')]:
+                                libdir = os.path.join(cdfdist, d, subdir)
+                                if os.path.isdir(libdir):
+                                    cand.append(libdir)                                
+                    #Sort reverse, so new versions are first FOR THIS cdfdist
+                    dirs.extend(sorted(cand)[::-1])
+
+        #LD_LIBRARY_PATH for a last ditch
+        if 'LD_LIBRARY_PATH' in os.environ:
+            dirs.extend(os.environ['LD_LIBRARY_PATH'].split(os.pathsep))
+
+        for d in dirs:
+            libpath = search_dir(d)
+            if libpath:
+                return libpath
+        raise Exception('Cannot find CDF C library. ' + \
+                        'Try os.putenv("CDF_LIB", library_directory) ' + \
+                        'before import.')
+
 
     def check_status(self, status, ignore=()):
         """
