@@ -65,13 +65,18 @@ def default_f2py():
     """
     interpdir, interp = os.path.split(sys.executable)
     if interp[0:6] == 'python':
-        for candidate in ['f2py' + interp[6:],
-                          'f2py-' + interp[6:]]:
-            for d in [interpdir] + os.environ['PATH'].split(os.pathsep):
-                if os.path.isfile(os.path.join(d, candidate)):
-                    return candidate
-                if os.path.isfile(os.path.join(d, candidate + '.py')):
-                    return candidate + '.py'
+        suffixes = [interp[6:], '-' + interp[6:]]
+        if '.' in interp[6:]: #try slicing off suffix-of-suffix (e.g., exe)
+            suffix = interp[6:-(interp[::-1].index('.') + 1)]
+            suffixes.extend([suffix, '-' + suffix])
+        candidates = ['f2py' + s for s in suffixes]
+        for candidate in candidates:
+            for c in [candidate, candidate + '.py']:
+                for d in os.environ['PATH'].split(os.pathsep):
+                    if os.path.isfile(os.path.join(d, c)):
+                        return c
+                    if os.path.isfile(os.path.join(interpdir, c)):
+                        return os.path.join(interpdir, c) #need full path
     if sys.platform == 'win32':
         return 'f2py.py'
     else:
