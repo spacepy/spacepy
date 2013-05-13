@@ -8,7 +8,7 @@ Authors
 The SpacePy Team
 Los Alamos National Laboratory
 
-Copyright 2010 - 2012 Los Alamos National Security, LLC.
+Copyright 2010 - 2013 Los Alamos National Security, LLC.
 """
 
 import os, sys, shutil, getopt, glob, re
@@ -135,16 +135,19 @@ def finalize_compiler_options(cmd):
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
     #Special-case defaults, checks
-    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95'):
+    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel'):
         raise DistutilsOptionError(
-            '--fcompiler must be pg, gnu, gnu95')
+            '--fcompiler must be pg, gnu, gnu95, intelem, intel')
+    if len('%x' % sys.maxsize)*4 == 32 and cmd.fcompiler == 'intelem':
+        raise DistutilsOptionError(
+            '--fcompiler=intelem requires a 64-bit architecture')
     if cmd.compiler == None and sys.platform == 'win32':
         cmd.compiler = 'mingw32'
 
 
 compiler_options = [
         ('fcompiler=', None,
-         'specify the fortran compiler to use: pg, gnu95, gnu [gnu95]'),
+         'specify the fortran compiler to use: pg, gnu95, gnu, intelem, intel [gnu95]'),
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
@@ -289,11 +292,14 @@ class build(_build):
             'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
             'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
             'gnu95': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
+            'intel': 'ifort -c -Bstatic -assume 2underscores -O2 -fPIC *.f',
             }
         compile_cmd64 = {
             'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
             'gnu': 'g77 -c -w -m64 -mno-align-double -O2 -fPIC -fno-second-underscore *.f',
             'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
+            'intel': 'ifort -c -Bdynamic -O2 -fPIC *.f',
+            'intelem': 'ifort -c -Bdynamic -O2 -fPIC *.f',
             }
         f2py_flags = '--fcompiler={0}'.format(fcompiler)
         if fcompiler == 'gnu':

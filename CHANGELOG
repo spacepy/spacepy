@@ -21,6 +21,7 @@ empiricals
 irbempy
  - updated to latest revision of IRBEM library (rev425)
  - consistent with IRBEMlib release version 4.4.0
+ - add support for building with Intel Fortran compiler
 LANL*
  - added new neural network trained on RAM-SCB model (valid inside 6.6Re)
 pycdf

@@ -87,7 +87,7 @@ h5py
 ----
 `h5py <http://code.google.com/p/h5py/>`_ provides a Python interface to
 HDF5 files. It is required for the HDF import/export capability of
-:mod:`~spacepy.datamodel`.
+:mod:`~spacepy.datamodel` and for use of the :mod:`~spacepy.omni` module.
 
 CDF
 ---
