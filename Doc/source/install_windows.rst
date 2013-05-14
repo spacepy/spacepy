@@ -24,13 +24,13 @@ but will run on 64-bit machines.
 
 If you wish to use CDF files, download and install the `NASA CDF library
 <http://cdf.gsfc.nasa.gov/>`_. Again, the 32-bit installer is required, e.g.
-CDF33_1-SETUP-32.EXE. The default installation directory is recommended to
+CDF34_1_0-SETUP-32.EXE. The default installation directory is recommended to
 help SpacePy find the library.
 
-The other dependencies should be installable with ``easy_install``.
+The other dependencies should be installable with ``pip``.
 From a command prompt, run::
 
-    easy_install networkx ffnet h5py
+    pip install networkx ffnet h5py
 
 Finally, install SpacePy using the installer EXE. Be sure to choose the
 installer that matches your version of Python, either 2.6 or 2.7.
@@ -38,7 +38,6 @@ installer that matches your version of Python, either 2.6 or 2.7.
 
 The Hard Way
 ============
-
 
 This is a step-by-step guide to compiling and installing SpacePy from source.
 The filenames listed for the dependencies are the latest at this writing.
@@ -58,23 +57,29 @@ Download the latest `mingwget <http://sourceforge.net/projects/mingw/files/Autom
 
 See also `the mingw docs <http://www.mingw.org/wiki/Getting_Started>`_
 
-The following filenames are given for Python 2.6 and were the latest
+The following filenames are given for Python 2.7 and were the latest
 as of this writing; download the appropriate file for your version of
-Python and the latest version available of the required package.
+Python and the latest version available of the required package. (This
+is the "easiest" way to install all dependencies by hand; if you are
+comfortable downloading, compiling, and installing Python modules yourself,
+that will also work, and you will not need distribute/easy_install.)
 
-Download and install `numpy-1.6.1-win32-superpack-python2.6.exe
+Download and install `numpy-1.7.1-win32-superpack-python2.7.exe
 <http://sourceforge.net/projects/numpy/files/>`_.
 
-Download and install `scipy-0.9.0-win32-superpack-python2.6.exe
+Download and install `scipy-0.12.0-win32-superpack-python2.7.exe
 <http://sourceforge.net/projects/scipy/files/>`_.
 
-Download and install `matplotlib-1.0.1.win32-py2.6.exe
-<http://matplotlib.sourceforge.net/>`_.
+Download and install `matplotlib-1.2.1.win32-py2.7.exe
+<http://matplotlib.org/downloads.html>`_.
 
-Download and install `setuptools-0.6c11.win32-py2.6.exe
-<http://pypi.python.org/pypi/setuptools>`_.
+Download and run `distribute_setup.py
+<https://pypi.python.org/pypi/distribute/#distribute-setup-py>`_.
 
-Download and install `h5py-2.0.1.win32-py2.6.msi
+Download and run `get-pip.py
+<http://www.pip-installer.org/en/latest/installing.html#using-get-pip>`_.
+
+Download and install `h5py-2.1.3.win32-py2.7.msi
 <http://code.google.com/p/h5py/downloads/list>`_.
 
 Create a file ``distutils.cfg`` in ``C:\Python26\Lib\distutils``
@@ -85,14 +90,23 @@ Create a file ``distutils.cfg`` in ``C:\Python26\Lib\distutils``
 
 From a command prompt, run::
 
-    easy_install networkx ffnet sphinx numpydoc
+    pip install networkx ffnet
 
 If you wish to use CDF files, download and install the `NASA CDF library
 <http://cdf.gsfc.nasa.gov/>`_. Again, the 32-bit installer is required, e.g.
-CDF33_1-SETUP-32.EXE. The default installation directory is recommended to
+CDF34_1_0-SETUP-32.EXE. The default installation directory is recommended to
 help SpacePy find the library.
 
 Unzip the SpacePy source documentation. Open a command prompt in the
 resulting directory and run::
 
     python setup.py install
+
+
+Developers
+==========
+
+If you want to build the documentation yourself (rather than using the
+documentation shipped with SpacePy), install sphinx and numpydoc::
+
+    pip install sphinx numpydoc
