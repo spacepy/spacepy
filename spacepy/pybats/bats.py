@@ -1008,10 +1008,48 @@ class Bats2d(IdlBin):
             ax.add_artist(body)
 
     def add_pcolor(self, dim1, dim2, value, zlim=None, target=None, loc=111, 
-                   title=None, xlabel=None, ylabel=None, dolabel=True,
+                   title=None, xlabel=None, ylabel=None,
                    ylim=None, xlim=None, add_cbar=False, clabel=None,
                    add_body=True, dolog=False, *args, **kwargs):
-        '''doc forthcoming'''
+        '''        
+        Create a pcolor plot of variable **value** against **dim1** on the 
+        x-axis and **dim2** on the y-axis.  Pcolor plots shade each
+        computational cell with the value at the cell center.  Because no 
+        interpolation or smoothin is used in the visualization, pcolor plots
+        are excellent for examining the raw output.
+        
+        Simple example:
+
+        >>> self.add_pcolor('x', 'y', 'rho')
+
+        If kwarg **target** is None (default), a new figure is 
+        generated from scratch.  If target is a matplotlib Figure
+        object, a new axis is created to fill that figure at subplot
+        location **loc**.
+        if **target** is a matplotlib Axes object, the plot is placed
+        into that axis.
+
+        Four values are returned: the matplotlib Figure and Axes objects,
+        the matplotlib contour object, and the matplotlib colorbar object
+        (defaults to *False* if not used.)
+
+        =========== ==========================================================
+        Kwarg       Description
+        ----------- ----------------------------------------------------------
+        target      Set plot destination.  Defaults to new figure.
+        loc         Set subplot location.  Defaults to 111.
+        title       Sets title of axes.  Default is no title.
+        xlabel      Sets x label of axes.  Defaults to **dim1** and units.
+        ylabel      Sets y label of axes.  Defaults to **dim2** and units.
+        xlim        Sets limits of x-axes.  Defaults to whole domain.
+        ylim        Sets limits of y-axes.  Defaults to whole domain.
+        zlim        Sets color bar range.  Defaults to variable max/min.
+        add_cbar    Adds colorbar to plot.  Defaults to *False*.
+        clabel      Sets colorbar label.  Defaults to **var** and units.
+        add_body    Places planetary body in plot.  Defaults to **True**.
+        dolog       Sets use of logarithmic scale.  Defaults to **False**.
+        =========== ==========================================================
+        '''
 
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
@@ -1082,15 +1120,49 @@ class Bats2d(IdlBin):
 
         return fig, ax, pcol, cbar                              
 
-    def add_contour(self, dim1, dim2, value, levs=30, target=None, loc=111, 
-                    title=None, xlabel=None, ylabel=None, dolabel=True,
+    def add_contour(self, dim1, dim2, value, nlev=30, target=None, loc=111, 
+                    title=None, xlabel=None, ylabel=None,
                     ylim=None, xlim=None, add_cbar=False, clabel=None,
-                    filled=True, add_body=True, dolog=False, logrange=[.01,50.],
+                    filled=True, add_body=True, dolog=False, zlim=None,
                     *args, **kwargs):
-        '''doc forthcoming.'''
-
-        # SEE DGCPM CODE FOR <fixing> THE <goshdern> LOG <poop>.
+        '''
+        Create a contour plot of variable **value** against **dim1** on the 
+        x-axis and **dim2** on the y-axis.
         
+        Simple example:
+
+        >>> self.add_contour('x', 'y', 'rho')
+
+        If kwarg **target** is None (default), a new figure is 
+        generated from scratch.  If target is a matplotlib Figure
+        object, a new axis is created to fill that figure at subplot
+        location **loc**.
+        if **target** is a matplotlib Axes object, the plot is placed
+        into that axis.
+
+        Four values are returned: the matplotlib Figure and Axes objects,
+        the matplotlib contour object, and the matplotlib colorbar object
+        (defaults to *False* if not used.)
+
+        =========== ==========================================================
+        Kwarg       Description
+        ----------- ----------------------------------------------------------
+        target      Set plot destination.  Defaults to new figure.
+        loc         Set subplot location.  Defaults to 111.
+        nlev        Number of contour levels.  Defaults to 30.
+        title       Sets title of axes.  Default is no title.
+        xlabel      Sets x label of axes.  Defaults to **dim1** and units.
+        ylabel      Sets y label of axes.  Defaults to **dim2** and units.
+        xlim        Sets limits of x-axes.  Defaults to whole domain.
+        ylim        Sets limits of y-axes.  Defaults to whole domain.
+        zlim        Sets contour range.  Defaults to variable max/min.
+        add_cbar    Adds colorbar to plot.  Defaults to *False*.
+        clabel      Sets colorbar label.  Defaults to **var** and units.
+        add_body    Places planetary body in plot.  Defaults to **True**.
+        dolog       Sets use of logarithmic scale.  Defaults to **False**.
+        =========== ==========================================================
+        '''
+
         import matplotlib.pyplot as plt
         from matplotlib.colors import (LogNorm, Normalize)
         from matplotlib.ticker import (LogLocator, LogFormatter, 
@@ -1107,6 +1179,13 @@ class Bats2d(IdlBin):
             fig = plt.figure(figsize=(10,10))
             ax  = fig.add_subplot(loc)
 
+        # Get max/min if none given.
+        if zlim==None:
+            zlim=[0,0]
+            zlim[0]=self[value].min(); zlim[1]=self[value].max()
+            if dolog and zlim[0]<=0:
+                zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
+
         # Set contour command based on grid type.
         if self['grid'].attrs['gtype'] != 'Regular':  # Non-uniform grids.
             if filled:
@@ -1119,25 +1198,20 @@ class Bats2d(IdlBin):
             else:
                 contour=ax.contour
 
-        # If a log-scale plot, take log of values.
+        # Create levels and set norm based on dolog.
         if dolog:
-            # Set cbar tick locators, contour norms.
+            levs = np.power(10, np.linspace(np.log10(zlim[0]), 
+                                            np.log10(zlim[1]), nlev))
+            z=np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
             norm=LogNorm()
             ticks=LogLocator()
             fmt=LogFormatterMathtext()
-            # Trim small values.
-            z=np.where(self[value]>logrange[0], self[value], 1.01*logrange[0])
-            # Set up levels if not explicitly set.
-            if not isinstance(levs, (list, np.ndarray)):
-                levs=np.power(10, np.linspace(np.log10(logrange[0]),
-                                              np.log10(logrange[1]), levs))
         else:
-            # Use defaults.  We will need to edit this to
-            # not overwrite kwargs.
+            levs = np.linspace(zlim[0], zlim[1], nlev)
+            z=self[value]
             norm=None
             ticks=None
             fmt=None
-            z=self[value]
 
         # Plot contour.
         cont=contour(self[dim1],self[dim2],z,levs,*args, norm=norm, **kwargs)
