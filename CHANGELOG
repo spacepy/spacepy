@@ -24,6 +24,18 @@ irbempy
  - add support for building with Intel Fortran compiler
 LANL*
  - added new neural network trained on RAM-SCB model (valid inside 6.6Re)
+pybats
+ - Nearly all classes inherit from PbData, which is a subclass of SpaceData.
+ - All add_* plotting methods have unified "target" and "loc" kwargs for selecting where to place plots.
+ - New submodule: dgcpm, for handling the DGCPM model input/output.
+ - New class: NgdcIndex, for handling NGDC input data for SWMF runs.
+ - Bats2d class: stream tracing navigates native quadtree.
+ - Bats2d class: arbitrary interpolation of data to any X,Y point(s).
+ - Bats2d class: new variable calculations, including gradients.
+ - Bats2d class: better handling of multi-species/fluid variables.
+ - Bats2d class: unification of add_pcolor and add_contour syntax.
+ - New class: ram.BoundaryGroup for handling groups of boundary files.
+ - Expanded documentation for classes and methods.
 pycdf
  - fixed bug in time types with pre-3.4.1 CDF library
  - provide new CDF.raw_var method to give access to variables without
@@ -35,18 +47,6 @@ pycdf
  - sort lists of variables, attributes by name instead of number.
 time
  - fixed bug in addition/subtraction of Ticktocks
- - Substantial changes to PyBats submodule:
-    - Nearly all classes inherit from PbData, which is a subclass of SpaceData.
-    - All add_* plotting methods have unified "target" and "loc" kwargs for selecting where to place plots.
-    - New submodule: dgcpm, for handling the DGCPM model input/output.
-    - New class: NgdcIndex, for handling NGDC input data for SWMF runs.
-    - Bats2d class: stream tracing navigates native quadtree.
-    - Bats2d class: arbitrary interpolation of data to any X,Y point(s).
-    - Bats2d class: new variable calculations, including gradients.
-    - Bats2d class: better handling of multi-species/fluid variables.
-    - Bats2d class: unification of add_pcolor and add_contour syntax.
-    - New class: ram.BoundaryGroup for handling groups of boundary files.
-    - Expanded documentation for classes and methods.
 
 Changes in Version 0.1.3
 ========================
