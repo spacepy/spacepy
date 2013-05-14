@@ -11,6 +11,7 @@ from __future__ import division
 
 import datetime
 import os
+import os.path
 import tempfile
 import unittest
 import StringIO
@@ -309,13 +310,16 @@ class converterTests(unittest.TestCase):
         super(converterTests, self).setUp()
         self.SDobj = dm.SpaceData(attrs={'global': 'test'})
         self.SDobj['var'] = dm.dmarray([1, 2, 3], attrs={'a': 'a'})
-        self.testfile = tempfile.mkstemp()
+        self.testdir = tempfile.mkdtemp()
+        self.testfile = os.path.join('test.h5')
         warnings.simplefilter('error', dm.DMWarning)
 
     def tearDown(self):
         super(converterTests, self).tearDown()
         del self.SDobj
-        os.remove(self.testfile[1])
+        if os.path.exists(self.testfile):
+            os.remove(self.testfile)
+        os.rmdir(self.testdir)
         warnings.simplefilter('default', dm.DMWarning)
 
     def test_convertKeysToStr(self):
@@ -345,58 +349,58 @@ class converterTests(unittest.TestCase):
 
     def test_HDF5roundtrip(self):
         """Data can go to hdf and back"""
-        dm.toHDF5(self.testfile[1], self.SDobj)
-        newobj = dm.fromHDF5(self.testfile[1])
+        dm.toHDF5(self.testfile, self.SDobj)
+        newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
-        dm.toHDF5(self.testfile[1], self.SDobj, mode='a')
-        newobj = dm.fromHDF5(self.testfile[1])
+        dm.toHDF5(self.testfile, self.SDobj, mode='a')
+        newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
     def test_HDF5roundtripGZIP(self):
         """Data can go to hdf and back with compression"""
-        dm.toHDF5(self.testfile[1], self.SDobj, compression='gzip')
-        newobj = dm.fromHDF5(self.testfile[1])
+        dm.toHDF5(self.testfile, self.SDobj, compression='gzip')
+        newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
-        dm.toHDF5(self.testfile[1], self.SDobj, mode='a', compression='gzip')
-        newobj = dm.fromHDF5(self.testfile[1])
+        dm.toHDF5(self.testfile, self.SDobj, mode='a', compression='gzip')
+        newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
         np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
     def test_HDF5Exceptions(self):
         """HDF5 has warnings and exceptions"""
-        dm.toHDF5(self.testfile[1], self.SDobj)
-        self.assertRaises(IOError, dm.toHDF5, self.testfile[1], self.SDobj, overwrite=False)
+        dm.toHDF5(self.testfile, self.SDobj)
+        self.assertRaises(IOError, dm.toHDF5, self.testfile, self.SDobj, overwrite=False)
         a = dm.SpaceData()
         a['foo'] = 'bar' # not an allowed type for data
-        self.assertRaises(dm.DMWarning, dm.toHDF5, self.testfile[1], a)
+        self.assertRaises(dm.DMWarning, dm.toHDF5, self.testfile, a)
 
     def test_HDF5roundtrip2(self):
         """Data can go to hdf without altering datetimes in the datamodel"""
         a = dm.SpaceData()
         a['foo'] = dm.SpaceData()
-        dm.toHDF5(self.testfile[1], a)
-        newobj = dm.fromHDF5(self.testfile[1])
+        dm.toHDF5(self.testfile, a)
+        newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(a['foo'], newobj['foo'])
         a['bar'] = dm.dmarray([datetime.datetime(2000, 1, 1)])
-        dm.toHDF5(self.testfile[1], a)
+        dm.toHDF5(self.testfile, a)
         self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
 
     def test_HDF5roundtrip2GZIP(self):
         """Data can go to hdf without altering datetimes in the datamodel with compression"""
         a = dm.SpaceData()
         a['foo'] = dm.SpaceData()
-        dm.toHDF5(self.testfile[1], a, compression='gzip')
-        newobj = dm.fromHDF5(self.testfile[1])
+        dm.toHDF5(self.testfile, a, compression='gzip')
+        newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(a['foo'], newobj['foo'])
         a['bar'] = dm.dmarray([datetime.datetime(2000, 1, 1)])
-        dm.toHDF5(self.testfile[1], a, compression='gzip')
+        dm.toHDF5(self.testfile, a, compression='gzip')
         self.assertEqual(a['bar'], dm.dmarray([datetime.datetime(2000, 1, 1)]))
 
     def test_dateToISO(self):
