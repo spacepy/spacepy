@@ -954,12 +954,16 @@ def toHDF5(fname, SDobject, **kwargs):
                 #else:
                 #    hfile[path].create_dataset(key, data=value.astype(float))
             SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
+            if path=='/':
+                hfile.close()
         else:
+            #test suite turns following warning into error, must close file
+            if path == '/':
+                hfile.close()
             warnings.warn('The following data is not being written as is not of an allowed type\n' +
                            'key = {0} ({1})\n'.format(key, type(key)) +
                               'value type {0} is not in the allowed data type list'.format(type(value)),
                                   DMWarning)
-    if path=='/': hfile.close()
 
 
 def toHTML(fname, SDobject, attrs=(),
