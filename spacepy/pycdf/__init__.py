@@ -38,6 +38,12 @@ If this works, make the environment setting permanent. Note that on OSX,
 using plists to set the environment may not carry over to Python terminal
 sessions; use ``.cshrc`` or ``.bashrc`` instead.
 
+.. note::
+
+   If the CDF library cannot be found, pycdf will be left in a "half-imported"
+   state. You will need to restart your Python interpreter before trying
+   the fix above.
+
 .. currentmodule:: spacepy.pycdf
 
 
