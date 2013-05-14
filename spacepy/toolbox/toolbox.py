@@ -739,6 +739,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         u.urlretrieve(config['qindenton_url'], omni_fname_zip, reporthook=progressbar)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
+        fh_zip.close()
         A = np.array(data.split('\n'))
         print("Now processing (this may take a minute) ...")
 
