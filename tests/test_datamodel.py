@@ -503,7 +503,11 @@ class JSONTests(unittest.TestCase):
         t_file.close()
         dat = dm.readJSONheadedASCII(self.filename)
         dm.toHTML(t_file.name, dat, attrs=['DESCRIPTION', 'UNITS', 'ELEMENT_LABELS'], varLinks=True)
-        self.assertEqual(12834, os.path.getsize(t_file.name)) # not the best test but I am lazy
+        if sys.platform == 'win32':
+            expected = 12916 #different line-endings
+        else:
+            expected = 12834
+        self.assertEqual(expected, os.path.getsize(t_file.name)) # not the best test but I am lazy
         os.remove(t_file.name)
 
     def test_writeJSONMetadata(self):
