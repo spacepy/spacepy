@@ -18,25 +18,12 @@ binaries are needed to build the docs. Thus, sdist will accept compiler
 options (and may need them.)
 
 Windows build:
-Grab latest mingwget from http://sourceforge.net/projects/mingw/files/
-(Installer/mingw-get)
-Unzip it, on windows, into C:\MinGW
-Put C:\MinGW\bin on the path (right click my computer, properties,
-    advanced, environment variables)
-Start a command line
-mingw-get install gcc g++ mingw32-make fortran
-Make a snapshot of the VM, you'll be coming back to this
-Install python 2.6 (msi from python.org)
-edit path again, append ;c:\Python26;c:\Python26\Scripts
-Install numpy, scipy, matplotlib, distribute, pip, h5py from downloaded exe
-Install the CDF library
-Make C:\Python26\Lib\distutils\distutils.cfg, containing:
-    [build]
-    compiler=mingw32
-easy_install networkx ffnet sphinx numpydoc
+Follow the "hard way" directions from the installation docs.
 unzip the source distribution from the Unix side
+(Rebuilding of the source distribution will ensure the latest
+docs are in the Windows installer.)
     python setup.py bdist_wininst
-installer exe is in the dist directory. Don't worry about the PDF failing.
+installer exe is in the dist directory.
 Run the installer and make sure it works. Copy it out.
 
 Now revert to the snapshot and do it ALL OVER for Python 2.7!
