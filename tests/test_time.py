@@ -9,6 +9,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 import datetime
 import unittest
 import pickle
+import time
 import warnings
 
 import numpy
@@ -387,6 +388,7 @@ class TimeClassTests(unittest.TestCase):
     def test_now(self):
         """now() is at least deterministic"""
         v1 = t.Ticktock.now()
+        time.sleep(0.1)
         v2 = t.Ticktock.now()
         self.assertTrue(v1 < v2)
 
