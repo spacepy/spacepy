@@ -788,7 +788,7 @@ it's used here to mark the first time around the loop.
 the ``in`` operator compares the resulting string to see if it is
 present in the following list. This will return ``True`` if the line
 begins with ``19`` or ``20``. The `if
-<ttp://docs.python.org/tutorial/controlflow.html#if-statements>`_
+<http://docs.python.org/tutorial/controlflow.html#if-statements>`_
 statement executes the following indented block if the condition is
 True. So, if this is True, the previous line probably ended properly
 and it can be written out. First there is an additional check that
