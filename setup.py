@@ -620,7 +620,7 @@ pybats_ext = Extension('spacepy.pybats.ctrace2d',
 
 # run setup from distutil
 setup(name='spacepy',
-      version='0.1.3',
+      version='0.1.4',
       description='SpacePy: Tools for Space Science Applications',
       ext_modules=[pybats_ext, ],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
