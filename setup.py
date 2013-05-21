@@ -564,8 +564,6 @@ class bdist_wininst(_bdist_wininst):
 
     def run(self):
         self.copy_fortran_libs()
-        rebuild_static_docs(self.distribution,
-                            self.get_finalized_command('build').build_lib)
         _bdist_wininst.run(self)
 
 
