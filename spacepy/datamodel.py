@@ -918,10 +918,11 @@ def toHDF5(fname, SDobject, **kwargs):
         if os.path.isfile(fname) and kwargs['overwrite']:
             os.remove(fname)
         hfile = hdf.File(fname, mode=wr_mo)
+        must_close = True
     else:
         hfile = fname
         #should test here for HDF file object
-
+        must_close = False
     if 'path' in kwargs:
         path = kwargs['path']
     else:
@@ -939,31 +940,30 @@ def toHDF5(fname, SDobject, **kwargs):
     SDobject = convertKeysToStr(SDobject)
     SDcarryattrs(SDobject,hfile,path,allowed_attrs)
 
-    for key, value in SDobject.iteritems():
-        if isinstance(value, allowed_elems[0]):
-            hfile[path].create_group(key)
-            toHDF5(hfile, SDobject[key], path=path+'/'+key, compression=h5_compr_type, compression_opts=h5_compr_opts)
-        elif isinstance(value, allowed_elems[1]):
-            try:
-                hfile[path].create_dataset(key, data=value, compression=h5_compr_type, compression_opts=h5_compr_opts)
-            except:
-                dumval = value.copy()
-                if isinstance(value[0], datetime.datetime):
-                    for i, val in enumerate(value): dumval[i] = val.isoformat()
-                hfile[path].create_dataset(key, data=dumval.astype('|S35'), compression=h5_compr_type, compression_opts=h5_compr_opts)
-                #else:
-                #    hfile[path].create_dataset(key, data=value.astype(float))
-            SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
-            if path=='/':
-                hfile.close()
-        else:
-            #test suite turns following warning into error, must close file
-            if path == '/':
-                hfile.close()
-            warnings.warn('The following data is not being written as is not of an allowed type\n' +
-                           'key = {0} ({1})\n'.format(key, type(key)) +
-                              'value type {0} is not in the allowed data type list'.format(type(value)),
-                                  DMWarning)
+    try:
+        for key, value in SDobject.iteritems():
+            if isinstance(value, allowed_elems[0]):
+                hfile[path].create_group(key)
+                toHDF5(hfile, SDobject[key], path=path+'/'+key, compression=h5_compr_type, compression_opts=h5_compr_opts)
+            elif isinstance(value, allowed_elems[1]):
+                try:
+                    hfile[path].create_dataset(key, data=value, compression=h5_compr_type, compression_opts=h5_compr_opts)
+                except:
+                    dumval = value.copy()
+                    if isinstance(value[0], datetime.datetime):
+                        for i, val in enumerate(value): dumval[i] = val.isoformat()
+                    hfile[path].create_dataset(key, data=dumval.astype('|S35'), compression=h5_compr_type, compression_opts=h5_compr_opts)
+                    #else:
+                    #    hfile[path].create_dataset(key, data=value.astype(float))
+                SDcarryattrs(SDobject[key], hfile, path+'/'+key, allowed_attrs)
+            else:
+                warnings.warn('The following data is not being written as is not of an allowed type\n' +
+                               'key = {0} ({1})\n'.format(key, type(key)) +
+                                  'value type {0} is not in the allowed data type list'.format(type(value)),
+                                      DMWarning)
+    finally:
+        if must_close:
+            hfile.close()
 
 
 def toHTML(fname, SDobject, attrs=(),
