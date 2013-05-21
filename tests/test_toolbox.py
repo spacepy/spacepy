@@ -102,8 +102,11 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_getNamedPath(self):
         """getNamedPath should have known result"""
         ans = ['spacepy', 'tests']
-        numpy.testing.assert_equal(ans, tb.getNamedPath('tests').split(os.path.sep)[-2:])
-        numpy.testing.assert_equal(ans[0], tb.getNamedPath('spacepy').split(os.path.sep)[-1])
+        res = tb.getNamedPath('tests').split(os.path.sep)[-2:]
+        self.assertEqual(ans[0], res[0][0:len(ans[0])])
+        self.assertEqual(ans[1], res[1][0:len(ans[0])])
+        self.assertEqual(res[0],
+                         tb.getNamedPath(res[0]).split(os.path.sep)[-1])
 
     def test_progressbar(self):
         """progressbar shouldhave a known output"""
