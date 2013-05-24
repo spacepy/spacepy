@@ -14,7 +14,7 @@ import unittest
 import spacepy
 import spacepy.LANLstar as sl
 import numpy
-from numpy import array
+from numpy import array, hstack
 
 __all__ = ['LANLStarFunctionsTest', 'lanlstarTest']
 
@@ -96,6 +96,19 @@ class lanlstarTest(unittest.TestCase):
         for key in Bmodels:
             numpy.testing.assert_almost_equal(expected_lmax[key], actual[key], decimal=4)
             
+    def test_get_lanlmax_G(self):
+        self.dat['G'] = hstack([self.dat['G1'], self.dat['G2'], self.dat['G3']])
+        self.dat['W'] = hstack([self.dat['W1'], self.dat['W2'], self.dat['W3'], self.dat['W4'], self.dat['W5'], self.dat['W6']])
+        for i in range(1,4): del self.dat['G{0}'.format(i)]
+        for i in range(1,7): del self.dat['W{0}'.format(i)]
+        expected_lmax = {'T01QUIET' : array([10.0538]),
+                          'T01STORM': array([9.9300]),
+                          'T05'     : array([9.9295])}
+
+        Bmodels = ['T01QUIET','T01STORM','T05']
+        actual = sl.LANLmax(self.dat, Bmodels)
+        for key in Bmodels:
+            numpy.testing.assert_almost_equal(expected_lmax[key], actual[key], decimal=4)
 
 if __name__=="__main__":
     unittest.main()

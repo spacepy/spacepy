@@ -50,7 +50,7 @@ def _get_net_path(filename):
         raise RuntimeError("Could not find neural network file " + filename)
 
 # ------------------------------------------------
-def _LANLcommon(inputdict, extMag, domax):
+def _LANLcommon(indict, extMag, domax):
     """
     Shared code between LANLstar and LANLmax
 
@@ -106,10 +106,21 @@ def _LANLcommon(inputdict, extMag, domax):
                    'T89': 'Lmax_T89.net',
                    'T96': 'Lmax_T96.net',
                     }
-    
+    inputdict = indict.copy()
     npt = len(inputdict['Year'])
     Lstar_out = {} 
-    
+    if 'G' in inputdict:
+        for n in range(1,4):
+            dum = inputdict['G'][...,n-1]
+            if dum.ndim == 0: dum = np.array([dum])
+            inputdict['G{0}'.format(n)] = dum
+        del inputdict['G']
+    if 'W' in inputdict:
+        for n in range(1,7):
+            dum = inputdict['W'][...,n-1]
+            if dum.ndim == 0: dum = np.array([dum])
+            inputdict['W{0}'.format(n)] = dum
+        del inputdict['W']
     if isinstance(extMag, str): extMag = [extMag]
 
     for modelkey in extMag:
@@ -336,3 +347,30 @@ def LANLmax(inputdict, extMag):
      'T05': array([9.9295])}
      """
     return _LANLcommon(inputdict, extMag, True)
+
+def addPA(indict, PA):
+    '''Function to add pitch angle to input dictionary from, e.g., omni module
+
+    Parameters
+    ==========
+    indict : dictionary-like
+        containing keys required for LANLstar and LANLmax
+    
+    PA : float
+        pitch angle
+
+    Returns
+    =======
+    out : dictionary
+        input dictionary with input pitch angle added as 'PA' key having the length of other inputs
+
+    Examples
+    ========
+    >>> import spacepy.LANLstar as LS
+    >>>
+    >>> inputdict = {}
+
+    '''
+    ll = len(indict['Year'])
+    indict['PA'] = [PA]*ll
+    return indict
