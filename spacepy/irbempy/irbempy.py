@@ -993,12 +993,24 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     nTAI = len(ticks)
 
     # setup mag array and move omni values
-    magin = np.zeros((nalp_max,ntime_max),float)	
+    magin = np.zeros((nalp_max,ntime_max),float)
     magkeys = ['Kp', 'Dst', 'dens', 'velo', 'Pdyn', 'ByIMF', 'BzIMF',\
                     'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
     # get omni values
     if omnivals is None: # nothing provided so use lookup table
         omnivals = omni.get_omni(ticks)
+    if 'G' in omnivals:
+        for n in range(1,4):
+            dum = omnivals['G'][...,n-1]
+            if dum.ndim == 0: dum = np.array([dum])
+            omnivals['G{0}'.format(n)] = dum
+        del omnivals['G']
+    if 'W' in omnivals:
+        for n in range(1,7):
+            dum = omnivals['W'][...,n-1]
+            if dum.ndim == 0: dum = np.array([dum])
+            omnivals['W{0}'.format(n)] = dum
+        del omnivals['W']
         
     for iTAI in np.arange(nTAI):
         for ikey, key in enumerate(magkeys):
