@@ -11,17 +11,17 @@ Copyright 2010 Los Alamos National Security, LLC.
 
 
 """
-import bisect, re
+import bisect, re, os
 import numpy as np
-from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten
+from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten, readJSONheadedASCII
 from spacepy.toolbox import tOverlapHalf, indsFromXrange
 import spacepy.time as spt
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
-def get_omni(ticks, dbase='QDhourly'):
+def get_omni(ticks, dbase='QDhourly', **kwargs):
     '''
-    Returns Qin-Denton OMNI values, interpolated to any time-base from 1-hourly resolution
+    Returns Qin-Denton OMNI values, interpolated to any time-base from a default hourly resolution
 
     The update function in toolbox retrieves all available hourly Qin-Denton data, 
     and this function accesses that and interpolates to the given times,
@@ -95,16 +95,44 @@ def get_omni(ticks, dbase='QDhourly'):
     '''
     dbase_options = {'QDhourly'    : 1,
                      'OMNI2hourly' : 2,
-                     'Mergedhourly': 3
+                     'Mergedhourly': 3,
                      }
-    if not dbase in dbase_options: raise NotImplementedError
 
-    import h5py as h5
     if not isinstance(ticks, spt.Ticktock):
         try:
             ticks = spt.Ticktock(ticks, 'UTC')
         except:
             raise TypeError('get_omni: Input times must be a Ticktock object or a list of datetime objects')
+
+    if not dbase in dbase_options:
+        from spacepy import config
+        if dbase in config:
+            #If a dbase is specified that isn't a default, then it MUST be in the spacepy config
+            qdpath = os.path.split(os.path.split(config[dbase])[0])[0]
+            if not os.path.isdir(qdpath): raise IOError('Specified dbase ({0}) does not have a valid location ({1})'.format(dbase, config[dbase]))
+            days = list(set([tt.date() for tt in ticks.UTC]))
+            flist = ['']*len(days)
+            fnpath, fnformat = os.path.split(config[dbase])
+            for idx, day in enumerate(days):
+                dp = fnpath.replace('YYYY', '{0}'.format(day.year))
+                df = fnformat.replace('YYYY', '{0}'.format(day.year))
+                df = df.replace('MM', '{0:02d}'.format(day.month))
+                df = df.replace('DD', '{0:02d}'.format(day.day))
+                flist[idx] = os.path.join(dp, df)
+            if 'convert' in kwargs:
+                convdict = kwargs['convert']
+            else:
+                convdict = True #set to True as default?
+            data = readJSONheadedASCII(flist, convert=convdict)
+            #Trim to specified times
+            inds = tOverlapHalf([ticks[0].RDT, ticks[-1].RDT], spt.Ticktock(data['DateTime']).RDT)
+            for key in data.keys():
+                data[key] = data[key][inds]
+            #TODO: convert to same format as OMNI/QD read (or vice versa)
+            data['UTC'] = data['DateTime']
+            return data
+        else:
+            raise IOError('Specified dbase ({0}) must be specified in spacepy.config'.format(dbase))
 
     def getattrs(hf, key):
         out = {}
@@ -123,6 +151,7 @@ def get_omni(ticks, dbase='QDhourly'):
         musecond = indt.microsecond
         return hour+(minute/60.0)+(second/3600.0)+(musecond/3600.0e3)
 
+    import h5py as h5
     fname, QDkeylist, O2keylist = '', [], []
     omnivals = SpaceData()
     if dbase_options[dbase] == 1 or dbase_options[dbase] == 3:
@@ -186,7 +215,7 @@ def get_omni(ticks, dbase='QDhourly'):
     omniout = SpaceData(attrs=dmcopy(omnivals.attrs))
     omniout.attrs['filename'] = fname[1:]
     ###print('QDkeys: {0}\n\nO2keys: {1}'.format(QDkeylist, O2keylist))
-    for key in omnivals.keys():
+    for key in sorted(omnivals.keys()):
         if key in O2keylist:
             omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT_OMNI'], omnivals[key], left=np.NaN, right=np.NaN))
             #set metadata -- assume this has been set properly in d/l'd file to match ECT-SOC files
@@ -194,10 +223,25 @@ def get_omni(ticks, dbase='QDhourly'):
         elif key in QDkeylist:
             omniout[key] = dmarray(np.interp(ticks.RDT, omnivals['RDT'], omnivals[key], left=np.NaN, right=np.NaN))
             omniout[key].attrs = dmcopy(omnivals[key].attrs)
+        if key == 'G3': #then we have all the Gs
+            omniout['G'] = dmarray(np.vstack([omniout['G1'], omniout['G2'], omniout['G3']]).T)
+            omniout['G'].attrs = dmcopy(omnivals['G1'].attrs)
+            for i in range(1,4): del omniout['G{0}'.format(i)]
+        if key == 'W6':
+            omniout['W'] = dmarray(np.vstack([omniout['W1'], omniout['W2'], omniout['W3'], omniout['W4'], omniout['W5'], omniout['W6']]).T)
+            omniout['W'].attrs = dmcopy(omnivals['W1'].attrs)
+            for i in range(1,7): del omniout['W{0}'.format(i)]
         if 'Qbits' in key:
             #Qbits are integer vals, higher is better, so floor to get best representation of interpolated val
             omniout[key] = np.floor(omniout[key]) 
             omniout[key].attrs = dmcopy(omnivals[key].attrs)
+            if 'G3' in key: #then we have all the Gs
+                omniout['Qbits<--G'] = dmarray(np.vstack([omniout['Qbits<--G1'], omniout['Qbits<--G2'], omniout['Qbits<--G3']]).T)
+                for i in range(1,4): del omniout['Qbits<--G{0}'.format(i)]
+            if 'W6' in key:
+                omniout['Qbits<--W'] = dmarray(np.vstack([omniout['Qbits<--W1'], omniout['Qbits<--W2'], omniout['Qbits<--W3'], omniout['Qbits<--W4'], omniout['Qbits<--W5'], omniout['Qbits<--W6']]).T)
+                for i in range(1,7): del omniout['Qbits<--W{0}'.format(i)]
+
     omniout['ticks'] = ticks
     omniout['UTC'] = ticks.UTC
     omniout['Hr'] = dmarray([HrFromDT(val) for val in omniout['UTC']])
