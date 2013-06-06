@@ -802,7 +802,7 @@ class RamSat(object):
     def add_omniflux_plot(self, nameflux, target=None, zlim=[1E4,1E9],
                           add_cbar=True, do_orbticks=False, title=False,
                           timelim=False, loc=111, no_xlabels=False):
-        '''
+        """
         Create and place a pcolor-type plot of omnidirectional flux.
 
         Omnidirectional fluxes are calculated by the object method
@@ -825,7 +825,7 @@ class RamSat(object):
         The other extreme is the kwarg "no_xlabels".  If set to True,
         the xlabel and xticklabels will be cleared.  This is convenient
         for stacking flux plots on each other.
-        '''
+        """
 
         import matplotlib.pyplot as plt
         from matplotlib.colors  import LogNorm
