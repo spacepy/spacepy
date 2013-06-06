@@ -3,8 +3,11 @@ A module for reading, handling, and plotting RAM-SCB output.
 '''
 
 # Global imports
-import numpy as np
 import datetime as dt
+
+import numpy as np
+from scipy.io import netcdf
+
 from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray
 
@@ -559,14 +562,16 @@ class RamSat(object):
     # Make'em work like a dictionary:
     def __getitem__(self, key):
         if self.filedata.has_key(key):
-            return self.filedata[key].get_value()
+            return self.filedata[key][...]
         elif self.data.has_key(key):
             return self.data[key]
         else:
-            raise KeyError('Key not found in object.')
-    def __setitem__(self, key,value):
-        self.data[key]=value
-        self.namevars.append(key)
+            raise KeyError(key)
+        
+    def __setitem__(self, key, value):
+        self.data[key] = value
+        if not key in self.namevars:
+            self.namevars.append(key)
 
     def keys(self):
         '''
@@ -574,14 +579,14 @@ class RamSat(object):
         '''
         return self.filedata.keys() + self.data.keys()
 
-    def has_key(self,key):
+    def has_key(self, key):
         '''
         Checks object dictionaries for "key", returns boolean.
         '''
-        if self.filedata.has_key(key) or self.data.has_key(key):
-            return True
-        else:
-            return False
+        return key in self
+
+    def __contains__(self, key):
+        return key in self.filedata or key in self.data
 
     def __init__(self, filename):
         # Filename:
@@ -589,59 +594,50 @@ class RamSat(object):
         self._read()
 
     def close(self):
-        f.close()
+        self.f.close()
+
+    def __del__(self):
+        self.close()
 
     def _read(self):
         '''
         Load the NCDF file.  Should only be called by __init__().
         '''
-        try:
-            from PyNIO import Nio
-        except ImportError:
-            try:
-                import Nio
-            except ImportError:
-                raise ImportError('PyNIO required, not found.')
-
-        f=Nio.open_file(self.filename,'r')
-        self.namevars=f.variables.keys()
-        self.attrs=f.attributes
-        # self.filedata contains the raw NioVariable objects.
-        self.filedata = f.variables
+        self.f = netcdf.netcdf_file(self.filename, mode='r', mmap=False)
+        self.namevars = self.f.variables.keys()
+        self.attrs = {}
+        #split off the netCDF attributes from the Python attributes
+        for k in dir(self.f):
+            if k[0] == '_' or k in ('dimensions', 'filename', 'fp', 'mode',
+                                    'use_mmap', 'variables', 'version_byte'):
+                continue
+            self.attrs[k] = getattr(self.f, k)
+        # self.filedata contains the raw netcdf_variable objects.
+        self.filedata = self.f.variables
         # New values saved as self[key] are stored in self.data, not
         # self.filedata which cannot be changed.
         self.data={}
 
         # Get start time, set default if not found.
         try:
-            stringtime = f.attributes['start_time']
+            stringtime = self.attrs['start_time']
         except KeyError:
             stringtime = '20000101000000'
 
         # parse start time and use it to create time object.
-        self.starttime = dt.datetime( 
-            int(stringtime[0:4]),   #year
-            int(stringtime[4:6]),   #month
-            int(stringtime[6:8]),   #dat
-            int(stringtime[8:10]),  #hour
-            int(stringtime[10:12]), #minute
-            int(stringtime[12:14])) #second
+        self.starttime = dt.datetime.strptime(stringtime, '%Y%m%d%H%M%S')
         
         # Convert time in seconds to datetime.
-        secs=f.variables['Time'].get_value()
-        self.time=np.zeros(len(secs),dtype=object)
-        for i,s in enumerate(secs):
-            self.time[i]=self.starttime+dt.timedelta(seconds=int(s))
+        secs = self.f.variables['Time'][...]
+        self.time = np.array(
+            [self.starttime + dt.timedelta(seconds=float(s)) for s in secs])
 
         # Some other variables to keep handy:
         try:
-            self.dt=self['DtWrite']
+            self.dt = self['DtWrite']
         except KeyError:
             # Old files do not have DtWrite.
-            dT = np.zeros(len(time)-1)
-            for i in range(1, len(self.time)):
-                dT[i-1] = self.time[i] - self.time[i-1]
-                self.dt=dT.min()
+            self.dt = np.diff(time).min()
 
     def create_omniflux(self):
         '''
