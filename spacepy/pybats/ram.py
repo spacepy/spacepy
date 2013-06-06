@@ -546,17 +546,6 @@ class RamSat(object):
     >>>sat['New Thing']=(0,1,2,3,4)
     Be sure to peruse the docstrings of the many object methods to discover
     the many plotting functions and canned plotting routines.
-
-    Other notes:
-    Because RAM-SCB virtual satellite files are NetCDF format, ensure that you
-    have PyNIO installed.  PyNIO is the quickest, most robust NetCDF library
-    available.  Find it here: http://www.pyngl.ucar.edu/Nio.shtml  Note that
-    even though PyNIO is available through MacPorts and other package managers,
-    it may be much easier to install a pre-compiled binary rather than from 
-    source.
-
-    PyNIO only recognizes files with proper extensions (e.g. *.nc, NOT *.ncdf).
-    If a file won't open, check its extension first.
     '''
 
     # Make'em work like a dictionary:
@@ -1250,7 +1239,7 @@ class PressureFile(PbData):
                        labelsize=15,  title='auto', **kwargs):
         '''
         Create a polar log-axis contour plot of pressure and add it to axis
-        'ax'.  For speedier plots, use plot_cont_press, which makes it's
+        'ax'.  For speedier plots, use plot_cont_press, which makes its
         own axis.
         '''
         from numpy import linspace, power, max, pi, log10
