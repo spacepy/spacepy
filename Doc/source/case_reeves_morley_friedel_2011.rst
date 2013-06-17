@@ -203,14 +203,18 @@ Solar Wind data and averaging
 The top panel of figure 1 shows the ESP fluxes overplotted with the
 solar wind velocity. Fortunately, the :mod:`~spacepy.omni` module of
 SpacePy provides an interface to the hourly solar wind dataset,
-OMNI. The data are stored in a `dictionary
-<http://docs.python.org/tutorial/datastructures.html#dictionaries>`_
-called ``omnidata``, which we will access directly since we do not
-need the interpolation functions of :func:`~spacepy.omni.get_omni`:
+OMNI. :func:`~spacepy.omni.get_omni`: returns data for a particular
+set of times. In this case, we want hourly data, covering 1989 through 
+2010 (we'll cut it down to size later. :func:`~spacepy.time.tickrange`
+allows us to specify a start time, stop time, and time step.
 
 >>> import spacepy.omni
->>> vsw = spacepy.omni.omnidata['velo']
->>> vsw_times = spacepy.omni.omnidata['UTC']
+>>> import spacepy.time
+>>> times = spacepy.time.tickrange('1989-01-01', '2011-01-01',
+...                                datetime.timedelta(hours=1))
+>>> d = spacepy.omni.get_omni(times)
+>>> vsw = d['velo']
+>>> vsw_times = d['UTC']
 
 We'll also load the esp data:
 
@@ -615,6 +619,7 @@ Following is the complete code to reproduce Figure 1.
     import scipy
     import scipy.stats
     import spacepy.omni
+    import spacepy.time
 
 
     matplotlib.rcParams['axes.unicode_minus'] = False
@@ -623,8 +628,11 @@ Following is the complete code to reproduce Figure 1.
     matplotlib.rcParams['font.size'] = 14
     bob = matplotlib.transforms.Bbox([[0.4, 0.35], [10.7, 7.95]])
 
-    vsw = spacepy.omni.omnidata['velo']
-    vsw_times = spacepy.omni.omnidata['UTC']
+    times = spacepy.time.tickrange('1989-01-01', '2011-01-01',
+                                   datetime.timedelta(hours=1))
+    d = spacepy.omni.get_omni(times)
+    vsw = d['velo']
+    vsw_times = d['UTC']
     esp_times, esp_flux = common.load_esp()
     esp_flux_av = numpy.empty(shape=esp_flux.shape, dtype=esp_flux.dtype)
     for i in range(len(esp_flux_av)):
