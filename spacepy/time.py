@@ -1532,9 +1532,9 @@ def tickrange(start, end, deltadays, dtype='UTC'):
     Parameters
     ==========
     start : string or number
-        start time
+        start time (ISO standard string and UTC/datetime do not require a dtype)
     end : string or number
-        end time (inclusive)
+        last possible time in series (excluded unless end=start+n*step for integer n)
     deltadays : float or timedelta
         step in units of days (float); or datetime timedelta object
     dtype : string (optional)
