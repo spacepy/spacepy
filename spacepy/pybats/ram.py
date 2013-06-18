@@ -896,10 +896,40 @@ class RamSat(object):
 
         return fig, ax, flx, cbar
 
-    def plot_omni_quicklook(self):
-        '''
+    def plot_omni_quicklook(self, flux_opts={}, eflux_opts={},
+                            hflux_opts={}, oflux_opts={}):
+        """
         Create a quick-look plot of omnidirectional fluxes.
-        '''
+
+        Other Parameters
+        ================
+        flux_opts : dict
+            dictionary of keyword arguments to pass to
+            :meth:`add_omniflux_plot` for all flux plots
+
+        eflux_opts : dict
+            as flux_opts, but for the electron flux plot only
+
+        hflux_opts : dict
+            as flux_opts, but for the H+ flux plot only
+
+        oflux_opts : dict
+            as flux_opts, but for the O+ flux plot only
+
+        Returns
+        =======
+        out : Figure
+            Has 9 axes instances (axes attribute)
+            0: XY orbit plot
+            1: XZ orbit plot
+            2: YZ orbit plot
+            3: e- flux
+            4: H+ flux
+            5: O+ flux
+            6: e- flux color bar
+            7: H+ flux color bar
+            8: O+ flux color bar
+        """
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
         
@@ -920,9 +950,16 @@ class RamSat(object):
         a1=fig.add_subplot(gs[0,1:])
         a2=fig.add_subplot(gs[1,1:])
         a3=fig.add_subplot(gs[2,1:])
-        self.add_omniflux_plot('omnie', target=a1, no_xlabels=True)
-        self.add_omniflux_plot('omniH', target=a2, no_xlabels=True)
-        self.add_omniflux_plot('omniO', target=a3, do_orbticks=True)
+        for k in flux_opts:
+            for d in (eflux_opts, hflux_opts, oflux_opts):
+                if not k in d:
+                    d[k] = flux_opts[k]
+        self.add_omniflux_plot('omnie', target=a1, no_xlabels=True,
+                               **eflux_opts)
+        self.add_omniflux_plot('omniH', target=a2, no_xlabels=True,
+                               **hflux_opts)
+        self.add_omniflux_plot('omniO', target=a3, do_orbticks=True,
+                               **oflux_opts)
         
         return fig
 
