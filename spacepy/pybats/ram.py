@@ -723,22 +723,36 @@ class RamSat(object):
         return (fmtstring)
 
     def add_orbit_plot(self, plane='XY', target=None, timelim=False, loc=111, 
-                       ls='g.', title=False):
-        '''
-        Add a simple, 2D plot of the satellite orbit in a given plane.
-        Plane options are 'XY', 'XZ', and 'YZ'.  Defaults to 'XY'.
+                       ls='g.', title=False, invertX=True):
+        """
+        Add a simple, 2D plot of the satellite orbit in a given (SM) plane.
 
-        If kwarg 'target' is None (default), a new figure is 
-        generated from scratch.  If target is a matplotlib Figure
-        object, a new axis is created to fill that figure.
-        if target is a matplotlib Axes object, the plot is placed
-        into that axis.  Use kwarg "loc" to specify the subplot placement
-        of the axis (e.g. loc=212, etc.)
-        '''
+        Other Parameters
+        ================
+        plane : string
+             Plane to plot. Options are 'XY', 'XZ', and 'YZ'; defaults 'XY'.
+
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+
+        invertX : boolean
+            Reverse the SM X axis so "Sun is to the left." Default True.
+            This reverses the SM axis, not the plot axis, so it has no effect
+            if plane is YZ.
+        """
         import matplotlib.pyplot as plt
         
-        if ['XY','XZ','YZ'].count(plane)==0:
-            raise ValueError("'%s' is not a valid plot plane."%plane)
+        if not plane.upper() in ('XY','XZ','YZ'):
+            raise ValueError("{0} is not a valid plot plane.".format(plane))
 
         if type(target) == plt.Figure:
             fig = target
@@ -750,11 +764,11 @@ class RamSat(object):
             fig = plt.figure(figsize=(5,5))
             ax = fig.add_subplot(loc)
 
-        plane=plane.upper()
-
         # Variables to map plot plane to correct variables:
-        ijk={'X':0,'Y':1,'Z':2}
-        i=ijk[plane[0]]; j=ijk[plane[1]]
+        plane = plane.upper()
+        ijk = {'X':0, 'Y':1, 'Z':2}
+        i = ijk[plane[0]]
+        j = ijk[plane[1]]
 
         if not timelim: 
         # Set default time limit if none given.
@@ -775,6 +789,8 @@ class RamSat(object):
 
         # Axis details:
         ax.axis('equal')
+        if plane.upper() in ('XY','XZ') and invertX:
+            ax.invert_xaxis()
         ax.set_xlabel('SM %s'%(plane[0]))
         ax.set_ylabel('SM %s'%(plane[1]))
         if title:
