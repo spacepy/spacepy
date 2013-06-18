@@ -810,22 +810,32 @@ class RamSat(object):
         "create_omniflux" and are saved into the object with keys such as
         'omniO' and 'omniHe', etc.  
 
-        If kwarg 'target' is None (default), a new figure is 
-        generated from scratch.  If target is a matplotlib Figure
-        object, a new axis is created to fill that figure.
-        if target is a matplotlib Axes object, the plot is placed
-        into that axis.  Use kwarg "loc" to specify the subplot placement
-        of the axis (e.g. loc=212, etc.)
+        Other Parameters
+        ================
 
-        Orbit ticks (activated by setting kwarg do_orbticks=True) add complex
-        but informational tick marks that list the satellite's coordinates
-        along with the time on the x-axis.  However, using these will require
-        some "massaging" of the plot to make them properly visible.  Be sure
-        to add lots of padding to the bottom of the plot.
 
-        The other extreme is the kwarg "no_xlabels".  If set to True,
-        the xlabel and xticklabels will be cleared.  This is convenient
-        for stacking flux plots on each other.
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+
+        do_orbticks : boolean
+            Activate orbit ticks (default False): add complex but
+            informational tick marks that list the satellite's coordinates
+            along with the time on the x-axis.  However, using these will
+            require some "massaging" of the plot to make them properly
+            visible.  Be sure to add lots of padding to the bottom of the plot.
+
+        no_xlabels : boolean
+            (Default False) Completely omit xlabel and xticklabels.
+            Convenient for stacking flux plots on each other.
         """
 
         import matplotlib.pyplot as plt
