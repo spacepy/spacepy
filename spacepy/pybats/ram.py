@@ -201,12 +201,8 @@ def grid_zeros(axis):
     plot range.  This should be called last when creating
     a plot; after you have the range sorted out.
     '''
-    xrng = axis.get_xlim()
-    yrng = axis.get_ylim()
-    axis.plot([-1*10^5,10^5], [0,0], 'k-')
-    axis.plot([0,0], [-1*10^5,10^5], 'k-')
-    axis.set_xlim(xrng)
-    axis.set_ylim(yrng)
+    axis.axvline(0, ls='-', color='k')
+    axis.axhline(0, ls='-', color='k')
     
 def set_orb_ticks(axis):
     '''
