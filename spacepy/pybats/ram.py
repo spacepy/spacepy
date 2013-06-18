@@ -896,8 +896,8 @@ class RamSat(object):
 
         return fig, ax, flx, cbar
 
-    def plot_omni_quicklook(self, flux_opts={}, eflux_opts={},
-                            hflux_opts={}, oflux_opts={}):
+    def plot_omni_quicklook(self, flux_opts=None, eflux_opts=None,
+                            hflux_opts=None, oflux_opts=None):
         """
         Create a quick-look plot of omnidirectional fluxes.
 
@@ -950,6 +950,14 @@ class RamSat(object):
         a1=fig.add_subplot(gs[0,1:])
         a2=fig.add_subplot(gs[1,1:])
         a3=fig.add_subplot(gs[2,1:])
+        if eflux_opts is None:
+            eflux_opts = {}
+        if hflux_opts is None:
+            hflux_opts = {}
+        if oflux_opts is None:
+            oflux_opts = {}
+        if flux_opts is None:
+            flux_opts = {}
         for k in flux_opts:
             for d in (eflux_opts, hflux_opts, oflux_opts):
                 if not k in d:
