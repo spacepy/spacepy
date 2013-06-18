@@ -866,7 +866,7 @@ class RamSat(object):
         time[1:]=date2num(self.time+dt.timedelta(seconds=self.dt/2.0))
         #egrid=self['energy_grid']
         ecenter, eboundary, ewidth=gen_egrid(nE=self['energy_grid'].size)
-        print("Need better energy grid setup for pcolormesh.")
+#        print("Need better energy grid setup for pcolormesh.")
         flx=ax.pcolormesh(time,eboundary,self[nameflux].transpose(),
                           norm=LogNorm(),vmin=zlim[0],vmax=zlim[1])
         ax.set_yscale('log')
@@ -878,7 +878,7 @@ class RamSat(object):
             ax.set_xlabel('')
             ax.set_xticklabels([''])
             do_orbticks=False
-        ax.set_ylabel('E ($KeV$)')
+        ax.set_ylabel('E ($keV$)')
         if title:  #If title not set, use a default:
             ax.set_title(title)
         else:
@@ -890,7 +890,7 @@ class RamSat(object):
         if add_cbar:
             cbar = plt.colorbar(flx, pad=0.01, shrink=.85, ticks=LogLocator(), 
                                 format=LogFormatterMathtext(), ax=ax)
-            cbar.set_label('$cm^{-2}s^{-1}KeV^{-1}$')
+            cbar.set_label('$cm^{-2}s^{-1}keV^{-1}$')
         else:
             cbar=False
 
