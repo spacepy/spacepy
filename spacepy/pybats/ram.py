@@ -786,7 +786,9 @@ class RamSat(object):
         # Axis details:
         ax.axis('equal')
         if plane.upper() in ('XY','XZ') and invertX:
-            ax.invert_xaxis()
+            xmin, xmax = ax.get_xlim()
+            if xmin < xmax:
+                ax.invert_xaxis()
         ax.set_xlabel('SM %s'%(plane[0]))
         ax.set_ylabel('SM %s'%(plane[1]))
         if title:
