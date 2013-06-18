@@ -878,7 +878,7 @@ class RamSat(object):
             ax.set_xlabel('')
             ax.set_xticklabels([''])
             do_orbticks=False
-        ax.set_ylabel('Log$_{10}$ E ($KeV$)')
+        ax.set_ylabel('E ($KeV$)')
         if title:  #If title not set, use a default:
             ax.set_title(title)
         else:
