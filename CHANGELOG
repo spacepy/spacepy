@@ -3,6 +3,7 @@ Changes in Version 0.1.5
 pycdf
  - fix bug with interpreting indexes with ellipses (var[..., 0] gave the
    wrong result).
+ - epoch16_to_epoch: round sub-milliseconds rather than truncate.
 
 Changes in Version 0.1.4
 ========================

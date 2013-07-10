@@ -779,7 +779,7 @@ class Library(object):
             EPOCH corresponding to epoch16
         """
         e = numpy.require(epoch16, numpy.float64)
-        return e[..., 0] * 1000.0 + numpy.trunc(e[..., 1] / 1e9)
+        return e[..., 0] * 1000.0 + numpy.round(e[..., 1] / 1e9)
 
     def tt2000_to_datetime(self, tt2000):
         """
