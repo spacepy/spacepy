@@ -151,6 +151,23 @@ class NoCDF(unittest.TestCase):
         self.assertEqual(cdf._Hyperslice.dimensions('hi'),
                          ())
 
+    def testExpandEllipsis(self):
+        """Tests of hyperslice's expand ellipsis method"""
+        inputs = [((Ellipsis, 0), 2),
+                  ((0,), 1),
+                  ]
+        expected = [(slice(None), 0),
+                    (0,),
+                    ]
+        for i, e in zip(inputs, expected):
+            self.assertEqual(cdf._Hyperslice.expand_ellipsis(*i), e)
+
+    def testExpandEllipsisError(self):
+        """Test hyperslice expand ellipsis with too many indices"""
+        self.assertRaises(IndexError,
+                          cdf._Hyperslice.expand_ellipsis,
+                          (Ellipsis, 0, 0, 0), 2)
+
     def testTT2000ToDatetime(self):
         if not cdf.lib.supports_int8:
             self.assertRaises(NotImplementedError, cdf.lib.tt2000_to_datetime,

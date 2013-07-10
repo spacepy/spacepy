@@ -3070,6 +3070,7 @@ class _Hyperslice(object):
 
         self.zvar = zvar
         self.rv = self.zvar.rv()
+        #dim of records, + 1 record dim (NRV always is record 0)
         self.dims = zvar._n_dims() + 1
         self.dimsizes = [len(zvar)] + \
                         zvar._dim_sizes()
@@ -3087,17 +3088,16 @@ class _Hyperslice(object):
 
         if not hasattr(key, '__len__'): #Not a container object, pack in tuple
             key = (key, )
-        key = self.expand_ellipsis(key,
-                                   (self.dims + 1) if self.rv else self.dims)
-        if len(key) == 1 and self.rv: #get all data for this record(s)
-            key = self.expand_ellipsis(key + (Ellipsis, ), self.dims + 1)
-        elif len(key) == self.dims - 1 or not self.rv: #NRV is always rec 0
-            if self.rv: #get all records
-                key = (slice(None, None, None), ) +key
-            else: #NRV, so get 0th record (degenerate)
-                key = (0, ) + key
-        self.expanded_key = key
+        if not self.rv:
+            key = (0, ) + key #NRV, so always get 0th record (degenerate)
+        key = self.expand_ellipsis(key, self.dims)
+        if self.rv: #special-cases for RV variables
+            if len(key) == 1: #get all data for this record(s)
+                key = self.expand_ellipsis(key + (Ellipsis, ), self.dims)
+            elif len(key) == self.dims - 1: #get same slice from each record
+                key = (slice(None, None, None), ) + key
         if len(key) == self.dims:
+            self.expanded_key = key
             for i in range(self.dims):
                 idx = key[i]
                 if hasattr(idx, 'start'): #slice
@@ -3300,13 +3300,13 @@ class _Hyperslice(object):
         if not Ellipsis in slices:
             return slices
 
-        extra = n_dims - len(slices) #how many dims to replace ellipsis
+        #how many dims to expand ellipsis to
+        #remember the ellipsis is in len(slices) and must be replaced!
+        extra = n_dims - len(slices) + 1
         if extra < 0:
-            raise IndexError('Too many dimensions specified to use ellipsis.')
+            raise IndexError('too many indices')
         idx = slices.index(Ellipsis)
-        result = slices[0:idx] + \
-                 tuple([slice(None, None, None) for i in range(extra)]) + \
-                 slices[idx+1:]
+        result = slices[0:idx] + (slice(None), ) * extra + slices[idx+1:]
         if Ellipsis in result:
             raise IndexError('Ellipses can only be used once per slice.')
         return result

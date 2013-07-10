@@ -1,3 +1,9 @@
+Changes in Version 0.1.5
+========================
+pycdf
+ - fix bug with interpreting indexes with ellipses (var[..., 0] gave the
+   wrong result).
+
 Changes in Version 0.1.4
 ========================
 - Removed deprecated functions/classes
