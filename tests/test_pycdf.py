@@ -153,18 +153,24 @@ class NoCDF(unittest.TestCase):
 
     def testExpandEllipsis(self):
         """Tests of hyperslice's expand ellipsis method"""
+        q = numpy.array([1, 2, 3]) #comparison fails if not the SAME array
         inputs = [((Ellipsis, 0), 2),
                   ((0,), 1),
                   (Ellipsis, 3),
+                  (([1, 2, 3], 4, Ellipsis, 0), 5),
+                  ((q, 4, Ellipsis, 0), 5),
                   ]
         expected = [(slice(None), 0),
                     (0,),
                     (slice(None, None, None),
                      slice(None, None, None),
-                     slice(None, None, None))
+                     slice(None, None, None)),
+                    ([1, 2, 3], 4, slice(None), slice(None), 0),
+                    (q, 4, slice(None), slice(None), 0),
                     ]
         for i, e in zip(inputs, expected):
-            self.assertEqual(cdf._Hyperslice.expand_ellipsis(*i), e)
+            numpy.testing.assert_array_equal(
+                cdf._Hyperslice.expand_ellipsis(*i), e)
 
     def testExpandEllipsisError(self):
         """Test hyperslice expand ellipsis with too many indices"""

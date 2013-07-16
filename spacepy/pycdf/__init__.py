@@ -3297,18 +3297,20 @@ class _Hyperslice(object):
         if slices is Ellipsis:
             return tuple([slice(None, None, None)
                           for i in range(n_dims)])
-        if not Ellipsis in slices:
+        #Elements might be numpy arrays, so can't use in/index
+        idx = [i for i, v in enumerate(slices) if v is Ellipsis]
+        if not idx: #no ellipsis
             return slices
+        if len(idx) > 1: #multiples!
+            raise IndexError('Ellipses can only be used once per slice.')
+        idx = idx[0]
 
         #how many dims to expand ellipsis to
         #remember the ellipsis is in len(slices) and must be replaced!
         extra = n_dims - len(slices) + 1
         if extra < 0:
             raise IndexError('too many indices')
-        idx = slices.index(Ellipsis)
         result = slices[0:idx] + (slice(None), ) * extra + slices[idx+1:]
-        if Ellipsis in result:
-            raise IndexError('Ellipses can only be used once per slice.')
         return result
 
     @staticmethod
