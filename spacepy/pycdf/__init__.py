@@ -3005,13 +3005,6 @@ class VarCopy(spacepy.datamodel.dmarray):
         """
         return super(VarCopy, cls).__new__(cls, zVar[...], zVar.attrs.copy())
 
-    def __getitem__(self, key):
-        """Returns a subset of the data in this copy"""
-        if not hasattr(key, '__len__') and not key is Ellipsis:
-            return super(VarCopy, self).__getitem__(key)
-        key = _Hyperslice.expand_ellipsis(key, len(self.shape))
-        return super(VarCopy, self).__getitem__(key)
-
 
 class _Hyperslice(object):
     """Represents a CDF 'slice' used for the hyper CDF functions

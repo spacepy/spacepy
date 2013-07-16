@@ -4,6 +4,7 @@ pycdf
  - fix bug with interpreting indexes with ellipses (var[..., 0] gave the
    wrong result).
  - epoch16_to_epoch: round sub-milliseconds rather than truncate.
+ - sped up indexing in variable copies
  - improved handling of numpy fancy indexing in variable copies
    (fancy indexing is still not supported for variables themselves.)
 
