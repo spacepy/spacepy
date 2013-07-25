@@ -113,7 +113,7 @@ class Ticktock(collections.MutableSequence):
     Ticktock class holding various time coordinate systems
     (TAI, UTC, ISO, JD, MJD, UNX, RDT, CDF, DOY, eDOY)
 
-    Possible data types:
+    Possible input data types:
     ISO: ISO standard format like '2002-02-25T12:20:30'
     UTC: datetime object with UTC time
     TAI: elapsed seconds since 1958/1/1 (includes leap seconds)
@@ -122,6 +122,11 @@ class Ticktock(collections.MutableSequence):
     MJD: Modified Julian days
     RDT: Rata Die days elapsed since 1/1/1
     CDF: CDF epoch: milliseconds since 1/1/0000
+
+    Possible output data types:
+    All those listed above, plus
+    DOY:  Integer day of year, starts with day 1
+    eDOY: Fractional day of year, starts at day 0
 
     Parameters
     ==========
@@ -1212,8 +1217,9 @@ class Ticktock(collections.MutableSequence):
                        "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         else:
-            print("ERROR: Data type ", self.data.attrs['dtype'], ' in getUTC() not supported')
-            return
+            warnstr1 = 'Input data type {0} does not support calculation of UTC times'.format(self.data.attrs['dtype'])
+            warnstr2 = 'Valid input dtypes are: {0}'.format(', '.join([kk for kk in self._keylist if kk not in ['DOY','eDOY','leaps']]))
+            raise TypeError('{0}\n{1}'.format(warnstr1, warnstr2))
 
         UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
         self.UTC = UTC
