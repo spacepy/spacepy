@@ -186,6 +186,7 @@ class Ticktock(collections.MutableSequence):
     """
     def __init__(self, data, dtype=None):
         self._keylist = ['UTC','TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
+        keylist_upper = [key.upper() for key in self._keylist]
 
         if isinstance(data, Ticktock):
             dtype = data.data.attrs['dtype']
@@ -204,7 +205,7 @@ class Ticktock(collections.MutableSequence):
                 dtype = 'UTC'
             elif self.data[0] > 1e13:
                 dtype = 'CDF'
-            assert dtype.upper() in self._keylist, "data type " + dtype +" not provided, only "+str(self._keylist)
+            assert dtype.upper() in keylist_upper, "data type " + dtype +" not provided, only "+str(self._keylist)
         self.data.attrs['dtype'] = dtype.upper()
         self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
         self.__isofmt = self.__isoformatstr['seconds']
