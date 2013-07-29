@@ -9,8 +9,6 @@ This contains the following classes:
  * :py:class:`dmarray` - numpy arrays that support .attrs for information about the data
  * :py:class:`SpaceData` - base class that extends dict, to be extended by others
 
-Currently used in GPScode and other projects
-
 Authors: Steve Morley and Brian Larsen
 
 Additional Contributors: Charles Kiyanda and Miles Engel
@@ -362,6 +360,43 @@ class dmarray(numpy.ndarray):
         outarr = dmarray(numpy.concatenate( (one, other) , axis=axis ))
         return cls._replaceAttrs(outarr, backup)
 
+def dmfilled(shape, fillval=0, dtype=None, order='C', attrs=None):
+    """
+    Return a new dmarray of given shape and type, filled with a specified value (default=0).
+
+    See Also
+    --------
+    numpy.ones
+
+    Examples
+    --------
+    >>> import spacepy.datamodel as dm
+    >>> dm.dmfilled(5, attrs={'units': 'nT'})
+    dmarray([ 0.,  0.,  0.,  0.,  0.])
+
+    >>> dm.dmfilled((5,), fillval=1, dtype=np.int)
+    dmarray([1, 1, 1, 1, 1])
+
+    >>> dm.dmfilled((2, 1), fillval=np.nan)
+    dmarray([[ nan],
+           [ nan]])
+
+    >>> a = dm.dmfilled((2, 1), np.nan, attrs={'units': 'nT'})
+    >>> a
+    dmarray([[ nan],
+           [ nan]])
+    >>> a.attrs
+    {'units': 'nT'}
+        
+    """
+    a = dmarray(numpy.empty(shape, dtype, order), attrs=attrs)
+    try:
+        a.fill(fillval)
+    except TypeError:
+        obj = numpy.core.numeric._maketup(dtype, fillval)
+        a.fill(obj)
+    return a
+
 
 class SpaceData(dict):
     """
@@ -396,6 +431,18 @@ class SpaceData(dict):
 
         super(SpaceData, self).__init__(*args, **kwargs)
 
+## To enable string output of repr, instead of just printing, uncomment his block
+#    def __repr__(self):
+#        #redirect stdout to StringIO
+#        import StringIO, sys
+#        dum = StringIO.StringIO()
+#        sys_stdout_save = sys.stdout
+#        sys.stdout = dum
+#        self.tree(verbose=True)
+#        sys.stdout = sys_stdout_save
+#        dum.seek(0)
+#        return ''.join(dum.readlines())
+    
     def tree(self, **kwargs):
         '''Print the contents of the SpaceData object in a visual tree
 
