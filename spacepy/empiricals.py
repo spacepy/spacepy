@@ -51,6 +51,10 @@ def getLmax(ticks, model='JKemp'):
     >>> ticks = st.tickrange(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 3), deltadays=1)
     array([ 7.4928412,  8.3585632,  8.6463423])
 
+    See Also
+    ========
+    spacepy.LANLstar.LANLmax
+
 
     """
     omni = om.get_omni(ticks)

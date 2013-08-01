@@ -353,7 +353,14 @@ class SimpleFunctionTests(unittest.TestCase):
         for i, val in enumerate(inputs):
             numpy.testing.assert_allclose(outputs[i], tb.bin_center_to_edges(val))
 
-    def testBinEdgesToCenters(self):
+    def testBinEdgesToCenterToEdges_datetimeroundtrip(self):
+        """Convert a set of datetime bin edges to centers and back to bin edges"""
+        inputs = [datetime.datetime(2012,9,3,n) for n in range(10)]
+        computedOut = tb.bin_edges_to_center(inputs)
+        roundtripResults = tb.bin_center_to_edges(computedOut)
+        self.assertTrue((inputs == roundtripResults).all())
+
+    def testBinEdgesToCenter(self):
         """Convert a set of bin edges to bin centers"""
         inputs = [[1, 2, 3, 4, 5],
                   [1,2,3,7,10,20],

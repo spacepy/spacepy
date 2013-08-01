@@ -1819,7 +1819,10 @@ def bin_edges_to_center(edges):
     [0.5, 1.5, 2.5, 3.5]
     """
     df = np.diff(edges)
-    return edges[:-1] + df/2
+    if isinstance(df[0], datetime.timedelta) and sys.version_info[0]>=3 and sys.version_info[1]>=2:
+        return edges[:-1] + df//2
+    else:
+        return edges[:-1] + df/2
 
 def thread_job(job_size, thread_count, target, *args, **kwargs):
     """
