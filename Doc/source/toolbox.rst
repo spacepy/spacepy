@@ -80,6 +80,7 @@ System tools
 .. autosummary::
     :toctree: autosummary
 
+    do_with_timeout
     loadpickle
     progressbar
     query_yes_no

@@ -61,7 +61,8 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
-           'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot']
+           'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot',
+           'do_with_timeout', 'TimeoutError']
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
@@ -2088,6 +2089,79 @@ def interweave(a, b):
     return ans
 
 
+class TimeoutError(Exception):
+    pass
+
+
+def do_with_timeout(timeout, target, *args, **kwargs):
+    """
+    Execute a function (or method) with a timeout.
+
+    Call the function (or method) ``target``, with arguments ``args`` and
+    keyword arguments ``kwargs``. Normally return the return value
+    from ``target``, but if ``target`` takes more than ``timeout`` seconds
+    to execute, raises ``TimeoutError``.
+
+    .. note::
+        This is, at best, a blunt instrument. Exceptions from ``target`` may
+        not propagate properly (tracebacks will be hard to follow.) The
+        function which failed to time out may continue to execute until the
+        interpreter exits; trapping the TimeoutError and continuing normally
+        is not recommended.
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> import time
+    >>> def time_me_out():
+    ...     time.sleep(5)
+    >>> tb.do_with_timeout(0.5, time_me_out) #raises TimeoutError
+
+    Parameters
+    ==========
+    timeout : float
+        Timeout, in seconds.
+    target : callable
+        Python callable (generally a function, may also be an
+            imported ctypes function) to run.
+    args : sequence
+        Arguments to pass to ``target``.
+    kwargs : dict
+        keyword arguments to pass to ``target``.
+
+    Raises
+    ======
+    TimeoutError : If ``target`` does not return in ``timeout`` seconds.
+
+    Returns
+    =======
+    out :
+        return value of ``target``
+    """
+    import threading
+    class ReturningThread(threading.Thread):
+        def __init__(self, group=None, target=None, name=None,
+                     args=(), kwargs={}):
+            self._target = target
+            self._args = args
+            self._kwargs = kwargs
+            self._retval = None
+            #we're handling target, args, kwargs
+            super(ReturningThread, self).__init__(group, name=name)
+            
+        def run(self):
+            self._retval = self._target(*self._args, **self._kwargs)
+
+        def join(self, *args, **kwargs):
+            super(ReturningThread, self).join(*args, **kwargs)
+            return self._retval
+            
+    t = ReturningThread(None, target, None, args, kwargs)
+    t.start()
+    retval = t.join(timeout)
+    if t.isAlive():
+        raise TimeoutError()
+    return retval
 
 
 if __name__ == "__main__":
