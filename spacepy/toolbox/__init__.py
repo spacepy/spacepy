@@ -2152,14 +2152,20 @@ def do_with_timeout(timeout, target, *args, **kwargs):
             self._args = args
             self._kwargs = kwargs
             self._retval = None
+            self._exception = None
             #we're handling target, args, kwargs
             super(ReturningThread, self).__init__(group, name=name)
             
         def run(self):
-            self._retval = self._target(*self._args, **self._kwargs)
+            try:
+                self._retval = self._target(*self._args, **self._kwargs)
+            except:
+                self._exception = sys.exc_info()
 
         def join(self, *args, **kwargs):
             super(ReturningThread, self).join(*args, **kwargs)
+            if not self._exception is None:
+                raise self._exception[1], None, self._exception[2]
             return self._retval
             
     t = ReturningThread(None, target, None, args, kwargs)

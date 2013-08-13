@@ -470,6 +470,14 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertRaises(tb.TimeoutError, tb.do_with_timeout,
                           0.5, testfunc, 5)
 
+    def test_do_with_timeout_exception(self):
+        """Check for timeout"""
+        def testfunc(x):
+            foo = ['hi', 'there']
+            return foo[x]
+        self.assertRaises(IndexError, tb.do_with_timeout,
+                          0.5, testfunc, 5)
+
     def test_timeout_check_call(self):
         """Make sure check_call replacement handles timout"""
         def testfunc(x):
