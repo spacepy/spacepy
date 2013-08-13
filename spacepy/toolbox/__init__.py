@@ -10,6 +10,10 @@ Los Alamos National Laboratory
 
 Copyright 2010 Los Alamos National Security, LLC.
 """
+
+#If you add functions here, be sure to:
+#1) add to the __all__ list
+#2) add to functions in Doc/source/toolbox.rst so it goes in the docs
 from __future__ import division
 from __future__ import absolute_import
 
@@ -19,6 +23,7 @@ import itertools
 import os
 import os.path
 import re
+import subprocess
 import sys
 import time
 import warnings
@@ -62,7 +67,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot',
-           'do_with_timeout', 'TimeoutError']
+           'do_with_timeout', 'TimeoutError', 'timeout_check_call']
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
@@ -2090,6 +2095,7 @@ def interweave(a, b):
 
 
 class TimeoutError(Exception):
+    """Raised when a time-limited process times out"""
     pass
 
 
@@ -2162,6 +2168,56 @@ def do_with_timeout(timeout, target, *args, **kwargs):
     if t.isAlive():
         raise TimeoutError()
     return retval
+
+
+def timeout_check_call(timeout, *args, **kwargs):
+    """
+    Call a subprocess with a timeout.
+
+    Like :func:`subprocess.check_call`, but will terminate the process and
+    raise :exc:`TimeoutError` if it runs for too long.
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.timeout_check_call(1, 'sleep 30', shell=True) #raises TimeoutError
+
+    Parameters
+    ==========
+    timeout : float
+        Timeout, in seconds. Fractions are acceptable but the resolution is of
+        order 100ms.
+    args : sequence
+        Arguments passed through to :class:`subprocess.Popen`
+    kwargs : dict
+        keyword arguments to pass to :class:`subprocess.Popen`
+
+    Raises
+    ======
+    TimeoutError : If subprocess does not return in ``timeout`` seconds.
+    CalledProcessError : if command has non-zero exit status
+
+    Returns
+    =======
+    out : int
+        0 on successful completion
+    """
+    resolution = 0.1
+    pro = subprocess.Popen(*args, **kwargs)
+    starttime = time.time()
+    while pro.poll() is None:
+        time.sleep(resolution)
+        if time.time() - starttime > timeout:
+            to = time.time() - starttime
+            pro.terminate()
+            time.sleep(resolution)
+            if pro.poll() is None:
+                pro.kill()
+            raise TimeoutError('Timed out after {0:.1f} seconds'.format(to))
+    if pro.returncode:
+        raise subprocess.CalledProcessError(
+            pro.returncode, kwargs['args'] if 'args' in kwargs else args[0])
+    return 0
 
 
 if __name__ == "__main__":

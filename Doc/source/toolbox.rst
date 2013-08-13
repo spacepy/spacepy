@@ -85,4 +85,6 @@ System tools
     progressbar
     query_yes_no
     savepickle
+    timeout_check_call
+    TimeoutError
     update

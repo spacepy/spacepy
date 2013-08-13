@@ -7,6 +7,8 @@ pycdf
  - sped up indexing in variable copies
  - improved handling of numpy fancy indexing in variable copies
    (fancy indexing is still not supported for variables themselves.)
+toolbox
+ - add function timeout_check_call to run another program with a timeout
 
 Changes in Version 0.1.4
 ========================
