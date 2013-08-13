@@ -27,6 +27,39 @@ from distutils.errors import DistutilsOptionError
 import numpy
 
 
+#These are files that are no longer in spacepy (or have been moved)
+#having this here makes sure that during an upgrade old versions are
+#not hanging out
+#Files will be deleted in the order specified, so list files
+#before directories containing them!
+#Paths are relative to spacepy. Unix path separators are OK
+#Don't forget to delete the .pyc
+deletefiles = ['toolbox.py', 'toolbox.pyc', 'LANLstar/LANLstar.py',
+               'LANLstar/LANLstar.pyc', 'LANLstar/libLANLstar.so',
+               'LANLstar/LANLstar.pyd', 'LANLstar/__init__.py',
+               'LANLstar/__init__.pyc', 'LANLstar',
+               'time/__init__.py', 'time/__init__.pyc',
+               'time/_dates.so', 'time/_dates.dylib',
+               'time/_dates.pyd',
+               'time/time.py', 'time/time.pyc', 'time',
+               'data/LANLstar/*.net',
+               'pycdf/_pycdf.*', 'toolbox/toolbox.py*']
+
+
+def delete_old_files(basepath):
+    """Delete files from old versions of spacepy, under a particular path"""
+    for f in deletefiles:
+        path = os.path.join(basepath, 'spacepy',
+                            os.path.normpath(f)) #makes pathing portable
+        for p in glob.glob(path):
+            if os.path.exists(p):
+                print('Deleting {0} from old version of spacepy.'.format(p))
+                if os.path.isdir(p):
+                    os.rmdir(p)
+                else:
+                    os.remove(p)
+
+
 #Patch out bad options in Python's view of mingw
 if sys.platform == 'win32':
     import distutils.cygwinccompiler
@@ -420,6 +453,7 @@ class build(_build):
         self.compile_irbempy()
         self.compile_libspacepy()
         _build.run(self)
+        delete_old_files(self.build_lib)
         if self.build_docs:
             self.make_docs()
         else:
@@ -499,34 +533,7 @@ class install(_install):
         if not bad:
             print('Dependencies OK.')
         _install.run(self)
-        #Files will be deleted in the order specified, so list files
-        #before directories containing them!
-        #Paths are relative to spacepy. Unix path separators are OK
-        #Don't forget to delete the .pyc
-        #These are files that are no longer in spacepy (or have been moved)
-        # having this here makes sure that during an upgrade old versions are
-        # not hanging out
-        deletefiles = ['toolbox.py', 'toolbox.pyc', 'LANLstar/LANLstar.py',
-                       'LANLstar/LANLstar.pyc', 'LANLstar/libLANLstar.so',
-                       'LANLstar/LANLstar.pyd', 'LANLstar/__init__.py',
-                        'LANLstar/__init__.pyc', 'LANLstar',
-                       'time/__init__.py', 'time/__init__.pyc',
-                       'time/_dates.so', 'time/_dates.dylib',
-                       'time/_dates.pyd',
-                       'time/time.py', 'time/time.pyc', 'time',
-                       'data/LANLstar/*.net',
-                       'pycdf/_pycdf.*',
-                       'toolbox/toolbox.py*']
-        for f in deletefiles:
-            path = os.path.join(self.install_lib, 'spacepy',
-                                os.path.normpath(f)) #makes pathing portable
-            for p in glob.glob(path):
-                if os.path.exists(p):
-                    print('Deleting {0} from old version of spacepy.'.format(p))
-                    if os.path.isdir(p):
-                        os.rmdir(p)
-                    else:
-                        os.remove(p)
+        delete_old_files(self.install_lib)
 
 
 class bdist_wininst(_bdist_wininst):
