@@ -515,7 +515,8 @@ class install(_install):
                        'time/_dates.pyd',
                        'time/time.py', 'time/time.pyc', 'time',
                        'data/LANLstar/*.net',
-                       'pycdf/_pycdf.*']
+                       'pycdf/_pycdf.*',
+                       'toolbox/toolbox.py*']
         for f in deletefiles:
             path = os.path.join(self.install_lib, 'spacepy',
                                 os.path.normpath(f)) #makes pathing portable
