@@ -12,3 +12,4 @@ omni - module to read and process NASA OMNIWEB data
     :toctree: autosummary
 
     get_omni
+    omnirange
