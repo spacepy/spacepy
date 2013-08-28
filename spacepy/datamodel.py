@@ -942,6 +942,10 @@ def toHDF5(fname, SDobject, **kwargs):
     except ImportError:
         raise ImportError('h5py is required to use HDF5 files')
 
+    try:
+        assert isinstance(SDobject, SpaceData)
+    except AssertionError:
+        raise ValueError("Input data is not of type SpaceData, check usage: toHDF5(fname, datamodel)")
     #mash these into a defaults dict...
     if 'mode' not in kwargs:
         wr_mo = 'a'
