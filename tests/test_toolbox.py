@@ -461,6 +461,32 @@ class SimpleFunctionTests(unittest.TestCase):
         numpy.testing.assert_array_equal(tb.isview(a[:], a), [True, True])
         numpy.testing.assert_array_equal(tb.isview([1,2,3], 4), [False, False])
 
+    def test_do_with_timeout(self):
+        """Check for timeout"""
+        def testfunc(x):
+            time.sleep(1)
+            return x + 1
+        self.assertEqual(6, tb.do_with_timeout(2.0, testfunc, 5))
+        self.assertRaises(tb.TimeoutError, tb.do_with_timeout,
+                          0.5, testfunc, 5)
+
+    def test_do_with_timeout_exception(self):
+        """Check for timeout"""
+        def testfunc(x):
+            foo = ['hi', 'there']
+            return foo[x]
+        self.assertRaises(IndexError, tb.do_with_timeout,
+                          0.5, testfunc, 5)
+
+    def test_timeout_check_call(self):
+        """Make sure check_call replacement handles timout"""
+        def testfunc(x):
+            time.sleep(1)
+            return x + 1
+        self.assertEqual(0, tb.timeout_check_call(10.0, 'sleep 2', shell=True))
+        self.assertRaises(tb.TimeoutError, tb.timeout_check_call,
+                          1.0, 'sleep 5', shell=True)
+
 
 class TBTimeFunctionTests(unittest.TestCase):
     def setUp(self):
