@@ -745,13 +745,21 @@ def toCDF(fname, SDobject, **kwargs):
     overwrite : bool (optional)
         allow overwrite of an existing target file (default False)
 
+    autoNRV : bool (optional)
+        attempt automatic identification of non-record varying entries in CDF
+
+    backward : bool (optional)
+        create CDF in backward-compatible format (default is v3+ compatibility only)
+
     Returns
     -------
     None
     '''
     defaults = {'skeleton': '',
                 'flatten': False,
-                'overwrite': False}
+                'overwrite': False,
+                'autoNRV': False,
+                'backward': False}
     for key in kwargs:
         if key in defaults:
             defaults[key] = kwargs[key]
@@ -765,7 +773,7 @@ def toCDF(fname, SDobject, **kwargs):
         from spacepy import pycdf
     except ImportError:
         raise ImportError("CDF converter requires NASA CDF library and SpacePy's pyCDF")
-
+    pycdf.lib.set_backward(False)
     with pycdf.CDF(fname, defaults['skeleton']) as outdata:
         if hasattr(SDobject, 'attrs'):
             for akey in SDobject.attrs:
@@ -774,10 +782,13 @@ def toCDF(fname, SDobject, **kwargs):
             if isinstance(SDobject[key], dict):
                 raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
             if not defaults['skeleton']:
-                try:
-                    outdata[key] = SDobject[key]
-                except ValueError:
-                    outdata[key] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs))
+                if len(SDobject[key]) != len(SDobject['Epoch']): #naive check for 'should-be' NRV
+                    foo = outdata.new(key, SDobject[key][...], recVary=False)
+                else:
+                    try:
+                        outdata[key] = SDobject[key]
+                    except ValueError:
+                        outdata[key] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs))
             else:
                 outdata[key][...] = SDobject[key][...]
                 for akey in outdata[key].attrs:
