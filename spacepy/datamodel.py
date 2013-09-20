@@ -751,6 +751,9 @@ def toCDF(fname, SDobject, **kwargs):
     backward : bool (optional)
         create CDF in backward-compatible format (default is v3+ compatibility only)
 
+    verbose : bool (optional)
+        verbosity flag
+
     Returns
     -------
     None
@@ -759,7 +762,8 @@ def toCDF(fname, SDobject, **kwargs):
                 'flatten': False,
                 'overwrite': False,
                 'autoNRV': False,
-                'backward': False}
+                'backward': False,
+                'verbose': False}
     for key in kwargs:
         if key in defaults:
             defaults[key] = kwargs[key]
@@ -786,9 +790,10 @@ def toCDF(fname, SDobject, **kwargs):
                     shape_tup=-1
                 else:
                     shape_tup = SDobject[key].shape
-                if shape_tup != len(SDobject['Epoch']): #naive check for 'should-be' NRV
+                if shape_tup[0] != len(SDobject['Epoch']): #naive check for 'should-be' NRV
                     try:
                         foo = outdata.new(key, SDobject[key][...], recVary=False)
+                        if verbose: print('{0} is being made NRV'.format(key))
                         outdata[key].attrs = dmcopy(SDobject[key].attrs)
                     except ValueError:
                         foo = outdata.new(key, SDobject[key].tolist, recVary=False)
