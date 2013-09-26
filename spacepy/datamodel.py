@@ -446,6 +446,17 @@ class SpaceData(dict):
     def tree(self, **kwargs):
         '''Print the contents of the SpaceData object in a visual tree
 
+        Other Parameters
+        ----------------
+        verbose : boolean (optional)
+            print more info
+        spaces : string (optional)
+            string will added for every line
+        levels : integer (optional)
+            number of levels to recurse through (True means all)
+        attrs : boolean (optional)
+            display information for attributes
+
         Examples
         --------
         >>> import spacepy.datamodel as dm
@@ -461,6 +472,10 @@ class SpaceData(dict):
         |____4
              |____cat
         |____5
+
+        See Also
+        --------
+        toolbox.dictree
         '''
         toolbox.dictree(self, **kwargs)
 
