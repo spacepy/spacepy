@@ -223,16 +223,17 @@ def _read_config(rcfile):
     for k in caster:
         config[k] = caster[k](config[k])
 
-from os import environ as ENVIRON
-if 'SPACEPY' in ENVIRON:
-    DOT_FLN = os.path.join(ENVIRON['SPACEPY'], '.spacepy')
+if 'SPACEPY' in os.environ:
+    DOT_FLN = os.path.join(os.environ['SPACEPY'], '.spacepy')
 else:
-    if 'HOME' in ENVIRON:
-        DOT_FLN = os.path.join(ENVIRON['HOME'], '.spacepy')
-    else:
-        DOT_FLN = os.path.join(ENVIRON['HOMEDRIVE'],
-                               ENVIRON['HOMEPATH'],
+    if 'HOME' in os.environ:
+        DOT_FLN = os.path.join(os.environ['HOME'], '.spacepy')
+    elif 'HOMEDRIVE' in os.environ and 'HOMEPATH' in os.environ:
+        DOT_FLN = os.path.join(os.environ['HOMEDRIVE'],
+                               os.environ['HOMEPATH'],
                                '.spacepy')
+    else:
+        DOT_FLN = os.path.expanduser(os.path.join('~', '.spacepy'))
 rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
 if not os.path.exists(DOT_FLN):
     print("""SpacePy: Space Science Tools for Python
