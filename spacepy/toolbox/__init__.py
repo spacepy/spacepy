@@ -2183,6 +2183,9 @@ def timeout_check_call(timeout, *args, **kwargs):
     Like :func:`subprocess.check_call`, but will terminate the process and
     raise :exc:`TimeoutError` if it runs for too long.
 
+    This will only terminate the single process started; any child processes
+    will remain running (this has implications for, say, spawing shells.)
+
     Examples
     ========
     >>> import spacepy.toolbox as tb
