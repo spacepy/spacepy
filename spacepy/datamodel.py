@@ -832,12 +832,12 @@ def toCDF(fname, SDobject, **kwargs):
 
 def fromHDF5(fname, **kwargs):
     '''
-    Create a SpacePy datamodel representation of an HDF5 file
+    Create a SpacePy datamodel representation of an HDF5 file or netCDF4 file which is HDF5 compliant
 
     Parameters
     ----------
     file : string
-        the name of the HDF5 file to be loaded into a datamodel
+        the name of the HDF5/netCDF4 file to be loaded into a datamodel
 
     Returns
     -------
@@ -852,7 +852,10 @@ def fromHDF5(fname, **kwargs):
     Notes
     -----
     Known issues -- zero-sized datasets will break in h5py
-    This is kluged by returning a dmarray containing a None
+        This is kluged by returning a dmarray containing a None
+    This function is expected to work with any HDF5-compliant files, including
+    netCDF4 (not netCDF3) and MatLab save files from v7.3 or later, but some datatypes
+    are not supported, e.g., non-string vlen datatypes, and will raise a warning.
     '''
     def hdfcarryattrs(SDobject, hfile, path):
         if hasattr(hfile[path],'attrs'):
