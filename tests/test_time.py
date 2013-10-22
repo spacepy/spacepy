@@ -396,7 +396,7 @@ class TimeClassTests(unittest.TestCase):
         """testing get UTC from GPS"""
         t1 = t.Ticktock([  6.93882013e+08,   6.93964813e+08], 'GPS')
         expected = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
-        self.assertTrue((t1 == expected).all())
+        numpy.testing.assert_array_equal(t1, expected)
 
     def test_UTCUNX(self):
         """testing get UTC from UNX"""
