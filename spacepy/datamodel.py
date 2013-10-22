@@ -841,7 +841,13 @@ def fromHDF5(fname, **kwargs):
     '''
     def hdfcarryattrs(SDobject, hfile, path):
         if hasattr(hfile[path],'attrs'):
-            for key, value in hfile[path].attrs.iteritems():
+            #for key, value in hfile[path].attrs.iteritems():
+            for key in hfile[path].attrs.keys():
+                try:
+                    value = hfile[path].attrs[key]
+                except TypeError:
+                    warnings.warn('Unsupported datatype in dataset {0}.attrs[{1}]'.format(path,key))
+                    continue
                 try:
                     SDobject.attrs[key] = value
                 except:
@@ -871,7 +877,7 @@ def fromHDF5(fname, **kwargs):
     hdfcarryattrs(SDobject, hfile, path)
     ##carry over the groups and datasets
     for key, value in hfile[path].iteritems():
-        try:
+        #try:
             if type(value) is allowed_elems[0]: #if a group
                 SDobject[key] = SpaceData()
                 SDobject[key] = fromHDF5(hfile, path=path+'/'+key)
@@ -881,8 +887,8 @@ def fromHDF5(fname, **kwargs):
                 except (TypeError, ZeroDivisionError): #ZeroDivisionError catches zero-sized DataSets
                     SDobject[key] = dmarray(None)
                 hdfcarryattrs(SDobject[key], hfile, path+'/'+key)
-        except:
-            raise ValueError('HDF5 file contains type other than Group or Dataset')
+        #except:
+        #    raise ValueError('HDF5 file contains type other than Group or Dataset')
     if path=='/': hfile.close()
     return SDobject
 
