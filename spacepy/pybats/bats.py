@@ -774,6 +774,9 @@ class Bats2d(IdlBin):
         from matplotlib.ticker import MultipleLocator
         from numpy import linspace
 
+        if self['grid'].attrs['gtype'] == 'Regular':
+            raise(ValueError('Function not compatable with regular grids'))
+
         # Get dimensions over which we shall plot.
         xdim, ydim = self['grid'].attrs['dims'][0:2]
 
@@ -1258,7 +1261,8 @@ class Bats2d(IdlBin):
             fmt=None
 
         # Plot contour.
-        cont=contour(self[dim1],self[dim2],z,levs,*args, norm=norm, **kwargs)
+        cont=contour(self[dim1],self[dim2],np.array(z),
+                     levs,*args, norm=norm, **kwargs)
         # Add cbar if necessary.
         if add_cbar:
             cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
