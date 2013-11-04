@@ -52,8 +52,9 @@ sources. The stored data must currently be stored as JSON-headed ASCII.
 If data conversions are required, then a valid dictionary of conversion
 functions must be supplied via the convert keyword argument. See 
 :func:`~spacepy.datamodel.readJSONheadedASCII` for details.
-
-
+Additionally, by default this will interpolate the data to the requested time 
+ticks. To return only the actual recorded data values for the specified time 
+range set the keyword argument interp to False.
 
 """
 import bisect, re, os
