@@ -2,10 +2,63 @@
 #rim.py
 '''
 Classes, functions, and methods for reading, writing, and plotting output
-from the Ridley Ionosphere Model (RIM).
+from the Ridley Ionosphere Model (RIM) and the similar legacy code, 
+Ridley Serial.
 
 Copyright ©2010 Los Alamos National Security, LLC.
 '''
+
+def fix_format(filename, finalize=True):
+    '''
+    Some 2D output files for RIM/RidleySerial have a broken format: values for
+    the same lat-lon entry are split across two lines.  This function
+    detects and fixes such files in-place.
+
+    The original file will not be overwritten if kwarg *finalize* is set
+    to **False**.
+    '''
+    
+    import os
+    
+    # Slurp in entire file.  This is necessary to detect the number of f.
+    f = open(filename, 'r')
+    raw = f.readlines()
+    f.close()
+
+    i = raw.index('NUMERICAL VALUES\n')
+    nvars = int(raw[i+1].split()[0])
+    ntheta= int(raw[i+2].split()[0])
+    nphi  = int(raw[i+3].split()[0])
+
+    # A broken file will have more than 4X lines than nTheta*nPhi.
+    # This is because nLines = header + 2*nTheta*nPhi in a two-hemisphere file.
+    if not len(raw) > 4*ntheta*nphi:
+        return
+
+    out = open('temp_iono_fix.txt', 'w')
+    iNorth = raw.index('BEGIN NORTHERN HEMISPHERE\n')
+    iSouth = raw.index('BEGIN SOUTHERN HEMISPHERE\n')
+    
+    # Rewrite header:
+    out.writelines(raw[0:iNorth+1])
+
+    # Rewrite northern hemisphere.
+    for l1, l2 in zip(raw[iNorth+1:iSouth:2], raw[iNorth+2:iSouth:2]):
+        out.write(l1.strip()+l2)
+
+    # Rewrite southern hemisphere.
+    out.write(raw[iSouth])
+    for l1, l2 in zip(raw[iSouth+1::2], raw[iSouth+2::2]):
+        out.write(l1.strip()+l2)
+
+    out.close()
+
+    # Move files.
+    if finalize:
+        os.remove(filename)
+        os.rename(out.name, filename)
+
+    return True
 
 def get_iono_cb(ct_name='bwr'):
     '''

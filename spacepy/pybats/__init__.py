@@ -132,7 +132,7 @@ def smart_timeticks(time):
         mtick=mdt.HourLocator(byhour=range(24))
         fmt = mdt.DateFormatter('%H:%M UT')
     elif deltaT.days < 15:
-        Mtick=mdt.DayLocator(bymonthday=range(1,32))
+        Mtick=mdt.DayLocator(bymonthday=range(2,32,2))
         mtick=mdt.HourLocator(byhour=[0,6,12,18])
         fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 32:
@@ -358,7 +358,7 @@ class IdlBin(PbData):
         self['grid']=dmarray(struct.unpack(EndChar+'%il' % 
                                            abs(self.attrs['ndim']), 
                                            infile.read(RecLen)))
-        # Data from generalized (structured by irregular) grids can be 
+        # Data from generalized (structured but irregular) grids can be 
         # detected by a negative ndim value.  Unstructured grids (e.g.
         # BATS, AMRVAC) are signified by negative ndim values AND
         # the grid size is always [x, 1(, 1)]

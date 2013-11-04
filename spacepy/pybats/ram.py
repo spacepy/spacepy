@@ -1117,14 +1117,14 @@ class BoundaryGroup(PbData):
         self._dtime     = date2num(self['time']) # create decimal time.
         self._zlims     = {'p':[0,40], 'R':[0,8], 'r':[0,60], 'n':[0,8]}
 
-    def add_ltut(self, var, target=None, loc=111, cbar='jet', zlim=None, 
+    def add_ltut(self, var, target=None, loc=111, cmap='jet', zlim=None, 
                  add_cbar=True, clabel=None, xlabel='full', title=None,
                  grid=True, ntick=5):
         '''
         Plot variable *var* as a contour against local time (y-axis) and
         universal time (x-axis) using the PyBats *target* method of other
         standard plotting methods.  Four items are returned: the Matplotlib
-        Figure, Axes, Mesh, and ColorBar objects used (if cbar is set to
+        Figure, Axes, Mesh, and ColorBar objects used (if add_cbar is set to
         **False**, the returned ColorBar object is simply set to **False**.)
 
         ========== =======================================================
@@ -1133,7 +1133,7 @@ class BoundaryGroup(PbData):
         target     Select plot destination.  Defaults to new figure/axis.
         loc        The location of any generated subplots.  Default is 111.
         add_cbar   Toggles the automatic colorbar.  Default is**True**.
-        cbar       Selects Matplotlib color table.  Defaults to *jet*.
+        cmap       Selects Matplotlib color table.  Defaults to *jet*.
         zlim       Limits for z-axis.  Defaults to best-guess.
         clabel     Sets colorbar label.  Defaults to *var* units.
         xlabel     Sets x-axis limits, use 'full', 'ticks', or **None**.
@@ -1169,7 +1169,7 @@ class BoundaryGroup(PbData):
             
         # Create plot:
         mesh = ax.pcolormesh(self._dtime, self._y, self[var], 
-                             cmap=plt.get_cmap(cbar), 
+                             cmap=plt.get_cmap(cmap), 
                              vmin=zlim[0], vmax=zlim[-1])
         # Use LT ticks and markers on y-axis:
         ax.set_yticks(self._yticks)

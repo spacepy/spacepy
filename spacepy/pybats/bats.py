@@ -26,7 +26,7 @@ class Stream(object):
     
     def __init__(self, bats, xstart, ystart, xfield, yfield,
                  style = 'mag', type='streamline', method='rk4',
-                 extract=False):
+                 extract=False, maxPoints=20000):
         # Key values:
         self.xstart = xstart #X and Y starting
         self.ystart = ystart #points in the field.
@@ -38,7 +38,7 @@ class Stream(object):
         self.method = method
 
         # Do tracing:
-        self.treetrace(bats, extract)
+        self.treetrace(bats, extract, maxPoints=maxPoints)
 
         # Set style
         self.set_style(style)
@@ -198,8 +198,12 @@ class Bats2d(IdlBin):
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
             xdim, ydim = self['grid'].attrs['dims'][0:2]
-            self.qtree=qo.QTree(array([self[xdim],self[ydim]]))
-            self.find_block = self.qtree.find_leaf
+            try:
+                self.qtree=qo.QTree(array([self[xdim],self[ydim]]))
+                self.find_block = self.qtree.find_leaf
+            except:
+                self.qtree=False
+                self.find_block=lambda: False
             
 
     ####################
@@ -418,6 +422,44 @@ class Bats2d(IdlBin):
                                                  sqrt(mu_naught*self[k]),
                                                  attrs={'units':'km/s'})
 
+    def calc_divmomen(self):
+        '''
+        Calculate the divergence of momentum, i.e. 
+        $\rho(u \dot \nabla)u$.
+        '''
+
+        from spacepy.datamodel import dmarray
+        from spacepy.pybats.batsmath import d_dx, d_dy
+        
+        print("SUPER WARNING!  This is very, very exploratory.")
+
+        # Create empty arrays to hold new values.
+        size = self['ux'].shape
+        self['divmomx'] = dmarray(np.zeros(size), {'units':'nN/m3'})
+        self['divmomz'] = dmarray(np.zeros(size), {'units':'nN/m3'})
+
+        # Units!
+        c1 = 1000./6371.0 # km2/Re/s2 -> m/s2
+        c2 = 1.6726E-21   # AMU/cm3 -> kg/m3
+        c3 = 1E9          # N/m3 -> nN/m3.
+
+        for k in self.qtree.keys():
+            # Calculate only on leafs of quadtree.
+            if not self.qtree[k].isLeaf: continue
+            
+            # Extract values from current leaf.
+            leaf = self.qtree[k]
+            ux   = self['ux'][leaf.locs]
+            uz   = self['uz'][leaf.locs]
+
+            self['divmomx'][leaf.locs]=ux*d_dx(ux, leaf.dx)+uz*d_dy(ux, leaf.dx)
+            self['divmomz'][leaf.locs]=ux*d_dx(uz, leaf.dx)+uz*d_dy(uz, leaf.dx)
+
+        # Unit conversion.
+        self['divmomx']*=self['rho']*c1*c2*c3
+        self['divmomz']*=self['rho']*c1*c2*c3
+
+
     def calc_gradP(self):
         '''
         Calculate the pressure gradient force.
@@ -434,7 +476,7 @@ class Bats2d(IdlBin):
         size = self['p'].shape
         self['gradP'] = dmarray(np.zeros(size), {'units':'nN/cm^3'})
         for d in dims:
-            self['gradP_'+d] = dmarray(np.zeros(size), {'units':'nN/cm^3'})
+            self['gradP_'+d] = dmarray(np.zeros(size), {'units':'nN/m^3'})
 
         for k in self.qtree.keys():
             # Plot only leafs of the tree.
@@ -445,11 +487,11 @@ class Bats2d(IdlBin):
             z=self['p'][leaf.locs]
             
             # Calculate derivatives; place into new dmarrays.
-            # Unit conversion: P=>nPa=nN/cm3, dx=Re
-            # Convert to nN/cm3 by multiplying by 100^3 * 6378000m**-1.
+            # Unit conversion: P in nPa => gradP in nN/m3, dx=Re
+            # Convert to nN/m3 by multiplying by 6378000m**-1.
             # Clever indexing maps values back to "unordered" array so that
             # values can be plotted like all others.
-            conv = 100.0**3/-6378000.0
+            conv = 1.0/-6378000.0
             self['gradP_'+dims[0]][leaf.locs] = d_dx(z, leaf.dx)*conv
             self['gradP_'+dims[1]][leaf.locs] = d_dy(z, leaf.dx)*conv
 
@@ -681,7 +723,8 @@ class Bats2d(IdlBin):
     ######################
     # TRACING TOOLS
     ######################
-    def get_stream(self, x, y, xvar, yvar, method='rk4', style='mag'):
+    def get_stream(self, x, y, xvar, yvar, method='rk4', style='mag',
+                   maxPoints=20000):
         '''
         Trace a 2D streamline through the domain, returning a Stream
         object to the caller.
@@ -695,7 +738,8 @@ class Bats2d(IdlBin):
         tracing.  Default is Runge-Kutta 4 (rk4).
         '''
 
-        stream = Stream(self, x, y, xvar, yvar, style=style)
+        stream = Stream(self, x, y, xvar, yvar, style=style, 
+                        maxPoints=maxPoints)
 
         return stream
 
@@ -729,6 +773,9 @@ class Bats2d(IdlBin):
         from matplotlib.colors import Normalize
         from matplotlib.ticker import MultipleLocator
         from numpy import linspace
+
+        if self['grid'].attrs['gtype'] == 'Regular':
+            raise(ValueError('Function not compatable with regular grids'))
 
         # Get dimensions over which we shall plot.
         xdim, ydim = self['grid'].attrs['dims'][0:2]
@@ -768,7 +815,8 @@ class Bats2d(IdlBin):
 
 
     def add_b_magsphere(self, target=None, loc=111, style='mag', 
-                        DoImf=False, DoOpen=False, DoTail=False, **kwargs):
+                        DoImf=False, DoOpen=False, DoTail=False, 
+                        DoDay=True, **kwargs):
         '''
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
@@ -837,8 +885,9 @@ class Bats2d(IdlBin):
                 daymax = theta
                 break
             savestream = stream
-            lines.append(array([stream.x, stream.y]).transpose())
-            colors.append(stream.style[0])
+            if DoDay:
+                lines.append(array([stream.x, stream.y]).transpose())
+                colors.append(stream.style[0])
 
         # Add IMF field lines.
         if DoImf:
@@ -1025,9 +1074,8 @@ class Bats2d(IdlBin):
         If kwarg **target** is None (default), a new figure is 
         generated from scratch.  If target is a matplotlib Figure
         object, a new axis is created to fill that figure at subplot
-        location **loc**.
-        if **target** is a matplotlib Axes object, the plot is placed
-        into that axis.
+        location **loc**.  If **target** is a matplotlib Axes object, 
+        the plot is placed into that axis.
 
         Four values are returned: the matplotlib Figure and Axes objects,
         the matplotlib contour object, and the matplotlib colorbar object
@@ -1136,9 +1184,8 @@ class Bats2d(IdlBin):
         If kwarg **target** is None (default), a new figure is 
         generated from scratch.  If target is a matplotlib Figure
         object, a new axis is created to fill that figure at subplot
-        location **loc**.
-        if **target** is a matplotlib Axes object, the plot is placed
-        into that axis.
+        location **loc**.  If **target** is a matplotlib Axes object, 
+        the plot is placed into that axis.
 
         Four values are returned: the matplotlib Figure and Axes objects,
         the matplotlib contour object, and the matplotlib colorbar object
@@ -1214,7 +1261,8 @@ class Bats2d(IdlBin):
             fmt=None
 
         # Plot contour.
-        cont=contour(self[dim1],self[dim2],z,levs,*args, norm=norm, **kwargs)
+        cont=contour(self[dim1],self[dim2],np.array(z),
+                     levs,*args, norm=norm, **kwargs)
         # Add cbar if necessary.
         if add_cbar:
             cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
