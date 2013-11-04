@@ -58,7 +58,7 @@ functions must be supplied via the convert keyword argument. See
 """
 import bisect, re, os
 import numpy as np
-from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten, readJSONheadedASCII
+from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten, readJSONheadedASCII, dmfilled
 from spacepy.toolbox import tOverlapHalf, indsFromXrange
 import spacepy.time as spt
 
@@ -170,14 +170,42 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
                 convdict = kwargs['convert']
             else:
                 convdict = True #set to True as default?
-            data = readJSONheadedASCII(flist, convert=convdict)
-            #Trim to specified times
-            inds = tOverlapHalf([ticks[0].RDT, ticks[-1].RDT], spt.Ticktock(data['DateTime']).RDT)
-            for key in data.keys():
-                data[key] = data[key][inds]
-            #TODO: convert to same format as OMNI/QD read (or vice versa)
-            data['UTC'] = data['DateTime']
-            return data
+            if 'interp' not in kwargs:
+                kwargs['interp'] = True
+            data = readJSONheadedASCII(sorted(flist), convert=convdict)
+            omniout = SpaceData()
+
+            time_var = [var for var in ['DateTime', 'Time', 'Epoch', 'UTC'] if var in data]
+            if time_var:
+                use_t_var = time_var[0]
+            else:
+                #no obvious time variable in input files ... can't continue
+                raise ValueError('No clear time variable in file')
+            
+            if kwargs['interp'] is True:    
+                data['RDT'] = spt.Ticktock(data[use_t_var]).RDT
+                keylist = sorted(data.keys())
+                dum = keylist.pop(keylist.index(use_t_var))
+                for key in keylist:
+                    try:
+                        omniout[key] = dmarray(np.interp(ticks.RDT, data['RDT'], data[key], left=np.NaN, right=np.NaN))
+                        omniout[key].attrs = dmcopy(data[key].attrs)
+                    except:
+                        try:
+                            omniout[key] = dmfilled([len(ticks.RDT), data[key].shape[1]], fillval=np.NaN, attrs=dmcopy(data[key].attrs))
+                            for col in range(data[key].shape[1]):
+                                omniout[key][:,col] = np.interp(ticks.RDT, data['RDT'], data[key][:,col], left=np.NaN, right=np.NaN)
+                        except ValueError:
+                            print('Failed to interpolate {0} to new time base, skipping variable'.format(key))
+                omniout['UTC'] = ticks.UTC 
+            else:
+                #Trim to specified times
+                inds = tOverlapHalf([ticks[0].RDT, ticks[-1].RDT], spt.Ticktock(data['DateTime']).RDT)
+                for key in data.keys():
+                    omniout[key] = data[key][inds]
+                #TODO: convert to same format as OMNI/QD read (or vice versa)
+                omniout['UTC'] = omniout[use_t_var]
+            return omniout
         else:
             raise IOError('Specified dbase ({0}) must be specified in spacepy.config'.format(dbase))
 
