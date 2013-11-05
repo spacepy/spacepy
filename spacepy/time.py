@@ -80,9 +80,9 @@ And so on.
 
 .. NOTE... there is an error with this reference
 
-Authors: Josef Koller, Brian Larsen, Steve Morley, Jon Niehof
+Authors: Steve Morley, Josef Koller, Brian Larsen, Jon Niehof
 Institution: Los Alamos National Laboratory
-Contact: jkoller@lanl.gov,
+Contact: smorley@lanl.gov,
 
 
 Copyright 2010 Los Alamos National Security, LLC.
@@ -101,7 +101,7 @@ import warnings
 
 import numpy as np
 
-__contact__ = 'Josef Koller, jkoller@lanl.gov'
+__contact__ = 'Steve Morley, smorley@lanl.gov'
 
 
 # -----------------------------------------------
@@ -133,8 +133,8 @@ class Ticktock(collections.MutableSequence):
     ==========
     data : array_like (int, datetime, float, string)
         time stamp
-    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`}
-        data type for data
+    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`} or function
+        data type for data, if a function it must convert input time format to Python datetime
 
     Returns
     =======
@@ -143,11 +143,17 @@ class Ticktock(collections.MutableSequence):
 
     Examples
     ========
-    >>> x=Ticktock([2452331.0142361112, 2452332.0142361112], 'JD')
+    >>> x = Ticktock([2452331.0142361112, 2452332.0142361112], 'JD')
     >>> x.ISO
-    ['2002-02-25T12:20:30', '2002-02-26T12:20:30']
+    dmarray(['2002-02-25T12:20:30', '2002-02-26T12:20:30'], dtype='|S19')
     >>> x.DOY # Day of year
-    array([ 56.,  57.])
+    dmarray([ 56.,  57.])
+    >>> y = Ticktock(['01-01-2013', '20-03-2013'], lambda x: datetime.datetime.strptime(x, '%d-%m-%Y'))
+    >>> y.UTC
+    dmarray([2013-01-01 00:00:00, 2013-03-20 00:00:00], dtype=object)
+    >>> y.DOY # Day of year
+    dmarray([  1.,  79.])
+
 
     .. currentmodule:: spacepy.time
     .. autosummary::
@@ -205,32 +211,43 @@ class Ticktock(collections.MutableSequence):
             else:
                 self.data = spacepy.datamodel.dmarray(data)
 
-            if isinstance(self.data[0], str):
-                dtype = 'ISO'
-            elif isinstance(self.data[0], datetime.datetime):
-                dtype = 'UTC'
-            elif self.data[0] > 1e13:
-                dtype = 'CDF'
-            assert dtype.upper() in keylist_upper, "data type " + dtype +" not provided, only "+str(self._keylist)
-        self.data.attrs['dtype'] = dtype.upper()
+            if not callable(dtype):
+                if isinstance(self.data[0], str):
+                    dtype = 'ISO'
+                elif isinstance(self.data[0], datetime.datetime):
+                    dtype = 'UTC'
+                elif self.data[0] > 1e13:
+                    dtype = 'CDF'
+                assert dtype.upper() in keylist_upper, "data type " + dtype +" not provided, only "+str(self._keylist)
+            else:
+                #TODO: process input data using callable dtype to convert to datetime/UTC
+                dtype_func = np.vectorize(dtype)
+                self.data = dtype_func(self.data)
+                self.UTC = self.data
+
         self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
         self.__isofmt = self.__isoformatstr['seconds']
 
-        if dtype.upper() == 'ISO':
-            if self.data[0].find('Z'):
-                for i in range(len(self.data)):
-                    self.data[i] = self.data[i].split('Z')[0]
-            if self.data[0].find('T') == -1: # then assume midnight
-                self.data = spacepy.datamodel.dmarray([el + 'T00:00:00' for el in self.data], attrs={'dtype': dtype.upper()})
-            self.ISO = self.data
-        self.update_items(self, 'data')
-        if dtype.upper() == 'TAI': self.TAI = self.data
-        if dtype.upper() == 'JD' : self.JD = self.data
-        if dtype.upper() == 'MJD': self.MJD = self.data
-        if dtype.upper() == 'UNX': self.UNX = self.data
-        if dtype.upper() == 'RDT': self.RDT = self.data
-        if dtype.upper() == 'CDF': self.CDF = self.data
-        if dtype.upper() == 'UTC': self.UTC = self.data
+        try:
+            self.data.attrs['dtype'] = dtype.upper()
+        except AttributeError:
+            self.data.attrs['dtype'] = str(dtype_func) 
+        else:
+            if dtype.upper() == 'ISO':
+                if self.data[0].find('Z'):
+                    for i in range(len(self.data)):
+                        self.data[i] = self.data[i].split('Z')[0]
+                if self.data[0].find('T') == -1: # then assume midnight
+                    self.data = spacepy.datamodel.dmarray([el + 'T00:00:00' for el in self.data], attrs={'dtype': dtype.upper()})
+                self.ISO = self.data
+            self.update_items(self, 'data')
+            if dtype.upper() == 'TAI': self.TAI = self.data
+            if dtype.upper() == 'JD' : self.JD = self.data
+            if dtype.upper() == 'MJD': self.MJD = self.data
+            if dtype.upper() == 'UNX': self.UNX = self.data
+            if dtype.upper() == 'RDT': self.RDT = self.data
+            if dtype.upper() == 'CDF': self.CDF = self.data
+            if dtype.upper() == 'UTC': self.UTC = self.data
 
 
 ## Brian and Steve were looking at this to see about making plot work directly on the object
