@@ -170,6 +170,11 @@ import numpy
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
+try:
+    str_classes = (str, bytes, unicode)
+except NameError:
+    str_classes = (str, bytes)
+
 class DMWarning(Warning):
     """
     Warnings class for datamodel, subclassed so it can be set to always
@@ -878,7 +883,7 @@ def fromHDF5(fname, **kwargs):
     except ImportError:
         raise ImportError('HDF5 converter requires h5py')
 
-    if type(fname) == str:
+    if type(fname) in str_classes:
         hfile = hdf.File(fname, mode='r')
     else:
         hfile = fname
