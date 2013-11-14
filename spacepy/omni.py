@@ -198,6 +198,9 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
                                 omniout[key][:,col] = np.interp(ticks.RDT, data['RDT'], data[key][:,col], left=np.NaN, right=np.NaN)
                         except ValueError:
                             print('Failed to interpolate {0} to new time base, skipping variable'.format(key))
+                        except IndexError:
+                            print('Variable {0} appears to be non-record varying, skipping interpolation'.format(key))
+                            omniout[key] = data[key]
                 omniout['UTC'] = ticks.UTC 
             else:
                 #Trim to specified times
