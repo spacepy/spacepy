@@ -57,9 +57,9 @@ def _LANLcommon(indict, extMag, domax):
     domax is True for LANLmax, False for LANLstar
     """
     lstar_keylists = {
-        'OPDyn': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF',
+        'OPDYN': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF',
                   'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
-        'OPQuiet': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo','BzIMF',
+        'OPQUIET': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo','BzIMF',
                     'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM'],
         'T01QUIET': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
                      'G1', 'G2','Lm', 'Bmirr', 'PA', 'rGSM',
@@ -78,8 +78,8 @@ def _LANLcommon(indict, extMag, domax):
                   'PA','SMx', 'SMy', 'SMz'],
          }
     lmax_keylists = {
-        'OPDyn': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 'PA'],
-        'OPQuiet': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF','PA'],
+        'OPDYN': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 'PA'],
+        'OPQUIET': ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF','PA'],
         'T01QUIET': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
                      'G1','G2','PA'],
         'T01STORM': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF',
@@ -89,8 +89,8 @@ def _LANLcommon(indict, extMag, domax):
         'T89': ['Year', 'DOY', 'Hr', 'Kp', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
         'T96': ['Year', 'DOY', 'Hr', 'Dst', 'Pdyn', 'ByIMF', 'BzIMF', 'PA'],
                  }
-    lstar_nets = { 'OPDyn'   : 'LANLstar_OPDyn.net',
-                   'OPQuiet' : 'LANLstar_OPQuiet.net',
+    lstar_nets = { 'OPDYN'   : 'LANLstar_OPDyn.net',
+                   'OPQUIET' : 'LANLstar_OPQuiet.net',
                    'T01QUIET': 'LANLstar_T01QUIET.net',
                    'T01STORM': 'LANLstar_T01STORM.net',
                    'RAMSCB': 'LANLstar_RAMSCB.net',
@@ -98,8 +98,8 @@ def _LANLcommon(indict, extMag, domax):
                    'T89': 'LANLstar_T89.net',
                    'T96': 'LANLstar_T96.net',
                     }
-    lmax_nets = {  'OPDyn'   : 'Lmax_OPDyn.net',
-                   'OPQuiet' : 'Lmax_OPQuiet.net',
+    lmax_nets = {  'OPDYN'   : 'Lmax_OPDyn.net',
+                   'OPQUIET' : 'Lmax_OPQuiet.net',
                    'T01QUIET': 'Lmax_T01QUIET.net',
                    'T01STORM': 'Lmax_T01STORM.net',
                    'T05': 'Lmax_T05.net',
@@ -172,16 +172,16 @@ def LANLstar(inputdict, extMag):
     ==========
     extMag : list of string(s)
         containing one or more of the following external magnetic field models: 
-        'OPDyn', 'OPQuiet', 'T89', 'T96', 'T01QUIET', 'T01STORM', 'T05'
+        'OPDYN', 'OPQUIET', 'T89', 'T96', 'T01QUIET', 'T01STORM', 'T05'
     
     inputdict : dictionary
         containing the following keys, each entry is a list or array. Note the keys for the above models are different.
 
-        -- For OPDyn:  
+        -- For OPDYN:  
           ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 
           'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']
 
-        -- For OPQuiet:
+        -- For OPQUIET:
           ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 
           'Lm', 'Bmirr', 'PA', 'rGSM', 'latGSM', 'lonGSM']       
         
@@ -252,9 +252,9 @@ def LANLstar(inputdict, extMag):
     >>> inputdict['SMy']    = [-2.51335 ]
     >>> inputdict['SMz']    = [1.106617 ]
     >>> 
-    >>> LS.LANLstar(inputdict, ['OPDyn','OPQuiet','T01QUIET','T01STORM','T89','T96','T05','RAMSCB'])
-    {'OPDyn': array([4.7171]),
-     'OPQuiet': array([4.6673]),
+    >>> LS.LANLstar(inputdict, ['OPDYN','OPQUIET','T01QUIET','T01STORM','T89','T96','T05','RAMSCB'])
+    {'OPDYN': array([4.7171]),
+     'OPQUIET': array([4.6673]),
      'T01QUIET': array([4.8427]),
      'T01STORM': array([4.8669]), 
      'T89': array([4.5187]),
@@ -276,15 +276,15 @@ def LANLmax(inputdict, extMag):
     ==========
     extMag : list of string(s)
         containing one or more of the following external Magnetic field models: 
-        'OPDyn', 'OPQuiet', 'T89', 'T96', 'T01QUIET', 'T01STORM', 'T05'
+        'OPDYN', 'OPQUIET', 'T89', 'T96', 'T01QUIET', 'T01STORM', 'T05'
     
     inputdict : dictionary
         containing the following keys, each entry is a list or array. Note the keys for the above models are different.
 
-        -- For OPDyn:  
+        -- For OPDYN:  
           ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 'PA']
 
-        -- For OPQuiet:
+        -- For OPQUIET:
           ['Year', 'DOY', 'Hr', 'Dst', 'dens', 'velo', 'BzIMF', 'PA']
 
         -- For T89:
@@ -337,9 +337,9 @@ def LANLmax(inputdict, extMag):
     >>>
     >>> inputdict['PA']     = [57.3874  ]             # pitch angle [deg]
     >>> 
-    >>> LS.LANLmax(inputdict, ['OPDyn','OPQuiet','T01QUIET','T01STORM','T89','T96','T05'])
-    {'OPDyn': array([10.6278]),
-     'OPQuiet': array([9.3352]),
+    >>> LS.LANLmax(inputdict, ['OPDYN','OPQUIET','T01QUIET','T01STORM','T89','T96','T05'])
+    {'OPDYN': array([10.6278]),
+     'OPQUIET': array([9.3352]),
      'T01QUIET': array([10.0538]),
      'T01STORM': array([9.9300]), 
      'T89': array([8.2888]),
