@@ -203,7 +203,10 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
                 #Trim to specified times
                 inds = tOverlapHalf([ticks[0].RDT, ticks[-1].RDT], spt.Ticktock(data['DateTime']).RDT)
                 for key in data.keys():
-                    omniout[key] = data[key][inds]
+                    if len(inds) == len(data[key]):
+                        omniout[key] = data[key][inds]
+                    else: #is ancillary data
+                        omniout[key] = data[key]
                 #TODO: convert to same format as OMNI/QD read (or vice versa)
                 omniout['UTC'] = omniout[use_t_var]
             return omniout
