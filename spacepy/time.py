@@ -95,7 +95,6 @@ import spacepy.datamodel
 import datetime, collections
 import dateutil.parser as dup
 import itertools
-import os
 import re
 import warnings
 
@@ -1365,36 +1364,6 @@ class Ticktock(collections.MutableSequence):
         return self.ISO
 
     # -----------------------------------------------
-    def _readLeapSecsFile(self, fname=None):
-        """
-        read in the leapseconds file from the uses .spacepy
-
-        Other Parameters
-        ================
-        fname : str
-           file to use for the leap seconds (defualt ~/.spacepy/data/tai-utc.dat)
-
-        """
-        if fname is None: # get the default location
-            from spacepy import DOT_FLN
-            # load current file
-            fname = os.path.join(DOT_FLN, 'data', 'tai-utc.dat')
-
-        with open(fname) as fh:
-            text = fh.readlines()
-        
-        months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', \
-                  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-
-        self._leapDates = np.empty( (len(text),2), dtype=datetime.datetime)
-        
-        for i, line in enumerate(text):
-            secs = int(float(line.split()[6]))  # truncate float seconds
-            year = int(line.split()[0])
-            mon = months.index(line.split()[1]) + 1
-            day = int(line.split()[2])
-            self._leapDates[i] = [datetime.datetime(year, mon, day), secs]
-            
     def getleapsecs(self):
         """
         a.leaps or a.getleapsecs()
@@ -1417,29 +1386,70 @@ class Ticktock(collections.MutableSequence):
         getTAI
 
         """
-        # have we already read in the leap second file?
-        if not hasattr(self, '_leapDates'):
-            self._readLeapSecsFile() # adds _leapDates to self
+        from spacepy import DOT_FLN
 
-        # we want the number of leap seconds for each element in self
-        self.leaps = np.empty(len(self.UTC), dtype=np.uint16)
-        self.leaps.fill( (2**16)-1) # if we are till using spacepy with this many leaps we get an award
-        
-        # loop over all the entries in self._leapDates in reverse order
-        #   if the date is less than the entry store the leaps
-        for d, s in self._leapDates[::-1]:
-            ind = (self >= d) & (self.leaps == (2**16)-1)
-            self.leaps[ind] = s
+        tup = self.UTC
+        # so you don't have to read the file every single time
+        global secs, year, mon, day, TAIleaps
 
-        # we need TAIleaps for ISO formatting
-        TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-        self.TAIleaps = np.asarray([self.UTC[i] -
-                                    TAI0 +
-                                    datetime.timedelta(seconds=self._leapDates[i,1]-1) \
-                                    for i in range(len(self))])
-        if (self < datetime.datetime(1971,12,31)).any():
-            warnings.warn("WARNING: date before 1972/1/1; leap seconds are off by fractions")
-        return self.leaps
+        try:
+           leaps = secs[0]
+
+        except:  # then we are calling this routine the 1st time
+           # load current file
+           fname = DOT_FLN+'/data/tai-utc.dat'
+           fh = open(fname)
+           text = fh.readlines()
+
+           secs = np.zeros(len(text))
+           year = np.zeros(len(text))
+           mon = np.zeros(len(text))
+           day = np.zeros(len(text))
+
+           months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', \
+                  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
+
+           for line, i in zip(text, np.arange(len(secs))):
+              secs[i] = int(float(line.split()[6]))  # truncate float seconds
+              year[i] = int(line.split()[0])
+              mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
+              day[i] = int(line.split()[2])
+
+           TAIleaps = np.zeros(len(secs))
+           TAItup = ['']*len(secs)
+           TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
+           for i in np.arange(len(secs)):
+                TAItup[i] = datetime.datetime(int(year[i]), int(mon[i]), int(day[i])) - TAI0 + datetime.timedelta(seconds=int(secs[i])-1)
+                TAIleaps[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
+
+        # check if array:
+        if type(tup) == type(datetime.datetime(1,1,1)): # not an array of objects
+            tup = [tup]
+            nTAI = 1
+            aflag = False
+        else:
+            nTAI = len(tup)
+            aflag = True
+
+        # convert them into a time tuple and find the correct leap seconds
+        self.TAIleaps = TAIleaps
+        leaps = [secs[0]]*nTAI
+        for i, itup in enumerate(tup):
+            for y,m,d,s in zip(year, mon, day, secs):
+                if tup[i] >= datetime.datetime(int(y),int(m),int(d)):
+                    leaps[i] = s
+                else:
+                    break
+
+        #if datetime.datetime(1971,12,31) > tup[0]:
+        #   print "WARNING: date before 1972/1/1; leap seconds are by fractions off"
+
+        if aflag == False:
+            self.leaps = int(leaps[0])
+            return int(leaps[0])   # if you want to allow fractional leap seconds, remove 'int' here
+        else:
+            self.leaps = np.array(leaps, dtype=int)
+            return self.leaps
 
     # -----------------------------------------------
     @classmethod
