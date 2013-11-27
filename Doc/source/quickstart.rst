@@ -561,27 +561,52 @@ intervals of the median (or mean) are also available.
 As an example we fetch OMNI data for 4 years and perform a superposed epoch analysis
 of the solar wind radial velocity, with a set of epoch times read from a text file::
 
->>> import spacepy.seapy as se
+>>> import datetime as dt
+>>> import spacepy.seapy as sea
 >>> import spacepy.omni as om
 >>> import spacepy.toolbox as tb
->>> # now read the epochs for the analysis
->>> epochs = se.readepochs('epochs_OMNI.txt', iso=True)
->>> st, en = datetime.datetime(2005,1,1), datetime.datetime(2009,1,1)
+>>> import spacepy.time as spt
+>>> # now read the epochs for the analysis (the path specified is the default 
+>>> # install location on linux, different OS will have this elsewhere)
+>>> epochs = sea.readepochs('~/.local/lib/python2.7/site-packages/spacepy/data/SEA_epochs_OMNI.txt')
 
 The readepochs function can handle multiple formats by a user-specified format code.
-ISO 8601 format is directly supported. As an alternative to the getOMNI function used above, we
-can get the hourly data directly from the OMNI module using a toolbox function::
+ISO 8601 format is directly supported though it is not used here. The the readepochs docstring
+for more information. As above, we use the get_omni function to retrieve the hourly data 
+from the OMNI module::
 
->>> einds, oinds = tb.tOverlap([st, en], om.omnidata['UTC'])
->>> omni1hr = array(om.omnidata['UTC'])[oinds]
->>> omniVx = om.omnidata['velo'][oinds]
+>>> ticks = spt.tickrange(dt.datetime(2005,1,1), dt.datetime(2009,1,1), dt.timedelta(hours=1))
+>>> omni1hr = om.get_omni(ticks)
+>>> omni1hr.tree(levels=1, verbose=True)
++
+|____ByIMF (spacepy.datamodel.dmarray (35065,))
+|____Bz1 (spacepy.datamodel.dmarray (35065,))
+|____Bz2 (spacepy.datamodel.dmarray (35065,))
+|____Bz3 (spacepy.datamodel.dmarray (35065,))
+|____Bz4 (spacepy.datamodel.dmarray (35065,))
+|____Bz5 (spacepy.datamodel.dmarray (35065,))
+|____Bz6 (spacepy.datamodel.dmarray (35065,))
+|____BzIMF (spacepy.datamodel.dmarray (35065,))
+|____DOY (spacepy.datamodel.dmarray (35065,))
+|____Dst (spacepy.datamodel.dmarray (35065,))
+|____G (spacepy.datamodel.dmarray (35065, 3))
+|____Hr (spacepy.datamodel.dmarray (35065,))
+|____Kp (spacepy.datamodel.dmarray (35065,))
+|____Pdyn (spacepy.datamodel.dmarray (35065,))
+|____Qbits (spacepy.datamodel.SpaceData [7])
+|____RDT (spacepy.datamodel.dmarray (35065,))
+|____UTC (spacepy.datamodel.dmarray (35065,))
+|____W (spacepy.datamodel.dmarray (35065, 6))
+|____Year (spacepy.datamodel.dmarray (35065,))
+|____akp3 (spacepy.datamodel.dmarray (35065,))
+|____dens (spacepy.datamodel.dmarray (35065,))
 
 and these data are used for the superposed epoch analysis.
 the temporal resolution is 1 hr and the window is +/- 3 days
 
->>> delta = datetime.timedelta(hours=1)
->>> window= datetime.timedelta(days=3)
->>> sevx = se.Sea(omniVx, omni1hr, epochs, window, delta)
+>>> delta = dt.timedelta(hours=1)
+>>> window= dt.timedelta(days=3)
+>>> sevx = sea.Sea(omni1hr['velo'], omni1hr['UTC'], epochs, window, delta)
     #rather than quartiles, we calculate the 95% confidence interval on the median
 >>> sevx.sea(ci=True)
 >>> sevx.plot()
