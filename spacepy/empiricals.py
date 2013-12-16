@@ -345,15 +345,21 @@ def vampolaPA(omniflux, **kwargs):
     ========
     Omnidirectional number flux of [3000, 6000]
 
-    >>> from spacepy.empiricals import pamodel
-    >>> pamodel.vampolaPA(3000, alpha=[45, 90])
-    (array([  954.92965855,  1909.8593171 ]), [45, 90])
-    >>> data, pas = pamodel.vampolaPA([3000, 6000], alpha=[45, 90])
+    >>> from spacepy.empiricals import vampolaPA
+    >>> vampolaPA(3000, alpha=[45, 90])
+    (array([  75.99088773,  151.98177546]), [45, 90])
+    >>> data, pas = vampolaPA([3000, 6000], alpha=[45, 90])
     >>> pas
     [45, 90]
     >>> data
-    array([[  954.92965855,  1909.8593171 ],
-           [ 1909.8593171 ,  3819.71863421]])
+    array([[  75.99088773,  151.98177546],
+       [ 151.98177546,  303.96355093]])
+
+    Notes
+    =====
+    Directional number flux integrated over pitch angle from 0 to 90 degrees
+    is a factor of 4*pi lower than omnidirectional number flux.
+
     '''
     defaults = {'order': 2,
                 'alpha': tb.linspace(5,90,18)}
@@ -384,7 +390,7 @@ def vampolaPA(omniflux, **kwargs):
     for idx, tmporder in enumerate(kwargs['order']):
         #def partial function so that  order is fixed
         sinfunc_o = partial(sinfunc, order=tmporder)
-        normfac[idx] = integ.quad(sinfunc_o, 0, np.pi)[0] #quad returns (val, accuracy)
+        normfac[idx] = 4*np.pi*integ.quad(sinfunc_o, 0, np.pi)[0] #quad returns (val, accuracy)
 
     #now make the differential number flux
     dnflux = np.zeros((len(kwargs['alpha']), len(omniflux))).squeeze()
