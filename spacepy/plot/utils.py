@@ -28,6 +28,7 @@ Functions
 
     annotate_xaxis
     applySmartTimeTicks
+    collapse_vertical
     printfig
     smartTimeTicks
     timestamp
@@ -621,6 +622,103 @@ def smartTimeTicks(time):
         fmt = DateFormatter('%d %b')
 
     return (Mtick, mtick, fmt)
+
+
+def collapse_vertical(combine, others=[], leave_axis=False):
+    """
+    Collapse the vertical spacing between two or more subplots.
+
+    Useful for a multi-panel plot where most subplots should have
+    space between them but several adjacent ones should not (i.e.,
+    appear as a single plot.) This function will remove all the
+    vertical space between the subplots listed in ``combine`` and
+    redistribute the space between all of the subplots in both
+    ``combine`` and ``others`` in proportion to their current size,
+    so that the relative size of the subplots does not change.
+
+    Parameters
+    ==========
+    combine : list
+        The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
+        which should be placed together with no vertical space.
+
+    Other Parameters
+    ================
+    others : list
+        The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
+        which will keep their vertical spacing, but will be expanded
+        with the space taken away from between the elements of ``combine``.
+    leave_axis : bool
+        If set to true, will leave the axis lines and tick marks between
+        the collapsed subplots. By default, the axis line ("spine") is
+        removed so the two subplots appear as one.
+
+    Notes
+    =====
+    This function can be fairly fragile and should only be used for fairly
+    simple layouts, e.g., a one-column multi-row plot stack.
+
+    This may require some clean-up of the y axis labels, as they are likely
+    to overlap.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure()
+    >>> #Make three stacked subplots
+    >>> ax0 = fig.add_subplot(311)
+    >>> ax1 = fig.add_subplot(312)
+    >>> ax2 = fig.add_subplot(313)
+    >>> ax0.plot([1, 2, 3], [1, 2, 1]) #just make some lines
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> ax1.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> ax2.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> #Collapse space between top two plots, leave bottom one alone
+    >>> spacepy.plot.utils.collapse_vertical([ax0, ax1], [ax2])
+    """
+    #bounding box for ALL subplots/axes
+    boxes = dict(((ax, ax.get_position()) for ax in combine + others))
+    #vertical sizes
+    sizes = dict(((ax, boxes[ax].ymax - boxes[ax].ymin) for ax in boxes))
+    #Fraction of vertical for each?
+    vtotal = float(sum(sizes.values()))
+    for s in sizes:
+        sizes[s] /= vtotal
+    #get the ones to combine in top-to-bottom order
+    c_sort = sorted(combine, key=(lambda x: boxes[x].ymax), reverse=True)
+    #and figure out how much space we're going to take away
+    v_additional = float(0)
+    for i in range(len(c_sort) - 1):
+        v_additional += (boxes[c_sort[i]].ymin - boxes[c_sort[i + 1]].ymax)
+    #get EVERYTHING in top-to-bottom order
+    all_sort = sorted(combine + others, key=(lambda x: boxes[x].ymax),
+                      reverse=True)
+    shift = 0.0 #how far UP to move each plot
+    for i, ax in enumerate(all_sort):
+        bb = boxes[ax]
+        pos = [bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin]
+        pos[3] += (sizes[ax] * v_additional) #expand vertically
+        shift -= sizes[ax] * v_additional #everything shifted down by expansion
+        pos[1] += shift  #slide the bottom by total shift
+        ax.set_position(pos)
+        if ax in combine: #This subplot is participating in combination
+            #Combining with one below?
+            if i < len(all_sort) - 1 and all_sort[i + 1] in combine:
+                plt.setp(ax.get_xticklabels(), visible=False) #no labels
+                if not leave_axis:
+                    ax.tick_params(axis='x', bottom=False) #no bottom ticks
+                    ax.spines['bottom'].set_visible(False) #no axis line
+                #ALSO slide everything up by difference between these two
+                shift += (bb.ymin - boxes[all_sort[i + 1]].ymax)
+            #combining with one above?
+            if i > 0 and all_sort[i - 1] in combine:
+                if not leave_axis:
+                    ax.tick_params(axis='x', top=False) #no top ticks
+                    ax.spines['top'].set_visible(False) #no axis line
+
 
 def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     """save current figure to file and call lpr (print).
