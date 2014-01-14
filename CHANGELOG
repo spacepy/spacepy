@@ -1,5 +1,7 @@
 Changes in Version 0.1.5
 ========================
+plot
+ - add function "annotate_xaxis" to utils to add text in line with x tickmarks
 pycdf
  - fix bug with interpreting indexes with ellipses (var[..., 0] gave the
    wrong result).

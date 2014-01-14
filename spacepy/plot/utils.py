@@ -26,6 +26,7 @@ Functions
 .. autosummary::
     :toctree: autosummary
 
+    annotate_xaxis
     applySmartTimeTicks
     printfig
     smartTimeTicks
@@ -464,6 +465,69 @@ class EventClicker(object):
             self.ax.set_xlim(xmin, xmax)
             self.ax.autoscale_view(scalex=True, scaley=False)
         self.fig.canvas.draw()
+
+
+def annotate_xaxis(txt, ax=None):
+    """
+    Write text in-line and to the right of the x-axis tick labels
+
+    Annotates the x axis of an :class:`~matplotlib.axes.Axes` object with text
+    placed in-line with the tick labels and immediately to the right of the
+    last label. This is formatted to match the existing tick marks.
+
+    Parameters
+    ==========
+    txt : str
+        The annotation text.
+
+    Other Parameters
+    ================
+    ax : matplotlib.axes.Axes
+        The axes to annotate; if not specified, the
+        :func:`~matplotlib.pyplot.gca` function will be used.
+
+    Returns
+    =======
+    out : matplotlib.text.Text
+        The :class:`~matplotlib.text.Text` object for the annotation.
+
+    Notes
+    =====
+    The annotation is placed *immediately* to the right of the last tick label.
+    Generally the first character of ``txt`` should be a space to allow some
+    room.
+
+    Calls :func:`~matplotlib.pyplot.draw` to ensure tick marker locations are
+    up to date.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> import datetime
+    >>> times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i)
+    ...     for i in range(0, 48, 3)]
+    >>> plt.plot(times, range(16))
+    >>> spacepy.plot.utils.annotate_xaxis(' UT') #mark that times are UT
+    """
+    if ax is None:
+        ax = plt.gca()
+    #For some reason the last one is sometimes null, so search for non-null
+    t = next((t for t in ax.get_xticklabels()[::-1] if t.get_text()), None)
+    if not t:
+        plt.draw() #force a redraw, try again
+        t = next((t for t in ax.get_xticklabels()[::-1] if t.get_text()), None)
+        if not t:
+            return
+    transform = t.get_transform()
+    pos = transform.inverted().transform(t.get_window_extent())
+    left = pos[1, 0] #line up the left of annotation with right of existing
+    bottom = pos[0, 1] #for some reason bottom matches better than top
+    props = dict((p, getattr(t, 'get_' + p)()) for p in
+         ['color', 'family', 'size', 'style', 'variant', 'weight'])
+    return ax.text(left, bottom, txt, transform=transform,
+                   ha='left', va='bottom', **props)
+
 
 def applySmartTimeTicks(ax, time, dolimit = True):
     """
