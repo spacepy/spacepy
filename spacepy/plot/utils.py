@@ -709,14 +709,16 @@ def collapse_vertical(combine, others=[], leave_axis=False):
             if i < len(all_sort) - 1 and all_sort[i + 1] in combine:
                 plt.setp(ax.get_xticklabels(), visible=False) #no labels
                 if not leave_axis:
-                    ax.tick_params(axis='x', bottom=False) #no bottom ticks
+                    #no bottom ticks
+                    ax.tick_params(axis='x', which='both', bottom=False)
                     ax.spines['bottom'].set_visible(False) #no axis line
                 #ALSO slide everything up by difference between these two
                 shift += (bb.ymin - boxes[all_sort[i + 1]].ymax)
             #combining with one above?
             if i > 0 and all_sort[i - 1] in combine:
                 if not leave_axis:
-                    ax.tick_params(axis='x', top=False) #no top ticks
+                    #no top ticks
+                    ax.tick_params(axis='x', which='both', top=False)
                     ax.spines['top'].set_visible(False) #no axis line
 
 
