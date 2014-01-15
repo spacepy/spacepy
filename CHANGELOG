@@ -2,7 +2,8 @@ Changes in Version 0.1.5
 ========================
 plot
  - add function "annotate_xaxis" to utils: add text in line with x tickmarks
- - add function "collapse_vertial" to utils: remove space between two subplots
+ - add function "collapse_vertical" to utils: remove space between two subplots
+ - add function "shared_ylabel" to utils: span a y-axis label across subplots
 pycdf
  - fix bug with interpreting indexes with ellipses (var[..., 0] gave the
    wrong result).

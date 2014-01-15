@@ -30,6 +30,7 @@ Functions
     applySmartTimeTicks
     collapse_vertical
     printfig
+    shared_ylabel
     smartTimeTicks
     timestamp
 """
@@ -798,6 +799,79 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
             else:
                 os.popen('lpr '+fln+'.png')
     return
+
+
+def shared_ylabel(axes, txt, *args, **kwargs):
+    """
+    Create a ylabel that spans several subplots
+
+    Useful for a multi-panel plot where several subplots have the
+    same units/quantities on the y axis.
+
+    Parameters
+    ==========
+    axes : list
+        The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
+        which should share a single label
+    txt : str
+        The label to place in the middle of all the ``axes` objects.
+
+    Other Parameters
+    ================
+    Additional arguments and keywords are passed through to
+    :meth:`~matplotlib.axes.Axes.set_ylabel`
+
+    Returns
+    =======
+    out : matplotlib.text.Text
+        The :class:`~matplotlib.text.Text` object for the label.
+
+    Notes
+    =====
+    This function can be fairly fragile and should only be used for fairly
+    simple layouts, e.g., a one-column multi-row plot stack.
+
+    The label is associated with the bottommost subplot in ``axes``.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure()
+    >>> #Make three stacked subplots
+    >>> ax0 = fig.add_subplot(311)
+    >>> ax1 = fig.add_subplot(312)
+    >>> ax2 = fig.add_subplot(313)
+    >>> ax0.plot([1, 2, 3], [1, 2, 1]) #just make some lines
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> ax1.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> ax2.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> #Create a green label across all three axes
+    >>> spacepy.plot.utils.shared_ylabel([ax0, ax1, ax2],
+    ... 'this is a very long label that spans all three axes', color='g')
+    """
+    #these are in Figure coordinate space
+    boxes = dict(((ax, ax.get_position()) for ax in axes))
+    #top-to-bottom by upper edge
+    top = sorted(axes, key=(lambda x: boxes[x].ymax), reverse=True)[0]
+    #bottom-to-top by lower edge
+    bottom = sorted(axes, key=(lambda x: boxes[x].ymin))[0]
+    #get the TOP of the TOP subplot in axes coordinates of BOTTOM subplot
+    fig = top.get_figure() #top and bottom better be the same!
+    top_in_bottom = bottom.transAxes.inverted().transform( #into bottom coords
+        fig.transFigure.transform(boxes[top])) #into display coords from fig
+    bottom_in_bottom = bottom.transAxes.inverted().transform( #into bottom
+        fig.transFigure.transform(boxes[bottom])) #into display coords from fig
+    #The mean of bottom-of-bottom and top-of-top, in bottom coords
+    middle = (top_in_bottom[1, 1] + bottom_in_bottom[0, 1]) / 2
+    bottom.set_ylabel(txt, *args, **kwargs)
+    lbl = bottom.get_yaxis().get_label()
+    lbl.set_verticalalignment('center')
+    lbl.set_y(middle)
+    return lbl
+
 
 def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     """
