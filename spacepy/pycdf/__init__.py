@@ -4740,4 +4740,5 @@ class zAttrList(AttrList):
             new_name = name
         if new_name in self:
             del self[new_name]
-        self.new(new_name, master[name], master.type(name))
+        self.new(new_name, master[name],
+                 master.type(name) if hasattr(master, 'type') else None)

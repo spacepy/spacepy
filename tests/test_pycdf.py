@@ -2596,7 +2596,7 @@ class ChangeAttr(ChangeCDFBase):
                 self.assertTrue(isinstance(curr_warn.message,
                                            DeprecationWarning))
                 self.assertEqual(
-                    'from_dict is deprecated and will be removed. Use clone."',
+                    'from_dict is deprecated and will be removed. Use clone.',
                     str(curr_warn.message))
         self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
         numpy.testing.assert_array_equal(indict['CATDESC'],
@@ -2614,7 +2614,8 @@ class ChangeAttr(ChangeCDFBase):
         self.cdf.close()
         self.cdf = cdf.CDF(self.testfile) #reopen
         self.assertFalse(isinstance(self.cdf.attrs, dict))
-        self.assertEqual(self.cdf.attrs['foobar'], 'global')
+        self.assertEqual(self.cdf.attrs['foobar'][0], 'global')
+        self.assertEqual(len(self.cdf.attrs['foobar']), 1)
         self.assertFalse('TEXT' in self.cdf.attrs)
 
     def testzAttrsAssign(self):
