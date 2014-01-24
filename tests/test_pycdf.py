@@ -2583,6 +2583,24 @@ class ChangeAttr(ChangeCDFBase):
         for k in types:
             self.assertEqual(types[k], attrlist.type(k))
 
+    def testgAttrsAssign(self):
+        """Assign to the attrs attribute of CDF"""
+        self.cdf.attrs = {'foobar': ['global']}
+        self.cdf.close()
+        self.cdf = cdf.CDF(self.testfile) #reopen
+        self.assertFalse(isinstance(self.cdf.attrs, dict))
+        self.assertEqual(self.cdf.attrs['foobar'], 'global')
+        self.assertFalse('TEXT' in self.cdf.attrs)
+
+    def testzAttrsAssign(self):
+        """Assign to the attrs attribute of variable"""
+        self.cdf['ATC'].attrs = {'foobar': ['var']}
+        self.cdf.close()
+        self.cdf = cdf.CDF(self.testfile) #reopen
+        self.assertFalse(isinstance(self.cdf['ATC'].attrs, dict))
+        self.assertEqual(self.cdf['ATC'].attrs['foobar'], 'var')
+        self.assertFalse('CATDESC' in self.cdf['ATC'].attrs)
+
     def testCopyAttr(self):
         """Assign a gAttribute to another"""
         self.cdf.attrs['new_attr'] = self.cdf.attrs['TEXT']

@@ -1173,8 +1173,24 @@ def _compress(obj, comptype=None, param=None):
 
 
 class _AttrListGetter(object):
-    """Get attribute list for a :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`."""
+    """Get attribute list for a :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`.
+
+    This is a `descriptor <http://docs.python.org/2/howto/descriptor.html>`_
+    which is attached to a :class:`~spacepy.pycdf.CDF` or
+    :class:`~spacepy.pycdf.Var` to provide access to its attribute list
+    without holding a strong reference, as the attribute list has a
+    (strong) back-reference to its parent.
+
+    It also used to prevent overwriting of the attribute list on
+    assignment.
+    """
     def __get__(self, instance, owner=None):
+        """Get the attribute list
+
+        Either deref a weak reference (to try and keep the object the same),
+        or make a new AttrList instance and assign it to the weak reference
+        for next time.
+        """
         if instance is None:
             return self
         al = instance._attrlistref()
@@ -1188,6 +1204,14 @@ class _AttrListGetter(object):
                     "Attribute lists may only be applied to CDFs or zVars.")
             instance._attrlistref = weakref.ref(al)
         return al
+
+    def __set__(self, obj, value):
+        """Assign to the attribute list
+
+        Clears all elements of the attribute list and copies from value
+        """
+        #from_dict uses assignment, as does _clone_attr: magic is in assignment
+        obj.attrs.from_dict(value)
 
 
 class CDF(collections.MutableMapping):
