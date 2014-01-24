@@ -342,25 +342,32 @@ class build(_build):
                 f2py_flags += ' --f77flags=-fno-second-underscore,-mno-align-double,-m64'
         if self.compiler:
             f2py_flags += ' --compiler={0}'.format(self.compiler)
-        if bit == 32:
-            os.system(compile_cmd32[fcompiler])
-        else:
-            os.system(compile_cmd64[fcompiler])
-        if sys.platform == 'darwin':
-            os.system('libtool -static -o libBL2.a *.o')
-        elif sys.platform == 'linux2':
-            os.system('ar -r libBL2.a *.o')
-            os.system('ranlib libBL2.a')
-        elif sys.platform == 'win32':
-            os.system('ar -r libBL2.a *.o')
-            os.system('ranlib libBL2.a')
-        os.chdir('..')
-        subprocess.check_call(
-            '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
-            '{1}'.format(
-            self.f2py, f2py_flags),
-            shell=True, env=f2py_environment(self.fcompiler))
         try:
+            if bit == 32:
+                os.system(compile_cmd32[fcompiler])
+            else:
+                os.system(compile_cmd64[fcompiler])
+            if sys.platform == 'darwin':
+                os.system('libtool -static -o libBL2.a *.o')
+            elif sys.platform == 'linux2':
+                os.system('ar -r libBL2.a *.o')
+                os.system('ranlib libBL2.a')
+            elif sys.platform == 'win32':
+                os.system('ar -r libBL2.a *.o')
+                os.system('ranlib libBL2.a')
+        except:
+            self.distribution.add_warning(
+                'irbemlib compile failed. '
+                'Try a different Fortran compiler? (--fcompiler)')
+            os.chdir(olddir)
+            return
+        os.chdir('..')
+        try:
+            subprocess.check_call(
+                '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
+                '{1}'.format(
+                    self.f2py, f2py_flags),
+                shell=True, env=f2py_environment(self.fcompiler))
             shutil.move(libfile, sofile)
         except:
             self.distribution.add_warning(
