@@ -12,6 +12,7 @@ pycdf
  - improved handling of numpy fancy indexing in variable copies
    (fancy indexing is still not supported for variables themselves.)
  - make assignment to attrs work
+ - deprecate from_dict method of attribute lists; it is redundant with clone.
 toolbox
  - add function timeout_check_call to run another program with a timeout
 

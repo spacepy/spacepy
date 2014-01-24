@@ -2567,12 +2567,37 @@ class ChangeAttr(ChangeCDFBase):
         self.assertEqual(const.CDF_INT4.value, attrs.type('new3'))
 
     def testAttrsFromDict(self):
-        """Dump a bunch of attrs on a variable from a dict"""
+        """Dump a bunch of attrs on a variable from a dict, using clone"""
         indict = { 'CATDESC': numpy.array([1, 2, 3], dtype=numpy.int32),
                    'b': 'hello',
                    }
         attrlist = self.cdf['ATC'].attrs
-        attrlist.from_dict(indict)
+        attrlist.clone(indict)
+        self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
+        numpy.testing.assert_array_equal(indict['CATDESC'],
+                                         attrlist['CATDESC'])
+        self.assertEqual('hello', attrlist['b'])
+        types = {'CATDESC': const.CDF_INT4.value,
+                 'b': const.CDF_CHAR.value,
+                 }
+        for k in types:
+            self.assertEqual(types[k], attrlist.type(k))
+
+    def testAttrsFromDictDeprecated(self):
+        """Test deprecation of from_dict"""
+        indict = { 'CATDESC': numpy.array([1, 2, 3], dtype=numpy.int32),
+                   'b': 'hello',
+                   }
+        attrlist = self.cdf['ATC'].attrs
+        with warnings.catch_warnings(record=True) as w:
+            attrlist.from_dict(indict)
+            self.assertEqual(1, len(w))
+            for curr_warn in w:
+                self.assertTrue(isinstance(curr_warn.message,
+                                           DeprecationWarning))
+                self.assertEqual(
+                    'from_dict is deprecated and will be removed. Use clone."',
+                    str(curr_warn.message))
         self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
         numpy.testing.assert_array_equal(indict['CATDESC'],
                                          attrlist['CATDESC'])

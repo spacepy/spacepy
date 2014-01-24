@@ -1210,8 +1210,7 @@ class _AttrListGetter(object):
 
         Clears all elements of the attribute list and copies from value
         """
-        #from_dict uses assignment, as does _clone_attr: magic is in assignment
-        obj.attrs.from_dict(value)
+        obj.attrs.clone(value)
 
 
 class CDF(collections.MutableMapping):
@@ -1496,7 +1495,7 @@ class CDF(collections.MutableMapping):
         elif name in self:
             self[name][...] = data
             if hasattr(data, 'attrs'):
-                self[name].attrs.from_dict(data.attrs)
+                self[name].attrs.clone(data.attrs)
         else:
             self.new(name, data)
 
@@ -1670,7 +1669,7 @@ class CDF(collections.MutableMapping):
         with cls(filename, '') as cdffile:
             for k in sd:
                 cdffile[k] = sd[k]
-            cdffile.attrs.from_dict(sd.attrs)
+            cdffile.attrs.clone(sd.attrs)
 
     def _call(self, *args, **kwargs):
         """Select this CDF as current and call the CDF internal interface
@@ -2016,7 +2015,7 @@ class CDF(collections.MutableMapping):
         if data != None:
             new_var[...] = data
             if hasattr(data, 'attrs'):
-                new_var.attrs.from_dict(data.attrs)
+                new_var.attrs.clone(data.attrs)
         return new_var
 
     def raw_var(self, name):
@@ -4385,7 +4384,7 @@ class AttrList(collections.MutableMapping):
         Parameters
         ==========
         master : AttrList
-            the attribute list to copy from
+            the attribute list to copy from. This can be any dict-like object.
 
         Other Parameters
         ================
@@ -4460,12 +4459,18 @@ class AttrList(collections.MutableMapping):
         """
         Fill this list of attributes from a dictionary
 
+        .. deprecated:: 0.1.5
+           Use :meth:`~spacepy.pycdf.AttrList.clone` instead; it supports
+           cloning from dictionaries.
+
         Parameters
-        ----------
+        ==========
         in_dict : dict
             Attribute list is populated entirely from this dictionary;
             all existing attributes are deleted.
         """
+        warnings.warn("from_dict is deprecated and will be removed. Use clone.",
+                      DeprecationWarning)
         for k in in_dict:
             self[k] = in_dict[k]
         for k in list(self):
