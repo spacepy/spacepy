@@ -168,9 +168,9 @@ def finalize_compiler_options(cmd):
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
     #Special-case defaults, checks
-    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel'):
+    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none'):
         raise DistutilsOptionError(
-            '--fcompiler must be pg, gnu, gnu95, intelem, intel')
+            '--fcompiler must be pg, gnu, gnu95, intelem, intel, none')
     if len('%x' % sys.maxsize)*4 == 32 and cmd.fcompiler == 'intelem':
         raise DistutilsOptionError(
             '--fcompiler=intelem requires a 64-bit architecture')
@@ -180,7 +180,7 @@ def finalize_compiler_options(cmd):
 
 compiler_options = [
         ('fcompiler=', None,
-         'specify the fortran compiler to use: pg, gnu95, gnu, intelem, intel [gnu95]'),
+         'specify the fortran compiler to use: pg, gnu95, gnu, intelem, intel, none [gnu95]'),
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
@@ -241,9 +241,14 @@ class build(_build):
                 self.build_docs = False
 
     def compile_irbempy(self):
-        # 64 bit or 32 bit?"
-        bit = len('%x' % sys.maxsize)*4
         fcompiler = self.fcompiler
+        if fcompiler == 'none':
+            self.distribution.add_warning(
+                'Fortran compiler specified was "none."\n'
+                'IRBEM will not be available.')
+            return
+        # 64 bit or 32 bit?
+        bit = len('%x' % sys.maxsize)*4
         irbemdir = 'irbem-lib-2012-12-12-rev425'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
