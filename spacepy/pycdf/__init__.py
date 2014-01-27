@@ -1172,47 +1172,6 @@ def _compress(obj, comptype=None, param=None):
     return (comptype, param)
 
 
-class _AttrListGetter(object):
-    """Get attribute list for a :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`.
-
-    This is a `descriptor <http://docs.python.org/2/howto/descriptor.html>`_
-    which is attached to a :class:`~spacepy.pycdf.CDF` or
-    :class:`~spacepy.pycdf.Var` to provide access to its attribute list
-    without holding a strong reference, as the attribute list has a
-    (strong) back-reference to its parent.
-
-    It also used to prevent overwriting of the attribute list on
-    assignment.
-    """
-    def __get__(self, instance, owner=None):
-        """Get the attribute list
-
-        Either deref a weak reference (to try and keep the object the same),
-        or make a new AttrList instance and assign it to the weak reference
-        for next time.
-        """
-        if instance is None:
-            return self
-        al = instance._attrlistref()
-        if al is None:
-            if owner == CDF:
-                al = gAttrList(instance)
-            elif owner == Var:
-                al = zAttrList(instance)
-            else:
-                raise NotImplementedError(
-                    "Attribute lists may only be applied to CDFs or zVars.")
-            instance._attrlistref = weakref.ref(al)
-        return al
-
-    def __set__(self, obj, value):
-        """Assign to the attribute list
-
-        Clears all elements of the attribute list and copies from value
-        """
-        obj.attrs.clone(value)
-
-
 class CDF(collections.MutableMapping):
     """
     Python object representing a CDF file.
@@ -1360,8 +1319,8 @@ class CDF(collections.MutableMapping):
 
     .. attribute:: CDF.attrs
 
-       Returns global attributes for this CDF
-       (see :class:`gAttrList`)
+       Global attributes for this CDF in a dict-like format.
+       See :class:`gAttrList` for details.
     .. automethod:: checksum
     .. automethod:: clone
     .. automethod:: close
@@ -1376,8 +1335,6 @@ class CDF(collections.MutableMapping):
     .. automethod:: version
 
     """
-    attrs = _AttrListGetter()
-
     def __init__(self, pathname, masterpath=None):
         """Open or create a CDF file.
 
@@ -1420,7 +1377,7 @@ class CDF(collections.MutableMapping):
         else:
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
-        self._attrlistref = weakref.ref(gAttrList(self))
+        self._attrlistref = None
 
     def __del__(self):
         """Destructor; called when CDF object is destroyed.
@@ -2091,6 +2048,35 @@ class CDF(collections.MutableMapping):
                    const.GET_, const.CDF_INCREMENT_, ctypes.byref(inc))
         return (ver.value, rel.value, inc.value)
 
+    def _get_attrs(self):
+        """Get attribute list
+
+        Provide access to the CDF's attribute list without holding a
+        strong reference, as the attribute list has a (strong)
+        back-reference to its parent.
+
+        Either deref a weak reference (to try and keep the object the same),
+        or make a new AttrList instance and assign it to the weak reference
+        for next time.
+        """
+        al = self._attrlistref()
+        if al is None:
+            al = gAttrList(self)
+        self._attrlistref = weakref.ref(al)
+        return al
+
+    def _set_attrs(self, value):
+        """Assign to the attribute list
+
+        Clears all elements of the attribute list and copies from value
+        """
+        self.attrs.clone(value)
+
+    attrs = property(
+        _get_attrs, _set_attrs, None,
+        """Global attributes for this CDF in a dict-like format.
+        See :class:`gAttrList` for details.
+        """)
 
 class CDFCopy(spacepy.datamodel.SpaceData):
     """
@@ -2345,8 +2331,8 @@ class Var(collections.MutableSequence):
         ~Var.type
     .. attribute:: Var.attrs
 
-       Returns attributes for this variable
-       (see :class:`zAttrList`)
+       zAttributes for this zVariable in a dict-like format.
+       See :class:`zAttrList` for details.
     .. automethod:: compress
     .. automethod:: copy
     .. autoattribute:: dtype
@@ -2374,8 +2360,6 @@ class Var(collections.MutableSequence):
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
     """
-    attrs = _AttrListGetter()
-
     def __init__(self, cdf_file, var_name, *args):
         """Create or locate a variable
 
@@ -2411,7 +2395,7 @@ class Var(collections.MutableSequence):
             self._get(var_name)
         else:
             self._create(var_name, *args)
-        self._attrlistref = weakref.ref(zAttrList(self))
+        self._attrlistref = None
 
     def __getitem__(self, key):
         """Returns a slice from the data array. Details under :py:class:`pycdf.Var`.
@@ -3002,6 +2986,35 @@ class Var(collections.MutableSequence):
         """
         return self._np_type()
 
+    def _get_attrs(self):
+        """Get attribute list
+
+        Provide access to the zVar's attribute list without holding a
+        strong reference, as the attribute list has a (strong)
+        back-reference to its parent.
+
+        Either deref a weak reference (to try and keep the object the same),
+        or make a new AttrList instance and assign it to the weak reference
+        for next time.
+        """
+        al = self._attrlistref()
+        if al is None:
+            al = zAttrList(self)
+        self._attrlistref = weakref.ref(al)
+        return al
+
+    def _set_attrs(self, value):
+        """Assign to the attribute list
+
+        Clears all elements of the attribute list and copies from value
+        """
+        self.attrs.clone(value)
+
+    attrs = property(
+        _get_attrs, _set_attrs, None,
+        """zAttributes for this zVariable in a dict-like format.
+        See :class:`zAttrList` for details.
+        """)
 
 
 class VarCopy(spacepy.datamodel.dmarray):

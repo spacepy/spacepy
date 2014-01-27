@@ -2627,6 +2627,21 @@ class ChangeAttr(ChangeCDFBase):
         self.assertEqual(self.cdf['ATC'].attrs['foobar'], 'var')
         self.assertFalse('CATDESC' in self.cdf['ATC'].attrs)
 
+    def testzAttrsDelete(self):
+        """Try to delete attrs attribute of variable, CDF"""
+        try:
+            del self.cdf['ATC'].attrs
+        except AttributeError:
+            pass
+        else:
+            self.fail('AttributeError not raised.')
+        try:
+            del self.cdf.attrs
+        except AttributeError:
+            pass
+        else:
+            self.fail('AttributeError not raised.')
+
     def testCopyAttr(self):
         """Assign a gAttribute to another"""
         self.cdf.attrs['new_attr'] = self.cdf.attrs['TEXT']
