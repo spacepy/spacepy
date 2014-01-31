@@ -1377,7 +1377,7 @@ class CDF(collections.MutableMapping):
         else:
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
-        self._attrlistref = None
+        self._attrlistref = weakref.ref(gAttrList(self))
 
     def __del__(self):
         """Destructor; called when CDF object is destroyed.
@@ -2395,7 +2395,7 @@ class Var(collections.MutableSequence):
             self._get(var_name)
         else:
             self._create(var_name, *args)
-        self._attrlistref = None
+        self._attrlistref = weakref.ref(zAttrList(self))
 
     def __getitem__(self, key):
         """Returns a slice from the data array. Details under :py:class:`pycdf.Var`.
