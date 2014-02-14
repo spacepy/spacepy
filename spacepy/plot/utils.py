@@ -26,8 +26,12 @@ Functions
 .. autosummary::
     :toctree: autosummary
 
+    add_logo
+    annotate_xaxis
     applySmartTimeTicks
+    collapse_vertical
     printfig
+    shared_ylabel
     smartTimeTicks
     timestamp
 """
@@ -37,7 +41,10 @@ __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
 import bisect
 import datetime
 
+import matplotlib
+import matplotlib.axis
 import matplotlib.dates
+import matplotlib.image
 try:
     import matplotlib.pyplot as plt
 except RuntimeError:
@@ -465,6 +472,71 @@ class EventClicker(object):
             self.ax.autoscale_view(scalex=True, scaley=False)
         self.fig.canvas.draw()
 
+
+def annotate_xaxis(txt, ax=None):
+    """
+    Write text in-line and to the right of the x-axis tick labels
+
+    Annotates the x axis of an :class:`~matplotlib.axes.Axes` object with text
+    placed in-line with the tick labels and immediately to the right of the
+    last label. This is formatted to match the existing tick marks.
+
+    Parameters
+    ==========
+    txt : str
+        The annotation text.
+
+    Other Parameters
+    ================
+    ax : matplotlib.axes.Axes
+        The axes to annotate; if not specified, the
+        :func:`~matplotlib.pyplot.gca` function will be used.
+
+    Returns
+    =======
+    out : matplotlib.text.Text
+        The :class:`~matplotlib.text.Text` object for the annotation.
+
+    Notes
+    =====
+    The annotation is placed *immediately* to the right of the last tick label.
+    Generally the first character of ``txt`` should be a space to allow some
+    room.
+
+    Calls :func:`~matplotlib.pyplot.draw` to ensure tick marker locations are
+    up to date.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> import datetime
+    >>> times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i)
+    ...     for i in range(0, 48, 3)]
+    >>> plt.plot(times, range(16))
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> spacepy.plot.utils.annotate_xaxis(' UT') #mark that times are UT
+    <matplotlib.text.Text object at 0x0000000>
+    """
+    if ax is None:
+        ax = plt.gca()
+    #For some reason the last one is sometimes null, so search for non-null
+    t = next((t for t in ax.get_xticklabels()[::-1] if t.get_text()), None)
+    if not t:
+        plt.draw() #force a redraw, try again
+        t = next((t for t in ax.get_xticklabels()[::-1] if t.get_text()), None)
+        if not t:
+            return
+    transform = t.get_transform()
+    pos = transform.inverted().transform(t.get_window_extent())
+    left = pos[1, 0] #line up the left of annotation with right of existing
+    bottom = pos[0, 1] #for some reason bottom matches better than top
+    props = dict((p, getattr(t, 'get_' + p)()) for p in
+         ['color', 'family', 'size', 'style', 'variant', 'weight'])
+    return ax.text(left, bottom, txt, transform=transform,
+                   ha='left', va='bottom', **props)
+
+
 def applySmartTimeTicks(ax, time, dolimit = True):
     """
     Given an axis 'ax' and a list/array of datetime objects, 'time',
@@ -556,6 +628,105 @@ def smartTimeTicks(time):
 
     return (Mtick, mtick, fmt)
 
+
+def collapse_vertical(combine, others=[], leave_axis=False):
+    """
+    Collapse the vertical spacing between two or more subplots.
+
+    Useful for a multi-panel plot where most subplots should have
+    space between them but several adjacent ones should not (i.e.,
+    appear as a single plot.) This function will remove all the
+    vertical space between the subplots listed in ``combine`` and
+    redistribute the space between all of the subplots in both
+    ``combine`` and ``others`` in proportion to their current size,
+    so that the relative size of the subplots does not change.
+
+    Parameters
+    ==========
+    combine : list
+        The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
+        which should be placed together with no vertical space.
+
+    Other Parameters
+    ================
+    others : list
+        The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
+        which will keep their vertical spacing, but will be expanded
+        with the space taken away from between the elements of ``combine``.
+    leave_axis : bool
+        If set to true, will leave the axis lines and tick marks between
+        the collapsed subplots. By default, the axis line ("spine") is
+        removed so the two subplots appear as one.
+
+    Notes
+    =====
+    This function can be fairly fragile and should only be used for fairly
+    simple layouts, e.g., a one-column multi-row plot stack.
+
+    This may require some clean-up of the y axis labels, as they are likely
+    to overlap.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure()
+    >>> #Make three stacked subplots
+    >>> ax0 = fig.add_subplot(311)
+    >>> ax1 = fig.add_subplot(312)
+    >>> ax2 = fig.add_subplot(313)
+    >>> ax0.plot([1, 2, 3], [1, 2, 1]) #just make some lines
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> ax1.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> ax2.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> #Collapse space between top two plots, leave bottom one alone
+    >>> spacepy.plot.utils.collapse_vertical([ax0, ax1], [ax2])
+    """
+    #bounding box for ALL subplots/axes
+    boxes = dict(((ax, ax.get_position()) for ax in combine + others))
+    #vertical sizes
+    sizes = dict(((ax, boxes[ax].ymax - boxes[ax].ymin) for ax in boxes))
+    #Fraction of vertical for each?
+    vtotal = float(sum(sizes.values()))
+    for s in sizes:
+        sizes[s] /= vtotal
+    #get the ones to combine in top-to-bottom order
+    c_sort = sorted(combine, key=(lambda x: boxes[x].ymax), reverse=True)
+    #and figure out how much space we're going to take away
+    v_additional = float(0)
+    for i in range(len(c_sort) - 1):
+        v_additional += (boxes[c_sort[i]].ymin - boxes[c_sort[i + 1]].ymax)
+    #get EVERYTHING in top-to-bottom order
+    all_sort = sorted(combine + others, key=(lambda x: boxes[x].ymax),
+                      reverse=True)
+    shift = 0.0 #how far UP to move each plot
+    for i, ax in enumerate(all_sort):
+        bb = boxes[ax]
+        pos = [bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin]
+        pos[3] += (sizes[ax] * v_additional) #expand vertically
+        shift -= sizes[ax] * v_additional #everything shifted down by expansion
+        pos[1] += shift  #slide the bottom by total shift
+        ax.set_position(pos)
+        if ax in combine: #This subplot is participating in combination
+            #Combining with one below?
+            if i < len(all_sort) - 1 and all_sort[i + 1] in combine:
+                plt.setp(ax.get_xticklabels(), visible=False) #no labels
+                if not leave_axis:
+                    #no bottom ticks
+                    ax.tick_params(axis='x', which='both', bottom=False)
+                    ax.spines['bottom'].set_visible(False) #no axis line
+                #ALSO slide everything up by difference between these two
+                shift += (bb.ymin - boxes[all_sort[i + 1]].ymax)
+            #combining with one above?
+            if i > 0 and all_sort[i - 1] in combine:
+                if not leave_axis:
+                    #no top ticks
+                    ax.tick_params(axis='x', which='both', top=False)
+                    ax.spines['top'].set_visible(False) #no axis line
+
+
 def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
     """save current figure to file and call lpr (print).
 
@@ -633,6 +804,79 @@ def printfig(fignum, saveonly=False, pngonly=False, clean=False, filename=None):
                 os.popen('lpr '+fln+'.png')
     return
 
+
+def shared_ylabel(axes, txt, *args, **kwargs):
+    """
+    Create a ylabel that spans several subplots
+
+    Useful for a multi-panel plot where several subplots have the
+    same units/quantities on the y axis.
+
+    Parameters
+    ==========
+    axes : list
+        The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
+        which should share a single label
+    txt : str
+        The label to place in the middle of all the ``axes` objects.
+
+    Other Parameters
+    ================
+    Additional arguments and keywords are passed through to
+    :meth:`~matplotlib.axes.Axes.set_ylabel`
+
+    Returns
+    =======
+    out : matplotlib.text.Text
+        The :class:`~matplotlib.text.Text` object for the label.
+
+    Notes
+    =====
+    This function can be fairly fragile and should only be used for fairly
+    simple layouts, e.g., a one-column multi-row plot stack.
+
+    The label is associated with the bottommost subplot in ``axes``.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure()
+    >>> #Make three stacked subplots
+    >>> ax0 = fig.add_subplot(311)
+    >>> ax1 = fig.add_subplot(312)
+    >>> ax2 = fig.add_subplot(313)
+    >>> ax0.plot([1, 2, 3], [1, 2, 1]) #just make some lines
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> ax1.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> ax2.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D object at 0x0000000>]
+    >>> #Create a green label across all three axes
+    >>> spacepy.plot.utils.shared_ylabel([ax0, ax1, ax2],
+    ... 'this is a very long label that spans all three axes', color='g')
+    """
+    #these are in Figure coordinate space
+    boxes = dict(((ax, ax.get_position()) for ax in axes))
+    #top-to-bottom by upper edge
+    top = sorted(axes, key=(lambda x: boxes[x].ymax), reverse=True)[0]
+    #bottom-to-top by lower edge
+    bottom = sorted(axes, key=(lambda x: boxes[x].ymin))[0]
+    #get the TOP of the TOP subplot in axes coordinates of BOTTOM subplot
+    fig = top.get_figure() #top and bottom better be the same!
+    top_in_bottom = bottom.transAxes.inverted().transform( #into bottom coords
+        fig.transFigure.transform(boxes[top])) #into display coords from fig
+    bottom_in_bottom = bottom.transAxes.inverted().transform( #into bottom
+        fig.transFigure.transform(boxes[bottom])) #into display coords from fig
+    #The mean of bottom-of-bottom and top-of-top, in bottom coords
+    middle = (top_in_bottom[1, 1] + bottom_in_bottom[0, 1]) / 2
+    bottom.set_ylabel(txt, *args, **kwargs)
+    lbl = bottom.get_yaxis().get_label()
+    lbl.set_verticalalignment('center')
+    lbl.set_y(middle)
+    return lbl
+
+
 def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     """
     print a timestamp on the current plot, vertical lower right
@@ -663,3 +907,241 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
     if draw:
         draw()
+
+
+def _used_boxes_helper(obj, renderer=None):
+    """Recursively-called helper function for get_used_boxes. Internal."""
+    boxes = []
+    if hasattr(obj, 'get_renderer_cache'): #I know how to render myself
+        renderer = obj.get_renderer_cache()
+    #Axis objects are weird, go for the tick labels directly
+    if isinstance(obj, matplotlib.axis.Axis):
+        boxes = [tl.get_window_extent() for tl in obj.get_ticklabels()
+                 if tl.get_text()]
+    #Base size on children, *unless* there are none
+    elif hasattr(obj, 'get_children') and obj.get_children():
+        for child in obj.get_children():
+            res = _used_boxes_helper(child, renderer)
+            if res is None: #Child can't find its size, just use own bounds
+                boxes = []
+                break
+            boxes.extend(res)
+    if boxes: #found details from children
+        return boxes
+    #Nothing from children, try own bounds
+    try:
+        return [obj.get_window_extent()]
+    except (TypeError, RuntimeError): #need a renderer
+        if not renderer is None:
+            return [obj.get_window_extent(renderer)]
+        else: #I can't figure out my size!
+            return None
+
+def get_used_boxes(fig=None):
+    """Go through all elements of a figure and find the "boxes" they occupy,
+    in figure coordinates. Mostly helper for add_logo
+    """
+    plt.draw() #invoke the renderer to figure everything out
+    if fig is None:
+        fig = plt.gcf()
+    #Get rid of double-nesting, and don't include top-level z-order 1
+    #(background rectangle) OR anything completely degenerate (point only)
+    boxes = [box for child in fig.get_children()
+             if (child.get_zorder() == 0 or child.get_zorder() > 1)
+             for box in _used_boxes_helper(child)
+             if (box.xmin != box.xmax or box.ymin != box.ymax)
+             ]
+    #Transform to figure
+    boxes = [fig.transFigure.inverted().transform(b) for b in boxes]
+    return [b for b in boxes if numpy.isfinite(b).all()]
+
+
+def filter_boxes(boxes):
+    """From a list of boxes, exclude those that are completely contained by another"""
+    #Filter exact overlap (any box before this one have same bounds?)
+    boxes= [b for i, b in enumerate(boxes) if i==0 or not max(
+        [(b[0][0] == other[0][0] and b[1][0] == other[1][0] and
+          b[0][1] == other[0][1] and b[1][1] == other[1][1])
+         for other in boxes[0:i]])]
+    #and filter "completely enclosed"
+    return [b for b in boxes
+            if not max( #Is this contained in ANY other box? If so, drop it.
+                [(b[0][0] >= other[0][0] and b[0][1] >= other[0][1] and
+                    b[1][0] <= other[1][0] and b[1][1] <= other[1][1])
+                for other in boxes if not other is b] #don't compare to self
+                )]
+
+
+def get_clear(boxes, pos='br'):
+    """Take a list of boxes which *obstruct* the plot, i.e., don't overplot
+
+    Return a list of boxes which are "clear".
+
+    Mostly a helper for add_logo
+
+    pos is where to look for the clear area:
+    br: bottom right
+    bl: bottom left
+    tl: top left
+    tr: top right
+    """
+    pos = pos.lower()
+    assert(pos in ('br', 'bl', 'tl', 'tr'))
+    clear = []
+    if pos[1] == 'l': #sort obstructing boxes on left edge
+        sboxes = sorted(boxes, key=lambda b: b[0][0])
+    else: #sort on right edge, descending (work in from right edge)
+        sboxes = sorted(boxes, key=lambda b: b[1][0], reverse=True)
+    if pos[0] == 't':  #There's a clear space across the top of everything
+        clear.append(numpy.array([[0.0, max([b[1][1] for b in sboxes])],
+                                  [1.0, 1.0]]))
+    else: #clear space across bottom of everything
+        clear.append(numpy.array([[0.0, 0.0],
+                                  [1.0, min([b[0][1] for b in sboxes])]]))
+    #default corners
+    left = 0.0
+    right = 1.0
+    bottom = 0.0
+    top = 1.0
+    #Work in from left or right edge, and avoid all boxes that we've
+    #reached so far
+    for i, box in enumerate(sboxes):
+        if pos[0] == 't':
+            #bottom of clear zone is top of every box from here to edge
+            bottom = 0.0 if i == 0 else max([b[1][1] for b in sboxes[0:i]])
+        else:
+            #top of clear zone is bottom of every box from here to edge
+            top = 1.0 if i == 0 else min([b[0][1] for b in sboxes[0:i]])
+        if pos[1] == 'l':
+            right = box[0][0] #right edge of clear zone is the left of this box
+        else:
+            left = box[1][0] #left of clear zone is right of this obstructing box
+        clear.append(numpy.array([[left, bottom], [right, top]]))
+    return filter_boxes(clear) #and remove overlaps
+
+
+def get_biggest_clear(boxes, fig_aspect=1.0, img_aspect=1.0):
+    """Given a list of boxes with clear space, figure aspect ratio (width/height),
+    and image aspect ratio (width/height), return the largest clear space
+    that maintains the aspect ratio of the image
+
+    Mostly a helper for add_logo
+    """
+    def effective_width(box):
+        """Returns "effective" width of the box"""
+        width = box[1][0] - box[0][0]
+        height = box[1][1] - box[0][1]
+        #If figure is wide, each unit of height is smaller than unit of width
+        real_height = height / fig_aspect #in width units
+        #Box aspect ratio, corrected for figure. Is it "taller" than image?
+        if width / real_height <= img_aspect:
+            #yes, so the width is the limiter
+            return width
+        else:
+            #no, take the height, correct for figure aspect, and find the
+            #width the image would have at this height and its aspect ratio.
+            return real_height * img_aspect
+    return sorted(boxes, key=effective_width, reverse=True)[0]
+
+
+def add_logo(img, fig=None, pos='br', margin=0.05):
+    """
+    Add an image (logo) to one corner of a plot.
+
+    The provided image will be placed in a corner of the plot and sized
+    to maintain its aspect ratio and be as large as possible without
+    overlapping any existing elements of the figure. Thus this should
+    be the last call in constructing a figure.
+
+    Parameters
+    ==========
+    img : str or numpy.ndarray
+        The image to place on the figure. If a string, assumed to be a
+        filename to be read with :func:`~matplotlib.image.imread`; if
+        a numpy array, assumed to be the image itself
+        (in a simliar format).
+
+    Other Parameters
+    ================
+    fig : matplotlib.figure.Figure
+        The figure on which to place the logo; if not specified, the
+        :func:`~matplotlib.pyplot.gcf` function will be used.
+
+    pos : str
+        The position to place the logo.
+        br: bottom right;
+        bl: bottom left;
+        tl: top left;
+        tr: top right
+
+    margin : float
+        Margin to include on each side of figure, as a fraction of the larger
+        dimension of the figure (width or height). Default is 0.05 (5%).
+
+    Returns
+    =======
+    (axes, axesimg) : tuple of Axes and AxesImage
+        The :class:`~matplotlib.axes.Axes` object created to hold the iamge,
+        and the :class:`~matplotlib.image.AxesImage` object for the image
+        itself.
+
+    Notes
+    =====
+    Calls :func:`~matplotlib.pyplot.draw` to ensure locations are
+    up to date.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure()
+    >>> ax0 = fig.add_subplot(211)
+    >>> ax0.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D at 0x00000000>]
+    >>> ax1 = fig.add_subplot(212)
+    >>> ax1.plot([1, 2, 3], [2, 1, 2])
+    [<matplotlib.lines.Line2D at 0x00000000>]
+    >>> spacepy.plot.utils.add_logo('logo.png', fig)
+    (<matplotlib.axes.Axes at 0x00000000>,
+     <matplotlib.image.AxesImage at 0x00000000>)
+    """
+    #Consider an alpha keyword (for watermarking)
+    #Do something about margin/padding
+    pos = pos.lower()
+    assert(pos in ('br', 'bl', 'tl', 'tr'))
+    if not hasattr(img, 'size'):
+        img = matplotlib.image.imread(img)
+    if fig is None:
+        fig = plt.gcf()
+    width = float(img.shape[1])
+    height = float(img.shape[0])
+    #Margin can change effective aspect ratio of figure
+    margin_px = round(margin * (width if width > height else height))
+    img_aspect = (width + 2 * margin_px) / (height + 2 * margin_px)
+    fig_aspect = float(fig.get_figwidth()) / fig.get_figheight()
+    clear_boxes = get_clear(filter_boxes(get_used_boxes(fig)), pos)
+    clear_box = get_biggest_clear(clear_boxes, fig_aspect, img_aspect)
+    box_width = clear_box[1][0] - clear_box[0][0]
+    box_height = clear_box[1][1] - clear_box[0][1]
+    if box_width / box_height * fig_aspect > img_aspect: #img uses full height
+        box_width = box_height / fig_aspect * img_aspect
+    else: #img uses full width, correct the height
+        box_height = box_width / img_aspect * fig_aspect
+    #default corners
+    left = 0.0
+    bottom = 0.0
+    if pos[0] == 't':
+        bottom = 1.0 - box_height
+    if pos[1] == 'r':
+        left = 1.0 - box_width
+    ax = fig.add_axes([left, bottom, box_width, box_height])
+    ax.axis('off')
+    axesimg = ax.imshow(img)
+    #Resize to include the margin
+    for getter, setter in ((ax.get_xlim, ax.set_xlim),
+                           (ax.get_ylim, ax.set_ylim)):
+        limits = getter()
+        orientation = 1 if limits[1] > limits[0] else -1 #upside-down?
+        setter((limits[0] - margin_px * orientation,
+                limits[1] + margin_px * orientation))
+    return (ax, axesimg)

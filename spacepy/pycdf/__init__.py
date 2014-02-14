@@ -1172,24 +1172,6 @@ def _compress(obj, comptype=None, param=None):
     return (comptype, param)
 
 
-class _AttrListGetter(object):
-    """Get attribute list for a :class:`~spacepy.pycdf.CDF` or :class:`~spacepy.pycdf.Var`."""
-    def __get__(self, instance, owner=None):
-        if instance is None:
-            return self
-        al = instance._attrlistref()
-        if al is None:
-            if owner == CDF:
-                al = gAttrList(instance)
-            elif owner == Var:
-                al = zAttrList(instance)
-            else:
-                raise NotImplementedError(
-                    "Attribute lists may only be applied to CDFs or zVars.")
-            instance._attrlistref = weakref.ref(al)
-        return al
-
-
 class CDF(collections.MutableMapping):
     """
     Python object representing a CDF file.
@@ -1337,8 +1319,8 @@ class CDF(collections.MutableMapping):
 
     .. attribute:: CDF.attrs
 
-       Returns global attributes for this CDF
-       (see :class:`gAttrList`)
+       Global attributes for this CDF in a dict-like format.
+       See :class:`gAttrList` for details.
     .. automethod:: checksum
     .. automethod:: clone
     .. automethod:: close
@@ -1353,8 +1335,6 @@ class CDF(collections.MutableMapping):
     .. automethod:: version
 
     """
-    attrs = _AttrListGetter()
-
     def __init__(self, pathname, masterpath=None):
         """Open or create a CDF file.
 
@@ -1472,7 +1452,7 @@ class CDF(collections.MutableMapping):
         elif name in self:
             self[name][...] = data
             if hasattr(data, 'attrs'):
-                self[name].attrs.from_dict(data.attrs)
+                self[name].attrs.clone(data.attrs)
         else:
             self.new(name, data)
 
@@ -1646,7 +1626,7 @@ class CDF(collections.MutableMapping):
         with cls(filename, '') as cdffile:
             for k in sd:
                 cdffile[k] = sd[k]
-            cdffile.attrs.from_dict(sd.attrs)
+            cdffile.attrs.clone(sd.attrs)
 
     def _call(self, *args, **kwargs):
         """Select this CDF as current and call the CDF internal interface
@@ -1992,7 +1972,7 @@ class CDF(collections.MutableMapping):
         if data != None:
             new_var[...] = data
             if hasattr(data, 'attrs'):
-                new_var.attrs.from_dict(data.attrs)
+                new_var.attrs.clone(data.attrs)
         return new_var
 
     def raw_var(self, name):
@@ -2068,6 +2048,35 @@ class CDF(collections.MutableMapping):
                    const.GET_, const.CDF_INCREMENT_, ctypes.byref(inc))
         return (ver.value, rel.value, inc.value)
 
+    def _get_attrs(self):
+        """Get attribute list
+
+        Provide access to the CDF's attribute list without holding a
+        strong reference, as the attribute list has a (strong)
+        back-reference to its parent.
+
+        Either deref a weak reference (to try and keep the object the same),
+        or make a new AttrList instance and assign it to the weak reference
+        for next time.
+        """
+        al = self._attrlistref()
+        if al is None:
+            al = gAttrList(self)
+        self._attrlistref = weakref.ref(al)
+        return al
+
+    def _set_attrs(self, value):
+        """Assign to the attribute list
+
+        Clears all elements of the attribute list and copies from value
+        """
+        self.attrs.clone(value)
+
+    attrs = property(
+        _get_attrs, _set_attrs, None,
+        """Global attributes for this CDF in a dict-like format.
+        See :class:`gAttrList` for details.
+        """)
 
 class CDFCopy(spacepy.datamodel.SpaceData):
     """
@@ -2322,8 +2331,8 @@ class Var(collections.MutableSequence):
         ~Var.type
     .. attribute:: Var.attrs
 
-       Returns attributes for this variable
-       (see :class:`zAttrList`)
+       zAttributes for this zVariable in a dict-like format.
+       See :class:`zAttrList` for details.
     .. automethod:: compress
     .. automethod:: copy
     .. autoattribute:: dtype
@@ -2351,8 +2360,6 @@ class Var(collections.MutableSequence):
     @raise CDFWarning: if CDF library reports a warning and interpreter
                        is set to error on warnings.
     """
-    attrs = _AttrListGetter()
-
     def __init__(self, cdf_file, var_name, *args):
         """Create or locate a variable
 
@@ -2979,6 +2986,35 @@ class Var(collections.MutableSequence):
         """
         return self._np_type()
 
+    def _get_attrs(self):
+        """Get attribute list
+
+        Provide access to the zVar's attribute list without holding a
+        strong reference, as the attribute list has a (strong)
+        back-reference to its parent.
+
+        Either deref a weak reference (to try and keep the object the same),
+        or make a new AttrList instance and assign it to the weak reference
+        for next time.
+        """
+        al = self._attrlistref()
+        if al is None:
+            al = zAttrList(self)
+        self._attrlistref = weakref.ref(al)
+        return al
+
+    def _set_attrs(self, value):
+        """Assign to the attribute list
+
+        Clears all elements of the attribute list and copies from value
+        """
+        self.attrs.clone(value)
+
+    attrs = property(
+        _get_attrs, _set_attrs, None,
+        """zAttributes for this zVariable in a dict-like format.
+        See :class:`zAttrList` for details.
+        """)
 
 
 class VarCopy(spacepy.datamodel.dmarray):
@@ -4361,7 +4397,7 @@ class AttrList(collections.MutableMapping):
         Parameters
         ==========
         master : AttrList
-            the attribute list to copy from
+            the attribute list to copy from. This can be any dict-like object.
 
         Other Parameters
         ================
@@ -4436,12 +4472,18 @@ class AttrList(collections.MutableMapping):
         """
         Fill this list of attributes from a dictionary
 
+        .. deprecated:: 0.1.5
+           Use :meth:`~spacepy.pycdf.AttrList.clone` instead; it supports
+           cloning from dictionaries.
+
         Parameters
-        ----------
+        ==========
         in_dict : dict
             Attribute list is populated entirely from this dictionary;
             all existing attributes are deleted.
         """
+        warnings.warn("from_dict is deprecated and will be removed. Use clone.",
+                      DeprecationWarning)
         for k in in_dict:
             self[k] = in_dict[k]
         for k in list(self):
@@ -4711,4 +4753,5 @@ class zAttrList(AttrList):
             new_name = name
         if new_name in self:
             del self[new_name]
-        self.new(new_name, master[name], master.type(name))
+        self.new(new_name, master[name],
+                 master.type(name) if hasattr(master, 'type') else None)

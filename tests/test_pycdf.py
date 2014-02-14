@@ -412,7 +412,7 @@ class NoCDF(unittest.TestCase):
         self.assertTrue(cdf.lib.version[0] in (2, 3))
         self.assertTrue(cdf.lib.version[1] in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
         self.assertTrue(cdf.lib.version[2] in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
-        self.assertTrue(cdf.lib.version[3] in (b'', b' ', b'a', b'0'))
+        self.assertTrue(cdf.lib.version[3] in (b'', b' ', b'a', b'0', b'1'))
         if cdf.lib.version == (3, 3, 0, ' '):
             self.assertTrue(cdf.lib._del_middle_rec_bug)
         elif cdf.lib.version == (3, 3, 1, ' '):
@@ -2567,12 +2567,12 @@ class ChangeAttr(ChangeCDFBase):
         self.assertEqual(const.CDF_INT4.value, attrs.type('new3'))
 
     def testAttrsFromDict(self):
-        """Dump a bunch of attrs on a variable from a dict"""
+        """Dump a bunch of attrs on a variable from a dict, using clone"""
         indict = { 'CATDESC': numpy.array([1, 2, 3], dtype=numpy.int32),
                    'b': 'hello',
                    }
         attrlist = self.cdf['ATC'].attrs
-        attrlist.from_dict(indict)
+        attrlist.clone(indict)
         self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
         numpy.testing.assert_array_equal(indict['CATDESC'],
                                          attrlist['CATDESC'])
@@ -2582,6 +2582,65 @@ class ChangeAttr(ChangeCDFBase):
                  }
         for k in types:
             self.assertEqual(types[k], attrlist.type(k))
+
+    def testAttrsFromDictDeprecated(self):
+        """Test deprecation of from_dict"""
+        indict = { 'CATDESC': numpy.array([1, 2, 3], dtype=numpy.int32),
+                   'b': 'hello',
+                   }
+        attrlist = self.cdf['ATC'].attrs
+        with warnings.catch_warnings(record=True) as w:
+            attrlist.from_dict(indict)
+            self.assertEqual(1, len(w))
+            for curr_warn in w:
+                self.assertTrue(isinstance(curr_warn.message,
+                                           DeprecationWarning))
+                self.assertEqual(
+                    'from_dict is deprecated and will be removed. Use clone.',
+                    str(curr_warn.message))
+        self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
+        numpy.testing.assert_array_equal(indict['CATDESC'],
+                                         attrlist['CATDESC'])
+        self.assertEqual('hello', attrlist['b'])
+        types = {'CATDESC': const.CDF_INT4.value,
+                 'b': const.CDF_CHAR.value,
+                 }
+        for k in types:
+            self.assertEqual(types[k], attrlist.type(k))
+
+    def testgAttrsAssign(self):
+        """Assign to the attrs attribute of CDF"""
+        self.cdf.attrs = {'foobar': ['global']}
+        self.cdf.close()
+        self.cdf = cdf.CDF(self.testfile) #reopen
+        self.assertFalse(isinstance(self.cdf.attrs, dict))
+        self.assertEqual(self.cdf.attrs['foobar'][0], 'global')
+        self.assertEqual(len(self.cdf.attrs['foobar']), 1)
+        self.assertFalse('TEXT' in self.cdf.attrs)
+
+    def testzAttrsAssign(self):
+        """Assign to the attrs attribute of variable"""
+        self.cdf['ATC'].attrs = {'foobar': ['var']}
+        self.cdf.close()
+        self.cdf = cdf.CDF(self.testfile) #reopen
+        self.assertFalse(isinstance(self.cdf['ATC'].attrs, dict))
+        self.assertEqual(self.cdf['ATC'].attrs['foobar'], 'var')
+        self.assertFalse('CATDESC' in self.cdf['ATC'].attrs)
+
+    def testzAttrsDelete(self):
+        """Try to delete attrs attribute of variable, CDF"""
+        try:
+            del self.cdf['ATC'].attrs
+        except AttributeError:
+            pass
+        else:
+            self.fail('AttributeError not raised.')
+        try:
+            del self.cdf.attrs
+        except AttributeError:
+            pass
+        else:
+            self.fail('AttributeError not raised.')
 
     def testCopyAttr(self):
         """Assign a gAttribute to another"""

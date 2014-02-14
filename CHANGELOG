@@ -1,5 +1,10 @@
 Changes in Version 0.1.5
 ========================
+plot
+ - add function "add_logo" to utils: put an image in one corner of a figure
+ - add function "annotate_xaxis" to utils: add text in line with x tickmarks
+ - add function "collapse_vertical" to utils: remove space between two subplots
+ - add function "shared_ylabel" to utils: span a y-axis label across subplots
 pycdf
  - fix bug with interpreting indexes with ellipses (var[..., 0] gave the
    wrong result).
@@ -7,6 +12,8 @@ pycdf
  - sped up indexing in variable copies
  - improved handling of numpy fancy indexing in variable copies
    (fancy indexing is still not supported for variables themselves.)
+ - make assignment to attrs work
+ - deprecate from_dict method of attribute lists; it is redundant with clone.
 toolbox
  - add function timeout_check_call to run another program with a timeout
 
