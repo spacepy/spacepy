@@ -26,6 +26,7 @@ Functions
 .. autosummary::
     :toctree: autosummary
 
+    add_logo
     annotate_xaxis
     applySmartTimeTicks
     collapse_vertical
@@ -40,7 +41,10 @@ __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
 import bisect
 import datetime
 
+import matplotlib
+import matplotlib.axis
 import matplotlib.dates
+import matplotlib.image
 try:
     import matplotlib.pyplot as plt
 except RuntimeError:
@@ -903,3 +907,226 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
     if draw:
         draw()
+
+
+def _used_boxes_helper(obj, renderer=None):
+    """Recursively-called helper function for get_used_boxes. Internal."""
+    boxes = []
+    if hasattr(obj, 'get_renderer_cache'): #I know how to render myself
+        renderer = obj.get_renderer_cache()
+    #Axis objects are weird, go for the tick labels directly
+    if isinstance(obj, matplotlib.axis.Axis):
+        boxes = [tl.get_window_extent() for tl in obj.get_ticklabels()
+                 if tl.get_text()]
+    #Base size on children, *unless* there are none
+    elif hasattr(obj, 'get_children') and obj.get_children():
+        for child in obj.get_children():
+            res = _used_boxes_helper(child, renderer)
+            if res is None: #Child can't find its size, just use own bounds
+                boxes = []
+                break
+            boxes.extend(res)
+    if boxes: #found details from children
+        return boxes
+    #Nothing from children, try own bounds
+    try:
+        return [obj.get_window_extent()]
+    except (TypeError, RuntimeError): #need a renderer
+        if not renderer is None:
+            return [obj.get_window_extent(renderer)]
+        else: #I can't figure out my size!
+            return None
+
+def get_used_boxes(fig=None):
+    """Go through all elements of a figure and find the "boxes" they occupy,
+    in figure coordinates. Mostly helper for add_logo
+    """
+    plt.draw() #invoke the renderer to figure everything out
+    if fig is None:
+        fig = plt.gcf()
+    #Get rid of double-nesting, and don't include top-level z-order 1
+    #(background rectangle) OR anything completely degenerate (point only)
+    boxes = [box for child in fig.get_children()
+             if (child.get_zorder() == 0 or child.get_zorder() > 1)
+             for box in _used_boxes_helper(child)
+             if (box.xmin != box.xmax or box.ymin != box.ymax)
+             ]
+    #Transform to figure
+    boxes = [fig.transFigure.inverted().transform(b) for b in boxes]
+    return [b for b in boxes if numpy.isfinite(b).all()]
+
+
+def filter_boxes(boxes):
+    """From a list of boxes, exclude those that are completely contained by another"""
+    #Filter exact overlap (any box before this one have same bounds?)
+    boxes= [b for i, b in enumerate(boxes) if i==0 or not max(
+        [(b[0][0] == other[0][0] and b[1][0] == other[1][0] and
+          b[0][1] == other[0][1] and b[1][1] == other[1][1])
+         for other in boxes[0:i]])]
+    #and filter "completely enclosed"
+    return [b for b in boxes
+            if not max( #Is this contained in ANY other box? If so, drop it.
+                [(b[0][0] >= other[0][0] and b[0][1] >= other[0][1] and
+                    b[1][0] <= other[1][0] and b[1][1] <= other[1][1])
+                for other in boxes if not other is b] #don't compare to self
+                )]
+
+
+def get_clear(boxes, pos='br'):
+    """Take a list of boxes which *obstruct* the plot, i.e., don't overplot
+
+    Return a list of boxes which are "clear".
+
+    Mostly a helper for add_logo
+
+    pos is where to look for the clear area:
+    br: bottom right
+    bl: bottom left
+    tl: top left
+    tr: top right
+    """
+    pos = pos.lower()
+    assert(pos in ('br', 'bl', 'tl', 'tr'))
+    clear = []
+    if pos[1] == 'l': #sort obstructing boxes on left edge
+        sboxes = sorted(boxes, key=lambda b: b[0][0])
+    else: #sort on right edge, descending (work in from right edge)
+        sboxes = sorted(boxes, key=lambda b: b[1][0], reverse=True)
+    if pos[0] == 't':  #There's a clear space across the top of everything
+        clear.append(numpy.array([[0.0, max([b[1][1] for b in sboxes])],
+                                  [1.0, 1.0]]))
+    else: #clear space across bottom of everything
+        clear.append(numpy.array([[0.0, 0.0],
+                                  [1.0, min([b[0][1] for b in sboxes])]]))
+    #default corners
+    left = 0.0
+    right = 1.0
+    bottom = 0.0
+    top = 1.0
+    #Work in from left or right edge, and avoid all boxes that we've
+    #reached so far
+    for i, box in enumerate(sboxes):
+        if pos[0] == 't':
+            #bottom of clear zone is top of every box from here to edge
+            bottom = 0.0 if i == 0 else max([b[1][1] for b in sboxes[0:i]])
+        else:
+            #top of clear zone is bottom of every box from here to edge
+            top = 1.0 if i == 0 else min([b[0][1] for b in sboxes[0:i]])
+        if pos[1] == 'l':
+            right = box[0][0] #right edge of clear zone is the left of this box
+        else:
+            left = box[1][0] #left of clear zone is right of this obstructing box
+        clear.append(numpy.array([[left, bottom], [right, top]]))
+    return filter_boxes(clear) #and remove overlaps
+
+
+def get_biggest_clear(boxes, fig_aspect=1.0, img_aspect=1.0):
+    """Given a list of boxes with clear space, figure aspect ratio (width/height),
+    and image aspect ratio (width/height), return the largest clear space
+    that maintains the aspect ratio of the image
+
+    Mostly a helper for add_logo
+    """
+    def effective_width(box):
+        """Returns "effective" width of the box"""
+        width = box[1][0] - box[0][0]
+        height = box[1][1] - box[0][1]
+        #If figure is wide, each unit of height is smaller than unit of width
+        real_height = height / fig_aspect #in width units
+        #Box aspect ratio, corrected for figure. Is it "taller" than image?
+        if width / real_height <= img_aspect:
+            #yes, so the width is the limiter
+            return width
+        else:
+            #no, take the height, correct for figure aspect, and find the
+            #width the image would have at this height and its aspect ratio.
+            return real_height * img_aspect
+    return sorted(boxes, key=effective_width, reverse=True)[0]
+
+
+def add_logo(img, fig=None, pos='br'):
+    """
+    Add an image (logo) to one corner of a plot.
+
+    The provided image will be placed in a corner of the plot and sized
+    to maintain its aspect ratio and be as large as possible without
+    overlapping any existing elements of the figure. Thus this should
+    be the last call in constructing a figure.
+
+    Parameters
+    ==========
+    img : str or numpy.ndarray
+        The image to place on the figure. If a string, assumed to be a
+        filename to bre read with :func:`~matplotlib.image.imread`; if
+        a numpy array, assumed to be the image itself
+        (in a simliar format).
+
+    Other Parameters
+    ================
+    fig : matplotlib.figure.Figure
+        The figure on which to place the logo; if not specified, the
+        :func:`~matplotlib.pyplot.gcf` function will be used.
+
+    pos : str
+        The position to place the logo.
+        br: bottom right
+        bl: bottom left
+        tl: top left
+        tr: top right
+
+    Returns
+    =======
+    (axes, axesimg) : tuple of Axes and AxesImage
+        The :class:`~matplotlib.axes.Axes` object created to hold the iamge,
+        and the :class:`~matplotlib.image.AxesImage` object for the image
+        itself.
+
+    Notes
+    =====
+    Calls :func:`~matplotlib.pyplot.draw` to ensure locations are
+    up to date.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure()
+    >>> ax0 = fig.add_subplot(211)
+    >>> ax0.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D at 0x00000000>]
+    >>> ax1 = fig.add_subplot(212)
+    >>> ax1.plot([1, 2, 3], [2, 1, 2])
+    [<matplotlib.lines.Line2D at 0x00000000>]
+    >>> spacepy.plot.utils.add_logo('logo.png', fig)
+    (<matplotlib.axes.Axes at 0x00000000>,
+     <matplotlib.image.AxesImage at 0x00000000>)
+    """
+    #Consider an alpha keyword (for watermarking)
+    #Do something about margin/padding
+    pos = pos.lower()
+    assert(pos in ('br', 'bl', 'tl', 'tr'))
+    if not hasattr(img, 'size'):
+        img = matplotlib.image.imread(img)
+    if fig is None:
+        fig = plt.gcf()
+    img_aspect = float(img.shape[1]) / img.shape[0] #w/h
+    fig_aspect = float(fig.get_figwidth()) / fig.get_figheight()
+    clear_boxes = get_clear(filter_boxes(get_used_boxes(fig)), pos)
+    clear_box = get_biggest_clear(clear_boxes, fig_aspect, img_aspect)
+    box_width = clear_box[1][0] - clear_box[0][0]
+    box_height = clear_box[1][1] - clear_box[0][1]
+    if box_width / box_height * fig_aspect > img_aspect: #img uses full height
+        box_width = box_height / fig_aspect * img_aspect
+    else: #img uses full width, correct the height
+        box_height = box_width / img_aspect * fig_aspect
+    #default corners
+    left = 0.0
+    bottom = 0.0
+    if pos[0] == 't':
+        bottom = 1.0 - box_height
+    if pos[1] == 'r':
+        left = 1.0 - box_width
+    ax = fig.add_axes([left, bottom, box_width, box_height])
+    ax.axis('off')
+    axesimg = ax.imshow(img)
+    return (ax, axesimg)
