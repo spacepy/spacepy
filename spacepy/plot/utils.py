@@ -1044,7 +1044,7 @@ def get_biggest_clear(boxes, fig_aspect=1.0, img_aspect=1.0):
     return sorted(boxes, key=effective_width, reverse=True)[0]
 
 
-def add_logo(img, fig=None, pos='br'):
+def add_logo(img, fig=None, pos='br', margin=0.05):
     """
     Add an image (logo) to one corner of a plot.
 
@@ -1057,7 +1057,7 @@ def add_logo(img, fig=None, pos='br'):
     ==========
     img : str or numpy.ndarray
         The image to place on the figure. If a string, assumed to be a
-        filename to bre read with :func:`~matplotlib.image.imread`; if
+        filename to be read with :func:`~matplotlib.image.imread`; if
         a numpy array, assumed to be the image itself
         (in a simliar format).
 
@@ -1069,10 +1069,14 @@ def add_logo(img, fig=None, pos='br'):
 
     pos : str
         The position to place the logo.
-        br: bottom right
-        bl: bottom left
-        tl: top left
+        br: bottom right;
+        bl: bottom left;
+        tl: top left;
         tr: top right
+
+    margin : float
+        Margin to include on each side of figure, as a fraction of the larger
+        dimension of the figure (width or height). Default is 0.05 (5%).
 
     Returns
     =======
@@ -1109,7 +1113,11 @@ def add_logo(img, fig=None, pos='br'):
         img = matplotlib.image.imread(img)
     if fig is None:
         fig = plt.gcf()
-    img_aspect = float(img.shape[1]) / img.shape[0] #w/h
+    width = float(img.shape[1])
+    height = float(img.shape[0])
+    #Margin can change effective aspect ratio of figure
+    margin_px = round(margin * (width if width > height else height))
+    img_aspect = (width + 2 * margin_px) / (height + 2 * margin_px)
     fig_aspect = float(fig.get_figwidth()) / fig.get_figheight()
     clear_boxes = get_clear(filter_boxes(get_used_boxes(fig)), pos)
     clear_box = get_biggest_clear(clear_boxes, fig_aspect, img_aspect)
@@ -1129,4 +1137,11 @@ def add_logo(img, fig=None, pos='br'):
     ax = fig.add_axes([left, bottom, box_width, box_height])
     ax.axis('off')
     axesimg = ax.imshow(img)
+    #Resize to include the margin
+    for getter, setter in ((ax.get_xlim, ax.set_xlim),
+                           (ax.get_ylim, ax.set_ylim)):
+        limits = getter()
+        orientation = 1 if limits[1] > limits[0] else -1 #upside-down?
+        setter((limits[0] - margin_px * orientation,
+                limits[1] + margin_px * orientation))
     return (ax, axesimg)
