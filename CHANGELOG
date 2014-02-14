@@ -1,5 +1,15 @@
 Changes in Version 0.1.5
 ========================
+- documentation updates across many packages
+datamodel
+ - fromHDF5 now reads most netCDF4 and MatLab (v7.3+; r2011b onward) save files
+ - add function dmfilled: create a filled dmarray with any given fill value
+irbempy
+ - add function find_footpoint: traces field line from given location to 
+   specified altitude
+omni
+ - get_omni updated to also read from daily JSON-headed ASCII files in
+   custom databases
 plot
  - add function "add_logo" to utils: put an image in one corner of a figure
  - add function "annotate_xaxis" to utils: add text in line with x tickmarks
@@ -14,6 +24,8 @@ pycdf
    (fancy indexing is still not supported for variables themselves.)
  - make assignment to attrs work
  - deprecate from_dict method of attribute lists; it is redundant with clone.
+time
+ - dtype in Ticktock can now be a callable (allowing custom time parsing)
 toolbox
  - add function timeout_check_call to run another program with a timeout
 
