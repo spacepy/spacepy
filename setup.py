@@ -288,8 +288,8 @@ class build(_build):
         # compile irbemlib
         olddir = os.getcwd()
         os.chdir(builddir)
-        F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f']
-        functions = ['make_lstar1', 'make_lstar_shell_splitting1', \
+        F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f', 'source/find_foot.f']
+        functions = ['make_lstar1', 'make_lstar_shell_splitting1', 'find_foot_point1',\
                      'coord_trans1','find_magequator1', 'find_mirror_point1',
                      'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1',
                      'trace_field_line2_1', 'trace_field_line_towards_earth1']
@@ -300,8 +300,10 @@ class build(_build):
             self.f2py, ' '.join(F90files), ' '.join(functions)))
         # intent(out) substitute list
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
-                   'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind']
-        inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin']
+                   'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind', 'xfoot', 'bfoot', 'bfootmag']
+
+        inlist = ['sysaxesin', 'sysaxesout', 'iyr', 'idoy', 'secs', 'xin', 'kext', 'options', 
+                  'sysaxes', 'UT', 'xIN1', 'xIN2', 'xIN3', 'stop_alt', 'hemi_flag', 'maginput']
         fln = 'irbempylib.pyf'
         if not os.path.isfile(fln):
             self.distribution.add_warning(

@@ -4,7 +4,7 @@
 module wrapper for irbem_lib
 Reference for this library
 https://sourceforge.net/projects/irbem/
-D. Boscher, S. Bourdarie, P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
+D. Boscher, S. Bourdarie, T. P. O'Brien, T. Guild, IRBEM library V4.3, 2004-2008
 
 
 Authors
@@ -185,6 +185,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
 
     return results
 
+
 # -----------------------------------------------
 def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
@@ -251,6 +252,92 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
 
     results['loci'] = spc.Coords(results['loci'], 'GEO', 'car')
 
+    return results
+
+
+# -----------------------------------------------
+def find_footpoint(ticks, loci, extMag='T01STORM', options=[1,0,3,0,0], hemi='same', alt=100, omnivals=None):
+    """
+    call find_magequator from irbem library and return a dictionary with values for
+    Bmin and the GEO (cartesian) coordinates of the magnetic equator
+
+    Parameters
+    ==========
+        - ticks (Ticktock class) : containing time information
+        - loci (Coords class) : containing spatial information
+        - extMag (string) : optional; will choose the external magnetic field model 
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+                            'T05', 'ALEX']
+        - options (optional list or array of integers length=5) : explained in Lstar
+        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - (see Lstar documentation for further explanation)
+        - hemi (string) : optional (valid cases are 'same', 'other', 'north' or 'south')
+                          will set the target hemisphere for tracing the footpoint
+        - alt (numeric) : optional keyword to set stop height [km] of fieldline trace (default 100km)
+
+    Returns
+    =======
+        - results (spacepy.datamodel.SpaceData) : containing keys
+                   Bfoot    - Magnitude of B-field at footpoint [nT]
+                   loci     - Coords instance with GDZ coordinates of the magnetic footpoint [alt, lat, lon]
+                   Bfootvec - Components of B-field at footpoint in cartesian GEO coordinates [nT]
+
+    Examples
+    ========
+    >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
+    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> spacepy.irbempy.find_footpoint(t, y)
+    {'Bfoot': array([ 47559.04643444,  47542.84688657]),
+     'Bfootvec': array([[-38428.07217246,   4497.31549786, -27657.19291928],
+           [-38419.08514332,   4501.45390964, -27641.14866517]]),
+     'loci': Coords( [[ 99.31443778  55.71415787 -10.21888955]
+     [ 99.99397026  55.70716296 -10.22797462]] ), dtype=GDZ,sph, units=['km', 'deg', 'deg']}
+
+    See Also
+    ========
+    get_Lstar, get_Bfield, find_Bmirr, find_magequator
+    """
+    # prepare input values for irbem call
+    d = prep_irbem(ticks, loci, extMag=extMag, options=options, omnivals=omnivals)
+    nTAI = len(ticks)
+    badval = d['badval']
+    kext = d['kext']
+    sysaxes = d['sysaxes']
+    iyearsat = d['iyearsat']
+    idoysat = d['idoysat']
+    secs = d['utsat']
+    xin1 = d['xin1']
+    xin2 = d['xin2']
+    xin3 = d['xin3']
+    magin = d['magin']
+
+    hemi_dict = {'same': 0, 'north': 1, 'south': -1, 'other': 2}
+    if hemi.lower() in ['same', 'other', 'north', 'south']:
+        hemi_flag = hemi_dict[hemi.lower()]
+    else:
+        raise ValueError('Option for hemisphere to trace to ({0}) is invalid.\n'.format(hemi) +
+                         'Valid options are: same, other, north and south')
+
+    results = dm.SpaceData()
+    results['Bfoot'] = np.zeros(nTAI)
+    results['Bfootvec'] = np.zeros([nTAI, 3])
+    results['loci'] = ['']*nTAI
+    for i in np.arange(nTAI):
+        xfoot, bfoot, bfootmag = oplib.find_foot_point1(kext, options, sysaxes,\
+            iyearsat[i], idoysat[i], secs[i], xin1[i], xin2[i], xin3[i], alt, hemi_flag, magin[:,i])
+
+        # take out all the odd 'bad values' and turn them into NaN
+        if tb.feq(bfootmag,badval): bmin = np.NaN
+        xfoot[np.where( tb.feq(xfoot, badval)) ] = np.NaN
+        bfoot[np.where( tb.feq(bfoot, badval)) ] = np.NaN
+
+        results['Bfoot'][i] = bfootmag
+        results['loci'][i] = xfoot
+        results['Bfootvec'][i] = bfoot
+
+    results['loci'] = spc.Coords(results['loci'], 'GDZ', 'sph')
+    results.attrs
     return results
 
 
