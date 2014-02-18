@@ -126,15 +126,15 @@ def test_dipole():
     ds = 0.1
     for ystart in range(0, 31, 5):
         (x1, y1) = trace2d_rk4(bx, by, xstart, ystart, x, y, ds=ds)
-        l1 = ax2.plot(x1,y1,'b')
+        l1 = ax2.plot(x1,y1,'b')[0]
         ax3.plot(x1,y1,'b'); ax4b.plot(x1,y1,'b')
         ax5.plot(x1,y1,'b'); ax4a.plot(x1,y1,'b')
         (x2, y2) = trace2d_eul(bx, by, xstart, ystart, x, y, ds=ds)
-        l2 = ax2.plot(x2,y2,'r')
+        l2 = ax2.plot(x2,y2,'r')[0]
         ax3.plot(x2,y2,'r'); ax4b.plot(x2,y2,'r')
         ax5.plot(x2,y2,'r'); ax4a.plot(x2,y2,'r')
         (x3, y3) = b_line(xstart, ystart, npoints=300)
-        l3 = ax2.plot(x3,y3,'k--');
+        l3 = ax2.plot(x3,y3,'k--')[0]
         ax3.plot(x3,y3,'k--'); ax4b.plot(x3,y3,'k--')
         ax5.plot(x3,y3,'k--'); ax4a.plot(x3,y3,'k--')
     
