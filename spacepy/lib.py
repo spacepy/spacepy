@@ -20,7 +20,7 @@ import ctypes
 import os.path
 import sys
 
-import numpy as np
+import numpy
 
 __contact__ = 'Jon Niehof, jniehof@lanl.gov'
 
@@ -44,7 +44,8 @@ functions = {
     'solve_cn': [None, dptr, dptr, dptr, dptr, dptr, dptr,
                  ctypes.c_double, ctypes.c_int, dptr],
     'hypot_tb': [ctypes.c_double,
-                 np.ctypeslib.ndpointer(dtype=ctypes.c_double, flags='C_CONTIGUOUS'),
+                 numpy.ctypeslib.ndpointer(
+                     dtype=ctypes.c_double, flags='C_CONTIGUOUS'),
                  ctypes.c_long]
     }
 
