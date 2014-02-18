@@ -113,35 +113,35 @@ def smart_timeticks(time):
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
     if nHours < 1:
         Mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
-        mtick=mdt.MinuteLocator(byminute=range(60), interval=5)
+        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 4:
         Mtick=mdt.MinuteLocator(byminute=[0,30])
-        mtick=mdt.MinuteLocator(byminute=range(60), interval=10)
+        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=10)
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 12:
-        Mtick=mdt.HourLocator(byhour=range(24), interval=2)
+        Mtick=mdt.HourLocator(byhour=list(range(24)), interval=2)
         mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 24:
         Mtick=mdt.HourLocator(byhour=[0,3,6,9,12,15,18,21])
-        mtick=mdt.HourLocator(byhour=range(24))
+        mtick=mdt.HourLocator(byhour=list(range(24)))
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 48:
         Mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        mtick=mdt.HourLocator(byhour=range(24))
+        mtick=mdt.HourLocator(byhour=list(range(24)))
         fmt = mdt.DateFormatter('%H:%M UT')
     elif deltaT.days < 15:
-        Mtick=mdt.DayLocator(bymonthday=range(2,32,2))
+        Mtick=mdt.DayLocator(bymonthday=list(range(2,32,2)))
         mtick=mdt.HourLocator(byhour=[0,6,12,18])
         fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 32:
-        Mtick=mdt.DayLocator(bymonthday=range(5,35,5))
+        Mtick=mdt.DayLocator(bymonthday=list(range(5,35,5)))
         mtick=mdt.HourLocator(byhour=[0,6,12,18])
         fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 60:
         Mtick=mdt.MonthLocator()
-        mtick=mdt.DayLocator(bymonthday=range(5,35,5))
+        mtick=mdt.DayLocator(bymonthday=list(range(5,35,5)))
         fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 731:
         Mtick=mdt.MonthLocator()
@@ -264,7 +264,7 @@ class PbData(SpaceData):
         '''
         Display contents of container.
         '''
-        print type(self)
+        print(type(self))
         self.tree(attrs=True, verbose=True)
         return ''
 
@@ -272,13 +272,14 @@ class PbData(SpaceData):
         '''
         List all variables and associated units.
         '''
-        keys=self.keys(); keys.sort()
+        keys=list(self.keys())
+        keys.sort()
         length=0
         for key in keys:
             if len(key)>length: length=len(key)
         form="%%%is:%%s"%length
         for key in keys:
-            if self[key].attrs.has_key('units'):
+            if 'units' in self[key].attrs:
                 print(form%(key, self[key].attrs['units']))
         
 class IdlBin(PbData):
@@ -952,7 +953,7 @@ class ImfInput(PbData):
         '''
         # Convenience:
         var=self.attrs['var']
-        key=self.keys()
+        key=list(self.keys())
         key.remove('time')
 
         # Number of variables check:

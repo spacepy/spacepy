@@ -239,35 +239,35 @@ def smart_timeticks(time):
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
     if nHours < 1:
         Mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
-        mtick=mdt.MinuteLocator(byminute=range(60), interval=5)
+        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 4:
         Mtick=mdt.MinuteLocator(byminute=[0,30])
-        mtick=mdt.MinuteLocator(byminute=range(60), interval=10)
+        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=10)
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 12:
-        Mtick=mdt.HourLocator(byhour=range(24), interval=2)
+        Mtick=mdt.HourLocator(byhour=list(range(24)), interval=2)
         mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 24:
         Mtick=mdt.HourLocator(byhour=[0,3,6,9,12,15,18,21])
-        mtick=mdt.HourLocator(byhour=range(24))
+        mtick=mdt.HourLocator(byhour=list(range(24)))
         fmt = mdt.DateFormatter('%H:%M UT')
     elif nHours < 48:
         Mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        mtick=mdt.HourLocator(byhour=range(24))
+        mtick=mdt.HourLocator(byhour=list(range(24)))
         fmt = mdt.DateFormatter('%H:%M UT')
     elif deltaT.days < 15:
-        Mtick=mdt.DayLocator(bymonthday=range(1,32))
+        Mtick=mdt.DayLocator(bymonthday=list(range(1,32)))
         mtick=mdt.HourLocator(byhour=[0,6,12,18])
         fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 32:
-        Mtick=mdt.DayLocator(bymonthday=range(5,35,5))
+        Mtick=mdt.DayLocator(bymonthday=list(range(5,35,5)))
         mtick=mdt.HourLocator(byhour=[0,6,12,18])
         fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 60:
         Mtick=mdt.MonthLocator()
-        mtick=mdt.DayLocator(bymonthday=range(5,35,5))
+        mtick=mdt.DayLocator(bymonthday=list(range(5,35,5)))
         fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 731:
         Mtick=mdt.MonthLocator()
@@ -546,9 +546,9 @@ class RamSat(object):
 
     # Make'em work like a dictionary:
     def __getitem__(self, key):
-        if self.filedata.has_key(key):
+        if key in self.filedata:
             return self.filedata[key][...]
-        elif self.data.has_key(key):
+        elif key in self.data:
             return self.data[key]
         else:
             raise KeyError(key)
@@ -562,13 +562,7 @@ class RamSat(object):
         '''
         List all keys for data objects stored in the RamSat object.
         '''
-        return self.filedata.keys() + self.data.keys()
-
-    def has_key(self, key):
-        '''
-        Checks object dictionaries for "key", returns boolean.
-        '''
-        return key in self
+        return list(self.filedata.keys()) + list(self.data.keys())
 
     def __contains__(self, key):
         return key in self.filedata or key in self.data
@@ -643,7 +637,7 @@ class RamSat(object):
         self['omnie'] = np.zeros((nTime, nEner))
         # Create delta mu, where mu = cos(pitch angle)
         dMu = np.zeros(nPa)
-        if self.has_key('pa_width'):
+        if 'pa_width' in self:
             dMu=4*np.pi*self['pa_width']
         else:
             dMu[0] = self['pa_grid'][1]
@@ -853,9 +847,9 @@ class RamSat(object):
             ax = fig.add_subplot(loc)
 
         # Check for omni fluxes, calculate as necessary.
-        if not self.has_key(nameflux):
+        if not nameflux in self:
             self.create_omniflux()
-            if not self.has_key(nameflux):
+            if not nameflux in self:
                 raise KeyError('%s is not a valid omnidirectional flux.' 
                                % nameflux)
         # Create a time vector that binds each pixel correctly.
@@ -1164,7 +1158,7 @@ class BoundaryGroup(PbData):
             try:
                 zlim = self._zlims[var[0]]
             except ValueError:
-                print "No default zlimits for ", var
+                print("No default zlimits for ", var)
                 zlim=None
             
         # Create plot:
@@ -1619,7 +1613,7 @@ class LogFile(PbData):
             ax = fig.add_subplot(loc)
         
         ax.plot(self['time'], self['dstRam'], label='RAM Dst (DPS)')
-        if self.has_key('dstBiot') and showBiot:
+        if 'dstBiot' in self and showBiot:
             ax.plot(self['time'], self['dstBiot'], label='RAM Dst (Biot)')
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
@@ -1637,8 +1631,8 @@ class LogFile(PbData):
                 stime = self['time'][0]; etime = self['time'][-1]
                 if not hasattr(self, 'obs_dst'):
                     self.obs_dst = kt.fetch('dst',stime,etime)
-            except BaseException, args:
-                print 'WARNING! Failed to fetch Kyoto Dst: ', args
+            except BaseException as args:
+                print('WARNING! Failed to fetch Kyoto Dst: ', args)
             else:
                 ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
                         'k--', label='Obs. Dst')
@@ -1698,9 +1692,9 @@ class IonoPotScb(object):
     '''
 
     def __getitem__(self, key):
-        if self.filedata.has_key(key):
+        if key in self.filedata:
             return self.filedata[key].get_value()
-        elif self.data.has_key(key):
+        elif key in self.data:
             return self.data[key]
         else:
             raise KeyError('Key not found in object.')
@@ -1711,7 +1705,7 @@ class IonoPotScb(object):
         '''
         List all keys for data objects stored in the IonoPotScb object.
         '''
-        return self.filedata.keys() + self.data.keys()
+        return list(self.filedata.keys()) + list(self.data.keys())
 
     def __init__(self, filename):
         try:
@@ -1726,7 +1720,7 @@ class IonoPotScb(object):
         
         # Load file as Nio object.
         f = Nio.open_file(filename, 'r')
-        self.NameVars = f.variables.keys()
+        self.NameVars = list(f.variables.keys())
         self.attrs = f.attributes
         # self.filedata contains the raw NioVariable objects.
         self.filedata = f.variables
@@ -1827,9 +1821,9 @@ class Currents(object):
     '''
 
     def __getitem__(self, key):
-        if self.filedata.has_key(key):
+        if key in self.filedata:
             return self.filedata[key].get_value()
-        elif self.data.has_key(key):
+        elif key in self.data:
             return self.data[key]
         else:
             raise KeyError('Key not found in object.')
@@ -1840,7 +1834,7 @@ class Currents(object):
         '''
         List all keys for data objects stored in the IonoPotScb object.
         '''
-        return self.filedata.keys() + self.data.keys()
+        return list(self.filedata.keys()) + list(self.data.keys())
 
     def __init__(self, filename):
         try:
@@ -1855,7 +1849,7 @@ class Currents(object):
         
         # Load file as Nio object.
         f = Nio.open_file(filename, 'r')
-        self.NameVars = f.variables.keys()
+        self.NameVars = list(f.variables.keys())
         self.attrs = f.attributes
         # self.filedata contains the raw NioVariable objects.
         self.filedata = f.variables
@@ -1896,9 +1890,10 @@ class ParamFile(object):
     def __getitem__(self,key):
         return self.cmd[key]
     def keys(self):
-        return self.cmd.keys()
-    def has_key(self, key):
-        return self.cmd.has_key(key)
+        return list(self.cmd.keys())
+
+    def __contains__(self, key):
+        return key in self.cmd
 
     def __init__(self, infile):
         '''
@@ -1965,7 +1960,7 @@ class ParamFile(object):
             if l.find('BEGIN_COMP')>-1 or l.find('END_COMP')>-1:
                 continue
 
-            if self.known_cmds.has_key(l[1:]):
+            if l[1:] in self.known_cmds:
                 # If recognized command, process and pop arguments.
                 npop=self.known_cmds[l[1:]](lines)
                 pop(lines, npop)

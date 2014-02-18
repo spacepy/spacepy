@@ -136,7 +136,7 @@ class Stream(object):
         self.y = np.append(ybwd[:-1],yfwd)
 
         # Check if line is closed to body.
-        if bats.attrs.has_key('rbody'):
+        if 'rbody' in bats.attrs:
             r1 = sqrt(self.x[0]**2.0  + self.y[0]**2.0)
             r2 = sqrt(self.x[-1]**2.0 + self.y[-1]**2.0)
             if (r1 < bats.attrs['rbody']) and (r2 < bats.attrs['rbody']):
@@ -169,7 +169,7 @@ class Stream(object):
         self.y = array(y2[::-1].tolist() + y1[1:].tolist())
 
         # Check if line is closed to body.
-        if bats.attrs.has_key('rbody'):
+        if 'rbody' in bats.attrs:
             r1 = sqrt(self.x[0]**2.0  + self.y[0]**2.0)
             r2 = sqrt(self.x[-1]**2.0 + self.y[-1]**2.0)
             if (r1 < bats.attrs['rbody']) and (r2 < bats.attrs['rbody']):
@@ -369,7 +369,7 @@ class Bats2d(IdlBin):
         '''
         from numpy import pi
 
-        if not self.has_key('b'):
+        if not 'b' in self:
             self.calc_b()
         mu_naught = 4.0E2 * pi # Mu_0 x unit conversion (nPa->Pa, nT->T)
         temp_b = self['b']**2.0
@@ -410,7 +410,7 @@ class Bats2d(IdlBin):
         from numpy import sqrt, pi
         from spacepy.datamodel import dmarray
         
-        if not self.has_key('b'):
+        if not 'b' in self:
             self.calc_b()
         #M_naught * conversion from #/cm^3 to kg/m^3
         mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
@@ -570,7 +570,7 @@ class Bats2d(IdlBin):
             if (command[0:5] == 'calc_') and (command != 'calc_all'):
                 try:
                     eval('self.'+command+'()')
-                except AttributeError, Error:
+                except AttributeError as Error:
                     print('WARNING: Did not perform %s: %s' % (command, Error))
 
     #####################
@@ -599,7 +599,7 @@ class Bats2d(IdlBin):
 
         if self.gridtype != 'Regular':
             if not cellsize:
-                raise ValueError,('Grid must be regular or ' +
+                raise ValueError('Grid must be regular or ' +
                                   'cellsize must be given.')
             self.regrid(cellsize, dim1range=dim1range, dim2range=dim2range)
 
@@ -686,7 +686,7 @@ class Bats2d(IdlBin):
 
         # Default: all variables are extracted except coordinates.
         if vars == 'All':
-            vars = self.keys()
+            vars = list(self.keys())
             for var in ('x','y','z','grid'):
                 if var in vars: vars.remove(var)
 
@@ -775,7 +775,7 @@ class Bats2d(IdlBin):
         from numpy import linspace
 
         if self['grid'].attrs['gtype'] == 'Regular':
-            raise(ValueError('Function not compatable with regular grids'))
+            raise ValueError('Function not compatable with regular grids')
 
         # Get dimensions over which we shall plot.
         xdim, ydim = self['grid'].attrs['dims'][0:2]
@@ -1016,7 +1016,7 @@ class Bats2d(IdlBin):
 
         from matplotlib.patches import Circle, Wedge
 
-        if not self.attrs.has_key('rbody'):
+        if not 'rbody' in self.attrs:
             raise KeyError('rbody not found in self.attrs!')
 
         body = Circle((0,0), rad, fc='w', zorder=1000, **extra_kwargs)
@@ -1044,7 +1044,7 @@ class Bats2d(IdlBin):
         '''
         from matplotlib.patches import Ellipse
 
-        if not self.attrs.has_key('rbody'):
+        if not 'rbody' in self.attrs:
             raise KeyError('rbody not found in self.attrs!')
 
         dbody = 2.0 * self.attrs['rbody']
@@ -1763,7 +1763,7 @@ class GeoIndexFile(LogFile):
                 if not hasattr(self, 'obs_kp'):
                     self.obs_kp = kt.fetch('kp', (stime.year, stime.month), 
                                            (etime.year, etime.month))
-            except BaseException, args:
+            except BaseException as args:
                 print('WARNING! Failed to fetch Kyoto Kp: ' + args)
             else:
                 self.obs_kp.add_histplot(target=ax, color='k', ls='--', lw=3.0)
