@@ -402,6 +402,7 @@ class Library(object):
         names = { 'win32': ['dllcdf.dll'],
                   'darwin': ['libcdf.dylib', 'cdf.dylib'],
                   'linux2': ['libcdf.so'],
+                  'linux': ['libcdf.so'],
                   None: ['libcdf.so'],
                   }
         names = names[sys.platform] if sys.platform in names else names[None]
@@ -438,6 +439,7 @@ class Library(object):
         cdfdists = { 'win32': ['c:\\CDF Distribution\\'],
                     'darwin': ['/Applications/', os.path.expanduser('~')],
                     'linux2': ['/usr/local/', os.path.expanduser('~')],
+                    'linux': ['/usr/local/', os.path.expanduser('~')],
                     }
         if sys.platform in cdfdists:
             for cdfdist in cdfdists[sys.platform]:

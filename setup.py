@@ -263,7 +263,7 @@ class build(_build):
         if not distutils.dep_util.newer_group(sources, sofile):
             #up to date
             return
-        if not sys.platform in ('darwin', 'linux2', 'win32'):
+        if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
             self.distribution.add_warning(
                 '%s not supported at this time. ' % sys.platform +
                 'IRBEM will not be available')
@@ -356,7 +356,7 @@ class build(_build):
                 os.system(compile_cmd64[fcompiler])
             if sys.platform == 'darwin':
                 os.system('libtool -static -o libBL2.a *.o')
-            elif sys.platform == 'linux2':
+            elif sys.platform.startswith('linux'):
                 os.system('ar -r libBL2.a *.o')
                 os.system('ranlib libBL2.a')
             elif sys.platform == 'win32':
