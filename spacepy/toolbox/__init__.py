@@ -2172,7 +2172,7 @@ def do_with_timeout(timeout, target, *args, **kwargs):
                 try:
                     raise self._exception[1].with_traceback(self._exception[2])
                 except AttributeError:
-                    raise self._exception[1], None, self._exception[2]
+                    raise (self._exception[1], None, self._exception[2])
             return self._retval
             
     t = ReturningThread(None, target, None, args, kwargs)
