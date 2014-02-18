@@ -3,23 +3,16 @@
 vector field.  The subroutines included here are meant to be called from
 python routines.
 
-Test compilation:
-gcc -DNDEBUG -g -O3 -Wall -Wstrict-prototypes -fPIC -DMAJOR_VERSION=1 -DMINOR_VERISON=0 -I /usr/include/python2.6 -I /usr/share/pyshared/numpy/core/include/numpy/ -c ctrace2dmodule.c
-gcc -shared ctrace2dmodule.o -o ctrace2d.so
+Test compilation/execution:
+gcc -DCTRACE2D_TEST ctrace2d.c -lm
+./a.out
 
-Copyright 2010 - 2011  Los Alamos National Security, LLC. */
+Copyright 2010 - 2014  Los Alamos National Security, LLC. */
 
 /*************************************************************************/
-#include <Python.h>
-#include <numpy/numpyconfig.h>
-#ifdef NPY_1_7_API_VERSION
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#endif
-#include <numpy/arrayobject.h>
-#ifndef NPY_ARRAY_DEFAULT
-#define NPY_ARRAY_DEFAULT NPY_DEFAULT
-#endif
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Bilinear interpolation for x1,y1=0 and x2,y2=1     */
 /* Q's are surrounding points such that Q00 = F[0,0], */
@@ -43,7 +36,7 @@ static double bilin_reg(double x, double y, double Q00,
 
 /* Check to see if we should break out of an integration */
 /* As set now, code will extrapolate up to 1 point outside of current block. */
-static int DoBreak(int iloc, int jloc, int iSize, int jSize)
+int DoBreak(int iloc, int jloc, int iSize, int jSize)
 {
   int ibreak = 0;
   //printf("At %i, %i with limits %i, %i\n", iloc, jloc, iSize, jSize);
@@ -87,12 +80,12 @@ static void make_unit(int iSize, int jSize, double *ux, double *uy)
 
 /* Simple tracing using Euler's method. */
 /* Super fast but not super accurate.   */
-static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
-		  int maxstep, double ds,         /* Maxsteps and step size  */
-		  double xstart, double ystart,   /* Starting locations      */
-		  double xGrid[], double yGrid[], /* Actual coord system     */
-		  double *ux, double *uy,         /* Field to trace through  */
-		  double x[], double y[])         /* x, y of result stream   */
+int cEuler(int iSize, int jSize,           /* Grid size and max steps */
+	   int maxstep, double ds,         /* Maxsteps and step size  */
+	   double xstart, double ystart,   /* Starting locations      */
+	   double xGrid[], double yGrid[], /* Actual coord system     */
+	   double *ux, double *uy,         /* Field to trace through  */
+	   double x[], double y[])         /* x, y of result stream   */
 {
   /* Variable declarations */
   int n=0, i, xloc, yloc;
@@ -147,12 +140,12 @@ static int cEuler(int iSize, int jSize,           /* Grid size and max steps */
 
 /* Fast and reasonably accurate tracing with */
 /* Runge-Kutta 4 method (constant step size) */
-static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
-		int maxstep, double ds,           /* Maxsteps and step size  */
-		double xstart, double ystart,     /* Starting locations      */
-		double xGrid[], double yGrid[],   /* Actual coord system     */
-		double *ux, double *uy,           /* Field to trace through  */
-		double x[], double y[])           /* x, y of result stream   */
+int cRk4(int iSize, int jSize,             /* Grid size and max steps */
+	 int maxstep, double ds,           /* Maxsteps and step size  */
+	 double xstart, double ystart,     /* Starting locations      */
+	 double xGrid[], double yGrid[],   /* Actual coord system     */
+	 double *ux, double *uy,           /* Field to trace through  */
+	 double x[], double y[])           /* x, y of result stream   */
 {
   /* Variable declarations */
   int n=0, i, xloc, yloc;
@@ -258,118 +251,80 @@ static int cRk4(int iSize, int jSize,             /* Grid size and max steps */
 
 }
 
-/*Since the two tracers have identical interfaces,
- *almost all the code is common
- */
-static PyObject *ctrace2d_common(PyObject *self,
-				 PyObject *args, PyObject *kwargs,
-				 int (*func)(int, int, int,
-					     double, double, double,
-					     double*, double*,
-					     double*, double*,
-					     double*, double*)) {
-  PyArrayObject *gridx, *gridy, *fieldx, *fieldy, *outx, *outy;
-  /*Data pointers for the above arrays*/
-  double *gridxd, *gridyd, *fieldxd, *fieldyd, *outxd, *outyd;
-  double xstart, ystart, ds;
-  int maxstep, xsize, ysize, count;
-  PyArray_Descr *array_type;
-  npy_intp outdims[] = {0};
-  npy_intp indims[] = {0};
-  PyArray_Dims outshape = { outdims, 1 };
-  static char *kwlist[] = {"fieldx", "fieldy", "xstart", "ystart",
-			   "gridx", "gridy", "maxstep", "ds", NULL};
-  maxstep = 20000;
-  ds = 0.01;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-				   "O!O!ddO!O!|id", kwlist,
-				   &PyArray_Type, &fieldx, &PyArray_Type, &fieldy,
-				   &xstart, &ystart,
-				   &PyArray_Type, &gridx, &PyArray_Type, &gridy,
-				   &maxstep, &ds))
-    return NULL;
-
-  array_type = PyArray_DescrFromType(NPY_DOUBLE);
-  /* NEXT LINES COMMENTED OUT; CAUSED ISSUES BETWEEN NUMPY AND C.*/
-   /*FromArray, FromDescr steal ref to type, so need 6 total*/
-  //for(count=0; count<5; count++)
-  //  Py_INCREF(array_type);
-
-  /*For all of these, we are throwing away the borrowed ref
-   *to the original, and creating a new object with a new ref.
-   *So the new ref will be freed, but the borrowed ref is left alone.
-   */
-  gridx = (PyArrayObject*)PyArray_FromArray(gridx, array_type, NPY_ARRAY_DEFAULT);
-  gridy = (PyArrayObject*)PyArray_FromArray(gridy, array_type, NPY_ARRAY_DEFAULT);
-  fieldx = (PyArrayObject*)PyArray_FromArray(fieldx, array_type, NPY_ARRAY_DEFAULT);
-  fieldy = (PyArrayObject*)PyArray_FromArray(fieldy, array_type, NPY_ARRAY_DEFAULT);
-  xsize = (int)PyArray_DIM(gridx, 0);
-  ysize = (int)PyArray_DIM(gridy, 0);
-  indims[0] = maxstep;
-  outx = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
-  outy = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, indims, array_type);
-  //Py_DECREF(array_type);
-
-  gridxd = (double*)PyArray_DATA(gridx);
-  gridyd = (double*)PyArray_DATA(gridy);
-  fieldxd = (double*)PyArray_DATA(fieldx);
-  fieldyd = (double*)PyArray_DATA(fieldy);
-  outxd = (double*)PyArray_DATA(outx);
-  outyd = (double*)PyArray_DATA(outy);
-
-NPY_BEGIN_ALLOW_THREADS
-  count = (*func)(xsize, ysize, maxstep, ds, xstart, ystart,
-		 gridxd, gridyd, fieldxd, fieldyd, outxd, outyd);
-NPY_END_ALLOW_THREADS
-
-  //Py_DECREF(gridx);
-  //Py_DECREF(gridy);
-  //Py_DECREF(fieldx);
-  //Py_DECREF(fieldy);
-
-  outdims[0] = count;
-  if (!PyArray_Resize(outx, &outshape, 1, NPY_CORDER))
-    return NULL;
-  if (!PyArray_Resize(outy, &outshape, 1, NPY_CORDER))
-    return NULL;
-  /*Giving away our reference to the caller*/
-  return Py_BuildValue("NN", outx, outy);
+#ifdef CTRACE2D_TEST
+static int test_arrays(int iSize, int jSize, double xGrid[], double yGrid[],
+		       double *ux, double *uy){
+  printf("Seems to work.\n");
+  return 1;
 }
 
-static PyObject *ctrace2d_cEuler(PyObject *self,
-				 PyObject *args, PyObject *kwargs) {
-  return ctrace2d_common(self, args, kwargs, cEuler);
+/* A utility for printing test results. */
+void test_check(double result, double answer)
+{
+  double diff, thresh;
+
+  thresh = 0.00001;
+  diff = 100.0*(result - answer) / answer;
+
+  if (diff < thresh)
+    printf("TEST PASSED! (Result=%.4f, Answer=%.4f)\n", result, answer);
+  else{
+    printf("TEST FAILED!\n");
+    printf("Result %.20f differs from answer %.20f\n", result, answer);
+    printf("Difference of %.3f%% is over threshold of %.5f%%\n", diff, thresh);
+  }
 }
 
-static PyObject *ctrace2d_cRk4(PyObject *self,
-			       PyObject *args, PyObject *kwargs) {
-  return ctrace2d_common(self, args, kwargs, cRk4);
-}
+/* Main simply tests the functionality of all funcs in this file.*/
+int main()
+{
+  /* Declarations */
+  double out=0, x=0.1, y=0.2, Q00=3.0, Q01=5.0, Q10=40.0, Q11=60.0;
+  double sol1 = 7.460;
+  int l[1];
 
-static PyMethodDef ctrace2d_methods[] = {
-   { "cEuler", (PyCFunction)ctrace2d_cEuler, METH_VARARGS | METH_KEYWORDS,
-     "Given a 2D vector field, trace a streamline from a given point\n"
-     "to the edge of the vector field.  The field is integrated using\n"
-     "Euler's method.  While this is faster than rk4, it is less accurate.\n\n"
-     "Only valid for regular grid with coordinates gridx, gridy.\n"
-     "If gridx and gridy are not given, assume that xstart and ystart\n"
-     "are normalized coordinates (e.g., position in terms of array\n"
-     "indices.)"},
-   { "cRk4", (PyCFunction)ctrace2d_cRk4, METH_VARARGS | METH_KEYWORDS,
-    "Given a 2D vector field, trace a streamline from a given point\n"
-    "to the edge of the vector field.  The field is integrated using\n"
-    "Runge Kutta 4.  Slower than Euler, but more accurate.  The\n"
-    "higher accuracy allows for larger step sizes (ds kwarg).  For\n"
-    "a demonstration of the improved accuracy, run test_asymtote and\n"
-    "test_dipole, bouth found in the pybats.trace2d module.\n"
-    "Only valid for regular grid with coordinates gridx, gridy.\n"
-    "If gridx and gridy are not given, assume that xstart and ystart\n"
-    "are normalized coordinates (e.g., position in terms of array\n"
-    "indices.)\n"},
-   { NULL, NULL, 0, NULL }
-};
+  /* Test bilin_reg */
+  printf("Testing bilin_reg\n");
+  out = bilin_reg(x, y, Q00, Q01, Q10, Q11);
+  printf("TEST 1: ");
+  test_check(out, sol1);
 
-PyMODINIT_FUNC initctrace2d(void) {
-   Py_InitModule("ctrace2d", ctrace2d_methods);
-   import_array();
+
+  /* Test cEuler 1 */
+  int i, j, nx=841, ny=121, maxstep=10000, npoints;
+  double xgrid[nx], ygrid[nx], *ux, *uy, xt[maxstep], yt[maxstep], ds=1.0;
+  ux = malloc(nx * ny * sizeof(double));
+  uy = malloc(nx * ny * sizeof(double));
+  
+  for (i=0; i<nx; i++)
+    {
+      xgrid[i] = -10.0+0.25*i;
+      ygrid[i] = xgrid[i];
+    }
+
+  for (i=0; i<nx; i++)
+    for (j=0; j<ny; j++)
+      {
+	*(ux+i*ny+j) = xgrid[i];
+	*(uy+i*ny+j) = -1.0 * ygrid[j];
+      }
+
+  npoints = cEuler(nx, ny, maxstep, ds, 1.0, 10.0, xgrid, ygrid,
+			 ux, uy, xt, yt);
+  printf("Npoints = %i\n", npoints);
+  printf("Grid goes from %.2f to %.2f\n", xgrid[0], xgrid[nx-1]);
+  printf("Our trace starts at %.2f, %.2f\n", xt[0], yt[0]);
+  printf("...and ends at      %.2f, %.2f\n", xt[npoints], yt[npoints]);
+
+  npoints = cRk4(nx, ny, maxstep, ds, 1.0, 10.0, xgrid, ygrid,
+		 ux, uy, xt, yt);
+  printf("Npoints = %i\n", npoints);
+  printf("Grid goes from %.2f to %.2f\n", xgrid[0], xgrid[nx-1]);
+  printf("Our trace starts at %.2f, %.2f\n", xt[0], yt[0]);
+  printf("...and ends at      %.2f, %.2f\n", xt[npoints], yt[npoints]);  
+
+  /*for (i=0; i<npoints; i++)
+    printf("%.3f, %.3f\n", xt[i], yt[i]);*/
+  return 0;
 }
+#endif /*CTRACE2D_TEST*/

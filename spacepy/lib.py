@@ -13,7 +13,7 @@ Authors: Jon Niehof
 Institution: Los Alamos National Laboratory
 Contact: jniehof@lanl.gov
 
-Copyright 2010 Los Alamos National Security, LLC.
+Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
 import ctypes
@@ -46,8 +46,43 @@ functions = {
     'hypot_tb': [ctypes.c_double,
                  numpy.ctypeslib.ndpointer(
                      dtype=ctypes.c_double, flags='C_CONTIGUOUS'),
-                 ctypes.c_long]
+                 ctypes.c_long],
+    'cEuler': [ctypes.c_int, #return value, number of points used
+               ctypes.c_int, ctypes.c_int, #grid size
+               ctypes.c_int, ctypes.c_double, #maxsteps, step size
+               ctypes.c_double, ctypes.c_double, #x,y of start
+               numpy.ctypeslib.ndpointer(
+                   dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # x grid
+               numpy.ctypeslib.ndpointer(
+                   dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # y grid
+               numpy.ctypeslib.ndpointer(
+                   dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # x field
+               numpy.ctypeslib.ndpointer(
+                   dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # y field
+               numpy.ctypeslib.ndpointer(
+                   dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # x of stream
+               numpy.ctypeslib.ndpointer(
+                   dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # y of stream
+               ],
+    'cRk4': [ctypes.c_int, #return value, number of points used
+             ctypes.c_int, ctypes.c_int, #grid size
+             ctypes.c_int, ctypes.c_double, #maxsteps, step size
+             ctypes.c_double, ctypes.c_double, #x,y of start
+             numpy.ctypeslib.ndpointer(
+                 dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # x grid
+             numpy.ctypeslib.ndpointer(
+                 dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # y grid
+             numpy.ctypeslib.ndpointer(
+                 dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # x field
+             numpy.ctypeslib.ndpointer(
+                 dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # y field
+             numpy.ctypeslib.ndpointer(
+                 dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # x of stream
+             numpy.ctypeslib.ndpointer(
+                 dtype=ctypes.c_double, flags='C_CONTIGUOUS'), # y of stream
+             ],
     }
+
 
 def load_lib():
     """Find and load libspacepy

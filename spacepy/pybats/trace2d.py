@@ -3,13 +3,64 @@
 A set of routines for fast field line tracing.
 "Number crunching" is performed in C for speed.
 
-Copyright 2010 Los Alamos National Security, LLC.
+Copyright 2010-2014 Los Alamos National Security, LLC.
 '''
 
-from . import ctrace2d
+import ctypes
 
-trace2d_eul = ctrace2d.cEuler
-trace2d_rk4 = ctrace2d.cRk4
+import numpy
+from .. import lib
+
+assert(lib.have_libspacepy)
+
+
+def _trace2d_common(func, fieldx, fieldy, xstart, ystart, gridx, gridy,
+                    maxstep=20000, ds=0.01):
+    #These are a bit redundant with the checking in the lib.py
+    #call dict, but need to make sure they're numpy arrays so can get shape.
+    gridx = numpy.require(gridx, ctypes.c_double, 'C')
+    gridy = numpy.require(gridy, ctypes.c_double, 'C')
+    fieldx = numpy.require(fieldx, ctypes.c_double, 'C')
+    fieldy = numpy.require(fieldy, ctypes.c_double, 'C')
+    outx = numpy.empty(shape=(maxstep,), dtype=ctypes.c_double)
+    outy = numpy.empty(shape=(maxstep,), dtype=ctypes.c_double)
+    count = func(gridx.shape[0], gridy.shape[0], maxstep, ds, xstart, ystart,
+		 gridx, gridy, fieldx, fieldy, outx, outy)
+    return (outx[0:count], outy[0:count])
+
+def trace2d_eul(fieldx, fieldy, xstart, ystart, gridx, gridy,
+                maxstep=20000, ds=0.01):
+    """
+    Given a 2D vector field, trace a streamline from a given point
+    to the edge of the vector field.  The field is integrated using
+    Euler's method.  While this is faster than rk4, it is less accurate.
+
+    Only valid for regular grid with coordinates gridx, gridy.
+    If gridx and gridy are not given, assume that xstart and ystart
+    are normalized coordinates (e.g., position in terms of array
+    indices.)
+    """
+    return _trace2d_common(lib.cEuler, fieldx, fieldy, xstart, ystart,
+                           gridx, gridy, maxstep, ds)
+
+
+def trace2d_rk4(fieldx, fieldy, xstart, ystart, gridx, gridy,
+                maxstep=20000, ds=0.01):
+    """
+    Given a 2D vector field, trace a streamline from a given point
+    to the edge of the vector field.  The field is integrated using
+    Runge Kutta 4.  Slower than Euler, but more accurate.  The
+    higher accuracy allows for larger step sizes (ds kwarg).  For
+    a demonstration of the improved accuracy, run test_asymtote and
+    test_dipole, bouth found in the pybats.trace2d module.
+    Only valid for regular grid with coordinates gridx, gridy.
+    If gridx and gridy are not given, assume that xstart and ystart
+    are normalized coordinates (e.g., position in terms of array
+    indices.)
+    """
+    return _trace2d_common(lib.cRk4, fieldx, fieldy, xstart, ystart,
+                           gridx, gridy, maxstep, ds)
+
 
 ###################################################
 # TEST SUITE  #

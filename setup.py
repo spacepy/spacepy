@@ -13,7 +13,7 @@ Copyright 2010 - 2013 Los Alamos National Security, LLC.
 
 import os, sys, shutil, getopt, glob, re
 import subprocess
-from distutils.core import setup, Extension
+from distutils.core import setup
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
 from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
@@ -636,15 +636,11 @@ packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox']
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
-pybats_ext = Extension('spacepy.pybats.ctrace2d',
-                       sources=['spacepy/pybats/ctrace2dmodule.c'],
-                       include_dirs=[numpy.get_include()])
 
 # run setup from distutil
 setup(name='spacepy',
       version='0.1.4',
       description='SpacePy: Tools for Space Science Applications',
-      ext_modules=[pybats_ext, ],
       author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
       author_email='spacepy@lanl.gov',
       url='http://www.spacepy.lanl.gov',
