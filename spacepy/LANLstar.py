@@ -136,7 +136,7 @@ def _LANLcommon(indict, extMag, domax):
                 inputdict[key] = [inputdict[key]]
         else:
             arrayflag = True
-	    ncalc = len(inputdict['Dst'])
+            ncalc = len(inputdict['Dst'])
 	
         ncalc = len(inputdict[specialkey])
         Lstar = np.zeros(ncalc)
@@ -150,7 +150,7 @@ def _LANLcommon(indict, extMag, domax):
         for i in range(ncalc):	
             # copy over keylist into inpar
             for ikey, key in enumerate(keylist):
-    		inpar[ikey] = inputdict[key][i]
+                inpar[ikey] = inputdict[key][i]
             Lstar[i] = network(inpar)
             
         if arrayflag is False:
