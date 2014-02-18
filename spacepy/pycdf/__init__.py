@@ -403,9 +403,8 @@ class Library(object):
                   'darwin': ['libcdf.dylib', 'cdf.dylib'],
                   'linux2': ['libcdf.so'],
                   'linux': ['libcdf.so'],
-                  None: ['libcdf.so'],
                   }
-        names = names[sys.platform] if sys.platform in names else names[None]
+        names = names.get(sys.platform, ['libcdf.so'])
         #search a directory for these names
         search_dir = lambda x: next(
             (os.path.join(x, fname) for fname in names
