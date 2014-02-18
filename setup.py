@@ -254,13 +254,14 @@ class build(_build):
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')
         if sys.platform == 'win32':
-            libfile = 'irbempylib.pyd'
+            libfile = 'irbempylib*.pyd'
         else:
-            libfile = 'irbempylib.so'
-        sofile = os.path.join(outdir, libfile)
+            libfile = 'irbempylib*.so'
         sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                   glob.glob(os.path.join(srcdir, '*.inc'))
-        if not distutils.dep_util.newer_group(sources, sofile):
+        sofiles = glob.glob(os.path.join(outdir, libfile))
+        assert(len(sofiles) < 2)
+        if sofiles and not distutils.dep_util.newer_group(sources, sofiles[0]):
             #up to date
             return
         if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
@@ -375,7 +376,9 @@ class build(_build):
                 '{1}'.format(
                     self.f2py, f2py_flags),
                 shell=True, env=f2py_environment(self.fcompiler))
-            shutil.move(libfile, sofile)
+            libfiles = glob.glob(libfile)
+            assert(len(libfiles) == 1)
+            shutil.move(libfiles[0], os.path.join(outdir))
         except:
             self.distribution.add_warning(
                 'irbemlib compile failed. '
