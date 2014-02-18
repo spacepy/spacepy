@@ -222,7 +222,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
     if presort:
         import bisect
         t_lower, t_upper = ts1[0], ts1[-1]
-        return xrange(bisect.bisect_left(ts2, t_lower),
+        return range(bisect.bisect_left(ts2, t_lower),
                      bisect.bisect_right(ts2, t_upper))
     else:
         t_lower, t_upper = min(ts1), max(ts1)
@@ -298,7 +298,7 @@ def tCommon(ts1, ts2, mask_only=True):
         #        dum2 = [val.replace(tzinfo=None) for val in dum2]
         dum11 = []
         dum22 = []
-        for v1, v2 in itertools.izip(dum1, dum2):
+        for v1, v2 in zip(dum1, dum2):
             try:
                 dum11.append(v1.replace(tzinfo=None))
             except ValueError: # ValueError: microsecond must be in 0..999999
@@ -989,7 +989,11 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     data = np.array(data)
     if pts:
         #loop for fixed number of points in window
-        if not isinstance(winsize, (int, long)):
+        try:
+            inttypes = (int, long)
+        except NameError:
+            inttypes = (int,)
+        if not isinstance(winsize, inttypes):
             winsize = int(round(winsize))
             warnings.warn('windowmean: non-integer windowsize, rounding to %d' \
             % winsize)
@@ -2165,7 +2169,10 @@ def do_with_timeout(timeout, target, *args, **kwargs):
         def join(self, *args, **kwargs):
             super(ReturningThread, self).join(*args, **kwargs)
             if not self._exception is None:
-                raise self._exception[1], None, self._exception[2]
+                try:
+                    raise self._exception[1].with_traceback(self._exception[2])
+                except AttributeError:
+                    raise self._exception[1], None, self._exception[2]
             return self._retval
             
     t = ReturningThread(None, target, None, args, kwargs)
