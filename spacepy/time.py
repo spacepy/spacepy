@@ -94,7 +94,6 @@ import spacepy.datamodel
 
 import datetime, collections
 import dateutil.parser as dup
-import itertools
 import re
 import warnings
 
@@ -210,7 +209,7 @@ class Ticktock(collections.MutableSequence):
             else:
                 self.data = spacepy.datamodel.dmarray(data)
 
-            if not callable(dtype):
+            if not isinstance(dtype, collections.Callable):
                 if isinstance(self.data[0], str):
                     dtype = 'ISO'
                 elif isinstance(self.data[0], datetime.datetime):
@@ -1688,13 +1687,13 @@ def leapyear(year, numdays=False):
     mask4   = [(val % 4) == 0 for val in year ]   # this is a leap year
     if numdays:
         numdays=365
-        ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in itertools.izip(mask400, mask100, mask4)]
+        ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
         if len(ans) == 1:
             return ans[0]
         else:
             return ans
     else:
-        ans = [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in itertools.izip(mask400, mask100, mask4)]
+        ans = [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]
         if len(ans) == 1:
             return ans[0]
         else:
