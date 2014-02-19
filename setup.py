@@ -257,12 +257,18 @@ class build(_build):
             libfile = 'irbempylib*.pyd'
         else:
             libfile = 'irbempylib*.so'
+        ext = distutils.sysconfig.get_config_var('EXT_SUFFIX')
+        if ext is None:
+            ext = distutils.sysconfig.get_config_var('SO')
+        libfile = 'irbempylib' + ext
+        #Delete any irbem extension modules from other versions
+        for f in glob.glob(os.path.join(outdir, 'irbempylib*')):
+            if os.path.basename(f) != libfile:
+                os.remove(f)
         sources = glob.glob(os.path.join(srcdir, '*.f')) + \
                   glob.glob(os.path.join(srcdir, '*.inc'))
-        sofiles = glob.glob(os.path.join(outdir, libfile))
-        assert(len(sofiles) < 2)
-        if sofiles and not distutils.dep_util.newer_group(sources, sofiles[0]):
-            #up to date
+        sofile = os.path.join(outdir, libfile)
+        if not distutils.dep_util.newer_group(sources, sofile): #up to date
             return
         if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
             self.distribution.add_warning(
@@ -376,9 +382,7 @@ class build(_build):
                 '{1}'.format(
                     self.f2py, f2py_flags),
                 shell=True, env=f2py_environment(self.fcompiler))
-            libfiles = glob.glob(libfile)
-            assert(len(libfiles) == 1)
-            shutil.move(libfiles[0], os.path.join(outdir))
+            shutil.move(libfile, sofile)
         except:
             self.distribution.add_warning(
                 'irbemlib compile failed. '
