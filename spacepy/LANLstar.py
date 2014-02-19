@@ -132,7 +132,7 @@ def _LANLcommon(indict, extMag, domax):
         specialkey = 'Dst' if 'Dst' in keylist else 'Kp'
         if isinstance(inputdict[specialkey], float):
             arrayflag = False
-            for key in inputdict.keys():
+            for key in list(inputdict.keys()):
                 inputdict[key] = [inputdict[key]]
         else:
             arrayflag = True
