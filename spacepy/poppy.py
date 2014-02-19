@@ -23,7 +23,7 @@ shows timing.
 
 Each instance must be initialized
 
->>> lags = [dt.timedelta(minutes=n) for n in xrange(-400,401,2)]
+>>> lags = [dt.timedelta(minutes=n) for n in range(-400,401,2)]
 >>> halfwindow = dt.timedelta(minutes=10)
 >>> pp1 = poppy.PPro(onsets.UTC, ticksR1.UTC, lags, halfwindow)
 
@@ -210,7 +210,7 @@ class PPro(object):
             starts = [t - self.winhalf for t in p1]
             stops = [t + self.winhalf for t in p1]
             nss_list = list(range(len(self.process1)))
-            for ilag in xrange(len(self.lags)):
+            for ilag in range(len(self.lags)):
                 last_idx = [bisect.bisect_right(p2, stops[nss] + self.lags[ilag])
                             for nss in nss_list]
                 first_idx = [bisect.bisect_left(p2, starts[nss] + self.lags[ilag])
@@ -594,25 +594,25 @@ def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
     if norm:
         scaleddata = [ratio *
                       float(pprodata.assoc_total[i]) / pproref.assoc_total[i]
-                      for i in xrange(nlags)]
+                      for i in range(nlags)]
         scaledhi = [ratio *
                     float(pprodata.ci[1][i]) / pproref.assoc_total[i]
-                    for i in xrange(nlags)]
+                    for i in range(nlags)]
         scaledlo = [ratio *
                     float(pprodata.ci[0][i]) / pproref.assoc_total[i]
-                    for i in xrange(nlags)]
-        scaledref = [1.0 for i in xrange(nlags)]
+                    for i in range(nlags)]
+        scaledref = [1.0 for i in range(nlags)]
         refhi = [float(pproref.ci[1][i])  / pproref.assoc_total[i]
-                 for i in xrange(nlags)]
+                 for i in range(nlags)]
         reflo = [float(pproref.ci[0][i])  / pproref.assoc_total[i]
-                 for i in xrange(nlags)]
+                 for i in range(nlags)]
     else:
         scaleddata = [ratio * float(pprodata.assoc_total[i])
-                      for i in xrange(nlags)]
+                      for i in range(nlags)]
         scaledhi = [ratio * float(pprodata.ci[1][i])
-                    for i in xrange(nlags)]
+                    for i in range(nlags)]
         scaledlo = [ratio * float(pprodata.ci[0][i])
-                    for i in xrange(nlags)]
+                    for i in range(nlags)]
         scaledref = pproref.assoc_total
         refhi = pproref.ci[1]
         reflo = pproref.ci[0]
@@ -620,9 +620,9 @@ def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
                      edgecolor='none', facecolor='#FFABAB', interpolate=True)
     ax0.fill_between(lags, scaledlo, scaledhi,
                      edgecolor='none', facecolor='#ABABFF', interpolate=True)
-    bottom = np.fromiter((max([scaledlo[i], reflo[i]]) for i in xrange(nlags)),
+    bottom = np.fromiter((max([scaledlo[i], reflo[i]]) for i in range(nlags)),
                          np.float64, count=-1)
-    top = np.fromiter((min([scaledhi[i], refhi[i]]) for i in xrange(nlags)),
+    top = np.fromiter((min([scaledhi[i], refhi[i]]) for i in range(nlags)),
                       np.float64, count=-1)
     ax0.fill_between(lags, bottom, top, where=(bottom <= top),
                      edgecolor='none', facecolor='#AB81D5',
@@ -749,7 +749,7 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
                   ctypes.c_ulong(seed), clock_seed)
         surr_quan = sorted(
             (func(surr_ser[i * sample_size:(i  + 1) * sample_size])
-             for i in xrange(n)))
+             for i in range(n)))
     pul = prctile(surr_quan, p=(perc_low,perc_high)) #get confidence interval
     if target == None:
         return pul[0], pul[1]
