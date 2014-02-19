@@ -1248,7 +1248,7 @@ def diff_LL(r, grid, f, Tdelta, Telapsed, params=None):
     # Create source operators (source splitting) using implicit
     # trapezoidal method to solve source ODE.
     # Add artificial sources
-    if params.has_key('SRCartif'):
+    if 'SRCartif' in params:
         # Call the artificial source function, sending info as
         # key word arguments.  Note that such functions should be
         # able to handle extra kwargs through the use of **kwargs!
