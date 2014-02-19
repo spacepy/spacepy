@@ -174,6 +174,7 @@ try:
     str_classes = (str, bytes, unicode)
 except NameError:
     str_classes = (str, bytes)
+    unicode = str
 
 class DMWarning(Warning):
     """
@@ -691,7 +692,7 @@ def unflatten(dobj, marker='<--'):
             if marker in key:
                 #get 'group'
                 group = key.split(marker)[0]
-                if not group in keydict.keys():
+                if not group in keydict:
                     keydict[group] = {key: ''}
                 else:
                     keydict[group][key] = ''
@@ -701,9 +702,9 @@ def unflatten(dobj, marker='<--'):
             addme[key] = dmcopy(dobj[key])
     #now we have all the groups at this level
     #move members of groups into new SpaceDatas
-    for grp in keydict.keys():
+    for grp in keydict:
         addme[grp] = SpaceData()
-        for key in keydict[grp].keys():
+        for key in keydict[grp]:
             newkey = marker.join(key.split(marker)[1:])
             addme[grp][newkey] = dmcopy(dobj[key])
         addme[grp] = unflatten(addme[grp], marker=marker) #recurse to make sure everything inside is unpacked
@@ -865,7 +866,7 @@ def fromHDF5(fname, **kwargs):
     def hdfcarryattrs(SDobject, hfile, path):
         if hasattr(hfile[path],'attrs'):
             #for key, value in hfile[path].attrs.iteritems():
-            for key in hfile[path].attrs.keys():
+            for key in hfile[path].attrs:
                 try:
                     value = hfile[path].attrs[key]
                 except TypeError:
@@ -899,7 +900,7 @@ def fromHDF5(fname, **kwargs):
     ##carry over the attributes
     hdfcarryattrs(SDobject, hfile, path)
     ##carry over the groups and datasets
-    for key, value in hfile[path].iteritems():
+    for key, value in hfile[path].items():
         #try:
             if type(value) is allowed_elems[0]: #if a group
                 SDobject[key] = SpaceData()
@@ -953,7 +954,7 @@ def toHDF5(fname, SDobject, **kwargs):
     '''
     def SDcarryattrs(SDobject, hfile, path, allowed_attrs):
         if hasattr(SDobject, 'attrs'):
-            for key, value in SDobject.attrs.iteritems():
+            for key, value in SDobject.attrs.items():
                 dumval, dumkey = copy.copy(value), copy.copy(key)
                 if type(value) in allowed_attrs:
                     #test for datetimes in iterables
@@ -966,10 +967,11 @@ def toHDF5(fname, SDobject, **kwargs):
                         if value or value is 0: truth = True
 
                     if truth:
-                        if type(key) is unicode:
-                            dumkey = str(key)
-                        if type(value) is unicode:
-                            dumval = str(value)
+                        if bytes is str:
+                            if type(key) is unicode:
+                                dumkey = str(key)
+                            if type(value) is unicode:
+                                dumval = str(value)
                         try:
                             hfile[path].attrs[dumkey] = dumval
                         except:
@@ -981,7 +983,7 @@ def toHDF5(fname, SDobject, **kwargs):
                         hfile[path].attrs[dumkey] = ''
                 elif isinstance(value, datetime.datetime):
                     dumval = value.isoformat()
-                    if type(key) is unicode:
+                    if bytes is str and type(key) is unicode:
                         dumkey = str(key)
                     hfile[path].attrs[dumkey] = dumval
                 else:
@@ -1033,7 +1035,10 @@ def toHDF5(fname, SDobject, **kwargs):
     else:
         path = '/'
 
-    allowed_attrs = [int, long, float, str, unicode, numpy.ndarray, list, tuple, numpy.string_]
+    try:
+        allowed_attrs = [int, long, float, str, unicode, numpy.ndarray, list, tuple, numpy.string_]
+    except NameError:
+        allowed_attrs = [int,       float, bytes, str, numpy.ndarray, list, tuple, numpy.string_]
     for v in numpy.typecodes['AllInteger']:
         allowed_attrs.append(numpy.typeDict[v])
     for v in numpy.typecodes['AllFloat']:
@@ -1046,7 +1051,7 @@ def toHDF5(fname, SDobject, **kwargs):
     SDcarryattrs(SDobject,hfile,path,allowed_attrs)
 
     try:
-        for key, value in SDobject.iteritems():
+        for key, value in SDobject.items():
             if isinstance(value, allowed_elems[0]):
                 hfile[path].create_group(key)
                 toHDF5(hfile, SDobject[key], path=path+'/'+key, compression=h5_compr_type, compression_opts=h5_compr_opts)
@@ -1097,8 +1102,7 @@ def toHTML(fname, SDobject, attrs=(),
 
     """
     output = StringIO.StringIO() # put the output into a StringIO
-    keys = SDobject.keys()
-    keys.sort()
+    keys = sorted(SDobject.keys())
 
     output.write(tableTag)
     output.write('\n')
@@ -1280,7 +1284,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
             return mdata
         ncols = len(alldata[0].rstrip().split())
         # fixes None in the data from empty lines at the end
-        for row in xrange(len(alldata)): # reverse order
+        for row in range(len(alldata)): # reverse order
             if not alldata[-1].rstrip(): # blank line (or al white space)
                 alldata.pop(-1)
             else:
@@ -1290,8 +1294,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         for ridx, line in enumerate(alldata):
             for cidx, el in enumerate(line.rstrip().split()):
                 data[ridx, cidx] = el
-        keys = mdata.keys()
-        for key in keys:
+        for key in mdata.keys():
             if 'START_COLUMN' in mdata_copy[key].attrs:
                 st = mdata_copy[key].attrs['START_COLUMN']
                 if 'DIMENSION' in mdata_copy[key].attrs:
@@ -1321,7 +1324,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         else:
             mdata = innerloop(fh, mdata, mdata_copy)
     #now add the attributres to the variables
-    keys = mdata.keys()
+    keys = list(mdata.keys())
     for key in keys:
         if isinstance(mdata[key], SpaceData):
             mdata[key] = dmarray(None, attrs=mdata_copy[key].attrs)
@@ -1388,7 +1391,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
         for key in insd:
             if not hasattr(insd[key], 'attrs'):
                 insd[key] = dmarray(insd[key])
-            if insd[key].attrs.has_key('DEPEND_0'):
+            if 'DEPEND_0' in insd[key].attrs:
                 depend0 = insd[key].attrs['DEPEND_0']
                 if not isinstance(depend0, str):
                     #assume it's a singleton list
@@ -1399,13 +1402,13 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
                     break #we're done here
         if depend0 is None:
             #fall back to most common var length
-            tmp, keylist = [], insd.keys()
+            tmp, keylist = [], list(insd.keys())
             for key in keylist:
                 tmp.append(len(insd[key]))
             depend0 = keylist[tmp.index(numpy.bincount(tmp).argmax())]
             #TODO Set using Time, or Epoch, or similar...
     else:
-        if not insd.has_key(depend0): raise KeyError('Invalid key supplied for ordering metadata on write')
+        if not depend0 in insd: raise KeyError('Invalid key supplied for ordering metadata on write')
     datalen = len(insd[depend0])
 
     #start with global attrs
@@ -1542,10 +1545,9 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
     #alphabetically after those that are specified
     '''
     kwarg_dict = {'delimiter': ' '}
-    for key in kwarg_dict.keys():
+    for key in kwarg_dict:
         if key in kwargs:
             kwarg_dict[key] = kwargs[key]
-    import StringIO
     if not metadata:
         metadata = StringIO.StringIO()
         writeJSONMetadata(metadata, insd, depend0=depend0, order=order)
@@ -1554,7 +1556,7 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
 
     datlist = []
     for key in hdr:
-        if hdr[key].attrs.has_key('START_COLUMN'):
+        if 'START_COLUMN' in hdr[key].attrs:
             #add to list of (start_col, keyname) pairs
             datlist.append((hdr[key].attrs['START_COLUMN'], key, hdr[key].attrs['DIMENSION'][0]))
             #also use for data length
