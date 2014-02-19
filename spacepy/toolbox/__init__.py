@@ -222,7 +222,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
     if presort:
         import bisect
         t_lower, t_upper = ts1[0], ts1[-1]
-        return range(bisect.bisect_left(ts2, t_lower),
+        return xrange(bisect.bisect_left(ts2, t_lower),
                      bisect.bisect_right(ts2, t_upper))
     else:
         t_lower, t_upper = min(ts1), max(ts1)
