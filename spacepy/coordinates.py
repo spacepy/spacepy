@@ -84,7 +84,7 @@ class Coords(object):
         else:
             self.data = np.array(data)
 
-        assert dtype in typedict.keys(), 'This dtype='+dtype+' is not supported. Only '+str(typedict.keys())
+        assert dtype in list(typedict.keys()), 'This dtype='+dtype+' is not supported. Only '+str(list(typedict.keys()))
         assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
         onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
 
@@ -320,17 +320,17 @@ class Coords(object):
         # fix corresponding attributes
         if returncarsph == 'sph':
             NewCoords.units = [units[0], 'deg','deg']
-            if NewCoords.__dict__.has_key('x'): NewCoords.__delattr__('x')
-            if NewCoords.__dict__.has_key('y'): NewCoords.__delattr__('y')
-            if NewCoords.__dict__.has_key('z'): NewCoords.__delattr__('z')
+            for k in ('x', 'y', 'z'):
+                if hasattr(NewCoords, k):
+                    delattr(NewCoords, k)
             NewCoords.radi = self.data[:,0]
             NewCoords.lati = self.data[:,1]
             NewCoords.long = self.data[:,2]
         else: # 'car'
             NewCoords.units =  [units[0]]*3
-            if NewCoords.__dict__.has_key('radi'): NewCoords.__delattr__('radi')
-            if NewCoords.__dict__.has_key('lati'): NewCoords.__delattr__('lati')
-            if NewCoords.__dict__.has_key('long'): NewCoords.__delattr__('long')
+            for k in ('radi', 'lati', 'long'):
+                if hasattr(NewCoords, k):
+                    delattr(NewCoords, k)
             NewCoords.x = NewCoords.data[:,0]
             NewCoords.y = NewCoords.data[:,1]
             NewCoords.z = NewCoords.data[:,2]
