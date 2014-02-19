@@ -7,7 +7,7 @@ Authors: Steve Morley, Josef Koller
 Institution: Los Alamos National Laboratory
 Contact: smorley@lanl.gov
 
-Copyright 2010 Los Alamos National Security, LLC.
+Copyright 2010-2014 Los Alamos National Security, LLC.
 
 
 About omni
@@ -205,7 +205,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
             else:
                 #Trim to specified times
                 inds = tOverlapHalf([ticks[0].RDT, ticks[-1].RDT], spt.Ticktock(data['DateTime']).RDT)
-                for key in data.keys():
+                for key in data:
                     if len(inds) == len(data[key]):
                         omniout[key] = data[key][inds]
                     else: #is ancillary data
@@ -219,7 +219,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
     def getattrs(hf, key):
         out = {}
         if hasattr(hf[key],'attrs'):
-            for kk, value in hf[key].attrs.iteritems():
+            for kk, value in hf[key].attrs.items():
                 try:
                     out[kk] = value
                 except:
@@ -239,7 +239,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
     if dbase_options[dbase] == 1 or dbase_options[dbase] == 3:
         ldb = 'QDhourly'
         with h5.File(omnifln) as hfile:
-            QDkeylist = [kk for kk in hfile.keys() if kk not in ['Qbits', 'UTC']]
+            QDkeylist = [kk for kk in hfile if kk not in ['Qbits', 'UTC']]
             st, en = ticks[0].RDT, ticks[-1].RDT
             ##check that requested requested times are within range of data
             enval, stval = omnirange(dbase=ldb)[1], omnirange(dbase=ldb)[0]
@@ -257,7 +257,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
             for key in QDkeylist:
                 omnivals[key] = dmarray(hfile[key][sl_op]) #TODO: add attrs from h5
                 omnivals[key].attrs = getattrs(hfile, key)
-            for key in hfile['Qbits'].keys():
+            for key in hfile['Qbits']:
                 omnivals['Qbits<--{0}'.format(key)] = dmarray(hfile['/Qbits/{0}'.format(key)][sl_op])
                 omnivals['Qbits<--{0}'.format(key)].attrs = getattrs(hfile, '/Qbits/{0}'.format(key))
                 QDkeylist.append('Qbits<--{0}'.format(key))
@@ -265,7 +265,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
     if dbase_options[dbase] == 2 or dbase_options[dbase] == 3:
         ldb = 'OMNI2hourly'
         with h5.File(omni2fln) as hfile:
-            O2keylist = [kk for kk in hfile.keys() if kk not in ['Epoch','RDT']]
+            O2keylist = [kk for kk in hfile if kk not in ['Epoch','RDT']]
             st, en = ticks[0].RDT, ticks[-1].RDT
             ##check that requested requested times are within range of data
             enval, stval = omnirange(dbase=ldb)[1], omnirange(dbase=ldb)[0]
