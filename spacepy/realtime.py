@@ -32,7 +32,7 @@ import datetime
 try:
     import urllib2 as u
 except ImportError:
-    import urllib as u
+    import urllib.request as u
 
 import spacepy.datamodel as dm
 import dateutil.parser as dup
