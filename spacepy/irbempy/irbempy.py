@@ -971,7 +971,7 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
     def get_ov(fullov, stind, enind):
         '''Chop up omni data for multiprocessing'''
         out = dm.SpaceData()
-        keylist = fullov.keys()
+        keylist = list(fullov.keys())
         dum = keylist.pop(keylist.index('Qbits'))
         for key in keylist:
             out[key] = fullov[key][stind:enind]
@@ -987,11 +987,10 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
                  'Lstar': np.vstack,
                  'MLT': np.hstack,
                  'Xj': np.vstack}
-        keylist = result[0].keys()
         out = dm.SpaceData() 
         for el in result:
-            for key in keylist:
-                if key in out.keys(): #not first chunk
+            for key in result[0]:
+                if key in list(out.keys()): #not first chunk
                     out[key] = funcs[key]([out[key], el[key]])
                 else: #first chunk
                     out[key] = el[key].copy()
