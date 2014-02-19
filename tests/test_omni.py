@@ -66,7 +66,7 @@ class OmniBigTests(unittest.TestCase):
            'velo': array([ 359.        ,  363.50000004])}
 
         actual = om.get_omni(self.ticks)
-        keylist = expected.keys()
+        keylist = list(expected.keys())
         keylist.remove('ticks')
         keylist.remove('UTC')
         keylist.remove('Qbits')

@@ -30,7 +30,7 @@ class SEATestsUniform(unittest.TestCase):
 
         self.testval = 5
         self.unidata = [self.testval]*200
-        time = range(200)
+        time = list(range(200))
         self.epochs = [20,40,60,80,100,120,140,160,180]
         self.obj = seapy.Sea(self.unidata, time, self.epochs, verbose=False)
         self.obj.sea()
@@ -75,7 +75,7 @@ class SEATestsUniWithBad(unittest.TestCase):
         #insert badvals
         for ind in range(30,180,16):
             self.unidata[ind] = -99
-        time = range(200)
+        time = list(range(200))
         self.epochs = [20,40,60,80,100,120,140,160,180]
         self.obj = seapy.Sea(self.unidata, time, self.epochs, verbose=False)
         self.obj.sea(badval=-99)
@@ -118,7 +118,7 @@ class SeaClassExceptions(unittest.TestCase):
 
         self.testval = 5
         self.unidata = [self.testval]*200
-        self.time = range(200)
+        self.time = list(range(200))
         self.epochs = [20,40,60,80,100,120,140,160,180]
 
     def testRestoreEpochs(self):

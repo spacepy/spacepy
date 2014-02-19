@@ -4,12 +4,14 @@
 """
 Unit test suite for PoPPy
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
-import itertools
 import math
-import StringIO
+try:
+    import StringIO
+except ImportError:
+    import io as StringIO
 import unittest
 
 import matplotlib.mlab
@@ -279,8 +281,7 @@ class ValuePercentileTests(unittest.TestCase):
         targets = [[0, 8, 40, 80, 90],
                    [-9.1, 3.1, 5.7, 8.9],
                    ]
-        for sequence, target in \
-                itertools.izip(sequences, targets):
+        for sequence, target in zip(sequences, targets):
             for t in target:
                 result = poppy.value_percentile(sequence, t)
                 rt_target = matplotlib.mlab.prctile(sequence, result)

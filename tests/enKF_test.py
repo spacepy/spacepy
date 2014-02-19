@@ -37,9 +37,9 @@ rmod.plot(values=rmod.PSD,clims=[-10,-6],Lmax=False,Kp=False,Dst=False)
 # visualize data
 rmod.plot_obs(clims=[-10,-6],Lmax=False,Kp=False,Dst=False,title='Observations Plot')
 
-print '=================================================='
-print '                   ASSIMILATING'
-print '=================================================='
+print('==================================================')
+print('                   ASSIMILATING')
+print('==================================================')
 
 # ASSIMILATE DATA
 # there are three different inflation methodologies within this data

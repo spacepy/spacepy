@@ -4,9 +4,10 @@
 """
 Unit test suite for pycdf
 
-Copyright 2010-2012 Los Alamos National Security, LLC.
+Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
+import collections
 import ctypes
 import datetime
 import gc
@@ -281,8 +282,8 @@ class NoCDF(unittest.TestCase):
         epochs = [63397987200000.0,
                   63397987200001.0,
                   ]
-        tt2000s = [284040066184000000L,
-                   284040066185000000L,
+        tt2000s = [284040066184000000,
+                   284040066185000000,
                    ]
         for (epoch, tt2000) in zip(epochs, tt2000s):
             self.assertEqual(
@@ -295,13 +296,13 @@ class NoCDF(unittest.TestCase):
         """TT2000 to Epoch"""
         if not cdf.lib.supports_int8:
             self.assertRaises(NotImplementedError, cdf.lib.tt2000_to_epoch,
-                              284040066184000000L)
+                              284040066184000000)
             return
         epochs = [63397987200000.0,
                   63397987200001.0,
                   ]
-        tt2000s = [284040066184000000L,
-                   284040066185000000L,
+        tt2000s = [284040066184000000,
+                   284040066185000000,
                    ]
         for (epoch, tt2000) in zip(epochs, tt2000s):
             self.assertEqual(
@@ -314,8 +315,8 @@ class NoCDF(unittest.TestCase):
         epochs = [[63397987199.0, 999999999999.0],
                   [63400665600.0, 100000000.0],
                   ]
-        tt2000s = [284040065183999999L,
-                   286718466184100000L,
+        tt2000s = [284040065183999999,
+                   286718466184100000,
                    ]
         for (epoch, tt2000) in zip(epochs, tt2000s):
             self.assertEqual(tt2000, cdf.lib.epoch16_to_tt2000(*epoch))
@@ -327,8 +328,8 @@ class NoCDF(unittest.TestCase):
         epochs = [[63366364799.0, 999999999000.0],
                   [63400665600.0, 100000000.0],
                   ]
-        tt2000s = [252417665183999999L,
-                   286718466184100000L,
+        tt2000s = [252417665183999999,
+                   286718466184100000,
                    ]
         result = cdf.lib.v_tt2000_to_epoch16(numpy.array(tt2000s))
         expected = numpy.array(epochs)
@@ -744,7 +745,8 @@ class ReadCDF(CDFTests):
         #run is determined by sorting the test function names with the built-in
         #cmp() function'
         testnames = [name for name in dir(self)
-                     if name[0:4] == 'test' and callable(getattr(self,name))]
+                     if name[0:4] == 'test' and
+                     isinstance(getattr(self,name), collections.Callable)]
         self.last_test = max(testnames)
 
     def setUp(self):
@@ -1638,7 +1640,8 @@ class ReadColCDF(ColCDFTests):
         #run is determined by sorting the test function names with the built-in
         #cmp() function'
         testnames = [name for name in dir(self)
-                     if name[0:4] == 'test' and callable(getattr(self,name))]
+                     if name[0:4] == 'test' and
+                     isinstance(getattr(self,name), collections.Callable)]
         self.last_test = max(testnames)
 
     def setUp(self):
@@ -2192,8 +2195,8 @@ class ChangeCDF(ChangeCDFBase):
         if not cdf.lib.supports_int8:
             return
         self.cdf.new('epochtest', type=const.CDF_TIME_TT2000)
-        data = numpy.array([-126273537816000000L,
-                            -126187137816000000L], dtype=numpy.int64)
+        data = numpy.array([-126273537816000000,
+                            -126187137816000000], dtype=numpy.int64)
         self.cdf['epochtest'][:] = data
         numpy.testing.assert_array_equal(
             numpy.array([datetime.datetime(1996, 1, 1),
@@ -2323,7 +2326,8 @@ class ChangezVar(ChangeCDFBase):
                                     self.cdf['SectorRateScalersCounts'].copy()
         SectorRateScalersCountsCopy = numpy.delete(
             SectorRateScalersCountsCopy,
-            range(*slice(-1,-5,-1).indices(len(SectorRateScalersCountsCopy))),
+            list(range(*slice(-1,-5,-1).indices(
+                        len(SectorRateScalersCountsCopy)))),
             0)
         del self.cdf['SectorRateScalersCounts'][-1:-5:-1]
         self.assertEqual(oldlen - 4, len(self.cdf['SectorRateScalersCounts']))

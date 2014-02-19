@@ -14,7 +14,10 @@ import os
 import os.path
 import tempfile
 import unittest
-import StringIO
+try:
+    import StringIO
+except ImportError:
+    import io as StringIO
 import sys
 import warnings
 
@@ -78,7 +81,7 @@ class SpaceDataTests(unittest.TestCase):
             self.fail('KeyError not raised')
         # might be possible that list order is not preserved and this fails,
         # if so change to a bunch of self.assertTrue and in statements
-        self.assertEqual(b.keys(), ['1<--pig<--fish<--a', '4<--cat', '1<--dog', '1<--pig<--fish<--b', '5'])
+        self.assertEqual(list(b.keys()), ['1<--pig<--fish<--a', '4<--cat', '1<--dog', '1<--pig<--fish<--b', '5'])
 
     def test_unflatten_function(self):
         """Unflatten should unflatten a flattened SpaceData"""
@@ -110,8 +113,7 @@ class SpaceDataTests(unittest.TestCase):
             self.fail('KeyError not raised')
         ans =  ['4<--cat', '1<--dog', '5', '1<--pig<--fish<--a', '1<--pig<--fish<--b']
         ans.sort()
-        val = a.keys()
-        val.sort()
+        val = sorted(a.keys())
         self.assertEqual(val, ans)
 
     def test_numeric_key(self):
@@ -130,8 +132,7 @@ class SpaceDataTests(unittest.TestCase):
             self.fail('KeyError not raised')
         ans = ['4<--cat', '1<--dog', 5, '1<--pig<--fish<--a', '1<--pig<--fish<--b']
         ans.sort()
-        val = a.keys()
-        val.sort()
+        val = sorted(a.keys())
         self.assertEqual(val, ans)
 
     def test_tree(self):
@@ -327,25 +328,25 @@ class converterTests(unittest.TestCase):
         a = dm.SpaceData()
         a['data'] = dm.dmarray([1,2,3])
         b = dm.convertKeysToStr(a)
-        self.assertEqual(a.keys(), b.keys())
+        self.assertEqual(list(a.keys()), list(b.keys()))
         a = dm.SpaceData()
         a[50] = dm.dmarray([1,2,3])
         b = dm.convertKeysToStr(a)
-        self.assertEqual([str(a.keys()[0])], b.keys())
+        self.assertEqual([str(list(a.keys())[0])], list(b.keys()))
         a = {}
         a[50] = dm.dmarray([1,2,3])
         b = dm.convertKeysToStr(a)
-        self.assertEqual([str(a.keys()[0])], b.keys())
+        self.assertEqual([str(list(a.keys())[0])], list(b.keys()))
         a = dm.SpaceData()
         a['data'] = dm.SpaceData()
         a['data']['test'] = dm.dmarray([1,2,3])
         b = dm.convertKeysToStr(a)
-        self.assertEqual(a.keys(), b.keys())
+        self.assertEqual(list(a.keys()), list(b.keys()))
         a = dm.SpaceData()
         a[50] = dm.SpaceData()
         a[50][49] = dm.dmarray([1,2,3])
         b = dm.convertKeysToStr(a)
-        self.assertEqual([str(a.keys()[0])], b.keys())
+        self.assertEqual([str(list(a.keys())[0])], list(b.keys()))
 
     def test_HDF5roundtrip(self):
         """Data can go to hdf and back"""

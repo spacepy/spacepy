@@ -4,7 +4,7 @@
 """
 Test suite for toolbox
 
-Copyright 2010-2012 Los Alamos National Security, LLC.
+Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
 import time
@@ -146,8 +146,8 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = array([1.0, 9.0])
         numpy.testing.assert_equal(ans, tb.interpol([-1,12], x, y, baddata=0))
         # test wrap hour
-        y = range(24)*2
-        x = range(len(y))
+        y = list(range(24))*2
+        x = list(range(len(y)))
         real_ans = numpy.ma.masked_array([1.5, 10.5, 23.5],
             mask = False, fill_value = 1e+20)
         numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 23.5], x, y, wrap='hour'))
@@ -155,8 +155,8 @@ class SimpleFunctionTests(unittest.TestCase):
             mask = False, fill_value = 1e+20)
         numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 1.5], x, y)) # as a regression don't need wrap
         # test wrap lon
-        y = range(360)*2
-        x = range(len(y))
+        y = list(range(360))*2
+        x = list(range(len(y)))
         real_ans = numpy.ma.masked_array([1.5, 10.5, 359.5],
             mask = False, fill_value = 1e+20)
         numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap='lon'))
@@ -164,8 +164,8 @@ class SimpleFunctionTests(unittest.TestCase):
             mask = False, fill_value = 1e+20)
         numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 370.5], x, y)) # as a regression don't need wrap
         # test wrap arb
-        y = range(14)*2
-        x = range(len(y))
+        y = list(range(14))*2
+        x = list(range(len(y)))
         real_ans = [1.5, 10.5, 13.5]
         numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 13.5], x, y, wrap=14).compressed())
         real_ans = [1.5, 10.5, 1.5]
@@ -203,7 +203,7 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_binHisto(self):
         """binHisto should return know answer for known input"""
-        input = range(0, 101)
+        input = list(range(0, 101))
         real_ans = (21.47300748096567, 5.0)
         ans = tb.binHisto(input)
         self.assertEqual(ans, real_ans)
@@ -372,7 +372,7 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_hypot(self):
         """hypot should have known output"""
-        invals = [ [3, 4], range(3, 6), range(3,10), [-1,2,3] ]
+        invals = [ [3, 4], list(range(3, 6)), list(range(3,10)), [-1,2,3] ]
         ans = [ 5, 7.0710678118654755, 16.73320053068151, 3.7416573867739413 ]
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(*tst))
@@ -728,7 +728,7 @@ class TBTimeFunctionTests(unittest.TestCase):
         self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
         olap = datetime.timedelta(days=2)
         self.assertRaises(ValueError, tb.windowMean, data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
-        time = range(len(time))
+        time = list(range(len(time)))
         self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
 
 
@@ -737,7 +737,7 @@ class ArrayBinTests(unittest.TestCase):
 
     def testNormalList(self):
         """Non-pathological cases, lists as input"""
-        inputs = [[range(10), [4.2]],
+        inputs = [[list(range(10)), [4.2]],
                   [[5, 6, 7, 8, 9, 10, 11, 12], [7, 11]],
                   [[5, 6, 7, 8, 9, 10, 11, 12], [7, 11, 11.5, 13]],
                   ]

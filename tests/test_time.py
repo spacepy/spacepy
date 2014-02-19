@@ -171,11 +171,11 @@ class TimeFunctionTests(unittest.TestCase):
         dt1 = datetime.datetime(2000, 1, 1)
         dt2 = datetime.datetime(2000, 2, 1)
         numpy.random.seed(8675309)
-        ans = numpy.array([datetime.datetime(2000,01,26,04,28,10,500070),
-                           datetime.datetime(2000,01,24,06,46,39,156905),
-                           datetime.datetime(2000,01,12,01,52,50,481431),
-                           datetime.datetime(2000,01,07,06,30,26,331312),
-                           datetime.datetime(2000,01,13,16,17,48,619577)])
+        ans = numpy.array([datetime.datetime(2000, 1,26, 4,28,10,500070),
+                           datetime.datetime(2000, 1,24, 6,46,39,156905),
+                           datetime.datetime(2000, 1,12, 1,52,50,481431),
+                           datetime.datetime(2000, 1, 7, 6,30,26,331312),
+                           datetime.datetime(2000, 1,13,16,17,48,619577)])
         numpy.testing.assert_array_equal(ans, t.randomDate(dt1, dt2, 5, sorted=False))
         # check the exception
         dt11 = num2date(date2num(dt1))
@@ -225,8 +225,12 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual(t.Ticktock( '2002-02-28T23:23:09', 'ISO'), n1-de)
 
     def test_TickTock_with_xrange(self):
+        try:
+            xrange
+        except NameError:
+            return #No xrange in Python 3, so this test is pointless            
         t0 = 1663236947
-        iter_ex = range(t0, t0+5000, 500)
+        iter_ex = xrange(t0, t0+5000, 500)
         range_ex = list(range(t0, t0+5000, 500))
         numpy.testing.assert_equal(t.Ticktock(iter_ex, 'TAI').TAI, t.Ticktock(range_ex, 'TAI').TAI)
 

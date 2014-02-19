@@ -27,7 +27,7 @@ class PlotUtilFunctionTests(unittest.TestCase):
         """applySmartTimeTicks should have known behaviour"""
         plt.ion()
         ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays=1)
-        y = range(len(ticks))
+        y = list(range(len(ticks)))
         fig = plt.figure()
         ax = fig.add_subplot(111)
         line = ax.plot(ticks.UTC, y)
