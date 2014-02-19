@@ -347,7 +347,10 @@ def loadpickle(fln):
     else:
         try:
             with open(fln, 'rb') as fh:
-                return pickle.load(fh)
+                try: #Py3k
+                    return pickle.load(fh, encoding='latin1')
+                except TypeError:
+                    return pickle.load(fh)
         except pickle.UnpicklingError: #maybe it's a gzip?
             gzip = True
         else:
@@ -356,13 +359,19 @@ def loadpickle(fln):
         try:
             import zlib
             with open(fln, 'rb') as fh:
-                return pickle.loads(
-                    zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS))
+                stream = zlib.decompress(fh.read(), 16 + zlib.MAX_WBITS) 
+                try: #Py3k
+                    return pickle.loads(stream, encoding='latin1')
+                except TypeError:
+                    return pickle.loads(stream)
         except MemoryError:
             import gzip
             with open(fln) as fh:
                 gzh = gzip.GzipFile(fileobj=fh)
-                contents = pickle.load(gzh)
+                try: #Py3k
+                    contents = pickle.load(gzh, encoding='latin1')
+                except TypeError:
+                    contents = pickle.load(gzh)
                 gzh.close()
             return contents
 
