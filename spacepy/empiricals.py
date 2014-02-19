@@ -137,7 +137,10 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
                 'M2002': [0.42]*3+[0.573]*6+[0.425]*6+[0.167]*6+[0.42]*3}
         priorvals = {'CA1992': [datetime.timedelta(hours=24)]*24,
                      'M2002': [datetime.timedelta(hours=12)]*24}
-        LThr = long(LT)
+        try:
+            LThr = long(LT)
+        except NameError:
+            LThr = int(LT)
         prior = priorvals[model][LThr]
         A, B = parA[model][LThr], parB[model][LThr]
 
