@@ -232,16 +232,16 @@ class Bats2d(IdlBin):
                  'k'  : 72429626.47} # nPa/cm^3 --> K.
 
         # Calculate number density if not done already.
-        if not 'N' in self.keys():
+        if not 'N' in self:
             self.calc_ndens()
         
         # Find all number density variables.
-        for key in self.keys():
+        for key in list(self.keys()):
             # Next variable if not number density:
             if key[-1] != 'N':
                 continue
             # Next variable if no matching pressure:
-            if not key[:-1]+'p' in self.keys():
+            if not key[:-1]+'p' in self:
                 continue
             self[key[:-1]+'t'] = dmarray(
                 conv[units] * self[key[:-1]+'p']/self[key],
@@ -307,10 +307,10 @@ class Bats2d(IdlBin):
         species = []
 
         # Find all species, the variable names end in "Rho".
-        for k in self.keys():
+        for k in self:
             if (k[-3:] == 'rho')   \
                     and (k!='rho') \
-                    and (k[:-3]+'N' not in self.keys()):
+                    and (k[:-3]+'N' not in self):
                 species.append(k)
         # Individual number density
         for s in species:
@@ -340,7 +340,7 @@ class Bats2d(IdlBin):
 
         # Find all mass density variables that are species-specific.
         species = []
-        for k in self.keys():
+        for k in self:
             if ('rho' in k) and (len(k)>3):
                 species.append(k.lower())
         if not k: return # No composition?  No calculation!
@@ -415,7 +415,7 @@ class Bats2d(IdlBin):
         #M_naught * conversion from #/cm^3 to kg/m^3
         mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
 
-        for k in self.keys():
+        for k in list(self.keys()):
             if (k[-3:]) == 'rho':
                 # Alfven speed in km/s:
                 self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 / 
@@ -443,7 +443,7 @@ class Bats2d(IdlBin):
         c2 = 1.6726E-21   # AMU/cm3 -> kg/m3
         c3 = 1E9          # N/m3 -> nN/m3.
 
-        for k in self.qtree.keys():
+        for k in self.qtree:
             # Calculate only on leafs of quadtree.
             if not self.qtree[k].isLeaf: continue
             
@@ -468,7 +468,7 @@ class Bats2d(IdlBin):
         from spacepy.datamodel import dmarray
         from spacepy.pybats.batsmath import d_dx, d_dy
 
-        if 'p' not in self.keys():
+        if 'p' not in self:
             raise KeyError('Pressure not found in object!')
 
         # Create new arrays to hold pressure.
@@ -478,7 +478,7 @@ class Bats2d(IdlBin):
         for d in dims:
             self['gradP_'+d] = dmarray(np.zeros(size), {'units':'nN/m^3'})
 
-        for k in self.qtree.keys():
+        for k in self.qtree:
             # Plot only leafs of the tree.
             if not self.qtree[k].isLeaf: continue
 
@@ -513,9 +513,9 @@ class Bats2d(IdlBin):
         species = []
 
         # Find all species, the variable names end in "ux".
-        for k in self.keys():
+        for k in self:
             if (k[-2:] == 'ux')   \
-                    and (k[:-2]+'u' not in self.keys()):
+                    and (k[:-2]+'u' not in self):
                 species.append(k[:-2])
 
         units = self['ux'].attrs['units']
@@ -545,9 +545,9 @@ class Bats2d(IdlBin):
         species = []
 
         # Find all species, the variable names end in "Rho".
-        for k in self.keys():
+        for k in self:
             #and (k!='rho') \
-            if (k[-3:] == 'rho') and (k[:-3]+'Ekin' not in self.keys()):
+            if (k[-3:] == 'rho') and (k[:-3]+'Ekin' not in self):
                 species.append(k[:-3])
 
         for s in species:
@@ -652,7 +652,7 @@ class Bats2d(IdlBin):
         grid1 = np.arange(dim1range[0], dim1range[1]+cellsize, cellsize)
         grid2 = np.arange(dim2range[0], dim2range[1]+cellsize, cellsize)
 
-        for key in self.keys():
+        for key in list(self.keys()):
             # Skip grid-type entries.
             if key in (self['grid'].attrs['dims']+['grid']): continue
             self[key] = griddata(self[dims[0]], self[dims[1]],
@@ -704,7 +704,7 @@ class Bats2d(IdlBin):
         yAll = self[self['grid'].attrs['dims'][1]]
 
         # Navigate the quad tree, interpolating as we go.
-        for k in self.qtree.keys():
+        for k in self.qtree:
             # Only leafs, of course!
             if not self.qtree[k].isLeaf: continue
             # Find all points that lie in this block.
@@ -797,7 +797,7 @@ class Bats2d(IdlBin):
         ax.set_ylim([self.qtree[1].lim[2],self.qtree[1].lim[3]])
         # Plot.
 
-        for key in self.qtree.keys():
+        for key in self.qtree:
             self.qtree[key].plotbox(ax)
         self.qtree.plot_res(ax)
 
@@ -1134,7 +1134,7 @@ class Bats2d(IdlBin):
             # Indices corresponding to QTree dimensions:
             ix=self['grid'].attrs['dims'].index(dim1)
             iy=self['grid'].attrs['dims'].index(dim2)
-            for k in self.qtree.keys():
+            for k in self.qtree:
                 # Plot only leafs of the tree.
                 if not self.qtree[k].isLeaf: continue
                 leaf=self.qtree[k]
@@ -1393,7 +1393,7 @@ class Mag(PbData):
         self['totale']=np.zeros(self.attrs['nlines'])
         self['totald']=np.zeros(self.attrs['nlines'])
 
-        for key in self.keys():
+        for key in list(self.keys()):
             if key[-2:]=='Bn':
                 self['totaln']=self['totaln']+self[key]
             if key[-2:]=='Be':

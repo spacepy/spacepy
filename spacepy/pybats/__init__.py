@@ -461,7 +461,7 @@ class IdlBin(PbData):
                 gridtotal = gridtotal + offset + self[key]
                 offset = offset + np.pi/2.0
                 SortIndex = np.argsort(gridtotal)
-            for key in self.keys():
+            for key in list(self.keys()):
                 if key=='grid': continue
                 self[key] = self[key][SortIndex]
 
@@ -665,7 +665,7 @@ class LogFile(PbData):
         
         import matplotlib.pyplot as plt
         
-        if 'dst' not in self.keys():
+        if 'dst' not in self:
             return None, None
 
         if type(target) == plt.Figure:
@@ -843,10 +843,10 @@ class NgdcIndex(PbData):
         out.write(2*'#\n'+'#'+50*'-'+'\n')
         
         # Write variables.
-        for k in self.keys():
+        for k in self:
             out.write('#>\n')
             out.write('#%s: %s\n' % ('Element', k))
-            for a in self[k].attrs.keys():
+            for a in self[k].attrs:
             #for a in ['Table','Description','Measure units','Origin']:
                 out.write('#%s: %s\n' % (a, self[k].attrs[a]))
             #out.write(2*'#\n')

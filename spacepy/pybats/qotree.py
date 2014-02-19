@@ -54,7 +54,7 @@ class QTree(object):
         self[1]=[xmin,xmax,ymin,ymax]
         self.locs = lexsort( (grid[0,:], grid[1,:]) )
         self._spawn_kids(grid)
-        self.nbranch=len(self.keys())
+        self.nbranch=len(list(self.keys()))
 
     def _spawn_kids(self, grid, i=1):
         '''
@@ -131,8 +131,14 @@ class QTree(object):
     def __setitem__(self, key, value):
         self.tree[key] = Branch(value)
 
+    def __contains__(self, key):
+        return key in self.tree
+
+    def __iter__(self):
+        return iter(self.tree)
+
     def keys(self):
-        return self.tree.keys()
+        return list(self.tree.keys())
 
     def mom(self, k):
         return (k+2**self.d-2)/2**self.d
@@ -159,7 +165,7 @@ class QTree(object):
             32.   : 'black'}
             
         dx_vals = {}
-        for key in self.tree.keys():
+        for key in self.tree:
             if self[key].isLeaf:
                 if self[key].dx in res_colors:
                     dx_vals[self[key].dx] = 1.0

@@ -235,7 +235,12 @@ def dstfetch(yrstart, mostart, yrstop, mostop):
     A function to fetch Kyoto Dst directly from the Kyoto WDC website.
     Returns raw ascii lines.
     '''
-    import urllib as url
+    try:
+        import urllib.parse, urllib.request
+    except ImportError: #glue the python 3 names onto python 2
+        import urllib
+        urllib.parse = urllib
+        urllib.request = urllib
     # Set up all form info.
     forminfo = {} # Date-time stuff - requires special formatting.
     forminfo2= {} # Other form stuff.
@@ -259,7 +264,7 @@ def dstfetch(yrstart, mostart, yrstop, mostop):
 
     # Build and open URL.  Note that the forminfo must be
     # in a certain order for the request to work...
-    email = url.quote('spacepy@lanl.gov')
+    email = urllib.parse.quote('spacepy@lanl.gov')
     target = 'http://wdc.kugi.kyoto-u.ac.jp/cgi-bin/dstae-cgi?' + \
         '%s=%2i&%s=%i&%s=%i&%s=%s&%s=%2i&%s=%i&%s=%i&%s=%s&' % \
         ('SCent', forminfo['SCent'], \
@@ -277,7 +282,7 @@ def dstfetch(yrstart, mostart, yrstop, mostop):
         email
 
     # Fetch data from web.
-    f = url.urlopen(target)
+    f = urllib.request.urlopen(target)
     lines = f.readlines()
 
     return(lines)
@@ -289,7 +294,12 @@ def kpfetch(yrstart, mostart, yrstop, mostop):
     A function to fetch Kyoto Kp directly from the Kyoto WDC website.
     Returns raw ascii lines.
     '''
-    import urllib as url
+    try:
+        import urllib.parse, urllib.request
+    except ImportError: #glue the python 3 names onto python 2
+        import urllib
+        urllib.parse = urllib
+        urllib.request = urllib
     # Set up all form info.
     forminfo = {} # Date-time stuff - requires special formatting.
     forminfo2= {} # Other form stuff.
@@ -313,8 +323,8 @@ def kpfetch(yrstart, mostart, yrstop, mostop):
 
     # Build and open URL.  Note that the forminfo must be
     # in a certain order for the request to work...
-    email = url.quote('dantwelling@lanl.gov')
-    data=url.urlencode(forminfo)
+    email = urllib.parse.quote('dantwelling@lanl.gov')
+    data=urllib.parse.urlencode(forminfo)
     target='http://wdc.kugi.kyoto-u.ac.jp/cgi-bin/kp-cgi'#
     data='%s=%2i&%s=%i&%s=%i&%s=%s&%s=%2i&%s=%i&%s=%i&%s=%s&%s=%s' % \
         ('SCent', forminfo['SCent'], \
@@ -328,7 +338,7 @@ def kpfetch(yrstart, mostart, yrstop, mostop):
              'Email' ,email)
 
     # Fetch data from web.
-    f = url.urlopen(target, data) 
+    f = urllib.request.urlopen(target, data) 
     lines = f.readlines()
     return(lines)
 

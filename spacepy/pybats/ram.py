@@ -583,7 +583,7 @@ class RamSat(object):
         Load the NCDF file.  Should only be called by __init__().
         '''
         self.f = netcdf.netcdf_file(self.filename, mode='r', mmap=False)
-        self.namevars = self.f.variables.keys()
+        self.namevars = list(self.f.variables.keys())
         self.attrs = {}
         #split off the netCDF attributes from the Python attributes
         for k in dir(self.f):
@@ -1091,7 +1091,7 @@ class BoundaryGroup(PbData):
                               attrs={'units':'\%'})
 
         if rotate:
-            for val in self.keys():
+            for val in list(self.keys()):
                 if val == 'time': continue
                 temparray = self[val].copy()
                 temparray[0:12,  :] = self[val][13:25, :]
@@ -1099,7 +1099,7 @@ class BoundaryGroup(PbData):
                 self[val][:,:]   = temparray[:,:]
 
         # Put pressure/temp in keV.
-        for val in self.keys():
+        for val in list(self.keys()):
             if (val[0] == 'p') and (self[val].attrs['units']=='eV'):
                 self[val] /= 1000.0
                 self[val].attrs['units'] = 'keV'
