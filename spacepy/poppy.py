@@ -206,6 +206,7 @@ class PPro(object):
         p1 = sorted(self.process1)
 
         if lib.have_libspacepy == False:
+            winhalf = self.winhalf
             lags = self.lags
             starts = [t - self.winhalf for t in p1]
             stops = [t + self.winhalf for t in p1]
