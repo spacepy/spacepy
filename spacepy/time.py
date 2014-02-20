@@ -94,6 +94,7 @@ import spacepy.datamodel
 
 import datetime, collections
 import dateutil.parser as dup
+import os.path
 import re
 import warnings
 
@@ -1396,9 +1397,9 @@ class Ticktock(collections.MutableSequence):
 
         except:  # then we are calling this routine the 1st time
            # load current file
-           fname = DOT_FLN+'/data/tai-utc.dat'
-           fh = open(fname)
-           text = fh.readlines()
+           fname = os.path.join(DOT_FLN, 'data', 'tai-utc.dat')
+           with open(fname) as fh:
+               text = fh.readlines()
 
            secs = np.zeros(len(text))
            year = np.zeros(len(text))
