@@ -19,6 +19,10 @@ Copyright 2010-2014 Los Alamos National Security, LLC.
 import ctypes
 import os.path
 import sys
+try:
+    import sysconfig
+except ImportError:
+    sysconfig = None
 
 import numpy
 
@@ -95,18 +99,28 @@ def load_lib():
     """
     libdir = os.path.dirname(os.path.abspath(__file__))
     if sys.platform == 'win32':
-        libpath = os.path.join(libdir, 'spacepy.dll')
+        libnames = ['spacepy.dll']
     elif sys.platform == 'darwin':
-        for n in ('libspacepy.dylib', 'libspacepy.so',
-                  'spacepy.dylib', 'libspacepy.so'):
-            libpath = os.path.join(libdir, n)
-            if os.path.exists(libpath):
-                break
+        libnames = ['libspacepy.dylib', 'libspacepy.so',
+                  'spacepy.dylib', 'spacepy.so']
     else:
-        libpath = os.path.join(libdir, 'libspacepy.so')
-    if not os.path.exists(libpath):
+        libnames = ['libspacepy.so']
+    if sysconfig:
+        ext = sysconfig.get_config_var('SO')
+        if ext:
+            libnames.append('libspacepy' + ext)
+            libnames.append('spacepy' + ext)
+
+    libpath = None
+    for n in libnames:
+        libpath = os.path.join(libdir, n)
+        if os.path.exists(libpath):
+            break
+
+    if libpath and os.path.exists(libpath):
+        return ctypes.CDLL(libpath)
+    else:
         return None
-    return ctypes.CDLL(libpath)
 
 
 def load_call_dict(call_dict, lib):
