@@ -958,7 +958,7 @@ def toHDF5(fname, SDobject, **kwargs):
                 dumval, dumkey = copy.copy(value), copy.copy(key)
                 if type(value) in allowed_attrs:
                     #test for datetimes in iterables
-                    if hasattr(value, '__iter__'):
+                    if hasattr(value, '__iter__') and not isinstance(value, str_classes):
                         dumval = [b.isoformat() if isinstance(b, datetime.datetime) else b for b in value]
                     truth = False
                     try:
@@ -997,7 +997,7 @@ def toHDF5(fname, SDobject, **kwargs):
         import h5py as hdf
     except ImportError:
         raise ImportError('h5py is required to use HDF5 files')
-
+    
     try:
         assert isinstance(SDobject, SpaceData)
     except AssertionError:
