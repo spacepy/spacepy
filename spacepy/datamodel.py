@@ -1271,19 +1271,23 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
     except NameError: # for Py3
         if isinstance(fname, str):
             fname=[fname]
-    if not str is bytes and isinstance(comment, str):
-        comment = comment.encode('latin1')
     if not mdata:
         mdata = readJSONMetadata(fname[0])
     mdata_copy = dmcopy(mdata)
     def innerloop(fh, mdata, mdata_copy):
         line = fh.readline()
-        while (line and line[0:1]==comment):
+        if not str is bytes:
+            line = line.decode('latin1')
+        while (line and line[0]==comment):
             line = fh.readline()
+            if not str is bytes:
+                line = line.decode('latin1')
         fh.seek(-len(line), os.SEEK_CUR) # fixes the missing first data bug
         alldata = fh.readlines()
         if not alldata:
             return mdata
+        if not str is bytes:
+            alldata = [d.decode('latin1') for d in alldata]
         ncols = len(alldata[0].rstrip().split())
         # fixes None in the data from empty lines at the end
         for row in range(len(alldata)): # reverse order
@@ -1339,9 +1343,6 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         else:
             conversions = {'DateTime': lambda x: dup.parse(x, ignoretz=True),
                            'ExtModel': lambda x: str(x)}
-            if not bytes is str:
-                conversions['DateTime'] = lambda x: dup.parse(
-                    x.decode('latin1'), ignoretz=True)
         for conkey in conversions:
             try:
                 name = keys.pop(keys.index(conkey)) #remove from keylist
