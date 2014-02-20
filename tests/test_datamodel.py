@@ -511,7 +511,10 @@ class JSONTests(unittest.TestCase):
         if sys.platform == 'win32':
             expected = 12916 #different line-endings
         else:
-            expected = 12834
+            if sys.version_info[0] < 3:
+                expected = 12834
+            else:
+                expected = 12810 #no u on the unicode strings
         self.assertEqual(expected, os.path.getsize(t_file.name)) # not the best test but I am lazy
         os.remove(t_file.name)
 
