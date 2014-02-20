@@ -92,6 +92,10 @@ class SpaceDataTests(unittest.TestCase):
         a[9] = dm.dmarray([1,2,3])
         b = dm.flatten(a)
         c = dm.unflatten(b)
+        self.assertTrue(9 in a.keys())
+        self.assertTrue(9 in c.keys())
+        del a[9]
+        del c[9]
         self.assertEqual(sorted(a.keys()), sorted(c.keys()))
         self.assertEqual(sorted(a['1'].keys()), sorted(c['1'].keys()))
         self.assertEqual(sorted(a['1']['pig'].keys()), sorted(c['1']['pig'].keys()))
@@ -130,8 +134,10 @@ class SpaceDataTests(unittest.TestCase):
             pass
         else:
             self.fail('KeyError not raised')
-        ans = ['4<--cat', '1<--dog', 5, '1<--pig<--fish<--a', '1<--pig<--fish<--b']
+        ans = ['4<--cat', '1<--dog', '1<--pig<--fish<--a', '1<--pig<--fish<--b']
         ans.sort()
+        self.assertTrue(5 in a.keys())
+        del a[5]
         val = sorted(a.keys())
         self.assertEqual(val, ans)
 
@@ -511,7 +517,7 @@ class JSONTests(unittest.TestCase):
         if sys.platform == 'win32':
             expected = 12916 #different line-endings
         else:
-            if sys.version_info[0] < 3:
+            if str is bytes:
                 expected = 12834
             else:
                 expected = 12810 #no u on the unicode strings
