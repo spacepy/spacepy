@@ -1339,6 +1339,9 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         else:
             conversions = {'DateTime': lambda x: dup.parse(x, ignoretz=True),
                            'ExtModel': lambda x: str(x)}
+            if not bytes is str:
+                conversions['DateTime'] = lambda x: dup.parse(
+                    x.decode('latin1'), ignoretz=True)
         for conkey in conversions:
             try:
                 name = keys.pop(keys.index(conkey)) #remove from keylist
