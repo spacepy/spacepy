@@ -19,7 +19,7 @@ import numpy as np
 from spacepy import help
 import spacepy.coordinates as spc
 import spacepy.datamodel as dm
-import irbempylib as oplib
+from . import irbempylib as oplib
 import spacepy.toolbox as tb
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
