@@ -23,7 +23,16 @@ import distutils.dep_util
 from distutils.dist import Distribution as _Distribution
 import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
-
+try:
+    import importlib.machinery #Py3.3 and later
+except ImportError:
+    import imp #pre-3.3
+else:
+    #importlib.machinery exists in 3.2, but doesn't have this
+    if hasattr(importlib.machinery, 'ExtensionFileLoader'):
+        imp = None
+    else:
+        import imp #fall back to old-style
 import numpy
 
 
@@ -253,23 +262,68 @@ class build(_build):
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')
-        if sys.platform == 'win32':
-            libfile = 'irbempylib*.pyd'
-        else:
-            libfile = 'irbempylib*.so'
-        ext = distutils.sysconfig.get_config_var('EXT_SUFFIX')
-        if ext is None:
-            ext = distutils.sysconfig.get_config_var('SO')
-        libfile = 'irbempylib' + ext
+        #Possible names of the output library. Unfortunately this seems
+        #to depend on Python version, f2py version, and phase of the moon
+        libfiles = ['irbempylib' + ext for ext in
+                    (distutils.sysconfig.get_config_var('SO'),
+                     distutils.sysconfig.get_config_var('EXT_SUFFIX'))
+                    if ext]
+        if len(libfiles) < 2: #did we get just the ABI-versioned one?
+            abi = distutils.sysconfig.get_config_var('SOABI')
+            if abi and libfiles[0].startswith('irbempylib.' + abi):
+                libfiles.append('irbempylib' +
+                                libfiles[0][(len('irbempylib.') + len(abi)):])
         #Delete any irbem extension modules from other versions
         for f in glob.glob(os.path.join(outdir, 'irbempylib*')):
-            if os.path.basename(f) != libfile:
+            if not os.path.basename(f) in libfiles:
                 os.remove(f)
-        sources = glob.glob(os.path.join(srcdir, '*.f')) + \
-                  glob.glob(os.path.join(srcdir, '*.inc'))
-        sofile = os.path.join(outdir, libfile)
-        if not distutils.dep_util.newer_group(sources, sofile): #up to date
-            return
+        #Does a matching one exist?
+        existing_libfiles = [f for f in libfiles
+                             if os.path.exists(os.path.join(outdir, f))]
+        #Can we import it?
+        importable = []
+        for f in existing_libfiles:
+            fspec = os.path.join(outdir, f)
+            if imp: #old-style imports
+                suffixes = imp.get_suffixes()
+                desc = next(
+                    (s for s in imp.get_suffixes() if f.endswith(s[0])), None)
+                if not desc: #apparently not loadable
+                    os.remove(fspec)
+                    continue
+                fp = open(fspec, 'rb')
+                try:
+                    imp.load_module('irbempylib', fp, fspec, desc)
+                except ImportError:
+                    fp.close()
+                    os.remove(fspec)
+                else:
+                    fp.close()
+                    importable.append(f)
+            else: #Py3.3 and later imports, not tested
+                loader = importlib.machinery.ExtensionFileLoader(
+                    'irbempylib', fspec)
+                try:
+                    loader.load_module('irbempylib')
+                except ImportError:
+                    os.remove(fspec)
+                else:
+                    importable.append(f)
+        existing_libfiles = importable
+        #if MORE THAN ONE matching output library file, delete all;
+        #no way of knowing which is the correct one or if it's up to date
+        if len(existing_libfiles) > 1:
+            for f in existing_libfiles:
+                os.remove(os.path.join(outdir, f))
+            existing_libfiles = []
+        #If there's still one left, check up to date
+        if existing_libfiles:
+            sources = glob.glob(os.path.join(srcdir, '*.f')) + \
+                      glob.glob(os.path.join(srcdir, '*.inc'))
+            if not distutils.dep_util.newer_group(
+                sources, os.path.join(outdir, existing_libfiles[0])):
+                return
+
         if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
             self.distribution.add_warning(
                 '%s not supported at this time. ' % sys.platform +
@@ -371,7 +425,7 @@ class build(_build):
                 os.system('ranlib libBL2.a')
         except:
             self.distribution.add_warning(
-                'irbemlib compile failed. '
+                'irbemlib linking failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
             os.chdir(olddir)
             return
@@ -382,11 +436,27 @@ class build(_build):
                 '{1}'.format(
                     self.f2py, f2py_flags),
                 shell=True, env=f2py_environment(self.fcompiler))
-            shutil.move(libfile, sofile)
         except:
             self.distribution.add_warning(
-                'irbemlib compile failed. '
+                'irbemlib module failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
+        #All matching outputs
+        created_libfiles = [f for f in libfiles if os.path.exists(f)]
+        if len(created_libfiles) == 0: #no matches
+            self.distribution.add_warning(
+                'irbemlib build produced no recognizable module. '
+                'Try a different Fortran compiler? (--fcompiler)')
+        elif len(created_libfiles) == 1: #only one, no ambiguity
+            shutil.move(created_libfiles[0], outdir)
+        elif len(created_libfiles) == 2: #two, so one is old and one new
+            for f in created_libfiles:
+                if f == existing_libfiles[0]: #delete the old one
+                    os.remove(f)
+                else: #and move the new one to its place in build
+                    shutil.move(f, outdir)
+        else:
+             self.distribution.add_warning(
+                'multiple irbemlib outputs. This should not happen!')
         os.chdir(olddir)
         return
 
