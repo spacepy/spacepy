@@ -505,6 +505,8 @@ class PPro(object):
                 maxseed = sys.maxsize
                 minseed = 0
             lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
+            newtype = np.dtype('u' + str(lag_seeds.dtype))
+            lag_seeds = np.require(lag_seeds, dtype=newtype)
         if lib.have_libspacepy == False:
             for i in range(len(lags)):
                 if seed != None:
