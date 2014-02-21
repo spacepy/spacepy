@@ -65,7 +65,7 @@ import warnings
 import datetime as dt
 
 import numpy as np
-from matplotlib.mlab import prctile
+import matplotlib.mlab
 
 from spacepy import help
 #Try to pull in the C version. Assumption is that if you import this module,
@@ -192,7 +192,6 @@ class PPro(object):
 
         import matplotlib as mpl
         import matplotlib.dates as mpd
-        from matplotlib import mlab
         if lib.have_libspacepy == False:
             dtype = 'int64'
         else:
@@ -217,7 +216,7 @@ class PPro(object):
                 first_idx = [bisect.bisect_left(p2, starts[nss] + self.lags[ilag])
                              for nss in nss_list]
                 self.n_assoc[ilag, :] = [last_idx[i] - first_idx[i] for i in nss_list]
-            pul = mlab.prctile_rank(lags, p=(20,80))
+            pul = matplotlib.mlab.prctile_rank(lags, p=(20,80))
         else:
             def fracday(dd):
                 '''turn a timedelta into a fractional day'''
@@ -239,11 +238,12 @@ class PPro(object):
                 winhalf = self.winhalf
             p2 = (ctypes.c_double * len(p2))(*p2)
             p1 = (ctypes.c_double * len(p1))(*p1)
-            lags = (ctypes.c_double * len(lags))(*lags)
+            #prctile_rank dies on some versions if this is a ctypes array
+            lags = np.require(lags, dtype=ctypes.c_double, requirements='C')
             n_assoc = self.n_assoc.ctypes.data_as(lib.lptr)
-            lib.assoc(p2, p1, lags, n_assoc,
+            lib.assoc(p2, p1, lags.ctypes.data_as(lib.dptr), n_assoc,
                       winhalf, len(p2), len(p1), len(self.lags))
-            pul = mlab.prctile_rank(lags, p=(20,80))
+            pul = matplotlib.mlab.prctile_rank(lags, p=(20,80))
         self.assoc_total = np.sum(self.n_assoc, axis=1)
         valsL = self.assoc_total[pul==0]
         valsR = self.assoc_total[pul==2]
@@ -536,7 +536,7 @@ class PPro(object):
             tb.thread_job(len(lags), 0, thread_targ)
             for i in range(len(lags)):
                 assoc_totals[i, :].sort()
-                ci_low[i], ci_high[i] = prctile(
+                ci_low[i], ci_high[i] = matplotlib.mlab.prctile(
                     assoc_totals[i, :], p=(perc_low,perc_high))
                 conf_above[i] = 100.0 - value_percentile(assoc_totals[i, :],
                                                          self.asympt_assoc)
@@ -753,7 +753,8 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
         surr_quan = sorted(
             (func(surr_ser[i * sample_size:(i  + 1) * sample_size])
              for i in range(n)))
-    pul = prctile(surr_quan, p=(perc_low,perc_high)) #get confidence interval
+    #get confidence interval
+    pul = matplotlib.mlab.prctile(surr_quan, p=(perc_low,perc_high))
     if target == None:
         return pul[0], pul[1]
     else:
