@@ -448,7 +448,8 @@ class build(_build):
                 'Try a different Fortran compiler? (--fcompiler)')
         elif len(created_libfiles) == 1: #only one, no ambiguity
             shutil.move(created_libfiles[0], outdir)
-        elif len(created_libfiles) == 2: #two, so one is old and one new
+        elif len(created_libfiles) == 2 and \
+                len(existing_libfiles) == 1: #two, so one is old and one new
             for f in created_libfiles:
                 if f == existing_libfiles[0]: #delete the old one
                     os.remove(f)
@@ -456,7 +457,8 @@ class build(_build):
                     shutil.move(f, outdir)
         else:
              self.distribution.add_warning(
-                'multiple irbemlib outputs. This should not happen!')
+                'irbem build failed: multiple build outputs ({0}).'.format(
+                     ', '.join(created_libfiles)))
         os.chdir(olddir)
         return
 
