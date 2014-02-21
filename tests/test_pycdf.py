@@ -1621,7 +1621,7 @@ class ReadCDF(CDFTests):
         """Read a string, raw mode"""
         #Verify that we're getting bytes, not unicode
         self.assertEqual('S',
-                         self.cdf['RateScalerNames'][...].dtype.char)
+                         self.cdf.raw_var('RateScalerNames')[...].dtype.char)
 
     def testReadCharConverted(self):
         """Read a string, not raw mode"""
