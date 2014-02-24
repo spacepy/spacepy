@@ -205,7 +205,24 @@ def _read_config(rcfile):
     caster = {'enable_deprecation_warning': str2bool,
               'ncpus': int,
               }
-    cp = ConfigParser.SafeConfigParser(defaults)
+    #SafeConfigParser deprecated in 3.2. And this is hideous, but...
+    if hasattr(ConfigParser, 'SafeConfigParser'):
+        cp_class = ConfigParser.SafeConfigParser
+        with warnings.catch_warnings(record=True) as w:
+            try: #need this for -W error
+                ConfigParser.SafeConfigParser()
+            except DeprecationWarning:
+                cp_class = ConfigParser.ConfigParser
+        for this_w in w:
+            if isinstance(this_w.message, DeprecationWarning):
+                cp_class = ConfigParser.ConfigParser
+            else:
+                warnings.showwarning(this_w.message, this_w.category,
+                                     this_w.filename, this_w.lineno,
+                                     this_w.file, this_w.line)
+    else:
+        cp_class = ConfigParser.ConfigParser
+    cp = cp_class(defaults)
     try:
         successful = cp.read([rcfile])
     except ConfigParser.Error:
@@ -213,7 +230,7 @@ def _read_config(rcfile):
     if successful: #New file structure
         config = dict(cp.items('spacepy'))
     else: #old file structure, wipe it out
-        cp = ConfigParser.SafeConfigParser()
+        cp = cp_class()
         cp.add_section('spacepy')
         with open(rcfile, 'wb') as cf:
             cp.write(cf)
