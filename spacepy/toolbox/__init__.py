@@ -2026,7 +2026,7 @@ def eventTimer(Event, Time1):
     ('4.40', 'Test event finished')
     """
     Time2 = time.time()
-    print("%4.2f" % (Time2 - Time1), Event)
+    print(("%4.2f" % (Time2 - Time1), Event))
     return Time2
 
 
