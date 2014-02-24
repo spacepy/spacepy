@@ -2161,13 +2161,13 @@ def do_with_timeout(timeout, target, *args, **kwargs):
     class ReturningThread(threading.Thread):
         def __init__(self, group=None, target=None, name=None,
                      args=(), kwargs={}):
+            #we're handling target, args, kwargs
+            super(ReturningThread, self).__init__(group, name=name)
             self._target = target
             self._args = args
             self._kwargs = kwargs
             self._retval = None
             self._exception = None
-            #we're handling target, args, kwargs
-            super(ReturningThread, self).__init__(group, name=name)
             
         def run(self):
             try:
