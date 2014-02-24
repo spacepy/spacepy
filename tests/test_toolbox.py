@@ -269,10 +269,19 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_linspace_bug(self):
         """This catches a linspace datetime bug with 0-d arrays (regression)"""
-        ## remove this as the bug is fixed
-        t1 = datetime.datetime(2000, 1, 1)
-        t2 = datetime.datetime(2000, 1, 10)
-        self.assertRaises(TypeError, tb.linspace, numpy.array(t1), numpy.array(t2), 5)
+        try:
+            from matplotlib.dates import date2num
+        except ImportError:  # just pass if matplotlib is not installed
+            return
+        t1 = numpy.array(datetime.datetime(2000, 1, 1))
+        t2 = numpy.array(datetime.datetime(2000, 1, 10))
+        real_ans = [datetime.datetime(2000, 1, 1, 0, 0),
+             datetime.datetime(2000, 1, 3, 6, 0),
+             datetime.datetime(2000, 1, 5, 12, 0),
+             datetime.datetime(2000, 1, 7, 18, 0),
+             datetime.datetime(2000, 1, 10, 0, 0)]
+        ans = tb.linspace(t1, t2, 5)
+        numpy.testing.assert_almost_equal(date2num(real_ans), date2num(ans) , 4)
 
     def test_pmm(self):
         """pmm should give known output for known input"""
