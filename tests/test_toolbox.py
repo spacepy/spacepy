@@ -528,8 +528,8 @@ class TBTimeFunctionTests(unittest.TestCase):
                     [1, 2, 6, 7, 10, 12, 13, 14, 15, 17, 18,
                      19, 24, 27, 28, 30, 32, 35, 37, 38])
         random.seed(0)
-        random.shuffle(self.dt_a)
-        random.shuffle(self.dt_b)
+        random.shuffle(self.dt_a, lambda:round(random.random(), 9))
+        random.shuffle(self.dt_b, lambda:round(random.random(), 9))
         ans = tb.tOverlap(self.dt_a, self.dt_b)
         numpy.testing.assert_array_equal(real_ans, ans)
 
@@ -545,8 +545,9 @@ class TBTimeFunctionTests(unittest.TestCase):
         real_ans = [1, 2, 6, 7, 10, 12, 13, 14, 15, 17, 18,
                      19, 24, 27, 28, 30, 32, 35, 37, 38]
         random.seed(0)
-        random.shuffle(self.dt_a)
-        random.shuffle(self.dt_b)
+        #Cut down the python3 rng to the same precision as python2
+        random.shuffle(self.dt_a, lambda:round(random.random(), 9))
+        random.shuffle(self.dt_b, lambda:round(random.random(), 9))
         ans = tb.tOverlapHalf(self.dt_a, self.dt_b)
         self.assertEqual(real_ans, ans)
 
