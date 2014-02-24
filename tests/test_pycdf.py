@@ -2013,14 +2013,19 @@ class ChangeCDF(ChangeCDFBase):
         'about every portion of the anatomy.'
         if not str is bytes:
             msg = msg.encode('ascii')
-        with warnings.catch_warnings(record=True) as w:
-            self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_, msg,
-                           cdf.const.GLOBAL_SCOPE, ctypes.byref(attrnum))
-        self.assertEqual(len(w), 1)
-        for curr_warn in w:
-            self.assertTrue(isinstance(curr_warn.message, cdf.CDFWarning))
+        try:
+            with warnings.catch_warnings(record=True) as w:
+                self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_, msg,
+                               cdf.const.GLOBAL_SCOPE, ctypes.byref(attrnum))
+        except cdf.CDFWarning as e:
             self.assertEqual('ATTR_NAME_TRUNC: Attribute name truncated.',
-                             str(curr_warn.message))
+                             str(e))
+        else:
+            self.assertEqual(len(w), 1)
+            for curr_warn in w:
+                self.assertTrue(isinstance(curr_warn.message, cdf.CDFWarning))
+                self.assertEqual('ATTR_NAME_TRUNC: Attribute name truncated.',
+                                 str(curr_warn.message))
 
     def testAssignEmptyList(self):
         """Assign an empty list to a variable"""
