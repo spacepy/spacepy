@@ -2004,20 +2004,23 @@ class ChangeCDF(ChangeCDFBase):
     def testWarnings(self):
         """Bizarre way to force a warning"""
         attrnum = ctypes.c_long(0)
+        msg = 'this is a very long string intended to get up to ' \
+        '257 characters or so because the maximum length ' \
+        'of an attribute name is 256 characters and ' \
+        'attribute name truncated is just about the ONLY ' \
+        'warning I can figure out how to raise in the CDF ' \
+        'library and this is really a serious pain in just ' \
+        'about every portion of the anatomy.'
+        if not str is bytes:
+            msg = msg.encode('ascii')
         with warnings.catch_warnings(record=True) as w:
-            self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_,
-                           'this is a very long string intended to get up to '
-                           '257 characters or so because the maximum length '
-                           'of an attribute name is 256 characters and '
-                           'attribute name truncated is just about the ONLY '
-                           'warning I can figure out how to raise in the CDF '
-                           'library and this is really a serious pain in just '
-                           'about every portion of the anatomy.',
+            self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_, msg,
                            cdf.const.GLOBAL_SCOPE, ctypes.byref(attrnum))
-            for curr_warn in w:
-                self.assertTrue(isinstance(curr_warn.message, cdf.CDFWarning))
-                self.assertEqual('ATTR_NAME_TRUNC: Attribute name truncated.',
-                                 str(curr_warn.message))
+        self.assertEqual(len(w), 1)
+        for curr_warn in w:
+            self.assertTrue(isinstance(curr_warn.message, cdf.CDFWarning))
+            self.assertEqual('ATTR_NAME_TRUNC: Attribute name truncated.',
+                             str(curr_warn.message))
 
     def testAssignEmptyList(self):
         """Assign an empty list to a variable"""
