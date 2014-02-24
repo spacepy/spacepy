@@ -14,12 +14,12 @@ not install without them.
 
 Python 2.6+
 -----------
-`Python <http://www.python.org/>`_ is the core
-language for SpacePy.  Python 2, version 2.6 or later is
-required. Much of SpacePy works under Python 3, but it will not be
-fully supported until all our dependencies work on Python 3. *Python 3
-is not simply a "newer" Python 2; there are substantial differences in
-the language*. See `Should I use Python 2 or Python 3?
+
+`Python <http://www.python.org/>`_ is the core language for SpacePy.
+Python 2.6 or later is required. SpacePy works under Python 3, but
+Python 2 is still recommended for most users.  *Python 3 is not simply
+a "newer" Python 2; there are substantial differences in the
+language*. See `Should I use Python 2 or Python 3?
 <http://wiki.python.org/moin/Python2orPython3>`_.
 
 NumPy 1.4+
@@ -76,7 +76,12 @@ modules may have limited functionality:
 ffnet
 -----
 `ffnet <http://ffnet.sourceforge.net/>`_ is a neural network package,
-required for :mod:`~spacepy.LANLstar`.
+required for :mod:`~spacepy.LANLstar`. The latest release of ffnet
+at this writing, 0.7.1, does not support Python 3. We have submitted
+patches for Python 3 support and they have been integrated into SVN
+as of r364, so they should be in the next version. In the meantime,
+users who require Python 3 support will need to install ffnet from
+a `subversion checkout <http://sourceforge.net/p/ffnet/code/HEAD/tree/>`_.
 
 networkx
 --------
