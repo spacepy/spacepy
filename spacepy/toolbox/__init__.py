@@ -1339,9 +1339,8 @@ def arraybin(array, bins):
     >>> tb.arraybin(range(10), [4.2])
     [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
     """
-    value = 0
-    bin_it = (i for i in range(len(array)) if array[i] >= value)
-    splits = [next(bin_it, len(array)) for value in bins]
+    bin_it = lambda value: (i for i in range(len(array)) if array[i] >= value)
+    splits = [next(bin_it(value), len(array)) for value in bins]
     return [list(range(start_idx, stop_idx)) for (start_idx, stop_idx)
             in zip([0] + splits, splits + [len(array)])]
 
