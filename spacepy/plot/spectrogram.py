@@ -269,7 +269,9 @@ class spectrogram(dm.SpaceData):
                                 range = _range,
                                 )
         # this is here for in the future when we take a list a SpaceData objects
-        np.add(overall_count, H.transpose(), overall_count)
+        np.add(overall_count,
+               np.require(H.transpose(), dtype=overall_count.dtype),
+               overall_count)
 
         # get the sum in each bin
         H, xedges, yedges = np.histogram2d(plt_data[0, zind],
