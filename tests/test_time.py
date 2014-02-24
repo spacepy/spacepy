@@ -73,11 +73,12 @@ class TimeFunctionTests(unittest.TestCase):
         """tickrange should return a known value for known input"""
         inval = ( ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 1),
                   ('2002-02-01T00:00:00', '2002-02-04T00:00:00', 0.5) )
+        strarray_dtype = numpy.array('x' * 19).dtype
         real_ans = ( numpy.array(['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
-                      '2002-02-04T00:00:00'], dtype='|S19'),
+                      '2002-02-04T00:00:00'], dtype=strarray_dtype),
                      numpy.array(['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
                       '2002-02-02T12:00:00', '2002-02-03T00:00:00', '2002-02-03T12:00:00',
-                      '2002-02-04T00:00:00'], dtype='|S19'))
+                      '2002-02-04T00:00:00'], dtype=strarray_dtype))
         for i, val in enumerate(inval):
             ans = t.tickrange(*val)
             numpy.testing.assert_equal(real_ans[i], ans.ISO)
@@ -86,11 +87,12 @@ class TimeFunctionTests(unittest.TestCase):
         """tickrange should return a known value for known input (timedelta)"""
         inval = ( ('2002-02-01T00:00:00', '2002-02-04T00:00:00', datetime.timedelta(days=1)),
                   ('2002-02-01T00:00:00', '2002-02-04T00:00:00', datetime.timedelta(hours=12)) )
+        strarray_dtype = numpy.array('x' * 19).dtype
         real_ans = ( numpy.array(['2002-02-01T00:00:00', '2002-02-02T00:00:00', '2002-02-03T00:00:00',
-                      '2002-02-04T00:00:00'], dtype='|S19'),
+                      '2002-02-04T00:00:00'], dtype=strarray_dtype),
                      numpy.array(['2002-02-01T00:00:00', '2002-02-01T12:00:00', '2002-02-02T00:00:00',
                       '2002-02-02T12:00:00', '2002-02-03T00:00:00', '2002-02-03T12:00:00',
-                      '2002-02-04T00:00:00'], dtype='|S19'))
+                      '2002-02-04T00:00:00'], dtype=strarray_dtype))
         for i, val in enumerate(inval):
             ans = t.tickrange(*val)
             numpy.testing.assert_equal(real_ans[i], ans.ISO)
