@@ -81,7 +81,8 @@ class SpaceDataTests(unittest.TestCase):
             self.fail('KeyError not raised')
         # might be possible that list order is not preserved and this fails,
         # if so change to a bunch of self.assertTrue and in statements
-        self.assertEqual(list(b.keys()), ['1<--pig<--fish<--a', '4<--cat', '1<--dog', '1<--pig<--fish<--b', '5'])
+        self.assertEqual(sorted(b.keys()),
+                         sorted(['1<--pig<--fish<--a', '4<--cat', '1<--dog', '1<--pig<--fish<--b', '5']))
 
     def test_unflatten_function(self):
         """Unflatten should unflatten a flattened SpaceData"""
