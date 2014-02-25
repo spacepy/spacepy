@@ -233,7 +233,7 @@ def _read_config(rcfile):
     else: #old file structure, wipe it out
         cp = cp_class()
         cp.add_section('spacepy')
-        with open(rcfile, 'wb') as cf:
+        with open(rcfile, 'w') as cf:
             cp.write(cf)
         for k in defaults:
             if not k in config:
