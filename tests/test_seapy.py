@@ -57,6 +57,8 @@ class SEATestsUniform(unittest.TestCase):
         window = dt.timedelta(minutes=3)
         delta = dt.timedelta(minutes=1)
         with warnings.catch_warnings(record=True) as w:
+            warnings.filterwarnings('always', 'Window size changed .*',
+                                    UserWarning, '^spacepy\\.seapy$')
             compobj = seapy.Sea(self.unidata, time, epochs, \
                                 window=window, delta=delta,verbose=False)
         compobj.sea()
@@ -102,6 +104,8 @@ class SEATestsUniWithBad(unittest.TestCase):
         window = dt.timedelta(minutes=3)
         delta = dt.timedelta(minutes=1)
         with warnings.catch_warnings(record=True) as w:
+            warnings.filterwarnings('always', 'Window size changed .*',
+                                    UserWarning, '^spacepy\\.seapy$')
             compobj = seapy.Sea(self.unidata, time, epochs, \
                                 window=window, delta=delta,verbose=False)
         compobj.sea(badval=-99)

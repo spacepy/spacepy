@@ -110,13 +110,16 @@ class TimeFunctionTests(unittest.TestCase):
                      [0, 0, 30],
                      [0, 59, 59] )
         with warnings.catch_warnings(record=True) as w:
+            warnings.filterwarnings(
+                'always', 'Number of seconds > seconds in day.*',
+                UserWarning, '^spacepy\\.time')
             for i, val in enumerate(inval):
                 ans = t.sec2hms(*val)
                 self.assertEqual(real_ans[i], ans)
-            self.assertEqual(1, len(w))
-            self.assertEqual(
-                'Number of seconds > seconds in day. Try days keyword.',
-                str(w[0].message))
+        self.assertEqual(1, len(w))
+        self.assertEqual(
+            'Number of seconds > seconds in day. Try days keyword.',
+            str(w[0].message))
         self.assertEqual(t.sec2hms(12, False, False, True), datetime.timedelta(seconds=12))
 
     def test_no_tzinfo(self):
@@ -423,12 +426,15 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([ 2452275.54166667,  2452276.5       ])
         numpy.testing.assert_allclose(t1.JD, expected)
+        t2 = t.Ticktock(datetime.datetime(1582,10,14))
         with warnings.catch_warnings(record=True) as w:
-            t2 = t.Ticktock(datetime.datetime(1582,10,14))
+            warnings.filterwarnings(
+                'always', 'Calendar date before the switch from Julian.*',
+                UserWarning, '^spacepy\\.time')
             ans = t2.JD
-            self.assertEqual(1, len(w))
-            self.assertEqual(UserWarning, w[0].category)
-            numpy.testing.assert_allclose(ans, [2299169.5])
+        self.assertEqual(1, len(w))
+        self.assertEqual(UserWarning, w[0].category)
+        numpy.testing.assert_allclose(ans, [2299169.5])
 
 
 
