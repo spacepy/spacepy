@@ -273,6 +273,8 @@ class build(_build):
             if abi and libfiles[0].startswith('irbempylib.' + abi):
                 libfiles.append('irbempylib' +
                                 libfiles[0][(len('irbempylib.') + len(abi)):])
+        if len(libfiles) == 2 and libfiles[0] == libfiles[1]:
+            del libfiles[0]
         #Delete any irbem extension modules from other versions
         for f in glob.glob(os.path.join(outdir, 'irbempylib*')):
             if not os.path.basename(f) in libfiles:
