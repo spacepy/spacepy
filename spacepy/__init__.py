@@ -209,10 +209,11 @@ def _read_config(rcfile):
     if hasattr(ConfigParser, 'SafeConfigParser'):
         cp_class = ConfigParser.SafeConfigParser
         with warnings.catch_warnings(record=True) as w:
-            try: #need this for -W error
-                ConfigParser.SafeConfigParser()
-            except DeprecationWarning:
-                cp_class = ConfigParser.ConfigParser
+            warnings.filterwarnings(
+                'always', 'The SafeConfigParser class has been renamed.*',
+                DeprecationWarning,
+                '^spacepy$') #configparser lies about source of warnings
+            ConfigParser.SafeConfigParser()
         for this_w in w:
             if isinstance(this_w.message, DeprecationWarning):
                 cp_class = ConfigParser.ConfigParser
