@@ -976,9 +976,12 @@ def toHDF5(fname, SDobject, **kwargs):
                             hfile[path].attrs[dumkey] = dumval
                         except:
                             hfile[path].attrs[dumkey] = str(dumval)
-                            warnings.warn('The following value is not permitted\n' +
-                                    'key, value = {0} ({1})\n'.format(key, value) +
-                                    'value has been converted to a string for output', DMWarning)
+                            warnings.warn(
+                                'The following value is not permitted\n' +
+                                'key, value, type = {0}, {1}, {2})\n'.format(
+                                    key, value, type(value)) +
+                                'value has been converted to a string for output',
+                                DMWarning)
                     else:
                         hfile[path].attrs[dumkey] = ''
                 elif isinstance(value, datetime.datetime):
