@@ -760,7 +760,7 @@ class Library(object):
         if len(res) <= 2:
             return res
         newshape = list(res.shape[0:-2])
-        newshape.append(res.shape[-1] / 2)
+        newshape.append(res.shape[-1] // 2)
         newshape.append(2)
         return numpy.rollaxis(res.reshape(newshape), -1, -2)
 
