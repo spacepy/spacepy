@@ -972,9 +972,19 @@ def toHDF5(fname, SDobject, **kwargs):
                                 dumkey = str(key)
                             if type(value) is unicode:
                                 dumval = str(value)
+                        uni = False #No special unicode handling
+                        if not bytes is str: #Python 3
+                            dumval = numpy.asanyarray(dumval)
+                            if dumval.size and dumval.dtype.kind == 'U':
+                                uni = True #Unicode list, special handling
                         try:
-                            hfile[path].attrs[dumkey] = dumval
-                        except:
+                            if uni:
+                                #Tell hdf5 this is unicode. Numpy is UCS-4, HDF5 is UTF-8
+                                hfile[path].attrs.create(dumkey, dumval,
+                                    dtype=hdf.special_dtype(vlen=unicode))
+                            else:
+                                hfile[path].attrs[dumkey] = dumval
+                        except TypeError:
                             hfile[path].attrs[dumkey] = str(dumval)
                             warnings.warn(
                                 'The following value is not permitted\n' +

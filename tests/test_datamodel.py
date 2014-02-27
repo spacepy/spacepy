@@ -355,6 +355,14 @@ class converterTests(unittest.TestCase):
         b = dm.convertKeysToStr(a)
         self.assertEqual([str(list(a.keys())[0])], list(b.keys()))
 
+    def test_toHDF5ListString(self):
+        """Convert to HDF5, including a list of string in attributes"""
+        a = dm.SpaceData()
+        a.attrs['foo'] = ['hi']
+        dm.toHDF5(self.testfile, a, mode='a')
+        newobj = dm.fromHDF5(self.testfile)
+        self.assertEqual(a.attrs['foo'], newobj.attrs['foo'])
+
     def test_HDF5roundtrip(self):
         """Data can go to hdf and back"""
         dm.toHDF5(self.testfile, self.SDobj)
