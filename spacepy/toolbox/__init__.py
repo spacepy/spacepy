@@ -802,14 +802,14 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
 
         # add interpolation quality flags
         omnidata['Qbits'] = SpaceData()
-        if stat8.dtype.str[1:] == 'U8':
-            stat8 = np.require(stat8, dtype='|S8')
-        arr = dmarray(list(np.array(stat8).tostring()), dtype=np.byte).reshape((8,nTAI))
+        arr = dmarray(stat8.view(stat8.dtype.kind + '1'),
+                      dtype=np.byte).reshape((8, nTAI))
         for ik, key in enumerate(['ByIMF', 'BzIMF', 'velo', 'dens', 'Pdyn', 'G1', 'G2', 'G3']):
             omnidata['Qbits'][key] = arr[ik,:]
         if stat6.dtype.str[1:] == 'U6':
             stat6 = np.require(stat6, dtype='|S6')
-        arr = dmarray(list(np.array(stat6).tostring()), dtype=np.byte).reshape((6,nTAI))
+        arr = dmarray(stat6.view(stat6.dtype.kind + '1'),
+                      dtype=np.byte).reshape((6, nTAI))
         for ik, key in enumerate(['W1', 'W2', 'W3', 'W4', 'W5', 'W6']):
             omnidata['Qbits'][key] = arr[ik,:]
 
