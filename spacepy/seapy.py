@@ -248,7 +248,7 @@ class Sea(SeaBase):
         time, t_epoch = self._timeepoch(delt)
 
         #build SEA matrix and perform analysis
-        wind = self.window
+        wind = int(self.window)
         m = int(2*wind + 1)
         n = len(t_epoch)
         y_sea = np.zeros((n,m), dtype=float)
