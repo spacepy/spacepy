@@ -449,14 +449,16 @@ class build(_build):
                 'irbemlib build produced no recognizable module. '
                 'Try a different Fortran compiler? (--fcompiler)')
         elif len(created_libfiles) == 1: #only one, no ambiguity
-            shutil.move(created_libfiles[0], outdir)
+            shutil.move(created_libfiles[0],
+                        os.path.join(outdir, created_libfiles[0]))
         elif len(created_libfiles) == 2 and \
                 len(existing_libfiles) == 1: #two, so one is old and one new
             for f in created_libfiles:
                 if f == existing_libfiles[0]: #delete the old one
                     os.remove(f)
                 else: #and move the new one to its place in build
-                    shutil.move(f, outdir)
+                    shutil.move(f,
+                                os.path.join(outdir, f))
         else:
              self.distribution.add_warning(
                 'irbem build failed: multiple build outputs ({0}).'.format(
