@@ -998,11 +998,13 @@ def get_clear(boxes, pos='br'):
     else: #sort on right edge, descending (work in from right edge)
         sboxes = sorted(boxes, key=lambda b: b[1][0], reverse=True)
     if pos[0] == 't':  #There's a clear space across the top of everything
-        clear.append(numpy.array([[0.0, max([b[1][1] for b in sboxes])],
-                                  [1.0, 1.0]]))
+        top = max([b[1][1] for b in sboxes])
+        if top < 1.0: # there is space at the top
+            clear.append(numpy.array([[0.0, top], [1.0, 1.0]]))
     else: #clear space across bottom of everything
-        clear.append(numpy.array([[0.0, 0.0],
-                                  [1.0, min([b[0][1] for b in sboxes])]]))
+        bottom = min([b[0][1] for b in sboxes])
+        if bottom > 0.0: # there is space at the bottom
+            clear.append(numpy.array([[0.0, 0.0], [1.0, bottom]]))
     #default corners
     left = 0.0
     right = 1.0
@@ -1021,7 +1023,10 @@ def get_clear(boxes, pos='br'):
             right = box[0][0] #right edge of clear zone is the left of this box
         else:
             left = box[1][0] #left of clear zone is right of this obstructing box
-        clear.append(numpy.array([[left, bottom], [right, top]]))
+        clearbox = numpy.array([[left, bottom], [right, top]])
+        clearbox[clearbox > 1.0] = 1.0
+        clearbox[clearbox < 0.0] = 0.0
+        clear.append(clearbox)
     return filter_boxes(clear) #and remove overlaps
 
 
