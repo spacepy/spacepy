@@ -7,7 +7,7 @@ Institution: Los Alamos National Laboratory
 
 Contact: jniehof@lanl.gov
 
-Copyright 2012 Los Alamos National Security, LLC.
+Copyright 2012-2014 Los Alamos National Security, LLC.
 
 .. currentmodule:: spacepy.plot.utils
 
@@ -32,6 +32,7 @@ Functions
     collapse_vertical
     printfig
     shared_ylabel
+    show_used
     smartTimeTicks
     timestamp
 """
@@ -40,11 +41,13 @@ __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
 
 import bisect
 import datetime
+import itertools
 
 import matplotlib
 import matplotlib.axis
 import matplotlib.dates
 import matplotlib.image
+import matplotlib.patches
 try:
     import matplotlib.pyplot as plt
 except RuntimeError:
@@ -856,18 +859,20 @@ def shared_ylabel(axes, txt, *args, **kwargs):
     >>> spacepy.plot.utils.shared_ylabel([ax0, ax1, ax2],
     ... 'this is a very long label that spans all three axes', color='g')
     """
+    fig = axes[0].get_figure() #better all be the same!
     #these are in Figure coordinate space
-    boxes = dict(((ax, ax.get_position()) for ax in axes))
+    #transform to display coords for sorting
+    boxes = dict(((ax, fig.transFigure.transform(ax.get_position()))
+                  for ax in axes))
     #top-to-bottom by upper edge
-    top = sorted(axes, key=(lambda x: boxes[x].ymax), reverse=True)[0]
+    top = sorted(axes, key=(lambda x: boxes[x][1, 1]), reverse=True)[0]
     #bottom-to-top by lower edge
-    bottom = sorted(axes, key=(lambda x: boxes[x].ymin))[0]
+    bottom = sorted(axes, key=(lambda x: boxes[x][0, 1]))[0]
     #get the TOP of the TOP subplot in axes coordinates of BOTTOM subplot
-    fig = top.get_figure() #top and bottom better be the same!
     top_in_bottom = bottom.transAxes.inverted().transform( #into bottom coords
-        fig.transFigure.transform(boxes[top])) #into display coords from fig
+        boxes[top]) #into display coords from fig
     bottom_in_bottom = bottom.transAxes.inverted().transform( #into bottom
-        fig.transFigure.transform(boxes[bottom])) #into display coords from fig
+        boxes[bottom]) #into display coords from fig
     #The mean of bottom-of-bottom and top-of-top, in bottom coords
     middle = (top_in_bottom[1, 1] + bottom_in_bottom[0, 1]) / 2
     bottom.set_ylabel(txt, *args, **kwargs)
@@ -1145,3 +1150,93 @@ def add_logo(img, fig=None, pos='br', margin=0.05):
         setter((limits[0] - margin_px * orientation,
                 limits[1] + margin_px * orientation))
     return (ax, axesimg)
+
+
+def show_used(fig=None):
+    """
+    Show the areas of a figure which are used/occupied by plot elements.
+
+    This function will overplot each element of a plot with a rectangle
+    showing the full bounds of that element, to see for example
+    the margins and such used by a text label.
+
+    Other Parameters
+    ================
+    fig : matplotlib.figure.Figure
+        The figure to mark up; if not specified, the
+        :func:`~matplotlib.pyplot.gcf` function will be used.
+
+    Notes
+    =====
+    Calls :func:`~matplotlib.pyplot.draw` to ensure locations are
+    up to date.
+
+    Returns
+    =======
+    boxes : list of Rectangle
+        The :class:`~matplotlib.patches.Rectangle` objects used for the overplot.
+
+    Examples
+    ========
+    >>> import spacepy.plot.utils
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure()
+    >>> ax0 = fig.add_subplot(211)
+    >>> ax0.plot([1, 2, 3], [1, 2, 1])
+    [<matplotlib.lines.Line2D at 0x00000000>]
+    >>> ax1 = fig.add_subplot(212)
+    >>> ax1.plot([1, 2, 3], [2, 1, 2])
+    [<matplotlib.lines.Line2D at 0x00000000>]
+    >>> spacepy.plot.utils.show_used(fig)
+    [<matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>,
+     <matplotlib.patches.Rectangle at 0x0000000>]
+    """
+    colors = itertools.cycle(['r', 'g', 'b', 'c', 'm', 'y', 'k'])
+    rects = []
+    if fig is None:
+        fig = plt.gcf()
+    boxes = get_used_boxes(fig)
+#    boxes = [b for b in get_used_boxes(fig)
+#             if b[0, 0] != b[1, 0] and b[0, 1] != b[1, 1]]
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis('off')
+    for b, c in zip(boxes, colors):
+        rects.append(ax.add_patch(matplotlib.patches.Rectangle(
+            b[0], b[1, 0] - b[0, 0], b[1, 1] - b[0, 1],
+                     alpha=0.3, figure=fig, axes=ax, ec='none', fc=next(colors),
+                     fill=True)))
+    return rects
