@@ -919,10 +919,12 @@ def _used_boxes_helper(obj, renderer=None):
     boxes = []
     if hasattr(obj, 'get_renderer_cache'): #I know how to render myself
         renderer = obj.get_renderer_cache()
-    #Axis objects are weird, go for the tick labels directly
+    #Axis objects are weird, go for the tick/axis labels directly
     if isinstance(obj, matplotlib.axis.Axis):
         boxes = [tl.get_window_extent() for tl in obj.get_ticklabels()
                  if tl.get_text()]
+        if obj.get_label().get_text():
+            boxes.append(obj.get_label().get_window_extent())
     #Base size on children, *unless* there are none
     elif hasattr(obj, 'get_children') and obj.get_children():
         for child in obj.get_children():
