@@ -1026,8 +1026,7 @@ def get_clear(boxes, pos='br'):
         else:
             left = box[1][0] #left of clear zone is right of this obstructing box
         clearbox = numpy.array([[left, bottom], [right, top]])
-        clearbox[clearbox > 1.0] = 1.0
-        clearbox[clearbox < 0.0] = 0.0
+        clearbox = numpy.clip(clearbox, 0, 1)
         clear.append(clearbox)
     return filter_boxes(clear) #and remove overlaps
 
