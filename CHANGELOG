@@ -27,6 +27,7 @@ pycdf
    (fancy indexing is still not supported for variables themselves.)
  - make assignment to attrs work
  - deprecate from_dict method of attribute lists; it is redundant with clone.
+ - fix BAD_DATA_TYPE bug with datetime attributes in backward-compatible CDF
 time
  - dtype in Ticktock can now be a callable (allowing custom time parsing)
 toolbox

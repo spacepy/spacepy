@@ -640,6 +640,29 @@ class MakeCDF(unittest.TestCase):
         newcdf.close()
         os.remove(self.testfspec)
 
+    def testEPOCH16AttrinBackward(self):
+        """Create backward-compatible CDF with EPOCH16 attribute"""
+        cdf.lib.set_backward(True)
+        newcdf = cdf.CDF(self.testfspec, '')
+        try:
+            newcdf.attrs['foo'] = datetime.datetime(
+                9999, 12, 31, 23, 59, 59, 999999)
+            self.assertEqual(cdf.const.CDF_EPOCH.value,
+                             newcdf.attrs['foo'].type(0))
+            self.assertEqual(
+                datetime.datetime(9999, 12, 31, 23, 59, 59, 999000),
+                newcdf.attrs['foo'][0])
+            newcdf.attrs.new('bar', datetime.datetime(
+                9999, 12, 31, 23, 59, 59, 999999))
+            self.assertEqual(cdf.const.CDF_EPOCH.value,
+                             newcdf.attrs['bar'].type(0))
+            self.assertEqual(
+                datetime.datetime(9999, 12, 31, 23, 59, 59, 999000),
+                newcdf.attrs['bar'][0])
+        finally:
+            newcdf.close()
+            os.remove(self.testfspec)
+
 
 class CDFTestsBase(unittest.TestCase):
     """Base class for tests involving existing CDF, column or row major"""

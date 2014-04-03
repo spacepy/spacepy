@@ -3372,7 +3372,7 @@ class _Hyperslice(object):
         return d.shape
 
     @staticmethod
-    def types(data):
+    def types(data, backward=False):
         """Find dimensions and valid types of a nested list-of-lists
 
         Any given data may be representable by a range of CDF types; infer
@@ -3402,6 +3402,8 @@ class _Hyperslice(object):
 
         @param data: data for which dimensions and CDF types are desired
         @type data: list (of lists)
+        @param backward: limit to pre-CDF3 types
+        @type backward: bool
         @return: dimensions of L{data}, in order outside-in;
                  CDF types which can represent this data;
                  number of elements required (i.e. length of longest string)
@@ -3426,6 +3428,9 @@ class _Hyperslice(object):
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16,
                          const.CDF_TIME_TT2000]
+            if backward:
+                del types[types.index(const.CDF_EPOCH16)]
+                del types[-1]
             if not lib.supports_int8:
                 del types[-1]
         elif d is data: #numpy array came in, use its type
@@ -3455,7 +3460,8 @@ class _Hyperslice(object):
                                2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32, 2 ** 63,
                                1.7e38, 1.7e38, 8e307, 8e307]
                 types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
-                if not lib.supports_int8 and const.CDF_INT8 in types:
+                if (not lib.supports_int8 or backward) \
+                       and const.CDF_INT8 in types:
                     del types[types.index(const.CDF_INT8)]
             else: #float
                 if dims is ():
@@ -3671,7 +3677,8 @@ class Attr(collections.MutableSequence):
             if datum == None:
                 typelist[i] = (None, None, None)
                 continue
-            (dims, types, elements) = _Hyperslice.types(datum)
+            (dims, types, elements) = _Hyperslice.types(
+                datum, backward=(self._cdf_file.version()[0]<3))
             if len(types) <= 0:
                 raise ValueError('Cannot find a matching CDF type.')
             if len(dims) > 1:
@@ -3937,7 +3944,8 @@ class Attr(collections.MutableSequence):
             number = 0
             while self.has_entry(number):
                 number += 1
-        (dims, types, elements) = _Hyperslice.types(data)
+        (dims, types, elements) = _Hyperslice.types(
+            data, backward=(self._cdf_file.version()[0]<3))
         if type == None:
             type = types[0]
         elif hasattr(type, 'value'):
