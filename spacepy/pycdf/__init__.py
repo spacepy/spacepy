@@ -1305,6 +1305,7 @@ class CDF(collections.MutableMapping):
     .. autosummary::
 
         ~CDF.attrs
+        ~CDF.backward
         ~CDF.checksum
         ~CDF.clone
         ~CDF.close
