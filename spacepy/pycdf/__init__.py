@@ -1322,6 +1322,11 @@ class CDF(collections.MutableMapping):
 
        Global attributes for this CDF in a dict-like format.
        See :class:`gAttrList` for details.
+
+    .. attribute:: CDF.backward
+
+       True if this CDF was created in backward-compatible mode
+       (for opening with CDF library before 3.x)
     .. automethod:: checksum
     .. automethod:: clone
     .. automethod:: close
@@ -1379,6 +1384,7 @@ class CDF(collections.MutableMapping):
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
         self._attrlistref = weakref.ref(gAttrList(self))
+        self.backward = self.version()[0] < 3
 
     def __del__(self):
         """Destructor; called when CDF object is destroyed.
@@ -1921,7 +1927,7 @@ class CDF(collections.MutableMapping):
         require eight.
         """
         if type in (const.CDF_EPOCH16, const.CDF_INT8, const.CDF_TIME_TT2000) \
-                and self.version()[0] < 3:
+                and self.backward:
             raise ValueError('Cannot use EPOCH16, INT8, or TIME_TT2000 '
                              'in backward-compatible CDF')
         if not lib.supports_int8 and \
@@ -1947,8 +1953,7 @@ class CDF(collections.MutableMapping):
                     dims = guess_dims
             if type == None:
                 type = guess_types[0]
-                if type == const.CDF_EPOCH16.value \
-                       and self.version()[0] < 3:
+                if type == const.CDF_EPOCH16.value and self.backward:
                     type = const.CDF_EPOCH
             if n_elements == None:
                 n_elements = guess_elements
@@ -1964,7 +1969,7 @@ class CDF(collections.MutableMapping):
                 '64-bit integer support require CDF library 3.4.0')
         if type.value in (const.CDF_EPOCH16.value, const.CDF_INT8.value,
                     const.CDF_TIME_TT2000.value) \
-                and self.version()[0] < 3:
+                and self.backward:
             raise ValueError('Data requires EPOCH16, INT8, or TIME_TT2000; '
                              'incompatible with backward-compatible CDF')
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
@@ -3678,7 +3683,7 @@ class Attr(collections.MutableSequence):
                 typelist[i] = (None, None, None)
                 continue
             (dims, types, elements) = _Hyperslice.types(
-                datum, backward=(self._cdf_file.version()[0]<3))
+                datum, backward=self._cdf_file.backward)
             if len(types) <= 0:
                 raise ValueError('Cannot find a matching CDF type.')
             if len(dims) > 1:
@@ -3945,7 +3950,7 @@ class Attr(collections.MutableSequence):
             while self.has_entry(number):
                 number += 1
         (dims, types, elements) = _Hyperslice.types(
-            data, backward=(self._cdf_file.version()[0]<3))
+            data, backward=self._cdf_file.backward)
         if type == None:
             type = types[0]
         elif hasattr(type, 'value'):

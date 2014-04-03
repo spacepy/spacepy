@@ -541,16 +541,20 @@ class MakeCDF(unittest.TestCase):
         cdf.lib.set_backward(True)
         newcdf = cdf.CDF(self.testfspec, '')
         (ver, rel, inc) = newcdf.version()
+        backward = newcdf.backward
         newcdf.close()
         os.remove(self.testfspec)
         self.assertEqual(2, ver)
+        self.assertTrue(backward)
 
         cdf.lib.set_backward(False)
         newcdf = cdf.CDF(self.testfspec, '')
         (ver, rel, inc) = newcdf.version()
+        backward = newcdf.backward
         newcdf.close()
         os.remove(self.testfspec)
         self.assertEqual(3, ver)
+        self.assertFalse(backward)
         cdf.lib.set_backward(True)
 
     def testNewEPOCHAssign(self):
