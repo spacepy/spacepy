@@ -1305,6 +1305,7 @@ class CDF(collections.MutableMapping):
     .. autosummary::
 
         ~CDF.attrs
+        ~CDF.backward
         ~CDF.checksum
         ~CDF.clone
         ~CDF.close
@@ -1322,6 +1323,11 @@ class CDF(collections.MutableMapping):
 
        Global attributes for this CDF in a dict-like format.
        See :class:`gAttrList` for details.
+
+    .. attribute:: CDF.backward
+
+       True if this CDF was created in backward-compatible mode
+       (for opening with CDF library before 3.x)
     .. automethod:: checksum
     .. automethod:: clone
     .. automethod:: close
@@ -1379,6 +1385,7 @@ class CDF(collections.MutableMapping):
             self._create()
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
         self._attrlistref = weakref.ref(gAttrList(self))
+        self.backward = self.version()[0] < 3
 
     def __del__(self):
         """Destructor; called when CDF object is destroyed.
@@ -1921,7 +1928,7 @@ class CDF(collections.MutableMapping):
         require eight.
         """
         if type in (const.CDF_EPOCH16, const.CDF_INT8, const.CDF_TIME_TT2000) \
-                and self.version()[0] < 3:
+                and self.backward:
             raise ValueError('Cannot use EPOCH16, INT8, or TIME_TT2000 '
                              'in backward-compatible CDF')
         if not lib.supports_int8 and \
@@ -1947,8 +1954,7 @@ class CDF(collections.MutableMapping):
                     dims = guess_dims
             if type == None:
                 type = guess_types[0]
-                if type == const.CDF_EPOCH16.value \
-                       and self.version()[0] < 3:
+                if type == const.CDF_EPOCH16.value and self.backward:
                     type = const.CDF_EPOCH
             if n_elements == None:
                 n_elements = guess_elements
@@ -1964,7 +1970,7 @@ class CDF(collections.MutableMapping):
                 '64-bit integer support require CDF library 3.4.0')
         if type.value in (const.CDF_EPOCH16.value, const.CDF_INT8.value,
                     const.CDF_TIME_TT2000.value) \
-                and self.version()[0] < 3:
+                and self.backward:
             raise ValueError('Data requires EPOCH16, INT8, or TIME_TT2000; '
                              'incompatible with backward-compatible CDF')
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
@@ -3372,7 +3378,7 @@ class _Hyperslice(object):
         return d.shape
 
     @staticmethod
-    def types(data):
+    def types(data, backward=False):
         """Find dimensions and valid types of a nested list-of-lists
 
         Any given data may be representable by a range of CDF types; infer
@@ -3402,6 +3408,8 @@ class _Hyperslice(object):
 
         @param data: data for which dimensions and CDF types are desired
         @type data: list (of lists)
+        @param backward: limit to pre-CDF3 types
+        @type backward: bool
         @return: dimensions of L{data}, in order outside-in;
                  CDF types which can represent this data;
                  number of elements required (i.e. length of longest string)
@@ -3413,20 +3421,22 @@ class _Hyperslice(object):
         elements = 1
         types = []
 
-        data0 = numpy.ma.getdata(d).flat[0]
         _Hyperslice.check_well_formed(d)
         if d.dtype.kind in ('S', 'U'): #it's a string
             types = [const.CDF_CHAR, const.CDF_UCHAR]
             elements = d.dtype.itemsize
             if d.dtype.kind == 'U': #UTF-8 uses 4 bytes per
                 elements //= 4
-        elif hasattr(data0, 'microsecond'):
+        elif d.size and hasattr(numpy.ma.getdata(d).flat[0], 'microsecond'):
             if max((dt.microsecond % 1000 for dt in d.flat)) > 0:
                 types = [const.CDF_EPOCH16, const.CDF_EPOCH,
                          const.CDF_TIME_TT2000]
             else:
                 types = [const.CDF_EPOCH, const.CDF_EPOCH16,
                          const.CDF_TIME_TT2000]
+            if backward:
+                del types[types.index(const.CDF_EPOCH16)]
+                del types[-1]
             if not lib.supports_int8:
                 del types[-1]
         elif d is data: #numpy array came in, use its type
@@ -3456,7 +3466,8 @@ class _Hyperslice(object):
                                2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32, 2 ** 63,
                                1.7e38, 1.7e38, 8e307, 8e307]
                 types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
-                if not lib.supports_int8 and const.CDF_INT8 in types:
+                if (not lib.supports_int8 or backward) \
+                       and const.CDF_INT8 in types:
                     del types[types.index(const.CDF_INT8)]
             else: #float
                 if dims is ():
@@ -3672,7 +3683,8 @@ class Attr(collections.MutableSequence):
             if datum == None:
                 typelist[i] = (None, None, None)
                 continue
-            (dims, types, elements) = _Hyperslice.types(datum)
+            (dims, types, elements) = _Hyperslice.types(
+                datum, backward=self._cdf_file.backward)
             if len(types) <= 0:
                 raise ValueError('Cannot find a matching CDF type.')
             if len(dims) > 1:
@@ -3938,7 +3950,8 @@ class Attr(collections.MutableSequence):
             number = 0
             while self.has_entry(number):
                 number += 1
-        (dims, types, elements) = _Hyperslice.types(data)
+        (dims, types, elements) = _Hyperslice.types(
+            data, backward=self._cdf_file.backward)
         if type == None:
             type = types[0]
         elif hasattr(type, 'value'):

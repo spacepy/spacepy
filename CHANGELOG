@@ -12,10 +12,12 @@ omni
  - get_omni updated to also read from daily JSON-headed ASCII files in
    custom databases
 plot
- - add function "add_logo" to utils: put an image in one corner of a figure
- - add function "annotate_xaxis" to utils: add text in line with x tickmarks
- - add function "collapse_vertical" to utils: remove space between two subplots
- - add function "shared_ylabel" to utils: span a y-axis label across subplots
+ - new functions in utils:
+   - add_logo: put an image in one corner of a figure
+   - annotate_xaxis: add text in line with x tickmarks
+   - collapse_vertical: remove space between two subplots
+   - shared_ylabel: span a y-axis label across subplots
+   - show_used: draw boxes to show the space taken by each plot element
 pycdf
  - fix bug with interpreting indexes with ellipses (var[..., 0] gave the
    wrong result).
@@ -25,6 +27,7 @@ pycdf
    (fancy indexing is still not supported for variables themselves.)
  - make assignment to attrs work
  - deprecate from_dict method of attribute lists; it is redundant with clone.
+ - fix BAD_DATA_TYPE bug with datetime attributes in backward-compatible CDF
 time
  - dtype in Ticktock can now be a callable (allowing custom time parsing)
 toolbox
