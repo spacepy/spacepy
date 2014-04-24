@@ -1877,7 +1877,10 @@ class CDF(collections.MutableMapping):
             dimension variance of each dimension, default True for all
             dimensions.
         dims : list of int
-            size of each dimension of this variable, default zero-dimensional
+            size of each dimension of this variable, default zero-dimensional.
+            Note this is the dimensionality as defined by CDF, i.e., for
+            record-varying variables it excludes the leading record dimension.
+            See :py:class:`Var`.
         n_elements : int
             number of elements, should be 1 except for CDF_CHAR,
             for which it's the length of the string.
