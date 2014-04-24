@@ -685,7 +685,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     Parameters
     ==========
     all : boolean (optional)
-        if True, update all of them
+        if True, update OMNI2, Qin-Denton and leapsecs
     omni : boolean (optional)
         if True. update only omni (Qin-Denton)
     omni2 : boolean (optional)
@@ -742,6 +742,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
 
     if all == True:
         omni = True
+        omni2 = True
         leapsecs = True
 
     if QDomni == True:

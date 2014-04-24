@@ -422,10 +422,10 @@ class spectrogram(dm.SpaceData):
             ax = axis
         bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
         if self.plotSettings['zlog']:
-            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb,
+            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb),
                                 norm=LogNorm())
         else:
-            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], bb)
+            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb))
         if self.specSettings['axisDates'][0]:
             time_ticks = self._set_ticks_to_time(ax, 'x')
         elif self.specSettings['axisDates'][1]:
