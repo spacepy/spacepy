@@ -3955,6 +3955,11 @@ class Attr(collections.MutableSequence):
                 number += 1
         (dims, types, elements) = _Hyperslice.types(
             data, backward=self._cdf_file.backward)
+        if type == None and \
+                self.ENTRY_ == const.zENTRY_: #Try to match variable type
+                vartype = self._cdf_file[number].type()
+                if vartype in types:
+                    type = vartype
         if type == None:
             type = types[0]
         elif hasattr(type, 'value'):

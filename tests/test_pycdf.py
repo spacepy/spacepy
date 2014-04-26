@@ -2239,6 +2239,14 @@ class ChangeCDF(ChangeCDFBase):
                          datetime.datetime(1996, 1, 2)]),
             self.cdf['epochtest'][:])
 
+    def testSetAttrListTypes(self):
+        """Make sure that assigning an entire attrlist gets types right"""
+        self.cdf.new('foo2', data=[0, 1], type=const.CDF_DOUBLE)
+        a = {'FILLVAL': -1e31}
+        self.cdf['foo2'].attrs = a
+        self.assertEqual(const.CDF_DOUBLE.value,
+            self.cdf['foo2'].attrs.type('FILLVAL'))
+
 
 class ChangezVar(ChangeCDFBase):
     """Tests that modify a zVar"""
