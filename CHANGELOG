@@ -28,6 +28,7 @@ pycdf
  - make assignment to attrs work
  - deprecate from_dict method of attribute lists; it is redundant with clone.
  - fix BAD_DATA_TYPE bug with datetime attributes in backward-compatible CDF
+ - fix bug with finding CDF types for negative floats
 time
  - dtype in Ticktock can now be a callable (allowing custom time parsing)
 toolbox

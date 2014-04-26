@@ -436,6 +436,7 @@ class NoCDF(unittest.TestCase):
                    numpy.array([1, 2, 3], dtype=numpy.float64),
                    numpy.array([1, 2, 3], dtype=numpy.int64),
                    2 ** 62,
+                   -1.0,
                    ]
         if cdf.lib.supports_int8:
             types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
@@ -458,6 +459,8 @@ class NoCDF(unittest.TestCase):
                      ((3,), [const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ((3,), [const.CDF_INT8], 1),
                      ((), [const.CDF_INT8, const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ]
         else:
@@ -482,6 +485,8 @@ class NoCDF(unittest.TestCase):
                              const.CDF_INT4, const.CDF_UINT4,
                              const.CDF_FLOAT, const.CDF_REAL4,
                              const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ((), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ]
