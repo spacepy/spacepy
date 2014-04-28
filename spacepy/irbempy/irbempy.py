@@ -15,6 +15,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import itertools
+from collections import Iterable
 import numpy as np
 from spacepy import help
 import spacepy.coordinates as spc
@@ -258,7 +259,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
 # -----------------------------------------------
 def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, tol=0.05, bracket=[-3,-12]):
     """
-    Find the last closed drift shell (LCDS) for a given pitch angle.
+    Find the last closed drift shell (LCDS) for a given equatorial pitch angle.
 
     Uses the IRBEM library to determine L* and searches via bisection to find LCDS
     to a given tolerance in R (radial distance along GSM equator at local midnight).
@@ -266,6 +267,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
     Parameters
     ==========
         - ticks (Ticktock class) : containing time information **for a single time**
+        - alpha (numeric) : equatorial pitch angle for search
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
@@ -276,18 +278,14 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
         - tol (float) : tolerance for search in radial distance
         - bracket (list): X-GSM coordinates to bracket bisection search
 
-
     Returns
     =======
-    LCDS - Last closed drift shell [dimensionless]
-    K    - Modified 2nd invariant K at last closed drift shell [R_E.G^{1/2}]
-
+        results (SpaceData, dictionary-like): contains keys LCDS, K, AlphaEq and UTC
 
     Examples
     ========
     >>> t = spacepy.time.Ticktock(['2002-02-02T12:00:00'], 'ISO')
     >>> spacepy.irbempy.find_LCDS(t, 90, extMag='T89')
-        
 
     See Also
     ========
@@ -295,122 +293,154 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
     """
     # prepare input values for irbem call
     nTAI = len(ticks)
-    if nTAI != 1:
-        raise NotImplementedError('find_LCDS can only be run for a single time')
 
     #First set inner bracket (default to R of 3)
     try:
         assert len(bracket)==2
     except:
         raise ValueError('Specified initial bracket is invalid')
-    loci_brac1 = spc.Coords([bracket[0],0,0], 'GSM', 'car')
 
-    if not omnivals:
-        #prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
-        import spacepy.omni as omni
-        omnivals = omni.get_omni(ticks)
-
-    d = prep_irbem(ticks, loci_brac1, alpha=[alpha], extMag=extMag, options=options, omnivals=omnivals)
-    badval = d['badval']
-    kext = d['kext']
-    sysaxes = d['sysaxes']
-    iyearsat = d['iyearsat']
-    idoysat = d['idoysat']
-    secs = d['utsat']
-    xin1 = d['xin1']
-    xin2 = d['xin2']
-    xin3 = d['xin3']
-    magin = d['magin']
-    nTtoG = 1.0e-5
-
-    bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
-        iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
-
-    # take out all the odd 'bad values' and turn them into NaN
-    if tb.feq(bmin,badval): bmin = np.NaN
-    GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
-    #Now get Lstar at this location...
-    if GEOcoord[0]!=np.NaN:
-        pos1 = spc.Coords(GEOcoord, 'GEO', 'car')
-        LS1 = get_Lstar(ticks, pos1, alpha, extMag=extMag, options=options, omnivals=omnivals)
-        if np.isnan(LS1['Lstar']).any():
-            raise ValueError('Specified inner bracket ({0}) is on open drift shell'.format(loci_brac1))
-        LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
+    if not isinstance(alpha, Iterable): alpha = [alpha]
+    results = dm.SpaceData()
+    if len(alpha)!=1:
+        results['LCDS'] = dm.dmfilled([nTAI,len(alpha)])
+        results['K'] = dm.dmfilled([nTAI,len(alpha)])
     else:
-        raise ValueError('Specified inner bracket ({0}) is on open drift shell'.format(loci_brac1))
-    #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
-    LCDS, LCDS_K = LS1['Lstar'][0], LS1['K'][0]
-        
-    #Set outer bracket (default to R of 12)
-    loci_brac2 = spc.Coords([bracket[1],0,0], 'GSM', 'car')
-
-    d2 = prep_irbem(ticks, loci_brac2, alpha=[alpha], extMag=extMag, options=options, omnivals=omnivals)
-    badval = d2['badval']
-    kext = d2['kext']
-    sysaxes = d2['sysaxes']
-    iyearsat = d2['iyearsat']
-    idoysat = d2['idoysat']
-    secs = d2['utsat']
-    xin1 = d2['xin1']
-    xin2 = d2['xin2']
-    xin3 = d2['xin3']
-    magin = d2['magin']
-
-    bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
-        iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
-
-    # take out all the odd 'bad values' and turn them into NaN
-    if tb.feq(bmin,badval): bmin = np.NaN
-    GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
-    #Now get Lstar at this location...
-    if GEOcoord[0]!=np.NaN:
-        pos2 = spc.Coords(GEOcoord, 'GEO', 'car')
-        LS2 = get_Lstar(ticks, pos2, alpha, extMag=extMag, options=options, omnivals=omnivals)
-        if not np.isnan(LS2['Lstar']).any():
-            raise ValueError('Specified outer bracket is on closed drift shell')
-    else:
-        LS2 = {'Lstar': np.NaN}
-    #print('L* at outer bracket: {0}; Xgsm = {1}'.format(LS2['Lstar'], loci_brac2.x))
+        results['LCDS'] = dm.dmfilled([nTAI,])
+        results['K'] = dm.dmfilled([nTAI,])
+    results['LCDS'].attrs['DESCRIPTION'] = "Last closed drift shell calculated with SpacePy's irbempy module"
+    results['LCDS'].attrs['UNITS'] = "dimensionless"
+    results['LCDS'].attrs['DEPEND_0'] = "UTC"
+    results['LCDS'].attrs['DEPEND_1'] = "K"
+    results['LCDS'].attrs['MODEL'] = "{0} (IRBEM implementation)".format(extMag)
+    results['K'].attrs['DESCRIPTION'] = "Modified 2nd adiabatic invariant at LCDS"
+    results['K'].attrs['UNITS'] = "R_E.G^{1/2}"
+    results['K'].attrs['DEPEND_0'] = "UTC"
+    results['K'].attrs['DEPEND_1'] = "AlphaEq"
+    results['K'].attrs['MODEL'] = "{0} (IRBEM implementation)".format(extMag)
+    results['UTC'] = ticks.UTC
+    results['AlphaEq'] = dm.dmarray(alpha, 
+                                    attrs={'DESCRIPTION': 'Equatorial pitch angle for LCDS calculation',
+                                           'UNITS': 'degrees'})
     
-    #now search by bisection
-    while (np.abs(loci_brac2.x-loci_brac1.x) > tol):
-        newx = loci_brac1.x + (loci_brac2.x-loci_brac1.x)/2.0
-        pos_test = spc.Coords([newx[0], 0, 0], 'GSM', 'car')
+    for idxt, tt in enumerate(ticks):
+        if not omnivals:
+            #prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
+            import spacepy.omni as omni
+            omnivals = omni.get_omni(tt)
+        for idxa, pa in enumerate(alpha):
+            loci_brac1 = spc.Coords([bracket[0],0,0], 'GSM', 'car')
 
-        dtest = prep_irbem(ticks, pos_test, alpha=[alpha], extMag=extMag, options=options, omnivals=omnivals)
-        badval = dtest['badval']
-        kext = dtest['kext']
-        sysaxes = dtest['sysaxes']
-        iyearsat = dtest['iyearsat']
-        idoysat = dtest['idoysat']
-        secs = dtest['utsat']
-        xin1 = dtest['xin1']
-        xin2 = dtest['xin2']
-        xin3 = dtest['xin3']
-        magin = dtest['magin']
+            d = prep_irbem(tt, loci_brac1, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
+            badval = d['badval']
+            kext = d['kext']
+            sysaxes = d['sysaxes']
+            iyearsat = d['iyearsat']
+            idoysat = d['idoysat']
+            secs = d['utsat']
+            xin1 = d['xin1']
+            xin2 = d['xin2']
+            xin3 = d['xin3']
+            magin = d['magin']
+            nTtoG = 1.0e-5
 
-        bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
-            iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
-        # take out all the odd 'bad values' and turn them into NaN
-        if tb.feq(bmin,badval): bmin = np.NaN
-        GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
-        #print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
-        if not (np.isnan(bmin)):
+            bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
+                iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
+
+            # take out all the odd 'bad values' and turn them into NaN
+            if tb.feq(bmin,badval): bmin = np.NaN
+            GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
             #Now get Lstar at this location...
-            postry = spc.Coords(GEOcoord, 'GEO', 'car')
-            LStry = get_Lstar(ticks, postry, alpha, extMag=extMag, options=options, omnivals=omnivals)
-            LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
-        else:
-            LStry = {'Lstar': np.NaN, 'K': np.NaN}
-        #print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test.x))
+            if GEOcoord[0]!=np.NaN:
+                pos1 = spc.Coords(GEOcoord, 'GEO', 'car')
+                LS1 = get_Lstar(tt, pos1, pa, extMag=extMag, options=options, omnivals=omnivals)
+                if np.isnan(LS1['Lstar']).any():
+                    raise ValueError('Specified inner bracket ({0}) is on an open drift shell'.format(loci_brac1))
+                LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
+            else:
+                raise ValueError('Specified inner bracket ({0}) is on an open drift shell'.format(loci_brac1))
+            #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
+            LCDS, LCDS_K = LS1['Lstar'][0], LS1['K'][0]
+                
+            #Set outer bracket (default to R of 12)
+            loci_brac2 = spc.Coords([bracket[1],0,0], 'GSM', 'car')
 
-        if np.isnan(LStry['Lstar']).any():
-            loci_brac2 = pos_test
-        else:
-            loci_brac1 = pos_test
-            LCDS, LCDS_K = LStry['Lstar'][0], LStry['K'][0]
+            d2 = prep_irbem(tt, loci_brac2, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
+            badval = d2['badval']
+            kext = d2['kext']
+            sysaxes = d2['sysaxes']
+            iyearsat = d2['iyearsat']
+            idoysat = d2['idoysat']
+            secs = d2['utsat']
+            xin1 = d2['xin1']
+            xin2 = d2['xin2']
+            xin3 = d2['xin3']
+            magin = d2['magin']
 
-    return LCDS, LCDS_K
+            bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
+                iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
+
+            # take out all the odd 'bad values' and turn them into NaN
+            if tb.feq(bmin,badval): bmin = np.NaN
+            GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
+            #Now get Lstar at this location...
+            if GEOcoord[0]!=np.NaN:
+                pos2 = spc.Coords(GEOcoord, 'GEO', 'car')
+                LS2 = get_Lstar(tt, pos2, pa, extMag=extMag, options=options, omnivals=omnivals)
+                if not np.isnan(LS2['Lstar']).any():
+                    raise ValueError('Specified outer bracket is on a closed drift shell')
+            else:
+                LS2 = {'Lstar': np.NaN}
+            #print('L* at outer bracket: {0}; Xgsm = {1}'.format(LS2['Lstar'], loci_brac2.x))
+            
+            #now search by bisection
+            while (np.abs(loci_brac2.x-loci_brac1.x) > tol):
+                newx = loci_brac1.x + (loci_brac2.x-loci_brac1.x)/2.0
+                pos_test = spc.Coords([newx[0], 0, 0], 'GSM', 'car')
+
+                dtest = prep_irbem(tt, pos_test, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
+                badval = dtest['badval']
+                kext = dtest['kext']
+                sysaxes = dtest['sysaxes']
+                iyearsat = dtest['iyearsat']
+                idoysat = dtest['idoysat']
+                secs = dtest['utsat']
+                xin1 = dtest['xin1']
+                xin2 = dtest['xin2']
+                xin3 = dtest['xin3']
+                magin = dtest['magin']
+
+                bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
+                    iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
+                # take out all the odd 'bad values' and turn them into NaN
+                if tb.feq(bmin,badval): bmin = np.NaN
+                GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
+                #print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
+                if not (np.isnan(bmin)):
+                    #Now get Lstar at this location...
+                    postry = spc.Coords(GEOcoord, 'GEO', 'car')
+                    LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
+                    LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
+                else:
+                    LStry = {'Lstar': np.NaN, 'K': np.NaN}
+                #print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test.x))
+
+                if np.isnan(LStry['Lstar']).any():
+                    loci_brac2 = pos_test
+                else:
+                    loci_brac1 = pos_test
+                    LCDS, LCDS_K = LStry['Lstar'][0], LStry['K'][0]
+            try:
+                results['LCDS'][idxt, idxa] = LCDS
+                results['K'][idxt, idxa] = LCDS_K
+            except IndexError:
+                results['LCDS'][idxt] = LCDS
+                results['K'][idxt] = LCDS_K
+
+    results['LCDS'] = results['LCDS']
+    results['K'] = results['K']
+
+    return results
 
 
 # -----------------------------------------------
