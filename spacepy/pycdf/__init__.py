@@ -1440,9 +1440,8 @@ class CDF(collections.MutableMapping):
         """
         try:
             return Var(self, name)
-        except CDFException:
-            (type, value, traceback) = sys.exc_info()
-            raise KeyError(str(name) + ': ' + str(value))
+        except CDFException as e:
+            raise KeyError('{0}: {1}'.format(name, e))
 
     def __setitem__(self, name, data):
         """Writes data to a zVariable in this CDF
@@ -1502,11 +1501,10 @@ class CDF(collections.MutableMapping):
         try:
             foo = self[key]
             return True
-        except KeyError:
-            (type, value, traceback) = sys.exc_info()
-            expected = "'" + str(key) + \
-               ": NO_SUCH_VAR: Named variable not found in this CDF.'"
-            if str(value) == expected:
+        except KeyError as e:
+            expected = str(key) + \
+               ": NO_SUCH_VAR: Named variable not found in this CDF."
+            if expected in e.args:
                 return False
             raise
 

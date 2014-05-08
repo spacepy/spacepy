@@ -1952,6 +1952,16 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(2, len(zvar))
         self.assertEqual([3], zvar._dim_sizes())
 
+    def testNewVarApostrophe(self):
+        """Assign to new variable with apostrophe in name"""
+        self.cdf['new\'zVar'] = [[1, 2, 3], [4, 5, 6]]
+        self.assertTrue('new\'zVar' in self.cdf)
+        zvar = self.cdf['new\'zVar']
+        numpy.testing.assert_array_equal(
+            [[1, 2, 3], [4, 5, 6]], zvar[...])
+        self.assertEqual(2, len(zvar))
+        self.assertEqual([3], zvar._dim_sizes())
+
     def testNewVarUnicode(self):
         """Create a new variable with a unicode name"""
         if str is bytes:
