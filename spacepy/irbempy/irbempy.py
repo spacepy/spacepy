@@ -257,7 +257,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
 
 
 # -----------------------------------------------
-def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, tol=0.05, bracket=[-3,-12]):
+def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, tol=0.05, bracket=[3,12], mlt=0):
     """
     Find the last closed drift shell (LCDS) for a given equatorial pitch angle.
 
@@ -323,13 +323,18 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
                                     attrs={'DESCRIPTION': 'Equatorial pitch angle for LCDS calculation',
                                            'UNITS': 'degrees'})
     
+    mlt *= 15 #hours to degrees
+    mlt = np.deg2rad(mlt)
+
     for idxt, tt in enumerate(ticks):
         if not omnivals:
             #prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
             import spacepy.omni as omni
             omnivals = omni.get_omni(tt)
         for idxa, pa in enumerate(alpha):
-            loci_brac1 = spc.Coords([bracket[0],0,0], 'GSM', 'car')
+            b1x = -1.0*bracket[0]*np.cos(mlt)
+            b1y = -1.0*bracket[0]*np.sin(mlt)
+            loci_brac1 = spc.Coords([b1x,b1y,0], 'GSM', 'car')
 
             d = prep_irbem(tt, loci_brac1, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
             badval = d['badval']
@@ -363,7 +368,9 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
             LCDS, LCDS_K = LS1['Lstar'][0], LS1['K'][0]
                 
             #Set outer bracket (default to R of 12)
-            loci_brac2 = spc.Coords([bracket[1],0,0], 'GSM', 'car')
+            b2x = -1.0*bracket[1]*np.cos(mlt)
+            b2y = -1.0*bracket[1]*np.sin(mlt)
+            loci_brac2 = spc.Coords([b2x,b2y,0], 'GSM', 'car')
 
             d2 = prep_irbem(tt, loci_brac2, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
             badval = d2['badval']
@@ -394,9 +401,11 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
             #print('L* at outer bracket: {0}; Xgsm = {1}'.format(LS2['Lstar'], loci_brac2.x))
             
             #now search by bisection
-            while (np.abs(loci_brac2.x-loci_brac1.x) > tol):
-                newx = loci_brac1.x + (loci_brac2.x-loci_brac1.x)/2.0
-                pos_test = spc.Coords([newx[0], 0, 0], 'GSM', 'car')
+            while (tb.hypot(loci_brac2.x, loci_brac2.y) - tb.hypot(loci_brac1.x, loci_brac1.y) > tol):
+                newdist = (tb.hypot(loci_brac2.x, loci_brac2.y) + tb.hypot(loci_brac1.x, loci_brac1.y))/2.0
+                newx = -1.0*newdist*np.cos(mlt)
+                newy = -1.0*newdist*np.sin(mlt)
+                pos_test = spc.Coords([newx, newy, 0], 'GSM', 'car')
 
                 dtest = prep_irbem(tt, pos_test, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
                 badval = dtest['badval']
