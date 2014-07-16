@@ -814,7 +814,7 @@ def toCDF(fname, SDobject, **kwargs):
                 if shape_tup[0] != len(SDobject['Epoch']): #naive check for 'should-be' NRV
                     try:
                         foo = outdata.new(key, SDobject[key][...], recVary=False)
-                        if verbose: print('{0} is being made NRV'.format(key))
+                        if defaults['verbose']: print('{0} is being made NRV'.format(key))
                         outdata[key].attrs = dmcopy(SDobject[key].attrs)
                     except ValueError:
                         foo = outdata.new(key, SDobject[key].tolist, recVary=False)
@@ -969,9 +969,9 @@ def toHDF5(fname, SDobject, **kwargs):
                     if truth:
                         if bytes is str:
                             if type(key) is unicode:
-                                dumkey = str(key)
+                                dumkey = key.encode('utf-8')
                             if type(value) is unicode:
-                                dumval = str(value)
+                                dumval = value.encode('utf-8')
                         uni = False #No special unicode handling
                         if not bytes is str: #Python 3
                             dumval = numpy.asanyarray(dumval)
