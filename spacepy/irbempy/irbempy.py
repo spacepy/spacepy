@@ -29,7 +29,8 @@ SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
     'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
     'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
     'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': None, 'car': 6},
-    'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car': None}}
+    'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car': None},
+    'TOD': {'sph': None, 'car': 12}, 'TEME': {'sph': None, 'car': 13}}
 
 # -----------------------------------------------
 def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
@@ -257,7 +258,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
 
 
 # -----------------------------------------------
-def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, tol=0.05, bracket=[3,12], mlt=0):
+def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, tol=0.05, bracket=[3,12], mlt=0, **kwargs):
     """
     Find the last closed drift shell (LCDS) for a given equatorial pitch angle.
 
@@ -335,6 +336,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
             b1x = -1.0*bracket[0]*np.cos(mlt)
             b1y = -1.0*bracket[0]*np.sin(mlt)
             loci_brac1 = spc.Coords([b1x,b1y,0], 'GSM', 'car')
+            if 'verbose' in kwargs: print('Initial inner bracket: {0}'.format(loci_brac1))
 
             d = prep_irbem(tt, loci_brac1, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
             badval = d['badval']
@@ -371,6 +373,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
             b2x = -1.0*bracket[1]*np.cos(mlt)
             b2y = -1.0*bracket[1]*np.sin(mlt)
             loci_brac2 = spc.Coords([b2x,b2y,0], 'GSM', 'car')
+            if 'verbose' in kwargs: print('Initial outer bracket: {0}'.format(loci_brac2))
 
             d2 = prep_irbem(tt, loci_brac2, alpha=[pa], extMag=extMag, options=options, omnivals=omnivals)
             badval = d2['badval']
@@ -432,7 +435,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
                     LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
                 else:
                     LStry = {'Lstar': np.NaN, 'K': np.NaN}
-                #print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test.x))
+                if 'verbose' in kwargs: print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test))
 
                 if np.isnan(LStry['Lstar']).any():
                     loci_brac2 = pos_test
@@ -455,7 +458,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
 # -----------------------------------------------
 def find_footpoint(ticks, loci, extMag='T01STORM', options=[1,0,3,0,0], hemi='same', alt=100, omnivals=None):
     """
-    call find_magequator from irbem library and return a dictionary with values for
+    call find_foot_point1 from irbem library and return a dictionary with values for
     Bmin and the GEO (cartesian) coordinates of the magnetic equator
 
     Parameters

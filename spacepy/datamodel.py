@@ -157,7 +157,7 @@ The file looks like:
 """
 
 from __future__ import division
-import copy, datetime, os, warnings
+import copy, datetime, os, warnings, itertools
 import re, json
 try:
     import StringIO # can't use cStringIO as we might have unicode
@@ -803,6 +803,8 @@ def toCDF(fname, SDobject, **kwargs):
         if hasattr(SDobject, 'attrs'):
             for akey in SDobject.attrs:
                 outdata.attrs[akey] = dmcopy(SDobject.attrs[akey])
+        varLengths = [len(SDobject[var]) for var in SDobject]
+        modeLength = itertools.groupby((reversed(sorted(varLengths)))).next()[0]
         for key in SDobject:
             if isinstance(SDobject[key], dict):
                 raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
@@ -811,7 +813,11 @@ def toCDF(fname, SDobject, **kwargs):
                     shape_tup=-1
                 else:
                     shape_tup = SDobject[key].shape
-                if shape_tup[0] != len(SDobject['Epoch']): #naive check for 'should-be' NRV
+                if 'Epoch' not in SDobject:
+                    NRVtest = modeLength
+                else:
+                    NRVtest = len(SDobject['Epoch'])
+                if shape_tup[0] != NRVtest: #naive check for 'should-be' NRV
                     try:
                         foo = outdata.new(key, SDobject[key][...], recVary=False)
                         if defaults['verbose']: print('{0} is being made NRV'.format(key))
@@ -823,7 +829,20 @@ def toCDF(fname, SDobject, **kwargs):
                     try:
                         outdata[key] = SDobject[key]
                     except ValueError:
-                        outdata[key] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs))
+                        try:
+                            outdata[key] = dmarray([SDobject[key].tolist()], attrs=dmcopy(SDobject[key].attrs)).squeeze()
+                        except UnicodeEncodeError:
+                            tmpAttrs = dmcopy(SDobject[key].attrs)
+                            for akey in tmpAttrs:
+                                try: #strings
+                                    if hasattr(tmpAttrs[akey], 'encode'):
+                                        tmpAttrs[akey] = tmpAttrs[akey].encode('utf-8')
+                                    else:
+                                        tmpAttrs[akey] = tmpAttrs[akey]
+                                except AttributeError: #probably a list of strings
+                                    for id, el in enumerate(tmpAttrs[akey]):
+                                        tmpAttrs[akey][id] = el.encode('utf-8')
+
             else:
                 outdata[key][...] = SDobject[key][...]
                 for akey in outdata[key].attrs:
