@@ -52,6 +52,7 @@ import numbers
 import datetime as dt
 import spacepy.toolbox as tb
 from spacepy import help
+import spacepy.time as spt
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 
@@ -65,8 +66,14 @@ class SeaBase(object):
     """
     def __init__(self, data, times, epochs, **kwargs):
         self.data = np.asarray(data, dtype=float)
-        self.times = times
-        self.epochs = epochs
+        if isinstance(times, spt.Ticktock):
+            self.times=times.UTC
+        else:
+            self.times = times
+        if isinstance(epochs, spt.Ticktock):
+            self.epochs = epochs.UTC
+        else:
+            self.epochs = epochs
         self.verbose = kwargs['verbose']
         if type(kwargs['delta']) == dt.timedelta:
             t_delt = kwargs['delta'].days + kwargs['delta'].seconds/86400
@@ -771,11 +778,11 @@ def seadict(objlist, namelist):
         assert type(objlist) == \
         list, 'seadict(): Inputs must be in lists'
     except AssertionError as args:
-        return '%s -- %s' % (args.__class__.__name__, args)
+        raise ValueError('%s -- %s' % (args.__class__.__name__, args))
 
     nobj, nname = len(objlist), len(namelist)
     if nobj!=nname:
-        return 'seadict(): Lengths of object list and names list must be equal'
+        raise ValueError('seadict(): Lengths of object list and names list must be equal')
     else:
         pass
 
