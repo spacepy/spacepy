@@ -14,7 +14,7 @@ Josef Koller, Steve Morley
 Copyright 2010 Los Alamos National Security, LLC.
 """
 
-import itertools
+import itertools, numbers
 from collections import Iterable
 import numpy as np
 from spacepy import help
@@ -23,7 +23,6 @@ import spacepy.datamodel as dm
 from . import irbempylib as oplib
 import spacepy.toolbox as tb
 
-__contact__ = 'Josef Koller, jkoller@lanl.gov'
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
     'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
@@ -162,9 +161,9 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     xin2 = d['xin2']
     xin3 = d['xin3']
     magin = d['magin']
-    degalpha = d['degalpha']
-    nalp_max = d['nalp_max']
-    nalpha = len(alpha)
+    #degalpha = d['degalpha']
+    #nalp_max = d['nalp_max']
+    #nalpha = d['nalpha']
 
     results = dm.SpaceData()
     results['Blocal'] = np.zeros(nTAI)
@@ -454,6 +453,334 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
 
     return results
 
+# -----------------------------------------------
+def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1,1,3,0,0], omnivals=None, tol=0.05, bracket=[3,12], mlt=0, **kwargs):
+    """
+    Find the last closed drift shell (LCDS) for a given equatorial pitch angle.
+
+    Uses the IRBEM library to determine L* and searches via bisection to find LCDS
+    to a given tolerance in R (radial distance along GSM equator at local midnight).
+
+    Parameters
+    ==========
+        - ticks (Ticktock class) : containing time information **for a single time**
+        - alpha (numeric) : equatorial pitch angle for search
+        - extMag (string) : optional; will choose the external magnetic field model 
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+                            'T05', 'ALEX']
+        - options (optional list or array of integers length=5) : explained in Lstar
+        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - (see Lstar documentation for further explanation)
+        - tol (float) : tolerance for search in radial distance
+        - bracket (list): X-GSM coordinates to bracket bisection search
+
+    Returns
+    =======
+        results (SpaceData, dictionary-like): contains keys LCDS, K, AlphaEq and UTC
+
+    Examples
+    ========
+    >>> t = spacepy.time.Ticktock(['2002-02-02T12:00:00'], 'ISO')
+    >>> spacepy.irbempy.find_LCDS(t, 90, extMag='T89')
+
+    See Also
+    ========
+    get_Lstar, get_Bfield, find_Bmirr
+    """
+    # prepare input values for irbem call
+    nTAI = len(ticks)
+    Aopt = [0]
+    Aopt.extend(options[1:])
+
+    #First set inner bracket (default to R of 3)
+    try:
+        assert len(bracket)==2
+    except:
+        raise ValueError('Specified initial bracket is invalid')
+
+    if not isinstance(K, Iterable): K = [K]
+    results = dm.SpaceData()
+    if len(K)!=1:
+        results['LCDS'] = dm.dmfilled([nTAI,len(K)])
+        results['AlphaEq'] = dm.dmfilled([nTAI,len(K)])
+        results['Success'] = dm.dmfilled([nTAI,len(K)], fillval='Success', dtype='|S24')
+    else:
+        results['LCDS'] = dm.dmfilled([nTAI,])
+        results['AlphaEq'] = dm.dmfilled([nTAI,])
+    results['LCDS'].attrs['DESCRIPTION'] = "Last closed drift shell calculated with SpacePy's irbempy module"
+    results['LCDS'].attrs['UNITS'] = "dimensionless"
+    results['LCDS'].attrs['DEPEND_0'] = "UTC"
+    results['LCDS'].attrs['DEPEND_1'] = "K"
+    results['LCDS'].attrs['MODEL'] = "{0} (IRBEM implementation)".format(extMag)
+    results['AlphaEq'].attrs['DESCRIPTION'] = "Modified 2nd adiabatic invariant at LCDS"
+    results['AlphaEq'].attrs['UNITS'] = "R_E.G^{1/2}"
+    results['AlphaEq'].attrs['MODEL'] = "{0} (IRBEM implementation)".format(extMag)
+    results['UTC'] = ticks.UTC
+    results['K'] = dm.dmarray(K, attrs={'DESCRIPTION': 'Equatorial pitch angle for LCDS calculation',
+                                           'UNITS': 'degrees'})
+    
+    mlt *= 15 #hours to degrees
+    mlt = np.deg2rad(mlt)
+
+    for idxt, tt in enumerate(ticks):
+        if not omnivals:
+            #prep_irbem will get omni if not specified, but to save on repeated calls, do it once here
+            import spacepy.omni as omni
+            omnivals = omni.get_omni(tt)
+        for idxk, k_i in enumerate(K):
+            b1x = -1.0*bracket[0]*np.cos(mlt)
+            b1y = -1.0*bracket[0]*np.sin(mlt)
+            loci_brac1 = spc.Coords([b1x,b1y,0], 'GSM', 'car')
+            if 'verbose' in kwargs: print('Initial inner bracket: {0}'.format(loci_brac1))
+
+            d = prep_irbem(tt, loci_brac1, extMag=extMag, options=options, omnivals=omnivals)
+            badval = d['badval']
+            kext = d['kext']
+            sysaxes = d['sysaxes']
+            iyearsat = d['iyearsat']
+            idoysat = d['idoysat']
+            secs = d['utsat']
+            xin1 = d['xin1']
+            xin2 = d['xin2']
+            xin3 = d['xin3']
+            magin = d['magin']
+            nTtoG = 1.0e-5
+            pa = np.NaN
+
+            bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
+                iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
+
+            # take out all the odd 'bad values' and turn them into NaN
+            if tb.feq(bmin,badval): bmin = np.NaN
+            GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
+            #Now get Lstar at this location...
+            if np.isfinite(GEOcoord[0]):
+                pos1 = spc.Coords(GEOcoord, 'GEO', 'car')
+                pa = AlphaOfK(tt, pos1, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)
+                LS1 = get_Lstar(tt, pos1, pa, extMag=extMag, options=options, omnivals=omnivals)
+                if np.isnan(LS1['Lstar']).any():
+                    try:
+                        results['LCDS'][idxt, idxk] = np.NaN
+                        results['AlphaEq'][idxt, idxk] = pa
+                        results['Success'][idxt, idxk] = 'Invalid inner bracket'
+                    except IndexError:
+                        results['LCDS'][idxt] = np.NaN
+                        results['AlphaEq'][idxt] = pa
+                        results['Success'][idxt] = 'Invalid inner bracket'
+                    continue
+                LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
+            else:
+                try:
+                    results['LCDS'][idxt, idxk] = np.NaN
+                    results['AlphaEq'][idxt, idxk] = pa
+                    results['Success'][idxt, idxk] = 'Invalid inner bracket'
+                except IndexError:
+                    results['LCDS'][idxt] = np.NaN
+                    results['AlphaEq'][idxt] = pa
+                    results['Success'][idxt] = 'Invalid inner bracket'
+                continue
+
+            #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
+            LCDS, LCDS_PA = LS1['Lstar'][0], pa
+                
+            #Set outer bracket (default to R of 12)
+            b2x = -1.0*bracket[1]*np.cos(mlt)
+            b2y = -1.0*bracket[1]*np.sin(mlt)
+            loci_brac2 = spc.Coords([b2x,b2y,0], 'GSM', 'car')
+            if 'verbose' in kwargs: print('Initial outer bracket: {0}'.format(loci_brac2))
+
+            d2 = prep_irbem(tt, loci_brac2, extMag=extMag, options=options, omnivals=omnivals)
+            badval = d2['badval']
+            kext = d2['kext']
+            sysaxes = d2['sysaxes']
+            iyearsat = d2['iyearsat']
+            idoysat = d2['idoysat']
+            secs = d2['utsat']
+            xin1 = d2['xin1']
+            xin2 = d2['xin2']
+            xin3 = d2['xin3']
+            magin = d2['magin']
+
+            bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
+                iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
+
+            # take out all the odd 'bad values' and turn them into NaN
+            if tb.feq(bmin,badval): bmin = np.NaN
+            GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
+            #Now get Lstar at this location...
+            if np.isfinite(GEOcoord[0]):
+                pos2 = spc.Coords(GEOcoord, 'GEO', 'car')
+                pa = AlphaOfK(tt, pos2, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)
+                LS2 = get_Lstar(tt, pos2, pa, extMag=extMag, options=options, omnivals=omnivals)
+                if not np.isnan(LS2['Lstar']).any():
+                    try:
+                        results['LCDS'][idxt, idxk] = np.NaN
+                        results['AlphaEq'][idxt, idxk] = pa
+                        results['Success'][idxt, idxk] = 'Invalid outer bracket'
+                    except IndexError:
+                        results['LCDS'][idxt] = np.NaN
+                        results['AlphaEq'][idxt] = pa
+                        results['Success'][idxt] = 'Invalid outer bracket'
+                    continue
+            else:
+                LS2 = {'Lstar': np.NaN}
+            #print('L* at outer bracket: {0}; Xgsm = {1}'.format(LS2['Lstar'], loci_brac2.x))
+            
+            #now search by bisection
+            while (tb.hypot(loci_brac2.x, loci_brac2.y) - tb.hypot(loci_brac1.x, loci_brac1.y) > tol):
+                newdist = (tb.hypot(loci_brac2.x, loci_brac2.y) + tb.hypot(loci_brac1.x, loci_brac1.y))/2.0
+                newx = -1.0*newdist*np.cos(mlt)
+                newy = -1.0*newdist*np.sin(mlt)
+                pos_test = spc.Coords([newx, newy, 0], 'GSM', 'car')
+
+                dtest = prep_irbem(tt, pos_test, extMag=extMag, options=options, omnivals=omnivals)
+                badval = dtest['badval']
+                kext = dtest['kext']
+                sysaxes = dtest['sysaxes']
+                iyearsat = dtest['iyearsat']
+                idoysat = dtest['idoysat']
+                secs = dtest['utsat']
+                xin1 = dtest['xin1']
+                xin2 = dtest['xin2']
+                xin3 = dtest['xin3']
+                magin = dtest['magin']
+
+                bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
+                    iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
+                # take out all the odd 'bad values' and turn them into NaN
+                if tb.feq(bmin,badval): bmin = np.NaN
+                GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
+                #print('bmin, GEOcoord = {0},{1}'.format(bmin, GEOcoord))
+                if not (np.isnan(bmin)):
+                    #Now get Lstar at this location...
+                    postry = spc.Coords(GEOcoord, 'GEO', 'car')
+                    pa = AlphaOfK(tt, postry, k_i, extMag=extMag, options=Aopt, omnivals=omnivals)
+                    LStry = get_Lstar(tt, postry, pa, extMag=extMag, options=options, omnivals=omnivals)
+                    LStry['K'] = LStry['Xj']*np.sqrt(LStry['Bmirr']*nTtoG)
+                else:
+                    LStry = {'Lstar': np.NaN, 'K': np.NaN}
+                if 'verbose' in kwargs: print('L* at test point: {0}; Xgsm = {1}'.format(LStry['Lstar'], pos_test))
+
+                if np.isnan(LStry['Lstar']).any():
+                    loci_brac2 = pos_test
+                else:
+                    loci_brac1 = pos_test
+                    LCDS, LCDS_PA = LStry['Lstar'][0], pa
+            try:
+                results['LCDS'][idxt, idxk] = LCDS
+                results['AlphaEq'][idxt, idxk] = LCDS_PA
+            except IndexError:
+                results['LCDS'][idxt] = LCDS
+                results['AlphaEq'][idxt] = LCDS_PA
+
+    results['LCDS'] = results['LCDS']
+    results['AlphaEq'] = results['AlphaEq']
+
+    return results
+
+# -----------------------------------------------
+def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0,0,3,0,0], omnivals=None):
+    """
+    Find the equatorial pitch angle corresponding to a given second invariant K.
+
+    Uses the IRBEM library to determine K and searches via bisection to find Alpha(K).
+
+    Parameters
+    ==========
+        - ticks (Ticktock class) : containing time information **for a single time**
+        - loci (Coords class) : containing position information **for a single point**
+        - K (numeric) : value of second invariant (K) for search
+        - extMag (string) : optional; will choose the external magnetic field model 
+                            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
+                            'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+                            'T05', 'ALEX']
+        - options (optional list or array of integers length=5) : explained in Lstar
+        - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - (see Lstar documentation for further explanation)
+        - tol (float) : tolerance for search in radial distance
+        - bracket (list): X-GSM coordinates to bracket bisection search
+
+    Returns
+    =======
+        AlphaEq : equatorial pitch angle corresponding to K
+
+    Examples
+    ========
+    >>> t = spacepy.time.Ticktock(['2002-09-01T04:00:00'], 'ISO')
+    >>> loci = spacepy.coordinates.Coords([-4,0,0], 'GSM', 'car')
+    >>> spacepy.irbempy.AlphaOfK(t, loci, 0.11, extMag='T89')
+    48.984375
+
+    See Also
+    ========
+    get_Lstar, get_Bfield, find_Bmirr, find_LCDS
+    """
+    # prepare input values for irbem call
+    d = prep_irbem(ticks, loci, extMag=extMag, options=options, omnivals=omnivals)
+    nTAI = len(ticks)
+    badval = d['badval']
+    kext = d['kext']
+    sysaxes = d['sysaxes']
+    iyearsat = d['iyearsat']
+    idoysat = d['idoysat']
+    secs = d['utsat']
+    xin1 = d['xin1']
+    xin2 = d['xin2']
+    xin3 = d['xin3']
+    magin = d['magin']
+    nTtoG = 1.0e-5
+
+    bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
+                     iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
+
+    # take out all the odd 'bad values' and turn them into NaN
+    if tb.feq(bmin,badval): bmin = np.NaN
+    GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
+
+    pa0 = 90 #start with equatorially mirroring
+    #Now get K for initial alpha at this location...
+    if np.isfinite(GEOcoord[0]):
+        pos1 = spc.Coords(GEOcoord, 'GEO', 'car')
+        LS1 = get_Lstar(ticks, pos1, pa0, extMag=extMag, options=options, omnivals=omnivals)
+        if np.isnan(LS1['Xj']).any():
+            return np.NaN
+        LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
+    else:
+        return np.NaN
+    #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
+    K0 = LS1['K'][0]
+
+    if np.abs(K0-K) < 1e-3: return pa0
+
+    Done, count = False, 0
+    pa_upper, pa_lower, pa_test = pa0, 0, 30
+    while not Done:
+        #print('Testing PA={0}'.format(pa_test))
+        #Now get K for initial alpha at this location...
+        LS1 = get_Lstar(ticks, pos1, pa_test, extMag=extMag, options=options, omnivals=omnivals)
+        if np.isnan(LS1['Xj']).any():
+            return np.NaN
+        LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
+        #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
+        K_test = LS1['K'][0]
+
+        if np.abs(K_test-K) < 1e-3:
+            #print('***Found K={0} (Req. {1}) at Alpha={2}'.format(K_test, K, pa_test))
+            return pa_test
+        #print('Not Done: Kfound = {0}, Kwant = {1}'.format(K_test, K))
+        if K_test > K: # K is too large, hence alpha is too small, increase.
+            pa_lower = pa_test
+            #print('Reset lower bound. U,L = {0},{1}'.format(pa_upper, pa_lower))
+        else: # K is too small, hence alpha is too large, reduce
+            pa_upper = pa_test
+            #print('Reset upper bound. U,L = {0},{1}'.format(pa_upper, pa_lower))
+        pa_test = pa_lower+np.abs((pa_upper-pa_lower))/2.0
+        #print('Change alpha to {0}'.format(pa_test))
+        count += 1
+        if count>20: return np.NaN
+
+        
 
 # -----------------------------------------------
 def find_footpoint(ticks, loci, extMag='T01STORM', options=[1,0,3,0,0], hemi='same', alt=100, omnivals=None):
@@ -627,7 +954,7 @@ def car2sph(CARin):
     sph2car
     """	
 
-    if isinstance(CARin[0], (float, int)):
+    if isinstance(CARin[0], numbers.Number):
         CAR = np.array([CARin])
     else:
         CAR = np.asanyarray(CARin)
@@ -648,7 +975,7 @@ def car2sph(CARin):
             lati = 90. - np.arctan2(sq, z)*180./np.pi
         res[i,:] = [r, lati, longi]
         
-    if isinstance(CARin[0], (float, int)):
+    if isinstance(CARin[0], numbers.Number):
         return res[0]
     else:
         return res
@@ -678,7 +1005,7 @@ def sph2car(SPHin):
 
     """
 
-    if isinstance(SPHin[0], (float, int)):
+    if isinstance(SPHin[0], numbers.Number):
         SPH = np.array([SPHin])
     else:
         SPH = np.asanyarray(SPHin)
@@ -693,7 +1020,7 @@ def sph2car(SPHin):
         res[i,:] = [x, y, z]
 
 
-    if isinstance(SPHin[0], (float, int)):
+    if isinstance(SPHin[0], numbers.Number):
         return res[0]
     else:
         return res
@@ -858,7 +1185,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     
 
 # -----------------------------------------------
-def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
+def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
     """
     This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
     and will lookup omni values for given time if not provided (optional). If pitch angles
@@ -869,7 +1196,7 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
     ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
-        - alpha (list or ndarray) : optional pitch angles in degrees; if provided will 
+        - alpha (list or ndarray) : pitch angles in degrees; if provided will 
             calculate shell splitting; max 25 values
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
@@ -966,10 +1293,10 @@ def _get_Lstar(ticks, loci, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], om
             
     """
     nTAI = len(ticks)
-    nalpha = len(alpha)
     d = prep_irbem(ticks, loci, alpha, extMag, options, omnivals)
+    nalpha = d['nalpha']
         
-    if nalpha == 0: # no drift shell splitting
+    if isinstance(alpha, numbers.Number): # no drift shell splitting
         lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], d['sysaxes'],\
                     d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], d['xin3'], d['magin'])
 
@@ -1017,7 +1344,7 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
     ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
-        - alpha (list or ndarray) : optional pitch angles in degrees
+        - alpha (list or ndarray) : pitch angles in degrees
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
@@ -1060,7 +1387,7 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
     return results
 
 # -----------------------------------------------
-def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
+def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
     """
     This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
     and will lookup omni values for given time if not provided (optional). If pitch angles
@@ -1071,8 +1398,8 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
     ==========
         - ticks (Ticktock class) : containing time information
         - loci (Coords class) : containing spatial information
-        - alpha (list or ndarray) : optional pitch angles in degrees; if provided will 
-            calculate shell splitting; max 25 values
+        - alpha (list or ndarray) : optional pitch angles in degrees (default is 90);
+            if provided will calculate shell splitting; max 25 values
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
@@ -1197,9 +1524,8 @@ def get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniva
                     out[key] = el[key].copy()
         return out
 
-    if isinstance(alpha, (float,int)):
+    if isinstance(alpha, numbers.Number):
         alpha = [alpha]
-    assert len(alpha) is 1, 'len(alpha) currently needs to be 1' #TODO:should this be here?? - SKM
 
     ncpus = config_dict['ncpus']
     ncalc = len(ticks)
@@ -1346,12 +1672,13 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     kext = extkeys.index(extMag.upper())
     d['kext'] = kext
 
-    # calc at given pitch angels 'alpha'?
+    # calc at given pitch angles 'alpha'?
     degalpha = np.zeros(nalp_max, dtype=float)
-    if isinstance(alpha, float):
+    if isinstance(alpha, numbers.Number):
         nalpha = 1
         alpha = [alpha]
     nalpha = len(alpha)
+    d['nalpha'] = nalpha
     if nalpha > 0:
         degalpha[0:nalpha] = alpha
     d['degalpha'] = degalpha
