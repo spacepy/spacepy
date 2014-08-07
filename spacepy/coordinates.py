@@ -160,8 +160,8 @@ class Coords(object):
         Coords( [[1 2 4]
          [1 2 2]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
         """
-        return 'Coords( '+str(self.data) + ' ), dtype='+self.dtype+','+self.carsph+', units='+\
-            str(self.units)
+        rstr = "Coords( {0} , '{1}', '{2}')".format(self.data.tolist(), self.dtype, self.carsph)
+        return rstr 
     __repr__ = __str__
 
     # -----------------------------------------------
