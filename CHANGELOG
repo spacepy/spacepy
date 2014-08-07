@@ -2,12 +2,18 @@ Changes in Version 0.1.5
 ========================
 - Python 3 support
 - documentation updates across many packages
+- minor bugfixes throughout
 datamodel
  - fromHDF5 now reads most netCDF4 and MatLab (v7.3+; r2011b onward) save files
  - add function dmfilled: create a filled dmarray with any given fill value
+ - updates to toCDF to allow/use NRV variables
 irbempy
  - add function find_footpoint: traces field line from given location to 
    specified altitude
+ - add functions find_LCDS and find_LCDS_K to find the last closed drift shell
+   at given pitch angle or given second invariant K
+ - add function AlphaOfK to find the equatorial pitch angle for a specified
+   second invariant K
 omni
  - get_omni updated to also read from daily JSON-headed ASCII files in
    custom databases
