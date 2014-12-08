@@ -1146,7 +1146,7 @@ def _compress(obj, comptype=None, param=None):
     if comptype != None:
         if not hasattr(comptype, 'value'):
             comptype = ctypes.c_long(comptype)
-        if param == None:
+        if param is None:
             if not comptype.value in validparams:
                 raise CDFError(const.BAD_COMPRESSION)
             param = validparams[comptype.value][0]
@@ -1377,7 +1377,7 @@ class CDF(collections.MutableMapping):
                 'pathname must be string-like: {0}'.format(pathname))
         self._handle = ctypes.c_void_p(None)
         self._opened = False
-        if masterpath == None:
+        if masterpath is None:
             self._open()
         elif masterpath:
             self._from_master(masterpath.encode())
@@ -1472,7 +1472,7 @@ class CDF(collections.MutableMapping):
         while current < self.__len__():
             name = self[current].name()
             value = (yield name)
-            if value == None:
+            if value is None:
                 current += 1
             else:
                 current = self[value]._num()
@@ -1681,7 +1681,7 @@ class CDF(collections.MutableMapping):
             Copy data, or only type, dimensions, variance, attributes?
             (default: True, copy data as well)
         """
-        if name == None:
+        if name is None:
             name = zVar.name()
         if name in self:
             del self[name]
@@ -1935,16 +1935,16 @@ class CDF(collections.MutableMapping):
         if not lib.supports_int8 and \
                 type in (const.CDF_INT8, const.CDF_TIME_TT2000):
             raise ValueError('INT8 and TIME_TT2000 require CDF library 3.4.0')
-        if data == None:
-            if type == None:
+        if data is None:
+            if type is None:
                 raise ValueError('Must provide either data or a CDF type.')
-            if dims == None:
+            if dims is None:
                 dims = []
-            if n_elements == None:
+            if n_elements is None:
                 n_elements = 1
         else:
             (guess_dims, guess_types, guess_elements) = _Hyperslice.types(data)
-            if dims == None:
+            if dims is None:
                 if recVary:
                     if guess_dims == ():
                         raise ValueError(
@@ -1953,13 +1953,13 @@ class CDF(collections.MutableMapping):
                     dims = guess_dims[1:]
                 else:
                     dims = guess_dims
-            if type == None:
+            if type is None:
                 type = guess_types[0]
                 if type == const.CDF_EPOCH16.value and self.backward:
                     type = const.CDF_EPOCH
-            if n_elements == None:
+            if n_elements is None:
                 n_elements = guess_elements
-        if dimVarys == None:
+        if dimVarys is None:
             dimVarys = [True for i in dims]
         recVary = const.VARY if recVary else const.NOVARY
         dimVarys = [const.VARY if dimVary else const.NOVARY
@@ -2614,7 +2614,7 @@ class Var(collections.MutableSequence):
 
         dim_array = (ctypes.c_long * len(dims))(*dims)
         enc_name = var_name.encode('ascii')
-        if dimVarys == None:
+        if dimVarys is None:
             dim_vary_array = (ctypes.c_long * (len(dims) if len(dims) > 0 else 1))(const.VARY)
         else:
             dim_vary_array = (ctypes.c_long * len(dims))(*dimVarys)
@@ -3185,7 +3185,7 @@ class _Hyperslice(object):
                not hasattr(rec_slice, 'stop'):
             return
         if len(data) < self.counts[0]: #Truncate to fit data
-            if rec_slice.stop == None and rec_slice.step in (None, 1):
+            if rec_slice.stop is None and rec_slice.step in (None, 1):
                 self.counts[0] = len(data)
         elif len(data) > self.counts[0]: #Expand to fit data
             if rec_slice.step in (None, 1):
@@ -3667,7 +3667,7 @@ class Attr(collections.MutableSequence):
             data = [data]
         else:
             idx = key.indices(self.max_idx() + 1)
-            if key.step == None or key.step > 0:
+            if key.step is None or key.step > 0:
                 #Iterating forward, extend slice to match data
                 if len(data) > len(range(*idx)):
                     idx = (idx[0], idx[0] + idx[2] * len(data), idx[2])
@@ -3681,7 +3681,7 @@ class Attr(collections.MutableSequence):
             if data_idx >= len(data):
                 continue
             datum = data[data_idx]
-            if datum == None:
+            if datum is None:
                 typelist[i] = (None, None, None)
                 continue
             (dims, types, elements) = _Hyperslice.types(
@@ -3724,7 +3724,7 @@ class Attr(collections.MutableSequence):
         data_idx = -1
         for i in range(*idx):
             data_idx += 1
-            if data_idx >= len(data) or data[data_idx] == None:
+            if data_idx >= len(data) or data[data_idx] is None:
                 if self.has_entry(i):
                     del self[i]
                 continue
@@ -3771,7 +3771,7 @@ class Attr(collections.MutableSequence):
         to beginning.
         @note: Returned in entry-number order.
         """
-        if current == None:
+        if current is None:
             current = self.max_idx()
         while current >= 0:
             if self.has_entry(current):
@@ -3947,18 +3947,18 @@ class Attr(collections.MutableSequence):
         number : int
             Entry number to write, default is lowest available number.
         """
-        if number == None:
+        if number is None:
             number = 0
             while self.has_entry(number):
                 number += 1
         (dims, types, elements) = _Hyperslice.types(
             data, backward=self._cdf_file.backward)
-        if type == None and \
+        if type is None and \
                 self.ENTRY_ == const.zENTRY_: #Try to match variable type
                 vartype = self._cdf_file[number].type()
                 if vartype in types:
                     type = vartype
-        if type == None:
+        if type is None:
             type = types[0]
         elif hasattr(type, 'value'):
             type = type.value
@@ -4362,7 +4362,7 @@ class AttrList(collections.MutableMapping):
         while current < count.value:
             candidate = self.AttrType(self._cdf_file, current)
             if candidate.global_scope() == self.global_scope:
-                if self.special_entry == None or \
+                if self.special_entry is None or \
                         candidate.has_entry(self.special_entry()):
                     if str == bytes:
                         value = yield(candidate._name)
@@ -4426,7 +4426,7 @@ class AttrList(collections.MutableMapping):
         new_name : str (optional)
             name of the new attribute, default ``name``
         """
-        if name == None:
+        if name is None:
             self._clone_list(master)
         else:
             self._clone_attr(master, name, new_name)
@@ -4468,7 +4468,7 @@ class AttrList(collections.MutableMapping):
             raise KeyError(name + ' already exists.')
         attr = self._get_or_create(name)
         if data != None:
-            if self.special_entry == None:
+            if self.special_entry is None:
                 attr.new(data, type)
             else:
                 attr.new(data, type, self.special_entry())
@@ -4522,7 +4522,7 @@ class AttrList(collections.MutableMapping):
         @param new_name: name of the new attribute, default L{name}
         @type new_name: str
         """
-        if new_name == None:
+        if new_name is None:
             new_name = name
         self[new_name] = master[name]
 
@@ -4553,7 +4553,7 @@ class AttrList(collections.MutableMapping):
             (t, v, tb) = sys.exc_info()
             if v.status != const.NO_SUCH_ATTR:
                 raise
-        if attr == None:
+        if attr is None:
             attr = self.AttrType(self._cdf_file, name, True)
         elif attr.global_scope() != self.global_scope:
                 raise KeyError(name + ': not ' + self.attr_name)
@@ -4769,7 +4769,7 @@ class zAttrList(AttrList):
         @param new_name: name of the new attribute, default L{name}
         @type new_name: str
         """
-        if new_name == None:
+        if new_name is None:
             new_name = name
         if new_name in self:
             del self[new_name]
