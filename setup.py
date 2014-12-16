@@ -234,6 +234,23 @@ def rebuild_static_docs(dist=None, pythondir=None):
         os.chdir('..')
 
 
+#Possible names of the irbem output library. Unfortunately this seems
+#to depend on Python version, f2py version, and phase of the moon
+def get_irbem_libfiles():
+    libfiles = ['irbempylib' + ext for ext in
+                (distutils.sysconfig.get_config_var('SO'),
+                 distutils.sysconfig.get_config_var('EXT_SUFFIX'))
+                if ext]
+    if len(libfiles) < 2: #did we get just the ABI-versioned one?
+        abi = distutils.sysconfig.get_config_var('SOABI')
+        if abi and libfiles[0].startswith('irbempylib.' + abi):
+            libfiles.append('irbempylib' +
+                            libfiles[0][(len('irbempylib.') + len(abi)):])
+    if len(libfiles) == 2 and libfiles[0] == libfiles[1]:
+        del libfiles[0]
+    return libfiles
+
+
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
 
@@ -271,17 +288,7 @@ class build(_build):
                               'spacepy', 'irbempy')
         #Possible names of the output library. Unfortunately this seems
         #to depend on Python version, f2py version, and phase of the moon
-        libfiles = ['irbempylib' + ext for ext in
-                    (distutils.sysconfig.get_config_var('SO'),
-                     distutils.sysconfig.get_config_var('EXT_SUFFIX'))
-                    if ext]
-        if len(libfiles) < 2: #did we get just the ABI-versioned one?
-            abi = distutils.sysconfig.get_config_var('SOABI')
-            if abi and libfiles[0].startswith('irbempylib.' + abi):
-                libfiles.append('irbempylib' +
-                                libfiles[0][(len('irbempylib.') + len(abi)):])
-        if len(libfiles) == 2 and libfiles[0] == libfiles[1]:
-            del libfiles[0]
+        libfiles = get_irbem_libfiles()
         #Delete any irbem extension modules from other versions
         for f in glob.glob(os.path.join(outdir, 'irbempylib*')):
             if not os.path.basename(f) in libfiles:
@@ -638,6 +645,34 @@ class install(_install):
             print('Dependencies OK.')
         _install.run(self)
         delete_old_files(self.install_lib)
+
+    def get_outputs(self):
+        """Tell distutils about files we put in build by hand"""
+        outputs = _install.get_outputs(self)
+        docs = [
+            os.path.join(
+                self.install_libbase, dirpath[len(self.build_lib) + 1:], f)
+            for (dirpath, dirnames, filenames)
+            in os.walk(os.path.join(self.build_lib, 'spacepy', 'Doc'))
+            for f in filenames]
+        #This is just so we know what a shared library is called
+        comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
+        if hasattr(distutils.ccompiler, 'customize_compiler'):
+            distutils.ccompiler.customize_compiler(comp)
+        else:
+            distutils.sysconfig.customize_compiler(comp)
+        libspacepy = os.path.join(
+            'spacepy', comp.library_filename('spacepy', lib_type='shared'))
+        if os.path.exists(os.path.join(self.build_lib, libspacepy)):
+            spacepylibs = [os.path.join(self.install_libbase, libspacepy)]
+        else:
+            spacepylibs = []
+        irbemlibfiles = [os.path.join('spacepy', 'irbempy', f)
+                         for f in get_irbem_libfiles()]
+        irbemlibs = [
+            os.path.join(self.install_libbase, f) for f in irbemlibfiles
+            if os.path.exists(os.path.join(self.build_lib, f))]
+        return outputs + docs + spacepylibs + irbemlibs
 
 
 class bdist_wininst(_bdist_wininst):
