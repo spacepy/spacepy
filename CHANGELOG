@@ -2,6 +2,7 @@ Changes in Version 0.1.5
 ========================
 - Python 3 support
 - documentation updates across many packages
+- installer should work better w/pip
 - minor bugfixes throughout
 datamodel
  - fromHDF5 now reads most netCDF4 and MatLab (v7.3+; r2011b onward) save files
