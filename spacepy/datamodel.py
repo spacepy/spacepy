@@ -772,6 +772,9 @@ def toCDF(fname, SDobject, **kwargs):
     backward : bool (optional)
         create CDF in backward-compatible format (default is v3+ compatibility only)
 
+    TT2000 : bool (optional)
+        write variables beginning with 'Epoch' as datatype CDF_TT2000 (default is automatic selection of EPOCH or EPOCH16)
+
     verbose : bool (optional)
         verbosity flag
 
@@ -784,6 +787,7 @@ def toCDF(fname, SDobject, **kwargs):
                 'overwrite': False,
                 'autoNRV': False,
                 'backward': False,
+                'TT2000': False,
                 'verbose': False}
     for key in kwargs:
         if key in defaults:
@@ -825,6 +829,8 @@ def toCDF(fname, SDobject, **kwargs):
                     except ValueError:
                         foo = outdata.new(key, SDobject[key].tolist, recVary=False)
                         outdata[key].attrs = dmcopy(SDobject[key].attrs)
+                if defaults['TT2000'] and 'Epoch' in key:
+                    foo = outdata.new(key, SDobject[key][...], type=pycdf.const.CDF_TIME_TT2000)
                 else:
                     try:
                         outdata[key] = SDobject[key]
