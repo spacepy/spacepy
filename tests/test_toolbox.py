@@ -132,8 +132,8 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = [0.26179938779914941, 0.52359877559829882]
         numpy.testing.assert_almost_equal(val, ans)
 
-    def test_interpol(self):
-        """interpol should give known results"""
+    def test_interpol_baddata(self):
+        """interpol should give known results in presence of fill values"""
         ans = array([ 0.5,  1.5,  2.5,  3.5,  4.5])
         x = numpy.arange(10)
         y = numpy.arange(10)
@@ -145,6 +145,9 @@ class SimpleFunctionTests(unittest.TestCase):
         #test with baddata at end of array
         ans = array([1.0, 9.0])
         numpy.testing.assert_equal(ans, tb.interpol([-1,12], x, y, baddata=0))
+
+    def test_interpol_keywords(self):
+        """Interpol should give known results with hour and lon keyword wrapping"""
         # test wrap hour
         y = list(range(24))*2
         x = list(range(len(y)))
@@ -163,6 +166,9 @@ class SimpleFunctionTests(unittest.TestCase):
         real_ans = numpy.ma.masked_array([1.5, 10.5, 10.5],
             mask = False, fill_value = 1e+20)
         numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 370.5], x, y)) # as a regression don't need wrap
+
+    def test_interpol_arb(self):
+        """Interpol should give known results for arbitrary float/int wrapping"""
         # test wrap arb
         y = list(range(14))*2
         x = list(range(len(y)))
@@ -170,6 +176,15 @@ class SimpleFunctionTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 13.5], x, y, wrap=14).compressed())
         real_ans = [1.5, 10.5, 1.5]
         numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 15.5], x, y)) # as a regression don't need wrap
+        # and test wrap with a float
+        real_ans = [1.5, 10.5, 13.5]
+        numpy.testing.assert_almost_equal(real_ans, tb.interpol([1.5, 10.5, 13.5], x, y, wrap=14.0).compressed())
+        # test wrap lon using 360.0 as input
+        y = list(range(360))*2
+        x = list(range(len(y)))
+        real_ans = numpy.ma.masked_array([1.5, 10.5, 359.5],
+            mask = False, fill_value = 1e+20)
+        numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap=360.0))
 
     def test_normalize(self):
         """normalize should give known results"""

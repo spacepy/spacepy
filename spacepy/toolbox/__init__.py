@@ -26,6 +26,7 @@ import re
 import subprocess
 import sys
 import time
+import numbers
 import warnings
 import zipfile
 
@@ -1630,7 +1631,7 @@ def interpol(newx, x, y, wrap=None, **kwargs):
         newy = wrap_interp(newx, x.compressed(), y.compressed(), 24)
     elif wrap=='lon':
         newy = wrap_interp(newx, x.compressed(), y.compressed(), 360)
-    elif type(wrap)==int:
+    elif isinstance(wrap, numbers.Real):
         newy = wrap_interp(newx, x.compressed(), y.compressed(), wrap)
     else:
         newy = np.interp(newx, x.compressed(), y.compressed(), **kwargs)
