@@ -219,7 +219,7 @@ class Ticktock(collections.MutableSequence):
                     dtype = 'CDF'
                 assert dtype.upper() in keylist_upper, "data type " + dtype +" not provided, only "+str(self._keylist)
             else:
-                #TODO: process input data using callable dtype to convert to datetime/UTC
+                #process input data using callable dtype to convert to datetime/UTC
                 dtype_func = np.vectorize(dtype)
                 self.data = dtype_func(self.data)
                 self.UTC = self.data
@@ -233,11 +233,9 @@ class Ticktock(collections.MutableSequence):
             self.data.attrs['dtype'] = str(dtype_func) 
         else:
             if dtype.upper() == 'ISO':
-                if self.data[0].find('Z'):
+                if self.data[0].find('Z'): #remove timezones
                     for i in range(len(self.data)):
                         self.data[i] = self.data[i].split('Z')[0]
-                if self.data[0].find('T') == -1: # then assume midnight
-                    self.data = spacepy.datamodel.dmarray([el + 'T00:00:00' for el in self.data], attrs={'dtype': dtype.upper()})
                 self.ISO = self.data
             self.update_items(self, 'data')
             if dtype.upper() == 'TAI': self.TAI = self.data
@@ -1550,7 +1548,7 @@ def doy2date(year, doy, dtobj=False, flAns=False):
 
 
 # -----------------------------------------------
-def tickrange(start, end, deltadays, dtype='UTC'):
+def tickrange(start, end, deltadays, dtype=None):
     """
     return a Ticktock range given the start, end, and delta
 
@@ -1596,7 +1594,6 @@ def tickrange(start, end, deltadays, dtype='UTC'):
         nticks = int((dmusec + dsec + diff.days)/float(deltadays) + 1)
         trange = [Tstart.UTC[0] + datetime.timedelta(days=deltadays)*n for n in range(nticks)]
     ticks = Ticktock(trange, 'UTC')
-    ticks = eval('Ticktock(ticks.'+dtype+',"'+dtype+'")')
     return ticks
 
 

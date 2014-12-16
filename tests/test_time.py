@@ -97,6 +97,13 @@ class TimeFunctionTests(unittest.TestCase):
             ans = t.tickrange(*val)
             numpy.testing.assert_equal(real_ans[i], ans.ISO)
 
+    def test_tickrange3(self):
+        """tickrange should return a known value for known input (test for bug #64 on SF tracker)"""
+        inval = ('2009-01-01', '2010-12-31 23:00', datetime.timedelta(hours=1))
+        real_ans = datetime.datetime(2010,12,31,23)
+        ans = t.tickrange(*inval)
+        numpy.testing.assert_equal(real_ans, ans.UTC[-1])
+
     def test_sec2hms(self):
         """sec2hms should return a known value for known input"""
         inval = ( (30, False, False),
