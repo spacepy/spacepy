@@ -11,9 +11,14 @@ Los Alamos National Laboratory
 Copyright 2010 - 2013 Los Alamos National Security, LLC.
 """
 
-#pip force-imports setuptools, in which case need to use its versions
+#pip force-imports setuptools, on INSTALL, so then need to use its versions
+#but on reading the egg info, it DOESN'T force-import, assumes you are using
+import sys
+if 'pip-egg-info' in sys.argv:
+    import setuptools
 use_setuptools = "setuptools" in globals()
-import os, sys, shutil, getopt, glob, re
+
+import os, shutil, getopt, glob, re
 import subprocess
 from distutils.core import setup
 from distutils.command.build import build as _build
