@@ -643,8 +643,20 @@ class install(_install):
             bad = True
         if not bad:
             print('Dependencies OK.')
-        _install.run(self)
+        if use_setuptools:
+            #This is terrible, but setuptools dies on the extra layer of 
+            #indirection, so have to put its tests here.
+            #If we stop overriding run(), this does go away, tempting!
+#http://stackoverflow.com/questions/21915469/python-setuptools-install-requires-is-ignored-when-overriding-cmdclass
+#http://stackoverflow.com/questions/20194565/running-custom-setuptools-build-during-install/20196065#20196065
+            if self.old_and_unmanageable or self.single_version_externally_managed:
+                retval= _install.run(self)
+            else:
+                retval = self.do_egg_install()
+        else:
+            retval = _install.run(self)
         delete_old_files(self.install_lib)
+        return retval
 
     def get_outputs(self):
         """Tell distutils about files we put in build by hand"""
@@ -762,34 +774,44 @@ packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
 
+setup_kwargs = {
+    'name': 'spacepy',
+    'version': '0.1.4',
+    'description': 'SpacePy: Tools for Space Science Applications',
+    'long_description': 'SpacePy: Tools for Space Science Applications',
+    'author': 'Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
+    'author_email': 'spacepy@lanl.gov',
+    'url': 'http://www.spacepy.lanl.gov',
+    'requires': ['numpy', 'scipy', 'matplotlib (>=0.99)', 'h5py', 'python (>=2.6, !=3.0)'],
+    'packages': packages,
+    'package_data': {'spacepy': package_data},
+    'classifiers': [
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Science/Research',
+        'License :: OSI-Approved Open Source :: Python Software Foundation License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python',
+        'Topic :: Scientific/Engineering :: Physics',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ],
+    'license':  'PSF',
+    'platforms':  ['Windows', 'Linux', 'MacOS X', 'Unix'],
+    'cmdclass': {'build': build,
+              'install': install,
+              'bdist_wininst': bdist_wininst,
+              'sdist': sdist,
+          },
+    'distclass': Distribution,
+}
+
+if use_setuptools:
+#Sadly the format here is DIFFERENT than the distutils format
+#This ALSO needs to be in spacepy.egg-info/requires.txt
+    setup_kwargs['install_requires'] = [
+        'numpy', 'scipy', 'matplotlib>=0.99', 'h5py',
+        'python>=2.6,!=3.0',]
+
 # run setup from distutil
-setup(name='spacepy',
-      version='0.1.4',
-      description='SpacePy: Tools for Space Science Applications',
-      long_description='SpacePy: Tools for Space Science Applications',
-      author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
-      author_email='spacepy@lanl.gov',
-      url='http://www.spacepy.lanl.gov',
-      requires=['numpy','scipy','matplotlib (>=0.99)'],
-      packages=packages,
-      package_data={'spacepy': package_data},
-      classifiers=[
-          'Development Status :: 4 - Beta',
-          'Intended Audience :: Science/Research',
-          'License :: OSI-Approved Open Source :: Python Software Foundation License',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: POSIX',
-          'Operating System :: POSIX :: Linux',
-          'Programming Language :: Python',
-          'Topic :: Scientific/Engineering :: Physics',
-          'Topic :: Software Development :: Libraries :: Python Modules'
-          ],
-      license = 'PSF',
-      platforms = ['Windows', 'Linux', 'MacOS X', 'Unix'],
-      cmdclass={'build': build,
-                'install': install,
-                'bdist_wininst': bdist_wininst,
-                'sdist': sdist,
-                },
-      distclass=Distribution,
-      )
+setup(**setup_kwargs)
