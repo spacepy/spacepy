@@ -825,10 +825,19 @@ setup_kwargs = {
 
 if use_setuptools:
 #Sadly the format here is DIFFERENT than the distutils format
-#This ALSO needs to be in spacepy.egg-info/requires.txt
     setup_kwargs['install_requires'] = [
-        'numpy', 'scipy', 'matplotlib>=0.99', 'h5py',
-        'python>=2.6,!=3.0',]
+        'numpy>=1.4',
+        #Probably pessimistic, but I KNOW 0.7 works
+        'scipy>=0.7',
+        'matplotlib>=0.99',
+        'h5py',
+        #3.0 might work but really haven't tried
+        'python>=2.6,!=3.0',
+        'ffnet',
+        #ffnet needs networkx but not marked as requires, so to get it via pip
+        #we need to ask for it ourselves
+        'networkx',
+    ]
 
 # run setup from distutil
 setup(**setup_kwargs)
