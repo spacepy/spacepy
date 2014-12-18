@@ -57,9 +57,8 @@ In the version folder, click on the "i" next to .tar.gz; set as default for BSD,
 
 Log in to pypi.python.org
 Click on "SpacePy" under "your packages"
-Open "show" link for previous version in another window--you will need to copy this all!
 Now click "package submission"--yes, it's as if it's new
-Copy/paste all that junk over (NB: PKG-INFO file should be good now!)
+Upload PKG-INFO from the source distribution tarball (there's a browse button, and then "add package information" DIRECTLY under that)
 hide the release until it's propagated out
 upload the zip file for the latest documentation
 (go to https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=SpacePy and click on "Upload Documentation", basically the same zip file as goes on LANL page)

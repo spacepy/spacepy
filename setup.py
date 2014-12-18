@@ -797,7 +797,7 @@ setup_kwargs = {
     'classifiers': [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
-        'License :: OSI-Approved Open Source :: Python Software Foundation License',
+        'License :: OSI Approved :: Python Software Foundation License',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
