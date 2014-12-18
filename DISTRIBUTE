@@ -62,6 +62,9 @@ Now click "package submission"--yes, it's as if it's new
 Copy/paste all that junk over
 hide the release until it's propagated out
 upload the zip file for the latest documentation
+(go to https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=SpacePy and click on "Upload Documentation", basically the same zip file as goes on LANL page)
+Same page, file, upload a source distribution.
+Testing pip installation: see https://wiki.python.org/moin/TestPyPI
 
 TODO/flesh out:
 Put CHANGELOG on website?
