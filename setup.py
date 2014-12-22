@@ -831,8 +831,6 @@ if use_setuptools:
         'scipy>=0.7',
         'matplotlib>=0.99',
         'h5py',
-        #3.0 might work but really haven't tried
-        'python>=2.6,!=3.0',
         'ffnet',
         #ffnet needs networkx but not marked as requires, so to get it via pip
         #we need to ask for it ourselves
