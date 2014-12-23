@@ -1,5 +1,5 @@
-Changes in Version 0.1.5
-========================
+Changes in Version 0.1.5 (2014-12-23)
+=====================================
 - Python 3 support
 - documentation updates across many packages
 - installer should work better w/pip

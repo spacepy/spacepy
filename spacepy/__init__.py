@@ -127,34 +127,34 @@ dmarray = datamodel.dmarray
 SpaceData = datamodel.SpaceData
 
 #package info
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __author__ = 'The SpacePy Team'
 __team__ = ['Steve Morley', 'Josef Koller', 'Dan Welling', 'Brian Larsen', 'Jon Niehof', 'Mike Henderson']
 __contact__ = 'spacepy@lanl.gov'
 __license__ = """SpacePy: Space Science Tools for Python
 
 
-Copyright 2010-2013 Los Alamos National Security, LLC.
+Copyright 2010-2014 Los Alamos National Security, LLC.
 All Rights Reserved.
 
  This material was produced under U.S. Government contract DE-AC52-06NA25396 for Los Alamos National Laboratory (LANL), which is operated by Los Alamos National Security, LLC for the U.S. Department of Energy. The U.S. Government has rights to use, reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE
 
 
- 1. This LICENSE AGREEMENT is between the Los Alamos National Security, LLC ("LANS"), and the Individual or Organization ("Licensee") accessing and otherwise using SpacePy 0.1.4 software in source or binary form and its associated documentation.
+ 1. This LICENSE AGREEMENT is between the Los Alamos National Security, LLC ("LANS"), and the Individual or Organization ("Licensee") accessing and otherwise using SpacePy 0.1.5 software in source or binary form and its associated documentation.
 
- 2. Subject to the terms and conditions of this License Agreement, LANS hereby grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce, analyze, test, perform and/or display publicly, prepare derivative works, distribute, and otherwise use SpacePy 0.1.4 alone or in any derivative version, provided, however, that LANS' License Agreement and LANS' notice of copyright, i.e., "Copyright (c) 2010 Los Alamos National Security, LLC; All Rights Reserved" are retained in SpacePy 0.1.4 alone or in any derivative version prepared by Licensee.
+ 2. Subject to the terms and conditions of this License Agreement, LANS hereby grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce, analyze, test, perform and/or display publicly, prepare derivative works, distribute, and otherwise use SpacePy 0.1.5 alone or in any derivative version, provided, however, that LANS' License Agreement and LANS' notice of copyright, i.e., "Copyright (c) 2010-2014 Los Alamos National Security, LLC; All Rights Reserved" are retained in SpacePy 0.1.5 alone or in any derivative version prepared by Licensee.
 
- 3. In the event Licensee prepares a derivative work that is based on or incorporates SpacePy 0.1.4 or any part thereof, and wants to make the derivative work available to others as provided herein, then Licensee hereby agrees to include in any such work a brief summary of the changes made to SpacePy 0.1.4.
+ 3. In the event Licensee prepares a derivative work that is based on or incorporates SpacePy 0.1.5 or any part thereof, and wants to make the derivative work available to others as provided herein, then Licensee hereby agrees to include in any such work a brief summary of the changes made to SpacePy 0.1.5.
 
- 4. LANS is making SpacePy 0.1.4 available to Licensee on an "AS IS" basis. LANS MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED. BY WAY OF EXAMPLE, BUT NOT LIMITATION, LANS MAKES NO AND DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF SPACEPY 0.1.4 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
+ 4. LANS is making SpacePy 0.1.5 available to Licensee on an "AS IS" basis. LANS MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED. BY WAY OF EXAMPLE, BUT NOT LIMITATION, LANS MAKES NO AND DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF SPACEPY 0.1.5 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
 
- 5. LANS SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF SPACEPY 0.1.4 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING SPACEPY 0.1.4, OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+ 5. LANS SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF SPACEPY 0.1.5 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING SPACEPY 0.1.5, OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
 
  6. This License Agreement will automatically terminate upon a material breach of its terms and conditions.
 
  7. Nothing in this License Agreement shall be deemed to create any relationship of agency, partnership, or joint venture between LANS and Licensee. This License Agreement does not grant permission to use LANS trademarks or trade name in a trademark sense to endorse or promote products or services of Licensee, or any third party.
 
- 8. By copying, installing or otherwise using SpacePy 0.1.4, Licensee agrees to be bound by the terms and conditions of this License Agreement.
+ 8. By copying, installing or otherwise using SpacePy 0.1.5, Licensee agrees to be bound by the terms and conditions of this License Agreement.
 
  The modified version of IRBEMlib distributed with SpacePy is covered by the Lesser GNU Public License (LGPL).
 

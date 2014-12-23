@@ -8,7 +8,7 @@ Authors
 The SpacePy Team
 Los Alamos National Laboratory
 
-Copyright 2010 - 2013 Los Alamos National Security, LLC.
+Copyright 2010 - 2014 Los Alamos National Security, LLC.
 """
 
 #pip force-imports setuptools, on INSTALL, so then need to use its versions
@@ -781,7 +781,7 @@ package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
 
 setup_kwargs = {
     'name': 'spacepy',
-    'version': '0.1.4',
+    'version': '0.1.5',
     'description': 'SpacePy: Tools for Space Science Applications',
     'long_description': 'SpacePy: Tools for Space Science Applications',
     'author': 'SpacePy team',
