@@ -1,4 +1,4 @@
-Building spacepy for distribution (20120622)
+Building spacepy for distribution (20141223)
 ============================================
 Since this has to happen on multiple platforms, a single script doesn't work.
 
@@ -39,14 +39,12 @@ In here should go:
 -html documentation spacepy-VER-html_docs.zip. Rooted at build/html.
 (DOUBLE CHECK PERMISSIONS)
 (in Doc/build/html, zip -r spacepy-VER-html_docs.zip *)
-Edit repository.shtml, copy previous version and edit.
-Edit download.shtml and update the version number
 Unzip the new docs into doc-VER
 Move old docs (doc) to doc-OLDVER
 Move new docs to doc
 Copy new pdf docs into doc, named SpacePy.pdf
 (DOUBLE CHECK PERMISSIONS ON DOCS)
-edit cgi-bin/register.py, replace old version with new version
+Put latest CHANGELOG in top level directory of site
 
 Now get the latest on sourceforge:
 log in, click on files
@@ -57,14 +55,11 @@ In the version folder, click on the "i" next to .tar.gz; set as default for BSD,
 
 Log in to pypi.python.org
 Click on "SpacePy" under "your packages"
-Now click "package submission"--yes, it's as if it's new
-Upload PKG-INFO from the source distribution tarball (there's a browse button, and then "add package information" DIRECTLY under that)
+Now click "edit" (top bar)
+EDIT PKG-INFO from the source distribution tarball, put "Name" field into CamelCase (this should probably be fixed in the installer, or make it not camelcase on pypi)
+Upload PKG-INFO (there's a browse button, and then "add package information" DIRECTLY under that)
 hide the release until it's propagated out
 upload the zip file for the latest documentation
 (go to https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=SpacePy and click on "Upload Documentation", basically the same zip file as goes on LANL page)
 Same page, file, upload a source distribution.
 Testing pip installation: see https://wiki.python.org/moin/TestPyPI
-
-TODO/flesh out:
-Put CHANGELOG on website?
-
