@@ -788,7 +788,7 @@ setup_kwargs = {
     'author_email': 'spacepy@lanl.gov',
     'maintainer': 'Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
     'maintainer_email': 'spacepy@lanl.gov',
-    'url': 'http://www.spacepy.lanl.gov',
+    'url': 'http://spacepy.lanl.gov',
 #download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
 #    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
     'requires': ['numpy', 'scipy', 'matplotlib (>=0.99)', 'h5py', 'python (>=2.6, !=3.0)'],
