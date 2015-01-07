@@ -8,12 +8,17 @@ Authors
 The SpacePy Team
 Los Alamos National Laboratory
 
-Copyright 2010 - 2013 Los Alamos National Security, LLC.
+Copyright 2010 - 2014 Los Alamos National Security, LLC.
 """
 
-#pip force-imports setuptools, in which case need to use its versions
+#pip force-imports setuptools, on INSTALL, so then need to use its versions
+#but on reading the egg info, it DOESN'T force-import, assumes you are using
+import sys
+if 'pip-egg-info' in sys.argv:
+    import setuptools
 use_setuptools = "setuptools" in globals()
-import os, sys, shutil, getopt, glob, re
+
+import os, shutil, getopt, glob, re
 import subprocess
 from distutils.core import setup
 from distutils.command.build import build as _build
@@ -234,6 +239,23 @@ def rebuild_static_docs(dist=None, pythondir=None):
         os.chdir('..')
 
 
+#Possible names of the irbem output library. Unfortunately this seems
+#to depend on Python version, f2py version, and phase of the moon
+def get_irbem_libfiles():
+    libfiles = ['irbempylib' + ext for ext in
+                (distutils.sysconfig.get_config_var('SO'),
+                 distutils.sysconfig.get_config_var('EXT_SUFFIX'))
+                if ext]
+    if len(libfiles) < 2: #did we get just the ABI-versioned one?
+        abi = distutils.sysconfig.get_config_var('SOABI')
+        if abi and libfiles[0].startswith('irbempylib.' + abi):
+            libfiles.append('irbempylib' +
+                            libfiles[0][(len('irbempylib.') + len(abi)):])
+    if len(libfiles) == 2 and libfiles[0] == libfiles[1]:
+        del libfiles[0]
+    return libfiles
+
+
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
 
@@ -271,17 +293,7 @@ class build(_build):
                               'spacepy', 'irbempy')
         #Possible names of the output library. Unfortunately this seems
         #to depend on Python version, f2py version, and phase of the moon
-        libfiles = ['irbempylib' + ext for ext in
-                    (distutils.sysconfig.get_config_var('SO'),
-                     distutils.sysconfig.get_config_var('EXT_SUFFIX'))
-                    if ext]
-        if len(libfiles) < 2: #did we get just the ABI-versioned one?
-            abi = distutils.sysconfig.get_config_var('SOABI')
-            if abi and libfiles[0].startswith('irbempylib.' + abi):
-                libfiles.append('irbempylib' +
-                                libfiles[0][(len('irbempylib.') + len(abi)):])
-        if len(libfiles) == 2 and libfiles[0] == libfiles[1]:
-            del libfiles[0]
+        libfiles = get_irbem_libfiles()
         #Delete any irbem extension modules from other versions
         for f in glob.glob(os.path.join(outdir, 'irbempylib*')):
             if not os.path.basename(f) in libfiles:
@@ -636,8 +648,48 @@ class install(_install):
             bad = True
         if not bad:
             print('Dependencies OK.')
-        _install.run(self)
+        if use_setuptools:
+            #This is terrible, but setuptools dies on the extra layer of 
+            #indirection, so have to put its tests here.
+            #If we stop overriding run(), this does go away, tempting!
+#http://stackoverflow.com/questions/21915469/python-setuptools-install-requires-is-ignored-when-overriding-cmdclass
+#http://stackoverflow.com/questions/20194565/running-custom-setuptools-build-during-install/20196065#20196065
+            if self.old_and_unmanageable or self.single_version_externally_managed:
+                retval= _install.run(self)
+            else:
+                retval = self.do_egg_install()
+        else:
+            retval = _install.run(self)
         delete_old_files(self.install_lib)
+        return retval
+
+    def get_outputs(self):
+        """Tell distutils about files we put in build by hand"""
+        outputs = _install.get_outputs(self)
+        docs = [
+            os.path.join(
+                self.install_libbase, dirpath[len(self.build_lib) + 1:], f)
+            for (dirpath, dirnames, filenames)
+            in os.walk(os.path.join(self.build_lib, 'spacepy', 'Doc'))
+            for f in filenames]
+        #This is just so we know what a shared library is called
+        comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
+        if hasattr(distutils.ccompiler, 'customize_compiler'):
+            distutils.ccompiler.customize_compiler(comp)
+        else:
+            distutils.sysconfig.customize_compiler(comp)
+        libspacepy = os.path.join(
+            'spacepy', comp.library_filename('spacepy', lib_type='shared'))
+        if os.path.exists(os.path.join(self.build_lib, libspacepy)):
+            spacepylibs = [os.path.join(self.install_libbase, libspacepy)]
+        else:
+            spacepylibs = []
+        irbemlibfiles = [os.path.join('spacepy', 'irbempy', f)
+                         for f in get_irbem_libfiles()]
+        irbemlibs = [
+            os.path.join(self.install_libbase, f) for f in irbemlibfiles
+            if os.path.exists(os.path.join(self.build_lib, f))]
+        return outputs + docs + spacepylibs + irbemlibs
 
 
 class bdist_wininst(_bdist_wininst):
@@ -727,30 +779,63 @@ packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
 
+setup_kwargs = {
+    'name': 'spacepy',
+    'version': '0.1.5',
+    'description': 'SpacePy: Tools for Space Science Applications',
+    'long_description': 'SpacePy: Tools for Space Science Applications',
+    'author': 'SpacePy team',
+    'author_email': 'spacepy@lanl.gov',
+    'maintainer': 'Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
+    'maintainer_email': 'spacepy@lanl.gov',
+    'url': 'http://spacepy.lanl.gov',
+#download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
+#    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
+    'requires': ['numpy', 'scipy', 'matplotlib (>=0.99)', 'h5py', 'python (>=2.6, !=3.0)'],
+    'packages': packages,
+    'package_data': {'spacepy': package_data},
+    'classifiers': [
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: Python Software Foundation License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: C',
+        'Programming Language :: Fortran',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Topic :: Scientific/Engineering :: Astronomy',
+        'Topic :: Scientific/Engineering :: Atmospheric Science',
+        'Topic :: Scientific/Engineering :: Physics',
+        'Topic :: Scientific/Engineering :: Visualization',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ],
+    'keywords': ['magnetosphere', 'plasma', 'physics', 'space', 'solar.wind', 'space.weather', 'magnetohydrodynamics'],
+    'license':  'PSF',
+    'platforms':  ['Windows', 'Linux', 'MacOS X', 'Unix'],
+    'cmdclass': {'build': build,
+              'install': install,
+              'bdist_wininst': bdist_wininst,
+              'sdist': sdist,
+          },
+    'distclass': Distribution,
+}
+
+if use_setuptools:
+#Sadly the format here is DIFFERENT than the distutils format
+    setup_kwargs['install_requires'] = [
+        'numpy>=1.4',
+        #Probably pessimistic, but I KNOW 0.7 works
+        'scipy>=0.7',
+        'matplotlib>=0.99',
+        'h5py',
+        'ffnet',
+        #ffnet needs networkx but not marked as requires, so to get it via pip
+        #we need to ask for it ourselves
+        'networkx',
+    ]
+
 # run setup from distutil
-setup(name='spacepy',
-      version='0.1.4',
-      description='SpacePy: Tools for Space Science Applications',
-      author='Steve Morley, Josef Koller, Dan Welling, Brian Larsen, Mike Henderson, Jon Niehof',
-      author_email='spacepy@lanl.gov',
-      url='http://www.spacepy.lanl.gov',
-      requires=['numpy','scipy','matplotlib (>=0.99)'],
-      packages=packages,
-      package_data={'spacepy': package_data},
-      classifiers=[
-          'Development Status :: 4 - Beta',
-          'Intended Audience :: Science/Research',
-          'License :: OSI-Approved Open Source :: Python Software Foundation License',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: POSIX',
-          'Programming Language :: Python',
-          'Topic :: Scientific/Engineering :: Physics',
-          'Topic :: Software Development :: Libraries :: Python Modules'
-          ],
-      cmdclass={'build': build,
-                'install': install,
-                'bdist_wininst': bdist_wininst,
-                'sdist': sdist,
-                },
-      distclass=Distribution,
-      )
+setup(**setup_kwargs)

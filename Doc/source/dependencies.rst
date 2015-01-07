@@ -44,12 +44,16 @@ Soft Dependencies
 Without these packages, SpacePy will install, but certain features may
 not be available. Usually an ImportError means a dependency is missing.
 
+These are simply marked as dependencies in SpacePy metadata and thus
+will be automatically installed when using dependency-resolving
+methods such as pip.
+
 SciPy
 -----
 `SciPy <http://www.scipy.org/>`_ provides several useful scientific
 and numerical functions build on top of NumPy.  It is highly
-recommended. The following modules may have limited functionality
-without SciPy:
+recommended. Version 0.7.0 or later should suffice. The following
+modules may have limited functionality without SciPy:
 
     * :mod:`~spacepy.empiricals`
     * :mod:`~spacepy.seapy`
@@ -100,6 +104,10 @@ NASA's `CDF <http://cdf.gsfc.nasa.gov/>`_ library provides access to
 Common Data Format files. It is required for :mod:`~spacepy.pycdf`,
 and thus for the CDF import/export capability of
 :mod:`~spacepy.datamodel`.
+
+.. warning::
+    Unlike the Python-based dependencies, the CDF library must be installed
+    in all cases; it will not be automatically installed.
 
 Fortran compiler
 ----------------

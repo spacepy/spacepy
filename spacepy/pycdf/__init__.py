@@ -49,16 +49,16 @@ sessions; use ``.cshrc`` or ``.bashrc`` instead.
 
 Authors: Jon Niehof
 
-Institution: Los Alamos National Laboratory
+Institution: University of New Hampshire
 
-Contact: jniehof@lanl.gov
+Contact: Jonathan.Niehof@unh.edu
 
 
-Copyright 2010-2013 Los Alamos National Security, LLC.
+Copyright 2010-2015 Los Alamos National Security, LLC.
 
 """
 
-__contact__ = 'Jon Niehof, jniehof@lanl.gov'
+__contact__ = 'Jon Niehof, Jonathan.Niehof@unh.edu'
 
 import collections
 import ctypes
@@ -436,7 +436,8 @@ class Library(object):
         #CDF_BASE is usually a subdir of these (with "cdf" in the name)
         #Searched in order given here!
         cdfdists = { 'win32': ['c:\\CDF Distribution\\'],
-                    'darwin': ['/Applications/', os.path.expanduser('~')],
+                    'darwin': ['/Applications/', '/usr/local/',
+                               os.path.expanduser('~')],
                     'linux2': ['/usr/local/', os.path.expanduser('~')],
                     'linux': ['/usr/local/', os.path.expanduser('~')],
                     }
@@ -1680,6 +1681,11 @@ class CDF(collections.MutableMapping):
         data : boolean (optional)
             Copy data, or only type, dimensions, variance, attributes?
             (default: True, copy data as well)
+
+        Returns
+        =======
+        out : :py:class:`Var`
+            The newly-created zVar in this CDF
         """
         if name is None:
             name = zVar.name()
@@ -1695,6 +1701,7 @@ class CDF(collections.MutableMapping):
             zVar._raw = True
             self.raw_var(name)[...] = zVar[...]
             zVar._raw = r
+        return zVar
 
     def col_major(self, new_col=None):
         """
