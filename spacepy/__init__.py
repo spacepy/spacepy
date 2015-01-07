@@ -241,6 +241,10 @@ def _read_config(rcfile):
     for k in caster:
         config[k] = caster[k](config[k])
 
+if __version__ == 'UNRELEASED':
+    print('This unreleased version of SpacePy is not supported '
+          'by the SpacePy team.')
+
 if 'SPACEPY' in os.environ:
     DOT_FLN = os.path.join(os.environ['SPACEPY'], '.spacepy')
 else:
