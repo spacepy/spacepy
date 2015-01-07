@@ -1681,6 +1681,11 @@ class CDF(collections.MutableMapping):
         data : boolean (optional)
             Copy data, or only type, dimensions, variance, attributes?
             (default: True, copy data as well)
+
+        Returns
+        =======
+        out : :py:class:`Var`
+            The newly-created zVar in this CDF
         """
         if name is None:
             name = zVar.name()
@@ -1696,6 +1701,7 @@ class CDF(collections.MutableMapping):
             zVar._raw = True
             self.raw_var(name)[...] = zVar[...]
             zVar._raw = r
+        return zVar
 
     def col_major(self, new_col=None):
         """
