@@ -1,7 +1,14 @@
-Changes in Version 0.1.5
-========================
+Changes in Version 0.1.6 (2015-xx-xx)
+=====================================
+pycdf
+ - on OSX, search more paths for the CDF library
+ - CDF.clone() now returns the new variable
+	
+Changes in Version 0.1.5 (2014-12-23)
+=====================================
 - Python 3 support
 - documentation updates across many packages
+- installer should work better w/pip
 - minor bugfixes throughout
 datamodel
  - fromHDF5 now reads most netCDF4 and MatLab (v7.3+; r2011b onward) save files
