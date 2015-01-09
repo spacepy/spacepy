@@ -593,76 +593,6 @@ class install(_install):
         _install.finalize_options(self)
         finalize_compiler_options(self)
 
-    def run(self):
-        """Does all checks, perform install, makes .spacepy directory"""
-        #test for python version 2.x where x>=6
-        try:
-            print('Checking Python >= 2.6...')
-            dum = sys.version_info
-            assert (dum[0] >= 2) or (dum[0] == 2 and dum[1] >= 6)
-        except:
-            raise Exception("""SpacePy requires Python 2.X, where X>=6.\n
-            Numpy, Scipy and Matplotlib(>=0.99) are also required\n
-            Please install suitable versions.""")
-        try:
-            print('Checking for dateutil...')
-            import dateutil
-        except:
-            raise Exception("""SpacePy requires dateutil.\n
-            matplotlib is the recommended way of meeing this requirement.""")
-        bad = False
-        try:
-            print ('Checking for scipy...')
-            import scipy
-            print ('Checking for matplotlib...')
-            import matplotlib
-            assert matplotlib.compare_versions(
-                matplotlib.__version__, '0.99.0')
-        except:
-            self.distribution.add_warning(
-                'SciPy and matplotlib were not found. '
-                'They are required for large parts of SpacePy.')
-            bad = True
-        try:
-            print ('Checking for h5py...')
-            import h5py
-        except:
-            self.distribution.add_warning(
-                'h5py not found; required for parts of datamodel.')
-            bad = True
-        try:
-            print ('Checking for networkx...')
-            import networkx
-        except:
-            wtext = 'networkx not found; required for LANLstar.\n' + \
-                    '  - see http://networkx.github.com/'
-            self.distribution.add_warning(wtext)
-            bad = True
-        try:
-            print ('Checking for ffnet...')
-            import ffnet
-        except:
-            wtext = 'ffnet not found; required for LANLstar.\n' + \
-                    '  - see http://ffnet.sourceforge.net/install.html'
-            self.distribution.add_warning(wtext)
-            bad = True
-        if not bad:
-            print('Dependencies OK.')
-        if use_setuptools:
-            #This is terrible, but setuptools dies on the extra layer of 
-            #indirection, so have to put its tests here.
-            #If we stop overriding run(), this does go away, tempting!
-#http://stackoverflow.com/questions/21915469/python-setuptools-install-requires-is-ignored-when-overriding-cmdclass
-#http://stackoverflow.com/questions/20194565/running-custom-setuptools-build-during-install/20196065#20196065
-            if self.old_and_unmanageable or self.single_version_externally_managed:
-                retval= _install.run(self)
-            else:
-                retval = self.do_egg_install()
-        else:
-            retval = _install.run(self)
-        delete_old_files(self.install_lib)
-        return retval
-
     def get_outputs(self):
         """Tell distutils about files we put in build by hand"""
         outputs = _install.get_outputs(self)
@@ -791,7 +721,8 @@ setup_kwargs = {
     'url': 'http://spacepy.lanl.gov',
 #download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
 #    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
-    'requires': ['numpy', 'scipy', 'matplotlib (>=0.99)', 'h5py', 'python (>=2.6, !=3.0)'],
+    'requires': ['numpy', 'scipy', 'matplotlib (>=0.99)', 'python_dateutil',
+                 'h5py', 'python (>=2.6, !=3.0)'],
     'packages': packages,
     'package_data': {'spacepy': package_data},
     'classifiers': [
@@ -835,6 +766,7 @@ if use_setuptools:
         #ffnet needs networkx but not marked as requires, so to get it via pip
         #we need to ask for it ourselves
         'networkx',
+        'python_dateutil',
     ]
 
 # run setup from distutil
