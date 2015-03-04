@@ -98,9 +98,6 @@ class Coords(object):
             dtype = 'SPH'
         self.sysaxes = typedict[dtype][carsph]
 
-        if not self.sysaxes:
-            raise NotImplementedError('System {0} is not supported in {1} coordinates'.format(dtype, carsph))
-
         #if self.sysaxes >= 10 and self.sysaxes < 20: #need sph2car
         #    try:
         #        self.data = op.sph2car(self.data)
@@ -131,13 +128,13 @@ class Coords(object):
             self.units = ['km', 'deg', 'deg']
         # setup x,y,z etc
         if carsph == 'car':
-            self.x = self.data[:, 0]
-            self.y = self.data[:, 1]
-            self.z = self.data[:, 2]
+            self.x = spacepy.datamodel.dmcopy(self.data[:, 0])
+            self.y = spacepy.datamodel.dmcopy(self.data[:, 1])
+            self.z = spacepy.datamodel.dmcopy(self.data[:, 2])
         else:
-            self.radi = self.data[:, 0]
-            self.lati = self.data[:, 1]
-            self.long = self.data[:, 2]
+            self.radi = spacepy.datamodel.dmcopy(self.data[:, 0])
+            self.lati = spacepy.datamodel.dmcopy(self.data[:, 1])
+            self.long = spacepy.datamodel.dmcopy(self.data[:, 2])
         ## setup list for onera compatibility
         #self.sysaxes = op.get_sysaxes(dtype, carsph)
         self.shape = np.shape(self.data)
@@ -277,8 +274,8 @@ class Coords(object):
         from spacepy.irbempy import SYSAXES_TYPES as typedict
 
         #check return type/system is supported
-        if not (typedict[returntype][returncarsph]):
-            raise NotImplementedError('System {0} is not supported in {1} coordinates'.format(returntype, returncarsph))
+        #if not (typedict[returntype][returncarsph]):
+        #    raise NotImplementedError('System {0} is not supported in {1} coordinates'.format(returntype, returncarsph))
 
         # no change necessary
         if (self.dtype == returntype) and (self.carsph == returncarsph):
@@ -320,7 +317,7 @@ class Coords(object):
         # now convert to other coordinate system
         if (self.dtype != returntype) :
             assert NewCoords.ticks, "Time information required; add a.ticks attribute"
-            NewCoords.data = op.coord_trans( self, returntype, returncarsph)
+            NewCoords.data = op.coord_trans( NewCoords, returntype, returncarsph)
             NewCoords.dtype = returntype
             NewCoords.carsph = returncarsph
             NewCoords.sysaxes = op.get_sysaxes(returntype, returncarsph)
@@ -331,9 +328,9 @@ class Coords(object):
             for k in ('x', 'y', 'z'):
                 if hasattr(NewCoords, k):
                     delattr(NewCoords, k)
-            NewCoords.radi = self.data[:,0]
-            NewCoords.lati = self.data[:,1]
-            NewCoords.long = self.data[:,2]
+            NewCoords.radi = NewCoords.data[:,0]
+            NewCoords.lati = NewCoords.data[:,1]
+            NewCoords.long = NewCoords.data[:,2]
         else: # 'car'
             NewCoords.units =  [units[0]]*3
             for k in ('radi', 'lati', 'long'):
