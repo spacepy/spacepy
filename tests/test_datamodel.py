@@ -30,7 +30,7 @@ try:
 except:
     import pickle
 
-__all__ = ['SpaceDataTests', 'dmarrayTests', 'converterTests', 'JSONTests']
+__all__ = ['SpaceDataTests', 'dmarrayTests', 'converterTests', 'JSONTests', 'converterTestsCDF']
 
 
 class SpaceDataTests(unittest.TestCase):
@@ -433,6 +433,30 @@ class converterTests(unittest.TestCase):
         d1 = [datetime.datetime(2012,12,21), datetime.datetime(2012,12,22)]
         np.testing.assert_array_equal(['2012-12-21T00:00:00', '2012-12-22T00:00:00'], dm._dateToISO(d1))
 
+class converterTestsCDF(unittest.TestCase):
+    def setUp(self):
+        super(converterTestsCDF, self).setUp()
+        self.SDobj = dm.SpaceData(attrs={'global': 'test'})
+        self.SDobj['var'] = dm.dmarray([1, 2, 3], attrs={'a': 'a'})
+        self.testdir = tempfile.mkdtemp()
+        self.testfile = os.path.join(self.testdir, 'test.cdf')
+        warnings.simplefilter('error', dm.DMWarning)
+
+    def tearDown(self):
+        super(converterTestsCDF, self).tearDown()
+        del self.SDobj
+        if os.path.exists(self.testfile):
+            os.remove(self.testfile)
+        os.rmdir(self.testdir)
+        warnings.simplefilter('default', dm.DMWarning)
+
+    def test_toCDFroundtrip(self):
+        """toCDF should be able to make a file and then read it in the same"""
+        dm.toCDF(self.testfile, self.SDobj)
+        tst = dm.fromCDF(self.testfile)
+        for k in self.SDobj:
+            np.testing.assert_array_equal(self.SDobj[k], tst[k])
+                
 
 class JSONTests(unittest.TestCase):
     def setUp(self):
