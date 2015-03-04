@@ -98,6 +98,9 @@ class Coords(object):
             dtype = 'SPH'
         self.sysaxes = typedict[dtype][carsph]
 
+        if not self.sysaxes:
+            raise NotImplementedError('System {0} is not supported in {1} coordinates'.format(dtype, carsph))
+
         #if self.sysaxes >= 10 and self.sysaxes < 20: #need sph2car
         #    try:
         #        self.data = op.sph2car(self.data)
@@ -271,6 +274,11 @@ class Coords(object):
          [ 0.92060408  2.30678864  1.68262126]] ), dtype=SM,car, units=['Re', 'Re', 'Re']
         """
         from . import irbempy as op
+        from spacepy.irbempy import SYSAXES_TYPES as typedict
+
+        #check return type/system is supported
+        if not (typedict[returntype][returncarsph]):
+            raise NotImplementedError('System {0} is not supported in {1} coordinates'.format(returntype, returncarsph))
 
         # no change necessary
         if (self.dtype == returntype) and (self.carsph == returncarsph):
