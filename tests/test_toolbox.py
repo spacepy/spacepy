@@ -464,7 +464,7 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = [1, 10, 100, 1000]
         numpy.testing.assert_array_equal(tb.geomspace(1, 10, 1000), ans)
         ans = [1, 10.0, 100.0]
-        numpy.testing.assert_array_equal(tb.geomspace(1, stop = 100, num=3), ans)
+        numpy.testing.assert_allclose(tb.geomspace(1, stop = 100, num=3), ans)
         ans = [1, 10, 100]
         numpy.testing.assert_array_equal(tb.geomspace(1, ratio = 10, num=3), ans)
         # there was a rounding issue that this test catches
