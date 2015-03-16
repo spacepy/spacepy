@@ -397,6 +397,9 @@ class NoCDF(unittest.TestCase):
                datetime.datetime(1821, 1, 30, 2, 31, 5, 23000),
                datetime.datetime(2050, 6, 5, 15, 0, 5, 0),
                ]
+        #CDF library bug: some dates don't work on 32-bit
+        if sys.maxsize <= 2 ** 31:
+            dts[1] = datetime.datetime(1945, 1, 30, 2, 31, 5, 23000)
         for dt in dts:
             self.assertEqual(dt, cdf.lib.tt2000_to_datetime(
                 cdf.lib.datetime_to_tt2000(dt)))
