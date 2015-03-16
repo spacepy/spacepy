@@ -61,7 +61,6 @@ class PickleAssembleTests(unittest.TestCase):
 
     def testSaveLoadPickle(self):
         """savePickle should write a pickle to disk and loadPickle should load it"""
-        self.pkl_file = tempfile.mkdtemp()
         tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
         files = glob.glob(os.path.join(self.tempdir, '*.pkl'))
         self.assertTrue(os.path.join(self.tempdir, 'test_pickle_1.pkl') in files)

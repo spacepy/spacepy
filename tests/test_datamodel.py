@@ -595,7 +595,7 @@ class JSONTests(unittest.TestCase):
         #test for added dimension and start col
         self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
         self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
-
+        os.remove(t_file.name)
 
 
 if __name__ == "__main__":
