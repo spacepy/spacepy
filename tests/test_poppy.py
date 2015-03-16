@@ -12,6 +12,7 @@ try:
     import StringIO
 except ImportError:
     import io as StringIO
+import sys
 import unittest
 
 import matplotlib.mlab
@@ -247,6 +248,8 @@ class AssocTests(unittest.TestCase):
         This is a regression test: values are taken from existing
         implementation and assumed correct.
         """
+        if sys.maxsize <= 2 ** 31: #don't test on 32-bit
+            return
         pop = poppy.PPro(self.t1, self.t2)
         lags = [(i - 144) * 120 for i in range(289)]
         pop.assoc(lags, 120)
