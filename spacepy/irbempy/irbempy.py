@@ -1537,8 +1537,8 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
             try:
                 from multiprocessing import Pool
                 pool = Pool(ncpus)
-            except ImportError:
-                ncpus = 1
+            except (ImportError, OSError):
+                ncpus = 1 #if pool setup fails, e.g. Wine, go single
         else:
             ncpus = 1 #won't multiprocess in interactive mode
 
