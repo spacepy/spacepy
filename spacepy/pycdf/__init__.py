@@ -38,12 +38,6 @@ If this works, make the environment setting permanent. Note that on OSX,
 using plists to set the environment may not carry over to Python terminal
 sessions; use ``.cshrc`` or ``.bashrc`` instead.
 
-.. note::
-
-   If the CDF library cannot be found, pycdf will be left in a "half-imported"
-   state. You will need to restart your Python interpreter before trying
-   the fix above.
-
 .. currentmodule:: spacepy.pycdf
 
 
@@ -77,8 +71,8 @@ import numpy
 import numpy.ma
 import spacepy.datamodel
 
-from . import const
-
+#Import const AFTER library loaded, so failed load doesn't leave half-imported
+#from . import const
 
 try:
     str_classes = (str, bytes, unicode)
@@ -211,7 +205,7 @@ class Library(object):
 
        Version of the CDF library, (version, release, increment, subincrement)
     """
-    def __init__(self):
+    def __init__(self, libpath=None):
         """Load the CDF C library.
 
         Searches for the library in the order:
@@ -224,7 +218,8 @@ class Library(object):
         if not 'CDF_TMP' in os.environ:
             os.environ['CDF_TMP'] = tempfile.gettempdir()
 
-        libpath = self._find_lib()
+        if not libpath:
+            libpath = self._find_lib()
         self._library = ctypes.CDLL(libpath)
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long
@@ -394,13 +389,14 @@ class Library(object):
         #Default to V2 CDF
         self.set_backward(True)
 
-    def _find_lib(self):
+    @staticmethod
+    def _find_lib():
         """
         Search for the CDF library
         """
         #What the library might be named
         names = { 'win32': ['dllcdf.dll'],
-                  'darwin': ['libcdf.dylib', 'cdf.dylib'],
+                  'darwin': ['libcdf.dylib', 'cdf.dylib', 'libcdf.so'],
                   'linux2': ['libcdf.so'],
                   'linux': ['libcdf.so'],
                   }
@@ -999,21 +995,24 @@ class Library(object):
 
 
 try:
-    lib = Library()
-    """Module global library object.
-        
-    Initalized at module load time so all classes have ready
-    access to the CDF library and a common state. E.g:
-        >>> from spacepy import pycdf
-        >>> pycdf.lib.version
-            (3, 3, 0, ' ')
-    """
+    _libpath = Library._find_lib()
 except:
     if 'sphinx' in sys.argv[0]:
         warnings.warn('CDF library did not load. '
                       'You appear to be building docs, so ignoring this error.')
     else:
         raise
+from . import const
+lib = Library(_libpath)
+"""Module global library object.
+
+Initalized at module load time so all classes have ready
+access to the CDF library and a common state. E.g:
+    >>> from spacepy import pycdf
+    >>> pycdf.lib.version
+        (3, 3, 0, ' ')
+"""
+
 
 class CDFException(Exception):
     """

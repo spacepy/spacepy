@@ -3,7 +3,9 @@ Changes in Version 0.1.6 (2015-xx-xx)
 pycdf
  - on OSX, search more paths for the CDF library
  - CDF.clone() now returns the new variable
-	
+ - Fix re-import after failure to find the CDF library, can now try the import
+   again without restarting the Python intepreter
+
 Changes in Version 0.1.5 (2014-12-23)
 =====================================
 - Python 3 support
