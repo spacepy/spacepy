@@ -1983,7 +1983,7 @@ class CDF(collections.MutableMapping):
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
         if compress != None:
             new_var.compress(compress, compress_param)
-        if data != None:
+        if data is not None:
             new_var[...] = data
             if hasattr(data, 'attrs'):
                 new_var.attrs.clone(data.attrs)
@@ -4473,7 +4473,7 @@ class AttrList(collections.MutableMapping):
         if name in self:
             raise KeyError(name + ' already exists.')
         attr = self._get_or_create(name)
-        if data != None:
+        if data is not None:
             if self.special_entry is None:
                 attr.new(data, type)
             else:
