@@ -124,6 +124,7 @@ class Library(object):
         v_tt2000_to_datetime
         v_tt2000_to_epoch
         v_tt2000_to_epoch16
+        ~Library.libpath
         ~Library.version
 
     .. automethod:: call
@@ -201,6 +202,14 @@ class Library(object):
         A vectorized version of :meth:`tt2000_to_epoch16` which takes
         a numpy array of tt2000 as input and returns an array of epoch16.
 
+    .. attribute:: libpath
+
+       The path where pycdf found the CDF C library, potentially useful in
+       debugging. If this contains just the name of a file (with no path
+       information), then the system linker found the library for pycdf.
+       On Linux, ``ldconfig -p`` may be useful for displaying the system's
+       library resolution.
+
     .. attribute:: version
 
        Version of the CDF library, (version, release, increment, subincrement)
@@ -220,6 +229,7 @@ class Library(object):
 
         if not libpath:
             libpath = self._find_lib()
+        self.libpath = libpath #hold it for debugging
         self._library = ctypes.CDLL(libpath)
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long

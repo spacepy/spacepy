@@ -6,6 +6,7 @@ pycdf
  - Fix re-import after failure to find the CDF library, can now try the import
    again without restarting the Python intepreter
  - Fix some comparisons that might cause problems with future versions of numpy
+ - Log the path to the CDF library for debugging purposes
 
 Changes in Version 0.1.5 (2014-12-23)
 =====================================
