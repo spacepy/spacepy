@@ -2290,6 +2290,19 @@ class Var(collections.MutableSequence):
     in a variable must have the same dimensions. Similarly, only whole
     records can be deleted.
 
+    .. note::
+        Unusual error messages on writing data usually mean that pycdf is
+        unable to interpret the data as a regular array of a single type
+        matching the type and shape of the variable being written.
+        A 5x4 array is supported; an irregular array where one row has
+        five columns and a different row has six columns is not. Error messages
+        of this type include:
+
+          - ``Data must be well-formed, regular array of number, string, or datetime``
+          - ``setting an array element with a sequence.``
+          - ``shape mismatch: objects cannot be broadcast to a
+            single shape``
+
     For these examples, assume Flux has 100 records and dimensions [2, 3].
     
     Rewrite the first record without changing the rest:
