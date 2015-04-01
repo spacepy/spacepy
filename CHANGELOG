@@ -1,5 +1,7 @@
 Changes in Version 0.1.6 (2015-xx-xx)
 =====================================
+datamodel
+ - Fix reading JSON-headed ASCII in numpy 1.4, 1.5
 pycdf
  - On OSX, search more paths for the CDF library
  - CDF.clone() now returns the new variable
