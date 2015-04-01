@@ -140,15 +140,17 @@ class NoCDF(unittest.TestCase):
                 [[4, 5], [6, 7],],
                 [[0, 1], [2, 3], [4, 5]],
                 ]
-        message = 'Data must be well-formed, regular array of number, ' \
-                  'string, or datetime'
+        messages = ('Data must be well-formed, regular array of number, '
+                    'string, or datetime',
+                    'setting an array element with a sequence.',
+                )
         try:
             cdf._Hyperslice.dimensions(data)
         except ValueError:
             (t, v, tb) = sys.exc_info()
-            self.assertEqual(message, str(v))
+            self.assertTrue(str(v) in messages)
         else:
-            self.fail('Should raise ValueError: ' + message)
+            self.fail('Should raise ValueError: ' + messages[0])
 
         self.assertEqual(cdf._Hyperslice.dimensions('hi'),
                          ())
@@ -2224,10 +2226,10 @@ class ChangeCDF(ChangeCDFBase):
             self.cdf.raw_var('epochtest')[:] = [
                 datetime.datetime(1996, 1, 1),
                 datetime.datetime(1996, 1, 2)]
-        except TypeError:
+        except (TypeError, ValueError):
             pass
         else:
-            self.fail('Should have raised TypeError')
+            self.fail('Should have raised TypeError or ValueError')
 
     def testFloatEpoch16(self):
         """Write floats to an Epoch16 variable"""
