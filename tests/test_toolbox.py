@@ -374,7 +374,7 @@ class SimpleFunctionTests(unittest.TestCase):
         outputs = [[0.5, 1.5, 2.5, 3.5, 4.5, 5.5],
                    [-19.9, 44.7, 88.5, 111.5],]
         for i, val in enumerate(inputs):
-            numpy.testing.assert_allclose(outputs[i], tb.bin_center_to_edges(val))
+            numpy.testing.assert_almost_equal(outputs[i], tb.bin_center_to_edges(val))
 
     def testBinEdgesToCenterToEdges_datetimeroundtrip(self):
         """Convert a set of datetime bin edges to centers and back to bin edges"""
@@ -391,7 +391,7 @@ class SimpleFunctionTests(unittest.TestCase):
         outputs = [[1.5, 2.5, 3.5, 4.5],
                    [1.5, 2.5, 5, 8.5, 15],]
         for i, val in enumerate(inputs):
-            numpy.testing.assert_allclose(outputs[i], tb.bin_edges_to_center(val))
+            numpy.testing.assert_almost_equal(outputs[i], tb.bin_edges_to_center(val))
 
     def test_hypot(self):
         """hypot should have known output"""
@@ -464,12 +464,12 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = [1, 10, 100, 1000]
         numpy.testing.assert_array_equal(tb.geomspace(1, 10, 1000), ans)
         ans = [1, 10.0, 100.0]
-        numpy.testing.assert_allclose(tb.geomspace(1, stop = 100, num=3), ans)
+        numpy.testing.assert_almost_equal(tb.geomspace(1, stop = 100, num=3), ans)
         ans = [1, 10, 100]
         numpy.testing.assert_array_equal(tb.geomspace(1, ratio = 10, num=3), ans)
         # there was a rounding issue that this test catches
         ans = [1, 3.1622776601683795, 10.000000000000002]
-        numpy.testing.assert_allclose(tb.geomspace(1, stop = 10, num=3), ans)
+        numpy.testing.assert_almost_equal(tb.geomspace(1, stop = 10, num=3), ans)
 
     def test_isview(self):
         """isview should have known output"""
@@ -666,7 +666,8 @@ class TBTimeFunctionTests(unittest.TestCase):
         sys.stdout = realstdout
         result = output.getvalue()
         output.close()
-        numpy.testing.assert_allclose(t2-t1, 0.25, atol=0.1, rtol=0.1)
+#        numpy.testing.assert_allclose(t2-t1, 0.25, atol=0.1, rtol=0.1)
+        numpy.testing.assert_almost_equal(t2-t1, 0.25, decimal=1)
         self.assertEqual("""('0.25', '')\n""",
                          result)
 
@@ -687,7 +688,7 @@ class TBTimeFunctionTests(unittest.TestCase):
                       datetime.datetime(2001, 1, 3, 12, 0),
                       datetime.datetime(2001, 1, 4, 0, 0),
                       datetime.datetime(2001, 1, 4, 12, 0)]
-            numpy.testing.assert_allclose(od_ans, outdata)
+            numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
             outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
             od_ans = [14.8, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8]
@@ -698,7 +699,7 @@ class TBTimeFunctionTests(unittest.TestCase):
                       datetime.datetime(2001, 1, 3, 12, 30),
                       datetime.datetime(2001, 1, 4, 0, 30),
                       datetime.datetime(2001, 1, 4, 12, 30)]
-            numpy.testing.assert_allclose(od_ans, outdata)
+            numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
 
             time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
@@ -716,28 +717,28 @@ class TBTimeFunctionTests(unittest.TestCase):
                       datetime.datetime(2001, 1, 5, 12, 0),
                       datetime.datetime(2001, 1, 6, 0, 0),
                       datetime.datetime(2001, 1, 6, 12, 0)]
-            numpy.testing.assert_allclose(od_ans, outdata)
+            numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
 
             # now test the pointwise
             outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
             od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
             ot_ans = [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0]
-            numpy.testing.assert_allclose(ot_ans, outtime)
-            numpy.testing.assert_allclose(od_ans, outdata)
+            numpy.testing.assert_almost_equal(ot_ans, outtime)
+            numpy.testing.assert_almost_equal(od_ans, outdata)
             # winsize tests
             outdata, outtime = tb.windowMean(data, winsize=24.6, overlap=12)
             od_ans, ot_ans = tb.windowMean(data, winsize=24.6, overlap=12)
-            numpy.testing.assert_allclose(ot_ans, outtime)
-            numpy.testing.assert_allclose(od_ans, outdata)
+            numpy.testing.assert_almost_equal(ot_ans, outtime)
+            numpy.testing.assert_almost_equal(od_ans, outdata)
             outdata, outtime = tb.windowMean(data, winsize=0.4)
             od_ans, ot_ans = tb.windowMean(data, winsize=1.0)
-            numpy.testing.assert_allclose(ot_ans, outtime)
-            numpy.testing.assert_allclose(od_ans, outdata)
+            numpy.testing.assert_almost_equal(ot_ans, outtime)
+            numpy.testing.assert_almost_equal(od_ans, outdata)
             outdata, outtime = tb.windowMean(data, winsize=1.0, overlap=2)
             od_ans, ot_ans = tb.windowMean(data, winsize=1.0, overlap=0)
-            numpy.testing.assert_allclose(ot_ans, outtime)
-            numpy.testing.assert_allclose(od_ans, outdata)
+            numpy.testing.assert_almost_equal(ot_ans, outtime)
+            numpy.testing.assert_almost_equal(od_ans, outdata)
 
             self.assertEqual(5, len(w))
 

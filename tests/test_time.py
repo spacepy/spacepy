@@ -350,7 +350,7 @@ class TimeClassTests(unittest.TestCase):
         """eDOY conversio should work"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = [ 0.04166667,  1.        ]
-        numpy.testing.assert_allclose(expected, t1.eDOY)
+        numpy.testing.assert_almost_equal(expected, t1.eDOY)
 
     def test_str(self):
         """TickTock __str__ should give known results"""
@@ -393,13 +393,13 @@ class TimeClassTests(unittest.TestCase):
         """conversions to MJD should work"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([ 52275.04166667,  52276.        ])
-        numpy.testing.assert_allclose(t1.MJD, expected)
+        numpy.testing.assert_almost_equal(t1.MJD, expected)
 
     def test_GPS(self):
         """conversions to GPS should work"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([  6.93882013e+08,   6.93964813e+08])
-        numpy.testing.assert_allclose(t1.GPS, expected)
+        numpy.testing.assert_almost_equal(t1.GPS, expected)
 
     def test_now(self):
         """now() is at least deterministic"""
@@ -424,7 +424,8 @@ class TimeClassTests(unittest.TestCase):
         """testing get UTC from JD/MJD"""
         expected = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         t1 = t.Ticktock([ 52275.04166667,  52276.        ], 'MJD')
-        numpy.testing.assert_allclose(t1.UNX, expected.UNX)
+#        numpy.testing.assert_allclose(t1.UNX, expected.UNX)
+        numpy.testing.assert_almost_equal(t1.UNX, expected.UNX, decimal=-2)
         t1 = t.Ticktock([ 2452275.54166667,  2452276.5       ], 'JD')
         self.assertTrue((t1.ISO == expected.ISO).all())
 
@@ -432,7 +433,7 @@ class TimeClassTests(unittest.TestCase):
         """test converting to JD"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([ 2452275.54166667,  2452276.5       ])
-        numpy.testing.assert_allclose(t1.JD, expected)
+        numpy.testing.assert_almost_equal(t1.JD, expected)
         t2 = t.Ticktock(datetime.datetime(1582,10,14))
         with warnings.catch_warnings(record=True) as w:
             warnings.filterwarnings(
@@ -441,7 +442,7 @@ class TimeClassTests(unittest.TestCase):
             ans = t2.JD
         self.assertEqual(1, len(w))
         self.assertEqual(UserWarning, w[0].category)
-        numpy.testing.assert_allclose(ans, [2299169.5])
+        numpy.testing.assert_almost_equal(ans, [2299169.5])
 
 
 

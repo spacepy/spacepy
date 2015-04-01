@@ -72,9 +72,12 @@ class IRBEMBigTests(unittest.TestCase):
                             
         actual = ib.prep_irbem(self.ticks, self.loci)
         for key in expected:
-            numpy.testing.assert_allclose(expected[key],
-                                          actual[key],
-                                          rtol=1e-6)        
+#            numpy.testing.assert_allclose(expected[key],
+#                                          actual[key],
+#                                          rtol=1e-6)        
+            numpy.testing.assert_almost_equal(expected[key],
+                                              actual[key],
+                                              decimal=5)        
         
     def test_get_dtype(self):
         sysaxes = 3
@@ -124,7 +127,8 @@ class IRBEMBigTests(unittest.TestCase):
                        [  3.35026863e+02,  -5.42786970e+02,   3.33919097e+03]])}
         actual = ib.get_Bfield(self.ticks, self.loci)
         for key in expected.keys():
-            numpy.testing.assert_allclose(actual[key], expected[key], atol=1e-6)
+#            numpy.testing.assert_allclose(actual[key], expected[key], atol=1e-6)
+            numpy.testing.assert_almost_equal(actual[key], expected[key], decimal=5)
 
     def test_get_AEP8(self):
         """test get_AEP8"""

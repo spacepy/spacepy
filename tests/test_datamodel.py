@@ -46,14 +46,14 @@ class SpaceDataTests(unittest.TestCase):
         a[1] = dm.dmarray([1,2,3], attrs={1:1})
         b = dm.dmcopy(a)
         self.assertFalse(a is b) # they are not the same memory
-        np.testing.assert_allclose(a[1], b[1])
+        np.testing.assert_almost_equal(a[1], b[1])
         self.assertEqual(a[1].attrs, b[1].attrs)
         b = dm.dmcopy(a[1])
-        np.testing.assert_allclose(a[1], b)
+        np.testing.assert_almost_equal(a[1], b)
         self.assertEqual(a[1].attrs, b.attrs)
         a = np.arange(10)
         b = dm.dmcopy(a)
-        np.testing.assert_allclose(a, b)
+        np.testing.assert_almost_equal(a, b)
         a = [1,2,3]
         b = dm.dmcopy(a)
         self.assertEqual(a, b)
@@ -223,7 +223,7 @@ class dmarrayTests(unittest.TestCase):
         self.assertEqual(data.attrs, {})
         self.assertEqual(data2.attrs, {'coord':'GSM'})
         data2 = dm.dmarray([1,2,3], dtype=float, attrs={'coord':'GSM'})
-        np.testing.assert_allclose([1,2,3], data2)
+        np.testing.assert_almost_equal([1,2,3], data2)
 
     def test_different_attrs(self):
         """Different instances of dmarray shouldn't share attrs"""
@@ -260,7 +260,7 @@ class dmarrayTests(unittest.TestCase):
         finally:
             if fname != None:
                 os.remove(fname)
-        np.testing.assert_allclose(self.dat, dat2)
+        np.testing.assert_almost_equal(self.dat, dat2)
         self.assertEqual(self.dat.attrs, dat2.attrs)
 
     def test_attrs_only(self):
@@ -368,12 +368,12 @@ class converterTests(unittest.TestCase):
         dm.toHDF5(self.testfile, self.SDobj)
         newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
-        np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
+        np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
         dm.toHDF5(self.testfile, self.SDobj, mode='a')
         newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
-        np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
+        np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
     def test_HDF5roundtripGZIP(self):
@@ -381,12 +381,12 @@ class converterTests(unittest.TestCase):
         dm.toHDF5(self.testfile, self.SDobj, compression='gzip')
         newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
-        np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
+        np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
         dm.toHDF5(self.testfile, self.SDobj, mode='a', compression='gzip')
         newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
-        np.testing.assert_allclose(self.SDobj['var'], newobj['var'])
+        np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
     def test_HDF5Exceptions(self):
@@ -590,8 +590,8 @@ class JSONTests(unittest.TestCase):
             self.assertTrue(key in dat2['MVar'].attrs)
         np.testing.assert_array_equal(a['MVar'], dat2['MVar'])
         #test vars are right
-        np.testing.assert_allclose(a['Var1'], dat2['Var1'])
-        np.testing.assert_allclose(a['Var2'], dat2['Var2'])
+        np.testing.assert_almost_equal(a['Var1'], dat2['Var1'])
+        np.testing.assert_almost_equal(a['Var2'], dat2['Var2'])
         #test for added dimension and start col
         self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
         self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
