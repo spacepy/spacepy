@@ -431,7 +431,7 @@ class converterTests(unittest.TestCase):
         d1 = datetime.datetime(2012,12,21)
         self.assertEqual('2012-12-21T00:00:00', dm._dateToISO(d1))
         d1 = [datetime.datetime(2012,12,21), datetime.datetime(2012,12,22)]
-        np.testing.assert_array_equal(['2012-12-21T00:00:00', '2012-12-22T00:00:00'], dm._dateToISO(d1))
+        np.testing.assert_array_equal(dm._dateToISO(d1), ['2012-12-21T00:00:00', '2012-12-22T00:00:00'])
 
 class converterTestsCDF(unittest.TestCase):
     def setUp(self):
