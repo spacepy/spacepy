@@ -124,6 +124,7 @@ class Library(object):
         v_tt2000_to_datetime
         v_tt2000_to_epoch
         v_tt2000_to_epoch16
+        ~Library.libpath
         ~Library.version
 
     .. automethod:: call
@@ -201,6 +202,14 @@ class Library(object):
         A vectorized version of :meth:`tt2000_to_epoch16` which takes
         a numpy array of tt2000 as input and returns an array of epoch16.
 
+    .. attribute:: libpath
+
+       The path where pycdf found the CDF C library, potentially useful in
+       debugging. If this contains just the name of a file (with no path
+       information), then the system linker found the library for pycdf.
+       On Linux, ``ldconfig -p`` may be useful for displaying the system's
+       library resolution.
+
     .. attribute:: version
 
        Version of the CDF library, (version, release, increment, subincrement)
@@ -220,6 +229,7 @@ class Library(object):
 
         if not libpath:
             libpath = self._find_lib()
+        self.libpath = libpath #hold it for debugging
         self._library = ctypes.CDLL(libpath)
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long
@@ -2279,6 +2289,19 @@ class Var(collections.MutableSequence):
     dimension (i.e. dimension 0) can be resized by write, as all records
     in a variable must have the same dimensions. Similarly, only whole
     records can be deleted.
+
+    .. note::
+        Unusual error messages on writing data usually mean that pycdf is
+        unable to interpret the data as a regular array of a single type
+        matching the type and shape of the variable being written.
+        A 5x4 array is supported; an irregular array where one row has
+        five columns and a different row has six columns is not. Error messages
+        of this type include:
+
+          - ``Data must be well-formed, regular array of number, string, or datetime``
+          - ``setting an array element with a sequence.``
+          - ``shape mismatch: objects cannot be broadcast to a
+            single shape``
 
     For these examples, assume Flux has 100 records and dimensions [2, 3].
     

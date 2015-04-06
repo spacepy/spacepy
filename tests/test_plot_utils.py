@@ -37,7 +37,7 @@ class PlotUtilFunctionTests(unittest.TestCase):
         # should not have moved the ticks
         real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
         730888.,  730889.,  730890.,  730891.])
-        numpy.testing.assert_allclose(real_ans, ax.get_xticks())
+        numpy.testing.assert_almost_equal(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
         try:
             real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(10)]

@@ -64,7 +64,8 @@ class spectrogramTests(unittest.TestCase):
             if key == 'variables':
                 self.assertEqual(a.specSettings[key], ans[key])
             else:
-                np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+#                np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+                np.testing.assert_almost_equal(a.specSettings[key], ans[key],  decimal=7)
         self.assertRaises(NotImplementedError, a.add_data, self.data)
 
 
@@ -85,7 +86,8 @@ class spectrogramTests(unittest.TestCase):
             if key == 'variables':
                 self.assertEqual(a.specSettings[key], ans[key])
             else:
-                np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+#                np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+                np.testing.assert_almost_equal(a.specSettings[key], ans[key], decimal=8)
 
     def test_add_data(self):
         """run it and check that add_data correctly"""
@@ -99,9 +101,9 @@ class spectrogramTests(unittest.TestCase):
         sm = a['spectrogram']['sum'][:].copy()
         spect = a['spectrogram']['spectrogram'][:].copy()
         a.add_data(self.data) # add te same data back, sum, count will double, spectrogram stays the same
-        np.testing.assert_allclose(a['spectrogram']['count'].filled(), (count*2).filled())
-        np.testing.assert_allclose(a['spectrogram']['sum'], sm*2)
-        np.testing.assert_allclose(a['spectrogram']['spectrogram'], spect)
+        np.testing.assert_almost_equal(a['spectrogram']['count'].filled(), (count*2).filled())
+        np.testing.assert_almost_equal(a['spectrogram']['sum'], sm*2)
+        np.testing.assert_almost_equal(a['spectrogram']['spectrogram'], spect)
 
 class spectrogramDateTests(unittest.TestCase):
     def setUp(self):
@@ -136,9 +138,11 @@ class spectrogramDateTests(unittest.TestCase):
                 self.assertEqual(a.specSettings[key], ans[key])
             else:
                 if key == 'bins':
-                    np.testing.assert_allclose(a.specSettings[key], ans[key], atol=1e-2, rtol=1e-3)
+#                    np.testing.assert_allclose(a.specSettings[key], ans[key], atol=1e-2, rtol=1e-3)
+                    np.testing.assert_almost_equal(a.specSettings[key], ans[key], decimal=2)
                 else:
-                    np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+#                    np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
+                    np.testing.assert_almost_equal(a.specSettings[key], ans[key], decimal=6)
         self.assertRaises(NotImplementedError, a.add_data, self.data)
 
 if __name__ == "__main__":

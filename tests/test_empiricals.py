@@ -25,17 +25,17 @@ class empFunctionTests(unittest.TestCase):
                             4.05249998,  4.05249998,  4.22250002,  4.775     ,  4.90250001,
                             4.90250001])
         ans = em.getPlasmaPause(self.ticks, LT=12)
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
 
         real_ans = np.array([ 3.76 ,  3.76 ,  4.358,  4.358,  4.358,  4.358,  4.358,  4.358,
                             4.358,  4.542,  5.14])
         ans = em.getPlasmaPause(self.ticks, 'CA1992')
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
 
         real_ans = np.array([ 4.35859998, 4.35859998, 4.35859998, 4.35859998, 4.35859998, 
                             4.35859998, 4.35859998, 4.51140002, 5.008, 5.1226, 5.1226])
         ans = em.getPlasmaPause(self.ticks)
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
 
     def test_getPlasmaPause(self):
         '''tests for exceptions in getPlasmaPause'''
@@ -55,7 +55,7 @@ class empFunctionTests(unittest.TestCase):
         8.6463423,  8.6048668,  8.7714972,  8.3179375,  8.8134583,
         9.0677743])
         ans = em.getLmax(self.ticks)
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
         self.assertRaises(ValueError, em.getLmax, self.ticks, model='bad')
 
     def test_getMPstandoff(self):
@@ -64,12 +64,12 @@ class empFunctionTests(unittest.TestCase):
                                9.75129057,  10.76640718,  11.18228247,  11.05199603,
                               11.42648675,  11.8202582 ,  11.18712131])
         ans = em.ShueMP(self.ticks)
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
         self.assertRaises(TypeError, em.ShueMP, 'bad')
         data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
         real_ans = np.array([ 9.96096838,  8.96790412])
         ans = em.ShueMP(data)
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
 
     def test_getDststar(self):
         """getDststar should give known results (regression)"""
@@ -77,7 +77,7 @@ class empFunctionTests(unittest.TestCase):
                              -16.1640001 , -13.64888467, -14.75155876, -10.43928609,
                              -21.22360883,  -8.49354146,  -3.29620967])
         ans = em.getDststar(self.ticks)
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
         self.assertRaises(ValueError, em.getDststar, self.ticks, model='bad')
 
 class PAmodelTests(unittest.TestCase):
@@ -90,17 +90,20 @@ class PAmodelTests(unittest.TestCase):
         omniflux = 3000
         dnflux, alphas = em.vampolaPA(omniflux, order=2, alpha=self.PA)
         d_sum = 4*np.pi*integ.simps(dnflux, np.deg2rad(alphas))
-        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+#        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+        np.testing.assert_almost_equal(d_sum, omniflux, decimal=3)
         dnflux, alphas = em.vampolaPA(omniflux, order=4, alpha=self.PA)
         d_sum = 4*np.pi*integ.simps(dnflux, np.deg2rad(alphas))
-        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+#        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+        np.testing.assert_almost_equal(d_sum, omniflux, decimal=3)
 
     def test_vampola_len1list(self):
         """sin^n model should have d_flux that integrates to omniflux divided by 4pi"""
         omniflux = [3000]
         dnflux, alphas = em.vampolaPA(omniflux, order=4, alpha=self.PA)
         d_sum = 4*np.pi*integ.simps(dnflux, np.deg2rad(alphas))
-        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+#        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+        np.testing.assert_almost_equal(d_sum, omniflux, decimal=3)
 
     def test_vampola_multival(self):
         """sin^n model should have d_flux that integrates to omniflux divided by 4pi"""
@@ -108,7 +111,7 @@ class PAmodelTests(unittest.TestCase):
         dnflux, alphas = em.vampolaPA(omniflux, order=4, alpha=self.PA)
         for i in range(len(omniflux)):
             d_sum = 4*np.pi*integ.simps(dnflux[:,i], np.deg2rad(alphas))
-            np.testing.assert_allclose(d_sum, omniflux[i])
+            np.testing.assert_almost_equal(d_sum, omniflux[i])
 
     def test_vampola_multi_n(self):
         """sin^n model should have d_flux that integrates to omniflux divided by 4pi"""
@@ -116,7 +119,7 @@ class PAmodelTests(unittest.TestCase):
         dnflux, alphas = em.vampolaPA(omniflux, order=[2,4], alpha=self.PA)
         for i in range(len(omniflux)):
             d_sum = 4*np.pi*integ.simps(dnflux[:,i], np.deg2rad(alphas))
-            np.testing.assert_allclose(d_sum, omniflux[i])
+            np.testing.assert_almost_equal(d_sum, omniflux[i])
 
     def test_vampola_mismatched_order_len(self):
         """mismatch between lengths of input arrays should raise error"""

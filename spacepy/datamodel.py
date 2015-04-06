@@ -1384,11 +1384,18 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         for conkey in conversions:
             try:
                 name = keys.pop(keys.index(conkey)) #remove from keylist
-                for i,element in numpy.ndenumerate(mdata[name]):
-                    mdata[name][i] = conversions[name](element)
-            except:
+            except ValueError:
                 print('Key {0} for conversion not found in file'.format(conkey))
                 #this should be a warning, not a print
+                continue
+            #https://github.com/numpy/numpy/issues/2160
+            if len(mdata[name].shape) == 1:
+                for i,element in numpy.ndenumerate(mdata[name]):
+                    mdata[name][i[0]] = conversions[name](element)
+            else:
+                for i,element in numpy.ndenumerate(mdata[name]):
+                    mdata[name][i] = conversions[name](element)
+
     for remkey in keys:
         try:
             mdata[remkey] = numpy.asanyarray(mdata[remkey], dtype=float)
