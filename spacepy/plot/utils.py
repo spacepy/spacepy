@@ -632,7 +632,7 @@ def smartTimeTicks(time):
     return (Mtick, mtick, fmt)
 
 
-def collapse_vertical(combine, others=[], leave_axis=False):
+def collapse_vertical(combine, others=(), leave_axis=False):
     """
     Collapse the vertical spacing between two or more subplots.
 
@@ -646,13 +646,13 @@ def collapse_vertical(combine, others=[], leave_axis=False):
 
     Parameters
     ==========
-    combine : list
+    combine : sequence
         The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
         which should be placed together with no vertical space.
 
     Other Parameters
     ================
-    others : list
+    others : sequence
         The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
         which will keep their vertical spacing, but will be expanded
         with the space taken away from between the elements of ``combine``.
@@ -687,6 +687,8 @@ def collapse_vertical(combine, others=[], leave_axis=False):
     >>> #Collapse space between top two plots, leave bottom one alone
     >>> spacepy.plot.utils.collapse_vertical([ax0, ax1], [ax2])
     """
+    combine = tuple(combine)
+    others = tuple(others)
     #bounding box for ALL subplots/axes
     boxes = dict(((ax, ax.get_position()) for ax in combine + others))
     #vertical sizes
