@@ -86,20 +86,20 @@ class empFunctionTests(unittest.TestCase):
         dates = spt.Ticktock([dup.parse(t) for t in ['1853-11-10T00:00:00','1973-08-22T18:00:00','2003-03-19T12:02:45']])
         real_ans = np.array([1,1605,2001]).astype(int)
         ans = em.getSolarRotation(dates, rtype='carrington')
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
         float_ans = np.array([1.003596660715006, 1605.009785410243, 2001.000000356448])
         ans = em.getSolarRotation(dates, rtype='carrington', fp=True)
-        np.testing.assert_allclose(float_ans, ans)
+        np.testing.assert_almost_equal(float_ans, ans)
 
     def test_getSolarRotation_Bartels(self):
         """make sure getSolarRotation returns known values"""
         dates = spt.Ticktock([dup.parse(t) for t in ['1832-02-08T00:00:00','2004-05-06T12:00:00','2012-12-12T00:00:00']])
         real_ans = np.array([1,2331,2447]).astype(int)
         ans = em.getSolarRotation(dates, rtype='bartels')
-        np.testing.assert_allclose(real_ans, ans)
+        np.testing.assert_almost_equal(real_ans, ans)
         float_ans = np.array([1.0, 2331.0185185185187, 2447.3703703703704])
         ans = em.getSolarRotation(dates, rtype='bartels', fp=True)
-        np.testing.assert_allclose(float_ans, ans)
+        np.testing.assert_almost_equal(float_ans, ans)
 
 class PAmodelTests(unittest.TestCase):
     def setUp(self):
