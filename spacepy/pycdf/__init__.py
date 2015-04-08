@@ -38,12 +38,6 @@ If this works, make the environment setting permanent. Note that on OSX,
 using plists to set the environment may not carry over to Python terminal
 sessions; use ``.cshrc`` or ``.bashrc`` instead.
 
-.. note::
-
-   If the CDF library cannot be found, pycdf will be left in a "half-imported"
-   state. You will need to restart your Python interpreter before trying
-   the fix above.
-
 .. currentmodule:: spacepy.pycdf
 
 
@@ -77,8 +71,8 @@ import numpy
 import numpy.ma
 import spacepy.datamodel
 
-from . import const
-
+#Import const AFTER library loaded, so failed load doesn't leave half-imported
+#from . import const
 
 try:
     str_classes = (str, bytes, unicode)
@@ -130,6 +124,7 @@ class Library(object):
         v_tt2000_to_datetime
         v_tt2000_to_epoch
         v_tt2000_to_epoch16
+        ~Library.libpath
         ~Library.version
 
     .. automethod:: call
@@ -207,11 +202,19 @@ class Library(object):
         A vectorized version of :meth:`tt2000_to_epoch16` which takes
         a numpy array of tt2000 as input and returns an array of epoch16.
 
+    .. attribute:: libpath
+
+       The path where pycdf found the CDF C library, potentially useful in
+       debugging. If this contains just the name of a file (with no path
+       information), then the system linker found the library for pycdf.
+       On Linux, ``ldconfig -p`` may be useful for displaying the system's
+       library resolution.
+
     .. attribute:: version
 
        Version of the CDF library, (version, release, increment, subincrement)
     """
-    def __init__(self):
+    def __init__(self, libpath=None):
         """Load the CDF C library.
 
         Searches for the library in the order:
@@ -224,7 +227,9 @@ class Library(object):
         if not 'CDF_TMP' in os.environ:
             os.environ['CDF_TMP'] = tempfile.gettempdir()
 
-        libpath = self._find_lib()
+        if not libpath:
+            libpath = self._find_lib()
+        self.libpath = libpath #hold it for debugging
         self._library = ctypes.CDLL(libpath)
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long
@@ -394,13 +399,14 @@ class Library(object):
         #Default to V2 CDF
         self.set_backward(True)
 
-    def _find_lib(self):
+    @staticmethod
+    def _find_lib():
         """
         Search for the CDF library
         """
         #What the library might be named
         names = { 'win32': ['dllcdf.dll'],
-                  'darwin': ['libcdf.dylib', 'cdf.dylib'],
+                  'darwin': ['libcdf.dylib', 'cdf.dylib', 'libcdf.so'],
                   'linux2': ['libcdf.so'],
                   'linux': ['libcdf.so'],
                   }
@@ -999,21 +1005,24 @@ class Library(object):
 
 
 try:
-    lib = Library()
-    """Module global library object.
-        
-    Initalized at module load time so all classes have ready
-    access to the CDF library and a common state. E.g:
-        >>> from spacepy import pycdf
-        >>> pycdf.lib.version
-            (3, 3, 0, ' ')
-    """
+    _libpath = Library._find_lib()
 except:
     if 'sphinx' in sys.argv[0]:
         warnings.warn('CDF library did not load. '
                       'You appear to be building docs, so ignoring this error.')
     else:
         raise
+from . import const
+lib = Library(_libpath)
+"""Module global library object.
+
+Initalized at module load time so all classes have ready
+access to the CDF library and a common state. E.g:
+    >>> from spacepy import pycdf
+    >>> pycdf.lib.version
+        (3, 3, 0, ' ')
+"""
+
 
 class CDFException(Exception):
     """
@@ -1984,7 +1993,7 @@ class CDF(collections.MutableMapping):
         new_var = Var(self, name, type, n_elements, dims, recVary, dimVarys)
         if compress != None:
             new_var.compress(compress, compress_param)
-        if data != None:
+        if data is not None:
             new_var[...] = data
             if hasattr(data, 'attrs'):
                 new_var.attrs.clone(data.attrs)
@@ -2280,6 +2289,19 @@ class Var(collections.MutableSequence):
     dimension (i.e. dimension 0) can be resized by write, as all records
     in a variable must have the same dimensions. Similarly, only whole
     records can be deleted.
+
+    .. note::
+        Unusual error messages on writing data usually mean that pycdf is
+        unable to interpret the data as a regular array of a single type
+        matching the type and shape of the variable being written.
+        A 5x4 array is supported; an irregular array where one row has
+        five columns and a different row has six columns is not. Error messages
+        of this type include:
+
+          - ``Data must be well-formed, regular array of number, string, or datetime``
+          - ``setting an array element with a sequence.``
+          - ``shape mismatch: objects cannot be broadcast to a
+            single shape``
 
     For these examples, assume Flux has 100 records and dimensions [2, 3].
     
@@ -4474,7 +4496,7 @@ class AttrList(collections.MutableMapping):
         if name in self:
             raise KeyError(name + ' already exists.')
         attr = self._get_or_create(name)
-        if data != None:
+        if data is not None:
             if self.special_entry is None:
                 attr.new(data, type)
             else:

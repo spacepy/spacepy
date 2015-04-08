@@ -2077,16 +2077,16 @@ def isview(array1, array2=None):
     # (True, True)  # the conditions are met and numpy cannot tell this
     """
     # deal with the one input case first
-    if array2 == None:
+    if array2 is None:
         try:
-            if array1.base == None:
+            if array1.base is None:
                 return False
             return True
         except AttributeError:
             return False # if it is not an array then it is not a view
     # there are two arrays input
     try:
-        if array1.base == None:
+        if array1.base is None:
             return (False, False)
         return (True, array1.base is array2)
     except AttributeError:

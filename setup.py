@@ -189,9 +189,9 @@ def finalize_compiler_options(cmd):
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
     #Special-case defaults, checks
-    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none'):
+    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none', 'None'):
         raise DistutilsOptionError(
-            '--fcompiler must be pg, gnu, gnu95, intelem, intel, none')
+            '--fcompiler must be pg, gnu, gnu95, intelem, intel, None')
     if len('%x' % sys.maxsize)*4 == 32 and cmd.fcompiler == 'intelem':
         raise DistutilsOptionError(
             '--fcompiler=intelem requires a 64-bit architecture')
@@ -280,7 +280,7 @@ class build(_build):
 
     def compile_irbempy(self):
         fcompiler = self.fcompiler
-        if fcompiler == 'none':
+        if fcompiler in ['none', 'None']:
             self.distribution.add_warning(
                 'Fortran compiler specified was "none."\n'
                 'IRBEM will not be available.')
