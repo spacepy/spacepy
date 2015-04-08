@@ -10,6 +10,7 @@ Contact: smorley@lanl.gov
 
 Copyright 2010 Los Alamos National Security, LLC.
 """
+from __future__ import division
 import datetime
 from functools import partial
 import numpy as np
@@ -434,6 +435,57 @@ def getVampolaOrder(L):
     order = np.interp(L, lmc, vamp_n)
 
     return order
+
+
+def getSolarRotation(ticks, rtype='carrington', fp=False):
+    '''Calculates solar rotation number (Carrington or Bartels) for a given date/time
+
+    Parameters
+    ==========
+    ticks : spacepy.time.Ticktock or datetime.datetime
+        
+    Returns
+    =======
+    rnumber : integer or array
+        Carrington (or Bartels) rotation number
+
+    '''
+    def total_seconds(dobj):
+        return dobj.days*24*3600 + dobj.seconds + dobj.microseconds/1e6
+    if rtype.lower() == 'carrington':
+        start_date = datetime.datetime(1853,11,9,21,38,44,160000)
+        start_JD = spt.Ticktock(start_date).JD
+        #length = datetime.timedelta(days=27, minutes=396, seconds=25, microseconds=919999)
+        length = datetime.timedelta(days=27.2753)
+    elif rtype.lower() == 'bartels':
+        start_date = datetime.datetime(1832,2,8)
+        start_JD = spt.Ticktock(start_date).JD
+        length = datetime.timedelta(days=27)
+    else:
+        raise ValueError('Solar rotation type {0} not recognized: Must be either "carrington" or "Bartels"'.format(rtype))
+    try:
+        nels = len(ticks)
+    except TypeError:
+        try:
+            rotation = total_seconds(ticks-start_date)/total_seconds(length)
+            rotation += 1
+            if not fp:
+                rotation = int(rotation)
+            return rotation
+        except:
+            raise RuntimeError('Unidentified problem with input time {0} in getSolarRotation'.format(ticks))
+    if isinstance(ticks, spt.Ticktock):
+        rotation = [total_seconds(tt-start_date)/total_seconds(length) for tt in ticks.UTC]
+        rotation = np.array(rotation) + 1
+    else:
+        try:
+            rotation = [total_seconds(tt-start_date)/total_seconds(length) for tt in ticks]
+            rotation = np.array(rotation) + 1
+        except:
+            raise RuntimeError('Unidentified problem with input time {0} in getSolarRotation'.format(ticks))
+    if not fp:
+        rotation = rotation.astype(int)
+    return rotation
 
 
 ShueMP = getMPstandoff
