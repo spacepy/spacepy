@@ -88,6 +88,26 @@ class DataManagerFunctionTests(unittest.TestCase):
         numpy.testing.assert_array_equal(ef, expected_ef)
         numpy.testing.assert_array_equal(df, expected_df)
 
+        e = [datetime.datetime(2000, 1, 1, 0, 0, 0, i)
+             for i in range(1, 4) + range(5, 8) + range(9, 12)]
+        d = [1, 2, 3, 5, 6, 7, 9, 10, 11]
+        ef, df = spacepy.datamanager.insert_fill(e, d, -1)
+        expected_ef = [datetime.datetime(2000, 1, 1, 0, 0, 0, i)
+                       for i in range(1, 12)]
+        expected_df = [1, 2, 3, -1, 5, 6, 7, -1, 9, 10, 11]
+        numpy.testing.assert_array_equal(ef, expected_ef)
+        numpy.testing.assert_array_equal(df, expected_df)
+
+        e = [datetime.datetime(2000, 1, i, 0, 0, 0, 0)
+             for i in range(1, 4) + range(5, 8) + range(9, 12)]
+        d = [1, 2, 3, 5, 6, 7, 9, 10, 11]
+        ef, df = spacepy.datamanager.insert_fill(e, d, -1)
+        expected_ef = [datetime.datetime(2000, 1, i, 0, 0, 0, 0)
+                       for i in range(1, 12)]
+        expected_df = [1, 2, 3, -1, 5, 6, 7, -1, 9, 10, 11]
+        numpy.testing.assert_array_equal(ef, expected_ef)
+        numpy.testing.assert_array_equal(df, expected_df)
+
 
 if __name__ == "__main__":
     unittest.main()

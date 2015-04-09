@@ -367,14 +367,14 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
             raise ValueError("Cannot match shape of fill to shape of data")
     diff = numpy.diff(times)
     if hasattr(diff[0], 'seconds'): #datetime
-        diff = numpy.vectorize(lambda x: x.days * 3600.0 + x.seconds + x.microseconds / 1.0e6)(diff)
+        diff = numpy.vectorize(lambda x: x.days * 86400.0 + x.seconds + x.microseconds / 1.0e6)(diff)
     idx = numpy.nonzero((diff > (numpy.median(diff) * tol)))[0] + 1
     data = numpy.insert(data, idx, numpy.repeat(fillval, len(idx)),
                         axis=timeaxis) #NOOP if no fill
     if not doTimes:
         return data
     try:
-        filltimes = (times[idx] + times[idx - 1]) / 2
+        filltimes = (times[idx] + times[idx - 1]) / 2.0
     except TypeError:
         filltimes = times[idx - 1] + numpy.vectorize(lambda x: datetime.timedelta(seconds=x / 2.0))(diff[idx - 1])
     times = numpy.insert(times, idx, filltimes)
