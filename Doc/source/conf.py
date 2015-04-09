@@ -32,10 +32,13 @@ sys.path.append(sys.path.pop(0))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx',
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
+              'sphinx.ext.intersphinx',
               'sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.ifconfig',
-              'sphinx.ext.viewcode', 'numpydoc', 'sphinx.ext.inheritance_diagram',
-              'sphinx.ext.autosummary', 'sphinx.ext.extlinks', ]
+              'sphinx.ext.viewcode', 'numpydoc',
+              'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
+              'matplotlib.sphinxext.plot_directive']
 
 autosummary_generate = True
 numpydoc_show_class_members = False

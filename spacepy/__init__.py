@@ -62,7 +62,8 @@ def help():
 
 # put modules here that you want to be accessible through 'from spacepy import *'
 __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 
-    "irbempy", "empiricals", "radbelt", "data_assimilation"]
+           "irbempy", "empiricals", "radbelt", "data_assimilation", "pycdf",
+           "datamanager", "datamodel"]
 
 # on windows, make sure the Fortran libs are findable
 if sys.platform == 'win32':

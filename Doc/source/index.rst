@@ -70,6 +70,7 @@ SpacePy Code
     :maxdepth: 1
 
     coordinates
+    datamanager
     datamodel
     data_assimilation
     empiricals

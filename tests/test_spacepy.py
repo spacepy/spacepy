@@ -28,6 +28,7 @@ from test_pycdf import *
 from test_data_assimilation import *
 from test_spectrogram import *
 from test_irbempy import *
+from test_datamanager import *
 from test_datamodel import *
 from test_base import *
 from test_plot_utils import *
