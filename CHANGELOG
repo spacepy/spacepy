@@ -2,6 +2,8 @@ Changes in Version 0.1.6 (2015-xx-xx)
 =====================================
 datamodel
  - Fix reading JSON-headed ASCII in numpy 1.4, 1.5
+empiricals
+ - New function getSolarRotation, returns Carrington or Bartels number
 plot.utils
  - Fix collapse_vertical when called with sequences other than lists
 pycdf
