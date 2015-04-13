@@ -16,6 +16,8 @@ pycdf
    again without restarting the Python intepreter
  - Fix some comparisons that might cause problems with future versions of numpy
  - Log the path to the CDF library for debugging purposes
+time
+ - Speed improvement update to TickTock.getleapsecond
 
 Changes in Version 0.1.5 (2014-12-23)
 =====================================
