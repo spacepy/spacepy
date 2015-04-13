@@ -88,17 +88,18 @@ Contact: smorley@lanl.gov,
 Copyright 2010 Los Alamos National Security, LLC.
 
 """
-
-from spacepy import help
-import spacepy.datamodel
-
-import datetime, collections
-import dateutil.parser as dup
+import bisect
+import collections
+import datetime
 import os.path
 import re
 import warnings
 
+import dateutil.parser as dup
 import numpy as np
+
+from spacepy import help
+import spacepy.datamodel
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
@@ -1433,12 +1434,19 @@ class Ticktock(collections.MutableSequence):
         # convert them into a time tuple and find the correct leap seconds
         self.TAIleaps = TAIleaps
         leaps = [secs[0]]*nTAI
+        leap_dates = [datetime.datetime(int(y),int(m),int(d)) for
+                      y,m,d,s in zip(year, mon, day, secs)]
         for i, itup in enumerate(tup):
-            for y,m,d,s in zip(year, mon, day, secs):
-                if tup[i] >= datetime.datetime(int(y),int(m),int(d)):
-                    leaps[i] = s
-                else:
-                    break
+            ind = bisect.bisect_right(leap_dates, tup[i])
+            leaps[i] = secs[ind-1]
+        
+        ## ldatetime = datetime.datetime # avoid an expensive lookup below
+        ## for i, itup in enumerate(tup):
+        ##     for y,m,d,s in zip(year, mon, day, secs):
+        ##         if tup[i] >= ldatetime(int(y),int(m),int(d)):
+        ##             leaps[i] = s
+        ##         else:
+        ##             break
 
         #if datetime.datetime(1971,12,31) > tup[0]:
         #   print "WARNING: date before 1972/1/1; leap seconds are by fractions off"
