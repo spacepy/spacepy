@@ -7,6 +7,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import datetime
+import itertools
 import unittest
 import pickle
 import time
@@ -195,6 +196,32 @@ class TimeFunctionTests(unittest.TestCase):
         ans.sort()
         numpy.random.seed(8675309)
         numpy.testing.assert_array_equal(ans, t.randomDate(dt1, dt2, 5, sorted=True))
+
+    def test_extract_YYYYMMDD(self):
+        """extract_YYYYMMDD() should give known results"""
+        filenames = ['rbspa_rel02_ect-hope-PA-L3_20130906_v4.0.0.cdf',
+                     'rbspa_def_MagEphem_OP77Q_20150202_v1.0.0.h5',
+                     '20150204_firebird-2-fu3_T89D_MagEphem.h5',
+                     '20150202_firebird-2-fu3_T89D_MagEphem.h5',
+                     'I_am_a_file_with_no_date.h5']
+        ans = [datetime.datetime(2013, 9, 6),
+               datetime.datetime(2015, 2, 2),
+               datetime.datetime(2015, 2, 4),
+               datetime.datetime(2015, 2, 2),
+               None]
+        for tst, ans in itertools.izip(filenames, ans):
+            self.assertEqual(ans, t.extract_YYYYMMDD(tst))
+
+    def test_valid_YYYYMMDD(self):
+        """valid_YYYYMMDD() should give known results"""
+        filenames = ['rbspa_rel02_ect-hope-PA-L3_20130906_v4.0.0.cdf',
+                     'rbspa_def_MagEphem_OP77Q_20150202_v1.0.0.h5',
+                     '20150204_firebird-2-fu3_T89D_MagEphem.h5',
+                     '20150202_firebird-2-fu3_T89D_MagEphem.h5',
+                     'I_am_a_file_with_no_date.h5']
+        ans = [True, True, True, True, False]
+        for tst, ans in itertools.izip(filenames, ans):
+            self.assertEqual(ans, t.valid_YYYYMMDD(tst))
 
 
 class TimeClassTests(unittest.TestCase):
