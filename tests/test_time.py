@@ -472,8 +472,22 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual(UserWarning, w[0].category)
         numpy.testing.assert_almost_equal(ans, [2299169.5])
 
-
-
+    def test_getleapsecs(self):
+        """preform tests on just getleapsecs"""
+        t1 = t.Ticktock([datetime.datetime(1995, 3, 22, 4, 18, 14, 350699),
+                           datetime.datetime(1997, 9, 24, 4, 46, 42, 764556),
+                           datetime.datetime(1999, 12, 20, 23, 38, 18, 111738),
+                           datetime.datetime(2003, 12, 12, 16, 40, 9, 348465),
+                           datetime.datetime(2008, 2, 6, 23, 2, 55, 773692),
+                           datetime.datetime(2009, 7, 30, 0, 11, 4, 235111),
+                           datetime.datetime(2009, 12, 1, 0, 49, 43, 125943),
+                           datetime.datetime(2010, 10, 30, 20, 2, 33, 58859),
+                           datetime.datetime(2011, 3, 20, 6, 32, 30, 529110),
+                           datetime.datetime(2014, 1, 8, 11, 58, 55, 40726)])
+        ans = [29, 31, 32, 32, 33, 34, 34, 34, 34, 35]
+        numpy.testing.assert_equal(ans, t1.getleapsecs())
+        self.assertEqual(29, t.Ticktock(datetime.datetime(1995, 3, 22, 4, 18, 14, 350699)).getleapsecs())
+        
 
 if __name__ == "__main__":
     unittest.main()
