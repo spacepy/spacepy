@@ -250,9 +250,8 @@ class RePath(object):
             return os.path.join(RePath.path_split(path)[start:stop:step])
 
 
-def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
-    """
-    Populate gaps in data with fill.
+def insert_fill(times, data, fillval=numpy.nan, tol=1.5, absolute=None, doTimes=True):
+    """Populate gaps in data with fill.
 
     Continuous data are often treated differently from discontinuous data,
     e.g., matplotlib will draw lines connecting data points but break the line
@@ -271,7 +270,7 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
 
     Other Parameters
     ================
-    fillval : 
+    fillval :
         Fill value, same type as ``data``. Default is ``numpy.nan``. If scalar,
         will be repeated to match the shape of ``data`` (minus the time axis).
 
@@ -280,10 +279,15 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
             integer input.
 
     tol : float
-        Tolerance. A single fill value is inserted between adjacent values
-        where the spacing in ``times`` is greater than ``tol`` times the median
-        of the spacing across all ``times``. The inserted time for fill is
-        halfway between the time on each side. (Default 1.5)
+        Tolerance. A single fill value is inserted between adjacent
+        values where the spacing in ``times`` is strictly greater than
+        ``tol`` times the median of the spacing across all
+        ``times``. The inserted time for fill is halfway between the
+        time on each side. (Default 1.5)
+    absolute :
+        An absolute value for maximum spacing, of a type that would result from
+        a difference in ``times``. If specified, ``tol`` is ignored and any gap
+        strictly larger than ``absolute`` will have fill inserted.
     doTimes : boolean
         If True (default), will return a tuple of the times (with new values
         inserted for the fill records) and the data with new fill values.
@@ -367,8 +371,15 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
             raise ValueError("Cannot match shape of fill to shape of data")
     diff = numpy.diff(times)
     if hasattr(diff[0], 'seconds'): #datetime
-        diff = numpy.vectorize(lambda x: x.days * 86400.0 + x.seconds + x.microseconds / 1.0e6)(diff)
-    idx = numpy.nonzero((diff > (numpy.median(diff) * tol)))[0] + 1
+        diff = numpy.vectorize(lambda x: x.days * 86400.0 + x.seconds +
+                               x.microseconds / 1.0e6)(diff)
+        if absolute is not None:
+            absolute = absolute.days * 86400.0 + absolute.seconds + \
+                       absolute.microseconds / 1.0e6
+    if absolute is None:
+        idx = numpy.nonzero(diff > (numpy.median(diff) * tol))[0] + 1
+    else:
+        idx = numpy.nonzero(diff > absolute)[0] + 1
     data = numpy.insert(data, idx, numpy.repeat(fillval, len(idx)),
                         axis=timeaxis) #NOOP if no fill
     if not doTimes:
