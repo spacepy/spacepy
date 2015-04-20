@@ -29,12 +29,39 @@ class RePathTests(unittest.TestCase):
         path = "foo/bar/baz"
         self.assertEqual("bar",
                          spacepy.datamanager.RePath.path_slice(path, 1))
-        self.assertEqual(["foo", "baz"],
+        self.assertEqual("foo/baz",
                          spacepy.datamanager.RePath.path_slice(
                              path, 0, step=2))
-        self.assertEqual(["bar", "baz"],
+        self.assertEqual("bar/baz",
                          spacepy.datamanager.RePath.path_slice(
                              path, 1, 3))
+
+    def test_path_match(self):
+        """Verify matching a path regex"""
+        r = spacepy.datamanager.RePath(r'directory/%y/file%Y%m%d_v\d\.cdf')
+        self.assertTrue(r.match('directory/99/file19990502_v0.cdf',
+                                datetime.datetime(1999, 5, 2)))
+        self.assertTrue(r.match('directory/99/file19990502_v0.cdf'))
+        self.assertFalse(r.match('directory/99/file19990502_v0.cdf',
+                                 datetime.datetime(1999, 5, 3)))
+
+    def test_path_match_start(self):
+        """Verify matching beginning of a path regex"""
+        r = spacepy.datamanager.RePath(r'directory/%y/file%Y%m%d_v\d\.cdf')
+        self.assertTrue(r.match('directory/99',
+                                datetime.datetime(1999, 5, 2), 'start'))
+        self.assertTrue(r.match('directory/99', where='start'))
+        self.assertFalse(r.match('directory/99',
+                                 datetime.datetime(2000, 5, 2), 'start'))
+
+    def test_path_match_end(self):
+        """Verify matching end of a path regex"""
+        r = spacepy.datamanager.RePath(r'directory/%y/file%Y%m%d_v\d\.cdf')
+        self.assertTrue(r.match('99/file19990502_v0.cdf',
+                                datetime.datetime(1999, 5, 2), 'end'))
+        self.assertTrue(r.match('99/file19990502_v0.cdf', where='end'))
+        self.assertFalse(r.match('99/file19990502_v0.cdf',
+                                 datetime.datetime(2000, 5, 2), 'end'))
 
 
 class DataManagerFunctionTests(unittest.TestCase):

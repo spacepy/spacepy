@@ -85,13 +85,14 @@ class DataManager(object):
         Returns the filename corresponding to a particular point in time
         """
         if self.period:
-            this_re = datetime.datetime.strftime(dt, self.file_fmt)
+            flist = self.files_matching(dt)
         else:
             raise NotImplementedError
+        #Now figure out the priority..
 
-    def _files_matching(self, file_re):
+    def files_matching(self, dt=None):
         """
-        Return all the files matching a particular regular expression
+        Return all the files matching this file format
         """
         #Use os.walk. If descend is False, only continue for matching
         #the re to this point. If True, compare branch to entire re but
@@ -102,8 +103,17 @@ class DataManager(object):
                 #dirpath is FULL DIRECTORY to this point
                 relpath = dirpath[len(d):]
                 if not self.descend:
-                    #Prune dirnames based on whether they match the re
-                    pass
+                    if not self.file_fmt.match(relpath, dt, 'start'):
+                        continue
+                    for i in range(-len(dirnames), 1):
+                        if not self.file_fmt.match(os.path.join(
+                                relpath, dirnames[i]), dt, 'start'):
+                            del dirnames[i]
+                for f in filenames:
+                    if self.file_fmt.match(os.path.join(relpath, f), dt,
+                                           'end' if self.descend else None):
+                        yield os.path.join(dirpath, f)
+
 
 class RePath(object):
     """
@@ -127,67 +137,49 @@ class RePath(object):
     def __init__(self, expression):
         self.file_fmt = expression
         self.file_re = re.sub(r'(?!(?:%%)+)%([wdmyYHMsjUW])',
-                             lambda x: self.fmt_to_re(x.group(1)),
+                             lambda x: self.fmt_to_re[x.group(1)],
                               expression)
         self.file_fmt_split = self.path_split(self.file_fmt)
         self.file_re_split = self.path_split(self.file_re)
 
-    def match(self, string, dt=None):
+    def match(self, string, dt=None, where=None):
         """
-        Matches a string against the entire path, optionally anchored
+        Matches a string against a path or part thereof, optionally anchored
         at a particular date/time
 
         Other Parameters
         ================
         dt : datetime.datetime
             The time to specifically match; otherwise matches all files.
-        """
-        return re.match('^' + (datetime.datetime.strftime(dt, self.file_fmt)
-                               if dt else self.file_re) + '$',
-                        string)
-
-    def match_end(self, string, dt=None):
-        """
-        Matches a string against the end of the path, optionally anchored
-        at a particular date/time.
-        Note this matches the last several elements of the path, NOT just
-        the last several characters, i.e., foo/bar will not match oo/bar
-
-        Other Parameters
-        ================
-        dt : datetime.datetime
-            The time to specifically match; otherwise matches all files.
+        where : str
+            Where to match: None to match the string to the entire path
+            (default); ``'start'`` to match entire string against the start
+            of the path; ``'end'`` to match entire string against end of path.
+            Note this matches the last elements of the path, not just
+            the last characters, i.e., ``oo/bar`` will not match ``foo/bar``.
+            Similarly, ``'start'`` matches the first elements of the path,
+            i.e., ``foo/ba`` will not match ``foo/bar``
 
         Returns
         =======
         out : re.MatchObject
+            The result of the match.
         """
-        return re.match(
-            '^'+
-            self.path_slice(datetime.datetime.strftime(dt, self.file_fmt)
-                            if dt else self.file_re,
-                            -len(self.path_split(string)), 999)
-            + '$', string)
+        datestr = (datetime.datetime.strftime(dt, self.file_fmt)
+                   if dt else self.file_re)
+        if where is None:
+            pat = datestr
+        elif where.lower() == 'end':
+            pat = self.path_slice(datestr,
+                                  -len(self.path_split(string)), None, 1)
+        elif where.lower() == 'start':
+            pat = self.path_slice(datestr,
+                                  0, len(self.path_split(string)))
+        else:
+            raise(ValueError("where must be 'start', 'stop', or None, not {0}".
+                             format(where)))
+        return re.match('^' + pat + '$', string)
 
-    def match_start(self, string, dt=None):
-        """
-        Matches a string against the start of the path, optionally anchored
-        at a particular date/time.
-        Note this matches the first several elements of the path, NOT just
-        the last several characters, i.e., foo/ba will not match foo/bar
-
-        Other Parameters
-        ================
-        dt : datetime.datetime
-            The time to specifically match; otherwise matches all files.
-        """
-        return re.match(
-            '^'+
-            self.path_slice(datetime.datetime.strftime(dt, self.file_fmt)
-                            if dt else self.file_re,
-                            0, len(self.path_split(string)))
-            + '$', string)
-    
     @staticmethod
     def path_split(path):
         """
@@ -225,7 +217,8 @@ class RePath(object):
         Other Parameters
         ================
         stop : int
-            First path element to NOT return, i.e., one past the last
+            First path element to NOT return, i.e., one past the last.
+            If ``stop`` is not specified but ``step`` is, return to end.
         step : int
             Increment between each.
 
@@ -247,7 +240,7 @@ class RePath(object):
         if stop is None and step is None:
             return RePath.path_split(path)[start]
         else:
-            return os.path.join(RePath.path_split(path)[start:stop:step])
+            return os.path.join(*RePath.path_split(path)[start:stop:step])
 
 
 def insert_fill(times, data, fillval=numpy.nan, tol=1.5, absolute=None, doTimes=True):
