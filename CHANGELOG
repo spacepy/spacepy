@@ -3,6 +3,7 @@ Changes in Version 0.1.6 (2015-xx-xx)
 datamanager
  - New module to help in finding, slicing, and manipulating data
  - Function "insert_fill" to make explict gaps in irregular data
+ - Function "apply_index": help sort one multi-dimensional data set by another
 datamodel
  - Fix reading JSON-headed ASCII in numpy 1.4, 1.5
 empiricals

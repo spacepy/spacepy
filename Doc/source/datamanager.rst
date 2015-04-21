@@ -21,5 +21,6 @@ datamanager - easy access to data
 .. autosummary::
     :toctree: autosummary
 
+    apply_index
     insert_fill
 

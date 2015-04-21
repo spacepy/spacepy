@@ -9,6 +9,7 @@ Copyright 2015 University System of New Hampshire
 import datetime
 import unittest
 
+import numpy.random
 import numpy.testing
 
 import spacepy.datamanager
@@ -156,6 +157,24 @@ class DataManagerFunctionTests(unittest.TestCase):
         expected_df = [1, 2, 3, -1, 5, 6, 7, -1, 9, 10, 11]
         numpy.testing.assert_array_equal(ef, expected_ef)
         numpy.testing.assert_array_equal(df, expected_df)
+
+    def test_apply_idx(self):
+        """Verify apply_idx"""
+        numpy.random.seed(0)
+        indata = numpy.random.randint(0, 10000, (50, 3, 12, 8))
+        #indata will by sorted in dimension 2 (12) by orderby's
+        #sort order for the same dimension 0 (50)
+        orderby = numpy.random.randint(0, 10000, (50, 12))
+        idx = numpy.argsort(orderby, axis=1)
+        outdata = spacepy.datamanager.apply_index(indata, idx)
+        for i in range(50):
+            numpy.testing.assert_array_equal(numpy.sort(orderby[i, :]),
+                                             orderby[i, idx[i]])
+        for j in range(3):
+            for l in range(8):
+                for i in range(50):
+                    numpy.testing.assert_array_equal(indata[i, j, idx[i], l],
+                                                     outdata[i, j, :, l])
 
 if __name__ == "__main__":
     unittest.main()

@@ -383,3 +383,73 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, absolute=None, doTimes=
         filltimes = times[idx - 1] + numpy.vectorize(lambda x: datetime.timedelta(seconds=x / 2.0))(diff[idx - 1])
     times = numpy.insert(times, idx, filltimes)
     return times, data
+
+
+def apply_index(data, idx):
+    """Apply an array of indices to data.
+
+    Most useful in dealing with the output from :func:`numpy.argsort`, and
+    best explained by the example.
+
+    Parameters
+    ==========
+    data : array
+        Input data, at least two dimensional. The 0th dimension is treated as
+        a "time" or "record" dimension.
+    idx : sequence
+        2D index to apply to the import data. The 0th dimension must be the 
+        same size as ``data``'s 0th dimension. Dimension 1 must be the same
+        size as one other dimension in data (the first match found is used);
+        this is referred to as the "index dimension."
+
+    Raises
+    ======
+    ValueError : if can't match the shape of data and indices
+
+    Returns
+    =======
+    data : sequence
+        View of ``data``, with index applied. For each index of the 0th
+        dimension, the values along the index dimension are obtained by applying
+        the value of ``idx`` at the same index in the 0th dimension. This is
+        repeated across any other dimensions in ``data``.
+
+        .. warning::
+            No guarantee is made whether the returned data is a copy
+            of the input data. Modifying values in the input may change
+            the values of the input. Call :meth:`numpy.ndarray.copy` if
+            a copy is required.
+
+    Examples
+    ========
+    Assume ``flux`` is a 3D array of fluxes, with a value for each of
+    time, pitch angle, and energy. Assume energy is not necessarily 
+    constant in time, nor is ordered in the energy dimension. If
+    ``energy`` is a 2D array of the energies as a function of energy
+    step for each time, then the following will sort the flux at each
+    time and pitch angle in energy order.
+
+    >>> idx = numpy.argsort(energy, axis=1)
+    >>> flux_sorted = spacepy.datamanager.apply_index(flux, idx)
+    """
+    data = numpy.asanyarray(data)
+    idx = numpy.asanyarray(idx)
+    if len(idx.shape) != 2:
+        raise ValueError("idx must have dimensions 2, not {0}".format(
+            len(idx.shape)))
+    if len(data.shape) < 2:
+        raise ValueError("data must have at least dimensions 2")
+    if idx.shape[0] != data.shape[0]:
+        raise ValueError("data and idx must have same size in "
+                         "0th dimension")
+    if not idx.shape[1] in data.shape[1:]:
+        raise ValueError("Size of idx dimension 1 must match a dimension in "
+                         "data")
+    idx_dim = data.shape[1:].index(idx.shape[1]) + 1
+    return numpy.rollaxis(
+        numpy.rollaxis(data, idx_dim, 1) #make time and index dim adjacent
+        #get a 2d array where every element matches index of first axis
+        [numpy.mgrid[0:idx.shape[0], slice(idx.shape[1])][0],
+         idx, #2d array, every element is desired index of second axis
+         ...] #and the other axes come along for the ride
+        , 1, idx_dim + 1) #and put index dim back in place
