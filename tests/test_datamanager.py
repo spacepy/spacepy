@@ -176,5 +176,116 @@ class DataManagerFunctionTests(unittest.TestCase):
                     numpy.testing.assert_array_equal(indata[i, j, idx[i], l],
                                                      outdata[i, j, :, l])
 
+    def test_values_to_steps(self):
+        inval = [[1, 3, 5, 7, 6, 4, 2, 0],
+                 [0, 1, 2, 3, 3, 2, 1, 0],
+                 [50, 50, 100, 100, 100, 100, 50, 50],
+             ]
+        outval = spacepy.datamanager.values_to_steps(inval, axis=-1)
+        expected = [[1, 3, 5, 7, 6, 4, 2, 0],
+                    [0, 1, 2, 3, 3, 2, 1, 0],
+                    [0, 0, 1, 1, 1, 1, 0, 0],
+                ]
+        numpy.testing.assert_array_equal(expected, outval)
+
+    def test_flatten_idx(self):
+        #Really easy cases: just do zero for everything, make sure the offset
+        #is okay (before testing the stride)
+        inval = numpy.zeros((5, 4), dtype=numpy.int64)
+        outval = spacepy.datamanager.flatten_idx(inval, axis=1).reshape(5, 4)
+        for i in range(5):
+            self.assertTrue((outval[i, :] == i * 4).all())
+
+        inval = numpy.zeros((5, 4), dtype=numpy.int64)
+        outval = spacepy.datamanager.flatten_idx(inval, axis=0)
+        checkval = numpy.empty((5, 4))
+        for j in range(4):
+            checkval[0, j] = j
+            checkval[1:, j] = -1
+        self.assertTrue((checkval.flatten()[outval].reshape(5, 4) ==
+                [0, 1, 2, 3]).all())
+
+        #Easy cases
+        inval = [[0, 1, 2], [0, 1, 2]]
+        outval = spacepy.datamanager.flatten_idx(inval, axis=1)
+        self.assertTrue((outval == [0, 1, 2, 3, 4, 5]).all())
+
+        inval = [[0, 0, 0], [1, 1, 1]]
+        outval = spacepy.datamanager.flatten_idx(inval, axis=0)
+        numpy.testing.assert_array_equal([0, 1, 2, 3, 4, 5], outval)
+
+        #Big and fancy and difficult
+        numpy.random.seed(0)
+        inval = numpy.random.randint(10000, size=(5, 6, 7))
+
+        idx = numpy.argsort(inval, axis=0)
+        sorted = inval.ravel()[spacepy.datamanager.flatten_idx(idx, axis=0)
+        ].reshape(inval.shape)
+        self.assertEqual(inval.shape, sorted.shape)
+        for j in range(6):
+            for k in range(7):
+                numpy.testing.assert_array_equal(
+                    numpy.sort(inval[:, j, k]),
+                    inval[idx[:, j, k], j, k])
+                numpy.testing.assert_array_equal(
+                    numpy.sort(inval[:, j, k]),
+                    sorted[:, j, k])
+
+        idx = numpy.argsort(inval, axis=1)
+        sorted = inval.ravel()[spacepy.datamanager.flatten_idx(idx, axis=1)
+        ].reshape(inval.shape)
+        assert(sorted.shape == inval.shape)
+        for i in range(5):
+            for k in range(7):
+                numpy.testing.assert_array_equal(
+                    numpy.sort(inval[i, :, k]),
+                    inval[i, idx[i, :, k], k])
+                numpy.testing.assert_array_equal(
+                    numpy.sort(inval[i, :, k]),
+                    sorted[i, :, k])
+
+        idx = numpy.argsort(inval, axis=2)
+        sorted = inval.ravel()[spacepy.datamanager.flatten_idx(idx, axis=2)
+        ].reshape(inval.shape)
+        assert(sorted.shape == inval.shape)
+        for i in range(5):
+            for j in range(6):
+                numpy.testing.assert_array_equal(
+                    numpy.sort(inval[i, j, :]),
+                    inval[i, j, idx[i, j, :]])
+                numpy.testing.assert_array_equal(
+                    numpy.sort(inval[i, j, :]),
+                    sorted[i, j, :])
+        #Add a test that assignment works?
+
+    def test_axis_index(self):
+        shape = (6, 3, 4, 12, 9)
+        axis = 2
+        output = spacepy.datamanager.axis_index(shape, axis)
+        expected = numpy.arange(shape[axis])
+        assert(output.shape == shape)
+        for i in range(6):
+            for j in range(3):
+                for l in range(12):
+                    for m in range(9):
+                        numpy.testing.assert_array_equal(expected,
+                                                         output[i, j, :, l, m])
+
+    def test_rev_argsort(self):
+        numpy.random.seed(0)
+        inval = numpy.random.randint(10000, size=(5, 6, 7))
+        for axis in (0, 1, 2):
+            idx = numpy.argsort(inval, axis=axis)
+            idx_rev = spacepy.datamanager.rev_argsort(idx, axis=axis)
+    #apply_index doesn't allow a choice of axis...maybe later
+    #        assert((inval == spacepy.datamanager.apply_index(
+    #            spacepy.datamanager.apply_index(inval, idx, axis=axis),
+    #            idx_rev, axis=axis)).all())
+            self.assertTrue(
+                (inval.ravel()[spacepy.datamanager.flatten_idx(idx, axis)]
+                 [spacepy.datamanager.flatten_idx(idx_rev, axis)]
+                 .reshape(inval.shape) == inval).all())
+
+
 if __name__ == "__main__":
     unittest.main()
