@@ -22,6 +22,7 @@ pycdf
    again without restarting the Python intepreter
  - Fix some comparisons that might cause problems with future versions of numpy
  - Log the path to the CDF library for debugging purposes
+ - Library.epoch_to_num: convert epoch to matplotlib date number (like date2num)
 time
  - Speed improvement update to TickTock.getleapsecond
 

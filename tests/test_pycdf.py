@@ -27,6 +27,7 @@ except NameError:
     def callable(obj):
         return isinstance(obj, collections.Callable)
 
+import matplotlib.dates
 import numpy
 import numpy.testing
 from spacepy import datamodel
@@ -353,6 +354,17 @@ class NoCDF(unittest.TestCase):
                 epoch16, cdf.lib.epoch_to_epoch16(epoch))
         result = cdf.lib.epoch_to_epoch16(epochs)
         expected = numpy.array(epoch16s)
+        numpy.testing.assert_array_equal(expected, result)
+
+    def testEpochtoNum(self):
+        """Convert Epoch to matplotlib number"""
+        dts = [datetime.datetime(2012, 1, 3, 23, 12),
+               datetime.datetime(1857, 7, 23, 12, 1),
+               datetime.datetime(1934, 2, 7, 23, 5),
+               ]
+        epochs = cdf.lib.v_datetime_to_epoch(dts)
+        expected = matplotlib.dates.date2num(dts)
+        result = cdf.lib.epoch_to_num(epochs)
         numpy.testing.assert_array_equal(expected, result)
 
     def testEpoch16toEpoch(self):
