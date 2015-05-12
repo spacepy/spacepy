@@ -271,12 +271,12 @@ class DataManagerFunctionTests(unittest.TestCase):
                         numpy.testing.assert_array_equal(expected,
                                                          output[i, j, :, l, m])
 
-    def test_rev_argsort(self):
+    def test_rev_index(self):
         numpy.random.seed(0)
         inval = numpy.random.randint(10000, size=(5, 6, 7))
         for axis in (0, 1, 2):
             idx = numpy.argsort(inval, axis=axis)
-            idx_rev = spacepy.datamanager.rev_argsort(idx, axis=axis)
+            idx_rev = spacepy.datamanager.rev_index(idx, axis=axis)
     #apply_index doesn't allow a choice of axis...maybe later
     #        assert((inval == spacepy.datamanager.apply_index(
     #            spacepy.datamanager.apply_index(inval, idx, axis=axis),

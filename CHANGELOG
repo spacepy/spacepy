@@ -7,7 +7,7 @@ datamanager
  - Function "axis_index": prepare indices along the axis of an array
  - Function "flatten_idx": convert an index to an index into flattened array
  - Function "insert_fill" to make explict gaps in irregular data
- - Function "rev_argsort": convert an index into its complement
+ - Function "rev_index": convert an index into its complement
  - Function "values_to_steps": convert values to index of unique, sorted values
 datamodel
  - Fix reading JSON-headed ASCII in numpy 1.4, 1.5

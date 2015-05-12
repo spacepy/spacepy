@@ -42,12 +42,12 @@ Examples go here
     axis_index
     flatten_idx
     insert_fill
-    rev_argsort
+    rev_index
     values_to_steps
 """
 
 __all__ = ["DataManager", "apply_index", "array_interleave", "axis_index",
-           "flatten_idx", "insert_fill", "rev_argsort", "values_to_steps"]
+           "flatten_idx", "insert_fill", "rev_index", "values_to_steps"]
 
 import datetime
 import operator
@@ -565,7 +565,7 @@ def values_to_steps(array, axis=-1):
     """
     array = numpy.asanyarray(array)
     sortidx = array.argsort(axis=axis)
-    steps = rev_argsort(sortidx, axis=axis)
+    steps = rev_index(sortidx, axis=axis)
     d = numpy.diff(apply_index(array, sortidx), axis=axis)
     #Everywhere in SORTED array that the VALUE is same as one before
     same = numpy.insert(d==0, 0, False, axis=axis)
@@ -573,7 +573,7 @@ def values_to_steps(array, axis=-1):
     delta = numpy.cumsum(same, axis=-1)
     #Get delta into the unsorted frame, and correct for uniqueness
     return steps - delta.ravel()[
-        flatten_idx(rev_argsort(sortidx, axis=axis), axis=axis)]\
+        flatten_idx(rev_index(sortidx, axis=axis), axis=axis)]\
         .reshape(steps.shape)
 
 
@@ -687,10 +687,10 @@ def axis_index(shape, axis=-1):
     return operator.getitem(numpy.mgrid, [slice(i) for i in shape])[axis]
 
 
-def rev_argsort(idx, axis=-1):
+def rev_index(idx, axis=-1):
     """From an index, return an index that reverses the action of that index
 
-    Essentially, ``a[idx][rev_argsort(idx)] == a``
+    Essentially, ``a[idx][rev_index(idx)] == a``
 
     .. note::
         This becomes more complicated in multiple dimensions, due to the
@@ -724,7 +724,7 @@ def rev_argsort(idx, axis=-1):
     >>> idx = numpy.argsort(data)
     >>> data[idx] #sorted
     array([2, 3, 4, 6, 7])
-    >>> data[idx][spacepy.datamanager.rev_argsort(idx)] #original
+    >>> data[idx][spacepy.datamanager.rev_index(idx)] #original
     array([7, 2, 4, 6, 3])
 """
     #Want an idx2 such that x[idx][idx2] == x
