@@ -15,7 +15,7 @@ import numpy.testing
 import spacepy.datamanager
 
 
-__all__ = ["RePathTests"]
+__all__ = ["RePathTests", "DataManagerFunctionTests"]
 
 
 class RePathTests(unittest.TestCase):
