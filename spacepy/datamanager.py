@@ -102,6 +102,7 @@ class DataManager(object):
         elif not re.match(r'^\d+[yYmdHMs]$', period):
             period = None #irregular, fun!
         self.directories = directories
+        self.descend = descend
         self.period = period
         self.file_fmt = RePath(file_fmt)
 
@@ -126,11 +127,12 @@ class DataManager(object):
             for (dirpath, dirnames, filenames) in \
                 os.walk(d, topdown=True, followlinks=True):
                 #dirpath is FULL DIRECTORY to this point
-                relpath = dirpath[len(d):]
+                relpath = dirpath[len(d) + 1:]
                 if not self.descend:
-                    if not self.file_fmt.match(relpath, dt, 'start'):
+                    if relpath and not \
+                       self.file_fmt.match(relpath, dt, 'start'):
                         continue
-                    for i in range(-len(dirnames), 1):
+                    for i in range(-len(dirnames), 0):
                         if not self.file_fmt.match(os.path.join(
                                 relpath, dirnames[i]), dt, 'start'):
                             del dirnames[i]
@@ -161,6 +163,8 @@ class RePath(object):
                   }
     def __init__(self, expression):
         self.file_fmt = expression
+        #This should have backrefs where the same format occurs twice
+        #(year in both directory and file, for example)
         self.file_re = re.sub(r'(?!(?:%%)+)%([wdmyYHMsjUW])',
                              lambda x: self.fmt_to_re[x.group(1)],
                               expression)
@@ -179,11 +183,17 @@ class RePath(object):
         where : str
             Where to match: None to match the string to the entire path
             (default); ``'start'`` to match entire string against the start
-            of the path; ``'end'`` to match entire string against end of path.
-            Note this matches the last elements of the path, not just
+            of the path; ``'end'`` to match entire path against end of string.
+            Note this matches the last elements of the string, not just
             the last characters, i.e., ``oo/bar`` will not match ``foo/bar``.
             Similarly, ``'start'`` matches the first elements of the path,
             i.e., ``foo/ba`` will not match ``foo/bar``
+            ``start`` matches subset of path, i.e., the string is a directory
+            that may contain full matches further down the tree. ``end``
+            matches a subset of the string, i.e, the string is a
+            path to a file that would be a complete match except it has
+            additional path elements leading. This is the order that tends to
+            be useful.
 
         Returns
         =======
@@ -194,10 +204,10 @@ class RePath(object):
                    if dt else self.file_re)
         if where is None:
             pat = datestr
-        elif where.lower() == 'end':
-            pat = self.path_slice(datestr,
-                                  -len(self.path_split(string)), None, 1)
-        elif where.lower() == 'start':
+        elif where.lower() == 'end': #Cut down string to match path pattern
+            pat = datestr
+            string = self.path_slice(string, -len(self.file_re_split), None, 1)
+        elif where.lower() == 'start': #Does path pattern start like string?
             pat = self.path_slice(datestr,
                                   0, len(self.path_split(string)))
         else:
@@ -224,6 +234,9 @@ class RePath(object):
         while path:
             path, tail = os.path.split(path)
             res.insert(0, tail)
+            if path == '/':
+                res.insert(0, '/')
+                break
         return res
 
     @staticmethod

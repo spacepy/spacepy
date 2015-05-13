@@ -7,6 +7,9 @@ Copyright 2015 University System of New Hampshire
 """
 
 import datetime
+import os
+import shutil
+import tempfile
 import unittest
 
 import numpy.random
@@ -18,12 +21,57 @@ import spacepy.datamanager
 __all__ = ["RePathTests", "DataManagerFunctionTests"]
 
 
+class DataManagerClassTests(unittest.TestCase):
+    def test_files_matching(self):
+        """Files matching a format"""
+        dirlist = ['data/datamanager_test/1',
+                   'data/datamanager_test/2',
+                   ]
+        cases = [
+            {'files1': ['rbspa_ect-hope-sci-L2_20150409_v4.0.0.cdf',
+                        'rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf'],
+             'files2': ['rbspa_ect-hope-sci-L2_20150409_v4.1.0.cdf'],
+             'regex': r'rbspa_ect-hope-sci-L2_%Y%m%d_v(\d\.){3}cdf',
+             'dt': None,
+             'descend': False,
+         },
+            {'files1': ['rbspa_ect-hope-sci-L2_20150409_v4.0.0.cdf',
+                        'rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf',
+                        'foo/rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf',
+                        '2015/rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf',
+                        ],
+             'files2': ['rbspa_ect-hope-sci-L2_20150409_v4.1.0.cdf',
+                        '2015/rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf'],
+             'regex': r'rbspa_ect-hope-sci-L2_%Y%m%d_v(\d\.){3}cdf',
+             'dt': None,
+             'descend': True,
+         },
+            {'files1': ['2015/rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf'],
+             'files2': ['2015/rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf'],
+             'regex': r'%Y/rbspa_ect-hope-sci-L2_%Y%m%d_v(\d\.){3}cdf',
+             'dt': None,
+             'descend': False,
+         },
+            ]
+        for c in cases:
+            dm = spacepy.datamanager.DataManager(dirlist, c['regex'],
+                                                 c['descend'])
+            expected = [os.path.join(dirlist[0], f) for f in c['files1']]
+            expected.extend([os.path.join(dirlist[1], f) for f in c['files2']])
+            output = list(dm.files_matching(c['dt']))
+            numpy.testing.assert_array_equal(expected, output, 'Case:' + str(c))
+
+
 class RePathTests(unittest.TestCase):
     def test_path_split(self):
         """Verify the simple splitting works"""
         path = "foo/bar/baz"
         self.assertEqual(["foo", "bar", "baz"],
                          spacepy.datamanager.RePath.path_split(path))
+        path = "/foo/rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"
+        self.assertEqual(
+            ["/", "foo", "rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"],
+            spacepy.datamanager.RePath.path_split(path))
 
     def test_path_slice(self):
         """Verify slicing on a path"""
@@ -57,12 +105,18 @@ class RePathTests(unittest.TestCase):
 
     def test_path_match_end(self):
         """Verify matching end of a path regex"""
-        r = spacepy.datamanager.RePath(r'directory/%y/file%Y%m%d_v\d\.cdf')
-        self.assertTrue(r.match('99/file19990502_v0.cdf',
+        r = spacepy.datamanager.RePath(r'%y/file%Y%m%d_v\d\.cdf')
+        self.assertTrue(r.match('directory/99/file19990502_v0.cdf',
                                 datetime.datetime(1999, 5, 2), 'end'))
-        self.assertTrue(r.match('99/file19990502_v0.cdf', where='end'))
-        self.assertFalse(r.match('99/file19990502_v0.cdf',
+        self.assertTrue(r.match('directory/99/file19990502_v0.cdf',
+                                where='end'))
+        self.assertFalse(r.match('directory/99/file19990502_v0.cdf',
                                  datetime.datetime(2000, 5, 2), 'end'))
+        r = spacepy.datamanager.RePath(
+            r'rbspa_ect-hope-sci-L2_%Y%m%d_v(\d\.){3}cdf')
+        self.assertTrue(r.match(
+            '2015/rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf',
+            where='end'))
 
 
 class DataManagerFunctionTests(unittest.TestCase):
