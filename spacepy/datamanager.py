@@ -22,10 +22,35 @@ About datamanager
 
 Examples
 --------
+Examples go here
 
+.. currentmodule:: spacepy.datamanager
+
+.. rubric:: Classes
+
+.. autosummary::
+    :template: clean_class.rst
+
+    DataManager
+
+.. rubric:: Functions
+
+.. autosummary::
+
+    apply_index
+    array_interleave
+    axis_index
+    flatten_idx
+    insert_fill
+    rev_index
+    values_to_steps
 """
 
+__all__ = ["DataManager", "apply_index", "array_interleave", "axis_index",
+           "flatten_idx", "insert_fill", "rev_index", "values_to_steps"]
+
 import datetime
+import operator
 import os.path
 import re
 
@@ -77,6 +102,7 @@ class DataManager(object):
         elif not re.match(r'^\d+[yYmdHMs]$', period):
             period = None #irregular, fun!
         self.directories = directories
+        self.descend = descend
         self.period = period
         self.file_fmt = RePath(file_fmt)
 
@@ -101,11 +127,12 @@ class DataManager(object):
             for (dirpath, dirnames, filenames) in \
                 os.walk(d, topdown=True, followlinks=True):
                 #dirpath is FULL DIRECTORY to this point
-                relpath = dirpath[len(d):]
+                relpath = dirpath[len(d) + 1:]
                 if not self.descend:
-                    if not self.file_fmt.match(relpath, dt, 'start'):
+                    if relpath and not \
+                       self.file_fmt.match(relpath, dt, 'start'):
                         continue
-                    for i in range(-len(dirnames), 1):
+                    for i in range(-len(dirnames), 0):
                         if not self.file_fmt.match(os.path.join(
                                 relpath, dirnames[i]), dt, 'start'):
                             del dirnames[i]
@@ -136,6 +163,8 @@ class RePath(object):
                   }
     def __init__(self, expression):
         self.file_fmt = expression
+        #This should have backrefs where the same format occurs twice
+        #(year in both directory and file, for example)
         self.file_re = re.sub(r'(?!(?:%%)+)%([wdmyYHMsjUW])',
                              lambda x: self.fmt_to_re[x.group(1)],
                               expression)
@@ -154,11 +183,17 @@ class RePath(object):
         where : str
             Where to match: None to match the string to the entire path
             (default); ``'start'`` to match entire string against the start
-            of the path; ``'end'`` to match entire string against end of path.
-            Note this matches the last elements of the path, not just
+            of the path; ``'end'`` to match entire path against end of string.
+            Note this matches the last elements of the string, not just
             the last characters, i.e., ``oo/bar`` will not match ``foo/bar``.
             Similarly, ``'start'`` matches the first elements of the path,
             i.e., ``foo/ba`` will not match ``foo/bar``
+            ``start`` matches subset of path, i.e., the string is a directory
+            that may contain full matches further down the tree. ``end``
+            matches a subset of the string, i.e, the string is a
+            path to a file that would be a complete match except it has
+            additional path elements leading. This is the order that tends to
+            be useful.
 
         Returns
         =======
@@ -169,10 +204,10 @@ class RePath(object):
                    if dt else self.file_re)
         if where is None:
             pat = datestr
-        elif where.lower() == 'end':
-            pat = self.path_slice(datestr,
-                                  -len(self.path_split(string)), None, 1)
-        elif where.lower() == 'start':
+        elif where.lower() == 'end': #Cut down string to match path pattern
+            pat = datestr
+            string = self.path_slice(string, -len(self.file_re_split), None, 1)
+        elif where.lower() == 'start': #Does path pattern start like string?
             pat = self.path_slice(datestr,
                                   0, len(self.path_split(string)))
         else:
@@ -199,6 +234,9 @@ class RePath(object):
         while path:
             path, tail = os.path.split(path)
             res.insert(0, tail)
+            if path == '/':
+                res.insert(0, '/')
+                break
         return res
 
     @staticmethod
@@ -417,7 +455,7 @@ def apply_index(data, idx):
         .. warning::
             No guarantee is made whether the returned data is a copy
             of the input data. Modifying values in the input may change
-            the values of the input. Call :meth:`numpy.ndarray.copy` if
+            the values of the input. Call :meth:`~numpy.ndarray.copy` if
             a copy is required.
 
     Examples
@@ -453,3 +491,260 @@ def apply_index(data, idx):
          idx, #2d array, every element is desired index of second axis
          ...] #and the other axes come along for the ride
         , 1, idx_dim + 1) #and put index dim back in place
+
+
+def array_interleave(array1, array2, idx):
+    """Create an array containing all elements of both array1 and array2
+
+    ``idx`` is an index on the output array which indicates which elements will
+    be populated from ``array1``, i.e., ``out[idx] == array1`` (in order.)
+    The other elements of ``out`` will be filled, in order, from ``array2``.
+
+    Parameters
+    ==========
+    array1 : array
+        Input data.
+    array2 : array
+        Input data. Must have same number of dimensions as ``array1``, and all
+        dimensions except the zeroth must also have the same length.
+    idx : array
+        A 1D array of indices on the zeroth dimension of the output array. Must
+        have the same length as the zeroth dimension of ``array1``.
+
+    Returns
+    =======
+    out : array
+        All elements from ``array1`` and ``array2``, interleaved according
+        to ``idx``.
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> a = numpy.array([10, 20, 30])
+    >>> b = numpy.array([1, 2])
+    >>> idx = numpy.array([1, 2, 4])
+    >>> spacepy.datamanager.array_interleave(a, b, idx)
+    array([ 1, 10, 20,  2, 30])
+    """
+    array1 = numpy.asanyarray(array1)
+    array2 = numpy.asanyarray(array2)
+    idx = numpy.asanyarray(idx)
+    assert(len(array1.shape) == len(array2.shape))
+    assert(array1.shape[1:] == array2.shape[1:])
+    assert(array1.dtype == array2.dtype)
+    outarray = numpy.empty(dtype=array1.dtype,
+        shape=((array1.shape[0] + array2.shape[0],) + array1.shape[1:]))
+    outarray[idx, ...] = array1
+    idx_comp = numpy.ones((outarray.shape[0],), dtype=numpy.bool)
+    idx_comp[idx] = False
+    outarray[idx_comp, ...] = array2
+    return outarray
+
+
+def values_to_steps(array, axis=-1):
+    """Transform values along an axis to their order in a unique sequence.
+
+    Useful in, e.g., converting a list of energies to their steps.
+
+    Parameters
+    ==========
+    array : array
+        Input data.
+
+    Other Parameters
+    ================
+    axis : int
+        Axis along which to find the steps.
+
+    Returns
+    =======
+    steps : array
+        An array, the same size as ``array``, with values along ``axis``
+        corresponding to the position of the value in ``array`` in a unique,
+        sorted, set of the values in ``array`` along that axis. Differs from
+        :func:`~numpy.argsort` in that identical values will have identical
+        step numbers in the output.
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> data = [[10., 12., 11., 9., 10., 12., 11., 9.],
+                [10., 12., 11., 9., 14., 16., 15., 13.]]
+    >>> spacepy.datamanager.values_to_steps(data)
+    array([[1, 3, 2, 0, 1, 3, 2, 0],
+           [1, 3, 2, 0, 5, 7, 6, 4]])
+    """
+    array = numpy.asanyarray(array)
+    sortidx = array.argsort(axis=axis)
+    steps = rev_index(sortidx, axis=axis)
+    d = numpy.diff(apply_index(array, sortidx), axis=axis)
+    #Everywhere in SORTED array that the VALUE is same as one before
+    same = numpy.insert(d==0, 0, False, axis=axis)
+    #Number of duplicate indices BEFORE current index, in SORTED array
+    delta = numpy.cumsum(same, axis=-1)
+    #Get delta into the unsorted frame, and correct for uniqueness
+    return steps - delta.ravel()[
+        flatten_idx(rev_index(sortidx, axis=axis), axis=axis)]\
+        .reshape(steps.shape)
+
+
+def flatten_idx(idx, axis=-1):
+    """Convert multidimensional index into index on flattened array.
+
+    Convert a multidimensional index, that is values along a particular axis,
+    so that it can derefence the flattened array properly. Note this is not
+    the same as :func:`~numpy.ravel_multi_index`.
+
+    Parameters
+    ==========
+    idx : array
+        Input index, i.e. a list of elements along a particular axis,
+        in the style of :func:`~numpy.argsort`.
+
+    Other Parameters
+    ================
+    axis : int
+        Axis along which ``idx`` operates, defaults to the last axis.
+
+    Returns
+    =======
+    flat : array
+        A 1D array of indices suitable for indexing the flat version of the
+        array 
+
+    See Also
+    ========
+    apply_index
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> data = numpy.array([[3, 1, 2], [3, 2, 1]])
+    >>> idx = numpy.argsort(data, -1)
+    >>> idx_flat = spacepy.datamanager.flatten_idx(idx)
+    >>> data.ravel() #flat array
+    array([3, 1, 2, 3, 2, 1])
+    >>> idx_flat #indices into the flat array
+    array([1, 2, 0, 5, 4, 3])
+    >>> data.ravel()[idx_flat] #index applied to the flat array
+    array([1, 2, 3, 1, 2, 3])
+    """
+    idx = numpy.asanyarray(idx)
+    if not idx.dtype.kind in ('i', 'u'):
+        idx = idx.astype(int)
+    preshape = idx.shape[:axis]
+    postshape = idx.shape[axis:]
+    stride = int(numpy.product(postshape[1:])) #1 if applied to empty
+    #The index on this axis moves stride elements in flat
+    outidx = idx.flatten() * stride #makes a copy
+    #First add the offsets to get us to [..., idx @ axis = 0, 0...)
+    outidx += numpy.repeat(
+        numpy.arange(0, len(outidx), int(numpy.product(postshape)),
+                     dtype=idx.dtype),
+        numpy.product(postshape))
+    #Now offsets for non-zero on the trailing axes [0, 0, ... 0@axis, ...]
+    outidx += numpy.tile(numpy.arange(0, stride, dtype=idx.dtype),
+                           int(numpy.product(preshape)) * idx.shape[axis])
+    return outidx
+
+
+def axis_index(shape, axis=-1):
+    """Returns array of indices along axis, for all other axes
+
+    Parameters
+    ==========
+    shape : tuple
+        Shape of the output array
+
+    Other Parameters
+    ================
+    axis : int
+        Axis along which to return indices, defaults to the last axis.
+       
+    Returns
+    =======
+    idx : array
+        An array of indices. The value of each element is that element's index
+        along ``axis``.
+
+    See Also
+    ========
+    numpy.mgrid : This function is a special case
+
+    Examples
+    ========
+    For a shape of ``(i, j, k, l)`` and ``axis`` = -1,
+    ``idx[i, j, k, :] = range(l)`` for all ``i``, ``j``, ``k``.
+
+    Similarly, for the same shape and ``axis = 1``,
+    ``idx[i, :, k, l] = range(j)`` for all ``i``, ``k``, ``l``.
+
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> spacepy.datamanager.axis_index((5, 3))
+    array([[0, 1, 2],
+           [0, 1, 2],
+           [0, 1, 2],
+           [0, 1, 2],
+           [0, 1, 2]])
+    >>> spacepy.datamanager.axis_index((5, 3), 0)
+        array([[0, 0, 0],
+               [1, 1, 1],
+               [2, 2, 2],
+               [3, 3, 3],
+               [4, 4, 4]])
+"""
+    return operator.getitem(numpy.mgrid, [slice(i) for i in shape])[axis]
+
+
+def rev_index(idx, axis=-1):
+    """From an index, return an index that reverses the action of that index
+
+    Essentially, ``a[idx][rev_index(idx)] == a``
+
+    .. note::
+        This becomes more complicated in multiple dimensions, due to the
+        vagaries of applying a multidimensional index.
+
+    Parameters
+    ==========
+    idx : array
+        Indices onto an array, often the output of :func:`~numpy.argsort`.
+
+    Other Parameters
+    ================
+    axis : int
+        Axis along which to return indices, defaults to the last axis.
+
+    Returns
+    =======
+    rev_idx : array
+        Indices that, when applied to an array after ``idx``, will return
+        the original array (before the application of ``idx``).
+ 
+    See Also
+    ========
+    apply_index
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> data = numpy.array([7, 2, 4, 6, 3])
+    >>> idx = numpy.argsort(data)
+    >>> data[idx] #sorted
+    array([2, 3, 4, 6, 7])
+    >>> data[idx][spacepy.datamanager.rev_index(idx)] #original
+    array([7, 2, 4, 6, 3])
+"""
+    #Want an idx2 such that x[idx][idx2] == x
+    #idx is position to value map
+    #Populate every POSITION in idx2 with the POSITION in idx that
+    #has the VALUE of the idx2 position
+    #searchsorted on range?
+    idx_out = numpy.empty_like(idx).ravel()
+    idx_out[flatten_idx(idx, axis)] = axis_index(idx.shape, axis).ravel()
+    return idx_out.reshape(idx.shape)
