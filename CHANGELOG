@@ -13,6 +13,8 @@ datamodel
  - Fix reading JSON-headed ASCII in numpy 1.4, 1.5
 empiricals
  - New function getSolarRotation, returns Carrington or Bartels number
+plot
+ - Addition of dual_half_circle() to overlay a light/dark "Earth"
 plot.utils
  - Fix collapse_vertical when called with sequences other than lists
 pycdf
