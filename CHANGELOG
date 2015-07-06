@@ -2,11 +2,19 @@ Changes in Version 0.1.6 (2015-xx-xx)
 =====================================
 datamanager
  - New module to help in finding, slicing, and manipulating data
+ - Function "apply_index": help sort one multi-dimensional data set by another
+ - Function "array_interleave": combine data from two arrays to make a new
+ - Function "axis_index": prepare indices along the axis of an array
+ - Function "flatten_idx": convert an index to an index into flattened array
  - Function "insert_fill" to make explict gaps in irregular data
+ - Function "rev_index": convert an index into its complement
+ - Function "values_to_steps": convert values to index of unique, sorted values
 datamodel
  - Fix reading JSON-headed ASCII in numpy 1.4, 1.5
 empiricals
  - New function getSolarRotation, returns Carrington or Bartels number
+plot
+ - Addition of dual_half_circle() to overlay a light/dark "Earth"
 plot.utils
  - Fix collapse_vertical when called with sequences other than lists
 pycdf
@@ -16,6 +24,7 @@ pycdf
    again without restarting the Python intepreter
  - Fix some comparisons that might cause problems with future versions of numpy
  - Log the path to the CDF library for debugging purposes
+ - Library.epoch_to_num: convert epoch to matplotlib date number (like date2num)
 time
  - Speed improvement update to TickTock.getleapsecond
 

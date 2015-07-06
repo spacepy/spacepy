@@ -22,10 +22,35 @@ About datamanager
 
 Examples
 --------
+Examples go here
 
+.. currentmodule:: spacepy.datamanager
+
+.. rubric:: Classes
+
+.. autosummary::
+    :template: clean_class.rst
+
+    DataManager
+
+.. rubric:: Functions
+
+.. autosummary::
+
+    apply_index
+    array_interleave
+    axis_index
+    flatten_idx
+    insert_fill
+    rev_index
+    values_to_steps
 """
 
+__all__ = ["DataManager", "apply_index", "array_interleave", "axis_index",
+           "flatten_idx", "insert_fill", "rev_index", "values_to_steps"]
+
 import datetime
+import operator
 import os.path
 import re
 
@@ -77,6 +102,7 @@ class DataManager(object):
         elif not re.match(r'^\d+[yYmdHMs]$', period):
             period = None #irregular, fun!
         self.directories = directories
+        self.descend = descend
         self.period = period
         self.file_fmt = RePath(file_fmt)
 
@@ -85,13 +111,14 @@ class DataManager(object):
         Returns the filename corresponding to a particular point in time
         """
         if self.period:
-            this_re = datetime.datetime.strftime(dt, self.file_fmt)
+            flist = self.files_matching(dt)
         else:
             raise NotImplementedError
+        #Now figure out the priority..
 
-    def _files_matching(self, file_re):
+    def files_matching(self, dt=None):
         """
-        Return all the files matching a particular regular expression
+        Return all the files matching this file format
         """
         #Use os.walk. If descend is False, only continue for matching
         #the re to this point. If True, compare branch to entire re but
@@ -100,10 +127,20 @@ class DataManager(object):
             for (dirpath, dirnames, filenames) in \
                 os.walk(d, topdown=True, followlinks=True):
                 #dirpath is FULL DIRECTORY to this point
-                relpath = dirpath[len(d):]
+                relpath = dirpath[len(d) + 1:]
                 if not self.descend:
-                    #Prune dirnames based on whether they match the re
-                    pass
+                    if relpath and not \
+                       self.file_fmt.match(relpath, dt, 'start'):
+                        continue
+                    for i in range(-len(dirnames), 0):
+                        if not self.file_fmt.match(os.path.join(
+                                relpath, dirnames[i]), dt, 'start'):
+                            del dirnames[i]
+                for f in filenames:
+                    if self.file_fmt.match(os.path.join(relpath, f), dt,
+                                           'end' if self.descend else None):
+                        yield os.path.join(dirpath, f)
+
 
 class RePath(object):
     """
@@ -126,68 +163,58 @@ class RePath(object):
                   }
     def __init__(self, expression):
         self.file_fmt = expression
+        #This should have backrefs where the same format occurs twice
+        #(year in both directory and file, for example)
         self.file_re = re.sub(r'(?!(?:%%)+)%([wdmyYHMsjUW])',
-                             lambda x: self.fmt_to_re(x.group(1)),
+                             lambda x: self.fmt_to_re[x.group(1)],
                               expression)
         self.file_fmt_split = self.path_split(self.file_fmt)
         self.file_re_split = self.path_split(self.file_re)
 
-    def match(self, string, dt=None):
+    def match(self, string, dt=None, where=None):
         """
-        Matches a string against the entire path, optionally anchored
+        Matches a string against a path or part thereof, optionally anchored
         at a particular date/time
 
         Other Parameters
         ================
         dt : datetime.datetime
             The time to specifically match; otherwise matches all files.
-        """
-        return re.match('^' + (datetime.datetime.strftime(dt, self.file_fmt)
-                               if dt else self.file_re) + '$',
-                        string)
-
-    def match_end(self, string, dt=None):
-        """
-        Matches a string against the end of the path, optionally anchored
-        at a particular date/time.
-        Note this matches the last several elements of the path, NOT just
-        the last several characters, i.e., foo/bar will not match oo/bar
-
-        Other Parameters
-        ================
-        dt : datetime.datetime
-            The time to specifically match; otherwise matches all files.
+        where : str
+            Where to match: None to match the string to the entire path
+            (default); ``'start'`` to match entire string against the start
+            of the path; ``'end'`` to match entire path against end of string.
+            Note this matches the last elements of the string, not just
+            the last characters, i.e., ``oo/bar`` will not match ``foo/bar``.
+            Similarly, ``'start'`` matches the first elements of the path,
+            i.e., ``foo/ba`` will not match ``foo/bar``
+            ``start`` matches subset of path, i.e., the string is a directory
+            that may contain full matches further down the tree. ``end``
+            matches a subset of the string, i.e, the string is a
+            path to a file that would be a complete match except it has
+            additional path elements leading. This is the order that tends to
+            be useful.
 
         Returns
         =======
         out : re.MatchObject
+            The result of the match.
         """
-        return re.match(
-            '^'+
-            self.path_slice(datetime.datetime.strftime(dt, self.file_fmt)
-                            if dt else self.file_re,
-                            -len(self.path_split(string)), 999)
-            + '$', string)
+        datestr = (datetime.datetime.strftime(dt, self.file_fmt)
+                   if dt else self.file_re)
+        if where is None:
+            pat = datestr
+        elif where.lower() == 'end': #Cut down string to match path pattern
+            pat = datestr
+            string = self.path_slice(string, -len(self.file_re_split), None, 1)
+        elif where.lower() == 'start': #Does path pattern start like string?
+            pat = self.path_slice(datestr,
+                                  0, len(self.path_split(string)))
+        else:
+            raise(ValueError("where must be 'start', 'stop', or None, not {0}".
+                             format(where)))
+        return re.match('^' + pat + '$', string)
 
-    def match_start(self, string, dt=None):
-        """
-        Matches a string against the start of the path, optionally anchored
-        at a particular date/time.
-        Note this matches the first several elements of the path, NOT just
-        the last several characters, i.e., foo/ba will not match foo/bar
-
-        Other Parameters
-        ================
-        dt : datetime.datetime
-            The time to specifically match; otherwise matches all files.
-        """
-        return re.match(
-            '^'+
-            self.path_slice(datetime.datetime.strftime(dt, self.file_fmt)
-                            if dt else self.file_re,
-                            0, len(self.path_split(string)))
-            + '$', string)
-    
     @staticmethod
     def path_split(path):
         """
@@ -207,6 +234,9 @@ class RePath(object):
         while path:
             path, tail = os.path.split(path)
             res.insert(0, tail)
+            if path == '/':
+                res.insert(0, '/')
+                break
         return res
 
     @staticmethod
@@ -225,7 +255,8 @@ class RePath(object):
         Other Parameters
         ================
         stop : int
-            First path element to NOT return, i.e., one past the last
+            First path element to NOT return, i.e., one past the last.
+            If ``stop`` is not specified but ``step`` is, return to end.
         step : int
             Increment between each.
 
@@ -247,12 +278,11 @@ class RePath(object):
         if stop is None and step is None:
             return RePath.path_split(path)[start]
         else:
-            return os.path.join(RePath.path_split(path)[start:stop:step])
+            return os.path.join(*RePath.path_split(path)[start:stop:step])
 
 
-def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
-    """
-    Populate gaps in data with fill.
+def insert_fill(times, data, fillval=numpy.nan, tol=1.5, absolute=None, doTimes=True):
+    """Populate gaps in data with fill.
 
     Continuous data are often treated differently from discontinuous data,
     e.g., matplotlib will draw lines connecting data points but break the line
@@ -271,7 +301,7 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
 
     Other Parameters
     ================
-    fillval : 
+    fillval :
         Fill value, same type as ``data``. Default is ``numpy.nan``. If scalar,
         will be repeated to match the shape of ``data`` (minus the time axis).
 
@@ -280,10 +310,15 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
             integer input.
 
     tol : float
-        Tolerance. A single fill value is inserted between adjacent values
-        where the spacing in ``times`` is greater than ``tol`` times the median
-        of the spacing across all ``times``. The inserted time for fill is
-        halfway between the time on each side. (Default 1.5)
+        Tolerance. A single fill value is inserted between adjacent
+        values where the spacing in ``times`` is strictly greater than
+        ``tol`` times the median of the spacing across all
+        ``times``. The inserted time for fill is halfway between the
+        time on each side. (Default 1.5)
+    absolute :
+        An absolute value for maximum spacing, of a type that would result from
+        a difference in ``times``. If specified, ``tol`` is ignored and any gap
+        strictly larger than ``absolute`` will have fill inserted.
     doTimes : boolean
         If True (default), will return a tuple of the times (with new values
         inserted for the fill records) and the data with new fill values.
@@ -367,8 +402,15 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
             raise ValueError("Cannot match shape of fill to shape of data")
     diff = numpy.diff(times)
     if hasattr(diff[0], 'seconds'): #datetime
-        diff = numpy.vectorize(lambda x: x.days * 86400.0 + x.seconds + x.microseconds / 1.0e6)(diff)
-    idx = numpy.nonzero((diff > (numpy.median(diff) * tol)))[0] + 1
+        diff = numpy.vectorize(lambda x: x.days * 86400.0 + x.seconds +
+                               x.microseconds / 1.0e6)(diff)
+        if absolute is not None:
+            absolute = absolute.days * 86400.0 + absolute.seconds + \
+                       absolute.microseconds / 1.0e6
+    if absolute is None:
+        idx = numpy.nonzero(diff > (numpy.median(diff) * tol))[0] + 1
+    else:
+        idx = numpy.nonzero(diff > absolute)[0] + 1
     data = numpy.insert(data, idx, numpy.repeat(fillval, len(idx)),
                         axis=timeaxis) #NOOP if no fill
     if not doTimes:
@@ -379,3 +421,330 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, doTimes=True):
         filltimes = times[idx - 1] + numpy.vectorize(lambda x: datetime.timedelta(seconds=x / 2.0))(diff[idx - 1])
     times = numpy.insert(times, idx, filltimes)
     return times, data
+
+
+def apply_index(data, idx):
+    """Apply an array of indices to data.
+
+    Most useful in dealing with the output from :func:`numpy.argsort`, and
+    best explained by the example.
+
+    Parameters
+    ==========
+    data : array
+        Input data, at least two dimensional. The 0th dimension is treated as
+        a "time" or "record" dimension.
+    idx : sequence
+        2D index to apply to the import data. The 0th dimension must be the 
+        same size as ``data``'s 0th dimension. Dimension 1 must be the same
+        size as one other dimension in data (the first match found is used);
+        this is referred to as the "index dimension."
+
+    Raises
+    ======
+    ValueError : if can't match the shape of data and indices
+
+    Returns
+    =======
+    data : sequence
+        View of ``data``, with index applied. For each index of the 0th
+        dimension, the values along the index dimension are obtained by applying
+        the value of ``idx`` at the same index in the 0th dimension. This is
+        repeated across any other dimensions in ``data``.
+
+        .. warning::
+            No guarantee is made whether the returned data is a copy
+            of the input data. Modifying values in the input may change
+            the values of the input. Call :meth:`~numpy.ndarray.copy` if
+            a copy is required.
+
+    Examples
+    ========
+    Assume ``flux`` is a 3D array of fluxes, with a value for each of
+    time, pitch angle, and energy. Assume energy is not necessarily 
+    constant in time, nor is ordered in the energy dimension. If
+    ``energy`` is a 2D array of the energies as a function of energy
+    step for each time, then the following will sort the flux at each
+    time and pitch angle in energy order.
+
+    >>> idx = numpy.argsort(energy, axis=1)
+    >>> flux_sorted = spacepy.datamanager.apply_index(flux, idx)
+    """
+    data = numpy.asanyarray(data)
+    idx = numpy.asanyarray(idx)
+    if len(idx.shape) != 2:
+        raise ValueError("idx must have dimensions 2, not {0}".format(
+            len(idx.shape)))
+    if len(data.shape) < 2:
+        raise ValueError("data must have at least dimensions 2")
+    if idx.shape[0] != data.shape[0]:
+        raise ValueError("data and idx must have same size in "
+                         "0th dimension")
+    if not idx.shape[1] in data.shape[1:]:
+        raise ValueError("Size of idx dimension 1 must match a dimension in "
+                         "data")
+    idx_dim = data.shape[1:].index(idx.shape[1]) + 1
+    return numpy.rollaxis(
+        numpy.rollaxis(data, idx_dim, 1) #make time and index dim adjacent
+        #get a 2d array where every element matches index of first axis
+        [numpy.mgrid[0:idx.shape[0], slice(idx.shape[1])][0],
+         idx, #2d array, every element is desired index of second axis
+         ...] #and the other axes come along for the ride
+        , 1, idx_dim + 1) #and put index dim back in place
+
+
+def array_interleave(array1, array2, idx):
+    """Create an array containing all elements of both array1 and array2
+
+    ``idx`` is an index on the output array which indicates which elements will
+    be populated from ``array1``, i.e., ``out[idx] == array1`` (in order.)
+    The other elements of ``out`` will be filled, in order, from ``array2``.
+
+    Parameters
+    ==========
+    array1 : array
+        Input data.
+    array2 : array
+        Input data. Must have same number of dimensions as ``array1``, and all
+        dimensions except the zeroth must also have the same length.
+    idx : array
+        A 1D array of indices on the zeroth dimension of the output array. Must
+        have the same length as the zeroth dimension of ``array1``.
+
+    Returns
+    =======
+    out : array
+        All elements from ``array1`` and ``array2``, interleaved according
+        to ``idx``.
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> a = numpy.array([10, 20, 30])
+    >>> b = numpy.array([1, 2])
+    >>> idx = numpy.array([1, 2, 4])
+    >>> spacepy.datamanager.array_interleave(a, b, idx)
+    array([ 1, 10, 20,  2, 30])
+    """
+    array1 = numpy.asanyarray(array1)
+    array2 = numpy.asanyarray(array2)
+    idx = numpy.asanyarray(idx)
+    assert(len(array1.shape) == len(array2.shape))
+    assert(array1.shape[1:] == array2.shape[1:])
+    assert(array1.dtype == array2.dtype)
+    outarray = numpy.empty(dtype=array1.dtype,
+        shape=((array1.shape[0] + array2.shape[0],) + array1.shape[1:]))
+    outarray[idx, ...] = array1
+    idx_comp = numpy.ones((outarray.shape[0],), dtype=numpy.bool)
+    idx_comp[idx] = False
+    outarray[idx_comp, ...] = array2
+    return outarray
+
+
+def values_to_steps(array, axis=-1):
+    """Transform values along an axis to their order in a unique sequence.
+
+    Useful in, e.g., converting a list of energies to their steps.
+
+    Parameters
+    ==========
+    array : array
+        Input data.
+
+    Other Parameters
+    ================
+    axis : int
+        Axis along which to find the steps.
+
+    Returns
+    =======
+    steps : array
+        An array, the same size as ``array``, with values along ``axis``
+        corresponding to the position of the value in ``array`` in a unique,
+        sorted, set of the values in ``array`` along that axis. Differs from
+        :func:`~numpy.argsort` in that identical values will have identical
+        step numbers in the output.
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> data = [[10., 12., 11., 9., 10., 12., 11., 9.],
+                [10., 12., 11., 9., 14., 16., 15., 13.]]
+    >>> spacepy.datamanager.values_to_steps(data)
+    array([[1, 3, 2, 0, 1, 3, 2, 0],
+           [1, 3, 2, 0, 5, 7, 6, 4]])
+    """
+    array = numpy.asanyarray(array)
+    sortidx = array.argsort(axis=axis)
+    steps = rev_index(sortidx, axis=axis)
+    d = numpy.diff(apply_index(array, sortidx), axis=axis)
+    #Everywhere in SORTED array that the VALUE is same as one before
+    same = numpy.insert(d==0, 0, False, axis=axis)
+    #Number of duplicate indices BEFORE current index, in SORTED array
+    delta = numpy.cumsum(same, axis=-1)
+    #Get delta into the unsorted frame, and correct for uniqueness
+    return steps - delta.ravel()[
+        flatten_idx(rev_index(sortidx, axis=axis), axis=axis)]\
+        .reshape(steps.shape)
+
+
+def flatten_idx(idx, axis=-1):
+    """Convert multidimensional index into index on flattened array.
+
+    Convert a multidimensional index, that is values along a particular axis,
+    so that it can derefence the flattened array properly. Note this is not
+    the same as :func:`~numpy.ravel_multi_index`.
+
+    Parameters
+    ==========
+    idx : array
+        Input index, i.e. a list of elements along a particular axis,
+        in the style of :func:`~numpy.argsort`.
+
+    Other Parameters
+    ================
+    axis : int
+        Axis along which ``idx`` operates, defaults to the last axis.
+
+    Returns
+    =======
+    flat : array
+        A 1D array of indices suitable for indexing the flat version of the
+        array 
+
+    See Also
+    ========
+    apply_index
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> data = numpy.array([[3, 1, 2], [3, 2, 1]])
+    >>> idx = numpy.argsort(data, -1)
+    >>> idx_flat = spacepy.datamanager.flatten_idx(idx)
+    >>> data.ravel() #flat array
+    array([3, 1, 2, 3, 2, 1])
+    >>> idx_flat #indices into the flat array
+    array([1, 2, 0, 5, 4, 3])
+    >>> data.ravel()[idx_flat] #index applied to the flat array
+    array([1, 2, 3, 1, 2, 3])
+    """
+    idx = numpy.asanyarray(idx)
+    if not idx.dtype.kind in ('i', 'u'):
+        idx = idx.astype(int)
+    preshape = idx.shape[:axis]
+    postshape = idx.shape[axis:]
+    stride = int(numpy.product(postshape[1:])) #1 if applied to empty
+    #The index on this axis moves stride elements in flat
+    outidx = idx.flatten() * stride #makes a copy
+    #First add the offsets to get us to [..., idx @ axis = 0, 0...)
+    outidx += numpy.repeat(
+        numpy.arange(0, len(outidx), int(numpy.product(postshape)),
+                     dtype=idx.dtype),
+        numpy.product(postshape))
+    #Now offsets for non-zero on the trailing axes [0, 0, ... 0@axis, ...]
+    outidx += numpy.tile(numpy.arange(0, stride, dtype=idx.dtype),
+                           int(numpy.product(preshape)) * idx.shape[axis])
+    return outidx
+
+
+def axis_index(shape, axis=-1):
+    """Returns array of indices along axis, for all other axes
+
+    Parameters
+    ==========
+    shape : tuple
+        Shape of the output array
+
+    Other Parameters
+    ================
+    axis : int
+        Axis along which to return indices, defaults to the last axis.
+       
+    Returns
+    =======
+    idx : array
+        An array of indices. The value of each element is that element's index
+        along ``axis``.
+
+    See Also
+    ========
+    numpy.mgrid : This function is a special case
+
+    Examples
+    ========
+    For a shape of ``(i, j, k, l)`` and ``axis`` = -1,
+    ``idx[i, j, k, :] = range(l)`` for all ``i``, ``j``, ``k``.
+
+    Similarly, for the same shape and ``axis = 1``,
+    ``idx[i, :, k, l] = range(j)`` for all ``i``, ``k``, ``l``.
+
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> spacepy.datamanager.axis_index((5, 3))
+    array([[0, 1, 2],
+           [0, 1, 2],
+           [0, 1, 2],
+           [0, 1, 2],
+           [0, 1, 2]])
+    >>> spacepy.datamanager.axis_index((5, 3), 0)
+        array([[0, 0, 0],
+               [1, 1, 1],
+               [2, 2, 2],
+               [3, 3, 3],
+               [4, 4, 4]])
+"""
+    return operator.getitem(numpy.mgrid, [slice(i) for i in shape])[axis]
+
+
+def rev_index(idx, axis=-1):
+    """From an index, return an index that reverses the action of that index
+
+    Essentially, ``a[idx][rev_index(idx)] == a``
+
+    .. note::
+        This becomes more complicated in multiple dimensions, due to the
+        vagaries of applying a multidimensional index.
+
+    Parameters
+    ==========
+    idx : array
+        Indices onto an array, often the output of :func:`~numpy.argsort`.
+
+    Other Parameters
+    ================
+    axis : int
+        Axis along which to return indices, defaults to the last axis.
+
+    Returns
+    =======
+    rev_idx : array
+        Indices that, when applied to an array after ``idx``, will return
+        the original array (before the application of ``idx``).
+ 
+    See Also
+    ========
+    apply_index
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.datamanager
+    >>> data = numpy.array([7, 2, 4, 6, 3])
+    >>> idx = numpy.argsort(data)
+    >>> data[idx] #sorted
+    array([2, 3, 4, 6, 7])
+    >>> data[idx][spacepy.datamanager.rev_index(idx)] #original
+    array([7, 2, 4, 6, 3])
+"""
+    #Want an idx2 such that x[idx][idx2] == x
+    #idx is position to value map
+    #Populate every POSITION in idx2 with the POSITION in idx that
+    #has the VALUE of the idx2 position
+    #searchsorted on range?
+    idx_out = numpy.empty_like(idx).ravel()
+    idx_out[flatten_idx(idx, axis)] = axis_index(idx.shape, axis).ravel()
+    return idx_out.reshape(idx.shape)

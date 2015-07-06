@@ -105,6 +105,7 @@ class Library(object):
         ~Library.datetime_to_tt2000
         ~Library.epoch_to_datetime
         ~Library.epoch_to_epoch16
+        ~Library.epoch_to_num
         ~Library.epoch_to_tt2000
         ~Library.epoch16_to_datetime
         ~Library.epoch16_to_epoch
@@ -134,6 +135,7 @@ class Library(object):
     .. automethod:: datetime_to_tt2000
     .. automethod:: epoch_to_datetime
     .. automethod:: epoch_to_epoch16
+    .. automethod:: epoch_to_num
     .. automethod:: epoch_to_tt2000
     .. automethod:: epoch16_to_datetime
     .. automethod:: epoch16_to_epoch
@@ -770,6 +772,27 @@ class Library(object):
         newshape.append(res.shape[-1] // 2)
         newshape.append(2)
         return numpy.rollaxis(res.reshape(newshape), -1, -2)
+
+    def epoch_to_num(self, epoch):
+        """
+        Convert CDF EPOCH to matplotlib number.
+
+        Same output as :func:`~matplotlib.dates.date2num` and useful for
+        plotting large data sets without converting the times through datetime.
+
+        Parameters
+        ==========
+        epoch : double
+            EPOCH to convert. Lists and numpy arrays are acceptable.
+
+        Returns
+        =======
+        out : double
+            Floating point number representing days since 0001-01-01.
+        """
+        #date2num day 1 is 1/1/1 00UT
+        #epoch 1/1/1 00UT is 31622400000.0 (millisecond)
+        return (epoch - 31622400000.0) / (24 * 60 * 60 * 1000.0) + 1.0
 
     def epoch16_to_epoch(self, epoch16):
         """
