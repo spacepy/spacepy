@@ -323,6 +323,69 @@ def getDststar(ticks, model='OBrien'):
     return Dststar
 
 
+def getExpectedSWTemp(velo, model='XB15', units='K'):
+    '''Return the expected solar wind temperature based on the bulk velocity
+    
+    The formulations used by this function are those given by,
+    L87  -- Lopez, R.E., J. Geophys. Res., 92, 11189-11194, 1987
+    BS06 -- Borovsky, J.E. and J.T. Steinberg, Geophysical Monograph Series 167, 59-76, 2006
+    XB15 -- Xu, F. and J.E. Borovsky, J. Geophys. Res., 120, 70-100, 2015
+
+    Parameters
+    ==========
+    velo : array-like
+        Array like of solar wind bulk velocity values [km/s]
+
+    model : str [optional]
+        Name of model to use. Valid choices are L87, BS06 and XB15. Default is XB15
+
+    units : str [optional]
+        Units for output temperature, options are eV or K. Default is Kelvin [K]
+
+    Returns
+    =======
+    Texp : array-like
+        The expected solar wind temperature given the bulk velocity [K] or [eV]
+
+    '''
+    v = np.asanyarray(velo)
+    def bs06(v):
+        '''Borovsky and Steinberg 2006, Geophysical Monograph - median values'''
+        Texp = np.empty(len(v))
+        Texp.fill(np.nan)
+        Texp[v<372]  = 1.28e-8*v[v<372]**3.324
+        Texp[v>=372] = 0.0572*v[v>=372] - 16.79
+        return Texp
+
+    def xb15(v):
+        '''Xu and Borovsky 2015, JGR'''
+        Texp = (v/258.0)**3.113
+        return Texp
+
+    def l87(v):
+        '''Lopez 1987, JGR - Tables 1&2 [T(V)] from IMP-8'''
+        Texp = np.empty(len(v))
+        Texp.fill(np.nan)
+        Texp[v<500]  = (0.031*v[v<500] - 5.1)**2
+        Texp[v>=500] = (0.02*v[v>=500] + 0.5)**2
+        return Texp*1e3/1.16045221e4 #return in eV
+
+    formulae = {'BS06': bs06, 'XB15': xb15, 'L87': l87}
+
+    try:
+        mod = model.upper()
+        Texp = formulae[mod](v)
+    except KeyError:
+        raise KeyError('Invalid model specified for SW temperature')
+
+    if units.lower()=='k':
+        return Texp*1.16045221e4
+    elif units.lower()=='ev':
+        return Texp
+    else:
+        raise ValueError('Invalid units specified for SW temperature, must be "K" or "eV"')
+    
+
 def vampolaPA(omniflux, **kwargs):
     '''Pitch angle model of sin^n form
 
@@ -437,7 +500,7 @@ def getVampolaOrder(L):
     return order
 
 
-def getSolarRotation(ticks, rtype='carrington', fp=False):
+def getSolarRotation(ticks, rtype='carrington', fp=False, reverse=False):
     '''Calculates solar rotation number (Carrington or Bartels) for a given date/time
 
     Parameters
@@ -454,7 +517,6 @@ def getSolarRotation(ticks, rtype='carrington', fp=False):
         return dobj.days*24*3600 + dobj.seconds + dobj.microseconds/1e6
     if rtype.lower() == 'carrington':
         start_date = datetime.datetime(1853,11,9,21,38,44,160000)
-        start_JD = spt.Ticktock(start_date).JD
         #length = datetime.timedelta(days=27, minutes=396, seconds=25, microseconds=919999)
         length = datetime.timedelta(days=27.2753)
     elif rtype.lower() == 'bartels':
@@ -463,30 +525,35 @@ def getSolarRotation(ticks, rtype='carrington', fp=False):
         length = datetime.timedelta(days=27)
     else:
         raise ValueError('Solar rotation type {0} not recognized: Must be either "carrington" or "Bartels"'.format(rtype))
-    try:
-        nels = len(ticks)
-    except TypeError:
+    if not reverse:
         try:
-            rotation = total_seconds(ticks-start_date)/total_seconds(length)
-            rotation += 1
-            if not fp:
-                rotation = int(rotation)
-            return rotation
-        except:
-            raise RuntimeError('Unidentified problem with input time {0} in getSolarRotation'.format(ticks))
-    if isinstance(ticks, spt.Ticktock):
-        rotation = [total_seconds(tt-start_date)/total_seconds(length) for tt in ticks.UTC]
-        rotation = np.array(rotation) + 1
-    else:
-        try:
-            rotation = [total_seconds(tt-start_date)/total_seconds(length) for tt in ticks]
+            nels = len(ticks)
+        except TypeError:
+            try:
+                rotation = total_seconds(ticks-start_date)/total_seconds(length)
+                rotation += 1
+                if not fp:
+                    rotation = int(rotation)
+                return rotation
+            except:
+                raise RuntimeError('Unidentified problem with input time {0} in getSolarRotation'.format(ticks))
+        if isinstance(ticks, spt.Ticktock):
+            rotation = [total_seconds(tt-start_date)/total_seconds(length) for tt in ticks.UTC]
             rotation = np.array(rotation) + 1
-        except:
-            raise RuntimeError('Unidentified problem with input time {0} in getSolarRotation'.format(ticks))
-    if not fp:
-        rotation = rotation.astype(int)
-    return rotation
-
+        else:
+            try:
+                rotation = [total_seconds(tt-start_date)/total_seconds(length) for tt in ticks]
+                rotation = np.array(rotation) + 1
+            except:
+                raise RuntimeError('Unidentified problem with input time {0} in getSolarRotation'.format(ticks))
+        if not fp:
+            rotation = rotation.astype(int)
+        return rotation
+    else:
+        #for now just assume single input, non-iterable
+        elapsed = length*(ticks-1)
+        date = elapsed + start_date
+        return date
 
 ShueMP = getMPstandoff
 get_plasma_pause = getPlasmaPause
