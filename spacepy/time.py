@@ -1280,11 +1280,9 @@ class Ticktock(collections.MutableSequence):
         UTC = self.UTC
         leapsec = self.getleapsecs()
         GPStup = ['']*nGPS
-        for i in np.arange(nGPS):
-            # get the leap seconds
-            GPStup[i] = UTC[i] - GPS0 + datetime.timedelta(seconds=int(leapsec[i])) - datetime.timedelta(seconds=19)
-            GPS[i] = GPStup[i].days*86400 + GPStup[i].seconds + GPStup[i].microseconds/1.e6
-
+        GPStup = [utc - GPS0 + datetime.timedelta(seconds=int(ls)) - datetime.timedelta(seconds=19)
+                  for utc, ls in itertools.izip(UTC, leapsec)]
+        GPS = [gps.days*86400 + gps.seconds + gps.microseconds/1.e6 for gps in GPStup]
         self.GPS = spacepy.datamodel.dmarray(GPS)#.astype(int)
         return self.GPS
 
