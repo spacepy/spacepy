@@ -256,6 +256,11 @@ class TimeClassTests(unittest.TestCase):
         de = [diff, diff]
         res = t.Ticktock(['2002-03-01T00:00:11', '2002-03-01T00:00:12'])
         numpy.testing.assert_equal(res.UTC, (n1-de).UTC)
+        n1 = t.Ticktock(['2002-03-01T11:23:11', '2002-03-01T11:23:12'])
+        diff = datetime.timedelta(hours=11, minutes=23)
+        de = diff
+        res = t.Ticktock(['2002-03-01T00:00:11', '2002-03-01T00:00:12'])
+        numpy.testing.assert_equal(res.UTC, (n1-de).UTC)
 
     def test_subtimedelta(self):
         """a ticktock minus a timedelta is a ticktock"""
@@ -359,14 +364,38 @@ class TimeClassTests(unittest.TestCase):
         expected = ['2001-12-12T00:00:00', '2002-01-01T00:00:00', '2002-01-02T00:00:00']
         numpy.testing.assert_equal(t1.ISO, expected)
 
-    def test_isoformat(self):
-        """can change the iso format"""
+    def test_isoformat1(self):
+        """can change the iso format '%Y-%m-%dT%H:%M:%S'"""
+        t1 = t.Ticktock(['2002-01-01T01:02:12', '2002-01-02T02:04:12', '2001-12-12T23:56:23'])
+        t1.isoformat('microseconds')
+        expected = ['2002-01-01T01:02:12.000000', '2002-01-02T02:04:12.000000', '2001-12-12T23:56:23.000000']
+        numpy.testing.assert_equal(t1.ISO, expected)
+        self.assertRaises(ValueError, t1.isoformat, 'badval')
+
+    def test_isoformat2(self):
+        """can change the iso format '%Y-%m-%dT%H:%M:%SZ'"""
+        t1 = t.Ticktock(['2002-01-01T01:02:12Z', '2002-01-02T02:04:12Z', '2001-12-12T23:56:23Z'])
+        t1.isoformat('microseconds')
+        expected = ['2002-01-01T01:02:12.000000', '2002-01-02T02:04:12.000000', '2001-12-12T23:56:23.000000']
+        numpy.testing.assert_equal(t1.ISO, expected)
+        self.assertRaises(ValueError, t1.isoformat, 'badval')
+
+    def test_isoformat3(self):
+        """can change the iso format '%Y-%m-%d'"""
         t1 = t.Ticktock(['2002-01-01', '2002-01-02', '2001-12-12'])
         t1.isoformat('microseconds')
         expected = ['2002-01-01T00:00:00.000000', '2002-01-02T00:00:00.000000', '2001-12-12T00:00:00.000000']
         numpy.testing.assert_equal(t1.ISO, expected)
         self.assertRaises(ValueError, t1.isoformat, 'badval')
 
+    def test_isoformat3(self):
+        """can change the iso format other"""
+        t1 = t.Ticktock(['2002-01-01T12', '2002-01-02T23', '2001-12-12T13'])
+        t1.isoformat('microseconds')
+        expected = ['2002-01-01T12:00:00.000000', '2002-01-02T23:00:00.000000', '2001-12-12T13:00:00.000000']
+        numpy.testing.assert_equal(t1.ISO, expected)
+        self.assertRaises(ValueError, t1.isoformat, 'badval')       
+        
     def test_DOY(self):
         """DOY conversion should work"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])

@@ -235,7 +235,7 @@ class Ticktock(collections.MutableSequence):
         else:
             if dtype.upper() == 'ISO':
                 if self.data[0].find('Z'): #remove timezones
-                    for i in range(len(self.data)):
+                    for i,v in np.ndenumerate(self.data):
                         self.data[i] = self.data[i].split('Z')[0]
                 self.ISO = self.data
             self.update_items(self, 'data')
@@ -473,12 +473,10 @@ class Ticktock(collections.MutableSequence):
             else:
                 same = True
                 if len(other)==1: same = False
-                newUTC = ['']*len(self.data)
-                for i in range(len(self.data)):
-                    if same:
-                        newUTC[i] = self.UTC[i] - other[i]
-                    else:
-                        newUTC[i] = self.UTC[i] - other
+                if same:
+                    newUTC = [utc - o for utc, o in zip(self.UTC, other)]
+                else:
+                    newUTC = [utc - other for utc in self.UTC]
                 newobj = Ticktock(newUTC, 'UTC')
         else:
             raise TypeError("unsupported operand type(s) for -: {0} and {1}".format(type(other),type(self)))
@@ -522,12 +520,10 @@ class Ticktock(collections.MutableSequence):
             else:
                 same = True
                 if len(other)==1: same = False
-                newUTC = ['']*len(self.data)
-                for i in range(len(self.data)):
-                    if same:
-                        newUTC[i] = self.UTC[i] + other[i]
-                    else:
-                        newUTC[i] = self.UTC[i] + other
+                if same:
+                    newUTC = [utc + o for utc, o in zip(self.UTC, other)]
+                else:
+                    newUTC = [utc + other for utc in self.UTC]
                 newobj = Ticktock(newUTC, 'UTC')
         else:
             raise TypeError("unsupported operand type(s) for +: {0} and {1}".format(type(other),type(self)))
@@ -661,7 +657,7 @@ class Ticktock(collections.MutableSequence):
 
         """
         RDT = self.RDT
-        idx = np.argsort(RDT)
+        idx = np.argsort(RDT, kind='mergesort') # takes a memory hit but is required to be stable
         return idx
 
     # -----------------------------------------------
@@ -1129,7 +1125,17 @@ class Ticktock(collections.MutableSequence):
 
         elif self.data.attrs['dtype'].upper() == 'ISO':
             self.ISO = self.data
-            UTC = [dup.parse(isot) for isot in self.data]
+            # try a few special cases that are faster than dateutil.parser
+            try:
+                UTC = [datetime.datetime.strptime(isot, '%Y-%m-%dT%H:%M:%S') for isot in self.data]
+            except ValueError:
+                try:
+                    UTC = [datetime.datetime.strptime(isot, '%Y-%m-%dT%H:%M:%SZ') for isot in self.data]
+                except ValueError:
+                    try:
+                        UTC = [datetime.datetime.strptime(isot, '%Y-%m-%d') for isot in self.data]
+                    except ValueError:
+                        UTC = [dup.parse(isot) for isot in self.data]
 
         elif self.data.attrs['dtype'].upper() == 'TAI':
             self.TAI = self.data
