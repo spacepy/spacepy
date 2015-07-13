@@ -91,6 +91,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 import bisect
 import collections
 import datetime
+import itertools
 import os.path
 import re
 import warnings
@@ -1319,13 +1320,8 @@ class Ticktock(collections.MutableSequence):
         TAI = np.zeros(nTAI)
         UTC = self.UTC
         leapsec = self.getleapsecs()
-        TAItup = ['']*nTAI
-        for i in np.arange(nTAI):
-            #t = time.strptime(data[i], fmt)
-            #dtimetup = datetime.datetime(t[0], t[1], t[2], t[3], t[4], t[5])
-            # get the leap seconds
-            TAItup[i] = UTC[i] - TAI0 + datetime.timedelta(seconds=int(leapsec[i]))
-            TAI[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
+        TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in itertools.izip(UTC, leapsec)]
+        TAI = [tai.days*86400 + tai.seconds + tai.microseconds/1.e6 for tai in TAItup]
 
         self.TAI = spacepy.datamodel.dmarray(TAI)
         return self.TAI
