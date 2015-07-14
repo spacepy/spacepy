@@ -26,7 +26,7 @@ to handle SWMF *input* files, as well.
 
 The rest of the classes are organized by code, i.e. classes and functions 
 specifically relevant to BATS-R-US can be found in 
-:module:`spacepy.pybats.bats`.  Whenever a certain code included in the SWMF
+:mod:`spacepy.pybats.bats`.  Whenever a certain code included in the SWMF
 requires a independent class or a subclass from the PyBats base module, it
 will receive its own submodule.
 
@@ -131,6 +131,10 @@ def smart_timeticks(time):
         Mtick=mdt.HourLocator(byhour=[0,6,12,18])
         mtick=mdt.HourLocator(byhour=list(range(24)))
         fmt = mdt.DateFormatter('%H:%M UT')
+    elif deltaT.days < 8:
+        Mtick=mdt.DayLocator(bymonthday=list(range(32)))
+        mtick=mdt.HourLocator(byhour=list(range(0,24,2)))
+        fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 15:
         Mtick=mdt.DayLocator(bymonthday=list(range(2,32,2)))
         mtick=mdt.HourLocator(byhour=[0,6,12,18])
@@ -176,6 +180,46 @@ def apply_smart_timeticks(ax, time, dolimit=True, dolabel=False):
     if dolabel:
         ax.set_xlabel('Time from %s' % time[0].isoformat())
     return True
+
+def set_figure(target, figsize=None, loc=111):
+    '''
+    Given a *target* on which to plot a figure, determine if that *target*
+    is **None** or a matplotlib figure or axes object.  Based on the type
+    of *target*, a figure and/or axes will be either located or generated.
+    Both the figure and axes objects are returned to the caller for further
+    manipulation.  This is used in nearly add_plot-type method.
+
+    =========  ===========================================
+    kwarg      Description
+    ---------  -------------------------------------------
+    figsize    A two-item tuple/list giving the dimensions of the figure, in inches.  Defaults to Matplotlib defaults.
+    loc        The subplot triple that specifies the location of the axes object.  Defaults to 111.
+    =========  ===========================================
+    
+    Example use when *target* is a figure::
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        fig, ax = set_figure(target=fig, loc=211)
+
+    '''
+
+    import matplotlib.pyplot as plt
+
+    # Is target a figure?  Make a new axes.
+    if type(target) == plt.Figure:
+        fig = target
+        ax  = fig.add_subplot(loc)
+    # Is target an axes?  Make no new items.
+    elif issubclass(type(target), plt.Axes):
+        ax  = target
+        fig = ax.figure
+    # Is target something else?  Make new everything.
+    else:
+        fig = plt.figure(figsize=figsize)
+        ax  = fig.add_subplot(loc)
+
+    return fig, ax
 
 def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
     '''
@@ -551,7 +595,7 @@ class LogFile(PbData):
 
         # Parse the header.
         self.attrs['descrip'] = raw.pop(0)
-        names = (raw.pop(0)).split()
+        names = (raw.pop(0)).lower().split()
         loc={}
         # Keep track of in which column each data vector lies.
         for i, name in enumerate(names):
@@ -642,73 +686,6 @@ class LogFile(PbData):
             self['time']   =time
             self['runtime']=runtime
 
-    def add_dst_quicklook(self, target=None, loc=111, showObs=True):
-        '''
-        Create a quick-look plot of Dst (if variable present in file) 
-        and compare against observations.
-
-        Like all *add_\* * methods in Pybats, the *target* kwarg determines
-        where to place the plot.
-        If kwarg *target* is **None** (default), a new figure is 
-        generated from scratch.  If *target* is a matplotlib Figure
-        object, a new axis is created to fill that figure at subplot location
-        *loc* (defaults to 111).  If target is a matplotlib Axes object, 
-        the plot is placed into that axis at subplot location *loc*.
-
-        Observed Dst is automatically fetched from the Kyoto World Data Center
-        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
-        :class:`spacepy.pybats.kyoto.KyotoDst` object, which holds the observed
-        Dst, is stored as *self.obs_dst* for future use.
-
-        The figure and axes objects are returned to the user.
-        '''
-        
-        import matplotlib.pyplot as plt
-        
-        if 'dst' not in self:
-            return None, None
-
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(loc)
-
-        ax.plot(self['time'], self['dst'], 
-                label='BATS-R-US $D_{ST}$ (Biot-Savart)')
-        ax.hlines(0.0, self['time'][0], self['time'][-1], 
-                  'k', ':', label='_nolegend_')
-        apply_smart_timeticks(ax, self['time'])
-        ax.set_ylabel('Dst ($nT$)')
-        ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
-
-        if(showObs):
-            try:
-                import spacepy.pybats.kyoto as kt
-            except ImportError:
-                return fig, ax
-        
-            try:
-                stime = self['time'][0]; etime = self['time'][-1]
-                if not hasattr(self, 'obs_dst'):
-                    self.obs_dst = kt.fetch('dst', stime, etime)
-
-            except BaseException as args:
-                print('WARNING! Failed to fetch Kyoto Dst: '+ args)
-            else:
-                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
-                        'k--', label='Obs. Dst')
-                ax.legend(loc='best')
-                apply_smart_timeticks(ax, self['time'])
-        else:
-            ax.legend(loc='best')
-            
-
-        return fig, ax
 
 class NgdcIndex(PbData):
     '''
@@ -833,7 +810,7 @@ class NgdcIndex(PbData):
             if self.attrs['file']!=None:
                 outfile=self.attrs['file']
             else:
-                outfile='imfinput.dat'
+                outfile='ngdc_index.dat'
 
         out = open(outfile, 'w')
         
@@ -847,11 +824,7 @@ class NgdcIndex(PbData):
             out.write('#>\n')
             out.write('#%s: %s\n' % ('Element', k))
             for a in self[k].attrs:
-            #for a in ['Table','Description','Measure units','Origin']:
                 out.write('#%s: %s\n' % (a, self[k].attrs[a]))
-            #out.write(2*'#\n')
-            #for a in ['Sampling', 'Missing value']:
-            #    out.write('#%s: %s\n' % (a, self[k].attrs[a]))
             out.write('#>\n#yyyy-MM-dd HH:mm value qualifier description\n')
             for i in range(len(self[k][0,:])):
                 t = self[k][0,i]; d = self[k][1,i]
@@ -885,8 +858,8 @@ class ImfInput(PbData):
     objects as if they were specialized dictionaries.  Access data like so:
     
     >>> obj.keys()
-    ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'dens', 'temp']
-    >>> density=obj['dens']
+    ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'rho', 'temp']
+    >>> density=obj['rho']
 
     Adding new data entries is equally simple so long as you have the values
     and the name for the values::
@@ -909,7 +882,7 @@ class ImfInput(PbData):
 
         # Initialize data object and required attributes.
         super(ImfInput, self).__init__(*args, **kwargs)
-        self.attrs['var']= ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'dens', 'temp']
+        self.attrs['var']= ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 'temp']
         self.attrs['std_var']=True
         self.attrs['coor']='GSM'
         self.attrs['satxyz']=[None, None, None]
@@ -919,9 +892,6 @@ class ImfInput(PbData):
         self.attrs['plane']=[None, None]
         self.attrs['header']=[]
         self['time']=dmarray(zeros(npoints, dtype=object))
-        units   = ['nT', 'nT', 'nT', 'km/s', 'km/s', 'km/s', 'cm^-3', 'K']
-        for i, key in enumerate(self.attrs['var']):
-            self[key]=dmarray(zeros(npoints), attrs={'units':units[i]})
             
         # Set Filename.
         if filename:
@@ -932,7 +902,22 @@ class ImfInput(PbData):
         # Load/create data vectors.
         if filename and load:  # Load contents from existing file.
             self.read(filename)
-            self.calc_pram()
+        else:
+            units   = ['nT', 'nT', 'nT', 'km/s', 'km/s', 'km/s', 'cm^-3', 'K']
+            for i, key in enumerate(self.attrs['var']):
+                self[key]=dmarray(zeros(npoints), attrs={'units':units[i]})
+
+        # Determine the density variable, which can either be "n" or "rho".
+        if "n" in self.attrs['var']:
+            self._denvar="n"
+        elif "rho" in self.attrs['var']:
+            self._denvar="rho"
+        else:
+            raise ValueError('Could not find density variable in file.')
+        
+            
+        self.calc_pram()
+
 
     def calc_pram(self):
         '''
@@ -940,9 +925,60 @@ class ImfInput(PbData):
         If object was instantiated via an existing imf file, this value
         is calculated automatically.
         '''
-        self['pram']=dmarray(self['vx']**2.*self['dens']*1.67621E-6, 
-                             {'units':'nPa'})
+        n = self._denvar
 
+        self['pram']=dmarray(self['ux']**2.*self[n]*1.67621E-6,{'units':'nPa'})
+
+
+    def calc_u(self):
+        '''
+        Calculate the magnitude of the total solar wind bulk velocity.  Store
+        internally as self['u'].
+        '''
+
+        self['u'] = dmarray( np.sqrt(self['ux']**2+self['uy']**2+self['uz']**2),
+                             {'units':'km/s'} )
+
+        return True
+
+    def calc_b(self):
+        '''
+        Calculate the magnitude of the IMF in nT.  Store as self['b'].
+        '''
+        
+        self['b'] = dmarray( np.sqrt(self['bx']**2+self['by']**2+self['bz']**2),
+                             {'units':'nT'} )
+        
+        return True
+
+    def calc_alf(self):
+        '''
+        Calculate the solar wind Alfven speed in $km/s$.  Result is stored
+        internally as self['vAlf']
+        '''
+
+        if 'b'    not in self: self.calc_b()
+
+        # Const: nT->T, m->km, mu_0, proton mass, cm-3->m-3.
+        const = 1E-12/np.sqrt(4.*np.pi*10**-7*1.67E-27*100**3)
+        
+        self['vAlf']=dmarray(const*self['b']/np.sqrt(self['rho']),
+                            {'units':'km/s'})
+
+        return True
+        
+    def calc_alfmach(self):
+        '''
+        Calculate the Alvenic Mach number and save as self['machA'].
+        Units default to $km/s$.
+        '''
+
+        if 'vAlf' not in self: self.calc_alf()
+        if 'u'    not in self: self.calc_u()
+        self['machA']=dmarray(self['u']/self['vAlf'], {'units':None})
+
+        return True
+        
     def varcheck(self):
         '''
         Ensure that the variable list, which gives the order of the
@@ -957,8 +993,8 @@ class ImfInput(PbData):
         key.remove('time')
 
         # Number of variables check:
-        if len(var) != len(key):
-            print('Number of listed variables is incorrect:')
+        if len(var) > len(key):
+            print('Not enough variables in IMF object:')
             print('\t%i listed, %i actual.\n' % (len(var),len(key)))
             return False
         # Each variable corresponds to only one in the dict 
@@ -1169,11 +1205,11 @@ class ImfInput(PbData):
         adjust_plots(a3, 'IMF $B_{Z}$ ($nT$)')
 
         a4 = fig.add_subplot(514)
-        a4.plot(self['time'], self['dens'], lw=1.25, c='red')
+        a4.plot(self['time'], self[self._denvar], lw=1.25, c='red')
         adjust_plots(a4, 'Density ($cm^{-3}$)', Zero=False)
 
         a5 = fig.add_subplot(515)
-        a5.plot(self['time'], -1.0*self['vx'], lw=1.25, c='green')
+        a5.plot(self['time'], -1.0*self['ux'], lw=1.25, c='green')
         adjust_plots(a5, '$V_{X}$ ($km/s$)', Zero=False, xlab=True)
 
         return fig
