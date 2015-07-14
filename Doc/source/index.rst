@@ -79,6 +79,7 @@ SpacePy Code
     omni
     plot
     poppy
+    pybats
     pycdf
     radbelt
     seapy
