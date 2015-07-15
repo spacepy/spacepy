@@ -363,6 +363,8 @@ class TimeClassTests(unittest.TestCase):
         t1.sort()
         expected = ['2001-12-12T00:00:00', '2002-01-01T00:00:00', '2002-01-02T00:00:00']
         numpy.testing.assert_equal(t1.ISO, expected)
+        t1 = t.Ticktock(['2002-01-01', '2002-01-01', '2001-12-12']) # argsort is stable by defualt
+        numpy.testing.assert_equal(t1.argsort(), [2, 0, 1])
 
     def test_isoformat1(self):
         """can change the iso format '%Y-%m-%dT%H:%M:%S'"""
@@ -464,6 +466,14 @@ class TimeClassTests(unittest.TestCase):
         v2 = t.Ticktock.now()
         self.assertTrue(v1 < v2)
 
+    def test_today(self):
+        """today() has 0 time"""
+        v1 = t.Ticktock.today()
+        self.assertEqual(v1.UTC[0].hour, 0)
+        self.assertEqual(v1.UTC[0].minute, 0)
+        self.assertEqual(v1.UTC[0].second, 0)
+        self.assertEqual(v1.UTC[0].microsecond, 0)
+        
     def test_UTCGPS(self):
         """testing get UTC from GPS"""
         t1 = t.Ticktock([  6.93882013e+08,   6.93964813e+08], 'GPS')

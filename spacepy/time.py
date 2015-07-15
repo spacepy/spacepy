@@ -237,7 +237,7 @@ class Ticktock(collections.MutableSequence):
             if dtype.upper() == 'ISO':
                 if self.data[0].find('Z'): #remove timezones
                     for i,v in np.ndenumerate(self.data):
-                        self.data[i] = self.data[i].split('Z')[0]
+                        self.data[i] = v.split('Z')[0]
                 self.ISO = self.data
             self.update_items(self, 'data')
             if dtype.upper() == 'TAI': self.TAI = self.data
@@ -631,21 +631,22 @@ class Ticktock(collections.MutableSequence):
         del self[idx]
 
     # -----------------------------------------------
-    def sort(self):
+    def sort(self, kind='quicksort'):
         """
         a.sort()
 
-        This will sort the Ticktock values in place
+        This will sort the Ticktock values in place, if you need a stable sort use kind='mergesort'
         """
         RDT = self.RDT
-        RDTsorted = np.sort(RDT)
+        # TODO does this not being stable matter? to make stable use kind='mergesort'
+        RDTsorted = np.sort(RDT, kind=kind)
         tmp = Ticktock(RDTsorted, 'RDT').convert(self.data.attrs['dtype'])
         self.data = tmp.data
         self.update_items(self, 'data')
         return
 
     # -----------------------------------------------
-    def argsort(self):
+    def argsort(self, kind='mergesort'):
         """
         idx = a.argsort()
 
@@ -658,7 +659,7 @@ class Ticktock(collections.MutableSequence):
 
         """
         RDT = self.RDT
-        idx = np.argsort(RDT, kind='mergesort') # takes a memory hit but is required to be stable
+        idx = np.argsort(RDT, kind=kind) 
         return idx
 
     # -----------------------------------------------
@@ -675,13 +676,13 @@ class Ticktock(collections.MutableSequence):
         """
         if not fmt:
             print('Current ISO output format is %s' % self.__isofmt)
-            print('Options are: %s' % [(k, self.__isoformatstr[k]) for k in list(self.__isoformatstr.keys())])
+            print('Options are: {0}'.format([(k, self.__isoformatstr[k]) for k in list(self.__isoformatstr.keys())]))
         else:
             try:
                 self.__isofmt = self.__isoformatstr[fmt]
                 self.update_items(self, 'data')
             except KeyError:
-                raise(ValueError('Not a valid option: Use %s' % list(self.__isoformatstr.keys())))
+                raise(ValueError('Not a valid option: Use {0}'.format(list(self.__isoformatstr.keys()))))
 
         return
 
@@ -815,7 +816,7 @@ class Ticktock(collections.MutableSequence):
         RDTdata = self.getRDT()
         CDF = RDTdata*86400000.0 + 86400000.0*365.0
         self.CDF = CDF
-        return CDF
+        return self.CDF
 
     # -----------------------------------------------
     def getDOY(self):
@@ -847,14 +848,10 @@ class Ticktock(collections.MutableSequence):
         getDOY
         geteDOY
         """
-        nTAI = len(self.data)
-        DOY = spacepy.datamodel.dmarray(np.zeros(nTAI))
+        DOY = [utc.toordinal() - datetime.date(utc.year, 1, 1).toordinal() + 1 for utc in self.UTC]
 
-        for i in np.arange(nTAI):
-            DOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal() + 1
-
-        self.DOY = DOY.astype(int)
-        return DOY
+        self.DOY = spacepy.datamodel.dmarray(DOY).astype(int)
+        return self.DOY
 
     # -----------------------------------------------
     def geteDOY(self):
@@ -886,17 +883,12 @@ class Ticktock(collections.MutableSequence):
         getDOY
         geteDOY
         """
-
-        nTAI = len(self.data)
-        eDOY = spacepy.datamodel.dmarray(np.zeros(nTAI))
-
-        for i in np.arange(nTAI):
-            eDOY[i] = self.UTC[i].toordinal() - datetime.date(self.UTC[i].year, 1, 1).toordinal()
-            eDOY[i] = eDOY[i] + self.UTC[i].hour/24. + self.UTC[i].minute/1440. + \
-                self.UTC[i].second/86400. + self.UTC[i].microsecond/86400000000.
-
-        self.eDOY = eDOY
-        return eDOY
+        eDOY = [utc.toordinal() - datetime.date(utc.year, 1, 1).toordinal() for utc in self.UTC]
+        eDOY = [edoy + utc.hour/24. + utc.minute/1440. + utc.second/86400. + utc.microsecond/86400000000.
+                for edoy, utc in itertools.izip(eDOY, self.UTC) ]
+        
+        self.eDOY = spacepy.datamodel.dmarray(eDOY)
+        return self.eDOY
 
 
     # -----------------------------------------------
@@ -985,7 +977,7 @@ class Ticktock(collections.MutableSequence):
                 #UTCdata[i].second/86400. + UTCdata[i].microsecond/86400000000.
 
         self.JD = JD
-        return JD
+        return self.JD
 
     # -----------------------------------------------
     def getMJD(self):
@@ -1018,7 +1010,7 @@ class Ticktock(collections.MutableSequence):
         MJD = self.JD - 2400000.5
 
         self.MJD = MJD
-        return MJD
+        return self.MJD
 
     # -----------------------------------------------
     def getUNX(self):
@@ -1044,18 +1036,12 @@ class Ticktock(collections.MutableSequence):
         getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
-
-        nTAI = len(self.data)
-
         UNX0 = datetime.datetime(1970,1,1)
-        d = ['']*nTAI
-        UNX = spacepy.datamodel.dmarray(np.zeros(nTAI))
-        for i in np.arange(nTAI):
-            d[i] = self.UTC[i] - UNX0 # timedelta object (only days, seconds, microsecs are stored)
-            UNX[i] = (d[i].days)*86400 + d[i].seconds + d[i].microseconds/1.e6
+        d = [utc - UNX0 for utc in self.UTC]
+        UNX = [dd.days*86400 + dd.seconds + dd.microseconds/1.e6 for dd in d]
 
-        self.UNX = UNX
-        return UNX
+        self.UNX = spacepy.datamodel.dmarray(UNX)
+        return self.UNX
 
     # -----------------------------------------------
     def getRDT(self):
@@ -1092,7 +1078,7 @@ class Ticktock(collections.MutableSequence):
                 #UTC[i].second/86400. + UTC[i].microsecond/86400000000.
 
         self.RDT = RDT
-        return RDT
+        return self.RDT
 
     # -----------------------------------------------
     def getUTC(self):
@@ -1247,7 +1233,7 @@ class Ticktock(collections.MutableSequence):
 
         UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
         self.UTC = UTC
-        return UTC
+        return self.UTC
 
     # -----------------------------------------------
     def getGPS(self):
@@ -1274,14 +1260,10 @@ class Ticktock(collections.MutableSequence):
         """
         # fmt = '%Y-%m-%dT%H:%M:%S'
         GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
-
-        nGPS = len(self.data)
-        GPS = np.zeros(nGPS)
-        UTC = self.UTC
         leapsec = self.getleapsecs()
-        GPStup = ['']*nGPS
+
         GPStup = [utc - GPS0 + datetime.timedelta(seconds=int(ls)) - datetime.timedelta(seconds=19)
-                  for utc, ls in itertools.izip(UTC, leapsec)]
+                  for utc, ls in itertools.izip(self.UTC, leapsec)]
         GPS = [gps.days*86400 + gps.seconds + gps.microseconds/1.e6 for gps in GPStup]
         self.GPS = spacepy.datamodel.dmarray(GPS)#.astype(int)
         return self.GPS
@@ -1314,11 +1296,8 @@ class Ticktock(collections.MutableSequence):
         fmt = '%Y-%m-%dT%H:%M:%S'
         TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
 
-        nTAI = len(self.data)
-        TAI = np.zeros(nTAI)
-        UTC = self.UTC
         leapsec = self.getleapsecs()
-        TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in itertools.izip(UTC, leapsec)]
+        TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in itertools.izip(self.UTC, leapsec)]
         TAI = [tai.days*86400 + tai.seconds + tai.microseconds/1.e6 for tai in TAItup]
 
         self.TAI = spacepy.datamodel.dmarray(TAI)
@@ -1351,9 +1330,8 @@ class Ticktock(collections.MutableSequence):
         nTAI = len(self.data)
         ISO = ['']*nTAI
         self.TAI = self.getTAI()
+        ISO = [utc.strftime(self.__isofmt) for utc in self.UTC]
         for i in range(nTAI):
-            ISO[i] = self.UTC[i].strftime(self.__isofmt)
-
             if self.TAI[i] in self.TAIleaps:
                 tmptick = Ticktock(self.UTC[i] - datetime.timedelta(seconds=1), 'UTC')
                 a,b,c = tmptick.ISO[0].split(':')
@@ -1477,6 +1455,25 @@ class Ticktock(collections.MutableSequence):
         dt = datetime.datetime.now()
         return Ticktock(dt, 'utc')
 
+    # -----------------------------------------------
+    @classmethod
+    def today(self):
+        """
+        Creates a Ticktock object with the current date and time set to 00:00:00, equivalent to date.today() with time included
+
+        Returns
+        =======
+            out : ticktock
+                Ticktock object with the current time, equivalent to date.today() with time included
+
+        See Also
+        ========
+        datetime.date.today()
+
+        """
+        dt = datetime.datetime.now()
+        dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        return Ticktock(dt, 'utc')
 
 # -----------------------------------------------
 # End of Ticktock class
