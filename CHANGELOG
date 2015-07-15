@@ -29,6 +29,7 @@ time
  - Speed improvement update to TickTock.getleapsecond
  - Overall speed improvements with for loop removal 
  - ISO improvements via special cases for string input
+ - Added classmethod today()
 
 Changes in Version 0.1.5 (2014-12-23)
 =====================================
