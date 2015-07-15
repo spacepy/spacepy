@@ -52,6 +52,7 @@ class TimeFunctionTests(unittest.TestCase):
                                  ([ans2[0].month], [ans2[0].day]))
             except TypeError:
                 self.assertEqual(real_ans[i], (ans2.month , ans2.day))
+        self.assertRaises(ValueError, t.doy2date, (2000, 2000, 2000), (5,4) )
 
     def test_doy2datefail(self):
         '''doy2date should fail for bad input'''
@@ -196,6 +197,8 @@ class TimeFunctionTests(unittest.TestCase):
         ans.sort()
         numpy.random.seed(8675309)
         numpy.testing.assert_array_equal(ans, t.randomDate(dt1, dt2, 5, sorted=True))
+        numpy.random.seed(8675309)
+        numpy.testing.assert_array_equal(ans, t.randomDate(dt1, dt2, 5, sorted=True, tzinfo='MDT'))
 
     def test_extract_YYYYMMDD(self):
         """extract_YYYYMMDD() should give known results"""
@@ -248,6 +251,16 @@ class TimeClassTests(unittest.TestCase):
         self.assertTrue(isinstance((n2 - n1)[0], datetime.timedelta))
         self.assertEqual(28, (n1-n2)[0].days)
         self.assertEqual(40991, (n1-n2)[0].seconds)
+
+    def test_subRaises(self):
+        """subtracting ticktocks can raise"""
+        n1 = t.Ticktock(['2002-03-01T11:23:11',
+                        '2002-03-01T12:23:11',
+                        '2002-03-01T13:23:11'], 'ISO')
+        n2 = t.Ticktock(['2002-03-01T11:23:11',
+                         '2002-03-01T12:23:11'], 'ISO')
+        self.assertRaises(ValueError, n1.__sub__, n2)
+    
 
     def test_subtimedeltalist(self):
         """a ticktock minus a list of timedeltas is a ticktock"""
@@ -527,6 +540,13 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_equal(ans, t1.getleapsecs())
         self.assertEqual(29, t.Ticktock(datetime.datetime(1995, 3, 22, 4, 18, 14, 350699)).getleapsecs())
         
+    def test_callable_input(self):
+        """can pass in a callable to convert to datetime"""
+        times = ['2002-01-01T01:00:00', '2002-01-02T02:03:04']
+        tt = t.Ticktock(times, dtype=lambda x:datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S') )
+        ans = [datetime.datetime(2002, 1, 1, 1, 0, 0), datetime.datetime(2002, 1, 2, 2, 3, 4)]
+        numpy.testing.assert_equal(ans, tt.UTC)
+
 
 if __name__ == "__main__":
     unittest.main()
