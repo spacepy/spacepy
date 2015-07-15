@@ -6,11 +6,13 @@ SpacePy relies on several other pieces of software for complete
 functionality.  :doc:`install` links to details on
 installing the required software for each platform.
 
+Unless otherwise noted, a dependency may be installed *after*
+SpacePy, and the new functionality will be available the next
+time SpacePy is imported.
+
 Hard Dependencies
 =================
 Without these packages installed, SpacePy will not function.
-The standard installer checks for these dependencies and will
-not install without them.
 
 Python 2.6+
 -----------
@@ -22,11 +24,17 @@ a "newer" Python 2; there are substantial differences in the
 language*. See `Should I use Python 2 or Python 3?
 <http://wiki.python.org/moin/Python2orPython3>`_.
 
+Required to install SpacePy.
+
 NumPy 1.4+
 ----------
 `NumPy <http://numpy.scipy.org/>`_ provides the
 high-performance array data structure used throughout SpacePy. Version
 1.4 or later is required; 1.6 or later recommended.
+
+Required to install SpacePy. f2py is part of NumPy, but is sometimes
+packaged separately; it is required (at installation time) if
+:mod:`~spacepy.irbempy` is to be used.
 
 dateutil
 --------
@@ -106,8 +114,9 @@ and thus for the CDF import/export capability of
 :mod:`~spacepy.datamodel`.
 
 .. warning::
-    Unlike the Python-based dependencies, the CDF library must be installed
-    in all cases; it will not be automatically installed.
+    Unlike the Python-based dependencies, the CDF library must be
+    installed if pycdf support is needed; it will not be automatically
+    installed.
 
 Fortran compiler
 ----------------
@@ -115,3 +124,6 @@ If installing from source, :mod:`~spacepy.irbempy` requires a Fortran
 compiler. (This is not required for the Windows binary installer).
 Supported compilers are the GNU compiler ``gfortran``, the older GNU
 compiler ``g77``, and the Portland Group PGI compiler.
+
+If :mod:`~spacepy.irbempy` is to be used, the Fortran compiler (and
+f2py) must be installed before SpacePy.
