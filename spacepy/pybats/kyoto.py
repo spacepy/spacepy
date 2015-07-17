@@ -147,20 +147,11 @@ class KyotoKp(PbData):
             newtime[3*i+2] = bstop[i]
             newkp[3*i:3*i+3] = self['kp'][i], self['kp'][i], self['kp'][i]
     
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-            line=ax.plot(newtime, newkp, label=label, **kwargs)
-            apply_smart_timeticks(ax, newtime, dolabel=True)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-            line=ax.plot(newtime, newkp, label=label, **kwargs)
-        else:
-            fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(loc)
-            line=ax.plot(newtime, newkp, label=label, **kwargs)
-            apply_smart_timeticks(ax, newtime, dolabel=True)
+
+        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
+        line=ax.plot(newtime, newkp, label=label, **kwargs)
+        apply_smart_timeticks(ax, newtime, dolabel=True)
+
         return fig, ax
 
 #############################################################################
@@ -323,7 +314,7 @@ def kpfetch(yrstart, mostart, yrstop, mostop):
 
     # Build and open URL.  Note that the forminfo must be
     # in a certain order for the request to work...
-    email = urllib.parse.quote('dantwelling@lanl.gov')
+    email = urllib.parse.quote('spacepy@lanl.gov')
     data=urllib.parse.urlencode(forminfo)
     target='http://wdc.kugi.kyoto-u.ac.jp/cgi-bin/kp-cgi'#
     data='%s=%2i&%s=%i&%s=%i&%s=%s&%s=%2i&%s=%i&%s=%i&%s=%s&%s=%s' % \
