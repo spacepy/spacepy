@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 '''
-Let's try to make a OQ tree.  QO tree.  Whatever.
+A class for building QO trees for :class:`~spacepy.pybats.bats.Bats2d` 
+objects.
 '''
 
 class QTree(object):
@@ -150,7 +151,7 @@ class QTree(object):
     rd = rightdaughter
     ld = leftdaughter
 
-    def plot_res(self, ax, DoLabel=True):
+    def plot_res(self, ax, DoLabel=True, tagLeafs=False):
         res_colors={
             1./32.: 'black',
             1./16.: 'darkred',
@@ -172,7 +173,7 @@ class QTree(object):
                     color=res_colors[self[key].dx]
                 else:
                     color='k'
-                self[key].plot_res(ax, fc=color)
+                self[key].plot_res(ax, fc=color, label=key*tagLeafs)
 
         if DoLabel:
             ax.annotate('Resolution:', [1.01,0.99], xycoords='axes fraction', 
@@ -218,7 +219,7 @@ class Branch(object):
         #ax.plot([l[0],l[0]], l[2:],  **kwargs)
         #ax.plot([l[1],l[1]], l[2:],  **kwargs)
 
-    def plot_res(self, ax, fc='gray'):
+    def plot_res(self, ax, fc='gray', label=False):
         if not self.isLeaf: return
         from matplotlib.patches import Polygon
         from numpy import array
@@ -227,4 +228,8 @@ class Branch(object):
                 [l[0],l[2] ], [ l[1],l[2]],
                 [l[1],l[3] ], [ l[0],l[3]]])
         poly = Polygon(verts, True, ec=None, fc=fc, lw=0.0001)
+        if label:
+            x = l[0]+(l[1]-l[0])/2.0
+            y = l[2]+(l[3]-l[2])/2.0
+            ax.text(x, y, label) 
         ax.add_patch(poly)

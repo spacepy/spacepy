@@ -4,8 +4,77 @@ binary SWMF output files taylored to BATS-R-US-type data.
 '''
 
 import numpy as np
-from spacepy.pybats import PbData, IdlBin, LogFile
+from spacepy.pybats import PbData, IdlBin, LogFile, set_figure
+from spacepy.datamodel import dmarray
 
+class BatsLog(LogFile):
+    '''
+    A specialized version of :class:`~spacepy.pybats.LogFile` that includes
+    special methods for plotting common BATS-R-US log file values, such as
+    D$_{ST}$.
+    '''
+
+    def add_dst_quicklook(self, target=None, loc=111, showObs=True, **kwargs):
+        '''
+        Create a quick-look plot of Dst (if variable present in file) 
+        and compare against observations.
+        
+        Like all *add_\* * methods in Pybats, the *target* kwarg determines
+        where to place the plot.
+        If kwarg *target* is **None** (default), a new figure is 
+        generated from scratch.  If *target* is a matplotlib Figure
+        object, a new axis is created to fill that figure at subplot location
+        *loc* (defaults to 111).  If target is a matplotlib Axes object, 
+        the plot is placed into that axis at subplot location *loc*.
+
+        Observed Dst is automatically fetched from the Kyoto World Data Center
+        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoDst` object, which holds the observed
+        Dst, is stored as *self.obs_dst* for future use.
+
+        The figure and axes objects are returned to the user.
+        '''
+        
+        import matplotlib.pyplot as plt
+        
+        if 'dst' not in self:
+            return None, None
+
+        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
+
+        ax.plot(self['time'], self['dst'], 
+                label='BATS-R-US $D_{ST}$ (Biot-Savart)', **kwargs)
+        ax.hlines(0.0, self['time'][0], self['time'][-1], 
+                  'k', ':', label='_nolegend_')
+        apply_smart_timeticks(ax, self['time'])
+        ax.set_ylabel('D_${ST}$ ($nT$)')
+        ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
+
+        if(showObs):
+            try:
+                import spacepy.pybats.kyoto as kt
+            except ImportError:
+                return fig, ax
+        
+            try:
+                stime = self['time'][0]; etime = self['time'][-1]
+                if not hasattr(self, 'obs_dst'):
+                    self.obs_dst = kt.fetch('dst', stime, etime)
+
+            except BaseException as args:
+                print('WARNING! Failed to fetch Kyoto Dst: ', args)
+            else:
+                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
+                        'k--', label='Obs. Dst')
+                ax.legend(loc='best')
+                apply_smart_timeticks(ax, self['time'])
+        else:
+            ax.legend(loc='best')
+            
+
+        return fig, ax
+
+    
 class Stream(object):
     '''
     A class for streamlines.  Contains all of the information about
@@ -21,7 +90,8 @@ class Stream(object):
     The integration method is set by the method kwarg.  The default is
     Runge-Kutta 4 (rk4), but others are available.  RK4 gives a good
     blend of speed and accuracy; see the test functions in pybats.trace2d
-    for more info.
+    for more info.  Currently, the only other option is a simple 
+    Euler's method approach ('eul').
     '''
     
     def __init__(self, bats, xstart, ystart, xfield, yfield,
@@ -75,6 +145,9 @@ class Stream(object):
             from spacepy.pybats.trace2d import trace2d_eul as trc
         elif self.method == 'rk4':
             from spacepy.pybats.trace2d import trace2d_rk4 as trc
+        else:
+            raise ValueError('Tracing method {} not recognized!'.format(
+                self.method))
 
         # Get name of dimensions in order.
         grid = bats['grid'].attrs['dims']
@@ -86,27 +159,32 @@ class Stream(object):
 
         # Trace forwards.
         while(block):
-            #print "Inside block: ", block
             # Grab indices of all values inside current block.
-            loc = bats.qtree[block].locs
+            # Ghost cell check is for experimental testing:
+            if hasattr(bats.qtree[block], 'ghost'):
+                loc = bats.qtree[block].ghost
+            # Typical approach is no ghost cell info:
+            else:
+                loc = bats.qtree[block].locs
             # Trace through this block.
             x, y = trc(bats[self.xvar][loc], bats[self.yvar][loc], 
                        xnow, ynow, bats[grid[0]][loc][0,:], 
                        bats[grid[1]][loc][:,0], ds=0.01)
             # Update location and block:
-            #print "Advanced from %f, %f to %f, %f in %i points." % (
-            #    x[0], y[0], x[-1], y[-1], len(x))
             xnow, ynow = x[-1], y[-1]
             newblock = bats.find_block(xnow,ynow)
             # If we didn't leave the block, stop tracing.
             # Additionally, if inside rBody, stop.
-            if(block==newblock) or (xnow**2+ynow**2)<1 :
+            if(block==newblock) or (xnow**2+ynow**2)<bats.attrs['rbody']*.8 :
                 block=False
-            else:
+            elif newblock:
                 block=newblock
+            else:
+                block=False
             # Append to full trace vectors.
             xfwd = np.append(xfwd, x[1:])
             yfwd = np.append(yfwd, y[1:])
+            del(x); del(y)
             # It's possible to get stuck swirling around across
             # a few blocks.  If we spend a lot of time tracing,
             # call it quits.
@@ -117,30 +195,43 @@ class Stream(object):
         xbwd=[self.xstart]; ybwd=[self.ystart]
         xnow, ynow = self.xstart, self.ystart
         while(block):
-            loc = bats.qtree[block].locs
+            if hasattr(bats.qtree[block], 'ghost'):
+                loc = bats.qtree[block].ghost
+            else:
+                loc = bats.qtree[block].locs
             x, y = trc(bats[self.xvar][loc], bats[self.yvar][loc], 
                        xnow, ynow, bats[grid[0]][loc][0,:], 
                        bats[grid[1]][loc][:,0], ds=-0.01)
             xnow, ynow = x[-1], y[-1]
             newblock = bats.find_block(xnow,ynow)
-            if(block==newblock) or (xnow**2+ynow**2)<1 :
+            if(block==newblock) or (xnow**2+ynow**2)<bats.attrs['rbody']*.8 :
                 block=False
-            else:
+            elif newblock:
                 block=newblock
+            else:
+                block=False
             # Append to full trace vectors.
-            xbwd = np.append(x[:0:-1], xbwd)
-            ybwd = np.append(y[:0:-1], ybwd)
-            if xbwd.size>maxPoints: block=False
+            xbwd = np.append(x[::-1], xbwd)
+            ybwd = np.append(y[::-1], ybwd)
+            if xbwd.size>maxPoints: 
+                block=False
+
         # Combine foward and backward traces.
         self.x = np.append(xbwd[:-1],xfwd)
         self.y = np.append(ybwd[:-1],yfwd)
 
-        # Check if line is closed to body.
+        # If planetary run w/ body:
+        # 1) Check if line is closed to body.
+        # 2) Trim points within body.
         if 'rbody' in bats.attrs:
-            r1 = sqrt(self.x[0]**2.0  + self.y[0]**2.0)
-            r2 = sqrt(self.x[-1]**2.0 + self.y[-1]**2.0)
-            if (r1 < bats.attrs['rbody']) and (r2 < bats.attrs['rbody']):
+            # Radial distance:
+            r = sqrt(self.x**2.0  + self.y**2.0)
+            # Closed field line?
+            if (r[0] < bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
                 self.open = False
+            # Trim the fat!
+            limit = bats.attrs['rbody']*.8
+            self.x, self.y = self.x[r>limit], self.y[r>limit]
 
     def trace(self, bats, extract=False):
         '''
@@ -303,8 +394,10 @@ class Bats2d(IdlBin):
 
         from spacepy.datamodel import dmarray
 
-        mass={'hp':1.0, 'op':16.0, 'hep':4.0, 'sw':1.0, 'o':16.0, 'h':1.0}
+        mass={'hp':1.0, 'op':16.0, 'he':4.0, 
+              'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0}
         species = []
+        names   = []
 
         # Find all species, the variable names end in "Rho".
         for k in self:
@@ -312,16 +405,22 @@ class Bats2d(IdlBin):
                     and (k!='rho') \
                     and (k[:-3]+'N' not in self):
                 species.append(k)
+                names.append(k[:-3])
+            if (k[:3] == 'rho')   \
+                    and (k!='rho') \
+                    and (k[3:]+'N' not in self):
+                species.append(k)
+                names.append(k[3:])
         # Individual number density
-        for s in species:
-            self[s[:-3]+'N'] = dmarray(self[s] / mass[s[:2]], 
+        for s, n in zip(species, names):
+            self[n+'N'] = dmarray(self[s] / mass[n], 
                                        attrs={'units':'$cm^{-3}$'})
 
         # Total N is sum of individual  number densities.
         self['N'] = dmarray(np.zeros(self['rho'].shape), 
                             attrs={'units':'$cm^{-3}$'}) 
         if species:
-            for s in species: self['N']+=self[s[:-3]+'N']
+            for n in names: self['N']+=self[n+'N']
         else:
             self['N'] += self['rho']
                                 
@@ -369,7 +468,7 @@ class Bats2d(IdlBin):
         '''
         from numpy import pi
 
-        if not 'b' in self:
+        if not self.has_key('b'):
             self.calc_b()
         mu_naught = 4.0E2 * pi # Mu_0 x unit conversion (nPa->Pa, nT->T)
         temp_b = self['b']**2.0
@@ -410,12 +509,12 @@ class Bats2d(IdlBin):
         from numpy import sqrt, pi
         from spacepy.datamodel import dmarray
         
-        if not 'b' in self:
+        if not self.has_key('b'):
             self.calc_b()
         #M_naught * conversion from #/cm^3 to kg/m^3
         mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
 
-        for k in list(self.keys()):
+        for k in self:
             if (k[-3:]) == 'rho':
                 # Alfven speed in km/s:
                 self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 / 
@@ -541,7 +640,7 @@ class Bats2d(IdlBin):
         if units.lower == 'kev':
             conv=conv/1000.0
 
-        mass={'hp':1.0, 'op':16.0, 'hep':4.0, 'sw':1.0, '':1.0}
+        mass={'hp':1.0, 'op':16.0, 'he':4.0, 'sw':1.0, '':1.0}
         species = []
 
         # Find all species, the variable names end in "Rho".
@@ -570,7 +669,7 @@ class Bats2d(IdlBin):
             if (command[0:5] == 'calc_') and (command != 'calc_all'):
                 try:
                     eval('self.'+command+'()')
-                except AttributeError as Error:
+                except AttributeError, Error:
                     print('WARNING: Did not perform %s: %s' % (command, Error))
 
     #####################
@@ -599,7 +698,7 @@ class Bats2d(IdlBin):
 
         if self.gridtype != 'Regular':
             if not cellsize:
-                raise ValueError('Grid must be regular or ' +
+                raise ValueError,('Grid must be regular or ' +
                                   'cellsize must be given.')
             self.regrid(cellsize, dim1range=dim1range, dim2range=dim2range)
 
@@ -652,7 +751,7 @@ class Bats2d(IdlBin):
         grid1 = np.arange(dim1range[0], dim1range[1]+cellsize, cellsize)
         grid2 = np.arange(dim2range[0], dim2range[1]+cellsize, cellsize)
 
-        for key in list(self.keys()):
+        for key in self:
             # Skip grid-type entries.
             if key in (self['grid'].attrs['dims']+['grid']): continue
             self[key] = griddata(self[dims[0]], self[dims[1]],
@@ -724,7 +823,7 @@ class Bats2d(IdlBin):
     # TRACING TOOLS
     ######################
     def get_stream(self, x, y, xvar, yvar, method='rk4', style='mag',
-                   maxPoints=20000):
+                   maxPoints=40000):
         '''
         Trace a 2D streamline through the domain, returning a Stream
         object to the caller.
@@ -739,14 +838,14 @@ class Bats2d(IdlBin):
         '''
 
         stream = Stream(self, x, y, xvar, yvar, style=style, 
-                        maxPoints=maxPoints)
+                        maxPoints=maxPoints, method=method)
 
         return stream
 
     ######################
     # VISUALIZATION TOOLS
     ######################
-    def add_grid_plot(self, target=None, loc=111, DoLabel=True, 
+    def add_grid_plot(self, target=None, loc=111, DoLabel=True, DoShowNums=False,
                       title='BATS-R-US Grid Layout'):
         '''
         Create a plot of the grid resolution by coloring regions of constant
@@ -781,25 +880,17 @@ class Bats2d(IdlBin):
         xdim, ydim = self['grid'].attrs['dims'][0:2]
 
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-            ax.set_aspect('equal')
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,10))
-            ax = fig.add_subplot(loc)
-            ax.set_aspect('equal')
+        fig, ax = set_figure(target, figsize=(10,10), loc=loc)
+        ax.set_aspect('equal')
+
         # Set plot range based on quadtree.
         ax.set_xlim([self.qtree[1].lim[0],self.qtree[1].lim[1]])
         ax.set_ylim([self.qtree[1].lim[2],self.qtree[1].lim[3]])
         # Plot.
 
-        for key in self.qtree:
+        for key in list(self.qtree.keys()):
             self.qtree[key].plotbox(ax)
-        self.qtree.plot_res(ax)
+        self.qtree.plot_res(ax, tagLeafs=DoShowNums)
 
         # Customize plot.
         ax.set_xlabel('GSM %s' % xdim.upper())
@@ -813,10 +904,205 @@ class Bats2d(IdlBin):
 
         return fig, ax
 
+    def find_earth_lastclosed(self, tol=np.pi/360., method='rk4', debug=False):
+        '''
+        For Y=0 cuts, attempt to locate the last-closed magnetic field line
+        for both day- and night-sides.  This is done using a bisection 
+        approach to precisely locate the transition between open and closed
+        geometries.  The method stops once this transition is found within
+        a latitudinal tolerance of *tol*, which defaults to $\pi/360.$, or
+        one-half degree.  The tracing *method* can be set via keyword and
+        defaults to 'rk4' (4th order Runge Kutta, see 
+        :class:`~spacepy.pybats.bats.Stream` for more information).
+
+        This method returns 5 objects: 
+        
+        * The dipole tilt in radians
+        * A tuple of the northern/southern hemisphere latitude footpoints for
+          the dayside last-closed field line.
+        * A tuple of the northern/southern hemisphere latitude footpoints for
+          the nightside last-closed field line.
+        * The dayside last-closed field line as a 
+          :class:`~spacepy.pybats.bats.Stream` object.
+        * The nightside last-closed field line as a 
+          :class:`~spacepy.pybats.bats.Stream` object.
+
+        '''
+
+        import matplotlib.pyplot as plt
+        from numpy import (cos, sin, pi, arctan, arctan2, sqrt)
+
+        # Get the dipole tilt by tracing a field line near the inner
+        # boundary.  Find the max radial distance; tilt angle == angle off
+        # equator of point of min R (~=max |B|).
+        x_small = self.attrs['rbody']*-1.2
+        stream = self.get_stream(x_small, 0, 'bx', 'bz', method=method)
+        r = stream.x**2 + stream.y**2
+        loc = r==r.max()
+        tilt = arctan(stream.y[loc]/stream.x[loc])[0]
+
+        if debug:
+            print('Dipole is tilted {} degress above the z=0 plane.'.format(
+                tilt*180./pi))
+        
+        # Dayside- start by tracing from plane of min |B| and perp. to that: 
+        R = self.attrs['rbody']*1.10
+        s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'bx','bz', method=method)
+        s2 = self.get_stream(R*cos(pi/2.+tilt), R*sin(pi/2.+tilt), 
+                             'bx', 'bz', method=method)
+        
+        theta = tilt
+        dTheta=np.pi/4. # Initially, search 90 degrees.
+        while (dTheta>tol)or(s1.open):
+            closed = not(s1.open)
+            # Adjust the angle towards the open-closed boundary.
+            theta += closed*dTheta 
+            theta -= s1.open*dTheta
+            # Trace at the new theta to further restrict angular range:
+            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz', 
+                                 method=method)
+            dTheta /= 2.
+
+        # Use last line to get southern hemisphere theta:
+        npts = s1.x.size/2
+        r = sqrt(s1.x**2+s1.y**2)
+        loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
+            r[:npts]-self.attrs['rbody']))
+        xSouth, ySouth = s1.x[loc], s1.y[loc]
+        # "+ 0" syntax is to quick-copy object.
+        theta_day = [theta+0, 2*np.pi+arctan(ySouth/xSouth)[0]+0]
+        day = s1
+
+        # Nightside: 
+        theta+=tol
+        R = self.attrs['rbody']*1.0
+        s2 = self.get_stream(R*cos(theta),R*sin(theta),'bx','bz',method=method)
+        s1 = self.get_stream(R*cos(pi+tilt), R*sin(pi+tilt), 
+                             'bx', 'bz', method=method)
+        
+        dTheta=(pi+tilt-theta)/2.
+        theta = pi+tilt
+        while (dTheta>tol)or(s1.open):
+            closed = not(s1.open)
+            theta -= closed*dTheta 
+            theta += s1.open*dTheta
+            #print("Theta = {:f} (dTheta={})".format(theta, dTheta))
+            s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz', 
+                                 method=method)
+            dTheta /= 2.
+
+        # Use last line to get southern hemisphere theta:
+        npts = s1.x.size/2
+        r = sqrt(s1.x**2+s1.y**2)
+        loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
+            r[:npts]-self.attrs['rbody']))
+        xSouth, ySouth = s1.x[loc], s1.y[loc]
+        theta_night = [theta+0, 2*np.pi+arctan2(ySouth,xSouth)[0]+0]
+        night = s1
+        #plt.plot(s1.x, s1.y, 'r-')
+
+        return tilt, theta_day, theta_night, day, night
+
+    def add_b_magsphere_new(self, target=None, loc=111,  style='mag', 
+                            DoLast=True, DoOpen=True, DoTail=True, 
+                            method='rk4', tol=np.pi/360.,
+                            nOpen=15, nClosed=5, **kwargs):
+        '''
+        Create an array of field lines closed to the central body in the
+        domain.  Add these lines to Matplotlib target object *target*.
+        If no *target* is specified, a new figure and axis are created.
+
+        A tuple containing the figure, axes, and LineCollection object
+        is returned.  Any additional kwargs are handed to the LineCollection
+        object.
+
+        Note that this should currently only be used for GSM y=0 cuts
+        of the magnetosphere.
+
+        Algorithm:  This method, unlike its predecessor, starts by finding
+        the last closed field lines via 
+        :func:`~spacepy.pybats.bats.Bats2d.find_earth_lastclosed`.  It then
+        fills the regions between the open and closed regions.  Currently, it
+        does not treat purely IMF field lines.
+
+        Kwargs:
+        ========== ===========================================================
+        target     The figure or axes to place the resulting lines.
+        style      The color coding system for field lines.  Defaults to 'mag'.
+                   See :class:`spacepy.pybats.bats.Stream`.
+        loc        The location of the subplot on which to place the lines.
+        DoLast     Plot last-closed lines as red lines.  Defaults to **True**.
+        DoOpen     Plot open field lines.  Defaults to **True**.
+        DoClosed   Plot closed field lines.  Defaults to **True**.
+        nOpen      Number of closed field lines to trace per hemisphere.  
+                   Defaults to 5.
+        nClosed    Number of open field lines to trace per hemisphere.
+                   Defaults to 15.
+        method     The tracing method; defaults to 'rk4'.   See 
+                   :class:`spacepy.pybats.bats.Stream`.
+        tol        Tolerance for finding open-closed boundary; see
+                   :func:`~spacepy.pybats.bats.Bats2d.find_earth_lastclosed`.
+        ========== ===========================================================
+        
+        Extra kwargs are passed to Matplotlib's LineCollection class.
+
+        Three objects are returned: the figure and axes on which lines are
+        placed and the LineCollection object containing the plotted lines.
+        '''
+        
+        import matplotlib.pyplot as plt
+        from matplotlib.collections import LineCollection
+        from numpy import (arctan, cos, sin, where, pi, log, 
+                           arange, sqrt, linspace, array)
+        
+        # Set ax and fig based on given target.
+        fig, ax = set_figure(target, figsize=(10,10), loc=111)
+        self.add_body(ax)
+
+        # Lines and colors:
+        lines = []
+        colors= []
+
+        # Start by finding open/closed boundary.
+        tilt, thetaD, thetaN, s1, s2 = self.find_earth_lastclosed(method=method)
+        if DoLast:
+            lines+=[array([s1.x,s1.y]).transpose(),
+                    array([s2.x,s2.y]).transpose()]
+            colors+=2*['r']
+
+        # Useful parameters for the following traces:
+        dTheta = 1.5*np.pi/180
+        R = self.attrs['rbody']
+
+        ## Do closed field lines ##
+        if DoClosed:
+            for tDay, tNit in zip(
+                    linspace(0,     thetaD[0]-dTheta, nClosed),
+                    linspace(np.pi, thetaN[1]-dTheta, nClosed)):
+                x, y = R*cos(tDay), R*sin(tDay)
+                sD   = self.get_stream(x,y,'bx','bz',method=method)
+                x, y = R*cos(tNit), R*sin(tNit)
+                sN   = self.get_stream(x,y,'bx','bz',method=method)
+                # Append to lines, colors.
+                lines.append(array([sD.x, sD.y]).transpose())
+                lines.append(array([sN.x, sN.y]).transpose())
+                colors.append(sD.style[0])
+                colors.append(sN.style[0])
+
+        ## Do open field lines ##
+        #if DoOpen:
+        #    for tNorth, tSouth in zip(
+        #            linspace
+            
+        # Create line collection & plot.
+        collect = LineCollection(lines, colors=colors, **kwargs)
+        ax.add_collection(collect)
+
+        return fig, ax, collect
 
     def add_b_magsphere(self, target=None, loc=111, style='mag', 
                         DoImf=False, DoOpen=False, DoTail=False, 
-                        DoDay=True, **kwargs):
+                        DoDay=True, method='rk4', **kwargs):
         '''
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
@@ -851,21 +1137,13 @@ class Bats2d(IdlBin):
                            arange, sqrt, linspace, array)
         
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,10))
-            ax  = fig.add_subplot(loc)
+        fig, ax = set_figure(target, figsize=(10,10), loc=loc)
 
         lines = []
         colors= []
 
         # Approximate the dipole tilt of the central body.
-        stream = self.get_stream(3.0, 0, 'bx', 'bz')
+        stream = self.get_stream(3.0, 0, 'bx', 'bz', method=method)
         r = stream.x**2 + stream.y**2
         loc, = where(r==r.max())
         tilt = arctan(stream.y[loc[0]]/stream.x[loc[0]])
@@ -880,7 +1158,7 @@ class Bats2d(IdlBin):
         for theta in angle:
             x = self.attrs['rbody'] * cos(theta)
             y = self.attrs['rbody'] * sin(theta)
-            stream = self.get_stream(x,y,'bx','bz', style=style)
+            stream = self.get_stream(x,y,'bx','bz', style=style, method=method)
             if (stream.y[0] > self.attrs['rbody']) or (stream.style[0]=='k'):
                 daymax = theta
                 break
@@ -900,21 +1178,22 @@ class Bats2d(IdlBin):
             for i, x in enumerate(arange(x_mp, 15.0, delx)):
                 # From dayside x-line out and up:
                 y =y_mp-x_mp+x
-                stream = self.get_stream(x, y, 'bx', 'bz', style=style)
+                stream = self.get_stream(x, y, 'bx', 'bz', style=style, 
+                                         method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From top of magnetosphere down:
                 y =x_mp+15.0-x+delx/3.0
-                stream = self.get_stream(x-delx/3.0, y, 'bx', 
-                                         'bz', style=style)
+                stream = self.get_stream(x-delx/3.0, y, 'bx', 'bz', 
+                                         method=method, style=style)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From bottom of mag'sphere down:
                 y =x_mp-10.0-x+2.0*delx/3.0
                 stream = self.get_stream(x-2.0*delx/3.0, y, 'bx', 
-                                         'bz', style=style)
+                                         'bz', style=style, method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
@@ -923,7 +1202,7 @@ class Bats2d(IdlBin):
         for theta in angle:
             x = self.attrs['rbody'] * cos(theta)
             y = self.attrs['rbody'] * sin(theta)
-            stream = self.get_stream(x,y,'bx','bz', style=style)
+            stream = self.get_stream(x,y,'bx','bz', style=style, method=method)
             if stream.open:
                 nightmax = theta
                 break
@@ -943,7 +1222,8 @@ class Bats2d(IdlBin):
         while (x-1.5)>self['x'].min():
             #print "Closed extension at ", x-1.5, y
             #ax.plot(x-1.5, y, 'g^', ms=10)
-            stream = self.get_stream(x-1.5, y, 'bx', 'bz', style=style)
+            stream = self.get_stream(x-1.5, y, 'bx', 'bz', style=style, 
+                                     method=method)
             r = sqrt(stream.x**2 + stream.y**2)
             if stream.open:
                 break
@@ -954,7 +1234,7 @@ class Bats2d(IdlBin):
             y = stream.y[loc[0]]
 
         if x1 == x:
-            stream = self.get_stream(x1+1.0, y1, 'bx', 'bz')
+            stream = self.get_stream(x1+1.0, y1, 'bx', 'bz', method=method)
             r = sqrt(stream.x**2 + stream.y**2)
             loc, = where(r==r.max())
             x1 = stream.x[loc[0]]
@@ -970,7 +1250,8 @@ class Bats2d(IdlBin):
             xmore = arange(x, -100, -3.0)
             ymore = m*(xmore-x)+y
             for x, y  in zip(xmore[1:], ymore[1:]):
-                stream = self.get_stream(x, y, 'bx', 'bz', style=style)
+                stream = self.get_stream(x, y, 'bx', 'bz', style=style, 
+                                         method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
         #ax.plot(xmore, ymore, 'r+')
@@ -980,13 +1261,13 @@ class Bats2d(IdlBin):
             for theta in linspace(daymax,0.99*(2.0*(pi+tilt))-nightmax, 15):
                 x = self.attrs['rbody'] * cos(theta)
                 y = self.attrs['rbody'] * sin(theta)
-                stream = self.get_stream(x,y,'bx','bz')
+                stream = self.get_stream(x,y,'bx','bz', method=method)
                 if stream.open: 
                     lines.append(array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
                 x = self.attrs['rbody'] * cos(theta+pi)
                 y = self.attrs['rbody'] * sin(theta+pi)
-                stream = self.get_stream(x,y,'bx','bz')
+                stream = self.get_stream(x,y,'bx','bz', method=method)
                 if stream.open:
                     lines.append(array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
@@ -1016,7 +1297,7 @@ class Bats2d(IdlBin):
 
         from matplotlib.patches import Circle, Wedge
 
-        if not 'rbody' in self.attrs:
+        if 'rbody' not in self.attrs:
             raise KeyError('rbody not found in self.attrs!')
 
         body = Circle((0,0), rad, fc='w', zorder=1000, **extra_kwargs)
@@ -1044,7 +1325,7 @@ class Bats2d(IdlBin):
         '''
         from matplotlib.patches import Ellipse
 
-        if not 'rbody' in self.attrs:
+        if 'rbody' not in self.attrs:
             raise KeyError('rbody not found in self.attrs!')
 
         dbody = 2.0 * self.attrs['rbody']
@@ -1103,15 +1384,7 @@ class Bats2d(IdlBin):
         from matplotlib.colors import LogNorm
 
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,10))
-            ax  = fig.add_subplot(loc)
+        fig, ax = set_figure(target, figsize=(10,10), loc=loc)
 
         # Get max/min if none given.
         if zlim==None:
@@ -1216,15 +1489,7 @@ class Bats2d(IdlBin):
                                        LogFormatterMathtext, MultipleLocator)
 
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,10))
-            ax  = fig.add_subplot(loc)
+        fig, ax = set_figure(target, figsize=(10,10), loc=loc)
 
         # Get max/min if none given.
         if zlim==None:
@@ -1447,15 +1712,8 @@ class Mag(PbData):
         if not label:
             label=value
 
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(loc)
+        # Set figure and axes based on target:
+        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
 
         line=ax.plot(self['time'], self[value], style, label=label, **kwargs)
         apply_smart_timeticks(ax, self['time'], dolabel=True)
@@ -1489,15 +1747,7 @@ class Mag(PbData):
         from spacepy.pybats import apply_smart_timeticks
 
         # Set plot targets.
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(loc)
+        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
 
         # Use a dictionary to assign line styles, widths.
         styles={'gm':'--', 'ie':'-.', 'to':'-'}
@@ -1712,7 +1962,7 @@ class GeoIndexFile(LogFile):
             self.attrs['k9']  = float(parts[parts.index('K9') +1])
                                          
 
-    def add_kp_quicklook(self, target=None, pos=111, label=None, 
+    def add_kp_quicklook(self, target=None, loc=111, label=None, 
                          plot_obs=True, **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
@@ -1729,15 +1979,7 @@ class GeoIndexFile(LogFile):
         from spacepy.pybats import apply_smart_timeticks
 
         # Set up plot target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(pos)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(111)
+        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
         
         # Create label:
         if not(label):
@@ -1746,10 +1988,17 @@ class GeoIndexFile(LogFile):
                 label += ' (Lat=%04.1f$^{\circ}$, K9=%03i)' % \
                     (self.attrs['lat'], self.attrs['k9'])
 
+        # Sometimes, the "Kp" varname is caps, sometimes not.
+        kp = 'Kp'
+        if kp not in self.keys(): kp='kp'
+
         ax.plot(self['time'], self['Kp'], label=label,**kwargs)
         ax.set_ylabel('$K_{P}$')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
+        ax.grid()
         apply_smart_timeticks(ax, self['time'])
+
+        fig.tight_layout()
 
         if plot_obs:
             try:
@@ -1767,7 +2016,7 @@ class GeoIndexFile(LogFile):
                 print('WARNING! Failed to fetch Kyoto Kp: ' + args)
             else:
                 self.obs_kp.add_histplot(target=ax, color='k', ls='--', lw=3.0)
-                ax.legend()
+                ax.legend(loc='best')
                 apply_smart_timeticks(ax, self['time'])
                 
         return fig, ax
@@ -1778,11 +2027,223 @@ class VirtSat(LogFile):
     output; includes special satellite-specific plotting methods.
     '''
 
+    def __init__(self, *args, **kwargs):
+
+        from re import findall
+        from scipy.interpolate import interp1d
+        from matplotlib.dates import date2num
+
+        super(VirtSat, self).__init__(*args, **kwargs)
+        # Attempt to extract the satellite's name and save it.
+        try:
+            s = self.attrs['file']
+            a = findall('sat_([\-\w]+)_\d+_n\d+\.sat|sat_(\w+)_n\d+\.sat', s)[0]
+            name = filter(None, a)[0]
+        except IndexError:
+            name = None
+        self.attrs['name']=name
+
+        # Create interpolation functions for position.
+        self._interp={}
+        tnum=date2num(self['time'])
+        for x in 'xyz':
+            self._interp[x] = interp1d(tnum, self[x])
+
     def __repr__(self):
-        return 'GeoIndexFile object at %s' % (self.attrs['file'])
+        return 'Satellite object {} at {}'.format(self.attrs['name'],
+                                                  self.attrs['file'])
+
+    def calc_ndens(self):
+        '''
+        Calculate number densities for each fluid.  Species mass is 
+        ascertained either by searching file parameters or by assuming
+        mass density from the species name (e.g. OpRho is clearly oxygen).
+        If neither can be found, an exception is raised.
+
+        New values are saved using the keys *SpeciesN* (e.g. *OpN*).
+        '''
+
+        from spacepy.datamodel import dmarray
+
+        mass={'hp':1.0, 'op':16.0, 'he':4.0, 'sw':1.0, 'o':16.0, 'h':1.0}
+        species,names = [],[]
+
+        # Find all species, the variable names end in "Rho".
+        for k in self:
+            if (k[-3:] == 'rho')   \
+                    and (k!='rho') \
+                    and (k[:-3]+'N' not in self.keys()):
+                species.append(k)
+                names.append(k[:-3])
+            if (k[:3] == 'rho')   \
+                    and (k!='rho') \
+                    and (k[3:]+'N' not in self.keys()):
+                species.append(k)
+                names.append(k[3:])
+        # Individual number density
+        for s,n in zip(species, names):
+            self[n+'N'] = dmarray(self[s] / mass[n], 
+                                  attrs={'units':'$cm^{-3}$'})
+
+        # Total N is sum of individual  number densities.
+        self['N'] = dmarray(np.zeros(self['rho'].shape), 
+                            attrs={'units':'$cm^{-3}$'}) 
+        if names:
+            for n in names: self['N']+=self[n+'N']
+        else:
+            self['N'] += self['rho']
+                                
+
+    def calc_temp(self, units='eV'):
+        '''
+        Calculate plasma temperature for each fluid.  Number density is
+        calculated using *calc_ndens* if it hasn't been done so already.
+        
+        Temperature is obtained via density and pressure through the simple
+        relationship P=nkT.
+
+        Use the units kwarg to set output units.  Current choices are
+        KeV, eV, and K.  Default is eV.
+        '''
+
+        from spacepy.datamodel import dmarray
+
+        units = units.lower()
+
+        # Create dictionary of unit conversions.
+        conv  = {'ev' : 6241.50935,  # nPa/cm^3 --> eV.
+                 'kev': 6.24150935,  # nPa/cm^3 --> KeV.
+                 'k'  : 72429626.47} # nPa/cm^3 --> K.
+
+        # Calculate number density if not done already.
+        if not 'N' in self:
+            self.calc_ndens()
+        
+        # Find all number density variables.
+        for key in self.keys():
+            # Next variable if not number density:
+            if key[-1] != 'N':
+                continue
+            # Next variable if no matching pressure:
+            if not key[:-1]+'p' in self:
+                continue
+            self[key[:-1]+'t'] = dmarray(
+                conv[units] * self[key[:-1]+'p']/self[key],
+                attrs = {'units':units})
+
+    def calc_bmag(self):
+        '''
+        Calculates total magnetic field magnitude via:
+        $|B|=\sqrt{B_X^2+B_Y^2+B_Z^2}$.  Results stored as variable name *b*.
+        '''
+
+        if 'b' not in self:
+            self['b']=np.sqrt(self['bx']**2+
+                              self['by']**2+
+                              self['bz']**2)
+
+        return True
+
+    def calc_magincl(self, units='deg'):
+        '''
+        Magnetic inclination angle (a.k.a. inclination angle) is defined:
+        $\Theta = sin^{-1}(B_Z/B)$.  It is a crucial value when examining
+        magnetic dynamics about geosychronous orbit, the tail, and other
+        locations.
+
+        This function calculates the magnetic inclination for the Virtual 
+        Satellite object and saves it as *b_incl*.  Units default to degrees;
+        the keyword **units** can be changed to 'rad' to change this.
+        '''
+
+        if 'b' not in self: self.calc_bmag()
+
+        incl = np.arcsin(self['bz']/self['b'])
+
+        if units=='deg':
+            self['b_incl'] = dmarray(incl*180./np.pi, {'units':'degrees'})
+        elif units=='rad':
+            self['b_incl'] = dmarray(incl, {'units':'radians'})
+        else:
+            raise ValueError('Unrecognized units.  Use "deg" or "rad"')
+
+        return True
+            
+    def get_position(self, time):
+        '''
+        For an arbitrary time, *time*, return a tuple of coordinates for
+        the satellite's position at that time in GSM coordinates.
+
+        *time* should be type datetime.datetime, matplotlib.dates.date2num
+        output (i.e., number of days (fraction part represents hours,
+        minutes, seconds) since 0001-01-01 00:00:00 UTC, *plus* *one*), or
+        a sequence of either.
+        The satellite's position is interpolated (linearly) to *time*.
+        '''
+        
+        from matplotlib.dates import date2num
+
+        # Test if sequence.
+        if isinstance(time, (list, np.ndarray)):
+            testval=time[0]
+        else:
+            testval=time
+
+        # Test if datetime or not.
+        if type(testval) == type(self['time'][0]):
+            time=date2num(time)
+
+        # Interpolate, using "try" as to not pass time limits and extrapolate.
+        try:
+            loc = (self._interp['x'](time), 
+                   self._interp['y'](time), 
+                   self._interp['z'](time))
+        except ValueError:
+            loc = (None, None, None)
+
+        return loc
+
+    def add_sat_loc(self, time, target, plane='XY', dobox=False,
+                    dolabel=False, size=12, c='k', **kwargs):
+        '''
+        For a given axes, *target*, add the location of the satellite at
+        time *time* as a circle.  If kwarg *dolabel* is True, the satellite's 
+        name will be used to label the dot.  Optional kwargs are any accepted by
+        matplotlib.axes.Axes.plot.  The kwarg *plane* specifies the plane
+        of the plot, e.g., 'XY', 'YZ', etc.
+        '''
+        
+        # Get Axes' limits:
+        xlim = target.get_xlim()
+        ylim = target.get_ylim()
+            
+        plane=plane.lower()
+        loc = self.get_position(time)
+        if None in loc: return
+        x=loc['xyz'.index(plane[0])]
+        y=loc['xyz'.index(plane[1])]
+
+        # Do not label satellite if outside axes bounds.
+        if (x<min(xlim))or(x>max(xlim))or \
+           (y<min(ylim))or(y>max(ylim)): dolabel=False
+
+        target.plot(x, y, 'o', **kwargs)
+        if dolabel:
+            xoff = 0.03*(xlim[1]-xlim[0])
+            if dobox:
+                target.text(x+xoff,y,self.attrs['name'], 
+                            bbox={'fc':'w','ec':'k'},size=size, va='center')
+            else:
+                target.text(x+xoff,y,self.attrs['name'], 
+                            size=size, va='center', color=c)
+                
+
+        # Restore Axes' limits.
+        target.set_ylim(ylim)
+        target.set_xlim(xlim)
 
     def add_orbit_plot(self, plane='XY', target=None, loc=111, rbody=1.0,
-                       title=None):
+                       title=None, trange=None):
         '''
         Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
         '''
@@ -1790,25 +2251,22 @@ class VirtSat(LogFile):
         from spacepy.pybats.ram import add_body, grid_zeros
         import matplotlib.pyplot as plt
 
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(5,5))
-            ax = fig.add_subplot(loc)
+        fig, ax = set_figure(target, figsize=(5,5), loc=loc)
 
         plane=plane.upper()
 
+        # Set time range of plot.
+        if not trange: trange = [self['time'].min(), self['time'].max()]
+        tloc = (self['time']>=trange[0])&(self['time']<=trange[-1])
+        
         # Extract orbit X, Y, or Z.
-        if plane[0] in ['X','Y','Z']:
-            x = self[plane[0]]
+        plane=plane.lower()
+        if plane[0] in ['x','y','z']:
+            x = self[plane[0]][tloc]
         else:
             raise ValueError('Bad dimension specifier: ' + plane[0])
-        if (plane[1] in ['X','Y','Z']) and (plane[0]!=plane[1]):
-            y = self[plane[1]]
+        if (plane[1] in ['x','y','z']) and (plane[0]!=plane[1]):
+            y = self[plane[1]][tloc]
         else:
             raise ValueError('Bad dimension specifier: ' + plane[1])
                 
@@ -1818,8 +2276,8 @@ class VirtSat(LogFile):
 
         # Finish customizing axis.
         ax.axis('equal')
-        ax.set_xlabel('GSM %s'%(plane[0]))
-        ax.set_ylabel('GSM %s'%(plane[1]))
+        ax.set_xlabel('GSM %s'%(plane[0].upper()))
+        ax.set_ylabel('GSM %s'%(plane[1].upper()))
         if title:
             ax.set_title(title)
         grid_zeros(ax)
