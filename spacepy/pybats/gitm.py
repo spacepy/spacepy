@@ -100,10 +100,12 @@ class GitmBin(PbData):
         in degrees.
         '''
         from numpy import pi
-        self['dLat'] = dmarray(self['Latitude']*180.0/pi, 
-                               attrs={'units':'degrees'})
-        self['dLon'] = dmarray(self['Longitude']*180.0/pi, 
-                               attrs={'units':'degrees'})
+        if 'Latitude' in self:
+            self['dLat'] = dmarray(self['Latitude']*180.0/pi, 
+                                   attrs={'units':'degrees'})
+        if 'Longitude' in self:
+            self['dLon'] = dmarray(self['Longitude']*180.0/pi, 
+                                   attrs={'units':'degrees'})
         
 
 #    def add_alt_slice(alt, var, target=None):

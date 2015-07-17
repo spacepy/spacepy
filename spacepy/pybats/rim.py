@@ -222,7 +222,8 @@ class Iono(object):
                                       (self.ntheta, self.nphi), 'F')
 
     def add_cont(self, ax, var, n=24, maxz=False, lines=True, 
-                 cmap=False, add_cbar=False, label=None, **kwargs):
+                 cmap=False, add_cbar=False, label=None, 
+                 xticksize=12, yticksize=12, **kwargs):
         '''
         Create a polar contour of variable 'var' and add the resulting artist
         to axis 'ax'.  Make sure that 'ax' is a polar axes or you'll be sorry.
@@ -277,9 +278,11 @@ class Iono(object):
         cnt1 = ax.contourf(self.north['psi']*pi/180.0+pi/2., 
                            self.north['theta'], self.north[var], 
                            levs, norm=crange, cmap=cmap)
-        # Increase font of top label.
+        # Set xtick label size, increase font of top label.
         labels = ax.get_xticklabels()
-        labels[1].set_size('large')
+        for l in labels: l.set_size(xticksize)
+        labels[1].set_size(xticksize*1.25)
+        
         if lines:
             nk = int(round(n/3.0))
             cnt2 = ax.contour(self.north['psi']*pi/180.0+pi/2., 
@@ -295,5 +298,13 @@ class Iono(object):
         ax.set_xticklabels(lt_labels)
         ax.yaxis.set_major_locator(lct)
         ax.set_ylim([0,40])
+
+        # Use text function to manually add pretty ticks.
+        ax.set_yticklabels('') # old ticks off.
+        opts = {'size':yticksize, 'rotation':-45, 'ha':'center', 'va':'center'}
+        for theta in [80.,70.,60.]:
+            txt = '{:02.0f}'.format(theta)+r'$^{\circ}$'
+            ax.text(pi/4., 90.-theta, txt, color='w', weight='heavy', **opts)
+            ax.text(pi/4., 90.-theta, txt, color='k', weight='light', **opts)
 
         return cnt1
