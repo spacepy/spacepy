@@ -1346,6 +1346,10 @@ class PressureFile(PbData):
                             format=LogFormatterMathtext(), shrink=0.8)
             #cbar.set_label(self.labels[var]+' ($KeV/cm^-3)$')
             cbar.set_label(label)
+        else:
+            cbar=None
+
+        return fig, ax, cont, cbar
             
     def add_pcol_press(self, var='total', target=None, maxz=1000.0, minz=1.0,
                        add_cbar=False, loc=111, labelsize=15, title='auto',
@@ -1391,6 +1395,10 @@ class PressureFile(PbData):
                             format=LogFormatterMathtext(), shrink=0.8)
             #cbar.set_label(self.labels[var]+' ($keV/cm^{-3}$)')
             cbar.set_label('$keV/cm^{-3}$')
+        else:
+            cbar=None
+
+        return fig, ax, pcol, cbar
 
 
 ############################################################################
