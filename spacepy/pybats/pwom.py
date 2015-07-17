@@ -47,7 +47,7 @@ class Efile(PbData):
         
         # Parse header.
         varlist = parse_tecvars(f.readline())
-        print(varlist)
+        print varlist
         m = search('.*I\=\s*(\d+)\,\s*J\=\s*(\d+)',f.readline()).groups()
         nLat, nLon = int(m[0]), int(m[1])
         self.attrs['nLat']=nLat
@@ -69,7 +69,7 @@ class Efile(PbData):
         #self['lon'][self['x']==0.0] = 0.0
         xy=np.sqrt(self['x']**2+self['y']**2)+0.0000001
         self['lon']=np.arcsin(self['y']/xy)
-        self['lat']  =dmarray(np.arcsin(self['z']), {'units': 'deg'})*180.0/np.pi
+        self['lat']  =dmarray(np.arcsin(self['z']), {'units':'deg'})*180.0/np.pi
         self['colat']=90.0 - self['lat']
 
         f.close()
@@ -154,13 +154,14 @@ class Lines(PbData):
         super(Lines, self).__init__(*args, **kwargs) # Init as PbData.
         if not starttime:
             starttime=dt.datetime(2000,1,1,0,0,0)
-        self._read(lines)
+        self._read(lines, starttime)
+        self.calc_flux()
 
     def __repr__(self):
         return 'PWOM field line group of %i separate line files.' %\
             (self.attrs['nFile'])
 
-    def _read(self, lines):
+    def _read(self, lines, starttime):
         '''
         Read all ascii line files; should only be called upon instantiation.
         '''
@@ -170,14 +171,14 @@ class Lines(PbData):
         self['files']=glob(lines)
         
         # Read first file; use it to set up all arrays.
-        l1=Line(self['files'][0])
+        l1=Line(self['files'][0], starttime=starttime)
         nA=l1.attrs['nAlt']
         nT=l1.attrs['nTime']
         nF=len(self['files'])
         self['r'] = l1['r']
         
         self.attrs['nAlt']=nA; self.attrs['nTime']=nT; self.attrs['nFile']=nF
-        self['time']=l1['time']
+        self['time'] = l1['time']
 
         # Create all arrays.
         for v in l1._rawvar:
@@ -200,9 +201,157 @@ class Lines(PbData):
             for v in l1._rawvar:
                 self[v][i+1,:,:]=l[v]
 
+        # Get non-log densities.
+        logVars = []
+        for v in self:
+            if v[:3] == 'lgn': logVars.append(v)
+        for v in logVars:
+            self[v[2:]] = dmarray(10.**self[v], {'units':r'$cm^{-3}$'})
 
-    def add_slice(alt, var):
+
+    def calc_flux(self):
         '''
-        Plot a 2D slice at altitude *alt* of variable *var*.
+        Calculate flux in units of #/cm2/s.  Variables saved as self[species+'Flux'].
         '''
-        pass
+
+        for s in ['H', 'O', 'He', 'e']:
+            self[s+'Flux']=dmarray(1000*self['n'+s]*self['u'+s],  {'units':'$cm^{-2}s^{-1}$'})
+
+    def _get_cartXY(self):
+        '''
+        For plotting, generate a set of x-y values such that plots can be
+        produced on a cartesian grid using tricontourf.
+        '''
+        
+        # Pass if values already exist.
+        if hasattr(self, '_xGSM'):
+            return
+
+        # Unit conversions.
+        r = self['r']/6371.0 + 1.0
+        lat   = np.pi*self['Lat']/180.0
+        colat = 90. - self['Lat']
+        lon   = np.pi*self['Lon']/180.0
+
+        # Values in a Cartesian plane.
+        self._xGSM = r*np.cos(lat)*np.sin(lon)
+        self._yGSM = r*np.cos(lat)*np.cos(lon)
+
+        self._xLat = colat*np.sin(lon)
+        self._yLat = colat*np.cos(lon)
+        
+    def add_slice(self, var, alt, time, nlev=31, zlim=None, target=None, 
+                  loc=111, title=None, latoffset=1.05,
+                  rlim=50., add_cbar=True, clabel=None,
+                  show_pts=False, show_alt=True, dolog=False, 
+                  lats=[75., 60.], colats=None, *args, **kwargs):
+        '''
+        Create a plot of variable *var* at altitude *alt*.
+
+        If kwarg **target** is None (default), a new figure is 
+        generated from scratch.  If target is a matplotlib Figure
+        object, a new axis is created to fill that figure at subplot
+        location **loc**.  If **target** is a matplotlib Axes object, 
+        the plot is placed into that axis.
+        '''
+
+        import matplotlib.pyplot as plt
+        from matplotlib.colors import (LogNorm, Normalize)
+        from matplotlib.patches import Circle
+        from matplotlib.ticker import (LogLocator, LogFormatter, 
+                                       LogFormatterMathtext, MultipleLocator)
+
+        # Grab the slice of data that we want:
+        if type(time) == type(self['time'][0]):
+            if time not in self['time']:
+                raise ValueError('Time not in object')
+            time = np.arange(self.attrs['nTime'])[self['time']==time][0]
+
+        # Set ax and fig based on given target.
+        if type(target) == plt.Figure:
+            fig = target
+            ax  = fig.add_subplot(loc)
+            ax.set_aspect('equal')
+        elif type(target).__base__ == plt.Axes:
+            ax  = target
+            fig = ax.figure
+        else:
+            fig = plt.figure(figsize=(8.34,7))
+            ax  = fig.add_subplot(loc)
+            ax.set_aspect('equal')
+
+        # Create values in Cartesian plane.
+        self._get_cartXY()
+
+        # Grab values from correct time/location.
+        x = self._xLat[:,time, alt]
+        y = self._yLat[:,time, alt]
+        value = self[var][:, time, alt]
+
+        # Get max/min if none given.
+        if zlim==None:
+            zlim=[0,0]
+            zlim[0]=value.min(); zlim[1]=value.max()
+            if dolog and zlim[0]<=0:
+                zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
+
+        # Create levels and set norm based on dolog.
+        if dolog:
+            levs = np.power(10, np.linspace(np.log10(zlim[0]), 
+                                            np.log10(zlim[1]), nlev))
+            z=np.where(value>zlim[0], value, 1.01*zlim[0])
+            norm=LogNorm()
+            ticks=LogLocator()
+            fmt=LogFormatterMathtext()
+        else:
+            levs = np.linspace(zlim[0], zlim[1], nlev)
+            z=value
+            norm=None
+            ticks=None
+            fmt=None
+        
+        # Create contour plot.
+        cont=ax.tricontourf(x, y, z, levs, *args, norm=norm, **kwargs)
+        
+        # Label altitude.
+        if show_alt:
+            ax.text(0.05, 0.05, r'Alt.={:.1f}$km/s$ ({:.2f}$R_E$)'.format(
+                self['r'][alt], self['r'][alt]/6371.0+1), size=12, 
+                    transform=ax.transAxes, bbox={'fc':'white', 'ec':'k'})
+
+        if show_pts:
+            ax.plot(x, y, '+w')
+
+        # Add cbar if necessary.
+        if add_cbar:
+            cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
+            if clabel==None: 
+                clabel="%s (%s)" % (var, self[var].attrs['units'])
+            cbar.set_label(clabel)
+        else:
+            cbar=None # Need to return something, even if none.
+ 
+        # Set title, labels, axis ranges (use defaults where applicable.)
+        if title: ax.set_title(title)
+        ax.set_yticks([]), ax.set_xticks([])
+        ax.set_ylabel(r'Sun $\rightarrow$')
+        colat_lim = 90.-rlim
+        ax.set_xlim([-1*colat_lim, colat_lim])
+        ax.set_ylim([-1*colat_lim, colat_lim])
+
+        if colats:
+            for colat in colats:
+                r = latoffset*colat/np.sqrt(2)
+                ax.add_patch(Circle([0,0],colat,fc='none',ec='k',ls='dashed'))
+                ax.text(r, r, '{:.0f}'.format(colat)+r'$^{\circ}$',
+                        rotation=315,ha='center', va='center')
+        else:
+            for lat in lats:
+                colat = 90 - lat
+                r = latoffset*colat/np.sqrt(2)
+                ax.add_patch(Circle([0,0],colat,fc='none',ec='k',ls='dashed'))
+                ax.text(r, r, '{:.0f}'.format(lat)+r'$^{\circ}$', 
+                        rotation=315,ha='center', va='center')
+                
+
+        return fig, ax, cont, cbar
