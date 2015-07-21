@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 '''
 kyoto is a tool set for obtaining and handling geomagnetic indices stored at the
-Kyoto World Data Center (WDC) website.  Indices can be loaded from file or
-fetched from the web.
+`Kyoto World Data Center (WDC) website <http://wdc.kugi.kyoto-u.ac.jp/wdc/Sec3.html>`_.  
+Indices can be loaded from file or fetched from the web.
 
 Instantiation of objects from this module should be done through the constructor
-functions fetch and load.  Use help on these objects for more
-information.
+functions :function:`fetch` and :function:`load`.  Use help on these objects 
+for more information.
 '''
 
 # Module wide imports.
@@ -21,10 +21,10 @@ from spacepy.datamodel import dmarray, SpaceData
 
 class KyotoDst(PbData):
     '''
-    Handles the hourly dst index from Kyoto WDC.  
+    Handle hourly dst index from Kyoto WDC.  
 
-    Use the specialized constructor functions fetch and load to
-    instantiate from the web or from file.
+    Use the specialized constructor functions :function:`fetch` and 
+    :function:`load` to instantiate from the web or from file.
     '''
 
     def __init__(self, lines=None, *args, **kwargs):
@@ -75,8 +75,8 @@ class KyotoKp(PbData):
     '''
     Handles global Kp index from Kyoto WDC.
     
-    Use the specialized constructor functions fetch and load to
-    instantiate from the web or from file.
+    Use the specialized constructor functions :function:`fetch` and 
+    :function:`load` to instantiate from the web or from file.
     '''
     def __init__(self, lines=None, *args, **kwargs):
         # Init as PbData:
@@ -125,9 +125,48 @@ class KyotoKp(PbData):
         self.attrs['npts']=npoints
 
     def add_histplot(self, target=False, loc=111, label='Kyoto $K_{p}$', 
-                     **kwargs):
+                     time_range=None, **kwargs):
         '''
         Make a quick histogram-style plot of the Kp data.
+
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+
+        Other Parameters
+        ================
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+        
+        loc : int
+           Use to specify the subplot placement of the axis
+           (e.g. loc=212, etc.) Used if target is a Figure or None.
+           Default 111 (single plot).
+
+        label : string
+            The label applied to the line when a legend is added to the axes.
+            Defaults to 'Kyoto $K_{p}$'.
+
+        time_range : tuple of datetimes
+            The time range to plot.  Only the first and last values in the
+            tuple (or list) are used if the number of elements is greater than
+            two.  Defaults to **None**, meaning that the full time range
+            available is used.
+
+        Extra keyword arguments are passed to :function:`matplotlib.pyplot.plot`
+        to customize the line style.
+
+        Examples
+        ========
+        >>> import spacepy.pybats.kyoto as kt
+        >>> kp = kt.fetch('kp', (1981, 11), (1981, 11)
+        >>> kp.add_histplot(lw=2.0, lc='r', label='Example KP')
+
         '''
 
         import matplotlib.pyplot as plt
@@ -141,6 +180,11 @@ class KyotoKp(PbData):
         # Reformulate time to get histogram-type look.
         newtime=np.zeros(npts*24, dtype=object)
         newkp  =np.zeros(npts*24)
+
+        # Set time range.
+        if not time_range:
+            time_range = newtime
+        
         for i in range(npts*8):
             newtime[3*i  ] = bstart[i]
             newtime[3*i+1] = self['time'][i]
@@ -150,7 +194,7 @@ class KyotoKp(PbData):
 
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
         line=ax.plot(newtime, newkp, label=label, **kwargs)
-        apply_smart_timeticks(ax, newtime, dolabel=True)
+        apply_smart_timeticks(ax, time_range, dolabel=True)
 
         return fig, ax
 
