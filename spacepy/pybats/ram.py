@@ -8,8 +8,9 @@ import datetime as dt
 import numpy as np
 from scipy.io import netcdf
 
-from spacepy.pybats import PbData, smart_timeticks, apply_smart_timeticks
 from spacepy.datamodel import dmarray
+from spacepy.pybats    import (PbData, smart_timeticks,
+                               apply_smart_timeticks, set_target)
 
 ############################################################################
 #  A few useful functions:

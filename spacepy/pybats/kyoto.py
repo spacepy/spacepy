@@ -12,7 +12,7 @@ information.
 # Module wide imports.
 import numpy as np
 import datetime as dt
-from spacepy.pybats import PbData
+from spacepy.pybats import PbData, set_target
 from spacepy.datamodel import dmarray, SpaceData
 
 #############################################################################
@@ -148,7 +148,7 @@ class KyotoKp(PbData):
             newkp[3*i:3*i+3] = self['kp'][i], self['kp'][i], self['kp'][i]
     
 
-        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10,4), loc=loc)
         line=ax.plot(newtime, newkp, label=label, **kwargs)
         apply_smart_timeticks(ax, newtime, dolabel=True)
 

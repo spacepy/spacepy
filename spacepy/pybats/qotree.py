@@ -88,7 +88,8 @@ class QTree(object):
                 # indices of the x,y points located inside of them as a 
                 # grid and also know the bounding coords of the grid cells.
                 self[i].isLeaf = True
-                a=sqrt(self[i].npts)
+                a=int(sqrt(self[i].npts))
+
                 self[i].locs=self[i].locs.reshape( (a, a) )
                 self[i].dx = dx
                 self[i].cells = meshgrid(

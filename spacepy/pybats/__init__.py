@@ -3,7 +3,7 @@
 PyBats!  An open source Python-based interface for reading, manipulating,
 and visualizing BATS-R-US and SWMF output.
 For more information on the SWMF, please visit the
-`Center for Space Environment Modeling<http://csem.engin.umich.edu>`_. 
+`Center for Space Environment Modeling <http://csem.engin.umich.edu>`_. 
 
 Introduction
 ------------
@@ -52,8 +52,64 @@ are strewn about PyBats' classes.  They are always given the method prefix
 *calc_*, i.e. *calc_alfven*.  Methods called *calc_all* will search for all
 class methods with the *calc_* prefix and call them.
 
-
 Copyright ©2010 Los Alamos National Security, LLC.
+
+
+Submodules
+----------
+		
+There are submodules for most models included within the SWMF.  The classes
+and methods contained within are code-specific, yielding power and
+convenience at the cost of flexibility.  A few of the submodules are helper
+modules- they are not code specific, but rather provide functionality not
+related to an SWMF-included code.
+
+.. autosummary::
+   :template: clean_module.rst
+   :toctree: autosummary
+
+   bats
+   dgcpm
+   dipole
+   gitm
+   kyoto
+   pwom
+   ram
+   rim
+   
+Top-Level Classes & Functions
+-----------------------------
+
+Top-level PyBats classes handle common-format input and output from the SWMF
+and are very flexible.  However, they do little beyond open files for the user.
+
+There are several functions found in the top-level module.  These are mostly
+convenience functions for customizing plots.
+
+.. rubric:: Classes	    
+.. autosummary::
+   :template: clean_class.rst
+   :toctree: autosummary
+
+   IdlBin
+   ImfInput
+   LogFile
+   NgdcIndex
+   PbData
+   SatOrbit
+
+.. rubric:: Functions
+.. autosummary::
+   :template: clean_function.rst
+   :toctree: autosummary
+
+   add_body
+   add_planet
+   apply_smart_timeticks
+   parse_tecvars
+   set_target
+   smart_timeticks
+
 '''
 
 __contact__ = 'Dan Welling, dwelling@umich.edu'
@@ -181,26 +237,44 @@ def apply_smart_timeticks(ax, time, dolimit=True, dolabel=False):
         ax.set_xlabel('Time from %s' % time[0].isoformat())
     return True
 
-def set_figure(target, figsize=None, loc=111):
+def set_target(target, figsize=None, loc=111, polar=False):
     '''
     Given a *target* on which to plot a figure, determine if that *target*
     is **None** or a matplotlib figure or axes object.  Based on the type
     of *target*, a figure and/or axes will be either located or generated.
     Both the figure and axes objects are returned to the caller for further
-    manipulation.  This is used in nearly add_plot-type method.
+    manipulation.  This is used in nearly all *add_plot*-type methods.
 
-    =========  ===========================================
-    kwarg      Description
-    ---------  -------------------------------------------
-    figsize    A two-item tuple/list giving the dimensions of the figure, in inches.  Defaults to Matplotlib defaults.
-    loc        The subplot triple that specifies the location of the axes object.  Defaults to 111.
-    =========  ===========================================
+    Parameters
+    ==========
+    target : object
+        The object on which plotting will happen.
+
+    Other Parameters
+    ================
+    figsize : tuple
+        A two-item tuple/list giving the dimensions of the figure, in inches.  
+        Defaults to Matplotlib defaults.
+    loc : integer 
+        The subplot triple that specifies the location of the axes object.  
+        Defaults to 111.
+    polar : bool
+        Set the axes object to polar coodinates.  Defaults to **False**.
     
-    Example use when *target* is a figure::
+    Returns
+    =======
+    fig : object
+      A matplotlib figure object on which to plot.
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        fig, ax = set_figure(target=fig, loc=211)
+    ax : object
+      A matplotlib subplot object on which to plot.
+
+    Examples
+    ========
+    >>> import matplotlib.pyplot as plt
+    >>> from spacepy.pybats import set_target
+    >>> fig = plt.figure()
+    >>> fig, ax = set_target(target=fig, loc=211)
 
     '''
 
@@ -209,7 +283,7 @@ def set_figure(target, figsize=None, loc=111):
     # Is target a figure?  Make a new axes.
     if type(target) == plt.Figure:
         fig = target
-        ax  = fig.add_subplot(loc)
+        ax  = fig.add_subplot(loc, polar=polar)
     # Is target an axes?  Make no new items.
     elif issubclass(type(target), plt.Axes):
         ax  = target
@@ -217,7 +291,7 @@ def set_figure(target, figsize=None, loc=111):
     # Is target something else?  Make new everything.
     else:
         fig = plt.figure(figsize=figsize)
-        ax  = fig.add_subplot(loc)
+        ax  = fig.add_subplot(loc, polar=polar)
 
     return fig, ax
 
@@ -250,7 +324,7 @@ def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
 def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True, 
              ang=0.0, **extra_kwargs):
     '''
-    Creates a circle of radius=self.para['rbody'] and returns the
+    Creates a circle of radius=self.attrs['rbody'] and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
     using the "ax" keyword, the patch is added to the plot.
     Default color is light grey; extra keywords are handed to the Ellipse
@@ -1232,6 +1306,7 @@ class SatOrbit(PbData):
 
 
     The object should always have the following two data keys:
+
     ============ ==============================================================
     Key          Description
     ============ ==============================================================

@@ -244,7 +244,8 @@ class Lines(PbData):
                   loc=111, title=None, latoffset=1.05,
                   rlim=50., add_cbar=True, clabel=None,
                   show_pts=False, show_alt=True, dolog=False, 
-                  lats=[75., 60.], colats=None, *args, **kwargs):
+                  lats=[75., 60.], colats=None, figsize=(8.34,7),
+                  *args, **kwargs):
         '''
         Create a plot of variable *var* at altitude *alt*.
 
@@ -267,18 +268,8 @@ class Lines(PbData):
                 raise ValueError('Time not in object')
             time = np.arange(self.attrs['nTime'])[self['time']==time][0]
 
-        # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc)
-            ax.set_aspect('equal')
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(8.34,7))
-            ax  = fig.add_subplot(loc)
-            ax.set_aspect('equal')
+        fig, ax = set_target(target, loc=loc, figsize=figsize)
+        ax.set_aspect('equal')
 
         # Create values in Cartesian plane.
         self._get_cartXY()

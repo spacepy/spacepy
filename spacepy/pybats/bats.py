@@ -4,7 +4,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 '''
 
 import numpy as np
-from spacepy.pybats import PbData, IdlBin, LogFile, set_figure
+from spacepy.pybats import PbData, IdlBin, LogFile, set_target
 from spacepy.datamodel import dmarray
 
 class BatsLog(LogFile):
@@ -40,7 +40,7 @@ class BatsLog(LogFile):
         if 'dst' not in self:
             return None, None
 
-        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10,4), loc=loc)
 
         ax.plot(self['time'], self['dst'], 
                 label='BATS-R-US $D_{ST}$ (Biot-Savart)', **kwargs)
@@ -141,7 +141,7 @@ class Stream(object):
         Trace through the vector field using the quad tree.
         '''
         from numpy import array, sqrt, append
-        if self.method == 'euler':
+        if self.method == 'euler' or self.method == 'eul':
             from spacepy.pybats.trace2d import trace2d_eul as trc
         elif self.method == 'rk4':
             from spacepy.pybats.trace2d import trace2d_rk4 as trc
@@ -880,7 +880,7 @@ class Bats2d(IdlBin):
         xdim, ydim = self['grid'].attrs['dims'][0:2]
 
         # Set ax and fig based on given target.
-        fig, ax = set_figure(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10,10), loc=loc)
         ax.set_aspect('equal')
 
         # Set plot range based on quadtree.
@@ -904,7 +904,8 @@ class Bats2d(IdlBin):
 
         return fig, ax
 
-    def find_earth_lastclosed(self, tol=np.pi/360., method='rk4', debug=False):
+    def find_earth_lastclosed(self, tol=np.pi/360., method='rk4',
+                              max_iter=100, debug=False):
         '''
         For Y=0 cuts, attempt to locate the last-closed magnetic field line
         for both day- and night-sides.  This is done using a bisection 
@@ -914,18 +915,23 @@ class Bats2d(IdlBin):
         one-half degree.  The tracing *method* can be set via keyword and
         defaults to 'rk4' (4th order Runge Kutta, see 
         :class:`~spacepy.pybats.bats.Stream` for more information).
+        The maximum number of iterations the algorithm will take is set
+        by *max_iter*, which defaults to 100.
 
         This method returns 5 objects: 
         
         * The dipole tilt in radians
-        * A tuple of the northern/southern hemisphere latitude footpoints for
-          the dayside last-closed field line.
-        * A tuple of the northern/southern hemisphere latitude footpoints for
-          the nightside last-closed field line.
+        * A tuple of the northern/southern hemisphere polar angle of 
+          footpoints for the dayside last-closed field line.
+        * A tuple of the northern/southern hemisphere polar angle of
+          footpoints for the nightside last-closed field line.
         * The dayside last-closed field line as a 
           :class:`~spacepy.pybats.bats.Stream` object.
         * The nightside last-closed field line as a 
           :class:`~spacepy.pybats.bats.Stream` object.
+
+        In each case, the angle is defined as elevation from the positive
+        x-axis, in radians.
 
         '''
 
@@ -953,7 +959,9 @@ class Bats2d(IdlBin):
         
         theta = tilt
         dTheta=np.pi/4. # Initially, search 90 degrees.
+        nIter = 0
         while (dTheta>tol)or(s1.open):
+            nIter += 1
             closed = not(s1.open)
             # Adjust the angle towards the open-closed boundary.
             theta += closed*dTheta 
@@ -962,6 +970,9 @@ class Bats2d(IdlBin):
             s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz', 
                                  method=method)
             dTheta /= 2.
+            if nIter>max_iter:
+                if debug: print('Did not converge before reaching max_iter')
+                break
 
         # Use last line to get southern hemisphere theta:
         npts = s1.x.size/2
@@ -982,7 +993,9 @@ class Bats2d(IdlBin):
         
         dTheta=(pi+tilt-theta)/2.
         theta = pi+tilt
+        nIter = 0
         while (dTheta>tol)or(s1.open):
+            nIter += 1
             closed = not(s1.open)
             theta -= closed*dTheta 
             theta += s1.open*dTheta
@@ -990,7 +1003,10 @@ class Bats2d(IdlBin):
             s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz', 
                                  method=method)
             dTheta /= 2.
-
+            if nIter>max_iter:
+                if debug: print('Did not converge before reaching max_iter')
+                break
+            
         # Use last line to get southern hemisphere theta:
         npts = s1.x.size/2
         r = sqrt(s1.x**2+s1.y**2)
@@ -1005,8 +1021,8 @@ class Bats2d(IdlBin):
 
     def add_b_magsphere_new(self, target=None, loc=111,  style='mag', 
                             DoLast=True, DoOpen=True, DoTail=True, 
-                            method='rk4', tol=np.pi/360.,
-                            nOpen=15, nClosed=5, **kwargs):
+                            method='rk4', tol=np.pi/360., DoClosed=True,
+                            nOpen=5, nClosed=15, **kwargs):
         '''
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
@@ -1025,7 +1041,8 @@ class Bats2d(IdlBin):
         fills the regions between the open and closed regions.  Currently, it
         does not treat purely IMF field lines.
 
-        Kwargs:
+        ========== ===========================================================
+        Kwarg      Description
         ========== ===========================================================
         target     The figure or axes to place the resulting lines.
         style      The color coding system for field lines.  Defaults to 'mag'.
@@ -1056,7 +1073,7 @@ class Bats2d(IdlBin):
                            arange, sqrt, linspace, array)
         
         # Set ax and fig based on given target.
-        fig, ax = set_figure(target, figsize=(10,10), loc=111)
+        fig, ax = set_target(target, figsize=(10,10), loc=111)
         self.add_body(ax)
 
         # Lines and colors:
@@ -1071,9 +1088,11 @@ class Bats2d(IdlBin):
             colors+=2*['r']
 
         # Useful parameters for the following traces:
-        dTheta = 1.5*np.pi/180
         R = self.attrs['rbody']
-
+        dTheta  = 1.5*np.pi/180.
+        dThetaN = .05*np.abs(thetaN[0]-thetaD[0])
+        dThetaS = .05*np.abs(thetaN[1]-thetaD[1])
+        
         ## Do closed field lines ##
         if DoClosed:
             for tDay, tNit in zip(
@@ -1090,9 +1109,20 @@ class Bats2d(IdlBin):
                 colors.append(sN.style[0])
 
         ## Do open field lines ##
-        #if DoOpen:
-        #    for tNorth, tSouth in zip(
-        #            linspace
+        if DoOpen:
+            for tNorth, tSouth in zip(
+                    linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
+                    linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
+                x, y = R*cos(tNorth), R*sin(tNorth)
+                sD   = self.get_stream(x,y,'bx','bz',method=method)
+                x, y = R*cos(tSouth), R*sin(tSouth)
+                sN   = self.get_stream(x,y,'bx','bz',method=method)
+                # Append to lines, colors.
+                lines.append(array([sD.x, sD.y]).transpose())
+                lines.append(array([sN.x, sN.y]).transpose())
+                colors.append(sD.style[0])
+                colors.append(sN.style[0])  
+                    
             
         # Create line collection & plot.
         collect = LineCollection(lines, colors=colors, **kwargs)
@@ -1137,7 +1167,7 @@ class Bats2d(IdlBin):
                            arange, sqrt, linspace, array)
         
         # Set ax and fig based on given target.
-        fig, ax = set_figure(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10,10), loc=loc)
 
         lines = []
         colors= []
@@ -1364,7 +1394,7 @@ class Bats2d(IdlBin):
 
         =========== ==========================================================
         Kwarg       Description
-        ----------- ----------------------------------------------------------
+        =========== ==========================================================
         target      Set plot destination.  Defaults to new figure.
         loc         Set subplot location.  Defaults to 111.
         title       Sets title of axes.  Default is no title.
@@ -1384,7 +1414,7 @@ class Bats2d(IdlBin):
         from matplotlib.colors import LogNorm
 
         # Set ax and fig based on given target.
-        fig, ax = set_figure(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10,10), loc=loc)
 
         # Get max/min if none given.
         if zlim==None:
@@ -1466,7 +1496,7 @@ class Bats2d(IdlBin):
 
         =========== ==========================================================
         Kwarg       Description
-        ----------- ----------------------------------------------------------
+        =========== ==========================================================
         target      Set plot destination.  Defaults to new figure.
         loc         Set subplot location.  Defaults to 111.
         nlev        Number of contour levels.  Defaults to 30.
@@ -1489,7 +1519,7 @@ class Bats2d(IdlBin):
                                        LogFormatterMathtext, MultipleLocator)
 
         # Set ax and fig based on given target.
-        fig, ax = set_figure(target, figsize=(10,10), loc=loc)
+        fig, ax = set_target(target, figsize=(10,10), loc=loc)
 
         # Get max/min if none given.
         if zlim==None:
@@ -1713,7 +1743,7 @@ class Mag(PbData):
             label=value
 
         # Set figure and axes based on target:
-        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10,4), loc=loc)
 
         line=ax.plot(self['time'], self[value], style, label=label, **kwargs)
         apply_smart_timeticks(ax, self['time'], dolabel=True)
@@ -1747,7 +1777,7 @@ class Mag(PbData):
         from spacepy.pybats import apply_smart_timeticks
 
         # Set plot targets.
-        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10,4), loc=loc)
 
         # Use a dictionary to assign line styles, widths.
         styles={'gm':'--', 'ie':'-.', 'to':'-'}
@@ -1979,7 +2009,7 @@ class GeoIndexFile(LogFile):
         from spacepy.pybats import apply_smart_timeticks
 
         # Set up plot target.
-        fig, ax = set_figure(target, figsize=(10,4), loc=loc)
+        fig, ax = set_target(target, figsize=(10,4), loc=loc)
         
         # Create label:
         if not(label):
@@ -2251,7 +2281,7 @@ class VirtSat(LogFile):
         from spacepy.pybats.ram import add_body, grid_zeros
         import matplotlib.pyplot as plt
 
-        fig, ax = set_figure(target, figsize=(5,5), loc=loc)
+        fig, ax = set_target(target, figsize=(5,5), loc=loc)
 
         plane=plane.upper()
 

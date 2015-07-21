@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-#rim.py
 '''
 Classes, functions, and methods for reading, writing, and plotting output
 from the Ridley Ionosphere Model (RIM) and the similar legacy code, 
 Ridley Serial.
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 '''
 
 def fix_format(filename, finalize=True):
