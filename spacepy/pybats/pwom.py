@@ -7,7 +7,7 @@ PyBats submodule for handling input/output for the Polar Wind Outflow Model
 # Global imports:
 import numpy as np
 import datetime as dt
-from spacepy.pybats import PbData
+from spacepy.pybats import PbData, set_target
 from spacepy.datamodel import dmarray
 
 class Efile(PbData):
