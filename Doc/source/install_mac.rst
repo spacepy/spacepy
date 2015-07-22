@@ -83,11 +83,12 @@ Dependencies
     #. Install MacPorts (http://www.macports.org/install.php)
     #. sudo port -v selfupdate
     #. sudo xcode-select -switch /Applications/Xcode.app
+    #. sudo port install gcc49 +gfortran
+    #. sudo port select gcc mp-gcc49
     #. sudo port install python27
     #. sudo port select --set python python27
     #. sudo port install py27-ipython py27-scipy py27-numpy py27-matplotlib readline py27-h5py ipython-select
     #. sudo port select --set ipython ipython27
-    #. Download and install gfortran (http://gcc.gnu.org/wiki/GFortranBinaries)
     #. Download spacepy source (or clone from git) (http://spacepy.lanl.gov/download.shtml)
 
 INSTALL SPACEPY
