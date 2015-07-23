@@ -27,6 +27,9 @@ pycdf
  - Library.epoch_to_num: convert epoch to matplotlib date number (like date2num)
 time
  - Speed improvement update to TickTock.getleapsecond
+ - Overall speed improvements with for loop removal 
+ - ISO improvements via special cases for string input
+ - Added classmethod today()
 
 Changes in Version 0.1.5 (2014-12-23)
 =====================================
