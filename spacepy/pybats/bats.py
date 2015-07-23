@@ -36,6 +36,7 @@ class BatsLog(LogFile):
         '''
         
         import matplotlib.pyplot as plt
+        from spacepy.pybats import apply_smart_timeticks
         
         if 'dst' not in self:
             return None, None
@@ -896,10 +897,10 @@ class Bats2d(IdlBin):
         ax.set_xlabel('GSM %s' % xdim.upper())
         ax.set_ylabel('GSM %s' % ydim.upper())
         ax.set_title(title)
-        if xdim=='x':
-            ax.invert_xaxis()
-        if ydim=='y':
-            ax.invert_yaxis()
+        #if xdim=='x':
+        #    ax.invert_xaxis()
+        #if ydim=='y':
+        #    ax.invert_yaxis()
         self.add_body(ax)
 
         return fig, ax
