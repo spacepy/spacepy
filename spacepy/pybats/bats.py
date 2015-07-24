@@ -107,14 +107,53 @@ class Stream(object):
     field determined by the "[x/y]field" values and the Bats object
     "bats".
 
-    Line colors are set using the style keyword.  For more information,
-    see the set_style method.
+    Parameters
+    ----------
+    bats : Bats
+        Bats object to trace through. (Should this be Bats2D?)
+    xstart : float
+        X value of location to start the trace.
+    ystart : float
+        Y value of location to start the trace.
+    xfield : str
+        Name of variable in ``bats`` which contains X values of the field
+    yfield : str
+        Name of variable in ``bats`` which contains Y values of the field
 
-    The integration method is set by the method kwarg.  The default is
-    Runge-Kutta 4 (rk4), but others are available.  RK4 gives a good
-    blend of speed and accuracy; see the test functions in pybats.trace2d
-    for more info.  Currently, the only other option is a simple 
-    Euler's method approach ('eul').
+    Other Parameters
+    ----------------
+    style : str
+        Sets line style, including colors. See :meth:`set_style` for details.
+        (Default 'mag')
+    type : str
+        (Default 'streamline')
+    method : str
+        Integration method. The default is Runge-Kutta 4 ('rk4') which gives
+        a good blend of speed and accuracy. See the test functions in
+        :mod:`~spacepy.pybats.trace2d` for more info.  The other option is
+        a simple Euler's method approach ('eul'). (Default 'rk4')
+    extract : bool
+        (Default: False)
+    maxPoints : int
+        (Default : 20000)
+
+    Notes
+    -----
+    .. Not really "notes" but need to keep this section from being parsed as parameters
+
+    .. rubric:: Methods
+
+    .. autosummary::
+
+        ~Stream.set_style
+        ~Stream.treetrace
+        ~Stream.trace
+        ~Stream.plot
+
+    .. automethod:: set_style
+    .. automethod:: treetrace
+    .. automethod:: trace
+    .. automethod:: plot
     '''
     
     def __init__(self, bats, xstart, ystart, xfield, yfield,

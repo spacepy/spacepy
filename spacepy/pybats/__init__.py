@@ -76,6 +76,7 @@ related to an SWMF-included code.
    pwom
    ram
    rim
+   trace2d
    
 Top-Level Classes & Functions
 -----------------------------
@@ -928,8 +929,9 @@ class ImfInput(PbData):
     formatted input file.  See the documentation for the write method for 
     more details.
 
-    Like most :module:`pybats` objects, you may interact with :class:`ImfInput`
-    objects as if they were specialized dictionaries.  Access data like so:
+    Like most :mod:`~spacepy.pybats` objects, you may interact with
+    :class:`ImfInput` objects as if they were specialized dictionaries.
+    Access data like so:
     
     >>> obj.keys()
     ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'rho', 'temp']
