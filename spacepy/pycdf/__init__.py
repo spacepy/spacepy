@@ -1956,6 +1956,7 @@ class CDF(collections.MutableMapping):
           #. Smallest type first, then
           #. signed type first, then
           #. specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
+
         So for example, EPOCH_16 is preferred over EPOCH if ``data`` specifies
         below the millisecond level (rule 1), but otherwise EPOCH is preferred
         (rule 2).
@@ -1963,6 +1964,7 @@ class CDF(collections.MutableMapping):
         For floats, four-byte is preferred unless eight-byte is required:
           #. absolute values between 0 and 3e-39
           #. absolute values greater than 1.7e38
+
         This will switch to an eight-byte double in some cases where four bytes
         would be sufficient for IEEE 754 encoding, but where DEC formats would
         require eight.
@@ -2211,6 +2213,7 @@ class Var(collections.MutableSequence):
       2. Requests for multi-dimensional variables may skip the record-number
          dimension and simply specify the slice on the array itself. In that
          case, the slice of the array will be returned for all records.
+
     In the event of ambiguity (e.g., single-dimension slice on a one-dimensional
     variable), case 1 takes priority.
     Otherwise, mismatch between the number of dimensions specified in
@@ -2268,6 +2271,7 @@ class Var(collections.MutableSequence):
       3. ``Flux[..., 0:4]`` is a 100-element list (one per record),
          each element being a ten-element list (one per energy step),
          each containing fluxes for the first four pitch bins.
+
     This slicing notation is very flexible and allows reading
     specifically the desired data from the CDF.
 
@@ -2403,22 +2407,6 @@ class Var(collections.MutableSequence):
     .. automethod:: rv
     .. autoattribute:: shape
     .. automethod:: type
-..  @ivar cdf_file: the CDF file containing this variable
-    @type cdf_file: :py:class:`CDF`
-    @cvar attrs: Returns attributes for this zVariable (see L{zAttrList})
-    @type attrs: L{_AttrListGetter}
-    @ivar _name: name of this variable
-    @type _name: string
-    @ivar _type: CDF type of this variable
-    @type _type: long
-    @ivar _attrlistref: reference to the attribute list
-                        (use L{attrs} instead)
-    @type _attrlistref: weakref
-    @ivar _raw: skip all data conversions (raw access), default False
-    @ivar _raw: False
-    @raise CDFError: if CDF library reports an error
-    @raise CDFWarning: if CDF library reports a warning and interpreter
-                       is set to error on warnings.
     """
     def __init__(self, cdf_file, var_name, *args):
         """Create or locate a variable
@@ -2449,12 +2437,14 @@ class Var(collections.MutableSequence):
         """
         self.cdf_file = cdf_file
         self._name = None
-        self._type = None
-        self._raw = False
+        self._type = None #CDF type (long)
+        self._raw = False #Raw access (skip all conversions)
         if len(args) == 0:
             self._get(var_name)
         else:
             self._create(var_name, *args)
+        #Weak reference to attribute list (use attrs instead)
+        #This avoids a reference loop
         self._attrlistref = weakref.ref(zAttrList(self))
 
     def __getitem__(self, key):
@@ -3622,12 +3612,6 @@ class Attr(collections.MutableSequence):
         >>> first_three = attribute[5, 0:3] #will fail
         >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
-    .. comment::
-        @ivar _cdf_file: CDF file containing this attribute
-        @type _cdf_file: :py:class:`pycdf.CDF`
-        @ivar _name: Name of the attribute
-        @type _name: bytes
-
     .. autosummary::
         ~Attr.has_entry
         ~Attr.max_idx
@@ -4616,11 +4600,11 @@ class gAttrList(AttrList):
     """
     Object representing *all* the gAttributes in a CDF.
 
-    Normally accessed as an attribute of an open :py:class:`CDF`:
+    Normally accessed as an attribute of an open :class:`CDF`:
         >>> global_attribs = cdffile.attrs
 
     Appears as a dictionary: keys are attribute names; each value is an
-    attribute represented by a :py:class:`gAttr` object. To access the global
+    attribute represented by a :class:`gAttr` object. To access the global
     attribute TEXT:
         >>> text_attr = cdffile.attrs['TEXT']
 
