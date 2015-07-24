@@ -63,18 +63,21 @@ Each variable will have one attribute (for this example).
 
 This has now populated a structure that can map directly to a NASA CDF, HDF5 or JSON-headed ASCII file.
 To visualize our datamodel, we can use tree method (which can be applied to any dictionary-like object
-using the :py:func:`toolbox.dictree` function).
+using :func:`~spacepy.toolbox.dictree`).
 
 >>> mydata.tree(attrs=True)
-+
-:|____MissionName
-:|____PI
-|____Counts
-     :|____Units
-|____Epoch
-     :|____units
-|____OrbitNumber
-     :|____StartsFrom
+
+::
+
+    +
+    :|____MissionName
+    :|____PI
+    |____Counts
+         :|____Units
+    |____Epoch
+         :|____units
+    |____OrbitNumber
+         :|____StartsFrom
 
 
 Guide for NASA CDF users
