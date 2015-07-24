@@ -112,13 +112,13 @@ You can find out how many leap seconds were used by issuing the command::
 >>> t.getleapsecs()
 
 
-Tickdelta Class
+Timedelta Class
 ---------------
 
-You can add/subtract time from a Ticktock class instance by creating a
-Tickdelta instance first.::
+You can add/subtract time from a Ticktock class instance by using an
+instance of :class:`datetime.timedelta`::
 
->>> dt = spt.Tickdelta(days=2.3)
+>>> dt = datetime.timedelta(days=2.3)
 
 Then you can add by e.g.::
 

@@ -16,7 +16,6 @@ time - Time conversion, manipulation and implementation of Ticktock class
     :template: clean_class.rst
     :toctree: autosummary
 
-    Tickdelta
     Ticktock
 
 .. rubric:: Functions
