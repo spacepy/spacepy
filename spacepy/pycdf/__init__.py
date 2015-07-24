@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-.. module:: spacepy.pycdf
-
 This package provides a Python interface to the Common Data Format (CDF)
 library used for many NASA missions, available at http://cdf.gsfc.nasa.gov/.
 It is targeted at Python 2.6+ and should work without change on either
@@ -37,9 +35,6 @@ the module, e.g. if the library is in ``CDF/lib`` in the user's home directory:
 If this works, make the environment setting permanent. Note that on OSX,
 using plists to set the environment may not carry over to Python terminal
 sessions; use ``.cshrc`` or ``.bashrc`` instead.
-
-.. currentmodule:: spacepy.pycdf
-
 
 Authors: Jon Niehof
 
@@ -1287,6 +1282,7 @@ class CDF(collections.MutableMapping):
          error occurs:
              >>> with pycdf.CDF('cdf_filename.cdf') as cdffile:
              ...     data = cdffile.copy()
+
     This last example can be very inefficient as it reads the entire CDF.
     Normally it's better to treat the CDF as a dictionary and access only
     the data needed, which will be pulled transparently from disc. See

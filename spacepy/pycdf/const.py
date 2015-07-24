@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-.. module:: spacepy.pycdf.const
-
 Various constants defined in cdf.h and used in pycdf.
 Most constants referred to in the CDF manuals are provided by this module.
 E.g., to create a CDF and add a variable of type EPOCH:
