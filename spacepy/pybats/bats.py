@@ -8,7 +8,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 
 .. autosummary::
     :template: clean_class.rst
-    :toctree: autosummary
+    :toctree:
 
     BatsLog
     Stream

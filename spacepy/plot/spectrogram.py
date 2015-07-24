@@ -28,7 +28,7 @@ Copyright 2011 Los Alamos National Security, LLC.
 
 .. autosummary::
     :template: clean_class.rst
-    :toctree: autosummary
+    :toctree:
 
     spectrogram
 """

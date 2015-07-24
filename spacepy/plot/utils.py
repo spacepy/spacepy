@@ -16,7 +16,7 @@ Classes
 
 .. autosummary::
     :template: clean_class.rst
-    :toctree: autosummary
+    :toctree:
 
     EventClicker
 
@@ -24,7 +24,7 @@ Functions
 ---------
 
 .. autosummary::
-    :toctree: autosummary
+    :toctree:
 
     add_logo
     annotate_xaxis
