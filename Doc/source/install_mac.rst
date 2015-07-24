@@ -33,6 +33,7 @@ CDF
 If you wish to use CDF files, download and install the `NASA CDF library
 <http://cdf.gsfc.nasa.gov/>`_.   The default installation directory is recommended to
 help SpacePy find the library.  There is an OSX install package.
+
     #. Get the package from ftp://cdaweb.gsfc.nasa.gov/pub/software/cdf/dist/cdf34_1/macosX/
     #. Unzip and install
 
