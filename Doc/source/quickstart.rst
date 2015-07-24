@@ -31,9 +31,6 @@ useful. The following functions are a selection of those implemented:
     * :py:func:`toolbox.binHisto`: calculate number of bins for a histogram
     * :py:func:`toolbox.medAbsDev`: find the median absolute deviation of a data series
     * :py:func:`toolbox.normalize`: normalize a data series
-    * :py:func:`toolbox.listUniq`: returns the uniq items in a list (in order)
-    * :py:func:`toolbox.leapyear`: ultra fast leap year query function
-    * :py:func:`toolbox.applySmartTimeTicks`: smartens up the time ticks on a plot
     * :py:func:`toolbox.feq`: floating point equals
 
 Import this module as::
