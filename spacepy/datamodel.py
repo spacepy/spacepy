@@ -885,11 +885,13 @@ def fromHDF5(fname, **kwargs):
 
     Notes
     -----
-    Known issues -- zero-sized datasets will break in h5py
-        This is kluged by returning a dmarray containing a None
+    Zero-sized datasets will break in h5py. This is kluged by returning a
+    dmarray containing a None.
+
     This function is expected to work with any HDF5-compliant files, including
-    netCDF4 (not netCDF3) and MatLab save files from v7.3 or later, but some datatypes
-    are not supported, e.g., non-string vlen datatypes, and will raise a warning.
+    netCDF4 (not netCDF3) and MatLab save files from v7.3 or later, but some
+    datatypes are not supported, e.g., non-string vlen datatypes, and will
+    raise a warning.
     '''
     def hdfcarryattrs(SDobject, hfile, path):
         if hasattr(hfile[path],'attrs'):

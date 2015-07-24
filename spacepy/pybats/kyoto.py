@@ -5,7 +5,7 @@ kyoto is a tool set for obtaining and handling geomagnetic indices stored at the
 Indices can be loaded from file or fetched from the web.
 
 Instantiation of objects from this module should be done through the constructor
-functions :function:`fetch` and :function:`load`.  Use help on these objects 
+functions :func:`fetch` and :func:`load`.  Use help on these objects
 for more information.
 '''
 

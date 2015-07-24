@@ -12,6 +12,7 @@ will list all available functions, classes and variables.
 
 Detailed HTML documentation is available locally in the spacepy/doc directory
 and can be launched by typing:
+
     >>> spacepy.help()
 
 Most functionality is in spacepy's submodules. Each module has specific

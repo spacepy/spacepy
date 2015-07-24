@@ -395,6 +395,7 @@ class RBmodel(object):
         """
         add observations from PSD database using the ticks list
         the arguments are the following:
+
             dt = observation time delta in seconds
             Lt = observation space delta
         """
