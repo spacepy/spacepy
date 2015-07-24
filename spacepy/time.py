@@ -86,7 +86,6 @@ Contact: smorley@lanl.gov,
 
 
 Copyright 2010 Los Alamos National Security, LLC.
-
 """
 import bisect
 import collections
@@ -155,8 +154,6 @@ class Ticktock(collections.MutableSequence):
     >>> y.DOY # Day of year
     dmarray([  1.,  79.])
 
-
-    .. currentmodule:: spacepy.time
     .. autosummary::
         ~Ticktock.append
         ~Ticktock.argsort

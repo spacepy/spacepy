@@ -82,7 +82,7 @@ using :func:`~spacepy.toolbox.dictree`).
 
 Guide for NASA CDF users
 ------------------------
-By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
+By definition, a NASA CDF only has a single 'layer'. That is, a CDF contains a series of records
 (stored variables of various types) and a set of attributes that are either global or local in
 scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
 are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be

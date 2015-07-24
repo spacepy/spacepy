@@ -4,11 +4,7 @@
 time - Time conversion, manipulation and implementation of Ticktock class
 #########################################################################
 
-.. currentmodule:: spacepy.time
-
 .. automodule:: spacepy.time
-   :members:
-   :undoc-members:
 
 .. rubric:: Classes
 
