@@ -56,7 +56,6 @@ SpacePy Documents
     :maxdepth: 1
 
     install
-    dependencies
     quickstart
     doc_standard
     tips
