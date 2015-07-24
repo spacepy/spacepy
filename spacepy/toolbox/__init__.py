@@ -93,7 +93,9 @@ def hypot(*args):
      - if iterables are passed in they are made into numpy arrays and comptaton is done local
      - if many scalar agruments are passed in calculation is done in a loop
     For max speed:
-     - <20 elements expand them into scalars  tb.hypot(*[vals]) or tb.hypot(vals[0], vals[1]...)
+     - <20 elements expand them into scalars
+         >>> tb.hypot(*vals)
+         >>> tb.hypot(vals[0], vals[1]...) #alternate
      - >20 elements premake them into a numpy array of doubles
 
     Examples
@@ -1301,7 +1303,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
 
     >>> import spacepy.toolbox as tb
     >>> tb.geomspace(0.01, ratio=10, num=5)
-     [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
+    [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
 
     See Also
     ========
