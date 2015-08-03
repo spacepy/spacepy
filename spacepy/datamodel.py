@@ -811,7 +811,7 @@ def toCDF(fname, SDobject, **kwargs):
             for akey in SDobject.attrs:
                 outdata.attrs[akey] = dmcopy(SDobject.attrs[akey])
         varLengths = [len(SDobject[var]) for var in SDobject]
-        modeLength = itertools.groupby((reversed(sorted(varLengths)))).next()[0]
+        modeLength = next(itertools.groupby((reversed(sorted(varLengths)))))[0]
         for key in SDobject:
             if isinstance(SDobject[key], dict):
                 raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
