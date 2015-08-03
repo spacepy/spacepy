@@ -90,7 +90,10 @@ Copyright 2010 Los Alamos National Security, LLC.
 import bisect
 import collections
 import datetime
-import itertools
+try:
+    from itertools import izip as zip
+except ImportError:
+    pass  # just use system zip. In python3 itertools.izip is just python zip
 import os.path
 import re
 import warnings
@@ -880,9 +883,10 @@ class Ticktock(collections.MutableSequence):
         getDOY
         geteDOY
         """
+        
         eDOY = [utc.toordinal() - datetime.date(utc.year, 1, 1).toordinal() for utc in self.UTC]
         eDOY = [edoy + utc.hour/24. + utc.minute/1440. + utc.second/86400. + utc.microsecond/86400000000.
-                for edoy, utc in itertools.izip(eDOY, self.UTC) ]
+                for edoy, utc in zip(eDOY, self.UTC) ]
         
         self.eDOY = spacepy.datamodel.dmarray(eDOY)
         return self.eDOY
@@ -1260,7 +1264,7 @@ class Ticktock(collections.MutableSequence):
         leapsec = self.getleapsecs()
 
         GPStup = [utc - GPS0 + datetime.timedelta(seconds=int(ls)) - datetime.timedelta(seconds=19)
-                  for utc, ls in itertools.izip(self.UTC, leapsec)]
+                  for utc, ls in zip(self.UTC, leapsec)]
         GPS = [gps.days*86400 + gps.seconds + gps.microseconds/1.e6 for gps in GPStup]
         self.GPS = spacepy.datamodel.dmarray(GPS)#.astype(int)
         return self.GPS
@@ -1294,7 +1298,7 @@ class Ticktock(collections.MutableSequence):
         TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
 
         leapsec = self.getleapsecs()
-        TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in itertools.izip(self.UTC, leapsec)]
+        TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in zip(self.UTC, leapsec)]
         TAI = [tai.days*86400 + tai.seconds + tai.microseconds/1.e6 for tai in TAItup]
 
         self.TAI = spacepy.datamodel.dmarray(TAI)

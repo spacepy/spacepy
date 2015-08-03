@@ -8,6 +8,10 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 import datetime
 import itertools
+try:
+    from itertools import izip as zip
+except ImportError:
+    pass  # just use system zip. In python3 itertools.izip is just python zip
 import unittest
 import pickle
 import time
@@ -212,7 +216,7 @@ class TimeFunctionTests(unittest.TestCase):
                datetime.datetime(2015, 2, 4),
                datetime.datetime(2015, 2, 2),
                None]
-        for tst, ans in itertools.izip(filenames, ans):
+        for tst, ans in zip(filenames, ans):
             self.assertEqual(ans, t.extract_YYYYMMDD(tst))
 
     def test_valid_YYYYMMDD(self):
@@ -223,7 +227,7 @@ class TimeFunctionTests(unittest.TestCase):
                      '20150202_firebird-2-fu3_T89D_MagEphem.h5',
                      'I_am_a_file_with_no_date.h5']
         ans = [True, True, True, True, False]
-        for tst, ans in itertools.izip(filenames, ans):
+        for tst, ans in zip(filenames, ans):
             self.assertEqual(ans, t.valid_YYYYMMDD(tst))
 
 
