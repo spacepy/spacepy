@@ -731,8 +731,8 @@ class Bats2d(IdlBin):
             if (command[0:5] == 'calc_') and (command != 'calc_all'):
                 try:
                     eval('self.'+command+'()')
-                except AttributeError, Error:
-                    print('WARNING: Did not perform %s: %s' % (command, Error))
+                except AttributeError:
+                    print('WARNING: Did not perform {0}: {1}' % (command, sys.exc_info()[0]))
 
     #####################
     # Other calculations
@@ -760,7 +760,7 @@ class Bats2d(IdlBin):
 
         if self.gridtype != 'Regular':
             if not cellsize:
-                raise ValueError,('Grid must be regular or ' +
+                raise ValueError('Grid must be regular or ' +
                                   'cellsize must be given.')
             self.regrid(cellsize, dim1range=dim1range, dim2range=dim2range)
 
