@@ -18,33 +18,76 @@ import os
 import re
 
 import numpy as np
+import spacepy.datamodel as dm
+import spacepy.time as spt
 
-def readEphem(fname):
+def readFile(fname, comments='#'):
     """
-    read a model generated ephemeris file into a datamodel.SpaceData object
+    read a model generated file into a datamodel.SpaceData object
 
     Parameters
     ==========
     fname : str
-        filename of the Ephemeris file
+        filename of the file
 
     Returns
     =======
     out : spacepy.datamodel.SpaceData
-        Data contained in the Ephemeris file
+        Data contained in the  file
 
     Examples
     ========
     """
-    # Ae9Ap9 Command-line Utility orbit data file: Run/ephem_sat.dat
-    # generated from specified elements, using propagator: Kepler-J2
-    #
-    # Time format:              Modified Julian Date
-    # Coordinate system:        GEI (Geocentric Equatorial Inertial) Cartesian in Earth radii
-    # Data Delimiter:           comma
-    #
-    # datetime(mjd),posx(Re),posy(Re),posz(Re)
+    # get the header information first
+    header = parseHeader(fname)
+    # and read in all the data
+    data = np.loadtxt(fname, delimiter=header['delimiter'], comments=comments)
+    # now parse the data    
+    ans = dm.SpaceData()
+    #parse the datetime if it is there (it is always first)
+    if 'datetime' in header['columns'][0]:
+        time = spt.Ticktock(data[:,0], header['time_format'])
+        ans[header['time_format']] = dm.dmarray(data[:,0])
+        ans['Epoch'] = dm.dmarray(time.UTC)
+        data = data[:,1:]
+        del header['columns'][0]
+    # parse the position, it is always next
+    if 'posx' in header['columns'][0]:
+        varname = header['coord_system'][0]
+        pos = dm.dmarray(data[:,0:3])
+        ans[varname] = pos
+        ans[varname].attrs['UNITS'] =  header['coord_system'][1]
+        ans[varname].attrs['FIELDNAM'] = varname
+        ans[varname].attrs['LABLAXIS'] = 'Position'
+        ans[varname].attrs['DEPEND_0'] = 'Epoch'
+        ans[varname].attrs['LABL_PTR_1'] = 'posComp'
+        ans['posComp'] = dm.dmarray(['X', 'Y', 'Z'])
+        del header['columns'][0:3]
+        data = data[:,3:]
+    # now parse fluence, flux, or doserate
+    # do all the rest of the column headers match?
+    col_arr = np.asarray(header['columns'])
+    if (col_arr == col_arr[0]).all():
+        varname = col_arr[0][0].title()
+        ans[varname] = dm.dmarray(data)
+        ans[varname].attrs['UNITS'] = str(col_arr[0][1])
+        ans[varname].attrs['FIELDNAM'] = varname
+        ans[varname].attrs['LABLAXIS'] = varname        
+        header['varname'] = varname
+        ans[varname].attrs['Description'] = '{flux_direction} {varname} based on {flux_type} from the {model_type} model'.format(**header)
+        ans[varname].attrs['DEPEND_0'] = 'Epoch'
+        if ans[varname].shape[1] == header['energy'][0].shape[0]:
+            ans[varname].attrs['DEPEND_1'] = 'Energy'
 
+    # create the energy variable
+    if 'energy' in header:
+        ans['Energy'] = dm.dmarray(header['energy'][0])
+        ans['Energy'].attrs['UNITS'] = header['energy'][1]
+        ans['Energy'].attrs['FIELDNAM'] = 'Energy'
+        ans['Energy'].attrs['LABLAXIS'] = 'Energy'
+        
+    return ans
+    
 def _parseInfo(header):
     """
     given a header parse and return the common information in all headers
