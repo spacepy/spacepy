@@ -14,9 +14,11 @@ Copyright 2015 Los Alamos National Security, LLC.
 
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
+import datetime
 import os
 import re
 
+from dateutil import relativedelta
 import numpy as np
 import spacepy.datamodel as dm
 import spacepy.time as spt
@@ -46,11 +48,24 @@ def readFile(fname, comments='#'):
     ans = dm.SpaceData()
     #parse the datetime if it is there (it is always first)
     if 'datetime' in header['columns'][0]:
-        time = spt.Ticktock(data[:,0], header['time_format'])
-        ans[header['time_format']] = dm.dmarray(data[:,0])
+        if header['time_format'] == 'eDOY': # have to massage the data first
+            year = data[:,0].astype(int)
+            frac = data[:,1]
+            time = spt.Ticktock([datetime.datetime(y,1,1) + relativedelta.relativedelta(days=v)
+                               for y, v in zip(year, frac)], 'UTC')
+            ans[header['time_format']] = dm.dmarray(data[:,0:2])
+            ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
+            del header['columns'][0:2]
+            data = data[:,2:]
+        else:
+            time = spt.Ticktock(data[:,0], header['time_format'])
+            ans[header['time_format']] = dm.dmarray(data[:,0])
+            ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
+            del header['columns'][0]
+            data = data[:,1:]
+
         ans['Epoch'] = dm.dmarray(time.UTC)
-        data = data[:,1:]
-        del header['columns'][0]
+        ans['Epoch'].attrs['VAR_TYPE'] = 'support_data'
     # parse the position, it is always next
     if 'posx' in header['columns'][0]:
         varname = header['coord_system'][0]
@@ -61,7 +76,9 @@ def readFile(fname, comments='#'):
         ans[varname].attrs['LABLAXIS'] = 'Position'
         ans[varname].attrs['DEPEND_0'] = 'Epoch'
         ans[varname].attrs['LABL_PTR_1'] = 'posComp'
+        ans[varname].attrs['VAR_TYPE'] = 'data'
         ans['posComp'] = dm.dmarray(['X', 'Y', 'Z'])
+        ans['posComp'].attrs['VAR_TYPE'] = 'metadata'
         del header['columns'][0:3]
         data = data[:,3:]
     # now parse fluence, flux, or doserate
@@ -73,11 +90,14 @@ def readFile(fname, comments='#'):
         ans[varname].attrs['UNITS'] = str(col_arr[0][1])
         ans[varname].attrs['FIELDNAM'] = varname
         ans[varname].attrs['LABLAXIS'] = varname        
+        ans[varname].attrs['VAR_TYPE'] = 'data'        
         header['varname'] = varname
         ans[varname].attrs['Description'] = '{flux_direction} {varname} based on {flux_type} from the {model_type} model'.format(**header)
         ans[varname].attrs['DEPEND_0'] = 'Epoch'
         if ans[varname].shape[1] == header['energy'][0].shape[0]:
             ans[varname].attrs['DEPEND_1'] = 'Energy'
+        if 'percentile' in header:
+            ans[varname].attrs['TITLE'] = '{0} percentile'.format(header['percentile'])
 
     # create the energy variable
     if 'energy' in header:
@@ -85,7 +105,8 @@ def readFile(fname, comments='#'):
         ans['Energy'].attrs['UNITS'] = header['energy'][1]
         ans['Energy'].attrs['FIELDNAM'] = 'Energy'
         ans['Energy'].attrs['LABLAXIS'] = 'Energy'
-        
+        ans['Energy'].attrs['VAR_TYPE'] = 'data'
+
     return ans
     
 def _parseInfo(header):
@@ -103,13 +124,16 @@ def _parseInfo(header):
         if "Time format:" in val:
             if "Modified Julian Date" in val:
                 ans['time_format'] = 'MJD'
+            elif "Year, day_of_year.frac" in val:
+                ans['time_format'] = 'eDOY'                
             else:
-                raise(NotImplementedError("Sorry can't read that time format yet"))
+                raise(NotImplementedError("Sorry can't read that time format yet: {0}".format(val)))
         elif "Coordinate system:" in val:
-            if "GEI (Geocentric Equatorial Inertial) Cartesian in Earth radii" in val:
-                ans['coord_system'] = ('GEI', 'Re')
+            coord_sys = val.split(':')[1].strip().split()[0]
+            if "in Earth radii" in val:
+                ans['coord_system'] = (coord_sys, 'Re')
             else:
-                raise(NotImplementedError("Sorry can't read that coordinate system yet"))
+                ans['coord_system'] = (coord_sys, '')
         elif "Data Delimiter:" in val:
             if "comma" in val:
                 ans['delimiter'] = ','
@@ -209,3 +233,9 @@ def _unique_elements_order(seq):
     seen = set()
     seen_add = seen.add
     return [ x for x in seq if not (x in seen or seen_add(x))]
+
+
+    
+
+
+
