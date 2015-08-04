@@ -55,8 +55,21 @@ def readFile(fname, comments='#'):
                                for y, v in zip(year, frac)], 'UTC')
             ans[header['time_format']] = dm.dmarray(data[:,0:2])
             ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
+            ans[header['time_format']].attrs['LABL_PTR_1'] = 'timeComp'
+            ans['timeComp'] = dm.dmarray(['Year', 'eDOY'])
+            ans['timeComp'].attrs['VAR_TYPE'] = 'metadata'
             del header['columns'][0:2]
             data = data[:,2:]
+        elif header['time_format'] == 'UTC': # have to massage the data first
+            tm = data[:,0:6].astype(int)
+            time = spt.Ticktock([datetime.datetime(*v) for v in tm], 'UTC' )
+            ans[header['time_format']] = dm.dmarray(data[:,0:6])
+            ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
+            ans[header['time_format']].attrs['LABL_PTR_1'] = 'timeComp'
+            ans['timeComp'] = dm.dmarray(['Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'])
+            ans['timeComp'].attrs['VAR_TYPE'] = 'metadata'
+            del header['columns'][0:6]
+            data = data[:,6:]
         else:
             time = spt.Ticktock(data[:,0], header['time_format'])
             ans[header['time_format']] = dm.dmarray(data[:,0])
@@ -81,10 +94,17 @@ def readFile(fname, comments='#'):
         ans['posComp'].attrs['VAR_TYPE'] = 'metadata'
         del header['columns'][0:3]
         data = data[:,3:]
+    
+    # if there are PA they are now
+    if header['columns'] and ('pitch' in header['columns'][0]):
+        raise(NotImplementedError("Sorry have not implemented pitch angle resolved files yet"))
+    ## This is an issue and the files have repeadedlines at the same time for each pitch
+    ##  angle. They would all need to be read in them combines into a multi-d array
+    
     # now parse fluence, flux, or doserate
     # do all the rest of the column headers match?
     col_arr = np.asarray(header['columns'])
-    if (col_arr == col_arr[0]).all():
+    if header['columns'] and (col_arr == col_arr[0]).all():
         varname = col_arr[0][0].title()
         ans[varname] = dm.dmarray(data)
         ans[varname].attrs['UNITS'] = str(col_arr[0][1])
@@ -107,6 +127,11 @@ def readFile(fname, comments='#'):
         ans['Energy'].attrs['LABLAXIS'] = 'Energy'
         ans['Energy'].attrs['VAR_TYPE'] = 'data'
 
+    skip_header = ['columns', 'coord_system', 'delimiter', 'energy', 'flux_direction']
+    for k in header:
+        if k not in skip_header:
+            ans.attrs[k] = header[k]
+    
     return ans
     
 def _parseInfo(header):
@@ -125,7 +150,9 @@ def _parseInfo(header):
             if "Modified Julian Date" in val:
                 ans['time_format'] = 'MJD'
             elif "Year, day_of_year.frac" in val:
-                ans['time_format'] = 'eDOY'                
+                ans['time_format'] = 'eDOY'
+            elif "Year, Month, Day, Hour, Minute, Seconds" in val:
+                ans['time_format'] = 'UTC'
             else:
                 raise(NotImplementedError("Sorry can't read that time format yet: {0}".format(val)))
         elif "Coordinate system:" in val:
@@ -152,8 +179,12 @@ def _parseInfo(header):
             ftype = match.group(1).strip()
             ans['flux_type'] = ftype
         elif "Flux direction:" in val:
-            match = re.match(r'^Flux direction:(.*)$', val)
-            fdir = match.group(1).strip()
+            if '=' not in val:
+                match = re.match(r'^Flux direction:(.*)$', val)
+                fdir = match.group(1).strip()
+            else:
+                pa = val.split('=')[1].strip()
+                fdir = np.asarray(pa.split())                
             ans['flux_direction'] = fdir
         elif "Energy levels" in val:
             match = re.match(r'^Energy levels.*\((.*)\):(.*)$', val)
@@ -161,8 +192,6 @@ def _parseInfo(header):
         elif "generated from specified elements" in val:
             match = re.search(r'^generated from specified elements.*:\ (.*)$', val)
             ans['propigator'] = match.group(1).strip()
-
-               
     return ans
                     
 
@@ -233,9 +262,6 @@ def _unique_elements_order(seq):
     seen = set()
     seen_add = seen.add
     return [ x for x in seq if not (x in seen or seen_add(x))]
-
-
-    
 
 
 
