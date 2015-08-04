@@ -15,6 +15,7 @@ Copyright 2015 Los Alamos National Security, LLC.
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
 import datetime
+import functools
 import os
 import re
 
@@ -32,14 +33,26 @@ def readFile(fname, comments='#'):
     fname : str
         filename of the file
 
+    Other Parameters
+    ================
+    comments : str (optional)
+        String that is the comments in the data file
+
     Returns
     =======
-    out : spacepy.datamodel.SpaceData
+    out : :mod:`~spacepy.datamodel.SpaceData`
         Data contained in the  file
 
     Examples
     ========
-    """
+    from spacepy import ae9ap9
+    ae9ap9.readFile('ephem_sat.dat').tree(verbose=1)
+    # +
+    # |____Epoch (spacepy.datamodel.dmarray (121,))
+    # |____GSE (spacepy.datamodel.dmarray (121, 3))
+    # |____MJD (spacepy.datamodel.dmarray (121,))
+    # |____posComp (spacepy.datamodel.dmarray (3,))
+    """    
     # get the header information first
     header = parseHeader(fname)
     # and read in all the data
@@ -111,6 +124,7 @@ def readFile(fname, comments='#'):
         ans[varname].attrs['FIELDNAM'] = varname
         ans[varname].attrs['LABLAXIS'] = varname        
         ans[varname].attrs['VAR_TYPE'] = 'data'        
+        ans[varname].attrs['SCALETYP'] = 'log'        
         header['varname'] = varname
         ans[varname].attrs['Description'] = '{flux_direction} {varname} based on {flux_type} from the {model_type} model'.format(**header)
         ans[varname].attrs['DEPEND_0'] = 'Epoch'
@@ -126,12 +140,13 @@ def readFile(fname, comments='#'):
         ans['Energy'].attrs['FIELDNAM'] = 'Energy'
         ans['Energy'].attrs['LABLAXIS'] = 'Energy'
         ans['Energy'].attrs['VAR_TYPE'] = 'data'
+        ans['Energy'].attrs['SCALETYP'] = 'log'
+        ans['Energy'].attrs['VAR_TYPE'] = 'support_data'
 
     skip_header = ['columns', 'coord_system', 'delimiter', 'energy', 'flux_direction']
     for k in header:
         if k not in skip_header:
-            ans.attrs[k] = header[k]
-    
+            ans.attrs[k] = header[k]   
     return ans
     
 def _parseInfo(header):
@@ -191,7 +206,7 @@ def _parseInfo(header):
             ans['energy'] = (np.asarray(match.group(2).strip().split()).astype(float), match.group(1).strip())
         elif "generated from specified elements" in val:
             match = re.search(r'^generated from specified elements.*:\ (.*)$', val)
-            ans['propigator'] = match.group(1).strip()
+            ans['propagator'] = match.group(1).strip()
     return ans
                     
 
@@ -214,6 +229,15 @@ def parseHeader(fname):
     given an AE9AP9 output test file parse the header and return the information in a
     dictionary
 
+    Parameters
+    ==========
+    fname : str
+        filename of the file
+
+    Returns
+    =======
+    out : dict
+        Dictionary of the header information in the file
     """
     ans = {}
     ans['filename'] = os.path.abspath(fname)
@@ -263,5 +287,153 @@ def _unique_elements_order(seq):
     seen_add = seen.add
     return [ x for x in seq if not (x in seen or seen_add(x))]
 
+def combinePercentiles(files, timeframe='all'):
+    """
+    combine files at different percentiles into one file with the spectra at different
+    percentiles for easy plotting and analysis
+
+    NOTE: Requires pandas for any timeframe other than 'all'
+
+    Parameters
+    ==========
+    files : str
+        Filenames of the percentile files
+
+    Other Parameters
+    ================
+    timeframe : str
+        Timeframe to average itn eh input spectra over (either 'all' or a pandas understoop resample() time
+    
+    Returns
+    =======
+    out : :mod:`~spacepy.datamodel.SpaceData`
+        Combined output spectra of the file
+    """
+    if not files:
+        raise(ValueError("Must input files"))
+    data = {}
+    for fname in files:
+        tmp = readFile(fname)
+        if 'percentile' not in tmp.attrs:
+            raise(ValueError("File {0} does not have a percentile key".format(fname)))
+        data[tmp.attrs['percentile']] = tmp
+
+    varnames = ['Flux', 'Fluence', 'Dose', None]
+    for varname in varnames:
+        if varname in data[list(data.keys())[0]]:
+            break # this leaves it where it was found
+    if varname is None:
+        raise(ValueError("Did not understand file type could not find one of {0}".format(varnames)))
+
+    # now that they are all read in, we collapse them down to different time bases
+    if timeframe == 'all':
+        # this is just a full collapse
+        # find the var to collapse
+        d_comp = np.asarray([])
+        ps = sorted(data.keys())[::-1]
+        for p in ps:
+            if data[p][varname].attrs['DEPEND_0'] == 'Epoch':
+                d_comp = np.concatenate((d_comp, data[p][varname].mean(axis=0))) # full time collapse
+            else:
+                d_comp = np.concatenate((d_comp, data[p][varname])) # full time collapse
+        d_comp = d_comp.reshape(len(ps), -1).T
+    else:
+        try:
+            import pandas as pd
+        except ImportError:
+            raise(ImportError("panads is required for timeframe other than 'all'"))
+        raise(NotImplementedError("Timeframes other than 'all' not yet implemented"))
+        # make a dataframe
+        # resample to timeframe
+        # join everything
+        # meet up at same place for output
+    # now that we have all the data prep it to a spacedata
+    ans = dm.SpaceData()
+    ans[varname] = dm.dmarray(d_comp)
+    if timeframe == 'all':
+        ans[varname].attrs['DEPEND_0'] = 'Energy'
+        ans[varname].attrs['DEPEND_1'] = 'Percentile'
+        ans[varname].attrs['DISPLAY_TYPE'] = 'time_series'
+    for k in data[p][varname].attrs:
+        if 'DEPEND' in k:
+            continue
+        else:
+            ans[varname].attrs[k] = data[p][varname].attrs[k]
+    ans['Energy'] = data[p]['Energy']
+    ans['Percentile'] = dm.dmarray(ps)
+    ans['Percentile'].attrs['FIELDNAM'] = 'Percentile'
+    ans['Percentile'].attrs['LABLAXIS'] = 'Percentile'
+    ans['Percentile'].attrs['VALIDMIN'] = 0.0
+    ans['Percentile'].attrs['VALIDMAX'] = 100.0
+    ans['Percentile'].attrs['SCALETYP'] = 'support_data'
+
+    return ans
+
+def _getData(fnames):
+    """
+    helper routine for dm.toCDF and dm.toHDF5 and dm.toJSONheadedASCII since the data
+    prep is all the same
+    """
+    if hasattr(fnames, 'strip'): # it is a string
+        return readFile(fnames)
+    else:
+        return combinePercentiles(fnames)
+
+def _toFile(fnames, outname, ftype):
+    """
+    generic toXXX() routine to change data files to other formats
+    """
+    dat = _getData(fnames)
+    if ftype == 'CDF':
+        dm.toCDF(outname, dat, autoNRV=True)
+    elif ftype == 'HDF5':
+        dm.toHDF5(outname, dat, compression='gzip', compression_opts=7)
+    elif ftype == 'ASCII':
+        dm.toJSONheadedASCII(outname, dat)
+        
+toCDF = functools.partial(_toFile, ftype='CDF')
+"""
+Convert the input file(s) fnames to CDF. If fnames is a single file then call readFile()
+if it is an iterable of filenames call combinePercentiles()
+
+Parameters
+==========
+fnames : str
+    Filename(s) to change to CDF
+
+See Also
+========
+spacepy.datamodel.toCDF
+"""
+
+toHDF5 = functools.partial(_toFile, ftype='HDF5')
+"""
+Convert the input file(s) fnames to HDF5. If fnames is a single file then call readFile()
+if it is an iterable of filenames call combinePercentiles()
+
+Parameters
+==========
+fnames : str
+    Filename(s) to change to HDF5
+
+See Also
+========
+spacepy.datamodel.toHDF5
+"""
+
+toJSONheadedASCII = functools.partial(_toFile, ftype='ASCII')
+"""
+Convert the input file(s) fnames to JSONheadedASCII. If fnames is a single file then call readFile()
+if it is an iterable of filenames call combinePercentiles()
+
+Parameters
+==========
+fnames : str
+    Filename(s) to change to toJSONheadedASCII
+
+See Also
+========
+spacepy.datamodel.toJSONheadedASCII
+"""
 
 
