@@ -30,6 +30,10 @@ time
  - Overall speed improvements with for loop removal 
  - ISO improvements via special cases for string input
  - Added classmethod today()
+python3 support
+ -updates for python3 support, seems to be complete
+AE9AP9
+ - added ae9ap9 module to parse and work with output files from the AE9/AP9/SPM models
 
 Changes in Version 0.1.5 (2014-12-23)
 =====================================
