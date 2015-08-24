@@ -120,6 +120,30 @@ from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
 
 # Some common, global functions.
+def mhdname_to_tex(varname):
+    '''
+    Convert common MHD variable names into LaTeX-formated strings.
+    '''
+
+    import re
+    
+    match_u = re.search('(.*)u([xyz])', varname)
+    match_b = re.match('([bj])([xyz])', varname)
+    
+    if 'rho' in varname.lower():
+        out = r'$\rho_{'+varname.replace('rho', '')+'}$'
+    elif varname.lower()[-1] == 'p':
+        out = '$P_{'+varname[:-1]+'}$'
+    elif match_u:
+        out = '$U_{'+match_u.group(2)+', '*bool(match_u.group(1)) \
+              +match_u.group(1)+'}$'
+    elif match_b:
+        out = '$'+match_b.group(1).upper()+'_{'+match_b.group(2)+'}$'
+    else:
+        out=varname
+
+    return out
+
 def parse_tecvars(line):
     '''
     Parse the VARIABLES line from a TecPlot-formatted ascii data file.  Create
@@ -1113,7 +1137,7 @@ class ImfInput(PbData):
             if param=='': continue
             if param[0] != '#': continue
             # For all possible Params, set object attributes/info.
-            if param == '#COOR':
+            if param[:5] == '#COOR':
                 self.attrs['coor']=lines.pop(0)[0:3]
             elif param == '#REREAD':
                 self.attrs['reread']=True

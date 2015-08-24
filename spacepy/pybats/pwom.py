@@ -47,7 +47,6 @@ class Efile(PbData):
         
         # Parse header.
         varlist = parse_tecvars(f.readline())
-        print(varlist)
         m = search('.*I\=\s*(\d+)\,\s*J\=\s*(\d+)',f.readline()).groups()
         nLat, nLon = int(m[0]), int(m[1])
         self.attrs['nLat']=nLat

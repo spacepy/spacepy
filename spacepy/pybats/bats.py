@@ -23,6 +23,95 @@ import numpy as np
 from spacepy.pybats import PbData, IdlBin, LogFile, set_target
 from spacepy.datamodel import dmarray
 
+#### Module-level variables:
+# recognized species:
+mass = {'hp':1.0, 'op':16.0, 'he':4.0, 
+        'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0}
+
+#### Module-level functions:
+
+def _calc_ndens(obj):
+    '''
+    Given an object of subclass :class:`~spacepy.pybats.PbData` that uses
+    standard BATS-R-US variable names, calculate the number density from
+    all mass density variables (i.e., all variables that end in *rho*).
+    New variables are added to the object.  Variable names are constructed
+    by taking the mass-density variable, *Speciesrho*, and replacing *rho*
+    with *N*.  Total number density is also saved as *N*.
+
+    Composition information is also saved by taking each species and 
+    calculating the percent of the total number density via
+    *fracspecies* = 100% x *speciesN*/*N*.
+
+    Many species that are implemented in multi-species and multi-fluid
+    BATS-R-US equation files have known mass.  For example, *oprho* is known
+    a-priori to be singly ionized oxygen mass density, so *opN* is created
+    by dividing *oprho* by 16.  If the fluid/species is not recognized, it is
+    assumed to be hyrogen.  The single atom/molecule mass is saved in the
+    attributes of the new variable.
+
+    This function should be called by object methods of the same name.  
+    It is placed at the module level because it is used by many different 
+    classes.
+
+    Parameters
+    ==========
+    obj : :class:`~spacepy.pybats.PbData` object
+       The object on which to act.
+
+    Other Parameters
+    ================
+
+    Returns
+    =======
+    True
+
+    Examples
+    ========
+    >>> import spacepy.pybats.bats as pbs
+    >>> mhd = pbs.Bats2d('spacepy-code/spacepy/pybats/slice2d_species.out')
+    >>> pbs._calc_ndens(mhd)
+    
+    '''
+
+    species = []
+    names   = []
+
+    # Find all species: the variable names end or begin with "rho".
+    for k in obj:
+        if (k[-3:] == 'rho') and (k!='rho') and (k[:-3]+'N' not in obj):
+            species.append(k)
+            names.append(k[:-3])
+        if (k[:3] == 'rho') and (k!='rho') and (k[3:]+'N' not in obj):
+            species.append(k)
+            names.append(k[3:])
+
+    # Individual number density
+    for s, n in zip(species, names):
+        if n in mass:
+            m = mass[n]
+        else:
+            m = 1.0
+        obj[n+'N'] = dmarray(obj[s]/m, attrs={'units':'$cm^{-3}$',
+                                              'amu mass':m})
+
+    # Total N is sum of individual  number densities.
+    obj['N'] = dmarray(np.zeros(obj['rho'].shape), 
+                       attrs={'units':'$cm^{-3}$'}) 
+    if species:
+        # Total number density:
+        for n in names: obj['N']+=obj[n+'N']
+        # Composition as fraction of total per species:
+        for n in names:
+            obj[n+'Frac'] = dmarray(100.*obj[n+'N']/obj['N'],
+                                    {'units':'Percent'})
+    else:
+        # No individual species => no composition, simple ndens.
+        obj['N'] += dmarray(obj['rho'], attrs={'units':'$cm^{-3}$'}) 
+
+
+#### Classes:
+
 class BatsLog(LogFile):
     '''
     A specialized version of :class:`~spacepy.pybats.LogFile` that includes
@@ -36,6 +125,35 @@ class BatsLog(LogFile):
     .. automethod:: add_dst_quicklook
     '''
 
+    def fetch_obs_dst(self):
+        '''
+        Fetch the observed Dst index for the time period covered in the 
+        logfile.  Return *True* on success.
+
+        Observed Dst is automatically fetched from the Kyoto World Data Center
+        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoDst` object, which holds the observed
+        Dst, is stored as *self.obs_dst* for future use.
+        '''
+
+        import spacepy.pybats.kyoto as kt
+
+        # Return if already obtained:
+        if hasattr(self, 'obs_dst'): return True
+
+        # Start and end time to collect observations:
+        stime = self['time'][0]; etime = self['time'][-1]
+
+        # Attempt to fetch from Kyoto website:
+        try:
+            self.obs_dst = kt.fetch('dst', stime, etime)
+        # Warn on failure:
+        except BaseException as args:
+            print('WARNING! Failed to fetch Kyoto Dst: ', args)
+            return False
+
+        return True
+            
     def add_dst_quicklook(self, target=None, loc=111, showObs=True, **kwargs):
         '''
         Create a quick-look plot of Dst (if variable present in file) 
@@ -74,29 +192,16 @@ class BatsLog(LogFile):
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
         if(showObs):
-            try:
-                import spacepy.pybats.kyoto as kt
-            except ImportError:
-                return fig, ax
-        
-            try:
-                stime = self['time'][0]; etime = self['time'][-1]
-                if not hasattr(self, 'obs_dst'):
-                    self.obs_dst = kt.fetch('dst', stime, etime)
-
-            except BaseException as args:
-                print('WARNING! Failed to fetch Kyoto Dst: ', args)
-            else:
+            # Attempt to fetch observations, plot if success.
+            if self.fetch_obs_dst():
                 ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
                         'k--', label='Obs. Dst')
-                ax.legend(loc='best')
                 apply_smart_timeticks(ax, self['time'])
-        else:
-            ax.legend(loc='best')
-            
+
+        # Apply legend
+        ax.legend(loc='best')
 
         return fig, ax
-
     
 class Stream(object):
     '''
@@ -446,77 +551,19 @@ class Bats2d(IdlBin):
 
     def calc_ndens(self):
         '''
-        Calculate number densities for each fluid.  Species mass is 
-        ascertained either by searching file parameters or by assuming
-        mass density from the species name (e.g. OpRho is clearly oxygen).
-        If neither can be found, an exception is raised.
+        Calculate number densities for each fluid.  Species mass is ascertained 
+        via recognition of fluid name (e.g. OpRho is clearly oxygen).  A full
+        list of recognized fluids/species can be found by exploring the 
+        dictionary *mass* found in :mod:`~spacepy.pybats.bats`.  Composition is
+        also calculated as percent of total number density.
 
-        New values are saved using the keys *SpeciesN* (e.g. *OpN*).
+        New values are saved using the keys *speciesN* (e.g. *opN*) and
+        *speciesFrac* (e.g. *opFrac*).
         '''
 
-        from spacepy.datamodel import dmarray
-
-        mass={'hp':1.0, 'op':16.0, 'he':4.0, 
-              'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0}
-        species = []
-        names   = []
-
-        # Find all species, the variable names end in "Rho".
-        for k in self:
-            if (k[-3:] == 'rho')   \
-                    and (k!='rho') \
-                    and (k[:-3]+'N' not in self):
-                species.append(k)
-                names.append(k[:-3])
-            if (k[:3] == 'rho')   \
-                    and (k!='rho') \
-                    and (k[3:]+'N' not in self):
-                species.append(k)
-                names.append(k[3:])
-        # Individual number density
-        for s, n in zip(species, names):
-            self[n+'N'] = dmarray(self[s] / mass[n], 
-                                       attrs={'units':'$cm^{-3}$'})
-
-        # Total N is sum of individual  number densities.
-        self['N'] = dmarray(np.zeros(self['rho'].shape), 
-                            attrs={'units':'$cm^{-3}$'}) 
-        if species:
-            for n in names: self['N']+=self[n+'N']
-        else:
-            self['N'] += self['rho']
+        # Use shared function.
+        _calc_ndens(self)
                                 
-    def calc_comp(self):
-        '''
-        Calculate composition by percent number for "minor" species
-        (e.g. oxygen, helium).  If the required values are not present
-        (i.e. 'rhoo', 'rhohe'), then the calculation is skipped without
-        raising exceptions.
-        '''
-
-        from spacepy.datamodel import dmarray
-
-        # Recognized mass densities.
-        mass={'h':1.0,'he':4.0,'o':16.0}
-
-        # Find all mass density variables that are species-specific.
-        species = []
-        for k in self:
-            if ('rho' in k) and (len(k)>3):
-                species.append(k.lower())
-        if not k: return # No composition?  No calculation!
-
-        # Create total number density.
-        self['n'] = dmarray(np.zeros(self['rho'].shape), attrs={'units':'cm-3'})
-        for s in species:
-            self['n']+=self[s]/mass[s[3:]]
-
-        # Loop through species calculating composition for each.
-        # Create new variables with new attrs.
-        for s in species:
-            self['comp_'+s[3:]] = 100.0*self[s]/mass[s[3:]]/self['n']
-            self['comp_'+s[3:]].attrs = {'units':'Percent'}
-
     def calc_beta(self):
         '''
         Calculates plasma beta (ratio of plasma to magnetic pressure, 
@@ -1143,11 +1190,8 @@ class Bats2d(IdlBin):
         colors= []
 
         # Start by finding open/closed boundary.
-        tilt, thetaD, thetaN, s1, s2 = self.find_earth_lastclosed(method=method)
-        if DoLast:
-            lines+=[array([s1.x,s1.y]).transpose(),
-                    array([s2.x,s2.y]).transpose()]
-            colors+=2*['r']
+        tilt, thetaD, thetaN, last1, last2 = self.find_earth_lastclosed(
+            method=method)
 
         # Useful parameters for the following traces:
         R = self.attrs['rbody']
@@ -1185,7 +1229,12 @@ class Bats2d(IdlBin):
                 colors.append(sD.style[0])
                 colors.append(sN.style[0])  
                     
-            
+        # Add last-closed field lines at end so they are plotted "on top".
+        if DoLast:
+            lines+=[array([last1.x,last1.y]).transpose(),
+                    array([last2.x,last2.y]).transpose()]
+            colors+=2*['r']
+     
         # Create line collection & plot.
         collect = LineCollection(lines, colors=colors, **kwargs)
         ax.add_collection(collect)
@@ -1529,7 +1578,7 @@ class Bats2d(IdlBin):
             ax.set_ylim(ylim)
 
         # Add body/planet.
-        self.add_body(ax)
+        if add_body: self.add_body(ax)
 
         return fig, ax, pcol, cbar                              
 
@@ -1645,7 +1694,7 @@ class Bats2d(IdlBin):
         elif dim2.lower()=='x':
             ang=90.0
         else: ang=0.0
-        self.add_body(ax, ang=ang)
+        if add_body: self.add_body(ax, ang=ang)
 
         return fig, ax, cont, cbar
 
@@ -2147,45 +2196,18 @@ class VirtSat(LogFile):
 
     def calc_ndens(self):
         '''
-        Calculate number densities for each fluid.  Species mass is 
-        ascertained either by searching file parameters or by assuming
-        mass density from the species name (e.g. OpRho is clearly oxygen).
-        If neither can be found, an exception is raised.
+        Calculate number densities for each fluid.  Species mass is ascertained 
+        via recognition of fluid name (e.g. OpRho is clearly oxygen).  A full
+        list of recognized fluids/species can be found by exploring the 
+        dictionary *mass* found in :mod:`~spacepy.pybats.bats`.  Composition is
+        also calculated as percent of total number density.
 
-        New values are saved using the keys *SpeciesN* (e.g. *OpN*).
+        New values are saved using the keys *speciesN* (e.g. *opN*) and
+        *speciesFrac* (e.g. *opFrac*).
         '''
 
-        from spacepy.datamodel import dmarray
-
-        mass={'hp':1.0, 'op':16.0, 'he':4.0, 'sw':1.0, 'o':16.0, 'h':1.0}
-        species,names = [],[]
-
-        # Find all species, the variable names end in "Rho".
-        for k in self:
-            if (k[-3:] == 'rho')   \
-                    and (k!='rho') \
-                    and (k[:-3]+'N' not in self.keys()):
-                species.append(k)
-                names.append(k[:-3])
-            if (k[:3] == 'rho')   \
-                    and (k!='rho') \
-                    and (k[3:]+'N' not in self.keys()):
-                species.append(k)
-                names.append(k[3:])
-        # Individual number density
-        for s,n in zip(species, names):
-            self[n+'N'] = dmarray(self[s] / mass[n], 
-                                  attrs={'units':'$cm^{-3}$'})
-
-        # Total N is sum of individual  number densities.
-        self['N'] = dmarray(np.zeros(self['rho'].shape), 
-                            attrs={'units':'$cm^{-3}$'}) 
-        if names:
-            for n in names: self['N']+=self[n+'N']
-        else:
-            self['N'] += self['rho']
-                                
-
+        _calc_ndens(self)
+        
     def calc_temp(self, units='eV'):
         '''
         Calculate plasma temperature for each fluid.  Number density is
