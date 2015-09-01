@@ -52,7 +52,9 @@ def readFile(fname, comments='#'):
     # |____GSE (spacepy.datamodel.dmarray (121, 3))
     # |____MJD (spacepy.datamodel.dmarray (121,))
     # |____posComp (spacepy.datamodel.dmarray (3,))
-    """    
+    """
+    if not os.path.isfile(fname):
+        raise(ValueError("File {0} not found".format(fname)))
     # get the header information first
     header = parseHeader(fname)
     # and read in all the data
@@ -302,7 +304,7 @@ def combinePercentiles(files, timeframe='all'):
     Other Parameters
     ================
     timeframe : str
-        Timeframe to average itn eh input spectra over (either 'all' or a pandas understoop resample() time
+        Timeframe to average the input spectra over (either 'all' or a pandas understoop resample() time
     
     Returns
     =======

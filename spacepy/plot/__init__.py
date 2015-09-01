@@ -17,7 +17,7 @@ Copyright 2011 Los Alamos National Security, LLC.
 from matplotlib.patches import Wedge
 import matplotlib.pyplot as plt
 
-__all__ = ["spectrogram", "utils"]
+__all__ = ["spectrogram", "utils", "spectrogram.simpleSpectrogram"]
 
 
 
