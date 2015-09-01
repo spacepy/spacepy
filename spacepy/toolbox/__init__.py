@@ -68,13 +68,49 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot',
-           'do_with_timeout', 'TimeoutError', 'timeout_check_call']
+           'do_with_timeout', 'TimeoutError', 'timeout_check_call', 'unique_columns']
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
+def unique_columns(inval, axis=0):
+    """
+    Given a multidimensional input return the unique rows or columns along the given axis.
+    Based largely on http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+    axis=0 is unique rows, axis=1 is unique columns
+
+    Parameters
+    ==========
+    inval :  array-like
+        array to find unique columns or rows of
+
+    Optional Parameters
+    ===================
+    axis : int
+        The axis to find unique over, default: 0
+
+    Returns
+    =======
+    out : array
+        N-dimensional array of the unique values along the axis
+
+    Examples
+    ========
+    """
+    # this is a nice trick taking advantage of structed arrays where each row or column
+    #   is the value, so returl unique works
+    # np.ascontiguousarray() is to be really sure it will work
+    if axis == 0:
+        val = np.ascontiguousarray(np.transpose(inval))
+    else:
+        val = np.ascontiguousarray(inval)
+    b = val.view(np.dtype((np.void, val.dtype.itemsize * val.shape[1])))
+    unique_a = np.unique(b).view(val.dtype).reshape(-1, val.shape[1])
+    return unique_a
+
+    
 def hypot(*args):
     """
-    compute the N-dimensional hypot of an iterable or mnay arguments
+    compute the N-dimensional hypot of an iterable or many arguments
 
     Parameters
     ==========

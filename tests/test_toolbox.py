@@ -511,7 +511,25 @@ class SimpleFunctionTests(unittest.TestCase):
             self.assertRaises(tb.TimeoutError, tb.timeout_check_call,
                               1.0, 'sleep 5', shell=True)
 
-
+    def test_unique_columns(self):
+        """Make sure unique_columns gives the expected answers"""
+        a = numpy.array([[1, 1, 1, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0],
+                            [0, 1, 1, 1, 0, 0],
+                            [1, 1, 1, 0, 0, 0],
+                            [1, 1, 1, 1, 1, 0]])
+        ans1 = numpy.array([[0, 1, 1, 1, 0, 0],
+                            [1, 1, 1, 0, 0, 0],
+                            [1, 1, 1, 1, 1, 0]])
+        ans0 = numpy.array([[0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 1],
+                            [0, 1, 1, 0, 1],
+                            [1, 0, 0, 1, 1],
+                            [1, 1, 1, 1, 1]])
+        numpy.testing.assert_array_equal(ans1, tb.unique_columns(a, axis=1))
+        numpy.testing.assert_array_equal(ans0, tb.unique_columns(a, axis=0))
+        
+            
 class TBTimeFunctionTests(unittest.TestCase):
     def setUp(self):
         super(TBTimeFunctionTests, self).setUp()
