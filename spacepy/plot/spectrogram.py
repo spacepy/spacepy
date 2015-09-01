@@ -17,7 +17,7 @@ from the time domain to the frequency domain, and the subsequent plotting
 of some quantity (e.g., power spectral density) as a function of time and
 frequency. To approximate this functionality for, e.g., time-series magnetic field
 data you would first calculate a the power spectral density and then use
-:class:`spectrogram` to rebin the data for visualaization.
+:class:`spectrogram` to rebin the data for visualization.
 
 Authors: Brian Larsen and Steve Morley
 Institution: Los Alamos National Laboratory
@@ -92,7 +92,7 @@ class spectrogram(dm.SpaceData):
         if the name "lim" is not specified in the .attrs of the dmarray variable
         this specifies the limit for the z variable [zlow, zhigh]
     extended_out : bool (optional)
-        if this is True add more information to the output data model (defualt False)
+        if this is True add more information to the output data model (default False)
 
     Notes
     =====
@@ -315,11 +315,11 @@ class spectrogram(dm.SpaceData):
 
     def add_data(self, data):
         if not self.specSettings['extended_out']:
-            raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on inital creation'))
+            raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on initial creation'))
         b = spectrogram(data, **self.specSettings)
         # if they are both masked keep them that way
         mask = self['spectrogram']['count'].mask & b['spectrogram']['count'].mask
-        # turn off the mask by setting sum and count to zero where it masked for self an be sure b mask doesnt it self
+        # turn off the mask by setting sum and count to zero where it masked for self an be sure b mask doesn't it self
         self['spectrogram']['count'][self['spectrogram']['count'].mask] = 0
         b['spectrogram']['count'][b['spectrogram']['count'].mask] = 0
         # put the mask back they are both bad
@@ -554,13 +554,13 @@ def simpleSpectrogram(*args, **kwargs):
     alpha : scalar (0-1)
         The alpha blending value (default: None)
     cmap : string
-        The name of the colormap to use (defualt: system defualt)
+        The name of the colormap to use (default: system default)
     vmin : float
         Minimum color value (default: Z.min(), if log non-zero min)
     vmax : float
-        Maximum color value (defualt: Z.max())
+        Maximum color value (default: Z.max())
     ax : matplotlib.axes
-        Axes to plot the spectrogram on (defualt: None - new axes)
+        Axes to plot the spectrogram on (default: None - new axes)
     cb : bool
         Plot a colorbar (default: True)
     cbtitle : string
@@ -618,7 +618,7 @@ def simpleSpectrogram(*args, **kwargs):
     Z = Z.filled(0)
     if len(Y.shape) > 1:
         for yy in Y_uniq:
-            # which indicies in X have these values
+            # which indices in X have these values
             ind = (yy == Y_orig).all(axis=1)
             print(Y_orig[ind][0].min(), Y_orig[ind][0].max())
             Y_tmp = np.zeros_like(Y_orig)
