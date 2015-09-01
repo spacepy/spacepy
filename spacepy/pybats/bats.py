@@ -20,7 +20,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 '''
 
 import numpy as np
-from spacepy.pybats import PbData, IdlBin, LogFile, set_target
+from spacepy.pybats import PbData, IdlFile, LogFile, set_target
 from spacepy.datamodel import dmarray
 
 #### Module-level variables:
@@ -439,19 +439,17 @@ class Stream(object):
         '''
         ax.plot(self.x, self.y, self.style, *args, **kwargs)
 
-class Bats2d(IdlBin):
+class Bats2d(IdlFile):
     '''
-    An object class of parent pybats.idlbin taylored to BATS-R-US output.
-    This function requires the Matplotlib griddata function.
-    
+    A child class of :class:`~pybats.IdlFile` taylored to BATS-R-US output.
     '''
-    # Init by calling IdlBin init and then building qotree, etc.
-    def __init__(self, filename):
+    # Init by calling IdlFile init and then building qotree, etc.
+    def __init__(self, filename, format='binary'):
         import spacepy.pybats.qotree as qo
         reload(qo)
         from numpy import array
         # Read file.
-        IdlBin.__init__(self, filename)
+        IdlFile.__init__(self, filename, format=format)
 
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
@@ -2067,6 +2065,38 @@ class MagFile(PbData):
         for mag in self.attrs['namemag']:
             self[mag].recalc()
 
+
+class MagGridFile(IdlFile):
+    '''
+    Magnetometer grids are a recent addition to BATS-R-US: instead of 
+    specifying a small set of individual stations, the user can specify a 
+    grid of many stations spanning a latitude/longitude range.  The files
+    are output in the usual :class:`spacepy.pybats.IdlFile` format.  This 
+    class handles the reading, manipulating, and visualization of these files.
+    '''
+
+    def __init__(self, *args, **kwargs):
+        import re
+        
+        # Initialize as an IdlFile.
+        super(MagGridFile, self).__init__(header=None, *args, **kwargs)
+
+        # Additional header parsing:
+        head = self.attrs['header']
+        match = re.search('\((\w+)\).*\[(\w+)\].*\[(\w+)\]', head)
+        coord, unit1, unit2 = match.groups()
+
+        self['grid'].attrs['coord']=coord
+
+        # Set units based on header parsing:
+        for v in self:
+            if v == 'grid':
+                continue
+            elif v in self['grid'].attrs['dims']:
+                self[v].attrs['units']=unit1
+            else:
+                self[v].attrs['units']=unit2
+                
 class GeoIndexFile(LogFile):
     '''
     Geomagnetic Index files are a specialized BATS-R-US output that contain

@@ -92,7 +92,7 @@ convenience functions for customizing plots.
    :template: clean_class.rst
    :toctree: autosummary
 
-   IdlBin
+   IdlFile
    ImfInput
    LogFile
    NgdcIndex
@@ -370,6 +370,325 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True,
 
     ax.add_artist(body)
         
+
+def _read_idl_ascii(pbdat, header='units'):
+    '''
+    Load a SWMF IDL ascii output file and load into a pre-existing PbData
+    object.  This should only be called by :class:`IdlFile`.
+
+    The input object must have the name of the file to be opened and read 
+    stored in its attributes list and named 'file'.
+
+    The kwarg *header* dictates how the header line will be handled.  In some
+    output files, the header is simply the list of units.  In others, it
+    contains other data.  If *header* is set to 'units', the header is
+    assumed to be a list of units for each variable contained within the
+    file.  If set to **None** or not recognized, the header will be saved
+    in the object's attribute list under 'header'.
+
+        Parameters
+    ==========
+    pbdat : PbData object
+        The object into which the data will be loaded.
+
+    Other Parameters
+    ================
+    header : string or **None**
+        A string indicating how the header line will be handled; see above.
+    
+    Returns
+    =======
+    True : Boolean
+        Returns True on success.
+
+    '''
+    
+    # Open the file:
+    infile = open(pbdat.attrs['file'], 'r')
+
+    # Read the top header line:
+    headline = infile.readline().strip()
+
+    # Read & convert iters, runtime, etc. from next line:
+    parts = infile.readline().split()
+    pbdat.attrs['iter']   = int(parts[0])
+    pbdat.attrs['time']   = float(parts[1])
+    pbdat.attrs['ndim']   = int(parts[2])
+    pbdat.attrs['nparam'] = int(parts[3])
+    pbdat.attrs['nvar']   = int(parts[4])
+
+    # Read & convert grid dimensions.
+    grid = [int(x) for x in infile.readline().split()]
+    pbdat['grid'] = dmarray(grid)
+
+    # Data from generalized (structured but irregular) grids can be 
+    # detected by a negative ndim value.  Unstructured grids (e.g.
+    # BATS, AMRVAC) are signified by negative ndim values AND
+    # the grid size is always [x, 1(, 1)]
+    # Here, we set the grid type attribute to either Regular, 
+    # Generalized, or Unstructured.  Let's set that here.
+    pbdat['grid'].attrs['gtype'] = 'Regular'
+    pbdat['grid'].attrs['npoints']  = abs(pbdat['grid'].prod())
+    if pbdat.attrs['ndim'] < 0: 
+        if any(pbdat['grid'][1:] > 1): 
+            pbdat['grid'].attrs['gtype'] = 'Generalized'
+        else:
+            pbdat['grid'].attrs['gtype']   = 'Unstructured'
+            pbdat['grid'].attrs['npoints'] = pbdat['grid'][0]
+    pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
+
+        # Quick ref vars:
+    time=pbdat.attrs['time']
+    gtyp=pbdat['grid'].attrs['gtype']
+    npts=pbdat['grid'].attrs['npoints']
+    ndim=pbdat['grid'].size
+    nvar=pbdat.attrs['nvar']
+    npar=pbdat.attrs['nparam']
+
+     # Read parameters stored in file.
+    para = np.zeros(npar)
+    if npar>0:
+        para[:] = infile.readline().split()
+
+    # Read variable names
+    names = infile.readline().split()
+
+    # Now that we know the number of variables, we can properly handle
+    # the headline and units based on the kwarg *header*:
+    pbdat.attrs['header']=headline
+    if header == 'units':
+        # If headline is just units:
+        units = headline.split()
+    else:
+        # If headline is NOT just units, create blank units:
+        units = [''] * (len(names)-npar)
+
+    # For some reason, there are often more units than variables
+    # in these files.  It looks as if there are more grid units
+    # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
+    # in file but only X and Y are present.)  Let's try to work
+    # around this rather egregious error.
+    nSkip=len(units)+npar-len(names)
+    if nSkip<0: nSkip=0
+          
+    # Save grid names (e.g. 'x' or 'r') and save associated params.
+    pbdat['grid'].attrs['dims']=names[0:ndim]
+    for name, para in zip(names[(nvar+ndim):], para):
+        pbdat.attrs[name]=para
+        
+    # Create string representation of time.
+    pbdat.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
+        (np.floor(time/3600.), np.floor(time%3600. / 60.0),
+         time%60.0)
+        
+    # Create containers for the rest of the data:
+    for v, u in zip(names, units[nSkip:]):
+        pbdat[v] = dmarray(np.zeros(npts), {'units':u})
+
+    # Load grid points and data:
+    for i, line in enumerate(infile.readlines()):
+        parts=line.split()
+        for j, p in enumerate(parts):
+            pbdat[names[j]][i] = p
+
+    # Close the file:
+    infile.close()
+
+    # Arrange data into multidimentional arrays if necessary.
+    gridnames = names[:ndim]
+    if gtyp == 'Irregular':
+        for v in names:
+            pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid']),
+                               attrs=pbdat[v].attrs)
+    elif gtyp == 'Regular':
+        # Put coords into vectors:
+        prod = [1]+pbdat['grid'].cumprod().tolist()
+        for i,x in enumerate(pbdat['grid'].attrs['dims']):
+            pbdat[x] = dmarray(pbdat[x][0:prod[i+1]-prod[i]+1:prod[i]],
+                attrs=pbdat[x].attrs)
+        for v in names:
+            if v not in pbdat['grid'].attrs['dims']:
+                pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid']),
+                                   attrs=pbdat[v].attrs)
+
+def _read_idl_bin(pbdat, header='units'):
+    '''
+    Load a SWMF IDL binary output file and load into a pre-existing PbData
+    object.  This should only be called by :class:`IdlFile`.
+
+    The input object must have the name of the file to be opened and read 
+    stored in its attributes list and named 'file'.
+
+    The kwarg *header* dictates how the header line will be handled.  In some
+    output files, the header is simply the list of units.  In others, it
+    contains other data.  If *header* is set to 'units', the header is
+    assumed to be a list of units for each variable contained within the
+    file.  If set to **None** or not recognized, the header will be saved
+    in the object's attribute list under 'header'.
+
+    Parameters
+    ==========
+    pbdat : PbData object
+        The object into which the data will be loaded.
+
+    Other Parameters
+    ================
+    header : string or **None**
+        A string indicating how the header line will be handled; see above.
+    
+    Returns
+    =======
+    True : Boolean
+        Returns True on success.
+
+    '''
+    import struct
+
+    # Open, read, and parse the file into numpy arrays.
+    # Note that Fortran writes integer buffers around records, so
+    # we must parse those as well.
+    infile = open(pbdat.attrs['file'], 'rb')
+    
+    # On the first try, we may fail because of wrong-endianess.
+    # If that is the case, swap that endian and try again.
+    EndChar = '<' # Endian marker (default: little.)
+    pbdat.attrs['endian']='little'
+    RecLenRaw = infile.read(4)
+    
+    RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
+    if (RecLen > 10000) or (RecLen < 0):
+        EndChar = '>'
+        pbdat.attrs['endian']='big'
+        RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
+        
+    headline = ( struct.unpack(EndChar+'%is'%RecLen,
+                             infile.read(RecLen)) )[0].strip()   
+
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    format = 'f'
+    # parse rest of header; detect double-precision file.
+    if RecLen > 20: format = 'd'
+    (pbdat.attrs['iter'], pbdat.attrs['time'],
+     pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
+        struct.unpack(EndChar+'l%s3l' % format, infile.read(RecLen))
+    # Get gridsize
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    pbdat['grid']=dmarray(struct.unpack(EndChar+'%il' % 
+                                       abs(pbdat.attrs['ndim']), 
+                                       infile.read(RecLen)))
+    # Data from generalized (structured but irregular) grids can be 
+    # detected by a negative ndim value.  Unstructured grids (e.g.
+    # BATS, AMRVAC) are signified by negative ndim values AND
+    # the grid size is always [x, 1(, 1)]
+    # Here, we set the grid type attribute to either Regular, 
+    # Generalized, or Unstructured.  Let's set that here.
+    pbdat['grid'].attrs['gtype'] = 'Regular'
+    pbdat['grid'].attrs['npoints']  = abs(pbdat['grid'].prod())
+    if pbdat.attrs['ndim'] < 0: 
+        if any(pbdat['grid'][1:] > 1): 
+            pbdat['grid'].attrs['gtype'] = 'Generalized'
+        else:
+            pbdat['grid'].attrs['gtype']   = 'Unstructured'
+            pbdat['grid'].attrs['npoints'] = pbdat['grid'][0]
+    pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
+
+    # Quick ref vars:
+    time=pbdat.attrs['time']
+    gtyp=pbdat['grid'].attrs['gtype']
+    npts=pbdat['grid'].attrs['npoints']
+    ndim=pbdat['grid'].size
+    nvar=pbdat.attrs['nvar']
+    npar=pbdat.attrs['nparam']
+
+    # Read parameters stored in file.
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    para = np.zeros(npar)
+    para[:] = struct.unpack(EndChar+'%i%s' % (npar,format), 
+                            infile.read(RecLen))
+
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    names = ( struct.unpack(EndChar+'%is' % RecLen, 
+                            infile.read(RecLen)) )[0].lower()
+    names.strip()
+    names = names.split()       
+
+    # Now that we know the number of variables, we can properly handle
+    # the headline and units based on the kwarg *header*:
+    pbdat.attrs['header']=headline
+    if header == 'units':
+        # If headline is just units:
+        units = headline.split()
+    else:
+        # If headline is NOT just units, create blank units:
+        units = [''] * (len(names)-npar)
+    
+    # For some reason, there are often more units than variables
+    # in these files.  It looks as if there are more grid units
+    # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
+    # in file but only X and Y are present.)  Let's try to work
+    # around this rather egregious error.
+    nSkip=len(units)+npar-len(names)
+    if nSkip<0: nSkip=0
+    
+    # Save grid names (e.g. 'x' or 'r') and save associated params.
+    pbdat['grid'].attrs['dims']=names[0:ndim]
+    for name, para in zip(names[(nvar+ndim):], para):
+        pbdat.attrs[name]=para
+        
+    # Create string representation of time.
+    pbdat.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
+        (np.floor(time/3600.), np.floor(time%3600. / 60.0),
+         time%60.0)
+
+    # Get the grid points...
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    prod = [1] + pbdat['grid'].cumprod().tolist()
+    for i in range(0,ndim):
+        # Read the data into a temporary grid.
+        tempgrid = np.array(struct.unpack(
+            EndChar+'%i%s' % (npts, format), 
+            infile.read(RecLen/ndim) ) )
+        # Unstructred grids get loaded as vectors.
+        if gtyp == 'Unstructured':
+            pbdat[names[i]] = dmarray(tempgrid)
+        # Irregularly gridded items need multidimensional grid arrays:
+        elif gtyp == 'Irregular':
+            pbdat[names[i]] = dmarray(np.reshape(tempgrid, pbdat['grid']))
+        # Regularly gridded ones need vector grid arrays:
+        elif gtyp == 'Regular':
+            pbdat[names[i]] = dmarray(np.zeros(pbdat['grid'][i]))
+            for j in range(int(pbdat['grid'][i])):
+                pbdat[names[i]][j] = tempgrid[j*int(prod[i])]
+        else:
+            raise ValueError('Unknown grid type: %s'%pbdat.gridtype)
+        # Add units to grid.
+        pbdat[names[i]].attrs['units']=units.pop(nSkip)
+
+    # Get the actual data and sort.
+    for i in range(ndim,nvar+ndim):
+        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+        pbdat[names[i]] = dmarray(
+            np.array(struct.unpack(EndChar+'%i%s' % (npts, format), 
+                                       infile.read(RecLen))) )
+        pbdat[names[i]].attrs['units']=units.pop(nSkip)
+        if gtyp != 'Unstructured':
+            # Put data into multidimensional arrays.
+            pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'])
+
+    # Unstructured data can be in any order, so let's sort it.
+    if gtyp == 'Unstructured':
+        gridtotal = np.zeros(npts)
+        offset = 0.0  # The offset ensures no repeating vals while sorting.
+        for key in pbdat['grid'].attrs['dims']:
+            gridtotal = gridtotal + offset + pbdat[key]
+            offset = offset + np.pi/2.0
+            SortIndex = np.argsort(gridtotal)
+        for key in list(pbdat.keys()):
+            if key=='grid': continue
+            pbdat[key] = pbdat[key][SortIndex]
+
+    infile.close()
+
 class PbData(SpaceData):
     '''
     The base class for all PyBats data container classes.  Inherits from
@@ -425,14 +744,14 @@ class PbData(SpaceData):
             if 'units' in self[key].attrs:
                 print(form%(key, self[key].attrs['units']))
         
-class IdlBin(PbData):
+class IdlFile(PbData):
  
     '''
-    An object class that reads/parses a binary output file from the SWMF
-    and places it into a :class:spacepy.pybats.PbData object.
+    An object class that reads/parses an IDL-formatted output file from the 
+    SWMF and places it into a :class:`spacepy.pybats.PbData` object.
 
     Usage:
-    >>>data = spacepy.pybats.IdlBin('binary_file.out')
+    >>>data = spacepy.pybats.IdlFile('binary_file.out')
 
     See :class:`spacepy.pybats.PbData` for information on how to explore
     data contained within the returned object.
@@ -451,165 +770,30 @@ class IdlBin(PbData):
     as an "unpack requires a string of argument length 'X'".
     '''
 
-    def __init__(self, filename, *args, **kwargs):
-        super(IdlBin, self).__init__(*args, **kwargs)  # Init as PbData.
-        self.attrs['file'] = filename   # Save file name.
-        self.read()   # Read binary file.
+    def __init__(self, filename,format='binary',header='units',*args,**kwargs):
+        super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
+        self.attrs['file']   = filename   # Save file name.
+        self.attrs['format'] = format     # Save file format.
+        self.read(header)   # Read file.
 
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
     
-    def read(self):
+    def read(self, header):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
         set when the object is instantiation.
         '''
-        import numpy as np
-        import struct
 
-        # Open, read, and parse the file into numpy arrays.
-        # Note that Fortran writes integer buffers around records, so
-        # we must parse those as well.
-        infile = open(self.attrs['file'], 'rb')
-
-        # On the first try, we may fail because of wrong-endianess.
-        # If that is the case, swap that endian and try again.
-        EndChar = '<' # Endian marker (default: little.)
-        self.attrs['endian']='little'
-        RecLenRaw = infile.read(4)
-
-        RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
-        if (RecLen > 10000) or (RecLen < 0):
-            EndChar = '>'
-            self.attrs['endian']='big'
-            RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
-
-        header = ( struct.unpack(EndChar+'%is'%RecLen,
-                                 infile.read(RecLen)) )[0]    
-        header.strip()
-        units = header.split()
-
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        format = 'f'
-        # parse header; detect double-precision file.
-        if RecLen > 20: format = 'd'
-        (self.attrs['iter'], self.attrs['time'],
-         self.attrs['ndim'], self.attrs['nparam'], self.attrs['nvar']) = \
-            struct.unpack(EndChar+'l%s3l' % format, infile.read(RecLen))
-        # Get gridsize
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        self['grid']=dmarray(struct.unpack(EndChar+'%il' % 
-                                           abs(self.attrs['ndim']), 
-                                           infile.read(RecLen)))
-        # Data from generalized (structured but irregular) grids can be 
-        # detected by a negative ndim value.  Unstructured grids (e.g.
-        # BATS, AMRVAC) are signified by negative ndim values AND
-        # the grid size is always [x, 1(, 1)]
-        # Here, we set the grid type attribute to either Regular, 
-        # Generalized, or Unstructured.  Let's set that here.
-        self['grid'].attrs['gtype'] = 'Regular'
-        self['grid'].attrs['npoints']  = abs(self['grid'].prod())
-        if self.attrs['ndim'] < 0: 
-            if any(self['grid'][1:] > 1): 
-                self['grid'].attrs['gtype'] = 'Generalized'
-            else:
-                self['grid'].attrs['gtype']   = 'Unstructured'
-                self['grid'].attrs['npoints'] = self['grid'][0]
-        self.attrs['ndim'] = abs(self.attrs['ndim'])
-
-        # Quick ref vars:
-        time=self.attrs['time']
-        gtyp=self['grid'].attrs['gtype']
-        npts=self['grid'].attrs['npoints']
-        ndim=self['grid'].size
-        nvar=self.attrs['nvar']
-        npar=self.attrs['nparam']
-
-        # Read parameters stored in file.
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        para = np.zeros(npar)
-        para[:] = struct.unpack(EndChar+'%i%s' % (npar,format), 
-                                      infile.read(RecLen))
-
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        names = ( struct.unpack(EndChar+'%is' % RecLen, 
-                                infile.read(RecLen)) )[0].lower()
-        names.strip()
-        names = names.split()       
-
-        # For some reason, there are often more units than variables
-        # in these files.  It looks as if there are more grid units
-        # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
-        # in file but only X and Y are present.)  Let's try to work
-        # around this rather egregious error.
-        nSkip=len(units)+npar-len(names)
-        if nSkip<0: nSkip=0
-        # Some debug crap:
-        #print "nSkip=", nSkip
-        #for n, u in zip(names, units[nSkip:]):
-        #    print n, u
-
-        # Save grid names (e.g. 'x' or 'r') and save associated params.
-        self['grid'].attrs['dims']=names[0:ndim]
-        for name, para in zip(names[(nvar+ndim):], para):
-            self.attrs[name]=para
-
-        # Create string representation of time.
-        self.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
-            (np.floor(time/3600.), np.floor(time%3600. / 60.0),
-             time%60.0)
-
-        # Get the grid points...
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        prod = [1] + self['grid'].cumprod().tolist()
-        for i in range(0,ndim):
-            tempgrid = np.array(struct.unpack(
-                    EndChar+'%i%s' % (npts, format), 
-                    infile.read(RecLen/ndim) ) )
-            # Unstructred grids get loaded as vectors.
-            if gtyp == 'Unstructured':
-                self[names[i]] = dmarray(tempgrid)
-            # Irregularly gridded items need multidimensional grid arrays:
-            elif gtyp == 'Irregular':
-                self[names[i]] = dmarray(
-                    np.reshape(tempgrid, self['grid']))
-            # Regularly gridded ones need vector grid arrays:
-            elif gtyp == 'Regular':
-                self[names[i]] = dmarray(np.zeros(self['grid'][i]))
-                for j in range(int(self['grid'][i])):
-                    self[names[i]][j] = tempgrid[j*int(prod[i])]
-            else:
-                raise ValueError('Unknown grid type: %s'%self.gridtype)
-            # Add units to grid.
-            self[names[i]].attrs['units']=units.pop(nSkip)
-
-                    
-        # Get the actual data and sort.
-        for i in range(ndim,nvar+ndim):
-            (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-            self[names[i]] = dmarray(\
-                np.array(struct.unpack(EndChar+'%i%s' % (npts, format), 
-                                       infile.read(RecLen))) )
-            self[names[i]].attrs['units']=units.pop(nSkip)
-            if gtyp != 'Unstructured':
-                # Put data into multidimensional arrays.
-                self[names[i]] = self[names[i]].reshape(self['grid'])
-
-        # Unstructured data can be in any order, so let's sort it.
-        if gtyp == 'Unstructured':
-            gridtotal = np.zeros(npts)
-            offset = 0.0  # The offset ensures no repeating vals while sorting.
-            for key in self['grid'].attrs['dims']:
-                gridtotal = gridtotal + offset + self[key]
-                offset = offset + np.pi/2.0
-                SortIndex = np.argsort(gridtotal)
-            for key in list(self.keys()):
-                if key=='grid': continue
-                self[key] = self[key][SortIndex]
-
-        infile.close()
-
+        if self.attrs['format'][:3] == 'bin':
+            _read_idl_bin(self, header=header)
+        elif self.attrs['format'][:3] == 'asc':
+            _read_idl_ascii(self, header=header)
+        else:
+            raise ValueError('Unrecognized file format: {}'.format(
+                self.attrs['format']))
+        
 class LogFile(PbData):
     ''' An object to read and handle SWMF-type logfiles.
 
