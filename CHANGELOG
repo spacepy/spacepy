@@ -18,6 +18,11 @@ plot
  - Addition of simpleSpectrogram() in spacepy.plot.spectrogram
 plot.utils
  - Fix collapse_vertical when called with sequences other than lists
+pybats
+ - Updated docstrings across all modules.
+ - rim.py updated to be consistent with other pybats modules.
+ - many bugfixes
+ - Unified BATS-R-US calculation of number density and composition.
 pycdf
  - On OSX, search more paths for the CDF library
  - CDF.clone() now returns the new variable
