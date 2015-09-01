@@ -2002,6 +2002,8 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
 
     Interface is similar to multiprocessing.map, except it runs in threads
 
+    This is made largely obsolete in python3 by from concurrent import futures 
+    
     Examples
     ========
     find totals of several arrays
@@ -2013,6 +2015,15 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     >>> print(totals[0], totals[50], totals[99])
     (0, 50, 99)
 
+    >>> # in python3
+    >>> from concurrent import futures
+    >>> with futures.ThreadPoolExecutor(max_workers=4) as executor:
+    ...:     for ans in executor.map(numpy.sum, [0,50,99]):
+    ...:         print ans
+    #0
+    #50
+    #99
+   
     Parameters
     ==========
     target : callable
