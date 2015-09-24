@@ -15,6 +15,7 @@ empiricals
  - New function getSolarRotation, returns Carrington or Bartels number
 plot
  - Addition of dual_half_circle() to overlay a light/dark "Earth"
+ - Addition of simpleSpectrogram() in spacepy.plot.spectrogram
 plot.utils
  - Fix collapse_vertical when called with sequences other than lists
 pybats
@@ -35,10 +36,12 @@ time
  - Overall speed improvements with for loop removal 
  - ISO improvements via special cases for string input
  - Added classmethod today()
+toolbox
+ - Added function unique_columns
 python3 support
  -updates for python3 support, seems to be complete
 AE9AP9
- - added ae9ap9 module to parse and work with output files from the AE9/AP9/SPM models
+ - added ae9ap9 module to parse and work with output files from the AE9/AP9/SPM models (beta)
 
 Changes in Version 0.1.5 (2014-12-23)
 =====================================

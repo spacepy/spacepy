@@ -17,7 +17,7 @@ from the time domain to the frequency domain, and the subsequent plotting
 of some quantity (e.g., power spectral density) as a function of time and
 frequency. To approximate this functionality for, e.g., time-series magnetic field
 data you would first calculate a the power spectral density and then use
-:class:`spectrogram` to rebin the data for visualaization.
+:class:`spectrogram` to rebin the data for visualization.
 
 Authors: Brian Larsen and Steve Morley
 Institution: Los Alamos National Laboratory
@@ -34,17 +34,25 @@ Copyright 2011 Los Alamos National Security, LLC.
 """
 
 import bisect
+import copy
 import datetime
 
 import numpy as np
 import matplotlib
-from matplotlib.dates import date2num
+import matplotlib.axes
+import matplotlib.collections as mcoll
+from matplotlib.dates import date2num, num2date
 from matplotlib.colors import LogNorm
+import matplotlib.transforms as mtransforms
+import matplotlib.pyplot as plt
 
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
+import spacepy.plot.utils as spu
 
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
+
+__all__ = ['spectrogram', 'simpleSpectrogram']
 
 class spectrogram(dm.SpaceData):
     """
@@ -84,7 +92,7 @@ class spectrogram(dm.SpaceData):
         if the name "lim" is not specified in the .attrs of the dmarray variable
         this specifies the limit for the z variable [zlow, zhigh]
     extended_out : bool (optional)
-        if this is True add more information to the output data model (defualt False)
+        if this is True add more information to the output data model (default False)
 
     Notes
     =====
@@ -307,11 +315,11 @@ class spectrogram(dm.SpaceData):
 
     def add_data(self, data):
         if not self.specSettings['extended_out']:
-            raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on inital creation'))
+            raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on initial creation'))
         b = spectrogram(data, **self.specSettings)
         # if they are both masked keep them that way
         mask = self['spectrogram']['count'].mask & b['spectrogram']['count'].mask
-        # turn off the mask by setting sum and count to zero where it masked for self an be sure b mask doesnt it self
+        # turn off the mask by setting sum and count to zero where it masked for self an be sure b mask doesn't it self
         self['spectrogram']['count'][self['spectrogram']['count'].mask] = 0
         b['spectrogram']['count'][b['spectrogram']['count'].mask] = 0
         # put the mask back they are both bad
@@ -521,3 +529,122 @@ class spectrogram(dm.SpaceData):
     __repr__ = __str__
 
 
+
+
+def simpleSpectrogram(*args, **kwargs):
+    """
+    Plot a spectrogram given Z or X,Y,Z. This is a wrapper around pcolormesh()
+    that can handle Y being a 2d array of time dependent bins. Like in the
+    Van Allen Probes HOPE and MagEIS data files.
+
+    Parameters
+    ==========
+    *args : 1 or 3 arraylike
+        Call Signatures::
+
+        simpleSpectrogram(Z, **kwargs)
+        simpleSpectrogram(X, Y, Z, **kwargs)
+
+    Other Parameters
+    ================
+    zlog : bool
+        Plot the color with a log colorbar (default: True)
+    ylog : bool
+        Plot the Y axis with a log scale (default: True) 
+    alpha : scalar (0-1)
+        The alpha blending value (default: None)
+    cmap : string
+        The name of the colormap to use (default: system default)
+    vmin : float
+        Minimum color value (default: Z.min(), if log non-zero min)
+    vmax : float
+        Maximum color value (default: Z.max())
+    ax : matplotlib.axes
+        Axes to plot the spectrogram on (default: None - new axes)
+    cb : bool
+        Plot a colorbar (default: True)
+    cbtitle : string
+        Label to go on the colorbar (default: None)
+    
+    Return
+    ======
+    ax : matplotlib.axes._subplots.AxesSubplot
+        Matplotlib axes object that the plot is on
+    """
+    if len(args) not in [1,3]:
+        raise(TypeError("simpleSpectrogram, takes Z or X, Y, Z"))
+
+    if len(args) == 1: # just Z in, makeup an X and Y
+        Z = np.ma.masked_invalid(np.asarray(args[0])) # make sure not a dmarray or VarCopy
+        X = np.arange(Z.shape[0]+1)
+        Y = np.arange(Z.shape[1]+1)
+    else:
+        # we really want X and Y to be one larger than Z
+        X = np.asarray(args[0]) # make sure not a dmarray or VarCopy
+        Y = np.asarray(args[1]) # make sure not a dmarray or VarCopy
+        Z = np.ma.masked_invalid(np.asarray(args[2]))
+        if X.shape[0] == Z.shape[0]: # same length, expand X
+            X = tb.bin_center_to_edges(X) # hopefully evenly spaced
+        if len(Y.shape) == 1: # 1d, just use as axis
+            Y = tb.bin_center_to_edges(Y) # hopefully evenly spaced
+        elif len(Y.shape) == 2:
+            Y_orig = Y
+            # 2d this is time dependent and thus need to overplot several
+            Y = tb.unique_columns(Y, axis=1)
+            if Y.shape[1] == Z.shape[1]: # hopefully evenly spaced
+                Y_uniq = Y
+                Y_tmp = np.empty((Y.shape[0], Y.shape[1]+1), dtype=Y.dtype)
+                for ii in range(Y.shape[0]):
+                    Y_tmp[ii] = tb.bin_center_to_edges(Y[ii])
+                Y = Y_tmp
+                
+    # deal with all the default keywords 
+    zlog    = kwargs.pop('zlog', True)
+    ylog    = kwargs.pop('ylog', True)
+    alpha   = kwargs.pop('alpha', None)
+    cmap    = kwargs.pop('cmap', None)
+    vmin    = kwargs.pop('vmin', np.min(Z) if not zlog else np.min(Z[np.nonzero(Z)]))
+    vmax    = kwargs.pop('vmax', np.max(Z))
+    ax      = kwargs.pop('ax', None)
+    cb      = kwargs.pop('cb', True)
+    cbtitle = kwargs.pop('cbtitle', None)
+    
+    # the first case is that X, Y are 1d and Z is 2d, just make the plot
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+    else:
+        fig = ax.get_figure()
+    Z = Z.filled(0)
+    if len(Y.shape) > 1:
+        for yy in Y_uniq:
+            # which indices in X have these values
+            ind = (yy == Y_orig).all(axis=1)
+            print(Y_orig[ind][0].min(), Y_orig[ind][0].max())
+            Y_tmp = np.zeros_like(Y_orig)
+            Y_tmp[ind] = Y_orig[ind][0]
+            Z_tmp = np.zeros_like(Z)
+            Z_tmp[ind] = Z[ind]
+            pc = ax.pcolormesh(X, Y_tmp[ind][0], Z_tmp.T,
+                               norm=LogNorm(vmin=vmin, vmax=vmax), cmap=cmap,
+                               alpha=alpha)
+    else:
+        pc = ax.pcolormesh(X, Y, Z.T, norm=LogNorm(vmin=vmin, vmax=vmax),
+                           cmap=cmap,
+                           alpha=alpha)
+    if ylog: ax.set_yscale('log')
+    
+    if cb: # add a colorbar
+        cb_ = fig.colorbar(pc)
+        cb_.set_label(cbtitle)
+    return ax
+
+    
+
+    
+    
+
+
+
+
+    
