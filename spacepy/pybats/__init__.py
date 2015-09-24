@@ -120,9 +120,77 @@ from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
 
 # Some common, global functions.
+def parse_filename_time(filename, default='2000-01-01'):
+    '''
+    Given an SWMF file whose name follows the usual standards (see below), 
+    attempt to parse the file name to extract information about the iteration,
+    runtime and date/time at which the file was written.  All three are
+    returned to the caller in that order.  If any cannot be found in the 
+    file name, "None" is returned in its place.
+
+    Information on the format of time strings contained within SWMF output
+    file names can be found in the `SWMF User Manual 
+    <http://herot.engin.umich.edu/~gtoth/SWMF/doc/HTML/SWMF/node225.html>`_.
+
+    
+    Parameters
+    ==========
+    filename : string
+        An SWMF output file name.
+
+    Other Parameters
+    ================
+    None
+
+    Returns
+    =======
+    i_iter : integer or None
+        The iteration at which the file was written, if found.
+    runtime : float or None
+        The run time (in seconds) at which the file was written, if found.
+    time : datetime.datetime or None
+        Either a datetime object or *None*, depending on the success of the
+        file name parsing.
+
+    Examples
+    ========
+    >>> parse_filename_time('z=0_mhd_2_t00050000_n00249620.out')
+    ('00249620', '00050000', None)
+
+    '''
+
+    from dateutil.parser import parse
+    from datetime import timedelta
+    import re
+
+    filename = filename.split('/')[-1]
+    
+    # Look for date/time:
+    if '_e' in filename:
+        t_string = re.search('_e(\d{8}\-\d{6})', filename).groups()[-1]
+        time = parse(t_string)
+        #time += timedelta()
+    else:
+        time = None
+
+    # Look for run time:
+    if '_t' in filename:
+        runtime = re.search('_t(\d+)', filename).groups()[-1]
+    else:
+        runtime = None
+
+    # Look for file iteration:
+    if '_n' in filename:
+        i_iter = re.search('_n(\d+)', filename).groups()[-1]
+    else:
+        i_iter = None
+
+    return i_iter, runtime, time
+
+        
 def mhdname_to_tex(varname):
     '''
-    Convert common MHD variable names into LaTeX-formated strings.
+    Convert common MHD variable and unit names into LaTeX-formated strings.
     '''
 
     import re
@@ -132,6 +200,11 @@ def mhdname_to_tex(varname):
     
     if 'rho' in varname.lower():
         out = r'$\rho_{'+varname.replace('rho', '')+'}$'
+    elif varname.lower() == 'nt':
+        out = '$nT$'
+    elif varname[:2] == 'dB':
+        subscript=varname[2]+', '*(len(varname)>3)+varname[3:]
+        out = r'$\Delta B _{'+subscript+'}$'
     elif varname.lower()[-1] == 'p':
         out = '$P_{'+varname[:-1]+'}$'
     elif match_u:
@@ -192,7 +265,15 @@ def smart_timeticks(time):
 
     deltaT = time[-1] - time[0]
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
-    if nHours < 1:
+    if nHours < .5:
+        Mtick=mdt.MinuteLocator(byminute=list(range(0,60,5)) )
+        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
+        fmt = mdt.DateFormatter('%H:%M UT')
+    elif nHours < 1:
+        Mtick=mdt.MinuteLocator(byminute=[0,10, 20, 30,40, 50])
+        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
+        fmt = mdt.DateFormatter('%H:%M UT')
+    elif nHours < 2:
         Mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
         mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
         fmt = mdt.DateFormatter('%H:%M UT')
@@ -386,7 +467,7 @@ def _read_idl_ascii(pbdat, header='units'):
     file.  If set to **None** or not recognized, the header will be saved
     in the object's attribute list under 'header'.
 
-        Parameters
+    Parameters
     ==========
     pbdat : PbData object
         The object into which the data will be loaded.
@@ -412,7 +493,7 @@ def _read_idl_ascii(pbdat, header='units'):
     # Read & convert iters, runtime, etc. from next line:
     parts = infile.readline().split()
     pbdat.attrs['iter']   = int(parts[0])
-    pbdat.attrs['time']   = float(parts[1])
+    pbdat.attrs['runtime']= float(parts[1])
     pbdat.attrs['ndim']   = int(parts[2])
     pbdat.attrs['nparam'] = int(parts[3])
     pbdat.attrs['nvar']   = int(parts[4])
@@ -438,7 +519,7 @@ def _read_idl_ascii(pbdat, header='units'):
     pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
 
         # Quick ref vars:
-    time=pbdat.attrs['time']
+    time=pbdat.attrs['runtime']
     gtyp=pbdat['grid'].attrs['gtype']
     npts=pbdat['grid'].attrs['npoints']
     ndim=pbdat['grid'].size
@@ -498,7 +579,7 @@ def _read_idl_ascii(pbdat, header='units'):
     gridnames = names[:ndim]
     if gtyp == 'Irregular':
         for v in names:
-            pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid']),
+            pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'], order='F'),
                                attrs=pbdat[v].attrs)
     elif gtyp == 'Regular':
         # Put coords into vectors:
@@ -508,8 +589,8 @@ def _read_idl_ascii(pbdat, header='units'):
                 attrs=pbdat[x].attrs)
         for v in names:
             if v not in pbdat['grid'].attrs['dims']:
-                pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid']),
-                                   attrs=pbdat[v].attrs)
+                pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
+                                              order='F'), attrs=pbdat[v].attrs)
 
 def _read_idl_bin(pbdat, header='units'):
     '''
@@ -568,7 +649,7 @@ def _read_idl_bin(pbdat, header='units'):
     format = 'f'
     # parse rest of header; detect double-precision file.
     if RecLen > 20: format = 'd'
-    (pbdat.attrs['iter'], pbdat.attrs['time'],
+    (pbdat.attrs['iter'], pbdat.attrs['runtime'],
      pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
         struct.unpack(EndChar+'l%s3l' % format, infile.read(RecLen))
     # Get gridsize
@@ -593,7 +674,7 @@ def _read_idl_bin(pbdat, header='units'):
     pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
 
     # Quick ref vars:
-    time=pbdat.attrs['time']
+    time=pbdat.attrs['runtime']
     gtyp=pbdat['grid'].attrs['gtype']
     npts=pbdat['grid'].attrs['npoints']
     ndim=pbdat['grid'].size
@@ -601,16 +682,17 @@ def _read_idl_bin(pbdat, header='units'):
     npar=pbdat.attrs['nparam']
 
     # Read parameters stored in file.
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    para = np.zeros(npar)
-    para[:] = struct.unpack(EndChar+'%i%s' % (npar,format), 
-                            infile.read(RecLen))
+    para  = np.zeros(npar)
+    if npar>0:
+        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+        para[:] = struct.unpack(EndChar+'%i%s' % (npar,format), 
+                                infile.read(RecLen))
 
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     names = ( struct.unpack(EndChar+'%is' % RecLen, 
-                            infile.read(RecLen)) )[0].lower()
+                            infile.read(RecLen)) )[0]
     names.strip()
-    names = names.split()       
+    names = names.split()
 
     # Now that we know the number of variables, we can properly handle
     # the headline and units based on the kwarg *header*:
@@ -634,7 +716,8 @@ def _read_idl_bin(pbdat, header='units'):
     pbdat['grid'].attrs['dims']=names[0:ndim]
     for name, para in zip(names[(nvar+ndim):], para):
         pbdat.attrs[name]=para
-        
+            
+            
     # Create string representation of time.
     pbdat.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
         (np.floor(time/3600.), np.floor(time%3600. / 60.0),
@@ -645,15 +728,15 @@ def _read_idl_bin(pbdat, header='units'):
     prod = [1] + pbdat['grid'].cumprod().tolist()
     for i in range(0,ndim):
         # Read the data into a temporary grid.
-        tempgrid = np.array(struct.unpack(
-            EndChar+'%i%s' % (npts, format), 
-            infile.read(RecLen/ndim) ) )
+        tempgrid = np.array(struct.unpack(EndChar+'%i%s' % (npts, format), 
+                                          infile.read(RecLen/ndim) ) )
         # Unstructred grids get loaded as vectors.
         if gtyp == 'Unstructured':
             pbdat[names[i]] = dmarray(tempgrid)
         # Irregularly gridded items need multidimensional grid arrays:
         elif gtyp == 'Irregular':
-            pbdat[names[i]] = dmarray(np.reshape(tempgrid, pbdat['grid']))
+            pbdat[names[i]] = dmarray(np.reshape(tempgrid, pbdat['grid'],
+                                                 order='F'))
         # Regularly gridded ones need vector grid arrays:
         elif gtyp == 'Regular':
             pbdat[names[i]] = dmarray(np.zeros(pbdat['grid'][i]))
@@ -673,7 +756,7 @@ def _read_idl_bin(pbdat, header='units'):
         pbdat[names[i]].attrs['units']=units.pop(nSkip)
         if gtyp != 'Unstructured':
             # Put data into multidimensional arrays.
-            pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'])
+            pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'], order='F')
 
     # Unstructured data can be in any order, so let's sort it.
     if gtyp == 'Unstructured':
