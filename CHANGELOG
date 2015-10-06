@@ -23,6 +23,10 @@ pybats
  - rim.py updated to be consistent with other pybats modules.
  - many bugfixes
  - Unified BATS-R-US calculation of number density and composition.
+ - New class for magnetometer grid files: MagGridFile
+ - New function for automatic latex label creation.
+ - Updated Mag and MagFile objects for forward/backward compatablity.
+ - IdlBin class renamed IdlFile; can read binary or ascii SWMF-IDL files.
 pycdf
  - On OSX, search more paths for the CDF library
  - CDF.clone() now returns the new variable
