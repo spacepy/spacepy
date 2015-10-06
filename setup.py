@@ -64,7 +64,7 @@ deletefiles = ['toolbox.py', 'toolbox.pyc', 'LANLstar/LANLstar.py',
                'time/_dates.pyd',
                'time/time.py', 'time/time.pyc', 'time',
                'data/LANLstar/*.net',
-               'pycdf/_pycdf.*', 'toolbox/toolbox.py*']
+               'pycdf/_pycdf.*', 'toolbox/toolbox.py*', ]
 
 
 def delete_old_files(basepath):
@@ -705,7 +705,7 @@ class Distribution(_Distribution):
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
-            'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox']
+            'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox', ]
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*']
 

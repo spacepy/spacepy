@@ -91,3 +91,37 @@ def interp_2d_reg(x, y, xgrid, ygrid, val, dx=None, dy=None):
         (val[yLL+1, xLL+1] * (    xNorm) * (    yNorm) )
     
     return out
+
+def interp_bilin_scalar(x, y, z, xMin=0., yMin=0., dx=1., dy=1.):
+    '''
+    Fast, simple bilinear interpolation from 2d regular grid with starting
+    points *xMin*, *yMin* and normalized spacing *dx*, *dy* of values on grid
+    (*z*) to new location, *x*, *y*.  Used to quickly set up ghost cells for
+    advanced tracing.
+    '''
+    x = (np.asarray(x)-xMin)/dx
+    y = (np.asarray(y)-yMin)/dy
+
+    # Get indices encircling interpolation point:
+    x0 = np.floor( x )
+    x1 = x0 + 1
+    y0 = np.floor( y )
+    y1 = y0 + 1
+
+    # Bind location indices to array limits:
+    x0 = np.clip(x0, 0, z.shape[1]-2);
+    x1 = np.clip(x1, 1, z.shape[1]-1);
+    y0 = np.clip(y0, 0, z.shape[0]-2);
+    y1 = np.clip(y1, 1, z.shape[0]-1);
+
+    Q00 = z[ y0, x0 ]
+    Q10 = z[ y1, x0 ]
+    Q01 = z[ y0, x1 ]
+    Q11 = z[ y1, x1 ]
+
+    wa = (x1-x) * (y1-y)
+    wb = (x1-x) * (y-y0)
+    wc = (x-x0) * (y1-y)
+    wd = (x-x0) * (y-y0)
+
+    return wa*Q00 + wb*Q10 + wc*Q01 + wd*Q11

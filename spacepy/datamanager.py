@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-.. module:: spacepy.datamanager
-
 The datamanager classes and functions are useful for locating the correct
 data file for a particular day and manipulating data and subsets in a generic
 way.

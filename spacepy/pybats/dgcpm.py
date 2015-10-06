@@ -160,7 +160,7 @@ class PlasmaFile(PbData):
         from spacepy.pybats.batsmath import d_dx, d_dy
 
         conv = 1.0E6/6371000.0  # Unit conversion: kV -> mV, 1/Re -> 1/m.
-        x, L = np.meshgrid(np.zeros(self['n'].shape[-1]), self['L'])
+        x, L = np.meshgrid(np.zeros(self['n'].shape[-1]), np.array(self['L']))
 
         Er   = d_dy(self['pot']*conv,   self.attrs['dL'])
         Ephi = d_dx(self['pot']*conv/L, self.attrs['dLon']*np.pi/180.0)
@@ -431,6 +431,133 @@ class PlasmaFile(PbData):
 
         # Return bits to user.
         return fig, ax, cnt
+
+class MltSlice(PbData):
+    '''
+    Open and handle an MLT Slice output file.
+    '''
+
+    def __init__(self,filename,*args,**kwargs):
+        '''
+        Reads the data; sorts into arrays.
+        '''
+
+        import datetime as dt
+        from spacepy.datamodel import dmarray
+        from matplotlib.dates import date2num
+
+        super(MltSlice, self).__init__(*args, **kwargs)  # Init as PbData.
+        self.attrs['file'] = filename
+
+        f = open(filename, 'r')
+    
+        # Parse header.
+        self.attrs['mlt'] = float(f.readline().split()[-1])
+        self['L'] = dmarray(np.array(f.readline().split()[1:], dtype=float),
+                            {'units':'$R_E$'})
+
+        # Parse remainder of file.
+        lines = f.readlines()
+        self['n']    = dmarray(np.zeros([len(lines), len(self['L'])]), 
+                               {'units':'cm^{-3}'})
+        self['time'] = dmarray(np.zeros(len(lines), dtype=object))
+
+        for i,l in enumerate(lines):
+            p = l.split()
+            self['time'][i] = dt.datetime(int(p[0]), int(p[1]), int(p[2]), 
+                                          int(p[3]), int(p[4]), int(p[5]),
+                                          int(p[6])*1000)
+            self['n'][i,:] = p[7:]
+
+        # Some "hidden" variables for plotting.
+        self._dtime = date2num(self['time'])
+        self._dy = self['L'][1] - self['L'][0]
+
+    def add_lut(self, target=None, loc=111, cmap='Greens_r', zlim=[1,1000], 
+                add_cbar=True, clabel='Density $cm^{-3}$', xlabel='full', 
+                title=None, grid=True, ntick=5):
+        '''
+        Plot log(density) as a contour against L-Shell (y-axis) and
+        universal time (x-axis) using the PyBats *target* method of other
+        standard plotting methods.  Four items are returned: the Matplotlib
+        Figure, Axes, Mesh, and ColorBar objects used (if cbar is set to
+        **False**, the returned ColorBar object is simply set to **False**.)
+
+        ========== =======================================================
+        Kwarg      Description
+        ---------- -------------------------------------------------------
+        target     Select plot destination.  Defaults to new figure/axis.
+        loc        The location of any generated subplots.  Default is 111.
+        add_cbar   Toggles the automatic colorbar.  Default is**True**.
+        cmap       Selects Matplotlib color table.  Defaults to *Greens_r*.
+        zlim       Limits for z-axis.  Defaults to [0.1, 1000]
+        clabel     Sets colorbar label.  Defaults to units.
+        xlabel     Sets x-axis labels, use 'full', 'ticks', or **None**.
+        title      Sets axis title; defaults to **None**.
+        grid       Show white dotted grid?  Defaults to **True**
+        ntick      Number of attempted cbar ticks.  Defaults to 5.
+        ========== =======================================================
+        
+        '''
+        
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import LogLocator, LogFormatterMathtext
+        from matplotlib.colors import LogNorm
+        from spacepy.pybats import apply_smart_timeticks
+
+        # Set ax and fig based on given target.
+        if type(target) == plt.Figure:
+            fig = target
+            ax  = fig.add_subplot(loc)
+        elif type(target).__base__ == plt.Axes:
+            ax  = target
+            fig = ax.figure
+        else:
+            fig = plt.figure()
+            ax  = fig.add_subplot(loc)
+
+        # Enforce values to be within limits.
+        z=np.where(self['n']>zlim[0], self['n'], 1.01*zlim[0])
+        z[z>zlim[1]] = zlim[1]
+
+        # Create plot:
+        mesh = ax.pcolormesh(self._dtime, self['L'], z.transpose(), 
+                             cmap=plt.get_cmap(cmap), norm=LogNorm(),
+                             vmin=zlim[0], vmax=zlim[-1])
+
+        # Use LT ticks and markers on y-axis:
+        ax.set_ylabel('L-Shell')
+        #ax.set_yticks([6, 12, 18])
+        #ax.set_yticklabels(['Dawn', 'Noon', 'Dusk'])
+        #ax.set_ylim([4,20])
+
+        # White ticks, slightly thicker:
+        ax.tick_params(axis='both', which='both', color='w', width=1.2)
+
+        # Grid marks:
+        if grid: ax.grid(c='w')
+
+        if title: ax.set_title(title)
+        if xlabel == 'full':
+            # Both ticks and label.
+            apply_smart_timeticks(ax, self['time'], dolabel=True)
+        elif xlabel == 'ticks':
+            # Ticks, but no date label.
+            apply_smart_timeticks(ax, self['time'], dolabel=False)
+        else:
+            # A blank x-axis is often useful.
+            apply_smart_timeticks(ax, self['time'], dolabel=False)
+            ax.set_xticklabels('')
+        # Add cbar as necessary:
+        if add_cbar:
+            #lct = LogLocator
+            cbar=plt.colorbar(mesh, ax=ax, pad=0.01, shrink=0.85)#, ticks=lct)
+            cbar.set_label(clabel)
+        else:
+            cbar=None
+            
+        return fig, ax, mesh, cbar
+
 
 class Lslice(PbData):
     '''

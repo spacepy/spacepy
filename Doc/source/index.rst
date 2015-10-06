@@ -69,6 +69,7 @@ SpacePy Code
 .. toctree::
     :maxdepth: 1
 
+    ae9ap9
     coordinates
     datamanager
     datamodel
@@ -79,6 +80,7 @@ SpacePy Code
     omni
     plot
     poppy
+    pybats
     pycdf
     radbelt
     seapy

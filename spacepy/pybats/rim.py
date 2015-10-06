@@ -1,12 +1,15 @@
 #!/usr/bin/env python
-#rim.py
 '''
 Classes, functions, and methods for reading, writing, and plotting output
 from the Ridley Ionosphere Model (RIM) and the similar legacy code, 
 Ridley Serial.
 
-Copyright ©2010 Los Alamos National Security, LLC.
+Copyright 2010 Los Alamos National Security, LLC.
 '''
+
+import numpy as np
+
+from spacepy.pybats import PbData, dmarray, set_target
 
 def fix_format(filename, finalize=True):
     '''
@@ -16,6 +19,18 @@ def fix_format(filename, finalize=True):
 
     The original file will not be overwritten if kwarg *finalize* is set
     to **False**.
+
+    Parameters
+    ==========
+    filename : str
+       The file to repair.
+    
+    Other Parameters
+    ================
+    finalize : bool
+       If **True**, overwrite the original file.  If **False**, perform a dry
+       run for testing purposes.  Defaults to **True**.
+
     '''
     
     import os
@@ -69,11 +84,19 @@ def get_iono_cb(ct_name='bwr'):
     builds and returns these colorbars when called with the initials of the
     color table name as the only argument.
 
-    Example - get each colormap:
-    
-    >>>bwr_map = get_iono_cb('bwr')
-    >>>wr_map  = get_iono_cb('wr')
+    Other Parameters
+    ================
+    ct_name : str
+       Select the color table.  Can be 'bwr' for blue-white-red or 'wr' for
+       white-red.  Defaults to 'bwr'.
+
+    Examples
+    ========
+    >>> bwr_map = get_iono_cb('bwr')
+    >>> wr_map  = get_iono_cb('wr')
+
     '''
+
     from matplotlib.colors import LinearSegmentedColormap as lsc
 
     if ct_name=='bwr':
@@ -101,16 +124,28 @@ def tex_label(varname):
     string that uses MatPlotLib's MathText functionality to display the 
     proper characters.  If it is not recognized, the varname is returned.
 
-    Examples:
-    >>>tex_label('phi')
+    Parameters
+    ==========
+    varname : string
+       The variable to convert to a LaTeX label.
+
+    Examples
+    ========
+    >>>tex_label('n_phi')
     '\\Phi_{Ionosphere}'
     >>>tex_label('Not Recognized')
     'Not Recognized'
+
     '''
+
+    if varname[:2]=='n_' or varname[:2]=='s_':
+        varname=varname[2:]
+    
     known = {
         'phi': r'$\Phi_{Ionosphere}$',
         'sigmah':r'$\sigma_{Hall}$',
-        'jr':r'$J_{radial}$'
+        'jr':r'$J_{radial}$',
+        'mA/m^2':r'$mA/m^{2}$'
         }
 
 
@@ -121,49 +156,49 @@ def tex_label(varname):
 
     return label
 
-class Iono(object):
+class Iono(PbData):
     '''
     A class for handling 2D output from the Ridley Ionosphere Model.
     Instantiate an object as follows:
     
-    >>>iono = rim.Iono('filename.idl')
+    >>> iono = rim.Iono('filename.idl')
 
     ...where filename.idl is the name of a RIM 2D output file.
     '''
 
-    def __init__(self, infile):
-        self.filename=infile
+    def __init__(self, infile, *args, **kwargs):
+        super(Iono, self).__init__(*args, **kwargs)
+        self.attrs['file']=infile
         self.readascii()
 
-    def readascii(self, filename=False):
+    def readascii(self):
         '''
         Read an ascii ".idl" output file and load the contents into the object.
-        If kwarg filename is set, that file is opened.  The default action is
-        to open and read self.filename.
         '''
         
         import re
         import datetime as dt
         from numpy import zeros, reshape
 
-        if(filename):
-            self.filename = filename
         # slurp entire file.
-        infile = open(self.filename, 'r')
+        infile = open(self.attrs['file'], 'r')
         raw = infile.readlines()
         infile.close()
 
         # Parse header
         title = raw[raw.index('TITLE\n')+1]
-        self.title = title[title.index('"')+1:title.rindex('"')]
+        self.attrs['title'] = title[title.index('"')+1:title.rindex('"')]
 
         i = raw.index('NUMERICAL VALUES\n')
-        self.nvars = int(raw[i+1].split()[0])
-        self.ntheta= int(raw[i+2].split()[0])
-        self.nphi  = int(raw[i+3].split()[0])
+        self.attrs['nvars'] = int(raw[i+1].split()[0])
+        self.attrs['ntheta']= int(raw[i+2].split()[0])
+        self.attrs['nphi']  = int(raw[i+3].split()[0])
+
+        # Convenience:
+        nphi, ntheta = self.attrs['nphi'], self.attrs['ntheta']
 
         i = raw.index('TIME\n')
-        self.time = dt.datetime(
+        self.attrs['time'] = dt.datetime(
             int(raw[i+1].split()[0]),      #year
             int(raw[i+2].split()[0]),      #month
             int(raw[i+3].split()[0]),      #day
@@ -174,8 +209,8 @@ class Iono(object):
             )
 
         i = raw.index('SIMULATION\n')
-        self.iter    =   int(raw[i+1].split()[0])
-        self.simtime = float(raw[i+2].split()[0])
+        self.attrs['iter']    =   int(raw[i+1].split()[0])
+        self.attrs['simtime'] = float(raw[i+2].split()[0])
 
         i = raw.index('DIPOLE TILT\n')
         self.tilt = zeros(2)
@@ -183,64 +218,92 @@ class Iono(object):
         self.tilt[1] = float(raw[i+2].split()[0])
 
         i = raw.index('VARIABLE LIST\n')
-        self.namevar = []
-        self.units   = {}
-        for j in range(i+1,i+self.nvars+1):
+        namevar = []
+        units   = {}
+        for j in range(i+1,i+self.attrs['nvars']+1):
             match = re.match('\s*\d+\s+([\w\s\W]+)\[([\w\s\W]+)\]',raw[j])
             if match:
                 name = (match.group(1).strip()).lower()
-                self.namevar.append(name)
-                self.units[name] = match.group(2).strip()
+                namevar.append(name)
+                units[name] = match.group(2).strip()
             else:
                 raise ValueError('Could not parse %s' % raw[j])
                 
             
-        # Read all data.
-        self.north = {}
-        self.south = {}
+        ### Read all data ###
+
         # Create data arrays
-        for key in self.namevar:
-            self.north[key] = zeros(self.ntheta*self.nphi)
-            self.south[key] = zeros(self.ntheta*self.nphi)
+        nPts = self.attrs['ntheta']*self.attrs['nphi']
+        for key in namevar:
+            self['n_'+key] = dmarray(zeros(nPts), {'units':units[key]})
+            self['s_'+key] = dmarray(zeros(nPts), {'units':units[key]})
         i = raw.index('BEGIN NORTHERN HEMISPHERE\n')+1
         # Fill data arrays
-        for j, line in enumerate(raw[i:i+self.ntheta*self.nphi]):
+        for j, line in enumerate(raw[i:i+nPts]):
             parts = line.split()
-            for k in range(self.nvars):
-                self.north[self.namevar[k]][j] = float(parts[k])
+            for k in range(self.attrs['nvars']):
+                self['n_'+namevar[k]][j] = parts[k]
         i = raw.index('BEGIN SOUTHERN HEMISPHERE\n')+1
-        for j, line in enumerate(raw[i:i+self.ntheta*self.nphi]):
+        for j, line in enumerate(raw[i:i+nPts]):
             parts = line.split()
-            for k in range(self.nvars):
-                self.south[self.namevar[k]][j] = float(parts[k])
+            for k in range(self.attrs['nvars']):
+                self['s_'+namevar[k]][j] = parts[k]
 
         # Create 2-D arrays.
-        for key in self.namevar:
-            self.north[key] = reshape(self.north[key], 
-                                      (self.ntheta, self.nphi), 'F')
-            self.south[key] = reshape(self.south[key], 
-                                      (self.ntheta, self.nphi), 'F')
+        for key in namevar:
+            nkey, skey = 'n_'+key, 's_'+key
+            self[nkey] = reshape(self[nkey], (ntheta, nphi), 'F')
+            self[skey] = reshape(self[skey], (ntheta, nphi), 'F')
 
-    def add_cont(self, ax, var, n=24, maxz=False, lines=True, 
-                 cmap=False, add_cbar=False, label=None, **kwargs):
+    def add_cont(self, var, target=None, n=24, maxz=False, lines=True, 
+                 cmap=False, add_cbar=False, label=None, loc=111,
+                 xticksize=12, yticksize=12, **kwargs):
         '''
-        Create a polar contour of variable 'var' and add the resulting artist
-        to axis 'ax'.  Make sure that 'ax' is a polar axes or you'll be sorry.
+        Create a polar contour of variable *var*.  Plot will be either drawn
+        on a new matplotlib figure and axes, or you can specify a plot target
+        using the *target* kwarg.
 
-        Available kwargs:
-        n: Set number of levels.  Should be a multiple of 3 for best match
-        between filled and traced contours.  Default is 21.
+        Parameters
+        ==========
+        var : str
+           The name of the variable to plot.
 
-        lines: Add unfilled black solid/dashed contours to plot for additional
-        contrast.  Default is true.
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        cnt : matplotlib contour object
+        cb  : matplotlib colorbar object
 
-        maxz: Set the max/min value for the color bar.  Default is set by data.
-
-        cmap: Set the colormap.  Default is to autoselect using classic IE maps.
-
-        add_cbar: Add colorbar to plot.  Default is to not add one to the plot.
+        Other Parameters
+        ================
+        target : Figure or Axes
+            If None (default), a new figure is generated from scratch.
+            If a matplotlib Figure object, a new axis is created
+            to fill that figure.
+            If a matplotlib Axes object, the plot is placed
+            into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+        n : int
+            Set number of levels.  Should be a multiple of 3 for best match
+            between filled and traced contours.  Default is 21.
+        lines : bool
+            Add unfilled black solid/dashed contours to plot for additional
+            contrast.  Default is **True**.
+        maxz : real
+            Set the max/min value for the color bar.  Default is set by data.
+        cmap : str
+            Set the colormap.  Default is to autoselect using classic IE maps.
+            Can be 'bwr', 'wr', or any name of a matplotlib colar map.
+        add_cbar : bool
+            Add colorbar to plot.  Default is **False** which will
+            not add one to the plot.
 
         Extra keywords are passed to the contourf routine.
+
         '''
         # Get only what we need to decrease runtime.
         from math import pi
@@ -249,51 +312,67 @@ class Iono(object):
         from matplotlib.ticker import MaxNLocator, MultipleLocator
         from matplotlib.pyplot import clabel, colorbar
 
+        fig, ax = set_target(target, polar=True, loc=loc)
+        
+        hemi = var[:2]
+
         # Set levels and ticks:
         if label==None:
             label=tex_label(var)
         lt_labels = ['06',    label, '18',   '00']
         xticks    = [   0,   pi/2,   pi, 3*pi/2]
         lct = MultipleLocator(10)
-        minz = self.north[var].min()
+        minz = self[var].min()
         if minz < 0.0:
             if not maxz:
-                maxz = max([abs(minz),self.north[var].max()])
+                maxz = max([abs(minz),self[var].max()])
             crange = Normalize(vmin=-1.*maxz, vmax=maxz)
             levs = linspace(-1.*maxz, maxz, n)
         else:
             if not maxz:
-                maxz = self.north[var].max()
+                maxz = self[var].max()
             crange = Normalize(vmin=0., vmax=maxz)
             levs = linspace(0., maxz, n)
 
         # Get color map if not given:
         if not cmap:
-            if self.north[var].min() >= 0.0:
+            if self[var].min() >= 0.0:
                 cmap=get_iono_cb('wr')
             else:
                 cmap=get_iono_cb('bwr')
 
-        cnt1 = ax.contourf(self.north['psi']*pi/180.0+pi/2., 
-                           self.north['theta'], self.north[var], 
+        cnt1 = ax.contourf(self[hemi+'psi']*pi/180.0+pi/2., 
+                           self[hemi+'theta'], np.array(self[var]),
                            levs, norm=crange, cmap=cmap)
-        # Increase font of top label.
+        # Set xtick label size, increase font of top label.
         labels = ax.get_xticklabels()
-        labels[1].set_size('large')
+        for l in labels: l.set_size(xticksize)
+        labels[1].set_size(xticksize*1.25)
+        
         if lines:
             nk = int(round(n/3.0))
-            cnt2 = ax.contour(self.north['psi']*pi/180.0+pi/2., 
-                              self.north['theta'], self.north[var], 
+            cnt2 = ax.contour(self[hemi+'psi']*pi/180.0+pi/2., 
+                              self[hemi+'theta'], np.array(self[var]),
                               nk, colors='k')
             #clabel(cnt2,fmt='%3i',fontsize=10)
 
         if add_cbar:
             cbarticks = MaxNLocator(7)
-            cbar = colorbar(cnt1, ticks=cbarticks, shrink=0.5, pad=0.08)
-            cbar.set_label(self.units[var])
+            cbar = colorbar(cnt1, ticks=cbarticks, shrink=0.75, pad=0.08)
+            cbar.set_label(tex_label(self[var].attrs['units']))
+        else:
+            cbar=False
         ax.set_xticks(xticks)
         ax.set_xticklabels(lt_labels)
         ax.yaxis.set_major_locator(lct)
         ax.set_ylim([0,40])
 
-        return cnt1
+        # Use text function to manually add pretty ticks.
+        ax.set_yticklabels('') # old ticks off.
+        opts = {'size':yticksize, 'rotation':-45, 'ha':'center', 'va':'center'}
+        for theta in [80.,70.,60.]:
+            txt = '{:02.0f}'.format(theta)+r'$^{\circ}$'
+            ax.text(pi/4., 90.-theta, txt, color='w', weight='heavy', **opts)
+            ax.text(pi/4., 90.-theta, txt, color='k', weight='light', **opts)
+
+        return fig, ax, cnt1, cbar

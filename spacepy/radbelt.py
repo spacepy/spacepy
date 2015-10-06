@@ -107,7 +107,7 @@ class RBmodel(object):
                 self.Lmax_model = 'JKemp'
                 self.Lpp_model = 'CA1992'
                 #self.SRC_model = 'JK1'
-                #self.SRCmagn = st.Tickdelta(days=1e-1) # relative acceleration per day
+                #self.SRCmagn = datetime.timedelta(days=1e-1) # relative acceleration per day
                 self.MPloss = datetime.timedelta(minutes=0.1) # minutes time scale
                 self.PPloss = datetime.timedelta(days=10.) # days time scale
                 self.set_lgrid(NL)
@@ -395,6 +395,7 @@ class RBmodel(object):
         """
         add observations from PSD database using the ticks list
         the arguments are the following:
+
             dt = observation time delta in seconds
             Lt = observation space delta
         """

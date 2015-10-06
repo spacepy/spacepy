@@ -53,7 +53,7 @@ Peer-reviewed papers
   SpacePy - A Python-based library of tools for the space sciences, Proceedings of 
   the 9th Python in Science Conference (SciPy 2010), presented in Austin, TX, 
   June 30 - July 1, 2010
-  `pdf <http://conference.scipy.org/proceedings/scipy2010/pdfs/morley.pdf>`_.
+  `pdf <http://conference.scipy.org/proceedings/scipy2010/pdfs/morley.pdf>`__.
   `full proceedings <http://conference.scipy.org/proceedings/scipy2010/>`_
         
 Other publications and presentations
@@ -63,13 +63,13 @@ Other publications and presentations
   D. T. Welling, Y. Yu (2012), Space Science with the SpacePy Toolkit,
   Abstract IN53C-1746 presented at 2012 Fall Meeting, AGU, San Francisco,
   Calif., 3-7 Dec. (`pdf
-  <http://spacepy.lanl.gov/publications/spacepy_agu_2012.pdf>`_)
+  <http://spacepy.lanl.gov/publications/spacepy_agu_2012.pdf>`__)
 
 * The SpacePy Developer Team (2010), SpacePy - Python-Based of Tools for the Space 
   Science Community, A Tri-Fold
-  `pdf <http://spacepy.lanl.gov/publications/spacepy_trifold.pdf>`_.
+  `pdf <http://spacepy.lanl.gov/publications/spacepy_trifold.pdf>`__.
 
 * Morley, S. K., D. T. Welling, J. Koller, B. A. Larsen, M. G. Henderson (2010), 
   SpacePy - Data Analysis and Visualization Tools for the Space Sciences, 
   presented at GEM 2010 Summer Workshop, Snowmass, CO, June 20-25.
-  (`pdf <http://spacepy.lanl.gov/publications/spacepy.poster.final.pdf>`_)
+  (`pdf <http://spacepy.lanl.gov/publications/spacepy.poster.final.pdf>`__)

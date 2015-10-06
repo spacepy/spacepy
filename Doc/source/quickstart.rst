@@ -31,9 +31,6 @@ useful. The following functions are a selection of those implemented:
     * :py:func:`toolbox.binHisto`: calculate number of bins for a histogram
     * :py:func:`toolbox.medAbsDev`: find the median absolute deviation of a data series
     * :py:func:`toolbox.normalize`: normalize a data series
-    * :py:func:`toolbox.listUniq`: returns the uniq items in a list (in order)
-    * :py:func:`toolbox.leapyear`: ultra fast leap year query function
-    * :py:func:`toolbox.applySmartTimeTicks`: smartens up the time ticks on a plot
     * :py:func:`toolbox.feq`: floating point equals
 
 Import this module as::
@@ -112,13 +109,13 @@ You can find out how many leap seconds were used by issuing the command::
 >>> t.getleapsecs()
 
 
-Tickdelta Class
+Timedelta Class
 ---------------
 
-You can add/subtract time from a Ticktock class instance by creating a
-Tickdelta instance first.::
+You can add/subtract time from a Ticktock class instance by using an
+instance of :class:`datetime.timedelta`::
 
->>> dt = spt.Tickdelta(days=2.3)
+>>> dt = datetime.timedelta(days=2.3)
 
 Then you can add by e.g.::
 
@@ -578,28 +575,31 @@ from the OMNI module::
 >>> ticks = spt.tickrange(dt.datetime(2005,1,1), dt.datetime(2009,1,1), dt.timedelta(hours=1))
 >>> omni1hr = om.get_omni(ticks)
 >>> omni1hr.tree(levels=1, verbose=True)
-+
-|____ByIMF (spacepy.datamodel.dmarray (35065,))
-|____Bz1 (spacepy.datamodel.dmarray (35065,))
-|____Bz2 (spacepy.datamodel.dmarray (35065,))
-|____Bz3 (spacepy.datamodel.dmarray (35065,))
-|____Bz4 (spacepy.datamodel.dmarray (35065,))
-|____Bz5 (spacepy.datamodel.dmarray (35065,))
-|____Bz6 (spacepy.datamodel.dmarray (35065,))
-|____BzIMF (spacepy.datamodel.dmarray (35065,))
-|____DOY (spacepy.datamodel.dmarray (35065,))
-|____Dst (spacepy.datamodel.dmarray (35065,))
-|____G (spacepy.datamodel.dmarray (35065, 3))
-|____Hr (spacepy.datamodel.dmarray (35065,))
-|____Kp (spacepy.datamodel.dmarray (35065,))
-|____Pdyn (spacepy.datamodel.dmarray (35065,))
-|____Qbits (spacepy.datamodel.SpaceData [7])
-|____RDT (spacepy.datamodel.dmarray (35065,))
-|____UTC (spacepy.datamodel.dmarray (35065,))
-|____W (spacepy.datamodel.dmarray (35065, 6))
-|____Year (spacepy.datamodel.dmarray (35065,))
-|____akp3 (spacepy.datamodel.dmarray (35065,))
-|____dens (spacepy.datamodel.dmarray (35065,))
+
+::
+
+    +
+    |____ByIMF (spacepy.datamodel.dmarray (35065,))
+    |____Bz1 (spacepy.datamodel.dmarray (35065,))
+    |____Bz2 (spacepy.datamodel.dmarray (35065,))
+    |____Bz3 (spacepy.datamodel.dmarray (35065,))
+    |____Bz4 (spacepy.datamodel.dmarray (35065,))
+    |____Bz5 (spacepy.datamodel.dmarray (35065,))
+    |____Bz6 (spacepy.datamodel.dmarray (35065,))
+    |____BzIMF (spacepy.datamodel.dmarray (35065,))
+    |____DOY (spacepy.datamodel.dmarray (35065,))
+    |____Dst (spacepy.datamodel.dmarray (35065,))
+    |____G (spacepy.datamodel.dmarray (35065, 3))
+    |____Hr (spacepy.datamodel.dmarray (35065,))
+    |____Kp (spacepy.datamodel.dmarray (35065,))
+    |____Pdyn (spacepy.datamodel.dmarray (35065,))
+    |____Qbits (spacepy.datamodel.SpaceData [7])
+    |____RDT (spacepy.datamodel.dmarray (35065,))
+    |____UTC (spacepy.datamodel.dmarray (35065,))
+    |____W (spacepy.datamodel.dmarray (35065, 6))
+    |____Year (spacepy.datamodel.dmarray (35065,))
+    |____akp3 (spacepy.datamodel.dmarray (35065,))
+    |____dens (spacepy.datamodel.dmarray (35065,))
 
 and these data are used for the superposed epoch analysis.
 the temporal resolution is 1 hr and the window is +/- 3 days

@@ -8,6 +8,7 @@ For detailed, platform-specific installation instructions, see:
 .. toctree::
     :maxdepth: 1
 
+    dependencies
     install_linux
     install_mac
     install_windows

@@ -110,27 +110,27 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
 
     Parameters
     ==========
-        ticks : Ticktock class
-            containing time information
-        loci : Coords class
-            containing spatial information
-        alpha : array-like
-            containing the pitch angles
-        extMag : str
-            optional; will choose the external magnetic field model 
-            possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
-            OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-            'T05', 'ALEX']
-        options : array-like (optional)
-            length=5 : explained in Lstar
-        omnivals : dict (optional)
-            if not provided, will use lookup table 
-            (see get_Lstar documentation for further explanation)
+    ticks : Ticktock class
+        containing time information
+    loci : Coords class
+        containing spatial information
+    alpha : array-like
+        containing the pitch angles
+    extMag : str
+        optional; will choose the external magnetic field model 
+        possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
+        OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
+        'T05', 'ALEX']
+    options : array-like (optional)
+        length=5 : explained in Lstar
+    omnivals : dict (optional)
+        if not provided, will use lookup table 
+        (see get_Lstar documentation for further explanation)
 
     Returns
     =======
-        results : dictionary
-            containing keys: Blocal, Bmirr, GEOcar
+    results : dictionary
+        containing keys: Blocal, Bmirr, GEOcar
 
     Examples
     ========
@@ -138,14 +138,13 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
     >>> ib.find_Bmirror(t,y,[90,80,60,10])
     {'Blocal': array([ 0.,  0.]),
-        'Bmirr': array([ 0.,  0.]),
-        'loci': Coords( [[ NaN  NaN  NaN]
-        [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
+     'Bmirr': array([ 0.,  0.]),
+     'loci': Coords( [[ NaN  NaN  NaN]
+     [ NaN  NaN  NaN]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']}
 
     See Also
     ========
     get_Lstar, get_Bfield, find_magequator
-
     """
 
     # prepare input values for irbem call
@@ -994,8 +993,8 @@ def sph2car(SPHin):
     =======
         - results (ndarray) : values after conversion to cartesian coordinates x,y,z
         
-    Example
-    =======
+    Examples
+    ========
     >>> sph2car([1,45,45])
     array([ 0.5       ,  0.5       ,  0.70710678])
 
@@ -1032,16 +1031,16 @@ def get_sysaxes(dtype, carsph):
 
     Parameters
     ==========
-        - dtype (str) : coordinate system, possible values: GDZ, GEO, GSM, GSE, SM, 
-                GEI, MAG, SPH, RLL
-        - carsph (str) : cartesian or spherical, possible values: 'sph', 'car'
+    - dtype (str) : coordinate system, possible values: GDZ, GEO, GSM, GSE, SM, 
+            GEI, MAG, SPH, RLL
+    - carsph (str) : cartesian or spherical, possible values: 'sph', 'car'
         
     Returns
     =======
-        - sysaxes (int) : value after oner_desp library from 0-8 (or None if not available)
-        
-    Example
-    =======
+    - sysaxes (int) : value after oner_desp library from 0-8 (or None if not available)
+
+    Examples
+    ========
     >>> get_sysaxes('GSM', 'car')
     2
 
@@ -1076,8 +1075,8 @@ def get_dtype(sysaxes):
         - dtype (str) : coordinate system GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
         - carsph (str) : cartesian or spherical 'car', 'sph'
 
-    Example
-    =======
+    Examples
+    ========
     >>> get_dtype(3)
     ('GSE', 'car')
 
@@ -1113,8 +1112,8 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     =======
         - float : flux from AE8/AP8 model
         
-    Example
-    =======
+    Examples
+    ========
     >>> spacepy.irbempy.get_aep8()
 
     See Also
@@ -1212,8 +1211,8 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
             is returned if not provided, then "Blocal" at spacecraft is returned.
 
-    Example
-    =======
+    Examples
+    ========
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
     >>> spacepy.irbempy.Lstar(t,y)
@@ -1360,8 +1359,8 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
             is returned if not provided, then "Blocal" at spacecraft is returned.
 
-    Example
-    =======
+    Examples
+    ========
 
 
     Notes
@@ -1413,8 +1412,8 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
             is returned if not provided, then "Blocal" at spacecraft is returned.
 
-    Example
-    =======
+    Examples
+    ========
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
     >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
     >>> spacepy.irbempy.Lstar(t,y)
@@ -1438,10 +1437,10 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         - OPDYN   : Olson & Pfitzer dynamic [1988] (uses 5.<=dens<=50., 300.<=velo<=500., 
             -100.<=Dst<=20. - Valid for rGEO<=60. Re)
         - T96	 : Tsyganenko [1996] (uses -100.<=Dst (nT)<=20., 0.5<=Pdyn (nPa)<10., 
-            |ByIMF| (nT)<1=0., |BzIMF| (nT)<=10. - Valid for rGEO<=40. Re)
+            abs(ByIMF) (nT)<1=0., abs(BzIMF) (nT)<=10. - Valid for rGEO<=40. Re)
         - OSTA	: Ostapenko & Maltsev [1997] (uses dst,Pdyn,BzIMF, Kp)
             T01QUIET: Tsyganenko [2002a,b] (uses -50.<Dst (nT)<20., 0.5<Pdyn (nPa)<=5., 
-            |ByIMF| (nT)<=5., |BzIMF| (nT)<=5., 0.<=G1<=10., 0.<=G2<=10. - Valid for xGSM>=-15. Re)
+            abs(ByIMF) (nT)<=5., abs(BzIMF) (nT)<=5., 0.<=G1<=10., 0.<=G2<=10. - Valid for xGSM>=-15. Re)
         - T01STORM: Tsyganenko, Singer & Kasper [2003] storm  (uses Dst, Pdyn, ByIMF, BzIMF, G2, G3 - 
             there is no upper or lower limit for those inputs - Valid for xGSM>=-15. Re)
         - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF, 

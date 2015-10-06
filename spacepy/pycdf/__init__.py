@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-.. module:: spacepy.pycdf
-
 This package provides a Python interface to the Common Data Format (CDF)
 library used for many NASA missions, available at http://cdf.gsfc.nasa.gov/.
 It is targeted at Python 2.6+ and should work without change on either
@@ -37,9 +35,6 @@ the module, e.g. if the library is in ``CDF/lib`` in the user's home directory:
 If this works, make the environment setting permanent. Note that on OSX,
 using plists to set the environment may not carry over to Python terminal
 sessions; use ``.cshrc`` or ``.bashrc`` instead.
-
-.. currentmodule:: spacepy.pycdf
-
 
 Authors: Jon Niehof
 
@@ -125,8 +120,8 @@ class Library(object):
         v_tt2000_to_datetime
         v_tt2000_to_epoch
         v_tt2000_to_epoch16
-        ~Library.libpath
-        ~Library.version
+        libpath
+        version
 
     .. automethod:: call
     .. automethod:: check_status
@@ -1056,12 +1051,6 @@ class CDFException(Exception):
 
     Error messages provided by this class are looked up from the underlying
     C library.
-
-    .. comment:
-        @ivar status: CDF library status code
-        @type status: ctypes.c_long
-        @ivar string: CDF library error message for L{status}
-        @type string: string
     """
     def __init__(self, status):
         """
@@ -1212,8 +1201,6 @@ class CDF(collections.MutableMapping):
 
     Open or create a CDF file by creating an object of this class.
 
-    .. codeauthor:: Jon Niehof <jniehof@lanl.gov>
-
     Parameters
     ==========
     pathname : string
@@ -1238,7 +1225,9 @@ class CDF(collections.MutableMapping):
     Examples
     ========
     Open a CDF by creating a CDF object, e.g.:
+
         >>> cdffile = pycdf.CDF('cdf_filename.cdf')
+
     Be sure to :meth:`close` or :meth:`save` when
     done.
 
@@ -1249,50 +1238,66 @@ class CDF(collections.MutableMapping):
     CDF supports the `with
     <http://docs.python.org/tutorial/inputoutput.html#methods-of-file-objects>`_
     keyword, like other file objects, so:
+
         >>> with pycdf.CDF('cdf_filename.cdf') as cdffile:
         ...     #do brilliant things with the CDF
+
     will open the CDF, execute the indented statements, and close the CDF when
     finished or when an error occurs. The `python docs
     <http://docs.python.org/reference/compound_stmts.html#with>`_ include more
     detail on this 'context manager' ability.
 
-    CDF objects behave like a python
-    `dictionary
+    CDF objects behave like a python `dictionary
     <http://docs.python.org/tutorial/datastructures.html#dictionaries>`_,
     where the keys are names of variables in the CDF, and the values,
     :class:`Var` objects. As a dictionary, they are also `iterable
     <http://docs.python.org/tutorial/classes.html#iterators>`_ and it is easy
     to loop over all of the variables in a file. Some examples:
-      #. List the names of all variables in the open CDF ``cdffile``:
-             >>> cdffile.keys()
-         Or:
-             >>> for k in cdffile:
-             ...     print(k)
-      #. Get a :class:`Var` object corresponding to the variable
-         named ``Epoch``:
-             >>> epoch = cdffile['Epoch']
-      #. Determine if a CDF contains a variable named ``B_GSE``:
-             >>> if 'B_GSE' in cdffile:
-             ...     print('B_GSE is in the file')
-             ... else:
-             ...     print('B_GSE is not in the file')
-      #. Find how many variables are in the file:
-             >>> print(len(cdffile))
-      #. Delete the variable ``Epoch`` from the open CDF file ``cdffile``:
-            >>> del cdffile['Epoch']
-      #. Display a summary of variables and types in open CDF file ``cdffile``:
-            >>> print(cdffile)
-      #. Open the CDF named ``cdf_filename.cdf``, read *all* the data from all
-         variables into dictionary ``data``, and close it when done or if an
-         error occurs:
-             >>> with pycdf.CDF('cdf_filename.cdf') as cdffile:
-             ...     data = cdffile.copy()
+
+        #. List the names of all variables in the open CDF ``cdffile``:
+
+               >>> cdffile.keys()
+               >>> for k in cdffile: #Alternate
+               ...     print(k)
+
+        #. Get a :class:`Var` object for the variable named ``Epoch``:
+
+               >>> epoch = cdffile['Epoch']
+
+        #. Determine if a CDF contains a variable named ``B_GSE``:
+
+               >>> if 'B_GSE' in cdffile:
+               ...     print('B_GSE is in the file')
+               ... else:
+               ...     print('B_GSE is not in the file')
+
+        #. Find how many variables are in the file:
+
+               >>> print(len(cdffile))
+
+        #. Delete the variable ``Epoch`` from the open CDF file ``cdffile``:
+
+              >>> del cdffile['Epoch']
+
+        #. Display a summary of variables and types in open CDF file ``cdffile``:
+
+              >>> print(cdffile)
+
+        #. Open the CDF named ``cdf_filename.cdf``, read *all* the data from
+           all variables into dictionary ``data``, and close it when done or
+           if an error occurs:
+
+               >>> with pycdf.CDF('cdf_filename.cdf') as cdffile:
+               ...     data = cdffile.copy()
+
+
     This last example can be very inefficient as it reads the entire CDF.
     Normally it's better to treat the CDF as a dictionary and access only
     the data needed, which will be pulled transparently from disc. See
     :class:`Var` for more subtle examples.
 
     Potentially useful dictionary methods and related functions:
+
       - `in <http://docs.python.org/reference/expressions.html#in>`_
       - `keys <http://docs.python.org/tutorial/datastructures.html#dictionaries>`_
       - :py:func:`len`
@@ -1312,12 +1317,15 @@ class CDF(collections.MutableMapping):
 
     Creating a new CDF from a master (skeleton) CDF has similar syntax to
     opening one:
+
         >>> cdffile = pycdf.CDF('cdf_filename.cdf', 'master_cdf_filename.cdf')
+
     This creates and opens ``cdf_filename.cdf`` as a copy of
     ``master_cdf_filename.cdf``.
 
     Using a skeleton CDF is recommended over making a CDF entirely from
     scratch, but this is possible by specifying a blank master:
+
         >>> cdffile = pycdf.CDF('cdf_filename.cdf', '')
 
     When CDFs are created in this way, they are opened read-write, see
@@ -1326,12 +1334,15 @@ class CDF(collections.MutableMapping):
     By default, new CDFs (without a master) are created in version 2
     (backward-compatible) format. To create a version 3 CDF, use
     :meth:`Library.set_backward`:
+
         >>> pycdf.lib.set_backward(False)
         >>> cdffile = pycdf.CDF('cdf_filename.cdf', '')
 
     Add variables by direct assignment, which will automatically set type
     and dimension based on the data provided:
+
         >>> cdffile['new_variable_name'] = [1, 2, 3, 4]
+
     or, if more control is needed over the type and dimensions, use
     :py:meth:`new`.
 
@@ -1361,6 +1372,7 @@ class CDF(collections.MutableMapping):
 
        True if this CDF was created in backward-compatible mode
        (for opening with CDF library before 3.x)
+
     .. automethod:: checksum
     .. automethod:: clone
     .. automethod:: close
@@ -1373,7 +1385,6 @@ class CDF(collections.MutableMapping):
     .. automethod:: readonly
     .. automethod:: save
     .. automethod:: version
-
     """
     def __init__(self, pathname, masterpath=None):
         """Open or create a CDF file.
@@ -1943,26 +1954,31 @@ class CDF(collections.MutableMapping):
         Any given data may be representable by a range of CDF types; if
         the type is not specified, pycdf will guess which
         the CDF types which can represent this data. This breaks down to:
-          #. If input data is a numpy array, match the type of that array
-          #. Proper kind (numerical, string, time)
-          #. Proper range (stores highest and lowest number provided)
-          #. Sufficient resolution (EPOCH16 required if datetime has
-             microseconds or below.)
+
+            #. If input data is a numpy array, match the type of that array
+            #. Proper kind (numerical, string, time)
+            #. Proper range (stores highest and lowest number provided)
+            #. Sufficient resolution (EPOCH16 required if datetime has
+               microseconds or below.)
 
         If more than one value satisfies the requirements, types are returned
         in preferred order:
-          #. Type that matches precision of data first, then
-          #. integer type before float type, then
-          #. Smallest type first, then
-          #. signed type first, then
-          #. specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
+
+            #. Type that matches precision of data first, then
+            #. integer type before float type, then
+            #. Smallest type first, then
+            #. signed type first, then
+            #. specifically-named (CDF_BYTE) vs. generically named (CDF_INT1)
+
         So for example, EPOCH_16 is preferred over EPOCH if ``data`` specifies
         below the millisecond level (rule 1), but otherwise EPOCH is preferred
         (rule 2).
 
         For floats, four-byte is preferred unless eight-byte is required:
-          #. absolute values between 0 and 3e-39
-          #. absolute values greater than 1.7e38
+
+            #. absolute values between 0 and 3e-39
+            #. absolute values greater than 1.7e38
+
         This will switch to an eight-byte double in some cases where four bytes
         would be sufficient for IEEE 754 encoding, but where DEC formats would
         require eight.
@@ -2211,6 +2227,7 @@ class Var(collections.MutableSequence):
       2. Requests for multi-dimensional variables may skip the record-number
          dimension and simply specify the slice on the array itself. In that
          case, the slice of the array will be returned for all records.
+
     In the event of ambiguity (e.g., single-dimension slice on a one-dimensional
     variable), case 1 takes priority.
     Otherwise, mismatch between the number of dimensions specified in
@@ -2268,6 +2285,7 @@ class Var(collections.MutableSequence):
       3. ``Flux[..., 0:4]`` is a 100-element list (one per record),
          each element being a ten-element list (one per energy step),
          each containing fluxes for the first four pitch bins.
+
     This slicing notation is very flexible and allows reading
     specifically the desired data from the CDF.
 
@@ -2403,22 +2421,6 @@ class Var(collections.MutableSequence):
     .. automethod:: rv
     .. autoattribute:: shape
     .. automethod:: type
-..  @ivar cdf_file: the CDF file containing this variable
-    @type cdf_file: :py:class:`CDF`
-    @cvar attrs: Returns attributes for this zVariable (see L{zAttrList})
-    @type attrs: L{_AttrListGetter}
-    @ivar _name: name of this variable
-    @type _name: string
-    @ivar _type: CDF type of this variable
-    @type _type: long
-    @ivar _attrlistref: reference to the attribute list
-                        (use L{attrs} instead)
-    @type _attrlistref: weakref
-    @ivar _raw: skip all data conversions (raw access), default False
-    @ivar _raw: False
-    @raise CDFError: if CDF library reports an error
-    @raise CDFWarning: if CDF library reports a warning and interpreter
-                       is set to error on warnings.
     """
     def __init__(self, cdf_file, var_name, *args):
         """Create or locate a variable
@@ -2449,12 +2451,14 @@ class Var(collections.MutableSequence):
         """
         self.cdf_file = cdf_file
         self._name = None
-        self._type = None
-        self._raw = False
+        self._type = None #CDF type (long)
+        self._raw = False #Raw access (skip all conversions)
         if len(args) == 0:
             self._get(var_name)
         else:
             self._create(var_name, *args)
+        #Weak reference to attribute list (use attrs instead)
+        #This avoids a reference loop
         self._attrlistref = weakref.ref(zAttrList(self))
 
     def __getitem__(self, key):
@@ -3619,22 +3623,19 @@ class Attr(collections.MutableSequence):
     Multi-dimensional slicing is *not* supported; an Entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
     Example:
+
         >>> first_three = attribute[5, 0:3] #will fail
         >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
-    .. comment::
-        @ivar _cdf_file: CDF file containing this attribute
-        @type _cdf_file: :py:class:`pycdf.CDF`
-        @ivar _name: Name of the attribute
-        @type _name: bytes
-
     .. autosummary::
+
         ~Attr.has_entry
         ~Attr.max_idx
         ~Attr.new
         ~Attr.number
         ~Attr.rename
         ~Attr.type
+
     .. automethod:: has_entry
     .. automethod:: max_idx
     .. automethod:: new
@@ -4210,13 +4211,14 @@ class gAttr(Attr):
     """Global Attribute for a CDF
 
     Represents a CDF attribute, providing access to the gEntries in a format
-    that looks like a Python
-    list. General list information is available in the python docs:
+    that looks like a Python list. General list information is available in
+    the python docs:
     `1 <http://docs.python.org/tutorial/introduction.html#lists>`_,
     `2 <http://docs.python.org/tutorial/datastructures.html#more-on-lists>`_,
     `3 <http://docs.python.org/library/stdtypes.html#typesseq>`_.
 
     Normally accessed by providing a key to a :class:`gAttrList`:
+
         >>> attribute = cdffile.attrs['attribute_name']
         >>> first_gentry = attribute[0]
 
@@ -4233,6 +4235,7 @@ class gAttr(Attr):
     Multi-dimensional slicing is *not* supported; an entry with multiple
     elements will have all elements returned (and can thus be sliced itself).
     Example:
+
         >>> first_three = attribute[5, 0:3] #will fail
         >>> first_three = attribute[5][0:3] #first three elements of 5th Entry
 
@@ -4241,17 +4244,19 @@ class gAttr(Attr):
     *number* of gEntries; use :meth:`~Attr.max_idx` to find the highest defined
     gEntry number and :meth:`~Attr.has_entry` to determine if a particular
     gEntry number exists. Iterating over all entries is also supported::
+
         >>> entrylist = [entry for entry in attribute]
 
     Deleting gEntries will leave a "hole":
+
         >>> attribute[0:3] = [1, 2, 3]
         >>> del attribute[1]
         >>> attribute.has_entry(1)
-            False
+        False
         >>> attribute.has_entry(2)
-            True
+        True
         >>> print attribute[0:3]
-            [1, None, 3]
+        [1, None, 3]
 
     Multi-element slices over nonexistent gEntries will return ``None`` where
     no entry exists. Single-element indices for nonexistent gEntries will
@@ -4260,9 +4265,10 @@ class gAttr(Attr):
     When assigning to a gEntry, the type is chosen to match the data;
     subject to that constraint, it will try to match
     (in order):
-      1. existing gEntry of the same number in this gAttribute
-      2. other gEntries in this gAttribute
-      3. data-matching constraints described in :meth:`CDF.new`.
+
+        #. existing gEntry of the same number in this gAttribute
+        #. other gEntries in this gAttribute
+        #. data-matching constraints described in :meth:`CDF.new`.
 
     See Also
     ========
@@ -4304,20 +4310,6 @@ class AttrList(collections.MutableMapping):
     .. automethod:: from_dict
     .. automethod:: new
     .. automethod:: rename
-    
-    .. comment::
-        @ivar _cdf_file: CDF these attributes are in
-        @type _cdf_file: :py:class:`pycdf.CDF`
-        @ivar special_entry: callable which returns a "special"
-            entry number, used to limit results
-            for zAttrs to those which match the zVar
-        @type special_entry: callable
-        @cvar AttrType: type of attribute in this list, L{zAttr} or L{gAttr}
-        @type AttrType: type
-        @cvar attr_name: name of attribute type, 'zAttribute' or 'gAttribute'
-        @type attr_name: str
-        @cvar global_scope: is this list scoped global (True) or variable (False)
-        @type global_scope: bool
     """
 
     def __init__(self, cdf_file, special_entry=None):
@@ -4616,12 +4608,14 @@ class gAttrList(AttrList):
     """
     Object representing *all* the gAttributes in a CDF.
 
-    Normally accessed as an attribute of an open :py:class:`CDF`:
+    Normally accessed as an attribute of an open :class:`CDF`:
+
         >>> global_attribs = cdffile.attrs
 
     Appears as a dictionary: keys are attribute names; each value is an
-    attribute represented by a :py:class:`gAttr` object. To access the global
+    attribute represented by a :class:`gAttr` object. To access the global
     attribute TEXT:
+
         >>> text_attr = cdffile.attrs['TEXT']
 
     See Also
@@ -4653,7 +4647,7 @@ class zAttrList(AttrList):
     Normally accessed as an attribute of a :class:`Var` in an open
     CDF:
         
-    >>> epoch_attribs = cdffile['Epoch'].attrs
+        >>> epoch_attribs = cdffile['Epoch'].attrs
 
     Appears as a dictionary: keys are attribute names, values are
     the value of the zEntry associated with the appropriate zVariable.
@@ -4666,7 +4660,7 @@ class zAttrList(AttrList):
     Example: finding the first dependency of (ISTP-compliant) variable
     ``Flux``:
 
-    >>> print cdffile['Flux'].attrs['DEPEND_0']
+        >>> print cdffile['Flux'].attrs['DEPEND_0']
 
     zAttributes are shared among zVariables, one zEntry allowed per zVariable.
     (pyCDF hides this detail.) Deleting the last zEntry for a zAttribute will
@@ -4675,12 +4669,13 @@ class zAttrList(AttrList):
     zEntries are created and destroyed by the usual dict methods on the
     zAttrlist:
         
-    >>> epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
-    >>> del epoch_attribs['new_entry'] #delete the zEntry
+        >>> epoch_attribs['new_entry'] = [1, 2, 4] #assign a list to new zEntry
+        >>> del epoch_attribs['new_entry'] #delete the zEntry
 
     The type of the zEntry is guessed from data provided. The type is chosen to
     match the data; subject to that constraint, it will try to match
     (in order):
+
         #. existing zEntry corresponding to this zVar
         #. other zEntries in this zAttribute
         #. the type of this zVar

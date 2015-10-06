@@ -7,6 +7,7 @@ Copyright 2015 University System of New Hampshire
 """
 
 import datetime
+import itertools
 import os
 import shutil
 import tempfile
@@ -172,7 +173,7 @@ class DataManagerFunctionTests(unittest.TestCase):
         numpy.testing.assert_array_equal(df, expected_df)
 
         e = [datetime.datetime(2000, 1, 1, 0, 0, 0, i)
-             for i in range(1, 4) + range(5, 8) + range(9, 12)]
+             for i in itertools.chain(range(1, 4), range(5, 8), range(9, 12))]
         d = [1, 2, 3, 5, 6, 7, 9, 10, 11]
         ef, df = spacepy.datamanager.insert_fill(e, d, -1)
         expected_ef = [datetime.datetime(2000, 1, 1, 0, 0, 0, i)
@@ -182,7 +183,7 @@ class DataManagerFunctionTests(unittest.TestCase):
         numpy.testing.assert_array_equal(df, expected_df)
 
         e = [datetime.datetime(2000, 1, i, 0, 0, 0, 0)
-             for i in range(1, 4) + range(5, 8) + range(9, 12)]
+             for i in itertools.chain(range(1, 4), range(5, 8), range(9, 12))]
         d = [1, 2, 3, 5, 6, 7, 9, 10, 11]
         ef, df = spacepy.datamanager.insert_fill(e, d, -1)
         expected_ef = [datetime.datetime(2000, 1, i, 0, 0, 0, 0)
@@ -202,7 +203,7 @@ class DataManagerFunctionTests(unittest.TestCase):
         numpy.testing.assert_array_equal(df, expected_df)
 
         e = [datetime.datetime(2000, 1, 1, 0, i, 0, 0)
-             for i in range(1, 4) + range(5, 8) + range(9, 12)]
+             for i in itertools.chain(range(1, 4), range(5, 8), range(9, 12))]
         d = [1, 2, 3, 5, 6, 7, 9, 10, 11]
         ef, df = spacepy.datamanager.insert_fill(
             e, d, -1, absolute=datetime.timedelta(seconds=90.0))

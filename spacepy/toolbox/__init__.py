@@ -68,13 +68,49 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot',
-           'do_with_timeout', 'TimeoutError', 'timeout_check_call']
+           'do_with_timeout', 'TimeoutError', 'timeout_check_call', 'unique_columns']
 
 __contact__ = 'Brian Larsen: balarsen@lanl.gov'
 
+def unique_columns(inval, axis=0):
+    """
+    Given a multidimensional input return the unique rows or columns along the given axis.
+    Based largely on http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+    axis=0 is unique rows, axis=1 is unique columns
+
+    Parameters
+    ==========
+    inval :  array-like
+        array to find unique columns or rows of
+
+    Optional Parameters
+    ===================
+    axis : int
+        The axis to find unique over, default: 0
+
+    Returns
+    =======
+    out : array
+        N-dimensional array of the unique values along the axis
+
+    Examples
+    ========
+    """
+    # this is a nice trick taking advantage of structed arrays where each row or column
+    #   is the value, so returl unique works
+    # np.ascontiguousarray() is to be really sure it will work
+    if axis == 0:
+        val = np.ascontiguousarray(np.transpose(inval))
+    else:
+        val = np.ascontiguousarray(inval)
+    b = val.view(np.dtype((np.void, val.dtype.itemsize * val.shape[1])))
+    unique_a = np.unique(b).view(val.dtype).reshape(-1, val.shape[1])
+    return unique_a
+
+    
 def hypot(*args):
     """
-    compute the N-dimensional hypot of an iterable or mnay arguments
+    compute the N-dimensional hypot of an iterable or many arguments
 
     Parameters
     ==========
@@ -93,7 +129,9 @@ def hypot(*args):
      - if iterables are passed in they are made into numpy arrays and comptaton is done local
      - if many scalar agruments are passed in calculation is done in a loop
     For max speed:
-     - <20 elements expand them into scalars  tb.hypot(*[vals]) or tb.hypot(vals[0], vals[1]...)
+     - <20 elements expand them into scalars
+         >>> tb.hypot(*vals)
+         >>> tb.hypot(vals[0], vals[1]...) #alternate
      - >20 elements premake them into a numpy array of doubles
 
     Examples
@@ -533,7 +571,11 @@ def human_sort( l ):
     """
     convert = lambda text: int(text) if text.isdigit() else text
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
-    l.sort( key=alphanum_key )
+    alphanum_key = None
+    try:
+        l.sort( key=alphanum_key )
+    except TypeError:
+        l.sort()
     return l
 
 def feq(x, y, precision=0.0000005):
@@ -1297,7 +1339,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
 
     >>> import spacepy.toolbox as tb
     >>> tb.geomspace(0.01, ratio=10, num=5)
-     [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
+    [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
 
     See Also
     ========

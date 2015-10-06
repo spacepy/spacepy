@@ -431,7 +431,7 @@ class NoCDF(unittest.TestCase):
         self.assertTrue(cdf.lib.version[0] in (2, 3))
         self.assertTrue(cdf.lib.version[1] in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
         self.assertTrue(cdf.lib.version[2] in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
-        self.assertTrue(re.match(r'( |a|\d)?', cdf.lib.version[3]))
+        self.assertTrue(re.match(r'( |a|\d)?', str(cdf.lib.version[3])))
         if cdf.lib.version == (3, 3, 0, ' '):
             self.assertTrue(cdf.lib._del_middle_rec_bug)
         elif cdf.lib.version == (3, 3, 1, ' '):

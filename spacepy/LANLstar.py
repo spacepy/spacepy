@@ -11,17 +11,11 @@ Contact: jkoller@lanl.gov, yiqun@lanl.gov
 
 Copyright 2012 Los Alamos National Security, LLC.
 
-.. currentmodule:: spacepy.LANLstar
-
 .. autosummary::
     :toctree: autosummary
 
     LANLstar
     LANLmax
-
-.. autofunction:: LANLstar
-
-.. autofunction:: LANLmax
 """
 import os.path
 import sys

@@ -3,7 +3,7 @@
 PyBats!  An open source Python-based interface for reading, manipulating,
 and visualizing BATS-R-US and SWMF output.
 For more information on the SWMF, please visit the
-`Center for Space Environment Modeling<http://csem.engin.umich.edu>`_. 
+`Center for Space Environment Modeling <http://csem.engin.umich.edu>`_. 
 
 Introduction
 ------------
@@ -26,7 +26,7 @@ to handle SWMF *input* files, as well.
 
 The rest of the classes are organized by code, i.e. classes and functions 
 specifically relevant to BATS-R-US can be found in 
-:module:`spacepy.pybats.bats`.  Whenever a certain code included in the SWMF
+:mod:`spacepy.pybats.bats`.  Whenever a certain code included in the SWMF
 requires a independent class or a subclass from the PyBats base module, it
 will receive its own submodule.
 
@@ -52,8 +52,65 @@ are strewn about PyBats' classes.  They are always given the method prefix
 *calc_*, i.e. *calc_alfven*.  Methods called *calc_all* will search for all
 class methods with the *calc_* prefix and call them.
 
-
 Copyright ©2010 Los Alamos National Security, LLC.
+
+
+Submodules
+----------
+		
+There are submodules for most models included within the SWMF.  The classes
+and methods contained within are code-specific, yielding power and
+convenience at the cost of flexibility.  A few of the submodules are helper
+modules- they are not code specific, but rather provide functionality not
+related to an SWMF-included code.
+
+.. autosummary::
+   :template: clean_module.rst
+   :toctree: autosummary
+
+   bats
+   dgcpm
+   dipole
+   gitm
+   kyoto
+   pwom
+   ram
+   rim
+   trace2d
+   
+Top-Level Classes & Functions
+-----------------------------
+
+Top-level PyBats classes handle common-format input and output from the SWMF
+and are very flexible.  However, they do little beyond open files for the user.
+
+There are several functions found in the top-level module.  These are mostly
+convenience functions for customizing plots.
+
+.. rubric:: Classes	    
+.. autosummary::
+   :template: clean_class.rst
+   :toctree: autosummary
+
+   IdlFile
+   ImfInput
+   LogFile
+   NgdcIndex
+   PbData
+   SatOrbit
+
+.. rubric:: Functions
+.. autosummary::
+   :template: clean_function.rst
+   :toctree: autosummary
+
+   add_body
+   add_planet
+   apply_smart_timeticks
+   parse_tecvars
+   set_target
+   smart_timeticks
+
 '''
 
 __contact__ = 'Dan Welling, dwelling@umich.edu'
@@ -63,6 +120,30 @@ from spacepy.datamodel import dmarray, SpaceData
 import numpy as np
 
 # Some common, global functions.
+def mhdname_to_tex(varname):
+    '''
+    Convert common MHD variable names into LaTeX-formated strings.
+    '''
+
+    import re
+    
+    match_u = re.search('(.*)u([xyz])', varname)
+    match_b = re.match('([bj])([xyz])', varname)
+    
+    if 'rho' in varname.lower():
+        out = r'$\rho_{'+varname.replace('rho', '')+'}$'
+    elif varname.lower()[-1] == 'p':
+        out = '$P_{'+varname[:-1]+'}$'
+    elif match_u:
+        out = '$U_{'+match_u.group(2)+', '*bool(match_u.group(1)) \
+              +match_u.group(1)+'}$'
+    elif match_b:
+        out = '$'+match_b.group(1).upper()+'_{'+match_b.group(2)+'}$'
+    else:
+        out=varname
+
+    return out
+
 def parse_tecvars(line):
     '''
     Parse the VARIABLES line from a TecPlot-formatted ascii data file.  Create
@@ -131,6 +212,10 @@ def smart_timeticks(time):
         Mtick=mdt.HourLocator(byhour=[0,6,12,18])
         mtick=mdt.HourLocator(byhour=list(range(24)))
         fmt = mdt.DateFormatter('%H:%M UT')
+    elif deltaT.days < 8:
+        Mtick=mdt.DayLocator(bymonthday=list(range(32)))
+        mtick=mdt.HourLocator(byhour=list(range(0,24,2)))
+        fmt = mdt.DateFormatter('%b %d')
     elif deltaT.days < 15:
         Mtick=mdt.DayLocator(bymonthday=list(range(2,32,2)))
         mtick=mdt.HourLocator(byhour=[0,6,12,18])
@@ -177,6 +262,64 @@ def apply_smart_timeticks(ax, time, dolimit=True, dolabel=False):
         ax.set_xlabel('Time from %s' % time[0].isoformat())
     return True
 
+def set_target(target, figsize=None, loc=111, polar=False):
+    '''
+    Given a *target* on which to plot a figure, determine if that *target*
+    is **None** or a matplotlib figure or axes object.  Based on the type
+    of *target*, a figure and/or axes will be either located or generated.
+    Both the figure and axes objects are returned to the caller for further
+    manipulation.  This is used in nearly all *add_plot*-type methods.
+
+    Parameters
+    ==========
+    target : object
+        The object on which plotting will happen.
+
+    Other Parameters
+    ================
+    figsize : tuple
+        A two-item tuple/list giving the dimensions of the figure, in inches.  
+        Defaults to Matplotlib defaults.
+    loc : integer 
+        The subplot triple that specifies the location of the axes object.  
+        Defaults to 111.
+    polar : bool
+        Set the axes object to polar coodinates.  Defaults to **False**.
+    
+    Returns
+    =======
+    fig : object
+      A matplotlib figure object on which to plot.
+
+    ax : object
+      A matplotlib subplot object on which to plot.
+
+    Examples
+    ========
+    >>> import matplotlib.pyplot as plt
+    >>> from spacepy.pybats import set_target
+    >>> fig = plt.figure()
+    >>> fig, ax = set_target(target=fig, loc=211)
+
+    '''
+
+    import matplotlib.pyplot as plt
+
+    # Is target a figure?  Make a new axes.
+    if type(target) == plt.Figure:
+        fig = target
+        ax  = fig.add_subplot(loc, polar=polar)
+    # Is target an axes?  Make no new items.
+    elif issubclass(type(target), plt.Axes):
+        ax  = target
+        fig = ax.figure
+    # Is target something else?  Make new everything.
+    else:
+        fig = plt.figure(figsize=figsize)
+        ax  = fig.add_subplot(loc, polar=polar)
+
+    return fig, ax
+
 def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
     '''
     Creates a circle of ``radius=self.para['rbody']`` and returns the
@@ -206,7 +349,7 @@ def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
 def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True, 
              ang=0.0, **extra_kwargs):
     '''
-    Creates a circle of radius=self.para['rbody'] and returns the
+    Creates a circle of radius=self.attrs['rbody'] and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
     using the "ax" keyword, the patch is added to the plot.
     Default color is light grey; extra keywords are handed to the Ellipse
@@ -227,6 +370,325 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True,
 
     ax.add_artist(body)
         
+
+def _read_idl_ascii(pbdat, header='units'):
+    '''
+    Load a SWMF IDL ascii output file and load into a pre-existing PbData
+    object.  This should only be called by :class:`IdlFile`.
+
+    The input object must have the name of the file to be opened and read 
+    stored in its attributes list and named 'file'.
+
+    The kwarg *header* dictates how the header line will be handled.  In some
+    output files, the header is simply the list of units.  In others, it
+    contains other data.  If *header* is set to 'units', the header is
+    assumed to be a list of units for each variable contained within the
+    file.  If set to **None** or not recognized, the header will be saved
+    in the object's attribute list under 'header'.
+
+        Parameters
+    ==========
+    pbdat : PbData object
+        The object into which the data will be loaded.
+
+    Other Parameters
+    ================
+    header : string or **None**
+        A string indicating how the header line will be handled; see above.
+    
+    Returns
+    =======
+    True : Boolean
+        Returns True on success.
+
+    '''
+    
+    # Open the file:
+    infile = open(pbdat.attrs['file'], 'r')
+
+    # Read the top header line:
+    headline = infile.readline().strip()
+
+    # Read & convert iters, runtime, etc. from next line:
+    parts = infile.readline().split()
+    pbdat.attrs['iter']   = int(parts[0])
+    pbdat.attrs['time']   = float(parts[1])
+    pbdat.attrs['ndim']   = int(parts[2])
+    pbdat.attrs['nparam'] = int(parts[3])
+    pbdat.attrs['nvar']   = int(parts[4])
+
+    # Read & convert grid dimensions.
+    grid = [int(x) for x in infile.readline().split()]
+    pbdat['grid'] = dmarray(grid)
+
+    # Data from generalized (structured but irregular) grids can be 
+    # detected by a negative ndim value.  Unstructured grids (e.g.
+    # BATS, AMRVAC) are signified by negative ndim values AND
+    # the grid size is always [x, 1(, 1)]
+    # Here, we set the grid type attribute to either Regular, 
+    # Generalized, or Unstructured.  Let's set that here.
+    pbdat['grid'].attrs['gtype'] = 'Regular'
+    pbdat['grid'].attrs['npoints']  = abs(pbdat['grid'].prod())
+    if pbdat.attrs['ndim'] < 0: 
+        if any(pbdat['grid'][1:] > 1): 
+            pbdat['grid'].attrs['gtype'] = 'Generalized'
+        else:
+            pbdat['grid'].attrs['gtype']   = 'Unstructured'
+            pbdat['grid'].attrs['npoints'] = pbdat['grid'][0]
+    pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
+
+        # Quick ref vars:
+    time=pbdat.attrs['time']
+    gtyp=pbdat['grid'].attrs['gtype']
+    npts=pbdat['grid'].attrs['npoints']
+    ndim=pbdat['grid'].size
+    nvar=pbdat.attrs['nvar']
+    npar=pbdat.attrs['nparam']
+
+     # Read parameters stored in file.
+    para = np.zeros(npar)
+    if npar>0:
+        para[:] = infile.readline().split()
+
+    # Read variable names
+    names = infile.readline().split()
+
+    # Now that we know the number of variables, we can properly handle
+    # the headline and units based on the kwarg *header*:
+    pbdat.attrs['header']=headline
+    if header == 'units':
+        # If headline is just units:
+        units = headline.split()
+    else:
+        # If headline is NOT just units, create blank units:
+        units = [''] * (len(names)-npar)
+
+    # For some reason, there are often more units than variables
+    # in these files.  It looks as if there are more grid units
+    # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
+    # in file but only X and Y are present.)  Let's try to work
+    # around this rather egregious error.
+    nSkip=len(units)+npar-len(names)
+    if nSkip<0: nSkip=0
+          
+    # Save grid names (e.g. 'x' or 'r') and save associated params.
+    pbdat['grid'].attrs['dims']=names[0:ndim]
+    for name, para in zip(names[(nvar+ndim):], para):
+        pbdat.attrs[name]=para
+        
+    # Create string representation of time.
+    pbdat.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
+        (np.floor(time/3600.), np.floor(time%3600. / 60.0),
+         time%60.0)
+        
+    # Create containers for the rest of the data:
+    for v, u in zip(names, units[nSkip:]):
+        pbdat[v] = dmarray(np.zeros(npts), {'units':u})
+
+    # Load grid points and data:
+    for i, line in enumerate(infile.readlines()):
+        parts=line.split()
+        for j, p in enumerate(parts):
+            pbdat[names[j]][i] = p
+
+    # Close the file:
+    infile.close()
+
+    # Arrange data into multidimentional arrays if necessary.
+    gridnames = names[:ndim]
+    if gtyp == 'Irregular':
+        for v in names:
+            pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid']),
+                               attrs=pbdat[v].attrs)
+    elif gtyp == 'Regular':
+        # Put coords into vectors:
+        prod = [1]+pbdat['grid'].cumprod().tolist()
+        for i,x in enumerate(pbdat['grid'].attrs['dims']):
+            pbdat[x] = dmarray(pbdat[x][0:prod[i+1]-prod[i]+1:prod[i]],
+                attrs=pbdat[x].attrs)
+        for v in names:
+            if v not in pbdat['grid'].attrs['dims']:
+                pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid']),
+                                   attrs=pbdat[v].attrs)
+
+def _read_idl_bin(pbdat, header='units'):
+    '''
+    Load a SWMF IDL binary output file and load into a pre-existing PbData
+    object.  This should only be called by :class:`IdlFile`.
+
+    The input object must have the name of the file to be opened and read 
+    stored in its attributes list and named 'file'.
+
+    The kwarg *header* dictates how the header line will be handled.  In some
+    output files, the header is simply the list of units.  In others, it
+    contains other data.  If *header* is set to 'units', the header is
+    assumed to be a list of units for each variable contained within the
+    file.  If set to **None** or not recognized, the header will be saved
+    in the object's attribute list under 'header'.
+
+    Parameters
+    ==========
+    pbdat : PbData object
+        The object into which the data will be loaded.
+
+    Other Parameters
+    ================
+    header : string or **None**
+        A string indicating how the header line will be handled; see above.
+    
+    Returns
+    =======
+    True : Boolean
+        Returns True on success.
+
+    '''
+    import struct
+
+    # Open, read, and parse the file into numpy arrays.
+    # Note that Fortran writes integer buffers around records, so
+    # we must parse those as well.
+    infile = open(pbdat.attrs['file'], 'rb')
+    
+    # On the first try, we may fail because of wrong-endianess.
+    # If that is the case, swap that endian and try again.
+    EndChar = '<' # Endian marker (default: little.)
+    pbdat.attrs['endian']='little'
+    RecLenRaw = infile.read(4)
+    
+    RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
+    if (RecLen > 10000) or (RecLen < 0):
+        EndChar = '>'
+        pbdat.attrs['endian']='big'
+        RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
+        
+    headline = ( struct.unpack(EndChar+'%is'%RecLen,
+                             infile.read(RecLen)) )[0].strip()   
+
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    format = 'f'
+    # parse rest of header; detect double-precision file.
+    if RecLen > 20: format = 'd'
+    (pbdat.attrs['iter'], pbdat.attrs['time'],
+     pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
+        struct.unpack(EndChar+'l%s3l' % format, infile.read(RecLen))
+    # Get gridsize
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    pbdat['grid']=dmarray(struct.unpack(EndChar+'%il' % 
+                                       abs(pbdat.attrs['ndim']), 
+                                       infile.read(RecLen)))
+    # Data from generalized (structured but irregular) grids can be 
+    # detected by a negative ndim value.  Unstructured grids (e.g.
+    # BATS, AMRVAC) are signified by negative ndim values AND
+    # the grid size is always [x, 1(, 1)]
+    # Here, we set the grid type attribute to either Regular, 
+    # Generalized, or Unstructured.  Let's set that here.
+    pbdat['grid'].attrs['gtype'] = 'Regular'
+    pbdat['grid'].attrs['npoints']  = abs(pbdat['grid'].prod())
+    if pbdat.attrs['ndim'] < 0: 
+        if any(pbdat['grid'][1:] > 1): 
+            pbdat['grid'].attrs['gtype'] = 'Generalized'
+        else:
+            pbdat['grid'].attrs['gtype']   = 'Unstructured'
+            pbdat['grid'].attrs['npoints'] = pbdat['grid'][0]
+    pbdat.attrs['ndim'] = abs(pbdat.attrs['ndim'])
+
+    # Quick ref vars:
+    time=pbdat.attrs['time']
+    gtyp=pbdat['grid'].attrs['gtype']
+    npts=pbdat['grid'].attrs['npoints']
+    ndim=pbdat['grid'].size
+    nvar=pbdat.attrs['nvar']
+    npar=pbdat.attrs['nparam']
+
+    # Read parameters stored in file.
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    para = np.zeros(npar)
+    para[:] = struct.unpack(EndChar+'%i%s' % (npar,format), 
+                            infile.read(RecLen))
+
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    names = ( struct.unpack(EndChar+'%is' % RecLen, 
+                            infile.read(RecLen)) )[0].lower()
+    names.strip()
+    names = names.split()       
+
+    # Now that we know the number of variables, we can properly handle
+    # the headline and units based on the kwarg *header*:
+    pbdat.attrs['header']=headline
+    if header == 'units':
+        # If headline is just units:
+        units = headline.split()
+    else:
+        # If headline is NOT just units, create blank units:
+        units = [''] * (len(names)-npar)
+    
+    # For some reason, there are often more units than variables
+    # in these files.  It looks as if there are more grid units
+    # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
+    # in file but only X and Y are present.)  Let's try to work
+    # around this rather egregious error.
+    nSkip=len(units)+npar-len(names)
+    if nSkip<0: nSkip=0
+    
+    # Save grid names (e.g. 'x' or 'r') and save associated params.
+    pbdat['grid'].attrs['dims']=names[0:ndim]
+    for name, para in zip(names[(nvar+ndim):], para):
+        pbdat.attrs[name]=para
+        
+    # Create string representation of time.
+    pbdat.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
+        (np.floor(time/3600.), np.floor(time%3600. / 60.0),
+         time%60.0)
+
+    # Get the grid points...
+    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+    prod = [1] + pbdat['grid'].cumprod().tolist()
+    for i in range(0,ndim):
+        # Read the data into a temporary grid.
+        tempgrid = np.array(struct.unpack(
+            EndChar+'%i%s' % (npts, format), 
+            infile.read(RecLen/ndim) ) )
+        # Unstructred grids get loaded as vectors.
+        if gtyp == 'Unstructured':
+            pbdat[names[i]] = dmarray(tempgrid)
+        # Irregularly gridded items need multidimensional grid arrays:
+        elif gtyp == 'Irregular':
+            pbdat[names[i]] = dmarray(np.reshape(tempgrid, pbdat['grid']))
+        # Regularly gridded ones need vector grid arrays:
+        elif gtyp == 'Regular':
+            pbdat[names[i]] = dmarray(np.zeros(pbdat['grid'][i]))
+            for j in range(int(pbdat['grid'][i])):
+                pbdat[names[i]][j] = tempgrid[j*int(prod[i])]
+        else:
+            raise ValueError('Unknown grid type: %s'%pbdat.gridtype)
+        # Add units to grid.
+        pbdat[names[i]].attrs['units']=units.pop(nSkip)
+
+    # Get the actual data and sort.
+    for i in range(ndim,nvar+ndim):
+        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
+        pbdat[names[i]] = dmarray(
+            np.array(struct.unpack(EndChar+'%i%s' % (npts, format), 
+                                       infile.read(RecLen))) )
+        pbdat[names[i]].attrs['units']=units.pop(nSkip)
+        if gtyp != 'Unstructured':
+            # Put data into multidimensional arrays.
+            pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'])
+
+    # Unstructured data can be in any order, so let's sort it.
+    if gtyp == 'Unstructured':
+        gridtotal = np.zeros(npts)
+        offset = 0.0  # The offset ensures no repeating vals while sorting.
+        for key in pbdat['grid'].attrs['dims']:
+            gridtotal = gridtotal + offset + pbdat[key]
+            offset = offset + np.pi/2.0
+            SortIndex = np.argsort(gridtotal)
+        for key in list(pbdat.keys()):
+            if key=='grid': continue
+            pbdat[key] = pbdat[key][SortIndex]
+
+    infile.close()
+
 class PbData(SpaceData):
     '''
     The base class for all PyBats data container classes.  Inherits from
@@ -282,14 +744,14 @@ class PbData(SpaceData):
             if 'units' in self[key].attrs:
                 print(form%(key, self[key].attrs['units']))
         
-class IdlBin(PbData):
+class IdlFile(PbData):
  
     '''
-    An object class that reads/parses a binary output file from the SWMF
-    and places it into a :class:spacepy.pybats.PbData object.
+    An object class that reads/parses an IDL-formatted output file from the 
+    SWMF and places it into a :class:`spacepy.pybats.PbData` object.
 
     Usage:
-    >>>data = spacepy.pybats.IdlBin('binary_file.out')
+    >>>data = spacepy.pybats.IdlFile('binary_file.out')
 
     See :class:`spacepy.pybats.PbData` for information on how to explore
     data contained within the returned object.
@@ -308,165 +770,30 @@ class IdlBin(PbData):
     as an "unpack requires a string of argument length 'X'".
     '''
 
-    def __init__(self, filename, *args, **kwargs):
-        super(IdlBin, self).__init__(*args, **kwargs)  # Init as PbData.
-        self.attrs['file'] = filename   # Save file name.
-        self.read()   # Read binary file.
+    def __init__(self, filename,format='binary',header='units',*args,**kwargs):
+        super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
+        self.attrs['file']   = filename   # Save file name.
+        self.attrs['format'] = format     # Save file format.
+        self.read(header)   # Read file.
 
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
     
-    def read(self):
+    def read(self, header):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
         set when the object is instantiation.
         '''
-        import numpy as np
-        import struct
 
-        # Open, read, and parse the file into numpy arrays.
-        # Note that Fortran writes integer buffers around records, so
-        # we must parse those as well.
-        infile = open(self.attrs['file'], 'rb')
-
-        # On the first try, we may fail because of wrong-endianess.
-        # If that is the case, swap that endian and try again.
-        EndChar = '<' # Endian marker (default: little.)
-        self.attrs['endian']='little'
-        RecLenRaw = infile.read(4)
-
-        RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
-        if (RecLen > 10000) or (RecLen < 0):
-            EndChar = '>'
-            self.attrs['endian']='big'
-            RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
-
-        header = ( struct.unpack(EndChar+'%is'%RecLen,
-                                 infile.read(RecLen)) )[0]    
-        header.strip()
-        units = header.split()
-
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        format = 'f'
-        # parse header; detect double-precision file.
-        if RecLen > 20: format = 'd'
-        (self.attrs['iter'], self.attrs['time'],
-         self.attrs['ndim'], self.attrs['nparam'], self.attrs['nvar']) = \
-            struct.unpack(EndChar+'l%s3l' % format, infile.read(RecLen))
-        # Get gridsize
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        self['grid']=dmarray(struct.unpack(EndChar+'%il' % 
-                                           abs(self.attrs['ndim']), 
-                                           infile.read(RecLen)))
-        # Data from generalized (structured but irregular) grids can be 
-        # detected by a negative ndim value.  Unstructured grids (e.g.
-        # BATS, AMRVAC) are signified by negative ndim values AND
-        # the grid size is always [x, 1(, 1)]
-        # Here, we set the grid type attribute to either Regular, 
-        # Generalized, or Unstructured.  Let's set that here.
-        self['grid'].attrs['gtype'] = 'Regular'
-        self['grid'].attrs['npoints']  = abs(self['grid'].prod())
-        if self.attrs['ndim'] < 0: 
-            if any(self['grid'][1:] > 1): 
-                self['grid'].attrs['gtype'] = 'Generalized'
-            else:
-                self['grid'].attrs['gtype']   = 'Unstructured'
-                self['grid'].attrs['npoints'] = self['grid'][0]
-        self.attrs['ndim'] = abs(self.attrs['ndim'])
-
-        # Quick ref vars:
-        time=self.attrs['time']
-        gtyp=self['grid'].attrs['gtype']
-        npts=self['grid'].attrs['npoints']
-        ndim=self['grid'].size
-        nvar=self.attrs['nvar']
-        npar=self.attrs['nparam']
-
-        # Read parameters stored in file.
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        para = np.zeros(npar)
-        para[:] = struct.unpack(EndChar+'%i%s' % (npar,format), 
-                                      infile.read(RecLen))
-
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        names = ( struct.unpack(EndChar+'%is' % RecLen, 
-                                infile.read(RecLen)) )[0].lower()
-        names.strip()
-        names = names.split()       
-
-        # For some reason, there are often more units than variables
-        # in these files.  It looks as if there are more grid units
-        # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
-        # in file but only X and Y are present.)  Let's try to work
-        # around this rather egregious error.
-        nSkip=len(units)+npar-len(names)
-        if nSkip<0: nSkip=0
-        # Some debug crap:
-        #print "nSkip=", nSkip
-        #for n, u in zip(names, units[nSkip:]):
-        #    print n, u
-
-        # Save grid names (e.g. 'x' or 'r') and save associated params.
-        self['grid'].attrs['dims']=names[0:ndim]
-        for name, para in zip(names[(nvar+ndim):], para):
-            self.attrs[name]=para
-
-        # Create string representation of time.
-        self.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
-            (np.floor(time/3600.), np.floor(time%3600. / 60.0),
-             time%60.0)
-
-        # Get the grid points...
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        prod = [1] + self['grid'].cumprod().tolist()
-        for i in range(0,ndim):
-            tempgrid = np.array(struct.unpack(
-                    EndChar+'%i%s' % (npts, format), 
-                    infile.read(RecLen/ndim) ) )
-            # Unstructred grids get loaded as vectors.
-            if gtyp == 'Unstructured':
-                self[names[i]] = dmarray(tempgrid)
-            # Irregularly gridded items need multidimensional grid arrays:
-            elif gtyp == 'Irregular':
-                self[names[i]] = dmarray(
-                    np.reshape(tempgrid, self['grid']))
-            # Regularly gridded ones need vector grid arrays:
-            elif gtyp == 'Regular':
-                self[names[i]] = dmarray(np.zeros(self['grid'][i]))
-                for j in range(int(self['grid'][i])):
-                    self[names[i]][j] = tempgrid[j*int(prod[i])]
-            else:
-                raise ValueError('Unknown grid type: %s'%self.gridtype)
-            # Add units to grid.
-            self[names[i]].attrs['units']=units.pop(nSkip)
-
-                    
-        # Get the actual data and sort.
-        for i in range(ndim,nvar+ndim):
-            (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-            self[names[i]] = dmarray(\
-                np.array(struct.unpack(EndChar+'%i%s' % (npts, format), 
-                                       infile.read(RecLen))) )
-            self[names[i]].attrs['units']=units.pop(nSkip)
-            if gtyp != 'Unstructured':
-                # Put data into multidimensional arrays.
-                self[names[i]] = self[names[i]].reshape(self['grid'])
-
-        # Unstructured data can be in any order, so let's sort it.
-        if gtyp == 'Unstructured':
-            gridtotal = np.zeros(npts)
-            offset = 0.0  # The offset ensures no repeating vals while sorting.
-            for key in self['grid'].attrs['dims']:
-                gridtotal = gridtotal + offset + self[key]
-                offset = offset + np.pi/2.0
-                SortIndex = np.argsort(gridtotal)
-            for key in list(self.keys()):
-                if key=='grid': continue
-                self[key] = self[key][SortIndex]
-
-        infile.close()
-
+        if self.attrs['format'][:3] == 'bin':
+            _read_idl_bin(self, header=header)
+        elif self.attrs['format'][:3] == 'asc':
+            _read_idl_ascii(self, header=header)
+        else:
+            raise ValueError('Unrecognized file format: {}'.format(
+                self.attrs['format']))
+        
 class LogFile(PbData):
     ''' An object to read and handle SWMF-type logfiles.
 
@@ -551,7 +878,7 @@ class LogFile(PbData):
 
         # Parse the header.
         self.attrs['descrip'] = raw.pop(0)
-        names = (raw.pop(0)).split()
+        names = (raw.pop(0)).lower().split()
         loc={}
         # Keep track of in which column each data vector lies.
         for i, name in enumerate(names):
@@ -642,73 +969,6 @@ class LogFile(PbData):
             self['time']   =time
             self['runtime']=runtime
 
-    def add_dst_quicklook(self, target=None, loc=111, showObs=True):
-        '''
-        Create a quick-look plot of Dst (if variable present in file) 
-        and compare against observations.
-
-        Like all *add_\* * methods in Pybats, the *target* kwarg determines
-        where to place the plot.
-        If kwarg *target* is **None** (default), a new figure is 
-        generated from scratch.  If *target* is a matplotlib Figure
-        object, a new axis is created to fill that figure at subplot location
-        *loc* (defaults to 111).  If target is a matplotlib Axes object, 
-        the plot is placed into that axis at subplot location *loc*.
-
-        Observed Dst is automatically fetched from the Kyoto World Data Center
-        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
-        :class:`spacepy.pybats.kyoto.KyotoDst` object, which holds the observed
-        Dst, is stored as *self.obs_dst* for future use.
-
-        The figure and axes objects are returned to the user.
-        '''
-        
-        import matplotlib.pyplot as plt
-        
-        if 'dst' not in self:
-            return None, None
-
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(loc)
-
-        ax.plot(self['time'], self['dst'], 
-                label='BATS-R-US $D_{ST}$ (Biot-Savart)')
-        ax.hlines(0.0, self['time'][0], self['time'][-1], 
-                  'k', ':', label='_nolegend_')
-        apply_smart_timeticks(ax, self['time'])
-        ax.set_ylabel('Dst ($nT$)')
-        ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
-
-        if(showObs):
-            try:
-                import spacepy.pybats.kyoto as kt
-            except ImportError:
-                return fig, ax
-        
-            try:
-                stime = self['time'][0]; etime = self['time'][-1]
-                if not hasattr(self, 'obs_dst'):
-                    self.obs_dst = kt.fetch('dst', stime, etime)
-
-            except BaseException as args:
-                print('WARNING! Failed to fetch Kyoto Dst: '+ args)
-            else:
-                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
-                        'k--', label='Obs. Dst')
-                ax.legend(loc='best')
-                apply_smart_timeticks(ax, self['time'])
-        else:
-            ax.legend(loc='best')
-            
-
-        return fig, ax
 
 class NgdcIndex(PbData):
     '''
@@ -833,7 +1093,7 @@ class NgdcIndex(PbData):
             if self.attrs['file']!=None:
                 outfile=self.attrs['file']
             else:
-                outfile='imfinput.dat'
+                outfile='ngdc_index.dat'
 
         out = open(outfile, 'w')
         
@@ -847,11 +1107,7 @@ class NgdcIndex(PbData):
             out.write('#>\n')
             out.write('#%s: %s\n' % ('Element', k))
             for a in self[k].attrs:
-            #for a in ['Table','Description','Measure units','Origin']:
                 out.write('#%s: %s\n' % (a, self[k].attrs[a]))
-            #out.write(2*'#\n')
-            #for a in ['Sampling', 'Missing value']:
-            #    out.write('#%s: %s\n' % (a, self[k].attrs[a]))
             out.write('#>\n#yyyy-MM-dd HH:mm value qualifier description\n')
             for i in range(len(self[k][0,:])):
                 t = self[k][0,i]; d = self[k][1,i]
@@ -881,12 +1137,13 @@ class ImfInput(PbData):
     formatted input file.  See the documentation for the write method for 
     more details.
 
-    Like most :module:`pybats` objects, you may interact with :class:`ImfInput`
-    objects as if they were specialized dictionaries.  Access data like so:
+    Like most :mod:`~spacepy.pybats` objects, you may interact with
+    :class:`ImfInput` objects as if they were specialized dictionaries.
+    Access data like so:
     
     >>> obj.keys()
-    ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'dens', 'temp']
-    >>> density=obj['dens']
+    ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'rho', 'temp']
+    >>> density=obj['rho']
 
     Adding new data entries is equally simple so long as you have the values
     and the name for the values::
@@ -909,7 +1166,7 @@ class ImfInput(PbData):
 
         # Initialize data object and required attributes.
         super(ImfInput, self).__init__(*args, **kwargs)
-        self.attrs['var']= ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'dens', 'temp']
+        self.attrs['var']= ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 'temp']
         self.attrs['std_var']=True
         self.attrs['coor']='GSM'
         self.attrs['satxyz']=[None, None, None]
@@ -919,9 +1176,6 @@ class ImfInput(PbData):
         self.attrs['plane']=[None, None]
         self.attrs['header']=[]
         self['time']=dmarray(zeros(npoints, dtype=object))
-        units   = ['nT', 'nT', 'nT', 'km/s', 'km/s', 'km/s', 'cm^-3', 'K']
-        for i, key in enumerate(self.attrs['var']):
-            self[key]=dmarray(zeros(npoints), attrs={'units':units[i]})
             
         # Set Filename.
         if filename:
@@ -932,7 +1186,22 @@ class ImfInput(PbData):
         # Load/create data vectors.
         if filename and load:  # Load contents from existing file.
             self.read(filename)
-            self.calc_pram()
+        else:
+            units   = ['nT', 'nT', 'nT', 'km/s', 'km/s', 'km/s', 'cm^-3', 'K']
+            for i, key in enumerate(self.attrs['var']):
+                self[key]=dmarray(zeros(npoints), attrs={'units':units[i]})
+
+        # Determine the density variable, which can either be "n" or "rho".
+        if "n" in self.attrs['var']:
+            self._denvar="n"
+        elif "rho" in self.attrs['var']:
+            self._denvar="rho"
+        else:
+            raise ValueError('Could not find density variable in file.')
+        
+            
+        self.calc_pram()
+
 
     def calc_pram(self):
         '''
@@ -940,9 +1209,60 @@ class ImfInput(PbData):
         If object was instantiated via an existing imf file, this value
         is calculated automatically.
         '''
-        self['pram']=dmarray(self['vx']**2.*self['dens']*1.67621E-6, 
-                             {'units':'nPa'})
+        n = self._denvar
 
+        self['pram']=dmarray(self['ux']**2.*self[n]*1.67621E-6,{'units':'nPa'})
+
+
+    def calc_u(self):
+        '''
+        Calculate the magnitude of the total solar wind bulk velocity.  Store
+        internally as self['u'].
+        '''
+
+        self['u'] = dmarray( np.sqrt(self['ux']**2+self['uy']**2+self['uz']**2),
+                             {'units':'km/s'} )
+
+        return True
+
+    def calc_b(self):
+        '''
+        Calculate the magnitude of the IMF in nT.  Store as self['b'].
+        '''
+        
+        self['b'] = dmarray( np.sqrt(self['bx']**2+self['by']**2+self['bz']**2),
+                             {'units':'nT'} )
+        
+        return True
+
+    def calc_alf(self):
+        '''
+        Calculate the solar wind Alfven speed in $km/s$.  Result is stored
+        internally as self['vAlf']
+        '''
+
+        if 'b'    not in self: self.calc_b()
+
+        # Const: nT->T, m->km, mu_0, proton mass, cm-3->m-3.
+        const = 1E-12/np.sqrt(4.*np.pi*10**-7*1.67E-27*100**3)
+        
+        self['vAlf']=dmarray(const*self['b']/np.sqrt(self['rho']),
+                            {'units':'km/s'})
+
+        return True
+        
+    def calc_alfmach(self):
+        '''
+        Calculate the Alvenic Mach number and save as self['machA'].
+        Units default to $km/s$.
+        '''
+
+        if 'vAlf' not in self: self.calc_alf()
+        if 'u'    not in self: self.calc_u()
+        self['machA']=dmarray(self['u']/self['vAlf'], {'units':None})
+
+        return True
+        
     def varcheck(self):
         '''
         Ensure that the variable list, which gives the order of the
@@ -957,8 +1277,8 @@ class ImfInput(PbData):
         key.remove('time')
 
         # Number of variables check:
-        if len(var) != len(key):
-            print('Number of listed variables is incorrect:')
+        if len(var) > len(key):
+            print('Not enough variables in IMF object:')
             print('\t%i listed, %i actual.\n' % (len(var),len(key)))
             return False
         # Each variable corresponds to only one in the dict 
@@ -1001,7 +1321,7 @@ class ImfInput(PbData):
             if param=='': continue
             if param[0] != '#': continue
             # For all possible Params, set object attributes/info.
-            if param == '#COOR':
+            if param[:5] == '#COOR':
                 self.attrs['coor']=lines.pop(0)[0:3]
             elif param == '#REREAD':
                 self.attrs['reread']=True
@@ -1169,11 +1489,11 @@ class ImfInput(PbData):
         adjust_plots(a3, 'IMF $B_{Z}$ ($nT$)')
 
         a4 = fig.add_subplot(514)
-        a4.plot(self['time'], self['dens'], lw=1.25, c='red')
+        a4.plot(self['time'], self[self._denvar], lw=1.25, c='red')
         adjust_plots(a4, 'Density ($cm^{-3}$)', Zero=False)
 
         a5 = fig.add_subplot(515)
-        a5.plot(self['time'], -1.0*self['vx'], lw=1.25, c='green')
+        a5.plot(self['time'], -1.0*self['ux'], lw=1.25, c='green')
         adjust_plots(a5, '$V_{X}$ ($km/s$)', Zero=False, xlab=True)
 
         return fig
@@ -1196,6 +1516,7 @@ class SatOrbit(PbData):
 
 
     The object should always have the following two data keys:
+
     ============ ==============================================================
     Key          Description
     ============ ==============================================================

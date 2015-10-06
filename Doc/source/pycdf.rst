@@ -4,7 +4,6 @@ pycdf - Python interface to CDF files
 ######################################
 
 .. automodule:: spacepy.pycdf
-.. currentmodule:: spacepy.pycdf
 
 
 Contents
@@ -234,7 +233,7 @@ Access to CDF constants and the C library
 Constants defined in cdf.h and occasionally useful in accessing CDFs are
 available in the :mod:`~spacepy.pycdf.const` module.
 
-The underlying C library is represented by the :data:`~spacepy.pycdf.lib`
+The underlying C library is represented by the :attr:`~spacepy.pycdf.lib`
 variable.
 
 Class reference
@@ -259,3 +258,18 @@ Class reference
     CDFException
     CDFWarning
     EpochError
+
+.. attribute:: lib
+
+    Module global :class:`Library` object.
+
+    Initalized at :mod:`~spacepy.pycdf` load time so all classes have ready
+    access to the CDF library and a common state. E.g:
+
+    >>> from spacepy import pycdf
+    >>> pycdf.lib.version
+        (3, 3, 0, ' ')
+
+.. attribute:: const
+
+.. automodule:: spacepy.pycdf.const

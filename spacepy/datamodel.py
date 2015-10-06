@@ -63,23 +63,26 @@ Each variable will have one attribute (for this example).
 
 This has now populated a structure that can map directly to a NASA CDF, HDF5 or JSON-headed ASCII file.
 To visualize our datamodel, we can use tree method (which can be applied to any dictionary-like object
-using the :py:func:`toolbox.dictree` function).
+using :func:`~spacepy.toolbox.dictree`).
 
 >>> mydata.tree(attrs=True)
-+
-:|____MissionName
-:|____PI
-|____Counts
-     :|____Units
-|____Epoch
-     :|____units
-|____OrbitNumber
-     :|____StartsFrom
+
+::
+
+    +
+    :|____MissionName
+    :|____PI
+    |____Counts
+         :|____Units
+    |____Epoch
+         :|____units
+    |____OrbitNumber
+         :|____StartsFrom
 
 
 Guide for NASA CDF users
 ------------------------
-By definition, a NASA CDF only has a single `layer'. That is, a CDF contains a series of records
+By definition, a NASA CDF only has a single 'layer'. That is, a CDF contains a series of records
 (stored variables of various types) and a set of attributes that are either global or local in
 scope. Thus to use SpacePy's datamodel to capture the functionality of CDF the two basic data types
 are all that is required, and the main constraint is that datamodel.SpaceData objects cannot be
@@ -808,7 +811,7 @@ def toCDF(fname, SDobject, **kwargs):
             for akey in SDobject.attrs:
                 outdata.attrs[akey] = dmcopy(SDobject.attrs[akey])
         varLengths = [len(SDobject[var]) for var in SDobject]
-        modeLength = itertools.groupby((reversed(sorted(varLengths)))).next()[0]
+        modeLength = next(itertools.groupby((reversed(sorted(varLengths)))))[0]
         for key in SDobject:
             if isinstance(SDobject[key], dict):
                 raise TypeError('This data structure appears to be nested, please try spacepy.datamodel.flatten')
@@ -882,11 +885,13 @@ def fromHDF5(fname, **kwargs):
 
     Notes
     -----
-    Known issues -- zero-sized datasets will break in h5py
-        This is kluged by returning a dmarray containing a None
+    Zero-sized datasets will break in h5py. This is kluged by returning a
+    dmarray containing a None.
+
     This function is expected to work with any HDF5-compliant files, including
-    netCDF4 (not netCDF3) and MatLab save files from v7.3 or later, but some datatypes
-    are not supported, e.g., non-string vlen datatypes, and will raise a warning.
+    netCDF4 (not netCDF3) and MatLab save files from v7.3 or later, but some
+    datatypes are not supported, e.g., non-string vlen datatypes, and will
+    raise a warning.
     '''
     def hdfcarryattrs(SDobject, hfile, path):
         if hasattr(hfile[path],'attrs'):

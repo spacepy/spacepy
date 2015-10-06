@@ -8,6 +8,10 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 import datetime
 import itertools
+try:
+    from itertools import izip as zip
+except ImportError:
+    pass  # just use system zip. In python3 itertools.izip is just python zip
 import unittest
 import pickle
 import time
@@ -52,6 +56,7 @@ class TimeFunctionTests(unittest.TestCase):
                                  ([ans2[0].month], [ans2[0].day]))
             except TypeError:
                 self.assertEqual(real_ans[i], (ans2.month , ans2.day))
+        self.assertRaises(ValueError, t.doy2date, (2000, 2000, 2000), (5,4) )
 
     def test_doy2datefail(self):
         '''doy2date should fail for bad input'''
@@ -196,6 +201,8 @@ class TimeFunctionTests(unittest.TestCase):
         ans.sort()
         numpy.random.seed(8675309)
         numpy.testing.assert_array_equal(ans, t.randomDate(dt1, dt2, 5, sorted=True))
+        numpy.random.seed(8675309)
+        numpy.testing.assert_array_equal(ans, t.randomDate(dt1, dt2, 5, sorted=True, tzinfo='MDT'))
 
     def test_extract_YYYYMMDD(self):
         """extract_YYYYMMDD() should give known results"""
@@ -209,7 +216,7 @@ class TimeFunctionTests(unittest.TestCase):
                datetime.datetime(2015, 2, 4),
                datetime.datetime(2015, 2, 2),
                None]
-        for tst, ans in itertools.izip(filenames, ans):
+        for tst, ans in zip(filenames, ans):
             self.assertEqual(ans, t.extract_YYYYMMDD(tst))
 
     def test_valid_YYYYMMDD(self):
@@ -220,7 +227,7 @@ class TimeFunctionTests(unittest.TestCase):
                      '20150202_firebird-2-fu3_T89D_MagEphem.h5',
                      'I_am_a_file_with_no_date.h5']
         ans = [True, True, True, True, False]
-        for tst, ans in itertools.izip(filenames, ans):
+        for tst, ans in zip(filenames, ans):
             self.assertEqual(ans, t.valid_YYYYMMDD(tst))
 
 
@@ -249,11 +256,26 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual(28, (n1-n2)[0].days)
         self.assertEqual(40991, (n1-n2)[0].seconds)
 
+    def test_subRaises(self):
+        """subtracting ticktocks can raise"""
+        n1 = t.Ticktock(['2002-03-01T11:23:11',
+                        '2002-03-01T12:23:11',
+                        '2002-03-01T13:23:11'], 'ISO')
+        n2 = t.Ticktock(['2002-03-01T11:23:11',
+                         '2002-03-01T12:23:11'], 'ISO')
+        self.assertRaises(ValueError, n1.__sub__, n2)
+    
+
     def test_subtimedeltalist(self):
         """a ticktock minus a list of timedeltas is a ticktock"""
         n1 = t.Ticktock(['2002-03-01T11:23:11', '2002-03-01T11:23:12'])
         diff = datetime.timedelta(hours=11, minutes=23)
         de = [diff, diff]
+        res = t.Ticktock(['2002-03-01T00:00:11', '2002-03-01T00:00:12'])
+        numpy.testing.assert_equal(res.UTC, (n1-de).UTC)
+        n1 = t.Ticktock(['2002-03-01T11:23:11', '2002-03-01T11:23:12'])
+        diff = datetime.timedelta(hours=11, minutes=23)
+        de = diff
         res = t.Ticktock(['2002-03-01T00:00:11', '2002-03-01T00:00:12'])
         numpy.testing.assert_equal(res.UTC, (n1-de).UTC)
 
@@ -358,15 +380,41 @@ class TimeClassTests(unittest.TestCase):
         t1.sort()
         expected = ['2001-12-12T00:00:00', '2002-01-01T00:00:00', '2002-01-02T00:00:00']
         numpy.testing.assert_equal(t1.ISO, expected)
+        t1 = t.Ticktock(['2002-01-01', '2002-01-01', '2001-12-12']) # argsort is stable by defualt
+        numpy.testing.assert_equal(t1.argsort(), [2, 0, 1])
 
-    def test_isoformat(self):
-        """can change the iso format"""
+    def test_isoformat1(self):
+        """can change the iso format '%Y-%m-%dT%H:%M:%S'"""
+        t1 = t.Ticktock(['2002-01-01T01:02:12', '2002-01-02T02:04:12', '2001-12-12T23:56:23'])
+        t1.isoformat('microseconds')
+        expected = ['2002-01-01T01:02:12.000000', '2002-01-02T02:04:12.000000', '2001-12-12T23:56:23.000000']
+        numpy.testing.assert_equal(t1.ISO, expected)
+        self.assertRaises(ValueError, t1.isoformat, 'badval')
+
+    def test_isoformat2(self):
+        """can change the iso format '%Y-%m-%dT%H:%M:%SZ'"""
+        t1 = t.Ticktock(['2002-01-01T01:02:12Z', '2002-01-02T02:04:12Z', '2001-12-12T23:56:23Z'])
+        t1.isoformat('microseconds')
+        expected = ['2002-01-01T01:02:12.000000', '2002-01-02T02:04:12.000000', '2001-12-12T23:56:23.000000']
+        numpy.testing.assert_equal(t1.ISO, expected)
+        self.assertRaises(ValueError, t1.isoformat, 'badval')
+
+    def test_isoformat3(self):
+        """can change the iso format '%Y-%m-%d'"""
         t1 = t.Ticktock(['2002-01-01', '2002-01-02', '2001-12-12'])
         t1.isoformat('microseconds')
         expected = ['2002-01-01T00:00:00.000000', '2002-01-02T00:00:00.000000', '2001-12-12T00:00:00.000000']
         numpy.testing.assert_equal(t1.ISO, expected)
         self.assertRaises(ValueError, t1.isoformat, 'badval')
 
+    def test_isoformat3(self):
+        """can change the iso format other"""
+        t1 = t.Ticktock(['2002-01-01T12', '2002-01-02T23', '2001-12-12T13'])
+        t1.isoformat('microseconds')
+        expected = ['2002-01-01T12:00:00.000000', '2002-01-02T23:00:00.000000', '2001-12-12T13:00:00.000000']
+        numpy.testing.assert_equal(t1.ISO, expected)
+        self.assertRaises(ValueError, t1.isoformat, 'badval')       
+        
     def test_DOY(self):
         """DOY conversion should work"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
@@ -435,6 +483,14 @@ class TimeClassTests(unittest.TestCase):
         v2 = t.Ticktock.now()
         self.assertTrue(v1 < v2)
 
+    def test_today(self):
+        """today() has 0 time"""
+        v1 = t.Ticktock.today()
+        self.assertEqual(v1.UTC[0].hour, 0)
+        self.assertEqual(v1.UTC[0].minute, 0)
+        self.assertEqual(v1.UTC[0].second, 0)
+        self.assertEqual(v1.UTC[0].microsecond, 0)
+        
     def test_UTCGPS(self):
         """testing get UTC from GPS"""
         t1 = t.Ticktock([  6.93882013e+08,   6.93964813e+08], 'GPS')
@@ -488,6 +544,13 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_equal(ans, t1.getleapsecs())
         self.assertEqual(29, t.Ticktock(datetime.datetime(1995, 3, 22, 4, 18, 14, 350699)).getleapsecs())
         
+    def test_callable_input(self):
+        """can pass in a callable to convert to datetime"""
+        times = ['2002-01-01T01:00:00', '2002-01-02T02:03:04']
+        tt = t.Ticktock(times, dtype=lambda x:datetime.datetime.strptime(x, '%Y-%m-%dT%H:%M:%S') )
+        ans = [datetime.datetime(2002, 1, 1, 1, 0, 0), datetime.datetime(2002, 1, 2, 2, 3, 4)]
+        numpy.testing.assert_equal(ans, tt.UTC)
+
 
 if __name__ == "__main__":
     unittest.main()

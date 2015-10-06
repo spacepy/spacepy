@@ -8,16 +8,17 @@ import datetime as dt
 import numpy as np
 from scipy.io import netcdf
 
-from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray
+from spacepy.pybats    import (PbData, smart_timeticks,
+                               apply_smart_timeticks, set_target)
 
 ############################################################################
 #  A few useful functions:
 def gen_rgrid(nR=20, rmin=1.75, rmax=6.5):
     '''
-    Given the number of radial points, nR, the min and max of the radial
-    extent, rmin and rmax, repsectively, create and return the radial grid
-    as a vector of points in Earth radii.
+    Given the number of radial points, *nR*, the min and max of the radial
+    extent, *rmin* and *rmax*, repsectively, create and return the radial grid
+    of RAM-SCB as a vector of points in Earth radii.
 
     Note that the first and last cells are ghost cells.
     '''
@@ -29,8 +30,9 @@ def gen_rgrid(nR=20, rmin=1.75, rmax=6.5):
 
 def gen_tgrid(nT=25):
     '''
-    Given the number of local time grid points, return, as vectors, the grid
-    points in local time in units of radians and then local time hours.
+    Given the number of local time grid points, *nT*, return, as vectors, 
+    the grid points in local time in units of radians and then local time hours
+    that would be used in RAM-SCB.
     '''
     lt=np.zeros(nT); dT=24.0/(nT-1)
     phi=np.zeros(nT);dp=np.pi/(nT-1) * 2.0
@@ -41,18 +43,26 @@ def gen_tgrid(nT=25):
 
 def gen_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
     '''
-    Given number of points and a lower boundary (lb), build the RAM-SCB 
-    energy grid.  Three arrays are returned: ebound(nE+1), the boundary
+    Given number of points and a lower boundary (*nE* and *lb*), build the 
+    RAM-SCB energy grid.  Three arrays are returned: ebound(nE+1), the boundary
     of each bin, ecenter(nE), the center of each bin, and ewidth(nE),
-    the width of each bin.  All output units are in KeV.
+    the width of each bin.  All output units are in keV.
 
-    Grid parameters can be set with kwargs but default to common RAM values.
-    lb = lower boundary
-    ew = first energy bin width
-    power = power series exponent to determine grid spacing.
+    Grid parameters can be set with kwargs but default to common RAM values:
+    ======= =========================================
+    Kwarg   Description
+    ======= =========================================
+    nE      Number of grid points.
+    lb      Lower boundary of energy grid in keV
+    ew      Width of first energy bin.
+    power   Power series exponent to determine grid spacing.
+    ======= =========================================
 
-    Usage: 
-    (ecentr, ebound, ewidth)=gen_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27)
+
+    Usage:
+
+    >>> (ecentr, ebound, ewidth)=gen_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27)
+
     '''
     
     ebound = np.zeros(nE+1)
@@ -72,14 +82,17 @@ def gen_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
 
 def young_comp(kp, f107):
     '''
-    FracH, FracHe, FracO = young_comp(kp, f107)
-
     Determine plasma sheet composition using the Young et al. empirical 
-    relationship based on Kp and F10.7.
-    Young et al. (JGR, 1982, Vol. 87 No. A11)
+    relationship based on Kp and F10.7 (first and second arguments, 
+    respectively) as give by *Young et al.* [JGR, 1982, Vol. 87 No. A11]
 
     Returns fraction of total number density that is Hydrogen, 
     Helium, and Oxygen.
+
+    Example usage:
+
+    >>> FracH, FracHe, FracO = young_comp(5, 150.0)
+
     '''
     from numpy import exp
 
@@ -94,7 +107,7 @@ def young_comp(kp, f107):
 def viz_young_comp():
     '''
     Create a quick-look plot of % O+ as calculated by Young et al. for
-    various values of Kp and F10.7.
+    various values of Kp and F10.7.  No input arguments are taken.
     '''
     import matplotlib.pyplot as plt
     from matplotlib.ticker import MultipleLocator
@@ -129,8 +142,8 @@ def viz_young_comp():
 
 def viz_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
     '''
-    Vizualize the energy grid.  All kwargs correspond to those used by 
-    gen_egrid.
+    Vizualize the RAM-SCB energy grid.  All kwargs correspond to those used by 
+    :func:`gen_egrid`.
     '''
 
     import matplotlib.pyplot as plt
@@ -155,8 +168,8 @@ def viz_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
 
 def gen_pgrid(nPa=72):
     '''
-    Given number of points, build the RAM-SCB pitch angle grid.
-    The return value is a nPax3 matrix containing the bin starts, centers,
+    Given number of points, *nPa*, build the RAM-SCB pitch angle grid.
+    The return value is a *nPa*x3 matrix containing the bin starts, centers,
     and ends in cosine of pitch angle.
     '''
     
@@ -164,12 +177,12 @@ def gen_pgrid(nPa=72):
 
 def read_t89file(filename):
     '''
-    For some plots, we want T89 comparisons.  For now, we don't have that
-    capability in Python (at least in a straight-forward manner.)  Hence,
-    we've written some T89 files that need to be read on demand.
+    Read a T89 input file intended for RAM-SCB.
 
     Usage:
-    time, b_dip, b_ext = read_t89file('somefile.t89')
+
+    >>> time, b_dip, b_ext = read_t89file('somefile.t89')
+
     '''
 
     infile = open(filename, 'r')
@@ -222,84 +235,6 @@ def set_orb_ticks(axis):
     axis.yaxis.set_minor_locator(ymticks)
     axis.grid(True)#, ls='k:')
 
-def smart_timeticks(time):
-    '''
-    Given a list or array of time values, create intelligent timeticks based
-    on the max and min of the input.
-    Return three items: major tick locator, minor tick locator, and a 
-    format string.
-
-    Example:
-    >>>Mtick, mtick, fmt = smart_timeticks([time1, time2])
-    '''
-    
-    import matplotlib.dates as mdt
-
-    deltaT = time[-1] - time[0]
-    nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
-    if nHours < 1:
-        Mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
-        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 4:
-        Mtick=mdt.MinuteLocator(byminute=[0,30])
-        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=10)
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 12:
-        Mtick=mdt.HourLocator(byhour=list(range(24)), interval=2)
-        mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 24:
-        Mtick=mdt.HourLocator(byhour=[0,3,6,9,12,15,18,21])
-        mtick=mdt.HourLocator(byhour=list(range(24)))
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 48:
-        Mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        mtick=mdt.HourLocator(byhour=list(range(24)))
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif deltaT.days < 15:
-        Mtick=mdt.DayLocator(bymonthday=list(range(1,32)))
-        mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        fmt = mdt.DateFormatter('%b %d')
-    elif deltaT.days < 32:
-        Mtick=mdt.DayLocator(bymonthday=list(range(5,35,5)))
-        mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        fmt = mdt.DateFormatter('%b %d')
-    elif deltaT.days < 60:
-        Mtick=mdt.MonthLocator()
-        mtick=mdt.DayLocator(bymonthday=list(range(5,35,5)))
-        fmt = mdt.DateFormatter('%b %d')
-    elif deltaT.days < 731:
-        Mtick=mdt.MonthLocator()
-        mtick=mdt.DayLocator(bymonthday=15)
-        fmt = mdt.DateFormatter('%b %Y')
-    else:
-        Mtick=mdt.YearLocator()
-        mtick=mdt.MonthLocator(bymonth=7)
-        fmt = mdt.DateFormatter('%Y')
-    return(Mtick, mtick, fmt)
-
-def apply_smart_timeticks(ax, time, dolimit=True, dolabel=False):
-    '''
-    Given an axis 'ax' and a list/array of datetime objects, 'time', 
-    use the smart_timeticks function to built smart time ticks and
-    then immediately apply them to the give axis.
-
-    The range of the 'time' input value will be used to set the limits
-    of the x-axis as well.  Set kwarg 'dolimit' to False to override 
-    this behavior.
-    '''
-
-    Mtick, mtick, fmt = smart_timeticks(time)
-    ax.xaxis.set_major_locator(Mtick)
-    ax.xaxis.set_minor_locator(mtick)
-    ax.xaxis.set_major_formatter(fmt)
-    if dolimit:
-        ax.set_xlim([time[0], time[-1]])
-    if dolabel:
-        ax.set_xlabel('Time from %s' % time[0].isoformat())
-    return True
-
 def add_body(ax, rad=2.0, rotate=0.0, add_night=True,**extra_kwargs):
     '''
     Creates a circle of radius kwarg rad (default 2.0 RE) at the center of 
@@ -316,6 +251,7 @@ def add_body(ax, rad=2.0, rotate=0.0, add_night=True,**extra_kwargs):
     rotate value of 90 will cause local noon to point towards +Y.
 
     Example
+
     >>>ax=pylab.subplot(111)
     >>>inner, planet, night = rampy.add_body(ax)
 
@@ -432,7 +368,7 @@ def get_iono_cb(ct_name='bwr'):
 ############################################################################
 class weimer(object):
     '''
-    Read a Weimer electric field file.
+    Read a Weimer electric field input file meant to be used for RAM-SCB.
     '''
     
     def __init__(self,filename):
@@ -482,24 +418,36 @@ class weimer(object):
         infile.close()
 
 
-    def add_potplot(self, target=None, loc=111, zlim=50, n=31, add_cbar=True):
+    def add_potplot(self, target=None, loc=111, zlim=50, n=31, figsize=(5,4),
+                    add_cbar=True):
         '''
-        Quickly add a potential plot to MPL object "target".
+        Quickly add a potential plot to MPL object *target*.
+
+        Parameters
+        ==========
+
+        Other Parameters
+        ================
+        target : object
+           The object on which plotting will happen.
+        figsize : tuple
+           A two-item tuple/list giving the dimensions of the figure, in inches.
+           Defaults to (5,4)
+        loc : integer 
+           The subplot triple that specifies the location of the axes object.  
+           Defaults to 111.
+        zlim : real
+           The upper limit for the color bar range.  Defaults to 50.
+        n : int
+           The number of contours.  Defaults to 31.
+        
         '''
         import matplotlib.pyplot as plt
         from matplotlib.colors import Normalize
         from matplotlib.ticker import MultipleLocator
         from numpy import linspace
 
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc, polar=True)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(5,4))
-            ax = fig.add_subplot(loc, polar=True)
+        fig, ax = set_target(target, figsize=figsize, loc=loc, polar=True)
 
         cmap=get_iono_cb('bwr')
         crange = Normalize(vmin=-1.*zlim, vmax=zlim)
@@ -518,7 +466,7 @@ class weimer(object):
 
 class WeqFile(weimer):
     '''
-    Slight variation on weimer class to read weq_***.in files.
+    Slight variation on :class:`weimer` to read weq_***.in files.
     '''
     def _parse_head(self, headlines):
         parts=headlines.split()
@@ -529,19 +477,27 @@ class RamSat(object):
     '''
     A class to handle and plot RAM-SCB virtual satellite files.  Instantiate
     an object by simply calling:
+
     >>>sat=rampy.RamSat('SatFile.nc')
+
     Simple satellite file info, such as the time vector, file name, and
     output frequency are found as direct object attributes:
+
     >>>sat.time
          array([2005-08-31 09:29:00, ...,2005-09-02 00:58:00],dtype=object)
+
     Data arrays are stored as object keys.  For example, obtain satellite 
     coordinates by typing:
+
     >>>sat['SM_xyz']
+
     RamSats work, for the most part, like dictionaries.  Add a new data entry
     (an array, constant, etc.) by simply calling:
+
     >>>sat['New Thing']=(0,1,2,3,4)
+
     Be sure to peruse the docstrings of the many object methods to discover
-    the many plotting functions and canned plotting routines.
+    the many plotting functions and other capabilities.
     '''
 
     # Make'em work like a dictionary:
@@ -738,22 +694,26 @@ class RamSat(object):
             Reverse the SM X axis so "Sun is to the left." Default True.
             This reverses the SM axis, not the plot axis, so it has no effect
             if plane is YZ.
+
+        timelim : tuple
+             A tuple of two :class:`datetime.datetime` objects specifying the
+             time range to be plotted.  Defaults to **None** such that the
+             whole time range available is plotted.
+
+        title : string
+             Sets title for plot axes.
+
+        ls : string
+             A matplotlib-compatable line format specifier, e.g., 'b-'. 
+             Defaults to 'g.', or green dots.
         """
         import matplotlib.pyplot as plt
         
         if not plane.upper() in ('XY','XZ','YZ'):
             raise ValueError("{0} is not a valid plot plane.".format(plane))
 
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(5,5))
-            ax = fig.add_subplot(loc)
-
+        fig, ax = set_target(target, loc=loc, figsize=(5,5))
+        
         # Variables to map plot plane to correct variables:
         plane = plane.upper()
         ijk = {'X':0, 'Y':1, 'Z':2}
@@ -836,16 +796,8 @@ class RamSat(object):
                                        LogFormatterMathtext)
         from matplotlib.dates import date2num
 
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(loc)
-
+        fig, ax = set_target(target, loc=loc, figsize=(10,4))
+        
         # Check for omni fluxes, calculate as necessary.
         if not nameflux in self:
             self.create_omniflux()
@@ -967,7 +919,7 @@ class RamSat(object):
 class PlasmaBoundary(PbData):
     '''
     Opens an ascii-format boundary file written from 
-    IM_wrapper.f90:IM_put_from_gm
+    IM_wrapper.f90:IM_put_from_gm in the coupled SWMF-RAM-SCB model.
     '''
 
     def __init__(self,filename, time=None, *args, **kwargs):
@@ -1052,8 +1004,8 @@ class PlasmaBoundary(PbData):
 ############################################################################
 class BoundaryGroup(PbData):
     '''
-    A class that collects many PlasmaBoundary objects together to work as
-    a coherent group.
+    A class that collects many :class:`PlasmaBoundary` objects together to 
+    work as a coherent group.
     '''
 
     def __init__(self, path='.', rotate=True, *args, **kwargs):
@@ -1123,7 +1075,7 @@ class BoundaryGroup(PbData):
 
         ========== =======================================================
         Kwarg      Description
-        ---------- -------------------------------------------------------
+        ========== =======================================================
         target     Select plot destination.  Defaults to new figure/axis.
         loc        The location of any generated subplots.  Default is 111.
         add_cbar   Toggles the automatic colorbar.  Default is**True**.
@@ -1142,17 +1094,8 @@ class BoundaryGroup(PbData):
         from matplotlib.ticker import MultipleLocator
         from spacepy.pybats import apply_smart_timeticks
 
-        # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure()
-            ax  = fig.add_subplot(loc)
-
+        fig, ax = set_target(target, loc=loc)
+        
         # Set up z-limits; use variable-specific defaults.
         if zlim==None:
             try:
@@ -1301,9 +1244,51 @@ class PressureFile(PbData):
                        minz=1.0, loc=111, add_cbar=False, npa=False, 
                        labelsize=15,  title='auto', **kwargs):
         '''
-        Create a polar log-axis contour plot of pressure and add it to axis
-        'ax'.  For speedier plots, use plot_cont_press, which makes its
+        Create a polar log-axis contour plot of pressure and add it to
+        *target*.  For speedier plots, use plot_cont_press, which makes its
         own axis.
+
+        Parameters
+        ==========
+        
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        cont : matplotlib contour object
+        cbar : matplotlib colorbar object
+
+        Other Parameters
+        ================
+        var : string
+             The variable within the object to plot.  Defaults to 'total'.
+             Can be set to other species-specific pressure values.
+        n : integer
+             The number of contours.  Defaults to 31.
+        maxz : real
+             The color bar maximum.  Defaults to 1000.0
+        minz : real
+             The color bar minimum.  Defaults to 1.0.
+        add_cbar : bool
+             Set whether to add a color bar or not.  Defaults to **False**.
+        npa : bool
+             If **True**, plot in units of nanopascal instead of energy density.
+             Defaults to **False**.
+        labelsize : int
+             Sets the font size of the labels.  Defaults to 15.
+        title : string
+             Sets the plot title.  Defaults to 'auto', using the variable label.
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+
         '''
         from numpy import linspace, power, max, pi, log10
         import matplotlib.pyplot as plt
@@ -1313,16 +1298,7 @@ class PressureFile(PbData):
         from matplotlib.ticker import (LogLocator, LogFormatter, 
                                        LogFormatterMathtext, MultipleLocator)
 
-        # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc, polar=True)
-        elif type(target).__base__ in (plt.Axes, plt.PolarAxes):
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure()
-            ax  = fig.add_subplot(loc, polar=True)
+        fig, ax = set_target(target, loc=loc, polar=True)
 
         p=self[var]
         mapname='spectral'
@@ -1346,13 +1322,54 @@ class PressureFile(PbData):
                             format=LogFormatterMathtext(), shrink=0.8)
             #cbar.set_label(self.labels[var]+' ($KeV/cm^-3)$')
             cbar.set_label(label)
+        else:
+            cbar=None
+
+        return fig, ax, cont, cbar
             
     def add_pcol_press(self, var='total', target=None, maxz=1000.0, minz=1.0,
-                       add_cbar=False, loc=111, labelsize=15, title='auto',
-                       **kwargs):
+                       add_cbar=False, loc=111, labelsize=15, title='auto'):
         '''
-        Add a pcolor plot of the pressure object to target.
+        Add a pcolor plot of the pressure object to *target*.
+
+        Parameters
+        ==========
+        
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        cont : matplotlib contour object
+        cbar : matplotlib colorbar object
+
+        Other Parameters
+        ================
+        var : string
+             The variable within the object to plot.  Defaults to 'total'.
+             Can be set to other species-specific pressure values.
+        maxz : real
+             The color bar maximum.  Defaults to 1000.0
+        minz : real
+             The color bar minimum.  Defaults to 1.0.
+        add_cbar : bool
+             Set whether to add a color bar or not.  Defaults to **False**.
+        labelsize : int
+             Sets the font size of the labels.  Defaults to 15.
+        title : string
+             Sets the plot title.  Defaults to 'auto', using the variable label.
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+
         '''
+        
         from numpy import reshape, linspace, pi
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
@@ -1361,16 +1378,8 @@ class PressureFile(PbData):
         from matplotlib.ticker import (LogLocator, LogFormatter, 
                                        LogFormatterMathtext, MultipleLocator)
         
-        # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc, polar=True)
-        elif type(target).__base__ in (plt.Axes,plt.PolarAxes):
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure()
-            ax  = fig.add_subplot(loc, polar=True)
+
+        fig, ax = set_target(target, loc=loc, polar=True)
 
         # Set title.
         if title=='auto':
@@ -1391,6 +1400,10 @@ class PressureFile(PbData):
                             format=LogFormatterMathtext(), shrink=0.8)
             #cbar.set_label(self.labels[var]+' ($keV/cm^{-3}$)')
             cbar.set_label('$keV/cm^{-3}$')
+        else:
+            cbar=None
+
+        return fig, ax, pcol, cbar
 
 
 ############################################################################
@@ -1580,23 +1593,34 @@ class LogFile(PbData):
         Create a quick-look plot of Dst.  If kyotodst module is
         installed, compare to observed Dst.
 
-        If kwarg 'target' is None (default), a new figure is 
-        generated from scratch.  If target is a matplotlib Figure
-        object, a new axis is created to fill that figure.
-        if target is a matplotlib Axes object, the plot is placed
-        into that axis.
-
         Two values are returned: the matplotlib Figure and Axes objects
         used to generate the plot (in that order.)
 
-        =========== ================================================
-        Kwarg       Description
-        ----------- ------------------------------------------------
-        target      Set plot destination.  Defaults to new figure.
-        loc         Set subplot location.  Defaults to 111.
-        showObs     Show observed Dst?  Defaults to **True**
-        showBiot    Show Biot-Savart Dst?  Defaults to **True**
-        =========== ================================================
+        Parameters
+        ==========
+        
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+
+        Other Parameters
+        ================
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+        showObs : bool
+            Show observed Dst?  Defaults to **True**
+        showBiot : bool
+            Show Biot-Savart Dst?  Defaults to **True**
+
 
         '''
         
@@ -1658,6 +1682,9 @@ def read_ram_dst(infile):
 
     import datetime as dt
 
+    raise DeprecationWarning('This function acts on files no longer written '+
+                             'by RAM-SCB')
+    
     f = open(infile, 'r')
     lines = f.readlines()
     f.close()
@@ -1771,6 +1798,38 @@ class IonoPotScb(object):
         target may be a matplotlib figure or axis or None.  If target 
         is a figure, a new subplot is created.  If target is None, a 
         new figure AND axis is created.
+        Parameters
+        ==========
+        time : int
+            An array index indicating what epoch to plot.
+
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        cont : matplotlib contour object
+        cbar : matplotlib colorbar object
+
+        Other Parameters
+        ================
+        n : integer
+             The number of contours.  Defaults to 31.
+        range : real
+             The max and min of the contour range.            
+        add_cbar : bool
+             Set whether to add a color bar or not.  Defaults to **False**.
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+
+
         '''
 
         import matplotlib.pyplot as plt
@@ -1778,15 +1837,7 @@ class IonoPotScb(object):
         from matplotlib.ticker import MultipleLocator
         from numpy import linspace
 
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(111)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
+        fig, ax = set_target(target, loc=111)
 
         cmap=get_iono_cb('bwr')
         crange = Normalize(vmin=-1.*range, vmax=range)
@@ -2106,16 +2157,8 @@ class GeoMltFile(object):
                                        LogFormatterMathtext, MultipleLocator)
 
 
-        if type(target) == plt.Figure:
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure()
-            ax = fig.add_subplot(loc)
-
+        fig, ax = set_target(target, loc=loc)
+        
         egrid = array(range(len(self.egrid)+1))
         lgrid = array(range(len(self.lgrid)+1))
         flux = self.flux[epoch,:,:].transpose()

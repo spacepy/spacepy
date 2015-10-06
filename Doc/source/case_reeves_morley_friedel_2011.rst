@@ -225,7 +225,7 @@ Even though we have not installed ``common.py``, the ``import``
 statement finds it because it is in the current directory.
 
 ``load_esp`` returns a `tuple
-<http://docs.python.org/release/2.6.7/tutorial/datastructures.html#tuples-and-sequences>`_,
+<http://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_,
 which can be *unpacked* into separate variables.
 
 Now we need to produce 27-day running averages of both the flux and

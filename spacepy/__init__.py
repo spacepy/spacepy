@@ -12,10 +12,13 @@ will list all available functions, classes and variables.
 
 Detailed HTML documentation is available locally in the spacepy/doc directory
 and can be launched by typing:
->>> spacepy.help()
+
+    >>> spacepy.help()
 
 Most functionality is in spacepy's submodules. Each module has specific
 help available:
+
+.. autosummary::
 
     coordinates
     data_assimilation
@@ -31,6 +34,7 @@ help available:
     seapy
     time
     toolbox
+    ae9ap9
 
 Copyright 2010-2012 Los Alamos National Security, LLC.
 """
@@ -63,7 +67,7 @@ def help():
 # put modules here that you want to be accessible through 'from spacepy import *'
 __all__ = ["seapy", "toolbox", "poppy", "coordinates", "time", "omni", 
            "irbempy", "empiricals", "radbelt", "data_assimilation", "pycdf",
-           "datamanager", "datamodel"]
+           "datamanager", "datamodel", "ae9ap9"]
 
 # on windows, make sure the Fortran libs are findable
 if sys.platform == 'win32':
