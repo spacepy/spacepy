@@ -154,7 +154,8 @@ class BatsLog(LogFile):
 
         return True
             
-    def add_dst_quicklook(self, target=None, loc=111, showObs=True, **kwargs):
+    def add_dst_quicklook(self, target=None, loc=111, showObs=False,
+                          epoch=None, add_legend=True, **kwargs):
         '''
         Create a quick-look plot of Dst (if variable present in file) 
         and compare against observations.
@@ -172,9 +173,13 @@ class BatsLog(LogFile):
         :class:`spacepy.pybats.kyoto.KyotoDst` object, which holds the observed
         Dst, is stored as *self.obs_dst* for future use.
 
+        If kwarg *epoch* is set to a datetime object, a vertical dashed line
+        will be placed at that time.
+
         The figure and axes objects are returned to the user.
         '''
-        
+
+        from datetime import datetime
         import matplotlib.pyplot as plt
         from spacepy.pybats import apply_smart_timeticks
         
@@ -188,7 +193,7 @@ class BatsLog(LogFile):
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
         apply_smart_timeticks(ax, self['time'])
-        ax.set_ylabel('D_${ST}$ ($nT$)')
+        ax.set_ylabel('D$_{ST}$ ($nT$)')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
         if(showObs):
@@ -198,9 +203,16 @@ class BatsLog(LogFile):
                         'k--', label='Obs. Dst')
                 apply_smart_timeticks(ax, self['time'])
 
+        if type(epoch) == datetime:
+            yrange = ax.get_ylim()
+            ax.vlines(epoch, yrange[0], yrange[1], linestyles='dashed',
+                      colors='k', linewidths=1.5)
+            ax.set_ylim(yrange)
+                
         # Apply legend
-        ax.legend(loc='best')
-
+        if add_legend: ax.legend(loc='best')
+        if target==None: fig.tight_layout()
+        
         return fig, ax
     
 class Stream(object):
@@ -1738,7 +1750,7 @@ class Mag(PbData):
 
         # Create IE and GM specific containers.
         for key in gmvars:
-            self['gm_'+key]=np.zeros(nlines)
+            self[key]=np.zeros(nlines)
         for key in ievars:
             self['ie_'+key]=np.zeros(nlines)
             
@@ -1762,7 +1774,7 @@ class Mag(PbData):
         self['y'][i]=float(parts[10])
         self['z'][i]=float(parts[11])
         for j, key in enumerate(namevar):
-            self['gm_'+key][i]=float(parts[j+12])
+            self[key][i]=float(parts[j+12])
 
     def parse_ieline(self, i, line, namevar):
         '''
@@ -1784,14 +1796,20 @@ class Mag(PbData):
         for j, key in enumerate(namevar):
             self['ie_'+key][i]=float(parts[j+11])
 
-    def recalc(self):
+    def _recalc(self):
         '''
-        Calculate total :math:`\Delta B` from GM and IE; store under object keys 
+        Calculate total :math:`\Delta B` from GM and IE; store under object keys
         *totaln*, *totale*, and *totald* (one for each component of the HEZ 
         coordinate system).
+
+        This function should only be called to correct legacy versions of 
+        magnetometer files.
         '''
         from numpy import sqrt, zeros
 
+        # If values already exist, do not overwrite.
+        if 'dBn' in self: return
+        
         # New containers:
         self['totaln']=np.zeros(self.attrs['nlines'])
         self['totale']=np.zeros(self.attrs['nlines'])
@@ -1804,8 +1822,74 @@ class Mag(PbData):
                 self['totale']=self['totale']+self[key]
             if key[-2:]=='Bd':
                 self['totald']=self['totald']+self[key]
-        #self['totalh']=sqrt(self['totaln']**2.0 + self['totale']**2.0)
 
+        # Old names -> new names:
+        varmap={'totaln':'dBn',       'totale':'dBe',      'totald':'dBd',
+                'gm_dBn':'dBnMhd',    'gm_dBe':'dBeMhd',   'gm_dBd':'dBdMhd',
+                'gm_facdBn':'dBnFac', 'gm_facdBe':'dBeFac','gm_facdBd':'dBdFac',
+                'ie_JhdBn':'dBnHal',  'ie_JhdBe':'dBeHal', 'ie_JhdBd':'dBdHal',
+                'ie_JpBn':'dBnPed',   'ie_JpBe':'dBePed',  'ie_JpBd':'dBdPed'}
+
+        # Replace variable names.
+        for key in list(self.keys()):
+            if key in varmap:
+                self[ varmap[key] ] = self.pop(key)
+            
+    def calc_h(self):
+        '''
+        Calculate the total horizontal perturbation, 'h', using the pythagorean
+        sum of the two horizontal components (north-south and east-west
+        components).
+        '''
+
+        allvars = self.keys()
+        
+        for v in allvars:
+            # Find all dB-north variables:
+            if v[:3] == 'dBn':
+                v_east = v.replace('dBn', 'dBe')
+                self[v.replace('dBn', 'dBh')] = dmarray(
+                    np.sqrt(self[v]**2+self[v_east]**2), {'units':'nT'})
+
+    def calc_dbdt(self):
+        '''
+        Calculate the time derivative of all dB-like variables and save as 
+        'dBdt[direction][component].  For example, the time derivative of 
+        dBeMhd will be saved as dBdteMhd.
+
+        A 2nd-order accurate centeral difference method is used to
+        calculate the time derivative.  For the first and last points, 
+        2nd-order accurate forward and backward differences are taken, 
+        respectively.
+        '''
+
+        # Do not calculate twice.
+        if 'dBdtn' in self: return
+        
+        # Get dt values:
+        dt = np.array([x.total_seconds() for x in np.diff(self['time'])])
+
+        # Loop through variables:
+        oldvars = self.keys()
+        for k in oldvars:
+            if 'dB' not in k: continue
+
+            # Create new variable name and container:
+            new = k.replace('dB','dBdt')
+            self[new] = dmarray(np.zeros(self.attrs['nlines']),{'units':'nT/s'})
+
+            # Central diff:
+            self[new][1:-1] = (self[k][2:]-self[k][:-2])/(dt[1:]+dt[:-1])
+
+            # Forward diff:
+            self[new][0] = (-self[k][2] + 4*self[k][1] - 3*self[k][0]) \
+                           / (dt[1]+dt[0])
+
+            # Backward diff:
+            self[new][-1] = (3*self[k][-1] - 4*self[k][-2] + self[k][-3]) \
+                            / (dt[-1]+dt[-2])
+
+            
     def add_plot(self, value, style='-', target=None, loc=111, label=None, 
                  **kwargs):
         '''
@@ -1834,14 +1918,14 @@ class Mag(PbData):
         Example: Plot total :math:`\Delta B_N` onto an existing axis with line 
         color blue, line style dashed, and line label "Wow!":
 
-        >>> self.plot('totaln', target='ax', label='Wow!', lc='b', ls='--')
+        >>> self.plot('dBn', target='ax', label='Wow!', lc='b', ls='--')
 
         Example: Plot total :math:`\Delta B_N` on a new figure, save returned
         values and overplot additional values on the returned axis.  Default 
         labels and line styles are used in this example.
         
-        >>> fig, ax, line = self.plot('totaln')
-        >>> self.plot('gm_dBe', target = ax)
+        >>> fig, ax, line = self.plot('n')
+        >>> self.plot('dBe', target = ax)
 
         '''
 
@@ -1857,9 +1941,9 @@ class Mag(PbData):
         line=ax.plot(self['time'], self[value], style, label=label, **kwargs)
         apply_smart_timeticks(ax, self['time'], dolabel=True)
         
-        return fig, ax, line
+        return fig, ax
 
-    def add_comp_plot(self, direc, target=None, loc=111):
+    def add_comp_plot(self, direc, target=None, add_legend=True, loc=111):
         '''
         Create a plot with,  or add to an existing plot, an illustration of 
         how the
@@ -1888,32 +1972,42 @@ class Mag(PbData):
         # Set plot targets.
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
 
+        prefix = 'dB'+direc
+
         # Use a dictionary to assign line styles, widths.
-        styles={'gm':'--', 'ie':'-.', 'to':'-'}
-        widths={'gm':1.0,  'ie':1.0,  'to':1.5}
-        colors={'gm_dB':'#FF6600', 'gm_facdB':'r', 'ie_JhdB':'b', 
-                'ie_JpB':'c','total':'k'}
+        styles={prefix+'Mhd':'--', prefix+'Fac':'--',
+                prefix+'Hal':'-.', prefix+'Ped':'-.',
+                prefix:'-'}
+        widths={prefix+'Mhd':1.0, prefix+'Fac':1.0,
+                prefix+'Hal':1.0, prefix+'Ped':1.0,
+                prefix:1.5}
+        colors={prefix+'Mhd':'#FF6600', prefix+'Fac':'r',
+                prefix+'Hal':'b',       prefix+'Ped':'c',
+                prefix:'k'}
         
         # Labels:
-        labels={'gm_dB':r'$J_{Mag}$', 'gm_facdB':r'$J_{Gap}$', 
-                'ie_JhdB':r'$J_{Hall}$', 'ie_JpB':r'$J_{Peder}$',
-                'total':r'Total $\Delta B$'}
+        labels={prefix+'Mhd':r'$J_{Mag}$',  prefix+'Fac':r'$J_{Gap}$', 
+                prefix+'Hal':r'$J_{Hall}$', prefix+'Ped':r'$J_{Peder}$',
+                prefix:r'Total $\Delta B'+'_{}$'.format(direc)}
 
         # Plot.
         for k in sorted(self):
-            if (k[-1]!=direc) or (k=='time'): continue
-            ax.plot(self['time'], self[k], label=labels[k[:-1]],
-                    ls=styles[k[:2]], lw=widths[k[:2]], c=colors[k[:-1]])
+            if ('dB'+direc not in k) or (k=='time') or (k[:4]=='dBdt'):continue
+            ax.plot(self['time'], self[k], label=labels[k],
+                    lw=widths[k], c=colors[k])#,ls=styles[k]
 
         # Ticks, zero-line, and legend:
         apply_smart_timeticks(ax, self['time'], True, True)
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   linestyles=':', lw=2.0, colors='k')
-        ax.legend(ncol=3, loc='best')
+        if add_legend: ax.legend(ncol=3, loc='best')
     
         # Axis labels:
         ax.set_ylabel(r'$\Delta B_{%s}$ ($nT$)'%(direc.upper()))
 
+        if target==None: fig.tight_layout()
+        
+        return fig, ax
 
 class MagFile(PbData):
     '''
@@ -1951,11 +2045,14 @@ class MagFile(PbData):
     '''
     
     def __init__(self, filename, ie_name=None, find_ie=False, *args, **kwargs):
+
         from glob import glob
+
         super(MagFile, self).__init__(*args, **kwargs)  # Init as PbData.
         self.attrs['gmfile']=filename
+
+        # Try to find the IE file based on our current location.
         if(find_ie and not ie_name):
-            # Try to find the IE file based on our current location.
             basedir = filename[0:filename.rfind('/')+1]
             if glob(basedir + '../IE/IE_mag_*.mag'):
                 self.attrs['iefile']=glob(basedir + '../IE/IE_mag_*.mag')[-1]
@@ -1968,6 +2065,11 @@ class MagFile(PbData):
                 self.attrs['iefile']=None
         else:
             self.attrs['iefile']=ie_name
+
+        # Set legacy mode to handle old variable names:
+        self.legacy = find_ie or bool(ie_name)
+            
+            
         self.readfiles()
 
     def readfiles(self):
@@ -1988,14 +2090,20 @@ class MagFile(PbData):
         names=trash.split(':')[1] # Remove number of magnetometers.
         namemag = names.split()
         self.attrs['namemag']=namemag
+
         # Check nmags vs number of mags in header.
         if nmags != len(namemag):
             raise BaseException(
                 'ERROR: GM file claims %i magnetomers, lists %i'
                 % (nmags, len(namemag)))
         trash=lines.pop(0)
-        gm_namevar = trash.split()[12:] #Vars skipping time, iter, and loc.
-        self.attrs['gm_namevar']=gm_namevar
+
+        # Grab variable names.  Use legacy mode if necessary:
+        prefix = 'gm_'*self.legacy
+        # skip time, iter, and loc; add prefix to var names:
+        gm_namevar = [prefix+x for x in trash.split()[12:]]
+
+        # Set number of mags and records.
         self.attrs['nmag']=len(namemag)
         nlines = len(lines)/nmags
 
@@ -2052,20 +2160,45 @@ class MagFile(PbData):
                 self[namemag[0]].parse_ieline(i, line, ie_namevar)
                 for j in range(1, nmags):
                     self[namemag[j]].parse_ieline(i, ielns.pop(0), ie_namevar)
-        self.recalc()
+
+        # Sum up IE/GM components if necessary (legacy only):
+        if self.legacy: self._recalc()
         
         # Get time res.
         self.attrs['dt']=(self['time'][1]-self['time'][0]).seconds/60.0
         
-    def recalc(self):
+    def _recalc(self):
         '''
-        Sum all contributions from all models/regions to get total 
+        Old magnetometer files had different variable names and did not
+        contain the total perturbation.  This function updates variable names
+        and sums all contributions from all models/regions to get total 
         :math:`\Delta B`.
+
+        This function is only required for legacy results.  New versions of
+        the SWMF include both GM, IE, and total perturbations in a single
+        file.
         '''
         for mag in self.attrs['namemag']:
-            self[mag].recalc()
+            self[mag]._recalc()
 
+    def calc_h(self):
+        '''
+        For each magnetometer object, calculate the horizontal component of
+        the perturbations.
+        '''
+        for k in self:
+            if k=='time' or k=='iter': continue
+            self[k].calc_h()
 
+    def calc_dbdt(self):
+        '''
+        For each magnetometer object, calculate the horizontal component of
+        the perturbations.
+        '''
+        for k in self:
+            if k=='time' or k=='iter': continue
+            self[k].calc_dbdt()
+            
 class MagGridFile(IdlFile):
     '''
     Magnetometer grids are a recent addition to BATS-R-US: instead of 
@@ -2077,6 +2210,8 @@ class MagGridFile(IdlFile):
 
     def __init__(self, *args, **kwargs):
         import re
+        from spacepy.pybats import parse_filename_time
+        from spacepy.coordinates import Coords
         
         # Initialize as an IdlFile.
         super(MagGridFile, self).__init__(header=None, *args, **kwargs)
@@ -2088,6 +2223,11 @@ class MagGridFile(IdlFile):
 
         self['grid'].attrs['coord']=coord
 
+        # Extract time from file name:
+        i_iter, runtime, time = parse_filename_time(self.attrs['file'])
+        if 'time' not in self.attrs: self.attrs['time'] = time
+        if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
+
         # Set units based on header parsing:
         for v in self:
             if v == 'grid':
@@ -2096,7 +2236,125 @@ class MagGridFile(IdlFile):
                 self[v].attrs['units']=unit1
             else:
                 self[v].attrs['units']=unit2
+
+        # Get cooridnates in both SM and GEO.
+        #if coord == 'GEO':
+        #    self['Lat_geo']=self['Lat']
+        #    self['Lon_geo']=self['Lon']
                 
+    def calc_h(self):
+        '''
+        Calculate the total horizontal perturbation, 'h', using the pythagorean
+        sum of the two horizontal components (east and west components).
+        '''
+
+        allvars = self.keys()
+        
+        for v in allvars:
+            # Find all dB-north variables:
+            if v[:3] == 'dBn':
+                v_east = v.replace('dBn', 'dBe')
+                self[v.replace('dBn', 'dBh')] = dmarray(
+                    np.sqrt(self[v]**2+self[v_east]**2), {'units':'nT'})
+
+    def add_contour(self, value, nlev=30, target=None, loc=111, 
+                    title=None, xlabel=None, ylabel=None,
+                    ylim=None, xlim=None, add_cbar=False, clabel=None,
+                    filled=True, dolog=False, zlim=None,
+                    coords=None, add_conts=False,
+                    *args, **kwargs):
+        '''
+        Add a lat-lon contour plot of variable *value*.
+        '''
+
+        from spacepy.pybats import mhdname_to_tex
+        
+        import matplotlib.pyplot as plt
+        from matplotlib.colors import (LogNorm, Normalize)
+        from matplotlib.ticker import (LogLocator, LogFormatter, FuncFormatter,
+                                       LogFormatterMathtext, MultipleLocator)
+
+        # Set ax and fig based on given target.
+        fig, ax = set_target(target, figsize=(10,7), loc=loc)
+
+        # Get max/min if none given.
+        if zlim==None:
+            zlim = [self[value].min(), self[value].max()]
+            if zlim[1]-zlim[0]>np.max(zlim):
+                maxval = max(abs(zlim[0]), abs(zlim[1]))
+                zlim=[-maxval, maxval]
+
+        # No zero-level for log scales:
+        if dolog and zlim[0]<=0:
+            zlim[0] = np.min( [0.0001, zlim[1]/1000.0] )
+
+        # Better default color maps:
+        if 'cmap' not in kwargs:
+            # If zlim spans positive and negative:
+            if zlim[1]-zlim[0]>np.max(zlim):
+                kwargs['cmap']='bwr'
+            else:
+                kwargs['cmap']='Reds'
+
+        # Set contour command based on filled/unfilled contours:
+        if filled:
+            contour=ax.contourf
+        else:
+            contour=ax.contour
+
+                # Create levels and set norm based on dolog.
+        if dolog:
+            levs = np.power(10, np.linspace(np.log10(zlim[0]), 
+                                            np.log10(zlim[1]), nlev))
+            z=np.where(self[value]>zlim[0], self[value], 1.01*zlim[0])
+            norm=LogNorm()
+            ticks=LogLocator()
+            fmt=LogFormatterMathtext()
+        else:
+            levs = np.linspace(zlim[0], zlim[1], nlev)
+            z=self[value]
+            norm=None
+            ticks=MultipleLocator((zlim[1]-zlim[0])/10) ### fix this
+            fmt=None
+                
+        # Add Contour to plot:
+        cont = contour(self['Lon'], self['Lat'], np.array(np.transpose(z)),
+                       levs, *args, norm=norm, **kwargs)
+
+        # Add cbar if necessary.
+        if add_cbar:
+            cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
+            if clabel==None:
+                varname = mhdname_to_tex(value)
+                units   = mhdname_to_tex(self[value].attrs['units'])
+                clabel="%s (%s)" % (varname, units)
+            cbar.set_label(clabel)
+        else:
+            cbar=None # Need to return something, even if none.
+ 
+        # Set title, labels, axis ranges (use defaults where applicable.)
+        if title: ax.set_title(title)
+        coord_sys = self['grid'].attrs['coord']
+        if ylabel==None: ylabel='Latitude ({})'.format(coord_sys)
+        if xlabel==None: xlabel='Longitude ({})'.format(coord_sys)
+        ax.set_ylabel(ylabel); ax.set_xlabel(xlabel)
+        if type(xlim)==type([]) and len(xlim)==2:
+            ax.set_xlim(xlim)
+        if type(ylim)==type([]) and len(ylim)==2:
+            ax.set_ylim(ylim)
+
+        # If a brand-new axes was created, use custom ticks:
+        if not issubclass(type(target), plt.Axes):
+            fmttr = FuncFormatter(lambda x, pos:
+                                  '{:4.1f}'.format(x)+r'$^{\circ}$')
+            ax.xaxis.set_major_formatter(fmttr)
+            ax.yaxis.set_major_formatter(fmttr)
+            
+        # If a brand-new figure was created, use tight-layout.
+        if target==None: fig.tight_layout()
+
+        return fig, ax, cont, cbar
+    
 class GeoIndexFile(LogFile):
     '''
     Geomagnetic Index files are a specialized BATS-R-US output that contain
@@ -2169,7 +2427,7 @@ class GeoIndexFile(LogFile):
         ax.grid()
         apply_smart_timeticks(ax, self['time'])
 
-        fig.tight_layout()
+        if target==None: fig.tight_layout()
 
         if plot_obs:
             try:
@@ -2264,7 +2522,7 @@ class VirtSat(LogFile):
             self.calc_ndens()
         
         # Find all number density variables.
-        for key in self.keys():
+        for key in list(self.keys()):
             # Next variable if not number density:
             if key[-1] != 'N':
                 continue
