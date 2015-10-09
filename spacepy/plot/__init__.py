@@ -22,11 +22,18 @@ from . import spectrogram
 from . import utils
 from . import carrington
 
-lookdict = {'default': spacepystyle,
-            'spacepy': spacepystyle,
-            'spacepy_altgrid': spacepyaltstyle,
-            'altgrid': spacepyaltstyle
-           }
+def available(returnvals=False):
+    spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
+    spacepyaltstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle')
+    lookdict = {'default': spacepystyle,
+                'spacepy': spacepystyle,
+                'spacepy_altgrid': spacepyaltstyle,
+                'altgrid': spacepyaltstyle
+               }
+    if returnvals:
+        return lookdict
+    else:
+        return list(lookdict.keys())
 
 def style(look=None):
     '''
@@ -35,14 +42,13 @@ def style(look=None):
     Parameters
     ----------
     look : str
-    Name of style. For a list of available style names, see `spacepy.plot.lookdict`.
+    Name of style. For a list of available style names, see `spacepy.plot.available`.
     '''
-    spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
-    spacepyaltstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle')
+    lookdict = available(returnvals=True)
     try:
         plt.style.use(lookdict[look])
     except KeyError:
-        plt.style.use(spacepystyle)
+        plt.style.use(lookdict['default'])
 style()
 
 
