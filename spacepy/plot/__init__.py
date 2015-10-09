@@ -14,11 +14,28 @@ Contact: balarsen@lanl.gov
 Copyright 2011 Los Alamos National Security, LLC.
 
 """
+import os
 from matplotlib.patches import Wedge
 import matplotlib.pyplot as plt
+from spacepy import __path__ as basepath
+from . import spectrogram
+from . import utils
+from . import carrington
 
-__all__ = ["spectrogram", "utils", "spectrogram.simpleSpectrogram"]
 
+def style(look=None):
+    spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
+    spacepyaltstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle')
+    lookdict = {'default': spacepystyle,
+                'spacepy': spacepystyle,
+                'spacepy_altgrid': spacepyaltstyle,
+                'altgrid': spacepyaltstyle
+               }
+    try:
+        plt.style.use(lookdict[look])
+    except KeyError:
+        plt.style.use(spacepystyle)
+style()
 
 
 def dual_half_circle(center=(0,0), radius=1.0,
@@ -73,7 +90,7 @@ def dual_half_circle(center=(0,0), radius=1.0,
         try:
             angle = float(sun_direction)
         except ValueError:
-            raise(ValueError("sun_direction was not understood, must be a float or {0}".format(sun_dict.keys())))
+            raise(ValueError("Sun_direction was not understood, must be a float or {0}".format(sun_dict.keys())))
                 
     theta1, theta2 = angle, angle + 180
     if ax is None:
