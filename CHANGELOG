@@ -14,10 +14,12 @@ datamodel
 empiricals
  - New function getSolarRotation, returns Carrington or Bartels number
 plot
+ - Packages in plot are imported on import of plot module
  - Addition of dual_half_circle() to overlay a light/dark "Earth"
  - Addition of simpleSpectrogram() in spacepy.plot.spectrogram
-plot.utils
- - Fix collapse_vertical when called with sequences other than lists
+ - Addition of Carrington/Bartel plotting for 1D series (in spacepy.plot.carrington)
+ - SpacePy style sheets added. Autoimported with plot, but with functionality to change style
+ - Fix utils.collapse_vertical when called with sequences other than lists
 pybats
  - Updated docstrings across all modules.
  - rim.py updated to be consistent with other pybats modules.
