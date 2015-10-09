@@ -22,15 +22,23 @@ from . import spectrogram
 from . import utils
 from . import carrington
 
+lookdict = {'default': spacepystyle,
+            'spacepy': spacepystyle,
+            'spacepy_altgrid': spacepyaltstyle,
+            'altgrid': spacepyaltstyle
+           }
 
 def style(look=None):
+    '''
+    Apply SpacePy's matplotlib style settings from a known style sheet.
+
+    Parameters
+    ----------
+    look : str
+    Name of style. For a list of available style names, see `spacepy.plot.lookdict`.
+    '''
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
     spacepyaltstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle')
-    lookdict = {'default': spacepystyle,
-                'spacepy': spacepystyle,
-                'spacepy_altgrid': spacepyaltstyle,
-                'altgrid': spacepyaltstyle
-               }
     try:
         plt.style.use(lookdict[look])
     except KeyError:
