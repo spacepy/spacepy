@@ -1,5 +1,6 @@
 Changes in Version 0.1.6 (2015-xx-xx)
 =====================================
+- Improvements to test suite (coverage and design)
 datamanager
  - New module to help in finding, slicing, and manipulating data
  - Function "apply_index": help sort one multi-dimensional data set by another
