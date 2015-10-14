@@ -10,7 +10,11 @@ import unittest
 import spacepy
 import spacepy.time
 import spacepy.coordinates
-import spacepy.irbempy as ib
+try: #if IRBEM install fails, test suite should not break entirely...
+    import spacepy.irbempy as ib
+    ibflag = False
+except ImportError:
+    ibflag = True
 import glob
 import os
 import numpy as np
@@ -19,6 +23,7 @@ from numpy import array
 
 __all__ = ['IRBEMBigTests']
 
+@unittest.skipIf(ibflag, "Warning: import spacepy.irbempy failed, skipping tests")
 class IRBEMBigTests(unittest.TestCase):
 
     def setUp(self):
