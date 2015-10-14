@@ -100,12 +100,18 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_getNamedPath(self):
         """getNamedPath should have known result"""
-        ans = ['spacepy', 'tests']
-        res = tb.getNamedPath('tests').split(os.path.sep)[-2:]
+        curloc = os.path.abspath(os.path.curdir)
+        tmpdir = os.path.join(curloc, 'tmp', 'test1', 'test2')
+        os.makedirs(tmpdir)
+        ans = ['tests', 'tmp', 'test1']
+        os.chdir(tmpdir)
+        res = tb.getNamedPath('test1').split(os.path.sep)[-3:]
         self.assertEqual(ans[0], res[0][0:len(ans[0])])
         self.assertEqual(ans[1], res[1][0:len(ans[0])])
         self.assertEqual(res[0],
                          tb.getNamedPath(res[0]).split(os.path.sep)[-1])
+        os.chdir(curloc)
+        os.removedirs(tmpdir)
 
     def test_progressbar(self):
         """progressbar shouldhave a known output"""
