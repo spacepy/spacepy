@@ -53,6 +53,8 @@ import datetime as dt
 import spacepy.toolbox as tb
 from spacepy import help
 import spacepy.time as spt
+from spacepy.pybats import set_target
+import spacepy.plot as spplt
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 
@@ -430,8 +432,8 @@ class Sea(SeaBase):
         #return 'Superposed epoch analysis complete'
 
     def plot(self, xquan = 'Time Since Epoch', yquan='', xunits='',
-                yunits='', epochline=False, usrlimy=[], show=True,
-                figsize=None, dpi=None, transparent=True, color='#7F7FFF'):
+                yunits='', epochline=True, usrlimy=[], show=True, target=None,
+                loc=111, figsize=None, dpi=None, transparent=True, color='#7F7FFF'):
         """Method called to create basic plot of superposed epoch analysis.
 
         Parameters
@@ -449,7 +451,7 @@ class Sea(SeaBase):
         yunits : str
 	    (default = None) - y-axis units.
         epochline : boolean
-	    (default = False) - put vertical line at zero epoch.
+	    (default = True) - put vertical line at zero epoch.
         usrlimy : list
 	    (default = []) - override automatic y-limits on plot.
         transparent : boolean
@@ -479,13 +481,7 @@ class Sea(SeaBase):
         else:
             ylstr = ''
 
-        if show==True and dpi==None:
-            dpi=80
-        elif show==False and dpi==None:
-            dpi=300
-
-        fig = plt.figure(figsize=figsize, dpi=dpi)
-        ax0 = fig.add_subplot(111)
+        fig, ax0 = set_target(target, loc=loc, figsize=figsize)
 
         #ax0.plot(self.x, self.semean, 'b-', lw=1.5)
         #plt.hold(True)
@@ -510,23 +506,13 @@ class Sea(SeaBase):
             ax0.set_ylim(usrlimy)
 
         if epochline:
-            yr = ax0.get_ylim()
-            if yr[0] < 0:
-                yrlo = yr[0]+yr[0]
-            else:
-                yrlo = yr[0]-yr[0]
-            if yr[1] < 0:
-                yrhi = yr[1]-yr[1]
-            else:
-                yrhi = yr[1]+yr[1]
-            ax0.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
-            plt.ylim(yr)
+            ax0.axvline(0, 0, 1, color='k', ls=':')
 
         if show:
             plt.show()
             return None
         else:
-            return fig
+            return ax0
 
 
 class Sea2d(SeaBase):
@@ -661,7 +647,7 @@ class Sea2d(SeaBase):
             print('Superposed epoch analysis complete')
 
     def plot(self, xquan = 'Time Since Epoch', yquan='', xunits='',
-                yunits='', zunits='', epochline=False, usrlimy=[],
+                yunits='', zunits='', epochline=True, usrlimy=[],
                 show=True, zlog=True, figsize=None, dpi=300):
         """Method called to create basic plot of 2D superposed epoch analysis.
 
@@ -674,7 +660,7 @@ class Sea2d(SeaBase):
         x(y/z)units : str
             x(y/z)-axis units. (default = None (None))
         epochline : boolean
-            put vertical line at zero epoch. (default = False)
+            put vertical line at zero epoch. (default = True)
         usrlimy : list
             override automatic y-limits on plot. (default = [])
         show : boolean
@@ -690,6 +676,7 @@ class Sea2d(SeaBase):
         If both quan and units are supplied, axis label will read
         'Quantity Entered By User [Units]'
         """
+        import spacepy.plot as spplt
         try:
             dum = self.semedian
         except AttributeError:
@@ -737,17 +724,7 @@ class Sea2d(SeaBase):
             ax0.set_ylim(usrlimy)
 
         if epochline:
-            yr = ax0.get_ylim()
-            if yr[0] < 0:
-                yrlo = yr[0]+yr[0]
-            else:
-                yrlo = yr[0]-yr[0]
-            if yr[1] < 0:
-                yrhi = yr[1]-yr[1]
-            else:
-                yrhi = yr[1]+yr[1]
-            ax0.plot([0,0], [yrlo,yrhi], 'k:', lw=2)
-            plt.ylim(yr)
+            ax0.axvline(0, 0, 1, color='k', ls=':', lw=1.5)
 
         ax0.set_xlim([self.x[0],self.x[-1]])
         hc1 = plt.colorbar(cax)
@@ -758,7 +735,7 @@ class Sea2d(SeaBase):
             plt.show()
             return None
         else:
-            return fig
+            return ax0
 
 
 def seadict(objlist, namelist):
@@ -793,8 +770,8 @@ def seadict(objlist, namelist):
     return outdict
 
 
-def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
-    xunits='', show=True, zunits='', zlog=True, figsize=None, dpi=300):
+def multisea(dictobj, n_cols=1, epochline=True, usrlimx=[], usrlimy=[],
+    xunits='', show=True, zunits='', zlog=True, figsize=None):
     """Function to create multipanel plot of superposed epoch analyses.
 
     Parameters
@@ -803,7 +780,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
 
     Other Parameters
     ================
-        - epochline (default = False) - put vertical line at zero epoch.
+        - epochline (default = True) - put vertical line at zero epoch.
         - usrlimy (default = []) - override automatic y-limits on plot (same for all plots).
         - show (default = True) - shows plot; set to false to output plot object to variable
         - x/zunits - Units for labeling x and z axes, if required
@@ -833,11 +810,6 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
         if tmp.ndim==2:
             ply.append(dictobj[key].y) #ply (Plot Y)
 
-    if show==True and dpi==None:
-        dpi=80
-    elif show==False and dpi==None:
-        dpi=300
-
     if n_cols > 1:
         print('multisea(): Multiple column output not yet implemented')
         n_fig = len(dictobj) #force single column output for now
@@ -846,7 +818,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
     else:
         n_fig = len(dictobj)
         fignum = list(range(1,n_fig+1))
-        fig = plt.figure(figsize=figsize, dpi=dpi)
+        fig = plt.figure(figsize=figsize)
 
     for i in range(n_fig):
         #loop over each subplot
@@ -863,11 +835,7 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
             if len(zunits)>=1:
                 hc1.set_label(zunits)
         else: #else do line plot
-            ax.plot(plx[i],pld[i], 'k-', lw=2)
-            plt.hold(True)
-            ax.plot(plx[i],qup[i], 'k-', lw=1.5)
-            ax.plot(plx[i],qlo[i], 'k-', lw=1.5)
-            plt.ylabel(ylab[i])
+            ax_b = dictobj[keylist[i]].plot(xquan='', yquan=ylab[i], epochline=epochline, show=False, target=ax, loc=dum)
 
         if i==n_fig-1:
             #Add x-label to bottom panel
@@ -876,19 +844,6 @@ def multisea(dictobj, n_cols=1, epochline=False, usrlimx=[], usrlimy=[],
             else:
                 xlab = 'Time since epoch'
             plt.xlabel(xlab)
-
-        if epochline:
-            yr = plt.ylim()
-            if yr[0] < 0:
-                yrlo = yr[0]+yr[0]
-            else:
-                yrlo = yr[0]-yr[0]
-            if yr[1] < 0:
-                yrhi = yr[1]-yr[1]
-            else:
-                yrhi = yr[1]+yr[1]
-            ax.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
-            plt.ylim(yr)
 
         if usrlimx:
             plt.xlim(usrlimx)
