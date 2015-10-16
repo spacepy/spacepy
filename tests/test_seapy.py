@@ -91,10 +91,7 @@ class SEATestsUniform(unittest.TestCase):
 
     def testRandomType(self):
         """Random epochs should have requested number"""
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings('always', 'Window size changed .*',
-                                    UserWarning, '^spacepy\\.seapy$')
-            newsea = self.obj.random()
+        newsea = self.obj.random()
         self.assertEqual(type(newsea), type(self.obj))
 
     def testRandomBeforeSea(self):
@@ -261,6 +258,10 @@ class SEATests2dUniform(unittest.TestCase):
         '''Mean of semean attr should be same as uniform test val'''
         self.assertEqual(np.mean(self.obj.semean), self.testval)
 
+    def test2dRandomType(self):
+        """Random object should have same type as parent"""
+        newsea = self.obj.random()
+        self.assertEqual(type(newsea), type(self.obj))
 
 if __name__ == '__main__':
     unittest.main()
