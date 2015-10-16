@@ -53,6 +53,7 @@ import datetime as dt
 import spacepy.toolbox as tb
 from spacepy import help
 import spacepy.time as spt
+import spacepy.datamodel as dm
 from spacepy.pybats import set_target
 import spacepy.plot as spplt
 import matplotlib.pyplot as plt
@@ -67,6 +68,9 @@ class SeaBase(object):
 
     """
     def __init__(self, data, times, epochs, **kwargs):
+        self._kwargs = kwargs
+        self._times = times
+        self._epochs = epochs
         self.data = np.asarray(data, dtype=float)
         if isinstance(times, spt.Ticktock):
             self.times=times.UTC
@@ -135,14 +139,14 @@ class SeaBase(object):
             t_epoch = np.array(dum)
             dum = date2num(self.times)
             time = np.array(dum)
-            ser_flag=False
+            ser_flag = False
         elif el1num and ep1num:
             #time is serial, do nothing
             if self.verbose:
                 print('time is serial')
             t_epoch = np.array(self.epochs, dtype=float)
             time = np.array(self.times, dtype=float)
-            ser_flag=True
+            ser_flag = True
         else:
             raise ValueError('Time and Epochs must be consistently typed (numeric/datetime)')
 
@@ -151,8 +155,8 @@ class SeaBase(object):
         if len(lose0)>0 and len(lose1)>0:
             linds = np.union1d(lose0[0],lose1[0])
             if len(linds)>0:
-                if self.verbose: print('sea(): %s out-of-range epochs moved to badepochs attribute'\
-                % len(linds))
+                if self.verbose:
+                    print('sea(): {0} out-of-range epochs moved to badepochs attribute'.format(len(linds)))
             if ser_flag:
                 self.badepochs = t_epoch[linds]
             else:
@@ -167,6 +171,28 @@ class SeaBase(object):
             if len(self.epochs)==0:
                 raise RuntimeError('No valid epochs for data supplied')
         return time, t_epoch
+
+    def random(self, n=None):
+        '''Return a new Sea object, of same dimensionality, with a set of random epochs
+        '''
+        if not n:
+            n = len(self._epochs)
+
+        sttime = self._epochs[0]
+        entime = self._epochs[-1]
+        try:
+            dum = sttime + np.pi
+            cflag = False
+        except TypeError:
+            sttime = date2num(sttime)
+            entime = date2num(entime)
+            cflag = True
+        finally:
+            repochs = (entime - sttime) * np.random.random_sample(n) + sttime
+        if cflag:
+            repochs = num2date(repochs)
+        new = Sea(self.data, self._times, sorted(repochs), **self._kwargs)
+        return new
 
 
 
@@ -220,11 +246,11 @@ class Sea(SeaBase):
 	quartiles : list
 	    calculates the quartiles as the upper and lower bounds (and is default);
         ci : float
-	    will find the bootstrapped confidence intervals (and requires ci_quan to be set);
+	    will find the bootstrapped confidence intervals of ci_quan at the ci percent level (default=95)
         mad : float
 	    will use +/- the median absolute deviation for the bounds;
         ci_quan : string
-	    can be set to 'median' or 'mean'
+	    can be set to 'median' (default) or 'mean'
 
         Notes
         =====
@@ -300,22 +326,34 @@ class Sea(SeaBase):
                 dum = np.sort(y_sea_m[:,i].compressed())
                 qul = prctile(dum,p=(25,75))
                 self.bound_low[i], self.bound_high[i] = qul[0], qul[1]
+                self.bound_type = 'quartiles'
         elif kwargs['ci']: #bootstrapped confidence intervals (95%)
+            funcdict = {'mean': np.mean,
+                        'median': np.median}
+            try:
+                if isinstance(kwargs['ci'], bool):
+                    raise ValueError #fall through to default case
+                else:
+                    ci_level = float(kwargs['ci'])
+            except ValueError:
+                ci_level = 95
             from spacepy.poppy import boots_ci
-            if kwargs['ci_quan'] == 'mean':
-                ci_func = lambda x: np.mean(x)
+            if hasattr(kwargs['ci_quan'], "__call__"): #ci_quan is a function
+                ci_func = kwargs['ci_quan']
             else:
-                ci_func = lambda x: np.median(x)
+                ci_func = funcdict[kwargs['ci_quan']]
             for i in range(m):
                 dum = np.sort(y_sea_m[:,i].compressed())
                 self.bound_low[i], self.bound_high[i] = \
-                     boots_ci(dum, 800, 95, ci_func)
+                     boots_ci(dum, 800, ci_level, ci_func)
+                self.bound_type = 'ci'
         elif kwargs['mad']: #median absolute deviation
             for i in range(m):
                 dum = np.sort(y_sea_m[:,i].compressed())
                 spread_mad = tb.medAbsDev(dum)
                 self.bound_low[i] = self.semedian[i]-spread_mad
                 self.bound_high[i] = self.semedian[i]+spread_mad
+                self.bound_type = 'mad'
 
         self.x = np.linspace(-1.*self.window*self.delta, self.window*self.delta, \
          len(self.semedian))
@@ -471,23 +509,17 @@ class Sea(SeaBase):
             raise ValueError('No superposed epoch results to plot')
 
         if len(xunits)<1:
-            xlstr = '%s' % xquan
+            xlstr = '{0}'.format(xquan)
         else:
-            xlstr = '%s [%s]' % (xquan, xunits)
+            xlstr = '{0} [{1}]'.format(xquan, xunits)
         if len(yquan)>=1 and len(yunits)>=1:
-            ylstr = '%s [%s]' % (yquan, yunits)
+            ylstr = '{0} [{1}]'.format(yquan, yunits)
         elif len(yquan)>=1 and len(yunits)<1:
-            ylstr = '%s' % yquan
+            ylstr = '{0}'.format(yquan)
         else:
             ylstr = ''
 
         fig, ax0 = set_target(target, loc=loc, figsize=figsize)
-
-        #ax0.plot(self.x, self.semean, 'b-', lw=1.5)
-        #plt.hold(True)
-        #ax0.plot(self.x, self.semedian, 'k-', lw=2.5)
-        #ax0.plot(self.x, self.bound_low, 'k-.', lw=2)
-        #ax0.plot(self.x, self.bound_high, 'k-.', lw=2)
 
         if transparent:
             ax0.fill_between(self.x, self.bound_low.ravel(), self.bound_high.ravel(),
@@ -498,7 +530,6 @@ class Sea(SeaBase):
         plt.hold(True)
         ax0.plot(self.x, self.semedian, 'k-', lw=2.0)
         ax0.plot(self.x, self.semean, 'r--', lw=1.25)
-
         plt.xlabel(xlstr)
         plt.ylabel(ylstr)
 
@@ -703,14 +734,8 @@ class Sea2d(SeaBase):
             en = en[0][-1]
             pld = self.semedian[st:en+1,:]
             usry = self.y[st:en+1]
-            #ax0.set_ylim(usrlimy)
 
-        if show==True and dpi==None:
-            dpi=80
-        elif show==False and dpi==None:
-            dpi=300
-
-        fig = plt.figure(figsize=figsize, dpi=dpi)
+        fig = plt.figure(figsize=figsize)
         ax0 = fig.add_subplot(111)
         if zlog:
             cax = ax0.pcolor(self.x, usry, pld, norm=LogNorm(vmin=np.nanmin(pld), vmax=np.nanmax(pld)))
@@ -755,7 +780,7 @@ def seadict(objlist, namelist):
         assert type(objlist) == \
         list, 'seadict(): Inputs must be in lists'
     except AssertionError as args:
-        raise ValueError('%s -- %s' % (args.__class__.__name__, args))
+        raise ValueError('{0} -- {1}'.format(args.__class__.__name__, args))
 
     nobj, nname = len(objlist), len(namelist)
     if nobj!=nname:
@@ -912,6 +937,8 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
 
     Other Parameters
     ================
+        - test (default = 'KS') Test to apply at each lag:
+            KS is 2-smaple Kolmogorov-Smirnov; U is Mann-Whitney U-test
         - show (default = True)
         - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
         - x(y)units (default = None (None)) - x(y)-axis units.
@@ -958,27 +985,14 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
             S.append(tU)
             prob.append(tprobU*2)
 
-    def add_epochline(ax):
-        yr = ax.get_ylim()
-        if yr[0] < 0:
-            yrlo = yr[0]+yr[0]
-        else:
-            yrlo = yr[0]-yr[0]
-        if yr[1] < 0:
-            yrhi = yr[1]-yr[1]
-        else:
-            yrhi = yr[1]+yr[1]
-
-        return (yr, yrlo, yrhi)
-
     if len(xunits)<1:
-        xlstr = '%s' % xquan
+        xlstr = '{0}'.format(xquan)
     else:
-        xlstr = '%s [%s]' % (xquan, xunits)
+        xlstr = '{0} [{1}]'.format(xquan, xunits)
     if len(yquan)>=1 and len(yunits)>=1:
-        ylstr = '%s [%s]' % (yquan, yunits)
+        ylstr = '{0} [{1}]'.format(yquan, yunits)
     elif len(yquan)>=1 and len(yunits)<1:
-        ylstr = '%s' % yquan
+        ylstr = '{0}'.format(yquan)
     else:
         ylstr = ''
 
@@ -989,25 +1003,21 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
     ax0.set_position([pos.bounds[0], 0.4, pos.bounds[2], 0.55])
     ax1 = fig.add_subplot(212, position=[pos.bounds[0], 0.1, pos.bounds[2], 0.25])
     #overlay superposed epochs
-    ax0.plot(obj1.x, obj1.semedian, 'b-', lw=1.5)
+    ax0.plot(obj1.x, obj1.semedian, lw=1.5)
     plt.hold(True)
-    ax0.plot(obj1.x, obj1.bound_high, 'b--')
-    ax0.plot(obj1.x, obj1.bound_low, 'b--')
-    ax0.plot(obj2.x, obj2.semedian, 'r-', lw=1.5)
-    ax0.plot(obj2.x, obj2.bound_high, 'r--')
-    ax0.plot(obj2.x, obj2.bound_low, 'r--')
+    ax0.plot(obj1.x, obj1.bound_high, color='royalblue', ls='--')
+    ax0.plot(obj1.x, obj1.bound_low, color='royalblue', ls='--')
+    ax0.plot(obj2.x, obj2.semedian, color='crimson', lw=1.5)
+    ax0.plot(obj2.x, obj2.bound_high, color='crimson', ls='--')
+    ax0.plot(obj2.x, obj2.bound_low, color='crimson', ls='--')
     if epochline:
-        yr, yrlo, yrhi = add_epochline(ax0)
-        ax0.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
-        ax0.set_ylim(yr)
+        ax0.axvline(0, 0, 1, color='k', ls=':')
     ax0.set_ylabel(ylstr)
     #plot prob in lower panel
-    ax1.plot(obj1.x, prob, 'r-', lw=1.5, drawstyle='steps-mid')
-    ax1.plot([obj1.x[0], obj1.x[-1]], [0.05, 0.05], 'b-')
+    ax1.plot(obj1.x, prob, color='crimson', ls='-', lw=1.5, drawstyle='steps-mid')
+    ax1.plot([obj1.x[0], obj1.x[-1]], [0.05, 0.05], color='royalblue', ls=':')
     if epochline:
-        yr, yrlo, yrhi = add_epochline(ax1)
-        ax1.plot([0,0], [yrlo,yrhi], 'k:', lw=1)
-        ax1.set_ylim(yr)
+        ax1.axvline(0, 0, 1, color='k', ls=':')
     ax1.set_xlabel(xlstr)
     ax1.set_ylabel('Prob. of H0')
 
