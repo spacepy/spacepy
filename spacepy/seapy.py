@@ -191,7 +191,8 @@ class SeaBase(object):
             repochs = (entime - sttime) * np.random.random_sample(n) + sttime
         if cflag:
             repochs = num2date(repochs)
-        new = Sea(self.data, self._times, sorted(repochs), **self._kwargs)
+        newclass = type(self)
+        new = newclass(self.data, self._times, sorted(repochs), **self._kwargs)
         return new
 
 
