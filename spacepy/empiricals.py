@@ -152,7 +152,7 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     else:
         #now test for sanity of input
         try:
-            isinstance(omnivals, dict)
+            assert isinstance(omnivals, dict)
         except:
             raise TypeError('Not a valid input type for omnivals, expected spacepy.datamodel.SpaceData')
         try:

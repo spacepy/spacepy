@@ -1,7 +1,7 @@
 """
 Utility routines for plotting and related activities
 
-Authors: Jonathan Niehof
+Authors: Jonathan Niehof, Steven Morley, Daniel Welling
 
 Institution: Los Alamos National Laboratory
 
@@ -607,7 +607,8 @@ def smartTimeTicks(time):
     applySmartTimeTicks
     """
     from matplotlib.dates import (MinuteLocator, HourLocator,
-                                  DayLocator, DateFormatter)
+                                  DayLocator, MonthLocator, YearLocator,
+                                  DateFormatter)
     deltaT = time[-1] - time[0]
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
     if nHours < .5:

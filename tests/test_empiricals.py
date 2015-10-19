@@ -2,6 +2,7 @@
 #!/usr/bin/env python2.6
 
 import unittest
+import datetime as dt
 import dateutil.parser as dup
 import numpy as np
 import spacepy.time as spt
@@ -38,7 +39,7 @@ class empFunctionTests(unittest.TestCase):
         ans = em.getPlasmaPause(self.ticks)
         np.testing.assert_almost_equal(real_ans, ans)
 
-    def test_getPlasmaPause(self):
+    def test_getPlasmaPauseErrors1(self):
         '''tests for exceptions in getPlasmaPause'''
         #check for fail on bad LT
         foo = lambda: em.getPlasmaPause(self.ticks, LT='bad')
@@ -49,6 +50,15 @@ class empFunctionTests(unittest.TestCase):
         #check for fail on LT out of legal range
         spam = lambda: em.getPlasmaPause(self.ticks, LT=25)
         self.assertRaises(IndexError, spam)
+
+    def test_getPlasmaPauseErrors2(self):
+        '''test more exceptions in getPlasmaPause'''
+        #check for fail on omnivals of wrong type
+        spam = lambda: em.getPlasmaPause(self.ticks, omnivals=['Kp', 2.7])
+        self.assertRaises(TypeError, spam)
+        #check for fail on omnivals without correct inputs
+        spam1 = lambda: em.getPlasmaPause(self.ticks, omnivals={'Kp': [2.7]*10})
+        self.assertRaises(KeyError, spam1)
 
     def test_getLmax(self):
         """getLmax should give known results (regression)"""
@@ -79,7 +89,30 @@ class empFunctionTests(unittest.TestCase):
                              -21.22360883,  -8.49354146,  -3.29620967])
         ans = em.getDststar(self.ticks)
         np.testing.assert_almost_equal(real_ans, ans)
+
+    def test_getDststarTuple(self):
+        """getDststar should give known results from tuple input (regression)"""
+        real_ans = np.array([-30.80228229, -26.85289053, -11.2457748 , -17.98012397,
+                             -16.1640001 , -13.64888467, -14.75155876, -10.43928609,
+                             -21.22360883,  -8.49354146,  -3.29620967])
+        ans = em.getDststar(self.ticks, model=(7.26, 11))
+        np.testing.assert_almost_equal(real_ans, ans)
+
+    def test_getDststarError(self):
+        """getDststar should give known exceptions on bad input"""
+        real_ans = np.array([-30.80228229, -26.85289053, -11.2457748 , -17.98012397,
+                             -16.1640001 , -13.64888467, -14.75155876, -10.43928609,
+                             -21.22360883,  -8.49354146,  -3.29620967])
+        ans = em.getDststar(self.ticks)
         self.assertRaises(ValueError, em.getDststar, self.ticks, model='bad')
+        self.assertRaises(ValueError, em.getDststar, self.ticks, model={'a':7.26, 'b':11})
+
+    def test_getDststarOmnivals(self):
+        """getDststar should give known result using omnival dict input"""
+        dst, pdyn = -10.0, 5.0
+        real_ans = dst - np.sqrt(pdyn)
+        ans = em.getDststar({'Pdyn': pdyn, 'Dst': dst}, model=(1,0))
+        np.testing.assert_almost_equal(real_ans, ans)
 
     def test_getSolarRotation_Carrington(self):
         """make sure getSolarRotation returns known values"""
@@ -100,6 +133,14 @@ class empFunctionTests(unittest.TestCase):
         float_ans = np.array([1.0, 2331.0185185185187, 2447.3703703703704])
         ans = em.getSolarRotation(dates, rtype='bartels', fp=True)
         np.testing.assert_almost_equal(float_ans, ans)
+
+    def test_getSolarRotation_BartelsDateTime(self):
+        """make sure getSolarRotation returns known values"""
+        dates = [dup.parse(t) for t in ['1832-02-08T00:00:00','2004-05-06T12:00:00','2012-12-12T00:00:00']]
+        real_ans = np.array([1,2331,2447]).astype(int)
+        for dd, aa in zip(dates, real_ans):
+            ans = em.getSolarRotation(dd, rtype='bartels')
+            np.testing.assert_almost_equal(aa, ans)
 
 class PAmodelTests(unittest.TestCase):
     def setUp(self):
