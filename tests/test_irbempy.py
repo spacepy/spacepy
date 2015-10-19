@@ -167,7 +167,27 @@ class IRBEMBigTests(unittest.TestCase):
         actual = ib.get_Lstar(self.ticks, self.loci, [70], extMag='T05')
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
-        
+
+    def test_AlphaOfK(self):
+        '''test calculation of eq. pitch angle from K (regression)'''
+        t = spacepy.time.Ticktock(['2002-09-01T04:00:00'], 'ISO') 
+        loci = spacepy.coordinates.Coords([-4,0,0], 'GSM', 'car') 
+        ans = spacepy.irbempy.AlphaOfK(t, loci, 0.11, extMag='T89') 
+        numpy.testing.assert_almost_equal(ans, 48.984375, decimal=5)
+
+    def test_find_footpoint(self):
+        '''test computation of field line footpoint location/magnitude (regression)'''
+        expected = {'Bfoot': numpy.array([ 47559.04643444,  47542.84688657]),
+                    'Bfootvec': numpy.array([[-38428.07217246,   4497.31549786, -27657.19291928],
+                                       [-38419.08514332,   4501.45390964, -27641.14866517]]),
+                    'loci': spacepy.coordinates.Coords( [[ 99.31443778, 55.71415787,-10.21888955],
+                                     [ 99.99397026, 55.70716296,-10.22797462]],
+                                     dtype='GDZ', carsph='sph', units=['km', 'deg', 'deg'])}
+        t = spacepy.time.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO') 
+        y = spacepy.coordinates.Coords([[3,0,0],[3,0,0]], 'GEO', 'car')
+        ans = spacepy.irbempy.find_footpoint(t, y)
+        numpy.testing.assert_almost_equal(expected['Bfoot'], ans['Bfoot'], decimal=5)
+        numpy.testing.assert_almost_equal(expected['loci'].data, ans['loci'].data, decimal=5)
         
 # -----------------------------------------------------------------------
 
