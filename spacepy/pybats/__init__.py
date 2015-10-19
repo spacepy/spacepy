@@ -106,10 +106,7 @@ convenience functions for customizing plots.
 
    add_body
    add_planet
-   apply_smart_timeticks
    parse_tecvars
-   set_target
-   smart_timeticks
 
 '''
 
@@ -243,11 +240,6 @@ def parse_tecvars(line):
 
     return ret
 
-smart_timeticks = spu.smartTimeTicks
-
-apply_smart_timeticks = spu.applySmartTimeTicks
-
-set_target = spu.set_target
 
 def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
     '''
@@ -1389,7 +1381,7 @@ class ImfInput(PbData):
 
         def adjust_plots(ax, ylab, xlab=False, Zero=True):
             ax.grid(True)
-            apply_smart_timeticks(ax,timerange)
+            applySmartTimeticks(ax,timerange)
             ax.set_ylabel(ylab)
             labels =ax.get_yticklabels()
             labels[-1].set_visible(False)

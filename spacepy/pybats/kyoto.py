@@ -12,7 +12,8 @@ for more information.
 # Module wide imports.
 import numpy as np
 import datetime as dt
-from spacepy.pybats import PbData, set_target
+from spacepy.plot.utils import set_target, applySmartTimeTicks
+from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray, SpaceData
 
 #############################################################################
@@ -170,7 +171,6 @@ class KyotoKp(PbData):
         '''
 
         import matplotlib.pyplot as plt
-        from spacepy.pybats import apply_smart_timeticks
 
         # Shortcuts for the lazy.
         bstart=self['binstart']
@@ -194,7 +194,7 @@ class KyotoKp(PbData):
 
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
         line=ax.plot(newtime, newkp, label=label, **kwargs)
-        apply_smart_timeticks(ax, time_range, dolabel=True)
+        applySmartTimeTicks(ax, time_range, dolabel=True)
 
         return fig, ax
 
