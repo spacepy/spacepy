@@ -54,7 +54,6 @@ import spacepy.toolbox as tb
 from spacepy import help
 import spacepy.time as spt
 import spacepy.datamodel as dm
-from spacepy.pybats import set_target
 import spacepy.plot as spplt
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
@@ -520,7 +519,7 @@ class Sea(SeaBase):
         else:
             ylstr = ''
 
-        fig, ax0 = set_target(target, loc=loc, figsize=figsize)
+        fig, ax0 = spplt.utils.set_target(target, loc=loc, figsize=figsize)
 
         if transparent:
             ax0.fill_between(self.x, self.bound_low.ravel(), self.bound_high.ravel(),

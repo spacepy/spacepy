@@ -26,7 +26,7 @@ class PlotUtilFunctionTests(unittest.TestCase):
     def test_applySmartTimeTicks(self):
         """applySmartTimeTicks should have known behaviour"""
         plt.ion()
-        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays=1)
+        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-07T00:00:00', deltadays=1)
         y = list(range(len(ticks)))
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -36,13 +36,13 @@ class PlotUtilFunctionTests(unittest.TestCase):
         plt.draw()
         # should not have moved the ticks
         real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
-        730888.,  730889.,  730890.,  730891.])
+        730888.])
         numpy.testing.assert_almost_equal(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
         try:
-            real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(10)]
+            real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(7)]
         except AttributeError: #Py3k
-            real_ans = ['{0:02d} Feb'.format(i+1) for i in range(10)]
+            real_ans = ['{0:02d} Feb'.format(i+1) for i in range(7)]
         ans = [t.get_text()
                for t in ax.xaxis.get_majorticklabels()]
         numpy.testing.assert_array_equal(real_ans, ans)

@@ -34,6 +34,7 @@ from test_base import *
 from test_plot_utils import *
 from test_rst import *
 from test_lib import *
+from test_pybats import *
 from test_ae9ap9 import *
 # add others here as they are written
 

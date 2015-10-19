@@ -31,6 +31,7 @@ Functions
     applySmartTimeTicks
     collapse_vertical
     printfig
+    set_target
     shared_ylabel
     show_used
     smartTimeTicks
@@ -540,7 +541,7 @@ def annotate_xaxis(txt, ax=None):
                    ha='left', va='bottom', **props)
 
 
-def applySmartTimeTicks(ax, time, dolimit = True):
+def applySmartTimeTicks(ax, time, dolimit=True, dolabel=False):
     """
     Given an axis 'ax' and a list/array of datetime objects, 'time',
     use the smartTimeTicks function to build smart time ticks and
@@ -561,6 +562,8 @@ def applySmartTimeTicks(ax, time, dolimit = True):
     dolimit : boolean (optional)
         The range of the 'time' input value will be used to set the limits
         of the x-axis as well. Setting this overrides this behavior.
+    dolabel : boolean (optional)
+        Sets autolabeling of the time axis with ``Time from'' time[0]
 
     See Also
     ========
@@ -572,6 +575,9 @@ def applySmartTimeTicks(ax, time, dolimit = True):
     ax.xaxis.set_major_formatter(fmt)
     if dolimit:
         ax.set_xlim([time[0], time[-1]])
+    if dolabel:
+        ax.set_xlabel('Time from {0}'.format(time[0].isoformat()))
+    return True
 
 def smartTimeTicks(time):
     """
@@ -604,10 +610,18 @@ def smartTimeTicks(time):
                                   DayLocator, DateFormatter)
     deltaT = time[-1] - time[0]
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
-    if nHours < 1:
+    if nHours < .5:
+        Mtick = MinuteLocator(byminute=list(range(0,60,5)) )
+        mtick = MinuteLocator(byminute=list(range(60)), interval=5)
+        fmt = DateFormatter('%H:%M UT')
+    elif nHours < 1:
         Mtick = MinuteLocator(byminute = [0,15,30,45])
         mtick = MinuteLocator(byminute = list(range(60)), interval = 5)
         fmt = DateFormatter('%H:%M UT')
+    elif nHours < 2:
+        Mtick = MinuteLocator(byminute=[0,15,30,45])
+        mtick = MinuteLocator(byminute=list(range(60)), interval=5)
+        fmt =  DateFormatter('%H:%M UT')
     elif nHours < 4:
         Mtick = MinuteLocator(byminute = [0,30])
         mtick = MinuteLocator(byminute = list(range(60)), interval = 10)
@@ -624,12 +638,87 @@ def smartTimeTicks(time):
         Mtick = HourLocator(byhour = [0,6,12,18])
         mtick = HourLocator(byhour = list(range(24)))
         fmt = DateFormatter('%H:%M UT')
+    elif deltaT.days < 8:
+        Mtick = DayLocator(bymonthday=list(range(32)))
+        mtick = HourLocator(byhour=list(range(0,24,2)))
+        fmt =  DateFormatter('%d %b')
+    elif deltaT.days < 15:
+        Mtick = DayLocator(bymonthday=list(range(2,32,2)))
+        mtick = HourLocator(byhour=[0,6,12,18])
+        fmt =  DateFormatter('%d %b')
+    elif deltaT.days < 32:
+        Mtick = DayLocator(bymonthday=list(range(5,35,5)))
+        mtick = HourLocator(byhour=[0,6,12,18])
+        fmt =  DateFormatter('%d %b')
+    elif deltaT.days < 60:
+        Mtick = MonthLocator()
+        mtick = DayLocator(bymonthday=list(range(5,35,5)))
+        fmt =  DateFormatter('%d %b')
+    elif deltaT.days < 731:
+        Mtick = MonthLocator()
+        mtick = DayLocator(bymonthday=15)
+        fmt =  DateFormatter('%b %Y')
     else:
-        Mtick = DayLocator(bymonthday = list(range(1,32)))
-        mtick = HourLocator(byhour = [0,6,12,18])
-        fmt = DateFormatter('%d %b')
+        Mtick = YearLocator()
+        mtick = MonthLocator(bymonth=7)
+        fmt =  DateFormatter('%Y')
+    return(Mtick, mtick, fmt)
 
-    return (Mtick, mtick, fmt)
+
+def set_target(target, figsize=None, loc=111, polar=False):
+    '''
+    Given a *target* on which to plot a figure, determine if that *target*
+    is **None** or a matplotlib figure or axes object.  Based on the type
+    of *target*, a figure and/or axes will be either located or generated.
+    Both the figure and axes objects are returned to the caller for further
+    manipulation.  This is used in nearly all *add_plot*-type methods.
+
+    Parameters
+    ==========
+    target : object
+        The object on which plotting will happen.
+
+    Other Parameters
+    ================
+    figsize : tuple
+        A two-item tuple/list giving the dimensions of the figure, in inches.  
+        Defaults to Matplotlib defaults.
+    loc : integer 
+        The subplot triple that specifies the location of the axes object.  
+        Defaults to 111.
+    polar : bool
+        Set the axes object to polar coodinates.  Defaults to **False**.
+
+    Returns
+    =======
+    fig : object
+      A matplotlib figure object on which to plot.
+
+    ax : object
+      A matplotlib subplot object on which to plot.
+
+    Examples
+    ========
+    >>> import matplotlib.pyplot as plt
+    >>> from spacepy.pybats import set_target
+    >>> fig = plt.figure()
+    >>> fig, ax = set_target(target=fig, loc=211)
+
+    '''
+    # Is target a figure?  Make a new axes.
+    if type(target) == plt.Figure:
+        fig = target
+        ax  = fig.add_subplot(loc, polar=polar)
+    # Is target an axes?  Make no new items.
+    elif issubclass(type(target), plt.Axes):
+        ax  = target
+        fig = ax.figure
+    # Is target something else?  Make new everything.
+    else:
+        fig = plt.figure(figsize=figsize)
+        ax  = fig.add_subplot(loc, polar=polar)
+
+    return fig, ax
 
 
 def collapse_vertical(combine, others=(), leave_axis=False):
