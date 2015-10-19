@@ -45,13 +45,23 @@ def style(look=None):
     look : str
     Name of style. For a list of available style names, see `spacepy.plot.available`.
     '''
+    import matplotlib
     lookdict = available(returnvals=True)
     try:
-        plt.style.use(lookdict[look])
+        usestyle = lookdict[look]
     except KeyError:
-        plt.style.use(lookdict['default'])
-if mplv >= '1.4.0':
-    style()
+        usestyle = lookdict['default']
+    try:
+        plt.style.use(usestyle)
+    except AttributeError: #plt.style.use not available, old matplotlib?
+        dum = matplotlib.rc_params_from_file(usestyle)
+        styapply = dict()
+        #remove None values as these seem to cause issues...
+        for key in dum:
+            if dum[key] is not None: styapply[key] = dum[key]
+        for key in styapply:
+            matplotlib.rcParams[key] = styapply[key]
+style()
 
 
 def dual_half_circle(center=(0,0), radius=1.0,
