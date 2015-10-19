@@ -16,6 +16,7 @@ Copyright 2011 Los Alamos National Security, LLC.
 """
 import os
 from matplotlib.patches import Wedge
+from matplotlib import __version__ as mplv
 import matplotlib.pyplot as plt
 from spacepy import __path__ as basepath
 from . import spectrogram
@@ -49,7 +50,8 @@ def style(look=None):
         plt.style.use(lookdict[look])
     except KeyError:
         plt.style.use(lookdict['default'])
-style()
+if mplv >= '1.4.0':
+    style()
 
 
 def dual_half_circle(center=(0,0), radius=1.0,
