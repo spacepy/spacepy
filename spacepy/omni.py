@@ -59,7 +59,7 @@ range set the keyword argument interp to False.
 """
 import bisect, re, os
 import numpy as np
-from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten, readJSONheadedASCII, dmfilled
+from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten, readJSONheadedASCII, dmfilled, fromHDF5
 from spacepy.toolbox import tOverlapHalf, indsFromXrange
 import spacepy.time as spt
 
@@ -144,6 +144,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
     dbase_options = {'QDhourly'    : 1,
                      'OMNI2hourly' : 2,
                      'Mergedhourly': 3,
+                     'Test'        : -9,
                      }
 
     if not isinstance(ticks, spt.Ticktock):
@@ -236,9 +237,15 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
     import h5py as h5
     fname, QDkeylist, O2keylist = '', [], []
     omnivals = SpaceData()
-    if dbase_options[dbase] == 1 or dbase_options[dbase] == 3:
-        ldb = 'QDhourly'
-        with h5.File(omnifln) as hfile:
+    dbase_select = dbase_options[dbase]
+    if dbase_select in [1, 3, -9]:
+        if dbase_select > 0:
+            ldb = 'QDhourly'
+            fln = omnifln
+        else:
+            ldb = 'Test'
+            fln = testfln
+        with h5.File(fln) as hfile:
             QDkeylist = [kk for kk in hfile if kk not in ['Qbits', 'UTC']]
             st, en = ticks[0].RDT, ticks[-1].RDT
             ##check that requested requested times are within range of data
@@ -315,7 +322,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
             for i in range(1,7): del omniout['W{0}'.format(i)]
         if 'Qbits' in key:
             #Qbits are integer vals, higher is better, so floor to get best representation of interpolated val
-            omniout[key] = np.floor(omniout[key]) 
+            omniout[key] = np.floor(omnivals[key]) 
             omniout[key].attrs = dmcopy(omnivals[key].attrs)
             if 'G3' in key: #then we have all the Gs
                 omniout['Qbits<--G'] = dmarray(np.vstack([omniout['Qbits<--G1'], omniout['Qbits<--G2'], omniout['Qbits<--G3']]).T)
@@ -362,10 +369,11 @@ def omnirange(dbase='QDhourly'):
     
     import h5py as h5
     infile = {'QDhourly': omnifln,
-              'OMNI2hourly': omni2fln}
+              'OMNI2hourly': omni2fln,
+              'Test': testfln}
     if dbase not in infile:
         raise NotImplementedError('')
-    with h5.File(omnifln) as hfile:
+    with h5.File(infile[dbase]) as hfile:
         start, end = hfile['RDT'][0], hfile['RDT'][-1]
         start = spt.Ticktock(start, 'RDT').UTC[0]
         end = spt.Ticktock(end, 'RDT').UTC[0]
@@ -389,6 +397,7 @@ except ImportError:
 #dotfln = os.environ['HOME']+'/.spacepy'
 omnifln = os.path.join(DOT_FLN,'data','omnidata{0}'.format(_ext))
 omni2fln = os.path.join(DOT_FLN,'data','omni2data{0}'.format(_ext))
+testfln = os.path.join('data','OMNItest{0}'.format(_ext))
 
 if _ext=='.h5':
     presentQD = h5py.is_hdf5(omnifln)

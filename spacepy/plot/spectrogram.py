@@ -48,7 +48,7 @@ import matplotlib.pyplot as plt
 
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
-import spacepy.plot.utils as spu
+from  . import utils as spu
 
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 

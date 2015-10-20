@@ -788,6 +788,7 @@ def toCDF(fname, SDobject, **kwargs):
     defaults = {'skeleton': '',
                 'flatten': False,
                 'overwrite': False,
+                'compress': False,
                 'autoNRV': False,
                 'backward': False,
                 'TT2000': False,
@@ -1278,7 +1279,7 @@ def readJSONMetadata(fname, **kwargs):
             mdata.tree(verbose=True, attrs=True)
     return mdata
 
-def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
+def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=None):
     """read JSON-headed ASCII data files into a SpacePy datamodel
 
     Parameters
@@ -1297,6 +1298,8 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         If True, uses common names to try conversion from string. If a dict-
         like then uses the functions specified as the dict values to convert
         each element of 'key' to a non-string
+    restrict: list of strings (optional)
+        If present, restrict the variables stored to only those on this list
 
     Returns
     -------
@@ -1316,6 +1319,10 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
             fname=[fname]
     if not mdata:
         mdata = readJSONMetadata(fname[0])
+    if restrict:
+        delkeys = [kk for kk in mdata.keys() if kk not in restrict]
+        for val in delkeys:
+            del mdata[val] #remove undesired keys
     mdata_copy = dmcopy(mdata)
     def innerloop(fh, mdata, mdata_copy):
         line = fh.readline()
@@ -1343,7 +1350,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         for ridx, line in enumerate(alldata):
             for cidx, el in enumerate(line.rstrip().split()):
                 data[ridx, cidx] = el
-        for key in mdata.keys():
+        for key in mdata_copy.keys():
             if 'START_COLUMN' in mdata_copy[key].attrs:
                 st = mdata_copy[key].attrs['START_COLUMN']
                 if 'DIMENSION' in mdata_copy[key].attrs:
@@ -1373,7 +1380,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         else:
             mdata = innerloop(fh, mdata, mdata_copy)
     #now add the attributres to the variables
-    keys = list(mdata.keys())
+    keys = list(mdata_copy.keys())
     for key in keys:
         if isinstance(mdata[key], SpaceData):
             mdata[key] = dmarray(None, attrs=mdata_copy[key].attrs)
@@ -1672,3 +1679,79 @@ def dmcopy(dobj):
         return numpy.copy(dobj)
     else:
         return copy.copy(dobj)
+
+def createISTPattrs(datatype, ndims=1, vartype=None, units=None, NRV=False):
+    '''Return set of unpopulated attributes for ISTP compliant variable
+    '''
+    fillvals = {'float': -1e31,
+                'char': '',
+                'int': numpy.array(-2147483648).astype(numpy.int32),
+                'epoch': -1.0E31, #datetime.datetime(9999,12,31,23,59,59,999)}
+                'tt2000': numpy.array(-9223372036854775808).astype(numpy.int64)}
+    formats = {'float': 'F18.6',
+               'char': 'A30',
+               'int': 'I11',
+               'epoch': '',
+               'tt2000': 'I21'}
+    disp = {1: 'time_series',
+            2: 'spectrogram',
+            3: 'spectrogram',
+            4: 'spectrogram'}
+    if vartype not in fillvals:
+        fill = -1e31
+        form = 'F15.6'
+    else:
+        fill = fillvals[vartype]
+        form = formats[vartype]
+    if units:
+        unit = units
+    else:
+        unit = ''
+    if datatype == 'data':
+        attrs = {'CATDESC': '',
+            'DISPLAY_TYPE': disp[ndims],
+            'FIELDNAM': '',
+            'FILLVAL': fill,
+            'FORMAT': form,
+            'LABLAXIS': '',
+            'SI_CONVERSION': ' > ',
+            'UNITS': unit,
+            'VALIDMIN': '',
+            'VALIDMAX': '',
+            'VAR_TYPE': 'data'
+            }
+        for dim in range(ndims):
+            attrs['DEPEND_{0}'.format(dim)] = ''
+        attrs['DEPEND_0'] = 'Epoch'
+    elif datatype == 'support_data':
+        attrs = {'CATDESC': '',
+            'FIELDNAM': '',
+            'FORMAT': form,
+            'UNITS': unit,
+            'VAR_TYPE': 'support_data'
+            }
+        for dim in range(ndims):
+            attrs['DEPEND_{0}'.format(dim)] = ''
+        if not NRV:
+            attrs['VALIDMIN'] = ''
+            attrs['VALIDMAX'] = ''
+            attrs['FILLVAL'] = fill
+            attrs['DEPEND_0'] = 'Epoch'
+        else:
+            del attrs['DEPEND_0']
+    elif datatype == 'metadata':
+        attrs = {'CATDESC': '',
+            'FIELDNAM': '',
+            'FORMAT': form,
+            'UNITS': unit,
+            'VAR_TYPE': 'metadata'
+            }
+        for dim in range(ndims):
+            attrs['DEPEND_{0}'.format(dim)] = ''
+        if not NRV:
+            attrs['FILLVAL'] = fill
+            attrs['DEPEND_0'] = 'Epoch'
+        else:
+            del attrs['DEPEND_0']
+
+    return attrs

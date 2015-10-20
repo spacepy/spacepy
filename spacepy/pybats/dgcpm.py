@@ -6,6 +6,7 @@ Core Plasma Model (DGCPM), a plasmasphere module of the SWMF.
 '''
 
 import numpy as np
+from spacepy.plot.utils import applySmartTimeTicks
 from spacepy.pybats import PbData
 
 def _adjust_dialplot(ax, rad, title='12',labelsize=15):
@@ -503,7 +504,6 @@ class MltSlice(PbData):
         import matplotlib.pyplot as plt
         from matplotlib.ticker import LogLocator, LogFormatterMathtext
         from matplotlib.colors import LogNorm
-        from spacepy.pybats import apply_smart_timeticks
 
         # Set ax and fig based on given target.
         if type(target) == plt.Figure:
@@ -540,13 +540,13 @@ class MltSlice(PbData):
         if title: ax.set_title(title)
         if xlabel == 'full':
             # Both ticks and label.
-            apply_smart_timeticks(ax, self['time'], dolabel=True)
+            applySmartTimeTicks(ax, self['time'], dolabel=True)
         elif xlabel == 'ticks':
             # Ticks, but no date label.
-            apply_smart_timeticks(ax, self['time'], dolabel=False)
+            applySmartTimeTicks(ax, self['time'], dolabel=False)
         else:
             # A blank x-axis is often useful.
-            apply_smart_timeticks(ax, self['time'], dolabel=False)
+            applySmartTimeTicks(ax, self['time'], dolabel=False)
             ax.set_xticklabels('')
         # Add cbar as necessary:
         if add_cbar:
@@ -631,7 +631,6 @@ class Lslice(PbData):
         import matplotlib.pyplot as plt
         from matplotlib.ticker import LogLocator, LogFormatterMathtext
         from matplotlib.colors import LogNorm
-        from spacepy.pybats import apply_smart_timeticks
 
         # Set ax and fig based on given target.
         if type(target) == plt.Figure:
@@ -667,13 +666,13 @@ class Lslice(PbData):
         if title: ax.set_title(title)
         if xlabel == 'full':
             # Both ticks and label.
-            apply_smart_timeticks(ax, self['time'], dolabel=True)
+            applySmartTimeTicks(ax, self['time'], dolabel=True)
         elif xlabel == 'ticks':
             # Ticks, but no date label.
-            apply_smart_timeticks(ax, self['time'], dolabel=False)
+            applySmartTimeTicks(ax, self['time'], dolabel=False)
         else:
             # A blank x-axis is often useful.
-            apply_smart_timeticks(ax, self['time'], dolabel=False)
+            applySmartTimeTicks(ax, self['time'], dolabel=False)
             ax.set_xticklabels('')
         # Add cbar as necessary:
         if add_cbar:

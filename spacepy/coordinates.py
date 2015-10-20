@@ -3,9 +3,9 @@
 """
 Implementation of Coords class functions for coordinate transformations
 
-Authors: Josef Koller
+Authors: Josef Koller and Steven Morley
 Institution: Los ALamos National Laboratory
-Contaact: jkoller@lanl.gov
+Contact: smorley@lanl.gov
 
 Copyright 2010 Los Alamos National Security, LLC.
 """
@@ -14,13 +14,13 @@ import numpy as np
 from spacepy import help
 import spacepy
 
-__contact__ = 'Josef Koller, jkoller@lanl.gov'
+__contact__ = 'Steven Morley, smorley@lanl.gov'
 
 # -----------------------------------------------
 # space coordinate class
 # -----------------------------------------------
 class Coords(object):
-    """
+    '''
     a = Coords( data, dtype, carsph, [units, ticks] )
 
     A class holding spatial coordinates in Cartesian/spherical
@@ -28,11 +28,9 @@ class Coords(object):
 
     Coordinate transforms are based on the IRBEM library; `its manual
     <http://irbem.svn.sourceforge.net/viewvc/irbem/trunk/manual/user_guide.html>`_
-    may prove useful. There is good background information on space
-    physics coordinate systems at `SPENVIS
-    <http://www.spenvis.oma.be/help/background/coortran/coortran.html>`_
-    and `RAL
-    <http://sspg1.bnsc.rl.ac.uk/Share/Coordinates/systems.htm>`_
+    may prove useful. For a good reference on heliospheric and magnetospheric
+    coordinate systems, see Franz & Harper, "Heliospheric Coordinate Systems",
+    Planet. Space Sci., 50, pp 217-233, 2002.
 
     Parameters
     ==========
@@ -73,7 +71,7 @@ class Coords(object):
         ~Coords.convert
     .. automethod:: append
     .. automethod:: convert
-    """
+    '''
     def __init__(self, data, dtype, carsph, units=None, ticks=None):
 
         from . import irbempy as op
@@ -117,10 +115,10 @@ class Coords(object):
         self.carsph = carsph
         # setup units
         self.Re = 6371000.0 #metres
-        if units == None and carsph == 'car':
+        if units is None and carsph == 'car':
             # use standard units
             self.units = ['Re', 'Re', 'Re']
-        elif units == None and carsph == 'sph':
+        elif units is None and carsph == 'sph':
             self.units = ['Re', 'deg', 'deg']
         else:
             self.units = units
@@ -142,7 +140,7 @@ class Coords(object):
 
     # -----------------------------------------------
     def __str__(self):
-        """
+        '''
         a.__str__() or a
 
         Will be called when printing Coords instance a
@@ -159,14 +157,14 @@ class Coords(object):
         >>> y
         Coords( [[1 2 4]
          [1 2 2]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
-        """
+        '''
         rstr = "Coords( {0} , '{1}', '{2}')".format(self.data.tolist(), self.dtype, self.carsph)
         return rstr 
     __repr__ = __str__
 
     # -----------------------------------------------
     def __getitem__(self, idx):
-        """
+        '''
         a.__getitem__(idx) or a[idx]
 
         Will be called when requesting items in this instance
@@ -187,13 +185,13 @@ class Coords(object):
         >>> y = Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
         >>> y[0]
         Coords( [[1 2 4]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
-        """
+        '''
         arr = np.array(self.data)
         return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, self.ticks)
 
     # -----------------------------------------------
     def __setitem__(self, idx, vals):
-        """
+        '''
         a.__setitem__(idx, vals) or a[idx] = vals
 
         Will be called setting items in this instance
@@ -213,13 +211,13 @@ class Coords(object):
         >>> y
         Coords( [[1 2 4]
             [9 9 9]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
-        """
+        '''
         self.data[idx] = vals
         return
 
     # -----------------------------------------------
     def __len__(self):
-        """
+        '''
         a.__len__() or len(a)
 
         Will be called when requesting the length, i.e. number of items
@@ -236,7 +234,7 @@ class Coords(object):
         >>> len(y)
         2
 
-        """
+        '''
         if isinstance(self.data, (list, np.ndarray)):
             return len(self.data)
         else:
@@ -245,7 +243,7 @@ class Coords(object):
 
     # -----------------------------------------------
     def convert(self, returntype, returncarsph):
-        """Create a new Coords instance with new coordinate types
+        '''Create a new Coords instance with new coordinate types
 
         Parameters
         ==========
@@ -269,7 +267,7 @@ class Coords(object):
         >>> x
         Coords( [[ 0.81134097  2.6493305   3.6500375 ]
          [ 0.92060408  2.30678864  1.68262126]] ), dtype=SM,car, units=['Re', 'Re', 'Re']
-        """
+        '''
         from . import irbempy as op
         from spacepy.irbempy import SYSAXES_TYPES as typedict
 
@@ -298,7 +296,7 @@ class Coords(object):
             assert len(self.ticks) == len(self), 'Ticktock dimension does not match Coords dimensions'
 
         # check if car2sph is needed first for oneralib compatibility
-        if (self.sysaxes == None) : # a car2sph or sph2car is needed
+        if (self.sysaxes is None) : # a car2sph or sph2car is needed
             if self.carsph == 'sph':
                 carsph = 'car'
                 units = [self.units[0]]*3
@@ -344,24 +342,24 @@ class Coords(object):
 
     # -----------------------------------------------
     def __getstate__(self):
-        """
+        '''
         Is called when pickling
         See Also http://docs.python.org/library/pickle.html
-        """
+        '''
         odict = self.__dict__.copy() # copy the dict since we change it
         return odict
 
     def __setstate__(self, dict):
-        """
+        '''
         Is called when unpickling
         See Also http://docs.python.org/library/pickle.html
-        """
+        '''
         self.__dict__.update(dict)
         return
 
     # -----------------------------------------------
     def append(self, other):
-        """Append another Coords instance to the current one
+        '''Append another Coords instance to the current one
 
         Parameters
         ==========
@@ -370,7 +368,7 @@ class Coords(object):
 
         Examples
         ========
-        """
+        '''
         data = list(self.data)
         otherdata = other.convert(self.dtype, self.carsph)
         data.extend(list(otherdata.data))

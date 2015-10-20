@@ -812,7 +812,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1,0,3,0,0], hemi='sa
     Examples
     ========
     >>> t = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
-    >>> y = Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+    >>> y = Coords([[3,0,0],[3,0,0]], 'GEO', 'car')
     >>> spacepy.irbempy.find_footpoint(t, y)
     {'Bfoot': array([ 47559.04643444,  47542.84688657]),
      'Bfootvec': array([[-38428.07217246,   4497.31549786, -27657.19291928],

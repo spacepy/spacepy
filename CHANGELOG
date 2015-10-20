@@ -1,5 +1,6 @@
 Changes in Version 0.1.6 (2015-xx-xx)
 =====================================
+- Improvements to test suite (coverage and design)
 datamanager
  - New module to help in finding, slicing, and manipulating data
  - Function "apply_index": help sort one multi-dimensional data set by another
@@ -14,10 +15,13 @@ datamodel
 empiricals
  - New function getSolarRotation, returns Carrington or Bartels number
 plot
+ - Packages in plot are imported on import of plot module
  - Addition of dual_half_circle() to overlay a light/dark "Earth"
  - Addition of simpleSpectrogram() in spacepy.plot.spectrogram
-plot.utils
- - Fix collapse_vertical when called with sequences other than lists
+ - Addition of Carrington/Bartel plotting for 1D series (in spacepy.plot.carrington)
+ - Updated smartTimeTicks, applySmartTimeTicks and added set_target (from PyBATS)
+ - SpacePy style sheets added. Autoimported with plot, but with functionality to change style
+ - Fix utils.collapse_vertical when called with sequences other than lists
 pybats
  - Updated docstrings across all modules.
  - rim.py updated to be consistent with other pybats modules.
@@ -27,6 +31,7 @@ pybats
  - New function for automatic latex label creation.
  - Updated Mag and MagFile objects for forward/backward compatablity.
  - IdlBin class renamed IdlFile; can read binary or ascii SWMF-IDL files.
+ - Moved core plotting routines (set_target, smart_timeticks, apply_smart_timeticks) to plot.utils
 pycdf
  - On OSX, search more paths for the CDF library
  - CDF.clone() now returns the new variable

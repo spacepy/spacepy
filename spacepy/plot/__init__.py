@@ -14,11 +14,54 @@ Contact: balarsen@lanl.gov
 Copyright 2011 Los Alamos National Security, LLC.
 
 """
+import os
 from matplotlib.patches import Wedge
+from matplotlib import __version__ as mplv
 import matplotlib.pyplot as plt
+from spacepy import __path__ as basepath
+from . import spectrogram
+from . import utils
+from . import carrington
 
-__all__ = ["spectrogram", "utils", "spectrogram.simpleSpectrogram"]
+def available(returnvals=False):
+    spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
+    spacepyaltstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle')
+    lookdict = {'default': spacepystyle,
+                'spacepy': spacepystyle,
+                'spacepy_altgrid': spacepyaltstyle,
+                'altgrid': spacepyaltstyle
+               }
+    if returnvals:
+        return lookdict
+    else:
+        return list(lookdict.keys())
 
+def style(look=None):
+    '''
+    Apply SpacePy's matplotlib style settings from a known style sheet.
+
+    Parameters
+    ----------
+    look : str
+    Name of style. For a list of available style names, see `spacepy.plot.available`.
+    '''
+    import matplotlib
+    lookdict = available(returnvals=True)
+    try:
+        usestyle = lookdict[look]
+    except KeyError:
+        usestyle = lookdict['default']
+    try:
+        plt.style.use(usestyle)
+    except AttributeError: #plt.style.use not available, old matplotlib?
+        dum = matplotlib.rc_params_from_file(usestyle)
+        styapply = dict()
+        #remove None values as these seem to cause issues...
+        for key in dum:
+            if dum[key] is not None: styapply[key] = dum[key]
+        for key in styapply:
+            matplotlib.rcParams[key] = styapply[key]
+style()
 
 
 def dual_half_circle(center=(0,0), radius=1.0,
@@ -73,7 +116,7 @@ def dual_half_circle(center=(0,0), radius=1.0,
         try:
             angle = float(sun_direction)
         except ValueError:
-            raise(ValueError("sun_direction was not understood, must be a float or {0}".format(sun_dict.keys())))
+            raise(ValueError("Sun_direction was not understood, must be a float or {0}".format(sun_dict.keys())))
                 
     theta1, theta2 = angle, angle + 180
     if ax is None:
