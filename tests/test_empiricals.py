@@ -39,6 +39,13 @@ class empFunctionTests(unittest.TestCase):
         ans = em.getPlasmaPause(self.ticks)
         np.testing.assert_almost_equal(real_ans, ans)
 
+        real_ans = np.array([4.7506632,  4.3583292,  4.5369134,  4.86     ,  4.3583292,
+                             4.4570714,  4.86     ,  4.9874052,  5.2127764,  5.64     ,
+                             4.9874052])
+        ans = em.getPlasmaPause(self.ticks, 'RT1970')
+        np.testing.assert_almost_equal(real_ans, ans)
+        
+
     def test_getPlasmaPauseErrors1(self):
         '''tests for exceptions in getPlasmaPause'''
         #check for fail on bad LT

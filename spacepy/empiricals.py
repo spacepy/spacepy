@@ -79,6 +79,10 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     and R. R. Anderson, A new model of the location of the plasmapause: 
     CRRES results, J. Geophys. Res., 107(A11), 1339, 
     doi:10.1029/2001JA009211, 2002.
+    RT1970 -- Rycroft, M. J., and J. O. Thomas, The magnetospheric
+    plasmapause and the electron density trough at the alouette i
+    orbit, Planetary and Space Science, 18(1), 65-80, 1970
+
 
     Parameters
     ==========
@@ -108,23 +112,24 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
         6.42140002,  6.42140002,  6.26859998,  5.772     ,  5.6574    ,
         5.6574    ])
     """
-    def calcLpp(Kpmax, A, B):
-        currLpp = A - B*Kpmax
+    def calcLpp(Kpmax, A, B, power=1):
+        currLpp = A - B*Kpmax**power
         return currLpp
 
-    model_list = ['CA1992', 'M2002']
+    model_list = ['CA1992', 'M2002', 'RT1970']
 
     if model == 'CA1992':
         if LT!='all':
             print('No LT dependence currently supported for this model')
     if model not in model_list:
-        raise ValueError("Please specify a valid model:\n'M2002' or 'CA1992'")
+        raise ValueError("Please specify a valid model:\n{0}".format(' or '.join(model_list)))
 
     if LT=='all':
-        parA = {'CA1992': 5.6, 'M2002': 5.39}
-        parB = {'CA1992': 0.46, 'M2002': 0.382}
+        parA = {'CA1992': 5.6,  'M2002': 5.39,  'RT1970': 5.64}
+        parB = {'CA1992': 0.46, 'M2002': 0.382, 'RT1970': 0.78}
         priorvals = {'CA1992': datetime.timedelta(hours=24),
-                     'M2002': datetime.timedelta(hours=12)}
+                     'M2002': datetime.timedelta(hours=12),
+                     'RT1970': datetime.timedelta(0)}
         A, B = parA[model], parB[model]
         prior = priorvals[model]
     else:
@@ -133,11 +138,14 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
         except (ValueError, TypeError):
             raise ValueError("Please specify a valid LT:\n'all' or a numeric type")
         parA = {'CA1992': [5.6]*24,
-                'M2002': [5.7]*3+[6.05]*6+[5.2]*6+[4.45]*6+[5.7]*3}
+                'M2002': [5.7]*3+[6.05]*6+[5.2]*6+[4.45]*6+[5.7]*3,
+                'RT1970': [5.64]*24}
         parB = {'CA1992': [0.46]*24,
-                'M2002': [0.42]*3+[0.573]*6+[0.425]*6+[0.167]*6+[0.42]*3}
+                'M2002': [0.42]*3+[0.573]*6+[0.425]*6+[0.167]*6+[0.42]*3,
+                'RT1970': [0.78]*24}
         priorvals = {'CA1992': [datetime.timedelta(hours=24)]*24,
-                     'M2002': [datetime.timedelta(hours=12)]*24}
+                     'M2002': [datetime.timedelta(hours=12)]*24,
+                     'RT1970': [datetime.timedelta(0)]*24}
         try:
             LThr = long(LT)
         except NameError:
@@ -166,12 +174,16 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     Kp = np.array(omdat['Kp'])[oinds]
     Lpp = np.zeros(len(ticks))
 
+    if model == 'RT1970':
+        power = 0.5
+    else:
+        power = 1
     for i, t1 in enumerate(ticks.UTC):
         t0 = t1-prior
         iprevday, dum = tb.tOverlap(utc, [t0, t1])
         if iprevday:
             Kpmax = max(Kp[iprevday])
-            Lpp[i] = calcLpp(Kpmax, A, B)
+            Lpp[i] = calcLpp(Kpmax, A, B, power=power)
         else:
             Lpp[i] = np.nan
 
