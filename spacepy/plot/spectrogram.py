@@ -99,6 +99,18 @@ class spectrogram(dm.SpaceData):
     Helper routines are planned to
     facilitate the creation of the SpaceData container if the data are not in the format.
 
+    Examples
+    --------
+    >>> import spacepy.datamodel as dm
+    >>> import numpy as np
+    >>> import spacepy.plot as splot
+    >>> sd = dm.SpaceData()
+    >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,12,500))+4, attrs={'units':'km'})
+    >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
+    >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
+    >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+    >>> ax = spec.plot()
+
     .. autosummary::
 
         ~spectrogram.plot
