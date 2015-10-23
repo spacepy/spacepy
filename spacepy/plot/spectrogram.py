@@ -152,11 +152,11 @@ class spectrogram(dm.SpaceData):
 
         # if the variables are empty error and quit
         if len(data[self.specSettings['variables'][0]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][0])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][0])))
         if len(data[self.specSettings['variables'][1]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][1])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][1])))
         if len(data[self.specSettings['variables'][2]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][2])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][2])))
 
         # set limits, keywords override those in the data
         if self.specSettings['xlim'] == None:
@@ -341,7 +341,7 @@ class spectrogram(dm.SpaceData):
         self['spectrogram']['sum'] += b['spectrogram']['sum']
         self['spectrogram']['spectrogram'][...] = np.ma.divide(self['spectrogram']['sum'], self['spectrogram']['count'])
 
-    def plot(self, fignum=None, axis=None, **kwargs):
+    def plot(self, target=None, loc=111, figsize=None, **kwargs):
         """
         Plot the spectrogram
 
@@ -378,18 +378,11 @@ class spectrogram(dm.SpaceData):
                 raise(KeyError('Invalid keyword argument to plot(), "' + key + '"'))
 
         self.plotSettings = dm.SpaceData()
-        if 'title' in kwargs:
-            self.plotSettings['title'] = kwargs['title']
-        else:
-            self.plotSettings['title'] = ''
-        if 'xlabel' in kwargs:
-            self.plotSettings['xlabel'] = kwargs['xlabel']
-        else:
-            self.plotSettings['xlabel'] = ''
-        if 'ylabel' in kwargs:
-            self.plotSettings['ylabel'] = kwargs['ylabel']
-        else:
-            self.plotSettings['ylabel'] = ''
+        for key in ['title', 'xlabel', 'ylabel']:
+            if key in kwargs:
+                self.plotSettings[key] = kwargs[key]
+            else:
+                self.plotSettings[key] = ''
         if 'zlog' in kwargs:
             self.plotSettings['zlog'] = kwargs['zlog']
         else:
@@ -426,20 +419,8 @@ class spectrogram(dm.SpaceData):
         else:
             self.plotSettings['ylim'] = None
 
-        if fignum is None and axis is None:
-            if 'figsize' in kwargs:
-                if kwargs['figsize'] != None:
-                    fig = plt.figure(figsize=kwargs['figsize'])
-                else:
-                    fig = plt.figure()
-            else:
-                fig = plt.figure()
-            ax = fig.add_subplot(111)
-        elif axis is None:
-            fig = plt.figure(fignum)
-            ax = fig.add_subplot(111)
-        else:
-            ax = axis
+        fig, ax = spu.set_target(target, loc=loc, figsize=figsize)
+
         bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
         if self.plotSettings['zlog']:
             pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb),
