@@ -1646,6 +1646,23 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
             fh.write(''.join([prline,'\n']))
 
 
+def fromRecArray(recarr):
+    '''Takes a numpy recarray and returns each field as a dmarray in a SpaceData container
+    
+    Parameters
+    ----------
+    recarr : numpy recoard array
+        object to parse into SpaceData container
+
+    Returns
+    -------
+    sd: spacepy.datamodel.SpaceData
+        dict-like containing arrays of named records in recarr
+    '''
+    sd = SpaceData()
+    for key in recarr.dtype.fields.keys():
+        sd[key] = dmarray(recarr[key])
+    return sd
 
 def dmcopy(dobj):
     '''Generic copy utility to return a copy of a (datamodel) object
