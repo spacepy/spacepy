@@ -378,6 +378,8 @@ class spectrogram(dm.SpaceData):
             The formatting to use on the dates on the x-axis (default matplotlib.dates.DateFormatter("%d %b %Y"))
         zlog : bool
             plot the z variable on a log scale (default True)
+        cmap : matplotlib Colormap
+            colormap instance to use
         colorbar : bool
             plot the colorbar (default True)
         axis : matplotlib axis object
@@ -391,7 +393,7 @@ class spectrogram(dm.SpaceData):
         import matplotlib.pyplot as plt
         plotSettings_keys = ('title', 'xlabel', 'ylabel', 'DateFormatter',
                              'zlim', 'colorbar', 'colorbar_label', 'zlog',
-                             'xlim', 'ylim', 'figsize')
+                             'xlim', 'ylim', 'figsize', 'cmap')
         for key in kwargs:
             if key not in plotSettings_keys:
                 raise(KeyError('Invalid keyword argument to plot(), "' + key + '"'))
@@ -441,11 +443,18 @@ class spectrogram(dm.SpaceData):
         fig, ax = spu.set_target(target, loc=loc, figsize=figsize)
 
         bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
+        if 'cmap' in kwargs:
+            self.plotSettings['cmap'] = kwargs['cmap']
+        else:
+            self.plotSettings['cmap'] = matplotlib.cm.rainbow
+
         if self.plotSettings['zlog']:
             pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb),
-                                norm=LogNorm())
+                                norm=LogNorm(), cmap=self.plotSettings['cmap'])
         else:
-            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb))
+            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb), 
+                                cmap=self.plotSettings['cmap'])
+
         if self.specSettings['axisDates'][0]:
             time_ticks = self._set_ticks_to_time(ax, 'x')
         elif self.specSettings['axisDates'][1]:
@@ -459,10 +468,6 @@ class spectrogram(dm.SpaceData):
             ax.set_xlim(self.plotSettings['xlim'])
 
         if self.plotSettings['colorbar']:
-            if 'cmap' in kwargs:
-                self.plotSettings['cmap'] = kwargs['cmap']
-            else:
-                self.plotSettings['cmap'] = matplotlib.cm.rainbow
             cb =plt.colorbar(pcm)
             cb.set_label(self.plotSettings['colorbar_label'])
         return ax
