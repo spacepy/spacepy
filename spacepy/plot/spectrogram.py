@@ -105,7 +105,7 @@ class spectrogram(dm.SpaceData):
     >>> import numpy as np
     >>> import spacepy.plot as splot
     >>> sd = dm.SpaceData()
-    >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,12,500))+4, attrs={'units':'km'})
+    >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,30,500))+4, attrs={'units':'km'})
     >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
     >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
     >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
@@ -326,6 +326,25 @@ class spectrogram(dm.SpaceData):
             self['spectrogram']['sum'] = overall_sum
 
     def add_data(self, data):
+        """
+        Add another SpaceData with same keys, etc. to spectrogram instance
+
+        Examples
+        --------
+        >>> import spacepy.datamodel as dm
+        >>> import numpy as np
+        >>> import spacepy.plot as splot
+        >>> sd = dm.SpaceData()
+        >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,30,500))+4, attrs={'units':'km'})
+        >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
+        >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
+        >>> sd2 = dm.dmcopy(sd)
+        >>> sd2['radius'] = dm.dmarray(2*np.cos(np.linspace(0,30,500))+4, attrs={'units':'km'})
+        >>> sd2['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd2['radius'])
+        >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+        >>> spec.add_data(sd2)
+        >>> ax = spec.plot()
+        """
         if not self.specSettings['extended_out']:
             raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on initial creation'))
         b = spectrogram(data, **self.specSettings)
