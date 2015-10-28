@@ -294,7 +294,7 @@ def _unique_elements_order(seq):
     seen_add = seen.add
     return [ x for x in seq if not (x in seen or seen_add(x))]
 
-def combinePercentiles(files, timeframe='all'):
+def combinePercentiles(files, timeframe='all', verbose=True):
     """
     combine files at different percentiles into one file with the spectra at different
     percentiles for easy plotting and analysis
@@ -310,6 +310,8 @@ def combinePercentiles(files, timeframe='all'):
     ================
     timeframe : str
         Timeframe to average the input spectra over (either 'all' or a pandas understoop resample() time
+    verbose : boolean
+        Print out information while reading the files
     
     Returns
     =======
@@ -320,6 +322,7 @@ def combinePercentiles(files, timeframe='all'):
         raise(ValueError("Must input files"))
     data = {}
     for fname in files:
+        if verbose: print("Reading: {0}".format(fname))
         tmp = readFile(fname)
         if 'percentile' not in tmp.attrs:
             raise(ValueError("File {0} does not have a percentile key".format(fname)))
@@ -373,7 +376,6 @@ def combinePercentiles(files, timeframe='all'):
     ans['Percentile'].attrs['VALIDMIN'] = 0.0
     ans['Percentile'].attrs['VALIDMAX'] = 100.0
     ans['Percentile'].attrs['SCALETYP'] = 'support_data'
-
     return ans
 
 def _getData(fnames):
