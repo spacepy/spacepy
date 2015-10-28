@@ -38,7 +38,7 @@ ytick.major.width: 2.0
 ytick.minor.size: 2.0
 ytick.major.size: 4.0
 
-grid.color: whitesmoke
+grid.color: ECECEC     #a little bit darker than 'whitesmoke'
 grid.linestyle: -    # solid line
 grid.linewidth: 1.5
 

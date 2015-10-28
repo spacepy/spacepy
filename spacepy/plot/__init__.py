@@ -22,6 +22,12 @@ from spacepy import __path__ as basepath
 from . import spectrogram
 from . import utils
 from . import carrington
+from . import colourmaps as cm
+
+plt.register_cmap(name='plasma', cmap=cm.plasma)
+plt.register_cmap(name='plasma_r', cmap=cm.plasma_r)
+plt.register_cmap(name='viridis', cmap=cm.viridis)
+plt.register_cmap(name='viridis_r', cmap=cm.viridis_r)
 
 def available(returnvals=False):
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
@@ -36,7 +42,7 @@ def available(returnvals=False):
     else:
         return list(lookdict.keys())
 
-def style(look=None):
+def style(look=None, cmap='plasma'):
     '''
     Apply SpacePy's matplotlib style settings from a known style sheet.
 
@@ -61,6 +67,7 @@ def style(look=None):
             if dum[key] is not None: styapply[key] = dum[key]
         for key in styapply:
             matplotlib.rcParams[key] = styapply[key]
+    matplotlib.rcParams['image.cmap'] = cmap
 style()
 
 

@@ -15,7 +15,7 @@ lines.linewidth: 1.2
 font.size: 13.0
 
 axes.color_cycle: royalblue, seagreen, crimson, gold, saddlebrown, black, cyan, magenta
-axes.facecolor: whitesmoke
+axes.facecolor: ECECEC     #a little bit darker than 'whitesmoke'
 axes.edgecolor: 0.45
 axes.linewidth: 1.25
 axes.grid: True

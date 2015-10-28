@@ -92,7 +92,7 @@ class spectrogram(dm.SpaceData):
         if the name "lim" is not specified in the .attrs of the dmarray variable
         this specifies the limit for the z variable [zlow, zhigh]
     extended_out : bool (optional)
-        if this is True add more information to the output data model (default False)
+        if this is True add more information to the output data model (default True)
 
     Notes
     =====
@@ -159,7 +159,8 @@ class spectrogram(dm.SpaceData):
             raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][2])))
 
         # set limits, keywords override those in the data
-        if self.specSettings['xlim'] == None:
+        #if (self.specSettings['xlim'] is None) and (self.specSettings['bins'] is None):
+        if self.specSettings['xlim'] is None:
             try:
                 if 'lim' in data[self.specSettings['variables'][0]].attrs:
                     self.specSettings['xlim'] = (data[self.specSettings['variables'][0]].attrs['lim'][0],
@@ -171,7 +172,7 @@ class spectrogram(dm.SpaceData):
             except AttributeError: # was a numpy array not dmarray
                 self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
                                             np.max(data[self.specSettings['variables'][0]]))
-        if self.specSettings['ylim'] == None:
+        if self.specSettings['ylim'] is None:
             try:
                 if 'lim' in data[self.specSettings['variables'][1]].attrs:
                     self.specSettings['ylim'] = (data[self.specSettings['variables'][1]].attrs['lim'][0],
@@ -182,7 +183,7 @@ class spectrogram(dm.SpaceData):
             except AttributeError: # was a numpy array not dmarray
                 self.specSettings['ylim'] = (np.min(data[self.specSettings['variables'][1]]),
                                             np.max(data[self.specSettings['variables'][1]]))
-        if self.specSettings['zlim'] == None:
+        if self.specSettings['zlim'] is None:
             try:
                 if 'lim' in data[self.specSettings['variables'][2]].attrs:
                     self.specSettings['zlim'] = (data[self.specSettings['variables'][2]].attrs['lim'][0],
@@ -203,7 +204,7 @@ class spectrogram(dm.SpaceData):
         self.specSettings['axisDates'] = forcedate
 
         # set default bins
-        if self.specSettings['bins'] == None:
+        if self.specSettings['bins'] is None:
             # since it is not set by keyword was it set in the datamodel?
             attr_bins = ['bins' in data[var].attrs for var in self.specSettings['variables']]
             if dm.dmarray(attr_bins[0:2]).all():
@@ -450,10 +451,12 @@ class spectrogram(dm.SpaceData):
 
         if self.plotSettings['zlog']:
             pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb),
-                                norm=LogNorm(), cmap=self.plotSettings['cmap'])
+                                norm=LogNorm(), cmap=self.plotSettings['cmap'], vmin=self.plotSettings['zlim'][0],
+                                vmax=self.plotSettings['zlim'][1])
         else:
             pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb), 
-                                cmap=self.plotSettings['cmap'])
+                                cmap=self.plotSettings['cmap'], vmin=self.plotSettings['zlim'][0],
+                                vmax=self.plotSettings['zlim'][1])
 
         if self.specSettings['axisDates'][0]:
             time_ticks = self._set_ticks_to_time(ax, 'x')
