@@ -16,6 +16,7 @@ __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
 import datetime
 import functools
+import gzip
 import os
 import re
 
@@ -217,13 +218,17 @@ def _readHeader(fname):
     read only the header from a Ae9Ap9 file
     """
     dat = []
-    with open(fname, 'r') as fp:
-        while True:
-            tmp = fp.readline()
-            if tmp[0] != '#':
-                break
-            dat.append(tmp.strip())
+    if fname.endswith('.gz'):
+        fp = gzip.open(fname, 'rt')
+    else:
+        fp = open(fname, 'rt')
+    while True:
+        tmp = fp.readline()
+        if tmp[0] not in ('#', 35):
+            break
+        dat.append(tmp.strip())
     dat = [v[1:].strip() for v in dat]
+    fp.close()
     return dat
 
 def parseHeader(fname):
