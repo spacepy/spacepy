@@ -137,21 +137,22 @@ def default_f2py():
         return 'f2py'
 
 
-def f2py_environment(fcompiler):
-    """Prepare an OS environment for the f2py call
-    This puts in the shared options if LDFLAGS is set
+def f2py_options(fcompiler):
+    """Get an OS environment for f2py, and find name of Fortan compiler
+
+    The OS environment puts in the shared options if LDFLAGS is set
     """
-    if not 'LDFLAGS' in os.environ:
-        return None
-    env = os.environ.copy()
+    env = None
     import numpy.distutils.fcompiler
     numpy.distutils.fcompiler.load_all_fcompiler_classes()
     if not fcompiler in numpy.distutils.fcompiler.fcompiler_class:
-        return None #and hope for the best
+        return (None, None) #and hope for the best
     fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]()
     fcomp.customize()
-    env['LDFLAGS'] = ' '.join(fcomp.get_flags_linker_so())
-    return env
+    if 'LDFLAGS' in os.environ:
+        env = os.environ.copy()
+        env['LDFLAGS'] = ' '.join(fcomp.get_flags_linker_so())
+    return (env, None)
 
 
 def initialize_compiler_options(cmd):
@@ -350,12 +351,12 @@ class build(_build):
                 '%s not supported at this time. ' % sys.platform +
                 'IRBEM will not be available')
             return
-        if self.fcompiler == 'pg' and sys.platform == 'darwin':
+        if fcompiler == 'pg' and sys.platform == 'darwin':
             self.distribution.add_warning(
                 'Portland Group compiler "pg" not supported on Mac OS\n'
                 'IRBEM will not be available.')
             return
-        if self.fcompiler != 'gnu95' and sys.platform == 'win32':
+        if fcompiler != 'gnu95' and sys.platform == 'win32':
             self.distribution.add_warning(
                 'Only supported compiler on Win32 is gnu95\n'
                 'IRBEM will not be available.')
@@ -408,6 +409,12 @@ class build(_build):
         with open(fln, 'w') as f:
             f.write(filestr)
 
+        #Need to feed in the --f77exec as well
+        #once compiler is customized, use fcomp.executables
+        #Want to use f77 or f90? probably 77
+        #May also be a good idea to use the archiver and ranlib specified?
+        f2py_env, fcomp_path = f2py_options(fcompiler)
+
         # compile (platform dependent)
         os.chdir('source')
         compile_cmd32 = {
@@ -456,7 +463,7 @@ class build(_build):
                 '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
                 '{1}'.format(
                     self.f2py, f2py_flags),
-                shell=True, env=f2py_environment(self.fcompiler))
+                shell=True, env=f2py_env)
         except:
             self.distribution.add_warning(
                 'irbemlib module failed. '
