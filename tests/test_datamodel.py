@@ -156,6 +156,23 @@ class SpaceDataTests(unittest.TestCase):
         expected = "+\n|____foo\n"
         self.assertEqual(result, expected)
 
+    def test_fromRecArrayNames(self):
+        '''given a known rec array, should get known keys in SpaceData'''
+        names = ['x', 'y', 'value']
+        recarr = np.zeros(3, dtype=[(names[0],'f4'),(names[1],np.float32),(names[2],'f4',(2,2))])
+        sd = dm.fromRecArray(recarr)
+        for kk in sd.keys():
+            self.assertTrue(kk in names)
+
+    def test_fromRecArrayShapesValues(self):
+        '''given a known rec array, should get known shapes and values in SpaceData'''
+        names = ['x', 'y', 'value']
+        recarr = np.zeros(3, dtype=[(names[0],'f4'),(names[1],np.float32),(names[2],'f4',(2,2))])
+        sd = dm.fromRecArray(recarr)
+        np.testing.assert_array_equal((3,2,2), sd[names[2]].shape)
+        np.testing.assert_array_equal(np.zeros(3), sd[names[0]])
+
+
 
 class dmarrayTests(unittest.TestCase):
     def setUp(self):

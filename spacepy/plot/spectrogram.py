@@ -99,6 +99,18 @@ class spectrogram(dm.SpaceData):
     Helper routines are planned to
     facilitate the creation of the SpaceData container if the data are not in the format.
 
+    Examples
+    --------
+    >>> import spacepy.datamodel as dm
+    >>> import numpy as np
+    >>> import spacepy.plot as splot
+    >>> sd = dm.SpaceData()
+    >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,30,500))+4, attrs={'units':'km'})
+    >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
+    >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
+    >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+    >>> ax = spec.plot()
+
     .. autosummary::
 
         ~spectrogram.plot
@@ -140,11 +152,11 @@ class spectrogram(dm.SpaceData):
 
         # if the variables are empty error and quit
         if len(data[self.specSettings['variables'][0]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][0])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][0])))
         if len(data[self.specSettings['variables'][1]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][1])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][1])))
         if len(data[self.specSettings['variables'][2]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][2])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][2])))
 
         # set limits, keywords override those in the data
         if self.specSettings['xlim'] == None:
@@ -314,6 +326,25 @@ class spectrogram(dm.SpaceData):
             self['spectrogram']['sum'] = overall_sum
 
     def add_data(self, data):
+        """
+        Add another SpaceData with same keys, etc. to spectrogram instance
+
+        Examples
+        --------
+        >>> import spacepy.datamodel as dm
+        >>> import numpy as np
+        >>> import spacepy.plot as splot
+        >>> sd = dm.SpaceData()
+        >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,30,500))+4, attrs={'units':'km'})
+        >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
+        >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
+        >>> sd2 = dm.dmcopy(sd)
+        >>> sd2['radius'] = dm.dmarray(2*np.cos(np.linspace(0,30,500))+4, attrs={'units':'km'})
+        >>> sd2['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd2['radius'])
+        >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+        >>> spec.add_data(sd2)
+        >>> ax = spec.plot()
+        """
         if not self.specSettings['extended_out']:
             raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on initial creation'))
         b = spectrogram(data, **self.specSettings)
@@ -329,7 +360,7 @@ class spectrogram(dm.SpaceData):
         self['spectrogram']['sum'] += b['spectrogram']['sum']
         self['spectrogram']['spectrogram'][...] = np.ma.divide(self['spectrogram']['sum'], self['spectrogram']['count'])
 
-    def plot(self, fignum=None, axis=None, **kwargs):
+    def plot(self, target=None, loc=111, figsize=None, **kwargs):
         """
         Plot the spectrogram
 
@@ -366,18 +397,11 @@ class spectrogram(dm.SpaceData):
                 raise(KeyError('Invalid keyword argument to plot(), "' + key + '"'))
 
         self.plotSettings = dm.SpaceData()
-        if 'title' in kwargs:
-            self.plotSettings['title'] = kwargs['title']
-        else:
-            self.plotSettings['title'] = ''
-        if 'xlabel' in kwargs:
-            self.plotSettings['xlabel'] = kwargs['xlabel']
-        else:
-            self.plotSettings['xlabel'] = ''
-        if 'ylabel' in kwargs:
-            self.plotSettings['ylabel'] = kwargs['ylabel']
-        else:
-            self.plotSettings['ylabel'] = ''
+        for key in ['title', 'xlabel', 'ylabel']:
+            if key in kwargs:
+                self.plotSettings[key] = kwargs[key]
+            else:
+                self.plotSettings[key] = ''
         if 'zlog' in kwargs:
             self.plotSettings['zlog'] = kwargs['zlog']
         else:
@@ -414,20 +438,8 @@ class spectrogram(dm.SpaceData):
         else:
             self.plotSettings['ylim'] = None
 
-        if fignum is None and axis is None:
-            if 'figsize' in kwargs:
-                if kwargs['figsize'] != None:
-                    fig = plt.figure(figsize=kwargs['figsize'])
-                else:
-                    fig = plt.figure()
-            else:
-                fig = plt.figure()
-            ax = fig.add_subplot(111)
-        elif axis is None:
-            fig = plt.figure(fignum)
-            ax = fig.add_subplot(111)
-        else:
-            ax = axis
+        fig, ax = spu.set_target(target, loc=loc, figsize=figsize)
+
         bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
         if self.plotSettings['zlog']:
             pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb),
