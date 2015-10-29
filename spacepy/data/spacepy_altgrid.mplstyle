@@ -25,17 +25,17 @@ axes.labelcolor: 555555
 axes.axisbelow: True       # grid/ticks are below elements (e.g., lines, text)
 
 xtick.color: 0.25
-xtick.direction: in
-xtick.minor.width: 1.0
-xtick.major.width: 2.0
-xtick.minor.size: 2.0
+xtick.direction: inout
+xtick.minor.width: 2.0
+xtick.major.width: 2.5
+xtick.minor.size: 2.5
 xtick.major.size: 4.0
 
 ytick.color: 0.25
 ytick.direction: inout
-ytick.minor.width: 1.0
-ytick.major.width: 2.0
-ytick.minor.size: 2.0
+ytick.minor.width: 2.0
+ytick.major.width: 2.5
+ytick.minor.size: 2.5
 ytick.major.size: 4.0
 
 grid.color: ECECEC     #a little bit darker than 'whitesmoke'
