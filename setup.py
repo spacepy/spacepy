@@ -18,10 +18,11 @@ if 'pip-egg-info' in sys.argv:
     import setuptools
 use_setuptools = "setuptools" in globals()
 
+import copy
 import os, shutil, getopt, glob, re
 import subprocess
 import warnings
-from distutils.core import setup
+from numpy.distutils.core import setup
 from distutils.command.build import build as _build
 if use_setuptools:
     from setuptools.command.install import install as _install
@@ -46,6 +47,7 @@ else:
     else:
         import imp #fall back to old-style
 import numpy
+import numpy.distutils.command.config_compiler
 
 
 #These are files that are no longer in spacepy (or have been moved)
@@ -137,7 +139,7 @@ def default_f2py():
         return 'f2py'
 
 
-def f2py_options(fcompiler):
+def f2py_options(fcompiler, dist=None):
     """Get an OS environment for f2py, and find name of Fortan compiler
 
     The OS environment puts in the shared options if LDFLAGS is set
@@ -148,11 +150,11 @@ def f2py_options(fcompiler):
     if not fcompiler in numpy.distutils.fcompiler.fcompiler_class:
         return (None, None) #and hope for the best
     fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]()
-    fcomp.customize()
+    fcomp.customize(dist)
     if 'LDFLAGS' in os.environ:
         env = os.environ.copy()
         env['LDFLAGS'] = ' '.join(fcomp.get_flags_linker_so())
-    return (env, None)
+    return (env, copy.deepcopy(fcomp.executables))
 
 
 def initialize_compiler_options(cmd):
@@ -160,6 +162,8 @@ def initialize_compiler_options(cmd):
     cmd.fcompiler = None
     cmd.f2py = None
     cmd.compiler = None
+    cmd.f77exec = None
+    cmd.f90exec = None
 
 
 def finalize_compiler_options(cmd):
@@ -175,7 +179,10 @@ def finalize_compiler_options(cmd):
     dist = cmd.distribution
     defaults = {'fcompiler': 'gnu95',
                 'f2py': default_f2py(),
-                'compiler': None}
+                'compiler': None,
+                'f77exec': None,
+                'f90exec': None,}
+    optdict = dist.get_option_dict(cmd.get_command_name())
     #Check all options on all other commands, reverting to default
     #as necessary
     for option in defaults:
@@ -189,6 +196,13 @@ def finalize_compiler_options(cmd):
                     break
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
+        #Also explicitly carry over command line option, needed for config_fc
+        if not option in optdict:
+            for c in dist.commands:
+                otheroptdict = dist.get_option_dict(c)
+                if option in otheroptdict:
+                    optdict[option] = otheroptdict[option]
+                    break
     #Special-case defaults, checks
     if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none', 'None'):
         raise DistutilsOptionError(
@@ -206,6 +220,10 @@ compiler_options = [
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
+        ('f77exec=', None,
+         'specify the path to the F77 compiler'),
+        ('f90exec=', None,
+         'specify the path to the F90 compiler'),
         ]
 
 
@@ -255,6 +273,8 @@ def get_irbem_libfiles():
 
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
+
+    sub_commands = [('config_fc', lambda *args:True),]
 
     user_options = _build.user_options + compiler_options + [
         ('build-docs', None,
@@ -369,6 +389,8 @@ class build(_build):
             os.path.join(builddir, 'source', 'wrappers_{0}.inc'.format(bit)),
             os.path.join(builddir, 'source', 'wrappers.inc'.format(bit)))
 
+        f2py_env, fcompexec = f2py_options(fcompiler, self.distribution)
+
         # compile irbemlib
         olddir = os.getcwd()
         os.chdir(builddir)
@@ -405,12 +427,6 @@ class build(_build):
         with open(fln, 'w') as f:
             f.write(filestr)
 
-        #Need to feed in the --f77exec as well
-        #once compiler is customized, use fcomp.executables
-        #Want to use f77 or f90? probably 77
-        #May also be a good idea to use the archiver and ranlib specified?
-        f2py_env, fcomp_path = f2py_options(fcompiler)
-
         # compile (platform dependent)
         os.chdir('source')
         compile_cmd32 = {
@@ -434,6 +450,10 @@ class build(_build):
                 f2py_flags += ' --f77flags=-fno-second-underscore,-mno-align-double,-m64'
         if self.compiler:
             f2py_flags += ' --compiler={0}'.format(self.compiler)
+        if self.f77exec:
+            f2py_flags += ' --f77exec={0}'.format(self.f77exec)
+        if self.f90exec:
+            f2py_flags += ' --f90exec={0}'.format(self.f90exec)
         try:
             if bit == 32:
                 os.system(compile_cmd32[fcompiler])
@@ -569,9 +589,9 @@ class build(_build):
 
     def run(self):
         """Actually perform the build"""
-        self.compile_irbempy()
         self.compile_libspacepy()
-        _build.run(self)
+        _build.run(self) #need subcommands BEFORE building irbem
+        self.compile_irbempy()
         delete_old_files(self.build_lib)
         if self.build_docs:
             self.make_docs()
@@ -684,6 +704,20 @@ class sdist(_sdist):
         _sdist.run(self)
 
 
+class config_fc(numpy.distutils.command.config_compiler.config_fc):
+    """Get the options sharing with build, install"""
+
+    def initialize_options(self):
+        initialize_compiler_options(self)
+        numpy.distutils.command.config_compiler.config_fc.initialize_options(
+            self)
+
+    def finalize_options(self):
+        numpy.distutils.command.config_compiler.config_fc.finalize_options(
+            self)
+        finalize_compiler_options(self)
+
+
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox', ]
 #If adding to package_data, also put in MANIFEST.in
@@ -727,9 +761,10 @@ setup_kwargs = {
     'license':  'PSF',
     'platforms':  ['Windows', 'Linux', 'MacOS X', 'Unix'],
     'cmdclass': {'build': build,
-              'install': install,
-              'bdist_wininst': bdist_wininst,
-              'sdist': sdist,
+                 'install': install,
+                 'bdist_wininst': bdist_wininst,
+                 'sdist': sdist,
+                 'config_fc': config_fc,
           },
 }
 
