@@ -190,7 +190,7 @@ def finalize_compiler_options(cmd):
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
     #Special-case defaults, checks
-    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none', 'None'):
+    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'gfortran', 'none', 'None'):
         raise DistutilsOptionError(
             '--fcompiler must be pg, gnu, gnu95, intelem, intel, None')
     if len('%x' % sys.maxsize)*4 == 32 and cmd.fcompiler == 'intelem':
@@ -418,6 +418,7 @@ class build(_build):
             'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
             'gnu95': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             'intel': 'ifort -c -Bstatic -assume 2underscores -O2 -fPIC *.f',
+            'gfortran': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             }
         compile_cmd64 = {
             'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
@@ -425,6 +426,7 @@ class build(_build):
             'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             'intel': 'ifort -c -Bdynamic -O2 -fPIC *.f',
             'intelem': 'ifort -c -Bdynamic -O2 -fPIC *.f',
+            'gfortran': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             }
         f2py_flags = '--fcompiler={0}'.format(fcompiler)
         if fcompiler == 'gnu':
