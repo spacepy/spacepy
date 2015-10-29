@@ -195,6 +195,15 @@ class PAmodelTests(unittest.TestCase):
         omniflux = [3000, 4500, 6000]
         self.assertRaises(ValueError, em.vampolaPA, omniflux, order=[2,4], alpha=self.PA)
 
+    def test_getSolarProtonSpectra_regress(self):
+        """getSolarProtonSpectra() should return constant values"""
+        dat = em.getSolarProtonSpectra()
+        Eans = [0.1      ,  0.109185 ,  0.1192137,  0.1301636]
+        Eflu = np.asarray([2.8990431649e08,   2.6628832715e08,   2.4458237105e08,
+                2.2463193728e08], dtype=float)
+        np.testing.assert_almost_equal(dat['Energy'][0:4], Eans)
+        np.testing.assert_almost_equal(np.asarray(dat['Fluence'][0:4]), Eflu, decimal=2)
+        
 
 if __name__ == "__main__":
     unittest.main()

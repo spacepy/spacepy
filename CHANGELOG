@@ -14,6 +14,8 @@ datamodel
  - Fix reading JSON-headed ASCII in numpy 1.4, 1.5
 empiricals
  - New function getSolarRotation, returns Carrington or Bartels number
+ - New model in getPlasmaPause,  RT1970 -- Rycroft et al 1970
+ - New function getSolarProtonSpectra, returns a fluence spectra for SEP events
 plot
  - Packages in plot are imported on import of plot module
  - Addition of dual_half_circle() to overlay a light/dark "Earth"

@@ -17,6 +17,7 @@ import numpy as np
 
 import scipy.integrate as integ
 from spacepy import help
+import spacepy.datamodel as dm
 import spacepy.toolbox as tb
 import spacepy.omni as om
 import spacepy.time as spt
@@ -566,6 +567,49 @@ def getSolarRotation(ticks, rtype='carrington', fp=False, reverse=False):
         date = elapsed + start_date
         return date
 
+def getSolarProtonSpectra(norm=3.20e7, gamma=-0.96, E0=15.0, Emin=.1, Emax=600, nsteps=100):
+    '''Returns a SpaceData with energy and fluence spectra of solar particle events
+
+    The formulation follows that of:
+    Ellison and Ramaty ApJ 298: 400-408, 1985
+    dJ/dE = K^{-\gamma}exp(-E/E0)
+    
+    and the defualt values are the 10/16/2003 SEP event of:
+    Mewaldt, R. A., et al. (2005), J. Geophys. Res., 110, A09S18, doi:10.1029/2005JA011038.
+
+    Other Parameters
+    ==========
+    norm : float
+        Normilization factor for the intensity of the SEP event
+    gamma : float
+        Power law index
+    E0 : float
+        Expoential scaling factor
+    Emin : float
+        Minimum energy for fit
+    Emax : float
+        Maximum energy for fit
+    nsteps : int
+        The number of log spaced energy steps to return
+        
+    Returns
+    =======
+    data : dm.SpaceData
+        SpaceData with the energy and fluence values
+    '''
+    E = tb.logspace(Emin, Emax, nsteps)
+    fluence = norm*E**(gamma)*np.exp(-E/E0)
+    ans = dm.SpaceData()
+    ans['Energy'] = dm.dmarray(E)
+    ans['Energy'].attrs = {'UNITS':'MeV',
+                           'DESCRIPTION':'Particle energy per nucleon'}
+    ans['Fluence'] = dm.dmarray(fluence)
+    ans['Fluence'].attrs = {'UNITS' : 'cm^{-2} sr^{-1} (MeV/nuc)^{-1}',
+                            'DESCRIPTION':'Fluence spectra fir to the model'}
+    return ans
+
+
+      
 ShueMP = getMPstandoff
 get_plasma_pause = getPlasmaPause
 get_Lmax = getLmax
