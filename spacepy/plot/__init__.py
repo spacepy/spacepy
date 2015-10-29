@@ -19,15 +19,19 @@ from matplotlib.patches import Wedge
 from matplotlib import __version__ as mplv
 import matplotlib.pyplot as plt
 from spacepy import __path__ as basepath
-from . import spectrogram
-from . import utils
-from . import carrington
-from . import colourmaps as cm
+from spacepy.datamodel import dmcopy
+from .spectrogram import *
+from .utils import *
+from .carrington import *
+from .colourmaps import plasma as _plasma
+from .colourmaps import plasma_r as _plasma_r
+from .colourmaps import viridis as _viridis
+from .colourmaps import viridis_r as _viridis_r
 
-plt.register_cmap(name='plasma', cmap=cm.plasma)
-plt.register_cmap(name='plasma_r', cmap=cm.plasma_r)
-plt.register_cmap(name='viridis', cmap=cm.viridis)
-plt.register_cmap(name='viridis_r', cmap=cm.viridis_r)
+plt.register_cmap(name='plasma', cmap=_plasma)
+plt.register_cmap(name='plasma_r', cmap=_plasma_r)
+plt.register_cmap(name='viridis', cmap=_viridis)
+plt.register_cmap(name='viridis_r', cmap=_viridis_r)
 
 def available(returnvals=False):
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
@@ -68,8 +72,15 @@ def style(look=None, cmap='plasma'):
         for key in styapply:
             matplotlib.rcParams[key] = styapply[key]
     matplotlib.rcParams['image.cmap'] = cmap
+
+#save current rcParams before applying spacepy style
+oldParams = dmcopy(matplotlib.rcParams)
 style()
 
+def revert_style():
+    import matplotlib
+    for key in oldParams:
+        matplotlib.rcParams[key] = oldParams[key]
 
 def dual_half_circle(center=(0,0), radius=1.0,
                      sun_direction='right', ax=None, colors=('w','k'),
