@@ -1153,10 +1153,17 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     Nene  = 1
     if whatf == 2: assert len(energy) == 2, 'Need energy range with this choice of fluxtype=RANGE'
     ntmax = 1
+
+    #build dummy OMNI dictionary for prep_irbem (AE/AP8 doesn't need these inputs)
+    dum_omni = dict()
+    magkeys = ['Kp', 'Dst', 'dens', 'velo', 'Pdyn', 'ByIMF', 'BzIMF',\
+                    'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
+    for key in magkeys:
+        dum_omni[key] = [0]*len(loci)
     
     if isinstance(loci, spc.Coords):
         assert loci.ticks, 'Coords require time information with a Ticktock object'
-        d = prep_irbem(ticks=loci.ticks, loci=loci)
+        d = prep_irbem(ticks=loci.ticks, loci=loci, omnivals=dum_omni)
         E_array = np.zeros((2,d['nalp_max']))
         E_array[:,0] = energy
         # now get the flux
@@ -1164,7 +1171,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
             d['xin1'], d['xin2'], d['xin3'])
     elif isinstance(loci, (list, np.ndarray)):
         BBo, L = loci
-        d = prep_irbem()
+        d = prep_irbem(omnivals=dum_omni)
         E_array = np.zeros((2,d['nalp_max']))
         E_array[:,0] = energy
         B_array = np.zeros(d['ntime_max'])
