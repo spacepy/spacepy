@@ -80,7 +80,7 @@ class OmniBigTests(unittest.TestCase):
 
     def test_get_omni_outside_range(self):
         ticks = spacepy.time.Ticktock(['2525-01-01T12:00:00', '2525-01-03T12:10:00'], 'ISO')
-        self.assertRaises(ValueError, om.get_omni, ticks)
+        self.assertRaises(ValueError, om.get_omni, ticks, dbase='Test')
 
 class OmniOtherTests(unittest.TestCase):
     def test_omnirange(self):
