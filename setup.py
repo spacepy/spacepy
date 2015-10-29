@@ -240,10 +240,9 @@ def rebuild_static_docs(pythondir=None):
 #Possible names of the irbem output library. Unfortunately this seems
 #to depend on Python version, f2py version, and phase of the moon
 def get_irbem_libfiles():
-    libfiles = ['irbempylib' + ext for ext in
-                (distutils.sysconfig.get_config_var('SO'),
-                 distutils.sysconfig.get_config_var('EXT_SUFFIX'))
-                if ext]
+    cvars = distutils.sysconfig.get_config_vars()
+    libfiles = ['irbempylib' + cvars[ext] for ext in ('SO', 'EXT_SUFFIX')
+                if ext in cvars]
     if len(libfiles) < 2: #did we get just the ABI-versioned one?
         abi = distutils.sysconfig.get_config_var('SOABI')
         if abi and libfiles[0].startswith('irbempylib.' + abi):
