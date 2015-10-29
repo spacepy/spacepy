@@ -12,7 +12,7 @@ for more information.
 # Module wide imports.
 import numpy as np
 import datetime as dt
-from spacepy.plot.utils import set_target, applySmartTimeTicks
+from spacepy.plot.apionly import set_target, applySmartTimeTicks
 from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray, SpaceData
 

@@ -21,7 +21,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 
 import numpy as np
 from spacepy.pybats import PbData, IdlFile, LogFile
-from spacepy.plot.utils import set_target, applySmartTimeTicks
+from spacepy.plot.apionly import set_target, applySmartTimeTicks
 from spacepy.datamodel import dmarray
 
 #### Module-level variables:

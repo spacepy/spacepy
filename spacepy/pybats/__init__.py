@@ -114,7 +114,7 @@ __contact__ = 'Dan Welling, dwelling@umich.edu'
 
 # Global imports (used ubiquitously throughout this module.
 from spacepy.datamodel import dmarray, SpaceData
-import spacepy.plot.utils as spu
+import spacepy.plot.apionly as spu
 import numpy as np
 
 # Some common, global functions.

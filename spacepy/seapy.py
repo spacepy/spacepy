@@ -54,7 +54,7 @@ import spacepy.toolbox as tb
 from spacepy import help
 import spacepy.time as spt
 import spacepy.datamodel as dm
-import spacepy.plot as spplt
+import spacepy.plot.apionly as spplt
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 
@@ -707,7 +707,6 @@ class Sea2d(SeaBase):
         If both quan and units are supplied, axis label will read
         'Quantity Entered By User [Units]'
         """
-        import spacepy.plot as spplt
         try:
             dum = self.semedian
         except AttributeError:
