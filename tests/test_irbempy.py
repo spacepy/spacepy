@@ -8,6 +8,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 import unittest
 import spacepy
+import spacepy.omni
 import spacepy.time
 import spacepy.coordinates
 try: #if IRBEM install fails, test suite should not break entirely...
@@ -29,6 +30,7 @@ class IRBEMBigTests(unittest.TestCase):
     def setUp(self):
         self.ticks = spacepy.time.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
         self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+        self.omnivals = spacepy.omni.get_omni(self.ticks, dbase='Test')
 
     def test_prep_irbem(self):
         expected = {
@@ -83,34 +85,7 @@ class IRBEMBigTests(unittest.TestCase):
             numpy.testing.assert_almost_equal(expected[key],
                                               actual[key],
                                               decimal=5)        
-        
-    def test_get_dtype(self):
-        sysaxes = 3
-        expected = ('GSE', 'car')
-        self.assertEqual(expected, ib.get_dtype(sysaxes))
 
-    def test_get_sysaxes(self):
-        dtype = 'GSE'
-        carsph = 'car'
-        expected = 3
-        self.assertEqual(expected, ib.get_sysaxes(dtype, carsph))
-        
-    def test_sph2car(self):
-        loc = [1,45,45]
-        expected = array([ 0.5,  0.5,  0.70710678])	
-        numpy.testing.assert_almost_equal(expected, ib.sph2car(loc))
-
-    def test_car2sph(self):
-        loc = [ 0.5,  0.5,  0.70710678]
-        expected = [1,45,45]
-        numpy.testing.assert_almost_equal(expected, ib.car2sph(loc))
-        
-    def test_coord_trans(self):
-        self.loci.ticks = self.ticks
-        expected = array([[ 2.86714166, -0.02178308,  0.88262348],
-            [ 1.91462214,  0.06992421,  0.57387514]])
-        numpy.testing.assert_almost_equal(expected, ib.coord_trans(self.loci, 'GSM', 'car'))
-        
     def test_find_Bmirror(self):
         expected = {'Blocal': array([  978.7877728 ,  3399.56718463]),
             'Bmirr': array([ 2368.85605375,  8227.73648272])}
@@ -135,15 +110,6 @@ class IRBEMBigTests(unittest.TestCase):
 #            numpy.testing.assert_allclose(actual[key], expected[key], atol=1e-6)
             numpy.testing.assert_almost_equal(actual[key], expected[key], decimal=5)
 
-    def test_get_AEP8(self):
-        """test get_AEP8"""
-        c=self.loci
-        c.ticks = self.ticks
-        E = 2.0 # energy in MeV
-        expected = 99492.059080021136
-        actual = ib.get_AEP8(E, c)
-        numpy.testing.assert_almost_equal(expected, actual)
-        
     def test_get_Lstar_T01(self):
         # test T01STORM
         expected = {'Xj': array([[ 0.00068403], [ 0.00279439]]), 
@@ -188,7 +154,50 @@ class IRBEMBigTests(unittest.TestCase):
         ans = spacepy.irbempy.find_footpoint(t, y)
         numpy.testing.assert_almost_equal(expected['Bfoot'], ans['Bfoot'], decimal=5)
         numpy.testing.assert_almost_equal(expected['loci'].data, ans['loci'].data, decimal=5)
+
+
+@unittest.skipIf(ibflag, "Warning: import spacepy.irbempy failed, skipping tests")
+class IRBEMTestsWithoutOMNI(unittest.TestCase):
+
+    def setUp(self):
+        self.ticks = spacepy.time.Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:10:00'], 'ISO')
+        self.loci = spacepy.coordinates.Coords([[3,0,0],[2,0,0]], 'GEO', 'car')
+
+    def test_get_dtype(self):
+        sysaxes = 3
+        expected = ('GSE', 'car')
+        self.assertEqual(expected, ib.get_dtype(sysaxes))
+
+    def test_get_sysaxes(self):
+        dtype = 'GSE'
+        carsph = 'car'
+        expected = 3
+        self.assertEqual(expected, ib.get_sysaxes(dtype, carsph))
         
+    def test_sph2car(self):
+        loc = [1,45,45]
+        expected = array([ 0.5,  0.5,  0.70710678])	
+        numpy.testing.assert_almost_equal(expected, ib.sph2car(loc))
+
+    def test_car2sph(self):
+        loc = [ 0.5,  0.5,  0.70710678]
+        expected = [1,45,45]
+        numpy.testing.assert_almost_equal(expected, ib.car2sph(loc))
+
+    def test_coord_trans(self):
+        self.loci.ticks = self.ticks
+        expected = array([[ 2.86714166, -0.02178308,  0.88262348],
+            [ 1.91462214,  0.06992421,  0.57387514]])
+        numpy.testing.assert_almost_equal(expected, ib.coord_trans(self.loci, 'GSM', 'car'))
+
+    def test_get_AEP8(self):
+        """test get_AEP8"""
+        c=self.loci
+        c.ticks = self.ticks
+        E = 2.0 # energy in MeV
+        expected = 99492.059080021136
+        actual = ib.get_AEP8(E, c)
+        numpy.testing.assert_almost_equal(expected, actual)
 # -----------------------------------------------------------------------
 
 
