@@ -22,7 +22,7 @@ axes.grid: True
 axes.titlesize: large
 axes.labelsize: large
 axes.labelcolor: 555555
-axes.axisbelow: True       # grid/ticks are below elements (e.g., lines, text)
+axes.axisbelow: False       # grid/ticks are below elements (e.g., lines, text)
 
 xtick.color: 0.25
 xtick.direction: inout

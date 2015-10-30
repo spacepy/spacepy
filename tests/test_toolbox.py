@@ -744,7 +744,7 @@ class TBTimeFunctionTests(unittest.TestCase):
     def test_windowMean(self):
         """windowMean should give known results (regression)"""
         with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('default')
+            warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
             data = [10, 20]*50
@@ -810,7 +810,7 @@ class TBTimeFunctionTests(unittest.TestCase):
             numpy.testing.assert_almost_equal(ot_ans, outtime)
             numpy.testing.assert_almost_equal(od_ans, outdata)
 
-            self.assertEqual(5, len(w))
+            self.assertEqual(8, len(w))
 
     def test_windowMeanInputs(self):
         """windowMean does some input checking (regression)"""

@@ -22,6 +22,7 @@ import sys
 import warnings
 
 import spacepy.datamodel as dm
+import spacepy.time as spt
 from spacepy import pycdf
 import numpy as np
 
@@ -172,8 +173,101 @@ class SpaceDataTests(unittest.TestCase):
         np.testing.assert_array_equal((3,2,2), sd[names[2]].shape)
         np.testing.assert_array_equal(np.zeros(3), sd[names[0]])
 
+    def test_multiget(self):
+        '''Allow for multiple keys to be specified'''
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray([1,2,3])
+        a['b'] = dm.dmarray([1,2,3])
+        a['c'] = dm.dmarray([1,2,3])
+        a.attrs['foo']='bar'
+        np.testing.assert_equal(a['a'],  dm.dmarray([1,2,3]))
+        np.testing.assert_equal(a[['a', 'b']],  {'a': dm.dmarray([1, 2, 3]), 'b': dm.dmarray([1, 2, 3])})
+        self.assertRaises(KeyError, a.__getitem__, 'NotAkey')
+        self.assertRaises(KeyError, a.__getitem__, ['a', 'nokey'])
 
+    def test_resample_input(self):
+        '''resample requires SpaceData or dmarray'''
+        self.assertRaises(TypeError, dm.resample, [1,2,3])
 
+    def test_resample_shape(self):
+        '''resample should give consistent results, 1d or 2d'''
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10*3*4)).reshape(10,3,4)
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['c'] = dm.dmarray(range(3)) + 10
+        times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
+        self.assertRaises(IndexError, dm.resample, a, times, datetime.timedelta(hours=2), datetime.timedelta(hours=0))
+        
+    def test_resample1(self):
+        '''resample should give consistent results'''
+        ans = dm.SpaceData()
+        ans.attrs['foo'] = 'bar'
+        ans['a'] = [ 1.,  3.,  5.,  7.]
+        ans['b'] = dm.dmarray([5.,   7.,   9.,  11.])
+        ans['b'].attrs['marco'] = 'polo'
+        ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
+                        datetime.datetime(2010, 1, 1, 3, 0),
+                        datetime.datetime(2010, 1, 1, 5, 0),
+                        datetime.datetime(2010, 1, 1, 7, 0)]
+        
+        
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10))
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['b'].attrs['marco'] = 'polo'
+        a['c'] = dm.dmarray(range(3)) + 10
+        a.attrs['foo'] = 'bar'
+        times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
+        out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+        for k, v in out.items():
+            np.testing.assert_equal(v,  ans[k])
+        self.assertEqual(ans.attrs, out.attrs)
+        self.assertEqual(ans['b'].attrs['marco'], 'polo')
+        self.assertTrue(out['b'].attrs['DEPEND_0'], 'Epoch')
+        self.assertFalse('c' in out)
+
+    def test_resample2(self):
+        '''resample should give consistent results (ticktock)'''
+        ans = {}
+        ans['a'] = [ 1.,  3.,  5.,  7.]
+        ans['b'] = [5.,   7.,   9.,  11.]
+        ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
+                        datetime.datetime(2010, 1, 1, 3, 0),
+                        datetime.datetime(2010, 1, 1, 5, 0),
+                        datetime.datetime(2010, 1, 1, 7, 0)]
+        
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10))
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['c'] = dm.dmarray(range(3)) + 10
+        times = spt.Ticktock([datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)])
+        out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+        for k, v in out.items():
+            np.testing.assert_equal(v,  ans[k])
+
+    def test_resample3(self):
+        '''resample should give consistent results (2d)'''
+        ans = {}
+        ans['a'] = [[  2.,   3.],
+                    [  6.,   7.],
+                    [ 10.,  11.],
+                    [ 14.,  15.]]
+        ans['b'] = [5.,   7.,   9.,  11.]
+        ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
+                        datetime.datetime(2010, 1, 1, 3, 0),
+                        datetime.datetime(2010, 1, 1, 5, 0),
+                        datetime.datetime(2010, 1, 1, 7, 0)]
+        
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10*2)).reshape(10,2)
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['c'] = dm.dmarray(range(3)) + 10
+        times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
+        out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+        for k, v in out.items():
+            np.testing.assert_equal(v,  ans[k])
+
+        
 class dmarrayTests(unittest.TestCase):
     def setUp(self):
         super(dmarrayTests, self).setUp()
@@ -393,6 +487,19 @@ class converterTests(unittest.TestCase):
         np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
+    def test_HDF5roundtrip_method(self):
+        """Data can go to hdf and back"""
+        self.SDobj.toHDF5(self.testfile)
+        newobj = dm.fromHDF5(self.testfile)
+        self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
+        np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
+        dm.toHDF5(self.testfile, self.SDobj, mode='a')
+        newobj = dm.fromHDF5(self.testfile)
+        self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
+        np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
+
     def test_HDF5roundtripGZIP(self):
         """Data can go to hdf and back with compression"""
         dm.toHDF5(self.testfile, self.SDobj, compression='gzip')
@@ -473,7 +580,14 @@ class converterTestsCDF(unittest.TestCase):
         tst = dm.fromCDF(self.testfile)
         for k in self.SDobj:
             np.testing.assert_array_equal(self.SDobj[k], tst[k])
-                
+
+    def test_toCDFroundtrip_method(self):
+        """toCDF should be able to make a file and then read it in the same"""
+        self.SDobj.toCDF(self.testfile)
+        tst = dm.fromCDF(self.testfile)
+        for k in self.SDobj:
+            np.testing.assert_array_equal(self.SDobj[k], tst[k])
+                    
 
 class JSONTests(unittest.TestCase):
     def setUp(self):
@@ -613,6 +727,32 @@ class JSONTests(unittest.TestCase):
         self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
         self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
         os.remove(t_file.name)
+
+    def test_toJSONheadedASCII_method(self):
+        """Write known datamodel to JSON-headed ASCII and ensure it has right stuff added"""
+        a = dm.SpaceData()
+        a.attrs['Global'] = 'A global attribute'
+        a['Var1'] = dm.dmarray([1,2,3,4,5], attrs={'Local1': 'A local attribute'})
+        a['Var2'] = dm.dmarray([[8,9],[9,1],[3,4],[8,9],[7,8]])
+        a['MVar'] = dm.dmarray([7.8], attrs={'Note': 'Metadata'})
+        t_file = tempfile.NamedTemporaryFile(delete=False)
+        t_file.close()
+        a.toJSONheadedASCII(t_file.name, depend0='Var1', order=['Var1','Var2'])
+        dat2 = dm.readJSONheadedASCII(t_file.name)
+        #test global attr
+        self.assertTrue(a.attrs==dat2.attrs)
+        #test that metadata is back and all original keys are present
+        for key in a['MVar'].attrs:
+            self.assertTrue(key in dat2['MVar'].attrs)
+        np.testing.assert_array_equal(a['MVar'], dat2['MVar'])
+        #test vars are right
+        np.testing.assert_almost_equal(a['Var1'], dat2['Var1'])
+        np.testing.assert_almost_equal(a['Var2'], dat2['Var2'])
+        #test for added dimension and start col
+        self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
+        self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
+        os.remove(t_file.name)
+       
 
 
 if __name__ == "__main__":
