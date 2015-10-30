@@ -20,6 +20,7 @@ use_setuptools = "setuptools" in globals()
 
 import os, shutil, getopt, glob, re
 import subprocess
+import warnings
 from distutils.core import setup
 from distutils.command.build import build as _build
 if use_setuptools:
@@ -32,7 +33,6 @@ else:
     from distutils.command.sdist import sdist as _sdist
 import distutils.ccompiler
 import distutils.dep_util
-from distutils.dist import Distribution as _Distribution
 import distutils.sysconfig
 from distutils.errors import DistutilsOptionError
 try:
@@ -190,7 +190,7 @@ def finalize_compiler_options(cmd):
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
     #Special-case defaults, checks
-    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none', 'None'):
+    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'gfortran', 'none', 'None'):
         raise DistutilsOptionError(
             '--fcompiler must be pg, gnu, gnu95, intelem, intel, None')
     if len('%x' % sys.maxsize)*4 == 32 and cmd.fcompiler == 'intelem':
@@ -209,7 +209,7 @@ compiler_options = [
         ]
 
 
-def rebuild_static_docs(dist=None, pythondir=None):
+def rebuild_static_docs(pythondir=None):
     """Rebuild the 'static' documentation in Doc/build"""
     if pythondir:
         env = os.environ.copy()
@@ -230,10 +230,7 @@ def rebuild_static_docs(dist=None, pythondir=None):
         cmd = 'make latexpdf'
         subprocess.check_call(cmd.split(), env=env)
     except:
-        if dist != None:
-            dist.add_warning(
-                'PDF documentation rebuild failed.')
-        print('PDF documentation rebuild failed:')
+        warnings.warn('PDF documentation rebuild failed:')
         (t, v, tb) = sys.exc_info()
         print(v)
     finally:
@@ -243,10 +240,9 @@ def rebuild_static_docs(dist=None, pythondir=None):
 #Possible names of the irbem output library. Unfortunately this seems
 #to depend on Python version, f2py version, and phase of the moon
 def get_irbem_libfiles():
-    libfiles = ['irbempylib' + ext for ext in
-                (distutils.sysconfig.get_config_var('SO'),
-                 distutils.sysconfig.get_config_var('EXT_SUFFIX'))
-                if ext]
+    cvars = distutils.sysconfig.get_config_vars()
+    libfiles = ['irbempylib' + cvars[ext] for ext in ('SO', 'EXT_SUFFIX')
+                if ext in cvars]
     if len(libfiles) < 2: #did we get just the ABI-versioned one?
         abi = distutils.sysconfig.get_config_var('SOABI')
         if abi and libfiles[0].startswith('irbempylib.' + abi):
@@ -282,7 +278,7 @@ class build(_build):
     def compile_irbempy(self):
         fcompiler = self.fcompiler
         if fcompiler in ['none', 'None']:
-            self.distribution.add_warning(
+            warnings.warn(
                 'Fortran compiler specified was "none."\n'
                 'IRBEM will not be available.')
             return
@@ -347,17 +343,17 @@ class build(_build):
                 return
 
         if not sys.platform in ('darwin', 'linux2', 'linux', 'win32'):
-            self.distribution.add_warning(
+            warnings.warn(
                 '%s not supported at this time. ' % sys.platform +
                 'IRBEM will not be available')
             return
         if fcompiler == 'pg' and sys.platform == 'darwin':
-            self.distribution.add_warning(
+            warnings.warn(
                 'Portland Group compiler "pg" not supported on Mac OS\n'
                 'IRBEM will not be available.')
             return
         if fcompiler != 'gnu95' and sys.platform == 'win32':
-            self.distribution.add_warning(
+            warnings.warn(
                 'Only supported compiler on Win32 is gnu95\n'
                 'IRBEM will not be available.')
             return
@@ -394,7 +390,7 @@ class build(_build):
                   'sysaxes', 'UT', 'xIN1', 'xIN2', 'xIN3', 'stop_alt', 'hemi_flag', 'maginput']
         fln = 'irbempylib.pyf'
         if not os.path.isfile(fln):
-            self.distribution.add_warning(
+            warnings.warn(
                 'f2py failed; '
                 'IRBEM will not be available.')
             os.chdir(olddir)
@@ -422,6 +418,7 @@ class build(_build):
             'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
             'gnu95': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             'intel': 'ifort -c -Bstatic -assume 2underscores -O2 -fPIC *.f',
+            'gfortran': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             }
         compile_cmd64 = {
             'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
@@ -429,6 +426,7 @@ class build(_build):
             'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             'intel': 'ifort -c -Bdynamic -O2 -fPIC *.f',
             'intelem': 'ifort -c -Bdynamic -O2 -fPIC *.f',
+            'gfortran': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             }
         f2py_flags = '--fcompiler={0}'.format(fcompiler)
         if fcompiler == 'gnu':
@@ -452,7 +450,7 @@ class build(_build):
                 os.system('ar -r libBL2.a *.o')
                 os.system('ranlib libBL2.a')
         except:
-            self.distribution.add_warning(
+            warnings.warn(
                 'irbemlib linking failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
             os.chdir(olddir)
@@ -465,13 +463,13 @@ class build(_build):
                     self.f2py, f2py_flags),
                 shell=True, env=f2py_env)
         except:
-            self.distribution.add_warning(
+            warnings.warn(
                 'irbemlib module failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
         #All matching outputs
         created_libfiles = [f for f in libfiles if os.path.exists(f)]
         if len(created_libfiles) == 0: #no matches
-            self.distribution.add_warning(
+            warnings.warn(
                 'irbemlib build produced no recognizable module. '
                 'Try a different Fortran compiler? (--fcompiler)')
         elif len(created_libfiles) == 1: #only one, no ambiguity
@@ -486,7 +484,7 @@ class build(_build):
                     shutil.move(f,
                                 os.path.join(outdir, f))
         else:
-             self.distribution.add_warning(
+             warnings.warn(
                 'irbem build failed: multiple build outputs ({0}).'.format(
                      ', '.join(created_libfiles)))
         os.chdir(olddir)
@@ -519,7 +517,7 @@ class build(_build):
                 comp.link_shared_lib(objects, 'spacepy', libraries=['m'],
                                      output_dir=outdir)
         except:
-            self.distribution.add_warning(
+            warnings.warn(
                 'libspacepy compile failed; some operations may be slow.')
             print('libspacepy compile failed:')
             (t, v, tb) = sys.exc_info()
@@ -545,12 +543,12 @@ class build(_build):
             import numpydoc
         except:
             if self.build_docs:
-                self.distribution.add_warning(
+                warnings.warn(
                 "Numpydoc and sphinx required to build documentation.\n"
                 "Help will not be available; try without --build-docs.")
                 return
             else:
-                self.distribution.add_warning(
+                warnings.warn(
                 "Numpydoc and sphinx required to build documentation.\n"
                 "Help will not be available.")
                 return
@@ -568,7 +566,7 @@ class build(_build):
         try:
             subprocess.check_call(cmd.split(), env=env)
         except:
-            self.distribution.add_warning(
+            warnings.warn(
                 "Building docs failed. Help will not be available.")
 
     def run(self):
@@ -684,31 +682,8 @@ class sdist(_sdist):
     def run(self):
         buildcmd = self.get_finalized_command('build')
         buildcmd.run()
-        rebuild_static_docs(self.distribution, buildcmd.build_lib)
+        rebuild_static_docs(buildcmd.build_lib)
         _sdist.run(self)
-
-
-class Distribution(_Distribution):
-    """Subclass of main distutils Distribution that adds support for warnings"""
-
-    def add_warning(self, msg):
-        """Add a warning for this instance of setup"""
-        self._warnings.append(msg)
-
-    def print_warnings(self):
-        """Print out warnings from this execution of setup"""
-        if not self._warnings:
-            return
-        print('\nsetup produced the following warnings. '
-              'Some functionality may be missing.\n')
-        for w in self._warnings:
-            print(w)
-
-    def run_commands(self):
-        """Run all setup commands"""
-        self._warnings = []
-        _Distribution.run_commands(self)
-        self.print_warnings()
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
@@ -758,7 +733,6 @@ setup_kwargs = {
               'bdist_wininst': bdist_wininst,
               'sdist': sdist,
           },
-    'distclass': Distribution,
 }
 
 if use_setuptools:
@@ -777,4 +751,10 @@ if use_setuptools:
     ]
 
 # run setup from distutil
-setup(**setup_kwargs)
+with warnings.catch_warnings(record=True) as warnlist:
+    setup(**setup_kwargs)
+    if len(warnlist):
+        print('\nsetup produced the following warnings. '
+              'Some functionality may be missing.\n')
+        for w in warnlist:
+            print(w.message)

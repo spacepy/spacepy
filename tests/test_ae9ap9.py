@@ -8,7 +8,11 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 import glob
 import gzip
-import os
+import os, sys
+try:
+    import StringIO
+except ImportError:
+    import io as StringIO
 import shutil
 import tempfile
 import unittest
@@ -61,9 +65,12 @@ class ae9ap9Tests(unittest.TestCase):
 
     def test_combinePercentiles(self):
         """Can read and combine percentile files"""
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
         ans = ae9ap9.combinePercentiles(self.datafiles)
-        import spacepy.toolbox as tb
-        #tb.dictree(ans, verbose=1)
+        output.close()
+        sys.stdout = realstdout
         self.assertEqual((21, ), ans['Energy'].shape)
         self.assertEqual((21, 2), ans['Fluence'].shape)
         self.assertEqual((2, ), ans['Percentile'].shape)

@@ -9,6 +9,7 @@ import spacepy.time as spt
 import spacepy.toolbox as tb
 import spacepy.empiricals as em
 import scipy.integrate as integ
+import spacepy.omni as om
 
 __all__ = ['empFunctionTests', 'PAmodelTests']
 
@@ -16,33 +17,42 @@ __all__ = ['empFunctionTests', 'PAmodelTests']
 class empFunctionTests(unittest.TestCase):
     def setUp(self):
         super(empFunctionTests, self).setUp()
-        self.ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
+        self.ticks = spt.tickrange('2001-01-01T12:00:00','2001-01-04T00:00:00',.25)
+        self.omnivals = om.get_omni(self.ticks, dbase='Test')
 
     def tearDown(self):
         super(empFunctionTests, self).tearDown()
 
-    def test_getPlasmaPause_regress(self):
+    def test_getPlasmaPause_regress1(self):
         """regression test for plasmapause location"""
-        real_ans = np.array([ 4.05249998,  4.05249998,  4.05249998,  4.05249998,  4.05249998,
-                            4.05249998,  4.05249998,  4.22250002,  4.775     ,  4.90250001,
-                            4.90250001])
-        ans = em.getPlasmaPause(self.ticks, LT=12)
+        real_ans = np.array([ 5.07249999,  4.90250001,  4.64750002,  4.64750002,  4.64750002,
+                              4.775     ,  4.22250002,  4.22250002,  4.22250002,  4.22250002,
+                              4.22250002])
+        ans = em.getPlasmaPause(self.ticks, LT=12, omnivals=self.omnivals)
         np.testing.assert_almost_equal(real_ans, ans)
 
-        real_ans = np.array([ 3.76 ,  3.76 ,  4.358,  4.358,  4.358,  4.358,  4.358,  4.358,
-                            4.358,  4.542,  5.14])
-        ans = em.getPlasmaPause(self.ticks, 'CA1992')
+    def test_getPlasmaPause_regress2(self):
+        """regression test for plasmapause location"""
+        real_ans = np.array([ 5.46199999,  5.27800001,  5.00200002,  5.00200002,  5.00200002,
+                              5.00200002,  4.54200002,  4.54200002,  4.54200002,  4.54200002,
+                              4.54200002])
+        ans = em.getPlasmaPause(self.ticks, 'CA1992', omnivals=self.omnivals)
         np.testing.assert_almost_equal(real_ans, ans)
 
-        real_ans = np.array([ 4.35859998, 4.35859998, 4.35859998, 4.35859998, 4.35859998, 
-                            4.35859998, 4.35859998, 4.51140002, 5.008, 5.1226, 5.1226])
-        ans = em.getPlasmaPause(self.ticks)
+    def test_getPlasmaPause_regress3(self):
+        """regression test for plasmapause location"""
+        real_ans = np.array([ 5.2754    ,  5.1226    ,  4.89340002,  4.89340002,  4.89340002,
+                              5.008     ,  4.51140002,  4.51140002,  4.51140002,  4.51140002,
+                              4.51140002])
+        ans = em.getPlasmaPause(self.ticks, omnivals=self.omnivals)
         np.testing.assert_almost_equal(real_ans, ans)
 
-        real_ans = np.array([4.7506632,  4.3583292,  4.5369134,  4.86     ,  4.3583292,
-                             4.4570714,  4.86     ,  4.9874052,  5.2127764,  5.64     ,
-                             4.9874052])
-        ans = em.getPlasmaPause(self.ticks, 'RT1970')
+    def test_getPlasmaPause_regress4(self):
+        """regression test for plasmapause location"""
+        real_ans = np.array([ 5.2127764 ,  4.98740518,  4.75066318,  5.64      ,  4.98740518,
+                              4.86      ,  4.45707144,  4.45707144,  4.45707144,  4.98740518,
+                              4.45707144])
+        ans = em.getPlasmaPause(self.ticks, 'RT1970', omnivals=self.omnivals)
         np.testing.assert_almost_equal(real_ans, ans)
         
 
@@ -69,21 +79,27 @@ class empFunctionTests(unittest.TestCase):
 
     def test_getLmax(self):
         """getLmax should give known results (regression)"""
-        real_ans = np.array([ 7.9973023,  8.11663  ,  8.7714972,  8.52228  ,  8.6463423,
-        8.6463423,  8.6048668,  8.7714972,  8.3179375,  8.8134583,
-        9.0677743])
-        ans = em.getLmax(self.ticks)
+        real_ans = np.array([  9.5895175,   9.5895175,   9.2397463,  10.0376575,   9.7226848,
+                              10.1287423,  10.1287423,   7.9973023,   8.8555408,   9.4136607,
+                               8.9825167])
+        ans = em.getLmax(self.ticks, dbase='Test')
         np.testing.assert_almost_equal(real_ans, ans)
-        self.assertRaises(ValueError, em.getLmax, self.ticks, model='bad')
+        self.assertRaises(ValueError, em.getLmax, self.ticks, model='bad', dbase='Test')
 
-    def test_getMPstandoff(self):
+    def test_getMPstandoffTicks(self):
         """getMPstandoff should give known results (regression)"""
-        real_ans = np.array([ 10.52909163,  10.91327764,  10.71260773,  10.69958165,
-                               9.75129057,  10.76640718,  11.18228247,  11.05199603,
-                              11.42648675,  11.8202582 ,  11.18712131])
-        ans = em.ShueMP(self.ticks)
+        real_ans = np.array([ 10.31889392,  10.95526872,  10.22524928,  10.29643815,
+                              11.10576765,  10.07913129,   9.32063995,   9.72841668,
+                               9.80611695,  10.10876463,  10.00481683])
+        ans = em.ShueMP(self.ticks, dbase='Test')
         np.testing.assert_almost_equal(real_ans, ans)
+
+    def test_getMPstandoffError(self):
+        """getMPstandoff should give known exception on bad input"""
         self.assertRaises(TypeError, em.ShueMP, 'bad')
+
+    def test_getMPstandoffDict(self):
+        """getMPstandoff should give known results (regression)"""
         data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
         real_ans = np.array([ 9.96096838,  8.96790412])
         ans = em.ShueMP(data)
@@ -91,18 +107,18 @@ class empFunctionTests(unittest.TestCase):
 
     def test_getDststar(self):
         """getDststar should give known results (regression)"""
-        real_ans = np.array([-30.80228229, -26.85289053, -11.2457748 , -17.98012397,
-                             -16.1640001 , -13.64888467, -14.75155876, -10.43928609,
-                             -21.22360883,  -8.49354146,  -3.29620967])
-        ans = em.getDststar(self.ticks)
+        real_ans = np.array([  6.39592274,   7.5959423 ,  -2.44532089,  16.2867821 ,
+                              11.01399987,  17.01362653,  13.6810416 , -34.3206288 ,
+                             -12.22368788,   1.03764047,  -9.03424456])
+        ans = em.getDststar(self.ticks, dbase='Test')
         np.testing.assert_almost_equal(real_ans, ans)
 
     def test_getDststarTuple(self):
         """getDststar should give known results from tuple input (regression)"""
-        real_ans = np.array([-30.80228229, -26.85289053, -11.2457748 , -17.98012397,
-                             -16.1640001 , -13.64888467, -14.75155876, -10.43928609,
-                             -21.22360883,  -8.49354146,  -3.29620967])
-        ans = em.getDststar(self.ticks, model=(7.26, 11))
+        real_ans = np.array([  6.39592274,   7.5959423 ,  -2.44532089,  16.2867821 ,
+                              11.01399987,  17.01362653,  13.6810416 , -34.3206288 ,
+                             -12.22368788,   1.03764047,  -9.03424456])
+        ans = em.getDststar(self.ticks, model=(7.26, 11), dbase='Test')
         np.testing.assert_almost_equal(real_ans, ans)
 
     def test_getDststarError(self):
@@ -110,7 +126,7 @@ class empFunctionTests(unittest.TestCase):
         real_ans = np.array([-30.80228229, -26.85289053, -11.2457748 , -17.98012397,
                              -16.1640001 , -13.64888467, -14.75155876, -10.43928609,
                              -21.22360883,  -8.49354146,  -3.29620967])
-        ans = em.getDststar(self.ticks)
+        ans = em.getDststar(self.ticks, dbase='Test')
         self.assertRaises(ValueError, em.getDststar, self.ticks, model='bad')
         self.assertRaises(ValueError, em.getDststar, self.ticks, model={'a':7.26, 'b':11})
 

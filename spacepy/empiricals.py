@@ -24,7 +24,7 @@ import spacepy.time as spt
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
-def getLmax(ticks, model='JKemp'):
+def getLmax(ticks, model='JKemp', dbase='QDhourly'):
     """
     calculate a simple empirical model for Lmax - last closed drift-shell
 
@@ -59,7 +59,7 @@ def getLmax(ticks, model='JKemp'):
 
 
     """
-    omni = om.get_omni(ticks)
+    omni = om.get_omni(ticks, dbase=dbase)
     Dst = omni['Dst']
     Lmax = np.zeros(len(Dst))
     if model is 'JKemp':
@@ -190,7 +190,7 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
 
     return Lpp
 
-def getMPstandoff(ticks):
+def getMPstandoff(ticks, dbase='QDhourly'):
     """Calculates the Shue et al. (1997) subsolar magnetopause radius
 
     Lets put the full reference here
@@ -221,7 +221,7 @@ def getMPstandoff(ticks):
     array([ 9.96096838,  8.96790412])
     """
     if type(ticks) == spt.Ticktock:
-        omni = om.get_omni(ticks)
+        omni = om.get_omni(ticks, dbase=dbase)
         P, Bz = omni['Pdyn'], omni['BzIMF']
     elif isinstance(ticks, dict): 
         P, Bz = ticks['P'], ticks['Bz']
@@ -254,7 +254,7 @@ def getMPstandoff(ticks):
     except TypeError:
         raise TypeError("Please check for valid input types")
 
-def getDststar(ticks, model='OBrien'):
+def getDststar(ticks, model='OBrien', dbase='QDhourly'):
     """Calculate the pressure-corrected Dst index, Dst*
 
     We need to add in the references to the models here!
@@ -322,7 +322,7 @@ def getDststar(ticks, model='OBrien'):
             raise ValueError('Invalid coefficients set: must be of form (b,c)')
 
     if isinstance(ticks, spt.Ticktock):
-        omni = om.get_omni(ticks)
+        omni = om.get_omni(ticks, dbase=dbase)
         P, Dst = omni['Pdyn'], omni['Dst']
     elif isinstance(ticks, dict):
         P, Dst = ticks['Pdyn'], ticks['Dst']
