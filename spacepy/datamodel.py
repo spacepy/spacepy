@@ -160,15 +160,21 @@ The file looks like:
 """
 
 from __future__ import division
-import copy, datetime, os, warnings, itertools
-import re, json
+import copy
+import datetime
+import itertools
+import json
+import os
+import re
+import warnings
+
 try:
     import StringIO # can't use cStringIO as we might have unicode
 except ImportError:
     import io as StringIO
 
-from . import toolbox
 import numpy
+from . import toolbox
 
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -418,6 +424,23 @@ class SpaceData(dict):
     .. automethod:: flatten
     .. automethod:: tree
     """
+    def __getitem__(self, key):
+        """
+        This allows one to make a SpaceData indexed with an iterable of keys to return a new spacedata
+        made of the subset of keys
+        """
+        try: 
+            return super(SpaceData, self).__getitem__(key)
+        except (KeyError, TypeError):
+            if isinstance(key, (tuple, list)):
+                # make a new SpaceData from these keys
+                out = SpaceData()
+                out.attrs = self.attrs
+                for k in key:
+                    out[k] = self[k]
+                return out
+            else:
+                raise(KeyError('{0}'.format(key)))
 
     def __init__(self, *args, **kwargs):
         """
@@ -439,6 +462,7 @@ class SpaceData(dict):
             del kwargs['attrs']
 
         super(SpaceData, self).__init__(*args, **kwargs)
+
 
 ## To enable string output of repr, instead of just printing, uncomment his block
 #    def __repr__(self):
@@ -538,6 +562,7 @@ class SpaceData(dict):
         for key in flatobj:
             self[key] = copy.copy(flatobj[key])
 
+            
 
 def convertKeysToStr(SDobject):
     if isinstance(SDobject, SpaceData):

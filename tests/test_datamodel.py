@@ -172,6 +172,17 @@ class SpaceDataTests(unittest.TestCase):
         np.testing.assert_array_equal((3,2,2), sd[names[2]].shape)
         np.testing.assert_array_equal(np.zeros(3), sd[names[0]])
 
+    def test_multiget(self):
+        '''Allow for multiple keys to be specified'''
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray([1,2,3])
+        a['b'] = dm.dmarray([1,2,3])
+        a['c'] = dm.dmarray([1,2,3])
+        a.attrs['foo']='bar'
+        np.testing.assert_equal(a['a'],  dm.dmarray([1,2,3]))
+        np.testing.assert_equal(a[['a', 'b']],  {'a': dm.dmarray([1, 2, 3]), 'b': dm.dmarray([1, 2, 3])})
+        self.assertRaises(KeyError, a.__getitem__, 'NotAkey')
+        self.assertRaises(KeyError, a.__getitem__, ['a', 'nokey'])
 
 
 class dmarrayTests(unittest.TestCase):
