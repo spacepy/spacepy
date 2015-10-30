@@ -18,20 +18,19 @@ if 'pip-egg-info' in sys.argv:
     import setuptools
 use_setuptools = "setuptools" in globals()
 
-import copy
 import os, shutil, getopt, glob, re
 import subprocess
 import warnings
 from numpy.distutils.core import setup
-from distutils.command.build import build as _build
+from numpy.distutils.command.build import build as _build
+#The numpy versions automatically use setuptools if necessary
+#We need the numpy setup to handle fortran compiler options
+from numpy.distutils.command.install import install as _install
+from numpy.distutils.command.sdist import sdist as _sdist
 if use_setuptools:
-    from setuptools.command.install import install as _install
     from setuptools.command.bdist_wininst import bdist_wininst as _bdist_wininst
-    from setuptools.command.sdist import sdist as _sdist
 else:
-    from distutils.command.install import install as _install
     from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
-    from distutils.command.sdist import sdist as _sdist
 import distutils.ccompiler
 import distutils.dep_util
 import distutils.sysconfig
@@ -154,7 +153,7 @@ def f2py_options(fcompiler, dist=None):
     if 'LDFLAGS' in os.environ:
         env = os.environ.copy()
         env['LDFLAGS'] = ' '.join(fcomp.get_flags_linker_so())
-    return (env, copy.deepcopy(fcomp.executables))
+    return (env, fcomp.executables)
 
 
 def initialize_compiler_options(cmd):
@@ -206,7 +205,8 @@ def finalize_compiler_options(cmd):
     #Special-case defaults, checks
     if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none', 'None'):
         raise DistutilsOptionError(
-            '--fcompiler must be pg, gnu, gnu95, intelem, intel, None')
+            '--fcompiler={0} unknown'.format(cmd.fcompiler) +
+            ', options: pg, gnu, gnu95, intelem, intel, None')
     if len('%x' % sys.maxsize)*4 == 32 and cmd.fcompiler == 'intelem':
         raise DistutilsOptionError(
             '--fcompiler=intelem requires a 64-bit architecture')
@@ -283,8 +283,8 @@ class build(_build):
 
     def initialize_options(self):
         self.build_docs = None
-        initialize_compiler_options(self)
         _build.initialize_options(self)
+        initialize_compiler_options(self)
 
     def finalize_options(self):
         _build.finalize_options(self)
