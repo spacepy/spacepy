@@ -401,9 +401,9 @@ class build(_build):
                      'trace_field_line2_1', 'trace_field_line_towards_earth1']
 
         # call f2py
-        os.system('{0} --overwrite-signature -m irbempylib -h irbempylib.pyf '
-                  '{1} only: {2} :'.format(
-            self.f2py, ' '.join(F90files), ' '.join(functions)))
+        cmd = [self.f2py, '--overwrite-signature', '-m', 'irbempylib', '-h',
+               'irbempylib.pyf'] + F90files + ['only:'] + functions + [':']
+        subprocess.check_call(cmd)
         # intent(out) substitute list
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
                    'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind', 'xfoot', 'bfoot', 'bfootmag']
@@ -430,7 +430,7 @@ class build(_build):
         # compile (platform dependent)
         os.chdir('source')
         compile_cmd32 = {
-            'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
+            'pg': 'pgf77 -c, -Mnosecond_underscore, -w -fastsse -fPIC *.f',
             'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
             'gnu95': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
             'intel': 'ifort -c -Bstatic -assume 2underscores -O2 -fPIC *.f',
@@ -442,31 +442,32 @@ class build(_build):
             'intel': 'ifort -c -Bdynamic -O2 -fPIC *.f',
             'intelem': 'ifort -c -Bdynamic -O2 -fPIC *.f',
             }
-        f2py_flags = '--fcompiler={0}'.format(fcompiler)
+        f2py_flags = ['--fcompiler={0}'.format(fcompiler)]
         if fcompiler == 'gnu':
             if bit == 32:
-                f2py_flags += ' --f77flags=-fno-second-underscore,-mno-align-double'
+                f2py_flags.append('--f77flags=-fno-second-underscore,-mno-align-double')
             else:
-                f2py_flags += ' --f77flags=-fno-second-underscore,-mno-align-double,-m64'
+                f2py_flags.append('--f77flags=-fno-second-underscore,-mno-align-double,-m64')
         if self.compiler:
-            f2py_flags += ' --compiler={0}'.format(self.compiler)
+            f2py_flags.append('--compiler={0}'.format(self.compiler))
         if self.f77exec:
-            f2py_flags += ' --f77exec={0}'.format(self.f77exec)
+            f2py_flags.append('--f77exec={0}'.format(self.f77exec))
         if self.f90exec:
-            f2py_flags += ' --f90exec={0}'.format(self.f90exec)
+            f2py_flags.append('--f90exec={0}'.format(self.f90exec))
         try:
             if bit == 32:
-                os.system(compile_cmd32[fcompiler])
+                subprocess.check_call(compile_cmd32[fcompiler], shell=True)
             else:
-                os.system(compile_cmd64[fcompiler])
+                subprocess.check_call(compile_cmd64[fcompiler], shell=True)
             if sys.platform == 'darwin':
-                os.system('libtool -static -o libBL2.a *.o')
+                subprocess.check_call('libtool -static -o libBL2.a *.o',
+                                      shell=True)
             elif sys.platform.startswith('linux'):
-                os.system('ar -r libBL2.a *.o')
-                os.system('ranlib libBL2.a')
+                subprocess.check_call('ar -r libBL2.a *.o', shell=True)
+                subprocess.check_call('ranlib libBL2.a'.split())
             elif sys.platform == 'win32':
-                os.system('ar -r libBL2.a *.o')
-                os.system('ranlib libBL2.a')
+                subprocess.check_call('ar -r libBL2.a *.o', shell=True)
+                subprocess.check_call('ranlib libBL2.a'.split())
         except:
             warnings.warn(
                 'irbemlib linking failed. '
@@ -476,10 +477,8 @@ class build(_build):
         os.chdir('..')
         try:
             subprocess.check_call(
-                '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
-                '{1}'.format(
-                    self.f2py, f2py_flags),
-                shell=True, env=f2py_env)
+                [self.f2py, '-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
+                 '-Lsource', '-lBL2'] + f2py_flags, env=f2py_env)
         except:
             warnings.warn(
                 'irbemlib module failed. '
