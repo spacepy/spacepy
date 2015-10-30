@@ -451,24 +451,56 @@ class build(_build):
                 compflags = '-Bstatic -assume 2underscores ' + compflags
             else:
                 compflags = '-Bdynamic ' + compflags
-        try:
-            subprocess.check_call(comppath + ' -c ' + compflags + ' *.f',
-                                           shell=True)
-            if sys.platform == 'darwin':
-                subprocess.check_call('libtool -static -o libBL2.a *.o',
-                                      shell=True)
-            elif sys.platform.startswith('linux'):
-                subprocess.check_call('ar -r libBL2.a *.o', shell=True)
-                subprocess.check_call('ranlib libBL2.a'.split())
-            elif sys.platform == 'win32':
-                subprocess.check_call('ar -r libBL2.a *.o', shell=True)
-                subprocess.check_call('ranlib libBL2.a'.split())
-        except:
-            warnings.warn(
-                'irbemlib linking failed. '
-                'Try a different Fortran compiler? (--fcompiler)')
+        comp_candidates = [comppath]
+        if fcompexec is not None and 'compiler_f77' in fcompexec:
+            comp_candidates.insert(0, fcompexec['compiler_f77'][0])
+        for fc in comp_candidates:
+            retval = subprocess.call(fc + ' -c ' + compflags + ' *.f',
+                                     shell=True)
+            if retval == 0:
+                break
+            else:
+                warnings.warn('Compiler {0} failed, trying another'.format(fc))
+        else:
+            warnings.warn('irbemlib compile failed. '
+                          'Try a different Fortran compiler? (--fcompiler)')
             os.chdir(olddir)
             return
+        retval = -1
+        if 'archiver' in fcompexec:
+            archiver = ' '.join(fcompexec['archiver']) + ' '
+            ranlib = None
+            if 'ranlib' in fcompexec:
+                ranlib = ' '.join(fcompexec['ranlib']) + ' '
+            retval = subprocess.check_call(archiver + 'libBL2.a *.o', shell=True)
+            if (retval == 0) and ranlib:
+                retval = subprocess.call(ranlib + 'libBL2.a', shell=True)
+            if retval != 0:
+                warnings.warn(
+                    'irbemlib linking failed, trying with default linker.')
+        if retval != 0: #Try again with defaults
+            archiver = {
+                'darwin': 'libtool -static -o ',
+                'linux': 'ar -r ',
+                'linux2': 'ar -r ',
+                'win32': 'ar - r',
+                }[sys.platform]
+            ranlib = {
+                'darwin': None,
+                'linux': 'ranlib ',
+                'linux2': 'ranlib ',
+                'win32': 'ranlib ',
+                }[sys.platform]
+            try:
+                subprocess.check_call(archiver + 'libBL2.a *.o', shell=True)
+                if ranlib:
+                    subprocess.check_call(ranlib + 'libBL2.a', shell=True)
+            except:
+                warnings.warn(
+                    'irbemlib linking failed. '
+                    'Try a different Fortran compiler? (--fcompiler)')
+                os.chdir(olddir)
+                return
         os.chdir('..')
 
         f2py_flags = ['--fcompiler={0}'.format(fcompiler)]
