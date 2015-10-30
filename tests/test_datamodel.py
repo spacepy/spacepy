@@ -404,6 +404,19 @@ class converterTests(unittest.TestCase):
         np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
         self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
 
+    def test_HDF5roundtrip_method(self):
+        """Data can go to hdf and back"""
+        self.SDobj.toHDF5(self.testfile)
+        newobj = dm.fromHDF5(self.testfile)
+        self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
+        np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
+        dm.toHDF5(self.testfile, self.SDobj, mode='a')
+        newobj = dm.fromHDF5(self.testfile)
+        self.assertEqual(self.SDobj.attrs['global'], newobj.attrs['global'])
+        np.testing.assert_almost_equal(self.SDobj['var'], newobj['var'])
+        self.assertEqual(self.SDobj['var'].attrs['a'], newobj['var'].attrs['a'])
+
     def test_HDF5roundtripGZIP(self):
         """Data can go to hdf and back with compression"""
         dm.toHDF5(self.testfile, self.SDobj, compression='gzip')
@@ -484,7 +497,14 @@ class converterTestsCDF(unittest.TestCase):
         tst = dm.fromCDF(self.testfile)
         for k in self.SDobj:
             np.testing.assert_array_equal(self.SDobj[k], tst[k])
-                
+
+    def test_toCDFroundtrip_method(self):
+        """toCDF should be able to make a file and then read it in the same"""
+        self.SDobj.toCDF(self.testfile)
+        tst = dm.fromCDF(self.testfile)
+        for k in self.SDobj:
+            np.testing.assert_array_equal(self.SDobj[k], tst[k])
+                    
 
 class JSONTests(unittest.TestCase):
     def setUp(self):
@@ -624,6 +644,32 @@ class JSONTests(unittest.TestCase):
         self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
         self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
         os.remove(t_file.name)
+
+    def test_toJSONheadedASCII_method(self):
+        """Write known datamodel to JSON-headed ASCII and ensure it has right stuff added"""
+        a = dm.SpaceData()
+        a.attrs['Global'] = 'A global attribute'
+        a['Var1'] = dm.dmarray([1,2,3,4,5], attrs={'Local1': 'A local attribute'})
+        a['Var2'] = dm.dmarray([[8,9],[9,1],[3,4],[8,9],[7,8]])
+        a['MVar'] = dm.dmarray([7.8], attrs={'Note': 'Metadata'})
+        t_file = tempfile.NamedTemporaryFile(delete=False)
+        t_file.close()
+        a.toJSONheadedASCII(t_file.name, depend0='Var1', order=['Var1','Var2'])
+        dat2 = dm.readJSONheadedASCII(t_file.name)
+        #test global attr
+        self.assertTrue(a.attrs==dat2.attrs)
+        #test that metadata is back and all original keys are present
+        for key in a['MVar'].attrs:
+            self.assertTrue(key in dat2['MVar'].attrs)
+        np.testing.assert_array_equal(a['MVar'], dat2['MVar'])
+        #test vars are right
+        np.testing.assert_almost_equal(a['Var1'], dat2['Var1'])
+        np.testing.assert_almost_equal(a['Var2'], dat2['Var2'])
+        #test for added dimension and start col
+        self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
+        self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
+        os.remove(t_file.name)
+       
 
 
 if __name__ == "__main__":

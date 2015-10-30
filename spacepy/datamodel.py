@@ -164,6 +164,7 @@ import copy
 import datetime
 import itertools
 import json
+from functools import partial
 import os
 import re
 import warnings
@@ -462,6 +463,12 @@ class SpaceData(dict):
             del kwargs['attrs']
 
         super(SpaceData, self).__init__(*args, **kwargs)
+        self.toCDF = partial(toCDF, SDobject=self, *args, **kwargs)
+        self.toCDF.__doc__ = toCDF.__doc__
+        self.toHDF5 = partial(toHDF5, SDobject=self, *args, **kwargs)
+        self.toHDF5.__doc__ = toHDF5.__doc__
+        self.toJSONheadedASCII = partial(toJSONheadedASCII, insd=self, *args, **kwargs)
+        self.toJSONheadedASCII.__doc__ = toJSONheadedASCII.__doc__
 
 
 ## To enable string output of repr, instead of just printing, uncomment his block
