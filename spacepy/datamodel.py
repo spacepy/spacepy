@@ -176,6 +176,7 @@ except ImportError:
 
 import numpy
 from . import toolbox
+from . import time as spt
 
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -1804,3 +1805,71 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=None, NRV=False):
             del attrs['DEPEND_0']
 
     return attrs
+
+def _getVarLengths(data):
+    """
+    get the length of all the variables
+    
+    Parameters
+    ----------
+    data : SpaceData
+        SpaceData object to return the length of the variables
+
+    Returns
+    -------
+    data : dict
+        dict of the names and lengths of a SpaceData
+    """
+    ans = {}
+    for k, v in data.items():
+        ans[k] = len(v)
+    return ans
+
+def resample(data, time=[], winsize=0, overlap=0, st_time=None):
+    """
+    resample a SpaceData to a new time interval
+    """
+    # check for SpaceData or dmarray input before going to a bunch of work
+    if not isinstance(data, (SpaceData, dmarray)):
+        raise(TypeError('Input must be a SpaceData or dmarray object'))
+
+    # can only resample variables that have the same length as time,
+    #    if time is default then use all the vals that are the same
+    #    as the longest var
+    lent = len(time)
+    if lent == 0: lent = len(data[max(data, key=lambda k: len(data[k]))])
+    keys = [k for k in data if len(data[k]) == lent]
+    d2 = data[keys]
+    # what time are we starting at?
+    if isinstance(time, spt.Ticktock):
+        t_int = time.UTC
+    else:
+        t_int = dmarray(time)
+    if t_int.any() and ((st_time is None) and isinstance(t_int[0], datetime.datetime)):
+        st_time = t_int[0].replace(hour=0, minute=0, second=0, microsecond=0)
+    print(st_time)
+
+    ans = SpaceData()
+    ans.attrs = data.attrs
+    
+    for k in keys:
+        if len(data[k].shape) > 1:
+            if len(data[k].shape) > 2:
+                raise(IndexError("Variables can only be 1d or 2d"))
+            for i in range(data[k].shape[1]):
+                d, t = toolbox.windowMean(data[k][:,i], time=t_int, winsize=winsize, overlap=overlap, st_time=st_time)
+                if k not in ans:
+                    ans[k] = dmarray(d)
+                else:
+                    ans[k] = dmarray.vstack(ans[k], d)
+            ans[k] = ans[k].T
+        else:
+            d, t = toolbox.windowMean(data[k], time=t_int, winsize=winsize, overlap=overlap, st_time=st_time)
+            ans[k] = dmarray(d)
+        ans[k].attrs = data[k].attrs
+    ans['Epoch'] = dm.dmarray(t)
+        
+    return ans
+
+
+    
