@@ -148,7 +148,16 @@ def f2py_options(fcompiler, dist=None):
     numpy.distutils.fcompiler.load_all_fcompiler_classes()
     if not fcompiler in numpy.distutils.fcompiler.fcompiler_class:
         return (None, None) #and hope for the best
-    fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]()
+    fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]
+    #Various compilers specify executables for ranlib/ar, but the base
+    #class command_vars explicitly ignores them. So monkeypatch.
+    for k in ('archiver', 'ranlib'):
+        if k in fcomp.executables and k in fcomp.command_vars._conf_keys:
+            oldval = fcomp.command_vars._conf_keys[k]
+            if oldval[0] is None:
+                fcomp.command_vars._conf_keys[k] = ('exe.{0}'.format(k),) +  \
+                                                   oldval[1:]
+    fcomp = fcomp()
     fcomp.customize(dist)
     if 'LDFLAGS' in os.environ:
         env = os.environ.copy()
