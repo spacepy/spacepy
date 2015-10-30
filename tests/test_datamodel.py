@@ -22,6 +22,7 @@ import sys
 import warnings
 
 import spacepy.datamodel as dm
+import spacepy.time as spt
 from spacepy import pycdf
 import numpy as np
 
@@ -184,7 +185,89 @@ class SpaceDataTests(unittest.TestCase):
         self.assertRaises(KeyError, a.__getitem__, 'NotAkey')
         self.assertRaises(KeyError, a.__getitem__, ['a', 'nokey'])
 
+    def test_resample_input(self):
+        '''resample requires SpaceData or dmarray'''
+        self.assertRaises(TypeError, dm.resample, [1,2,3])
 
+    def test_resample_shape(self):
+        '''resample should give consistent results, 1d or 2d'''
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10*3*4)).reshape(10,3,4)
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['c'] = dm.dmarray(range(3)) + 10
+        times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
+        self.assertRaises(IndexError, dm.resample, a, times, datetime.timedelta(hours=2), datetime.timedelta(hours=0))
+        
+    def test_resample1(self):
+        '''resample should give consistent results'''
+        ans = dm.SpaceData()
+        ans.attrs['foo'] = 'bar'
+        ans['a'] = [ 1.,  3.,  5.,  7.]
+        ans['b'] = dm.dmarray([5.,   7.,   9.,  11.])
+        ans['b'].attrs['marco'] = 'polo'
+        ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
+                        datetime.datetime(2010, 1, 1, 3, 0),
+                        datetime.datetime(2010, 1, 1, 5, 0),
+                        datetime.datetime(2010, 1, 1, 7, 0)]
+        
+        
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10))
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['b'].attrs['marco'] = 'polo'
+        a['c'] = dm.dmarray(range(3)) + 10
+        a.attrs['foo'] = 'bar'
+        times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
+        out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+        for k, v in out.items():
+            np.testing.assert_equal(v,  ans[k])
+        self.assertEqual(ans.attrs, out.attrs)
+        self.assertEqual(ans['b'].attrs['marco'], 'polo')
+        self.assertTrue(out['b'].attrs['DEPEND_0'], 'Epoch')
+        self.assertFalse('c' in out)
+
+    def test_resample2(self):
+        '''resample should give consistent results (ticktock)'''
+        ans = {}
+        ans['a'] = [ 1.,  3.,  5.,  7.]
+        ans['b'] = [5.,   7.,   9.,  11.]
+        ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
+                        datetime.datetime(2010, 1, 1, 3, 0),
+                        datetime.datetime(2010, 1, 1, 5, 0),
+                        datetime.datetime(2010, 1, 1, 7, 0)]
+        
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10))
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['c'] = dm.dmarray(range(3)) + 10
+        times = spt.Ticktock([datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)])
+        out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+        for k, v in out.items():
+            np.testing.assert_equal(v,  ans[k])
+
+    def test_resample3(self):
+        '''resample should give consistent results (2d)'''
+        ans = {}
+        ans['a'] = [[  2.,   3.],
+                    [  6.,   7.],
+                    [ 10.,  11.],
+                    [ 14.,  15.]]
+        ans['b'] = [5.,   7.,   9.,  11.]
+        ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
+                        datetime.datetime(2010, 1, 1, 3, 0),
+                        datetime.datetime(2010, 1, 1, 5, 0),
+                        datetime.datetime(2010, 1, 1, 7, 0)]
+        
+        a = dm.SpaceData()
+        a['a'] = dm.dmarray(range(10*2)).reshape(10,2)
+        a['b'] = dm.dmarray(range(10)) + 4
+        a['c'] = dm.dmarray(range(3)) + 10
+        times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
+        out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+        for k, v in out.items():
+            np.testing.assert_equal(v,  ans[k])
+
+        
 class dmarrayTests(unittest.TestCase):
     def setUp(self):
         super(dmarrayTests, self).setUp()

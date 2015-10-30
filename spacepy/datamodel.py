@@ -1825,9 +1825,58 @@ def _getVarLengths(data):
         ans[k] = len(v)
     return ans
 
-def resample(data, time=[], winsize=0, overlap=0, st_time=None):
+def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epoch'):
     """
     resample a SpaceData to a new time interval
+
+    Parameters
+    ----------
+    data : SpaceData or dmarray
+        SpaceData with data to resample or dmarray with data to resample,
+        variables can nly be 1d or 2d, if time is specified only variables
+        the same length as time are resampled, otherwise only variables
+        with length equal to the longest length are resampled
+
+    time : array-like
+        dmarray of times the correspond to the data
+
+    winsize : datetime.timedelta
+        Time frame to average the data over
+
+    overlap : datetime.timedelta
+        Overlap in the moving average
+
+    st_time : datetime.datetime
+        Starting time for the resample, if not specified it is calcualted by tb.windowMean
+
+    Returns
+    -------
+    ans : SpaceData 
+        Resampled data, included keys are in the input keys (with the data caveats above)
+        and Epoch which contains the output time
+
+    Examples
+    --------
+    >>> import datetime
+    >>> import spacepy.datamodel as dm
+    >>> a = dm.SpaceData()
+    >>> a.attrs['foo'] = 'bar'
+    >>> a['a'] = dm.dmarray(range(10*2)).reshape(10,2)
+    >>> a['b'] = dm.dmarray(range(10)) + 4
+    >>> a['c'] = dm.dmarray(range(3)) + 10
+    >>> times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
+    >>> out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+    >>> out.tree(verbose=1, attrs=1)
+    # +
+    # :|____foo (str [3])
+    # |____Epoch (spacepy.datamodel.dmarray (4,))
+    # |____a (spacepy.datamodel.dmarray (4, 2))
+    # :|____DEPEND_0 (str [5])
+    #
+    # Things to note:
+    #    - attributes are preserved
+    #    - the output varibles have there DEPEND_0 changed to Epoch (or outtimename)
+    #    - each dimension of a 2d array is resampled individually 
     """
     # check for SpaceData or dmarray input before going to a bunch of work
     if not isinstance(data, (SpaceData, dmarray)):
@@ -1847,7 +1896,6 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None):
         t_int = dmarray(time)
     if t_int.any() and ((st_time is None) and isinstance(t_int[0], datetime.datetime)):
         st_time = t_int[0].replace(hour=0, minute=0, second=0, microsecond=0)
-    print(st_time)
 
     ans = SpaceData()
     ans.attrs = data.attrs
@@ -1867,7 +1915,8 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None):
             d, t = toolbox.windowMean(data[k], time=t_int, winsize=winsize, overlap=overlap, st_time=st_time)
             ans[k] = dmarray(d)
         ans[k].attrs = data[k].attrs
-    ans['Epoch'] = dm.dmarray(t)
+        ans[k].attrs['DEPEND_0'] = outtimename
+    ans[outtimename] = dmarray(t)
         
     return ans
 
