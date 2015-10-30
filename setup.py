@@ -429,36 +429,31 @@ class build(_build):
 
         # compile (platform dependent)
         os.chdir('source')
-        compile_cmd32 = {
-            'pg': 'pgf77 -c, -Mnosecond_underscore, -w -fastsse -fPIC *.f',
-            'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
-            'gnu95': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
-            'intel': 'ifort -c -Bstatic -assume 2underscores -O2 -fPIC *.f',
-            }
-        compile_cmd64 = {
-            'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
-            'gnu': 'g77 -c -w -m64 -mno-align-double -O2 -fPIC -fno-second-underscore *.f',
-            'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
-            'intel': 'ifort -c -Bdynamic -O2 -fPIC *.f',
-            'intelem': 'ifort -c -Bdynamic -O2 -fPIC *.f',
-            }
-        f2py_flags = ['--fcompiler={0}'.format(fcompiler)]
+        comppath = {
+            'pg': 'pgf77',
+            'gnu': 'g77',
+            'gnu95': 'gfortran',
+            'intel': 'ifort',
+            }[fcompiler]
+        compflags = {
+            'pg': '-Mnosecond_underscore -w -fastsse -fPIC',
+            'gnu': '-w -O2 -fPIC -fno-second-underscore',
+            'gnu95': '-w -O2 -fPIC -ffixed-line-length-none',
+            'intel': '-Bstatic -assume 2underscores -O2 -fPIC',
+            }[fcompiler]
         if fcompiler == 'gnu':
+            if bit == 64:
+                compflags = '-m64 ' + compflags
+        if fcompiler == 'gnu95':
+            compflags = '-m{0} '.format(bit) + compflags
+        if fcompiler.startswith('intel'):
             if bit == 32:
-                f2py_flags.append('--f77flags=-fno-second-underscore,-mno-align-double')
+                compflags = '-Bstatic -assume 2underscores ' + compflags
             else:
-                f2py_flags.append('--f77flags=-fno-second-underscore,-mno-align-double,-m64')
-        if self.compiler:
-            f2py_flags.append('--compiler={0}'.format(self.compiler))
-        if self.f77exec:
-            f2py_flags.append('--f77exec={0}'.format(self.f77exec))
-        if self.f90exec:
-            f2py_flags.append('--f90exec={0}'.format(self.f90exec))
+                compflags = '-Bdynamic ' + compflags
         try:
-            if bit == 32:
-                subprocess.check_call(compile_cmd32[fcompiler], shell=True)
-            else:
-                subprocess.check_call(compile_cmd64[fcompiler], shell=True)
+            subprocess.check_call(comppath + ' -c ' + compflags + ' *.f',
+                                           shell=True)
             if sys.platform == 'darwin':
                 subprocess.check_call('libtool -static -o libBL2.a *.o',
                                       shell=True)
@@ -475,6 +470,18 @@ class build(_build):
             os.chdir(olddir)
             return
         os.chdir('..')
+
+        f2py_flags = ['--fcompiler={0}'.format(fcompiler)]
+        if fcompiler == 'gnu':
+            f2py_flags.append('--f77flags=-fno-second-underscore,-mno-align-double')
+            if bit == 64:
+                f2py_flags[-1] += ',-m64'
+        if self.compiler:
+            f2py_flags.append('--compiler={0}'.format(self.compiler))
+        if self.f77exec:
+            f2py_flags.append('--f77exec={0}'.format(self.f77exec))
+        if self.f90exec:
+            f2py_flags.append('--f90exec={0}'.format(self.f90exec))
         try:
             subprocess.check_call(
                 [self.f2py, '-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
@@ -483,6 +490,7 @@ class build(_build):
             warnings.warn(
                 'irbemlib module failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
+
         #All matching outputs
         created_libfiles = [f for f in libfiles if os.path.exists(f)]
         if len(created_libfiles) == 0: #no matches
