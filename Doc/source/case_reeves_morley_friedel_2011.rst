@@ -256,7 +256,7 @@ hour cadence, and the ESP data is on a continuous one day cadence.
 ...     esp_flux_av[i] = scipy.stats.nanmean(esp_flux[max(i - 13, 0):i + 14])
 
 :func:`numpy.empty` creates an empty array, taking the ``shape`` and
-``dtype`` from the ``esp_flux`` array. ``empty`` does not initalize
+``dtype`` from the ``esp_flux`` array. ``empty`` does not initialize
 the data in the array, so it is essentially random junk; use
 :func:`~numpy.zeros` to create an array filled with zeros.
 
@@ -533,7 +533,7 @@ the slice notation: ``[:, 0]`` means take all indices of the first dimension
 (line number) and only the 0th index of the second dimension (column in the
 line). Finally, we use :class:`~datetime.timedelta` to shift the date
 associated with a month from the beginning to roughly the middle of the month.
-Adding a scalar to an array does an elementwise addition.
+Adding a scalar to an array does an element-wise addition.
 
 >>> import matplotlib.figure
 >>> fig = plt.figure(figsize=[11, 8.5],
