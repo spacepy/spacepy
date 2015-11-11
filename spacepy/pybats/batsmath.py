@@ -60,16 +60,20 @@ def interp_2d_reg(x, y, xgrid, ygrid, val, dx=None, dy=None):
     extrapolate outside of *xgrid*, *ygrid*, so use with caution.
     '''
 
+    # Change from matrices to vectors:
+    if xgrid.ndim>1:
+        xgrid = xgrid[0,:]
+        ygrid = ygrid[:,0]
+        
     # Get resolution if not supplied:
     if (not dx) or (not dy):
-        dx = xgrid[0,1]-xgrid[0,0]
-        dy = ygrid[1,0]-ygrid[0,0]
-    ySize, xSize = xgrid.shape
+        dx = xgrid[1]-xgrid[0]
+        dy = ygrid[1]-ygrid[0]
+    ySize, xSize = ygrid.size, xgrid.size
 
     # Normalized coords:
-    xNorm = (x-xgrid[0,0])/dx
-    yNorm = (y-ygrid[0,0])/dy
-
+    xNorm = (x-xgrid[0])/dx
+    yNorm = (y-ygrid[0])/dy
 
     # LowerLeft index of four surrounding points.
     # Bind points such that four surrounding always within xgrid, ygrid.
