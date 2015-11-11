@@ -7,11 +7,8 @@ Test suite for toolbox
 Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
-import time
-import datetime
-import glob
-import math
-import os
+import time, datetime
+import glob, os, sys
 import shutil
 import random
 import tempfile
@@ -19,9 +16,13 @@ try:
     import StringIO
 except:
     import io as StringIO
-import sys
 import unittest
 import warnings
+from contextlib import contextmanager
+try:
+    import __builtin__ as builtins #python 2.x
+except ImportError:
+    import builtins #python 3.x
 
 import numpy
 from numpy import array
@@ -32,6 +33,20 @@ import spacepy.lib
 
 __all__ = ['PickleAssembleTests', 'SimpleFunctionTests', 'TBTimeFunctionTests',
            'ArrayBinTests']
+
+@contextmanager
+def mockRawInput3(mock):
+    original_raw_input = builtins.input
+    builtins.input = lambda: mock
+    yield
+    builtins.input = original_raw_input
+
+@contextmanager
+def mockRawInput2(mock):
+    original_raw_input = builtins.raw_input
+    builtins.raw_input = lambda: mock
+    yield
+    builtins.raw_input = original_raw_input
 
 class PickleAssembleTests(unittest.TestCase):
 
@@ -100,12 +115,27 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_getNamedPath(self):
         """getNamedPath should have known result"""
-        ans = ['spacepy', 'tests']
-        res = tb.getNamedPath('tests').split(os.path.sep)[-2:]
+        curloc = os.path.abspath(os.path.curdir)
+        tmpdir = os.path.join(curloc, 'tmp', 'test1', 'test2')
+        os.makedirs(tmpdir)
+        ans = ['tests', 'tmp', 'test1']
+        os.chdir(tmpdir)
+        res = tb.getNamedPath('test1').split(os.path.sep)[-3:]
         self.assertEqual(ans[0], res[0][0:len(ans[0])])
         self.assertEqual(ans[1], res[1][0:len(ans[0])])
         self.assertEqual(res[0],
                          tb.getNamedPath(res[0]).split(os.path.sep)[-1])
+        os.chdir(curloc)
+        os.removedirs(tmpdir)
+
+    def test_getNamedPath_badInput(self):
+        """getNamedPath should return None if directory does not exist"""
+        import string, random
+        len_fn = 16 #should be exceedingly unlikely to exist...
+        dname = ''.join(random.choice(string.ascii_uppercase + 
+                        string.digits) for _ in range(len_fn))
+        res = tb.getNamedPath(dname)
+        self.assertTrue(res is None)
 
     def test_progressbar(self):
         """progressbar shouldhave a known output"""
@@ -117,6 +147,28 @@ class SimpleFunctionTests(unittest.TestCase):
         output.close()
         self.assertEqual(result, "\rDownload Progress ...0%")
         sys.stdout = realstdout
+
+    def test_query_yes_no(self):
+        '''query_yes_no should return known strings for known input'''
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        if  sys.version_info.major>2:
+            mockRaw = mockRawInput3
+        else:
+            mockRaw = mockRawInput2
+        with mockRaw('y'):
+            self.assertEqual(tb.query_yes_no('yes?'), 'yes')
+        with mockRaw('n'):
+            self.assertEqual(tb.query_yes_no('no?'), 'no')
+        with mockRaw(''):
+            self.assertEqual(tb.query_yes_no('no?', default='no'), 'no')
+        output.close()
+        sys.stdout = realstdout
+
+    def test_query_yes_no_badDefault(self):
+        '''query_yes_no should return error for bad args'''
+        self.assertRaises(ValueError, tb.query_yes_no, '', default='bad')
 
     def test_mlt2rad(self):
         """mlt2rad should have known output for known input"""
@@ -325,8 +377,8 @@ class SimpleFunctionTests(unittest.TestCase):
         """Find function input to give a desired integral value"""
         inputs = [[lambda x: x**2, 1, 0, 1000],
                   [lambda x: x / 2, 4, 0, 100],
-                  [lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
-                          (5 * math.sqrt(2 * math.pi)), 0.6, -inf, inf],
+                  [lambda x: numpy.exp(-(x ** 2) / (2 * 5 ** 2)) / \
+                          (5 * numpy.sqrt(2 * numpy.pi)), 0.6, -inf, inf],
                   ]
         outputs = [3.0 ** (1.0 / 3),
                    4,
@@ -340,8 +392,8 @@ class SimpleFunctionTests(unittest.TestCase):
     def testDistToList(self):
         """Convert probability distribution to list of values"""
         inputs = [[lambda x: x, 10, 0, 10],
-                  [lambda x: math.exp(-(x ** 2) / (2 * 5 ** 2)) / \
-                   (5 * math.sqrt(2 * math.pi)), 20],
+                  [lambda x: numpy.exp(-(x ** 2) / (2 * 5 ** 2)) / \
+                   (5 * numpy.sqrt(2 * numpy.pi)), 20],
                   ]
         outputs = [[2.2360679774998005,
                     3.8729833462074126,
@@ -692,7 +744,7 @@ class TBTimeFunctionTests(unittest.TestCase):
     def test_windowMean(self):
         """windowMean should give known results (regression)"""
         with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('default')
+            warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
             data = [10, 20]*50
@@ -758,7 +810,7 @@ class TBTimeFunctionTests(unittest.TestCase):
             numpy.testing.assert_almost_equal(ot_ans, outtime)
             numpy.testing.assert_almost_equal(od_ans, outdata)
 
-            self.assertEqual(5, len(w))
+            self.assertEqual(8, len(w))
 
     def test_windowMeanInputs(self):
         """windowMean does some input checking (regression)"""

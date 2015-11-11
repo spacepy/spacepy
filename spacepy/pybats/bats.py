@@ -20,7 +20,8 @@ binary SWMF output files taylored to BATS-R-US-type data.
 '''
 
 import numpy as np
-from spacepy.pybats import PbData, IdlFile, LogFile, set_target
+from spacepy.pybats import PbData, IdlFile, LogFile
+from spacepy.plot.utils import set_target, applySmartTimeTicks
 from spacepy.datamodel import dmarray
 
 #### Module-level variables:
@@ -181,7 +182,6 @@ class BatsLog(LogFile):
 
         from datetime import datetime
         import matplotlib.pyplot as plt
-        from spacepy.pybats import apply_smart_timeticks
         
         if 'dst' not in self:
             return None, None
@@ -192,7 +192,7 @@ class BatsLog(LogFile):
                 label='BATS-R-US $D_{ST}$ (Biot-Savart)', **kwargs)
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
-        apply_smart_timeticks(ax, self['time'])
+        applySmartTimeTicks(ax, self['time'])
         ax.set_ylabel('D$_{ST}$ ($nT$)')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
@@ -201,7 +201,7 @@ class BatsLog(LogFile):
             if self.fetch_obs_dst():
                 ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
                         'k--', label='Obs. Dst')
-                apply_smart_timeticks(ax, self['time'])
+                applySmartTimeTicks(ax, self['time'])
 
         if type(epoch) == datetime:
             yrange = ax.get_ylim()
@@ -1936,7 +1936,6 @@ class Mag(PbData):
         '''
 
         import matplotlib.pyplot as plt
-        from spacepy.pybats import apply_smart_timeticks
 
         if not label:
             label=value
@@ -1945,7 +1944,7 @@ class Mag(PbData):
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
 
         line=ax.plot(self['time'], self[value], style, label=label, **kwargs)
-        apply_smart_timeticks(ax, self['time'], dolabel=True)
+        applySmartTimeTicks(ax, self['time'], dolabel=True)
         
         return fig, ax
 
@@ -1973,7 +1972,6 @@ class Mag(PbData):
         '''
 
         import matplotlib.pyplot as plt
-        from spacepy.pybats import apply_smart_timeticks
 
         # Set plot targets.
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
@@ -2003,7 +2001,7 @@ class Mag(PbData):
                     lw=widths[k], c=colors[k])#,ls=styles[k]
 
         # Ticks, zero-line, and legend:
-        apply_smart_timeticks(ax, self['time'], True, True)
+        applySmartTimeTicks(ax, self['time'], True, True)
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   linestyles=':', lw=2.0, colors='k')
         if add_legend: ax.legend(ncol=3, loc='best')
@@ -2426,7 +2424,6 @@ class GeoIndexFile(LogFile):
         kwargs are passed to pyplot.plot.
         '''
         import matplotlib.pyplot as plt
-        from spacepy.pybats import apply_smart_timeticks
 
         # Set up plot target.
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
@@ -2446,7 +2443,7 @@ class GeoIndexFile(LogFile):
         ax.set_ylabel('$K_{P}$')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
         ax.grid()
-        apply_smart_timeticks(ax, self['time'])
+        applySmartTimeTicks(ax, self['time'])
 
         if target==None: fig.tight_layout()
 
@@ -2467,7 +2464,7 @@ class GeoIndexFile(LogFile):
             else:
                 self.obs_kp.add_histplot(target=ax, color='k', ls='--', lw=3.0)
                 ax.legend(loc='best')
-                apply_smart_timeticks(ax, self['time'])
+                applySmartTimeTicks(ax, self['time'])
                 
         return fig, ax
 

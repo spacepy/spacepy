@@ -160,15 +160,23 @@ The file looks like:
 """
 
 from __future__ import division
-import copy, datetime, os, warnings, itertools
-import re, json
+import copy
+import datetime
+import itertools
+import json
+from functools import partial
+import os
+import re
+import warnings
+
 try:
     import StringIO # can't use cStringIO as we might have unicode
 except ImportError:
     import io as StringIO
 
-from . import toolbox
 import numpy
+from . import toolbox
+from . import time as spt
 
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -418,6 +426,23 @@ class SpaceData(dict):
     .. automethod:: flatten
     .. automethod:: tree
     """
+    def __getitem__(self, key):
+        """
+        This allows one to make a SpaceData indexed with an iterable of keys to return a new spacedata
+        made of the subset of keys
+        """
+        try: 
+            return super(SpaceData, self).__getitem__(key)
+        except (KeyError, TypeError):
+            if isinstance(key, (tuple, list)):
+                # make a new SpaceData from these keys
+                out = SpaceData()
+                out.attrs = self.attrs
+                for k in key:
+                    out[k] = self[k]
+                return out
+            else:
+                raise(KeyError('{0}'.format(key)))
 
     def __init__(self, *args, **kwargs):
         """
@@ -439,6 +464,13 @@ class SpaceData(dict):
             del kwargs['attrs']
 
         super(SpaceData, self).__init__(*args, **kwargs)
+        self.toCDF = partial(toCDF, SDobject=self, *args, **kwargs)
+        self.toCDF.__doc__ = toCDF.__doc__
+        self.toHDF5 = partial(toHDF5, SDobject=self, *args, **kwargs)
+        self.toHDF5.__doc__ = toHDF5.__doc__
+        self.toJSONheadedASCII = partial(toJSONheadedASCII, insd=self, *args, **kwargs)
+        self.toJSONheadedASCII.__doc__ = toJSONheadedASCII.__doc__
+
 
 ## To enable string output of repr, instead of just printing, uncomment his block
 #    def __repr__(self):
@@ -538,6 +570,7 @@ class SpaceData(dict):
         for key in flatobj:
             self[key] = copy.copy(flatobj[key])
 
+            
 
 def convertKeysToStr(SDobject):
     if isinstance(SDobject, SpaceData):
@@ -788,6 +821,7 @@ def toCDF(fname, SDobject, **kwargs):
     defaults = {'skeleton': '',
                 'flatten': False,
                 'overwrite': False,
+                'compress': False,
                 'autoNRV': False,
                 'backward': False,
                 'TT2000': False,
@@ -1278,7 +1312,7 @@ def readJSONMetadata(fname, **kwargs):
             mdata.tree(verbose=True, attrs=True)
     return mdata
 
-def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
+def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=None):
     """read JSON-headed ASCII data files into a SpacePy datamodel
 
     Parameters
@@ -1297,6 +1331,8 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         If True, uses common names to try conversion from string. If a dict-
         like then uses the functions specified as the dict values to convert
         each element of 'key' to a non-string
+    restrict: list of strings (optional)
+        If present, restrict the variables stored to only those on this list
 
     Returns
     -------
@@ -1316,6 +1352,10 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
             fname=[fname]
     if not mdata:
         mdata = readJSONMetadata(fname[0])
+    if restrict:
+        delkeys = [kk for kk in mdata.keys() if kk not in restrict]
+        for val in delkeys:
+            del mdata[val] #remove undesired keys
     mdata_copy = dmcopy(mdata)
     def innerloop(fh, mdata, mdata_copy):
         line = fh.readline()
@@ -1343,7 +1383,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         for ridx, line in enumerate(alldata):
             for cidx, el in enumerate(line.rstrip().split()):
                 data[ridx, cidx] = el
-        for key in mdata.keys():
+        for key in mdata_copy.keys():
             if 'START_COLUMN' in mdata_copy[key].attrs:
                 st = mdata_copy[key].attrs['START_COLUMN']
                 if 'DIMENSION' in mdata_copy[key].attrs:
@@ -1373,7 +1413,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False):
         else:
             mdata = innerloop(fh, mdata, mdata_copy)
     #now add the attributres to the variables
-    keys = list(mdata.keys())
+    keys = list(mdata_copy.keys())
     for key in keys:
         if isinstance(mdata[key], SpaceData):
             mdata[key] = dmarray(None, attrs=mdata_copy[key].attrs)
@@ -1639,6 +1679,36 @@ def toJSONheadedASCII(fname, insd, metadata=None, depend0=None, order=None, **kw
             fh.write(''.join([prline,'\n']))
 
 
+def fromRecArray(recarr):
+    '''Takes a numpy recarray and returns each field as a dmarray in a SpaceData container
+    
+    Parameters
+    ----------
+    recarr : numpy record array
+        object to parse into SpaceData container
+
+    Returns
+    -------
+    sd: spacepy.datamodel.SpaceData
+        dict-like containing arrays of named records in recarr
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import spacepy.datamodel as dm
+    >>> x = np.array([(1.0, 2), (3.0, 4)], dtype=[('x', float), ('y', int)])
+    >>> print(x, x.dtype)
+    array([(1.0, 2), (3.0, 4)], dtype=[('x', '<f8'), ('y', '<i4')])
+    >>> sd = dm.fromRecArray(x)
+    >>> sd.tree(verbose=1)
+    +
+    |____x (spacepy.datamodel.dmarray (2,))
+    |____y (spacepy.datamodel.dmarray (2,))
+    '''
+    sd = SpaceData()
+    for key in recarr.dtype.fields.keys():
+        sd[key] = dmarray(recarr[key])
+    return sd
 
 def dmcopy(dobj):
     '''Generic copy utility to return a copy of a (datamodel) object
@@ -1672,3 +1742,196 @@ def dmcopy(dobj):
         return numpy.copy(dobj)
     else:
         return copy.copy(dobj)
+
+def createISTPattrs(datatype, ndims=1, vartype=None, units=None, NRV=False):
+    '''Return set of unpopulated attributes for ISTP compliant variable
+    '''
+    fillvals = {'float': -1e31,
+                'char': '',
+                'int': numpy.array(-2147483648).astype(numpy.int32),
+                'epoch': -1.0E31, #datetime.datetime(9999,12,31,23,59,59,999)}
+                'tt2000': numpy.array(-9223372036854775808).astype(numpy.int64)}
+    formats = {'float': 'F18.6',
+               'char': 'A30',
+               'int': 'I11',
+               'epoch': '',
+               'tt2000': 'I21'}
+    disp = {1: 'time_series',
+            2: 'spectrogram',
+            3: 'spectrogram',
+            4: 'spectrogram'}
+    if vartype not in fillvals:
+        fill = -1e31
+        form = 'F15.6'
+    else:
+        fill = fillvals[vartype]
+        form = formats[vartype]
+    if units:
+        unit = units
+    else:
+        unit = ''
+    if datatype == 'data':
+        attrs = {'CATDESC': '',
+            'DISPLAY_TYPE': disp[ndims],
+            'FIELDNAM': '',
+            'FILLVAL': fill,
+            'FORMAT': form,
+            'LABLAXIS': '',
+            'SI_CONVERSION': ' > ',
+            'UNITS': unit,
+            'VALIDMIN': '',
+            'VALIDMAX': '',
+            'VAR_TYPE': 'data'
+            }
+        for dim in range(ndims):
+            attrs['DEPEND_{0}'.format(dim)] = ''
+        attrs['DEPEND_0'] = 'Epoch'
+    elif datatype == 'support_data':
+        attrs = {'CATDESC': '',
+            'FIELDNAM': '',
+            'FORMAT': form,
+            'UNITS': unit,
+            'VAR_TYPE': 'support_data'
+            }
+        for dim in range(ndims):
+            attrs['DEPEND_{0}'.format(dim)] = ''
+        if not NRV:
+            attrs['VALIDMIN'] = ''
+            attrs['VALIDMAX'] = ''
+            attrs['FILLVAL'] = fill
+            attrs['DEPEND_0'] = 'Epoch'
+        else:
+            del attrs['DEPEND_0']
+    elif datatype == 'metadata':
+        attrs = {'CATDESC': '',
+            'FIELDNAM': '',
+            'FORMAT': form,
+            'UNITS': unit,
+            'VAR_TYPE': 'metadata'
+            }
+        for dim in range(ndims):
+            attrs['DEPEND_{0}'.format(dim)] = ''
+        if not NRV:
+            attrs['FILLVAL'] = fill
+            attrs['DEPEND_0'] = 'Epoch'
+        else:
+            del attrs['DEPEND_0']
+
+    return attrs
+
+def _getVarLengths(data):
+    """
+    get the length of all the variables
+    
+    Parameters
+    ----------
+    data : SpaceData
+        SpaceData object to return the length of the variables
+
+    Returns
+    -------
+    data : dict
+        dict of the names and lengths of a SpaceData
+    """
+    ans = {}
+    for k, v in data.items():
+        ans[k] = len(v)
+    return ans
+
+def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epoch'):
+    """
+    resample a SpaceData to a new time interval
+
+    Parameters
+    ----------
+    data : SpaceData or dmarray
+        SpaceData with data to resample or dmarray with data to resample,
+        variables can nly be 1d or 2d, if time is specified only variables
+        the same length as time are resampled, otherwise only variables
+        with length equal to the longest length are resampled
+
+    time : array-like
+        dmarray of times the correspond to the data
+
+    winsize : datetime.timedelta
+        Time frame to average the data over
+
+    overlap : datetime.timedelta
+        Overlap in the moving average
+
+    st_time : datetime.datetime
+        Starting time for the resample, if not specified it is calcualted by tb.windowMean
+
+    Returns
+    -------
+    ans : SpaceData 
+        Resampled data, included keys are in the input keys (with the data caveats above)
+        and Epoch which contains the output time
+
+    Examples
+    --------
+    >>> import datetime
+    >>> import spacepy.datamodel as dm
+    >>> a = dm.SpaceData()
+    >>> a.attrs['foo'] = 'bar'
+    >>> a['a'] = dm.dmarray(range(10*2)).reshape(10,2)
+    >>> a['b'] = dm.dmarray(range(10)) + 4
+    >>> a['c'] = dm.dmarray(range(3)) + 10
+    >>> times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
+    >>> out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+    >>> out.tree(verbose=1, attrs=1)
+    # +
+    # :|____foo (str [3])
+    # |____Epoch (spacepy.datamodel.dmarray (4,))
+    # |____a (spacepy.datamodel.dmarray (4, 2))
+    # :|____DEPEND_0 (str [5])
+    #
+    # Things to note:
+    #    - attributes are preserved
+    #    - the output varibles have there DEPEND_0 changed to Epoch (or outtimename)
+    #    - each dimension of a 2d array is resampled individually 
+    """
+    # check for SpaceData or dmarray input before going to a bunch of work
+    if not isinstance(data, (SpaceData, dmarray)):
+        raise(TypeError('Input must be a SpaceData or dmarray object'))
+
+    # can only resample variables that have the same length as time,
+    #    if time is default then use all the vals that are the same
+    #    as the longest var
+    lent = len(time)
+    if lent == 0: lent = len(data[max(data, key=lambda k: len(data[k]))])
+    keys = [k for k in data if len(data[k]) == lent]
+    d2 = data[keys]
+    # what time are we starting at?
+    if isinstance(time, spt.Ticktock):
+        t_int = time.UTC
+    else:
+        t_int = dmarray(time)
+    if t_int.any() and ((st_time is None) and isinstance(t_int[0], datetime.datetime)):
+        st_time = t_int[0].replace(hour=0, minute=0, second=0, microsecond=0)
+
+    ans = SpaceData()
+    ans.attrs = data.attrs
+    
+    for k in keys:
+        if len(data[k].shape) > 1:
+            if len(data[k].shape) > 2:
+                raise(IndexError("Variables can only be 1d or 2d"))
+            for i in range(data[k].shape[1]):
+                d, t = toolbox.windowMean(data[k][:,i], time=t_int, winsize=winsize, overlap=overlap, st_time=st_time)
+                if k not in ans:
+                    ans[k] = dmarray(d)
+                else:
+                    ans[k] = dmarray.vstack(ans[k], d)
+            ans[k] = ans[k].T
+        else:
+            d, t = toolbox.windowMean(data[k], time=t_int, winsize=winsize, overlap=overlap, st_time=st_time)
+            ans[k] = dmarray(d)
+        ans[k].attrs = data[k].attrs
+        ans[k].attrs['DEPEND_0'] = outtimename
+    ans[outtimename] = dmarray(t)
+        
+    return ans
+
+
+    

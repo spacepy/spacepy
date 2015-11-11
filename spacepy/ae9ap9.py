@@ -16,6 +16,7 @@ __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
 import datetime
 import functools
+import gzip
 import os
 import re
 
@@ -217,13 +218,17 @@ def _readHeader(fname):
     read only the header from a Ae9Ap9 file
     """
     dat = []
-    with open(fname, 'r') as fp:
-        while True:
-            tmp = fp.readline()
-            if tmp[0] != '#':
-                break
-            dat.append(tmp.strip())
+    if fname.endswith('.gz'):
+        fp = gzip.open(fname, 'rt')
+    else:
+        fp = open(fname, 'rt')
+    while True:
+        tmp = fp.readline()
+        if tmp[0] not in ('#', 35):
+            break
+        dat.append(tmp.strip())
     dat = [v[1:].strip() for v in dat]
+    fp.close()
     return dat
 
 def parseHeader(fname):
@@ -289,7 +294,7 @@ def _unique_elements_order(seq):
     seen_add = seen.add
     return [ x for x in seq if not (x in seen or seen_add(x))]
 
-def combinePercentiles(files, timeframe='all'):
+def combinePercentiles(files, timeframe='all', verbose=True):
     """
     combine files at different percentiles into one file with the spectra at different
     percentiles for easy plotting and analysis
@@ -305,6 +310,8 @@ def combinePercentiles(files, timeframe='all'):
     ================
     timeframe : str
         Timeframe to average the input spectra over (either 'all' or a pandas understoop resample() time
+    verbose : boolean
+        Print out information while reading the files
     
     Returns
     =======
@@ -315,6 +322,7 @@ def combinePercentiles(files, timeframe='all'):
         raise(ValueError("Must input files"))
     data = {}
     for fname in files:
+        if verbose: print("Reading: {0}".format(fname))
         tmp = readFile(fname)
         if 'percentile' not in tmp.attrs:
             raise(ValueError("File {0} does not have a percentile key".format(fname)))
@@ -368,7 +376,6 @@ def combinePercentiles(files, timeframe='all'):
     ans['Percentile'].attrs['VALIDMIN'] = 0.0
     ans['Percentile'].attrs['VALIDMAX'] = 100.0
     ans['Percentile'].attrs['SCALETYP'] = 'support_data'
-
     return ans
 
 def _getData(fnames):
@@ -381,61 +388,4 @@ def _getData(fnames):
     else:
         return combinePercentiles(fnames)
 
-def _toFile(fnames, outname, ftype):
-    """
-    generic toXXX() routine to change data files to other formats
-    """
-    dat = _getData(fnames)
-    if ftype == 'CDF':
-        dm.toCDF(outname, dat, autoNRV=True)
-    elif ftype == 'HDF5':
-        dm.toHDF5(outname, dat, compression='gzip', compression_opts=7)
-    elif ftype == 'ASCII':
-        dm.toJSONheadedASCII(outname, dat)
-        
-toCDF = functools.partial(_toFile, ftype='CDF')
-"""
-Convert the input file(s) fnames to CDF. If fnames is a single file then call readFile()
-if it is an iterable of filenames call combinePercentiles()
-
-Parameters
-==========
-fnames : str
-    Filename(s) to change to CDF
-
-See Also
-========
-spacepy.datamodel.toCDF
-"""
-
-toHDF5 = functools.partial(_toFile, ftype='HDF5')
-"""
-Convert the input file(s) fnames to HDF5. If fnames is a single file then call readFile()
-if it is an iterable of filenames call combinePercentiles()
-
-Parameters
-==========
-fnames : str
-    Filename(s) to change to HDF5
-
-See Also
-========
-spacepy.datamodel.toHDF5
-"""
-
-toJSONheadedASCII = functools.partial(_toFile, ftype='ASCII')
-"""
-Convert the input file(s) fnames to JSONheadedASCII. If fnames is a single file then call readFile()
-if it is an iterable of filenames call combinePercentiles()
-
-Parameters
-==========
-fnames : str
-    Filename(s) to change to toJSONheadedASCII
-
-See Also
-========
-spacepy.datamodel.toJSONheadedASCII
-"""
-
-
+    

@@ -106,10 +106,7 @@ convenience functions for customizing plots.
 
    add_body
    add_planet
-   apply_smart_timeticks
    parse_tecvars
-   set_target
-   smart_timeticks
 
 '''
 
@@ -117,6 +114,7 @@ __contact__ = 'Dan Welling, dwelling@umich.edu'
 
 # Global imports (used ubiquitously throughout this module.
 from spacepy.datamodel import dmarray, SpaceData
+import spacepy.plot.utils as spu
 import numpy as np
 
 # Some common, global functions.
@@ -242,164 +240,6 @@ def parse_tecvars(line):
 
     return ret
 
-def smart_timeticks(time):
-    '''
-    Given a list or array of time values, create intelligent timeticks based
-    on the max and min of the input.
-    Return three items: major tick locator, minor tick locator, and a 
-    format string.
-
-    Example:
-    >>>Mtick, mtick, fmt = smart_timeticks([time1, time2])
-
-    One could then apply these to an axis object as follows:
-    >>>ax.xaxis.set_major_locator(Mtick)
-    >>>ax.xaxis.set_minor_locator(mtick)
-    >>>ax.xaxis.set_major_formatter(fmt)
-
-    Often, it is much easier to just use 
-    :func:`spacepy.pybats.apply_smart_timeticks`.
-    '''
-    
-    import matplotlib.dates as mdt
-
-    deltaT = time[-1] - time[0]
-    nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
-    if nHours < .5:
-        Mtick=mdt.MinuteLocator(byminute=list(range(0,60,5)) )
-        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 1:
-        Mtick=mdt.MinuteLocator(byminute=[0,10, 20, 30,40, 50])
-        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 2:
-        Mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
-        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=5)
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 4:
-        Mtick=mdt.MinuteLocator(byminute=[0,30])
-        mtick=mdt.MinuteLocator(byminute=list(range(60)), interval=10)
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 12:
-        Mtick=mdt.HourLocator(byhour=list(range(24)), interval=2)
-        mtick=mdt.MinuteLocator(byminute=[0,15,30,45])
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 24:
-        Mtick=mdt.HourLocator(byhour=[0,3,6,9,12,15,18,21])
-        mtick=mdt.HourLocator(byhour=list(range(24)))
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif nHours < 48:
-        Mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        mtick=mdt.HourLocator(byhour=list(range(24)))
-        fmt = mdt.DateFormatter('%H:%M UT')
-    elif deltaT.days < 8:
-        Mtick=mdt.DayLocator(bymonthday=list(range(32)))
-        mtick=mdt.HourLocator(byhour=list(range(0,24,2)))
-        fmt = mdt.DateFormatter('%b %d')
-    elif deltaT.days < 15:
-        Mtick=mdt.DayLocator(bymonthday=list(range(2,32,2)))
-        mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        fmt = mdt.DateFormatter('%b %d')
-    elif deltaT.days < 32:
-        Mtick=mdt.DayLocator(bymonthday=list(range(5,35,5)))
-        mtick=mdt.HourLocator(byhour=[0,6,12,18])
-        fmt = mdt.DateFormatter('%b %d')
-    elif deltaT.days < 60:
-        Mtick=mdt.MonthLocator()
-        mtick=mdt.DayLocator(bymonthday=list(range(5,35,5)))
-        fmt = mdt.DateFormatter('%b %d')
-    elif deltaT.days < 731:
-        Mtick=mdt.MonthLocator()
-        mtick=mdt.DayLocator(bymonthday=15)
-        fmt = mdt.DateFormatter('%b %Y')
-    else:
-        Mtick=mdt.YearLocator()
-        mtick=mdt.MonthLocator(bymonth=7)
-        fmt = mdt.DateFormatter('%Y')
-    return(Mtick, mtick, fmt)
-
-def apply_smart_timeticks(ax, time, dolimit=True, dolabel=False):
-    '''
-    Given an axis *ax* and a list/array of datetime objects, *time*, 
-    use the smart_timeticks function to built smart time ticks and
-    then immediately apply them to the give axis.
-
-    The range of the *time* input value will be used to set the limits
-    of the x-axis as well.  Set kwarg *dolimit* to False to override 
-    this behavior.
-
-    If you wish to auto-label the X axis with ISO-formatted date and time
-    taken from ``time[0]``, use the kwarg *dolabel* (defaults to **False**).
-    '''
-
-    Mtick, mtick, fmt = smart_timeticks(time)
-    ax.xaxis.set_major_locator(Mtick)
-    ax.xaxis.set_minor_locator(mtick)
-    ax.xaxis.set_major_formatter(fmt)
-    if dolimit:
-        ax.set_xlim([time[0], time[-1]])
-    if dolabel:
-        ax.set_xlabel('Time from %s' % time[0].isoformat())
-    return True
-
-def set_target(target, figsize=None, loc=111, polar=False):
-    '''
-    Given a *target* on which to plot a figure, determine if that *target*
-    is **None** or a matplotlib figure or axes object.  Based on the type
-    of *target*, a figure and/or axes will be either located or generated.
-    Both the figure and axes objects are returned to the caller for further
-    manipulation.  This is used in nearly all *add_plot*-type methods.
-
-    Parameters
-    ==========
-    target : object
-        The object on which plotting will happen.
-
-    Other Parameters
-    ================
-    figsize : tuple
-        A two-item tuple/list giving the dimensions of the figure, in inches.  
-        Defaults to Matplotlib defaults.
-    loc : integer 
-        The subplot triple that specifies the location of the axes object.  
-        Defaults to 111.
-    polar : bool
-        Set the axes object to polar coodinates.  Defaults to **False**.
-    
-    Returns
-    =======
-    fig : object
-      A matplotlib figure object on which to plot.
-
-    ax : object
-      A matplotlib subplot object on which to plot.
-
-    Examples
-    ========
-    >>> import matplotlib.pyplot as plt
-    >>> from spacepy.pybats import set_target
-    >>> fig = plt.figure()
-    >>> fig, ax = set_target(target=fig, loc=211)
-
-    '''
-
-    import matplotlib.pyplot as plt
-
-    # Is target a figure?  Make a new axes.
-    if type(target) == plt.Figure:
-        fig = target
-        ax  = fig.add_subplot(loc, polar=polar)
-    # Is target an axes?  Make no new items.
-    elif issubclass(type(target), plt.Axes):
-        ax  = target
-        fig = ax.figure
-    # Is target something else?  Make new everything.
-    else:
-        fig = plt.figure(figsize=figsize)
-        ax  = fig.add_subplot(loc, polar=polar)
-
-    return fig, ax
 
 def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
     '''
@@ -1541,7 +1381,7 @@ class ImfInput(PbData):
 
         def adjust_plots(ax, ylab, xlab=False, Zero=True):
             ax.grid(True)
-            apply_smart_timeticks(ax,timerange)
+            applySmartTimeticks(ax,timerange)
             ax.set_ylabel(ylab)
             labels =ax.get_yticklabels()
             labels[-1].set_visible(False)

@@ -48,7 +48,7 @@ import matplotlib.pyplot as plt
 
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
-import spacepy.plot.utils as spu
+from  . import utils as spu
 
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
@@ -92,12 +92,24 @@ class spectrogram(dm.SpaceData):
         if the name "lim" is not specified in the .attrs of the dmarray variable
         this specifies the limit for the z variable [zlow, zhigh]
     extended_out : bool (optional)
-        if this is True add more information to the output data model (default False)
+        if this is True add more information to the output data model (default True)
 
     Notes
     =====
     Helper routines are planned to
     facilitate the creation of the SpaceData container if the data are not in the format.
+
+    Examples
+    --------
+    >>> import spacepy.datamodel as dm
+    >>> import numpy as np
+    >>> import spacepy.plot as splot
+    >>> sd = dm.SpaceData()
+    >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,30,500))+4, attrs={'units':'km'})
+    >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
+    >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
+    >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+    >>> ax = spec.plot()
 
     .. autosummary::
 
@@ -140,14 +152,15 @@ class spectrogram(dm.SpaceData):
 
         # if the variables are empty error and quit
         if len(data[self.specSettings['variables'][0]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][0])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][0])))
         if len(data[self.specSettings['variables'][1]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][1])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][1])))
         if len(data[self.specSettings['variables'][2]]) == 0:
-            raise(ValueError('No {0} datapassed in'.format(self.specSettings['variables'][2])))
+            raise(ValueError('No {0} data passed in'.format(self.specSettings['variables'][2])))
 
         # set limits, keywords override those in the data
-        if self.specSettings['xlim'] == None:
+        #if (self.specSettings['xlim'] is None) and (self.specSettings['bins'] is None):
+        if self.specSettings['xlim'] is None:
             try:
                 if 'lim' in data[self.specSettings['variables'][0]].attrs:
                     self.specSettings['xlim'] = (data[self.specSettings['variables'][0]].attrs['lim'][0],
@@ -159,7 +172,7 @@ class spectrogram(dm.SpaceData):
             except AttributeError: # was a numpy array not dmarray
                 self.specSettings['xlim'] = (np.min(data[self.specSettings['variables'][0]]),
                                             np.max(data[self.specSettings['variables'][0]]))
-        if self.specSettings['ylim'] == None:
+        if self.specSettings['ylim'] is None:
             try:
                 if 'lim' in data[self.specSettings['variables'][1]].attrs:
                     self.specSettings['ylim'] = (data[self.specSettings['variables'][1]].attrs['lim'][0],
@@ -170,7 +183,7 @@ class spectrogram(dm.SpaceData):
             except AttributeError: # was a numpy array not dmarray
                 self.specSettings['ylim'] = (np.min(data[self.specSettings['variables'][1]]),
                                             np.max(data[self.specSettings['variables'][1]]))
-        if self.specSettings['zlim'] == None:
+        if self.specSettings['zlim'] is None:
             try:
                 if 'lim' in data[self.specSettings['variables'][2]].attrs:
                     self.specSettings['zlim'] = (data[self.specSettings['variables'][2]].attrs['lim'][0],
@@ -191,7 +204,7 @@ class spectrogram(dm.SpaceData):
         self.specSettings['axisDates'] = forcedate
 
         # set default bins
-        if self.specSettings['bins'] == None:
+        if self.specSettings['bins'] is None:
             # since it is not set by keyword was it set in the datamodel?
             attr_bins = ['bins' in data[var].attrs for var in self.specSettings['variables']]
             if dm.dmarray(attr_bins[0:2]).all():
@@ -314,6 +327,25 @@ class spectrogram(dm.SpaceData):
             self['spectrogram']['sum'] = overall_sum
 
     def add_data(self, data):
+        """
+        Add another SpaceData with same keys, etc. to spectrogram instance
+
+        Examples
+        --------
+        >>> import spacepy.datamodel as dm
+        >>> import numpy as np
+        >>> import spacepy.plot as splot
+        >>> sd = dm.SpaceData()
+        >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,30,500))+4, attrs={'units':'km'})
+        >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
+        >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
+        >>> sd2 = dm.dmcopy(sd)
+        >>> sd2['radius'] = dm.dmarray(2*np.cos(np.linspace(0,30,500))+4, attrs={'units':'km'})
+        >>> sd2['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd2['radius'])
+        >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+        >>> spec.add_data(sd2)
+        >>> ax = spec.plot()
+        """
         if not self.specSettings['extended_out']:
             raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on initial creation'))
         b = spectrogram(data, **self.specSettings)
@@ -329,7 +361,7 @@ class spectrogram(dm.SpaceData):
         self['spectrogram']['sum'] += b['spectrogram']['sum']
         self['spectrogram']['spectrogram'][...] = np.ma.divide(self['spectrogram']['sum'], self['spectrogram']['count'])
 
-    def plot(self, fignum=None, axis=None, **kwargs):
+    def plot(self, target=None, loc=111, figsize=None, **kwargs):
         """
         Plot the spectrogram
 
@@ -347,6 +379,8 @@ class spectrogram(dm.SpaceData):
             The formatting to use on the dates on the x-axis (default matplotlib.dates.DateFormatter("%d %b %Y"))
         zlog : bool
             plot the z variable on a log scale (default True)
+        cmap : matplotlib Colormap
+            colormap instance to use
         colorbar : bool
             plot the colorbar (default True)
         axis : matplotlib axis object
@@ -360,24 +394,17 @@ class spectrogram(dm.SpaceData):
         import matplotlib.pyplot as plt
         plotSettings_keys = ('title', 'xlabel', 'ylabel', 'DateFormatter',
                              'zlim', 'colorbar', 'colorbar_label', 'zlog',
-                             'xlim', 'ylim', 'figsize')
+                             'xlim', 'ylim', 'figsize', 'cmap')
         for key in kwargs:
             if key not in plotSettings_keys:
                 raise(KeyError('Invalid keyword argument to plot(), "' + key + '"'))
 
         self.plotSettings = dm.SpaceData()
-        if 'title' in kwargs:
-            self.plotSettings['title'] = kwargs['title']
-        else:
-            self.plotSettings['title'] = ''
-        if 'xlabel' in kwargs:
-            self.plotSettings['xlabel'] = kwargs['xlabel']
-        else:
-            self.plotSettings['xlabel'] = ''
-        if 'ylabel' in kwargs:
-            self.plotSettings['ylabel'] = kwargs['ylabel']
-        else:
-            self.plotSettings['ylabel'] = ''
+        for key in ['title', 'xlabel', 'ylabel']:
+            if key in kwargs:
+                self.plotSettings[key] = kwargs[key]
+            else:
+                self.plotSettings[key] = ''
         if 'zlog' in kwargs:
             self.plotSettings['zlog'] = kwargs['zlog']
         else:
@@ -414,26 +441,23 @@ class spectrogram(dm.SpaceData):
         else:
             self.plotSettings['ylim'] = None
 
-        if fignum is None and axis is None:
-            if 'figsize' in kwargs:
-                if kwargs['figsize'] != None:
-                    fig = plt.figure(figsize=kwargs['figsize'])
-                else:
-                    fig = plt.figure()
-            else:
-                fig = plt.figure()
-            ax = fig.add_subplot(111)
-        elif axis is None:
-            fig = plt.figure(fignum)
-            ax = fig.add_subplot(111)
-        else:
-            ax = axis
+        fig, ax = spu.set_target(target, loc=loc, figsize=figsize)
+
         bb = np.ma.masked_outside(self['spectrogram']['spectrogram'], *self.plotSettings['zlim'])
+        if 'cmap' in kwargs:
+            self.plotSettings['cmap'] = kwargs['cmap']
+        else:
+            self.plotSettings['cmap'] = matplotlib.cm.rainbow
+
         if self.plotSettings['zlog']:
             pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb),
-                                norm=LogNorm())
+                                norm=LogNorm(), cmap=self.plotSettings['cmap'], vmin=self.plotSettings['zlim'][0],
+                                vmax=self.plotSettings['zlim'][1])
         else:
-            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb))
+            pcm = ax.pcolormesh(self['spectrogram']['xedges'], self['spectrogram']['yedges'], np.asarray(bb), 
+                                cmap=self.plotSettings['cmap'], vmin=self.plotSettings['zlim'][0],
+                                vmax=self.plotSettings['zlim'][1])
+
         if self.specSettings['axisDates'][0]:
             time_ticks = self._set_ticks_to_time(ax, 'x')
         elif self.specSettings['axisDates'][1]:
@@ -447,10 +471,6 @@ class spectrogram(dm.SpaceData):
             ax.set_xlim(self.plotSettings['xlim'])
 
         if self.plotSettings['colorbar']:
-            if 'cmap' in kwargs:
-                self.plotSettings['cmap'] = kwargs['cmap']
-            else:
-                self.plotSettings['cmap'] = matplotlib.cm.rainbow
             cb =plt.colorbar(pcm)
             cb.set_label(self.plotSettings['colorbar_label'])
         return ax

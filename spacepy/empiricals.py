@@ -17,13 +17,14 @@ import numpy as np
 
 import scipy.integrate as integ
 from spacepy import help
+import spacepy.datamodel as dm
 import spacepy.toolbox as tb
 import spacepy.omni as om
 import spacepy.time as spt
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
-def getLmax(ticks, model='JKemp'):
+def getLmax(ticks, model='JKemp', dbase='QDhourly'):
     """
     calculate a simple empirical model for Lmax - last closed drift-shell
 
@@ -58,7 +59,7 @@ def getLmax(ticks, model='JKemp'):
 
 
     """
-    omni = om.get_omni(ticks)
+    omni = om.get_omni(ticks, dbase=dbase)
     Dst = omni['Dst']
     Lmax = np.zeros(len(Dst))
     if model is 'JKemp':
@@ -79,6 +80,10 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     and R. R. Anderson, A new model of the location of the plasmapause: 
     CRRES results, J. Geophys. Res., 107(A11), 1339, 
     doi:10.1029/2001JA009211, 2002.
+    RT1970 -- Rycroft, M. J., and J. O. Thomas, The magnetospheric
+    plasmapause and the electron density trough at the alouette i
+    orbit, Planetary and Space Science, 18(1), 65-80, 1970
+
 
     Parameters
     ==========
@@ -108,23 +113,24 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
         6.42140002,  6.42140002,  6.26859998,  5.772     ,  5.6574    ,
         5.6574    ])
     """
-    def calcLpp(Kpmax, A, B):
-        currLpp = A - B*Kpmax
+    def calcLpp(Kpmax, A, B, power=1):
+        currLpp = A - B*Kpmax**power
         return currLpp
 
-    model_list = ['CA1992', 'M2002']
+    model_list = ['CA1992', 'M2002', 'RT1970']
 
     if model == 'CA1992':
         if LT!='all':
             print('No LT dependence currently supported for this model')
     if model not in model_list:
-        raise ValueError("Please specify a valid model:\n'M2002' or 'CA1992'")
+        raise ValueError("Please specify a valid model:\n{0}".format(' or '.join(model_list)))
 
     if LT=='all':
-        parA = {'CA1992': 5.6, 'M2002': 5.39}
-        parB = {'CA1992': 0.46, 'M2002': 0.382}
+        parA = {'CA1992': 5.6,  'M2002': 5.39,  'RT1970': 5.64}
+        parB = {'CA1992': 0.46, 'M2002': 0.382, 'RT1970': 0.78}
         priorvals = {'CA1992': datetime.timedelta(hours=24),
-                     'M2002': datetime.timedelta(hours=12)}
+                     'M2002': datetime.timedelta(hours=12),
+                     'RT1970': datetime.timedelta(0)}
         A, B = parA[model], parB[model]
         prior = priorvals[model]
     else:
@@ -133,11 +139,14 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
         except (ValueError, TypeError):
             raise ValueError("Please specify a valid LT:\n'all' or a numeric type")
         parA = {'CA1992': [5.6]*24,
-                'M2002': [5.7]*3+[6.05]*6+[5.2]*6+[4.45]*6+[5.7]*3}
+                'M2002': [5.7]*3+[6.05]*6+[5.2]*6+[4.45]*6+[5.7]*3,
+                'RT1970': [5.64]*24}
         parB = {'CA1992': [0.46]*24,
-                'M2002': [0.42]*3+[0.573]*6+[0.425]*6+[0.167]*6+[0.42]*3}
+                'M2002': [0.42]*3+[0.573]*6+[0.425]*6+[0.167]*6+[0.42]*3,
+                'RT1970': [0.78]*24}
         priorvals = {'CA1992': [datetime.timedelta(hours=24)]*24,
-                     'M2002': [datetime.timedelta(hours=12)]*24}
+                     'M2002': [datetime.timedelta(hours=12)]*24,
+                     'RT1970': [datetime.timedelta(0)]*24}
         try:
             LThr = long(LT)
         except NameError:
@@ -145,14 +154,13 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
         prior = priorvals[model][LThr]
         A, B = parA[model][LThr], parB[model][LThr]
 
-    #TODO: allow calling with ticks as dict of Kp (will also need UT for Kpmax)
     st, en = ticks.UTC[0]-prior, ticks.UTC[-1]
     if omnivals is None:
         omdat = om.get_omni(spt.tickrange(st, en, 1.0/24.0), dbase='QDhourly')
     else:
         #now test for sanity of input
         try:
-            isinstance(omnivals, dict)
+            assert isinstance(omnivals, dict)
         except:
             raise TypeError('Not a valid input type for omnivals, expected spacepy.datamodel.SpaceData')
         try:
@@ -167,18 +175,22 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     Kp = np.array(omdat['Kp'])[oinds]
     Lpp = np.zeros(len(ticks))
 
+    if model == 'RT1970':
+        power = 0.5
+    else:
+        power = 1
     for i, t1 in enumerate(ticks.UTC):
         t0 = t1-prior
         iprevday, dum = tb.tOverlap(utc, [t0, t1])
         if iprevday:
             Kpmax = max(Kp[iprevday])
-            Lpp[i] = calcLpp(Kpmax, A, B)
+            Lpp[i] = calcLpp(Kpmax, A, B, power=power)
         else:
             Lpp[i] = np.nan
 
     return Lpp
 
-def getMPstandoff(ticks):
+def getMPstandoff(ticks, dbase='QDhourly'):
     """Calculates the Shue et al. (1997) subsolar magnetopause radius
 
     Lets put the full reference here
@@ -209,7 +221,7 @@ def getMPstandoff(ticks):
     array([ 9.96096838,  8.96790412])
     """
     if type(ticks) == spt.Ticktock:
-        omni = om.get_omni(ticks)
+        omni = om.get_omni(ticks, dbase=dbase)
         P, Bz = omni['Pdyn'], omni['BzIMF']
     elif isinstance(ticks, dict): 
         P, Bz = ticks['P'], ticks['Bz']
@@ -242,7 +254,7 @@ def getMPstandoff(ticks):
     except TypeError:
         raise TypeError("Please check for valid input types")
 
-def getDststar(ticks, model='OBrien'):
+def getDststar(ticks, model='OBrien', dbase='QDhourly'):
     """Calculate the pressure-corrected Dst index, Dst*
 
     We need to add in the references to the models here!
@@ -310,7 +322,7 @@ def getDststar(ticks, model='OBrien'):
             raise ValueError('Invalid coefficients set: must be of form (b,c)')
 
     if isinstance(ticks, spt.Ticktock):
-        omni = om.get_omni(ticks)
+        omni = om.get_omni(ticks, dbase=dbase)
         P, Dst = omni['Pdyn'], omni['Dst']
     elif isinstance(ticks, dict):
         P, Dst = ticks['Pdyn'], ticks['Dst']
@@ -555,6 +567,49 @@ def getSolarRotation(ticks, rtype='carrington', fp=False, reverse=False):
         date = elapsed + start_date
         return date
 
+def getSolarProtonSpectra(norm=3.20e7, gamma=-0.96, E0=15.0, Emin=.1, Emax=600, nsteps=100):
+    '''Returns a SpaceData with energy and fluence spectra of solar particle events
+
+    The formulation follows that of:
+    Ellison and Ramaty ApJ 298: 400-408, 1985
+    dJ/dE = K^{-\gamma}exp(-E/E0)
+    
+    and the defualt values are the 10/16/2003 SEP event of:
+    Mewaldt, R. A., et al. (2005), J. Geophys. Res., 110, A09S18, doi:10.1029/2005JA011038.
+
+    Other Parameters
+    ==========
+    norm : float
+        Normilization factor for the intensity of the SEP event
+    gamma : float
+        Power law index
+    E0 : float
+        Expoential scaling factor
+    Emin : float
+        Minimum energy for fit
+    Emax : float
+        Maximum energy for fit
+    nsteps : int
+        The number of log spaced energy steps to return
+        
+    Returns
+    =======
+    data : dm.SpaceData
+        SpaceData with the energy and fluence values
+    '''
+    E = tb.logspace(Emin, Emax, nsteps)
+    fluence = norm*E**(gamma)*np.exp(-E/E0)
+    ans = dm.SpaceData()
+    ans['Energy'] = dm.dmarray(E)
+    ans['Energy'].attrs = {'UNITS':'MeV',
+                           'DESCRIPTION':'Particle energy per nucleon'}
+    ans['Fluence'] = dm.dmarray(fluence)
+    ans['Fluence'].attrs = {'UNITS' : 'cm^{-2} sr^{-1} (MeV/nuc)^{-1}',
+                            'DESCRIPTION':'Fluence spectra fir to the model'}
+    return ans
+
+
+      
 ShueMP = getMPstandoff
 get_plasma_pause = getPlasmaPause
 get_Lmax = getLmax

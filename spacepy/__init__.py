@@ -200,8 +200,8 @@ def _read_config(rcfile):
     global config
     defaults = {'enable_deprecation_warning': str(True),
                 'ncpus': str(multiprocessing.cpu_count()),
-                'qindenton_url': 'ftp://virbo.org/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
-                'omni2_url': 'ftp://virbo.org/OMNI/OMNI2/merged/latest/OMNI_OMNI2-latest.cdf.zip',
+                'qindenton_url': 'http://virbo.org/ftp/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
+                'omni2_url': 'http://virbo.org/ftp/OMNI/OMNI2/merged/latest/OMNI_OMNI2-latest.cdf.zip',
                 'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
                 }
@@ -246,10 +246,6 @@ def _read_config(rcfile):
     for k in caster:
         config[k] = caster[k](config[k])
 
-if __version__ == 'UNRELEASED':
-    print('This unreleased version of SpacePy is not supported '
-          'by the SpacePy team.')
-
 if 'SPACEPY' in os.environ:
     DOT_FLN = os.path.join(os.environ['SPACEPY'], '.spacepy')
 else:
@@ -279,6 +275,14 @@ if not os.path.exists(DOT_FLN):
     print('Thanks for using SpacePy!')
 else:
     _read_config(rcfile)
+
+if __version__ == 'UNRELEASED':
+    if ('support_notice' in config) and (config['support_notice']):
+        pass
+    else:
+        print('This unreleased version of SpacePy is not supported '
+              'by the SpacePy team.')
+
 
 #Set up a filter to always warn on deprecation
 if config['enable_deprecation_warning']:

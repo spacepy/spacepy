@@ -4,7 +4,7 @@
 """
 Test suite for plot.utils
 
-Copyright 2010-2012 Los Alamos National Security, LLC.
+Copyright 2010-2015 Los Alamos National Security, LLC.
 """
 
 import datetime
@@ -26,7 +26,7 @@ class PlotUtilFunctionTests(unittest.TestCase):
     def test_applySmartTimeTicks(self):
         """applySmartTimeTicks should have known behaviour"""
         plt.ion()
-        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-10T00:00:00', deltadays=1)
+        ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-07T00:00:00', deltadays=1)
         y = list(range(len(ticks)))
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -36,20 +36,20 @@ class PlotUtilFunctionTests(unittest.TestCase):
         plt.draw()
         # should not have moved the ticks
         real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
-        730888.,  730889.,  730890.,  730891.])
+        730888.])
         numpy.testing.assert_almost_equal(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
         try:
-            real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(10)]
+            real_ans = ['{0:02d} Feb'.format(i+1).decode() for i in range(7)]
         except AttributeError: #Py3k
-            real_ans = ['{0:02d} Feb'.format(i+1) for i in range(10)]
+            real_ans = ['{0:02d} Feb'.format(i+1) for i in range(7)]
         ans = [t.get_text()
                for t in ax.xaxis.get_majorticklabels()]
         numpy.testing.assert_array_equal(real_ans, ans)
         plt.close()
         plt.ioff()
 
-    def test_smartTimeTicks(self):
+    def test_smartTimeTicksSubDay(self):
         """smartTimeTicks should give known output (regression)"""
         # hits all the different cases
         # else
@@ -72,10 +72,40 @@ class PlotUtilFunctionTests(unittest.TestCase):
         t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 1, 0, 30), 20)
         Mtick, mtick, fmt = spacepy.plot.utils.smartTimeTicks(t1)
         self.assertEqual('%H:%M UT', fmt.fmt)
+
+    def test_smartTimeTicksLonger(self):
+        """smartTimeTicks should give known output (regression)"""
         # elif nHours < 48:
         t1 = tb.linspace(datetime.datetime(2000, 1, 1), datetime.datetime(2000, 1, 2, 0, 30), 20)
         Mtick, mtick, fmt = spacepy.plot.utils.smartTimeTicks(t1)
         self.assertEqual('%H:%M UT', fmt.fmt)
+        # elif nDays < 32:
+        t1 = tb.linspace(datetime.datetime(2000, 1, 2), datetime.datetime(2000, 2, 1, 0, 30), 20)
+        Mtick, mtick, fmt = spacepy.plot.utils.smartTimeTicks(t1)
+        self.assertEqual('%d %b', fmt.fmt)
+        # elif nDays < 731:
+        t1 = tb.linspace(datetime.datetime(2000, 1, 2), datetime.datetime(2001, 2, 1, 0, 30), 20)
+        Mtick, mtick, fmt = spacepy.plot.utils.smartTimeTicks(t1)
+        self.assertEqual('%b %Y', fmt.fmt)
+        # elif nDays >= 731:
+        t1 = tb.linspace(datetime.datetime(2000, 1, 2), datetime.datetime(2010, 2, 1, 0, 30), 20)
+        Mtick, mtick, fmt = spacepy.plot.utils.smartTimeTicks(t1)
+        self.assertEqual('%Y', fmt.fmt)
+
+    def test_set_target_figureIn(self):
+        '''Test that set_target returns expected objects and types'''
+        testfig = plt.figure()
+        retfig, retax = spacepy.plot.utils.set_target(testfig)
+        self.assertTrue(testfig is retfig)
+        self.assertTrue(retax is retfig.axes[0])
+
+    def test_set_target_axesIn(self):
+        '''Test that set_target returns expected objects and types'''
+        testfig = plt.figure()
+        testax = testfig.add_subplot(111)
+        retfig, retax = spacepy.plot.utils.set_target(testax)
+        self.assertTrue(testfig is retfig)
+        self.assertTrue(retax is retfig.axes[0])
 
 if __name__ == "__main__":
     unittest.main()

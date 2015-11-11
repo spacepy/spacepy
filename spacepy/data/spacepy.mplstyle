@@ -1,0 +1,49 @@
+## Default plot styles for SpacePy
+
+patch.linewidth: 0.5
+patch.facecolor: royalblue
+patch.edgecolor: None
+patch.antialiased: True
+
+legend.frameon: False
+legend.scatterpoints: 1
+legend.numpoints: 1
+
+lines.marker: None
+lines.linewidth: 1.2
+
+font.size: 13.0
+
+axes.color_cycle: royalblue, seagreen, crimson, gold, saddlebrown, black, cyan, magenta
+axes.facecolor: ECECEC     #a little bit darker than 'whitesmoke'
+axes.edgecolor: 0.45
+axes.linewidth: 1.25
+axes.grid: True
+axes.titlesize: large
+axes.labelsize: large
+axes.labelcolor: 555555
+axes.axisbelow: True       # grid/ticks are below elements (e.g., lines, text)
+
+xtick.color: 0.25
+xtick.direction: inout
+xtick.minor.width: 2.0
+xtick.major.width: 2.5
+xtick.minor.size: 2.5
+xtick.major.size: 4.0
+
+ytick.color: 0.25
+ytick.direction: inout
+ytick.minor.width: 2.0
+ytick.major.width: 2.5
+ytick.minor.size: 2.5
+ytick.major.size: 4.0
+
+grid.color: white
+grid.linestyle: -    # solid line
+grid.linewidth: 2.5
+
+figure.facecolor: white
+figure.edgecolor: white
+#figure.autolayout: True
+
+savefig.dpi: 300

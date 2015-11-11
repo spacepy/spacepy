@@ -9,8 +9,9 @@ import numpy as np
 from scipy.io import netcdf
 
 from spacepy.datamodel import dmarray
-from spacepy.pybats    import (PbData, smart_timeticks,
-                               apply_smart_timeticks, set_target)
+from spacepy.plot.utils import set_target, smartTimeTicks, applySmartTimeTicks
+from spacepy.pybats import PbData
+
 
 ############################################################################
 #  A few useful functions:
@@ -817,7 +818,7 @@ class RamSat(object):
         ax.set_ylim( [eboundary[0],eboundary[-1]] )
         if not timelim:
             timelim=[self.time[0],self.time[-1]]
-        apply_smart_timeticks(ax,timelim,dolabel=True)
+        applySmartTimeTicks(ax,timelim,dolabel=True)
         if no_xlabels:
             ax.set_xlabel('')
             ax.set_xticklabels([''])
@@ -1092,7 +1093,6 @@ class BoundaryGroup(PbData):
 
         import matplotlib.pyplot as plt
         from matplotlib.ticker import MultipleLocator
-        from spacepy.pybats import apply_smart_timeticks
 
         fig, ax = set_target(target, loc=loc)
         
@@ -1122,13 +1122,13 @@ class BoundaryGroup(PbData):
         if title: ax.set_title(title)
         if xlabel == 'full':
             # Both ticks and label.
-            apply_smart_timeticks(ax, self['time'], dolabel=True)
+            applySmartTimeTicks(ax, self['time'], dolabel=True)
         elif xlabel == 'ticks':
             # Ticks, but no date label.
-            apply_smart_timeticks(ax, self['time'], dolabel=False)
+            applySmartTimeTicks(ax, self['time'], dolabel=False)
         else:
             # A blank x-axis is often useful.
-            apply_smart_timeticks(ax, self['time'], dolabel=False)
+            applySmartTimeTicks(ax, self['time'], dolabel=False)
             ax.set_xticklabels('')
         # Add cbar as necessary:
         if add_cbar:
@@ -1641,7 +1641,7 @@ class LogFile(PbData):
             ax.plot(self['time'], self['dstBiot'], label='RAM Dst (Biot)')
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
-        apply_smart_timeticks(ax, self['time'])
+        applySmartTimeTicks(ax, self['time'])
         ax.set_ylabel('Dst ($nT$)')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
@@ -1661,7 +1661,7 @@ class LogFile(PbData):
                 ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
                         'k--', label='Obs. Dst')
                 ax.legend(loc='best')
-                apply_smart_timeticks(ax, self['time'])
+                applySmartTimeTicks(ax, self['time'])
         else:
             ax.legend(loc='best')
 
