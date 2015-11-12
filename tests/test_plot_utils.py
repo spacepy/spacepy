@@ -98,6 +98,7 @@ class PlotUtilFunctionTests(unittest.TestCase):
         retfig, retax = spacepy.plot.utils.set_target(testfig)
         self.assertTrue(testfig is retfig)
         self.assertTrue(retax is retfig.axes[0])
+        plt.close()
 
     def test_set_target_axesIn(self):
         '''Test that set_target returns expected objects and types'''
@@ -106,6 +107,8 @@ class PlotUtilFunctionTests(unittest.TestCase):
         retfig, retax = spacepy.plot.utils.set_target(testax)
         self.assertTrue(testfig is retfig)
         self.assertTrue(retax is retfig.axes[0])
+        plt.close()
+
 
 if __name__ == "__main__":
     unittest.main()
