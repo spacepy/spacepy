@@ -249,12 +249,15 @@ def rebuild_static_docs(pythondir=None):
     builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
     indir = os.path.join('Doc', 'source')
     outdir = os.path.join('Doc', 'build', 'html')
-    cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
+    cmd = '{0} -b html -d {1} {2} {3}'.format(
+        os.environ['SPHINXBUILD'] if 'SPHINXBUILD' in os.environ
+        else 'sphinx-build',
         builddir, indir, outdir)
     subprocess.check_call(cmd.split(), env=env)
     os.chdir('Doc')
     try:
-        cmd = 'make latexpdf'
+        cmd = 'make latexpdf'.format(os.environ['MAKE'] if 'MAKE' in os.environ
+        else 'make')
         subprocess.check_call(cmd.split(), env=env)
     except:
         warnings.warn('PDF documentation rebuild failed:')
@@ -627,7 +630,9 @@ class build(_build):
             env['PYTHONPATH'] = self.build_lib + ':' + env['PYTHONPATH']
         else:
             env['PYTHONPATH'] = self.build_lib
-        cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
+        cmd = '{0} -b html -d {1} {2} {3}'.format(
+            os.environ['SPHINXBUILD'] if 'SPHINXBUILD' in os.environ
+            else 'sphinx-build',
             builddir, indir, outdir)
         try:
             subprocess.check_call(cmd.split(), env=env)
