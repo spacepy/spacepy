@@ -21,16 +21,16 @@ use_setuptools = "setuptools" in globals()
 import os, shutil, getopt, glob, re
 import subprocess
 import warnings
-from distutils.core import setup
-from distutils.command.build import build as _build
+from numpy.distutils.core import setup
+from numpy.distutils.command.build import build as _build
+#The numpy versions automatically use setuptools if necessary
+#We need the numpy setup to handle fortran compiler options
+from numpy.distutils.command.install import install as _install
+from numpy.distutils.command.sdist import sdist as _sdist
 if use_setuptools:
-    from setuptools.command.install import install as _install
     from setuptools.command.bdist_wininst import bdist_wininst as _bdist_wininst
-    from setuptools.command.sdist import sdist as _sdist
 else:
-    from distutils.command.install import install as _install
     from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
-    from distutils.command.sdist import sdist as _sdist
 import distutils.ccompiler
 import distutils.dep_util
 import distutils.sysconfig
@@ -46,6 +46,7 @@ else:
     else:
         import imp #fall back to old-style
 import numpy
+import numpy.distutils.command.config_compiler
 
 
 #These are files that are no longer in spacepy (or have been moved)
@@ -137,7 +138,7 @@ def default_f2py():
         return 'f2py'
 
 
-def f2py_options(fcompiler):
+def f2py_options(fcompiler, dist=None):
     """Get an OS environment for f2py, and find name of Fortan compiler
 
     The OS environment puts in the shared options if LDFLAGS is set
@@ -147,12 +148,21 @@ def f2py_options(fcompiler):
     numpy.distutils.fcompiler.load_all_fcompiler_classes()
     if not fcompiler in numpy.distutils.fcompiler.fcompiler_class:
         return (None, None) #and hope for the best
-    fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]()
-    fcomp.customize()
+    fcomp = numpy.distutils.fcompiler.fcompiler_class[fcompiler][1]
+    #Various compilers specify executables for ranlib/ar, but the base
+    #class command_vars explicitly ignores them. So monkeypatch.
+    for k in ('archiver', 'ranlib'):
+        if k in fcomp.executables and k in fcomp.command_vars._conf_keys:
+            oldval = fcomp.command_vars._conf_keys[k]
+            if oldval[0] is None:
+                fcomp.command_vars._conf_keys[k] = ('exe.{0}'.format(k),) +  \
+                                                   oldval[1:]
+    fcomp = fcomp()
+    fcomp.customize(dist)
     if 'LDFLAGS' in os.environ:
         env = os.environ.copy()
         env['LDFLAGS'] = ' '.join(fcomp.get_flags_linker_so())
-    return (env, None)
+    return (env, fcomp.executables)
 
 
 def initialize_compiler_options(cmd):
@@ -160,6 +170,8 @@ def initialize_compiler_options(cmd):
     cmd.fcompiler = None
     cmd.f2py = None
     cmd.compiler = None
+    cmd.f77exec = None
+    cmd.f90exec = None
 
 
 def finalize_compiler_options(cmd):
@@ -175,7 +187,10 @@ def finalize_compiler_options(cmd):
     dist = cmd.distribution
     defaults = {'fcompiler': 'gnu95',
                 'f2py': default_f2py(),
-                'compiler': None}
+                'compiler': None,
+                'f77exec': None,
+                'f90exec': None,}
+    optdict = dist.get_option_dict(cmd.get_command_name())
     #Check all options on all other commands, reverting to default
     #as necessary
     for option in defaults:
@@ -189,10 +204,18 @@ def finalize_compiler_options(cmd):
                     break
             if getattr(cmd, option) == None:
                 setattr(cmd, option, defaults[option])
+        #Also explicitly carry over command line option, needed for config_fc
+        if not option in optdict:
+            for c in dist.commands:
+                otheroptdict = dist.get_option_dict(c)
+                if option in otheroptdict:
+                    optdict[option] = otheroptdict[option]
+                    break
     #Special-case defaults, checks
-    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'gfortran', 'none', 'None'):
+    if not cmd.fcompiler in ('pg', 'gnu', 'gnu95', 'intelem', 'intel', 'none', 'None'):
         raise DistutilsOptionError(
-            '--fcompiler must be pg, gnu, gnu95, intelem, intel, None')
+            '--fcompiler={0} unknown'.format(cmd.fcompiler) +
+            ', options: pg, gnu, gnu95, intelem, intel, None')
     if len('%x' % sys.maxsize)*4 == 32 and cmd.fcompiler == 'intelem':
         raise DistutilsOptionError(
             '--fcompiler=intelem requires a 64-bit architecture')
@@ -206,6 +229,10 @@ compiler_options = [
         ('f2py=', None,
          'specify name (or full path) of f2py executable [{0}]'.format(
         default_f2py())),
+        ('f77exec=', None,
+         'specify the path to the F77 compiler'),
+        ('f90exec=', None,
+         'specify the path to the F90 compiler'),
         ]
 
 
@@ -222,12 +249,15 @@ def rebuild_static_docs(pythondir=None):
     builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
     indir = os.path.join('Doc', 'source')
     outdir = os.path.join('Doc', 'build', 'html')
-    cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
+    cmd = '{0} -b html -d {1} {2} {3}'.format(
+        os.environ['SPHINXBUILD'] if 'SPHINXBUILD' in os.environ
+        else 'sphinx-build',
         builddir, indir, outdir)
     subprocess.check_call(cmd.split(), env=env)
     os.chdir('Doc')
     try:
-        cmd = 'make latexpdf'
+        cmd = 'make latexpdf'.format(os.environ['MAKE'] if 'MAKE' in os.environ
+        else 'make')
         subprocess.check_call(cmd.split(), env=env)
     except:
         warnings.warn('PDF documentation rebuild failed:')
@@ -256,6 +286,8 @@ def get_irbem_libfiles():
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
 
+    sub_commands = [('config_fc', lambda *args:True),]
+
     user_options = _build.user_options + compiler_options + [
         ('build-docs', None,
          'Build documentation with Sphinx (default: copy pre-built) [False]'),
@@ -263,8 +295,8 @@ class build(_build):
 
     def initialize_options(self):
         self.build_docs = None
-        initialize_compiler_options(self)
         _build.initialize_options(self)
+        initialize_compiler_options(self)
 
     def finalize_options(self):
         _build.finalize_options(self)
@@ -369,6 +401,8 @@ class build(_build):
             os.path.join(builddir, 'source', 'wrappers_{0}.inc'.format(bit)),
             os.path.join(builddir, 'source', 'wrappers.inc'.format(bit)))
 
+        f2py_env, fcompexec = f2py_options(fcompiler, self.distribution)
+
         # compile irbemlib
         olddir = os.getcwd()
         os.chdir(builddir)
@@ -379,9 +413,9 @@ class build(_build):
                      'trace_field_line2_1', 'trace_field_line_towards_earth1']
 
         # call f2py
-        os.system('{0} --overwrite-signature -m irbempylib -h irbempylib.pyf '
-                  '{1} only: {2} :'.format(
-            self.f2py, ' '.join(F90files), ' '.join(functions)))
+        cmd = [self.f2py, '--overwrite-signature', '-m', 'irbempylib', '-h',
+               'irbempylib.pyf'] + F90files + ['only:'] + functions + [':']
+        subprocess.check_call(cmd)
         # intent(out) substitute list
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \
                    'xgeo', 'bmir', 'bl', 'bxgeo', 'flux', 'ind', 'xfoot', 'bfoot', 'bfootmag']
@@ -405,67 +439,102 @@ class build(_build):
         with open(fln, 'w') as f:
             f.write(filestr)
 
-        #Need to feed in the --f77exec as well
-        #once compiler is customized, use fcomp.executables
-        #Want to use f77 or f90? probably 77
-        #May also be a good idea to use the archiver and ranlib specified?
-        f2py_env, fcomp_path = f2py_options(fcompiler)
-
         # compile (platform dependent)
         os.chdir('source')
-        compile_cmd32 = {
-            'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
-            'gnu': 'g77 -c -w -O2 -fPIC -fno-second-underscore *.f',
-            'gnu95': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
-            'intel': 'ifort -c -Bstatic -assume 2underscores -O2 -fPIC *.f',
-            'gfortran': 'gfortran -m32 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
-            }
-        compile_cmd64 = {
-            'pg': 'pgf77 -c -Mnosecond_underscore -w -fastsse -fPIC *.f',
-            'gnu': 'g77 -c -w -m64 -mno-align-double -O2 -fPIC -fno-second-underscore *.f',
-            'gnu95': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
-            'intel': 'ifort -c -Bdynamic -O2 -fPIC *.f',
-            'intelem': 'ifort -c -Bdynamic -O2 -fPIC *.f',
-            'gfortran': 'gfortran -m64 -c -w -O2 -fPIC -ffixed-line-length-none *.f',
-            }
-        f2py_flags = '--fcompiler={0}'.format(fcompiler)
+        comppath = {
+            'pg': 'pgf77',
+            'gnu': 'g77',
+            'gnu95': 'gfortran',
+            'intel': 'ifort',
+            }[fcompiler]
+        compflags = {
+            'pg': '-Mnosecond_underscore -w -fastsse -fPIC',
+            'gnu': '-w -O2 -fPIC -fno-second-underscore',
+            'gnu95': '-w -O2 -fPIC -ffixed-line-length-none',
+            'intel': '-Bstatic -assume 2underscores -O2 -fPIC',
+            }[fcompiler]
         if fcompiler == 'gnu':
+            if bit == 64:
+                compflags = '-m64 ' + compflags
+        if fcompiler == 'gnu95':
+            compflags = '-m{0} '.format(bit) + compflags
+        if fcompiler.startswith('intel'):
             if bit == 32:
-                f2py_flags += ' --f77flags=-fno-second-underscore,-mno-align-double'
+                compflags = '-Bstatic -assume 2underscores ' + compflags
             else:
-                f2py_flags += ' --f77flags=-fno-second-underscore,-mno-align-double,-m64'
-        if self.compiler:
-            f2py_flags += ' --compiler={0}'.format(self.compiler)
-        try:
-            if bit == 32:
-                os.system(compile_cmd32[fcompiler])
+                compflags = '-Bdynamic ' + compflags
+        comp_candidates = [comppath]
+        if fcompexec is not None and 'compiler_f77' in fcompexec:
+            comp_candidates.insert(0, fcompexec['compiler_f77'][0])
+        for fc in comp_candidates:
+            retval = subprocess.call(fc + ' -c ' + compflags + ' *.f',
+                                     shell=True)
+            if retval == 0:
+                break
             else:
-                os.system(compile_cmd64[fcompiler])
-            if sys.platform == 'darwin':
-                os.system('libtool -static -o libBL2.a *.o')
-            elif sys.platform.startswith('linux'):
-                os.system('ar -r libBL2.a *.o')
-                os.system('ranlib libBL2.a')
-            elif sys.platform == 'win32':
-                os.system('ar -r libBL2.a *.o')
-                os.system('ranlib libBL2.a')
-        except:
-            warnings.warn(
-                'irbemlib linking failed. '
-                'Try a different Fortran compiler? (--fcompiler)')
+                warnings.warn('Compiler {0} failed, trying another'.format(fc))
+        else:
+            warnings.warn('irbemlib compile failed. '
+                          'Try a different Fortran compiler? (--fcompiler)')
             os.chdir(olddir)
             return
+        retval = -1
+        if 'archiver' in fcompexec:
+            archiver = ' '.join(fcompexec['archiver']) + ' '
+            ranlib = None
+            if 'ranlib' in fcompexec:
+                ranlib = ' '.join(fcompexec['ranlib']) + ' '
+            retval = subprocess.check_call(archiver + 'libBL2.a *.o', shell=True)
+            if (retval == 0) and ranlib:
+                retval = subprocess.call(ranlib + 'libBL2.a', shell=True)
+            if retval != 0:
+                warnings.warn(
+                    'irbemlib linking failed, trying with default linker.')
+        if retval != 0: #Try again with defaults
+            archiver = {
+                'darwin': 'libtool -static -o ',
+                'linux': 'ar -r ',
+                'linux2': 'ar -r ',
+                'win32': 'ar - r',
+                }[sys.platform]
+            ranlib = {
+                'darwin': None,
+                'linux': 'ranlib ',
+                'linux2': 'ranlib ',
+                'win32': 'ranlib ',
+                }[sys.platform]
+            try:
+                subprocess.check_call(archiver + 'libBL2.a *.o', shell=True)
+                if ranlib:
+                    subprocess.check_call(ranlib + 'libBL2.a', shell=True)
+            except:
+                warnings.warn(
+                    'irbemlib linking failed. '
+                    'Try a different Fortran compiler? (--fcompiler)')
+                os.chdir(olddir)
+                return
         os.chdir('..')
+
+        f2py_flags = ['--fcompiler={0}'.format(fcompiler)]
+        if fcompiler == 'gnu':
+            f2py_flags.append('--f77flags=-fno-second-underscore,-mno-align-double')
+            if bit == 64:
+                f2py_flags[-1] += ',-m64'
+        if self.compiler:
+            f2py_flags.append('--compiler={0}'.format(self.compiler))
+        if self.f77exec:
+            f2py_flags.append('--f77exec={0}'.format(self.f77exec))
+        if self.f90exec:
+            f2py_flags.append('--f90exec={0}'.format(self.f90exec))
         try:
             subprocess.check_call(
-                '{0} -c irbempylib.pyf source/onera_desp_lib.f -Lsource -lBL2 '
-                '{1}'.format(
-                    self.f2py, f2py_flags),
-                shell=True, env=f2py_env)
+                [self.f2py, '-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
+                 '-Lsource', '-lBL2'] + f2py_flags, env=f2py_env)
         except:
             warnings.warn(
                 'irbemlib module failed. '
                 'Try a different Fortran compiler? (--fcompiler)')
+
         #All matching outputs
         created_libfiles = [f for f in libfiles if os.path.exists(f)]
         if len(created_libfiles) == 0: #no matches
@@ -561,7 +630,9 @@ class build(_build):
             env['PYTHONPATH'] = self.build_lib + ':' + env['PYTHONPATH']
         else:
             env['PYTHONPATH'] = self.build_lib
-        cmd = 'sphinx-build -b html -d {0} {1} {2}'.format(
+        cmd = '{0} -b html -d {1} {2} {3}'.format(
+            os.environ['SPHINXBUILD'] if 'SPHINXBUILD' in os.environ
+            else 'sphinx-build',
             builddir, indir, outdir)
         try:
             subprocess.check_call(cmd.split(), env=env)
@@ -571,9 +642,9 @@ class build(_build):
 
     def run(self):
         """Actually perform the build"""
-        self.compile_irbempy()
         self.compile_libspacepy()
-        _build.run(self)
+        _build.run(self) #need subcommands BEFORE building irbem
+        self.compile_irbempy()
         delete_old_files(self.build_lib)
         if self.build_docs:
             self.make_docs()
@@ -686,6 +757,20 @@ class sdist(_sdist):
         _sdist.run(self)
 
 
+class config_fc(numpy.distutils.command.config_compiler.config_fc):
+    """Get the options sharing with build, install"""
+
+    def initialize_options(self):
+        initialize_compiler_options(self)
+        numpy.distutils.command.config_compiler.config_fc.initialize_options(
+            self)
+
+    def finalize_options(self):
+        numpy.distutils.command.config_compiler.config_fc.finalize_options(
+            self)
+        finalize_compiler_options(self)
+
+
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox', ]
 #If adding to package_data, also put in MANIFEST.in
@@ -729,9 +814,10 @@ setup_kwargs = {
     'license':  'PSF',
     'platforms':  ['Windows', 'Linux', 'MacOS X', 'Unix'],
     'cmdclass': {'build': build,
-              'install': install,
-              'bdist_wininst': bdist_wininst,
-              'sdist': sdist,
+                 'install': install,
+                 'bdist_wininst': bdist_wininst,
+                 'sdist': sdist,
+                 'config_fc': config_fc,
           },
 }
 

@@ -1684,13 +1684,26 @@ def fromRecArray(recarr):
     
     Parameters
     ----------
-    recarr : numpy recoard array
+    recarr : numpy record array
         object to parse into SpaceData container
 
     Returns
     -------
     sd: spacepy.datamodel.SpaceData
         dict-like containing arrays of named records in recarr
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import spacepy.datamodel as dm
+    >>> x = np.array([(1.0, 2), (3.0, 4)], dtype=[('x', float), ('y', int)])
+    >>> print(x, x.dtype)
+    array([(1.0, 2), (3.0, 4)], dtype=[('x', '<f8'), ('y', '<i4')])
+    >>> sd = dm.fromRecArray(x)
+    >>> sd.tree(verbose=1)
+    +
+    |____x (spacepy.datamodel.dmarray (2,))
+    |____y (spacepy.datamodel.dmarray (2,))
     '''
     sd = SpaceData()
     for key in recarr.dtype.fields.keys():

@@ -36,10 +36,13 @@ plt.register_cmap(name='viridis_r', cmap=_viridis_r)
 def available(returnvals=False):
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
     spacepyaltstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle')
+    polarstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_polar.mplstyle')
     lookdict = {'default': spacepystyle,
                 'spacepy': spacepystyle,
                 'spacepy_altgrid': spacepyaltstyle,
-                'altgrid': spacepyaltstyle
+                'altgrid': spacepyaltstyle,
+                'spacepy_polar': polarstyle,
+                'polar': polarstyle
                }
     if returnvals:
         return lookdict

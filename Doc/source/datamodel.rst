@@ -23,11 +23,14 @@ datamodel - easy to use general data model
 .. autosummary::
     :toctree: autosummary
 
+    convertKeysToStr
+    createISTPattrs
     dmcopy
     dmfilled
     flatten
     fromCDF
     fromHDF5
+    fromRecArray
     toCDF
     toHDF5
     toHTML
@@ -35,4 +38,5 @@ datamodel - easy to use general data model
     unflatten
     readJSONMetadata
     readJSONheadedASCII
+    resample
     writeJSONMetadata

@@ -14,8 +14,5 @@ ae9ap9 - Handle AE9/AP9 data files
     readFile
     parseHeader
     combinePercentiles
-    toCDF
-    toHDF5
-    toJSONheadedASCII
 
 
