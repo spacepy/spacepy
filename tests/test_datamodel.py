@@ -424,6 +424,21 @@ class dmarrayTests(unittest.TestCase):
             self.fail(
                 'Assigning to arbitrary Python attribute should raise TypeError')
 
+    def test_dmfilled(self):
+        """dmfilled should fill an array"""
+        ans = np.asarray([1,1,1], dtype=int)
+        tst = dm.dmfilled((3), fillval=1, dtype=int)
+        np.testing.assert_equal(tst, ans)
+        self.assertEqual(tst.dtype, ans.dtype)
+
+        ans = np.asarray([datetime.datetime(2000, 1,1),
+                          datetime.datetime(2000, 1,1),
+                          datetime.datetime(2000, 1,1)], dtype=object)
+        tst = dm.dmfilled((3), fillval=datetime.datetime(2000, 1,1), dtype=object)
+        np.testing.assert_equal(tst, ans)
+        self.assertEqual(tst.dtype, ans.dtype)
+        
+
 class converterTests(unittest.TestCase):
     def setUp(self):
         super(converterTests, self).setUp()
