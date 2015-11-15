@@ -974,7 +974,8 @@ def shared_ylabel(axes, txt, *args, **kwargs):
     return lbl
 
 
-def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
+def timestamp(position=(1.003, 0.01), size='xx-small', draw=True, strnow=None,
+              rotation='vertical', ax=None, **kwargs):
     """
     print a timestamp on the current plot, vertical lower right
 
@@ -997,14 +998,17 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     [<matplotlib.lines.Line2D object at 0x49072b0>]
     >>> spacepy.plot.utils.timestamp()
     """
-    from matplotlib.pyplot import gca, draw
-    now = datetime.datetime.now()
-    strnow = now.strftime("%d%b%Y %H:%M")
-    ax=gca()
-    ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
+    if strnow is None:
+            now = datetime.datetime.now()
+            strnow = now.strftime("%d%b%Y %H:%M")
+    if ax is None:
+        ax=plt.gca()
+    ann=ax.annotate(strnow, position,
+                    xycoords='axes fraction', rotation=rotation,
+                    size=size, va='bottom',  **kwargs)
     if draw:
-        draw()
-
+        plt.draw()
+    return ann
 
 def _used_boxes_helper(obj, renderer=None):
     """Recursively-called helper function for get_used_boxes. Internal."""
