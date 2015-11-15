@@ -485,6 +485,81 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
+def readarray(f,nrec=1,dtype=np.float32,endian='little'):
+    """
+    Read an array from an unformatted binary file written out by a Fortran program.
+
+    :param f: File to read
+    :type f: File-like
+    :param nrec: Number of records to read. If nrec is greater than one, all records read will be appended together into a single 1-D array.
+    :type nrec: int
+    """
+
+    # Code to use for setting endianness in numpy.dtype
+    if endian=='little':
+        EndChar='<'
+    else:
+        EndChar='>'
+
+    # Configure the data type
+    if dtype is str:
+        nbytes=1
+    else:
+        dtype=np.dtype(dtype)
+        dtype.newbyteorder(EndChar)
+        nbytes=dtype.itemsize
+
+    A=[]
+    for i in range(nrec):
+
+        # Get the record length
+        n=np.fromfile(f,dtype=np.dtype(EndChar+'i4'),count=1)
+
+        # Check that the record length is consistent with the data type
+        if n%nbytes!=0:
+            raise ValueError('Read error: Data type inconsistent with record length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(nbytes),int(n)))
+
+        if len(n)==0:
+            # Zero-length record...file may be truncated
+            raise EOFError('Zero-length read at start marker')
+
+        # Read the data
+        try:
+            if dtype is str:
+                A.append(f.read(n))
+            else:
+                A.append(np.fromfile(f,dtype=dtype,count=n/nbytes))
+        except TypeError:
+            raise
+
+        # Check the record length marker at the end
+        nend=np.fromfile(f,dtype=np.dtype(EndChar+'i4'),count=1)
+        if len(nend)==0:
+            # Couldn't read, file may be truncated
+            raise EOFError('Zero-length read at end marker')
+
+        if nend!=n:
+            # End marker is inconsistent with start marker. Something is wrong.
+            raise ValueError(
+                'Read error: End marker does not match start marker (start marker says record length is {0:d} bytes, end marker says {1:d} bytes). This indicates incorrect endiannes, wrong file type, or file is corrupt'.format(
+                    int(n),int(nend)
+                )
+            )
+
+    if len(A)==1:
+        # Turn the record into a scalar if it has only one entry
+        A=A[0]
+
+    elif dtype is not str:
+        # Combine all the records into one
+        A=np.concatenate(A)
+
+    elif len(A)==0:
+        # This shouldn't happen
+        A=np.array(A)
+
+    return A
+
 def _read_idl_bin(pbdat, header='units', keep_case=True):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
@@ -528,33 +603,47 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     
     # On the first try, we may fail because of wrong-endianess.
     # If that is the case, swap that endian and try again.
-    EndChar = '<' # Endian marker (default: little.)
-    pbdat.attrs['endian']='little'
-    RecLenRaw = infile.read(4)
-    
-    RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
-    if (RecLen > 10000) or (RecLen < 0):
-        EndChar = '>'
-        pbdat.attrs['endian']='big'
-        RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
-        
-    headline = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
-                             infile.read(RecLen)) )[0].strip()
-    if str is not bytes:
-        headline = headline.decode()
 
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    pformat = 'f'
-    # parse rest of header; detect double-precision file.
-    if RecLen > 20: pformat = 'd'
+    endian='little'
+
+    try:
+        headline=readarray(infile,1,str,endian)
+    except (ValueError,EOFError):
+        endian='big'
+        infile.seek(0)
+        headline=readarray(infile,1,str,endian)
+    
+    pbdat.attrs['endian']=endian
+
+    # detect double-precision file.
+    pos=infile.tell()
+    if endian=='little':
+        EndChar='<'
+    else:
+        EndChar='>'
+    RecLen=np.fromfile(infile,dtype=np.dtype(EndChar+'i4'),count=1)
+    infile.seek(pos)
+
+    # Set data types
+
+    inttype=np.int32
+
+    if RecLen > 20:
+        floattype=np.float64
+    else:
+        floattype=np.float32
+
+    # Parse rest of header
     (pbdat.attrs['iter'], pbdat.attrs['runtime'],
      pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
-        struct.unpack('{0}l{1}3l'.format(EndChar, pformat), infile.read(RecLen))
+        readarray(infile,nrec=1,
+                  dtype=[('it',np.int32),('t',floattype),('ndim',np.int32),
+                         ('npar',np.int32),('nvar',np.int32)],
+                  endian=endian)[0]
+
     # Get gridsize
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    #pbdat['grid']=dmarray(struct.unpack(EndChar+'%il' % abs(pbdat.attrs['ndim']),  
-    pbdat['grid']=dmarray(struct.unpack('{0}{1}l'.format(EndChar, abs(pbdat.attrs['ndim'])), 
-                                       infile.read(RecLen)))
+    pbdat['grid']=dmarray(readarray(infile,1,np.int32,endian))
+
     # Data from generalized (structured but irregular) grids can be 
     # detected by a negative ndim value.  Unstructured grids (e.g.
     # BATS, AMRVAC) are signified by negative ndim values AND
@@ -582,15 +671,9 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     # Read parameters stored in file.
     para  = np.zeros(npar)
     if npar>0:
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        para[:] = struct.unpack('{0}{1}{2}'.format(EndChar, npar, pformat),
-                                infile.read(RecLen))
+        para[:] = readarray(infile,1,floattype,endian)
 
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    names = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
-                            infile.read(RecLen)) )[0]
-    if str is not bytes:
-        names = names.decode()
+    names = readarray(infile,1,str,endian)
 
     # Preserve or destroy original case of variable names:
     if not keep_case: names = names.lower()
@@ -626,12 +709,14 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     pbdat.attrs['strtime'] = '{0:04d}h{1:02d}m{2:06.3f}s'.format(int(time//3600), int(time%3600//60), time%60)
 
     # Get the grid points...
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     prod = [1] + pbdat['grid'].cumprod().tolist()
+
+    # Read the data into a temporary array
+    griddata = readarray(infile,1,floattype,endian)
     for i in range(0,ndim):
-        # Read the data into a temporary grid.
-        tempgrid = np.array(struct.unpack('{0}{1}{2}'.format(EndChar, npts, pformat),
-                                          infile.read(int(RecLen//ndim)) ) )
+        # Get the grid coordinates for this dimension
+        tempgrid = griddata[npts*i:npts*(i+1)]
+
         # Unstructred grids get loaded as vectors.
         if gtyp == 'Unstructured':
             pbdat[names[i]] = dmarray(tempgrid)
@@ -651,11 +736,8 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
 
     # Get the actual data and sort.
     for i in range(ndim,nvar+ndim):
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        pbdat[names[i]] = dmarray(
-            np.array(struct.unpack('{0}{1}{2}'.format(EndChar, npts, pformat),
-                                       infile.read(RecLen))) )
-        pbdat[names[i]].attrs['units'] = units.pop(nSkip)
+        pbdat[names[i]] = dmarray(readarray(infile,1,floattype,endian))
+        pbdat[names[i]].attrs['units']=units.pop(nSkip)
         if gtyp != 'Unstructured':
             # Put data into multidimensional arrays.
             pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'], order='F')
