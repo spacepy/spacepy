@@ -15,6 +15,8 @@ datamodel
  - New function resample to change the time cadence of a SpaceData with windowMean
  - SpaceData gained methods for toCDF, toHDF, and toJSONheadedASCII
  - SpaceData keys can be multiple called, see __getitem__
+ - New function toRecArray to create numpy record arrays from SpaceData objects
+ - New function fromRecArray to create SpaceData objects from numpy record arrays
 empiricals
  - New function getSolarRotation, returns Carrington or Bartels number
  - New model in getPlasmaPause,  RT1970 -- Rycroft et al 1970
