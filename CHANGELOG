@@ -53,6 +53,7 @@ time
  - Added classmethod today()
 toolbox
  - Added function unique_columns
+ - Added windowMean keyword op to allow arbitrary operations
 python3 support
  -updates for python3 support, seems to be complete
 AE9AP9

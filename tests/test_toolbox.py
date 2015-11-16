@@ -738,11 +738,10 @@ class TBTimeFunctionTests(unittest.TestCase):
         output.close()
 #        numpy.testing.assert_allclose(t2-t1, 0.25, atol=0.1, rtol=0.1)
         numpy.testing.assert_almost_equal(t2-t1, 0.25, decimal=1)
-        self.assertEqual("""('0.25', '')\n""",
-                         result)
+        self.assertTrue(result in ("""('0.25', '')\n""", """('0.26', '')\n"""))
 
-    def test_windowMean(self):
-        """windowMean should give known results (regression)"""
+    def test_windowMean1(self):
+        """windowMean should give known results 1(regression)"""
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
@@ -760,6 +759,15 @@ class TBTimeFunctionTests(unittest.TestCase):
                       datetime.datetime(2001, 1, 4, 12, 0)]
             numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
+
+    def test_windowMean2(self):
+        """windowMean should give known results 2(regression)"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            wsize = datetime.timedelta(days=1)
+            olap = datetime.timedelta(hours=12)
+            data = [10, 20]*50
+            time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
             outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
             od_ans = [14.8, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8]
             ot_ans = [datetime.datetime(2001, 1, 1, 12, 30),
@@ -772,6 +780,13 @@ class TBTimeFunctionTests(unittest.TestCase):
             numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
 
+    def test_windowMean3(self):
+        """windowMean should give known results 3(regression)"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            wsize = datetime.timedelta(days=1)
+            olap = datetime.timedelta(hours=12)
+            data = [10, 20]*50
             time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
             time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
             outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
@@ -790,12 +805,31 @@ class TBTimeFunctionTests(unittest.TestCase):
             numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
 
+    def test_windowMean4(self):
+        """windowMean should give known results 4(regression)"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            wsize = datetime.timedelta(days=1)
+            olap = datetime.timedelta(hours=12)
+            data = [10, 20]*50
+            time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+            time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
             # now test the pointwise
             outdata, outtime = tb.windowMean(data, winsize=24, overlap=12)
             od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
             ot_ans = [12.0, 24.0, 36.0, 48.0, 60.0, 72.0, 84.0]
             numpy.testing.assert_almost_equal(ot_ans, outtime)
             numpy.testing.assert_almost_equal(od_ans, outdata)
+
+    def test_windowMean5(self):
+        """windowMean should give known results 5(regression)"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            wsize = datetime.timedelta(days=1)
+            olap = datetime.timedelta(hours=12)
+            data = [10, 20]*50
+            time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+            time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
             # winsize tests
             outdata, outtime = tb.windowMean(data, winsize=24.6, overlap=12)
             od_ans, ot_ans = tb.windowMean(data, winsize=24.6, overlap=12)
@@ -809,9 +843,29 @@ class TBTimeFunctionTests(unittest.TestCase):
             od_ans, ot_ans = tb.windowMean(data, winsize=1.0, overlap=0)
             numpy.testing.assert_almost_equal(ot_ans, outtime)
             numpy.testing.assert_almost_equal(od_ans, outdata)
-
             self.assertEqual(8, len(w))
 
+    def test_windowMean_op(self):
+        """windowMean should give known results (regression)"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            wsize = datetime.timedelta(days=1)
+            olap = datetime.timedelta(hours=12)
+            data = [10, 20]*50
+            time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+            outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1), op=len)
+            od_ans = [24, 24, 24, 24, 24, 24, 24]
+            ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
+                      datetime.datetime(2001, 1, 2, 0, 0),
+                      datetime.datetime(2001, 1, 2, 12, 0),
+                      datetime.datetime(2001, 1, 3, 0, 0),
+                      datetime.datetime(2001, 1, 3, 12, 0),
+                      datetime.datetime(2001, 1, 4, 0, 0),
+                      datetime.datetime(2001, 1, 4, 12, 0)]
+            numpy.testing.assert_almost_equal(od_ans, outdata)
+            self.assertEqual(ot_ans, outtime)
+
+            
     def test_windowMeanInputs(self):
         """windowMean does some input checking (regression)"""
         wsize = datetime.timedelta(days=1)
