@@ -467,7 +467,7 @@ class Library(object):
             if libpath:
                 return libpath
         raise Exception('Cannot find CDF C library. ' + \
-                        'Try os.putenv("CDF_LIB", library_directory) ' + \
+                        'Try os.environ["CDF_LIB"] = library_directory ' + \
                         'before import.')
 
 
