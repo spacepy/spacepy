@@ -16,11 +16,7 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#We're taking this out...so much C, we need the installed version for it to
-#work.
-#maybe in the future we can fix this...it'd be nice not to have to install
-#to make the docs
-#sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'spacepy')))
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'spacepy')))
 #This is a hack to take the sphinx script's path out and just use standard
 #paths.
 sys.path.append(sys.path.pop(0))
