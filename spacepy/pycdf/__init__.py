@@ -29,7 +29,7 @@ If pycdf has trouble finding the library, try setting ``CDF_LIB`` before importi
 the module, e.g. if the library is in ``CDF/lib`` in the user's home directory:
     
 >>> import os
->>> os.putenv("CDF_LIB", "~/CDF/lib")
+>>> os.environ["CDF_LIB"] = "~/CDF/lib"
 >>> from spacepy import pycdf
     
 If this works, make the environment setting permanent. Note that on OSX,
