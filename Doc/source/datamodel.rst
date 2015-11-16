@@ -35,6 +35,7 @@ datamodel - easy to use general data model
     toHDF5
     toHTML
     toJSONheadedASCII
+    toRecArray
     unflatten
     readJSONMetadata
     readJSONheadedASCII
