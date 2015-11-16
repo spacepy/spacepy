@@ -211,7 +211,7 @@ class Library(object):
 
        Version of the CDF library, (version, release, increment, subincrement)
     """
-    def __init__(self, libpath=None):
+    def __init__(self, libpath=None, library=None):
         """Load the CDF C library.
 
         Searches for the library in the order:
@@ -224,10 +224,15 @@ class Library(object):
         if not 'CDF_TMP' in os.environ:
             os.environ['CDF_TMP'] = tempfile.gettempdir()
 
-        if not libpath:
-            libpath = self._find_lib()
-        self.libpath = libpath #hold it for debugging
-        self._library = ctypes.CDLL(libpath)
+        if not library:
+            if not libpath:
+                self._library, self.libpath = self._find_lib()
+            else:
+                self._library = ctype.CDLL(libpath)
+                self.libpath = libpath
+        else:
+            self._library = library
+            self.libpath = libpath
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long
         self._library.computeEPOCH.restype = ctypes.c_double
@@ -401,12 +406,17 @@ class Library(object):
         """
         Search for the CDF library
         """
+        failed = []
         for libpath in Library._lib_paths():
-            if libpath:
-                return libpath
-        raise Exception('Cannot find CDF C library. ' + \
-                        'Try os.environ["CDF_LIB"] = library_directory ' + \
-                        'before import.')
+            try:
+                lib = ctypes.CDLL(libpath)
+            except:
+                failed.append(libpath)
+            else:
+                return libpath, lib
+        raise Exception(('Cannot load CDF C library from {0}.'
+                        'Try os.environ["CDF_LIB"] = library_directory '
+                        'before import.').format(', '.join(failed)))
 
     @staticmethod
     def _lib_paths():
@@ -1024,7 +1034,7 @@ class Library(object):
 
 
 try:
-    _libpath = Library._find_lib()
+    _libpath, _library = Library._find_lib()
 except:
     if 'sphinx' in sys.argv[0]:
         warnings.warn('CDF library did not load. '
@@ -1032,7 +1042,7 @@ except:
     else:
         raise
 from . import const
-lib = Library(_libpath)
+lib = Library(_libpath, _library)
 """Module global library object.
 
 Initalized at module load time so all classes have ready
