@@ -256,7 +256,7 @@ def rebuild_static_docs(pythondir=None):
     subprocess.check_call(cmd.split(), env=env)
     os.chdir('Doc')
     try:
-        cmd = 'make latexpdf'.format(os.environ['MAKE'] if 'MAKE' in os.environ
+        cmd = '{0} latexpdf'.format(os.environ['MAKE'] if 'MAKE' in os.environ
         else 'make')
         subprocess.check_call(cmd.split(), env=env)
     except:
