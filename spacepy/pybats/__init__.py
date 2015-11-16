@@ -864,7 +864,7 @@ class IdlFile(PbData):
     as an "unpack requires a string of argument length 'X'".
     '''
 
-    def __init__(self, filename,format='binary',header='units',
+    def __init__(self, filename,format=None,header='units',
                  keep_case=True, *args,**kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
         self.attrs['file']   = filename   # Save file name.
@@ -881,8 +881,13 @@ class IdlFile(PbData):
         set when the object is instantiation.
         '''
 
-        if self.attrs['format'][:3] == 'bin':
-            _read_idl_bin(  self, header=header, keep_case=keep_case)
+        if self.attrs['format'] is None:
+            try:
+                _read_idl_bin(self, header=header, keep_case=keep_case)
+            except (ValueError,EOFError):
+                _read_idl_ascii(self, header=header, keep_case=keep_case)
+        elif self.attrs['format'][:3] == 'bin':
+            _read_idl_bin(self, header=header, keep_case=keep_case)
         elif self.attrs['format'][:3] == 'asc':
             _read_idl_ascii(self, header=header, keep_case=keep_case)
         else:
