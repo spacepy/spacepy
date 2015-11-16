@@ -17,6 +17,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 import itertools, numbers
 from collections import Iterable
 import sys
+import warnings
 
 import numpy as np
 
