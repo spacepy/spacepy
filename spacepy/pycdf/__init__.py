@@ -29,7 +29,7 @@ If pycdf has trouble finding the library, try setting ``CDF_LIB`` before importi
 the module, e.g. if the library is in ``CDF/lib`` in the user's home directory:
     
 >>> import os
->>> os.putenv("CDF_LIB", "~/CDF/lib")
+>>> os.environ["CDF_LIB"] = "~/CDF/lib"
 >>> from spacepy import pycdf
     
 If this works, make the environment setting permanent. Note that on OSX,
@@ -211,7 +211,7 @@ class Library(object):
 
        Version of the CDF library, (version, release, increment, subincrement)
     """
-    def __init__(self, libpath=None):
+    def __init__(self, libpath=None, library=None):
         """Load the CDF C library.
 
         Searches for the library in the order:
@@ -224,10 +224,15 @@ class Library(object):
         if not 'CDF_TMP' in os.environ:
             os.environ['CDF_TMP'] = tempfile.gettempdir()
 
-        if not libpath:
-            libpath = self._find_lib()
-        self.libpath = libpath #hold it for debugging
-        self._library = ctypes.CDLL(libpath)
+        if not library:
+            if not libpath:
+                self._library, self.libpath = self._find_lib()
+            else:
+                self._library = ctype.CDLL(libpath)
+                self.libpath = libpath
+        else:
+            self._library = library
+            self.libpath = libpath
         self._library.CDFlib.restype = ctypes.c_long #commonly used, so set it up here
         self._library.EPOCHbreakdown.restype = ctypes.c_long
         self._library.computeEPOCH.restype = ctypes.c_double
@@ -401,6 +406,30 @@ class Library(object):
         """
         Search for the CDF library
         """
+        failed = []
+        for libpath in Library._lib_paths():
+            try:
+                lib = ctypes.CDLL(libpath)
+            except:
+                failed.append(libpath)
+            else:
+                return libpath, lib
+        raise Exception(('Cannot load CDF C library from {0}.'
+                        'Try os.environ["CDF_LIB"] = library_directory '
+                        'before import.').format(', '.join(failed)))
+
+    @staticmethod
+    def _lib_paths():
+        """Find candidate paths for the CDF library
+
+        Does not check that the library is actually in any particular directory,
+        just returns a list of possible locations, in priority order.
+
+        Returns
+        =======
+        out : generator of str
+            paths that look like the CDF library
+        """
         #What the library might be named
         names = { 'win32': ['dllcdf.dll'],
                   'darwin': ['libcdf.dylib', 'cdf.dylib', 'libcdf.so'],
@@ -408,34 +437,27 @@ class Library(object):
                   'linux': ['libcdf.so'],
                   }
         names = names.get(sys.platform, ['libcdf.so'])
-        #search a directory for these names
-        search_dir = lambda x: next(
-            (os.path.join(x, fname) for fname in names
-             if os.path.exists(os.path.join(x, fname))), None)
-        #Directories that might have the library, in desired search order
-        dirs = []
-
+        #All existing CDF-library-like paths within a directory
+        search_dir = lambda x: \
+            [os.path.join(x, fname) for fname in names
+             if os.path.exists(os.path.join(x, fname))]
         #Search the environment-specified places first
         if 'CDF_LIB' in os.environ:
-            dirs.append(os.environ['CDF_LIB'])
+            for p in search_dir(os.environ['CDF_LIB']):
+                yield p
         if 'CDF_BASE' in os.environ:
-            dirs.append(os.path.join(os.environ['CDF_BASE'], 'lib'))
-        for d in dirs:
-            libpath = search_dir(d)
-            if libpath:
-                return libpath
-
-        #Now give ctypes a chance
-        if sys.platform == 'win32':
-            libpath = ctypes.util.find_library('dllcdf.dll')
-        else:
-            libpath = ctypes.util.find_library('cdf')
-        if libpath:
-            return libpath
-
-        #Failure. Check all sorts of other places.
-        dirs = []
-        #default places CDF gets installed under
+            for p in search_dir(os.path.join(os.environ['CDF_BASE'], 'lib')):
+                yield p
+        ctypespath = ctypes.util.find_library(
+            'dllcdf.dll' if sys.platform == 'win32' else 'cdf')
+        if ctypespath:
+            yield ctypespath
+        #LD_LIBRARY_PATH specifies runtime library search paths
+        if 'LD_LIBRARY_PATH' in os.environ:
+            for d in os.environ['LD_LIBRARY_PATH'].split(os.pathsep):
+                for p in search_dir(d):
+                    yield p
+        #Finally, defaults places CDF gets installed uner
         #CDF_BASE is usually a subdir of these (with "cdf" in the name)
         #Searched in order given here!
         cdfdists = { 'win32': ['c:\\CDF Distribution\\'],
@@ -454,22 +476,11 @@ class Library(object):
                             for subdir in ['lib', os.path.join('src', 'lib')]:
                                 libdir = os.path.join(cdfdist, d, subdir)
                                 if os.path.isdir(libdir):
-                                    cand.append(libdir)                                
+                                    cand.append(libdir)
                     #Sort reverse, so new versions are first FOR THIS cdfdist
-                    dirs.extend(sorted(cand)[::-1])
-
-        #LD_LIBRARY_PATH for a last ditch
-        if 'LD_LIBRARY_PATH' in os.environ:
-            dirs.extend(os.environ['LD_LIBRARY_PATH'].split(os.pathsep))
-
-        for d in dirs:
-            libpath = search_dir(d)
-            if libpath:
-                return libpath
-        raise Exception('Cannot find CDF C library. ' + \
-                        'Try os.putenv("CDF_LIB", library_directory) ' + \
-                        'before import.')
-
+                    for d in sorted(cand)[::-1]:
+                        for p in search_dir(d):
+                            yield p
 
     def check_status(self, status, ignore=()):
         """
@@ -1023,7 +1034,7 @@ class Library(object):
 
 
 try:
-    _libpath = Library._find_lib()
+    _libpath, _library = Library._find_lib()
 except:
     if 'sphinx' in sys.argv[0]:
         warnings.warn('CDF library did not load. '
@@ -1031,7 +1042,7 @@ except:
     else:
         raise
 from . import const
-lib = Library(_libpath)
+lib = Library(_libpath, _library)
 """Module global library object.
 
 Initalized at module load time so all classes have ready
