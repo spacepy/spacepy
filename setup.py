@@ -248,8 +248,10 @@ def rebuild_static_docs():
     subprocess.check_call(cmd.split())
     os.chdir('Doc')
     try:
-        cmd = '{0} latexpdf'.format(os.environ['MAKE'] if 'MAKE' in os.environ
-        else 'make')
+        cmd = '{0}{1} latexpdf'.format(
+            os.environ['MAKE'] if 'MAKE' in os.environ else 'make',
+            ('SPHINXBUILD=' + os.environ['SPHINXBUILD'])
+            if 'SPHINXBUILD' in os.environ else '')
         subprocess.check_call(cmd.split())
     except:
         warnings.warn('PDF documentation rebuild failed:')
