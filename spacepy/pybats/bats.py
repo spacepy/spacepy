@@ -2201,9 +2201,12 @@ class MagFile(PbData):
         infile.close()
 
         # Parse header.
-        trash=lines.pop(0) # Get station names.
-        nmags=int((trash.split(':')[0]).split()[0])
-        names=trash.split(':')[1] # Remove number of magnetometers.
+
+        # Get number of stations.
+        nmags=int((lines[0].split(':')[0]).split()[0])
+
+        # Get station names.
+        names=lines[0].split(':')[1]
         namemag = names.split()
         self.attrs['namemag']=namemag
 
@@ -2212,25 +2215,23 @@ class MagFile(PbData):
             raise BaseException(
                 'ERROR: GM file claims %i magnetomers, lists %i'
                 % (nmags, len(namemag)))
-        trash=lines.pop(0)
 
         # Grab variable names.  Use legacy mode if necessary:
         prefix = 'gm_'*self.legacy
         # skip time, iter, and loc; add prefix to var names:
-        gm_namevar = [prefix+x for x in trash.split()[12:]]
+        gm_namevar = [prefix+x for x in lines[1].split()[12:]]
 
         # Set number of mags and records.
         self.attrs['nmag']=len(namemag)
-        nlines = len(lines)/nmags
+        nrecords = (len(lines)-2)/nmags
 
         # If there is an IE file, Parse that header, too.
         if self.attrs['iefile']:
             infile=open(self.attrs['iefile'], 'r')
             ielns =infile.readlines()
             infile.close()
-            trash=ielns.pop(0)
-            nmags=int((trash.split(':')[0]).split()[0])
-            iestats=(trash.split(':')[1]).split()
+            nmags=int((ielns[0].split(':')[0]).split()[0])
+            iestats=(ielns[0].split(':')[1]).split()
             # Check nmags vs number of mags in header.
             if nmags != len(iestats):
                 raise BaseException(
@@ -2238,25 +2239,25 @@ class MagFile(PbData):
                     % (nmags, len(namemag)))
             if iestats != self.attrs['namemag']:
                 raise RuntimeError("Files do not have matching stations.")
-            ie_namevar=ielns.pop(0).split()[11:]
+            ie_namevar=ielns[1].split()[11:]
             self.attrs['ie_namevar']=ie_namevar
-            if (len(ielns)/self.attrs['nmag']) != (nlines-1):
+            if (len(ielns)/self.attrs['nmag']) != (nrecords-1):
                 print('Number of lines do not match: GM=%d, IE=%d!' %
-                      (nlines-1, len(ielns)/self.attrs['nmag']))
-                nlines=min(ielns, nlines-1)
+                      (nrecords-1, len(ielns)/self.attrs['nmag']))
+                nrecords=min(ielns, nrecords-1)
         else:
             ie_namevar=()
             self.attrs['ie_namevar']=()
 
         # Build containers.
-        self['time']=np.zeros(nlines, dtype=object)
-        self['iter']=np.zeros(nlines, dtype=float)
+        self['time']=np.zeros(nrecords, dtype=object)
+        self['iter']=np.zeros(nrecords, dtype=float)
         for name in namemag:
-            self[name]=Mag(nlines, self['time'], gm_namevar, ie_namevar)
+            self[name]=Mag(nrecords, self['time'], gm_namevar, ie_namevar)
 
         # Read file data.
-        for i in range(nlines):
-            line = lines.pop(0)
+        for i in range(nrecords):
+            line = lines[i*nmags+2]
             parts=line.split()
             self['iter'][i]=parts[0]
             self['time'][i]=dt.datetime(
@@ -2270,12 +2271,12 @@ class MagFile(PbData):
                 )
             self[namemag[0]].parse_gmline(i, line, gm_namevar)
             for j in range(1, nmags):
-                self[namemag[j]].parse_gmline(i, lines.pop(0), gm_namevar)
+                self[namemag[j]].parse_gmline(i, lines[i*nmags+j+2], gm_namevar)
             if self.attrs['iefile'] and i>0:
-                line=ielns.pop(0)
+                line=ielns[i*nmags+2]
                 self[namemag[0]].parse_ieline(i, line, ie_namevar)
                 for j in range(1, nmags):
-                    self[namemag[j]].parse_ieline(i, ielns.pop(0), ie_namevar)
+                    self[namemag[j]].parse_ieline(i, ielns[i*nmags+j+2], ie_namevar)
 
         # Sum up IE/GM components if necessary (legacy only):
         if self.legacy: self._recalc()
