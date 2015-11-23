@@ -2255,6 +2255,8 @@ class MagFile(PbData):
         for name in namemag:
             self[name]=Mag(nrecords, self['time'], gm_namevar, ie_namevar)
 
+        data_buffer=np.zeros((nrecords,nmags,(len(gm_namevar)+3)))
+
         # Read file data.
         for i in range(nrecords):
             line = lines[i*nmags+2]
@@ -2269,14 +2271,25 @@ class MagFile(PbData):
                 int(parts[6]), #second
                 int(parts[7])*1000 #microsec
                 )
-            self[namemag[0]].parse_gmline(i, line, gm_namevar)
-            for j in range(1, nmags):
-                self[namemag[j]].parse_gmline(i, lines[i*nmags+j+2], gm_namevar)
+            for j in range(nmags):
+                line=lines[i*nmags+j+2]
+                parts=line.split()
+                values=[float(part) for part in parts[9:]]
+                data_buffer[i,j]=values
+
             if self.attrs['iefile'] and i>0:
                 line=ielns[i*nmags+2]
                 self[namemag[0]].parse_ieline(i, line, ie_namevar)
                 for j in range(1, nmags):
                     self[namemag[j]].parse_ieline(i, ielns[i*nmags+j+2], ie_namevar)
+
+        for j in range(nmags):
+            mag=self[namemag[j]]
+            mag['x']=data_buffer[:,j,0]
+            mag['y']=data_buffer[:,j,1]
+            mag['z']=data_buffer[:,j,2]
+            for k, key in enumerate(gm_namevar):
+                mag[key]=data_buffer[:,j,k+3]
 
         # Sum up IE/GM components if necessary (legacy only):
         if self.legacy: self._recalc()
