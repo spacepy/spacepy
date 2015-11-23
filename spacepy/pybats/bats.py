@@ -2273,7 +2273,8 @@ class MagFile(PbData):
                 )
             for j in range(nmags):
                 line=lines[i*nmags+j+2]
-                parts=line.split()
+                if j>0:
+                    parts=line.split()
                 values=[float(part) for part in parts[9:]]
                 data_buffer[i,j]=values
 
