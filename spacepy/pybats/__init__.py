@@ -485,7 +485,7 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
-def readarray(f,nrec=1,dtype=np.float32,endian='little'):
+def readarray(f,dtype=np.float32,endian='little'):
     """
     Read an array from an unformatted binary file written out by a Fortran program.
 
@@ -509,54 +509,39 @@ def readarray(f,nrec=1,dtype=np.float32,endian='little'):
         dtype.newbyteorder(EndChar)
         nbytes=dtype.itemsize
 
-    A=[]
-    for i in range(nrec):
+    # Get the record length
+    n=np.fromfile(f,dtype=np.dtype(EndChar+'i4'),count=1)
 
-        # Get the record length
-        n=np.fromfile(f,dtype=np.dtype(EndChar+'i4'),count=1)
+    # Check that the record length is consistent with the data type
+    if n%nbytes!=0:
+        raise ValueError('Read error: Data type inconsistent with record length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(nbytes),int(n)))
 
-        # Check that the record length is consistent with the data type
-        if n%nbytes!=0:
-            raise ValueError('Read error: Data type inconsistent with record length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(nbytes),int(n)))
+    if len(n)==0:
+        # Zero-length record...file may be truncated
+        raise EOFError('Zero-length read at start marker')
 
-        if len(n)==0:
-            # Zero-length record...file may be truncated
-            raise EOFError('Zero-length read at start marker')
+    # Read the data
+    try:
+        if dtype is str:
+            A=f.read(n)
+        else:
+            A=np.fromfile(f,dtype=dtype,count=n/nbytes)
+    except TypeError:
+        raise
 
-        # Read the data
-        try:
-            if dtype is str:
-                A.append(f.read(n))
-            else:
-                A.append(np.fromfile(f,dtype=dtype,count=n/nbytes))
-        except TypeError:
-            raise
+    # Check the record length marker at the end
+    nend=np.fromfile(f,dtype=np.dtype(EndChar+'i4'),count=1)
+    if len(nend)==0:
+        # Couldn't read, file may be truncated
+        raise EOFError('Zero-length read at end marker')
 
-        # Check the record length marker at the end
-        nend=np.fromfile(f,dtype=np.dtype(EndChar+'i4'),count=1)
-        if len(nend)==0:
-            # Couldn't read, file may be truncated
-            raise EOFError('Zero-length read at end marker')
-
-        if nend!=n:
-            # End marker is inconsistent with start marker. Something is wrong.
-            raise ValueError(
-                'Read error: End marker does not match start marker (start marker says record length is {0:d} bytes, end marker says {1:d} bytes). This indicates incorrect endiannes, wrong file type, or file is corrupt'.format(
-                    int(n),int(nend)
-                )
+    if nend!=n:
+        # End marker is inconsistent with start marker. Something is wrong.
+        raise ValueError(
+            'Read error: End marker does not match start marker (start marker says record length is {0:d} bytes, end marker says {1:d} bytes). This indicates incorrect endiannes, wrong file type, or file is corrupt'.format(
+                int(n),int(nend)
             )
-
-    if len(A)==1:
-        # Turn the record into a scalar if it has only one entry
-        A=A[0]
-
-    elif dtype is not str:
-        # Combine all the records into one
-        A=np.concatenate(A)
-
-    elif len(A)==0:
-        # This shouldn't happen
-        A=np.array(A)
+        )
 
     return A
 
@@ -607,11 +592,11 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     endian='little'
 
     try:
-        headline=readarray(infile,1,str,endian)
+        headline=readarray(infile,str,endian)
     except (ValueError,EOFError):
         endian='big'
         infile.seek(0)
-        headline=readarray(infile,1,str,endian)
+        headline=readarray(infile,str,endian)
     
     pbdat.attrs['endian']=endian
 
@@ -636,13 +621,13 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     # Parse rest of header
     (pbdat.attrs['iter'], pbdat.attrs['runtime'],
      pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
-        readarray(infile,nrec=1,
+        readarray(infile,
                   dtype=[('it',np.int32),('t',floattype),('ndim',np.int32),
                          ('npar',np.int32),('nvar',np.int32)],
                   endian=endian)[0]
 
     # Get gridsize
-    pbdat['grid']=dmarray(readarray(infile,1,np.int32,endian))
+    pbdat['grid']=dmarray(readarray(infile,np.int32,endian))
 
     # Data from generalized (structured but irregular) grids can be 
     # detected by a negative ndim value.  Unstructured grids (e.g.
@@ -671,9 +656,9 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     # Read parameters stored in file.
     para  = np.zeros(npar)
     if npar>0:
-        para[:] = readarray(infile,1,floattype,endian)
+        para[:] = readarray(infile,floattype,endian)
 
-    names = readarray(infile,1,str,endian)
+    names = readarray(infile,str,endian)
 
     # Preserve or destroy original case of variable names:
     if not keep_case: names = names.lower()
@@ -712,7 +697,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     prod = [1] + pbdat['grid'].cumprod().tolist()
 
     # Read the data into a temporary array
-    griddata = readarray(infile,1,floattype,endian)
+    griddata = readarray(infile,floattype,endian)
     for i in range(0,ndim):
         # Get the grid coordinates for this dimension
         tempgrid = griddata[npts*i:npts*(i+1)]
@@ -736,7 +721,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
 
     # Get the actual data and sort.
     for i in range(ndim,nvar+ndim):
-        pbdat[names[i]] = dmarray(readarray(infile,1,floattype,endian))
+        pbdat[names[i]] = dmarray(readarray(infile,floattype,endian))
         pbdat[names[i]].attrs['units']=units.pop(nSkip)
         if gtyp != 'Unstructured':
             # Put data into multidimensional arrays.
