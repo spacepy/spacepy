@@ -55,6 +55,8 @@ except RuntimeError:
     pass
 import numpy
 
+__all__ = ['add_logo', 'annotate_xaxis', 'applySmartTimeTicks', 'collapse_vertical', 'filter_boxes', 'get_biggest_clear', 'get_clear', 'get_used_boxes', 'EventClicker','set_target', 'shared_ylabel', 'show_used', 'timestamp']
+
 class EventClicker(object):
     """
     Presents a provided figure (normally a time series) and provides

@@ -77,13 +77,18 @@ def style(look=None, cmap='plasma'):
     matplotlib.rcParams['image.cmap'] = cmap
 
 #save current rcParams before applying spacepy style
-oldParams = dmcopy(matplotlib.rcParams)
+oldParams = dict()
+for key, val in matplotlib.rcParams.items():
+        oldParams[key] = dmcopy(val)
 style()
 
 def revert_style():
     import matplotlib
     for key in oldParams:
-        matplotlib.rcParams[key] = oldParams[key]
+        try:
+            matplotlib.rcParams[key] = oldParams[key]
+        except ValueError:
+            pass
 
 def dual_half_circle(center=(0,0), radius=1.0,
                      sun_direction='right', ax=None, colors=('w','k'),
