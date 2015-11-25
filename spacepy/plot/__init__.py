@@ -11,7 +11,7 @@ Institution: Los Alamos National Laboratory
 Contact: balarsen@lanl.gov
 
 
-Copyright 2011 Los Alamos National Security, LLC.
+Copyright 2011-2015 Los Alamos National Security, LLC.
 
 """
 import os
@@ -138,3 +138,47 @@ def dual_half_circle(center=(0,0), radius=1.0,
         ax.add_artist(wedge)
     return (w1, w2)
 
+def levelHist(data, var=None, levels=(3, 5, 7), target=None, colors=None, **kwargs):
+    """
+    Plot a histogram with up to 5 levels following a color cycle (e.g. Kp index "stoplight")
+
+    Parameters
+    ----------
+    data : array-like, or dict-like
+        Data for binning and plotting. If dict-like, the key providing an array-like 
+        to plot must be given to var keyword argument.
+
+    Other Parameters
+    ----------
+    var    : string
+        Name of key in dict-like input that contains data
+    levels : array-like, up to 5 levels
+        Breaks between levels in data that should be shown as distinct colors
+    target : figure or axes
+        Target axes or figure window
+    colors : array-like
+        Colors to use for the color sequence (if insufficient colors, will use as a cycle)
+    **kwargs : other keywords
+        Other keywords to pass to spacepy.toolbox.binHisto
+
+    Returns
+    -------
+    binned : tuple
+        Tuple of the binned data and bins
+
+    Examples
+    --------
+    >>> import spacepy.plot
+    >>> spacepy.plot.levelHist(indata)
+
+    """
+    from spacepy.toolbox import binHisto
+    #assume dict-like/key-access, before moving to array-like
+    if var is not None:
+        try:
+            usearr = data[var]
+        except KeyError:
+            raise KeyError('')
+    binwidth, nbins = binHisto(usearr, )
+    fig, ax = set_target()
+    ax.hist(data, bins=nbins, histtype='step', normed=True)
