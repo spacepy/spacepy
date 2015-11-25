@@ -485,7 +485,7 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
-def readarray(f,dtype=np.float32,endian='little'):
+def readarray(f,dtype=np.float32,inttype=np.int32):
     """
     Read an array from an unformatted binary file written out by a Fortran program.
 
@@ -495,22 +495,13 @@ def readarray(f,dtype=np.float32,endian='little'):
     :type nrec: int
     """
 
-    # Code to use for setting endianness in numpy.dtype
-    if endian=='little':
-        EndChar='<'
-    else:
-        EndChar='>'
-
-    # Configure the data type
     if dtype is str:
         nbytes=1
     else:
-        dtype=np.dtype(dtype)
-        dtype.newbyteorder(EndChar)
         nbytes=dtype.itemsize
 
     # Get the record length
-    n=np.fromfile(f,dtype=np.dtype(EndChar+'i4'),count=1)
+    n=np.fromfile(f,dtype=inttype,count=1)
 
     # Check that the record length is consistent with the data type
     if n%nbytes!=0:
@@ -530,7 +521,7 @@ def readarray(f,dtype=np.float32,endian='little'):
         raise
 
     # Check the record length marker at the end
-    nend=np.fromfile(f,dtype=np.dtype(EndChar+'i4'),count=1)
+    nend=np.fromfile(f,dtype=inttype,count=1)
     if len(nend)==0:
         # Couldn't read, file may be truncated
         raise EOFError('Zero-length read at end marker')
@@ -591,43 +582,50 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
 
     endian='little'
 
+    inttype=np.dtype(np.int32)
+    EndChar='<'
+    inttype.newbyteorder(EndChar)
+
     try:
-        headline=readarray(infile,str,endian)
+        headline=readarray(infile,str,np.int32)
     except (ValueError,EOFError):
         endian='big'
+        EndChar='>'
+        inttype.newbyteorder(EndChar)
         infile.seek(0)
-        headline=readarray(infile,str,endian)
+        headline=readarray(infile,str,)
     
     pbdat.attrs['endian']=endian
 
     # detect double-precision file.
     pos=infile.tell()
-    if endian=='little':
-        EndChar='<'
-    else:
-        EndChar='>'
-    RecLen=np.fromfile(infile,dtype=np.dtype(EndChar+'i4'),count=1)
+
+    RecLen=np.fromfile(infile,dtype=inttype,count=1)
     infile.seek(pos)
 
     # Set data types
 
-    inttype=np.int32
 
     if RecLen > 20:
-        floattype=np.float64
+        floattype=np.dtype(np.float64)
     else:
-        floattype=np.float32
+        floattype=np.dtype(np.float32)
+    floattype.newbyteorder(EndChar)
 
     # Parse rest of header
+    header_fields_dtype=np.dtype([
+        ('it',np.int32),('t',floattype),('ndim',np.int32),
+        ('npar',np.int32),('nvar',np.int32)])
+    header_fields_dtype.newbyteorder(EndChar)
+
     (pbdat.attrs['iter'], pbdat.attrs['runtime'],
      pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
         readarray(infile,
-                  dtype=[('it',np.int32),('t',floattype),('ndim',np.int32),
-                         ('npar',np.int32),('nvar',np.int32)],
-                  endian=endian)[0]
+                  dtype=header_fields_dtype,
+                  inttype=inttype)[0]
 
     # Get gridsize
-    pbdat['grid']=dmarray(readarray(infile,np.int32,endian))
+    pbdat['grid']=dmarray(readarray(infile,inttype,inttype))
 
     # Data from generalized (structured but irregular) grids can be 
     # detected by a negative ndim value.  Unstructured grids (e.g.
@@ -656,9 +654,9 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     # Read parameters stored in file.
     para  = np.zeros(npar)
     if npar>0:
-        para[:] = readarray(infile,floattype,endian)
+        para[:] = readarray(infile,floattype,inttype)
 
-    names = readarray(infile,str,endian)
+    names = readarray(infile,str,inttype)
 
     # Preserve or destroy original case of variable names:
     if not keep_case: names = names.lower()
@@ -697,7 +695,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     prod = [1] + pbdat['grid'].cumprod().tolist()
 
     # Read the data into a temporary array
-    griddata = readarray(infile,floattype,endian)
+    griddata = readarray(infile,floattype,inttype)
     for i in range(0,ndim):
         # Get the grid coordinates for this dimension
         tempgrid = griddata[npts*i:npts*(i+1)]
@@ -721,7 +719,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
 
     # Get the actual data and sort.
     for i in range(ndim,nvar+ndim):
-        pbdat[names[i]] = dmarray(readarray(infile,floattype,endian))
+        pbdat[names[i]] = dmarray(readarray(infile,floattype,inttype))
         pbdat[names[i]].attrs['units']=units.pop(nSkip)
         if gtyp != 'Unstructured':
             # Put data into multidimensional arrays.
