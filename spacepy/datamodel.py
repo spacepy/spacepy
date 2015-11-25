@@ -1710,6 +1710,39 @@ def fromRecArray(recarr):
         sd[key] = dmarray(recarr[key])
     return sd
 
+def toRecArray(sdo):
+    '''Takes a SpaceData and creates a numpy recarray
+
+    Parameters
+    ----------
+    sdo : SpaceData
+        SpaceData to change to a numpy recarray
+
+    Returns
+    -------
+    recarr: numpy record array
+        numpy.recarray object with the same values (attributes are lost)
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import spacepy.datamodel as dm
+    >>> sd = dm.SpaceData()
+    >>> sd['x'] = dm.dmarray([1.0, 2.0])
+    >>> sd['y'] = dm.dmarray([2,4])
+    >>> sd.tree(verbose=1)
+    +
+    |____x (spacepy.datamodel.dmarray (2,))
+    |____y (spacepy.datamodel.dmarray (2,))
+    >>> ra = dm.toRecArray(sd)
+    >>> print(ra, ra.dtype)
+    [(2, 1.0) (4, 2.0)] (numpy.record, [('y', '<i8'), ('x', '<f8')])
+    '''
+    keys = list(sdo.keys())
+    recarr = numpy.rec.fromarrays( [sdo[k] for k in sdo], names=keys)
+    return recarr
+
+
 def dmcopy(dobj):
     '''Generic copy utility to return a copy of a (datamodel) object
 

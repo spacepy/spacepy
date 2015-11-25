@@ -956,7 +956,7 @@ def progressbar(count, blocksize, totalsize, text='Download Progress'):
     if percent == 100: print('\n')
     sys.stdout.flush()
 
-def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
+def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     """
     Windowing mean function, window overlap is user defined
 
@@ -974,6 +974,8 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
     st_time : datetime.datetime (optional)
         for time-based averaging, a start-time other than the first
         point can be specified
+    op : callable (optional)
+        the operator to be called, default numpy.mean
 
     Returns
     =======
@@ -1067,7 +1069,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
         while lastpt < len(data):
             datwin = np.ma.masked_where(np.isnan(data[startpt:startpt+winsize]), \
                 data[startpt:startpt+winsize])
-            getmean = np.mean(datwin.compressed()) #mean of window, excl. NaNs
+            getmean = op(datwin.compressed()) #mean of window, excl. NaNs
             gettime = (time[startpt+winsize] - time[startpt])/2. \
                 + time[startpt]#new timestamp
             startpt = startpt+winsize-overlap
@@ -1087,7 +1089,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None):
             getinds = tOverlapHalf([startpt,startpt+winsize], time, presort=True)
             if getinds: #if not None
                 getdata = np.ma.masked_where(np.isnan(data[getinds[0]:getinds[-1]+1]), data[getinds[0]:getinds[-1]+1])
-                getmean = np.mean(getdata.compressed()) #find mean excluding NaNs
+                getmean = op(getdata.compressed()) #find mean excluding NaNs
             else:
                 getmean = np.nan
             gettime = startpt + winsize//2 #new timestamp -floordiv req'd with future division

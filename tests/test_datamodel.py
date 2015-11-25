@@ -424,6 +424,30 @@ class dmarrayTests(unittest.TestCase):
             self.fail(
                 'Assigning to arbitrary Python attribute should raise TypeError')
 
+    def test_dmfilled(self):
+        """dmfilled should fill an array"""
+        ans = np.asarray([1,1,1], dtype=int)
+        tst = dm.dmfilled((3), fillval=1, dtype=int)
+        np.testing.assert_equal(tst, ans)
+        self.assertEqual(tst.dtype, ans.dtype)
+
+        ans = np.asarray([datetime.datetime(2000, 1,1),
+                          datetime.datetime(2000, 1,1),
+                          datetime.datetime(2000, 1,1)], dtype=object)
+        tst = dm.dmfilled((3), fillval=datetime.datetime(2000, 1,1), dtype=object)
+        np.testing.assert_equal(tst, ans)
+        self.assertEqual(tst.dtype, ans.dtype)
+
+    def test_toRecArray(self):
+        '''a record array can be created from a SpaceData'''
+        sd = dm.SpaceData()
+        sd['x'] = dm.dmarray([1.0, 2.0])
+        sd['y'] = dm.dmarray([2,4])
+        ra = dm.toRecArray(sd)
+        np.testing.assert_equal(ra['x'], [1.0, 2.0])
+        np.testing.assert_equal(ra['y'], [2, 4])
+        self.assertEqual(ra.dtype, np.dtype((np.record, [('x', '<f8'), ('y', '<i8'), ])))
+
 class converterTests(unittest.TestCase):
     def setUp(self):
         super(converterTests, self).setUp()

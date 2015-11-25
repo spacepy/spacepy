@@ -7,7 +7,7 @@ datamanager
  - Function "array_interleave": combine data from two arrays to make a new
  - Function "axis_index": prepare indices along the axis of an array
  - Function "flatten_idx": convert an index to an index into flattened array
- - Function "insert_fill" to make explict gaps in irregular data
+ - Function "insert_fill" to make explicit gaps in irregular data
  - Function "rev_index": convert an index into its complement
  - Function "values_to_steps": convert values to index of unique, sorted values
 datamodel
@@ -15,6 +15,8 @@ datamodel
  - New function resample to change the time cadence of a SpaceData with windowMean
  - SpaceData gained methods for toCDF, toHDF, and toJSONheadedASCII
  - SpaceData keys can be multiple called, see __getitem__
+ - New function toRecArray to create numpy record arrays from SpaceData objects
+ - New function fromRecArray to create SpaceData objects from numpy record arrays
 empiricals
  - New function getSolarRotation, returns Carrington or Bartels number
  - New model in getPlasmaPause,  RT1970 -- Rycroft et al 1970
@@ -27,6 +29,7 @@ plot
  - Updated smartTimeTicks, applySmartTimeTicks and added set_target (from PyBATS)
  - SpacePy style sheets added. Autoimported with plot, but with functionality to change style
  - Fix utils.collapse_vertical when called with sequences other than lists
+ - Update to utils.timestamp adding more customization
 pybats
  - Updated docstrings across all modules.
  - rim.py updated to be consistent with other pybats modules.
@@ -34,14 +37,14 @@ pybats
  - Unified BATS-R-US calculation of number density and composition.
  - New class for magnetometer grid files: MagGridFile
  - New function for automatic latex label creation.
- - Updated Mag and MagFile objects for forward/backward compatablity.
+ - Updated Mag and MagFile objects for forward/backward compatibility.
  - IdlBin class renamed IdlFile; can read binary or ascii SWMF-IDL files.
  - Moved core plotting routines (set_target, smart_timeticks, apply_smart_timeticks) to plot.utils
 pycdf
  - On OSX, search more paths for the CDF library
  - CDF.clone() now returns the new variable
  - Fix re-import after failure to find the CDF library, can now try the import
-   again without restarting the Python intepreter
+   again without restarting the Python interpreter
  - Fix some comparisons that might cause problems with future versions of numpy
  - Log the path to the CDF library for debugging purposes
  - Library.epoch_to_num: convert epoch to matplotlib date number (like date2num)
@@ -52,6 +55,7 @@ time
  - Added classmethod today()
 toolbox
  - Added function unique_columns
+ - Added windowMean keyword op to allow arbitrary operations
 python3 support
  -updates for python3 support, seems to be complete
 AE9AP9
@@ -224,7 +228,7 @@ Datamodel
  - warnings added for incompatible data types on dump to HDF5
 Toolbox
  - reformatted example in dist_to_list
- - hypot now takes multiple args or an interable
+ - hypot now takes multiple args or an iterable
  - pmm now handles NaN
  - tOverlap/tOverlapHalf now return iterators for presorted input
  - forcedate keyword added to linspace

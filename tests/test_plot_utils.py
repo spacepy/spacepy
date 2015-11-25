@@ -98,6 +98,7 @@ class PlotUtilFunctionTests(unittest.TestCase):
         retfig, retax = spacepy.plot.utils.set_target(testfig)
         self.assertTrue(testfig is retfig)
         self.assertTrue(retax is retfig.axes[0])
+        plt.close()
 
     def test_set_target_axesIn(self):
         '''Test that set_target returns expected objects and types'''
@@ -106,6 +107,22 @@ class PlotUtilFunctionTests(unittest.TestCase):
         retfig, retax = spacepy.plot.utils.set_target(testax)
         self.assertTrue(testfig is retfig)
         self.assertTrue(retax is retfig.axes[0])
+        plt.close()
+
+    def test_timestamp(self):
+        '''Test that timestamp behaves as expected'''
+        ann = spacepy.plot.utils.timestamp(strnow='I am a test string')
+        self.assertEqual(ann.get_text(), 'I am a test string')
+        self.assertEqual(ann.get_position(), (1.003, 0.01))
+        plt.close()
+
+    def test_timestamp2(self):
+        '''Test that timestamp behaves as expected2'''
+        ann = spacepy.plot.utils.timestamp()
+        now = datetime.datetime.now().strftime("%d%b%Y %H:%M")
+        self.assertTrue(ann.get_text().startswith(now[:7]))
+        plt.close()
+
 
 if __name__ == "__main__":
     unittest.main()

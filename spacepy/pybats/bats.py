@@ -21,7 +21,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
 
 import numpy as np
 from spacepy.pybats import PbData, IdlFile, LogFile
-from spacepy.plot.utils import set_target, applySmartTimeTicks
+from spacepy.plot.apionly import set_target, applySmartTimeTicks
 from spacepy.datamodel import dmarray
 
 #### Module-level variables:
@@ -80,24 +80,24 @@ def _calc_ndens(obj):
 
     # Find all species: the variable names end or begin with "rho".
     for k in obj:
-        if (k[-3:] == 'rho') and (k!='rho') and (k[:-3]+'N' not in obj):
+        if (k[-3:] == 'Rho') and (k!='Rho') and (k[:-3]+'N' not in obj):
             species.append(k)
             names.append(k[:-3])
-        if (k[:3] == 'rho') and (k!='rho') and (k[3:]+'N' not in obj):
+        if (k[:3] == 'Rho') and (k!='Rho') and (k[3:]+'N' not in obj):
             species.append(k)
             names.append(k[3:])
 
     # Individual number density
     for s, n in zip(species, names):
-        if n in mass:
-            m = mass[n]
+        if n.lower() in mass:
+            m = mass[n.lower()]
         else:
             m = 1.0
         obj[n+'N'] = dmarray(obj[s]/m, attrs={'units':'$cm^{-3}$',
                                               'amu mass':m})
 
     # Total N is sum of individual  number densities.
-    obj['N'] = dmarray(np.zeros(obj['rho'].shape), 
+    obj['N'] = dmarray(np.zeros(obj['Rho'].shape), 
                        attrs={'units':'$cm^{-3}$'}) 
     if species:
         # Total number density:
@@ -108,7 +108,7 @@ def _calc_ndens(obj):
                                     {'units':'Percent'})
     else:
         # No individual species => no composition, simple ndens.
-        obj['N'] += dmarray(obj['rho'], attrs={'units':'$cm^{-3}$'}) 
+        obj['N'] += dmarray(obj['Rho'], attrs={'units':'$cm^{-3}$'}) 
 
 
 #### Classes:
@@ -463,6 +463,11 @@ class Bats2d(IdlFile):
         # Read file.
         IdlFile.__init__(self, filename, format=format)
 
+        # Use case-sensitive names for common variables:
+        for v in ['rho', 'p', 'ux', 'uy', 'uz', 'bx', 'by', 'bz']:
+            if v in self:
+                self[v.capitalize()] = self.pop(v)
+        
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
             xdim, ydim = self['grid'].attrs['dims'][0:2]
@@ -523,16 +528,16 @@ class Bats2d(IdlFile):
         '''
         from numpy import sqrt
 
-        self['b'] = sqrt(self['bx']**2.0 + self['by']**2.0 + self['bz']**2.0)
-        self['b'].attrs={'units':self['bx'].attrs['units']}
+        self['B'] = sqrt(self['Bx']**2.0 + self['By']**2.0 + self['Bz']**2.0)
+        self['B'].attrs={'units':self['Bx'].attrs['units']}
 
-        self['bx_hat'] = self['bx'] / self['b']
-        self['by_hat'] = self['by'] / self['b']
-        self['bz_hat'] = self['bz'] / self['b']
+        self['Bx_hat'] = self['Bx'] / self['B']
+        self['By_hat'] = self['By'] / self['B']
+        self['Bz_hat'] = self['Bz'] / self['B']
 
-        self['bx_hat'].attrs={'units':'unitless'}
-        self['by_hat'].attrs={'units':'unitless'}
-        self['bz_hat'].attrs={'units':'unitless'}
+        self['Bx_hat'].attrs={'units':'unitless'}
+        self['By_hat'].attrs={'units':'unitless'}
+        self['Bz_hat'].attrs={'units':'unitless'}
 
     def calc_Econv(self):
         '''
@@ -543,20 +548,20 @@ class Bats2d(IdlFile):
         from copy import copy
 
         # Some quick declarations for more readable code.
-        ux = self['ux']; uy=self['uy']; uz=self['uz']
-        bx = self['bx']; by=self['by']; bz=self['bz']
+        ux = self['Ux']; uy=self['Uy']; uz=self['Uz']
+        bx = self['Bx']; by=self['By']; bz=self['Bz']
 
         # Check units.  Should be nT(=Volt*s/m^2) and km/s.
         if (bx.attrs['units']!='nT') or (ux.attrs['units']!='km/s'):
             raise Exception('Incorrect units!  Should be km/s and nT.')
 
         # Calculate; return in millivolts per meter
-        self['ex'] = -1.0*(uy*bz - uz*by) / 1000.0
-        self['ey'] = -1.0*(uz*bx - ux*bz) / 1000.0
-        self['ez'] = -1.0*(ux*by - uy*bx) / 1000.0
-        self['ex'].attrs={'units':'mV/m'}
-        self['ey'].attrs={'units':'mV/m'}
-        self['ez'].attrs={'units':'mV/m'}
+        self['Ex'] = -1.0*(uy*bz - uz*by) / 1000.0
+        self['Ey'] = -1.0*(uz*bx - ux*bz) / 1000.0
+        self['Ez'] = -1.0*(ux*by - uy*bx) / 1000.0
+        self['Ex'].attrs={'units':'mV/m'}
+        self['Ey'].attrs={'units':'mV/m'}
+        self['Ez'].attrs={'units':'mV/m'}
         
 
     def calc_ndens(self):
@@ -609,11 +614,11 @@ class Bats2d(IdlFile):
         # Unit conversion (nT, uA, cm^-3 -> nT, A, m^-3) to nN/m^3.
         conv = 1E-6
         # Calculate cross product, convert units.
-        self['jbx']=dmarray( (self['jy']*self['bz']-self['jz']*self['by'])*conv,
+        self['jbx']=dmarray( (self['jy']*self['Bz']-self['jz']*self['By'])*conv,
                              {'units':'nN/m^3'})
-        self['jby']=dmarray( (self['jz']*self['bx']-self['jx']*self['bz'])*conv,
+        self['jby']=dmarray( (self['jz']*self['Bx']-self['jx']*self['Bz'])*conv,
                              {'units':'nN/m^3'})
-        self['jbz']=dmarray( (self['jx']*self['by']-self['jy']*self['bx'])*conv,
+        self['jbz']=dmarray( (self['jx']*self['By']-self['jy']*self['Bx'])*conv,
                              {'units':'nN/m^3'})
         self['jb'] =dmarray( sqrt(self['jbx']**2 +
                                   self['jby']**2 +
@@ -634,7 +639,7 @@ class Bats2d(IdlFile):
         mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
 
         for k in self:
-            if (k[-3:]) == 'rho':
+            if (k[-3:]) == 'Rho':
                 # Alfven speed in km/s:
                 self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 / 
                                                  sqrt(mu_naught*self[k]),
@@ -674,8 +679,8 @@ class Bats2d(IdlFile):
             self['divmomz'][leaf.locs]=ux*d_dx(uz, leaf.dx)+uz*d_dy(uz, leaf.dx)
 
         # Unit conversion.
-        self['divmomx']*=self['rho']*c1*c2*c3
-        self['divmomz']*=self['rho']*c1*c2*c3
+        self['divmomx']*=self['Rho']*c1*c2*c3
+        self['divmomz']*=self['Rho']*c1*c2*c3
 
 
     def calc_gradP(self):
@@ -691,7 +696,7 @@ class Bats2d(IdlFile):
 
         # Create new arrays to hold pressure.
         dims = self['grid'].attrs['dims']
-        size = self['p'].shape
+        size = self['P'].shape
         self['gradP'] = dmarray(np.zeros(size), {'units':'nN/cm^3'})
         for d in dims:
             self['gradP_'+d] = dmarray(np.zeros(size), {'units':'nN/m^3'})
@@ -732,16 +737,15 @@ class Bats2d(IdlFile):
 
         # Find all species, the variable names end in "ux".
         for k in self:
-            if (k[-2:] == 'ux')   \
-                    and (k[:-2]+'u' not in self):
+            if (k[-2:] == 'Ux') and (k[:-2]+'U' not in self):
                 species.append(k[:-2])
 
-        units = self['ux'].attrs['units']
+        units = self['Ux'].attrs['units']
 
         for s in species:
-            self[s+'u'] = dmarray(sqrt( self[s+'ux']**2+
-                                        self[s+'uy']**2+
-                                        self[s+'uz']**2), 
+            self[s+'U'] = dmarray(sqrt( self[s+'Ux']**2+
+                                        self[s+'Uy']**2+
+                                        self[s+'Uz']**2), 
                                   attrs={'units':units})
 
     def calc_Ekin(self, units='eV'):
@@ -759,13 +763,13 @@ class Bats2d(IdlFile):
         if units.lower == 'kev':
             conv=conv/1000.0
 
-        mass={'hp':1.0, 'op':16.0, 'he':4.0, 'sw':1.0, '':1.0}
+        mass={'Hp':1.0, 'Op':16.0, 'He':4.0, 'Sw':1.0, '':1.0}
         species = []
 
         # Find all species, the variable names end in "Rho".
         for k in self:
-            #and (k!='rho') \
-            if (k[-3:] == 'rho') and (k[:-3]+'Ekin' not in self):
+            #and (k!='Rho') \
+            if (k[-3:] == 'Rho') and (k[:-3]+'Ekin' not in self):
                 species.append(k[:-3])
 
         for s in species:
@@ -1061,7 +1065,7 @@ class Bats2d(IdlFile):
         # boundary.  Find the max radial distance; tilt angle == angle off
         # equator of point of min R (~=max |B|).
         x_small = self.attrs['rbody']*-1.2
-        stream = self.get_stream(x_small, 0, 'bx', 'bz', method=method)
+        stream = self.get_stream(x_small, 0, 'Bx', 'Bz', method=method)
         r = stream.x**2 + stream.y**2
         loc = r==r.max()
         tilt = arctan(stream.y[loc]/stream.x[loc])[0]
@@ -1072,9 +1076,9 @@ class Bats2d(IdlFile):
         
         # Dayside- start by tracing from plane of min |B| and perp. to that: 
         R = self.attrs['rbody']*1.10
-        s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'bx','bz', method=method)
+        s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'Bx','Bz', method=method)
         s2 = self.get_stream(R*cos(pi/2.+tilt), R*sin(pi/2.+tilt), 
-                             'bx', 'bz', method=method)
+                             'Bx', 'Bz', method=method)
         
         theta = tilt
         dTheta=np.pi/4. # Initially, search 90 degrees.
@@ -1086,7 +1090,7 @@ class Bats2d(IdlFile):
             theta += closed*dTheta 
             theta -= s1.open*dTheta
             # Trace at the new theta to further restrict angular range:
-            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz', 
+            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'Bx', 'Bz', 
                                  method=method)
             dTheta /= 2.
             if nIter>max_iter:
@@ -1106,9 +1110,9 @@ class Bats2d(IdlFile):
         # Nightside: 
         theta+=tol
         R = self.attrs['rbody']*1.0
-        s2 = self.get_stream(R*cos(theta),R*sin(theta),'bx','bz',method=method)
+        s2 = self.get_stream(R*cos(theta),R*sin(theta),'Bx','Bz',method=method)
         s1 = self.get_stream(R*cos(pi+tilt), R*sin(pi+tilt), 
-                             'bx', 'bz', method=method)
+                             'Bx', 'Bz', method=method)
         
         dTheta=(pi+tilt-theta)/2.
         theta = pi+tilt
@@ -1119,7 +1123,7 @@ class Bats2d(IdlFile):
             theta -= closed*dTheta 
             theta += s1.open*dTheta
             #print("Theta = {:f} (dTheta={})".format(theta, dTheta))
-            s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz', 
+            s1 = self.get_stream(R*cos(theta),R*sin(theta), 'Bx','Bz', 
                                  method=method)
             dTheta /= 2.
             if nIter>max_iter:
@@ -1215,9 +1219,9 @@ class Bats2d(IdlFile):
                     linspace(0,     thetaD[0]-dTheta, nClosed),
                     linspace(np.pi, thetaN[1]-dTheta, nClosed)):
                 x, y = R*cos(tDay), R*sin(tDay)
-                sD   = self.get_stream(x,y,'bx','bz',method=method)
+                sD   = self.get_stream(x,y,'Bx','Bz',method=method)
                 x, y = R*cos(tNit), R*sin(tNit)
-                sN   = self.get_stream(x,y,'bx','bz',method=method)
+                sN   = self.get_stream(x,y,'Bx','Bz',method=method)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
@@ -1230,9 +1234,9 @@ class Bats2d(IdlFile):
                     linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
                     linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
                 x, y = R*cos(tNorth), R*sin(tNorth)
-                sD   = self.get_stream(x,y,'bx','bz',method=method)
+                sD   = self.get_stream(x,y,'Bx','Bz',method=method)
                 x, y = R*cos(tSouth), R*sin(tSouth)
-                sN   = self.get_stream(x,y,'bx','bz',method=method)
+                sN   = self.get_stream(x,y,'Bx','Bz',method=method)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
@@ -1294,7 +1298,7 @@ class Bats2d(IdlFile):
         colors= []
 
         # Approximate the dipole tilt of the central body.
-        stream = self.get_stream(3.0, 0, 'bx', 'bz', method=method)
+        stream = self.get_stream(3.0, 0, 'Bx', 'Bz', method=method)
         r = stream.x**2 + stream.y**2
         loc, = where(r==r.max())
         tilt = arctan(stream.y[loc[0]]/stream.x[loc[0]])
@@ -1309,7 +1313,7 @@ class Bats2d(IdlFile):
         for theta in angle:
             x = self.attrs['rbody'] * cos(theta)
             y = self.attrs['rbody'] * sin(theta)
-            stream = self.get_stream(x,y,'bx','bz', style=style, method=method)
+            stream = self.get_stream(x,y,'Bx','Bz', style=style, method=method)
             if (stream.y[0] > self.attrs['rbody']) or (stream.style[0]=='k'):
                 daymax = theta
                 break
@@ -1329,22 +1333,22 @@ class Bats2d(IdlFile):
             for i, x in enumerate(arange(x_mp, 15.0, delx)):
                 # From dayside x-line out and up:
                 y =y_mp-x_mp+x
-                stream = self.get_stream(x, y, 'bx', 'bz', style=style, 
+                stream = self.get_stream(x, y, 'Bx', 'Bz', style=style, 
                                          method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From top of magnetosphere down:
                 y =x_mp+15.0-x+delx/3.0
-                stream = self.get_stream(x-delx/3.0, y, 'bx', 'bz', 
+                stream = self.get_stream(x-delx/3.0, y, 'Bx', 'Bz', 
                                          method=method, style=style)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From bottom of mag'sphere down:
                 y =x_mp-10.0-x+2.0*delx/3.0
-                stream = self.get_stream(x-2.0*delx/3.0, y, 'bx', 
-                                         'bz', style=style, method=method)
+                stream = self.get_stream(x-2.0*delx/3.0, y, 'Bx', 
+                                         'Bz', style=style, method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
@@ -1353,7 +1357,7 @@ class Bats2d(IdlFile):
         for theta in angle:
             x = self.attrs['rbody'] * cos(theta)
             y = self.attrs['rbody'] * sin(theta)
-            stream = self.get_stream(x,y,'bx','bz', style=style, method=method)
+            stream = self.get_stream(x,y,'Bx','Bz', style=style, method=method)
             if stream.open:
                 nightmax = theta
                 break
@@ -1373,7 +1377,7 @@ class Bats2d(IdlFile):
         while (x-1.5)>self['x'].min():
             #print "Closed extension at ", x-1.5, y
             #ax.plot(x-1.5, y, 'g^', ms=10)
-            stream = self.get_stream(x-1.5, y, 'bx', 'bz', style=style, 
+            stream = self.get_stream(x-1.5, y, 'Bx', 'Bz', style=style, 
                                      method=method)
             r = sqrt(stream.x**2 + stream.y**2)
             if stream.open:
@@ -1385,7 +1389,7 @@ class Bats2d(IdlFile):
             y = stream.y[loc[0]]
 
         if x1 == x:
-            stream = self.get_stream(x1+1.0, y1, 'bx', 'bz', method=method)
+            stream = self.get_stream(x1+1.0, y1, 'Bx', 'Bz', method=method)
             r = sqrt(stream.x**2 + stream.y**2)
             loc, = where(r==r.max())
             x1 = stream.x[loc[0]]
@@ -1401,7 +1405,7 @@ class Bats2d(IdlFile):
             xmore = arange(x, -100, -3.0)
             ymore = m*(xmore-x)+y
             for x, y  in zip(xmore[1:], ymore[1:]):
-                stream = self.get_stream(x, y, 'bx', 'bz', style=style, 
+                stream = self.get_stream(x, y, 'Bx', 'Bz', style=style, 
                                          method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
@@ -1412,13 +1416,13 @@ class Bats2d(IdlFile):
             for theta in linspace(daymax,0.99*(2.0*(pi+tilt))-nightmax, 15):
                 x = self.attrs['rbody'] * cos(theta)
                 y = self.attrs['rbody'] * sin(theta)
-                stream = self.get_stream(x,y,'bx','bz', method=method)
+                stream = self.get_stream(x,y,'Bx','Bz', method=method)
                 if stream.open: 
                     lines.append(array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
                 x = self.attrs['rbody'] * cos(theta+pi)
                 y = self.attrs['rbody'] * sin(theta+pi)
-                stream = self.get_stream(x,y,'bx','bz', method=method)
+                stream = self.get_stream(x,y,'Bx','Bz', method=method)
                 if stream.open:
                     lines.append(array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
@@ -1501,7 +1505,7 @@ class Bats2d(IdlFile):
         
         Simple example:
 
-        >>> self.add_pcolor('x', 'y', 'rho')
+        >>> self.add_pcolor('x', 'y', 'Rho')
 
         If kwarg **target** is None (default), a new figure is 
         generated from scratch.  If target is a matplotlib Figure
@@ -1603,7 +1607,7 @@ class Bats2d(IdlFile):
         
         Simple example:
 
-        >>> self.add_contour('x', 'y', 'rho')
+        >>> self.add_contour('x', 'y', 'Rho')
 
         If kwarg **target** is None (default), a new figure is 
         generated from scratch.  If target is a matplotlib Figure
@@ -1889,6 +1893,8 @@ class Mag(PbData):
             self[new][-1] = (3*self[k][-1] - 4*self[k][-2] + self[k][-3]) \
                             / (dt[-1]+dt[-2])
 
+
+        self['dBdth'] = np.sqrt(self['dBdtn']**2+self['dBdte']**2)
             
     def add_plot(self, value, style='-', target=None, loc=111, label=None, 
                  **kwargs):
@@ -2352,6 +2358,21 @@ class MagGridFile(IdlFile):
         if target==None: fig.tight_layout()
 
         return fig, ax, cont, cbar
+
+    def interp(self, var, lons, lats):
+        '''
+        Interpolate variable *var* to point(s) *lats*, *lons*.  *lats* and
+        *lons* can either be scalar or a numpy-like array.  Values interpolated
+        to these positions is returned to the caller either as a scalar or
+        array.
+
+        Simple bilinear interpolation is used.
+        '''
+
+        from spacepy.pybats.batsmath import interp_2d_reg as intp
+
+        return intp(lats, lons, self['Lat'], self['Lon'], self[var])
+    
     
 class GeoIndexFile(LogFile):
     '''
@@ -2537,9 +2558,9 @@ class VirtSat(LogFile):
         '''
 
         if 'b' not in self:
-            self['b']=np.sqrt(self['bx']**2+
-                              self['by']**2+
-                              self['bz']**2)
+            self['b']=np.sqrt(self['Bx']**2+
+                              self['By']**2+
+                              self['Bz']**2)
 
         return True
 
@@ -2557,12 +2578,12 @@ class VirtSat(LogFile):
 
         if 'b' not in self: self.calc_bmag()
 
-        incl = np.arcsin(self['bz']/self['b'])
+        incl = np.arcsin(self['Bz']/self['B'])
 
         if units=='deg':
-            self['b_incl'] = dmarray(incl*180./np.pi, {'units':'degrees'})
+            self['B_incl'] = dmarray(incl*180./np.pi, {'units':'degrees'})
         elif units=='rad':
-            self['b_incl'] = dmarray(incl, {'units':'radians'})
+            self['B_incl'] = dmarray(incl, {'units':'radians'})
         else:
             raise ValueError('Unrecognized units.  Use "deg" or "rad"')
 

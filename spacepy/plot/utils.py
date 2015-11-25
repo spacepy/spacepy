@@ -761,21 +761,24 @@ def collapse_vertical(combine, others=(), leave_axis=False):
 
     Examples
     ========
-    >>> import spacepy.plot.utils
-    >>> import matplotlib.pyplot as plt
-    >>> fig = plt.figure()
-    >>> #Make three stacked subplots
-    >>> ax0 = fig.add_subplot(311)
-    >>> ax1 = fig.add_subplot(312)
-    >>> ax2 = fig.add_subplot(313)
-    >>> ax0.plot([1, 2, 3], [1, 2, 1]) #just make some lines
-    [<matplotlib.lines.Line2D object at 0x0000000>]
-    >>> ax1.plot([1, 2, 3], [1, 2, 1])
-    [<matplotlib.lines.Line2D object at 0x0000000>]
-    >>> ax2.plot([1, 2, 3], [1, 2, 1])
-    [<matplotlib.lines.Line2D object at 0x0000000>]
-    >>> #Collapse space between top two plots, leave bottom one alone
-    >>> spacepy.plot.utils.collapse_vertical([ax0, ax1], [ax2])
+    .. plot::
+        :include-source:
+    
+        >>> import spacepy.plot.utils
+        >>> import matplotlib.pyplot as plt
+        >>> fig = plt.figure()
+        >>> #Make three stacked subplots
+        >>> ax0 = fig.add_subplot(311)
+        >>> ax1 = fig.add_subplot(312)
+        >>> ax2 = fig.add_subplot(313)
+        >>> ax0.plot([1, 2, 3], [1, 2, 1]) #just make some lines
+        [<matplotlib.lines.Line2D object at 0x0000000>]
+        >>> ax1.plot([1, 2, 3], [1, 2, 1])
+        [<matplotlib.lines.Line2D object at 0x0000000>]
+        >>> ax2.plot([1, 2, 3], [1, 2, 1])
+        [<matplotlib.lines.Line2D object at 0x0000000>]
+        >>> #Collapse space between top two plots, leave bottom one alone
+        >>> spacepy.plot.utils.collapse_vertical([ax0, ax1], [ax2])
     """
     combine = tuple(combine)
     others = tuple(others)
@@ -974,7 +977,8 @@ def shared_ylabel(axes, txt, *args, **kwargs):
     return lbl
 
 
-def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
+def timestamp(position=(1.003, 0.01), size='xx-small', draw=True, strnow=None,
+              rotation='vertical', ax=None, **kwargs):
     """
     print a timestamp on the current plot, vertical lower right
 
@@ -997,14 +1001,17 @@ def timestamp(position=[1.003, 0.01], size='xx-small', draw=True, **kwargs):
     [<matplotlib.lines.Line2D object at 0x49072b0>]
     >>> spacepy.plot.utils.timestamp()
     """
-    from matplotlib.pyplot import gca, draw
-    now = datetime.datetime.now()
-    strnow = now.strftime("%d%b%Y %H:%M")
-    ax=gca()
-    ax.annotate(strnow, position, xycoords='axes fraction', rotation='vertical', size=size, va='bottom',  **kwargs)
+    if strnow is None:
+            now = datetime.datetime.now()
+            strnow = now.strftime("%d%b%Y %H:%M")
+    if ax is None:
+        ax=plt.gca()
+    ann=ax.annotate(strnow, position,
+                    xycoords='axes fraction', rotation=rotation,
+                    size=size, va='bottom',  **kwargs)
     if draw:
-        draw()
-
+        plt.draw()
+    return ann
 
 def _used_boxes_helper(obj, renderer=None):
     """Recursively-called helper function for get_used_boxes. Internal."""

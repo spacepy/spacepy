@@ -16,11 +16,22 @@ Copyright 2010 Los Alamos National Security, LLC.
 
 import itertools, numbers
 from collections import Iterable
+import sys
+import warnings
+
 import numpy as np
+
 from spacepy import help
 import spacepy.coordinates as spc
 import spacepy.datamodel as dm
-from . import irbempylib as oplib
+try:
+    from . import irbempylib as oplib
+except ImportError:
+    if 'sphinx' in sys.argv[0]:
+        warnings.warn('Could not import irbempylib. '
+                      'You appear to be building docs, so ignoring this error.')
+    else:
+        raise
 import spacepy.toolbox as tb
 
 
