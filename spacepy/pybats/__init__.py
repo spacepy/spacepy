@@ -496,41 +496,38 @@ def readarray(f,dtype=np.float32,inttype=np.int32):
     """
 
     if dtype is str:
-        nbytes=1
+        dtype_size_bytes=1
     else:
-        nbytes=dtype.itemsize
+        dtype_size_bytes=dtype.itemsize
 
     # Get the record length
-    n=np.fromfile(f,dtype=inttype,count=1)
+    rec_len=np.fromfile(f,dtype=inttype,count=1)
 
     # Check that the record length is consistent with the data type
-    if n%nbytes!=0:
-        raise ValueError('Read error: Data type inconsistent with record length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(nbytes),int(n)))
+    if rec_len%dtype_size_bytes!=0:
+        raise ValueError('Read error: Data type inconsistent with record length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(dtype_size_bytes),int(n)))
 
-    if len(n)==0:
+    if len(rec_len)==0:
         # Zero-length record...file may be truncated
         raise EOFError('Zero-length read at start marker')
 
     # Read the data
-    try:
-        if dtype is str:
-            A=f.read(n)
-        else:
-            A=np.fromfile(f,dtype=dtype,count=n/nbytes)
-    except TypeError:
-        raise
+    if dtype is str:
+        A=f.read(rec_len)
+    else:
+        A=np.fromfile(f,dtype=dtype,count=rec_len/dtype_size_bytes)
 
     # Check the record length marker at the end
-    nend=np.fromfile(f,dtype=inttype,count=1)
-    if len(nend)==0:
+    rec_len_end=np.fromfile(f,dtype=inttype,count=1)
+    if len(rec_len_end)==0:
         # Couldn't read, file may be truncated
         raise EOFError('Zero-length read at end marker')
 
-    if nend!=n:
+    if rec_len_end!=rec_len:
         # End marker is inconsistent with start marker. Something is wrong.
         raise ValueError(
             'Read error: End marker does not match start marker (start marker says record length is {0:d} bytes, end marker says {1:d} bytes). This indicates incorrect endiannes, wrong file type, or file is corrupt'.format(
-                int(n),int(nend)
+                int(rec_len),int(rec_len_end)
             )
         )
 
