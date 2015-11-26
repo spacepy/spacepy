@@ -15,6 +15,8 @@ Copyright 2011-2015 Los Alamos National Security, LLC.
 
 """
 import os
+import numpy as np
+import matplotlib as mpl
 from matplotlib.patches import Wedge
 from matplotlib import __version__ as mplv
 import matplotlib.pyplot as plt
@@ -58,7 +60,6 @@ def style(look=None, cmap='plasma'):
     look : str
     Name of style. For a list of available style names, see `spacepy.plot.available`.
     '''
-    import matplotlib
     lookdict = available(returnvals=True)
     try:
         usestyle = lookdict[look]
@@ -67,28 +68,33 @@ def style(look=None, cmap='plasma'):
     try:
         plt.style.use(usestyle)
     except AttributeError: #plt.style.use not available, old matplotlib?
-        dum = matplotlib.rc_params_from_file(usestyle)
-        styapply = dict()
-        #remove None values as these seem to cause issues...
-        for key in dum:
-            if dum[key] is not None: styapply[key] = dum[key]
-        for key in styapply:
-            matplotlib.rcParams[key] = styapply[key]
-    matplotlib.rcParams['image.cmap'] = cmap
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            dum = mpl.rc_params_from_file(usestyle)
+            styapply = dict()
+            #remove None values as these seem to cause issues...
+            for key in dum:
+                if dum[key] is not None: styapply[key] = dum[key]
+            for key in styapply:
+                mpl.rcParams[key] = styapply[key]
+    mpl.rcParams['image.cmap'] = cmap
 
 #save current rcParams before applying spacepy style
 oldParams = dict()
-for key, val in matplotlib.rcParams.items():
+for key, val in mpl.rcParams.items():
         oldParams[key] = dmcopy(val)
 style()
 
 def revert_style():
-    import matplotlib
-    for key in oldParams:
-        try:
-            matplotlib.rcParams[key] = oldParams[key]
-        except ValueError:
-            pass
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for key in oldParams:
+            try:
+                mpl.rcParams[key] = oldParams[key]
+            except ValueError:
+                pass
 
 def dual_half_circle(center=(0,0), radius=1.0,
                      sun_direction='right', ax=None, colors=('w','k'),
@@ -154,7 +160,7 @@ def dual_half_circle(center=(0,0), radius=1.0,
         ax.add_artist(wedge)
     return (w1, w2)
 
-def levelHist(data, var=None, levels=(3, 5, 7), target=None, colors=None, **kwargs):
+def levelHist(data, var=None, time=None, levels=(3, 5, 7), target=None, colors=None, **kwargs):
     """
     Plot a histogram with up to 5 levels following a color cycle (e.g. Kp index "stoplight")
 
@@ -168,6 +174,8 @@ def levelHist(data, var=None, levels=(3, 5, 7), target=None, colors=None, **kwar
     ----------
     var    : string
         Name of key in dict-like input that contains data
+    time   : array-like or string
+        Name of key in dict-like that contains time, or arraylike of datetimes
     levels : array-like, up to 5 levels
         Breaks between levels in data that should be shown as distinct colors
     target : figure or axes
@@ -184,17 +192,40 @@ def levelHist(data, var=None, levels=(3, 5, 7), target=None, colors=None, **kwar
 
     Examples
     --------
-    >>> import spacepy.plot
-    >>> spacepy.plot.levelHist(indata)
+    >>> import spacepy.plot as splot
+    >>> import spacepy.time as spt
+    >>> import spacepy.omni as om
+    >>> tt = spt.tickrange('2012/10/1','2012/10/2', 3/24.)
+    >>> omni = om.get_omni(tt)
+    >>> splot.levelHist(omni, var='Kp')
 
     """
-    from spacepy.toolbox import binHisto
     #assume dict-like/key-access, before moving to array-like
     if var is not None:
         try:
             usearr = data[var]
         except KeyError:
             raise KeyError('')
-    binwidth, nbins = binHisto(usearr, )
-    fig, ax = set_target()
-    ax.hist(data, bins=nbins, histtype='step', normed=True)
+    else:
+        usearr = data
+    if time is None:
+        time = range(1, len(usearr)+1)
+    if not colors:
+        colors = matplotlib.rcParams['axes.color_cycle']
+    fig, ax = set_target(target)
+    subset = dmcopy(usearr)
+    #below threshold 1
+    inds = usearr<levels[0]
+    subset[inds] = 0
+    ax.plot(time, subset, fillstyle='full', color=colors[0], linestyle='-', drawstyle='steps')
+    ##fillstyle doesn't work... use get_path on line object and use fill_between
+    for idx in range(1,len(levels)-1):
+        subset = dmcopy(usearr)
+        inds = np.bitwise_and(usearr>=levels[idx], usearr<levels[idx+1])
+        subset[inds] = 0
+        ax.plot(time, subset, fillstyle='full', color=colors[idx], linestyle='-', drawstyle='steps')
+    #last
+    inds = usearr>=levels[-1]
+    subset[inds] = 0
+    ax.plot(time, subset, fillstyle='full', color=colors[len(levels)], linestyle='-', drawstyle='steps')
+    
