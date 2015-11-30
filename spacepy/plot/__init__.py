@@ -196,10 +196,9 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
     >>> import spacepy.plot as splot
     >>> import spacepy.time as spt
     >>> import spacepy.omni as om
-    >>> tt = spt.tickrange('2012/10/1','2012/10/2', 3/24.)
+    >>> tt = spt.tickrange('2012/09/28','2012/10/2', 3/24.)
     >>> omni = om.get_omni(tt)
-    >>> splot.levelHist(omni, var='Kp')
-
+    >>> splot.levelHist(omni, var='Kp', time='UTC', colors=['seagreen', 'orange', 'crimson'])
     """
     #assume dict-like/key-access, before moving to array-like
     if var is not None:
@@ -257,5 +256,6 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
 
     #if required, set x axis to times
     if tflag:
-        formatter = smartTimeTicks(data[time])[2]
-        ax.xaxis.set_major_formatter(formatter)
+        applySmartTimeTicks(ax, data[time])
+
+    return ax
