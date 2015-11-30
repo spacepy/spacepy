@@ -215,6 +215,7 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
             raise TypeError('Data appears to be dict-like without a key being given')
     tflag = False
     if time is not None:
+        from scipy.stats import mode
         try:
             times = data[time]
         except (KeyError, ValueError, IndexError):
@@ -223,7 +224,11 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
             times = matplotlib.dates.date2num(times)
             tflag = True
         except AttributeError:
-            raise Exception#how did we get here?
+            #the x-data are a non-datetime
+            times = np.asarray(time)
+        #now add the end-point
+        stepsize, dum = mode(np.diff(times), axis=None)
+        times = np.hstack([times, times[-1]+stepsize])
     else:
         times = np.asarray(range(0, len(usearr)+1))
     if not colors:
@@ -235,13 +240,6 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
 
     def fill_between_steps(ax, x, y1, **kwargs):
         y2 = np.zeros_like(y1)
-        #verts = np.vstack((x, y1, y2))
-        #steps = np.zeros((3, 2 * len(x) - 1), dtype=np.float)
-        #steps[0, 0::2], steps[0, 1::2] = verts[0, :], verts[0, :-1]
-        #print(steps[0],steps[1])
-        #steps[1:, 0::2] = verts[1:, :]
-        #print(steps[0],steps[1])
-        #steps[1:, 1:-1:2] = verts[1:, 1:]
         stepsxx = x.repeat(2)[1:-1]
         stepsyy = y1.repeat(2)
         y2 = np.zeros_like(stepsyy)
@@ -251,13 +249,9 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
     idx = 0
     inds = usearr>levels[0]
     subset[inds] = np.nan
-    print(idx, levels[0])
-    print(times, subset)
     fill_between_steps(ax, times, subset, color=colors[0], zorder=99, **kwargs)
     #for each of the "between" thresholds
     for idx in range(1,len(levels)):
-        print(idx)
-        print('x={0}, y={1}'.format(times, subset))
         subset = dmcopy(usearr)
         inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
         subset[inds] = np.nan
