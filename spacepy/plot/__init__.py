@@ -209,8 +209,21 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
             raise KeyError('')
     else:
         usearr = data
-    if time is None:
-        time = range(1, len(usearr)+1)
+    tflag = False
+    if time is not None:
+        try:
+            times = data[time]
+        except (KeyError, ValueError):
+            #KeyError is not present in dict-like, ValueError is not present in array
+            pass
+        finally:
+            try:
+                times = matplotlib.dates.date2num(times)
+                tflag = True
+            except AttributeError:
+                times = time
+    else:
+        times = range(1, len(usearr)+1)
     if not colors:
         colors = matplotlib.rcParams['axes.color_cycle']
     fig, ax = set_target(target)
@@ -228,17 +241,21 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
     idx = 0
     inds = usearr>levels[0]
     subset[inds] = 0
-    fill_between_steps(ax, time, subset, color=colors[0], zorder=99)
+    fill_between_steps(ax, times, subset, color=colors[0], zorder=99)
     #for each of the "between" thresholds
     for idx in range(1,len(levels)):
         subset = dmcopy(usearr)
         inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
         subset[inds] = 0
-        fill_between_steps(ax, time, subset, color=colors[idx], zorder=100-(idx*2))
+        fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2))
     #last
     inds = usearr<levels[-1]
     subset = dmcopy(usearr)
     subset[inds] = 0
     idx += 1
-    fill_between_steps(ax, time, subset, color=colors[idx], zorder=100-(idx*2))
-    
+    fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2))
+
+    #if required, set x axis to times
+    if tflag:
+        formatter = smartTimeTicks(data[time])[2]
+        ax.xaxis.set_major_formatter(formatter)
