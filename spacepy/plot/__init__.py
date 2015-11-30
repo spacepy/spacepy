@@ -210,7 +210,7 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
         #var is None, so make sure we don't have a dict-like
         import collections
         if not isinstance(data, collections.Mapping):
-            usearr = data
+            usearr = np.asarray(data)
         else:
             raise TypeError('Data appears to be dict-like without a key being given')
     tflag = False
@@ -225,37 +225,49 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
         except AttributeError:
             raise Exception#how did we get here?
     else:
-        times = range(1, len(usearr)+1)
+        times = np.asarray(range(0, len(usearr)+1))
     if not colors:
         colors = matplotlib.rcParams['axes.color_cycle']
+    if 'alpha' not in kwargs:
+        kwargs['alpha']=0.75
     fig, ax = set_target(target)
     subset = dmcopy(usearr)
 
     def fill_between_steps(ax, x, y1, **kwargs):
-        y2 = np.zeros_like(x)
-        verts = np.vstack((x, y1, y2))
-        steps = np.zeros((3, 2 * len(x) - 1), dtype=np.float)
-        steps[0, 0::2], steps[0, 1::2] = verts[0, :], verts[0, :-1]
-        steps[1:, 0::2], steps[1:, 1:-1:2] = verts[1:, :], verts[1:, 1:]
-        return ax.fill_between(steps[0], steps[1], steps[2], **kwargs)
+        y2 = np.zeros_like(y1)
+        #verts = np.vstack((x, y1, y2))
+        #steps = np.zeros((3, 2 * len(x) - 1), dtype=np.float)
+        #steps[0, 0::2], steps[0, 1::2] = verts[0, :], verts[0, :-1]
+        #print(steps[0],steps[1])
+        #steps[1:, 0::2] = verts[1:, :]
+        #print(steps[0],steps[1])
+        #steps[1:, 1:-1:2] = verts[1:, 1:]
+        stepsxx = x.repeat(2)[1:-1]
+        stepsyy = y1.repeat(2)
+        y2 = np.zeros_like(stepsyy)
+        return ax.fill_between(stepsxx, stepsyy, y2, **kwargs)
     
     #below threshold 1
     idx = 0
     inds = usearr>levels[0]
-    subset[inds] = 0
-    fill_between_steps(ax, times, subset, color=colors[0], zorder=99)
+    subset[inds] = np.nan
+    print(idx, levels[0])
+    print(times, subset)
+    fill_between_steps(ax, times, subset, color=colors[0], zorder=99, **kwargs)
     #for each of the "between" thresholds
     for idx in range(1,len(levels)):
+        print(idx)
+        print('x={0}, y={1}'.format(times, subset))
         subset = dmcopy(usearr)
         inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
-        subset[inds] = 0
-        fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2))
+        subset[inds] = np.nan
+        fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2), **kwargs)
     #last
     inds = usearr<levels[-1]
     subset = dmcopy(usearr)
-    subset[inds] = 0
+    subset[inds] = np.nan
     idx += 1
-    fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2))
+    fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2), **kwargs)
 
     #if required, set x axis to times
     if tflag:
