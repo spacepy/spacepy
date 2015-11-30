@@ -205,22 +205,25 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
         try:
             usearr = data[var]
         except KeyError:
-            raise KeyError('')
+            raise KeyError('Key "{1}" not present in data'.format(var))
     else:
-        usearr = data
+        #var is None, so make sure we don't have a dict-like
+        import collections
+        if not isinstance(data, collections.Mapping):
+            usearr = data
+        else:
+            raise TypeError('Data appears to be dict-like without a key being given')
     tflag = False
     if time is not None:
         try:
             times = data[time]
-        except (KeyError, ValueError):
-            #KeyError is not present in dict-like, ValueError is not present in array
-            pass
-        finally:
-            try:
-                times = matplotlib.dates.date2num(times)
-                tflag = True
-            except AttributeError:
-                times = time
+        except (KeyError, ValueError, IndexError):
+            times = time
+        try:
+            times = matplotlib.dates.date2num(times)
+            tflag = True
+        except AttributeError:
+            raise Exception#how did we get here?
     else:
         times = range(1, len(usearr)+1)
     if not colors:
@@ -256,6 +259,11 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
 
     #if required, set x axis to times
     if tflag:
-        applySmartTimeTicks(ax, data[time])
+        try:
+            applySmartTimeTicks(ax, data[time])
+        except (IndexError, KeyError):
+            #using data array to index, so should just use time
+            applySmartTimeTicks(ax, time)
+        ax.grid('off', which='minor') #minor grid usually looks bad on these...
 
     return ax
