@@ -22,6 +22,7 @@ from matplotlib import __version__ as mplv
 import matplotlib.pyplot as plt
 from spacepy import __path__ as basepath
 from spacepy.datamodel import dmcopy
+import spacepy.datamanager as dman
 from .spectrogram import *
 from .utils import *
 from .carrington import *
@@ -160,7 +161,7 @@ def dual_half_circle(center=(0,0), radius=1.0,
         ax.add_artist(wedge)
     return (w1, w2)
 
-def levelHist(data, var=None, time=None, levels=(3, 5, 7), target=None, colors=None, **kwargs):
+def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=None, **kwargs):
     """
     Plot a histogram with up to 5 levels following a color cycle (e.g. Kp index "stoplight")
 
@@ -214,18 +215,30 @@ def levelHist(data, var=None, time=None, levels=(3, 5, 7), target=None, colors=N
         colors = matplotlib.rcParams['axes.color_cycle']
     fig, ax = set_target(target)
     subset = dmcopy(usearr)
+
+    def fill_between_steps(ax, x, y1, **kwargs):
+        y2 = np.zeros_like(x)
+        verts = np.vstack((x, y1, y2))
+        steps = np.zeros((3, 2 * len(x) - 1), dtype=np.float)
+        steps[0, 0::2], steps[0, 1::2] = verts[0, :], verts[0, :-1]
+        steps[1:, 0::2], steps[1:, 1:-1:2] = verts[1:, :], verts[1:, 1:]
+        return ax.fill_between(steps[0], steps[1], steps[2], **kwargs)
+    
     #below threshold 1
-    inds = usearr<levels[0]
+    idx = 0
+    inds = usearr>levels[0]
     subset[inds] = 0
-    ax.plot(time, subset, fillstyle='full', color=colors[0], linestyle='-', drawstyle='steps')
-    ##fillstyle doesn't work... use get_path on line object and use fill_between
-    for idx in range(1,len(levels)-1):
+    fill_between_steps(ax, time, subset, color=colors[0], zorder=99)
+    #for each of the "between" thresholds
+    for idx in range(1,len(levels)):
         subset = dmcopy(usearr)
-        inds = np.bitwise_and(usearr>=levels[idx], usearr<levels[idx+1])
+        inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
         subset[inds] = 0
-        ax.plot(time, subset, fillstyle='full', color=colors[idx], linestyle='-', drawstyle='steps')
+        fill_between_steps(ax, time, subset, color=colors[idx], zorder=100-(idx*2))
     #last
-    inds = usearr>=levels[-1]
+    inds = usearr<levels[-1]
+    subset = dmcopy(usearr)
     subset[inds] = 0
-    ax.plot(time, subset, fillstyle='full', color=colors[len(levels)], linestyle='-', drawstyle='steps')
+    idx += 1
+    fill_between_steps(ax, time, subset, color=colors[idx], zorder=100-(idx*2))
     
