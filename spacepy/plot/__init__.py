@@ -235,6 +235,11 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
         colors = matplotlib.rcParams['axes.color_cycle']
     if 'alpha' not in kwargs:
         kwargs['alpha']=0.75
+    if 'legend' not in kwargs:
+        legend = False
+    else:
+        legend = kwargs['legend']
+        del kwargs['legend']
     fig, ax = set_target(target)
     subset = dmcopy(usearr)
 
@@ -243,25 +248,33 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
         stepsxx = x.repeat(2)[1:-1]
         stepsyy = y1.repeat(2)
         y2 = np.zeros_like(stepsyy)
-        return ax.fill_between(stepsxx, stepsyy, y2, **kwargs)
+        ax.fill_between(stepsxx, stepsyy, y2, **kwargs)
+        p = plt.Rectangle((0, 0), 0, 0, **kwargs)
+        ax.add_patch(p)
     
     #below threshold 1
     idx = 0
     inds = usearr>levels[0]
     subset[inds] = np.nan
+    kwargs['label'] = '<{0}'.format(levels[idx])
     fill_between_steps(ax, times, subset, color=colors[0], zorder=99, **kwargs)
     #for each of the "between" thresholds
     for idx in range(1,len(levels)):
         subset = dmcopy(usearr)
         inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
         subset[inds] = np.nan
+        kwargs['label'] = '{0}-{1}'.format(levels[idx-1], levels[idx])
         fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2), **kwargs)
     #last
-    inds = usearr<levels[-1]
-    subset = dmcopy(usearr)
-    subset[inds] = np.nan
     idx += 1
-    fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2), **kwargs)
+    try:
+        inds = usearr<levels[-1]
+        subset = dmcopy(usearr)
+        subset[inds] = np.nan
+        kwargs['label'] = '>{0}'.format(levels[-1])
+        fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2), **kwargs)
+    except:
+        pass
 
     #if required, set x axis to times
     if tflag:
@@ -271,5 +284,10 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
             #using data array to index, so should just use time
             applySmartTimeTicks(ax, time)
         ax.grid('off', which='minor') #minor grid usually looks bad on these...
+    
+    if legend:
+        ncols = len(levels)+1
+        if ncols > 3: ncols = ncols//2
+        ax.legend(loc='upper left', ncol=ncols)
 
     return ax
