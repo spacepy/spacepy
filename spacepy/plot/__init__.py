@@ -161,14 +161,14 @@ def dual_half_circle(center=(0,0), radius=1.0,
         ax.add_artist(wedge)
     return (w1, w2)
 
-def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=None, **kwargs):
+def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None, **kwargs):
     """
-    Plot a histogram with up to 5 levels following a color cycle (e.g. Kp index "stoplight")
+    Draw a step-plot with up to 5 levels following a color cycle (e.g. Kp index "stoplight")
 
     Parameters
     ----------
     data : array-like, or dict-like
-        Data for binning and plotting. If dict-like, the key providing an array-like 
+        Data for plotting. If dict-like, the key providing an array-like 
         to plot must be given to var keyword argument.
 
     Other Parameters
@@ -198,7 +198,7 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
     >>> import spacepy.omni as om
     >>> tt = spt.tickrange('2012/09/28','2012/10/2', 3/24.)
     >>> omni = om.get_omni(tt)
-    >>> splot.levelHist(omni, var='Kp', time='UTC', colors=['seagreen', 'orange', 'crimson'])
+    >>> splot.levelPlot(omni, var='Kp', time='UTC', colors=['seagreen', 'orange', 'crimson'])
     """
     #assume dict-like/key-access, before moving to array-like
     if var is not None:
@@ -232,7 +232,17 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
     else:
         times = np.asarray(range(0, len(usearr)+1))
     if not colors:
-        colors = matplotlib.rcParams['axes.color_cycle']
+        if len(levels)<=3:
+            #traffic light colours that are distinct to protanopes and deuteranopes
+            colors = ['lime', 'yellow', 'crimson', 'saddlebrown']
+        else:
+            colors = matplotlib.rcParams['axes.color_cycle']
+    else:
+        try:
+            assert len(colors) > len(levels)
+        except AssertionError:
+            #cycle the given colors, if not enough are given
+            colors = list(colors)*int(1+len(levels)/len(colors))
     if 'alpha' not in kwargs:
         kwargs['alpha']=0.75
     if 'legend' not in kwargs:
@@ -257,14 +267,14 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
     inds = usearr>levels[0]
     subset[inds] = np.nan
     kwargs['label'] = '<{0}'.format(levels[idx])
-    fill_between_steps(ax, times, subset, color=colors[0], zorder=99, **kwargs)
+    fill_between_steps(ax, times, subset, color=colors[0], zorder=30, **kwargs)
     #for each of the "between" thresholds
     for idx in range(1,len(levels)):
         subset = dmcopy(usearr)
         inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
         subset[inds] = np.nan
         kwargs['label'] = '{0}-{1}'.format(levels[idx-1], levels[idx])
-        fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2), **kwargs)
+        fill_between_steps(ax, times, subset, color=colors[idx], zorder=30-(idx*2), **kwargs)
     #last
     idx += 1
     try:
@@ -272,7 +282,7 @@ def levelHist(data, var=None, time=None, levels=(1, 3, 5), target=None, colors=N
         subset = dmcopy(usearr)
         subset[inds] = np.nan
         kwargs['label'] = '>{0}'.format(levels[-1])
-        fill_between_steps(ax, times, subset, color=colors[idx], zorder=100-(idx*2), **kwargs)
+        fill_between_steps(ax, times, subset, color=colors[idx], zorder=30-(idx*2), **kwargs)
     except:
         pass
 
