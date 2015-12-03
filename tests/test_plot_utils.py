@@ -123,6 +123,5 @@ class PlotUtilFunctionTests(unittest.TestCase):
         self.assertTrue(ann.get_text().startswith(now[:7]))
         plt.close()
 
-
 if __name__ == "__main__":
     unittest.main()
