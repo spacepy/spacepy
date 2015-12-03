@@ -278,7 +278,7 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
     #last
     idx += 1
     try:
-        inds = usearr<levels[-1]
+        inds = usearr<=levels[idx-1]
         subset = dmcopy(usearr)
         subset[inds] = np.nan
         kwargs['label'] = '>{0}'.format(levels[-1])
