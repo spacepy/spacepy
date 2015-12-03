@@ -236,16 +236,8 @@ compiler_options = [
         ]
 
 
-def rebuild_static_docs(pythondir=None):
+def rebuild_static_docs():
     """Rebuild the 'static' documentation in Doc/build"""
-    if pythondir:
-        env = os.environ.copy()
-        if 'PYTHONPATH' in env:
-            env['PYTHONPATH'] = pythondir + ':' + env['PYTHONPATH']
-        else:
-            env['PYTHONPATH'] = pythondir
-    else:
-        env = None
     builddir = os.path.join(os.path.join('Doc', 'build', 'doctrees'))
     indir = os.path.join('Doc', 'source')
     outdir = os.path.join('Doc', 'build', 'html')
@@ -253,12 +245,14 @@ def rebuild_static_docs(pythondir=None):
         os.environ['SPHINXBUILD'] if 'SPHINXBUILD' in os.environ
         else 'sphinx-build',
         builddir, indir, outdir)
-    subprocess.check_call(cmd.split(), env=env)
+    subprocess.check_call(cmd.split())
     os.chdir('Doc')
     try:
-        cmd = 'make latexpdf'.format(os.environ['MAKE'] if 'MAKE' in os.environ
-        else 'make')
-        subprocess.check_call(cmd.split(), env=env)
+        cmd = '{0}{1} latexpdf'.format(
+            os.environ['MAKE'] if 'MAKE' in os.environ else 'make',
+            ('SPHINXBUILD=' + os.environ['SPHINXBUILD'])
+            if 'SPHINXBUILD' in os.environ else '')
+        subprocess.check_call(cmd.split())
     except:
         warnings.warn('PDF documentation rebuild failed:')
         (t, v, tb) = sys.exc_info()
@@ -625,17 +619,12 @@ class build(_build):
         indir = os.path.join('Doc', 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'Doc')
-        env = os.environ.copy()
-        if 'PYTHONPATH' in env:
-            env['PYTHONPATH'] = self.build_lib + ':' + env['PYTHONPATH']
-        else:
-            env['PYTHONPATH'] = self.build_lib
         cmd = '{0} -b html -d {1} {2} {3}'.format(
             os.environ['SPHINXBUILD'] if 'SPHINXBUILD' in os.environ
             else 'sphinx-build',
             builddir, indir, outdir)
         try:
-            subprocess.check_call(cmd.split(), env=env)
+            subprocess.check_call(cmd.split())
         except:
             warnings.warn(
                 "Building docs failed. Help will not be available.")
@@ -751,9 +740,7 @@ class sdist(_sdist):
         finalize_compiler_options(self)
 
     def run(self):
-        buildcmd = self.get_finalized_command('build')
-        buildcmd.run()
-        rebuild_static_docs(buildcmd.build_lib)
+        rebuild_static_docs()
         _sdist.run(self)
 
 

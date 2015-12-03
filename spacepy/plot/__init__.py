@@ -11,23 +11,30 @@ Institution: Los Alamos National Laboratory
 Contact: balarsen@lanl.gov
 
 
-Copyright 2011 Los Alamos National Security, LLC.
+Copyright 2011-2015 Los Alamos National Security, LLC.
 
 """
 import os
+import numpy as np
+import matplotlib as mpl
 from matplotlib.patches import Wedge
 from matplotlib import __version__ as mplv
 import matplotlib.pyplot as plt
 from spacepy import __path__ as basepath
-from . import spectrogram
-from . import utils
-from . import carrington
-from . import colourmaps as cm
+from spacepy.datamodel import dmcopy
+import spacepy.datamanager as dman
+from .spectrogram import *
+from .utils import *
+from .carrington import *
+from .colourmaps import plasma as _plasma
+from .colourmaps import plasma_r as _plasma_r
+from .colourmaps import viridis as _viridis
+from .colourmaps import viridis_r as _viridis_r
 
-plt.register_cmap(name='plasma', cmap=cm.plasma)
-plt.register_cmap(name='plasma_r', cmap=cm.plasma_r)
-plt.register_cmap(name='viridis', cmap=cm.viridis)
-plt.register_cmap(name='viridis_r', cmap=cm.viridis_r)
+plt.register_cmap(name='plasma', cmap=_plasma)
+plt.register_cmap(name='plasma_r', cmap=_plasma_r)
+plt.register_cmap(name='viridis', cmap=_viridis)
+plt.register_cmap(name='viridis_r', cmap=_viridis_r)
 
 def available(returnvals=False):
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
@@ -54,7 +61,6 @@ def style(look=None, cmap='plasma'):
     look : str
     Name of style. For a list of available style names, see `spacepy.plot.available`.
     '''
-    import matplotlib
     lookdict = available(returnvals=True)
     try:
         usestyle = lookdict[look]
@@ -63,16 +69,33 @@ def style(look=None, cmap='plasma'):
     try:
         plt.style.use(usestyle)
     except AttributeError: #plt.style.use not available, old matplotlib?
-        dum = matplotlib.rc_params_from_file(usestyle)
-        styapply = dict()
-        #remove None values as these seem to cause issues...
-        for key in dum:
-            if dum[key] is not None: styapply[key] = dum[key]
-        for key in styapply:
-            matplotlib.rcParams[key] = styapply[key]
-    matplotlib.rcParams['image.cmap'] = cmap
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            dum = mpl.rc_params_from_file(usestyle)
+            styapply = dict()
+            #remove None values as these seem to cause issues...
+            for key in dum:
+                if dum[key] is not None: styapply[key] = dum[key]
+            for key in styapply:
+                mpl.rcParams[key] = styapply[key]
+    mpl.rcParams['image.cmap'] = cmap
+
+#save current rcParams before applying spacepy style
+oldParams = dict()
+for key, val in mpl.rcParams.items():
+        oldParams[key] = dmcopy(val)
 style()
 
+def revert_style():
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for key in oldParams:
+            try:
+                mpl.rcParams[key] = oldParams[key]
+            except ValueError:
+                pass
 
 def dual_half_circle(center=(0,0), radius=1.0,
                      sun_direction='right', ax=None, colors=('w','k'),
@@ -138,3 +161,143 @@ def dual_half_circle(center=(0,0), radius=1.0,
         ax.add_artist(wedge)
     return (w1, w2)
 
+def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None, **kwargs):
+    """
+    Draw a step-plot with up to 5 levels following a color cycle (e.g. Kp index "stoplight")
+
+    Parameters
+    ----------
+    data : array-like, or dict-like
+        Data for plotting. If dict-like, the key providing an array-like 
+        to plot must be given to var keyword argument.
+
+    Other Parameters
+    ----------
+    var    : string
+        Name of key in dict-like input that contains data
+    time   : array-like or string
+        Name of key in dict-like that contains time, or arraylike of datetimes
+    levels : array-like, up to 5 levels
+        Breaks between levels in data that should be shown as distinct colors
+    target : figure or axes
+        Target axes or figure window
+    colors : array-like
+        Colors to use for the color sequence (if insufficient colors, will use as a cycle)
+    **kwargs : other keywords
+        Other keywords to pass to spacepy.toolbox.binHisto
+
+    Returns
+    -------
+    binned : tuple
+        Tuple of the binned data and bins
+
+    Examples
+    --------
+    >>> import spacepy.plot as splot
+    >>> import spacepy.time as spt
+    >>> import spacepy.omni as om
+    >>> tt = spt.tickrange('2012/09/28','2012/10/2', 3/24.)
+    >>> omni = om.get_omni(tt)
+    >>> splot.levelPlot(omni, var='Kp', time='UTC', colors=['seagreen', 'orange', 'crimson'])
+    """
+    #assume dict-like/key-access, before moving to array-like
+    if var is not None:
+        try:
+            usearr = data[var]
+        except KeyError:
+            raise KeyError('Key "{1}" not present in data'.format(var))
+    else:
+        #var is None, so make sure we don't have a dict-like
+        import collections
+        if not isinstance(data, collections.Mapping):
+            usearr = np.asarray(data)
+        else:
+            raise TypeError('Data appears to be dict-like without a key being given')
+    tflag = False
+    if time is not None:
+        from scipy.stats import mode
+        try:
+            times = data[time]
+        except (KeyError, ValueError, IndexError):
+            times = time
+        try:
+            times = matplotlib.dates.date2num(times)
+            tflag = True
+        except AttributeError:
+            #the x-data are a non-datetime
+            times = np.asarray(time)
+        #now add the end-point
+        stepsize, dum = mode(np.diff(times), axis=None)
+        times = np.hstack([times, times[-1]+stepsize])
+    else:
+        times = np.asarray(range(0, len(usearr)+1))
+    if not colors:
+        if len(levels)<=3:
+            #traffic light colours that are distinct to protanopes and deuteranopes
+            colors = ['lime', 'yellow', 'crimson', 'saddlebrown']
+        else:
+            colors = matplotlib.rcParams['axes.color_cycle']
+    else:
+        try:
+            assert len(colors) > len(levels)
+        except AssertionError:
+            #cycle the given colors, if not enough are given
+            colors = list(colors)*int(1+len(levels)/len(colors))
+    if 'alpha' not in kwargs:
+        kwargs['alpha']=0.75
+    if 'legend' not in kwargs:
+        legend = False
+    else:
+        legend = kwargs['legend']
+        del kwargs['legend']
+    fig, ax = set_target(target)
+    subset = dmcopy(usearr)
+
+    def fill_between_steps(ax, x, y1, **kwargs):
+        y2 = np.zeros_like(y1)
+        stepsxx = x.repeat(2)[1:-1]
+        stepsyy = y1.repeat(2)
+        y2 = np.zeros_like(stepsyy)
+        ax.fill_between(stepsxx, stepsyy, y2, **kwargs)
+        p = plt.Rectangle((0, 0), 0, 0, **kwargs)
+        ax.add_patch(p)
+    
+    #below threshold 1
+    idx = 0
+    inds = usearr>levels[0]
+    subset[inds] = np.nan
+    kwargs['label'] = '<{0}'.format(levels[idx])
+    fill_between_steps(ax, times, subset, color=colors[0], zorder=30, **kwargs)
+    #for each of the "between" thresholds
+    for idx in range(1,len(levels)):
+        subset = dmcopy(usearr)
+        inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
+        subset[inds] = np.nan
+        kwargs['label'] = '{0}-{1}'.format(levels[idx-1], levels[idx])
+        fill_between_steps(ax, times, subset, color=colors[idx], zorder=30-(idx*2), **kwargs)
+    #last
+    idx += 1
+    try:
+        inds = usearr<levels[-1]
+        subset = dmcopy(usearr)
+        subset[inds] = np.nan
+        kwargs['label'] = '>{0}'.format(levels[-1])
+        fill_between_steps(ax, times, subset, color=colors[idx], zorder=30-(idx*2), **kwargs)
+    except:
+        pass
+
+    #if required, set x axis to times
+    if tflag:
+        try:
+            applySmartTimeTicks(ax, data[time])
+        except (IndexError, KeyError):
+            #using data array to index, so should just use time
+            applySmartTimeTicks(ax, time)
+        ax.grid('off', which='minor') #minor grid usually looks bad on these...
+    
+    if legend:
+        ncols = len(levels)+1
+        if ncols > 3: ncols = ncols//2
+        ax.legend(loc='upper left', ncol=ncols)
+
+    return ax

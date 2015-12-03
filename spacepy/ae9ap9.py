@@ -46,13 +46,13 @@ def readFile(fname, comments='#'):
 
     Examples
     ========
-    from spacepy import ae9ap9
-    ae9ap9.readFile('ephem_sat.dat').tree(verbose=1)
-    # +
-    # |____Epoch (spacepy.datamodel.dmarray (121,))
-    # |____GSE (spacepy.datamodel.dmarray (121, 3))
-    # |____MJD (spacepy.datamodel.dmarray (121,))
-    # |____posComp (spacepy.datamodel.dmarray (3,))
+    >>> from spacepy import ae9ap9
+    >>> ae9ap9.readFile('ephem_sat.dat').tree(verbose=1)
+    +
+    |____Epoch (spacepy.datamodel.dmarray (121,))
+    |____GSE (spacepy.datamodel.dmarray (121, 3))
+    |____MJD (spacepy.datamodel.dmarray (121,))
+    |____posComp (spacepy.datamodel.dmarray (3,))
     """
     if not os.path.isfile(fname):
         raise(ValueError("File {0} not found".format(fname)))
