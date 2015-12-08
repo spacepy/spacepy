@@ -1375,13 +1375,14 @@ class ImfInput(PbData):
         '''
 
         import matplotlib.pyplot as plt
-
+        from spacepy.plot.apionly import applySmartTimeTicks
+        
         if not timerange:
             timerange = [self['time'][0], self['time'][-1]]
 
         def adjust_plots(ax, ylab, xlab=False, Zero=True):
             ax.grid(True)
-            applySmartTimeticks(ax,timerange)
+            applySmartTimeTicks(ax,timerange)
             ax.set_ylabel(ylab)
             labels =ax.get_yticklabels()
             labels[-1].set_visible(False)
