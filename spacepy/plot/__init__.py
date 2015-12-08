@@ -251,7 +251,7 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
         legend = kwargs['legend']
         del kwargs['legend']
     fig, ax = set_target(target)
-    subset = dmcopy(usearr)
+    subset = np.asarray(dmcopy(usearr))
 
     def fill_between_steps(ax, x, y1, **kwargs):
         y2 = np.zeros_like(y1)
@@ -270,7 +270,7 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
     fill_between_steps(ax, times, subset, color=colors[0], zorder=30, **kwargs)
     #for each of the "between" thresholds
     for idx in range(1,len(levels)):
-        subset = dmcopy(usearr)
+        subset = np.asarray(dmcopy(usearr))
         inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
         subset[inds] = np.nan
         kwargs['label'] = '{0}-{1}'.format(levels[idx-1], levels[idx])
@@ -278,8 +278,8 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
     #last
     idx += 1
     try:
-        inds = usearr<levels[-1]
-        subset = dmcopy(usearr)
+        inds = usearr<=levels[idx-1]
+        subset = np.asarray(dmcopy(usearr))
         subset[inds] = np.nan
         kwargs['label'] = '>{0}'.format(levels[-1])
         fill_between_steps(ax, times, subset, color=colors[idx], zorder=30-(idx*2), **kwargs)
