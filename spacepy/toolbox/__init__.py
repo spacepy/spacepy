@@ -1576,10 +1576,7 @@ def query_yes_no(question, default="yes"):
     while 1:
         sys.stdout.write(question + prompt)
         if sys.version_info[0]==2:
-            try:
-                choice = raw_input().lower()
-            except NameError:
-                choice = input().lower() # for python3
+            choice = raw_input().lower()
         elif sys.version_info[0]>2:
             choice = input().lower()
         if default is not None and choice == '':
