@@ -20,21 +20,21 @@ help available:
 
 .. autosummary::
 
-    coordinates
-    data_assimilation
-    datamodel
-    empiricals
-    irbempy
-    LANLstar
-    omni
-    poppy
-    pybats
-    pycdf
-    radbelt
-    seapy
-    time
-    toolbox
-    ae9ap9
+    ~spacepy.coordinates
+    ~spacepy.data_assimilation
+    ~spacepy.datamodel
+    ~spacepy.empiricals
+    ~spacepy.irbempy
+    ~spacepy.LANLstar
+    ~spacepy.omni
+    ~spacepy.poppy
+    ~spacepy.pybats
+    ~spacepy.pycdf
+    ~spacepy.radbelt
+    ~spacepy.seapy
+    ~spacepy.time
+    ~spacepy.toolbox
+    ~spacepy.ae9ap9
 
 Copyright 2010-2012 Los Alamos National Security, LLC.
 """
