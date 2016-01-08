@@ -13,9 +13,8 @@ check out the latest from git.
     python setup.py sdist --formats=gztar,zip
 Tarball and zip are in the dist directory.
 
-Note: building the source distribution will do a binary build as well, since
-binaries are needed to build the docs. Thus, sdist will accept compiler
-options (and may need them.)
+Note: building the source distribution will build the docs, but no longer needs
+to do a binary build.
 
 Windows build:
 Follow the "hard way" directions from the installation docs.

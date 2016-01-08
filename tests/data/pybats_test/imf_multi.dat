@@ -1,0 +1,16 @@
+IMF that switches from 99% Ionosphere hydrogen to 
+99% solar wind hydrogen after 1 hour of simulation
+time.  All other values constant with time.
+
+Use with ModEquationMultiSwIono
+
+#TIMEDELAY
+      0.00000
+#VAR
+bx by bz ux uy uz n SwRho IonoRho t
+
+#START
+ 1998  5  4  0 00 00 000  00.00   00.00     3.00  -400.00  50.00  50.00  5.00  0.01  4.99  0.80E+05
+ 1998  5  4  0 59 00 000  00.00   00.00     3.00  -400.00  50.00  50.00  5.00  0.01  4.99  0.80E+05
+ 1998  5  4  1 00 00 000  00.00   00.00   -10.00  -700.00  50.00  50.00  5.00  4.99  0.01  1.20E+05
+ 1998  5  4 10 00 00 000  00.00   00.00   -10.00  -700.00  50.00  50.00  5.00  4.99  0.01  1.20E+05

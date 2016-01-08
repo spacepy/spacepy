@@ -78,12 +78,17 @@ def _calc_ndens(obj):
     species = []
     names   = []
 
+    # Get name of Rho (case sensitive check):
+    rho = 'Rho'*('Rho' in obj) + 'rho'*('rho' in obj)
+    
     # Find all species: the variable names end or begin with "rho".
     for k in obj:
-        if (k[-3:] == 'Rho') and (k!='Rho') and (k[:-3]+'N' not in obj):
+        # Ends with rho?
+        if (k[-3:] == rho) and (k!=rho) and (k[:-3]+'N' not in obj):
             species.append(k)
             names.append(k[:-3])
-        if (k[:3] == 'Rho') and (k!='Rho') and (k[3:]+'N' not in obj):
+        # Begins with rho?
+        if (k[:3]  == rho) and (k!=rho) and (k[3:] +'N' not in obj):
             species.append(k)
             names.append(k[3:])
 
@@ -97,7 +102,7 @@ def _calc_ndens(obj):
                                               'amu mass':m})
 
     # Total N is sum of individual  number densities.
-    obj['N'] = dmarray(np.zeros(obj['Rho'].shape), 
+    obj['N'] = dmarray(np.zeros(obj[rho].shape), 
                        attrs={'units':'$cm^{-3}$'}) 
     if species:
         # Total number density:
@@ -108,7 +113,7 @@ def _calc_ndens(obj):
                                     {'units':'Percent'})
     else:
         # No individual species => no composition, simple ndens.
-        obj['N'] += dmarray(obj['Rho'], attrs={'units':'$cm^{-3}$'}) 
+        obj['N'] += dmarray(obj[rho], attrs={'units':'$cm^{-3}$'}) 
 
 
 #### Classes:
@@ -2558,9 +2563,9 @@ class VirtSat(LogFile):
         '''
 
         if 'b' not in self:
-            self['b']=np.sqrt(self['Bx']**2+
-                              self['By']**2+
-                              self['Bz']**2)
+            self['b']=np.sqrt(self['bx']**2+
+                              self['by']**2+
+                              self['bz']**2)
 
         return True
 
@@ -2578,12 +2583,12 @@ class VirtSat(LogFile):
 
         if 'b' not in self: self.calc_bmag()
 
-        incl = np.arcsin(self['Bz']/self['B'])
+        incl = np.arcsin(self['bz']/self['b'])
 
         if units=='deg':
-            self['B_incl'] = dmarray(incl*180./np.pi, {'units':'degrees'})
+            self['b_incl'] = dmarray(incl*180./np.pi, {'units':'degrees'})
         elif units=='rad':
-            self['B_incl'] = dmarray(incl, {'units':'radians'})
+            self['b_incl'] = dmarray(incl, {'units':'radians'})
         else:
             raise ValueError('Unrecognized units.  Use "deg" or "rad"')
 

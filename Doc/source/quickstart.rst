@@ -21,17 +21,17 @@ Toolbox - A Box Full of Tools
 Contains tools that don't fit anywhere else but are, in general, quite
 useful. The following functions are a selection of those implemented:
 
-    * :py:func:`toolbox.windowMean`: windowing mean with variable window size and overlap
-    * :py:func:`toolbox.dictree`: pretty prints the contents of dictionaries (recursively)
-    * :py:func:`toolbox.loadpickle`: single line convenience routine for loading Python pickles
-    * :py:func:`toolbox.savepickle`: same as loadpickle, but for saving
-    * :py:func:`toolbox.update`: updates the OMNI database and the leap seconds database (internet connection required)
-    * :py:func:`toolbox.tOverlap`: find interval of overlap between two time series
-    * :py:func:`toolbox.tCommon`: find times common to two time series
-    * :py:func:`toolbox.binHisto`: calculate number of bins for a histogram
-    * :py:func:`toolbox.medAbsDev`: find the median absolute deviation of a data series
-    * :py:func:`toolbox.normalize`: normalize a data series
-    * :py:func:`toolbox.feq`: floating point equals
+    * :func:`~spacepy.toolbox.windowMean`: windowing mean with variable window size and overlap
+    * :func:`~spacepy.toolbox.dictree`: pretty prints the contents of dictionaries (recursively)
+    * :func:`~spacepy.toolbox.loadpickle`: single line convenience routine for loading Python pickles
+    * :func:`~spacepy.toolbox.savepickle`: same as loadpickle, but for saving
+    * :func:`~spacepy.toolbox.update`: updates the OMNI database and the leap seconds database (internet connection required)
+    * :func:`~spacepy.toolbox.tOverlap`: find interval of overlap between two time series
+    * :func:`~spacepy.toolbox.tCommon`: find times common to two time series
+    * :func:`~spacepy.toolbox.binHisto`: calculate number of bins for a histogram
+    * :func:`~spacepy.toolbox.medAbsDev`: find the median absolute deviation of a data series
+    * :func:`~spacepy.toolbox.normalize`: normalize a data series
+    * :func:`~spacepy.toolbox.feq`: floating point equals
 
 Import this module as::
 
@@ -72,7 +72,7 @@ The Ticktock class provides a number of time conversion routines and is
 implemented as a container class built on the functionality of the Python
 datetime module. The following time coordinates are provided
 
-    * UTC: Coordinated Universal Time implemented as a ``datetime.datetime`` class
+    * UTC: Coordinated Universal Time implemented as a :class:`datetime.datetime`
     * ISO: standard ISO 8601 format like ``2002-10-25T14:33:59``
     * TAI: International Atomic Time in units of seconds since Jan 1, 1958 (midnight) and includes leap seconds, i.e. every second has the same length
     * JD:  Julian Day
@@ -419,7 +419,7 @@ Each variable will have one attribute (for this example).
 >>> mydata.attrs['PI'] 'Prof. Big Shot'
 
 This has now populated a structure that can map directly to a NASA CDF. To visualize our datamodel,
-we can use the :meth:`datamodel.SpaceData.tree` method, which is equivalent to :func:`toolbox.dictree`
+we can use the :meth:`~spacepy.datamodel.SpaceData.tree` method, which is equivalent to :func:`toolbox.dictree`
 (which works for any dictionary-like object, including PyCDF file objects).
 
 >>> mydata.tree(attrs=True)
@@ -468,7 +468,7 @@ be flattened so that it is single layered. Let us now store some ephemerides in 
     :|____StartsFrom
 
 Nested dictionary-like objects is not uncommon in Python (and can be exceptionally useful for representing
-data, so to make this compatible with NASA CDF we call the :meth:`datamodel.SpaceData.flatten` method .
+data, so to make this compatible with NASA CDF we call the :meth:`~spacepy.datamodel.SpaceData.flatten` method .
 
 >>> mydata.flatten()
 >>> tb.dictree(mydata, attrs=True)
@@ -502,13 +502,13 @@ Empiricals Module
 The empiricals module provides access to some useful empirical models.
 As of SpacePy 0.1.2, the models available are:
 
-    * :func:`empiricals.getLmax` An empirical parametrization of the L* of the last closed drift shell
+    * :func:`~spacepy.empiricals.getLmax` An empirical parametrization of the L* of the last closed drift shell
       (Lmax)
-    * :func:`empiricals.getPlasmaPause` The plasmapause location, following either Carpenter and Anderson
+    * :func:`~spacepy.empiricals.getPlasmaPause` The plasmapause location, following either Carpenter and Anderson
       (1992) or Moldwin et al. (2002)
-    * :func:`empiricals.getMPstandoff` The magnetopause standoff location (i.e. the sub-solar point), using
+    * :func:`~spacepy.empiricals.getMPstandoff` The magnetopause standoff location (i.e. the sub-solar point), using
       the Shue et al. (1997) model
-    * :func:`empiricals.vampolaPA` A conversion of omnidirectional electron flux to pitch-angle dependent
+    * :func:`~spacepy.empiricals.vampolaPA` A conversion of omnidirectional electron flux to pitch-angle dependent
       flux, using the sin :sup:`n` model of Vampola (1996)
 
 Each of the first three models is called by passing it a Ticktock object (see above) which then
@@ -519,7 +519,7 @@ OMNI module; see above). For example::
 >>> import spacepy.empiricals as emp
 >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
 
-calls :func:`time.tickrange` and makes a Ticktock object
+calls :func:`~spacepy.time.tickrange` and makes a Ticktock object
 with times from midday on January 1st 2002 to midnight January 4th 2002,
 incremented 6-hourly::
 
