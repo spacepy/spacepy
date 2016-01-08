@@ -741,55 +741,62 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0,0,3,0,0], omnivals=No
     magin = d['magin']
     nTtoG = 1.0e-5
 
-    bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
-                     iyearsat[0],idoysat[0],secs[0], xin1[0],xin2[0],xin3[0],magin[:,0])
+    outvals = np.zeros(nTAI)
+    outvals.fill(np.NaN)
+    for i in np.arange(nTAI):
+        bmin, GEOcoord = oplib.find_magequator1(kext,options,sysaxes,\
+                         iyearsat[i],idoysat[i],secs[i], xin1[i],xin2[i],xin3[i],magin[:,i])
 
-    # take out all the odd 'bad values' and turn them into NaN
-    if tb.feq(bmin,badval): bmin = np.NaN
-    GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
+        # take out all the odd 'bad values' and turn them into NaN
+        if tb.feq(bmin,badval): bmin = np.NaN
+        GEOcoord[np.where( tb.feq(GEOcoord, badval)) ] = np.NaN
 
-    pa0 = 90 #start with equatorially mirroring
-    #Now get K for initial alpha at this location...
-    if np.isfinite(GEOcoord[0]):
-        pos1 = spc.Coords(GEOcoord, 'GEO', 'car')
-        LS1 = get_Lstar(ticks, pos1, pa0, extMag=extMag, options=options, omnivals=omnivals)
-        if np.isnan(LS1['Xj']).any():
-            return np.NaN
-        LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
-    else:
-        return np.NaN
-    #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
-    K0 = LS1['K'][0]
-
-    if np.abs(K0-K) < 1e-3: return pa0
-
-    Done, count = False, 0
-    pa_upper, pa_lower, pa_test = pa0, 0, 30
-    while not Done:
-        #print('Testing PA={0}'.format(pa_test))
+        pa0 = 90 #start with equatorially mirroring
         #Now get K for initial alpha at this location...
-        LS1 = get_Lstar(ticks, pos1, pa_test, extMag=extMag, options=options, omnivals=omnivals)
-        if np.isnan(LS1['Xj']).any():
-            return np.NaN
-        LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
-        #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
-        K_test = LS1['K'][0]
+        if np.isfinite(GEOcoord[0]):
+            pos1 = spc.Coords(GEOcoord, 'GEO', 'car')
+            LS1 = get_Lstar(ticks[i], pos1, pa0, extMag=extMag, options=options, omnivals=omnivals)
+            if np.isnan(LS1['Xj']).any():
+                return np.NaN
+            LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
+        else:
+            print('i = {0}, skipping because of bad position'.format(i))
+            continue
+        K0 = LS1['K'][0]
 
-        if np.abs(K_test-K) < 1e-3:
-            #print('***Found K={0} (Req. {1}) at Alpha={2}'.format(K_test, K, pa_test))
-            return pa_test
-        #print('Not Done: Kfound = {0}, Kwant = {1}'.format(K_test, K))
-        if K_test > K: # K is too large, hence alpha is too small, increase.
-            pa_lower = pa_test
-            #print('Reset lower bound. U,L = {0},{1}'.format(pa_upper, pa_lower))
-        else: # K is too small, hence alpha is too large, reduce
-            pa_upper = pa_test
-            #print('Reset upper bound. U,L = {0},{1}'.format(pa_upper, pa_lower))
-        pa_test = pa_lower+np.abs((pa_upper-pa_lower))/2.0
-        #print('Change alpha to {0}'.format(pa_test))
-        count += 1
-        if count>20: return np.NaN
+        if np.abs(K0-K) < 1e-3:
+            outvals[i] = pa0
+            print('i= {0}, found alpha = {1}'.format(i, pa0))
+            continue
 
+        Done, count = False, 0
+        pa_upper, pa_lower, pa_test = pa0, 0, 30
+        while not Done:
+            #print('Testing PA={0}'.format(pa_test))
+            #Now get K for initial alpha at this location...
+            LS1 = get_Lstar(ticks[i], pos1, pa_test, extMag=extMag, options=options, omnivals=omnivals)
+            if np.isnan(LS1['Xj']).any():
+                break
+            LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
+            #print('L* at inner bracket: {0}'.format(LS1['Lstar']))
+            K_test = LS1['K'][0]
+
+            if np.abs(K_test-K) < 1e-3:
+                #print('***Found K={0} (Req. {1}) at Alpha={2}'.format(K_test, K, pa_test))
+                outvals[i] = pa_test
+                break
+            #print('Not Done: Kfound = {0}, Kwant = {1}'.format(K_test, K))
+            if K_test > K: # K is too large, hence alpha is too small, increase.
+                pa_lower = pa_test
+                #print('Reset lower bound. U,L = {0},{1}'.format(pa_upper, pa_lower))
+            else: # K is too small, hence alpha is too large, reduce
+                pa_upper = pa_test
+                #print('Reset upper bound. U,L = {0},{1}'.format(pa_upper, pa_lower))
+            pa_test = pa_lower+np.abs((pa_upper-pa_lower))/2.0
+            #print('Change alpha to {0}'.format(pa_test))
+            count += 1
+            if count>20: break
+    return outvals
         
 
 # -----------------------------------------------
