@@ -760,13 +760,13 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0,0,3,0,0], omnivals=No
                 return np.NaN
             LS1['K'] = LS1['Xj']*np.sqrt(LS1['Bmirr']*nTtoG)
         else:
-            print('i = {0}, skipping because of bad position'.format(i))
+            #print('i = {0}, skipping because of bad position'.format(i))
             continue
         K0 = LS1['K'][0]
 
         if np.abs(K0-K) < 1e-3:
             outvals[i] = pa0
-            print('i= {0}, found alpha = {1}'.format(i, pa0))
+            #print('i= {0}, found alpha = {1}'.format(i, pa0))
             continue
 
         Done, count = False, 0
