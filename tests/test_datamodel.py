@@ -446,7 +446,7 @@ class dmarrayTests(unittest.TestCase):
         ra = dm.toRecArray(sd)
         np.testing.assert_equal(ra['x'], [1.0, 2.0])
         np.testing.assert_equal(ra['y'], [2, 4])
-        self.assertEqual(ra.dtype, np.dtype((np.record, [('x', '<f8'), ('y', '<i8'), ])))
+        self.assertTrue(ra.dtype in (np.dtype((np.record, [('x', '<f8'), ('y', '<i8'), ])), np.dtype((np.record, [ ('y', '<i8'), ('x', '<f8'), ]))))
 
 class converterTests(unittest.TestCase):
     def setUp(self):
