@@ -471,6 +471,14 @@ class SpaceData(dict):
         self.toJSONheadedASCII = partial(toJSONheadedASCII, insd=self, *args, **kwargs)
         self.toJSONheadedASCII.__doc__ = toJSONheadedASCII.__doc__
 
+    #Need to remove the partials on copy, http://bugs.python.org/issue4380
+    #They will be recreated by __init__
+    def __getstate__(self):
+        d = copy.copy(self.__dict__)
+        del d['toCDF']
+        del d['toHDF5']
+        del d['toJSONheadedASCII']
+        return d
 
 ## To enable string output of repr, instead of just printing, uncomment his block
 #    def __repr__(self):
