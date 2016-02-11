@@ -446,6 +446,7 @@ class dmarrayTests(unittest.TestCase):
         ra = dm.toRecArray(sd)
         np.testing.assert_equal(ra['x'], [1.0, 2.0])
         np.testing.assert_equal(ra['y'], [2, 4])
+        self.assertEqual(['x', 'y'], sorted(ra.dtype.fields))
         self.assertEqual(ra.dtype, np.dtype((np.record, [('x', '<f8'), ('y', '<i8'), ])))
 
 class converterTests(unittest.TestCase):
