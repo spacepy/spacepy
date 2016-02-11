@@ -1960,7 +1960,10 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
         else:
             d, t = toolbox.windowMean(data[k], time=t_int, winsize=winsize, overlap=overlap, st_time=st_time)
             ans[k] = dmarray(d)
-        ans[k].attrs = data[k].attrs
+        try:
+            ans[k].attrs = data[k].attrs
+        except AttributeError: # was not a dmarray
+            pass
         ans[k].attrs['DEPEND_0'] = outtimename
     ans[outtimename] = dmarray(t)
         
