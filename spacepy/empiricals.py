@@ -426,13 +426,13 @@ def vampolaPA(omniflux, **kwargs):
 
     >>> from spacepy.empiricals import vampolaPA
     >>> vampolaPA(3000, alpha=[45, 90])
-    (array([  75.99088773,  151.98177546]), [45, 90])
+    (array([ 179.04931098,  358.09862196]), [45, 90])
     >>> data, pas = vampolaPA([3000, 6000], alpha=[45, 90])
     >>> pas
     [45, 90]
     >>> data
-    array([[  75.99088773,  151.98177546],
-       [ 151.98177546,  303.96355093]])
+    array([[ 179.04931098,  358.09862196],
+       [ 358.09862196,  716.19724391]])
 
     Notes
     =====
@@ -467,14 +467,12 @@ def vampolaPA(omniflux, **kwargs):
         return dum**order
 
     for idx, tmporder in enumerate(kwargs['order']):
-        #def partial function so that  order is fixed
-        sinfunc_o = partial(sinfunc, order=tmporder)
-        normfac[idx] = 4*np.pi*integ.quad(sinfunc_o, 0, np.pi)[0] #quad returns (val, accuracy)
-
+        sinfunc_o = partial(sinfunc, order=tmporder+1)
+        normfac[idx] = omniflux[idx]/(2*np.pi*integ.quad(sinfunc_o, 0, np.pi)[0])
     #now make the differential number flux
     dnflux = np.zeros((len(kwargs['alpha']), len(omniflux))).squeeze()
     for i, a_val in enumerate(np.deg2rad(kwargs['alpha'])):
-        dnflux[i] = omniflux * sinfunc(a_val) / normfac
+        dnflux[i] = normfac * sinfunc(a_val)
 
     return dnflux, kwargs['alpha']
 
@@ -495,6 +493,17 @@ def getVampolaOrder(L):
     order : array
         coefficient for sin^n model corresponding to McIlwain L (computed for OP77?)
 
+    Examples
+    ========
+    Apply Vampola pitch angle model at L=[4, 6.6]
+
+    >>> from spacepy.empiricals import vampolaPA, getVampolaOrder
+    >>> order = getVampolaOrder([4,6.6])
+    >>> order
+    array([ 3.095 ,  1.6402])
+    >>> vampolaPA([3000, 3000], alpha=[45, 90], order=order)
+    (array([[ 140.08798878,  192.33572182],
+        [ 409.49143136,  339.57417256]]), [45, 90])
     '''
     lmc = np.arange(3,8.00001,0.25)
     vamp_n = [5.38, 5.078, 4.669, 3.916, 3.095, 2.494, 2.151, 1.998, 1.899,
@@ -510,6 +519,67 @@ def getVampolaOrder(L):
     order = np.interp(L, lmc, vamp_n)
 
     return order
+
+
+def omniFromDirectionalFlux(fluxarr, alphas, norm=True):
+    '''
+    Calculate omnidirectional flux [(s cm^2 kev)^-1] from directional flux [(s sr cm^2 keV)^-1] array
+
+    J = 2.pi integ(j sin(a) da)
+    If kwarg 'norm' is True (default), the omni flux is normalized by 4.pi to make it per steradian,
+    in line with the PRBEM guidelines
+
+    Parameters
+    ==========
+    fluxarr : arraylike
+        Array of directional flux values
+    alphas : arraylike
+        Array of pitch angles corresponding to fluxarr
+        
+    Returns
+    =======
+    omniflux : float
+        Omnidirectional flux value
+
+    Examples
+    ========
+    Roundtrip from omni flux, to directional flux (Vampola model),
+    integrate to get back to omni flux.
+
+    >>> from spacepy.empiricals import vampolaPA, omniFromDirectionalFlux
+    >>> dir_flux, pa  = vampolaPA(3000, alpha=range(0,181,2), order=4)
+    >>> dir_flux[:10], pa[:10]
+    (array([  0.00000000e+00,   6.64032473e-04,   1.05986545e-02,
+          5.34380898e-02,   1.67932162e-01,   4.06999226e-01,
+          8.36427502e-01,   1.53325140e+00,   2.58383611e+00,
+          4.08170975e+00]), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18])
+    >>> omniFromDirectionalFlux(dir_flux, pa, norm=False)
+    3000.0000008112293
+    
+    Calculate "spin-averaged" flux, giving answer per steradian
+
+    >>> omniFromDirectionalFlux(dir_flux, pa, norm=True)
+    238.73241470239859
+    '''
+    try:
+        flen = len(fluxarr)
+    except TypeError:
+        fluxarr = np.array([fluxarr])
+        flen = 1
+    finally:
+        if flen==1:
+            #assume isotropy
+            return fluxarr
+    if norm:
+       fac = 1
+       denomina = integ.quad(np.sin, 0, np.pi)[0]
+    else:
+       fac = 2*np.pi
+       denomina = 1
+    alphrad = np.deg2rad(alphas)
+    numera = integ.simps(fluxarr*np.sin(alphrad), alphrad)
+    omniflux = fac*numera/denomina
+    return omniflux
 
 
 def getSolarRotation(ticks, rtype='carrington', fp=False, reverse=False):

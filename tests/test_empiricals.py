@@ -171,39 +171,37 @@ class PAmodelTests(unittest.TestCase):
         self.PA = tb.linspace(0.01,179.99,20000)
 
     def test_vampola_singleval(self):
-        """sin^n model should have d_flux that integrates to omniflux divided by 4pi"""
+        """sin^n model should have d_flux that integrates to input omniflux"""
         omniflux = 3000
         dnflux, alphas = em.vampolaPA(omniflux, order=2, alpha=self.PA)
-        d_sum = 4*np.pi*integ.simps(dnflux, np.deg2rad(alphas))
-#        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+        d_sum = em.omniFromDirectionalFlux(dnflux, alphas, norm=False)
         np.testing.assert_almost_equal(d_sum, omniflux, decimal=3)
+
         dnflux, alphas = em.vampolaPA(omniflux, order=4, alpha=self.PA)
-        d_sum = 4*np.pi*integ.simps(dnflux, np.deg2rad(alphas))
-#        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+        d_sum = em.omniFromDirectionalFlux(dnflux, alphas, norm=False)
         np.testing.assert_almost_equal(d_sum, omniflux, decimal=3)
 
     def test_vampola_len1list(self):
-        """sin^n model should have d_flux that integrates to omniflux divided by 4pi"""
+        """sin^n model should have d_flux that integrates to input omniflux"""
         omniflux = [3000]
         dnflux, alphas = em.vampolaPA(omniflux, order=4, alpha=self.PA)
-        d_sum = 4*np.pi*integ.simps(dnflux, np.deg2rad(alphas))
-#        np.testing.assert_allclose(d_sum, omniflux, atol=0.001)
+        d_sum = em.omniFromDirectionalFlux(dnflux, alphas, norm=False)
         np.testing.assert_almost_equal(d_sum, omniflux, decimal=3)
 
     def test_vampola_multival(self):
-        """sin^n model should have d_flux that integrates to omniflux divided by 4pi"""
+        """sin^n model should have d_flux that integrates to input omniflux"""
         omniflux = [3000, 6000]
         dnflux, alphas = em.vampolaPA(omniflux, order=4, alpha=self.PA)
         for i in range(len(omniflux)):
-            d_sum = 4*np.pi*integ.simps(dnflux[:,i], np.deg2rad(alphas))
+            d_sum = em.omniFromDirectionalFlux(dnflux[:,i], alphas, norm=False)
             np.testing.assert_almost_equal(d_sum, omniflux[i])
 
     def test_vampola_multi_n(self):
-        """sin^n model should have d_flux that integrates to omniflux divided by 4pi"""
+        """sin^n model should have d_flux that integrates to input omniflux"""
         omniflux = [3000, 6000]
         dnflux, alphas = em.vampolaPA(omniflux, order=[2,4], alpha=self.PA)
         for i in range(len(omniflux)):
-            d_sum = 4*np.pi*integ.simps(dnflux[:,i], np.deg2rad(alphas))
+            d_sum = em.omniFromDirectionalFlux(dnflux[:,i], alphas, norm=False)
             np.testing.assert_almost_equal(d_sum, omniflux[i])
 
     def test_vampola_mismatched_order_len(self):
