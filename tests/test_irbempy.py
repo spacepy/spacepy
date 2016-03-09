@@ -83,35 +83,35 @@ class IRBEMBigTests(unittest.TestCase):
                                               decimal=5)        
 
     def test_find_Bmirror(self):
-        expected = {'Blocal': array([1031.00899202,  3451.98936965]),
-            'Bmirr': array([ 2495.24300379,  8354.35553522])}
+        expected = {'Blocal': array([ 1031.05446706,  3451.97910165]),
+            'Bmirr': array([ 2495.32245887,  8354.35740488])}
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key], ib.find_Bmirror(self.ticks, self.loci, [40], omnivals=self.omnivals)[key], decimal=6)
 
     def test_find_magequator(self):
-        expected = {'Bmin': array([1030.4563374 ,  3444.07701499])}
-        Bmin_loci = [[ 2.999354  ,  0.00551125, -0.03235315],
-                     [ 2.00289878, -0.0073488 ,  0.04538181]]
+        expected = {'Bmin': array([ 1030.50271503,  3444.0670669 ])}
+        Bmin_loci = array([[ 2.99935449,  0.0055078 , -0.032328  ],
+                          [ 2.00289871, -0.00734881,  0.04538073]])
         actual = ib.find_magequator(self.ticks, self.loci, omnivals=self.omnivals)
         numpy.testing.assert_almost_equal(expected['Bmin'], actual['Bmin'], decimal=6)
         numpy.testing.assert_almost_equal(Bmin_loci, actual['loci'].data, decimal=6)
             
     def test_get_Bfield(self):
         """test get_Bfield"""	
-        expected = {'Blocal': array([1031.00899202,  3451.98936965]),
-        'Bvec': array([[    3.49178255,  -172.79037333,  1016.42059993],
-                       [  335.09279969,  -553.03590378,  3390.88406067]])}
+        expected = {'Blocal': array([ 1031.05446706,  3451.97910165]),
+        'Bvec': array([[    3.50593418,  -172.8235171 ,  1016.46104422],
+                       [  335.08938682,  -553.04743515,  3390.87206416]])}
         actual = ib.get_Bfield(self.ticks, self.loci, omnivals=self.omnivals)
         for key in expected.keys():
             numpy.testing.assert_almost_equal(actual[key], expected[key], decimal=5)
 
     def test_get_Lstar_T01(self):
         # test T01STORM
-        expected = {'Xj': array([[ 0.00040309], [ 0.00269014]]),
-            'Lstar': array([[ 3.02588643], [ 2.05239571]]), 
-            'Bmirr': array([[ 1031.00899202], [ 3451.98936965]]), 
-            'Lm': array([[ 3.07915135], [ 2.05932648]]), 
-            'Bmin': array([ 1030.4563374 ,  3444.07701499]), 
+        expected = {'Xj': array([[ 0.00040101], [ 0.00269002]]),
+            'Lstar': array([[ 3.02588835], [ 2.0523954]]), 
+            'Bmirr': array([[ 1031.05446706], [ 3451.97910165]]),
+            'Lm': array([[ 3.07910515], [ 2.05932846]]),
+            'Bmin': array([ 1030.50271503,  3444.0670669 ]),
             'MLT': array([ 11.97159175,  12.13313906])}    
         actual = ib.get_Lstar(self.ticks, self.loci, [90], omnivals=self.omnivals)
         for key in expected.keys():
@@ -119,11 +119,11 @@ class IRBEMBigTests(unittest.TestCase):
     
     def test_get_Lstar_T05(self):
         # test T05
-        expected = {'Xj': array([[ 0.2661136 ], [ 0.18600774]]),
-                    'Lstar': array([[ 3.01546075], [ 2.04304329]]),
-                    'Bmirr': array([[ 1150.67044093], [ 3895.81080489]]), 
-                    'Lm': array([[ 3.08702644], [ 2.05973379]]), 
-                    'Bmin': array([ 1015.46803142,  3432.14690674]), 
+        expected = {'Xj': array([[ 0.26613994], [ 0.18600614]]),
+                    'Lstar': array([[ 3.01546295], [ 2.04304142]]),
+                    'Bmirr': array([[ 1150.72621313], [ 3895.75273416]]), 
+                    'Lm': array([[ 3.08699012], [ 2.05974291]]),
+                    'Bmin': array([ 1015.51219038,  3432.08956401]),
                     'MLT': array([ 11.97159175,  12.13313906])}
         actual = ib.get_Lstar(self.ticks, self.loci, [70], extMag='T05', omnivals=self.omnivals)
         for key in expected:
@@ -138,9 +138,9 @@ class IRBEMBigTests(unittest.TestCase):
 
     def test_find_footpoint(self):
         '''test computation of field line footpoint location/magnitude (regression)'''
-        expected = {'Bfoot': numpy.array([47626.95330601,  47625.98974627]),
-                    'loci': spacepy.coordinates.Coords([[ 99.2876423 ,  56.14644481, -10.29427227],
-                                     [ 99.33380087,  56.14603124, -10.29737286]],
+        expected = {'Bfoot': numpy.array([ 47622.20153709,  47627.01248963]),
+                    'loci': spacepy.coordinates.Coords([[ 99.51052635,  56.14607133, -10.29524702],
+                                     [ 99.28472758,  56.14603658, -10.29784349]],
                                      dtype='GDZ', carsph='sph', units=['km', 'deg', 'deg'])}
         y = spacepy.coordinates.Coords([[3,0,0],[3,0,0]], 'GEO', 'car')
         ans = spacepy.irbempy.find_footpoint(self.ticks, y, omnivals=self.omnivals)
