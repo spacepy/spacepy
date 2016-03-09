@@ -1,4 +1,4 @@
-Changes in Version 0.1.6 (2015-xx-xx)
+Changes in Version 0.1.6 (2016-xx-xx)
 =====================================
 - Improvements to test suite (coverage and design)
 datamanager
@@ -18,9 +18,14 @@ datamodel
  - New function toRecArray to create numpy record arrays from SpaceData objects
  - New function fromRecArray to create SpaceData objects from numpy record arrays
 empiricals
+ - Fix normalization of Vampola pitch angle model
+ - New function omniFromDirectionalFlux, calculates omnidirection flux from directional fluxes
  - New function getSolarRotation, returns Carrington or Bartels number
  - New model in getPlasmaPause,  RT1970 -- Rycroft et al 1970
  - New function getSolarProtonSpectra, returns a fluence spectra for SEP events
+irbempy
+ - updated to latest revision of IRBEM library (rev541)
+ - updated AlphaOfK to use vector inputs
 plot
  - Packages in plot are imported on import of plot module
  - Addition of dual_half_circle() to overlay a light/dark "Earth"
