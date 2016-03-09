@@ -178,7 +178,12 @@ c
 	
 	if ( ifail.lt.0 ) RETURN
 c
-c     
+c    
+       if (kext .eq. 13) then !special script to read files and
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
+            call INIT_TS07D_TLPR
+       end if
+
       CALL find_bm_nalpha(xGEO,1,alpha,BL,BMIR,xGEOmir)
       IF (Bmir.NE.baddata) THEN
          Ilflag=0
@@ -257,7 +262,7 @@ C     Internal Variables
       
       INTEGER*4  I,J,K,Iflag,Iflag_I,Ilflag,Ifail
       INTEGER*4  Ibounce_flag
-      INTEGER*4  istore
+      INTEGER*4  istore         ! azimuth cursor
       REAL*8     Lb
       REAL*8     leI,leI1
       REAL*8     XY,YY
@@ -680,14 +685,13 @@ C
       IMPLICIT NONE
 
 c     Declare input variables
-      REAL*8 xstart(3)
-      REAL*8 Bmirror
-      INTEGER*4 istore
+      REAL*8 xstart(3) ! GEO
+      REAL*8 Bmirror  ! particle mirror field strength
+      INTEGER*4 istore ! where to store bounce orbit
       ! hmin,hmin_lon are also inputs
 
 c     Declare output variables
-      INTEGER*4  Nposit(25),Iflag
-C     ! Iflag=1 means success
+      INTEGER*4  Nposit(25),Iflag ! Iflag=1 means success
       REAL*8     posit(3,1000,25)
       REAL*8     Bposit(1000,25),R0,hmin,hmin_lon
 
@@ -697,7 +701,7 @@ c     Declare internal variables
       REAL*8 xmir(3)
       REAL*8 alpha
       REAL*8 dsreb0,dsreb,x1(3),x2(3),B1,B2,Bvec(3)
-      INTEGER*4 store
+      INTEGER*4 store ! store or not?
 
       Iflag = 0
 
@@ -711,8 +715,7 @@ c     trace up to mirror point, leave starting pointin Bmir, xmir
 
       call champ(xstart,Bvec,B1,Ifail)
 
-C     ! assume starting at northern R=1 foot point
-      dsreb = -dsreb0
+      dsreb = -dsreb0 ! assume starting at northern R=1 foot point
 
       do i = 1,3
          x1(i) = xstart(i)

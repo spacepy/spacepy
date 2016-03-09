@@ -1,0 +1,623 @@
+!***************************************************************************************************
+! Copyright 1988, K. Pfitzer
+!
+! This file is part of IRBEM-LIB.
+!
+!    IRBEM-LIB is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU Lesser General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    IRBEM-LIB is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU Lesser General Public License for more details.
+!
+!    You should have received a copy of the GNU Lesser General Public License
+!    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
+!
+C-----------------------------------------------------------------------
+      SUBROUTINE BDYN(den, vel, dst, X, Y, Z, ABX, ABY, ABZ) 
+
+      IMPLICIT NONE
+
+C Input
+      REAL*8 den, vel, dst, x, y, z
+C Output
+      REAL*8 abx, aby, abz
+C Local
+      REAL*8 XX(3), B(3), SOFFD, SRING, STAIL, STDOFF, RINGST
+C
+      XX(1) = X
+      XX(2) = Y
+      XX(3) = Z
+C
+      SOFFD = STDOFF(VEL, DEN)
+      SRING = RINGST(SOFFD, DST)
+      STAIL = 1.0D0
+    
+C     GET THE EXTERNAL CONTRIBUTION 
+      CALL BDYNAM(XX, B, SOFFD, SRING, STAIL)
+      ABX = B(1)
+      ABY = B(2)
+      ABZ = B(3)
+
+      RETURN
+      END 
+C-----------------------------------------------------------------------
+      SUBROUTINE BDYNAM(XX, BB, SOFFD, SRING, STAIL)
+C  VERSION 5/13/88
+C  DEVELOPED MCDONNELL DOUGLAS
+C  FOR INFORMATION CALL KARL PFITZER (714) 896-3231
+C     
+C     PURPOSE 
+C        CALCULATE THE TOTAL EXTERNAL MAGNETIC FIELD DURING DISTURBED TIMES.
+C
+C     METHOD
+C        CALLS THE EXTERNAL QUIET TIME SUBROUTINES AND COMBINES THEM
+C        ACCORDING TO THE DYNAMIC SCALING ALGORITHMS.
+C     
+C     INPUT -- ARGUMENT LIST
+C        XX     A REAL ARRAY GIVING THE POSITION WHERE THE MAGNETIC FIELD 
+C               IS TO BE DETERMINED. XX(1), XX(2), XX(3) ARE RESPECTIVELY  
+C               THE X, Y, AND Z SOLAR MAGNETIC COORDINATES IN EARTH RADII.
+C               Z IS ALONG THE EARTH'S NORTH DIPOLE AXIS. X IS PERPENDICULAR 
+C               TO Z AND IN THE PLANE CONTAINING THE Z AXIS AND THE SUN-EARTH  
+C               LINE (X IS POSITIVE IN THE SOLAR DIRECTION). Y IS PERPENDICULAR 
+C               TO X AND Z AND X Y Z FORM A RIGHT HANDED COORDINATE SYSTEM. 
+C     
+C        SOFFD  THE STANDOFF DISTANCE OF THE MAGNETOPAUSE. THE QUIET STANDOFF 
+C               DISTANCE IS 10.5 EARTH RADII. ACCEPTABLE VALUES RANGE BETWEEN 
+C               6 AND 11. THIS VALUE IS USED TO CALCULATE THE STRENGTH OF
+C               THE MAGNETOPAUSE CURRENTS AND TO SCALE THE SIZE OF THE 
+C               MAGNETOPAUSE. THIS VALUE ALSO SCALES THE SIZE OF THE TAIL
+C               CURRENT SYSTEM. THE RING SYSTEM IS NOT SCALED, SINCE ITS 
+C               SOURCE IS PRIMARILY AT RADIAL DISTANCES.
+C
+C        SRING  RELATIVE STRENGTH OF THE RING CURRENT. A VALUE OF ONE
+C               UTILIZES THE NOMINAL QUIET RING VALUES BUILT INTO THE BASIC 
+C               MODEL. THIS BASIC MODEL HAS A MAXIMUM RING DEPRESSION OF
+C               40 NT AT L=4 RE. IF SRING IS SET TO 2 THE RING DEPRESSION
+C               WOULD BE 80 NT.
+C
+C        STAIL  A TAIL CURRENT STRENGTH MULTIPLIER. WHEN STAIL IS EQUALTO 
+C               1.0 THEN THE TAIL SCALES WITH THE STRENGTH OF THE MAGNETOPAUSE 
+C               CURRENTS. TO WEAKEN THE TAIL FROM THIS VALUE USE VALUES 
+C               LESS THAN 1.0, TO STRENGTHEN USE VALUES GREATER THAN 1.0.
+C
+C     OUTPUT -- ARGUMENT LIST 
+C        BB     A REAL ARRAY CONTAINING THE X, Y, AND Z COMPONENTS OF THE 
+C               EARTH'S TOTAL MAGNETIC FIELD IN SOLAR MAGNETIC COORDINATES.  
+C               BB(1), BB(2) AND BB(3) ARE THE BX, BY, AND BZ COMPONENTS.  
+C               THE UNITS ARE GAUSS. 
+C
+
+      IMPLICIT NONE
+
+C Input
+      REAL*8 XX(3), SOFFD, SRING, STAIL
+C Output
+      REAL*8 BB(3) 
+C Local
+      REAL*8 XXX(3), BM(3), BR(3), BT(3), xxxx(3)
+      REAL*8 SCL, STRMAG, STRRIN, STRTAI 
+      INTEGER*4 I
+
+C   CALCULATE MAGNETOPAUSE SCALE FACTOR.
+      SCL = 10.5D0 / SOFFD
+C   CALCULATE STRENGTH OF MAGNETOPAUSE CURRENTS.
+      STRMAG = SCL**3.0D0 
+C   SET STRENGTH OF RING AND TAIL.
+      STRRIN = Sring
+      STRTAI = STAIL * STRMAG 
+C   CALCULATE SCALED DISTANCES
+      DO I=1,3 
+        XXX(I) = XX(I) * SCL
+        XXXX(I) = XX(I) * 1.0D0
+      END DO
+C   MODIF VINCENT (Feb. 2013) : if XXX(1) = 15 then crash --> divide by zero in BFMAGP
+      IF (XXX(1) .EQ. 15.d0) THEN
+        WRITE(6,*) 'in BDYNAM (OP dyn), X(1)=15 --> X(1) = 14.9999999
+     &     to avoid dividing by zero in BFMAGP'
+        XXX(1) = 14.9999999D0
+      ENDIF
+C   END MODIF VINCENT
+C
+C   CALL THE QUIET TIME SUBROUTINE.
+      CALL BFMAGP(XXX, BM) 
+      CALL BFRING(XXXX, BR)
+      CALL BFTAIL(XXX, BT) 
+C   COMBINE THE COMPONENTS OF THE MAGNETIC FIELD ACCORDING TO THEIR
+C   RELATIVE STRENGTHS.
+      DO I=1,3 
+        BB(I) = STRMAG * BM(I) + STRRIN * BR(I) + STRTAI * BT(I)
+      END DO
+
+      RETURN
+      END 
+C-----------------------------------------------------------------------
+      SUBROUTINE BFMAGP(XX, BB)
+C  VERSION 5/13/88
+C  DEVELOPED MCDONNELL DOUGLAS
+C  FOR INFORMATION CALL KARL PFITZER (714) 896-3231
+C
+C     INPUT -- ARGUMENT LIST
+C        XX     A REAL ARRAY GIVING THE POSITION WHERE THE MAGNETIC FIELD 
+C               IS TO BE DETERMINED. XX(1), XX(2), XX(3) ARE RESPECTIVELY 
+C               THE X, Y, AND Z SOLAR MAGNETIC COORDINATES IN EARTH RADII.
+C               Z IS ALONG THE EARTH'S NORTH DIPOLE AXIS. X IS PERPENDICULAR 
+C               TO Z AND IN THE PLANE CONTAINING THE Z AXIS AND THE SUN-EARTH
+C               LINE (X IS POSITIVE IN THE SOLAR DIRECTION). Y IS PERPENDICULAR 
+C               TO X AND Z AND X Y Z FORM A RIGHT HANDED COORDINATE SYSTEM. 
+C     
+C     OUTPUT -- ARGUMENT LIST 
+C        BB     A REAL ARRAY CONTAINING THE X, Y, AND Z COMPONENTS OF THE 
+C               EARTH'S TOTAL MAGNETIC FIELD IN SOLAR MAGNETIC COORDINATES.  
+C               BB(1), BB(2) AND BB(3) ARE THE BX, BY, AND BZ COMPONENTS.
+C               THE UNITS ARE NANOTESLA.
+C
+C THIS SUBROUTINE CONTAINS NEW, REFITTED COEFFICIENTS FOR COMPUTING ALL THE 
+C B-MAGNETOPAUSE COMPONENTS.  
+C THE FORM OF THE EXPANSION IS GIVEN IN THE NEXT FEW STATEMENTS.
+C     
+C BMPX=(1 + X + X**2 + X**3 + X**4 + 1/(10-(X-2)**2))*(1 + Y**2 + Y**4)*
+C      (Z + Z**3 + Z**5). 
+C BMPY=(1 + X + X**2 + X**3 + X**4)*(Y + Y**3 + Y**5)*(Z + Z**3 + Z**5).
+C BMPZ=(1 + X + X**2 + X**3 + X**4 + 1/(15-X) + 1/((30-X)**2))* 
+C      (1 + Y**2 + Y**4)*(1 + Z**2 + Z**4). 
+C   
+C COEFFICIENTS COMPUTED FROM COMBINED OLSON DATA-SETS BOUNDARY.DAT AND
+C BOUND.DAT, FOR Y>0 AND Z>0 ONLY, I.E. A TOTAL OF 1009 DATA POINTS. 
+C 2 EXTRA EXTRAPOLATED POINTS ADDED FOR Z-COEFF, TO IMPROVE FIT, 
+C NAMELY X=10,Y=Z=0,BZ=29 AND X=11,Y=Z=0,BZ=30.25.
+C 
+C***PRELIMINARY ROUTINE 
+C***VALID TO APPROXIMATELY -60 RE 
+C***MAGNETIC FIELD FROM MAGNETOPAUSE CURRENTS ONLY
+C
+
+      IMPLICIT NONE
+
+C Input
+      REAL*8 XX(3)
+C Output
+      REAL*8 BB(3)
+C Local
+      REAL*8 A(54), B(45), C(63), C1(30), C2(33), X(5), Y(5), Z(5)
+      REAL*8 XN, YN, ZN, FX1, XF1, XF2
+      INTEGER*4 I
+
+      EQUIVALENCE (C(1),C1(1)), (C(31),C2(1))
+
+      DATA A/ 
+     *  0.113275039d+01, 0.354408138d-01,-0.152252289d-02,
+     * -0.683306571d-04,-0.642841428d-06,-0.121504674d-01,
+     * -0.839622808d-03,-0.167520029d-04,-0.385962942d-07,
+     *  0.107674747d-08, 0.558984066d-04, 0.551508083d-05,
+     *  0.206288036d-06, 0.335316730d-08, 0.198413126d-10,
+     * -0.545824692d-02,-0.264107861d-03, 0.143533146d-05,
+     *  0.195177861d-06, 0.207546358d-08, 0.211199178d-03,
+     *  0.220245929d-04, 0.860991804d-06, 0.145349395d-07,
+     *  0.886173426d-10,-0.949615014d-06,-0.110830563d-06,
+     * -0.477998707d-08,-0.873645670d-10,-0.569051859d-12,
+     *  0.271760982d-04, 0.266707661d-05, 0.994617153d-07,
+     *  0.167023062d-08, 0.104617062d-10,-0.989193381d-06,
+     * -0.113236254d-06,-0.482686247d-08,-0.880319914d-10,
+     * -0.575385009d-12, 0.487020380d-08, 0.586310778d-09,
+     *  0.260182431d-10, 0.488435735d-12, 0.326678627d-14,
+     *  0.193470073d+01, 0.402453184d+00,-0.193471275d-02,
+     *  0.682263300d-01,-0.576195028d-02, 0.237557251d-04,
+     * -0.529665092d-03, 0.255710365d-04,-0.120115033d-06/
+C
+      DATA B/ 
+     * -0.519952811d-01,-0.230140495d-02, 0.146173188d-03,
+     *  0.809832090d-05, 0.888401672d-07,-0.370911323d-03,
+     * -0.101231737d-03,-0.742647399d-05,-0.196170248d-06,
+     * -0.165503899d-08, 0.150949325d-05, 0.308240260d-06,
+     *  0.195390104d-07, 0.472441419d-09, 0.375989214d-11,
+     * -0.422217818d-04,-0.621468353d-04,-0.620102765d-05,
+     * -0.189322407d-06,-0.172039538d-08, 0.445292017d-05,
+     *  0.118324999d-05, 0.855768008d-07, 0.223059815d-08,
+     *  0.183677951d-10,-0.550030643d-08,-0.150351465d-08,
+     * -0.107031245d-09,-0.268793755d-11,-0.205845354d-13,
+     *  0.813519478d-06, 0.279971147d-06, 0.227601529d-07,
+     *  0.643000209d-09, 0.561745876d-11,-0.983297266d-08,
+     * -0.265465072d-08,-0.194798427d-09,-0.513382522d-11,
+     * -0.420117906d-13,-0.469398392d-11,-0.543405219d-12,
+     * -0.121854998d-13,-0.483310746d-16,-0.429469692d-17/
+C
+      DATA C1/
+     *  0.406363373d+02, 0.291153884d+01, 0.991215929d-01,
+     *  0.161603605d-02, 0.994476977d-05,-0.566497850d+01,
+     * -0.346289247d+00,-0.102486340d-01,-0.153071058d-03,
+     * -0.892381365d-06, 0.182735808d-01, 0.106282183d-02,
+     *  0.311990625d-04, 0.464014079d-06, 0.269492229d-08,
+     * -0.102119482d+01,-0.649643913d-01,-0.205774955d-02,
+     * -0.323610875d-04,-0.195236396d-06, 0.531459488d-01,
+     *  0.324825896d-02, 0.991819543d-04, 0.152400162d-05,
+     *  0.907312536d-08,-0.132267553d-03,-0.871756401d-05,
+     * -0.262251859d-06,-0.395617938d-08,-0.232419934d-10/
+
+      DATA C2/
+     *  0.144323579d-02, 0.799393092d-04, 0.322526876d-05,
+     *  0.596131713d-07, 0.395406097d-09,-0.839159111d-05,
+     *  0.564246250d-06,-0.212045990d-07,-0.866837990d-09,
+     * -0.746255575d-11,-0.685688633d-06,-0.523054773d-07,
+     * -0.130326583d-08,-0.157964718d-10,-0.759061461d-13,
+     *  0.836994324d+02,-0.609500999d+02, 0.100208335d+00,
+     * -0.688268995d+01, 0.397136599d+00,-0.250137411d-02,
+     * -0.594024621d-01, 0.457714684d-02,-0.449951913d-04,
+     * -0.273244004d+05, 0.875882129d+04,-0.227706509d+02,
+     *  0.129124341d+04,-0.715722046d+02, 0.266965359d+00,
+     *  0.240404391d+01,-0.269608498d+00, 0.332747493d-02/
+C
+      XN = XX(1)
+      YN = XX(2)
+      ZN = XX(3)
+      DO 1 I=1,5  
+        X(I) = XN 
+        Y(I) = YN 
+        Z(I) = ZN 
+        XN = XN * XX(1) 
+        YN = YN * XX(2) 
+        ZN = ZN * XX(3) 
+    1 CONTINUE
+      FX1 = 1.0D0 / (10.0D0+(X(1)-2.0D0)**2.0D0) 
+      XF1 = 1.0D0 / (15.0D0-X(1)) 
+      XF2 = 1.0D0 / ((30.0D0-X(1))**2.0D0)
+C
+      BB(1)=Z(1)*(A(1)+A(2)*X(1)+A(3)*X(2)+A(4)*X(3)+A(5)*X(4))+
+     * Z(3)*(A(6)+A(7)*X(1)+A(8)*X(2)+A(9)*X(3)+A(10)*X(4))+
+     * Z(5)*(A(11)+A(12)*X(1)+A(13)*X(2)+A(14)*X(3)+A(15)*X(4))+
+     * Y(2)*Z(1)*(A(16)+A(17)*X(1)+A(18)*X(2)+A(19)*X(3)+A(20)*X(4))+ 
+     * Y(2)*Z(3)*(A(21)+A(22)*X(1)+A(23)*X(2)+A(24)*X(3)+A(25)*X(4))+ 
+     * Y(2)*Z(5)*(A(26)+A(27)*X(1)+A(28)*X(2)+A(29)*X(3)+A(30)*X(4))+ 
+     * Y(4)*Z(1)*(A(31)+A(32)*X(1)+A(33)*X(2)+A(34)*X(3)+A(35)*X(4))+ 
+     * Y(4)*Z(3)*(A(36)+A(37)*X(1)+A(38)*X(2)+A(39)*X(3)+A(40)*X(4))+ 
+     * Y(4)*Z(5)*(A(41)+A(42)*X(1)+A(43)*X(2)+A(44)*X(3)+A(45)*X(4))+ 
+     * FX1*(A(46)*Z(1)+A(47)*Z(3)+A(48)*Z(5))+FX1*Y(2)*(A(49)*Z(1)+ 
+     * A(50)*Z(3)+A(51)*Z(5))+FX1*Y(4)*(A(52)*Z(1)+A(53)*Z(3)+A(54)*
+     * Z(5))
+C
+      BB(2)=Z(1)*Y(1)*(B(1)+B(2)*X(1)+B(3)*X(2)+B(4)*X(3)+B(5)*X(4))+ 
+     * Z(3)*Y(1)*(B(6)+B(7)*X(1)+B(8)*X(2)+B(9)*X(3)+B(10)*X(4))+ 
+     * Z(5)*Y(1)*(B(11)+B(12)*X(1)+B(13)*X(2)+B(14)*X(3)+B(15)*X(4))+ 
+     * Y(3)*Z(1)*(B(16)+B(17)*X(1)+B(18)*X(2)+B(19)*X(3)+B(20)*X(4))+ 
+     * Y(3)*Z(3)*(B(21)+B(22)*X(1)+B(23)*X(2)+B(24)*X(3)+B(25)*X(4))+ 
+     * Y(3)*Z(5)*(B(26)+B(27)*X(1)+B(28)*X(2)+B(29)*X(3)+B(30)*X(4))+ 
+     * Y(5)*Z(1)*(B(31)+B(32)*X(1)+B(33)*X(2)+B(34)*X(3)+B(35)*X(4))+ 
+     * Y(5)*Z(3)*(B(36)+B(37)*X(1)+B(38)*X(2)+B(39)*X(3)+B(40)*X(4))+ 
+     * Y(5)*Z(5)*(B(41)+B(42)*X(1)+B(43)*X(2)+B(44)*X(3)+B(45)*X(4))
+C
+       BB(3)=C(1)+C(2)*X(1)+C(3)*X(2)+C(4)*X(3)+C(5)*X(4)+
+     * Z(2)*(C(6)+C(7)*X(1)+C(8)*X(2)+C(9)*X(3)+C(10)*X(4))+
+     * Z(4)*(C(11)+C(12)*X(1)+C(13)*X(2)+C(14)*X(3)+C(15)*X(4))+
+     * Y(2)*(C(16)+C(17)*X(1)+C(18)*X(2)+C(19)*X(3)+
+     * C(20)*X(4))+Y(2)*Z(2)*(C(21)+C(22)*X(1)+C(23)*X(2)+
+     * C(24)*X(3)+C(25)*X(4))+Y(2)*Z(4)*(C(26)+C(27)*X(1)+
+     * C(28)*X(2)+C(29)*X(3)+C(30)*X(4))+Y(4)*(C(31)+ 
+     * C(32)*X(1)+C(33)*X(2)+C(34)*X(3)+C(35)*X(4)) 
+      BB(3)=BB(3)+
+     * Y(4)*Z(2)*(C(36)+C(37)*X(1)+C(38)*X(2)+C(39)*X(3)+C(40)*X(4))+ 
+     * Y(4)*Z(4)*(C(41)+C(42)*X(1)+C(43)*X(2)+C(44)*X(3)+ 
+     * C(45)*X(4))+XF1*(C(46)+C(47)*Z(2)+C(48)*Z(4)+
+     * C(49)*Y(2)+C(50)*Y(2)*Z(2)+C(51)*Y(2)*Z(4)+C(52)*Y(4)+ 
+     * C(53)*Y(4)*Z(2)+C(54)*Y(4)*Z(4))+XF2*(C(55)+C(56)*Z(2)+
+     * C(57)*Z(4)+C(58)*Y(2)+C(59)*Y(2)*Z(2)+C(60)*Y(2)*Z(4)+C(61)*Y(4)+
+     * C(62)*Y(4)*Z(2)+C(63)*Y(4)*Z(4)) 
+
+       RETURN 
+       END
+C-----------------------------------------------------------------------
+      SUBROUTINE BFTAIL(XX, BB)
+C  VERSION 5/13/88
+C  DEVELOPED MCDONNELL DOUGLAS
+C  FOR INFORMATION CALL KARL PFITZER (714) 896-3231
+C
+C     INPUT -- ARGUMENT LIST
+C        XX     A REAL ARRAY GIVING THE POSITION WHERE THE MAGNETIC FIELD 
+C               IS TO BE DETERMINED. XX(1), XX(2), XX(3) ARE RESPECTIVELY 
+C               THE X, Y, AND Z SOLAR MAGNETIC COORDINATES IN EARTH RADII.
+C               Z IS ALONG THE EARTHS NORTH DIPOLE AXIS. X IS PERPENDICULAR
+C               TO Z AND IN THE PLANE CONTAINING THE Z AXIS AND THE SUN-EARTH  
+C               LINE (X IS POSITIVE IN THE SOLAR DIRECTION). Y IS PERPENDICULAR 
+C               TO X AND Z AND X Y Z FORM A RIGHT HANDED COORDINATE SYSTEM. 
+C     
+C     OUTPUT -- ARGUMENT LIST 
+C        BB     A REAL ARRAY CONTAINING THE X, Y, AND Z COMPONENTS OF THE 
+C               EARTH'S TOTAL MAGNETIC FIELD IN SOLAR MAGNETIC COORDINATES.  
+C               BB(1), BB(2) AND BB(3) ARE THE BX, BY, AND BZ COMPONENTS.
+C               THE UNITS ARE NANOTESLA.
+C
+C  THIS IS THE EXPANSION FOR THE TAIL CURRENT SYSTEM. THE EXPANSION IS 
+C  VALID FROM THE SUBSOLAR POIN TO -60 RE. THE EXPANSION IS BASED ON A 
+C  FIT TO VALUES CALCULATED USING THE WIRE LOOP TAIL SYSTEM.
+
+      IMPLICIT NONE
+
+C Input
+      REAL*8 XX(3)
+C Output
+      REAL*8 BB(3)
+C Local
+      REAL*8 A(65), B(17), C(39), X(5), Y(5), Z(5)
+      REAL*8 XN, YN, ZN, R, R2, R22, EXPC, TANZR, EXPR
+      INTEGER*4 I
+
+      DATA A/ 
+     *-.118386794d-12, .260137167d+01, .408016277d-12,-.306063863d+00,
+     * .852659791d-13, .848404600d-14,-.568097241d-02,-.601368497d-14,
+     *-.336276159d-13,-.676779936d-15,-.110762251d-02,-.150912058d-15,
+     *-.477506548d-14,-.805245718d-02,-.130105300d-14, .442299435d-16,
+     *-.432185140d-04,-.520612496d-01,-.918209408d-04,-.686114562d-03,
+     * .275041492d-04, .235864029d-15,-.628394374d-04,-.236539414d-16,
+     * .379298441d-18,-.109452698d-14,-.163675727d-16,-.766199004d-04,
+     *-.110519916d-15,-.111417355d-17, .311215382d-17,-.605957952d-06,
+     *-.609414361d+01, .207037106d-12, .130315144d+00,-.250115110d-13,
+     * .325228977d+00, .169606672d-01,-.131084126d-14, .232305257d-03,
+     * .254138418d-01,-.585580678d-03, .344211139d-16, .268904941d-05,
+     * .561115936d-01,-.855121118d-15, .577135898d-03,-.389637036d-04,
+     * .531094438d-18, .517250317d-14, .163439821d-17, .280008382d-15,
+     * .311491125d-17, .165293989d-02,-.149174308d-16, .406457779d-05,
+     *-.415855886d-06, .127866736d-03,-.106070848d-04, .105524883d-17,
+     * .293942950d-05,-.417367450d-06, .134032750d-04,-.139506296d-18,
+     * 0.0d0/ 
+
+      DATA B/ 
+     *-.323149328d-01, .430535014d-02, .115661689d-03,-.486002660d-04,
+     *-.102777234d-04,-.489864422d-05,-.356884232d-04,-.334316125d-07,
+     * .122456608d+00, .202317315d-01,-.487990709d-03, .338684854d-04,
+     *-.511755985d-04, .119096933d-04, .609353153d-03,-.243627124d-05,
+     * 0.0d0/ 
+
+      DATA C/ 
+     * .318422091d+00, .154017442d+00, .337581827d-01, .436882397d-01,
+     *-.153732787d-03, .362817457d-02, .179382198d-03,-.394772816d-05,
+     *-.193942567d-01,-.263603775d-04,-.314364082d-04,-.103110548d-02,
+     * .386165884d-06,-.301272556d-06,-.102838611d-03,-.725608973d-04,
+     *-.893564810d-05,-.200670765d-05,-.805631807d-05,-.217861072d+02,
+     *-.219688864d+01, .178558432d+00, .144137907d-01,-.293171667d-04,
+     * .178727330d-01, .846703874d-02, .292860242d-04,-.583591628d+00,
+     * .177991433d-02, .253212943d-02,-.629907297d-01, .669977751d-04,
+     * .141706101d-03,-.334067698d-03, .122648694d-03,-.259383966d-07,
+     * .252027517d-04,-.212223753d-02,
+     * 0.0d0/ 
+
+      XN = XX(1)
+      YN = XX(2)
+      ZN = XX(3)
+      R2 = XN * XN + YN * YN + ZN * ZN
+      R = DSQRT(R2)
+      DO 1 I=1,5  
+        X(I) = XN 
+        Y(I) = YN 
+        Z(I) = ZN 
+        XN = XN * XX(1) 
+        YN = YN * XX(2) 
+        ZN = ZN * XX(3) 
+    1 CONTINUE
+      R22 = DSQRT((22.0D0-X(1))**2+Y(2)+Z(2)) 
+      EXPC = DEXP(X(1)/15.0D0)
+      TANZR = DTANH(Z(1)) * (1.0D0-DTANH((8.0D0-R)/5.0D0)) 
+      EXPR = DEXP(-(R22-29.0D0)**2/60.0D0)
+      BB(1)=(A( 2)*Z( 1)+A( 4)*X( 1)*Z( 1)
+     *+A( 7)*Y( 2)*Z( 1)
+     *+A(11)*X( 1)*Y( 2)*Z( 1)
+     *+A(17)*X( 2)*Y( 2)*Z( 1)+A(18)*Z( 3)+A(19)*Y( 2)*Z( 3)+A(20)*X( 1)
+     **Z( 3)+A(21)*X( 2)*Z( 3)+A(23)*X( 3)*Z( 1)
+     *+A(28)*Y( 4)*Z( 1)
+     *+A(32)*X( 4)*Z( 1))*EXPC
+     *+(0.0D0 +A(33)+A(35)*X( 1)+A(37)*Z( 2)
+     *+A(38)*Y( 2)+A(40)*Y( 2)*Z( 2)+A(41)*X( 1)*Z( 2)
+     *+A(42)*X( 1)*Y( 2)+A(44)*X( 1)*Y( 2)*Z( 2)
+     *+A(45)*X( 2)+A(47)*X( 2)*Z( 2)+A(48)*X( 2)*Y( 2)
+     *+A(54)*X( 3)+A(56)*X( 3)
+     **Z( 2)+A(57)*X( 3)*Y( 2)+A(58)*Z( 4)+A(59)*Y( 4)
+     *+A(61)*X( 1)*Z( 4)+A(62)*X( 1)*Y( 4)+A(63)*X( 4))*TANZR 
+      BB(2)=(B( 1)*Y( 1)*Z( 1)+B( 2)*X( 1)*Y( 1)*Z( 1)+B( 3)*Y( 1)*Z( 3)
+     *+B( 4)*Y( 3)*Z( 1)+B( 5)*X( 1)*Y( 1)*Z( 3)+B( 6)*X( 1)*Y( 3)*Z( 1)
+     *+B( 7)*X( 2)*Y( 1)*Z( 1)+B( 8)*X( 3)*Y( 1)*Z( 1))*EXPC
+     *+(0.0D0 +B( 9)*Y( 1)
+     **Z( 1)+B(10)*X( 1)*Y( 1)*Z( 1)+B(11)*Y( 1)*Z( 3)+B(12)*Y( 3)*Z( 1)
+     *+B(13)*X( 1)*Y( 1)*Z( 3)+B(14)*X( 1)*Y( 3)*Z( 1)+B(15)*X( 2)*Y( 1)
+     **Z( 1)+B(16)*X( 3)*Y( 1)*Z( 1))*EXPR
+      BB(3)=(C( 1)+C( 2)*X( 1)+C( 3)*Z( 2)+C( 4)*Y( 2)+C( 5)*Y( 2)*Z( 2)
+     *+C( 6)*X( 1)*Z( 2)+C( 7)*X( 1)*Y( 2)+C( 8)*X( 1)*Y( 2)*Z( 2)+C( 9)
+     **X( 2)+C(10)*X( 2)*Z( 2)+C(11)*X( 2)*Y( 2)+C(12)*X( 3)+C(13)*X( 3)
+     **Z( 2)+C(14)*X( 3)*Y( 2)+C(15)*Z( 4)+C(16)*Y( 4)+C(17)*X( 1)*Z( 4)
+     *+C(18)*X( 1)*Y( 4)+C(19)*X( 4))*EXPC
+     *+(0.0D0 +C(20)+C(21)*X( 1)+C(22)*Z( 2)
+     *+C(23)*Y( 2)+C(24)*Y( 2)*Z( 2)+C(25)*X( 1)*Z( 2)+C(26)*X( 1)*Y( 2)
+     *+C(27)*X( 1)*Y( 2)*Z( 2)+C(28)*X( 2)+C(29)*X( 2)*Z( 2)+C(30)*X( 2)
+     **Y( 2)+C(31)*X( 3)+C(32)*X( 3)*Z( 2)+C(33)*X( 3)*Y( 2)+C(34)*Z( 4)
+     *+C(35)*Y( 4)+C(36)*X( 1)*Z( 4)+C(37)*X( 1)*Y( 4)+C(38)*X( 4))*EXPR
+
+      RETURN
+      END 
+C-----------------------------------------------------------------------
+      SUBROUTINE BFRING(XX, BB)
+C  VERSION 5/13/88
+C  DEVELOPED MCDONNELL DOUGLAS
+C  FOR INFORMATION CALL KARL PFITZER (714) 896-3231
+C
+C     INPUT -- ARGUMENT LIST
+C        XX     A REAL ARRAY GIVING THE POSITION WHERE THE MAGNETIC FIELD 
+C               IS TO BE DETERMINED. XX(1), XX(2), XX(3) ARE RESPECTIVELY 
+C               THE X, Y, AND Z SOLAR MAGNETIC COORDINATES IN EARTH RADII.
+C               Z IS ALONG THE EARTHS NORTH DIPOLE AXIS. X IS PERPENDICULAR
+C               TO Z AND IN THE PLANE CONTAINING THE Z AXIS AND THE SUN-EARTH 
+C               LINE (X IS POSITIVE IN THE SOLAR DIRECTION). Y IS PERPENDICULAR 
+C               TO X AND Z AND X,Y,Z FORM A RIGHT HANDED COORDINATE SYSTEM. 
+C     
+C     OUTPUT -- ARGUMENT LIST 
+C        BB     A REAL ARRAY CONTAINING THE X, Y, AND Z COMPONENTS OF THE 
+C               EARTH'S TOTAL MAGNETIC FIELD IN SOLAR MAGNETIC COORDINATES.  
+C               BB(1), BB(2), AND BB(3) ARE THE BX, BY, AND BZ COMPONENTS.
+C               THE UNITS ARE NANOTESLA.
+C
+C  THIS SUBROUTINE CALCULATES THE FIELD FROM THE RING CURRENT SYSTEM.
+C  THE EXPANSION IS A FIT TO VALUES CALCULATED FROM THE WIRE RING
+C  CURRENT MODEL. THE EXPANSION IS VALID FROM THE SUBSOLAR POINT.
+C  TO -60 RE.
+
+      IMPLICIT NONE
+
+C Input
+      REAL*8 XX(3)
+C Output
+      REAL*8 BB(3)
+C Local
+      REAL*8 A(29), B(17), C(39), X(5), Y(5), Z(5)
+      REAL*8 XN, YN, ZN, R, R2, EXPC, EXPR
+      INTEGER*4 I
+
+      DATA A/ 
+     * .937029737d+00,-.734269078d+00,-.125896726d-01,-.843388063d-02,
+     * .756104711d-04, .294507011d-02,-.719118601d-03,-.177154663d-01,
+     * .104113319d-03,-.339745485d-04, .324439655d-03, .492786378d-04,
+     *-.100821105d-04, .109966887d-04, .119616338d+00, .403556177d+01,
+     *-.363651494d-01,-.337286459d-01,-.908902973d-04,-.980450316d-01,
+     *-.220988518d+00,-.244671475d+00,-.977974501d-03, .311933785d-01,
+     *-.249204900d+00, .825058070d-03, .464195892d-02, .223651513d-01,
+     * 0.0d0/ 
+
+      DATA B/ 
+     *-.908641389d+00,-.249680217d-01, .443512048d-02,-.124215709d-03,
+     * .211679921d-03,-.368134800d-04, .547288643d-03, .164845371d-04,
+     * .407818714d+01,-.129156231d+00,-.940633654d-01,-.220684438d+00,
+     * .878070158d-04, .174193445d-01,-.223040987d+00, .151981648d-01,
+     * 0.0d0/ 
+
+      DATA C/ 
+     *-.381390073d+02,-.362173083d+01,-.410551306d+00, .532760526d+00,
+     *-.151227645d-02, .182345800d-01, .358417761d-01,-.103889316d-03,
+     * .395514004d+00, .100299786d-02, .138275245d-03, .288046807d-01,
+     *-.127951613d-05,-.177797800d-04, .239511803d-02,-.284121147d-03,
+     * .939796129d-04,-.101830861d-04, .504629929d-03, .105982946d+02,
+     * .265464860d+01,-.157855689d+01,-.548140707d+01,-.181759612d-01,
+     * .653535097d-01, .405331254d+00,-.726064092d-02,-.554702622d+01,
+     *-.652021402d-02, .802389538d-01, .167926792d+00,-.384118806d-02,
+     * .872021714d-02, .474604567d-01, .772720393d-01, .144274860d-02,
+     *-.179837707d-01, .871619151d-01,
+     * 0.0d0/ 
+      XN = XX(1)
+      YN = XX(2)
+      ZN = XX(3)
+      R2 = XN * XN + YN * YN + ZN * ZN
+      R = DSQRT(R2)
+      DO I=1,5  
+        X(I) = XN 
+        Y(I) = YN 
+        Z(I) = ZN 
+        XN = XN * XX(1) 
+        YN = YN * XX(2) 
+        ZN = ZN * XX(3) 
+      END DO
+      EXPC = DEXP(-R/5.20D0)
+      IF (R2 .GT. 900.0D0) R2 = 900.0D0 
+      EXPR = DEXP(-0.060D0*R2) 
+      BB(1)=(A( 1)*Z( 1)+A( 2)*X( 1)*Z( 1)+A( 3)*Z( 3)+A( 4)*Y( 2)*Z( 1)
+     *+A( 5)*Y( 2)*Z( 3)+A( 6)*X( 1)*Z( 3)+A( 7)*X( 1)*Y( 2)*Z( 1)+A( 8)
+     **X( 2)*Z( 1)+A( 9)*X( 2)*Z( 3)+A(10)*X( 2)*Y( 2)*Z( 1)+A(11)*X( 3)
+     **Z( 1)+A(12)*Z( 5)+A(13)*Y( 4)*Z( 1)+A(14)*X( 4)*Z( 1))*EXPC
+     *+(0.0 +A(15)
+     **Z( 1)+A(16)*X( 1)*Z( 1)+A(17)*Z( 3)+A(18)*Y( 2)*Z( 1)+A(19)*Y( 2)
+     **Z( 3)+A(20)*X( 1)*Z( 3)+A(21)*X( 1)*Y( 2)*Z( 1)+A(22)*X( 2)*Z( 1)
+     *+A(23)*X( 2)*Z( 3)+A(24)*X( 2)*Y( 2)*Z( 1)+A(25)*X( 3)*Z( 1)+A(26)
+     **Z( 5)+A(27)*Y( 4)*Z( 1)+A(28)*X( 4)*Z( 1))*EXPR
+      BB(2)=(B( 1)*Y( 1)*Z( 1)+B( 2)*X( 1)*Y( 1)*Z( 1)+B( 3)*Y( 1)*Z( 3)
+     *+B( 4)*Y( 3)*Z( 1)+B( 5)*X( 1)*Y( 1)*Z( 3)+B( 6)*X( 1)*Y( 3)*Z( 1)
+     *+B( 7)*X( 2)*Y( 1)*Z( 1)+B( 8)*X( 3)*Y( 1)*Z( 1))*EXPC
+     *+(0.0 +B( 9)*Y( 1)
+     **Z( 1)+B(10)*X( 1)*Y( 1)*Z( 1)+B(11)*Y( 1)*Z( 3)+B(12)*Y( 3)*Z( 1)
+     *+B(13)*X( 1)*Y( 1)*Z( 3)+B(14)*X( 1)*Y( 3)*Z( 1)+B(15)*X( 2)*Y( 1)
+     **Z( 1)+B(16)*X( 3)*Y( 1)*Z( 1))*EXPR
+      BB(3)=(C( 1)+C( 2)*X( 1)+C( 3)*Z( 2)+C( 4)*Y( 2)+C( 5)*Y( 2)*Z( 2)
+     *+C( 6)*X( 1)*Z( 2)+C( 7)*X( 1)*Y( 2)+C( 8)*X( 1)*Y( 2)*Z( 2)+C( 9)
+     **X( 2)+C(10)*X( 2)*Z( 2)+C(11)*X( 2)*Y( 2)+C(12)*X( 3)+C(13)*X( 3)
+     **Z( 2)+C(14)*X( 3)*Y( 2)+C(15)*Z( 4)+C(16)*Y( 4)+C(17)*X( 1)*Z( 4)
+     *+C(18)*X( 1)*Y( 4)+C(19)*X( 4))*EXPC
+     *+(0.0 +C(20)+C(21)*X( 1)+C(22)*Z( 2)
+     *+C(23)*Y( 2)+C(24)*Y( 2)*Z( 2)+C(25)*X( 1)*Z( 2)+C(26)*X( 1)*Y( 2)
+     *+C(27)*X( 1)*Y( 2)*Z( 2)+C(28)*X( 2)+C(29)*X( 2)*Z( 2)+C(30)*X( 2)
+     **Y( 2)+C(31)*X( 3)+C(32)*X( 3)*Z( 2)+C(33)*X( 3)*Y( 2)+C(34)*Z( 4)
+     *+C(35)*Y( 4)+C(36)*X( 1)*Z( 4)+C(37)*X( 1)*Y( 4)+C(38)*X( 4))*EXPR
+
+      RETURN
+      END 
+C-----------------------------------------------------------------------
+      REAL*8 FUNCTION RINGST(SOFFD, DST)
+C
+C  THIS FUNCTION CALCULATES THE STRENGTH OF THE RING CURRENT FROM THE 
+C  STANDOFF DISTANCE AND THE DST.
+C
+C  THIS FUNCTION CAN BE USED TO CALCULATE A VALUE FOR SRING, ONE OF THE
+C  REQUIRED PARAMETERS FOR CALCUATING THE DYNAMIC MAGNETIC FIELD.
+C
+C  IT CALCULATES THE CONTRIBUTION OF THE MAGNETOPAUSE CURRENTS TO GROUND 
+C  BASED SIGNATURE AND SUBTRACTS THAT COMPONENT FROM THE OBSERVED VALUE 
+C  OF DST. IT ATTRIBUTES THE REMAINDER TO THE RING CURRENT.
+C
+C  INPUT PARAMETERS
+C
+C        SOFFD  THE STANDOFF DISTANCE OF THE MAGNETOPAUSE. THE QUIET STANDOFF 
+C               DISTANCE IS 10.5 EARTH RADII. ACCEPTABLE VALUES RANGE BETWEEN 
+C               6 AND 11. THIS VALUE IS USED TO CALCULATE THE STRENGTH OF
+C               THE MAGNETOPAUSE CURRENTS AND TO SCALE THE SIZE OF THE 
+C               MAGNETOPAUSE. THIS VALUE ALSO SCALES THE SIZE OF THE TAIL 
+C               CURRENT SYSTEM. THE RING SYSTEM IS NOT SCALED, SINCE ITS 
+C               SOURCE IS PRIMARILY AT RADIAL DISTANCES.
+C
+C        DST    DST IS THE STANDARD PUBLISHED DST VALUE IN NANOTESLA, THE 
+C               STORMTIME DISTURBED EQUATORIAL FIELD.
+C
+C  CON    SCALES THE EFFECT OF THE DST (ITS VALUE OF .03 IS STILL
+C         SOMEWHAT UNCERTAIN).
+C
+      IMPLICIT NONE
+
+C Input
+      REAL*8 SOFFD, DST
+C Local
+c modified by S. Bourdarie (March 2008) (line below not compatible with all compilers - e.g. g95 gnu)
+c      REAL*8 SCL, SCM, DSTMOD, CON / 0.03D0 /
+      REAL*8 SCL, SCM, DSTMOD, CON
+      DATA CON / 0.03D0 /
+c end modif S. Bourdarie
+
+      SCL = 10.5D0 / SOFFD
+      SCM = SCL**3.0D0
+      DSTMOD = (SCM-1.0D0) * 15.0D0 - DST
+      RINGST = 1.0D0 + DSTMOD * CON
+
+      RETURN
+      END
+C-----------------------------------------------------------------------
+      REAL*8 FUNCTION STDOFF(VEL, DEN)
+C
+C  THIS FUNCTION CALCULATES THE STANOFF DISTANCE FROM THE SOLAR WIND VELOCITY 
+C  AND DENSITY. IT CAN BE USED TO EVALUATE THE PARAMETER SOFFD. SOFFD IS 
+C  REQUIRED FOR ALL SCALING OPERATIONS.
+C
+C  INPUT PARAMETERS
+C
+C     VEL    THE SOLAR WIND VELOCITY IN KM/SEC NEAR THE SUBSOLAR POINT.
+C            TYPICAL VALUES ARE 300 TO 500.
+C
+C     DEN    THE NUMBER DENSITY OF THE SOLAR WIND IN NUMBER PER CC.
+C            TYPICAL VALUES ARE 5 TO 50.
+C
+C  OUTPUT
+C
+C     STDOFF THE DISTANCE TO THE SUBSOLAR POINT IN RE.
+C
+      IMPLICIT NONE
+
+C Input
+      REAL*8 VEL, DEN
+
+      STDOFF = 98.0D0 / ((DEN*VEL**2)**(1.0D0/6.0D0))
+
+      RETURN
+      END
+C-----------------------------------------------------------------------

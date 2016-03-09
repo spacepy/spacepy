@@ -1,0 +1,190 @@
+<!-- %***************************************************************************************************
+% Copyright 2006, S. Bourdarie, T.P. O'Brien
+%
+% This file is part of IRBEM-LIB.
+%
+%    IRBEM-LIB is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU Lesser General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    IRBEM-LIB is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU Lesser General Public License for more details.
+%
+%    You should have received a copy of the GNU Lesser General Public License
+%    along with IRBEM-LIB.  If not, see <http://www.gnu.org/licenses/>.
+% -->
+<html>
+<head>
+</head>
+<body>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">INTRODUCTION</font></font> 
+    </h2>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>We provide a set of Matlab wrappers for
+        the IRBEM FORTRAN library through the use of a shared library file (.dll on windows,
+        .so on Unix). Matlab refers to this type of interface as a "mex file". In addition
+        to the shared library file, Matlab requires a C-style header file that includes the
+        C-style calling syntax for each FORTRAN function. This .h file is provided with the
+        IRBEM Matlab library. For historical reasons, the Matlab routines and files are prefixed
+	with "onera_desp_lib" rather than "irbem".</font></font> 
+    </p>
+    <p>
+    </p>
+    <p>
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">INSTALLATION</font></font> 
+    </h2>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1><a name=WindowsInstallation><b>Easy way for 32-bit windows users:</b>
+
+	  <el>
+	    <li> Manually create your top-level folder "irbem"
+	    <li> Download the <a href ="http://sourceforge.net/p/irbem/code/HEAD/tarball?path=/trunk/matlab">matlab folder tarball</a>, 
+	      and untar/unzip its contents into a folder called "irbem\matlab"
+	    <li> Download the <a href = "http://sourceforge.net/p/irbem/code/HEAD/tarball?path=/trunk/data">data folder tarball</a>, 
+	      and untar/unzip its contents into a folder called "irbem\data"
+	    <li> Open Matlab 
+	    <li> Under the File menu, click "Set Path"
+	    <li> Add "irbem\matlab" to your Matlab path 
+	    <li> Add "irbem\data" to your Matlab path
+	    <li> Click "Save" to save your new Matlab path for future sessions
+	    <li> Download the <a href = "http://sourceforge.net/p/irbem/code/HEAD/tree/trunk/onera_desp_lib_Win32_x86.dll?format=raw">32-bit</a>
+	      windows DLL and <b>save it as "irbem\matlab\onera_desp_lib.dll"</b>
+	  </el>
+
+    </p>
+
+  <p>
+    <font face="ARIAL, HELVETICA"><font size=+1><a name=WindowsInstallation><b>Sort of easy way for 64-bit windows users:</b>
+	  <ul>
+	    <li> Do all the steps above, except download the <a href = "http://sourceforge.net/p/irbem/code/HEAD/tree/trunk/onera_desp_lib_Win64_x86.dll?format=raw">64-bit</a>
+	      windows DLL and <b>save it as "irbem\matlab\onera_desp_lib.dll"</b>
+	    <li> Then you have to install the latest free Microsoft Visual Studio, including its "redistributables" (these are DLLs needed by the IRBEM library and Matlab requires this compiler to acceass any DLL)
+	    <li> Then you have to add the following DLLs to the matlab folder where onera_desp_lib.dll resides. (We're working on a version of the DLL that does not have these dependencies):
+	      <ul>
+		<li> (Except where noted, these are part of cygwin64, but can sometimes be found on-line without installing it)
+		<li> libgcc_s_seh-1.dll
+		<li> libgfortran-3.dll
+		<li> libquadmath-0.dll
+		<li> (These one may not be needed anymore, or only need for extras)
+		<li> libgsl-0.dll
+		<li> libgcc_s_sjlj-1.dll 
+		<li> libgslcblas-0.dll
+		<li> IEShims.dll (usually found in the internet explorer folder, e.g., c:\program files\internet explorer. Copy it)
+              </ul>
+	  </ul>
+  </p>
+    
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1><b>Hard way for everyone else:</b>
+	  The IRBEM make file (call <i>make help</i> from irbem/trunk) will create
+        the shared library file for use with IDL or Matlab. A copy of the shared library is
+        created in the "matlab" subdirectory, and is given a name "onera_desp_lib.dll" or
+        "onera_desp_lib.so" depending on the platform. Thus, in order to access the library
+        and the wrappers, the user needs only add the "matlab" subdirectory (e.g. "c:\irbem\matlab")
+        to the Matlab path. In order for the library to easily locate the data files that
+        it needs, it is also advisable to add the "data" subdirectory to the Matlab path.
+        Matlab provides a GUI interface to add folders to the search path from "Set Path"
+        entry on the "File" menu. It is also possible to add these two folders to the path
+        using the Matlab "addpath" command; however, this command does not make the change
+        to the path permanent, so that "addpath" will have to be issued once in each new Matlab
+        session. The "savepath" function can make the path change permanent, as can the GUI
+        path manager interface. Thus, one could use the following commands, if the IRBEM library
+        is located in "c:\irbem": 
+        <br />
+        <br />
+        addpath c:\irbem\matlab c:\irbem\data 
+        <br />
+        savepath </font></font>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>
+        <br />
+        &nbsp; </font></font>
+    </p>
+    <p>
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">USE OF THE MATLAB LIBRARY</font></font> 
+    </h2>
+    <p>
+    </p>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>The Matlab wrappers are built to provide
+        Matlab-like function calls into the library. These wrappers handle loading the library
+        into Matlab's function space, formatting inputs and outputs for proper calls to the
+        library, and providing "vectorized" functionality wherever reasonable. Each wrapper
+        function will determine whether the FORTRAN library has been loaded, and, if not,
+        attempt to load it from the default location (anywhere in the Matlab path). 
+        <br />
+        <br />
+        Each .m file provided includes a robust set of helps obtainable via help &lt;funtion_name&gt;
+        in the usual Matlab way. This help call will provide details of how to call the function. 
+        <br />
+        <br />
+        Although the FORTRAN library often limits the size of arrays, the Matlab wrappers
+        typically handle arbitrarily large array inputs by splicing together multiple calls
+        to the library. Also, in many cases, when a set of arrays is expected as input, the
+        Matlab wrappers will accept scalars for some, which will be repeated (via Matlab's
+        repmat function) to be the same size as the other array arguments. 
+        <br />
+        <br />
+        In many cases, the library requires integer inputs that represent different options,
+        e.g., kext=5 for the Olson-Pfitzer Quiet external field model. In most cases, the
+        Matlab wrapper supports string (keyword) inputs in place of the integer values. This
+        keyword approach is implemented for kext, options, sysaxes, and whichm, among others. 
+        <br />
+        <br />
+        Whenever date/time arguments are required by the FORTRAN library, the Matlab library
+        expects Matlab Date Numbers (construct argument "matlabd" with Matlab's datenum function). 
+        <br />
+        <br />
+        The FORTRAN library function fly_in_afrl_crres requires a set of text files. If the
+        path to these files is not specified, the wrapper will attempt to guess it by locating
+        one of these, 'crrespro_quiet.txt' in the Matlab search path. 
+        <br />
+        <br />
+        When available from MATLAB a calling sequence is provided for each function (see detailled
+        description of each functions). 
+        <br />
+    </p>
+    <p>
+    </p>
+    <h2><font face="ARIAL, HELVETICA"><font color="#0000ff">HELPER FUNCTIONS </font></font>
+    </h2>
+    <p>
+        <font face="ARIAL, HELVETICA"><font size=+1>Helper functions that support the wrappers: 
+        <br />
+        The following function creates the proper maginputs array for use with the field models. 
+        <br />
+        maginputs = onera_desp_lib_maginputs(Kp,Dst,Nsw,Vsw,Psw,ByGSM,BzGSM,G1,G2,G3,W1,W2,W3,W4,W5,W6,AL); 
+        <br />
+        <br />
+        The following funnction will load the shared library file from the non-default location. 
+        <br />
+        onera_desp_lib_load(libfile,headerfile); 
+        <br />
+        <br />
+        The following functions are used by the library to convert the Matlab wrapper inputs
+        into the inputs needed by the FORTRAN library. These include "as appropriate" the
+        look-up tables that convert keyword inputs into the integer constants used by the
+        FORTAN library. 
+        <br />
+        kext = onera_desp_lib_kext(kext); 
+        <br />
+        options = onera_desp_lib_options(inoptions); 
+        <br />
+        sysaxes = onera_desp_lib_sysaxes(sysaxes) ; 
+        <br />
+        [iyear,idoy,UT] = onera_desp_lib_matlabd2yds(matlabd); 
+        <br />
+        </font></font>
+    </p>
+</body>
+</html>
