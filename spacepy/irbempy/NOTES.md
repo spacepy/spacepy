@@ -17,11 +17,12 @@ For safety I removed the apostrophe and converted blank lines starting with ! to
 
 ### TS07D updates
 ts07d.inc is required to build for SpacePy, but is not in the repo on update.
-Unpack the .tar.bz2 file to get the data.
+Unpack the .tar.bz2 file to get the data, and run make on repo to generate the .inc.
 
 In SVN tree:
 bzip2 -dk TS07d.tar.bz2
 tar -xvf TS07d.tar
+make OS=linux64 ENV=gnu64 all #sub as appropriate
 
 then:
 cp [IRBEM SVN tree]/source/ts07d.inc [newRev]/source

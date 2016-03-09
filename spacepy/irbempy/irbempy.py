@@ -55,7 +55,7 @@ def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
         - omni values as dictionary (optional) : if not provided, will use lookup table
         - (see Lstar documentation for further explanation)
@@ -131,7 +131,7 @@ def find_Bmirror(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omn
         optional; will choose the external magnetic field model 
         possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
         OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-        'T05', 'ALEX']
+        'T05', 'ALEX', 'TS07']
     options : array-like (optional)
         length=5 : explained in Lstar
     omnivals : dict (optional)
@@ -210,7 +210,7 @@ def find_magequator(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnival
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
         - omni values as dictionary (optional) : if not provided, will use lookup table 
         - (see Lstar documentation for further explanation)
@@ -281,7 +281,7 @@ def find_LCDS(ticks, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=Non
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
         - omni values as dictionary (optional) : if not provided, will use lookup table 
         - (see Lstar documentation for further explanation)
@@ -478,7 +478,7 @@ def find_LCDS_K(ticks, K, extMag='T01STORM', options=[1,1,3,0,0], omnivals=None,
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
         - omni values as dictionary (optional) : if not provided, will use lookup table 
         - (see Lstar documentation for further explanation)
@@ -704,7 +704,7 @@ def AlphaOfK(ticks, loci, K, extMag='T01STORM', options=[0,0,3,0,0], omnivals=No
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
         - omni values as dictionary (optional) : if not provided, will use lookup table 
         - (see Lstar documentation for further explanation)
@@ -812,7 +812,7 @@ def find_footpoint(ticks, loci, extMag='T01STORM', options=[1,0,3,0,0], hemi='sa
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained in Lstar
         - omni values as dictionary (optional) : if not provided, will use lookup table 
         - (see Lstar documentation for further explanation)
@@ -1225,7 +1225,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained below
         - omni values as dictionary (optional) : if not provided, will use lookup table 
 
@@ -1269,6 +1269,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
             there is no upper or lower limit for those inputs - Valid for xGSM>=-15. Re)
         - T05	 : Tsyganenko & Sitnov [2005] storm  (uses Dst, Pdyn, ByIMF, BzIMF, 
             W1, W2, W3, W4, W5, W6 - no upper or lower limit for inputs - Valid for xGSM>=-15. Re)
+        - TS07   : Tsyganenko and Sitnov [2007] model. Uses specially calculated coefficient files.
 
     OMNI contents
         - Kp: value of Kp as in OMNI2 files but has to be double instead of integer type
@@ -1372,7 +1373,7 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - intMag (string) : optional: select the internal field model
                             possible values ['IGRF','EDIP','JC','GSFC','DUN','CDIP']
                             For full details see get_Lstar
@@ -1427,7 +1428,7 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         - extMag (string) : optional; will choose the external magnetic field model 
                             possible values ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 
                             'OPQUIET', 'OPDYN', 'T96', 'OSTA', 'T01QUIET', 'T01STORM', 
-                            'T05', 'ALEX']
+                            'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained below
         - omni values as dictionary (optional) : if not provided, will use lookup table 
 
@@ -1691,7 +1692,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
 
     # convert external magnetic field flag
     extkeys = ['0', 'MEAD', 'T87SHORT', 'T87LONG', 'T89', 'OPQUIET', 'OPDYN', 'T96', \
-                'OSTA', 'T01QUIET', 'T01STORM', 'T05', 'ALEX']
+                'OSTA', 'T01QUIET', 'T01STORM', 'T05', 'ALEX', 'TS07']
     assert extMag in  extkeys, 'extMag not available: %s' % extMag
     kext = extkeys.index(extMag.upper())
     d['kext'] = kext

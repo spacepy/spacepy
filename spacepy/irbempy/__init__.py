@@ -57,6 +57,7 @@ extMag
     - 'T01STORM' = Tsyganenko 2001 model for active conditions
     - 'T05' = Tsyganenko and Sitnov 2005 model
     - 'ALEX' = Alexeev model
+    - 'TS07' = Tsyganenko and Sitnov 2007 model
 
 
 Authors
