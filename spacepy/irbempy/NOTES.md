@@ -25,3 +25,6 @@ tar -xvf TS07d.tar
 
 then:
 cp [IRBEM SVN tree]/source/ts07d.inc [newRev]/source
+
+### setup.py
+replace path to IRBEM source code
