@@ -16,7 +16,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 
 import itertools, numbers
 from collections import Iterable
-import sys
+import sys, os
 import warnings
 
 import numpy as np
@@ -33,6 +33,12 @@ except ImportError:
     else:
         raise
 import spacepy.toolbox as tb
+
+#check whether TS07_DATA_PATH is set, if not then set to spacepy's installed data directory
+if not os.environ['TS07_DATA_PATH']:
+    import pkg_resources
+    spdatapath = pkg_resources.resource_filename('spacepy', 'data')
+    os.environ['TS07_DATA_PATH'] = spdatapath #set environment variable here
 
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
