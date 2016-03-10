@@ -98,8 +98,6 @@ C
         if ((stop_alt.lt.0).or.(stop_alt.ge.6378.0*500.0)) then
            goto 999 ! fail, stop_alt out of range 0 to 500 Re
         endif
-	k_ext=kext
-	kint=options(5)
 	kint = int_field_select ( options(5) )
 	k_ext = ext_field_select ( kext )
 c
@@ -110,15 +108,14 @@ c
 	call get_coordinates ( sysaxes, xIN1, xIN2, xIN3, 
      6    alti, lati, longi, xGEO )
 	    
-	call set_magfield_inputs ( kext, maginput, ifail )
+	call set_magfield_inputs ( k_ext, maginput, ifail )
  
-	
 	if ( ifail.lt.0 ) goto 999
-         if (kext .eq. 13) then !special script to read files and
-                          !init parameters for TS07D
-!            PRINT *, 'CALLING TS07D INI FILE'
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
+
+        if (k_ext .eq. 13) then 
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
             call INIT_TS07D_TLPR
+	        if ( ifail.lt.0 ) goto 999
         end if
 c
 c

@@ -2,12 +2,14 @@
       ! update. TODO: check if we already loaded the current files and
       ! skip the load if so, as they currently have a cadence of 5
       ! minutes
+      ! ifail returns as -1 if the files are not found, resulting in 
+      ! bad data returned by each subroutine
       
-      subroutine INIT_TS07D_COEFFS (iyear,idoy,iut)
-
+      subroutine INIT_TS07D_COEFFS (iyear,idoy,iut,ifail)
+      
       INCLUDE 'ts07d.inc'
 
-      INTEGER*4 iyear,idoy
+      INTEGER*4 iyear,idoy,ifail
       REAL*8 A07,iut
 
       INTEGER IYR,IDY,IHR,IMN,ISC
@@ -71,7 +73,8 @@ c check that filename exists:
       call RECALC_08 (IYR,IDY,IHR,IMN,ISC,VXGSE,VYGSE,VZGSE) ! CALCULATES TILT ANGLE AND
 C                                                                  UPDATES MAIN FIELD COEFFICIENTS      
       else
-        print *, filename,' does not exist'
-        stop
+        print *, 'TS07d error: No Coeff files exist for ',iyear,idoy
+        print *, 'TS07d error: filename: ',filename,' does not exist'
+        ifail=-1
       endif
       end

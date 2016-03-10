@@ -102,7 +102,7 @@ C
 c
       CALL INITIZE
 
-      if (kext .eq. 13) then !special script to read files and
+      if (k_ext .eq. 13) then
         call INIT_TS07D_TLPR
       endif
 
@@ -119,25 +119,21 @@ c
          enddo
 
          call init_fields(kint,iyearsat(isat),idoy(isat),
-     &        ut(isat),options(2))
+     &        UT(isat),options(2))
 
          call get_coordinates (sysaxes,xIN1(isat),xIN2(isat),xIN3(isat),
      6        alti, lati, longi, xGEO )
 
-         call set_magfield_inputs ( kext, maginput(1,isat), ifail)
-
-         if ( ifail.lt.0 ) then
-            goto 1000
+         call set_magfield_inputs ( k_ext, maginput(1,isat), ifail)
+         if (k_ext .eq. 13) then
+            call INIT_TS07D_COEFFS(iyearsat(isat),idoy(isat),
+     &      UT(isat),ifail)
          endif
-         if (kext .eq. 13) then !special script to read files and
-            call INIT_TS07D_COEFFS(iyearsat(isat),idoy(isat),ut(isat))
-         end if
 
+         if (ifail.lt.0) goto 1000
 c
          CALL CHAMP(xGEO,B1GEO,B1,Ifail)
-         IF ((Ifail.LT.0).or.(B1.eq.baddata)) THEN
-            goto 1000
-         ENDIF
+         IF ((Ifail.LT.0).or.(B1.eq.baddata)) goto 1000
 
 C copy start point to outputs
          Bmag(isat) = B1

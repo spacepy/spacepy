@@ -1,7 +1,7 @@
       ! Adapted for IRBEM by A. C. Kellerman, loads tail par files
-      ! these only need to be loaded once, so this call is moved to
-      ! the 'MULTI subroutine call in each case, or to the top 
-      ! onera_desp_
+      ! these only need to be loaded once
+      ! TODO: introduce a parameter when this is loaded, so we don't
+      ! call it in the GET_FIELD1 and GET_MULTI1 scripts for each call
       
       subroutine INIT_TS07D_TLPR
 

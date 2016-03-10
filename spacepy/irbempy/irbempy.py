@@ -1322,6 +1322,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
     nalpha = d['nalpha']
         
     if isinstance(alpha, numbers.Number): # no drift shell splitting
+        raise Exception
         lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], d['sysaxes'],\
                     d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], d['xin3'], d['magin'])
 

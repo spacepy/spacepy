@@ -177,12 +177,13 @@ c
 	call set_magfield_inputs ( kext, maginput, ifail )
 	
 	if ( ifail.lt.0 ) RETURN
+      if (kext .eq. 13) then !special script to read files and
+         call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+         call INIT_TS07D_TLPR
+	     if ( ifail.lt.0 ) RETURN
+      end if
 c
 c    
-       if (kext .eq. 13) then !special script to read files and
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
-            call INIT_TS07D_TLPR
-       end if
 
       CALL find_bm_nalpha(xGEO,1,alpha,BL,BMIR,xGEOmir)
       IF (Bmir.NE.baddata) THEN
@@ -686,7 +687,7 @@ C
 
 c     Declare input variables
       REAL*8 xstart(3) ! GEO
-      REAL*8 Bmirror  ! particle mirror field strength
+      REAL*8 Bmirror  ! particles mirror field strength
       INTEGER*4 istore ! where to store bounce orbit
       ! hmin,hmin_lon are also inputs
 
