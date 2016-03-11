@@ -220,7 +220,99 @@ class BatsLog(LogFile):
         
         return fig, ax
     
-class Stream(object):
+class Extraction(PbData):
+    '''
+    A class for creating and visualizing extractions from other
+    :class:`~spacepy.pybats.PbData` 2D data sets.  Bilinear interpolation is 
+    used to obtain data between points.  At present, this class only
+    works with :class:`~spacepy.pybats.bats.Bats2d` objects, but will be
+    generalized in the future.  Though it can be instantiated in typical fashion,
+    It is best to create these objects via other object methods (e.g., 
+    :func:`~spacepy.pybats.bats.Bats2d.extract`)
+
+    Parameters
+    ----------
+    x : float or sequence
+        X value(s) for points at which to extract data values.
+    y : float or sequence
+        Y value(s) for points at which to extract data values.
+    dataset : Bats
+        :class:`~spacepy.pybats.bats.Bats2d` object from which to extract values.
+
+    Other Parameters
+    ----------------
+    var_list : string or sequence of strings
+         List of values to extract from *dataset*.  Defaults to 'all', for all
+         values within *dataset*.
+
+    '''
+
+    def __init__(self, x, y, dataset, var_list='all', *args, **kwargs):
+        # Initialize as a PbData object.
+        super(Extraction, self).__init__(*args, **kwargs)
+
+        # Store x, y internally:
+        # If our x, y locations are not numpy arrays, fix that.
+        # Additionally, convert scalars to 1-element vectors.
+        x, y = np.array(x), np.array(y)
+        if not x.shape: x=x.reshape(1)
+        if not y.shape: y=y.reshape(1)
+
+        # Default: all variables are extracted except coordinates.
+        if var_list == 'all':
+            var_list = list(dataset.keys())
+            for v in ('x','y','z','grid'):
+                if v in var_list: var_list.remove(v)
+        elif type(var_list)==str:
+            var_list = var_list.split()
+        elif type(var_list) != list:
+            var_list=[]
+        else:
+            raise TypeError('Kwarg var_list must be string, list, or None.')
+        
+        # Stash var list, dataset internally:
+        self._var_list = var_list
+        self._dataset  = dataset
+
+        # Extract along trace:
+        self.extract(x, y)
+        
+    def extract(self, xpts, ypts):
+        # Perform actual extraction:
+        from spacepy.pybats.batsmath import interp_2d_reg
+
+        # Some convenience variables:
+        x, y = xpts, ypts
+        data = self._dataset
+        
+        for v, value in zip(data['grid'].attrs['dims'], (x, y)):
+            self[v] = dmarray(value, attrs=data[v].attrs)
+        nPts = len(x)
+        # Create data object for holding extracted values.
+        # One vector for each value w/ same units as parent object.
+        for v in self._var_list:
+            self[v]=dmarray(np.zeros(nPts), attrs=data[v].attrs)
+
+        # Some helpers:
+        xAll = data[data['grid'].attrs['dims'][0]]
+        yAll = data[data['grid'].attrs['dims'][1]]
+
+        # Navigate the MHD quad tree, interpolating as we go.
+        for k in data.qtree:
+            # Only leafs, of course!
+            if not data.qtree[k].isLeaf: continue
+            # Find all points that lie in this block.
+            # If there are none, just keep going.
+            pts = \
+                (x >= data.qtree[k].lim[0]) & (x <= data.qtree[k].lim[1]) & \
+                (y >= data.qtree[k].lim[2]) & (y <= data.qtree[k].lim[3])
+            if not pts.any(): continue
+            locs = data.qtree[k].locs
+            for v in self._var_list:
+                self[v][pts] = interp_2d_reg(x[pts], y[pts], xAll[locs], 
+                                             yAll[locs], data[v][locs]) 
+        
+class Stream(Extraction):
     '''
     A class for streamlines.  Contains all of the information about
     the streamline, including extracted variables.
@@ -232,7 +324,7 @@ class Stream(object):
     Parameters
     ----------
     bats : Bats
-        Bats object to trace through. (Should this be Bats2D?)
+        :class:`~spacepy.pybats.bats.Bats2d` object through which to trace.
     xstart : float
         X value of location to start the trace.
     ystart : float
@@ -255,9 +347,13 @@ class Stream(object):
         :mod:`~spacepy.pybats.trace2d` for more info.  The other option is
         a simple Euler's method approach ('eul'). (Default 'rk4')
     extract : bool
-        (Default: False)
+        (Default: False) Extract variables along stream trace and save within
+        object.
     maxPoints : int
-        (Default : 20000)
+        (Default : 20000) Maximum number of integration steps to take.
+    var_list : string or sequence of strings
+        (Default : 'all') List of values to extract from *dataset*.  
+        Defaults to 'all', for all values within *bats*.
 
     Notes
     -----
@@ -278,21 +374,33 @@ class Stream(object):
     .. automethod:: plot
     '''
     
-    def __init__(self, bats, xstart, ystart, xfield, yfield,
-                 style = 'mag', type='streamline', method='rk4',
-                 extract=False, maxPoints=20000):
+    def __init__(self, bats, xstart, ystart, xfield, yfield, style = 'mag',
+                 type='streamline', method='rk4', var_list='all',
+                 extract=False, maxPoints=20000, *args, **kwargs):
+        
         # Key values:
         self.xstart = xstart #X and Y starting
         self.ystart = ystart #points in the field.
-        self.xvar = xfield #Strings that list the variables
-        self.yvar = yfield #that will be used for tracing.
+        self.xvar   = xfield #Strings that list the variables
+        self.yvar   = yfield #that will be used for tracing.
+
         # Descriptors:
-        self.type   = type
         self.open   = True
         self.method = method
 
-        # Do tracing:
-        self.treetrace(bats, extract, maxPoints=maxPoints)
+        # Do tracing if a tracing method has been set.
+        self.treetrace(bats, maxPoints=maxPoints)
+
+        # Now, initialize as Extraction using self.x, self.y.
+        # This handles the extraction as well as converting self.x, y into
+        # dmarrays with the correct names.
+        super(Stream, self).__init__(self.x, self.y, bats,
+                                     var_list=var_list*extract)
+        
+        # Place parameters into attributes:
+        self.attrs['start']     = [xstart, ystart]
+        self.attrs['trace_var'] = [xfield, yfield]
+        self.attrs['method']    = method
 
         # Set style
         self.set_style(style)
@@ -320,7 +428,7 @@ class Stream(object):
         else:
             self.style = style
 
-    def treetrace(self, bats, extract=False, maxPoints=20000):
+    def treetrace(self, bats, maxPoints=20000):
         '''
         Trace through the vector field using the quad tree.
         '''
@@ -417,7 +525,7 @@ class Stream(object):
             limit = bats.attrs['rbody']*.8
             self.x, self.y = self.x[r>limit], self.y[r>limit]
 
-    def trace(self, bats, extract=False):
+    def trace(self, bats):
         '''
         Trace through the vector field.
         '''
@@ -462,16 +570,18 @@ class Bats2d(IdlFile):
     '''
     # Init by calling IdlFile init and then building qotree, etc.
     def __init__(self, filename, format='binary'):
-        import spacepy.pybats.qotree as qo
-        reload(qo)
         from numpy import array
-        # Read file.
-        IdlFile.__init__(self, filename, format=format)
 
-        # Use case-sensitive names for common variables:
-        for v in ['rho', 'p', 'ux', 'uy', 'uz', 'bx', 'by', 'bz']:
-            if v in self:
-                self[v.capitalize()] = self.pop(v)
+        from spacepy.pybats import parse_filename_time
+        import spacepy.pybats.qotree as qo
+        
+        # Read file.
+        IdlFile.__init__(self, filename, format=format, keep_case=False)
+
+        # Extract time from file name:
+        i_iter, runtime, time = parse_filename_time(self.attrs['file'])
+        if 'time' not in self.attrs: self.attrs['time'] = time
+        if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
         
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
@@ -896,62 +1006,21 @@ class Bats2d(IdlFile):
     #############################
     # EXTRACTION/INTERPOLATION
     #############################
-    def extract(self, x, y, vars='All'):
+    def extract(self, x, y, **kwargs):
         '''
         For x, y of a 1D curve, extract values along that curve
-        and return slice as a new data set.
+        and return slice as a new :class:`~spacepy.pybats.bats.Extraction` 
+        object.  Valid keyword arguments are the same as for 
+        :class:`~spacepy.pybats.bats.Extraction`.
         '''
 
-        from spacepy.pybats import PbData, dmarray
-        from spacepy.pybats.batsmath import interp_2d_reg
-
-        # If our x, y locations are not numpy arrays, fix that.
-        # Additionally, convert scalars to 1-element vectors.
-        x, y = np.array(x), np.array(y)
-        if not x.shape: x=x.reshape(1)
-        if not y.shape: y=y.reshape(1)
-
-        # Default: all variables are extracted except coordinates.
-        if vars == 'All':
-            vars = list(self.keys())
-            for var in ('x','y','z','grid'):
-                if var in vars: vars.remove(var)
-
-        # Create data object for holding extracted values.
-        # One vector for each value w/ same units as parent object.
-        out = PbData(attrs=self.attrs)
-        for var, val in zip(self['grid'].attrs['dims'], (x, y)):
-            out[var] = dmarray(val, attrs=self[var].attrs)
-        nPts = len(x)
-        for var in vars:
-            out[var]=dmarray(np.zeros(nPts), attrs=self[var].attrs)
-
-        # Some helpers:
-        xAll = self[self['grid'].attrs['dims'][0]]
-        yAll = self[self['grid'].attrs['dims'][1]]
-
-        # Navigate the quad tree, interpolating as we go.
-        for k in self.qtree:
-            # Only leafs, of course!
-            if not self.qtree[k].isLeaf: continue
-            # Find all points that lie in this block.
-            # If there are none, just keep going.
-            pts = \
-                (x >= self.qtree[k].lim[0]) & (x <= self.qtree[k].lim[1]) & \
-                (y >= self.qtree[k].lim[2]) & (y <= self.qtree[k].lim[3])
-            if not pts.any(): continue
-            locs = self.qtree[k].locs
-            for var in vars:
-                out[var][pts] = interp_2d_reg(x[pts], y[pts], xAll[locs], 
-                                              yAll[locs], self[var][locs])
-
-        return out
+        return Extraction(x, y, self, **kwargs)
 
     ######################
     # TRACING TOOLS
     ######################
     def get_stream(self, x, y, xvar, yvar, method='rk4', style='mag',
-                   maxPoints=40000):
+                   maxPoints=40000, extract=False):
         '''
         Trace a 2D streamline through the domain, returning a Stream
         object to the caller.
@@ -966,7 +1035,7 @@ class Bats2d(IdlFile):
         '''
 
         stream = Stream(self, x, y, xvar, yvar, style=style, 
-                        maxPoints=maxPoints, method=method)
+                        maxPoints=maxPoints, method=method, extract=extract)
 
         return stream
 
@@ -1708,9 +1777,9 @@ class Bats2d(IdlFile):
             ax.set_ylim(ylim)
 
         # Add body/planet.  Determine where the sun is first.
-        if dim1.lower()=='x':
+        if dim1=='x':
             ang=0.0
-        elif dim2.lower()=='x':
+        elif dim2=='x':
             ang=90.0
         else: ang=0.0
         if add_body: self.add_body(ax, ang=ang)
