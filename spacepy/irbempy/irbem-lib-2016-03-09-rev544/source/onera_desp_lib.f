@@ -152,12 +152,12 @@ C
 	kint = int_field_select ( options(5) )
 	k_ext = ext_field_select ( kext )
 c
-        CALL INITIZE
-        if (kext .eq. 13) then !TS07D tail par init, only need it once
-            call INIT_TS07D_TLPR
-        end if
+      CALL INITIZE
+      if (k_ext .eq. 13) then !TS07D tail par init, only need it once
+          call INIT_TS07D_TLPR
+      end if
 
-        DO isat = 1,ntime
+      DO isat = 1,ntime
 
 	    call init_fields ( kint, iyearsat(isat), idoy(isat),
      6          ut(isat), options(2) )
@@ -176,12 +176,12 @@ c
            GOTO 99
         endif
 
-	    call set_magfield_inputs ( kext, maginput(1,isat), ifail )
+	    call set_magfield_inputs ( k_ext, maginput(1,isat), ifail )
 
-        if (kext .eq. 13) then !TS07D coeff init
-            call INIT_TS07D_COEFFS(iyearsat(isat),idoy(isat),ut(isat))
+        if (k_ext .eq. 13) then !TS07D coeff init
+            call INIT_TS07D_COEFFS(iyearsat(isat),idoy(isat),
+     &      ut(isat),ifail)
         end if
-
 
 c        if (alti .le. 50.) ifail=-10 ! removed by TPO, 5/31/2011 - why would we force fail for alt<50km?
 	    if ( ifail.lt.0 ) then
@@ -297,7 +297,7 @@ C
 	k_ext = ext_field_select ( kext )
 c
         CALL INITIZE
-        if (kext .eq. 13) then !TS07D tail par init, only need it once
+        if (k_ext .eq. 13) then !TS07D tail par init, only need it once
             call INIT_TS07D_TLPR
         end if
 
@@ -309,12 +309,11 @@ c
      6        xIN1(isat), xIN2(isat), xIN3(isat),
      6        alti, lati, longi, xGEO )
 
-	  call set_magfield_inputs ( kext, maginput(1,isat), ifail )
+	  call set_magfield_inputs ( k_ext, maginput(1,isat), ifail )
 
-       if (kext .eq. 13) then !special script to read files and
-c                          !init parameters for TS07D
-c            PRINT *, 'CALLING TS07D INI FILE'
-            call INIT_TS07D_COEFFS(iyearsat(isat),idoy(isat),ut(isat))
+       if (k_ext .eq. 13) then 
+            call INIT_TS07D_COEFFS(iyearsat(isat),idoy(isat),
+     &      ut(isat),ifail)
        end if
 
 
@@ -329,7 +328,7 @@ c            PRINT *, 'CALLING TS07D INI FILE'
             GOTO 99
           endif
 c
-c Compute Bmin assuming 90 PA at S/C
+c Compute Bmin assuming 90° PA at S/C
 	   k_l=0
            IPA=1
            CALL calcul_Lstar_opt(t_resol,r_resol,xGEO
@@ -504,15 +503,12 @@ c
 	call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
      6    alti, lati, longi, xGEO )
 
-	call set_magfield_inputs ( kext, maginput, ifail )
+	call set_magfield_inputs ( k_ext, maginput, ifail )
 
-        if (kext .eq. 13) then !special script to read files and
-c                          !init parameters for TS07D
-c            PRINT *, 'CALLING TS07D INI FILE'
+        if (k_ext .eq. 13) then
             call INIT_TS07D_TLPR
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
        end if
-
 
 	if ( ifail.lt.0 ) then
 	       Lm=baddata
@@ -641,14 +637,11 @@ c
 	call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
      6    alti, lati, longi, xGEO )
 
-	call set_magfield_inputs ( kext, maginput, ifail )
-        if (kext .eq. 13) then !special script to read files and
-c                          !init parameters for TS07D
-c            PRINT *, 'CALLING TS07D INI FILE'
+	call set_magfield_inputs ( k_ext, maginput, ifail )
+        if (k_ext .eq. 13) then
             call INIT_TS07D_TLPR
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
         end if
-
 
 	if ( ifail.lt.0 ) then
  	       Lm=baddata
@@ -734,14 +727,12 @@ c
 	call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
      6    alti, lati, longi, xGEO )
 
-	call set_magfield_inputs ( kext, maginput, ifail )
-        if (kext .eq. 13) then !special script to read files and
-c                          !init parameters for TS07D
-c            PRINT *, 'CALLING TS07D INI FILE'
-            call INIT_TS07D_TLPR
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
-        end if
+	call set_magfield_inputs ( k_ext, maginput, ifail )
 
+      if (k_ext .eq. 13) then
+        call INIT_TS07D_TLPR
+        call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+      end if
 
 	if ( ifail.lt.0 ) then
 	       ind=0
@@ -814,14 +805,12 @@ c
 	call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
      6    alti, lati, longi, xGEO )
 
-	call set_magfield_inputs ( kext, maginput, ifail )
-        if (kext .eq. 13) then !special script to read files and
-c                          !init parameters for TS07D
-c            PRINT *, 'CALLING TS07D INI FILE'
-            call INIT_TS07D_TLPR
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
-        end if
+	call set_magfield_inputs ( k_ext, maginput, ifail )
 
+        if (k_ext .eq. 13) then
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
 
 	if ( ifail.lt.0 ) then
 	       xGEO(1)=baddata
@@ -918,14 +907,12 @@ c
 	call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
      6    alti, lati, longi, xGEO )
 
-	call set_magfield_inputs ( kext, maginput, ifail )
-        if (kext .eq. 13) then !special script to read files and
-c                          !init parameters for TS07D
-c            PRINT *, 'CALLING TS07D INI FILE'
-            call INIT_TS07D_TLPR
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
-        end if
+	call set_magfield_inputs ( k_ext, maginput, ifail )
 
+        if (k_ext .eq. 13) then
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
 
 	if ( ifail.lt.0 ) then
 	       posit(1)=baddata
@@ -998,11 +985,12 @@ c
       call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
      6     alti, lati, longi, xGEO )
 
-      call set_magfield_inputs ( kext, maginput, ifail )
-        if (kext .eq. 13) then !special script to read files and
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
-        end if
+      call set_magfield_inputs ( k_ext, maginput, ifail )
 
+        if (k_ext .eq. 13) then !special script to read files and
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
 
       if ( ifail.lt.0 ) then
          Bl=baddata
@@ -1070,9 +1058,12 @@ C
 c     Declare internal variables
       integer*4 isat
       INTEGER*4 k_ext,k_l,kint,ifail
-      if (kext.eq.13) then
-            call INIT_TS07D_TLPR
-      endif
+
+c    For now we call this every time
+c   TODO: create a load flag so that we skip repetative loads
+c      if (kext.eq.13) then
+c            call INIT_TS07D_TLPR
+c      endif
 
       do isat = 1,ntime
          call GET_FIELD1(kext,options,sysaxes,iyearsat(isat),
@@ -2462,8 +2453,8 @@ c
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
-c                                       ! Because argc is passed by VALUE.
-c
+                                       ! Because argc is passed by VALUE.
+!
       call fly_in_nasa_aeap1(%VAL(argv(1)), %VAL(argv(2)),
      * %VAL(argv(3)),%VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),
      * %VAL(argv(7)),  %VAL(argv(8)),  %VAL(argv(9)),  %VAL(argv(10)),
@@ -2492,8 +2483,8 @@ c
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
-c                                       ! Because argc is passed by VALUE.
-c
+                                       ! Because argc is passed by VALUE.
+!
       call get_AE8_AP8_flux(%VAL(argv(1)), %VAL(argv(2)),
      * %VAL(argv(3)),%VAL(argv(4)),  %VAL(argv(5)),  %VAL(argv(6)),
      * %VAL(argv(7)), %VAL(argv(8)))
@@ -2519,12 +2510,12 @@ c
 ! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_afrl_crres_', ntime,sysaxes,whichm,whatf,energy,xIN1,xIN2,xIN3,flux, /f_value)
 !---------------------------------------------------------------------------------------------------
       REAL*4 FUNCTION fly_in_afrl_crres(argc, argv)   ! Called by IDL
-c
+!
       INTEGER*4   CHAR_SIZE
       PARAMETER	(CHAR_SIZE=500)
 
       INCLUDE 'wrappers.inc'
-c
+!
       j = loc(argc)                    ! Obtains the number of arguments (argc)
                                        ! Because argc is passed by VALUE.
 c
@@ -2555,12 +2546,12 @@ c
 ! CALLING SEQUENCE: result=call_external(lib_name, 'get_crres_flux_idl_', ntime,whichm,whatf,Nene,energy,BBo,L,Ap15,flux,afrl_crres_path,strlen, /f_value)
 !---------------------------------------------------------------------------------------------------
       REAL*4 FUNCTION get_crres_flux_idl(argc, argv)   ! Called by IDL
-c
+!
       INTEGER*4   CHAR_SIZE
       PARAMETER	(CHAR_SIZE=500)
 
       INCLUDE 'wrappers.inc'
-c
+!
       j = loc(argc)                    ! Obtains the number of arguments (argc)
                                        ! Because argc is passed by VALUE.
 c
@@ -2591,12 +2582,12 @@ c
 ! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_ige1_', launch_year,duration,whichm,whatf,Nene,energy,Lower_flux,Mean_flux,Upper_flux, /f_value)
 !---------------------------------------------------------------------------------------------------
       REAL*4 FUNCTION fly_in_ige(argc, argv)   ! Called by IDL
-c
+!
       INTEGER*4   CHAR_SIZE
       PARAMETER	(CHAR_SIZE=500)
 
       INCLUDE 'wrappers.inc'
-c
+!
       j = loc(argc)                    ! Obtains the number of arguments (argc)
                                        ! Because argc is passed by VALUE.
 c
@@ -2625,12 +2616,12 @@ c
 ! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_meo_gnss1_', launch_year,duration,whichm,whatf,Nene,energy,Lower_flux,Mean_flux,Upper_flux, /f_value)
 !---------------------------------------------------------------------------------------------------
       REAL*4 FUNCTION fly_in_meo_gnss(argc, argv)   ! Called by IDL
-c
+!
       INTEGER*4   CHAR_SIZE
       PARAMETER	(CHAR_SIZE=500)
 
       INCLUDE 'wrappers.inc'
-c
+!
       j = loc(argc)                    ! Obtains the number of arguments (argc)
                                        ! Because argc is passed by VALUE.
 c
@@ -2659,12 +2650,12 @@ c
 ! CALLING SEQUENCE: result=call_external(lib_name, 'SGP4_TLE_', runtype,startsfe,stopsfe,deltasec,InFileByte,strlenIn,OutFileByte,strlenOut, /f_value)
 !---------------------------------------------------------------------------------------------------
       REAL*4 FUNCTION SGP4_TLE(argc, argv)   ! Called by IDL
-c
+!
       INTEGER*4   CHAR_SIZE
       PARAMETER	(CHAR_SIZE=500)
 
       INCLUDE 'wrappers.inc'
-c
+!
       j = loc(argc)                    ! Obtains the number of arguments (argc)
                                        ! Because argc is passed by VALUE.
 c
@@ -2694,9 +2685,9 @@ c
 ! CALLING SEQUENCE: result=call_external(lib_name, 'SGP4_ORB_', runtype,startsfe,stopsfe,deltasec,InFileByte,strlenIn,OutFileByte,strlenOut, /f_value)
 !---------------------------------------------------------------------------------------------------
       REAL*4 FUNCTION SGP4_ELE(argc, argv)   ! Called by IDL
-c
+!
       INCLUDE 'wrappers.inc'
-c
+!
       j = loc(argc)                    ! Obtains the number of arguments (argc)
                                        ! Because argc is passed by VALUE.
 c
@@ -2728,9 +2719,9 @@ c
 ! CALLING SEQUENCE: result=call_external(lib_name, 'RV2COE_IDL_', R, V, P, A, Ecc, Incl, Omega, Argp, Nu, M, ArgLat, TrueLon, LonPer, /f_value)
 !---------------------------------------------------------------------------------------------------
       REAL*4 FUNCTION RV2COE_IDL(argc, argv)   ! Called by IDL
-c
+!
       INCLUDE 'wrappers.inc'
-c
+!
       j = loc(argc)                    ! Obtains the number of arguments (argc)
                                        ! Because argc is passed by VALUE.
 c
@@ -2760,9 +2751,9 @@ c
 ! CALLING SEQUENCE: result=call_external(lib_name, 'DATE_AND_TIME2DECY_IDL_', Year,Month,Day,hour,minute,second,decy, /f_value)
 !---------------------------------------------------------------------------------------------------
       REAL*4 FUNCTION DATE_AND_TIME2DECY_IDL(argc, argv)   ! Called by IDL
-c
+!
       INCLUDE 'wrappers.inc'
-c
+!
       j = loc(argc)                    ! Obtains the number of arguments (argc)
                                        ! Because argc is passed by VALUE.
 c
@@ -3031,12 +3022,12 @@ c
 	call get_coordinates ( sysaxes, xIN1, xIN2, xIN3,
      6    alti, lati, longi, xGEO )
 
-	call set_magfield_inputs ( kext, maginput, ifail )
-        if (kext .eq. 13) then !special script to read files and
-            call INIT_TS07D_TLPR
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
-        end if
+	call set_magfield_inputs ( k_ext, maginput, ifail )
 
+        if (k_ext .eq. 13) then !special script to read files and
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+        end if
 
 	if ( ifail.lt.0 ) then
 	    DO IPA=1,Nipa
@@ -3064,7 +3055,7 @@ c      collect the B components for return in maginput() array
 	   maginput(16)=baddata
 	ENDIF
 c
-c Compute Bmin assuming 90 PA at S/C
+c Compute Bmin assuming 90° PA at S/C
 	   k_l=0
            IPA=1
 c             all returned values except Bmin are subsequently overwritten

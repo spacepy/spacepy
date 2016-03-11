@@ -54,15 +54,15 @@ c
       call get_coordinates ( sysaxes, xIN1, xIN2, xIN3, 
      6     alti, lati, longi, xGEO )
       
-      call set_magfield_inputs ( kext, maginput, ifail )
+      call set_magfield_inputs ( k_ext, maginput, ifail )
       
       xHEMI = 0                 ! default, indicates a failure
       
-      if ( ifail.lt.0 ) then
-         RETURN
-      endif
-      if (kext .eq. 13) then
-            call INIT_TS07D_COEFFS(iyearsat,idoy,ut)
+      if ( ifail.lt.0 ) RETURN
+      if (k_ext .eq. 13) then
+            call INIT_TS07D_TLPR
+            call INIT_TS07D_COEFFS(iyearsat,idoy,ut,ifail)
+            if ( ifail.lt.0 ) RETURN
       end if
 
 c     
@@ -110,9 +110,10 @@ c     declare outputs
 
 c     declare internal variables
       integer*4  isat
-      if (kext .eq. 13) then
-        call INIT_TS07D_TLPR
-      end if
+c       TODO: implement the TS07D load flag here and uncomment this
+c      if (kext .eq. 13) then
+c        call INIT_TS07D_TLPR
+c      end if
     
       do isat = 1,ntime
          call GET_HEMI1(kext,options,sysaxes,
