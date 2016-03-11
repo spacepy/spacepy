@@ -301,6 +301,8 @@ class Iono(PbData):
         add_cbar : bool
             Add colorbar to plot.  Default is **False** which will
             not add one to the plot.
+        label : str or None
+            Label to place at top of plot.  Defaults to variable name.
 
         Extra keywords are passed to the contourf routine.
 
