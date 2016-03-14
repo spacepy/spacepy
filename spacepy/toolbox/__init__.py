@@ -1683,6 +1683,245 @@ def interpol(newx, x, y, wrap=None, **kwargs):
 
 # -----------------------------------------------
 
+def quaternionNormalize(Qin, scalarPos='last'):
+    '''
+    Given an input quaternion (or array of quaternions), return the unit quaternion
+
+    Parameters
+    ==========
+    vec : array_like
+        input quaternion to normalize
+
+    Returns
+    =======
+    out : array_like
+        normalized quaternion
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.quaternionNormalize([0.707, 0, 0.707, 0.2])
+    array([ 0.69337122,  0.        ,  0.69337122,  0.19614462])
+
+    '''
+    if scalarPos.lower()=='last':
+        i, j, k = 0, 1, 2
+        w = 3
+    elif scalarPos.lower()=='first':
+        i, j, k = 1, 2, 3
+        w = 0
+    else:
+        raise NotImplementedError('quaternionNormalize: scalarPos must be set to "First" or "Last"')
+
+    Quse = np.asanyarray(Qin).astype(float)
+    try:
+        Quse.shape[1]
+    except IndexError:
+        Quse = np.asanyarray([Quse])
+    outarr = np.empty_like(Quse)
+    for idx, row in enumerate(Quse):
+        magn = hypot(row)
+        if magn>1e-12:
+            mag_inv = 1.0/magn
+            tmp = row*mag_inv
+        else:
+            tmp = [0]*4
+            tmp[i] = tmp[j] = tmp[k] = 0.0
+            tmp[w] = 1.0
+        outarr[idx, i] = tmp[i]
+        outarr[idx, j] = tmp[j]
+        outarr[idx, k] = tmp[k]
+        outarr[idx, w] = tmp[w]
+    return outarr.squeeze()
+
+
+def quaternionRotateVector(Qin, Vin, scalarPos='last', normalize=True):
+    '''
+    Given quaternions and vectors, return the vectors rotated by the quaternions
+
+    Parameters
+    ==========
+    Qin : array_like
+        input quaternion to rotate by
+    Vin : array-like
+        input vector to rotate
+
+    Returns
+    =======
+    out : array_like
+        rotated vector
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> import numpy as np
+    >>> vec = [1, 0, 0]
+    >>> quat_wijk = [np.sin(np.pi/4), 0, np.sin(np.pi/4), 0.0]
+    >>> quat_ijkw = [0.0, np.sin(np.pi/4), 0, np.sin(np.pi/4)]
+    >>> tb.quaternionRotateVector(quat_ijkw, vec)
+    array([ 0.,  0., -1.])
+    >>> tb.quaternionRotateVector(quat_wijk, vec, scalarPos='first')
+    array([ 0.,  0., -1.])
+
+    See Also
+    ========
+    quaternionMultiply
+    '''
+    if scalarPos.lower()=='last':
+        i, j, k = 0, 1, 2
+        w = 3
+    elif scalarPos.lower()=='first':
+        i, j, k = 1, 2, 3
+        w = 0
+    else:
+        raise NotImplementedError('quaternionRotateVector: scalarPos must be set to "First" or "Last"')
+
+    Quse = np.asanyarray(Qin).astype(float)
+    if normalize: Quse = quaternionNormalize(Quse, scalarPos=scalarPos)
+    Vuse = np.asanyarray(Vin).astype(float)
+    try:
+        Quse.shape[1]
+    except IndexError:
+        Quse = np.asanyarray([Quse])
+    try:
+        Vuse.shape[1]
+    except IndexError:
+        Vuse = np.asanyarray([Vuse])
+    try:
+        assert Vuse.shape[0]==Quse.shape[0]
+    except AssertionError:
+        raise ValueError('quaternionRotateVector: Input vector array must have same length as input quaternion array')
+
+    outarr = np.empty((Quse.shape[0], 3))
+    for idx, row in enumerate(Quse):
+        Vrow = Vuse[idx]
+        ii, jj, kk, ww = row[i]**2, row[j]**2, row[k]**2, row[w]**2
+        iw, jw, kw = row[i]*row[w], row[j]*row[w], row[k]*row[w]
+        ij, ik, jk = row[i]*row[j], row[i]*row[k], row[j]*row[k]
+
+        outarr[idx, 0] = ww*Vrow[0] + 2*jw*Vrow[2] - 2*kw*Vrow[1] + ii*Vrow[0] + 2*ij*Vrow[1] + 2*ik*Vrow[2] - kk*Vrow[0] - jj*Vrow[0]
+        outarr[idx, 1] = 2*ij*Vrow[0] + jj*Vrow[1] + 2*jk*Vrow[2] + 2*kw*Vrow[0] - kk*Vrow[1] + ww*Vrow[1] - 2*iw*Vrow[2] - ii*Vrow[1]
+        outarr[idx, 2] = 2*ik*Vrow[0] + 2*jk*Vrow[1] + kk*Vrow[2] - 2.0*jw*Vrow[0] - jj*Vrow[2] + 2.0*iw*Vrow[1] - ii*Vrow[2] + ww*Vrow[2]
+    return outarr.squeeze()
+
+
+def quaternionMultiply(Qin1, Qin2, scalarPos='last'):
+    '''
+    Given quaternions, return the product, i.e. Qin1*Qin2
+
+    Parameters
+    ==========
+    Qin1 : array_like
+        input quaternion, first position
+    Qin2 : array-like
+        input quaternion, second position
+
+    Returns
+    =======
+    out : array_like
+        quaternion product
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> import numpy as np
+    >>> vecX = [1, 0, 0] #shared X-axis
+    >>> vecZ = [0, 0, 1] #unshared, but similar, Z-axis
+    >>> quat_eci_to_gsm = [-0.05395384,  0.07589845, -0.15172533,  0.98402634]
+    >>> quat_eci_to_gse = [ 0.20016056,  0.03445775, -0.16611386,  0.96496352]
+    >>> quat_gsm_to_eci = tb.quaternionConjugate(quat_eci_to_gsm)
+    >>> quat_gse_to_gsm = tb.quaternionMultiply(quat_gsm_to_eci, quat_eci_to_gse)
+    >>> tb.quaternionRotateVector(quat_gse_to_gsm, vecX)
+    array([  1.00000000e+00,   1.06536725e-09,  -1.16892107e-08])
+    >>> tb.quaternionRotateVector(quat_gse_to_gsm, vecZ)
+    array([  1.06802834e-08,  -4.95669027e-01,   8.68511494e-01])
+    '''
+    if scalarPos.lower()=='last':
+        i, j, k = 0, 1, 2
+        w = 3
+    elif scalarPos.lower()=='first':
+        i, j, k = 1, 2, 3
+        w = 0
+    else:
+        raise NotImplementedError('quaternionMultiply: scalarPos must be set to "First" or "Last"')
+
+    Quse1 = np.asanyarray(Qin1).astype(float)
+    Quse2 = np.asanyarray(Qin2).astype(float)
+    try:
+        Quse1.shape[1]
+    except IndexError:
+        Quse1 = np.asanyarray([Quse1])
+    try:
+        Quse2.shape[1]
+    except IndexError:
+        Quse2 = np.asanyarray([Quse2])
+    try:
+        assert Quse2.shape==Quse1.shape
+    except AssertionError:
+        raise ValueError('quaternionMultiply: Input quaternion arrays must have same length')
+
+    outarr = np.empty_like(Quse1)
+    for idx, row in enumerate(Quse1):
+        row1 = row
+        row2 = Quse2[idx]
+        #vector components
+        outarr[idx, i] = row1[w]*row2[i] + row1[i]*row2[w] + row1[j]*row2[k] - row1[k]*row2[j]
+        outarr[idx, j] = row1[w]*row2[j] - row1[i]*row2[k] + row1[j]*row2[w] + row1[k]*row2[i]
+        outarr[idx, k] = row1[w]*row2[k] + row1[i]*row2[j] - row1[j]*row2[i] + row1[k]*row2[w]
+        #real part
+        outarr[idx, w] = row1[w]*row2[w] - row1[i]*row2[i] - row1[j]*row2[j] - row1[k]*row2[k]
+    return outarr.squeeze()
+
+
+def quaternionConjugate(Qin, scalarPos='last'):
+    '''
+    Given an input quaternion (or array of quaternions), return the conjugate
+
+    Parameters
+    ==========
+    vec : array_like
+        input quaternion to conjugate
+
+    Returns
+    =======
+    out : array_like
+        conjugate quaternion
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.quaternionConjugate([0.707, 0, 0.707, 0.2], scalarPos='last')
+    array([-0.707, -0.   , -0.707,  0.2  ])
+
+    See Also
+    ========
+    quaternionMultiply
+    '''
+    if scalarPos.lower()=='last':
+        i, j, k = 0, 1, 2
+        w = 3
+    elif scalarPos.lower()=='first':
+        i, j, k = 1, 2, 3
+        w = 0
+    else:
+        raise NotImplementedError('quaternionConjugate: scalarPos must be set to "First" or "Last"')
+
+    Quse = np.asanyarray(Qin).astype(float)
+    try:
+        Quse.shape[1]
+    except IndexError:
+        Quse = np.asanyarray([Quse])
+    outarr = np.empty_like(Quse)
+    for idx, row in enumerate(Quse):
+        outarr[idx, i] = -row[i]
+        outarr[idx, j] = -row[j]
+        outarr[idx, k] = -row[k]
+        outarr[idx, w] = row[w]
+
+    return outarr.squeeze()
+
+# -----------------------------------------------
+
 def normalize(vec):
     """
     Given an input vector normalize the vector
