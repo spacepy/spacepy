@@ -35,7 +35,7 @@ except ImportError:
 import spacepy.toolbox as tb
 
 #check whether TS07_DATA_PATH is set, if not then set to spacepy's installed data directory
-if not os.environ['TS07_DATA_PATH']:
+if 'TS07_DATA_PATH' not in os.environ:
     import pkg_resources
     spdatapath = pkg_resources.resource_filename('spacepy', 'data')
     os.environ['TS07_DATA_PATH'] = spdatapath #set environment variable here
