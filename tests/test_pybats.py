@@ -58,6 +58,17 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
 
 
+class TestBats2d(unittest.TestCase):
+    '''
+    Test functionality of Bats2d objects.
+    '''
+
+    mhd = pbs.Bats2d('data/pybats_test/y0_binary.out')
+    
+    def testCalc(self):
+        # Test all calculations:
+        self.mhd.calc_all()
+        
 class TestMagGrid(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.bats.MagGridFile` to ensure opening,
