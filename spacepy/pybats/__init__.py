@@ -292,7 +292,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True,
     ax.add_artist(body)
         
 
-def _read_idl_ascii(pbdat, header='units'):
+def _read_idl_ascii(pbdat, header='units', keep_case=True):
     '''
     Load a SWMF IDL ascii output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
@@ -316,6 +316,9 @@ def _read_idl_ascii(pbdat, header='units'):
     ================
     header : string or **None**
         A string indicating how the header line will be handled; see above.
+    keep_case : boolean
+        If set to True, the case of variable names will be preserved.  If
+        set to False, variable names will be set to all lower case.
     
     Returns
     =======
@@ -371,8 +374,12 @@ def _read_idl_ascii(pbdat, header='units'):
     if npar>0:
         para[:] = infile.readline().split()
 
-    # Read variable names
-    names = infile.readline().split()
+    # Read variable names.  Preserve or destroy case
+    # via keyword argument selection:
+    if keep_case:
+        names = infile.readline().split()
+    else:
+        names = infile.readline().lower().split()
 
     # Now that we know the number of variables, we can properly handle
     # the headline and units based on the kwarg *header*:
@@ -432,7 +439,7 @@ def _read_idl_ascii(pbdat, header='units'):
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
-def _read_idl_bin(pbdat, header='units'):
+def _read_idl_bin(pbdat, header='units', keep_case=True):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
@@ -456,7 +463,10 @@ def _read_idl_bin(pbdat, header='units'):
     ================
     header : string or **None**
         A string indicating how the header line will be handled; see above.
-    
+    keep_case : boolean
+        If set to True, the case of variable names will be preserved.  If
+        set to False, variable names will be set to all lower case.
+
     Returns
     =======
     True : Boolean
@@ -531,6 +541,10 @@ def _read_idl_bin(pbdat, header='units'):
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     names = ( struct.unpack(EndChar+'%is' % RecLen, 
                             infile.read(RecLen)) )[0]
+
+    # Preserve or destroy original case of variable names:
+    if not keep_case: names=names.lower()
+
     names.strip()
     names = names.split()
 
@@ -693,16 +707,17 @@ class IdlFile(PbData):
     as an "unpack requires a string of argument length 'X'".
     '''
 
-    def __init__(self, filename,format='binary',header='units',*args,**kwargs):
+    def __init__(self, filename,format='binary',header='units',
+                 keep_case=True, *args,**kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
         self.attrs['file']   = filename   # Save file name.
         self.attrs['format'] = format     # Save file format.
-        self.read(header)   # Read file.
+        self.read(header, keep_case)   # Read file.
 
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
     
-    def read(self, header):
+    def read(self, header, keep_case):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
@@ -710,9 +725,9 @@ class IdlFile(PbData):
         '''
 
         if self.attrs['format'][:3] == 'bin':
-            _read_idl_bin(self, header=header)
+            _read_idl_bin(  self, header=header, keep_case=keep_case)
         elif self.attrs['format'][:3] == 'asc':
-            _read_idl_ascii(self, header=header)
+            _read_idl_ascii(self, header=header, keep_case=keep_case)
         else:
             raise ValueError('Unrecognized file format: {}'.format(
                 self.attrs['format']))

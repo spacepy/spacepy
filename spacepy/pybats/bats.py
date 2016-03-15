@@ -220,7 +220,99 @@ class BatsLog(LogFile):
         
         return fig, ax
     
-class Stream(object):
+class Extraction(PbData):
+    '''
+    A class for creating and visualizing extractions from other
+    :class:`~spacepy.pybats.PbData` 2D data sets.  Bilinear interpolation is 
+    used to obtain data between points.  At present, this class only
+    works with :class:`~spacepy.pybats.bats.Bats2d` objects, but will be
+    generalized in the future.  Though it can be instantiated in typical fashion,
+    It is best to create these objects via other object methods (e.g., 
+    :func:`~spacepy.pybats.bats.Bats2d.extract`)
+
+    Parameters
+    ----------
+    x : float or sequence
+        X value(s) for points at which to extract data values.
+    y : float or sequence
+        Y value(s) for points at which to extract data values.
+    dataset : Bats
+        :class:`~spacepy.pybats.bats.Bats2d` object from which to extract values.
+
+    Other Parameters
+    ----------------
+    var_list : string or sequence of strings
+         List of values to extract from *dataset*.  Defaults to 'all', for all
+         values within *dataset*.
+
+    '''
+
+    def __init__(self, x, y, dataset, var_list='all', *args, **kwargs):
+        # Initialize as a PbData object.
+        super(Extraction, self).__init__(*args, **kwargs)
+
+        # Store x, y internally:
+        # If our x, y locations are not numpy arrays, fix that.
+        # Additionally, convert scalars to 1-element vectors.
+        x, y = np.array(x), np.array(y)
+        if not x.shape: x=x.reshape(1)
+        if not y.shape: y=y.reshape(1)
+
+        # Default: all variables are extracted except coordinates.
+        if var_list == 'all':
+            var_list = list(dataset.keys())
+            for v in ('x','y','z','grid'):
+                if v in var_list: var_list.remove(v)
+        elif type(var_list)==str:
+            var_list = var_list.split()
+        elif type(var_list) != list:
+            var_list=[]
+        else:
+            raise TypeError('Kwarg var_list must be string, list, or None.')
+        
+        # Stash var list, dataset internally:
+        self._var_list = var_list
+        self._dataset  = dataset
+
+        # Extract along trace:
+        self.extract(x, y)
+        
+    def extract(self, xpts, ypts):
+        # Perform actual extraction:
+        from spacepy.pybats.batsmath import interp_2d_reg
+
+        # Some convenience variables:
+        x, y = xpts, ypts
+        data = self._dataset
+        
+        for v, value in zip(data['grid'].attrs['dims'], (x, y)):
+            self[v] = dmarray(value, attrs=data[v].attrs)
+        nPts = len(x)
+        # Create data object for holding extracted values.
+        # One vector for each value w/ same units as parent object.
+        for v in self._var_list:
+            self[v]=dmarray(np.zeros(nPts), attrs=data[v].attrs)
+
+        # Some helpers:
+        xAll = data[data['grid'].attrs['dims'][0]]
+        yAll = data[data['grid'].attrs['dims'][1]]
+
+        # Navigate the MHD quad tree, interpolating as we go.
+        for k in data.qtree:
+            # Only leafs, of course!
+            if not data.qtree[k].isLeaf: continue
+            # Find all points that lie in this block.
+            # If there are none, just keep going.
+            pts = \
+                (x >= data.qtree[k].lim[0]) & (x <= data.qtree[k].lim[1]) & \
+                (y >= data.qtree[k].lim[2]) & (y <= data.qtree[k].lim[3])
+            if not pts.any(): continue
+            locs = data.qtree[k].locs
+            for v in self._var_list:
+                self[v][pts] = interp_2d_reg(x[pts], y[pts], xAll[locs], 
+                                             yAll[locs], data[v][locs]) 
+
+class Stream(Extraction):
     '''
     A class for streamlines.  Contains all of the information about
     the streamline, including extracted variables.
@@ -232,7 +324,7 @@ class Stream(object):
     Parameters
     ----------
     bats : Bats
-        Bats object to trace through. (Should this be Bats2D?)
+        :class:`~spacepy.pybats.bats.Bats2d` object through which to trace.
     xstart : float
         X value of location to start the trace.
     ystart : float
@@ -255,9 +347,13 @@ class Stream(object):
         :mod:`~spacepy.pybats.trace2d` for more info.  The other option is
         a simple Euler's method approach ('eul'). (Default 'rk4')
     extract : bool
-        (Default: False)
+        (Default: False) Extract variables along stream trace and save within
+        object.
     maxPoints : int
-        (Default : 20000)
+        (Default : 20000) Maximum number of integration steps to take.
+    var_list : string or sequence of strings
+        (Default : 'all') List of values to extract from *dataset*.  
+        Defaults to 'all', for all values within *bats*.
 
     Notes
     -----
@@ -278,21 +374,33 @@ class Stream(object):
     .. automethod:: plot
     '''
     
-    def __init__(self, bats, xstart, ystart, xfield, yfield,
-                 style = 'mag', type='streamline', method='rk4',
-                 extract=False, maxPoints=20000):
+    def __init__(self, bats, xstart, ystart, xfield, yfield, style = 'mag',
+                 type='streamline', method='rk4', var_list='all',
+                 extract=False, maxPoints=20000, *args, **kwargs):
+        
         # Key values:
         self.xstart = xstart #X and Y starting
         self.ystart = ystart #points in the field.
-        self.xvar = xfield #Strings that list the variables
-        self.yvar = yfield #that will be used for tracing.
+        self.xvar   = xfield #Strings that list the variables
+        self.yvar   = yfield #that will be used for tracing.
+
         # Descriptors:
-        self.type   = type
         self.open   = True
         self.method = method
 
-        # Do tracing:
-        self.treetrace(bats, extract, maxPoints=maxPoints)
+        # Do tracing if a tracing method has been set.
+        self.treetrace(bats, maxPoints=maxPoints)
+
+        # Now, initialize as Extraction using self.x, self.y.
+        # This handles the extraction as well as converting self.x, y into
+        # dmarrays with the correct names.
+        super(Stream, self).__init__(self.x, self.y, bats,
+                                     var_list=var_list*extract)
+        
+        # Place parameters into attributes:
+        self.attrs['start']     = [xstart, ystart]
+        self.attrs['trace_var'] = [xfield, yfield]
+        self.attrs['method']    = method
 
         # Set style
         self.set_style(style)
@@ -320,7 +428,7 @@ class Stream(object):
         else:
             self.style = style
 
-    def treetrace(self, bats, extract=False, maxPoints=20000):
+    def treetrace(self, bats, maxPoints=20000):
         '''
         Trace through the vector field using the quad tree.
         '''
@@ -417,7 +525,7 @@ class Stream(object):
             limit = bats.attrs['rbody']*.8
             self.x, self.y = self.x[r>limit], self.y[r>limit]
 
-    def trace(self, bats, extract=False):
+    def trace(self, bats):
         '''
         Trace through the vector field.
         '''
@@ -462,16 +570,18 @@ class Bats2d(IdlFile):
     '''
     # Init by calling IdlFile init and then building qotree, etc.
     def __init__(self, filename, format='binary'):
-        import spacepy.pybats.qotree as qo
-        reload(qo)
         from numpy import array
-        # Read file.
-        IdlFile.__init__(self, filename, format=format)
 
-        # Use case-sensitive names for common variables:
-        for v in ['rho', 'p', 'ux', 'uy', 'uz', 'bx', 'by', 'bz']:
-            if v in self:
-                self[v.capitalize()] = self.pop(v)
+        from spacepy.pybats import parse_filename_time
+        import spacepy.pybats.qotree as qo
+        
+        # Read file.
+        IdlFile.__init__(self, filename, format=format, keep_case=False)
+
+        # Extract time from file name:
+        i_iter, runtime, time = parse_filename_time(self.attrs['file'])
+        if 'time' not in self.attrs: self.attrs['time'] = time
+        if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
         
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
@@ -533,16 +643,16 @@ class Bats2d(IdlFile):
         '''
         from numpy import sqrt
 
-        self['B'] = sqrt(self['Bx']**2.0 + self['By']**2.0 + self['Bz']**2.0)
-        self['B'].attrs={'units':self['Bx'].attrs['units']}
+        self['b'] = sqrt(self['bx']**2.0 + self['by']**2.0 + self['bz']**2.0)
+        self['b'].attrs={'units':self['bx'].attrs['units']}
 
-        self['Bx_hat'] = self['Bx'] / self['B']
-        self['By_hat'] = self['By'] / self['B']
-        self['Bz_hat'] = self['Bz'] / self['B']
+        self['bx_hat'] = self['bx'] / self['b']
+        self['by_hat'] = self['by'] / self['b']
+        self['bz_hat'] = self['bz'] / self['b']
 
-        self['Bx_hat'].attrs={'units':'unitless'}
-        self['By_hat'].attrs={'units':'unitless'}
-        self['Bz_hat'].attrs={'units':'unitless'}
+        self['bx_hat'].attrs={'units':'unitless'}
+        self['by_hat'].attrs={'units':'unitless'}
+        self['bz_hat'].attrs={'units':'unitless'}
 
     def calc_Econv(self):
         '''
@@ -553,8 +663,8 @@ class Bats2d(IdlFile):
         from copy import copy
 
         # Some quick declarations for more readable code.
-        ux = self['Ux']; uy=self['Uy']; uz=self['Uz']
-        bx = self['Bx']; by=self['By']; bz=self['Bz']
+        ux = self['ux']; uy=self['uy']; uz=self['uz']
+        bx = self['bx']; by=self['by']; bz=self['bz']
 
         # Check units.  Should be nT(=Volt*s/m^2) and km/s.
         if (bx.attrs['units']!='nT') or (ux.attrs['units']!='km/s'):
@@ -619,11 +729,11 @@ class Bats2d(IdlFile):
         # Unit conversion (nT, uA, cm^-3 -> nT, A, m^-3) to nN/m^3.
         conv = 1E-6
         # Calculate cross product, convert units.
-        self['jbx']=dmarray( (self['jy']*self['Bz']-self['jz']*self['By'])*conv,
+        self['jbx']=dmarray( (self['jy']*self['bz']-self['jz']*self['by'])*conv,
                              {'units':'nN/m^3'})
-        self['jby']=dmarray( (self['jz']*self['Bx']-self['jx']*self['Bz'])*conv,
+        self['jby']=dmarray( (self['jz']*self['bx']-self['jx']*self['bz'])*conv,
                              {'units':'nN/m^3'})
-        self['jbz']=dmarray( (self['jx']*self['By']-self['jy']*self['Bx'])*conv,
+        self['jbz']=dmarray( (self['jx']*self['by']-self['jy']*self['bx'])*conv,
                              {'units':'nN/m^3'})
         self['jb'] =dmarray( sqrt(self['jbx']**2 +
                                   self['jby']**2 +
@@ -643,12 +753,18 @@ class Bats2d(IdlFile):
         #M_naught * conversion from #/cm^3 to kg/m^3
         mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
 
+        # Get all rho-like variables.  Save in new list.
+        rho_names = []
         for k in self:
-            if (k[-3:]) == 'Rho':
-                # Alfven speed in km/s:
-                self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 / 
-                                                 sqrt(mu_naught*self[k]),
-                                                 attrs={'units':'km/s'})
+            if (k[-3:]) == 'rho':
+                rho_names.append(k)
+                
+        # Calculate Alfven speed in km/s.  Separate step to avoid
+        # changing dictionary while looping over keys.
+        for k in rho_names:
+            self[k[:-3]+'alfven'] = dmarray(self['b']*1E-12 / 
+                                            sqrt(mu_naught*self[k]),
+                                            attrs={'units':'km/s'})
 
     def calc_divmomen(self):
         '''
@@ -684,8 +800,8 @@ class Bats2d(IdlFile):
             self['divmomz'][leaf.locs]=ux*d_dx(uz, leaf.dx)+uz*d_dy(uz, leaf.dx)
 
         # Unit conversion.
-        self['divmomx']*=self['Rho']*c1*c2*c3
-        self['divmomz']*=self['Rho']*c1*c2*c3
+        self['divmomx']*=self['rho']*c1*c2*c3
+        self['divmomz']*=self['rho']*c1*c2*c3
 
 
     def calc_gradP(self):
@@ -701,7 +817,7 @@ class Bats2d(IdlFile):
 
         # Create new arrays to hold pressure.
         dims = self['grid'].attrs['dims']
-        size = self['P'].shape
+        size = self['p'].shape
         self['gradP'] = dmarray(np.zeros(size), {'units':'nN/cm^3'})
         for d in dims:
             self['gradP_'+d] = dmarray(np.zeros(size), {'units':'nN/m^3'})
@@ -742,15 +858,15 @@ class Bats2d(IdlFile):
 
         # Find all species, the variable names end in "ux".
         for k in self:
-            if (k[-2:] == 'Ux') and (k[:-2]+'U' not in self):
+            if (k[-2:] == 'ux') and (k[:-2]+'u' not in self):
                 species.append(k[:-2])
 
-        units = self['Ux'].attrs['units']
+        units = self['ux'].attrs['units']
 
         for s in species:
-            self[s+'U'] = dmarray(sqrt( self[s+'Ux']**2+
-                                        self[s+'Uy']**2+
-                                        self[s+'Uz']**2), 
+            self[s+'u'] = dmarray(sqrt( self[s+'ux']**2+
+                                        self[s+'uy']**2+
+                                        self[s+'uz']**2), 
                                   attrs={'units':units})
 
     def calc_Ekin(self, units='eV'):
@@ -771,10 +887,10 @@ class Bats2d(IdlFile):
         mass={'Hp':1.0, 'Op':16.0, 'He':4.0, 'Sw':1.0, '':1.0}
         species = []
 
-        # Find all species, the variable names end in "Rho".
+        # Find all species, the variable names end in "rho".
         for k in self:
-            #and (k!='Rho') \
-            if (k[-3:] == 'Rho') and (k[:-3]+'Ekin' not in self):
+            #and (k!='rho') \
+            if (k[-3:] == 'rho') and (k[:-3]+'Ekin' not in self):
                 species.append(k[:-3])
 
         for s in species:
@@ -896,62 +1012,21 @@ class Bats2d(IdlFile):
     #############################
     # EXTRACTION/INTERPOLATION
     #############################
-    def extract(self, x, y, vars='All'):
+    def extract(self, x, y, **kwargs):
         '''
         For x, y of a 1D curve, extract values along that curve
-        and return slice as a new data set.
+        and return slice as a new :class:`~spacepy.pybats.bats.Extraction` 
+        object.  Valid keyword arguments are the same as for 
+        :class:`~spacepy.pybats.bats.Extraction`.
         '''
 
-        from spacepy.pybats import PbData, dmarray
-        from spacepy.pybats.batsmath import interp_2d_reg
-
-        # If our x, y locations are not numpy arrays, fix that.
-        # Additionally, convert scalars to 1-element vectors.
-        x, y = np.array(x), np.array(y)
-        if not x.shape: x=x.reshape(1)
-        if not y.shape: y=y.reshape(1)
-
-        # Default: all variables are extracted except coordinates.
-        if vars == 'All':
-            vars = list(self.keys())
-            for var in ('x','y','z','grid'):
-                if var in vars: vars.remove(var)
-
-        # Create data object for holding extracted values.
-        # One vector for each value w/ same units as parent object.
-        out = PbData(attrs=self.attrs)
-        for var, val in zip(self['grid'].attrs['dims'], (x, y)):
-            out[var] = dmarray(val, attrs=self[var].attrs)
-        nPts = len(x)
-        for var in vars:
-            out[var]=dmarray(np.zeros(nPts), attrs=self[var].attrs)
-
-        # Some helpers:
-        xAll = self[self['grid'].attrs['dims'][0]]
-        yAll = self[self['grid'].attrs['dims'][1]]
-
-        # Navigate the quad tree, interpolating as we go.
-        for k in self.qtree:
-            # Only leafs, of course!
-            if not self.qtree[k].isLeaf: continue
-            # Find all points that lie in this block.
-            # If there are none, just keep going.
-            pts = \
-                (x >= self.qtree[k].lim[0]) & (x <= self.qtree[k].lim[1]) & \
-                (y >= self.qtree[k].lim[2]) & (y <= self.qtree[k].lim[3])
-            if not pts.any(): continue
-            locs = self.qtree[k].locs
-            for var in vars:
-                out[var][pts] = interp_2d_reg(x[pts], y[pts], xAll[locs], 
-                                              yAll[locs], self[var][locs])
-
-        return out
+        return Extraction(x, y, self, **kwargs)
 
     ######################
     # TRACING TOOLS
     ######################
     def get_stream(self, x, y, xvar, yvar, method='rk4', style='mag',
-                   maxPoints=40000):
+                   maxPoints=40000, extract=False):
         '''
         Trace a 2D streamline through the domain, returning a Stream
         object to the caller.
@@ -966,7 +1041,7 @@ class Bats2d(IdlFile):
         '''
 
         stream = Stream(self, x, y, xvar, yvar, style=style, 
-                        maxPoints=maxPoints, method=method)
+                        maxPoints=maxPoints, method=method, extract=extract)
 
         return stream
 
@@ -1070,7 +1145,7 @@ class Bats2d(IdlFile):
         # boundary.  Find the max radial distance; tilt angle == angle off
         # equator of point of min R (~=max |B|).
         x_small = self.attrs['rbody']*-1.2
-        stream = self.get_stream(x_small, 0, 'Bx', 'Bz', method=method)
+        stream = self.get_stream(x_small, 0, 'bx', 'bz', method=method)
         r = stream.x**2 + stream.y**2
         loc = r==r.max()
         tilt = arctan(stream.y[loc]/stream.x[loc])[0]
@@ -1081,9 +1156,9 @@ class Bats2d(IdlFile):
         
         # Dayside- start by tracing from plane of min |B| and perp. to that: 
         R = self.attrs['rbody']*1.10
-        s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'Bx','Bz', method=method)
+        s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'bx','bz', method=method)
         s2 = self.get_stream(R*cos(pi/2.+tilt), R*sin(pi/2.+tilt), 
-                             'Bx', 'Bz', method=method)
+                             'bx', 'bz', method=method)
         
         theta = tilt
         dTheta=np.pi/4. # Initially, search 90 degrees.
@@ -1095,7 +1170,7 @@ class Bats2d(IdlFile):
             theta += closed*dTheta 
             theta -= s1.open*dTheta
             # Trace at the new theta to further restrict angular range:
-            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'Bx', 'Bz', 
+            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz', 
                                  method=method)
             dTheta /= 2.
             if nIter>max_iter:
@@ -1115,9 +1190,9 @@ class Bats2d(IdlFile):
         # Nightside: 
         theta+=tol
         R = self.attrs['rbody']*1.0
-        s2 = self.get_stream(R*cos(theta),R*sin(theta),'Bx','Bz',method=method)
+        s2 = self.get_stream(R*cos(theta),R*sin(theta),'bx','bz',method=method)
         s1 = self.get_stream(R*cos(pi+tilt), R*sin(pi+tilt), 
-                             'Bx', 'Bz', method=method)
+                             'bx', 'bz', method=method)
         
         dTheta=(pi+tilt-theta)/2.
         theta = pi+tilt
@@ -1128,7 +1203,7 @@ class Bats2d(IdlFile):
             theta -= closed*dTheta 
             theta += s1.open*dTheta
             #print("Theta = {:f} (dTheta={})".format(theta, dTheta))
-            s1 = self.get_stream(R*cos(theta),R*sin(theta), 'Bx','Bz', 
+            s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz', 
                                  method=method)
             dTheta /= 2.
             if nIter>max_iter:
@@ -1224,9 +1299,9 @@ class Bats2d(IdlFile):
                     linspace(0,     thetaD[0]-dTheta, nClosed),
                     linspace(np.pi, thetaN[1]-dTheta, nClosed)):
                 x, y = R*cos(tDay), R*sin(tDay)
-                sD   = self.get_stream(x,y,'Bx','Bz',method=method)
+                sD   = self.get_stream(x,y,'bx','bz',method=method)
                 x, y = R*cos(tNit), R*sin(tNit)
-                sN   = self.get_stream(x,y,'Bx','Bz',method=method)
+                sN   = self.get_stream(x,y,'bx','bz',method=method)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
@@ -1239,9 +1314,9 @@ class Bats2d(IdlFile):
                     linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
                     linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
                 x, y = R*cos(tNorth), R*sin(tNorth)
-                sD   = self.get_stream(x,y,'Bx','Bz',method=method)
+                sD   = self.get_stream(x,y,'bx','bz',method=method)
                 x, y = R*cos(tSouth), R*sin(tSouth)
-                sN   = self.get_stream(x,y,'Bx','Bz',method=method)
+                sN   = self.get_stream(x,y,'bx','bz',method=method)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
@@ -1303,7 +1378,7 @@ class Bats2d(IdlFile):
         colors= []
 
         # Approximate the dipole tilt of the central body.
-        stream = self.get_stream(3.0, 0, 'Bx', 'Bz', method=method)
+        stream = self.get_stream(3.0, 0, 'bx', 'bz', method=method)
         r = stream.x**2 + stream.y**2
         loc, = where(r==r.max())
         tilt = arctan(stream.y[loc[0]]/stream.x[loc[0]])
@@ -1318,7 +1393,7 @@ class Bats2d(IdlFile):
         for theta in angle:
             x = self.attrs['rbody'] * cos(theta)
             y = self.attrs['rbody'] * sin(theta)
-            stream = self.get_stream(x,y,'Bx','Bz', style=style, method=method)
+            stream = self.get_stream(x,y,'bx','bz', style=style, method=method)
             if (stream.y[0] > self.attrs['rbody']) or (stream.style[0]=='k'):
                 daymax = theta
                 break
@@ -1338,22 +1413,22 @@ class Bats2d(IdlFile):
             for i, x in enumerate(arange(x_mp, 15.0, delx)):
                 # From dayside x-line out and up:
                 y =y_mp-x_mp+x
-                stream = self.get_stream(x, y, 'Bx', 'Bz', style=style, 
+                stream = self.get_stream(x, y, 'bx', 'bz', style=style, 
                                          method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From top of magnetosphere down:
                 y =x_mp+15.0-x+delx/3.0
-                stream = self.get_stream(x-delx/3.0, y, 'Bx', 'Bz', 
+                stream = self.get_stream(x-delx/3.0, y, 'bx', 'bz', 
                                          method=method, style=style)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
                 # From bottom of mag'sphere down:
                 y =x_mp-10.0-x+2.0*delx/3.0
-                stream = self.get_stream(x-2.0*delx/3.0, y, 'Bx', 
-                                         'Bz', style=style, method=method)
+                stream = self.get_stream(x-2.0*delx/3.0, y, 'bx', 
+                                         'bz', style=style, method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
 
@@ -1362,7 +1437,7 @@ class Bats2d(IdlFile):
         for theta in angle:
             x = self.attrs['rbody'] * cos(theta)
             y = self.attrs['rbody'] * sin(theta)
-            stream = self.get_stream(x,y,'Bx','Bz', style=style, method=method)
+            stream = self.get_stream(x,y,'bx','bz', style=style, method=method)
             if stream.open:
                 nightmax = theta
                 break
@@ -1382,7 +1457,7 @@ class Bats2d(IdlFile):
         while (x-1.5)>self['x'].min():
             #print "Closed extension at ", x-1.5, y
             #ax.plot(x-1.5, y, 'g^', ms=10)
-            stream = self.get_stream(x-1.5, y, 'Bx', 'Bz', style=style, 
+            stream = self.get_stream(x-1.5, y, 'bx', 'bz', style=style, 
                                      method=method)
             r = sqrt(stream.x**2 + stream.y**2)
             if stream.open:
@@ -1394,7 +1469,7 @@ class Bats2d(IdlFile):
             y = stream.y[loc[0]]
 
         if x1 == x:
-            stream = self.get_stream(x1+1.0, y1, 'Bx', 'Bz', method=method)
+            stream = self.get_stream(x1+1.0, y1, 'bx', 'bz', method=method)
             r = sqrt(stream.x**2 + stream.y**2)
             loc, = where(r==r.max())
             x1 = stream.x[loc[0]]
@@ -1410,7 +1485,7 @@ class Bats2d(IdlFile):
             xmore = arange(x, -100, -3.0)
             ymore = m*(xmore-x)+y
             for x, y  in zip(xmore[1:], ymore[1:]):
-                stream = self.get_stream(x, y, 'Bx', 'Bz', style=style, 
+                stream = self.get_stream(x, y, 'bx', 'bz', style=style, 
                                          method=method)
                 lines.append(array([stream.x, stream.y]).transpose())
                 colors.append(stream.style[0])
@@ -1421,13 +1496,13 @@ class Bats2d(IdlFile):
             for theta in linspace(daymax,0.99*(2.0*(pi+tilt))-nightmax, 15):
                 x = self.attrs['rbody'] * cos(theta)
                 y = self.attrs['rbody'] * sin(theta)
-                stream = self.get_stream(x,y,'Bx','Bz', method=method)
+                stream = self.get_stream(x,y,'bx','bz', method=method)
                 if stream.open: 
                     lines.append(array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
                 x = self.attrs['rbody'] * cos(theta+pi)
                 y = self.attrs['rbody'] * sin(theta+pi)
-                stream = self.get_stream(x,y,'Bx','Bz', method=method)
+                stream = self.get_stream(x,y,'bx','bz', method=method)
                 if stream.open:
                     lines.append(array([stream.x, stream.y]).transpose())
                     colors.append(stream.style[0])
@@ -1510,7 +1585,7 @@ class Bats2d(IdlFile):
         
         Simple example:
 
-        >>> self.add_pcolor('x', 'y', 'Rho')
+        >>> self.add_pcolor('x', 'y', 'rho')
 
         If kwarg **target** is None (default), a new figure is 
         generated from scratch.  If target is a matplotlib Figure
@@ -1547,7 +1622,7 @@ class Bats2d(IdlFile):
         fig, ax = set_target(target, figsize=(10,10), loc=loc)
 
         # Get max/min if none given.
-        if zlim==None:
+        if zlim is None:
             zlim=[0,0]
             zlim[0]=self[value].min(); zlim[1]=self[value].max()
             if dolog and zlim[0]<=0:
@@ -1612,7 +1687,7 @@ class Bats2d(IdlFile):
         
         Simple example:
 
-        >>> self.add_contour('x', 'y', 'Rho')
+        >>> self.add_contour('x', 'y', 'rho')
 
         If kwarg **target** is None (default), a new figure is 
         generated from scratch.  If target is a matplotlib Figure
@@ -1652,7 +1727,7 @@ class Bats2d(IdlFile):
         fig, ax = set_target(target, figsize=(10,10), loc=loc)
 
         # Get max/min if none given.
-        if zlim==None:
+        if zlim is None:
             zlim=[0,0]
             zlim[0]=self[value].min(); zlim[1]=self[value].max()
             if dolog and zlim[0]<=0:
@@ -1708,9 +1783,9 @@ class Bats2d(IdlFile):
             ax.set_ylim(ylim)
 
         # Add body/planet.  Determine where the sun is first.
-        if dim1.lower()=='x':
+        if dim1=='x':
             ang=0.0
-        elif dim2.lower()=='x':
+        elif dim2=='x':
             ang=90.0
         else: ang=0.0
         if add_body: self.add_body(ax, ang=ang)
@@ -2287,7 +2362,7 @@ class MagGridFile(IdlFile):
         fig, ax = set_target(target, figsize=(10,7), loc=loc)
 
         # Get max/min if none given.
-        if zlim==None:
+        if zlim is None:
             zlim = [self[value].min(), self[value].max()]
             if zlim[1]-zlim[0]>np.max(zlim):
                 maxval = max(abs(zlim[0]), abs(zlim[1]))

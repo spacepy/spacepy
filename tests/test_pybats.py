@@ -58,10 +58,56 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
 
 
+class TestBats2d(unittest.TestCase):
+    '''
+    Test functionality of Bats2d objects.
+    '''
+
+    mhd = pbs.Bats2d('data/pybats_test/y0_binary.out')
+    
+    def testCalc(self):
+        # Test all calculations:
+        self.mhd.calc_all()
+        
+class TestMagGrid(unittest.TestCase):
+    '''
+    Test the class :class:`spacepy.pybats.bats.MagGridFile` to ensure opening,
+    handling, and calculations are working correctly.
+    '''
+
+    knownDbnMax = 8.0770346781
+    knownDbhMax = 8.07703468843
+    knownPedMax = 2.783385368
+    
+    def testOpen(self):
+        # Open both binary and ascii versions of same data.
+        # Ensure expected values are loaded.
+        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out',
+                              format='ascii')
+        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+
+        self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
+        self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
+        self.assertAlmostEqual(self.knownDbnMax, m2['dBn'].max())
+        self.assertAlmostEqual(self.knownPedMax, m2['dBnPed'].max())
+
+    def testCalc(self):
+        # Open both binary and ascii versions of same data.
+        # Ensure calculations give expected values.
+        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out',
+                              format='ascii')
+        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+
+        # Calculation of H-component:
+        m1.calc_h()
+        m2.calc_h()
+        self.assertAlmostEqual(self.knownDbhMax, m1['dBh'].max())
+        self.assertAlmostEqual(self.knownDbhMax, m2['dBh'].max())
+        
 class TestVirtSat(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.VirtSat` to ensure opening, handling,
-    and calculations.
+    and calculations are working correctly.
     '''
 
     knownSatXmax = -1.6397
@@ -133,6 +179,24 @@ class TestImfInput(unittest.TestCase):
         # Test figures:
         self.assertTrue(isinstance(f1, plt.Figure))
         self.assertTrue(isinstance(f2, plt.Figure))
+
+        plt.close(f1)
+        plt.close(f2)
+        
+class TestExtraction(unittest.TestCase):
+    '''
+    Test Extraction class by opening a file with known solution.
+    '''
+    mhd = pbs.Bats2d('data/pybats_test/z0_sine.out')
+    
+    def testExtract(self):
+        from numpy import pi, cos
+        
+        analytic = lambda(x): 1.+.5*cos(x*pi/10.)
+        extr = self.mhd.extract(range(-5, 6),[-8]*11)
+        for x, rho in zip(extr['x'], extr['rho']):
+            self.assertAlmostEqual(rho, analytic(x), 2)
+        
         
 if __name__=='__main__':
     unittest.main()
