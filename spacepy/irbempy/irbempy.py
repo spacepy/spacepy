@@ -37,7 +37,8 @@ import spacepy.toolbox as tb
 #check whether TS07_DATA_PATH is set, if not then set to spacepy's installed data directory
 if 'TS07_DATA_PATH' not in os.environ:
     import pkg_resources
-    spdatapath = pkg_resources.resource_filename('spacepy', 'data')
+    dataTS07D = os.path.join('data', 'TS07D')
+    spdatapath = pkg_resources.resource_filename('spacepy', dataTS07D)
     os.environ['TS07_DATA_PATH'] = spdatapath #set environment variable here
 
 
@@ -1732,10 +1733,13 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     # get omni values
     if omnivals is None:
         # No OMNI values provided so look up (requires data files)
-        if extMag not in ['0', 'OPQUIET']:
+        if extMag.upper() not in ['0', 'OPQUIET','TS07']:
             import spacepy.omni as omni
             omnivals = omni.get_omni(ticks)
         # UNLESS we're asking for a static model... then we spoof the input as the numbers are irrelevant
+        # OR TS07, which uses special files
+        elif extMag.upper() == 'TS07':
+            omnivals = fakeOMNI(len(ticks), magkeys) #keep this separate, just in case TS07 params ever get passed in the usual way
         else:
             omnivals = fakeOMNI(len(ticks), magkeys)
     if 'G' in omnivals:

@@ -764,7 +764,7 @@ class config_fc(numpy.distutils.command.config_compiler.config_fc):
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
             'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox', ]
 #If adding to package_data, also put in MANIFEST.in
-package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*', 'data/TS07D/TSG_DYN_PAR/*']
+package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*', 'data/TS07D/TAIL_PAR/*']
 
 setup_kwargs = {
     'name': 'spacepy',
