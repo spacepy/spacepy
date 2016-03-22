@@ -10,33 +10,38 @@
       INCLUDE 'ts07d.inc'
 
       INTEGER*4 iyear,idoy,ifail
-      REAL*8 A07,iut
+      REAL*8 A07,iut,COEFF_Q,COEFF_B_RMS
+      REAL*8 PDYN,TILT
+      INTEGER*4 M_INX,N_INX
 
       INTEGER IYR,IDY,IHR,IMN,ISC
-      INTEGER TS7LEN,ierr,stat,statb(13) ! file i/o
+      INTEGER TS7LEN,i,ierr,stat,statb(13) ! file i/o
       LOGICAL OK ! I/O
 
       CHARACTER*18 PAR_FNAME
-      CHARACTER*200 filename,FMT
-      CHARACTER*80 TS7DIR
+      CHARACTER*255 filename,FMT
+      CHARACTER*255 TS7DIR
       CHARACTER*255 ts07d_env
 
       PARAMETER (NTOT=101)
 
-      COMMON /A07/ A07(NTOT)
+      COMMON /TS07D_DATA/ M_INX,N_INX,PDYN,TILT,A07(NTOT)
       CALL GETENV('TS07_DATA_PATH', ts07d_env)
       if (LEN_TRIM(ts07d_env).ne.0) then
         TS7DIR=TRIM(ts07d_env)
       else
         TS7DIR=TRIM(TS07D_DIR)
       endif
+
       i=len(TS7DIR)
       do while (TS7DIR(i:i) == ' ')
         i = i - 1  
       enddo
-      TS7LEN=i
-      TS7DIR=TS7DIR(1:TS7LEN)//'/TS07D'
-      TS7LEN = TS7LEN+6
+
+      ! TS7DIR=TS7DIR(1:TS7LEN)//'/TS07D' ! now included in the directory
+      ! path
+      ! TS7LEN = TS7LEN+6
+       TS7LEN=i
 
       IYR=iyear
       IDY=idoy
@@ -49,8 +54,9 @@
      +iyear,'_',idoy,'_',IHR,'_',IMN-MODMIN,'.par' 
 
 C     TS7LEN is the directory length
-      WRITE(FMT,'("(A", I0, ",A8,A18)")') TS7LEN
-      write(filename,FMT), TS7DIR(1:TS7LEN),'/Coeffs/',PAR_FNAME
+      WRITE(FMT,'("(A", I0, ",A8,I4,A1,I0.3,A1,A18)")') TS7LEN
+      write(filename,FMT), TS7DIR(1:TS7LEN),'/Coeffs/',iyear,'_',
+     * idoy,'/',PAR_FNAME
 
 c check that filename exists:
       INQUIRE( FILE=filename, EXIST=OK ) 
@@ -63,7 +69,17 @@ c check that filename exists:
       endif
 
       READ (1,100) (A07(I),I=1,NTOT)                             !  A SPECIFIC TIME MOMENT
- 100  FORMAT(G15.6)                                            !  MAKE SURE TO MODIFY THE PATH
+      READ (1,101) COEFF_G 
+      READ (1,101) COEFF_B_RMS 
+      READ (1,102) M_INX
+      READ (1,102) N_INX
+      READ (1,101) PDYN
+      READ (1,101) TILT
+
+    
+ 100  FORMAT(G15.6)                                         
+ 101  FORMAT(7x,G15.6)                                            
+ 102  FORMAT(7x,I16)                                            
       CLOSE(1)                                        
 !      print *, filename
       VXGSE=-400.  !  GSE COMPONENTS OF SOLAR WIND VELOCITY VECTOR; THIS PARTICULAR CHOICE

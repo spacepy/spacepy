@@ -21,7 +21,7 @@ import warnings
 
 import numpy as np
 
-from spacepy import help
+from spacepy import help, config
 import spacepy.coordinates as spc
 import spacepy.datamodel as dm
 try:
@@ -47,6 +47,81 @@ SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
     'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': None, 'car': 6},
     'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car': None},
     'TOD': {'sph': None, 'car': 12}, 'TEME': {'sph': None, 'car': 13}}
+
+# -----------------------------------------------
+def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
+    '''
+    '''
+    import glob, tarfile
+    import spacepy.time as spt
+    dt = spt.datetime
+    if sys.version_info[0]<3:
+        import urllib as u
+    else:
+        import urllib.request as u
+
+    if 'user_agent' in config and config['user_agent']:
+        class AppURLopener(u.FancyURLopener):
+            version = config['user_agent']
+        u._urlopener = AppURLopener()
+
+    if not path:
+        #test for TS07_DATA_PATH
+        if 'TS07_DATA_PATH' in os.environ:
+            path = os.environ['TS07_DATA_PATH']
+        else:
+            err_str = 'updateTS07Coeffs: Directory for TS07 data must be specified by \n' + \
+                  'TS07_DATA_PATH environment variable or path keyword.'
+            raise ValueError(err_str)
+
+    #test that path exists, unless force keyword is set
+    if not os.path.isdir(path):
+        if force:
+            os.makedirs(path, mode=0o777)
+        else:
+            raise IOError('updateTS07Coeffs: Specified path for TS07 is not valid - to force creation use "force" keyword')
+    
+    if 'start' not in kwargs:
+        firstDate = dt.datetime(2007,1,1)
+    else:
+        firstDate = spt.Ticktock(kwargs['start']).UTC[0] #make sure it's a datetime
+    if 'end' not in kwargs:
+        lastDate = dt.datetime.now()
+    else:
+        lastDate = spt.Ticktock(kwargs['end']).UTC[0]
+        
+    baseURL = 'http://rbspgway.jhuapl.edu/sites/default/files/SpaceWeather/coeffsForAthena/'
+
+    #make inventory of current TS07 data
+    current_days = sorted(glob.glob(os.path.join(path,'Coeffs','*')))
+    current_days = [os.path.split(dd)[-1] for dd in current_days if 'tgz' not in dd]
+    current_dates = [spt.doy2date(int(v.split('_')[0]),int(v.split('_')[1]), dtobj=True) for v in current_days]
+
+    request_days = spt.tickrange(firstDate, lastDate, 1)
+    timewant = set(request_days.UTC)
+    timegot = set(current_dates)
+    stillwant = sorted(list(timewant.difference(timegot)))
+
+    print("Retrieving {2} requested files [{0} - {1}]".format(firstDate.date().isoformat(), lastDate.date().isoformat(), len(stillwant)))
+    for day in stillwant:
+        doy = spt.Ticktock(day).DOY[0]
+        name = '{0}_{1:03d}'.format(day.year, doy)
+        target = os.path.join(path, 'Coeffs', name)
+        source = baseURL+'/'+'{0}.tgz'.format(name)
+        targetfile = os.path.join('{0}.tgz'.format(name))
+        if verbose:
+            print("Fetching archive for {0}\n".format(day.date().isoformat()))
+            tmp, report = u.urlretrieve(source, targetfile, reporthook=tb.progressbar)
+        else:
+            tmp, report = u.urlretrieve(source, targetfile)
+        #if the file existed on the server then we won't get an HTML message back
+        if 'html' not in report['content-type']:
+            tar = tarfile.open(tmp, 'r:gz')
+            tar.extractall(target)
+            tar.close()
+        #now remove tgz file
+        os.unlink(tmp)
+        
 
 # -----------------------------------------------
 def get_Bfield(ticks, loci, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
@@ -1142,7 +1217,15 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
 
     See Also
     ========
-    
+    >>> import spacepy.time as spt
+    >>> import spacepy.coordinates as spc
+    >>> import spacepy.irbempy as ib
+    >>> t = spt.Ticktock(['2017-02-02T12:00:00'], 'ISO')
+    >>> y = spc.Coords([3,0,0], 'GEO', 'car')
+    >>> y.ticks = t
+    >>> energy = 1.0 #MeV
+    >>> ib.get_AEP8(energy, y, model='max')
+    1932209.4427359989
 
     """
     # find bad values and dimensions
@@ -1616,9 +1699,8 @@ def _multi_get_Lstar(inputs):
 # -----------------------------------------------
 def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
     """
+    Prepare inputs for direct IRBEM-LIB calls. Not expected to be called by the user.
     """
-    import spacepy.omni as omni
-
     # setup dictionary to return input values for irbem
     d= {}
     d['badval'] = -1e31
@@ -1641,9 +1723,21 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     magin = np.zeros((nalp_max,ntime_max),float)
     magkeys = ['Kp', 'Dst', 'dens', 'velo', 'Pdyn', 'ByIMF', 'BzIMF',\
                     'G1', 'G2', 'G3', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6']
+    def fakeOMNI(npts, mk):
+        fakeomni = {}
+        for kk in magkeys:
+            fakeomni[kk] = [1]*npts
+        return fakeomni
+
     # get omni values
-    if omnivals is None: # nothing provided so use lookup table
-        omnivals = omni.get_omni(ticks)
+    if omnivals is None:
+        # No OMNI values provided so look up (requires data files)
+        if extMag not in ['0', 'OPQUIET']:
+            import spacepy.omni as omni
+            omnivals = omni.get_omni(ticks)
+        # UNLESS we're asking for a static model... then we spoof the input as the numbers are irrelevant
+        else:
+            omnivals = fakeOMNI(len(ticks), magkeys)
     if 'G' in omnivals:
         for n in range(1,4):
             dum = omnivals['G'][...,n-1]

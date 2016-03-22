@@ -30,12 +30,13 @@
         i = i - 1  
       enddo
       TS7LEN=i
-      TS7DIR=TS7DIR(1:TS7LEN)//'/TS07D'
-      TS7LEN = TS7LEN+6
+      !TS7DIR=TS7DIR(1:TS7LEN)//'/TS07D' ! we now include this in the
+      !directory path
+        !      TS7LEN = TS7LEN+6
 
       DO 1001 IREAD=1,5
-        WRITE(FMT,'("(A", I0, ",A23,I0,A4)")') TS7LEN
-        WRITE(filename,FMT) TS7DIR(1:TS7LEN),'/TSG_DYN_PAR/tailamebhr'
+        WRITE(FMT,'("(A", I0, ",A20,I0,A4)")') TS7LEN
+        WRITE(filename,FMT) TS7DIR(1:TS7LEN),'/TAIL_PAR/tailamebhr'
      *,IREAD,'.par'
       OPEN (UNIT=1,FILE=filename)
       READ (1,200) (TSS(KK,IREAD),KK=1,80)
@@ -44,8 +45,8 @@
 
       DO 1002 IREAD=1,5
         DO 1003 KREAD=1,4
-        WRITE(FMT,'("(A", I0, ",A24,I0,I0,A4)")') TS7LEN
-        WRITE(filename,FMT)TS7DIR(1:TS7LEN),'/TSG_DYN_PAR/tailamhr_o_'
+        WRITE(FMT,'("(A", I0, ",A21,I0,I0,A4)")') TS7LEN
+        WRITE(filename,FMT)TS7DIR(1:TS7LEN),'/TAIL_PAR/tailamhr_o_'
      *,IREAD,KREAD,'.par'
       OPEN (UNIT=1,FILE=filename)
       READ (1,200) (TSO(KK,IREAD,KREAD),KK=1,80)
@@ -54,8 +55,8 @@
 
       DO 1004 IREAD=1,5
         DO 1005 KREAD=1,4
-        WRITE(FMT,'("(A", I0, ",A24,I0,I0,A4)")') TS7LEN
-        WRITE(filename,FMT)TS7DIR(1:TS7LEN),'/TSG_DYN_PAR/tailamhr_e_'
+        WRITE(FMT,'("(A", I0, ",A21,I0,I0,A4)")') TS7LEN
+        WRITE(filename,FMT)TS7DIR(1:TS7LEN),'/TAIL_PAR/tailamhr_e_'
      *,IREAD,KREAD,'.par'
       OPEN (UNIT=1,FILE=filename)
       READ (1,200) (TSE(KK,IREAD,KREAD),KK=1,80)

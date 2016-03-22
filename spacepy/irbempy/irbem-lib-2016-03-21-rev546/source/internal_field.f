@@ -26,7 +26,7 @@ C     E G STASSINOPOULOS AND G D MEAD (see below)
 C
 C
         REAL*8    rkm, st, ct, sph, cph, br, bt, bp
-	REAL*8    alti,lati,longi
+        REAL*8    alti,lati,longi
         REAL*8    xGEO,yGEO,zGEO,BxGEO,ByGEO,BzGEO
         REAL*8    BGEO(3),BSPH(3)
 C
