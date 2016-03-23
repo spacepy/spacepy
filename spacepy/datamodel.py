@@ -1438,8 +1438,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
             try:
                 name = keys.pop(keys.index(conkey)) #remove from keylist
             except ValueError:
-                print('Key {0} for conversion not found in file'.format(conkey))
-                #this should be a warning, not a print
+                warnings.warn('Key {0} for conversion not found in file'.format(conkey), UserWarning)
                 continue
             #https://github.com/numpy/numpy/issues/2160
             if len(mdata[name].shape) == 1:
