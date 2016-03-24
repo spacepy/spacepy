@@ -492,20 +492,20 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
         pbdat.attrs['endian']='big'
         RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
         
-    headline = ( struct.unpack(EndChar+'%is'%RecLen,
+    headline = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
                              infile.read(RecLen)) )[0].strip()   
 
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    format = 'f'
+    pformat = 'f'
     # parse rest of header; detect double-precision file.
-    if RecLen > 20: format = 'd'
+    if RecLen > 20: pformat = 'd'
     (pbdat.attrs['iter'], pbdat.attrs['runtime'],
      pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
-        struct.unpack(EndChar+'l%s3l' % format, infile.read(RecLen))
+        struct.unpack('{0}l{1}3l'.format(EndChar, pformat), infile.read(RecLen))
     # Get gridsize
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    pbdat['grid']=dmarray(struct.unpack(EndChar+'%il' % 
-                                       abs(pbdat.attrs['ndim']), 
+    #pbdat['grid']=dmarray(struct.unpack(EndChar+'%il' % abs(pbdat.attrs['ndim']),  
+    pbdat['grid']=dmarray(struct.unpack('{0}{1}l'.format(EndChar, abs(pbdat.attrs['ndim'])), 
                                        infile.read(RecLen)))
     # Data from generalized (structured but irregular) grids can be 
     # detected by a negative ndim value.  Unstructured grids (e.g.
@@ -535,15 +535,15 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     para  = np.zeros(npar)
     if npar>0:
         (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        para[:] = struct.unpack(EndChar+'%i%s' % (npar,format), 
+        para[:] = struct.unpack('{0}{1}{2}'.format(EndChar, npar, pformat),
                                 infile.read(RecLen))
 
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    names = ( struct.unpack(EndChar+'%is' % RecLen, 
+    names = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
                             infile.read(RecLen)) )[0]
 
     # Preserve or destroy original case of variable names:
-    if not keep_case: names=names.lower()
+    if not keep_case: names = names.lower()
 
     names.strip()
     names = names.split()
@@ -563,8 +563,8 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
     # in file but only X and Y are present.)  Let's try to work
     # around this rather egregious error.
-    nSkip=len(units)+npar-len(names)
-    if nSkip<0: nSkip=0
+    nSkip = len(units)+npar-len(names)
+    if nSkip<0: nSkip = 0
     
     # Save grid names (e.g. 'x' or 'r') and save associated params.
     pbdat['grid'].attrs['dims']=names[0:ndim]
@@ -573,17 +573,15 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
             
             
     # Create string representation of time.
-    pbdat.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
-        (np.floor(time/3600.), np.floor(time%3600. / 60.0),
-         time%60.0)
+    pbdat.attrs['strtime'] = '{0:04d}h{1:02d}m{2:06.3f}s'.format(int(time//3600), int(time%3600//60), time%60)
 
     # Get the grid points...
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     prod = [1] + pbdat['grid'].cumprod().tolist()
     for i in range(0,ndim):
         # Read the data into a temporary grid.
-        tempgrid = np.array(struct.unpack(EndChar+'%i%s' % (npts, format), 
-                                          infile.read(RecLen/ndim) ) )
+        tempgrid = np.array(struct.unpack('{0}{1}{2}'.format(EndChar, npts, pformat),
+                                          infile.read(int(RecLen//ndim)) ) )
         # Unstructred grids get loaded as vectors.
         if gtyp == 'Unstructured':
             pbdat[names[i]] = dmarray(tempgrid)
@@ -597,17 +595,17 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
             for j in range(int(pbdat['grid'][i])):
                 pbdat[names[i]][j] = tempgrid[j*int(prod[i])]
         else:
-            raise ValueError('Unknown grid type: %s'%pbdat.gridtype)
+            raise ValueError('Unknown grid type: {0}'.format(pbdat.gridtype))
         # Add units to grid.
-        pbdat[names[i]].attrs['units']=units.pop(nSkip)
+        pbdat[names[i]].attrs['units'] = units.pop(nSkip)
 
     # Get the actual data and sort.
     for i in range(ndim,nvar+ndim):
         (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
         pbdat[names[i]] = dmarray(
-            np.array(struct.unpack(EndChar+'%i%s' % (npts, format), 
+            np.array(struct.unpack('{0}{1}{2}'.format(EndChar, npts, pformat),
                                        infile.read(RecLen))) )
-        pbdat[names[i]].attrs['units']=units.pop(nSkip)
+        pbdat[names[i]].attrs['units'] = units.pop(nSkip)
         if gtyp != 'Unstructured':
             # Put data into multidimensional arrays.
             pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'], order='F')
