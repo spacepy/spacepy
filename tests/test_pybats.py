@@ -192,7 +192,7 @@ class TestExtraction(unittest.TestCase):
     def testExtract(self):
         from numpy import pi, cos
         
-        analytic = lambda(x): 1.+.5*cos(x*pi/10.)
+        analytic = lambda x: 1.+.5*cos(x*pi/10.)
         extr = self.mhd.extract(range(-5, 6),[-8]*11)
         for x, rho in zip(extr['x'], extr['rho']):
             self.assertAlmostEqual(rho, analytic(x), 2)
