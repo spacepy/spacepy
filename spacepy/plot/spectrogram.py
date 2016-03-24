@@ -108,7 +108,7 @@ class spectrogram(dm.SpaceData):
     >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,30,500))+4, attrs={'units':'km'})
     >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
     >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
-    >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+    >>> spec = splot.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
     >>> ax = spec.plot()
 
     .. autosummary::
@@ -136,7 +136,7 @@ class spectrogram(dm.SpaceData):
         self.specSettings['xlim'] = None
         self.specSettings['ylim'] = None
         self.specSettings['zlim'] = None
-        self.specSettings['extended_out'] = False
+        self.specSettings['extended_out'] = True
         self.specSettings['axisDates'] = False
 
         # if the key exists in kwargs replace setting with it, otherwise its an error
@@ -342,7 +342,7 @@ class spectrogram(dm.SpaceData):
         >>> sd2 = dm.dmcopy(sd)
         >>> sd2['radius'] = dm.dmarray(2*np.cos(np.linspace(0,30,500))+4, attrs={'units':'km'})
         >>> sd2['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd2['radius'])
-        >>> spec = splot.spectrogram.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+        >>> spec = splot.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
         >>> spec.add_data(sd2)
         >>> ax = spec.plot()
         """
