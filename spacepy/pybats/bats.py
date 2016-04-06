@@ -2469,7 +2469,7 @@ class GeoIndexFile(LogFile):
     def __repr__(self):
         return 'GeoIndexFile object at %s' % (self.attrs['file'])
 
-    def __init__(self, filename, *args, **kwargs):
+    def __init__(self, filename, keep_case=True, *args, **kwargs):
         '''
         Load ascii file located at self.attrs['file'].  
         '''
@@ -2522,7 +2522,6 @@ class GeoIndexFile(LogFile):
         ax.plot(self['time'], self['Kp'], label=label,**kwargs)
         ax.set_ylabel('$K_{P}$')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
-        ax.grid()
         applySmartTimeTicks(ax, self['time'])
 
         if target==None: fig.tight_layout()
@@ -2560,7 +2559,7 @@ class VirtSat(LogFile):
         from scipy.interpolate import interp1d
         from matplotlib.dates import date2num
 
-        super(VirtSat, self).__init__(*args, **kwargs)
+        super(VirtSat, self).__init__(keep_case=False, *args, **kwargs)
         # Attempt to extract the satellite's name and save it.
         try:
             s = self.attrs['file']

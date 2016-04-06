@@ -786,12 +786,13 @@ class LogFile(PbData):
 
     import datetime as dt
 
-    def __init__(self, filename, starttime=(2000,1,1,0,0,0), *args, **kwargs):
+    def __init__(self, filename, starttime=(2000,1,1,0,0,0), keep_case=True,
+                 *args, **kwargs):
         super(LogFile, self).__init__(*args, **kwargs)
         self.attrs['file'] = filename
-        self.read(starttime)
+        self.read(starttime, keep_case)
 
-    def read(self, starttime):
+    def read(self, starttime, keep_case=True):
         '''
         Load the ascii logfile located at self.filename.
         This method is automatically called upon instantiation.
@@ -814,7 +815,9 @@ class LogFile(PbData):
 
         # Parse the header.
         self.attrs['descrip'] = raw.pop(0)
-        names = (raw.pop(0)).lower().split()
+        raw_names = raw.pop(0)
+        if not keep_case: raw_names = raw_names.lower()
+        names = raw_names.split()
         loc={}
         # Keep track of in which column each data vector lies.
         for i, name in enumerate(names):
