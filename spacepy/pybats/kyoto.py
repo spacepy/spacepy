@@ -72,6 +72,29 @@ class KyotoDst(PbData):
         self['dst'] = dmarray(dst, attrs={'units':'nT'})
 
 #===========================================================================
+class KyotoAe(PbData):
+    '''
+    Handle Ae index from Kyoto WDC.  
+
+    Use the specialized constructor functions :function:`fetch` and 
+    :function:`load` to instantiate from the web or from file.
+    '''
+
+    def __init__(self, lines=None, *args, **kwargs):
+        # Init as PbData:
+        super(KyotoAe, self).__init__(*args, **kwargs)
+        if lines:
+            self._parse(lines)
+        else:
+            pass
+
+    def _parse(self, lines):
+        # Call parse_iaga to parse lines:
+        data = parse_iaga(lines)
+        for k in data:
+            self[k] = data[k]
+            
+#===========================================================================
 class KyotoKp(PbData):
     '''
     Handles global Kp index from Kyoto WDC.
@@ -222,8 +245,8 @@ def fetch(dtype, tstart, tstop, debug=False):
     dst=fetch('dst', t1, t2)
     '''
 
-    objts={'dst':KyotoDst,'kp':KyotoKp}
-    funcs={'dst':dstfetch,'kp':kpfetch}
+    objts={'dst':KyotoDst,'kp':KyotoKp,'ae':KyotoAe}
+    funcs={'dst':dstfetch,'kp':kpfetch,'ae':aefetch}
 
     time=[]
     # Check and parse input times.
@@ -239,7 +262,10 @@ def fetch(dtype, tstart, tstop, debug=False):
         print('Fetching from datetuple ', t[0], ' to ', t[1])
         print('Using functions for ', dtype)
         print('Calling with ', time[0][0], time[0][1], time[1][0], time[1][1])
-    lines=funcs[dtype](time[0][0], time[0][1], time[1][0], time[1][1])
+    if dtype!='ae':
+        lines=funcs[dtype](time[0][0], time[0][1], time[1][0], time[1][1])
+    else:
+        lines=funcs[dtype](tstart, tstop)
     obj=objts[dtype]()
     obj._parse(lines)
     
@@ -376,6 +402,85 @@ def kpfetch(yrstart, mostart, yrstop, mostop):
     f = urllib.request.urlopen(target, data) 
     lines = f.readlines()
     return(lines)
+#===========================================================================
+
+def aefetch(t_start, t_stop):
+    '''
+    A function to fetch Kyoto AE directly from the Kyoto WDC website.
+    Returns raw ascii lines obtained from the website representing the data
+    in IAGA 2002 format.  
+
+    Note that, because of the higher density of the data, full date times
+    are required for the start and stop time.  This is in contrast to
+    other fetch functions, where hourly or three-hourly resolution allows
+    for only the start and stop years and months are required as integers.
+
+    Parameters
+    ----------
+    t_start : datetime.datetime
+       Start time for range of requested data as a datetime object.
+    t_stop : datetime.datetime
+       Stop time for range of requested data as a datetime object.
+
+    '''
+    try:
+        import urllib.parse, urllib.request
+    except ImportError: #glue the python 3 names onto python 2
+        import urllib
+        urllib.parse = urllib
+        urllib.request = urllib
+
+    # Get difference between start and stop time:
+    deltaT = t_stop - t_start
+        
+    # Set up all form info.
+    forminfo = {} # Date-time stuff - requires special formatting.
+
+    # GENERATE FORM INFO:
+    # First three digits of year, last digit of year:
+    forminfo['Tens'] = t_start.year/10
+    forminfo['Year'] = t_start.year - 10*forminfo['Tens']
+    # Month:
+    forminfo['Month']= t_start.month
+    # Day (right now, locked in to one month of data):
+    forminfo['Day_Tens'] = t_start.day/10
+    forminfo['Days']     = t_start.day - 10*forminfo['Day_Tens'] 
+    # Hour/minute:
+    forminfo['Hour'] = t_start.hour
+    forminfo['min']  = t_start.minute
+    # Duration:
+    forminfo['Dur_Day_Tens'] = deltaT.days/10
+    forminfo['Dur_Day']      = deltaT.days - 10*forminfo['Dur_Day_Tens']
+    forminfo['Dur_Hour']     = int(deltaT.seconds/3600.)
+    forminfo['Dur_Min']      = int(deltaT.seconds/60.-forminfo['Dur_Hour']*60.)
+
+    # Email and other information:
+    forminfo['Output']     = 'AE'
+    forminfo['Out+format'] = 'IAGA2002'
+    forminfo['Email']      =  urllib.parse.quote('spacepy@lanl.gov')
+
+    # Keep this here for reference.  After testing, remove.
+    #good='http://wdc.kugi.kyoto-u.ac.jp/cgi-bin/aeasy-cgi?Tens=201&Year=0&Month=04&Day_Tens=0&Days=0&Hour=00&min=00&Dur_Day_Tens=03&Dur_Day=0&Dur_Hour=00&Dur_Min=00&Image+Type=GIF&COLOR=COLOR&AE+Sensitivity=0&ASY%2FSYM++Sensitivity=0&Output=AE&Out+format=IAGA2002&Email=dog%40fart.crap'
+
+    # Build and open URL.  Note that the forminfo must be
+    # in a certain order for the request to work...
+    target='http://wdc.kugi.kyoto-u.ac.jp/cgi-bin/aeasy-cgi'
+    data='Tens={0[Tens]:03d}&Year={0[Year]:d}&'.format(forminfo)
+    data+='Month={0[Month]:02d}&Day_Tens={0[Day_Tens]:d}&'.format(forminfo)
+    data+='Days={0[Days]:d}&Hour={0[Hour]:02d}&min={0[min]:02d}'.format(forminfo)
+    data+='&Dur_Day_Tens={0[Dur_Day_Tens]:02d}&'.format(forminfo)
+    data+='Dur_Day={0[Dur_Day]:d}&Dur_Hour={0[Dur_Hour]:02d}&'.format(forminfo)
+    data+='Dur_Min={0[Dur_Min]:02d}&Image+Type=GIF&COLOR='.format(forminfo)
+    data+='COLOR&AE+Sensitivity=0&ASY%2FSYM++Sensitivity=0&'
+    data+='Output=AE&Out+format='.format(forminfo)
+    data+='IAGA2002&Email={0[Email]}'.format(forminfo)
+    #print good
+    #print target+'?'+data
+    
+    # Fetch data from web.
+    f = urllib.request.urlopen(target+'?'+data) 
+    lines = f.readlines()
+    return(lines)
 
 #===========================================================================
 
@@ -421,6 +526,8 @@ def parse_iaga(lines, iagacode=None):
 
     # Parse column labels.  We don't need time or DOY.
     parts=line.lower().split()[3:-1]
+
+    # 
     data={'time':[], 'doy':[]}
     for name in parts:
         data[name]=[]
