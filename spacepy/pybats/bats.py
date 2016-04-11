@@ -654,11 +654,21 @@ class Bats2d(IdlFile):
         self['by_hat'].attrs={'units':'unitless'}
         self['bz_hat'].attrs={'units':'unitless'}
 
-    def calc_Econv(self):
+    def calc_j(self):
         '''
-        Calculates the convective electric field, -UxB.  Works for default
+        Calculates total current density strength using all three J components.
+        Retains units of components, stores in self['j']
+        '''
+        from numpy import sqrt
+
+        self['j'] = sqrt(self['jx']**2.0 + self['jy']**2.0 + self['jz']**2.0)
+        self['j'].attrs={'units':self['jx'].attrs['units']}
+        
+    def calc_E(self):
+        '''
+        Calculates the MHD electric field, -UxB.  Works for default
         MHD units of nT and km/s; if these units are not correct, an 
-        exception will be raised.  Returns E_convective in mV/m.
+        exception will be raised.  Stores E in mV/m.
         '''
         from copy import copy
 
@@ -677,8 +687,10 @@ class Bats2d(IdlFile):
         self['Ex'].attrs={'units':'mV/m'}
         self['Ey'].attrs={'units':'mV/m'}
         self['Ez'].attrs={'units':'mV/m'}
-        
 
+        # Total magnitude.
+        self['E'] = np.sqrt(self['Ex']**2+self['Ey']**2+self['Ez']**2)
+        
     def calc_ndens(self):
         '''
         Calculate number densities for each fluid.  Species mass is ascertained 
@@ -1671,8 +1683,13 @@ class Bats2d(IdlFile):
         if type(ylim)==type([]) and len(ylim)==2:
             ax.set_ylim(ylim)
 
-        # Add body/planet.
-        if add_body: self.add_body(ax)
+        # Add body/planet.  Determine where the sun is first.
+        if dim1=='x':
+            ang=0.0
+        elif dim2=='x':
+            ang=90.0
+        else: ang=0.0
+        if add_body: self.add_body(ax, ang=ang)
 
         return fig, ax, pcol, cbar                              
 
