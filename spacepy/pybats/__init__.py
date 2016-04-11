@@ -210,6 +210,8 @@ def mhdname_to_tex(varname):
               +match_u.group(1)+'}$'
     elif match_b:
         out = '$'+match_b.group(1).upper()+'_{'+match_b.group(2)+'}$'
+    elif 'j' == varname[0].lower():
+        out = '$J_{'+varname[1:]+'}$'
     else:
         out=varname
 
