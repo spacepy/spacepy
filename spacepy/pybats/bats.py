@@ -160,7 +160,7 @@ class BatsLog(LogFile):
 
         return True
             
-    def add_dst_quicklook(self, target=None, loc=111, showObs=False,
+    def add_dst_quicklook(self, target=None, loc=111, plot_obs=False,
                           epoch=None, add_legend=True, **kwargs):
         '''
         Create a quick-look plot of Dst (if variable present in file) 
@@ -201,7 +201,7 @@ class BatsLog(LogFile):
         ax.set_ylabel('D$_{ST}$ ($nT$)')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
-        if(showObs):
+        if(plot_obs):
             # Attempt to fetch observations, plot if success.
             if self.fetch_obs_dst():
                 ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
@@ -2486,7 +2486,7 @@ class GeoIndexFile(LogFile):
     def __repr__(self):
         return 'GeoIndexFile object at %s' % (self.attrs['file'])
 
-    def __init__(self, filename, *args, **kwargs):
+    def __init__(self, filename, keep_case=True, *args, **kwargs):
         '''
         Load ascii file located at self.attrs['file'].  
         '''
@@ -2539,7 +2539,6 @@ class GeoIndexFile(LogFile):
         ax.plot(self['time'], self['Kp'], label=label,**kwargs)
         ax.set_ylabel('$K_{P}$')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
-        ax.grid()
         applySmartTimeTicks(ax, self['time'])
 
         if target==None: fig.tight_layout()
@@ -2565,6 +2564,57 @@ class GeoIndexFile(LogFile):
                 
         return fig, ax
 
+    def add_ae_quicklook(self, target=None, loc=111, label=None, 
+                         plot_obs=True, val='AE', **kwargs):
+        '''
+        Similar to "dst_quicklook"-type functions, this method fetches observed
+        AE indices from the web and plots it alongside the corresponding 
+        AE read from the GeoInd file.  Because there are four AE-like indices
+        (AL, AU, AE, and AO), the kwarg *val* specifies which to plot
+        (default is AE).
+
+        Usage:
+        >>> obj.ae_quicklook(target=SomeMplTarget)
+        The target kwarg works like in other PyBats plot functions: it can be
+        a figure, an axes, or None, and it determines where the plot is placed.
+
+        Other kwargs customize the line.  Extra kwargs are passed to pyplot.plot.
+        '''
+        import matplotlib.pyplot as plt
+
+        # Set up plot target.
+        fig, ax = set_target(target, figsize=(10,4), loc=loc)
+        
+        if not(label):
+            label = 'Virtual {}'.format(val)
+
+        ax.plot(self['time'], self[val], label=label,**kwargs)
+        ax.set_ylabel('{} ($nT$)'.format(val))
+        ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
+        applySmartTimeTicks(ax, self['time'])
+
+        if target==None: fig.tight_layout()
+
+        if plot_obs:
+            try:
+                import spacepy.pybats.kyoto as kt
+            except ImportError:
+                print("kyotodst package unavailable.")
+                return fig, ax
+        
+            try:
+                if not hasattr(self, 'obs_ae'):
+                    self.obs_ae = kt.fetch('ae',self['time'][0],self['time'][-1])
+            except BaseException as args:
+                print('WARNING! Failed to fetch Kyoto AE: ' + args)
+            else:
+                ax.plot(self.obs_ae['time'], self.obs_ae[val.lower()],
+                        'k--', lw=1.5, label='Obs.')
+                ax.legend(loc='best')
+                applySmartTimeTicks(ax, self['time'])
+                
+        return fig, ax
+
 class VirtSat(LogFile):
     '''
     A :class:`spacepy.pybats.LogFile` object tailored to virtual satellite
@@ -2577,7 +2627,7 @@ class VirtSat(LogFile):
         from scipy.interpolate import interp1d
         from matplotlib.dates import date2num
 
-        super(VirtSat, self).__init__(*args, **kwargs)
+        super(VirtSat, self).__init__(keep_case=False, *args, **kwargs)
         # Attempt to extract the satellite's name and save it.
         try:
             s = self.attrs['file']

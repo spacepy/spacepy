@@ -280,10 +280,13 @@ c Case for Tsyganenko and Sitnov 07d mag model (use of GSM coordinates)
 c input is Pdyn
 c
        if (k_ext .eq. 13) then 
-          PARMOD(1)=Pdyn_nPa
+!          PARMOD(1)=Pdyn_nPa
           CALL GEO_GSM(xGEO,xSM)
-          CALL TS07D (PARMOD,xSM(1),xSM(2),xSM(3),BxSM(1),BxSM(2),
-     &      BxSM(3))
+!          CALL TS07D (PARMOD,xSM(1),xSM(2),xSM(3),BxSM(1),BxSM(2),
+!     &      BxSM(3))
+          CALL TS07D (xSM(1),xSM(2),xSM(3),BxSM(1),BxSM(2),
+     &      BxSM(3)) ! note that no solar wind input is necessary as it is
+                    ! included through the TS07D common block
           CALL GSM_GEO(BxSM,Bxext)
        endif
 
