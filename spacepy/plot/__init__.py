@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 from spacepy import __path__ as basepath
 from spacepy.datamodel import dmcopy
 import spacepy.datamanager as dman
+from .. import config
 from .spectrogram import *
 from .utils import *
 from .carrington import *
@@ -85,7 +86,8 @@ def style(look=None, cmap='plasma'):
 oldParams = dict()
 for key, val in mpl.rcParams.items():
         oldParams[key] = dmcopy(val)
-style()
+if config['apply_plot_styles']:
+    style()
 
 def revert_style():
     import warnings
