@@ -204,11 +204,13 @@ def _read_config(rcfile):
                 'omni2_url': 'http://virbo.org/ftp/OMNI/OMNI2/merged/latest/OMNI_OMNI2-latest.cdf.zip',
                 'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
+                'support_notice': str(True),
                 }
     #Functions to cast a config value; if not specified, value is a string
     str2bool = lambda x: x.lower() in ('1', 'yes', 'true', 'on')
     caster = {'enable_deprecation_warning': str2bool,
               'ncpus': int,
+              'support_notice': str2bool,
               }
     #SafeConfigParser deprecated in 3.2. And this is hideous, but...
     if hasattr(ConfigParser, 'SafeConfigParser'):
@@ -276,12 +278,9 @@ if not os.path.exists(DOT_FLN):
 else:
     _read_config(rcfile)
 
-if __version__ == 'UNRELEASED':
-    if ('support_notice' in config) and (config['support_notice']):
-        pass
-    else:
-        print('This unreleased version of SpacePy is not supported '
-              'by the SpacePy team.')
+if __version__ == 'UNRELEASED' and config['support_notice']:
+    print('This unreleased version of SpacePy is not supported '
+          'by the SpacePy team.')
 
 
 #Set up a filter to always warn on deprecation
