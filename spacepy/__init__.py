@@ -47,6 +47,7 @@ import functools
 import multiprocessing
 import os
 import os.path
+import re
 import sys
 import warnings
 
@@ -194,6 +195,52 @@ work.
 #Global spacepy configuration information
 config = {}
 
+def _write_defaults(rcfile, defaults, section='spacepy'):
+    """Write configuration defaults out to a file if they aren't there"""
+    f = open(rcfile, 'r+t') #Avoid race condition, open for read and write
+    try:
+        startpos = f.tell()
+        rclines = f.readlines()
+        writeme = [k for k in defaults.keys()]
+        #Places where sections start
+        secidx = [i for i in range(len(rclines))
+                  if re.match(r"^\[[^\[\]]*\]\n$", rclines[i])]
+        #Line containing the start of this section
+        thissec = next((i for i in secidx
+                        if rclines[i] == '[{section}]\n'.format(
+                                section=section)), -1)
+        if thissec != -1: #this section exists, read it
+            #Find the line that starts the next section
+            nextsecidx = secidx.index(thissec) + 1
+            if nextsecidx < len(secidx):
+                nextsec = secidx[nextsecidx]
+            else:
+                nextsec = None
+            #Read only this section for lines matching default values
+            present = []
+            for l in rclines[thissec:nextsec]:
+                #For each key, does the line match, commented or not?
+                for k in writeme:
+                    if re.match(r'(#\s)?{key}\s?[:=]'.format(key=k),
+                                l):
+                        writeme.remove(k)
+                        break
+        f.seek(startpos) #Back to start of file
+        #Scan to just after section header. Text mode, can only seek() to tell()
+        if thissec != -1:
+            while f.readline() != '[{section}]\n'.format(section=section):
+                pass
+        #Write default values for anything not read
+        for k in sorted(writeme):
+            f.write("#{key}: {value} #default in SpacePy {ver}\n".format(
+                key=k, value=defaults[k], ver=__version__))
+        #And write all the remaining lines from the section header to end
+        if writeme:
+            f.writelines(rclines[thissec+1:])
+    finally:
+        f.close()
+
+
 # import some settings
 def _read_config(rcfile):
     """Read configuration information from a file"""
@@ -245,6 +292,7 @@ def _read_config(rcfile):
         for k in defaults:
             if not k in config:
                 config[k] = defaults[k]
+    _write_defaults(rcfile, defaults)
     for k in caster:
         config[k] = caster[k](config[k])
 
