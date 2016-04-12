@@ -9,7 +9,8 @@ import numpy as np
 from scipy.io import netcdf
 
 from spacepy.datamodel import dmarray
-from spacepy.plot.apionly import set_target, smartTimeTicks, applySmartTimeTicks
+import spacepy.plot.apionly
+from spacepy.plot import set_target, smartTimeTicks, applySmartTimeTicks
 from spacepy.pybats import PbData
 
 

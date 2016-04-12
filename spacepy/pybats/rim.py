@@ -8,7 +8,8 @@ Copyright 2010 Los Alamos National Security, LLC.
 '''
 
 import numpy as np
-from spacepy.plot.apionly import set_target
+import spacepy.plot.apionly
+from spacepy.plot import set_target
 from spacepy.pybats import PbData, dmarray
 
 def fix_format(filename, finalize=True):

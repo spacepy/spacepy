@@ -54,7 +54,8 @@ import spacepy.toolbox as tb
 from spacepy import help
 import spacepy.time as spt
 import spacepy.datamodel as dm
-import spacepy.plot.apionly as spplt
+import spacepy.plot.apionly
+import spacepy.plot as spplt
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 
