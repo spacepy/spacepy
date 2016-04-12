@@ -221,7 +221,7 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
             for l in rclines[thissec:nextsec]:
                 #For each key, does the line match, commented or not?
                 for k in writeme:
-                    if re.match(r'(#\s)?{key}\s?[:=]'.format(key=k),
+                    if re.match(r'(#\s?)?{key}\s?[:=]'.format(key=k),
                                 l):
                         writeme.remove(k)
                         break
