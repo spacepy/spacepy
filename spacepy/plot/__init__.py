@@ -11,7 +11,7 @@ Institution: Los Alamos National Laboratory
 Contact: balarsen@lanl.gov
 
 
-Copyright 2011-2015 Los Alamos National Security, LLC.
+Copyright 2011-2016 Los Alamos National Security, LLC.
 
 """
 import os
@@ -41,6 +41,8 @@ def plot(*args, **kwargs):
     if 'smartTimeTicks' in kwargs:
         sTT = kwargs['smartTimeTicks']
         del kwargs['smartTimeTicks']
+    else:
+        sTT = False
     if 'figsize' not in kwargs:
         kwargs['figsize'] = (10,6)
         fig = plt.figure(figsize=kwargs['figsize'])
@@ -50,7 +52,6 @@ def plot(*args, **kwargs):
         ax = plt.gca()
         applySmartTimeTicks(ax, args[0], dolimit=True, dolabel=False)
     return pobj
-        
 
 def available(returnvals=False):
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
