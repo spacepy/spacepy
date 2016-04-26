@@ -36,6 +36,21 @@ plt.register_cmap(name='plasma_r', cmap=_plasma_r)
 plt.register_cmap(name='viridis', cmap=_viridis)
 plt.register_cmap(name='viridis_r', cmap=_viridis_r)
 
+def plot(*args, **kwargs):
+    if 'smartTimeTicks' in kwargs:
+        sTT = kwargs['smartTimeTicks']
+        del kwargs['smartTimeTicks']
+    if 'figsize' not in kwargs:
+        kwargs['figsize'] = (10,6)
+        fig = plt.figure(figsize=kwargs['figsize'])
+        del kwargs['figsize']
+    pobj = plt.plot(*args, **kwargs)
+    if sTT is True:
+        ax = plt.gca()
+        applySmartTimeTicks(ax, args[0], dolimit=True, dolabel=False)
+    return pobj
+        
+
 def available(returnvals=False):
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
     spacepyaltstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle')
