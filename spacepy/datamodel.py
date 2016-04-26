@@ -17,7 +17,7 @@ Institution: Los Alamos National Laboratory
 
 Contact: smorley@lanl.gov; balarsen@lanl.gov
 
-Copyright 2010 Los Alamos National Security, LLC.
+Copyright 2010-2016 Los Alamos National Security, LLC.
 
 
 About datamodel
@@ -1159,6 +1159,27 @@ def toHDF5(fname, SDobject, **kwargs):
     finally:
         if must_close:
             hfile.close()
+
+
+def fromNC3(fname):
+    try:
+        from scipy.io import netcdf as nc
+    except ImportError:
+        raise ImportError('SciPy is required to import netcdf3')
+
+    ncfile = nc.netcdf_file(fname, mode='r', mmap=False)
+
+    SDobject = SpaceData(attrs=dmcopy(ncfile._attributes))
+
+    ##carry over the groups and datasets
+    for key, value in ncfile.variables.items():
+        #try:
+            SDobject[key] = dmarray(dmcopy(value.data), attrs=dmcopy(value._attributes))
+        #except (TypeError, ZeroDivisionError): #ZeroDivisionError catches zero-sized DataSets
+        #    SDobject[key] = dmarray(None)
+    ncfile.close()
+    return SDobject
+
 
 
 def toHTML(fname, SDobject, attrs=(),
