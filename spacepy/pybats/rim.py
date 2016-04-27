@@ -344,9 +344,13 @@ class Iono(PbData):
             else:
                 cmap=get_iono_cb('bwr')
 
-        cnt1 = ax.contourf(self[hemi+'psi']*pi/180.0+pi/2., 
-                           self[hemi+'theta'], np.array(self[var]),
-                           levs, norm=crange, cmap=cmap)
+        # Set the latitude based on hemisphere:
+        theta = self[hemi+'theta']
+        if 's_' in hemi: theta = 180-self[hemi+'theta']
+
+        # Create contour:
+        cnt1 = ax.contourf(self[hemi+'psi']*pi/180.0+pi/2., theta,
+                           np.array(self[var]), levs, norm=crange, cmap=cmap)
         # Set xtick label size, increase font of top label.
         labels = ax.get_xticklabels()
         for l in labels: l.set_size(xticksize)
@@ -354,9 +358,8 @@ class Iono(PbData):
         
         if lines:
             nk = int(round(n/3.0))
-            cnt2 = ax.contour(self[hemi+'psi']*pi/180.0+pi/2., 
-                              self[hemi+'theta'], np.array(self[var]),
-                              nk, colors='k')
+            cnt2 = ax.contour(self[hemi+'psi']*pi/180.0+pi/2., theta,
+                              np.array(self[var]), nk, colors='k')
             #clabel(cnt2,fmt='%3i',fontsize=10)
 
         if add_cbar:
