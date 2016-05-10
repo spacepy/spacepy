@@ -11,7 +11,7 @@ Institution: Los Alamos National Laboratory
 Contact: balarsen@lanl.gov
 
 
-Copyright 2011-2015 Los Alamos National Security, LLC.
+Copyright 2011-2016 Los Alamos National Security, LLC.
 
 """
 import os
@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 from spacepy import __path__ as basepath
 from spacepy.datamodel import dmcopy
 import spacepy.datamanager as dman
+from .. import config
 from .spectrogram import *
 from .utils import *
 from .carrington import *
@@ -35,6 +36,22 @@ plt.register_cmap(name='plasma', cmap=_plasma)
 plt.register_cmap(name='plasma_r', cmap=_plasma_r)
 plt.register_cmap(name='viridis', cmap=_viridis)
 plt.register_cmap(name='viridis_r', cmap=_viridis_r)
+
+def plot(*args, **kwargs):
+    if 'smartTimeTicks' in kwargs:
+        sTT = kwargs['smartTimeTicks']
+        del kwargs['smartTimeTicks']
+    else:
+        sTT = False
+    if 'figsize' not in kwargs:
+        kwargs['figsize'] = (10,6)
+        fig = plt.figure(figsize=kwargs['figsize'])
+        del kwargs['figsize']
+    pobj = plt.plot(*args, **kwargs)
+    if sTT is True:
+        ax = plt.gca()
+        applySmartTimeTicks(ax, args[0], dolimit=True, dolabel=False)
+    return pobj
 
 def available(returnvals=False):
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
@@ -85,7 +102,8 @@ def style(look=None, cmap='plasma'):
 oldParams = dict()
 for key, val in mpl.rcParams.items():
         oldParams[key] = dmcopy(val)
-style()
+if config['apply_plot_styles']:
+    style()
 
 def revert_style():
     import warnings

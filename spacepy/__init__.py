@@ -252,12 +252,14 @@ def _read_config(rcfile):
                 'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
                 'support_notice': str(True),
+                'apply_plot_styles': str(True),
                 }
     #Functions to cast a config value; if not specified, value is a string
     str2bool = lambda x: x.lower() in ('1', 'yes', 'true', 'on')
     caster = {'enable_deprecation_warning': str2bool,
               'ncpus': int,
               'support_notice': str2bool,
+              'apply_plot_styles': str2bool,
               }
     #SafeConfigParser deprecated in 3.2. And this is hideous, but...
     if hasattr(ConfigParser, 'SafeConfigParser'):

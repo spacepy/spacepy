@@ -114,7 +114,8 @@ __contact__ = 'Dan Welling, dwelling@umich.edu'
 
 # Global imports (used ubiquitously throughout this module.
 from spacepy.datamodel import dmarray, SpaceData
-import spacepy.plot.apionly as spu
+import spacepy.plot.apionly
+import spacepy.plot as spu
 import numpy as np
 
 # Some common, global functions.
@@ -1393,7 +1394,7 @@ class ImfInput(PbData):
         '''
 
         import matplotlib.pyplot as plt
-        from spacepy.plot.apionly import applySmartTimeTicks
+        from spacepy.plot import applySmartTimeTicks
         
         if not timerange:
             timerange = [self['time'][0], self['time'][-1]]

@@ -49,7 +49,7 @@ class spectrogramTests(unittest.TestCase):
 
     def test_defaults(self):
         """run it and check that defaults were set correctly"""
-        a = spectrogram(self.data, variables=self.kwargs['variables'])
+        a = spectrogram(self.data, variables=self.kwargs['variables'], extended_out=False)
         ans = {'bins': [dm.dmarray([ 0.00120857,  0.07751865,  0.15382872,  0.2301388 ,  0.30644887,
                                0.38275895,  0.45906902,  0.5353791 ,  0.61168917,  0.68799925,
                                0.76430932,  0.8406194 ,  0.91692947,  0.99323955]),
@@ -71,7 +71,7 @@ class spectrogramTests(unittest.TestCase):
 
     def test_defaults_extended(self):
         """run it and check that defaults were set correctly (extended_out)"""
-        a = spectrogram(self.data, variables=self.kwargs['variables'], extended_out=True)
+        a = spectrogram(self.data, variables=self.kwargs['variables'])
         ans = {'bins': [dm.dmarray([ 0.00120857,  0.07751865,  0.15382872,  0.2301388 ,  0.30644887,
                                0.38275895,  0.45906902,  0.5353791 ,  0.61168917,  0.68799925,
                                0.76430932,  0.8406194 ,  0.91692947,  0.99323955]),
@@ -143,7 +143,6 @@ class spectrogramDateTests(unittest.TestCase):
                 else:
 #                    np.testing.assert_allclose(a.specSettings[key], ans[key], rtol=1e-5)
                     np.testing.assert_almost_equal(a.specSettings[key], ans[key], decimal=6)
-        self.assertRaises(NotImplementedError, a.add_data, self.data)
 
 if __name__ == "__main__":
     unittest.main()

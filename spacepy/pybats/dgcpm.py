@@ -6,7 +6,8 @@ Core Plasma Model (DGCPM), a plasmasphere module of the SWMF.
 '''
 
 import numpy as np
-from spacepy.plot.apionly import applySmartTimeTicks
+import spacepy.plot.apionly
+from spacepy.plot import applySmartTimeTicks
 from spacepy.pybats import PbData
 
 def _adjust_dialplot(ax, rad, title='12',labelsize=15):
