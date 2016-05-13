@@ -291,11 +291,10 @@ class Extraction(PbData):
         
         for v, value in zip(data['grid'].attrs['dims'], (x, y)):
             self[v] = dmarray(value, attrs=data[v].attrs)
-        nPts = len(x)
         # Create data object for holding extracted values.
         # One vector for each value w/ same units as parent object.
         for v in self._var_list:
-            self[v]=dmarray(np.zeros(nPts), attrs=data[v].attrs)
+            self[v]=dmarray(np.zeros(x.shape), attrs=data[v].attrs)
 
         # Some helpers:
         xAll = data[data['grid'].attrs['dims'][0]]
