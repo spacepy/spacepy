@@ -984,6 +984,117 @@ class Bats2d(IdlFile):
         self[newvars[0]], self[newvars[1]]=gradient(p, dx, dx)
         self['gradp']=sqrt(self[newvars[0]]**2.0 + self[newvars[1]]**2.0)
 
+    def cfl(self,dt,xcoord='x',ycoord='z'):
+        """
+        Calculate the CFL number in each cell given time step dt.
+
+        Result is stored in self['cfl'].
+        """
+
+        try:
+            U=self['u']
+        except KeyError:
+            self.calc_utotal()
+
+        cfl=np.zeros(self['u'].shape)
+
+        for key in list(self.qtree.keys()):
+            child=self.qtree[key]
+            if not child.isLeaf: continue
+            pts=np.where(np.logical_and.reduce((self[xcoord]>=child.lim[0],
+                                        self[xcoord]<=child.lim[1],
+                                        self[ycoord]>=child.lim[2],
+                                        self[ycoord]<=child.lim[3]))
+            )
+
+            cfl[pts]=self['u'][pts]*dt/child.dx
+
+        self['cfl']=dmarray(cfl,attrs={'units':''})
+
+    def vth(self,m_avg=3.1):
+        """
+        Calculate the thermal velocity. m_avg denotes the average ion mass in AMU.
+
+        Result is stored in self['vth'].
+        """
+
+        m_avg_kg=m_avg*1.6276e-27
+        ndensity=self['rho']/m_avg*1e6
+        self['vth']=dmarray(np.sqrt(self['p']*1e-9/ndensity/(m_avg_kg))/1000,attrs={'units':'km/s'})
+
+    def gyroradius(self,velocities=('u','vth'),m_avg=3.1):
+        """
+        Calculate the ion gyroradius in each cell.
+
+        velocities to use in calculating the gyroradius are listed by name in the sequence argument velocities. If more than one variable is given, they are summed in quadrature.
+
+        m_avg denotes the average ion mass in AMU.
+
+        Result is stored in self['gyroradius']
+        """
+
+        if 'vth' in velocities:
+            try:
+                self['vth']
+            except KeyError:
+                self.vth()
+
+        if 'u' in velocities:
+            try:
+                U=self['u']
+            except KeyError:
+                self.calc_utotal()
+
+        velocities_squared_sum=self[velocities[0]]**2
+
+        for vname in velocities[1:]:
+            velocities_squared_sum+=self[vname]**2
+
+        v=np.sqrt(velocities_squared_sum)*1000
+
+        if 'b' not in self: self.calc_b()
+
+        B=self['b']*1e-9
+
+        m_avg_kg=m_avg*1.6276e-27
+
+        q=1.6022e-19
+
+        self['gyroradius']=dmarray(m_avg_kg*v/(q*B)/6378000,attrs={'units':'Re'})
+
+    def plasma_freq(self,m_avg=3.1):
+        """
+        Calculate the ion plasma frequency.
+
+        m_avg denotes the average ion mass in AMU.
+
+        Result is stored in self['plasm_freq'].
+        """
+
+        from numpy import sqrt, pi
+        m_avg_kg=m_avg*1.6276e-27
+        ndensity=self['rho']/m_avg*1e6
+        q=1.6022e-19
+        self['plasma_freq']=dmarray(sqrt(4*pi*ndensity*q**2/m_avg_kg),attrs={'units':'rad/s'})
+
+    def inertial_length(self,m_avg=3.1):
+        """
+        Calculate the ion inertial length.
+
+        m_avg denotes the average ion mass in AMU.
+
+        Result is stored in self['inertial_length'].
+        """
+
+        try:
+            self['plasma_freq']
+        except KeyError:
+            self.plasma_freq(m_avg=m_avg)
+
+        if 'alfven' not in self: self.calc_alfven()
+
+        self['inertial_length']=dmarray(self['alfven']/self['plasma_freq']/6378000,attrs={'units':'Re'})
+
     def regrid(self, cellsize=1.0, dim1range=-1, dim2range=-1, debug=False):
         '''
         Re-bin data to regular grid of spacing cellsize.  Action is 
