@@ -1362,7 +1362,7 @@ class Bats2d(IdlFile):
         return tilt, theta_day, theta_night, day, night
 
     def add_b_magsphere_new(self, target=None, loc=111,  style='mag', 
-                            DoLast=True, DoOpen=True, DoTail=True, 
+                            DoLast=True, DoOpen=True, DoTail=True,compX='bx',compY='bz',
                             method='rk4', tol=np.pi/360., DoClosed=True,
                             nOpen=5, nClosed=15, **kwargs):
         '''
@@ -1438,9 +1438,9 @@ class Bats2d(IdlFile):
                     linspace(0,     thetaD[0]-dTheta, nClosed),
                     linspace(np.pi, thetaN[1]-dTheta, nClosed)):
                 x, y = R*cos(tDay), R*sin(tDay)
-                sD   = self.get_stream(x,y,'bx','bz',method=method)
+                sD   = self.get_stream(x,y,compX,compY,method=method)
                 x, y = R*cos(tNit), R*sin(tNit)
-                sN   = self.get_stream(x,y,'bx','bz',method=method)
+                sN   = self.get_stream(x,y,compY,compY,method=method)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
@@ -1453,9 +1453,9 @@ class Bats2d(IdlFile):
                     linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
                     linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
                 x, y = R*cos(tNorth), R*sin(tNorth)
-                sD   = self.get_stream(x,y,'bx','bz',method=method)
+                sD   = self.get_stream(x,y,compX,compY,method=method)
                 x, y = R*cos(tSouth), R*sin(tSouth)
-                sN   = self.get_stream(x,y,'bx','bz',method=method)
+                sN   = self.get_stream(x,y,compX,compY,method=method)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
