@@ -581,13 +581,13 @@ class Bats2d(IdlFile):
     '''
     # Init by calling IdlFile init and then building qotree, etc.
     def __init__(self, filename, format='binary'):
-        from numpy import array
 
         from spacepy.pybats import parse_filename_time
-        import spacepy.pybats.qotree as qo
         
         # Read file.
         IdlFile.__init__(self, filename, format=format, keep_case=False)
+
+        self._qtree=None
 
         # Extract time from file name:
         i_iter, runtime, time = parse_filename_time(self.attrs['file'])
@@ -599,16 +599,28 @@ class Bats2d(IdlFile):
         if 'r' in self.attrs and 'rbody' not in self.attrs:
             self.attrs['rbody'] = self.attrs['r']
         
-        # Parse grid into quad tree.
-        if self['grid'].attrs['gtype'] != 'Regular':
-            xdim, ydim = self['grid'].attrs['dims'][0:2]
-            try:
-                self.qtree=qo.QTree(array([self[xdim],self[ydim]]))
-                self.find_block = self.qtree.find_leaf
-            except:
-                self.qtree=False
-                self.find_block=lambda: False
-            
+    @property
+    def qtree(self):
+        if self._qtree is None:
+
+            from numpy import array
+
+            import spacepy.pybats.qotree as qo
+
+            # Parse grid into quad tree.
+            if self['grid'].attrs['gtype'] != 'Regular':
+                xdim, ydim = self['grid'].attrs['dims'][0:2]
+                try:
+                    self._qtree=qo.QTree(array([self[xdim],self[ydim]]))
+                    self.find_block = self._qtree.find_leaf
+                except:
+                    from traceback import print_exc
+                    print_exc()
+                    #print 'On dataset:',self.filename
+                    self._qtree=False
+                    self.find_block=lambda: False
+
+        return self._qtree
 
     ####################
     # CALCULATIONS
