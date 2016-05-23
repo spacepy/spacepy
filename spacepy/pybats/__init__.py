@@ -154,7 +154,10 @@ def parse_filename_time(filename, default='2000-01-01'):
     Examples
     ========
     >>> parse_filename_time('z=0_mhd_2_t00050000_n00249620.out')
-    ('00249620', '00050000', None)
+    (249620, 50000.0, None)
+
+    >>> parse_filename_time('mag_grid_e20130924-232600.out')
+    (None, None, datetime.datetime(2013, 9, 24, 23, 26))
 
     '''
 
@@ -174,13 +177,13 @@ def parse_filename_time(filename, default='2000-01-01'):
 
     # Look for run time:
     if '_t' in filename:
-        runtime = re.search('_t(\d+)', filename).groups()[-1]
+        runtime = float(re.search('_t(\d+)', filename).groups()[-1])
     else:
         runtime = None
 
     # Look for file iteration:
     if '_n' in filename:
-        i_iter = re.search('_n(\d+)', filename).groups()[-1]
+        i_iter = int(re.search('_n(\d+)', filename).groups()[-1])
     else:
         i_iter = None
 
@@ -681,6 +684,33 @@ class PbData(SpaceData):
         for key in keys:
             if 'units' in self[key].attrs:
                 print(form%(key, self[key].attrs['units']))
+
+    def timeseries_append(self, obj):
+        '''
+        If *obj* is of the same type as self, and both have a 'time'
+        entry, append all arrays within *obj* that have the same size as
+        'time' to the corresponding arrays within self.  This is useful
+        for combining time series data of consecutive data.
+        '''
+
+        # check to make sure that the append appears feasible:
+        if type(obj) != type(self):
+            raise TypeError('Cannot append type {} to type {}.'.format(
+                type(obj), type(self)))
+        if 'time' not in obj:
+            raise ValueError('No time vector in {} object'.format(type(obj)))
+        if 'time' not in self:
+            raise ValueError('No time fector in {} object'.format(type(self)))
+
+        npts = self['time'].size
+
+        for v in self:
+            # Only combine vectors that are the same size as time and are
+            # in both objects.
+            if v not in obj: continue
+            if self[v].size != npts: continue
+            # Append away.
+            self[v] = dmarray(np.append(self[v], obj[v]), self[v].attrs)
         
 class IdlFile(PbData):
  
