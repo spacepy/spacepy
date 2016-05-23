@@ -328,7 +328,7 @@ c
             GOTO 99
           endif
 c
-c Compute Bmin assuming 90inf PA at S/C
+c Compute Bmin assuming 90deg PA at S/C
 	   k_l=0
            IPA=1
            CALL calcul_Lstar_opt(t_resol,r_resol,xGEO
@@ -3055,7 +3055,7 @@ c      collect the B components for return in maginput() array
 	   maginput(16)=baddata
 	ENDIF
 c
-c Compute Bmin assuming 90inf PA at S/C
+c Compute Bmin assuming 90deg PA at S/C
 	   k_l=0
            IPA=1
 c             all returned values except Bmin are subsequently overwritten
