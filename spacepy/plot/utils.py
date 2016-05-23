@@ -618,7 +618,11 @@ def smartTimeTicks(time):
                                   DateFormatter)
     deltaT = time[-1] - time[0]
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
-    if nHours < .5:
+    if deltaT.total_seconds()<600:
+        Mtick = MinuteLocator(byminute=list(range(0,60,2)) )
+        mtick = MinuteLocator(byminute=list(range(60)), interval=1)
+        fmt = DateFormatter('%H:%M UT')
+    elif nHours < .5:
         Mtick = MinuteLocator(byminute=list(range(0,60,5)) )
         mtick = MinuteLocator(byminute=list(range(60)), interval=5)
         fmt = DateFormatter('%H:%M UT')

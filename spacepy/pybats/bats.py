@@ -2509,7 +2509,7 @@ class GeoIndexFile(LogFile):
                                          
 
     def add_kp_quicklook(self, target=None, loc=111, label=None, 
-                         plot_obs=True, **kwargs):
+                         plot_obs=False, **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
         Kp from the web and plots it alongside the Kp read from the GeoInd file.
@@ -2566,7 +2566,7 @@ class GeoIndexFile(LogFile):
         return fig, ax
 
     def add_ae_quicklook(self, target=None, loc=111, label=None, 
-                         plot_obs=True, val='AE', **kwargs):
+                         plot_obs=False, val='AE', **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
         AE indices from the web and plots it alongside the corresponding 
