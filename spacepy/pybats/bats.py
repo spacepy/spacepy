@@ -2529,7 +2529,7 @@ class GeoIndexFile(LogFile):
 
         # Attempt to fetch from Kyoto website:
         try:
-            self.obs_dst = kt.fetch('kp', stime, etime)
+            self.obs_kp = kt.fetch('kp', stime, etime)
         # Warn on failure:
         except BaseException as args:
             print('WARNING! Failed to fetch Kyoto Kp: ', args)
@@ -2558,7 +2558,7 @@ class GeoIndexFile(LogFile):
 
         # Attempt to fetch from Kyoto website:
         try:
-            self.obs_dst = kt.fetch('ae', stime, etime)
+            self.obs_ae = kt.fetch('ae', stime, etime)
         # Warn on failure:
         except BaseException as args:
             print('WARNING! Failed to fetch Kyoto AE: ', args)
