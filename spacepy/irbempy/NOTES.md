@@ -9,8 +9,9 @@ cp [previousRev]/source/myOwnMagField.f [newRev]/source/myOwnMagField.f
 
 ### fix comments
 It seems that some comment lines confuse f2py.
-E.g., line 689 (in rev541) "      REAL*8 Bmirror  ! particle's mirror field strength"
+E.g., line 690 (in rev546) "      REAL*8 Bmirror  ! particle's mirror field strength"
 The apostrophe breaks the compile, so it needs to be removed.
+Lines 331 and 3058 (in rev546) have unicode degree symbols that should be removed.
 There are a lot of wanrings about lines with an exclamation as comment marker - for now we ignore these.
 
 ### TS07D updates
