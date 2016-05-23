@@ -13,7 +13,28 @@ import spacepy.pybats.bats as pbs
 
 __all__ = ['TestIdlFile']
 
+class TestParseFileTime(unittest.TestCase):
+    '''
+    Test the parse_filename_time function, which attempts to extract
+    the datetime/runtime/run iteration from a standard SWMF file name.
+    '''
 
+    from datetime import datetime as dt
+    
+    files = ['mag_grid_e20130924-232600.out',
+             'y=0_mhd_1_e20130924-220500-054.out',
+             'y=0_mhd_2_t00001430_n00031073.out',
+             'z=0_mhd_2_t00050000_n00249620.out']
+    dates = [dt(2013,9,24,23,26,0), dt(2013,9,24,22, 5,0),
+             None, None]
+    times = [None, None, 1430, 50000]
+    iters = [None, None, 31073, 249620]
+
+    def testParse(self):
+        from spacepy.pybats import parse_filename_time
+        for f, d, t, i in zip(self.files, self.dates, self.times, self.iters):
+            self.assertEqual( parse_filename_time(f), (i,t,d) )
+        
 class TestIdlFile(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.IdlFile` for different output
@@ -182,6 +203,22 @@ class TestImfInput(unittest.TestCase):
 
         plt.close(f1)
         plt.close(f2)
+
+    def testAppend(self):
+        '''
+        Test combining two files via timeseries_append
+        '''
+
+        # Combine two imf files, get size arrays before append:
+        npts = self.mult['time'].size
+        self.mult.timeseries_append(self.sing)
+
+        # Check that the arrays were combined appropriately.
+        for v in self.mult:
+            if v in self.sing:
+                self.assertEqual(self.mult['time'].size, self.mult[v].size)
+            else:
+                self.assertEqual(self.mult[v].size, npts)
         
 class TestExtraction(unittest.TestCase):
     '''
