@@ -2508,6 +2508,64 @@ class GeoIndexFile(LogFile):
             self.attrs['k9']  = float(parts[parts.index('K9') +1])
                                          
 
+    def fetch_obs_kp(self):
+        '''
+        Fetch the observed Kp index for the time period covered in the 
+        logfile.  Return *True* on success.
+
+        Observed Kp is automatically fetched from the Kyoto World Data Center
+        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoKp` object, which holds the observed
+        kp, is stored as *self.obs_kp* for future use.
+        '''
+
+        import spacepy.pybats.kyoto as kt
+
+        # Return if already obtained:
+        if hasattr(self, 'obs_kp'): return True
+
+        # Start and end time to collect observations:
+        stime = self['time'][0]; etime = self['time'][-1]
+
+        # Attempt to fetch from Kyoto website:
+        try:
+            self.obs_dst = kt.fetch('kp', stime, etime)
+        # Warn on failure:
+        except BaseException as args:
+            print('WARNING! Failed to fetch Kyoto Kp: ', args)
+            return False
+
+        return True
+
+    def fetch_obs_ae(self):
+        '''
+        Fetch the observed AE index for the time period covered in the 
+        logfile.  Return *True* on success.
+
+        Observed AE is automatically fetched from the Kyoto World Data Center
+        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoAe` object, which holds the observed
+        AE, is stored as *self.obs_ae* for future use.
+        '''
+
+        import spacepy.pybats.kyoto as kt
+
+        # Return if already obtained:
+        if hasattr(self, 'obs_kp'): return True
+
+        # Start and end time to collect observations:
+        stime = self['time'][0]; etime = self['time'][-1]
+
+        # Attempt to fetch from Kyoto website:
+        try:
+            self.obs_dst = kt.fetch('ae', stime, etime)
+        # Warn on failure:
+        except BaseException as args:
+            print('WARNING! Failed to fetch Kyoto AE: ', args)
+            return False
+
+        return True   
+
     def add_kp_quicklook(self, target=None, loc=111, label=None, 
                          plot_obs=False, **kwargs):
         '''
@@ -2545,20 +2603,9 @@ class GeoIndexFile(LogFile):
         if target==None: fig.tight_layout()
 
         if plot_obs:
-            try:
-                import spacepy.pybats.kyoto as kt
-            except ImportError:
-                print("kyotodst package unavailable.")
-                return fig, ax
-        
-            try:
-                stime = self['time'][0]; etime = self['time'][-1]
-                if not hasattr(self, 'obs_kp'):
-                    self.obs_kp = kt.fetch('kp', (stime.year, stime.month), 
-                                           (etime.year, etime.month))
-            except BaseException as args:
-                print('WARNING! Failed to fetch Kyoto Kp: ' + args)
-            else:
+            # Attempt to fetch Kp:
+            if self.fetch_obs_kp():
+                # If successful, add to plot:
                 self.obs_kp.add_histplot(target=ax, color='k', ls='--', lw=3.0)
                 ax.legend(loc='best')
                 applySmartTimeTicks(ax, self['time'])
@@ -2597,18 +2644,7 @@ class GeoIndexFile(LogFile):
         if target==None: fig.tight_layout()
 
         if plot_obs:
-            try:
-                import spacepy.pybats.kyoto as kt
-            except ImportError:
-                print("kyotodst package unavailable.")
-                return fig, ax
-        
-            try:
-                if not hasattr(self, 'obs_ae'):
-                    self.obs_ae = kt.fetch('ae',self['time'][0],self['time'][-1])
-            except BaseException as args:
-                print('WARNING! Failed to fetch Kyoto AE: ' + args)
-            else:
+            if self.fetch_obs_ae():
                 ax.plot(self.obs_ae['time'], self.obs_ae[val.lower()],
                         'k--', lw=1.5, label='Obs.')
                 ax.legend(loc='best')
