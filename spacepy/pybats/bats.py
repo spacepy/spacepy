@@ -612,15 +612,20 @@ class Bats2d(IdlFile):
                 xdim, ydim = self['grid'].attrs['dims'][0:2]
                 try:
                     self._qtree=qo.QTree(array([self[xdim],self[ydim]]))
-                    self.find_block = self._qtree.find_leaf
                 except:
                     from traceback import print_exc
                     print_exc()
                     #print 'On dataset:',self.filename
                     self._qtree=False
-                    self.find_block=lambda: False
 
         return self._qtree
+
+    @property
+    def find_block(self):
+        if self.qtree:
+            return self._qtree.find_leaf
+        else:
+            return lambda: False
 
     ####################
     # CALCULATIONS
