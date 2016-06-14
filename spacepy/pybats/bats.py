@@ -1795,10 +1795,8 @@ class Bats2d(IdlFile):
         if ylabel==None: ylabel='%s ($R_{E}$)'%dim2.upper()
         if xlabel==None: xlabel='%s ($R_{E}$)'%dim1.upper()
         ax.set_ylabel(ylabel); ax.set_xlabel(xlabel)
-        if type(xlim)==type([]) and len(xlim)==2:
-            ax.set_xlim(xlim)
-        if type(ylim)==type([]) and len(ylim)==2:
-            ax.set_ylim(ylim)
+        if type(xlim) != None: ax.set_xlim(xlim)
+        if type(ylim) != None: ax.set_ylim(ylim)
 
         # Add body/planet.  Determine where the sun is first.
         if dim1=='x':
@@ -2440,10 +2438,8 @@ class MagGridFile(IdlFile):
         if ylabel==None: ylabel='Latitude ({})'.format(coord_sys)
         if xlabel==None: xlabel='Longitude ({})'.format(coord_sys)
         ax.set_ylabel(ylabel); ax.set_xlabel(xlabel)
-        if type(xlim)==type([]) and len(xlim)==2:
-            ax.set_xlim(xlim)
-        if type(ylim)==type([]) and len(ylim)==2:
-            ax.set_ylim(ylim)
+        if type(xlim) != None: ax.set_xlim(xlim)
+        if type(ylim) != None: ax.set_ylim(ylim)
 
         # If a brand-new axes was created, use custom ticks:
         if not issubclass(type(target), plt.Axes):
