@@ -1216,8 +1216,6 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     ========
     >>> spacepy.irbempy.get_aep8()
 
-    See Also
-    ========
     >>> import spacepy.time as spt
     >>> import spacepy.coordinates as spc
     >>> import spacepy.irbempy as ib

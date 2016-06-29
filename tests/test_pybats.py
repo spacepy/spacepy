@@ -171,7 +171,41 @@ class TestImfInput(unittest.TestCase):
     def setUp(self):
         self.sing = pb.ImfInput(self.file_single)
         self.mult = pb.ImfInput(self.file_multi)
-    
+
+    def tearDown(self):
+        import os
+        import glob
+
+        # Remove temporary files.
+        for f in glob.glob('*.tmp'):
+            os.remove(f)
+
+    def testWrite(self):
+        # Test that files are correctly written to file.
+        
+        from numpy.testing import assert_array_equal as assert_array
+        
+        # Save original file names:
+        old_file_1 = self.sing.attrs['file']
+        old_file_2 = self.mult.attrs['file']
+
+        # Rename files, write:
+        self.sing.attrs['file'] = './imf_sing.tmp'
+        self.mult.attrs['file'] = './imf_mult.tmp'
+        self.sing.write()
+        self.mult.write()
+
+        # Reopen files:
+        sing = pb.ImfInput('./imf_sing.tmp')
+        mult = pb.ImfInput('./imf_mult.tmp')
+
+        # Ensure files were written correctly:
+        for v in sing:
+            assert_array(self.sing[v], sing[v])
+        for v in mult:
+            assert_array(self.mult[v], mult[v])
+        
+        
     def testOpen(self):
         # Test single fluid/default variable names:
         self.assertEqual(self.knownImfBz[0],   self.sing['bz'][0])

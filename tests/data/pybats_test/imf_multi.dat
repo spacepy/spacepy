@@ -6,6 +6,12 @@ Use with ModEquationMultiSwIono
 
 #TIMEDELAY
       0.00000
+
+#SATELLITEXYZ  3D Position of the satellite
+65.0         X location
+0.0          Y location
+0.0          Z location
+
 #VAR
 bx by bz ux uy uz n SwRho IonoRho t
 

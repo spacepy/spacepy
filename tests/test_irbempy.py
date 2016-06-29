@@ -11,11 +11,10 @@ import spacepy
 import spacepy.omni
 import spacepy.time
 import spacepy.coordinates
-try: #if IRBEM install fails, test suite should not break entirely...
+try:
     import spacepy.irbempy as ib
-    ibflag = False
-except ImportError:
-    ibflag = True
+except ImportError: #if IRBEM fails, test suite should not break entirely...
+    pass
 import glob
 import os
 import numpy as np
@@ -24,7 +23,7 @@ from numpy import array
 
 __all__ = ['IRBEMBigTests', 'IRBEMTestsWithoutOMNI']
 
-@unittest.skipIf(ibflag, "Warning: import spacepy.irbempy failed, skipping tests")
+
 class IRBEMBigTests(unittest.TestCase):
 
     def setUp(self):
@@ -148,7 +147,6 @@ class IRBEMBigTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(expected['loci'].data, ans['loci'].data, decimal=5)
 
 
-@unittest.skipIf(ibflag, "Warning: import spacepy.irbempy failed, skipping tests")
 class IRBEMTestsWithoutOMNI(unittest.TestCase):
 
     def setUp(self):

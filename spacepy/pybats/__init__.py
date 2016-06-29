@@ -1295,33 +1295,33 @@ class ImfInput(PbData):
             # For all possible Params, set object attributes/info.
             if param[:5] == '#COOR':
                 self.attrs['coor']=lines.pop(0)[0:3]
-            elif param == '#REREAD':
+            elif param[:7] == '#REREAD':
                 self.attrs['reread']=True
-            elif param == '#ZEROBX':
+            elif param[:7] == '#ZEROBX':
                 setting=lines.pop(0)[0]
                 if setting=='T':
                     self.attrs['zerobx']=True
                 else:
                     self.attrs['zerobx']=False
-            elif param == '#VAR':
+            elif param[:4] == '#VAR':
                 self.attrs['var']=lines.pop(0).split()
                 self.attrs['std_var']=False
-            elif param == '#PLANE':
+            elif param[:6] == '#PLANE':
                 xp = float(lines.pop(0).split()[0])
                 yp = float(lines.pop(0).split()[0])
                 self.attrs['plane']=[xp, yp]
-            elif param == '#POSITION':
+            elif param[:9] == '#POSITION':
                 yp = float(lines.pop(0).split()[0])
                 zp = float(lines.pop(0).split()[0])
                 self.attrs['satxyz'][1:]=(yp, zp)
-            elif param == '#SATELLITEXYZ':
-                Xp = float(lines.pop(0).split()[0])
+            elif param[:13] == '#SATELLITEXYZ':
+                xp = float(lines.pop(0).split()[0])
                 yp = float(lines.pop(0).split()[0])
                 zp = float(lines.pop(0).split()[0])
                 self.attrs['satxyz']=[xp, yp, zp]
-            elif param == '#TIMEDELAY':
+            elif param[:10] == '#TIMEDELAY':
                 self.attrs['delay']=float(lines.pop(0).split()[0])
-            elif param == '#START':
+            elif param[:6] == '#START':
                 break
             else:
                 raise Exception('Unknown file parameter: ' + param)
@@ -1373,7 +1373,7 @@ class ImfInput(PbData):
         var=self.attrs['var']
 
         # Write the header:
-        out.write('File created on %s\n' % (dt.datetime.now().isoformat()))
+        out.write('File created on {}\n'.format(dt.datetime.now().isoformat()))
         for head in self.attrs['header']:
             out.write(head)
 
@@ -1383,37 +1383,28 @@ class ImfInput(PbData):
         if self.attrs['reread']:
             out.write('#REREAD')
         if not self.attrs['std_var']:
-            out.write('#VAR\n%s\n\n'%(' '.join(var)))
+            out.write('#VAR\n{}\n\n'.format(' '.join(var)))
         if self.attrs['satxyz'].count(None)<3:
-            if (self.attrs['satxyz'][0]==None) and (
-                None not in self.attrs['satxyz'][1]):
-                out.write('#POSITION\n%-6.2f\n%-6.2f\n\n'%
-                          (self.attrs['satxyz'][2],self.attrs['satxyz'][3]))
-            elif None not in self.attrs['satxyz']:
-                out.write('#SATELLITEXYZ\n%s\n' % 
-                          (''.join("%-6.2f\n"%n for n in self.attrs['satxyz'])))
+            xyz = self.attrs['satxyz']
+            if (xyz[0]==None) and (None not in xyz[1:]):
+                out.write('#POSITION\n{0[1]:-6.2f}\n{0[2]:-6.2f}\n\n'.format(xyz))
+            elif None not in xyz:
+                out.write('#SATELLITEXYZ\n{}\n'.format(
+                    ''.join("{:-6.2f}\n".format(n) for n in xyz)))
         if self.attrs['delay']:
-            out.write('#DELAY\n%-9.2f\n\n' % (self.attrs['delay']))
+            out.write('#DELAY\n{:-9.2f}\n\n'.format(self.attrs['delay']))
         if None not in self.attrs['plane']:
-            out.write('#PLANE\n%s\n'%
-                      (''.join('%-6.2f\n'%n for n in self.attrs['plane'])))
+            out.write('#PLANE\n{}\n'.format(
+                ''.join('{:-6.2f}\n'.format(n)
+                for n in self.attrs['plane'])))
 
         # Write the data:
         out.write('\n#START\n')
         for i in range(len(self['time'])):
-            out.write('%04d %02d %02d %02d %02d %02d %03d' % 
-                          (self['time'][i].year, 
-                           self['time'][i].month,
-                           self['time'][i].day,
-                           self['time'][i].hour,
-                           self['time'][i].minute,
-                           self['time'][i].second,
-                           self['time'][i].microsecond/1000.0 ) )
-            out.write(' %s\n' % ' '.join('%10.2f'%self[key][i] for key in var))
-            #for key in var:
-            #    out.write(' %9.2f' % (self[key][i]))
-            #out.write('\n')
-                #out.write('  %11.4E\n' % (self['temp'][i]))
+            out.write('{:%Y %m %d %H %M %S} {:03d} '.format(
+                self['time'][i], self['time'][i].microsecond/1000))
+            out.write(' {}\n'.format(
+                ' '.join('{:10.2f}'.format(self[key][i]) for key in var)))
         out.close()
 
     def quicklook(self, timerange=None):

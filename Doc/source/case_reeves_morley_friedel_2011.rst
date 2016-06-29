@@ -18,10 +18,9 @@ recommended; the SpacePy team uses `git
 Obtaining energetic particle data
 =================================
 We require the 1.8-3.5 MeV electron flux from the LANL-GEO ESP
-detector, available in the paper's `auxiliary material
-<http://www.agu.org/journals/ja/ja1102/2010JA015735/supplement.shtml>`_. The
+detector, available in the paper's auxiliary material (scroll down to "Supporting information" on the `paper's page <http://dx.doi.org/10.1029/2010JA015735>`_. The
 ESP data are in Data Set S1. Save this file to the ``data`` directory;
-the filename is assumed to be ``2010ja015735-ds01.txt``.
+the filename is assumed to be ``jgra20797-sup-0003-ds01.txt``.
 
 The data file was corrupted on upload to AGU, and the code to fix it
 is non-trivial, so this is a good chance to learn how to run someone
@@ -35,8 +34,8 @@ a file called ``fix_esp_data.py`` in the ``code`` directory.
 
 
     datadir = os.path.join('..', 'data')
-    in_name = os.path.join(datadir, '2010ja015735-ds01.txt')
-    out_name = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
+    in_name = os.path.join(datadir, 'jgra20797-sup-0003-ds01.txt')
+    out_name = os.path.join(datadir, 'jgra20797-sup-0003-ds01_FIXED.txt')
     infile = open(in_name, 'r')
     outfile = open(out_name, 'w')
     data = infile.read()
@@ -60,7 +59,7 @@ a file called ``fix_esp_data.py`` in the ``code`` directory.
     outfile.close()
 
 Now this script can be run with ``python fix_esp_data.py``. It should
-create a file called ``2010ja015735-ds01_FIXED.txt`` in the ``data``
+create a file called ``jgra20797-sup-0003-ds01_FIXED.txt`` in the ``data``
 directory.
 
 File fixed, we can load and begin examining the data.  Change to the
@@ -113,7 +112,7 @@ character is not required.
 
 Returning to reading the ESP data file:
 
->>> fname = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
+>>> fname = os.path.join(datadir, 'jgra20797-sup-0003-ds01_FIXED.txt')
 
 creates a variable holding the full path to the fixed file.
 
@@ -178,7 +177,7 @@ directory with the following contents:
     datadir = os.path.join('..', 'data')
 
     def load_esp():
-        fname = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
+        fname = os.path.join(datadir, 'jgra20797-sup-0003-ds01_FIXED.txt')
         esp_fluxes = numpy.loadtxt(fname, skiprows=14, usecols=[1])
         convert = lambda x: datetime.datetime.strptime(x, '%Y-%m-%d')
         esp_times = numpy.loadtxt(fname, skiprows=14, usecols=[0],
@@ -203,9 +202,9 @@ Solar Wind data and averaging
 The top panel of figure 1 shows the ESP fluxes overplotted with the
 solar wind velocity. Fortunately, the :mod:`~spacepy.omni` module of
 SpacePy provides an interface to the hourly solar wind dataset,
-OMNI. :func:`~spacepy.omni.get_omni`: returns data for a particular
+OMNI. :func:`~spacepy.omni.get_omni` returns data for a particular
 set of times. In this case, we want hourly data, covering 1989 through 
-2010 (we'll cut it down to size later. :func:`~spacepy.time.tickrange`
+2010 (we'll cut it down to size later). :func:`~spacepy.time.tickrange`
 allows us to specify a start time, stop time, and time step.
 
 >>> import spacepy.omni
@@ -269,30 +268,10 @@ these slices can happily run off the end of the ``esp_flux`` array,
 but we use :func:`max` to ensure the first index does not go negative.
 (Negative indices have special meaning in Python.)
 
-:func:`~scipy.stats.stats.nanmean` takes the mean of a numpy array,
+:func:`~scipy.stats.nanmean` takes the mean of a numpy array,
 but skips any elements with a value of "not a number" (nan), which is
 often used for fill.  (This is our first exposure to the :mod:`scipy`
 module.)
-
-The solar wind data covers from 1963, whereas the ESP data starts in
-1989.  Although for proper averaging we want to keep some solar wind
-data "off the end" of the ESP data, 35 years is a bit much. So let's
-cut out the solar wind data from before 1989:
-
->>> import bisect
->>> import datetime
->>> idx = bisect.bisect_left(vsw_times, datetime.datetime(1989, 1, 1))
->>> vsw_times = vsw_times[idx:]
->>> vsw = vsw[idx:]
-
-:mod:`bisect` provides fast functions for searching in sorted data;
-:func:`~bisect.bisect_left` is roughly a find-the-position-of function.
-Having found the position of the start of 1989, we then keep times
-from then on (specifying a start index without a stop index in Python
-means "from start to end of the list.") Note that, although ``bisect``
-is meant to work on lists, it works fine on numpy arrays; this is a
-common feature of Python known as
-`duck typing <http://en.wikipedia.org/wiki/Duck_typing#In_Python>`_.
 
 For the solar wind averaging, the times need to cover the 24 * 13.5 = 324
 hours previous, and 324 hours following (non-inclusive). There is also a 
@@ -506,10 +485,11 @@ The end result is a nice figure that can be printed full-size, put in
 a PDF, or included directly in a paper.
 
 Now we need the bottom half of Figure 1. From
-`SIDC <http://sidc.oma.be/sunspot-data/>`_, download the "monthly and
-monthly smoothed sunspot number" (``monthssn.dat``). Put it in the ``data``
+`SIDC <http://www.sidc.be/silso/versionarchive>`_, download the "Monthly mean total sunspot number" (``monthssn.dat``). Put it in the ``data``
 directory.
 
+>>> import bisect
+>>> import datetime
 >>> monthfile = os.path.join(common.datadir, 'monthssn.dat')
 >>> convert = lambda x: datetime.datetime.strptime(x, '%Y%m')
 >>> ssn_data = numpy.genfromtxt(monthfile, skip_header=2400, usecols=[0, 2, 3],
@@ -527,7 +507,18 @@ flexible than :func:`~numpy.loadtxt`; here it allows the skipping of lines
 at the end as well as the beginning (skipping 200 years at the start, 2 at 
 the end, where data are provisional.) Here we load both times and the
 sunspot numbers in the same command so that if any lines don't load, they 
-will not wind up in any of the arrays. We then use :func:`~numpy.asarray`
+will not wind up in any of the arrays.
+
+:mod:`bisect` provides fast functions for searching in sorted data;
+:func:`~bisect.bisect_left` is roughly a find-the-position-of function.
+Having found the position of the start of 1989, we then keep times
+from then on (specifying a start index without a stop index in Python
+means "from start to end of the list.") Note that, although ``bisect``
+is meant to work on lists, it also works fine on numpy arrays; this is a
+common feature of Python known as
+`duck typing <http://en.wikipedia.org/wiki/Duck_typing#In_Python>`_.
+
+We then use :func:`~numpy.asarray`
 to convert the ``ssn`` and ``smooth_ssn`` columns to float arrays. Note
 the slice notation: ``[:, 0]`` means take all indices of the first dimension
 (line number) and only the 0th index of the second dimension (column in the
@@ -609,6 +600,7 @@ Following is the complete code to reproduce Figure 1.
 
     import bisect
     import datetime
+    import os.path
 
     import common
     import matplotlib
@@ -637,9 +629,6 @@ Following is the complete code to reproduce Figure 1.
     esp_flux_av = numpy.empty(shape=esp_flux.shape, dtype=esp_flux.dtype)
     for i in range(len(esp_flux_av)):
         esp_flux_av[i] = scipy.stats.nanmean(esp_flux[max(i - 13, 0):i + 14])
-    idx = bisect.bisect_left(vsw_times, datetime.datetime(1989, 1, 1))
-    vsw_times = vsw_times[idx:]
-    vsw = vsw[idx:]
     vsw_av = numpy.fromiter((scipy.stats.nanmean(vsw[max(0, i - 324):i + 324])
                              for i in range(len(vsw))),
                              count=len(vsw), dtype=vsw.dtype)
@@ -707,8 +696,8 @@ appear to have been broken inappropriately; for example, the data for
 this file, first opening the original (broken) file and an output
 (fixed) file:
 
->>> in_name = os.path.join(datadir, '2010ja015735-ds01.txt')
->>> out_name = os.path.join(datadir, '2010ja015735-ds01_FIXED.txt')
+>>> in_name = os.path.join(datadir, 'jgra20797-sup-0003-ds01.txt')
+>>> out_name = os.path.join(datadir, 'jgra20797-sup-0003-ds01_FIXED.txt')
 >>> infile = open(in_name, 'r')
 >>> outfile = open(out_name, 'w')
 
