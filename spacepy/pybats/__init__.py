@@ -1597,28 +1597,20 @@ class SatOrbit(PbData):
         
         # Start by writing header, coordinate system, and then #START.
         for line in self.attrs['head']:
-            outfile.write(line)
+            outfile.write(line+'\n')
         outfile.write('\n')
-        outfile.write('#COOR\n%s\n\n' % self.attrs['coor'])
+        outfile.write('#COOR\n{}\n\n'.format(self.attrs['coor']))
         outfile.write('#START\n')
 
         # Write the rest of the orbit.
         npts=len(self['time'])
         for i in range(npts):
             #Time:
-            outfile.write('%04d %02d %02d %02d %02d %02d %03d ' % 
-                          (self['time'][i].year, 
-                           self['time'][i].month,
-                           self['time'][i].day,
-                           self['time'][i].hour,
-                           self['time'][i].minute,
-                           self['time'][i].second,
-                           self['time'][i].microsecond/1000.0 ) )
+            outfile.write('{:%Y %m %d %H %M %S} {:03.0f} '.format(
+                self['time'][i], self['time'][i].microsecond/1000.0) )
             #Position:
-            outfile.write('%13.7E %13.7E %13.7E\n' % 
-                          (self['xyz'][0,i], 
-                           self['xyz'][1,i],
-                           self['xyz'][2,i]) )
+            outfile.write('{:13.7E} {:13.7E} {:13.7E}\n'.format(
+                self['xyz'][0,i], self['xyz'][1,i], self['xyz'][2,i]) )
 
         outfile.close()
 
