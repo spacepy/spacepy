@@ -1100,7 +1100,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
 
     return outdata, outtime
 
-def medAbsDev(series):
+def medAbsDev(series, scale=False):
     """
     Calculate median absolute deviation of a given input series
 
@@ -1109,12 +1109,19 @@ def medAbsDev(series):
     MAD is preferred to the inter-quartile range as the inter-quartile
     range only shows 50% of the data whereas the MAD uses all data but
     remains robust and resistant. See e.g. Wilks, Statistical methods
-    for the Atmospheric Sciences, 1995, Ch. 3.
+    for the Atmospheric Sciences, 1995, Ch. 3. For additional details on 
+    the scaling, see Rousseeuw and Croux, J. Amer. Stat. Assoc., 88 (424),
+    pp. 1273-1283, 1993.
 
     Parameters
     ==========
     series : array_like
         the input data series
+
+    Other Parameters
+    ================
+    scale : bool
+        if True (default: False), scale to standard deviation of a normal distribution
 
     Returns
     =======
@@ -1133,7 +1140,7 @@ def medAbsDev(series):
     >>> data = numpy.random.lognormal(mean=5.1458, sigma=0.302313, size=30)
     >>> print data
     array([ 181.28078923,  131.18152745, ... , 141.15455416, 160.88972791])
-    >>> tb.medabsdev(data)
+    >>> tb.medAbsDev(data)
     28.346646721370192
 
     **note** This implementation is robust to presence of NaNs
@@ -1145,6 +1152,8 @@ def medAbsDev(series):
     #get median absolute deviation of unmasked elements
     perc50 = np.median(series.compressed())
     mad = np.median(abs(series.compressed()-perc50))
+    if scale:
+        mad *= 1.4826 #scale so that MAD is same as SD for normal distr.
     return mad
 
 def binHisto(data, verbose=False):

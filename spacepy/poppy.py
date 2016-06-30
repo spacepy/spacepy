@@ -75,6 +75,7 @@ from spacepy import lib
 if lib.have_libspacepy:
     import ctypes
 import spacepy.toolbox as tb
+import spacepy.datamodel as dm
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
@@ -648,7 +649,7 @@ def plot_two_ppro(pprodata, pproref, ratio=None, norm=False,
         plt.title(title)
 
 
-def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
+def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None, usepy=False, nretvals=1):
     """Construct bootstrap confidence interval
 
     The bootstrap is a statistical tool that uses multiple samples derived from
@@ -708,6 +709,8 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
     target : same as data
         a 'target' value. If specified, will also calculate
         percentage confidence of being at or above this value.
+    nretvals : int
+        number of return values from input function
 
     Returns
     =======
@@ -728,15 +731,19 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
             return np.nan, np.nan, np.nan
     if sample_size == None:
         sample_size = n_els
-    if lib.have_libspacepy == False:
-        surr_quan = np.empty([n])
+    if (lib.have_libspacepy==False) or (usepy==True):
+        if nretvals>1:
+            surr_quan = np.empty([n,nretvals])
+        else:
+            surr_quan = np.empty([n])
         if seed != None:
             np.random.seed(seed)
         ran_el = np.random.randint(n_els, size=[n, sample_size])
         for i in range(int(n)): #compute n bootstrapped series
-            surr_ser = [data[rec] for rec in ran_el[i, :]] #resample w/ replace
+            surr_ser = np.array([data[rec] for rec in ran_el[i, :]]) #resample w/ replace
             surr_quan[i] = func(surr_ser) #get desired quantity from surrogates
-        surr_quan.sort()
+        surr_quan = surr_quan[surr_quan.argsort(axis=0)[:,0]]
+        #surr_quan.sort()
     else:
         n = int(n)
         data = (ctypes.c_double * n_els)(*data)
@@ -754,7 +761,12 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None):
             (func(surr_ser[i * sample_size:(i  + 1) * sample_size])
              for i in range(n)))
     #get confidence interval
-    pul = matplotlib.mlab.prctile(surr_quan, p=(perc_low,perc_high))
+    if nretvals>1:
+        pul = np.empty((2, nretvals))
+        for nn in range(nretvals):
+            pul[:,nn] = matplotlib.mlab.prctile(surr_quan[:,nn], p=(perc_low,perc_high))
+    else:
+        pul = matplotlib.mlab.prctile(surr_quan, p=(perc_low,perc_high))
     if target == None:
         return pul[0], pul[1]
     else:
@@ -795,3 +807,63 @@ def value_percentile(sequence, target):
     else: #Equal to one or more values (min...max-1), average them
         idx = (min + max - 1) / 2
     return idx * 100.0 / (count - 1)
+
+
+def applyRefractory(process1, period):
+    '''Apply a refractory period to an input discrete event time sequence
+
+    All events in the refractory period are removed from the point process.
+
+    Parameters
+    ==========
+    process1 : iterable
+        an iterable of datetimes, or a spacepy.time.Ticktock
+    period : datetime.timedelta
+        length of refractory period
+
+    Returns
+    =======
+    keep : iterable
+        returns pruned set of datetimes with same type as input
+        NOTE: array subclasses will be lost
+    '''
+    import spacepy.time as spt
+    if isinstance(process1, spt.Ticktock):
+        #SpacePy Ticktock
+        p1 = dm.dmcopy(process1.UTC).tolist()
+        tickt = True
+    elif isinstance(process1[0], dt.datetime):
+        #iterable containing datetimes
+        p1 = dm.dmcopy(process1)
+        try:
+            p1 = p1.tolist()
+            wasArr = True
+        except:
+            wasArr = False
+        tickt = False
+    else:
+        raise NotImplementedError('Input process must be a list/array of datetimes, or a spacepy.time.Ticktock')
+
+    try:
+        assert period.seconds
+    except AssertionError:
+        raise AttributeError('period must be a datetime.timedelta')
+
+    done = len(p1)<2
+    keep, discard = [], []
+    while not done:
+        t1 = p1[0]
+        t2 = t1 + period
+        inds = tb.tOverlapHalf([t1, t2], p1[1:])
+        for idx in inds:
+            discard.append(p1.pop(idx+1))
+        keep.append(p1.pop(0)) # put test element into keep array
+        done = len(p1)<2
+
+    if tickt:
+        return spt.Ticktock(keep)
+    else:
+        if wasArr:
+            return np.array(keep)
+        else:
+            return keep

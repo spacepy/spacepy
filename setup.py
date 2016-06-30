@@ -443,12 +443,14 @@ class build(_build):
             'gnu': 'g77',
             'gnu95': 'gfortran',
             'intel': 'ifort',
+            'intelem': 'ifort',
             }[fcompiler]
         compflags = {
             'pg': '-Mnosecond_underscore -w -fastsse -fPIC',
             'gnu': '-w -O2 -fPIC -fno-second-underscore',
             'gnu95': '-w -O2 -fPIC -ffixed-line-length-none',
             'intel': '-Bstatic -assume 2underscores -O2 -fPIC',
+            'intelem': '-Bdynamic -O2 -fPIC',
             }[fcompiler]
         if fcompiler == 'gnu':
             if bit == 64:
