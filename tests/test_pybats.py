@@ -125,6 +125,74 @@ class TestMagGrid(unittest.TestCase):
         self.assertAlmostEqual(self.knownDbhMax, m1['dBh'].max())
         self.assertAlmostEqual(self.knownDbhMax, m2['dBh'].max())
         
+class TestSatOrbit(unittest.TestCase):
+    '''
+    Test reading and writing of satellite orbit files.
+    '''
+
+    import datetime as dt
+    import numpy as np
+    
+    # Create 5 minutes of fake data:
+    start = dt.datetime(2000,1,1)
+    time = np.array([start+dt.timedelta(minutes=i) for i in range(5)])
+
+    pos = np.zeros( (3,5) )
+    for i in range(5):
+        pos[:,i]=[i, 10.+i, 100.+i]
+
+    def testWrite(self):
+        '''
+        Create a file from scratch.
+        '''
+        from os import remove
+        from spacepy.pybats import SatOrbit
+        from numpy.testing import assert_array_equal as assert_array
+
+        # New empty object:
+        sat = SatOrbit()
+
+        # Load in fake data:
+        sat['time'] = self.time
+        sat['xyz']  = self.pos
+
+        # Add some info:
+        sat.attrs['coor'] = 'SMG'
+        sat.attrs['file'] = 'testsat.dat'
+        sat.attrs['head'] = ['test','header','values']
+
+        sat.write()
+        import os
+        os.listdir('.')
+
+        #### Now, test the integrity of the file:
+        sat = SatOrbit('./testsat.dat')
+
+        # Check header:
+        self.assertItemsEqual(sat.attrs['head'],['test','header','values'])
+        self.assertEqual(sat.attrs['coor'], 'SMG')
+
+        # Check time and position:
+        assert_array(sat['time'], self.time)
+        assert_array(sat['xyz'],  self.pos)
+
+        # Get rid of file:
+        remove('./testsat.dat')
+
+    def testRead(self):
+        from spacepy.pybats import SatOrbit
+        from numpy.testing import assert_array_equal as assert_array
+
+        sat = SatOrbit('data/pybats_test/testsat.dat')
+
+        # Check header:
+        self.assertItemsEqual(sat.attrs['head'],['test','header','values'])
+        self.assertEqual(sat.attrs['coor'], 'SMG')
+
+        # Check time and position:
+        assert_array(sat['time'], self.time)
+        assert_array(sat['xyz'],  self.pos)
+    
 class TestVirtSat(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.VirtSat` to ensure opening, handling,
