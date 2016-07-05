@@ -194,8 +194,10 @@ class BatsLog(LogFile):
 
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
 
-        ax.plot(self['time'], self['dst'], 
-                label='BATS-R-US $D_{ST}$ (Biot-Savart)', **kwargs)
+        if 'label' not in kwargs:
+            kwarts['label']='BATS-R-US $D_{ST}$ (Biot-Savart)'
+        
+        ax.plot(self['time'], self['dst'], **kwargs)
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
         applySmartTimeTicks(ax, self['time'])
