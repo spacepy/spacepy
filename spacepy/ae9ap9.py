@@ -5,7 +5,7 @@ Module for reading and dealing with AE9AP9 data files.
 See https://www.vdl.afrl.af.mil/programs/ae9ap9/ to download the model.
 This is not a AE9AP9 runner.
 
-Authors: Brian Larsen
+Authors: Brian Larsen, Steve Morley
 Institution: Los Alamos National Laboratory
 Contact: balarsen@lanl.gov
 
@@ -14,16 +14,149 @@ Copyright 2015 Los Alamos National Security, LLC.
 
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
-import datetime
+import datetime as dt
 import functools
 import gzip
-import os
-import re
+import os, re
 
 from dateutil import relativedelta
 import numpy as np
+import spacepy.toolbox as tb
 import spacepy.datamodel as dm
 import spacepy.time as spt
+import spacepy.coordinates as spc
+
+
+class Ae9Data(dm.SpaceData):
+    '''Dictionary-like container for AE9/AP9/SPM data, derived from SpacePy's datamodel
+
+    To inspect the variables within this class, use the tree method.
+    To export the data to a CDF, HDF5 or JSON-headed ASCII file use the relevant "to" method
+    (toCDF, toHDF5, toJSONheadedASCII).
+
+    Additional Methods
+    ------------------
+    getLm
+        adds McIlwain L data for the stored AE9 output
+    plotOrbit
+        generates a plot of the relevant satellite orbit
+    '''
+    def getLm(self, alpha=[90], model='T89'):
+        '''Calculate McIlwain L for the imported AE9/AP9 run and add to object
+        '''
+        import spacepy.irbempy as ib
+        ticks = spt.Ticktock(self['Epoch'])
+        loci = spc.Coords(self['Coords'], self['Coords'].attrs['COORD_SYS'], 'car')
+        loci.ticks = ticks
+        retvals = ib.get_Lm(ticks, loci, alpha, extMag=model)
+        self['Lm'] = dm.dmarray(retvals['Lm'].squeeze(), attrs={'MODEL': model})
+
+    def plotOrbit(self, timerange=None, coord_sys=None, landscape=True):
+        '''
+        Plot X-Y and X-Z projections of satellite orbit in requested coordinate system
+        '''
+        import spacepy.plot as splot
+
+        if timerange:
+            if isinstance(timerange, spt.Ticktock):
+                t1 = timerange.UTC[0]
+                t2 = timerange.UTC[-1]
+            elif isinstance(timerange[0], dt.datetime):
+                t1 = timerange[0]
+                t2 = timerange[-1]
+            else:
+                raise TypeError('Incorrect data type provided for timerange')
+            #now select subset
+            i_use = tb.tOverlapHalf([t1,t2], self['Epoch'])
+            t_use = self['Epoch'][i_use]
+            c_use = self['Coords'][i_use]
+        else:
+            t_use = self['Epoch']
+            c_use = self['Coords']
+
+        if coord_sys and (coord_sys.upper() != c_use.attrs['COORD_SYS']):
+            #TODO: We assume cartesian, make flexible so can take spherical
+            cx = spc.Coords(c_use, c_use.attrs['COORD_SYS'], 'car')
+            cx.ticks = spt.Ticktock(t_use)
+            cx = cx.convert(coord_sys.upper(), 'car').data
+        else:
+            coord_sys = c_use.attrs['COORD_SYS']
+            cx = c_use
+        sys_subs = r'$_{' + coord_sys + r'}$'
+
+        splot.style('spacepy')
+        locs = [121,122] if landscape else [211,212]
+        fig, ax1 = splot.set_target(None, figsize=(8,8), loc=locs[0])
+        fig, ax2 = splot.set_target(fig, loc=locs[1])
+
+        l1 = ax1.plot(cx[:,0], cx[:,1])
+        l2 = ax2.plot(cx[:,0], cx[:,2])
+        if landscape: ax1.set_xlabel('X{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
+        ax2.set_xlabel('X{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
+        ax1.set_ylabel('Y{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
+        ax2.set_ylabel('Z{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
+        ax1xl, ax1yl, ax2xl, ax2yl = ax1.get_xlim(), ax1.get_ylim(), ax2.get_xlim(), ax2.get_ylim()
+        maxabslim = np.max(np.abs([ax1xl, ax1yl, ax2xl, ax2yl]))
+        if np.abs((ax1.get_xlim()[1]-ax1.get_xlim()[0]))<1:
+            refpt = maxabslim
+            ax1.set_xlim([-1.25*refpt, 1.25*refpt])
+            ax1.set_ylim(ax1.get_xlim())
+            refpt = ax2.get_xlim()[0]
+            ax2.set_xlim([-1.25*refpt, 1.25*refpt])
+            ax2.set_ylim(ax1.get_xlim())
+            l1[0].set_marker('o')
+            l2[0].set_marker('o')
+            c1 = splot.plt.Circle([0,0], radius=1.0, fc='none', ec='k')
+            c2 = splot.plt.Circle([0,0], radius=1.0, fc='none', ec='k')
+            ax1.add_artist(c1)
+            ax2.add_artist(c2)
+        else:
+            ax1.set_xlim([-maxabslim, maxabslim])
+            ax1.set_ylim([-maxabslim, maxabslim])
+            ax2.set_xlim([-maxabslim, maxabslim])
+            splot.dual_half_circle(ax=ax1)
+            splot.dual_half_circle(ax=ax2)
+        ax2.set_ylim(ax2.get_xlim())
+        ax1.invert_yaxis()
+        ax1.invert_xaxis()
+        ax2.invert_xaxis()
+        ax1.set_aspect('equal')
+        ax2.set_aspect('equal')
+        fig.tight_layout()
+        splot.revert_style()
+        return fig
+
+    def plotSpectrogram(self, ecol=0, **kwargs):
+        '''
+        Plot a spectrogram of the flux along the requested orbit, as a function of Lm and time
+        '''
+        import spacepy.plot as splot
+        if 'Lm' not in self:
+            self.getLm()
+        sd = dm.SpaceData()
+        sd['Lm'] = self['Lm']
+        #filter any bad Lm
+        goodidx = sd['Lm']>1
+        sd['Lm'] = sd['Lm'][goodidx]
+        Lm_lim = [2.0,8.0]
+        sd['Epoch'] = dm.dmcopy(self['Epoch'])[goodidx] #TODO: assumes 1 pitch angle, generalize
+        sd['1D_dataset'] = self['Flux'][goodidx,ecol] #TODO: assumes 1 pitch angle, generalize
+        spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim)
+        if 'zlim' not in kwargs:
+            zmax = max(sd['1D_dataset'])
+            kwargs['zlim'] = [zmax/50., zmax]
+        if 'colorbar_label' not in kwargs:
+            def grp2mathmode(matchobj):
+                unitstr = matchobj.group()
+                unitstr = unitstr[0]+'{'+unitstr[1:]
+                return '$'+unitstr+'}$'
+            flux_units = self['Flux'].attrs['UNITS']
+            kwargs['colorbar_label'] = 'Flux [' + re.sub('(\^[\d|-]*)+', grp2mathmode, flux_units) + ']'
+        if 'ylabel' not in kwargs:
+            kwargs['ylabel'] = 'L$_m$'+' '+'[{0}]'.format(self['Lm'].attrs['MODEL'])
+        ax = spec.plot(cmap='plasma', **kwargs)
+        return ax #TODO: should this return the figure??
+
 
 def readFile(fname, comments='#'):
     """
@@ -50,7 +183,7 @@ def readFile(fname, comments='#'):
     >>> ae9ap9.readFile('ephem_sat.dat').tree(verbose=1)
     +
     |____Epoch (spacepy.datamodel.dmarray (121,))
-    |____GSE (spacepy.datamodel.dmarray (121, 3))
+    |____Coords (spacepy.datamodel.dmarray (121, 3))
     |____MJD (spacepy.datamodel.dmarray (121,))
     |____posComp (spacepy.datamodel.dmarray (3,))
     """
@@ -61,13 +194,13 @@ def readFile(fname, comments='#'):
     # and read in all the data
     data = np.loadtxt(fname, delimiter=header['delimiter'], comments=comments)
     # now parse the data    
-    ans = dm.SpaceData()
+    ans = Ae9Data()
     #parse the datetime if it is there (it is always first)
     if 'datetime' in header['columns'][0]:
         if header['time_format'] == 'eDOY': # have to massage the data first
             year = data[:,0].astype(int)
             frac = data[:,1]
-            time = spt.Ticktock([datetime.datetime(y,1,1) + relativedelta.relativedelta(days=v)
+            time = spt.Ticktock([dt.datetime(y,1,1) + relativedelta.relativedelta(days=v)
                                for y, v in zip(year, frac)], 'UTC')
             ans[header['time_format']] = dm.dmarray(data[:,0:2])
             ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
@@ -78,7 +211,7 @@ def readFile(fname, comments='#'):
             data = data[:,2:]
         elif header['time_format'] == 'UTC': # have to massage the data first
             tm = data[:,0:6].astype(int)
-            time = spt.Ticktock([datetime.datetime(*v) for v in tm], 'UTC' )
+            time = spt.Ticktock([dt.datetime(*v) for v in tm], 'UTC' )
             ans[header['time_format']] = dm.dmarray(data[:,0:6])
             ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
             ans[header['time_format']].attrs['LABL_PTR_1'] = 'timeComp'
@@ -97,7 +230,7 @@ def readFile(fname, comments='#'):
         ans['Epoch'].attrs['VAR_TYPE'] = 'support_data'
     # parse the position, it is always next
     if 'posx' in header['columns'][0]:
-        varname = header['coord_system'][0]
+        varname = 'Coords'
         pos = dm.dmarray(data[:,0:3])
         ans[varname] = pos
         ans[varname].attrs['UNITS'] =  header['coord_system'][1]
@@ -106,6 +239,7 @@ def readFile(fname, comments='#'):
         ans[varname].attrs['DEPEND_0'] = 'Epoch'
         ans[varname].attrs['LABL_PTR_1'] = 'posComp'
         ans[varname].attrs['VAR_TYPE'] = 'data'
+        ans[varname].attrs['COORD_SYS'] = header['coord_system'][0]
         ans['posComp'] = dm.dmarray(['X', 'Y', 'Z'])
         ans['posComp'].attrs['VAR_TYPE'] = 'metadata'
         del header['columns'][0:3]
@@ -388,4 +522,3 @@ def _getData(fnames):
     else:
         return combinePercentiles(fnames)
 
-    
