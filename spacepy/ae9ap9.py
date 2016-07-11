@@ -154,7 +154,12 @@ class Ae9Data(dm.SpaceData):
             kwargs['colorbar_label'] = 'Flux [' + re.sub('(\^[\d|-]*)+', grp2mathmode, flux_units) + ']'
         if 'ylabel' not in kwargs:
             kwargs['ylabel'] = 'L$_m$'+' '+'[{0}]'.format(self['Lm'].attrs['MODEL'])
+        reset_shrink = splot.mpl.mathtext.SHRINK_FACTOR
+        splot.mpl.mathtext.SHRINK_FACTOR = 0.85
+        splot.mpl.mathtext.GROW_FACTOR =  1/0.85
         ax = spec.plot(cmap='plasma', **kwargs)
+        splot.mpl.mathtext.SHRINK_FACTOR = reset_shrink
+        splot.mpl.mathtext.GROW_FACTOR =  reset_shrink/0.85
         return ax #TODO: should this return the figure??
 
 
