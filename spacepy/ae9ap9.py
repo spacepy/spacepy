@@ -57,7 +57,7 @@ class Ae9Data(dm.SpaceData):
         unitlist = ['eV','keV','MeV','GeV']
         faclist = [1, 1e3, 1e6, 1e9]
         if per not in unitlist:
-            raise ValueError("Units of {0} are not supported: Valid options are {1}".format(curr, unitlist))
+            raise ValueError("Units of {0} are not supported: Valid options are {1}".format(per, unitlist))
         else:
             if per==curr: return
             unitidx_from = unitlist.index(curr)

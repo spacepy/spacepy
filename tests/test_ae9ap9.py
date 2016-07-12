@@ -23,7 +23,7 @@ __all__ = ['ae9ap9Tests', ]
 
 class ae9ap9Tests(unittest.TestCase):
     """
-    This class mostly provides regression tests as there are few first principle things that
+    This class mostly provides regression tests as there are few first principles things that
     can be tested in the file reader and parser
     """
     
@@ -34,13 +34,31 @@ class ae9ap9Tests(unittest.TestCase):
     def tearDown(self):
         super(ae9ap9Tests, self).tearDown()
 
+    def test_setUnits_error(self):
+        """Invalid units raise the correct error and message"""
+        ans = ae9ap9.readFile(self.datafiles[0])
+        self.assertRaisesRegexp(ValueError, '^(Units of FeV)', ans.setUnits, 'FeV')
+
+    def test_setUnits_convert(self):
+        """Conversion correctly changes flux/fluence values, energy values and units"""
+        ans = ae9ap9.readFile(self.datafiles[0])
+        curr = ans['Energy'].attrs['UNITS']
+        self.assertEqual(curr, 'MeV') #test files should have MeV units
+        E0 = ans['Energy'][0]
+        F0 = ans['Fluence'][0,0]
+        ans.setUnits('keV')
+        self.assertEqual(ans['Energy'].attrs['UNITS'], 'keV')
+        self.assertEqual(E0*1000.0, ans['Energy'][0])
+        self.assertTrue('/keV' in ans['Fluence'].attrs['UNITS'])
+        self.assertEqual(F0/1000.0, ans['Fluence'][0,0])
+
     def test_readFile(self):
         """Can read a file in and get the same answer"""
         ans = ae9ap9.readFile(self.datafiles[0])
         self.assertEqual((21, ), ans['Energy'].shape)
         self.assertEqual((121, ), ans['Epoch'].shape)
         self.assertEqual((121, 21 ), ans['Fluence'].shape)
-        self.assertEqual((121, 3), ans['GSE'].shape)
+        self.assertEqual((121, 3), ans['Coords'].shape)
         self.assertEqual((121, ), ans['MJD'].shape)
         self.assertEqual((3, ), ans['posComp'].shape)
 
@@ -57,7 +75,7 @@ class ae9ap9Tests(unittest.TestCase):
             self.assertEqual((21, ), ans['Energy'].shape)
             self.assertEqual((121, ), ans['Epoch'].shape)
             self.assertEqual((121, 21 ), ans['Fluence'].shape)
-            self.assertEqual((121, 3), ans['GSE'].shape)
+            self.assertEqual((121, 3), ans['Coords'].shape)
             self.assertEqual((121, ), ans['MJD'].shape)
             self.assertEqual((3, ), ans['posComp'].shape)
         finally:
