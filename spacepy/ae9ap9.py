@@ -41,6 +41,35 @@ class Ae9Data(dm.SpaceData):
     plotOrbit
         generates a plot of the relevant satellite orbit
     '''
+    def setUnits(self, per=None):
+        '''Set units of energy and flux/fluence
+
+        If keyword 'per' is set to None, this method reports the units currently set.
+        To set energy in MeV and flux/fluence in 'per MeV', set 'per=MeV'. Valid options are
+        'eV', 'keV', 'Mev' and 'GeV'.
+        '''
+        curr = self['Energy'].attrs['UNITS']
+        particle_var = self.attrs['varname']
+        if not per:
+            print('Energy units: {0}'.format(curr))
+            print('{0} units: {1}'.format(particle_var, self[particle_var].attrs['UNITS']))
+            return
+        unitlist = ['eV','keV','MeV','GeV']
+        faclist = [1, 1e3, 1e6, 1e9]
+        if per not in unitlist:
+            raise ValueError("Units of {0} are not supported: Valid options are {1}".format(curr, unitlist))
+        else:
+            if per==curr: return
+            unitidx_from = unitlist.index(curr)
+            unitidx_to = unitlist.index(per)
+            self[particle_var] /= faclist[unitidx_from] #convert to eV
+            self[particle_var] *= faclist[unitidx_to] #convert to target units
+            self[particle_var].attrs['UNITS'] = self[particle_var].attrs['UNITS'].replace(curr, per)
+            self['Energy'] *= faclist[unitidx_from] #convert to eV
+            self['Energy'] /= faclist[unitidx_to] #convert to target units
+            self['Energy'].attrs['UNITS'] = self['Energy'].attrs['UNITS'].replace(curr, per)
+
+
     def getLm(self, alpha=[90], model='T89'):
         '''Calculate McIlwain L for the imported AE9/AP9 run and add to object
         '''
