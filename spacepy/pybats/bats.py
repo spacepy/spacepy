@@ -2549,7 +2549,7 @@ class GeoIndexFile(LogFile):
         import spacepy.pybats.kyoto as kt
 
         # Return if already obtained:
-        if hasattr(self, 'obs_kp'): return True
+        if hasattr(self, 'obs_ae'): return True
 
         # Start and end time to collect observations:
         stime = self['time'][0]; etime = self['time'][-1]
