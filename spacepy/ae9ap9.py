@@ -179,8 +179,9 @@ class Ae9Data(dm.SpaceData):
         goodidx = sd['Lm']>1
         sd['Lm'] = sd['Lm'][goodidx]
         Lm_lim = [2.0,8.0]
+        varname = self.attrs['varname']
         sd['Epoch'] = dm.dmcopy(self['Epoch'])[goodidx] #TODO: assumes 1 pitch angle, generalize
-        sd['1D_dataset'] = self['Flux'][goodidx,ecol] #TODO: assumes 1 pitch angle, generalize
+        sd['1D_dataset'] = self[varname][goodidx,ecol] #TODO: assumes 1 pitch angle, generalize
         spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim)
         if 'zlim' not in kwargs:
             zmax = 10**(int(np.log10(max(sd['1D_dataset'])))+1)
@@ -193,8 +194,8 @@ class Ae9Data(dm.SpaceData):
                 unitstr = matchobj.group()
                 unitstr = unitstr[0]+'{'+unitstr[1:]
                 return '$'+unitstr+'}$'
-            flux_units = self['Flux'].attrs['UNITS']
-            kwargs['colorbar_label'] = 'Flux [' + re.sub('(\^[\d|-]*)+', grp2mathmode, flux_units) + ']'
+            flux_units = self[varname].attrs['UNITS']
+            kwargs['colorbar_label'] = '{0} ['.format(varname) + re.sub('(\^[\d|-]*)+', grp2mathmode, flux_units) + ']'
         if 'ylabel' not in kwargs:
             kwargs['ylabel'] = 'L$_M$'+' '+'[{0}]'.format(self['Lm'].attrs['MODEL'])
         if 'title' not in kwargs:
