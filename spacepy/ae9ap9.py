@@ -129,6 +129,17 @@ class Ae9Data(dm.SpaceData):
     def plotSpectrogram(self, ecol=0, **kwargs):
         '''
         Plot a spectrogram of the flux along the requested orbit, as a function of Lm and time
+
+        Optional Arguments
+        ------------------
+        zlim : list
+            2-element list with upper and lower bounds for color scale
+        colorbar_label : string
+            text to appear next to colorbar (default is 'Flux' plus the units)
+        ylabel : string
+            text to label y-axis (default is 'Lm' plus the field model name)
+        title : string
+            text to appear above spectrogram (default is climatology model name, data type and energy)
         '''
         import spacepy.plot as splot
         if 'Lm' not in self:
@@ -143,8 +154,11 @@ class Ae9Data(dm.SpaceData):
         sd['1D_dataset'] = self['Flux'][goodidx,ecol] #TODO: assumes 1 pitch angle, generalize
         spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim)
         if 'zlim' not in kwargs:
-            zmax = max(sd['1D_dataset'])
-            kwargs['zlim'] = [zmax/50., zmax]
+            zmax = 10**(int(np.log10(max(sd['1D_dataset'])))+1)
+            idx = np.logical_and(sd['1D_dataset']>0, sd['Lm']>Lm_lim[0])
+            idx = np.logical_and(idx, sd['Lm']<=Lm_lim[1])
+            zmin = 10**int(np.log10(min(sd['1D_dataset'][idx])))
+            kwargs['zlim'] = [zmin, zmax]
         if 'colorbar_label' not in kwargs:
             def grp2mathmode(matchobj):
                 unitstr = matchobj.group()
@@ -153,7 +167,10 @@ class Ae9Data(dm.SpaceData):
             flux_units = self['Flux'].attrs['UNITS']
             kwargs['colorbar_label'] = 'Flux [' + re.sub('(\^[\d|-]*)+', grp2mathmode, flux_units) + ']'
         if 'ylabel' not in kwargs:
-            kwargs['ylabel'] = 'L$_m$'+' '+'[{0}]'.format(self['Lm'].attrs['MODEL'])
+            kwargs['ylabel'] = 'L$_M$'+' '+'[{0}]'.format(self['Lm'].attrs['MODEL'])
+        if 'title' not in kwargs:
+            kwargs['title'] = '{model_type} {varname}: '.format(**self.attrs) + \
+                              '{0} {1}'.format(self['Energy'][ecol], self['Energy'].attrs['UNITS'])
         reset_shrink = splot.mpl.mathtext.SHRINK_FACTOR
         splot.mpl.mathtext.SHRINK_FACTOR = 0.85
         splot.mpl.mathtext.GROW_FACTOR =  1/0.85
@@ -330,7 +347,12 @@ def _parseInfo(header):
         elif "Model type:" in val:
             match = re.match(r'^Model type:(.*)$', val)
             mtype = match.group(1).strip()
-            ans['model_type'] = mtype           
+            ans['model_type'] = mtype
+        elif "CRRESELE Software Version:" in val:
+            match = re.match(r'^CRRESELE Software Version:.*(\d\.\d\d\.\d\d\d)$', val)
+            version = match.group(1).strip()
+            ans['software_version'] = version
+            ans['model_type'] = 'CRRESELE/PRO'
         elif "Flux type:" in val:
             match = re.match(r'^Flux type:(.*)$', val)
             ftype = match.group(1).strip()
