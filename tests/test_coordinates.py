@@ -45,6 +45,10 @@ class coordsTest(unittest.TestCase):
         expected = spc.Coords([1,2,4], 'GEO', 'car')
         np.testing.assert_equal(expected.data, self.cvals[0].data)
 
+    def test_slice_with_ticks(self):
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords([1,2,4], 'GEO', 'car')
+        np.testing.assert_equal(expected.data, self.cvals[0].data)
 
 if __name__ == "__main__":
     ## suite = unittest.TestLoader().loadTestsFromTestCase(coordsTest)
