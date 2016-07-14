@@ -41,6 +41,10 @@ class coordsTest(unittest.TestCase):
         expected = [[1,2,4],[1,2,2],[6,7,8],[9,10,11]]
         np.testing.assert_equal(expected, actual.data.tolist())
 
+    def test_slice(self):
+        expected = spc.Coords([1,2,4], 'GEO', 'car')
+        np.testing.assert_equal(expected.data, self.cvals[0].data)
+
 
 if __name__ == "__main__":
     ## suite = unittest.TestLoader().loadTestsFromTestCase(coordsTest)
