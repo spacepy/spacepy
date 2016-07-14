@@ -88,7 +88,7 @@ class Coords(object):
 
         # add ticks
         if ticks:
-            assert len(ticks) == len(data), 'Ticktock dimensions seem off'
+            assert len(ticks) == len(self.data), 'Ticktock dimensions seem off'
         self.ticks = ticks
 
         # GEO,sph and SPH,sph are the same
@@ -187,7 +187,9 @@ class Coords(object):
         Coords( [[1 2 4]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
         '''
         arr = np.array(self.data)
-        return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, self.ticks)
+        t_select = self.ticks[idx] if self.ticks else self.ticks
+
+        return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, t_select)
 
     # -----------------------------------------------
     def __setitem__(self, idx, vals):
