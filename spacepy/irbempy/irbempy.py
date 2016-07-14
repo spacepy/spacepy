@@ -1659,24 +1659,25 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
     if ncpus > 1 and ncalc >= ncpus*2:
         nblocks = ncpus
         blocklen = np.floor_divide(ncalc, ncpus)
-        tt = []
+        tt, cc = [], []
         if omnivals:
             ov = []
         else:
-            ov = [None]
+            ov = None
         for block in range(nblocks):
             startind = block*blocklen
             if block != nblocks-1: #not last block
                 endind = block*blocklen + blocklen
             else:
                 endind = block*blocklen + 2*blocklen #going past the end of an array in a slice is fine
-            tt.append(ticks[startind:endind])
+            tt.append(ticks[startind:endind]) #chunk time tags
+            cc.append(loci[startind:endind]) #chunk positions
             if omnivals:
                 ov.append(get_ov(omnivals, startind, endind))
-        inputs = list(itertools.product(tt,loci,[alpha],[extMag],[options],ov))
+        inputs = [[tch, cch, alpha, extMag, options, ov] for tch, cch in zip(tt,cc)]
         result = pool.map(_multi_get_Lstar, inputs)
         DALL = reassemble(result)
-    else: # single NCPU
+    else: # single NCPU, no chunking
         DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals)
 
     return DALL
