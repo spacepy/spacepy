@@ -2286,6 +2286,22 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(const.CDF_DOUBLE.value,
             self.cdf['foo2'].attrs.type('FILLVAL'))
 
+    def testCreateVarFromStringArray(self):
+        """make a zvar from a numpy string array and get the size right"""
+        inarray = numpy.array(['hi', 'there'], dtype='|S6')
+        self.cdf['string6'] = inarray
+        self.assertEqual(6, self.cdf['string6']._nelems())
+        numpy.testing.assert_array_equal(inarray, self.cdf['string6'][...])
+
+    def testCreateVarFromUnicodeArray(self):
+        """make a zvar from numpy string array in unicode"""
+        if str is bytes: #Py2k, don't expect unicode handling of char
+            return
+        inarray = numpy.array(['hi', 'there'], dtype='U6')
+        self.cdf['string6'] = inarray
+        self.assertEqual(6, self.cdf['string6']._nelems())
+        numpy.testing.assert_array_equal(inarray, self.cdf['string6'][...])
+
 
 class ChangezVar(ChangeCDFBase):
     """Tests that modify a zVar"""
