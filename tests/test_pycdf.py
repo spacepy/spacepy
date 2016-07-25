@@ -696,6 +696,8 @@ class CDFTestsBase(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         self.testfile = os.path.join(tempfile.gettempdir(), self.testbase)
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
+        self.padded_strings = (cdf.lib.version[:3] >= (3, 6, 2))
+        """Is the CDF library padding out strings?"""
         super(CDFTestsBase, self).__init__(*args, **kwargs)
 
     @staticmethod
@@ -1124,11 +1126,14 @@ class ReadCDF(CDFTests):
 
     def testSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
+        out = self.cdf['RateScalerNames'][:]
+        if self.padded_strings:
+            out = numpy.vectorize(lambda x: x.rstrip())(out)
         numpy.testing.assert_array_equal(
             ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
              'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
              '3He', 'D', 'Molecules', 'Others'],
-            self.cdf['RateScalerNames'][:])
+            out)
 
     def testGetAllNRV(self):
         """Get an entire non record varying variable"""
@@ -1799,10 +1804,13 @@ class ReadColCDF(ColCDFTests):
 
     def testColSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
+        out = self.cdf['RateScalerNames'][:]
+        if self.padded_strings:
+            out = numpy.vectorize(lambda x: x.rstrip())(out)
         numpy.testing.assert_array_equal(['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
                                           'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
                                           '3He', 'D', 'Molecules', 'Others'],
-                                         self.cdf['RateScalerNames'][:])
+                                         out)
 
     def testColReadEpochs(self):
         """Read an Epoch16 value"""
@@ -2228,8 +2236,11 @@ class ChangeCDF(ChangeCDFBase):
         else:
             data = ['hi'.decode(), 'there'.decode()]
         self.cdf['teststr'] = data
-        self.assertEqual('hi', self.cdf['teststr'][0])
-        self.assertEqual('there', self.cdf['teststr'][1])
+        out = self.cdf['teststr'][0:2]
+        if self.padded_strings:
+            out = numpy.vectorize(lambda x: x.rstrip())(out)
+        self.assertEqual('hi', out[0])
+        self.assertEqual('there', out[1])
 
     def testFloatEpoch(self):
         """Write floats to an Epoch variable"""
@@ -2291,7 +2302,11 @@ class ChangeCDF(ChangeCDFBase):
         inarray = numpy.array(['hi', 'there'], dtype='|S6')
         self.cdf['string6'] = inarray
         self.assertEqual(6, self.cdf['string6']._nelems())
-        numpy.testing.assert_array_equal(inarray, self.cdf['string6'][...])
+        outarray = self.cdf['string6'][...]
+        if self.padded_strings:
+            outarray = numpy.require(
+                numpy.vectorize(lambda x: x.rstrip())(outarray), dtype='|S6')
+        numpy.testing.assert_array_equal(inarray, outarray)
 
     def testCreateVarFromUnicodeArray(self):
         """make a zvar from numpy string array in unicode"""
@@ -2300,7 +2315,10 @@ class ChangeCDF(ChangeCDFBase):
         inarray = numpy.array(['hi', 'there'], dtype='U6')
         self.cdf['string6'] = inarray
         self.assertEqual(6, self.cdf['string6']._nelems())
-        numpy.testing.assert_array_equal(inarray, self.cdf['string6'][...])
+        out = self.cdf['string6'][...]
+        if self.padded_strings:
+            out = numpy.vectorize(lambda x: x.rstrip())(out)
+        numpy.testing.assert_array_equal(inarray, out)
 
 
 class ChangezVar(ChangeCDFBase):

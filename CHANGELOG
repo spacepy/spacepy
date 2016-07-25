@@ -53,6 +53,10 @@ pycdf
  - Fix some comparisons that might cause problems with future versions of numpy
  - Log the path to the CDF library for debugging purposes
  - Library.epoch_to_num: convert epoch to matplotlib date number (like date2num)
+ - Improve handling of CDF_CHAR element count on py3k
+ - Change tests to work with padding behavior of CDF library 3.6.2 and later
+	- It is not clear exactly when the CDF library pads CHARs and pycdf
+	  is limited in ability to work around this
 time
  - Speed improvement update to TickTock.getleapsecond
  - Overall speed improvements with for loop removal 
