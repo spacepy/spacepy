@@ -696,8 +696,8 @@ class CDFTestsBase(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         self.testfile = os.path.join(tempfile.gettempdir(), self.testbase)
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
-        self.padded_strings = (cdf.lib.version[:3] >= (3, 6, 2))
-        """Is the CDF library padding out strings?"""
+        self.stripped_strings = (cdf.lib.version[:3] < (3, 6, 2))
+        """Is the CDF library right-stripping strings?"""
         super(CDFTestsBase, self).__init__(*args, **kwargs)
 
     @staticmethod
@@ -1126,14 +1126,15 @@ class ReadCDF(CDFTests):
 
     def testSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
+        expected = ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
+                    'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
+                    '3He', 'D', 'Molecules', 'Others']
+        if not self.stripped_strings:
+            expected = numpy.array(expected)
+            expected = numpy.char.ljust(
+                expected, int(re.split('U|S', expected.dtype.str)[1]))
         out = self.cdf['RateScalerNames'][:]
-        if self.padded_strings:
-            out = numpy.vectorize(lambda x: x.rstrip())(out)
-        numpy.testing.assert_array_equal(
-            ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
-             'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
-             '3He', 'D', 'Molecules', 'Others'],
-            out)
+        numpy.testing.assert_array_equal(expected, out)
 
     def testGetAllNRV(self):
         """Get an entire non record varying variable"""
@@ -1805,12 +1806,14 @@ class ReadColCDF(ColCDFTests):
     def testColSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
         out = self.cdf['RateScalerNames'][:]
-        if self.padded_strings:
-            out = numpy.vectorize(lambda x: x.rstrip())(out)
-        numpy.testing.assert_array_equal(['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
-                                          'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
-                                          '3He', 'D', 'Molecules', 'Others'],
-                                         out)
+        expected = ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
+                    'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
+                    '3He', 'D', 'Molecules', 'Others']
+        if not self.stripped_strings:
+            expected = numpy.array(expected)
+            expected = numpy.char.ljust(
+                expected, int(re.split('U|S', expected.dtype.str)[1]))
+        numpy.testing.assert_array_equal(expected, out)
 
     def testColReadEpochs(self):
         """Read an Epoch16 value"""
@@ -2236,11 +2239,15 @@ class ChangeCDF(ChangeCDFBase):
         else:
             data = ['hi'.decode(), 'there'.decode()]
         self.cdf['teststr'] = data
+        expected = data
+        #This isn't quite right...if it's just stripping previous strings,
+        #then this shouldn't be necessary.
+        if not self.stripped_strings:
+            expected = numpy.array(expected)
+            expected = numpy.char.ljust(
+                expected, int(re.split('U|S', expected.dtype.str)[1]))
         out = self.cdf['teststr'][0:2]
-        if self.padded_strings:
-            out = numpy.vectorize(lambda x: x.rstrip())(out)
-        self.assertEqual('hi', out[0])
-        self.assertEqual('there', out[1])
+        numpy.testing.assert_array_equal(expected, out)
 
     def testFloatEpoch(self):
         """Write floats to an Epoch variable"""
@@ -2302,23 +2309,30 @@ class ChangeCDF(ChangeCDFBase):
         inarray = numpy.array(['hi', 'there'], dtype='|S6')
         self.cdf['string6'] = inarray
         self.assertEqual(6, self.cdf['string6']._nelems())
+        expected = numpy.require(inarray, dtype=str)
+        #This isn't quite right...if it's just stripping previous strings,
+        #then this shouldn't be necessary.
+        if not self.stripped_strings:
+            expected = numpy.char.ljust(
+                expected, int(re.split('U|S', expected.dtype.str)[1]))
         outarray = self.cdf['string6'][...]
-        if self.padded_strings:
-            outarray = numpy.require(
-                numpy.vectorize(lambda x: x.rstrip())(outarray), dtype='|S6')
-        numpy.testing.assert_array_equal(inarray, outarray)
+        numpy.testing.assert_array_equal(expected, outarray)
 
     def testCreateVarFromUnicodeArray(self):
         """make a zvar from numpy string array in unicode"""
         if str is bytes: #Py2k, don't expect unicode handling of char
             return
         inarray = numpy.array(['hi', 'there'], dtype='U6')
-        self.cdf['string6'] = inarray
-        self.assertEqual(6, self.cdf['string6']._nelems())
-        out = self.cdf['string6'][...]
-        if self.padded_strings:
-            out = numpy.vectorize(lambda x: x.rstrip())(out)
-        numpy.testing.assert_array_equal(inarray, out)
+        self.cdf['string62'] = inarray
+        self.assertEqual(6, self.cdf['string62']._nelems())
+        out = self.cdf['string62'][...]
+        expected = inarray
+        #This isn't quite right...if it's just stripping previous strings,
+        #then this shouldn't be necessary.
+        if not self.stripped_strings:
+            expected = numpy.char.ljust(
+                expected, int(re.split('U|S', expected.dtype.str)[1]))
+        numpy.testing.assert_array_equal(expected, out)
 
 
 class ChangezVar(ChangeCDFBase):
