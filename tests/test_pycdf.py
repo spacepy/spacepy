@@ -696,8 +696,6 @@ class CDFTestsBase(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         self.testfile = os.path.join(tempfile.gettempdir(), self.testbase)
         assert(self.calcDigest(self.testmaster) == self.expected_digest)
-        self.stripped_strings = (cdf.lib.version[:3] < (3, 6, 2))
-        """Is the CDF library right-stripping strings?"""
         super(CDFTestsBase, self).__init__(*args, **kwargs)
 
     @staticmethod
@@ -1119,30 +1117,26 @@ class ReadCDF(CDFTests):
     def testSubscriptString(self):
         """Refer to a string array by subscript"""
         numpy.testing.assert_array_equal(
-            ['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-             '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+            ['0', '1', '2', '3', '4', '5', '6', '7',
+             '8', '9', '10', '11', '12', '13', '14', '15',
              '16', '17'],
-            self.cdf['SpinNumbers'][:])
+            numpy.char.rstrip(self.cdf['SpinNumbers'][:]))
 
     def testSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
         expected = ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
                     'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
                     '3He', 'D', 'Molecules', 'Others']
-        if not self.stripped_strings:
-            expected = numpy.array(expected)
-            expected = numpy.char.ljust(
-                expected, int(re.split('U|S', expected.dtype.str)[1]))
         out = self.cdf['RateScalerNames'][:]
-        numpy.testing.assert_array_equal(expected, out)
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
     def testGetAllNRV(self):
         """Get an entire non record varying variable"""
         numpy.testing.assert_array_equal(
-            ['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-             '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+            ['0', '1', '2', '3', '4', '5', '6', '7',
+             '8', '9', '10', '11', '12', '13', '14', '15',
              '16', '17'],
-            self.cdf['SpinNumbers'][...])
+            numpy.char.rstrip(self.cdf['SpinNumbers'][...]))
 
     def testGetsingleNRV(self):
         """Get single element of non record varying variable"""
@@ -1798,22 +1792,19 @@ class ReadColCDF(ColCDFTests):
 
     def testColSubscriptString(self):
         """Refer to a string array by subscript"""
-        numpy.testing.assert_array_equal(['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-                                          '8 ', '9 ', '10', '11', '12', '13', '14', '15',
-                                          '16', '17'],
-                                         self.cdf['SpinNumbers'][:])
+        numpy.testing.assert_array_equal(
+            ['0', '1', '2', '3', '4', '5', '6', '7',
+             '8', '9', '10', '11', '12', '13', '14', '15',
+             '16', '17'],
+            numpy.char.rstrip(self.cdf['SpinNumbers'][:]))
 
     def testColSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
-        out = self.cdf['RateScalerNames'][:]
         expected = ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
                     'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
                     '3He', 'D', 'Molecules', 'Others']
-        if not self.stripped_strings:
-            expected = numpy.array(expected)
-            expected = numpy.char.ljust(
-                expected, int(re.split('U|S', expected.dtype.str)[1]))
-        numpy.testing.assert_array_equal(expected, out)
+        out = self.cdf['RateScalerNames'][:]
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
     def testColReadEpochs(self):
         """Read an Epoch16 value"""
@@ -2240,14 +2231,8 @@ class ChangeCDF(ChangeCDFBase):
             data = ['hi'.decode(), 'there'.decode()]
         self.cdf['teststr'] = data
         expected = data
-        #This isn't quite right...if it's just stripping previous strings,
-        #then this shouldn't be necessary.
-        if not self.stripped_strings:
-            expected = numpy.array(expected)
-            expected = numpy.char.ljust(
-                expected, int(re.split('U|S', expected.dtype.str)[1]))
         out = self.cdf['teststr'][0:2]
-        numpy.testing.assert_array_equal(expected, out)
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
     def testFloatEpoch(self):
         """Write floats to an Epoch variable"""
@@ -2310,12 +2295,7 @@ class ChangeCDF(ChangeCDFBase):
         self.cdf['string6'] = inarray
         self.assertEqual(6, self.cdf['string6']._nelems())
         expected = numpy.require(inarray, dtype=str)
-        #This isn't quite right...if it's just stripping previous strings,
-        #then this shouldn't be necessary.
-        if not self.stripped_strings:
-            expected = numpy.char.ljust(
-                expected, int(re.split('U|S', expected.dtype.str)[1]))
-        outarray = self.cdf['string6'][...]
+        outarray = numpy.char.rstrip(self.cdf['string6'][...])
         numpy.testing.assert_array_equal(expected, outarray)
 
     def testCreateVarFromUnicodeArray(self):
@@ -2326,13 +2306,7 @@ class ChangeCDF(ChangeCDFBase):
         self.cdf['string62'] = inarray
         self.assertEqual(6, self.cdf['string62']._nelems())
         out = self.cdf['string62'][...]
-        expected = inarray
-        #This isn't quite right...if it's just stripping previous strings,
-        #then this shouldn't be necessary.
-        if not self.stripped_strings:
-            expected = numpy.char.ljust(
-                expected, int(re.split('U|S', expected.dtype.str)[1]))
-        numpy.testing.assert_array_equal(expected, out)
+        numpy.testing.assert_array_equal(inarray, numpy.char.rstrip(out))
 
 
 class ChangezVar(ChangeCDFBase):
@@ -2340,11 +2314,11 @@ class ChangezVar(ChangeCDFBase):
 
     def testWriteSubscripted(self):
         """Write data to a slice of a zVar"""
-        expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
-                    '8 ', '9 ']
+        expected = ['0', '1', '99', '3', '98', '5', '97', '7',
+                    '8', '9']
         self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
         numpy.testing.assert_array_equal(
-            expected, self.cdf['SpinNumbers'][0:10])
+            expected, numpy.char.rstrip(self.cdf['SpinNumbers'][0:10]))
 
         expected = self.cdf['SectorRateScalersCounts'][...]
         expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
@@ -2853,10 +2827,11 @@ class ChangeColCDF(ColCDFTests):
 
     def testWriteColSubscripted(self):
         """Write data to a slice of a zVar"""
-        expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
-                    '8 ', '9 ']
+        expected = ['0', '1', '99', '3', '98', '5', '97', '7',
+                    '8', '9']
         self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
-        numpy.testing.assert_array_equal(expected, self.cdf['SpinNumbers'][0:10])
+        numpy.testing.assert_array_equal(
+            expected, numpy.char.rstrip(self.cdf['SpinNumbers'][0:10]))
 
         expected = self.cdf['SectorRateScalersCounts'][...]
         expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
