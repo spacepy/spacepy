@@ -1079,14 +1079,15 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     else:
         #loop with time-based window
         lastpt = time[0] + winsize
+        delta = datetime.timedelta(microseconds=1)
         if st_time:
             startpt = st_time
         else:
             startpt = time[0]
         if overlap >= winsize:
             raise ValueError('Overlap requested greater than size of window')
-        while lastpt < time[-1]:
-            getinds = tOverlapHalf([startpt,startpt+winsize], time, presort=True)
+        while startpt < time[-1]:
+            getinds = tOverlapHalf([startpt,startpt+winsize-delta], time, presort=True)
             if getinds: #if not None
                 getdata = np.ma.masked_where(np.isnan(data[getinds[0]:getinds[-1]+1]), data[getinds[0]:getinds[-1]+1])
                 getmean = op(getdata.compressed()) #find mean excluding NaNs
