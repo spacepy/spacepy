@@ -1907,7 +1907,7 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
     ----------
     data : SpaceData or dmarray
         SpaceData with data to resample or dmarray with data to resample,
-        variables can nly be 1d or 2d, if time is specified only variables
+        variables can only be 1d or 2d, if time is specified only variables
         the same length as time are resampled, otherwise only variables
         with length equal to the longest length are resampled
 
@@ -1921,7 +1921,8 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
         Overlap in the moving average
 
     st_time : datetime.datetime
-        Starting time for the resample, if not specified it is calcualted by tb.windowMean
+        Starting time for the resample, if not specified the time of the first
+        data point is used (see spacepy.toolbox.windowMean)
 
     Returns
     -------
@@ -1949,7 +1950,7 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
     #
     # Things to note:
     #    - attributes are preserved
-    #    - the output varibles have there DEPEND_0 changed to Epoch (or outtimename)
+    #    - the output variables have their DEPEND_0 changed to Epoch (or outtimename)
     #    - each dimension of a 2d array is resampled individually 
     """
     # check for SpaceData or dmarray input before going to a bunch of work

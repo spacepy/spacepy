@@ -1079,7 +1079,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     else:
         #loop with time-based window
         lastpt = time[0] + winsize
-        delta = datetime.timedelta(microseconds=1)
+        delta = datetime.timedelta(microseconds=1) #TODO: replace this with an explicit check for times on the boundary?
         if st_time:
             startpt = st_time
         else:

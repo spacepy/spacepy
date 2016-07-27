@@ -202,23 +202,27 @@ class SpaceDataTests(unittest.TestCase):
         '''resample should give consistent results'''
         ans = dm.SpaceData()
         ans.attrs['foo'] = 'bar'
-        ans['a'] = [ 1.,  3.,  5.,  7.]
-        ans['b'] = dm.dmarray([5.,   7.,   9.,  11.])
+        ans['a'] = [ 0.5,  2.5,  4.5,  6.5, 8.5]
+        ans['b'] = dm.dmarray([4.5, 6.5, 8.5, 10.5, 12.5])
         ans['b'].attrs['marco'] = 'polo'
         ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
                         datetime.datetime(2010, 1, 1, 3, 0),
                         datetime.datetime(2010, 1, 1, 5, 0),
-                        datetime.datetime(2010, 1, 1, 7, 0)]
+                        datetime.datetime(2010, 1, 1, 7, 0),
+                        datetime.datetime(2010, 1, 1, 9, 0)]
         
         
         a = dm.SpaceData()
-        a['a'] = dm.dmarray(range(10))
-        a['b'] = dm.dmarray(range(10)) + 4
+        a['a'] = dm.dmarray(range(10)) #sequence 0 through 9
+        a['b'] = dm.dmarray(range(10)) + 4 #sequence 4 through 13
         a['b'].attrs['marco'] = 'polo'
         a['c'] = dm.dmarray(range(3)) + 10
         a.attrs['foo'] = 'bar'
         times = [datetime.datetime(2010, 1, 1) + datetime.timedelta(hours=i) for i in range(10)]
         out = dm.resample(a, times, winsize=datetime.timedelta(hours=2), overlap=datetime.timedelta(hours=0))
+        #starting from element 0, step two hours (points) with no overlap and average
+        #therefore each resulting value should be the mean of a pair of points
+        #that is, ans['a'][0] should be the mean of 0 and 1
         for k, v in out.items():
             np.testing.assert_equal(v,  ans[k])
         self.assertEqual(ans.attrs, out.attrs)
@@ -229,13 +233,14 @@ class SpaceDataTests(unittest.TestCase):
     def test_resample2(self):
         '''resample should give consistent results (ticktock)'''
         ans = {}
-        ans['a'] = [ 1.,  3.,  5.,  7.]
-        ans['b'] = [5.,   7.,   9.,  11.]
+        ans['a'] = [ 0.5,  2.5,  4.5,  6.5, 8.5]
+        ans['b'] = [4.5, 6.5, 8.5, 10.5, 12.5]
         ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
                         datetime.datetime(2010, 1, 1, 3, 0),
                         datetime.datetime(2010, 1, 1, 5, 0),
-                        datetime.datetime(2010, 1, 1, 7, 0)]
-        
+                        datetime.datetime(2010, 1, 1, 7, 0),
+                        datetime.datetime(2010, 1, 1, 9, 0)]
+        #For justification of test results see test above (test_resample1)
         a = dm.SpaceData()
         a['a'] = dm.dmarray(range(10))
         a['b'] = dm.dmarray(range(10)) + 4
@@ -248,15 +253,17 @@ class SpaceDataTests(unittest.TestCase):
     def test_resample3(self):
         '''resample should give consistent results (2d)'''
         ans = {}
-        ans['a'] = [[  2.,   3.],
-                    [  6.,   7.],
-                    [ 10.,  11.],
-                    [ 14.,  15.]]
-        ans['b'] = [5.,   7.,   9.,  11.]
+        ans['a'] = [[  1.,   2.],
+                    [  5.,   6.],
+                    [  9.,  10.],
+                    [ 13.,  14.],
+                    [ 17.,  18.]]
+        ans['b'] = [4.5, 6.5, 8.5, 10.5, 12.5]
         ans['Epoch'] = [datetime.datetime(2010, 1, 1, 1, 0),
                         datetime.datetime(2010, 1, 1, 3, 0),
                         datetime.datetime(2010, 1, 1, 5, 0),
-                        datetime.datetime(2010, 1, 1, 7, 0)]
+                        datetime.datetime(2010, 1, 1, 7, 0),
+                        datetime.datetime(2010, 1, 1, 9, 0)]
         
         a = dm.SpaceData()
         a['a'] = dm.dmarray(range(10*2)).reshape(10,2)
