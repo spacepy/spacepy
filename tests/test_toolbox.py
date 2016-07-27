@@ -740,6 +740,33 @@ class TBTimeFunctionTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(t2-t1, 0.25, decimal=1)
         self.assertTrue(result in ("""('0.25', '')\n""", """('0.26', '')\n"""))
 
+    def test_windowMean_outputTimes(self):
+        '''windowMean should return a known set of output times for a given set of input times and windows'''
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            wsize = datetime.timedelta(hours=1)
+            olap = datetime.timedelta(0)
+            time = [datetime.datetime(2001,1,1) + datetime.timedelta(minutes=n*15) for n in range(48)]
+            #last time is datetime.datetime(2001, 1, 1, 11, 45), so last hourly bin should
+            #cover 1100 to 1200 and be centered at 1130
+            data= [10]*48
+            outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
+            od_ans = [10]*12
+            ot_ans = [datetime.datetime(2001, 1, 1, 0, 30),
+                      datetime.datetime(2001, 1, 1, 1, 30),
+                      datetime.datetime(2001, 1, 1, 2, 30),
+                      datetime.datetime(2001, 1, 1, 3, 30),
+                      datetime.datetime(2001, 1, 1, 4, 30),
+                      datetime.datetime(2001, 1, 1, 5, 30),
+                      datetime.datetime(2001, 1, 1, 6, 30),
+                      datetime.datetime(2001, 1, 1, 7, 30),
+                      datetime.datetime(2001, 1, 1, 8, 30),
+                      datetime.datetime(2001, 1, 1, 9, 30),
+                      datetime.datetime(2001, 1, 1, 10, 30),
+                      datetime.datetime(2001, 1, 1, 11, 30)]
+            numpy.testing.assert_almost_equal(od_ans, outdata)
+            self.assertEqual(ot_ans, outtime)
+
     def test_windowMean1(self):
         """windowMean should give known results 1(regression)"""
         with warnings.catch_warnings(record=True) as w:
