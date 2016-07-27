@@ -2901,6 +2901,9 @@ class Var(collections.MutableSequence):
     def _np_type(self):
         """Returns the numpy type of this variable
 
+        This is the numpy type that will come directly out of the CDF;
+        see :meth:`dtype` for the representation post-conversion.
+
         Raises
         ======
         CDFError : for library-reported error or failure to find numpy type
@@ -3059,6 +3062,13 @@ class Var(collections.MutableSequence):
         --------
         type
         """
+        cdftype = self.type()
+        if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
+           str is not bytes and not self._raw:
+            return numpy.dtype('U' + str(self._nelems()))
+        if cdftype in (const.CDF_EPOCH.value, const.CDF_EPOCH16.value,
+                       const.CDF_TIME_TT2000.value) and not self._raw:
+            return numpy.dtype('O')
         return self._np_type()
 
     def _get_attrs(self):
@@ -3301,7 +3311,9 @@ class _Hyperslice(object):
         if not self.zvar._raw:
             if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
                     str != bytes:
-                result = numpy.char.array(result).decode()
+                dt = numpy.dtype('U{0}'.format(result.dtype.itemsize))
+                result = numpy.require(numpy.char.array(result).decode(),
+                                       dtype=dt)
             elif cdftype == const.CDF_EPOCH.value:
                 result = lib.v_epoch_to_datetime(result)
             elif cdftype == const.CDF_EPOCH16.value:

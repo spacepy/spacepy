@@ -710,7 +710,7 @@ class CDFTests(CDFTestsBase):
     """Tests that involve an existing CDF, read or write"""
     testmaster = 'po_l1_cam_test.cdf'
     testbase = 'test.cdf'
-    expected_digest = '39833ef7046c10d001dd6f2cbd2a2ef5'
+    expected_digest = '8c1a2b1552de1cb3cd6bdd03bdaf5f52'
 
 
 class ColCDFTests(CDFTestsBase):
@@ -767,7 +767,7 @@ class OpenCDF(CDFTests):
                     'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
                     'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
                     'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
-                    'String1D']
+                    'String1D', 'StringUnpadded']
         with cdf.CDF(self.testfile) as f:
             names = list(f.keys())
         self.assertEqual(expected, names)
@@ -788,6 +788,12 @@ class OpenCDF(CDFTests):
 class ReadCDF(CDFTests):
     """Tests that read an existing CDF, but do not modify it."""
     testbase = 'test_ro.cdf'
+    varnames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers',
+               'RateScalerNames', 'SectorRateScalerNames',
+               'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
+               'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
+               'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
+               'String1D', 'StringUnpadded']
 
     def __init__(self, *args, **kwargs):
         super(ReadCDF, self).__init__(*args, **kwargs)
@@ -825,23 +831,13 @@ class ReadCDF(CDFTests):
 
     def testGetAllzVars(self):
         """Check getting a list of zVars"""
-        expectedNames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers',
-                         'RateScalerNames', 'SectorRateScalerNames',
-                         'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
-                         'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                         'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
-                         'String1D']
+        expectedNames = self.varnames
         names = [zVar.name() for zVar in self.cdf.values()]
         self.assertEqual(names, expectedNames)
 
     def testGetAllVarNames(self):
         """Getting a list of zVar names"""
-        expectedNames = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers',
-                         'RateScalerNames', 'SectorRateScalerNames',
-                         'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
-                         'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                         'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
-                         'String1D']
+        expectedNames = self.varnames
         names = list(self.cdf.keys())
         self.assertEqual(expectedNames, names)
 
@@ -849,12 +845,7 @@ class ReadCDF(CDFTests):
         self.assertEqual(0, self.cdf['ATC']._num())
 
     def testCDFIterator(self):
-        expected = ['ATC', 'PhysRecNo', 'SpinNumbers', 'SectorNumbers',
-                    'RateScalerNames', 'SectorRateScalerNames',
-                    'SectorRateScalersCounts', 'SectorRateScalersCountsSigma',
-                    'SpinRateScalersCounts', 'SpinRateScalersCountsSigma',
-                    'MajorNumbers', 'MeanCharge', 'Epoch', 'Epoch2D',
-                    'String1D']
+        expected = self.varnames
         self.assertEqual(expected, [i for i in self.cdf])
         a = self.cdf.__iter__()
         a.send(None)
@@ -1027,8 +1018,8 @@ class ReadCDF(CDFTests):
             self.assertEqual(expected[i].value,
                              self.cdf[i].type())
 
-    def testNPTypes(self):
-        """Look up numpy type to match variable"""
+    def testNPTypesInternal(self):
+        """Look up numpy type to match internal representation of variable"""
         expected = {'ATC': numpy.dtype((numpy.float64, 2)),
                     'PhysRecNo': numpy.int32,
                     'SpinNumbers': numpy.dtype('S2'),
@@ -1038,7 +1029,18 @@ class ReadCDF(CDFTests):
         for i in expected:
             self.assertEqual(expected[i],
                              self.cdf[i]._np_type())
-        #Now access it via the dtype property
+            self.assertEqual(expected[i],
+                             self.cdf.raw_var(i).dtype)
+
+    def testNPTypes(self):
+        """Look up numpy types to match variable"""
+        expected = {'ATC': numpy.dtype('O'),
+                    'PhysRecNo': numpy.int32,
+                    'SpinNumbers': (numpy.dtype('S2') if str is bytes
+                                    else numpy.dtype('U2')),
+                    'MeanCharge': numpy.float32,
+                    'Epoch': numpy.dtype('O'),
+                    }
         for i in expected:
             self.assertEqual(expected[i],
                              self.cdf[i].dtype)
@@ -1115,26 +1117,26 @@ class ReadCDF(CDFTests):
     def testSubscriptString(self):
         """Refer to a string array by subscript"""
         numpy.testing.assert_array_equal(
-            ['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-             '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+            ['0', '1', '2', '3', '4', '5', '6', '7',
+             '8', '9', '10', '11', '12', '13', '14', '15',
              '16', '17'],
-            self.cdf['SpinNumbers'][:])
+            numpy.char.rstrip(self.cdf['SpinNumbers'][:]))
 
     def testSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
-        numpy.testing.assert_array_equal(
-            ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
-             'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
-             '3He', 'D', 'Molecules', 'Others'],
-            self.cdf['RateScalerNames'][:])
+        expected = ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
+                    'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
+                    '3He', 'D', 'Molecules', 'Others']
+        out = self.cdf['RateScalerNames'][:]
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
     def testGetAllNRV(self):
         """Get an entire non record varying variable"""
         numpy.testing.assert_array_equal(
-            ['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-             '8 ', '9 ', '10', '11', '12', '13', '14', '15',
+            ['0', '1', '2', '3', '4', '5', '6', '7',
+             '8', '9', '10', '11', '12', '13', '14', '15',
              '16', '17'],
-            self.cdf['SpinNumbers'][...])
+            numpy.char.rstrip(self.cdf['SpinNumbers'][...]))
 
     def testGetsingleNRV(self):
         """Get single element of non record varying variable"""
@@ -1160,17 +1162,7 @@ class ReadCDF(CDFTests):
 
     def testGetAllData(self):
         data = self.cdf.copy()
-        expected = ['ATC', 'Epoch', 'Epoch2D', 'MajorNumbers', 'MeanCharge',
-                    'PhysRecNo',
-                    'RateScalerNames', 'SectorNumbers',
-                    'SectorRateScalerNames',
-                    'SectorRateScalersCounts',
-                    'SectorRateScalersCountsSigma',
-                    'SpinNumbers',
-                    'SpinRateScalersCounts',
-                    'SpinRateScalersCountsSigma',
-                    'String1D'
-                    ]
+        expected = sorted(self.varnames)
         self.assertEqual(expected,
                          sorted([i for i in data]))
 
@@ -1183,7 +1175,7 @@ class ReadCDF(CDFTests):
     def testCDFlen(self):
         """length of CDF (number of zVars)"""
         result = len(self.cdf)
-        self.assertEqual(15, result)
+        self.assertEqual(len(self.varnames), result)
 
     def testReadonlyDefault(self):
         """CDF should be opened RO by default"""
@@ -1510,14 +1502,14 @@ class ReadCDF(CDFTests):
 
     def testVarString(self):
         """Convert a variable to a string representation"""
-        expected = {'String1D': 'CDF_CHAR*1 [2, 3]', 'SectorRateScalerNames': 'CDF_CHAR*9 [9] NRV', 'PhysRecNo': 'CDF_INT4 [100]', 'RateScalerNames': 'CDF_CHAR*9 [16] NRV', 'SpinRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 16]', 'SectorRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 32, 9]', 'SpinRateScalersCounts': 'CDF_FLOAT [100, 18, 16]', 'SpinNumbers': 'CDF_CHAR*2 [18] NRV', 'Epoch': 'CDF_EPOCH [11]', 'SectorRateScalersCounts': 'CDF_FLOAT [100, 18, 32, 9]', 'MeanCharge': 'CDF_FLOAT [100, 16]', 'SectorNumbers': 'CDF_CHAR*2 [32] NRV', 'MajorNumbers': 'CDF_CHAR*2 [11] NRV', 'Epoch2D': 'CDF_EPOCH16 [3, 2]', 'ATC': 'CDF_EPOCH16 [747]'}
+        expected = {'StringUnpadded': 'CDF_CHAR*6 [12]', 'String1D': 'CDF_CHAR*1 [2, 3]', 'SectorRateScalerNames': 'CDF_CHAR*9 [9] NRV', 'PhysRecNo': 'CDF_INT4 [100]', 'RateScalerNames': 'CDF_CHAR*9 [16] NRV', 'SpinRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 16]', 'SectorRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 32, 9]', 'SpinRateScalersCounts': 'CDF_FLOAT [100, 18, 16]', 'SpinNumbers': 'CDF_CHAR*2 [18] NRV', 'Epoch': 'CDF_EPOCH [11]', 'SectorRateScalersCounts': 'CDF_FLOAT [100, 18, 32, 9]', 'MeanCharge': 'CDF_FLOAT [100, 16]', 'SectorNumbers': 'CDF_CHAR*2 [32] NRV', 'MajorNumbers': 'CDF_CHAR*2 [11] NRV', 'Epoch2D': 'CDF_EPOCH16 [3, 2]', 'ATC': 'CDF_EPOCH16 [747]'}
         actual = dict([(varname, str(zVar))
                        for (varname, zVar) in self.cdf.items()])
         self.assertEqual(expected, actual)
 
     def testCDFString(self):
         """Convert a CDF to a string representation"""
-        expected = 'ATC: CDF_EPOCH16 [747]\nEpoch: CDF_EPOCH [11]\nEpoch2D: CDF_EPOCH16 [3, 2]\nMajorNumbers: CDF_CHAR*2 [11] NRV\nMeanCharge: CDF_FLOAT [100, 16]\nPhysRecNo: CDF_INT4 [100]\nRateScalerNames: CDF_CHAR*9 [16] NRV\nSectorNumbers: CDF_CHAR*2 [32] NRV\nSectorRateScalerNames: CDF_CHAR*9 [9] NRV\nSectorRateScalersCounts: CDF_FLOAT [100, 18, 32, 9]\nSectorRateScalersCountsSigma: CDF_FLOAT [100, 18, 32, 9]\nSpinNumbers: CDF_CHAR*2 [18] NRV\nSpinRateScalersCounts: CDF_FLOAT [100, 18, 16]\nSpinRateScalersCountsSigma: CDF_FLOAT [100, 18, 16]\nString1D: CDF_CHAR*1 [2, 3]'
+        expected = 'ATC: CDF_EPOCH16 [747]\nEpoch: CDF_EPOCH [11]\nEpoch2D: CDF_EPOCH16 [3, 2]\nMajorNumbers: CDF_CHAR*2 [11] NRV\nMeanCharge: CDF_FLOAT [100, 16]\nPhysRecNo: CDF_INT4 [100]\nRateScalerNames: CDF_CHAR*9 [16] NRV\nSectorNumbers: CDF_CHAR*2 [32] NRV\nSectorRateScalerNames: CDF_CHAR*9 [9] NRV\nSectorRateScalersCounts: CDF_FLOAT [100, 18, 32, 9]\nSectorRateScalersCountsSigma: CDF_FLOAT [100, 18, 32, 9]\nSpinNumbers: CDF_CHAR*2 [18] NRV\nSpinRateScalersCounts: CDF_FLOAT [100, 18, 16]\nSpinRateScalersCountsSigma: CDF_FLOAT [100, 18, 16]\nString1D: CDF_CHAR*1 [2, 3]\nStringUnpadded: CDF_CHAR*6 [12]'
         actual = str(self.cdf)
         self.assertEqual(expected, actual)
 
@@ -1546,6 +1538,7 @@ class ReadCDF(CDFTests):
             'SpinRateScalersCounts': 'CATDESC: Counts in the per-spin rate scalers [CDF_CHAR]\nDELTA_MINUS_VAR: SpinRateScalersCountsSigma [CDF_CHAR]\nDELTA_PLUS_VAR: SpinRateScalersCountsSigma [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nDEPEND_1: SpinNumbers [CDF_CHAR]\nDEPEND_2: RateScalerNames [CDF_CHAR]\nDISPLAY_TYPE: time_series [CDF_CHAR]\nFIELDNAM: Spin rate scaler number counts [CDF_CHAR]\nFILLVAL: -1e+31 [CDF_FLOAT]\nFORMAT: E6.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: RateScalerNames [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVALIDMAX: 1e+06 [CDF_FLOAT]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVAR_NOTES: Total counts accumulated over one spin (divide by SectorLength*32-58ms for rate). [CDF_CHAR]\nVAR_TYPE: data [CDF_CHAR]',
             'SpinRateScalersCountsSigma': 'CATDESC: Uncertainty in counts in the per-spin rate scalers. [CDF_CHAR]\nDEPEND_0: ATC [CDF_CHAR]\nFIELDNAM: Spin rate scaler uncertainty [CDF_CHAR]\nFILLVAL: -1e+31 [CDF_FLOAT]\nFORMAT: E6.2 [CDF_CHAR]\nLABL_PTR_1: SpinNumbers [CDF_CHAR]\nLABL_PTR_2: RateScalerNames [CDF_CHAR]\nSCALETYP: linear [CDF_CHAR]\nVALIDMAX: 1e+06 [CDF_FLOAT]\nVALIDMIN: 0.0 [CDF_FLOAT]\nVAR_NOTES: Combines uncertainty from RS compression and Poisson stats. Total counts accumulated over one spin (divide by SectorLength*32-58ms for rate). [CDF_CHAR]\nVAR_TYPE: support_data [CDF_CHAR]',
             'String1D': '',
+            'StringUnpadded': '',
             }
         actual = dict([(varname, str(zVar.attrs))
                         for (varname, zVar) in self.cdf.items()])
@@ -1679,6 +1672,24 @@ class ReadCDF(CDFTests):
         self.assertEqual('U' if str != bytes else 'S',
                          self.cdf['RateScalerNames'][...].dtype.char)
 
+    def testDtypeChar(self):
+        """Check dtype of a char"""
+        if str is bytes: #py2k
+            self.assertEqual('|S6', str(self.cdf['StringUnpadded'].dtype))
+        else: #py3k
+            self.assertEqual('|S6',
+                             str(self.cdf.raw_var('StringUnpadded').dtype))
+            self.assertEqual('U6', str(self.cdf['StringUnpadded'].dtype)[1:])
+
+    def testReadCharUnpadded(self):
+        """Read a string NOT padded out to full length"""
+        self.assertEqual(
+            '6', str(self.cdf.raw_var('StringUnpadded').dtype)[-1])
+        self.assertEqual(
+            '6', str(self.cdf.raw_var('StringUnpadded')[...].dtype)[-1])
+        self.assertEqual('6', str(self.cdf['StringUnpadded'].dtype)[-1])
+        self.assertEqual('6', str(self.cdf['StringUnpadded'][...].dtype)[-1])
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
@@ -1781,17 +1792,19 @@ class ReadColCDF(ColCDFTests):
 
     def testColSubscriptString(self):
         """Refer to a string array by subscript"""
-        numpy.testing.assert_array_equal(['0 ', '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ',
-                                          '8 ', '9 ', '10', '11', '12', '13', '14', '15',
-                                          '16', '17'],
-                                         self.cdf['SpinNumbers'][:])
+        numpy.testing.assert_array_equal(
+            ['0', '1', '2', '3', '4', '5', '6', '7',
+             '8', '9', '10', '11', '12', '13', '14', '15',
+             '16', '17'],
+            numpy.char.rstrip(self.cdf['SpinNumbers'][:]))
 
     def testColSubscriptIrregString(self):
         """Refer to a variable-length string array by subscript"""
-        numpy.testing.assert_array_equal(['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
-                                          'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
-                                          '3He', 'D', 'Molecules', 'Others'],
-                                         self.cdf['RateScalerNames'][:])
+        expected = ['H+', 'He+', 'He++', 'O<=+2', 'O>=+3', 'CN<=+2',
+                    'H0', 'He0', 'CNO0', 'CN>=+3', 'Ne-Si', 'S-Ni',
+                    '3He', 'D', 'Molecules', 'Others']
+        out = self.cdf['RateScalerNames'][:]
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
     def testColReadEpochs(self):
         """Read an Epoch16 value"""
@@ -2217,8 +2230,9 @@ class ChangeCDF(ChangeCDFBase):
         else:
             data = ['hi'.decode(), 'there'.decode()]
         self.cdf['teststr'] = data
-        self.assertEqual('hi', self.cdf['teststr'][0])
-        self.assertEqual('there', self.cdf['teststr'][1])
+        expected = data
+        out = self.cdf['teststr'][0:2]
+        numpy.testing.assert_array_equal(expected, numpy.char.rstrip(out))
 
     def testFloatEpoch(self):
         """Write floats to an Epoch variable"""
@@ -2275,17 +2289,36 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(const.CDF_DOUBLE.value,
             self.cdf['foo2'].attrs.type('FILLVAL'))
 
+    def testCreateVarFromStringArray(self):
+        """make a zvar from a numpy string array and get the size right"""
+        inarray = numpy.array(['hi', 'there'], dtype='|S6')
+        self.cdf['string6'] = inarray
+        self.assertEqual(6, self.cdf['string6']._nelems())
+        expected = numpy.require(inarray, dtype=str)
+        outarray = numpy.char.rstrip(self.cdf['string6'][...])
+        numpy.testing.assert_array_equal(expected, outarray)
+
+    def testCreateVarFromUnicodeArray(self):
+        """make a zvar from numpy string array in unicode"""
+        if str is bytes: #Py2k, don't expect unicode handling of char
+            return
+        inarray = numpy.array(['hi', 'there'], dtype='U6')
+        self.cdf['string62'] = inarray
+        self.assertEqual(6, self.cdf['string62']._nelems())
+        out = self.cdf['string62'][...]
+        numpy.testing.assert_array_equal(inarray, numpy.char.rstrip(out))
+
 
 class ChangezVar(ChangeCDFBase):
     """Tests that modify a zVar"""
 
     def testWriteSubscripted(self):
         """Write data to a slice of a zVar"""
-        expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
-                    '8 ', '9 ']
+        expected = ['0', '1', '99', '3', '98', '5', '97', '7',
+                    '8', '9']
         self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
         numpy.testing.assert_array_equal(
-            expected, self.cdf['SpinNumbers'][0:10])
+            expected, numpy.char.rstrip(self.cdf['SpinNumbers'][0:10]))
 
         expected = self.cdf['SectorRateScalersCounts'][...]
         expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
@@ -2794,10 +2827,11 @@ class ChangeColCDF(ColCDFTests):
 
     def testWriteColSubscripted(self):
         """Write data to a slice of a zVar"""
-        expected = ['0 ', '1 ', '99', '3 ', '98', '5 ', '97', '7 ',
-                    '8 ', '9 ']
+        expected = ['0', '1', '99', '3', '98', '5', '97', '7',
+                    '8', '9']
         self.cdf['SpinNumbers'][2:7:2] = ['99', '98', '97']
-        numpy.testing.assert_array_equal(expected, self.cdf['SpinNumbers'][0:10])
+        numpy.testing.assert_array_equal(
+            expected, numpy.char.rstrip(self.cdf['SpinNumbers'][0:10]))
 
         expected = self.cdf['SectorRateScalersCounts'][...]
         expected[4][5][5][8:3:-1] = [101.0, 102.0, 103.0, 104.0, 105.0]
