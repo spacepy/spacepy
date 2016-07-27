@@ -25,6 +25,7 @@ import spacepy.toolbox as tb
 import spacepy.datamodel as dm
 import spacepy.time as spt
 import spacepy.coordinates as spc
+import spacepy.plot as splot
 
 
 class Ae9Data(dm.SpaceData):
@@ -69,7 +70,6 @@ class Ae9Data(dm.SpaceData):
             self['Energy'] /= faclist[unitidx_to] #convert to target units
             self['Energy'].attrs['UNITS'] = self['Energy'].attrs['UNITS'].replace(curr, per)
 
-
     def getLm(self, alpha=[90], model='T89'):
         '''Calculate McIlwain L for the imported AE9/AP9 run and add to object
         '''
@@ -80,12 +80,27 @@ class Ae9Data(dm.SpaceData):
         retvals = ib.get_Lm(ticks, loci, alpha, extMag=model)
         self['Lm'] = dm.dmarray(retvals['Lm'].squeeze(), attrs={'MODEL': model})
 
-    def plotOrbit(self, timerange=None, coord_sys=None, landscape=True):
-        '''
-        Plot X-Y and X-Z projections of satellite orbit in requested coordinate system
-        '''
-        import spacepy.plot as splot
+    def _makeOrbitAxis(self, ser1, ser2, ax_target):
+        '''Helper function. Not intended for direct use.
+        
+        cx is the set of coordinates for plotting, ax_target is an axes object'''
+        l1 = ax_target.plot(ser1, ser2)
+        if np.abs((ax_target.get_xlim()[1]-ax_target.get_xlim()[0]))<1:
+            refpt = np.abs(np.max(ax_target.get_xlim()))
+            ax1.set_xlim([-1.25*refpt, 1.25*refpt])
+            ax1.set_ylim(ax1.get_xlim())
+            l1[0].set_marker('o')
+            c1 = splot.plt.Circle([0,0], radius=1.0, fc='none', ec='k')
+            ax_target.add_artist(c1)
+        else:
+            splot.dual_half_circle(ax=ax_target)
+        return ax_target
 
+    def plotSummary(self, timerange=None, coord_sys=None, fig_target=None, spec=False, orbit_params=(False,True), **kwargs):
+        '''Generate summary plot of AE9/AP9/SPM data loaded
+        
+        spec : if True, plot spectrogram instead of flux/fluence lineplot, requires 'ecol' keyword
+        '''
         if timerange:
             if isinstance(timerange, spt.Ticktock):
                 t1 = timerange.UTC[0]
@@ -99,9 +114,11 @@ class Ae9Data(dm.SpaceData):
             i_use = tb.tOverlapHalf([t1,t2], self['Epoch'])
             t_use = self['Epoch'][i_use]
             c_use = self['Coords'][i_use]
+            f_use = self[self.attrs['varname']][i_use,...]
         else:
             t_use = self['Epoch']
             c_use = self['Coords']
+            f_use = self[self.attrs['varname']]
 
         if coord_sys and (coord_sys.upper() != c_use.attrs['COORD_SYS']):
             #TODO: We assume cartesian, make flexible so can take spherical
@@ -114,12 +131,20 @@ class Ae9Data(dm.SpaceData):
         sys_subs = r'$_{' + coord_sys + r'}$'
 
         splot.style('spacepy')
-        locs = [121,122] if landscape else [211,212]
-        fig, ax1 = splot.set_target(None, figsize=(8,8), loc=locs[0])
+        if orbit_params[0]:
+            landscape = orbit_params[1]
+            locs = [121,122] if landscape else [211,212]
+        else:
+            locs = [223,224]
+            landscape = True
+        if fig_target:
+            fig, ax1 = splot.set_target(fig_target, loc=locs[0])
+        else:
+            fig, ax1 = splot.set_target(fig_target, figsize=(8,8), loc=locs[0])
         fig, ax2 = splot.set_target(fig, loc=locs[1])
 
-        l1 = ax1.plot(cx[:,0], cx[:,1])
-        l2 = ax2.plot(cx[:,0], cx[:,2])
+        ax1 = self._makeOrbitAxis(cx[:,0], cx[:,1], ax1)
+        ax2 = self._makeOrbitAxis(cx[:,0], cx[:,2], ax2)
         if landscape: ax1.set_xlabel('X{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
         ax2.set_xlabel('X{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
         ax1.set_ylabel('Y{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
@@ -133,26 +158,57 @@ class Ae9Data(dm.SpaceData):
             refpt = ax2.get_xlim()[0]
             ax2.set_xlim([-1.25*refpt, 1.25*refpt])
             ax2.set_ylim(ax1.get_xlim())
-            l1[0].set_marker('o')
-            l2[0].set_marker('o')
-            c1 = splot.plt.Circle([0,0], radius=1.0, fc='none', ec='k')
-            c2 = splot.plt.Circle([0,0], radius=1.0, fc='none', ec='k')
-            ax1.add_artist(c1)
-            ax2.add_artist(c2)
         else:
             ax1.set_xlim([-maxabslim, maxabslim])
             ax1.set_ylim([-maxabslim, maxabslim])
             ax2.set_xlim([-maxabslim, maxabslim])
-            splot.dual_half_circle(ax=ax1)
-            splot.dual_half_circle(ax=ax2)
         ax2.set_ylim(ax2.get_xlim())
         ax1.invert_yaxis()
         ax1.invert_xaxis()
         ax2.invert_xaxis()
         ax1.set_aspect('equal')
         ax2.set_aspect('equal')
-        fig.tight_layout()
+        
+        if not orbit_params[0]:
+            ax3 = splot.plt.subplot2grid((2, 2), (0, 0), colspan=2)
+            if not spec:
+                l3 = ax3.semilogy(t_use, f_use)
+                ylab = '{0} ['.format(self.attrs['varname']) + re.sub('(\^[\d|-]*)+', _grp2mathmode, 
+                                      self[self.attrs['varname']].attrs['UNITS']) + ']'
+                ax3.set_ylabel(ylab)
+                for ll, nn in zip(l3, self['Energy']):
+                    ll.set_label('{0} {1}'.format(nn, self['Energy'].attrs['UNITS']))
+                ncol = len(self['Energy'])//2 if len(self['Energy'])<=6 else 3
+                leg = ax3.legend(loc='center', bbox_to_anchor=(0.5,1), ncol=ncol,
+                                 frameon=True, framealpha=0.5)
+                lims3 = ax3.get_ylim()
+                newupper = 10**(np.log10(lims3[0])+(np.log10(lims3[1]/lims3[0])*1.125))
+                ax3.set_ylim([lims3[0], newupper])
+                splot.applySmartTimeTicks(ax3, t_use)
+                fig.tight_layout()
+                pos3 = ax3.get_position()
+                ax3.set_position([pos3.x0, pos3.y0, pos3.width, pos3.height*0.8])
+                #fig.suptitle('{model_type}\n'.format(**self.attrs) + 
+                #             '{0} - {1}'.format(t_use[0].isoformat()[:19], t_use[-1].isoformat()[:19]))
+            else:
+                if timerange: raise NotImplementedError('Time range selection not yet implemented for spectrograms')
+                pos3 = ax3.get_position()
+                ax3.set_position([pos3.x0, pos3.y0, pos3.width, pos3.height*0.9])
+                ecol = kwargs['ecol'] if 'ecol' in kwargs else 0
+                ax3 = self.plotSpectrogram(target=ax3, ecol=ecol)
+                splot.plt.subplots_adjust(wspace=0.3)
+                pos1 = ax1.get_position()
+                ax1.set_position([pos3.x0, pos1.y0, pos1.width, pos1.height])
+
         splot.revert_style()
+        return fig
+
+    def plotOrbit(self, timerange=None, coord_sys=None, landscape=True, fig_target=None):
+        '''
+        Plot X-Y and X-Z projections of satellite orbit in requested coordinate system
+        '''
+        fig = self.plotSummary(timerange=timerange, coord_sys=coord_sys, 
+                         fig_target=fig_target, orbit_params=(True, landscape))
         return fig
 
     def plotSpectrogram(self, ecol=0, **kwargs):
@@ -179,6 +235,7 @@ class Ae9Data(dm.SpaceData):
         goodidx = sd['Lm']>1
         sd['Lm'] = sd['Lm'][goodidx]
         Lm_lim = [2.0,8.0]
+        #TODO: allow user-definition of bins in time and Lm
         varname = self.attrs['varname']
         sd['Epoch'] = dm.dmcopy(self['Epoch'])[goodidx] #TODO: assumes 1 pitch angle, generalize
         sd['1D_dataset'] = self[varname][goodidx,ecol] #TODO: assumes 1 pitch angle, generalize
@@ -190,12 +247,8 @@ class Ae9Data(dm.SpaceData):
             zmin = 10**int(np.log10(min(sd['1D_dataset'][idx])))
             kwargs['zlim'] = [zmin, zmax]
         if 'colorbar_label' not in kwargs:
-            def grp2mathmode(matchobj):
-                unitstr = matchobj.group()
-                unitstr = unitstr[0]+'{'+unitstr[1:]
-                return '$'+unitstr+'}$'
             flux_units = self[varname].attrs['UNITS']
-            kwargs['colorbar_label'] = '{0} ['.format(varname) + re.sub('(\^[\d|-]*)+', grp2mathmode, flux_units) + ']'
+            kwargs['colorbar_label'] = '{0} ['.format(varname) + re.sub('(\^[\d|-]*)+', _grp2mathmode, flux_units) + ']'
         if 'ylabel' not in kwargs:
             kwargs['ylabel'] = 'L$_M$'+' '+'[{0}]'.format(self['Lm'].attrs['MODEL'])
         if 'title' not in kwargs:
@@ -207,7 +260,7 @@ class Ae9Data(dm.SpaceData):
         ax = spec.plot(cmap='plasma', **kwargs)
         splot.mpl.mathtext.SHRINK_FACTOR = reset_shrink
         splot.mpl.mathtext.GROW_FACTOR =  1/reset_shrink
-        return ax #TODO: should this return the figure??
+        return ax
 
 
 def readFile(fname, comments='#'):
@@ -579,3 +632,8 @@ def _getData(fnames):
     else:
         return combinePercentiles(fnames)
 
+def _grp2mathmode(matchobj):
+    '''Helper function to latex-ify the units for plotting'''
+    unitstr = matchobj.group()
+    unitstr = unitstr[0]+'{'+unitstr[1:]
+    return '$'+unitstr+'}$'
