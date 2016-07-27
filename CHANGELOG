@@ -1,6 +1,8 @@
 Changes in Version 0.1.6 (2016-xx-xx)
 =====================================
 - Improvements to test suite (coverage and design)
+coordinates
+ - Bugfix to allow correct slicing behavior when Coords class has attached ticks
 datamanager
  - New module to help in finding, slicing, and manipulating data
  - Function "apply_index": help sort one multi-dimensional data set by another
@@ -26,6 +28,7 @@ empiricals
 irbempy
  - updated to latest revision of IRBEM library (rev541)
  - updated AlphaOfK to use vector inputs
+ - minor bugfixes and speedups
 plot
  - Packages in plot are imported on import of plot module
  - Addition of dual_half_circle() to overlay a light/dark "Earth"
@@ -65,6 +68,9 @@ time
 toolbox
  - Added function unique_columns
  - Added windowMean keyword op to allow arbitrary operations
+ - Bugfixes in windowmean
+        - double counting of points on window boundaries
+        - one window's width of data could dropped from output series
 python3 support
  -updates for python3 support, seems to be complete
 AE9AP9
