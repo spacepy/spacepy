@@ -153,7 +153,8 @@ class SimpleFunctionTests(unittest.TestCase):
         realstdout = sys.stdout
         output = StringIO.StringIO()
         sys.stdout = output
-        if  sys.version_info.major>2:
+        majorVersion = sys.version_info[0]
+        if  majorVersion>2:
             mockRaw = mockRawInput3
         else:
             mockRaw = mockRawInput2
@@ -776,14 +777,17 @@ class TBTimeFunctionTests(unittest.TestCase):
             data = [10, 20]*50
             time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
             outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
-            od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
+            od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
             ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
                       datetime.datetime(2001, 1, 2, 0, 0),
                       datetime.datetime(2001, 1, 2, 12, 0),
                       datetime.datetime(2001, 1, 3, 0, 0),
                       datetime.datetime(2001, 1, 3, 12, 0),
                       datetime.datetime(2001, 1, 4, 0, 0),
-                      datetime.datetime(2001, 1, 4, 12, 0)]
+                      datetime.datetime(2001, 1, 4, 12, 0),
+                      datetime.datetime(2001, 1, 5, 0, 0),
+                      datetime.datetime(2001, 1, 5, 12, 0),
+                      ]
             numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
 
@@ -796,14 +800,16 @@ class TBTimeFunctionTests(unittest.TestCase):
             data = [10, 20]*50
             time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
             outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap)
-            od_ans = [14.8, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8]
+            od_ans = [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]
             ot_ans = [datetime.datetime(2001, 1, 1, 12, 30),
                       datetime.datetime(2001, 1, 2, 0, 30),
                       datetime.datetime(2001, 1, 2, 12, 30),
                       datetime.datetime(2001, 1, 3, 0, 30),
                       datetime.datetime(2001, 1, 3, 12, 30),
                       datetime.datetime(2001, 1, 4, 0, 30),
-                      datetime.datetime(2001, 1, 4, 12, 30)]
+                      datetime.datetime(2001, 1, 4, 12, 30),
+                      datetime.datetime(2001, 1, 5, 0, 30),
+                      datetime.datetime(2001, 1, 5, 12, 30)]
             numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
 
@@ -817,7 +823,7 @@ class TBTimeFunctionTests(unittest.TestCase):
             time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
             time[50:] = [val + datetime.timedelta(days=2) for val in time[50:]]
             outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1))
-            od_ans = [ 15.,  15.,  15.,  15.,  15.,  numpy.nan,  numpy.nan,  15.,  15.,  15.,  15.]
+            od_ans = [ 15.,  15.,  15.,  15.,  15.,  numpy.nan,  numpy.nan,  15.,  15.,  15.,  15., 15., 15.]
             ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
                       datetime.datetime(2001, 1, 2, 0, 0),
                       datetime.datetime(2001, 1, 2, 12, 0),
@@ -828,7 +834,10 @@ class TBTimeFunctionTests(unittest.TestCase):
                       datetime.datetime(2001, 1, 5, 0, 0),
                       datetime.datetime(2001, 1, 5, 12, 0),
                       datetime.datetime(2001, 1, 6, 0, 0),
-                      datetime.datetime(2001, 1, 6, 12, 0)]
+                      datetime.datetime(2001, 1, 6, 12, 0),
+                      datetime.datetime(2001, 1, 7, 0, 0),
+                      datetime.datetime(2001, 1, 7, 12, 0),
+                      ]
             numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
 
@@ -881,17 +890,37 @@ class TBTimeFunctionTests(unittest.TestCase):
             data = [10, 20]*50
             time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
             outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1), op=len)
-            od_ans = [24, 24, 24, 24, 24, 24, 24]
+            od_ans = [24, 24, 24, 24, 24, 24, 24, 16, 4]
             ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
                       datetime.datetime(2001, 1, 2, 0, 0),
                       datetime.datetime(2001, 1, 2, 12, 0),
                       datetime.datetime(2001, 1, 3, 0, 0),
                       datetime.datetime(2001, 1, 3, 12, 0),
                       datetime.datetime(2001, 1, 4, 0, 0),
-                      datetime.datetime(2001, 1, 4, 12, 0)]
+                      datetime.datetime(2001, 1, 4, 12, 0),
+                      datetime.datetime(2001, 1, 5, 0, 0),
+                      datetime.datetime(2001, 1, 5, 12, 0)]
             numpy.testing.assert_almost_equal(od_ans, outdata)
             self.assertEqual(ot_ans, outtime)
 
+    def test_windowMean_op2(self):
+        """windowMean should give expected sums with len as passed function"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            wsize = datetime.timedelta(days=1)
+            olap = datetime.timedelta(0)
+            data = [10, 20]*50
+            time = [datetime.datetime(2001,1,1) + datetime.timedelta(hours=n, minutes = 30) for n in range(100)]
+            #four points lie on the 5th, so the sum for that day is 4
+            outdata, outtime = tb.windowMean(data, time, winsize=wsize, overlap=olap, st_time=datetime.datetime(2001,1,1), op=len)
+            od_ans = [24, 24, 24, 24, 4]
+            ot_ans = [datetime.datetime(2001, 1, 1, 12, 0),
+                      datetime.datetime(2001, 1, 2, 12, 0),
+                      datetime.datetime(2001, 1, 3, 12, 0),
+                      datetime.datetime(2001, 1, 4, 12, 0),
+                      datetime.datetime(2001, 1, 5, 12, 0)]
+            numpy.testing.assert_almost_equal(od_ans, outdata)
+            self.assertEqual(ot_ans, outtime)
             
     def test_windowMeanInputs(self):
         """windowMean does some input checking (regression)"""
