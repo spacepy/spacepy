@@ -63,14 +63,15 @@ class ae9ap9Tests(unittest.TestCase):
         self.assertEqual((3, ), ans['posComp'].shape)
 
     def test_readFileGzip(self):
-        """can read a gziped file as well"""
+        """can read a gzipped file as well"""
         # take the input file and gzip it to a temp file
         tmpf = tempfile.NamedTemporaryFile(suffix='.gz')
         tmpf.close()
         tmpname = tmpf.name
         try:
-            with open(self.datafiles[0], 'rb') as f_in, gzip.open(tmpname, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+            with open(self.datafiles[0], 'rb') as f_in:
+                with gzip.open(tmpname, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
             ans = ae9ap9.readFile(tmpname)
             self.assertEqual((21, ), ans['Energy'].shape)
             self.assertEqual((121, ), ans['Epoch'].shape)
