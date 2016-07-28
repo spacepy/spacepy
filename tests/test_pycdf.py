@@ -690,6 +690,20 @@ class MakeCDF(unittest.TestCase):
             newcdf.close()
             os.remove(self.testfspec)
 
+    def testEntryType(self):
+        """Entry type should match variable type"""
+        #This is very hard to reproduce, thus creating a new CDF just for it
+        with cdf.CDF(self.testfspec, '') as f:
+            f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('two', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            for k in f:
+                f[k].attrs['foo'] = 5
+            self.assertNotEqual(const.CDF_FLOAT.value,
+                                f['three'].attrs.type('foo'))
+            self.assertEqual(const.CDF_UINT1.value,
+                             f['three'].attrs.type('foo'))
+
 
 class CDFTestsBase(unittest.TestCase):
     """Base class for tests involving existing CDF, column or row major"""
