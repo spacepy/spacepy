@@ -3769,15 +3769,21 @@ class Attr(collections.MutableSequence):
             elif len(dims) == 1 and isinstance(datum[0], str_classes):
                 raise ValueError('Entry strings must be scalar.')
             entrytypes = []
-            if self.has_entry(i):
+            if self.has_entry(i): #If the entry already exists, match its type
                 entrytype = self.type(i)
                 if entrytype in types:
                     entrytypes = [entrytype]
-            if not entrytypes:
-                for num in range(self.max_idx()):
+            if not entrytypes: #Check other entries for this attribute
+                for num in range(self.max_idx() + 1):
                     if self.has_entry(num):
                         entrytype = self.type(num)
-                        if entrytype in types:
+                        #Use this as a candidate if it's valid for data,
+                        #AND (in zEntry), does NOT match zVar type...
+                        #if zEntry matches zVar, should try to match
+                        #this zVar, not one of another zEntry in the zAttr
+                        if entrytype in types and not entrytype in entrytypes \
+                           and (self.ENTRY_ != const.zENTRY_ or
+                                self._cdf_file[num].type() != entrytype):
                             entrytypes.append(entrytype)
             if entrytypes:
                 #Of those types in entrytypes, find the one which is earliest
@@ -3785,7 +3791,7 @@ class Attr(collections.MutableSequence):
                 entry_type = types[
                     min([types.index(entrytype) for entrytype in entrytypes])
                     ]
-            elif self.ENTRY_ == const.zENTRY_:
+            elif self.ENTRY_ == const.zENTRY_: #No entries, use zVar type
                 vartype = self._cdf_file[i].type()
                 if vartype in types:
                     entry_type = vartype
