@@ -691,7 +691,7 @@ class MakeCDF(unittest.TestCase):
             os.remove(self.testfspec)
 
     def testEntryType(self):
-        """Entry type should match variable type"""
+        """Entry type should match variable type in some cases"""
         #This is very hard to reproduce, thus creating a new CDF just for it
         with cdf.CDF(self.testfspec, '') as f:
             f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
@@ -702,6 +702,43 @@ class MakeCDF(unittest.TestCase):
             self.assertNotEqual(const.CDF_FLOAT.value,
                                 f['three'].attrs.type('foo'))
             self.assertEqual(const.CDF_UINT1.value,
+                             f['three'].attrs.type('foo'))
+
+    def testEntryType2(self):
+        """Entry type should match variable if no One True entry type"""
+        #This is very hard to reproduce, thus creating a new CDF just for it
+        with cdf.CDF(self.testfspec, '') as f:
+            f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('two', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            f['one'].attrs.new('foo', 5, type=const.CDF_INT2)
+            f['two'].attrs.new('foo', 5, type=const.CDF_INT4)
+            f['three'].attrs['foo'] = 5
+            self.assertNotEqual(const.CDF_FLOAT.value,
+                                f['three'].attrs.type('foo'))
+            self.assertEqual(const.CDF_UINT1.value,
+                             f['three'].attrs.type('foo'))
+
+    def testEntryType3(self):
+        """Entry type should not match variable type in other cases"""
+        #Another hard to reproduce
+        with cdf.CDF(self.testfspec, '') as f:
+            f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            f['one'].attrs.new('foo', data=5, type=const.CDF_INT2)
+            f['three'].attrs['foo'] = 5
+            self.assertEqual(const.CDF_INT2.value,
+                             f['three'].attrs.type('foo'))
+
+    def testEntryType3WithNew(self):
+        """Entry type should not match variable type in other cases"""
+        #Another hard to reproduce
+        with cdf.CDF(self.testfspec, '') as f:
+            f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
+            f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            f['one'].attrs.new('foo', data=5, type=const.CDF_INT2)
+            f['three'].attrs.new('foo', 5)
+            self.assertEqual(const.CDF_INT2.value,
                              f['three'].attrs.type('foo'))
 
 

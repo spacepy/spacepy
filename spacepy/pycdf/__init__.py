@@ -3721,6 +3721,48 @@ class Attr(collections.MutableSequence):
             else:
                 raise IndexError('list index ' + str(key) + ' out of range.')
 
+    def _check_other_entries(self, types):
+        """Try to get the type of this entry from others in the Attribute
+
+        For zAttrs, checks if all other Entries are the same type, and at
+        least one doesn't match its zVar, i.e. Entry type dominates (otherwise
+        assumption is the Var type dominates).
+
+        For gAttrs, checks all other Entries, and gives priority to the
+        one that's earliest in the possible type list and exists in other
+        Entries.
+
+        This is only one component of Entry type guessing!
+
+        :param list types: CDF types that are candidates (match the data)
+        :return: The type discerned from other Entries, or None
+        """
+        if self.ENTRY_ == const.zENTRY_:
+            #If everything else is the same entry type,
+            #and one is not the same as its var, probably
+            #all entries should be of that type
+            typepairs = [(self.type(num), self._cdf_file[num].type())
+                         for num in range(self.max_idx() + 1)
+                         if self.has_entry(num)]
+            if typepairs:
+                allsame = min((et == typepairs[0][0]
+                               for et, vt in typepairs))
+                notvar = max((et != vt for et, vt in typepairs))
+                if allsame and notvar and typepairs[0][0] in types:
+                    return typepairs[0][0]
+        else:
+            # Of those types which exist in other entries,
+            # find the one which is earliest
+            # in types, i.e. the preferred type
+            entrytypes = [self.type(num) for num in
+                          range(self.max_idx() + 1)
+                          if self.has_entry(num)]
+            entrytypes = [et for et in entrytypes if et in types]
+            if entrytypes:
+                return types[
+                    min([types.index(et) for et in entrytypes])]
+        return None
+
     def __setitem__(self, key, data):
         """Set a slice of Entries.
 
@@ -3768,36 +3810,21 @@ class Attr(collections.MutableSequence):
                 raise ValueError('Entries must be scalar or 1D.')
             elif len(dims) == 1 and isinstance(datum[0], str_classes):
                 raise ValueError('Entry strings must be scalar.')
-            entrytypes = []
+            entry_type = None
             if self.has_entry(i): #If the entry already exists, match its type
-                entrytype = self.type(i)
-                if entrytype in types:
-                    entrytypes = [entrytype]
-            if not entrytypes: #Check other entries for this attribute
-                for num in range(self.max_idx() + 1):
-                    if self.has_entry(num):
-                        entrytype = self.type(num)
-                        #Use this as a candidate if it's valid for data,
-                        #AND (in zEntry), does NOT match zVar type...
-                        #if zEntry matches zVar, should try to match
-                        #this zVar, not one of another zEntry in the zAttr
-                        if entrytype in types and not entrytype in entrytypes \
-                           and (self.ENTRY_ != const.zENTRY_ or
-                                self._cdf_file[num].type() != entrytype):
-                            entrytypes.append(entrytype)
-            if entrytypes:
-                #Of those types in entrytypes, find the one which is earliest
-                # in types, i.e. the preferred type
-                entry_type = types[
-                    min([types.index(entrytype) for entrytype in entrytypes])
-                    ]
-            elif self.ENTRY_ == const.zENTRY_: #No entries, use zVar type
+                entry_type = self.type(i)
+                if not entry_type in types:
+                    entry_type = None
+            if entry_type is None: #Check other entries for this attribute
+                entry_type = self._check_other_entries(types)
+            if entry_type is None and self.ENTRY_ == const.zENTRY_:
+                #Fall back to zVar type
                 vartype = self._cdf_file[i].type()
                 if vartype in types:
                     entry_type = vartype
                 else:
                     entry_type = types[0]
-            else:
+            elif entry_type is None:
                 entry_type = types[0]
             if not entry_type in lib.numpytypedict:
                 raise ValueError('Cannot find a matching numpy type.')
@@ -4035,8 +4062,11 @@ class Attr(collections.MutableSequence):
                 number += 1
         (dims, types, elements) = _Hyperslice.types(
             data, backward=self._cdf_file.backward)
-        if type is None and \
-                self.ENTRY_ == const.zENTRY_: #Try to match variable type
+        if type is None:
+            #Guess based on other entries
+            type = self._check_other_entries(types)
+        if type is None and self.ENTRY_ == const.zENTRY_:
+            #Try to match variable type
                 vartype = self._cdf_file[number].type()
                 if vartype in types:
                     type = vartype
