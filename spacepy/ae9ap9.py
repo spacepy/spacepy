@@ -87,8 +87,8 @@ class Ae9Data(dm.SpaceData):
         l1 = ax_target.plot(ser1, ser2)
         if np.abs((ax_target.get_xlim()[1]-ax_target.get_xlim()[0]))<1:
             refpt = np.abs(np.max(ax_target.get_xlim()))
-            ax1.set_xlim([-1.25*refpt, 1.25*refpt])
-            ax1.set_ylim(ax1.get_xlim())
+            ax_target.set_xlim([-1.25*refpt, 1.25*refpt])
+            ax_target.set_ylim(ax_target.get_xlim())
             l1[0].set_marker('o')
             c1 = splot.plt.Circle([0,0], radius=1.0, fc='none', ec='k')
             ax_target.add_artist(c1)
