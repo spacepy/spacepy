@@ -60,6 +60,7 @@ pycdf
  - Change tests to work with padding/stripping of CDF library 3.6.2 and later
 	- It's not clear where the CDF library is stripping and/or padding
 	  and pycdf has limited ability to work around this.
+ - Improve type-guessing of attribute entries, particularly for zAttrs
 time
  - Speed improvement update to TickTock.getleapsecond
  - Overall speed improvements with for loop removal 
