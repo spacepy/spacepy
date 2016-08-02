@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Module for reading and dealing with AE9AP9 data files.
+
 See https://www.vdl.afrl.af.mil/programs/ae9ap9/ to download the model.
 This is not a AE9AP9 runner.
 
@@ -10,6 +11,28 @@ Institution: Los Alamos National Laboratory
 Contact: balarsen@lanl.gov
 
 Copyright 2015 Los Alamos National Security, LLC.
+
+This module provides a convenient class for handling data from
+AE9/AP9 (and legacy models provided by the software).
+
+.. rubric:: Class
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    Ae9Data
+
+Though the class is derived from SpacePy's SpaceData, the class also provides several methods
+targeted at the AE9/AP9 output. Additional functions for working with the data are provided.
+
+.. rubric:: Functions
+.. autosummary::
+    :template: clean_function.rst
+    :toctree: autosummary
+
+    readFile
+    parseHeader
+
 """
 
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
@@ -41,14 +64,30 @@ class Ae9Data(dm.SpaceData):
         adds McIlwain L data for the stored AE9 output
     plotOrbit
         generates a plot of the relevant satellite orbit
+
+    .. currentmodule:: spacepy.ae9ap9
+    .. autosummary::
+        :members: getLm, plotOrbit, plotSummary, plotSpectrogram, setUnits
+    .. automethod:: getLm
+    .. automethod:: plotOrbit
+    .. automethod:: plotSummary
+    .. automethod:: plotSpectrogram
+    .. automethod:: setUnits
     '''
+
     def setUnits(self, per=None):
         '''Set units of energy and flux/fluence
 
         If keyword 'per' is set to None, this method reports the units currently set.
         To set energy in MeV and flux/fluence in 'per MeV', set 'per=MeV'. Valid options are
         'eV', 'keV', 'Mev' and 'GeV'.
+
+        Other Parameters
+        ----------------
+        per : string (optional)
+            Energy units for both energy and flux/fluence
         '''
+
         curr = self['Energy'].attrs['UNITS']
         particle_var = self.attrs['varname']
         if not per:

@@ -423,8 +423,14 @@ class SpaceData(dict):
     .. autosummary::
         ~SpaceData.flatten
         ~SpaceData.tree
+        ~SpaceData.toCDF
+        ~SpaceData.toHDF5
+        ~SpaceData.toJSONheadedASCII
     .. automethod:: flatten
     .. automethod:: tree
+    .. automethod:: toCDF
+    .. automethod:: toHDF5
+    .. automethod:: toJSONheadedASCII
     """
     def __getitem__(self, key):
         """

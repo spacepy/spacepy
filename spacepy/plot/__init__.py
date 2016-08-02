@@ -2,9 +2,31 @@
 # -*- coding: utf-8 -*-
 
 """
-plot: SpacePy specialized plotting routines
+plot: SpacePy plotting routines
 
-This package provides classes to plot various types of space physics data.
+This package aims to make getting publication ready plots easier.
+It provides classes and functions for different types of plot 
+(e.g. Spectrogram, levelPlot), for helping make plots more cleanly 
+(e.g. set_target, dual_half_circle), and for making plots convey 
+information more cleanly, with less effort 
+(e.g. applySmartTimeTicks, style).
+
+This plot module now provides style sheets. For most standard plotting 
+we recommend the *default* style sheet (aka *spacepy*). To auto-apply the
+default plot style the following should be added to your spacepy.rc file::
+    apply_plot_styles: True
+
+Different plot types may not work well with this style, so we have provided
+alternatives. For polar plots, spectrograms, or anything with larger blocks 
+of color, it may be better to use one of the alternatives::
+    import spacepy.plot as splot
+    splot.style('altgrid') # inverts background from default so it's white
+    splot.style('polar') # designed for filled polar plots
+    splot.revert_style() # put the style back to matplotlib defaults
+
+For those constrained by institutional computing, we also provide the
+new colormaps developed for matplotlib v2. These colormaps are designed 
+to be perceptually uniform, and hence colorblind-friendly.
 
 Authors: Brian Larsen and Steve Morley
 Institution: Los Alamos National Laboratory
@@ -12,6 +34,38 @@ Contact: balarsen@lanl.gov
 
 
 Copyright 2011-2016 Los Alamos National Security, LLC.
+
+.. autosummary::
+   :template: clean_function.rst
+   :toctree: autosummary
+
+   add_logo
+   annotate_xaxis
+   applySmartTimeTicks
+   available
+   collapse_vertical
+   dual_half_circle
+   levelPlot
+   plot
+   revert_style
+   set_target
+   shared_ylabel
+   solarRotationPlot
+   spectrogram
+   style
+   timestamp
+
+Most of the functionality in the plot module is made available directly 
+through the *plot* namespace. However, the plot module does contain
+several submodules listed below
+
+.. autosummary::
+    :template: clean_module.rst
+
+    carrington
+    colourmaps
+    spectrogram
+    utils
 
 """
 import os
@@ -38,6 +92,22 @@ plt.register_cmap(name='viridis', cmap=_viridis)
 plt.register_cmap(name='viridis_r', cmap=_viridis_r)
 
 def plot(*args, **kwargs):
+    '''Convenience wrapper for matplotlib's plot function
+
+    As with matplotlib's plot function, *args* is a variable length
+    argument, allowing for multiple *x*, *y* pairs, each with optional 
+    format string. For full details, see matplotlib.pyplot.plot
+
+    Other Parameters
+    ----------
+    smartTimeTicks : boolean
+        If True then use applySmartTimeTicks to set x-axis labeling
+    figsize : array-like, 2 elements
+        Set figure size directly on call to plot, (width, height)
+    **kwargs : other keywords
+        Other keywords to pass to matplotlib.pyplot.plot
+
+    '''
     if 'smartTimeTicks' in kwargs:
         sTT = kwargs['smartTimeTicks']
         del kwargs['smartTimeTicks']
@@ -54,6 +124,11 @@ def plot(*args, **kwargs):
     return pobj
 
 def available(returnvals=False):
+    '''List the available plot styles provided by spacepy.plot
+
+    Note that some of the available styles have multiple aliases.
+    To apply an available style, use `spacepy.plot.style`.
+    '''
     spacepystyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy.mplstyle')
     spacepyaltstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_altgrid.mplstyle')
     polarstyle = os.path.join('{0}'.format(basepath[0]), 'data', 'spacepy_polar.mplstyle')
@@ -106,6 +181,8 @@ if config['apply_plot_styles']:
     style()
 
 def revert_style():
+    '''Revert plot style settings to those in use prior to importing spacepy.plot
+    '''
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
+Module for plotting data by Carrington or Bartels rotation
+
 Authors: Steve Morley
 Institution: Los Alamos National Laboratory
 Contact: smorley@lanl.gov

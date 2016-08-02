@@ -550,13 +550,13 @@ def annotate_xaxis(txt, ax=None):
 
 def applySmartTimeTicks(ax, time, dolimit=True, dolabel=False):
     """
-    Given an axis 'ax' and a list/array of datetime objects, 'time',
+    Given an axis *ax* and a list/array of datetime objects, *time*,
     use the smartTimeTicks function to build smart time ticks and
     then immediately apply them to the given axis.  The first and
     last elements of the time list will be used as bounds for the
     x-axis range.
 
-    The range of the 'time' input value will be used to set the limits
+    The range of the *time* input value will be used to set the limits
     of the x-axis as well.  Set kwarg 'dolimit' to False to override
     this behavior.
 
@@ -567,7 +567,7 @@ def applySmartTimeTicks(ax, time, dolimit=True, dolabel=False):
     time : list
         list of datetime objects
     dolimit : boolean (optional)
-        The range of the 'time' input value will be used to set the limits
+        The range of the *time* input value will be used to set the limits
         of the x-axis as well. Setting this overrides this behavior.
     dolabel : boolean (optional)
         Sets autolabeling of the time axis with ``Time from'' time[0]

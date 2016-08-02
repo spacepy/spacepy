@@ -11,9 +11,13 @@ empiricals - module with heliospheric empirical modules
 .. autosummary::
     :toctree: autosummary
 
-    getLmax
-    getPlasmaPause
-    getMPstandoff
     getDststar
+    getExpectedSWTemp
+    getLmax
+    getMPstandoff
+    getPlasmaPause
+    getSolarProtonSpectra
+    getSolarRotation
     getVampolaOrder
+    omniFromDirectionalFlux
     vampolaPA
