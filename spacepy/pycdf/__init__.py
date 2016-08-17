@@ -4000,10 +4000,10 @@ class Attr(collections.MutableSequence):
             if not hasattr(new_type, 'value'):
                 new_type = ctypes.c_long(new_type)
             size = ctypes.c_long(self._entry_len(number))
-            self._call(const.SELECT_, self.ENTRY_, number,
+            self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
                        const.PUT_, self.ENTRY_DATASPEC_, new_type, size)
         cdftype = ctypes.c_long(0)
-        self._call(const.SELECT_, self.ENTRY_, number,
+        self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
                    const.GET_, self.ENTRY_DATATYPE_, ctypes.byref(cdftype))
         return cdftype.value
 
