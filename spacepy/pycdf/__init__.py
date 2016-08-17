@@ -3994,17 +3994,21 @@ class Attr(collections.MutableSequence):
         If changing types, old and new must be equivalent, see CDF
         User's Guide section 2.5.5 pg. 57
         """
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
         if new_type != None:
             if not hasattr(new_type, 'value'):
                 new_type = ctypes.c_long(new_type)
             size = ctypes.c_long(self._entry_len(number))
-            self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
-                       const.PUT_, self.ENTRY_DATASPEC_, new_type, size)
+            status = self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
+                                const.PUT_, self.ENTRY_DATASPEC_, new_type, size,
+                                ignore=(const.BAD_ENTRY_NUM,))
+            if status == const.BAD_ENTRY_NUM:
+                raise IndexError('list index ' + str(number) + ' out of range.')
         cdftype = ctypes.c_long(0)
-        self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
-                   const.GET_, self.ENTRY_DATATYPE_, ctypes.byref(cdftype))
+        status = self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
+                            const.GET_, self.ENTRY_DATATYPE_, ctypes.byref(cdftype),
+                            ignore=(const.BAD_ENTRY_NUM,))
+        if status == const.BAD_ENTRY_NUM:
+            raise IndexError('list index ' + str(number) + ' out of range.')
         return cdftype.value
 
     def has_entry(self, number):
