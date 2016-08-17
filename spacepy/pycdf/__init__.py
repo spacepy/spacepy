@@ -3741,15 +3741,23 @@ class Attr(collections.MutableSequence):
             #If everything else is the same entry type,
             #and one is not the same as its var, probably
             #all entries should be of that type
-            typepairs = [(self.type(num), self._cdf_file[num].type())
-                         for num in range(self.max_idx() + 1)
-                         if self.has_entry(num)]
-            if typepairs:
-                allsame = min((et == typepairs[0][0]
-                               for et, vt in typepairs))
-                notvar = max((et != vt for et, vt in typepairs))
-                if allsame and notvar and typepairs[0][0] in types:
-                    return typepairs[0][0]
+            cand_et = None #The Entry type that might work
+            one_var_diff = False #One Var has a type different from Entry
+            for num in range(self.max_idx() + 1):
+                if not self.has_entry(num):
+                    continue
+                vartype = self._cdf_file[num].type()
+                entrytype = self.type(num)
+                if vartype != entrytype:
+                    one_var_diff = True
+                if cand_et is None:
+                    if not entrytype in types:
+                        return None #One var has Entry with "impossible" type
+                    cand_et = entrytype
+                elif cand_et != entrytype:
+                    return None #Two vars have Entries with different types
+            if one_var_diff and cand_et is not None:
+                return cand_et
         else:
             # Of those types which exist in other entries,
             # find the one which is earliest
