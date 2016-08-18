@@ -4008,14 +4008,14 @@ class Attr(collections.MutableSequence):
             size = ctypes.c_long(self._entry_len(number))
             status = self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
                                 const.PUT_, self.ENTRY_DATASPEC_, new_type, size,
-                                ignore=(const.BAD_ENTRY_NUM,))
-            if status == const.BAD_ENTRY_NUM:
+                                ignore=(const.NO_SUCH_ENTRY,))
+            if status == const.NO_SUCH_ENTRY:
                 raise IndexError('list index ' + str(number) + ' out of range.')
         cdftype = ctypes.c_long(0)
         status = self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
                             const.GET_, self.ENTRY_DATATYPE_, ctypes.byref(cdftype),
-                            ignore=(const.BAD_ENTRY_NUM,))
-        if status == const.BAD_ENTRY_NUM:
+                            ignore=(const.NO_SUCH_ENTRY,))
+        if status == const.NO_SUCH_ENTRY:
             raise IndexError('list index ' + str(number) + ' out of range.')
         return cdftype.value
 

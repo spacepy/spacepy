@@ -1267,6 +1267,11 @@ class ReadCDF(CDFTests):
                              ' ' + str(cdf_type.value) + ' != ' +
                              str(actual_type))
 
+    def testgEntryTypeBadNumber(self):
+        """Get the type of nonexistent gEntry"""
+        attr = cdf.gAttr(self.cdf, 'PI_name')
+        self.assertRaises(IndexError, attr.type, 9999)
+
     def testzEntryNelems(self):
         """Get number of elements of a zEntry"""
         names = ['DEPEND_0', 'VALIDMAX', ]
