@@ -2848,9 +2848,31 @@ class VirtSat(LogFile):
                        title=None, trange=None):
         '''
         Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
-        '''
         
-        from spacepy.pybats.ram import add_body, grid_zeros
+
+        Parameters
+        ==========
+        None
+        
+        Other Parameters
+        ================
+        plane : string
+           Set the plane in which to plot (XY, XZ, etc.)  Defaults to XY.
+        target : Matplotlib Figure or Axes object
+           Set plot destination.  Defaults to new figure.
+        loc : 3-digit integer
+           Set subplot location.  Defaults to 111.
+        title : string
+           Set title of axes.
+        rbody : real
+           Set radius of model inner boundary.  Defaults to 1.0
+        trange : list of datetimes
+           Set the time range to plot.  Defaults to None, or entire dataset.
+        
+        '''
+
+        from spacepy.pybats import add_body
+        from spacepy.pybats.ram import grid_zeros
         import matplotlib.pyplot as plt
 
         fig, ax = set_target(target, figsize=(5,5), loc=loc)
@@ -2874,7 +2896,6 @@ class VirtSat(LogFile):
                 
 
         ax.plot(x, y, 'g.')
-        add_body(ax, rad=rbody, add_night=('X' in plane))
 
         # Finish customizing axis.
         ax.axis('equal')
@@ -2885,5 +2906,7 @@ class VirtSat(LogFile):
         grid_zeros(ax)
         ax.grid()
         #set_orb_ticks(ax)
+
+        add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
 
         return fig, ax

@@ -119,7 +119,7 @@ import spacepy.plot as spu
 import numpy as np
 
 # Some common, global functions.
-def parse_filename_time(filename, default='2000-01-01'):
+def parse_filename_time(filename):
     '''
     Given an SWMF file whose name follows the usual standards (see below), 
     attempt to parse the file name to extract information about the iteration,
@@ -247,7 +247,7 @@ def parse_tecvars(line):
     return ret
 
 
-def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
+def add_planet(ax, rad=1.0, ang=0.0, add_night=True, **extra_kwargs):
     '''
     Creates a circle of ``radius=self.para['rbody']`` and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
@@ -257,9 +257,26 @@ def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
     and half black (nightside) to coincide with the direction of the 
     sun. Additionally, because the size of the planet is not intrinsically
     known to the MHD file, the kwarg "rad", defaulting to 1.0, sets the
-    size of the planet.
+    size of the planet.  *add_night* can turn off this behavior.
     
     Extra keywords are handed to the Ellipse generator function.
+
+    
+    Parameters
+    ==========
+    ax : Matplotlib Axes object
+       Set the axes on which to place planet.
+        
+    Other Parameters
+    ================
+    rad : float
+       Set radius of planet.  Defaults to 1.
+    ang : float
+       Set the rotation of the day-night terminator from the y-axis, in degrees.
+       Defaults to zero (terminator is aligned with Y-axis.)
+    add_night : boolean
+       Add night hemisphere.  Defaults to **True**
+    
     '''
 
     from matplotlib.patches import Circle, Wedge
@@ -269,12 +286,12 @@ def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
                  zorder=1001, **extra_kwargs)
         
     ax.add_artist(body)
-    ax.add_artist(arch)
+    if add_night: ax.add_artist(arch)
 
     return body, arch
 
-def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True, 
-             ang=0.0, **extra_kwargs):
+def add_body(ax, rad=2.5, facecolor='lightgrey', add_planet=True, 
+             ang=0.0, add_night=True, **extra_kwargs):
     '''
     Creates a circle of radius=self.attrs['rbody'] and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
@@ -284,7 +301,29 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True,
     
     Because the body is rarely the size of the planet at the center of 
     the modeling domain, add_planet is automatically called.  This can
-    be negated by using the DoPlanet kwarg.
+    be negated by using the add_planet kwarg.
+    
+    Parameters
+    ==========
+    ax : Matplotlib Axes object
+       Set the axes on which to place planet.
+        
+    Other Parameters
+    ================
+    rad : float
+       Set radius of the inner boundary.  Defaults to 2.5.
+    facecolor : string
+       Set color of face of inner boundary circle via Matplotlib color 
+       selectors (name, hex, etc.)  Defaults to 'lightgrey'.
+    add_planet : boolean
+       Turns on/off planet indicator inside inner boundary.  
+       Defaults to **True**
+    ang : float
+       Set the rotation of the day-night terminator from the y-axis, in degrees.
+       Defaults to zero (terminator is aligned with Y-axis.)
+    add_night : boolean
+       Add night hemisphere.  Defaults to **True**
+
     '''
     from matplotlib.patches import Ellipse
     
@@ -293,7 +332,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True,
                    **extra_kwargs)
 
     if DoPlanet:
-        add_planet(ax, ang=ang)
+        add_planet(ax, ang=ang, add_night=add_night)
 
     ax.add_artist(body)
         
