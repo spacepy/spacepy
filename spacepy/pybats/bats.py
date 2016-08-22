@@ -2845,7 +2845,7 @@ class VirtSat(LogFile):
         target.set_xlim(xlim)
 
     def add_orbit_plot(self, plane='XY', target=None, loc=111, rbody=1.0,
-                       title=None, trange=None):
+                       title=None, trange=None, add_grid=True):
         '''
         Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
         
@@ -2868,7 +2868,8 @@ class VirtSat(LogFile):
            Set radius of model inner boundary.  Defaults to 1.0
         trange : list of datetimes
            Set the time range to plot.  Defaults to None, or entire dataset.
-        
+        add_grid : boolean
+           Turn on or off grid style of axes.  Default is True.
         '''
 
         from spacepy.pybats import add_body
@@ -2904,7 +2905,7 @@ class VirtSat(LogFile):
         if title:
             ax.set_title(title)
         grid_zeros(ax)
-        ax.grid()
+        if add_grid: ax.grid()
         #set_orb_ticks(ax)
 
         add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
