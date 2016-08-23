@@ -389,6 +389,7 @@ class Stream(Extraction):
 
         # Descriptors:
         self.open   = True
+        self.status = 'open'
         self.method = method
 
         # Do tracing if a tracing method has been set.
@@ -521,9 +522,16 @@ class Stream(Extraction):
         if 'rbody' in bats.attrs:
             # Radial distance:
             r = sqrt(self.x**2.0  + self.y**2.0)
-            # Closed field line?
+            # Closed field line?  Lobe line?  Set status:
             if (r[0] < bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
-                self.open = False
+                self.open   = False
+                self.status = 'closed'
+            elif (r[0] > bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
+                self.open   = True
+                self.status = 'north lobe'
+            elif (r[0] < bats.attrs['rbody']) and (r[-1] > bats.attrs['rbody']):
+                self.open   = True
+                self.status = 'south lobe'
             # Trim the fat!
             limit = bats.attrs['rbody']*.8
             self.x, self.y = self.x[r>limit], self.y[r>limit]
@@ -583,7 +591,7 @@ class Bats2d(IdlFile):
 
         # Extract time from file name:
         i_iter, runtime, time = parse_filename_time(self.attrs['file'])
-        if 'time' not in self.attrs: self.attrs['time'] = time
+        if 'time' not in self.attrs: self.attrs['time'] = runtime
         if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
         
         # Parse grid into quad tree.
