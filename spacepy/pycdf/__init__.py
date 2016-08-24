@@ -3741,15 +3741,23 @@ class Attr(collections.MutableSequence):
             #If everything else is the same entry type,
             #and one is not the same as its var, probably
             #all entries should be of that type
-            typepairs = [(self.type(num), self._cdf_file[num].type())
-                         for num in range(self.max_idx() + 1)
-                         if self.has_entry(num)]
-            if typepairs:
-                allsame = min((et == typepairs[0][0]
-                               for et, vt in typepairs))
-                notvar = max((et != vt for et, vt in typepairs))
-                if allsame and notvar and typepairs[0][0] in types:
-                    return typepairs[0][0]
+            cand_et = None #The Entry type that might work
+            one_var_diff = False #One Var has a type different from Entry
+            for num in range(self.max_idx() + 1):
+                if not self.has_entry(num):
+                    continue
+                vartype = self._cdf_file[num].type()
+                entrytype = self.type(num)
+                if vartype != entrytype:
+                    one_var_diff = True
+                if cand_et is None:
+                    if not entrytype in types:
+                        return None #One var has Entry with "impossible" type
+                    cand_et = entrytype
+                elif cand_et != entrytype:
+                    return None #Two vars have Entries with different types
+            if one_var_diff and cand_et is not None:
+                return cand_et
         else:
             # Of those types which exist in other entries,
             # find the one which is earliest
@@ -3994,17 +4002,21 @@ class Attr(collections.MutableSequence):
         If changing types, old and new must be equivalent, see CDF
         User's Guide section 2.5.5 pg. 57
         """
-        if not self.has_entry(number):
-            raise IndexError('list index ' + str(number) + ' out of range.')
         if new_type != None:
             if not hasattr(new_type, 'value'):
                 new_type = ctypes.c_long(new_type)
             size = ctypes.c_long(self._entry_len(number))
-            self._call(const.SELECT_, self.ENTRY_, number,
-                       const.PUT_, self.ENTRY_DATASPEC_, new_type, size)
+            status = self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
+                                const.PUT_, self.ENTRY_DATASPEC_, new_type, size,
+                                ignore=(const.NO_SUCH_ENTRY,))
+            if status == const.NO_SUCH_ENTRY:
+                raise IndexError('list index ' + str(number) + ' out of range.')
         cdftype = ctypes.c_long(0)
-        self._call(const.SELECT_, self.ENTRY_, number,
-                   const.GET_, self.ENTRY_DATATYPE_, ctypes.byref(cdftype))
+        status = self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
+                            const.GET_, self.ENTRY_DATATYPE_, ctypes.byref(cdftype),
+                            ignore=(const.NO_SUCH_ENTRY,))
+        if status == const.NO_SUCH_ENTRY:
+            raise IndexError('list index ' + str(number) + ' out of range.')
         return cdftype.value
 
     def has_entry(self, number):

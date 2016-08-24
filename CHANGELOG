@@ -61,6 +61,7 @@ pycdf
 	- It's not clear where the CDF library is stripping and/or padding
 	  and pycdf has limited ability to work around this.
  - Improve type-guessing of attribute entries, particularly for zAttrs
+ - Fix BAD_ENTRY_NUM when looking up zEntry type (or assigning to zEntry)
 time
  - Speed improvement update to TickTock.getleapsecond
  - Overall speed improvements with for loop removal 
