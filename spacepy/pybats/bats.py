@@ -591,7 +591,7 @@ class Bats2d(IdlFile):
 
         # Extract time from file name:
         i_iter, runtime, time = parse_filename_time(self.attrs['file'])
-        if 'time' not in self.attrs: self.attrs['time'] = runtime
+        if 'time' not in self.attrs: self.attrs['time'] = time
         if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
         
         # Parse grid into quad tree.
