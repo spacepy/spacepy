@@ -970,7 +970,10 @@ class LogFile(PbData):
                 time[i]=starttime + dt.timedelta(float(i))
             # Set iteration:
             if 'it' in loc:
-                self['iter'][i] = int(vals[loc['it']]) 
+                if '*' in vals[loc['it']]:
+                    self['iter'][i] = -1
+                else:
+                    self['iter'][i] = int(vals[loc['it']]) 
             else: self['iter'][i] = i
             # Collect data
             for j, name in enumerate(names):
