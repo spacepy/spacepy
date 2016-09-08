@@ -2130,7 +2130,7 @@ class MagFile(PbData):
     and IE_mag*.dat.  The former contains $\delta B$ caused by gap-region 
     (i.e., inside the inner boundary) FACs and the changing global field.  
     The latter contains the $\delta B$ caused by Pederson and Hall 
-    currents in the ionosphere.  :class:`~spacepy.pybats.bats.MagFile objects
+    currents in the ionosphere.  :class:`~spacepy.pybats.bats.MagFile` objects
     can open one or both of these files at a time; when both are opened, the
     total $\delta B$ is calculated and made available to the user.
 

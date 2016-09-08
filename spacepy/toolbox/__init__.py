@@ -1321,7 +1321,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
     ratio : float (optional)
         The ratio between subsequent points
     stop : float (optional)
-        End value, if this is selected `num' is overridden
+        End value, if this is selected `num` is overridden
     num : int (optional)
         Number of samples to generate. Default is 50.
 
@@ -1329,6 +1329,11 @@ def geomspace(start, ratio=None, stop=False, num=50):
     =======
     seq : array
         geometrically spaced sequence
+
+    See Also
+    ========
+    linspace
+    logspace
 
     Examples
     ========
@@ -1352,11 +1357,6 @@ def geomspace(start, ratio=None, stop=False, num=50):
     >>> import spacepy.toolbox as tb
     >>> tb.geomspace(0.01, ratio=10, num=5)
     [0.01, 0.10000000000000001, 1.0, 10.0, 100.0]
-
-    See Also
-    ========
-    linspace
-    logspace
     """
     if not ratio and stop != False:
         ratio = (stop/start)**(1/(num-1))

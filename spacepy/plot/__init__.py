@@ -14,11 +14,13 @@ information more cleanly, with less effort
 This plot module now provides style sheets. For most standard plotting 
 we recommend the *default* style sheet (aka *spacepy*). To auto-apply the
 default plot style the following should be added to your spacepy.rc file::
+
     apply_plot_styles: True
 
 Different plot types may not work well with this style, so we have provided
 alternatives. For polar plots, spectrograms, or anything with larger blocks 
 of color, it may be better to use one of the alternatives::
+
     import spacepy.plot as splot
     splot.style('altgrid') # inverts background from default so it's white
     splot.style('polar') # designed for filled polar plots
