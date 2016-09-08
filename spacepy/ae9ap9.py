@@ -58,8 +58,8 @@ class Ae9Data(dm.SpaceData):
     To export the data to a CDF, HDF5 or JSON-headed ASCII file use the relevant "to" method
     (toCDF, toHDF5, toJSONheadedASCII).
 
-    Additional Methods
-    ------------------
+    Methods
+    -------
     getLm
         adds McIlwain L data for the stored AE9 output
     plotOrbit
@@ -254,8 +254,8 @@ class Ae9Data(dm.SpaceData):
         '''
         Plot a spectrogram of the flux along the requested orbit, as a function of Lm and time
 
-        Optional Arguments
-        ------------------
+        Other Parameters
+        ----------------
         zlim : list
             2-element list with upper and lower bounds for color scale
         colorbar_label : string

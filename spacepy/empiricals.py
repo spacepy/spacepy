@@ -648,7 +648,7 @@ def getSolarProtonSpectra(norm=3.20e7, gamma=-0.96, E0=15.0, Emin=.1, Emax=600, 
     Mewaldt, R. A., et al. (2005), J. Geophys. Res., 110, A09S18, doi:10.1029/2005JA011038.
 
     Other Parameters
-    ==========
+    ================
     norm : float
         Normilization factor for the intensity of the SEP event
     gamma : float
