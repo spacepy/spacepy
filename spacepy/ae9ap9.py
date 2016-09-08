@@ -58,16 +58,14 @@ class Ae9Data(dm.SpaceData):
     To export the data to a CDF, HDF5 or JSON-headed ASCII file use the relevant "to" method
     (toCDF, toHDF5, toJSONheadedASCII).
 
-    Methods
-    -------
-    getLm
-        adds McIlwain L data for the stored AE9 output
-    plotOrbit
-        generates a plot of the relevant satellite orbit
-
-    .. currentmodule:: spacepy.ae9ap9
     .. autosummary::
-        :members: getLm, plotOrbit, plotSummary, plotSpectrogram, setUnits
+
+        ~Ae9Data.getLm
+        ~Ae9Data.plotOrbit
+        ~Ae9Data.plotSummary
+        ~Ae9Data.plotSpectrogram
+        ~Ae9Data.setUnits
+
     .. automethod:: getLm
     .. automethod:: plotOrbit
     .. automethod:: plotSummary
