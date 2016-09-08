@@ -41,12 +41,12 @@ class SEATestsUniform(unittest.TestCase):
     def testMeanUniform(self):
         """Check superposed means on uniform input"""
         ntest.assert_array_equal(self.obj.semean, \
-              [self.testval]*(self.obj.window*2+1))
+              [self.testval]*(int(self.obj.window)*2+1))
 
     def testMedianUniform(self):
         """Check superposed medians on uniform input"""
         ntest.assert_array_equal(self.obj.semedian, \
-              [self.testval]*(self.obj.window*2+1))
+              [self.testval]*(int(self.obj.window)*2+1))
 
     def testMeanMedEquality(self):
         """For uniform input mean and median are same"""
@@ -182,12 +182,12 @@ class SEATestsUniWithBad(unittest.TestCase):
     def testMeanUniform(self):
         """Check superposed means on uniform input with bad data"""
         ntest.assert_array_equal(self.obj.semean, \
-              [self.testval]*(self.obj.window*2+1))
+              [self.testval]*(int(self.obj.window)*2+1))
 
     def testMedianUniform(self):
         """Check superposed medians on uniform input with bad data"""
         ntest.assert_array_equal(self.obj.semedian, \
-              [self.testval]*(self.obj.window*2+1))
+              [self.testval]*(int(self.obj.window)*2+1))
 
     def testMeanMedEquality(self):
         """For uniform input mean and median are same with bad data"""

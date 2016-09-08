@@ -524,7 +524,7 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
                 elif isinstance(dcomb[key], c.Coords):
                     dcomb[key] = dcomb[key].append(d[fln][key])
                 else:
-                    dcomb[key] = np.append(dcomb[key], d[fln][key], axis=ax)
+                    dcomb[key] = np.append(dcomb[key], d[fln][key], axis=ax[0])
 
     if sortkey:    #  then sort
         if isinstance(dcomb[sortkey], spt.Ticktock):
