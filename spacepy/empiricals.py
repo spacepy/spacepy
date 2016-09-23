@@ -190,10 +190,13 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
 
     return Lpp
 
-def getMPstandoff(ticks, dbase='QDhourly'):
-    """Calculates the Shue et al. (1997) subsolar magnetopause radius
 
-    Lets put the full reference here
+def getMagnetopause(ticks, LTs=None, dbase='QDhourly'):
+    '''Calculates the Shue et al. (1997) position in equatorial plane
+
+    Shue et al. (1997), A new functional form to study the solar wind 
+    control of the magnetopause size and shape, J. Geophys. Res., 102(A5), 
+    9497–9511, doi:10.1029/97JA00196.
 
     Parameters
     ==========
@@ -201,6 +204,88 @@ def getMPstandoff(ticks, dbase='QDhourly'):
         TickTock object of desired times (will be interpolated from hourly OMNI data)
         OR dictionary of form {'P': [], 'Bz': []}
         Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]
+    LTs : array-like
+        Array-like of local times for evaluating the magnetopause model. Default is
+        6 LT to 18 LT in steps of 20 minutes.
+
+    Returns
+    =======
+    out : array
+        NxMx2 array of magnetopause positions [Re]
+        N is number of timesteps, M is number of local times. The 2 positions
+        are the X_GSE and Y_GSE positions of the magnetopause
+
+    Examples
+    ========
+    >>> import spacepy.time as spt
+    >>> import spacepy.empiricals as emp
+    >>> ticks = spt.Ticktock(['2002-01-01T12:00:00','2002-01-04T00:00:00'])
+    >>> localtimes = [13,12,11]
+    >>> emp.getMagnetopause(ticks, LTs=localtimes)
+    array([[[ 10.27674331,  -2.75364507],
+        [ 10.52909163,   0.        ],
+        [ 10.27674331,   2.75364507]],
+       [[ 10.91791834,  -2.9254474 ],
+        [ 11.18712131,   0.        ],
+        [ 10.91791834,   2.9254474 ]]])
+    >>> emp.getMPstandoff(ticks) #should give same result as getMagnetopause for 12LT
+    array([ 10.52909163,  11.18712131])
+    
+    To plot the magnetopause:
+    >>> import numpy as np
+    >>> import spacepy.plot as splot
+    >>> import matplotlib.pyplot as plt
+    >>> localtimes = np.arange(5, 19.1, 0.5)
+    >>> mp_pos = emp.getMagnetopause(ticks, localtimes)
+    >>> plt.plot(mp_pos[0,:,0], mp_pos[0,:,1])
+    >>> ax1 = plt.gca()
+    >>> ax1.set_xlim([-5,20])
+    >>> ax1.set_xlabel('X$_{GSE}$ [R$_E$]')
+    >>> ax1.set_ylabel('Y$_{GSE}$ [R$_E$]')
+    >>> splot.dual_half_circle(ax=ax1)
+    >>> ax1.axes.set_aspect('equal')
+
+    '''
+
+    alpha = []
+    r0 = getMPstandoff(ticks, dbase=dbase, alpha=alpha)
+    alpha = np.asarray(alpha)
+
+    if LTs is None:
+        LTs = np.arange(6, 18.1, 1/3.0)
+
+    r = np.zeros([len(ticks),len(LTs)])
+    out = np.zeros([len(ticks),len(LTs), 2])
+
+    angs = (12.0-np.asanyarray(LTs))*15.0
+
+    costheta = np.cos(np.deg2rad(angs))
+    sintheta = np.sin(np.deg2rad(angs))
+    for idx, ct in enumerate(costheta):
+        r[:,idx] = r0 * (2.0/(1+ct))**alpha
+    out[:,:,0] = r*costheta #Xgse
+    out[:,:,1] = r*sintheta #Ygse
+
+    return out
+
+
+def getMPstandoff(ticks, dbase='QDhourly', alpha=[]):
+    """Calculates the Shue et al. (1997) subsolar magnetopause radius
+
+    Shue et al. (1997), A new functional form to study the solar wind 
+    control of the magnetopause size and shape, J. Geophys. Res., 102(A5), 
+    9497–9511, doi:10.1029/97JA00196.
+
+    Parameters
+    ==========
+    ticks : spacepy.time.Ticktock
+        TickTock object of desired times (will be interpolated from hourly OMNI data)
+        OR dictionary of form {'P': [], 'Bz': []}
+        Where P is SW ram pressure [nPa] and Bz is IMF Bz (GSM) [nT]
+    alpha : list
+        Used as an optional return value to obtain the flaring angles. To use, assign
+        an empty list and pass to this function through the keyword argument. The list 
+        will be modified in place, adding the flaring angles for each time step.
 
     Returns
     =======
@@ -212,12 +297,12 @@ def getMPstandoff(ticks, dbase='QDhourly'):
     >>> import spacepy.time as spt
     >>> import spacepy.empiricals as emp
     >>> ticks = spt.tickrange('2002-01-01T12:00:00','2002-01-04T00:00:00',.25)
-    >>> emp.ShueMP(ticks)
+    >>> emp.getMPstandoff(ticks)
     array([ 10.57319537,  10.91327764,  10.75086873,  10.77577207,
          9.78180261,  11.0374474 ,  11.4065    ,  11.27555451,
         11.47988573,  11.8202582 ,  11.23834814])
     >>> data = {'P': [2,4], 'Bz': [-2.4, -2.4]}
-    >>> emp.ShueMP(data)
+    >>> emp.getMPstandoff(data)
     array([ 9.96096838,  8.96790412])
     """
     if type(ticks) == spt.Ticktock:
@@ -249,6 +334,8 @@ def getMPstandoff(ticks, dbase='QDhourly'):
         # Calculate r0
         r0[iBzPos] = (11.4 + 0.013*Bz[iBzPos])*P[iBzPos]**(-1/6.6)
         r0[iBzNeg] = (11.4 + 0.140*Bz[iBzNeg])*P[iBzNeg]**(-1/6.6)
+        flarang = (0.58 - 0.01*Bz)*(1.0 + 0.01*P)
+        alpha.extend(flarang)
 
         return r0
     except TypeError:
