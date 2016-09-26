@@ -177,7 +177,8 @@ def parse_filename_time(filename):
 
     # Look for run time:
     if '_t' in filename:
-        runtime = float(re.search('_t(\d+)', filename).groups()[-1])
+        raw     = re.search('_t(\d+)', filename).groups()[-1]
+        runtime = 3600*float(raw[:-4]) + 60*float(raw[-4:-2]) + float(raw[-2:])
     else:
         runtime = None
 
