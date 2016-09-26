@@ -14,11 +14,13 @@ information more cleanly, with less effort
 This plot module now provides style sheets. For most standard plotting 
 we recommend the *default* style sheet (aka *spacepy*). To auto-apply the
 default plot style the following should be added to your spacepy.rc file::
+
     apply_plot_styles: True
 
 Different plot types may not work well with this style, so we have provided
 alternatives. For polar plots, spectrograms, or anything with larger blocks 
 of color, it may be better to use one of the alternatives::
+
     import spacepy.plot as splot
     splot.style('altgrid') # inverts background from default so it's white
     splot.style('polar') # designed for filled polar plots
@@ -99,7 +101,7 @@ def plot(*args, **kwargs):
     format string. For full details, see matplotlib.pyplot.plot
 
     Other Parameters
-    ----------
+    ----------------
     smartTimeTicks : boolean
         If True then use applySmartTimeTicks to set x-axis labeling
     figsize : array-like, 2 elements
@@ -201,7 +203,7 @@ def dual_half_circle(center=(0,0), radius=1.0,
     magnetospheric science plots.
 
     Other Parameters
-    ----------
+    ----------------
     center : array-like, 2 elements
         Center in data coordinates of the circles, default (0,0)
     radius : float
@@ -267,7 +269,7 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
         to plot must be given to var keyword argument.
 
     Other Parameters
-    ----------
+    ----------------
     var    : string
         Name of key in dict-like input that contains data
     time   : array-like or string

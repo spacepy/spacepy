@@ -18,6 +18,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
     GeoIndexFile
     VirtSat
 '''
+import sys
 
 import numpy as np
 from spacepy.pybats import PbData, IdlFile, LogFile
@@ -730,7 +731,7 @@ class Bats2d(IdlFile):
         '''
         from numpy import pi
 
-        if not self.has_key('b'):
+        if not 'b' in self:
             self.calc_b()
         mu_naught = 4.0E2 * pi # Mu_0 x unit conversion (nPa->Pa, nT->T)
         temp_b = self['b']**2.0
@@ -771,7 +772,7 @@ class Bats2d(IdlFile):
         from numpy import sqrt, pi
         from spacepy.datamodel import dmarray
         
-        if not self.has_key('b'):
+        if not 'b' in self:
             self.calc_b()
         #M_naught * conversion from #/cm^3 to kg/m^3
         mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
@@ -937,7 +938,7 @@ class Bats2d(IdlFile):
                 try:
                     eval('self.'+command+'()')
                 except AttributeError:
-                    print('WARNING: Did not perform {0}: {1}' % (command, sys.exc_info()[0]))
+                    print('WARNING: Did not perform {0}: {1}'.format(command, sys.exc_info()[0]))
 
     #####################
     # Other calculations
@@ -2130,7 +2131,7 @@ class MagFile(PbData):
     and IE_mag*.dat.  The former contains $\delta B$ caused by gap-region 
     (i.e., inside the inner boundary) FACs and the changing global field.  
     The latter contains the $\delta B$ caused by Pederson and Hall 
-    currents in the ionosphere.  :class:`~spacepy.pybats.bats.MagFile objects
+    currents in the ionosphere.  :class:`~spacepy.pybats.bats.MagFile` objects
     can open one or both of these files at a time; when both are opened, the
     total $\delta B$ is calculated and made available to the user.
 
@@ -2358,7 +2359,7 @@ class MagGridFile(IdlFile):
         sum of the two horizontal components (east and west components).
         '''
 
-        allvars = self.keys()
+        allvars = list(self.keys())
         
         for v in allvars:
             # Find all dB-north variables:

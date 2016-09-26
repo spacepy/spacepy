@@ -539,7 +539,9 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
         RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
         
     headline = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
-                             infile.read(RecLen)) )[0].strip()   
+                             infile.read(RecLen)) )[0].strip()
+    if str is not bytes:
+        headline = headline.decode()
 
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     pformat = 'f'
@@ -587,6 +589,8 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     names = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
                             infile.read(RecLen)) )[0]
+    if str is not bytes:
+        names = names.decode()
 
     # Preserve or destroy original case of variable names:
     if not keep_case: names = names.lower()
@@ -1445,7 +1449,7 @@ class ImfInput(PbData):
         out.write('\n#START\n')
         for i in range(len(self['time'])):
             out.write('{:%Y %m %d %H %M %S} {:03d} '.format(
-                self['time'][i], self['time'][i].microsecond/1000))
+                self['time'][i], int(round(self['time'][i].microsecond/1000.))))
             out.write(' {}\n'.format(
                 ' '.join('{:10.2f}'.format(self[key][i]) for key in var)))
         out.close()

@@ -933,17 +933,31 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
 
     Parameters
     ==========
-    Two seapy.Sea() instances for comparison
+    obj1 : Sea
+        First instance for comparison
+    obj2 : Sea
+        Second instance for comparison
+
 
     Other Parameters
     ================
-        - test (default = 'KS') Test to apply at each lag:
-            KS is 2-smaple Kolmogorov-Smirnov; U is Mann-Whitney U-test
-        - show (default = True)
-        - x(y)quan (default = 'Time since epoch' (None)) - x(y)-axis label.
-        - x(y)units (default = None (None)) - x(y)-axis units.
-        - epochline (default = True) - put vertical line at zero epoch.
-        - usrlimy (default = []) - override automatic y-limits on plot.
+    test
+        (default = 'KS') Test to apply at each lag:
+        KS is 2-smaple Kolmogorov-Smirnov; U is Mann-Whitney U-test
+    show
+        (default = True)
+    xquan
+        (default = 'Time since epoch' (None)) - x-axis label.
+    yquan
+        (default = 'Time since epoch' (None)) - y-axis label.
+    xunits
+        (default = None (None)) - x-axis units.
+    yunits
+        (default = None (None)) - y-axis units.
+    epochline
+        (default = True) - put vertical line at zero epoch.
+    usrlimy
+        (default = []) - override automatic y-limits on plot.
 
     Examples
     ========
