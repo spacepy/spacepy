@@ -27,7 +27,7 @@ class TestParseFileTime(unittest.TestCase):
              'z=0_mhd_2_t00050000_n00249620.out']
     dates = [dt(2013,9,24,23,26,0), dt(2013,9,24,22, 5,0),
              None, None]
-    times = [None, None, 1430, 50000]
+    times = [None, None, 870, 18000]
     iters = [None, None, 31073, 249620]
 
     def testParse(self):
