@@ -2854,10 +2854,12 @@ class VirtSat(LogFile):
         target.set_xlim(xlim)
 
     def add_orbit_plot(self, plane='XY', target=None, loc=111, rbody=1.0,
-                       title=None, trange=None, add_grid=True):
+                       title=None, trange=None, add_grid=True, style='g.',
+                       adjust_axes=True, **kwargs):
         '''
         Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
-        
+        Extra kwargs are handed to the plot function. 
+
 
         Parameters
         ==========
@@ -2871,6 +2873,11 @@ class VirtSat(LogFile):
            Set plot destination.  Defaults to new figure.
         loc : 3-digit integer
            Set subplot location.  Defaults to 111.
+        adjust_axes : bool
+           If True, axes will be customized to best display orbit (equal 
+           aspect ratio, grid on, planet drawn, etc.).  Defaults to True.
+        style: string
+           A matplotlib line style specifier.  Defaults to 'g.'.
         title : string
            Set title of axes.
         rbody : real
@@ -2903,20 +2910,20 @@ class VirtSat(LogFile):
             y = self[plane[1]][tloc]
         else:
             raise ValueError('Bad dimension specifier: ' + plane[1])
-                
 
-        ax.plot(x, y, 'g.')
+        # Actually plot:
+        ax.plot(x, y, style, **kwargs)
 
         # Finish customizing axis.
-        ax.axis('equal')
-        ax.set_xlabel('GSM %s'%(plane[0].upper()))
-        ax.set_ylabel('GSM %s'%(plane[1].upper()))
-        if title:
-            ax.set_title(title)
-        grid_zeros(ax)
-        if add_grid: ax.grid()
-        #set_orb_ticks(ax)
-
-        add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
+        if adjust_axes:
+            ax.axis('equal')
+            ax.set_xlabel('GSM %s'%(plane[0].upper()))
+            ax.set_ylabel('GSM %s'%(plane[1].upper()))
+            if title:
+                ax.set_title(title)
+            if add_grid:
+                ax.grid()
+                grid_zeros(ax)
+            add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
 
         return fig, ax
