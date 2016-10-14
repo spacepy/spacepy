@@ -119,7 +119,7 @@ import spacepy.plot as spu
 import numpy as np
 
 # Some common, global functions.
-def parse_filename_time(filename, default='2000-01-01'):
+def parse_filename_time(filename):
     '''
     Given an SWMF file whose name follows the usual standards (see below), 
     attempt to parse the file name to extract information about the iteration,
@@ -177,7 +177,8 @@ def parse_filename_time(filename, default='2000-01-01'):
 
     # Look for run time:
     if '_t' in filename:
-        runtime = float(re.search('_t(\d+)', filename).groups()[-1])
+        raw     = re.search('_t(\d+)', filename).groups()[-1]
+        runtime = 3600*float(raw[:-4]) + 60*float(raw[-4:-2]) + float(raw[-2:])
     else:
         runtime = None
 
@@ -247,7 +248,7 @@ def parse_tecvars(line):
     return ret
 
 
-def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
+def add_planet(ax, rad=1.0, ang=0.0, add_night=True, **extra_kwargs):
     '''
     Creates a circle of ``radius=self.para['rbody']`` and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
@@ -257,9 +258,26 @@ def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
     and half black (nightside) to coincide with the direction of the 
     sun. Additionally, because the size of the planet is not intrinsically
     known to the MHD file, the kwarg "rad", defaulting to 1.0, sets the
-    size of the planet.
+    size of the planet.  *add_night* can turn off this behavior.
     
     Extra keywords are handed to the Ellipse generator function.
+
+    
+    Parameters
+    ==========
+    ax : Matplotlib Axes object
+       Set the axes on which to place planet.
+        
+    Other Parameters
+    ================
+    rad : float
+       Set radius of planet.  Defaults to 1.
+    ang : float
+       Set the rotation of the day-night terminator from the y-axis, in degrees.
+       Defaults to zero (terminator is aligned with Y-axis.)
+    add_night : boolean
+       Add night hemisphere.  Defaults to **True**
+    
     '''
 
     from matplotlib.patches import Circle, Wedge
@@ -269,12 +287,12 @@ def add_planet(ax, rad=1.0, ang=0.0, **extra_kwargs):
                  zorder=1001, **extra_kwargs)
         
     ax.add_artist(body)
-    ax.add_artist(arch)
+    if add_night: ax.add_artist(arch)
 
     return body, arch
 
-def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True, 
-             ang=0.0, **extra_kwargs):
+def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True, 
+             ang=0.0, add_night=True, **extra_kwargs):
     '''
     Creates a circle of radius=self.attrs['rbody'] and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
@@ -284,7 +302,29 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True,
     
     Because the body is rarely the size of the planet at the center of 
     the modeling domain, add_planet is automatically called.  This can
-    be negated by using the DoPlanet kwarg.
+    be negated by using the show_planet kwarg.
+    
+    Parameters
+    ==========
+    ax : Matplotlib Axes object
+       Set the axes on which to place planet.
+        
+    Other Parameters
+    ================
+    rad : float
+       Set radius of the inner boundary.  Defaults to 2.5.
+    facecolor : string
+       Set color of face of inner boundary circle via Matplotlib color 
+       selectors (name, hex, etc.)  Defaults to 'lightgrey'.
+    show_planet : boolean
+       Turns on/off planet indicator inside inner boundary.  
+       Defaults to **True**
+    ang : float
+       Set the rotation of the day-night terminator from the y-axis, in degrees.
+       Defaults to zero (terminator is aligned with Y-axis.)
+    add_night : boolean
+       Add night hemisphere.  Defaults to **True**
+
     '''
     from matplotlib.patches import Ellipse
     
@@ -292,8 +332,8 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', DoPlanet=True,
     body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=999,
                    **extra_kwargs)
 
-    if DoPlanet:
-        add_planet(ax, ang=ang)
+    if show_planet:
+        add_planet(ax, ang=ang, add_night=add_night)
 
     ax.add_artist(body)
         
@@ -499,7 +539,9 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
         RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
         
     headline = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
-                             infile.read(RecLen)) )[0].strip()   
+                             infile.read(RecLen)) )[0].strip()
+    if str is not bytes:
+        headline = headline.decode()
 
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     pformat = 'f'
@@ -547,6 +589,8 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     names = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
                             infile.read(RecLen)) )[0]
+    if str is not bytes:
+        names = names.decode()
 
     # Preserve or destroy original case of variable names:
     if not keep_case: names = names.lower()
@@ -931,7 +975,10 @@ class LogFile(PbData):
                 time[i]=starttime + dt.timedelta(float(i))
             # Set iteration:
             if 'it' in loc:
-                self['iter'][i] = int(vals[loc['it']]) 
+                if '*' in vals[loc['it']]:
+                    self['iter'][i] = -1
+                else:
+                    self['iter'][i] = int(vals[loc['it']]) 
             else: self['iter'][i] = i
             # Collect data
             for j, name in enumerate(names):
@@ -1402,7 +1449,7 @@ class ImfInput(PbData):
         out.write('\n#START\n')
         for i in range(len(self['time'])):
             out.write('{:%Y %m %d %H %M %S} {:03d} '.format(
-                self['time'][i], self['time'][i].microsecond/1000))
+                self['time'][i], int(round(self['time'][i].microsecond/1000.))))
             out.write(' {}\n'.format(
                 ' '.join('{:10.2f}'.format(self[key][i]) for key in var)))
         out.close()

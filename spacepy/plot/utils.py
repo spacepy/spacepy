@@ -570,7 +570,7 @@ def applySmartTimeTicks(ax, time, dolimit=True, dolabel=False):
         The range of the *time* input value will be used to set the limits
         of the x-axis as well. Setting this overrides this behavior.
     dolabel : boolean (optional)
-        Sets autolabeling of the time axis with ``Time from'' time[0]
+        Sets autolabeling of the time axis with "Time from" time[0]
 
     See Also
     ========
@@ -927,7 +927,7 @@ def shared_ylabel(axes, txt, *args, **kwargs):
         The :class:`~matplotlib.axes.Axes` objects (i.e. subplots)
         which should share a single label
     txt : str
-        The label to place in the middle of all the ``axes` objects.
+        The label to place in the middle of all the `axes` objects.
 
     Other Parameters
     ================

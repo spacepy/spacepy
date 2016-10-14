@@ -7,6 +7,12 @@ Test suite for plot.utils
 Copyright 2010-2015 Los Alamos National Security, LLC.
 """
 
+try:
+    import cStringIO as StringIO
+    sio = StringIO.StringIO
+except ImportError:
+    import io
+    sio = io.BytesIO
 import datetime
 import unittest
 import warnings
@@ -25,15 +31,15 @@ class PlotUtilFunctionTests(unittest.TestCase):
 
     def test_applySmartTimeTicks(self):
         """applySmartTimeTicks should have known behaviour"""
-        plt.ion()
         ticks = st.tickrange('2002-02-01T00:00:00', '2002-02-07T00:00:00', deltadays=1)
         y = list(range(len(ticks)))
         fig = plt.figure()
         ax = fig.add_subplot(111)
         line = ax.plot(ticks.UTC, y)
         spacepy.plot.utils.applySmartTimeTicks(ax, ticks.UTC)
-        plt.draw()
-        plt.draw()
+        fp = sio()
+        fig.savefig(fp, format='png')
+        fp.close()
         # should not have moved the ticks
         real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
         730888.])
@@ -46,8 +52,6 @@ class PlotUtilFunctionTests(unittest.TestCase):
         ans = [t.get_text()
                for t in ax.xaxis.get_majorticklabels()]
         numpy.testing.assert_array_equal(real_ans, ans)
-        plt.close()
-        plt.ioff()
 
     def test_smartTimeTicksSubDay(self):
         """smartTimeTicks should give known output (regression)"""

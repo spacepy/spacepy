@@ -485,8 +485,8 @@ class spectrogram(dm.SpaceData):
         value : float or datetime.datetime
             the value to slice the spectrogram at
 
-        Return
-        ======
+        Returns
+        =======
         out : datamodel.SpaceData
             spacedata containing the slice
         """
@@ -511,8 +511,8 @@ class spectrogram(dm.SpaceData):
         value : float or datetime.datetime
             the value to slice the spectrogram at
 
-        Return
-        ======
+        Returns
+        =======
         out : datamodel.SpaceData
             spacedata containing the slice
         """
@@ -586,8 +586,8 @@ def simpleSpectrogram(*args, **kwargs):
     cbtitle : string
         Label to go on the colorbar (default: None)
     
-    Return
-    ======
+    Returns
+    =======
     ax : matplotlib.axes._subplots.AxesSubplot
         Matplotlib axes object that the plot is on
     """

@@ -6,7 +6,11 @@ Test suite for SpacePy's PyBats subpackage.
 Copyright 2015 University of Michigan
 """
 
+
+import datetime as dt
 import unittest
+
+import numpy as np
 
 import spacepy.pybats as pb
 import spacepy.pybats.bats as pbs
@@ -27,7 +31,7 @@ class TestParseFileTime(unittest.TestCase):
              'z=0_mhd_2_t00050000_n00249620.out']
     dates = [dt(2013,9,24,23,26,0), dt(2013,9,24,22, 5,0),
              None, None]
-    times = [None, None, 1430, 50000]
+    times = [None, None, 870, 18000]
     iters = [None, None, 31073, 249620]
 
     def testParse(self):
@@ -129,17 +133,15 @@ class TestSatOrbit(unittest.TestCase):
     '''
     Test reading and writing of satellite orbit files.
     '''
+    def setUp(self):
+        # Create 5 minutes of fake data:
+        self.start = dt.datetime(2000,1,1)
+        self.time = np.array([self.start+dt.timedelta(minutes=i)
+                              for i in range(5)])
 
-    import datetime as dt
-    import numpy as np
-    
-    # Create 5 minutes of fake data:
-    start = dt.datetime(2000,1,1)
-    time = np.array([start+dt.timedelta(minutes=i) for i in range(5)])
-
-    pos = np.zeros( (3,5) )
-    for i in range(5):
-        pos[:,i]=[i, 10.+i, 100.+i]
+        self.pos = np.zeros( (3,5) )
+        for i in range(5):
+            self.pos[:,i]=[i, 10.+i, 100.+i]
 
     def testWrite(self):
         '''
@@ -169,7 +171,8 @@ class TestSatOrbit(unittest.TestCase):
         sat = SatOrbit('./testsat.dat')
 
         # Check header:
-        self.assertItemsEqual(sat.attrs['head'],['test','header','values'])
+        self.assertEqual(sorted(sat.attrs['head']),
+                         sorted(['test','header','values']))
         self.assertEqual(sat.attrs['coor'], 'SMG')
 
         # Check time and position:
@@ -186,7 +189,8 @@ class TestSatOrbit(unittest.TestCase):
         sat = SatOrbit('data/pybats_test/testsat.dat')
 
         # Check header:
-        self.assertItemsEqual(sat.attrs['head'],['test','header','values'])
+        self.assertEqual(sorted(sat.attrs['head']),
+                         sorted(['test','header','values']))
         self.assertEqual(sat.attrs['coor'], 'SMG')
 
         # Check time and position:

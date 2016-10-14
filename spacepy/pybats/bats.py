@@ -18,6 +18,7 @@ binary SWMF output files taylored to BATS-R-US-type data.
     GeoIndexFile
     VirtSat
 '''
+import sys
 
 import numpy as np
 from spacepy.pybats import PbData, IdlFile, LogFile
@@ -389,6 +390,7 @@ class Stream(Extraction):
 
         # Descriptors:
         self.open   = True
+        self.status = 'open'
         self.method = method
 
         # Do tracing if a tracing method has been set.
@@ -521,9 +523,16 @@ class Stream(Extraction):
         if 'rbody' in bats.attrs:
             # Radial distance:
             r = sqrt(self.x**2.0  + self.y**2.0)
-            # Closed field line?
+            # Closed field line?  Lobe line?  Set status:
             if (r[0] < bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
-                self.open = False
+                self.open   = False
+                self.status = 'closed'
+            elif (r[0] > bats.attrs['rbody']) and (r[-1] < bats.attrs['rbody']):
+                self.open   = True
+                self.status = 'north lobe'
+            elif (r[0] < bats.attrs['rbody']) and (r[-1] > bats.attrs['rbody']):
+                self.open   = True
+                self.status = 'south lobe'
             # Trim the fat!
             limit = bats.attrs['rbody']*.8
             self.x, self.y = self.x[r>limit], self.y[r>limit]
@@ -722,7 +731,7 @@ class Bats2d(IdlFile):
         '''
         from numpy import pi
 
-        if not self.has_key('b'):
+        if not 'b' in self:
             self.calc_b()
         mu_naught = 4.0E2 * pi # Mu_0 x unit conversion (nPa->Pa, nT->T)
         temp_b = self['b']**2.0
@@ -763,7 +772,7 @@ class Bats2d(IdlFile):
         from numpy import sqrt, pi
         from spacepy.datamodel import dmarray
         
-        if not self.has_key('b'):
+        if not 'b' in self:
             self.calc_b()
         #M_naught * conversion from #/cm^3 to kg/m^3
         mu_naught = 4.0E-7 * pi * 1.6726E-27 * 1.0E6
@@ -929,7 +938,7 @@ class Bats2d(IdlFile):
                 try:
                     eval('self.'+command+'()')
                 except AttributeError:
-                    print('WARNING: Did not perform {0}: {1}' % (command, sys.exc_info()[0]))
+                    print('WARNING: Did not perform {0}: {1}'.format(command, sys.exc_info()[0]))
 
     #####################
     # Other calculations
@@ -2122,7 +2131,7 @@ class MagFile(PbData):
     and IE_mag*.dat.  The former contains $\delta B$ caused by gap-region 
     (i.e., inside the inner boundary) FACs and the changing global field.  
     The latter contains the $\delta B$ caused by Pederson and Hall 
-    currents in the ionosphere.  :class:`~spacepy.pybats.bats.MagFile objects
+    currents in the ionosphere.  :class:`~spacepy.pybats.bats.MagFile` objects
     can open one or both of these files at a time; when both are opened, the
     total $\delta B$ is calculated and made available to the user.
 
@@ -2350,7 +2359,7 @@ class MagGridFile(IdlFile):
         sum of the two horizontal components (east and west components).
         '''
 
-        allvars = self.keys()
+        allvars = list(self.keys())
         
         for v in allvars:
             # Find all dB-north variables:
@@ -2845,12 +2854,35 @@ class VirtSat(LogFile):
         target.set_xlim(xlim)
 
     def add_orbit_plot(self, plane='XY', target=None, loc=111, rbody=1.0,
-                       title=None, trange=None):
+                       title=None, trange=None, add_grid=True):
         '''
         Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
-        '''
         
-        from spacepy.pybats.ram import add_body, grid_zeros
+
+        Parameters
+        ==========
+        None
+        
+        Other Parameters
+        ================
+        plane : string
+           Set the plane in which to plot (XY, XZ, etc.)  Defaults to XY.
+        target : Matplotlib Figure or Axes object
+           Set plot destination.  Defaults to new figure.
+        loc : 3-digit integer
+           Set subplot location.  Defaults to 111.
+        title : string
+           Set title of axes.
+        rbody : real
+           Set radius of model inner boundary.  Defaults to 1.0
+        trange : list of datetimes
+           Set the time range to plot.  Defaults to None, or entire dataset.
+        add_grid : boolean
+           Turn on or off grid style of axes.  Default is True.
+        '''
+
+        from spacepy.pybats import add_body
+        from spacepy.pybats.ram import grid_zeros
         import matplotlib.pyplot as plt
 
         fig, ax = set_target(target, figsize=(5,5), loc=loc)
@@ -2874,7 +2906,6 @@ class VirtSat(LogFile):
                 
 
         ax.plot(x, y, 'g.')
-        add_body(ax, rad=rbody, add_night=('X' in plane))
 
         # Finish customizing axis.
         ax.axis('equal')
@@ -2883,7 +2914,9 @@ class VirtSat(LogFile):
         if title:
             ax.set_title(title)
         grid_zeros(ax)
-        ax.grid()
+        if add_grid: ax.grid()
         #set_orb_ticks(ax)
+
+        add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
 
         return fig, ax
