@@ -1202,7 +1202,7 @@ def binHisto(data, verbose=False):
     if binw != 0:
         nbins = round((max(data)-min(data))/binw)
     # if nbins is 0, NaN or inf don't use the F-D rule just use sqrt(num) rule
-    if binw == 0 or nbins == 0 or not np.isfinite(nbins):
+    if binw == 0 or nbins == 0 or not np.isfinite(nbins) or nbins >= len(data)/2.:
         nbins = round(np.sqrt(len(data)))
         binw = len(data)/nbins
         if verbose:
