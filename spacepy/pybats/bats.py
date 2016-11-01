@@ -2855,7 +2855,9 @@ class VirtSat(LogFile):
 
     def add_orbit_plot(self, plane='XY', target=None, loc=111, rbody=1.0,
                        title=None, trange=None, add_grid=True, style='g.',
-                       adjust_axes=True, **kwargs):
+                       adjust_axes=True, add_arrow=True,
+                       arrow_kwargs={'color':'g', 'width':.05, 'ec':'k'},
+                       **kwargs):
         '''
         Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
         Extra kwargs are handed to the plot function. 
@@ -2886,6 +2888,11 @@ class VirtSat(LogFile):
            Set the time range to plot.  Defaults to None, or entire dataset.
         add_grid : boolean
            Turn on or off grid style of axes.  Default is True.
+        add_arrow : boolean
+           Add arrow at end of orbit path to indicate direction.
+           Default is True.
+        arrow_kwargs : dict
+           Dictionary of arrow kwargs.  Defaults to match line style.
         '''
 
         from spacepy.pybats import add_body
@@ -2914,6 +2921,12 @@ class VirtSat(LogFile):
         # Actually plot:
         ax.plot(x, y, style, **kwargs)
 
+        # Add arrow to plot:
+        if add_arrow:
+            x_arr, y_arr = x[-1], y[-1]
+            dx, dy = x[-1]-x[-2], y[-1] - y[-2]
+            ax.arrow(x_arr, y_arr, dx, dy, **arrow_kwargs)
+        
         # Finish customizing axis.
         if adjust_axes:
             ax.axis('equal')
@@ -2923,7 +2936,7 @@ class VirtSat(LogFile):
                 ax.set_title(title)
             if add_grid:
                 ax.grid()
-                grid_zeros(ax)
+            grid_zeros(ax)
             add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
 
         return fig, ax
