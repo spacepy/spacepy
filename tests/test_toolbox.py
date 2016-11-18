@@ -937,6 +937,17 @@ class TBTimeFunctionTests(unittest.TestCase):
         time = list(range(len(time)))
         self.assertRaises(TypeError, tb.windowMean, data, time, overlap=olap, st_time=datetime.datetime(2001,1,1))
 
+    def test_windowMean_2d(self):
+        """windowMean flattens and extends the time var over all the other dims"""
+        wsize = 2
+        olap = 0
+        data = numpy.arange(20).reshape(10,2)
+        out = tb.windowMean(data, winsize=wsize, overlap=olap)
+        ansd = [  1.5,   5.5,   9.5,  13.5]
+        numpy.testing.assert_almost_equal(ansd, out[0])
+        anst = [ 1.,  3.,  5.,  7.]
+        numpy.testing.assert_almost_equal(anst, out[1])
+
 
 class ArrayBinTests(unittest.TestCase):
     """Tests for arraybin function"""
