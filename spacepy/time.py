@@ -774,8 +774,7 @@ class Ticktock(collections.MutableSequence):
             other (Ticktock instance)
         """
         otherdata = getattr(other, self.data.attrs['dtype'])
-        newobj = Ticktock(np.append(self.data, otherdata), dtype=self.data.attrs['dtype'])
-        return newobj
+        return Ticktock(np.append(self.data, otherdata), dtype=self.data.attrs['dtype'])
 
     # -----------------------------------------------
     def getCDF(self):
@@ -847,7 +846,6 @@ class Ticktock(collections.MutableSequence):
         geteDOY
         """
         DOY = [utc.toordinal() - datetime.date(utc.year, 1, 1).toordinal() + 1 for utc in self.UTC]
-
         self.DOY = spacepy.datamodel.dmarray(DOY, attrs={'dtype': 'DOY'}).astype(int)
         return self.DOY
 
@@ -1257,7 +1255,6 @@ class Ticktock(collections.MutableSequence):
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
 
         """
-        # fmt = '%Y-%m-%dT%H:%M:%S'
         GPS0 = datetime.datetime(1980, 1, 6, 0, 0, 0, 0)
         leapsec = self.getleapsecs()
 
@@ -1324,12 +1321,11 @@ class Ticktock(collections.MutableSequence):
         """
 
         nTAI = len(self.data)
-        ISO = [''] * nTAI
         self.TAI = self.getTAI()
         ISO = [utc.strftime(self.__isofmt) for utc in self.UTC]
         for i in range(nTAI):
             if self.TAI[i] in self.TAIleaps:
-                tmptick = Ticktock(self.UTC[i] - datetime.timedelta(seconds=1), 'UTC')
+                tmptick = self.UTC[i] - datetime.timedelta(seconds=1)
                 a, b, c = tmptick.ISO[0].split(':')
                 cnew = c.replace('59', '60')
                 ISO[i] = a + ':' + b + ':' + cnew
