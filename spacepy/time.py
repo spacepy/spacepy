@@ -108,6 +108,18 @@ import spacepy.datamodel
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
 
+
+"""
+Notes:
+Python's assert statement is a good way to catch situations that should never happen. And it can be removed by Python
+optimization when the code is trusted to be correct. Assert is not to be used in program flow.
+
+In Python, on the other hand, there is no strict distinction between debug and release mode. The interpreter features
+an "optimization flag" (-O), but currently this does not actually optimize the byte code, but only removes asserts.
+"""
+
+
+
 # -----------------------------------------------
 # Ticktock class
 # -----------------------------------------------
@@ -221,8 +233,9 @@ class Ticktock(collections.MutableSequence):
                     dtype = 'UTC'
                 elif self.data[0] > 1e13:
                     dtype = 'CDF'
-                assert dtype.upper() in keylist_upper, "data type " + dtype + " not provided, only " + str(
-                    self._keylist)
+                if dtype.upper() not in keylist_upper:
+                    raise ValueError("data type " + dtype + " not provided, only " + str(
+                    self._keylist))
             else:
                 # process input data using callable dtype to convert to datetime/UTC
                 dtype_func = np.vectorize(dtype)
@@ -456,33 +469,28 @@ class Ticktock(collections.MutableSequence):
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC - other, 'UTC')
         elif isinstance(other, Ticktock):
-            try:
-                assert (len(other) == len(self.data)) or (len(other) == 1)
-            except:
+            if not (len(other) == len(self.data)) or not (len(other) == 1):
                 raise ValueError('Ticktock lengths are mismatched, subtraction is not possible')
+            same = True
+            if len(other) == 1: same = False
+            if same:
+                return [datetime.timedelta(seconds=t - other.TAI[i])
+                        for i, t in enumerate(self.TAI)]
             else:
-                same = True
-                if len(other) == 1: same = False
-                if same:
-                    return [datetime.timedelta(seconds=t - other.TAI[i])
-                            for i, t in enumerate(self.TAI)]
-                else:
-                    return [datetime.timedelta(seconds=t - other.TAI[0])
-                            for t in self.TAI]
+                return [datetime.timedelta(seconds=t - other.TAI[0])
+                        for t in self.TAI]
         elif hasattr(other, '__iter__'):
-            try:
-                assert isinstance(other[0], datetime.timedelta)
-                assert (len(other) == len(self.data)) or (len(other) == 1)
-            except:
-                raise TypeError("Data supplied for addition is of the wrong type or shape")
+            if not isinstance(other[0], datetime.timedelta):
+                raise TypeError("Data supplied for addition is of the wrong type")
+            if not (len(other) == len(self.data)) or (len(other) == 1):
+                raise TypeError("Data supplied for addition is of the wrong shape")
+            same = True
+            if len(other) == 1: same = False
+            if same:
+                newUTC = [utc - o for utc, o in zip(self.UTC, other)]
             else:
-                same = True
-                if len(other) == 1: same = False
-                if same:
-                    newUTC = [utc - o for utc, o in zip(self.UTC, other)]
-                else:
-                    newUTC = [utc - other for utc in self.UTC]
-                newobj = Ticktock(newUTC, 'UTC')
+                newUTC = [utc - other for utc in self.UTC]
+            newobj = Ticktock(newUTC, 'UTC')
         else:
             raise TypeError("unsupported operand type(s) for -: {0} and {1}".format(type(other), type(self)))
         return newobj
@@ -517,19 +525,17 @@ class Ticktock(collections.MutableSequence):
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC + other, 'UTC')
         elif hasattr(other, '__iter__'):
-            try:
-                assert isinstance(other[0], datetime.timedelta)
-                assert (len(other) == len(self.data)) or (len(other) == 1)
-            except:
-                raise TypeError("Data supplied for addition is of the wrong type or shape")
+            if not isinstance(other[0], datetime.timedelta):
+                raise TypeError("Data supplied for addition is of the wrong type")
+            if not (len(other) == len(self.data)) or (len(other) == 1):
+                raise TypeError("Data supplied for addition is of the wrong shape")
+            same = True
+            if len(other) == 1: same = False
+            if same:
+                newUTC = [utc + o for utc, o in zip(self.UTC, other)]
             else:
-                same = True
-                if len(other) == 1: same = False
-                if same:
-                    newUTC = [utc + o for utc, o in zip(self.UTC, other)]
-                else:
-                    newUTC = [utc + other for utc in self.UTC]
-                newobj = Ticktock(newUTC, 'UTC')
+                newUTC = [utc + other for utc in self.UTC]
+            newobj = Ticktock(newUTC, 'UTC')
         else:
             raise TypeError("unsupported operand type(s) for +: {0} and {1}".format(type(other), type(self)))
 
@@ -1464,7 +1470,8 @@ class Ticktock(collections.MutableSequence):
     @classmethod
     def today(self):
         """
-        Creates a Ticktock object with the current date and time set to 00:00:00, equivalent to date.today() with time included
+        Creates a Ticktock object with the current date and time set to 00:00:00, equivalent to date.today() with time
+        included
 
         Returns
         =======
@@ -1595,13 +1602,12 @@ def tickrange(start, end, deltadays, dtype=None):
     Tend = Ticktock(end, dtype)
     diff = Tend.UTC[0] - Tstart.UTC[0]
     dmusec, dsec = diff.microseconds / 86400000000., diff.seconds / 86400.
-    try:
-        assert type(deltadays) == datetime.timedelta
+    if type(deltadays) == datetime.timedelta:
         musec, sec = deltadays.microseconds / 86400000000., deltadays.seconds / 86400.
         deltat = musec + sec + deltadays.days
         nticks = int((dmusec + dsec + diff.days) / deltat + 1)
         trange = [Tstart.UTC[0] + deltadays * n for n in range(nticks)]
-    except:
+    else:
         nticks = int((dmusec + dsec + diff.days) / float(deltadays) + 1)
         trange = [Tstart.UTC[0] + datetime.timedelta(days=deltadays) * n for n in range(nticks)]
     ticks = Ticktock(trange, 'UTC')
