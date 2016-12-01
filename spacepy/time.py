@@ -1539,17 +1539,18 @@ def doy2date(year, doy, dtobj=False, flAns=False):
         raise ValueError('Day-of-Year less than 1 detected: DOY starts from 1')
 
     if flAns:
-        dateobj = [datetime.datetime(year[i], 1, 1) +
+        dateobj = spacepy.datamodel.dmarray([datetime.datetime(year[i], 1, 1) +
                    datetime.timedelta(days=float(doy[i]) - 1)
-                   for i in range(n_year)]
+                   for i in range(n_year)])
     else:
-        dateobj = [datetime.datetime(int(year[i]), 1, 1) +
+        dateobj = spacepy.datamodel.dmarray([datetime.datetime(int(year[i]), 1, 1) +
                    datetime.timedelta(days=int(doy[i]) - 1)
-                   for i in range(n_year)]
+                   for i in range(n_year)])
     if dtobj:
         return dateobj
     else:
-        return [dt.month for dt in dateobj], [dt.day for dt in dateobj]
+        return (spacepy.datamodel.dmarray([dt.month for dt in dateobj]),
+                spacepy.datamodel.dmarray([dt.day for dt in dateobj]))
 
 
 
@@ -1654,6 +1655,8 @@ def no_tzinfo(dt):
     =======
     out : list
         list of datetime.datetime without tzinfo
+
+    TODO should this return the same type as was input?
     """
     try:
         return [val.replace(tzinfo=None) for val in dt]
@@ -1685,25 +1688,14 @@ def leapyear(year, numdays=False):
     [False, False,  True, False, False, False,  True, False, False,
           False,  True, False, False, False,  True]
     """
-    if not isinstance(year, (tuple, np.ndarray, list)):
-        year = [year]
-    mask400 = [(val % 400) == 0 for val in year]   # this is a leap year
-    mask100 = [(val % 100) == 0 for val in year ]   # these are not leap years
-    mask4   = [(val % 4) == 0 for val in year ]   # this is a leap year
+    year = np.asanyarray(year)
+    mask400 = (year % 400) == 0
+    mask100 = (year % 100) == 0
+    mask4 = (year % 4) == 0
+    isleap = (mask400 | mask4) & (~mask100 | mask400)
     if numdays:
-        numdays=365
-        ans = [numdays + ((val[0] | val[2]) & (~val[1] | val[0])) for val in zip(mask400, mask100, mask4)]
-        if len(ans) == 1:
-            return ans[0]
-        else:
-            return ans
-    else:
-        ans = [bool(((val[0] | val[2]) & (~val[1] | val[0]))) for val in zip(mask400, mask100, mask4)]
-        if len(ans) == 1:
-            return ans[0]
-        else:
-            return ans
-
+        isleap = isleap.astype(int) + 365
+    return isleap
 
 def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     """

@@ -165,20 +165,20 @@ class TimeFunctionTests(unittest.TestCase):
         real_ans = (
             numpy.array([365, 365, 365,  366, 365, 365, 365,  366, 365, 365]),
             365,
-            [365, 365, 365,  366, 365, 365, 365,  366, 365, 365] )
+            numpy.array([365, 365, 365,  366, 365, 365, 365,  366, 365, 365]) )
         for i, val in enumerate(real_ans):
             if i == 0:
-                self.assertEqual(val.tolist(), t.leapyear(data[i], True))
+                numpy.testing.assert_array_equal(val.tolist(), t.leapyear(data[i], True))
             else:
-                self.assertEqual(val, t.leapyear(data[i], True))
+                numpy.testing.assert_array_equal(val, t.leapyear(data[i], True))
         real_ans = ( numpy.array([False, False, False,  True, False, False, False, True, False, False]),
                      False,
                      [False, False, False, True, False, False, False,  True, False, False] )
         for i, val in enumerate(real_ans):
             if i == 0:
-                self.assertEqual(val.tolist(), t.leapyear(data[i], False))
+                numpy.testing.assert_array_equal(val.tolist(), t.leapyear(data[i], False))
             else:
-                self.assertEqual(val, t.leapyear(data[i], False))
+                numpy.testing.assert_array_equal(val, t.leapyear(data[i], False))
 
     def test_randomDate(self):
         """randomDate should give known result"""
