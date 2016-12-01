@@ -90,6 +90,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 import bisect
 import collections
 import datetime
+
 try:
     from itertools import izip as zip
 except ImportError:
@@ -197,8 +198,9 @@ class Ticktock(collections.MutableSequence):
     .. automethod:: sort
     .. automethod:: update_items
     """
+
     def __init__(self, data, dtype=None):
-        self._keylist = ['UTC','TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
+        self._keylist = ['UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
         keylist_upper = [key.upper() for key in self._keylist]
 
         if isinstance(data, Ticktock):
@@ -219,9 +221,10 @@ class Ticktock(collections.MutableSequence):
                     dtype = 'UTC'
                 elif self.data[0] > 1e13:
                     dtype = 'CDF'
-                assert dtype.upper() in keylist_upper, "data type " + dtype +" not provided, only "+str(self._keylist)
+                assert dtype.upper() in keylist_upper, "data type " + dtype + " not provided, only " + str(
+                    self._keylist)
             else:
-                #process input data using callable dtype to convert to datetime/UTC
+                # process input data using callable dtype to convert to datetime/UTC
                 dtype_func = np.vectorize(dtype)
                 self.data = dtype_func(self.data)
                 self.UTC = self.data
@@ -232,16 +235,16 @@ class Ticktock(collections.MutableSequence):
         try:
             self.data.attrs['dtype'] = dtype.upper()
         except AttributeError:
-            self.data.attrs['dtype'] = str(dtype_func) 
+            self.data.attrs['dtype'] = str(dtype_func)
         else:
             if dtype.upper() == 'ISO':
-                if self.data[0].find('Z'): #remove timezones
-                    for i,v in np.ndenumerate(self.data):
+                if self.data[0].find('Z'):  # remove timezones
+                    for i, v in np.ndenumerate(self.data):
                         self.data[i] = v.split('Z')[0]
                 self.ISO = self.data
             self.update_items(self, 'data')
             if dtype.upper() == 'TAI': self.TAI = self.data
-            if dtype.upper() == 'JD' : self.JD = self.data
+            if dtype.upper() == 'JD': self.JD = self.data
             if dtype.upper() == 'MJD': self.MJD = self.data
             if dtype.upper() == 'UNX': self.UNX = self.data
             if dtype.upper() == 'RDT': self.RDT = self.data
@@ -249,17 +252,17 @@ class Ticktock(collections.MutableSequence):
             if dtype.upper() == 'UTC': self.UTC = self.data
 
 
-## Brian and Steve were looking at this to see about making plot work directly on the object
-## is also making iterate as an array of datetimes
-#    def __iter__(self):
-#        i = 0
-#        try:
-#            while True:
-#                v = self[i].UTC[0]
-#                yield v
-#                i += 1
-#        except IndexError:
-#            return
+            ## Brian and Steve were looking at this to see about making plot work directly on the object
+            ## is also making iterate as an array of datetimes
+            #    def __iter__(self):
+            #        i = 0
+            #        try:
+            #            while True:
+            #                v = self[i].UTC[0]
+            #                yield v
+            #                i += 1
+            #        except IndexError:
+            #            return
 
     # -----------------------------------------------
     def __str__(self):
@@ -279,7 +282,8 @@ class Ticktock(collections.MutableSequence):
         >>> a
         Ticktock( ['2002-02-02T12:00:00'], dtype=ISO)
         """
-        return 'Ticktock( '+str(self.data) + ', dtype='+str(self.data.attrs['dtype'] +')')
+        return 'Ticktock( ' + str(self.data) + ', dtype=' + str(self.data.attrs['dtype'] + ')')
+
     __repr__ = __str__
 
     # -----------------------------------------------
@@ -288,7 +292,7 @@ class Ticktock(collections.MutableSequence):
         Is called when pickling
         See Also http://docs.python.org/library/pickle.html
         """
-        odict = self.__dict__.copy() # copy the dict since we change it
+        odict = self.__dict__.copy()  # copy the dict since we change it
         return odict
 
     def __setstate__(self, dict):
@@ -370,8 +374,8 @@ class Ticktock(collections.MutableSequence):
 
         self.update_items(self, 'data')
 
-        #del self.data[idx]
-        #self.update_items(self, 'data')
+        # del self.data[idx]
+        # self.update_items(self, 'data')
 
     # -----------------------------------------------
     def __len__(self):
@@ -453,34 +457,34 @@ class Ticktock(collections.MutableSequence):
             newobj = Ticktock(self.UTC - other, 'UTC')
         elif isinstance(other, Ticktock):
             try:
-                assert (len(other)==len(self.data)) or (len(other)==1)
+                assert (len(other) == len(self.data)) or (len(other) == 1)
             except:
                 raise ValueError('Ticktock lengths are mismatched, subtraction is not possible')
             else:
                 same = True
-                if len(other)==1: same = False
+                if len(other) == 1: same = False
                 if same:
                     return [datetime.timedelta(seconds=t - other.TAI[i])
-                            for i,t in enumerate(self.TAI)]
+                            for i, t in enumerate(self.TAI)]
                 else:
                     return [datetime.timedelta(seconds=t - other.TAI[0])
                             for t in self.TAI]
         elif hasattr(other, '__iter__'):
             try:
                 assert isinstance(other[0], datetime.timedelta)
-                assert (len(other)==len(self.data)) or (len(other)==1)
+                assert (len(other) == len(self.data)) or (len(other) == 1)
             except:
                 raise TypeError("Data supplied for addition is of the wrong type or shape")
             else:
                 same = True
-                if len(other)==1: same = False
+                if len(other) == 1: same = False
                 if same:
                     newUTC = [utc - o for utc, o in zip(self.UTC, other)]
                 else:
                     newUTC = [utc - other for utc in self.UTC]
                 newobj = Ticktock(newUTC, 'UTC')
         else:
-            raise TypeError("unsupported operand type(s) for -: {0} and {1}".format(type(other),type(self)))
+            raise TypeError("unsupported operand type(s) for -: {0} and {1}".format(type(other), type(self)))
         return newobj
 
     # -----------------------------------------------
@@ -515,19 +519,19 @@ class Ticktock(collections.MutableSequence):
         elif hasattr(other, '__iter__'):
             try:
                 assert isinstance(other[0], datetime.timedelta)
-                assert (len(other)==len(self.data)) or (len(other)==1)
+                assert (len(other) == len(self.data)) or (len(other) == 1)
             except:
                 raise TypeError("Data supplied for addition is of the wrong type or shape")
             else:
                 same = True
-                if len(other)==1: same = False
+                if len(other) == 1: same = False
                 if same:
                     newUTC = [utc + o for utc, o in zip(self.UTC, other)]
                 else:
                     newUTC = [utc + other for utc in self.UTC]
                 newobj = Ticktock(newUTC, 'UTC')
         else:
-            raise TypeError("unsupported operand type(s) for +: {0} and {1}".format(type(other),type(self)))
+            raise TypeError("unsupported operand type(s) for +: {0} and {1}".format(type(other), type(self)))
 
         return newobj
 
@@ -579,7 +583,7 @@ class Ticktock(collections.MutableSequence):
 
 
         """
-        assert name in self._keylist, "data type "+str(name)+" not provided, only "+str(self._keylist)
+        assert name in self._keylist, "data type " + str(name) + " not provided, only " + str(self._keylist)
         if name.upper() == 'TAI': self.TAI = self.getTAI()
         if name.upper() == 'ISO': self.ISO = self.getISO()
         if name.upper() == 'JD': self.JD = self.getJD()
@@ -589,10 +593,10 @@ class Ticktock(collections.MutableSequence):
         if name.upper() == 'CDF': self.CDF = self.getCDF()
         if name.upper() == 'DOY': self.DOY = self.getDOY()
         if name.upper() == 'EDOY': self.eDOY = self.geteDOY()
-        if name.upper() == 'GPS' : self.GPS = self.getGPS()
-        #if name == 'isoformat': self.__isofmt = self.isoformat()
+        if name.upper() == 'GPS': self.GPS = self.getGPS()
+        # if name == 'isoformat': self.__isofmt = self.isoformat()
         if name == 'leaps': self.leaps = self.getleapsecs()
-        return eval('self.'+name)
+        return eval('self.' + name)
 
     # -----------------------------------------------
     def insert(self, idx, val, dtype=None):
@@ -613,9 +617,9 @@ class Ticktock(collections.MutableSequence):
         """
         fmt = self.data.attrs['dtype']
         if not dtype:
-           dum = Ticktock(val)
+            dum = Ticktock(val)
         else:
-           dum = Ticktock(val, dtype=dtype)
+            dum = Ticktock(val, dtype=dtype)
         ival = eval('dum.{0}'.format(fmt))
         self.data = np.insert(self.data, idx, ival)
 
@@ -659,7 +663,7 @@ class Ticktock(collections.MutableSequence):
 
         """
         RDT = self.RDT
-        idx = np.argsort(RDT, kind=kind) 
+        idx = np.argsort(RDT, kind=kind)
         return idx
 
     # -----------------------------------------------
@@ -682,7 +686,7 @@ class Ticktock(collections.MutableSequence):
                 self.__isofmt = self.__isoformatstr[fmt]
                 self.update_items(self, 'data')
             except KeyError:
-                raise(ValueError('Not a valid option: Use {0}'.format(list(self.__isoformatstr.keys()))))
+                raise (ValueError('Not a valid option: Use {0}'.format(list(self.__isoformatstr.keys()))))
 
         return
 
@@ -708,7 +712,7 @@ class Ticktock(collections.MutableSequence):
         spacepy.Ticktock.__sub__
         """
         keylist = list(cls.__dict__.keys())
-        #keylist.remove('dtype')
+        # keylist.remove('dtype')
         keylist.remove('data')
         if attrib is not 'data': keylist.remove(attrib)
 
@@ -723,7 +727,7 @@ class Ticktock(collections.MutableSequence):
             if key.upper() == 'CDF': self.CDF = self.getCDF()
             if key.upper() == 'DOY': self.DOY = self.getDOY()
             if key.upper() == 'eDOY': self.eDOY = self.geteDOY()
-            if key.upper() == 'GPS' : self.GPS = self.getGPS()
+            if key.upper() == 'GPS': self.GPS = self.getGPS()
             if key == 'leaps': self.leaps = self.getleapsecs()
 
         return
@@ -760,7 +764,7 @@ class Ticktock(collections.MutableSequence):
         ISO
         UTC
         """
-        newdat = eval('self.'+dtype)
+        newdat = eval('self.' + dtype)
         return Ticktock(newdat, dtype)
 
     # -----------------------------------------------
@@ -775,7 +779,7 @@ class Ticktock(collections.MutableSequence):
         other : Ticktock
             other (Ticktock instance)
         """
-        otherdata = eval('other.'+self.data.attrs['dtype'])
+        otherdata = eval('other.' + self.data.attrs['dtype'])
         newobj = Ticktock(np.append(self.data, otherdata), dtype=self.data.attrs['dtype'])
         return newobj
 
@@ -814,7 +818,7 @@ class Ticktock(collections.MutableSequence):
         geteDOY
         """
         RDTdata = self.getRDT()
-        CDF = RDTdata*86400000.0 + 86400000.0*365.0
+        CDF = RDTdata * 86400000.0 + 86400000.0 * 365.0
         self.CDF = CDF
         return self.CDF
 
@@ -883,14 +887,13 @@ class Ticktock(collections.MutableSequence):
         getDOY
         geteDOY
         """
-        
+
         eDOY = [utc.toordinal() - datetime.date(utc.year, 1, 1).toordinal() for utc in self.UTC]
-        eDOY = [edoy + utc.hour/24. + utc.minute/1440. + utc.second/86400. + utc.microsecond/86400000000.
-                for edoy, utc in zip(eDOY, self.UTC) ]
-        
+        eDOY = [edoy + utc.hour / 24. + utc.minute / 1440. + utc.second / 86400. + utc.microsecond / 86400000000.
+                for edoy, utc in zip(eDOY, self.UTC)]
+
         self.eDOY = spacepy.datamodel.dmarray(eDOY)
         return self.eDOY
-
 
     # -----------------------------------------------
     def getJD(self):
@@ -929,9 +932,9 @@ class Ticktock(collections.MutableSequence):
         # convert all types in to UTC first and call again
         UTCdata = self.UTC
 
-        if UTCdata[0] < datetime.datetime(1582,10,15):
+        if UTCdata[0] < datetime.datetime(1582, 10, 15):
             warnings.warn("Calendar date before the switch from Julian to Gregorian\n" +
-                "    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
+                          "    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         # include offset if given
         JD = spacepy.datamodel.dmarray(np.zeros(nTAI))
@@ -954,28 +957,28 @@ class Ticktock(collections.MutableSequence):
             # JD = JDN + (data.hour-12)/24. + data.minute/1440. + data.second/86400.
 
             # following Press, "Numerical Recipes", Fct: JULDAY, p. 10
-            igreg = 15+31*(10+12*1582)
+            igreg = 15 + 31 * (10 + 12 * 1582)
             if M > 2:
                 JY = Y
-                JM = M+1
+                JM = M + 1
             else:
-                JY = Y-1
-                JM = M+13
-            JD[i] = int(365.25*JY) + int(30.6001*JM) + D + 1720995
-            c_val = (D+31*(M+12*Y))
-            if c_val >= igreg: # yes if date after the Gregorian Switch in 1582-Oct-15
-                JA = int(0.01*JY)
-                JD[i] = JD[i]+2-JA+int(0.25*JA)
+                JY = Y - 1
+                JM = M + 13
+            JD[i] = int(365.25 * JY) + int(30.6001 * JM) + D + 1720995
+            c_val = (D + 31 * (M + 12 * Y))
+            if c_val >= igreg:  # yes if date after the Gregorian Switch in 1582-Oct-15
+                JA = int(0.01 * JY)
+                JD[i] = JD[i] + 2 - JA + int(0.25 * JA)
 
             # add this to num.recipes to get fractional days
             # twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
             # sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
-            JD[i] = decimal.Decimal(str(JD[i])) + (decimal.Decimal(str(UTCdata[i].hour))-twelve)/twofour + \
-                decimal.Decimal(str(UTCdata[i].minute/1440.)) + (decimal.Decimal(str(UTCdata[i].second))/sind) + \
-                (decimal.Decimal(str(UTCdata[i].microsecond))/usind)
+            JD[i] = decimal.Decimal(str(JD[i])) + (decimal.Decimal(str(UTCdata[i].hour)) - twelve) / twofour + \
+                    decimal.Decimal(str(UTCdata[i].minute / 1440.)) + (decimal.Decimal(str(UTCdata[i].second)) / sind) + \
+                    (decimal.Decimal(str(UTCdata[i].microsecond)) / usind)
             JD[i] = float(JD[i])
-            #JD[i] = JD[i] + (UTCdata[i].hour-12)/24. + UTCdata[i].minute/1440. + \
-                #UTCdata[i].second/86400. + UTCdata[i].microsecond/86400000000.
+            # JD[i] = JD[i] + (UTCdata[i].hour-12)/24. + UTCdata[i].minute/1440. + \
+            # UTCdata[i].second/86400. + UTCdata[i].microsecond/86400000000.
 
         self.JD = JD
         return self.JD
@@ -1004,9 +1007,9 @@ class Ticktock(collections.MutableSequence):
 
         """
 
-        if self.UTC[0] < datetime.datetime(1582,10,15):
+        if self.UTC[0] < datetime.datetime(1582, 10, 15):
             warnings.warn("WARNING: Calendar date before the switch from Julian to Gregorian\n" +
-                "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
+                          "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         MJD = self.JD - 2400000.5
 
@@ -1037,9 +1040,9 @@ class Ticktock(collections.MutableSequence):
         getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
-        UNX0 = datetime.datetime(1970,1,1)
+        UNX0 = datetime.datetime(1970, 1, 1)
         d = [utc - UNX0 for utc in self.UTC]
-        UNX = [dd.days*86400 + dd.seconds + dd.microseconds/1.e6 for dd in d]
+        UNX = [dd.days * 86400 + dd.seconds + dd.microseconds / 1.e6 for dd in d]
 
         self.UNX = spacepy.datamodel.dmarray(UNX)
         return self.UNX
@@ -1072,11 +1075,11 @@ class Ticktock(collections.MutableSequence):
 
         # nTAI = len(self.data)
         UTC = self.UTC
-        #RDT = np.zeros(nTAI)
+        # RDT = np.zeros(nTAI)
         RDT = spacepy.datamodel.dmarray(date2num(UTC))
-        #for i in np.arange(nTAI):
-            #RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
-                #UTC[i].second/86400. + UTC[i].microsecond/86400000000.
+        # for i in np.arange(nTAI):
+        # RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
+        # UTC[i].second/86400. + UTC[i].microsecond/86400000000.
 
         self.RDT = RDT
         return self.RDT
@@ -1109,7 +1112,7 @@ class Ticktock(collections.MutableSequence):
         nTAI = len(self.data)
 
         if self.data.attrs['dtype'].upper() == 'UTC':
-            UTC = self.data # return
+            UTC = self.data  # return
 
         elif self.data.attrs['dtype'].upper() == 'ISO':
             self.ISO = self.data
@@ -1127,7 +1130,7 @@ class Ticktock(collections.MutableSequence):
 
         elif self.data.attrs['dtype'].upper() == 'TAI':
             self.TAI = self.data
-            TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
+            TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
             UTC = [datetime.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
             # add leap seconds after UTC is created
             self.UTC = UTC
@@ -1135,11 +1138,11 @@ class Ticktock(collections.MutableSequence):
             for i in np.arange(nTAI):
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i]))
                 tmpleaps = Ticktock(self.UTC[i]).leaps
-                if tmpleaps == leapsecs[i]-1: self.UTC[i] = self.UTC[i]+datetime.timedelta(seconds=1)
+                if tmpleaps == leapsecs[i] - 1: self.UTC[i] = self.UTC[i] + datetime.timedelta(seconds=1)
 
         elif self.data.attrs['dtype'].upper() == 'GPS':
             self.GPS = self.data
-            GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
+            GPS0 = datetime.datetime(1980, 1, 6, 0, 0, 0, 0)
             UTC = [datetime.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
             # add leap seconds after UTC is created
             self.UTC = UTC
@@ -1147,11 +1150,11 @@ class Ticktock(collections.MutableSequence):
             for i in np.arange(nTAI):
                 # there were 18 leap secinds before gps zero, need the -18 for that
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i])) + \
-                    datetime.timedelta(seconds=19)
+                              datetime.timedelta(seconds=19)
 
         elif self.data.attrs['dtype'].upper() == 'UNX':
             self.UNX = self.data
-            UNX0 = datetime.datetime(1970,1,1)
+            UNX0 = datetime.datetime(1970, 1, 1)
             UTC = [datetime.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
 
         elif self.data.attrs['dtype'].upper() == 'RDT':
@@ -1159,23 +1162,23 @@ class Ticktock(collections.MutableSequence):
             # import matplotlib.dates as mpd
             UTC = num2date(self.data)
             UTC = no_tzinfo(UTC)
-            #for i in np.arange(nTAI):
-                #UTC[i] = datetime.datetime(1,1,1) + \
-                    #datetime.timedelta(days=np.floor(self.data[i])-1) +  \
-                    #datetime.timedelta(microseconds=(self.data[i] - \
-                        #self.data[i])*86400000.)
-                # roundoff the microseconds
-                #UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
+            # for i in np.arange(nTAI):
+            # UTC[i] = datetime.datetime(1,1,1) + \
+            # datetime.timedelta(days=np.floor(self.data[i])-1) +  \
+            # datetime.timedelta(microseconds=(self.data[i] - \
+            # self.data[i])*86400000.)
+            # roundoff the microseconds
+            # UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
 
         elif self.data.attrs['dtype'].upper() == 'CDF':
             self.CDF = self.data
-            UTC = [datetime.timedelta(days=cdft/86400000.) +
-                        datetime.datetime(1,1,1) - datetime.timedelta(days=366) for cdft in self.data]
-                #UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
-                    #milliseconds=np.mod(self.data[i],86400000)) + \
-                        #datetime.datetime(1,1,1) - datetime.timedelta(days=366)
-                # the following has round off errors
-                # UTC[i] = datetime.timedelta(data[i]/86400000.-366) + datetime.datetime(1,1,1)
+            UTC = [datetime.timedelta(days=cdft / 86400000.) +
+                   datetime.datetime(1, 1, 1) - datetime.timedelta(days=366) for cdft in self.data]
+            # UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
+            # milliseconds=np.mod(self.data[i],86400000)) + \
+            # datetime.datetime(1,1,1) - datetime.timedelta(days=366)
+            # the following has round off errors
+            # UTC[i] = datetime.timedelta(data[i]/86400000.-366) + datetime.datetime(1,1,1)
 
         elif self.data.attrs['dtype'].upper() in ['JD', 'MJD']:
             if self.data.attrs['dtype'].upper() == 'MJD':
@@ -1183,7 +1186,7 @@ class Ticktock(collections.MutableSequence):
                 self.MJD = self.data
             else:
                 self.JD = self.data
-            UTC = ['']*nTAI
+            UTC = [''] * nTAI
             for i in np.arange(nTAI):
                 # extract partial days
                 ja = int(np.floor(self.JD[i]))
@@ -1191,21 +1194,21 @@ class Ticktock(collections.MutableSequence):
                 # after Press: "Numerical Recipes"
                 # http://www.rgagnon.com/javadetails/java-0506.html
                 # only good for after 15-Oct-1582
-                igreg = 15+31*(10+12*1582)
-                if ja >= igreg: # after switching to Gregorian Calendar
-                    jalpha = int(((ja-1867216)-0.25)/36524.25)
-                    ja = ja + 1 + jalpha -jalpha//4
+                igreg = 15 + 31 * (10 + 12 * 1582)
+                if ja >= igreg:  # after switching to Gregorian Calendar
+                    jalpha = int(((ja - 1867216) - 0.25) / 36524.25)
+                    ja = ja + 1 + jalpha - jalpha // 4
 
                 jb = ja + 1524
                 jc = int(6680.0 + ((jb - 2439870) - 122.1) / 365.25)
-                jd = 365 * jc + jc//4
-                je = int((jb - jd)/30.6001)
+                jd = 365 * jc + jc // 4
+                je = int((jb - jd) / 30.6001)
                 day = jb - jd - int(30.6001 * je)
                 month = je - 1
                 if (month > 12): month = month - 12
                 year = jc - 4715
-                if (month > 2): year = year-1
-                if (year <= 0): year = year-1
+                if (month > 2): year = year - 1
+                if (year <= 0): year = year - 1
 
                 # after http://aa.usno.navy.mil/faq/docs/JD_Formula.php
                 # also good only for after 1582-Oct-15
@@ -1222,14 +1225,15 @@ class Ticktock(collections.MutableSequence):
 
                 UTC[i] = datetime.datetime(year, month, int(day)) + \
                          datetime.timedelta(hours=12) + \
-                         datetime.timedelta(seconds = p*86400)
-                if UTC[i] < datetime.datetime(1582,10,15):
+                         datetime.timedelta(seconds=p * 86400)
+                if UTC[i] < datetime.datetime(1582, 10, 15):
                     warnings.warn("WARNING: Calendar date before the switch from Julian to Gregorian\n" +
-                       "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
+                                  "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         else:
             warnstr1 = 'Input data type {0} does not support calculation of UTC times'.format(self.data.attrs['dtype'])
-            warnstr2 = 'Valid input dtypes are: {0}'.format(', '.join([kk for kk in self._keylist if kk not in ['DOY','eDOY','leaps']]))
+            warnstr2 = 'Valid input dtypes are: {0}'.format(
+                ', '.join([kk for kk in self._keylist if kk not in ['DOY', 'eDOY', 'leaps']]))
             raise TypeError('{0}\n{1}'.format(warnstr1, warnstr2))
 
         UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
@@ -1260,15 +1264,14 @@ class Ticktock(collections.MutableSequence):
 
         """
         # fmt = '%Y-%m-%dT%H:%M:%S'
-        GPS0 = datetime.datetime(1980,1,6,0,0,0,0)
+        GPS0 = datetime.datetime(1980, 1, 6, 0, 0, 0, 0)
         leapsec = self.getleapsecs()
 
         GPStup = [utc - GPS0 + datetime.timedelta(seconds=int(ls)) - datetime.timedelta(seconds=19)
                   for utc, ls in zip(self.UTC, leapsec)]
-        GPS = [gps.days*86400 + gps.seconds + gps.microseconds/1.e6 for gps in GPStup]
-        self.GPS = spacepy.datamodel.dmarray(GPS)#.astype(int)
+        GPS = [gps.days * 86400 + gps.seconds + gps.microseconds / 1.e6 for gps in GPStup]
+        self.GPS = spacepy.datamodel.dmarray(GPS)  # .astype(int)
         return self.GPS
-
 
     # -----------------------------------------------
     def getTAI(self):
@@ -1295,11 +1298,11 @@ class Ticktock(collections.MutableSequence):
         """
 
         fmt = '%Y-%m-%dT%H:%M:%S'
-        TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
+        TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
 
         leapsec = self.getleapsecs()
         TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in zip(self.UTC, leapsec)]
-        TAI = [tai.days*86400 + tai.seconds + tai.microseconds/1.e6 for tai in TAItup]
+        TAI = [tai.days * 86400 + tai.seconds + tai.microseconds / 1.e6 for tai in TAItup]
 
         self.TAI = spacepy.datamodel.dmarray(TAI)
         return self.TAI
@@ -1329,15 +1332,15 @@ class Ticktock(collections.MutableSequence):
         """
 
         nTAI = len(self.data)
-        ISO = ['']*nTAI
+        ISO = [''] * nTAI
         self.TAI = self.getTAI()
         ISO = [utc.strftime(self.__isofmt) for utc in self.UTC]
         for i in range(nTAI):
             if self.TAI[i] in self.TAIleaps:
                 tmptick = Ticktock(self.UTC[i] - datetime.timedelta(seconds=1), 'UTC')
-                a,b,c = tmptick.ISO[0].split(':')
-                cnew = c.replace('59','60')
-                ISO[i] = a+':'+b+':'+cnew
+                a, b, c = tmptick.ISO[0].split(':')
+                cnew = c.replace('59', '60')
+                ISO[i] = a + ':' + b + ':' + cnew
 
         self.ISO = spacepy.datamodel.dmarray(ISO)
         return self.ISO
@@ -1372,37 +1375,38 @@ class Ticktock(collections.MutableSequence):
         global secs, year, mon, day, TAIleaps
 
         try:
-           leaps = secs[0]
+            leaps = secs[0]
 
         except:  # then we are calling this routine the 1st time
-           # load current file
-           fname = os.path.join(DOT_FLN, 'data', 'tai-utc.dat')
-           with open(fname) as fh:
-               text = fh.readlines()
+            # load current file
+            fname = os.path.join(DOT_FLN, 'data', 'tai-utc.dat')
+            with open(fname) as fh:
+                text = fh.readlines()
 
-           secs = np.zeros(len(text))
-           year = np.zeros(len(text))
-           mon = np.zeros(len(text))
-           day = np.zeros(len(text))
+            secs = np.zeros(len(text))
+            year = np.zeros(len(text))
+            mon = np.zeros(len(text))
+            day = np.zeros(len(text))
 
-           months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', \
-                  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
+            months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', \
+                               'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
 
-           for line, i in zip(text, np.arange(len(secs))):
-              secs[i] = int(float(line.split()[6]))  # truncate float seconds
-              year[i] = int(line.split()[0])
-              mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
-              day[i] = int(line.split()[2])
+            for line, i in zip(text, np.arange(len(secs))):
+                secs[i] = int(float(line.split()[6]))  # truncate float seconds
+                year[i] = int(line.split()[0])
+                mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
+                day[i] = int(line.split()[2])
 
-           TAIleaps = np.zeros(len(secs))
-           TAItup = ['']*len(secs)
-           TAI0 = datetime.datetime(1958,1,1,0,0,0,0)
-           for i in np.arange(len(secs)):
-                TAItup[i] = datetime.datetime(int(year[i]), int(mon[i]), int(day[i])) - TAI0 + datetime.timedelta(seconds=int(secs[i])-1)
-                TAIleaps[i] = TAItup[i].days*86400 + TAItup[i].seconds + TAItup[i].microseconds/1.e6
+            TAIleaps = np.zeros(len(secs))
+            TAItup = [''] * len(secs)
+            TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
+            for i in np.arange(len(secs)):
+                TAItup[i] = datetime.datetime(int(year[i]), int(mon[i]), int(day[i])) - TAI0 + datetime.timedelta(
+                    seconds=int(secs[i]) - 1)
+                TAIleaps[i] = TAItup[i].days * 86400 + TAItup[i].seconds + TAItup[i].microseconds / 1.e6
 
         # check if array:
-        if type(tup) == type(datetime.datetime(1,1,1)): # not an array of objects
+        if type(tup) == type(datetime.datetime(1, 1, 1)):  # not an array of objects
             tup = [tup]
             nTAI = 1
             aflag = False
@@ -1412,13 +1416,13 @@ class Ticktock(collections.MutableSequence):
 
         # convert them into a time tuple and find the correct leap seconds
         self.TAIleaps = TAIleaps
-        leaps = [secs[0]]*nTAI
-        leap_dates = [datetime.datetime(int(y),int(m),int(d)) for
-                      y,m,d,s in zip(year, mon, day, secs)]
+        leaps = [secs[0]] * nTAI
+        leap_dates = [datetime.datetime(int(y), int(m), int(d)) for
+                      y, m, d, s in zip(year, mon, day, secs)]
         for i, itup in enumerate(tup):
             ind = bisect.bisect_right(leap_dates, tup[i])
-            leaps[i] = secs[ind-1]
-        
+            leaps[i] = secs[ind - 1]
+
         ## ldatetime = datetime.datetime # avoid an expensive lookup below
         ## for i, itup in enumerate(tup):
         ##     for y,m,d,s in zip(year, mon, day, secs):
@@ -1427,12 +1431,12 @@ class Ticktock(collections.MutableSequence):
         ##         else:
         ##             break
 
-        #if datetime.datetime(1971,12,31) > tup[0]:
+        # if datetime.datetime(1971,12,31) > tup[0]:
         #   print "WARNING: date before 1972/1/1; leap seconds are by fractions off"
 
         if aflag == False:
             self.leaps = int(leaps[0])
-            return int(leaps[0])   # if you want to allow fractional leap seconds, remove 'int' here
+            return int(leaps[0])  # if you want to allow fractional leap seconds, remove 'int' here
         else:
             self.leaps = np.array(leaps, dtype=int)
             return self.leaps
@@ -1476,6 +1480,7 @@ class Ticktock(collections.MutableSequence):
         dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
         return Ticktock(dt, 'utc')
 
+
 # -----------------------------------------------
 # End of Ticktock class
 # -----------------------------------------------
@@ -1512,7 +1517,7 @@ def doy2date(year, doy, dtobj=False, flAns=False):
     try:
         n_year = len(year)
     except TypeError:
-        n_year = -1 #Special case: this is a scalar
+        n_year = -1  # Special case: this is a scalar
     try:
         n_doy = len(doy)
     except TypeError:
@@ -1540,18 +1545,17 @@ def doy2date(year, doy, dtobj=False, flAns=False):
 
     if flAns:
         dateobj = spacepy.datamodel.dmarray([datetime.datetime(year[i], 1, 1) +
-                   datetime.timedelta(days=float(doy[i]) - 1)
-                   for i in range(n_year)])
+                                             datetime.timedelta(days=float(doy[i]) - 1)
+                                             for i in range(n_year)])
     else:
         dateobj = spacepy.datamodel.dmarray([datetime.datetime(int(year[i]), 1, 1) +
-                   datetime.timedelta(days=int(doy[i]) - 1)
-                   for i in range(n_year)])
+                                             datetime.timedelta(days=int(doy[i]) - 1)
+                                             for i in range(n_year)])
     if dtobj:
         return dateobj
     else:
         return (spacepy.datamodel.dmarray([dt.month for dt in dateobj]),
                 spacepy.datamodel.dmarray([dt.day for dt in dateobj]))
-
 
 
 # -----------------------------------------------
@@ -1590,16 +1594,16 @@ def tickrange(start, end, deltadays, dtype=None):
     Tstart = Ticktock(start, dtype)
     Tend = Ticktock(end, dtype)
     diff = Tend.UTC[0] - Tstart.UTC[0]
-    dmusec, dsec = diff.microseconds/86400000000., diff.seconds/86400.
+    dmusec, dsec = diff.microseconds / 86400000000., diff.seconds / 86400.
     try:
-        assert type(deltadays)==datetime.timedelta
-        musec, sec = deltadays.microseconds/86400000000., deltadays.seconds/86400.
+        assert type(deltadays) == datetime.timedelta
+        musec, sec = deltadays.microseconds / 86400000000., deltadays.seconds / 86400.
         deltat = musec + sec + deltadays.days
-        nticks = int((dmusec + dsec + diff.days)/deltat + 1)
-        trange = [Tstart.UTC[0] + deltadays*n for n in range(nticks)]
+        nticks = int((dmusec + dsec + diff.days) / deltat + 1)
+        trange = [Tstart.UTC[0] + deltadays * n for n in range(nticks)]
     except:
-        nticks = int((dmusec + dsec + diff.days)/float(deltadays) + 1)
-        trange = [Tstart.UTC[0] + datetime.timedelta(days=deltadays)*n for n in range(nticks)]
+        nticks = int((dmusec + dsec + diff.days) / float(deltadays) + 1)
+        trange = [Tstart.UTC[0] + datetime.timedelta(days=deltadays) * n for n in range(nticks)]
     ticks = Ticktock(trange, 'UTC')
     return ticks
 
@@ -1634,13 +1638,14 @@ def sec2hms(sec, rounding=True, days=False, dtobj=False):
                           "Try days keyword.")
     else:
         sec %= 86400
-    if dtobj: # no need to do the computation
+    if dtobj:  # no need to do the computation
         return datetime.timedelta(seconds=sec)
     else:
-        hours = int(sec)//3600
-        minutes = int((sec - hours*3600) // 60) % 60
+        hours = sec // 3600
+        minutes = ((sec - hours * 3600) // 60) % 60
         seconds = sec % 60
         return [hours, minutes, seconds]
+
 
 def no_tzinfo(dt):
     """
@@ -1660,8 +1665,9 @@ def no_tzinfo(dt):
     """
     try:
         return [val.replace(tzinfo=None) for val in dt]
-    except TypeError: # was not an iterable
+    except TypeError:  # was not an iterable
         return dt.replace(tzinfo=None)
+
 
 def leapyear(year, numdays=False):
     """
@@ -1697,6 +1703,7 @@ def leapyear(year, numdays=False):
         isleap = isleap.astype(int) + 365
     return isleap
 
+
 def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     """
     Return a (or many) random datetimes between two given dates, this is done under the convention dt <=1 rand < dt2
@@ -1728,7 +1735,7 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     from matplotlib.dates import date2num, num2date
 
     if dt1.tzinfo != dt2.tzinfo:
-        raise(ValueError('tzinfo for the input and output datetimes must match'))
+        raise (ValueError('tzinfo for the input and output datetimes must match'))
     dt1n = date2num(dt1)
     dt2n = date2num(dt2)
     rnd_tn = np.random.uniform(dt1n, dt2n, size=N)
@@ -1741,6 +1748,7 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     if sorted:
         rnd_t.sort()
     return rnd_t
+
 
 def extract_YYYYMMDD(filename):
     """
@@ -1764,6 +1772,7 @@ def extract_YYYYMMDD(filename):
         return None
     else:
         return datetime.datetime.strptime(m.group(), '%Y%m%d')
+
 
 def valid_YYYYMMDD(inval):
     """
