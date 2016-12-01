@@ -854,7 +854,7 @@ class Ticktock(collections.MutableSequence):
         """
         DOY = [utc.toordinal() - datetime.date(utc.year, 1, 1).toordinal() + 1 for utc in self.UTC]
 
-        self.DOY = spacepy.datamodel.dmarray(DOY).astype(int)
+        self.DOY = spacepy.datamodel.dmarray(DOY, attrs={'dtype': 'DOY'}).astype(int)
         return self.DOY
 
     # -----------------------------------------------
@@ -892,7 +892,7 @@ class Ticktock(collections.MutableSequence):
         eDOY = [edoy + utc.hour / 24. + utc.minute / 1440. + utc.second / 86400. + utc.microsecond / 86400000000.
                 for edoy, utc in zip(eDOY, self.UTC)]
 
-        self.eDOY = spacepy.datamodel.dmarray(eDOY)
+        self.eDOY = spacepy.datamodel.dmarray(eDOY, attrs={'dtype': 'eDOY'})
         return self.eDOY
 
     # -----------------------------------------------
@@ -937,7 +937,7 @@ class Ticktock(collections.MutableSequence):
                           "    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         # include offset if given
-        JD = spacepy.datamodel.dmarray(np.zeros(nTAI))
+        JD = spacepy.datamodel.dmarray(np.zeros(nTAI), attrs={'dtype': 'JD'})
 
         twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
         sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
@@ -1044,7 +1044,7 @@ class Ticktock(collections.MutableSequence):
         d = [utc - UNX0 for utc in self.UTC]
         UNX = [dd.days * 86400 + dd.seconds + dd.microseconds / 1.e6 for dd in d]
 
-        self.UNX = spacepy.datamodel.dmarray(UNX)
+        self.UNX = spacepy.datamodel.dmarray(UNX, attrs={'dtype': 'UNX'})
         return self.UNX
 
     # -----------------------------------------------
@@ -1076,7 +1076,7 @@ class Ticktock(collections.MutableSequence):
         # nTAI = len(self.data)
         UTC = self.UTC
         # RDT = np.zeros(nTAI)
-        RDT = spacepy.datamodel.dmarray(date2num(UTC))
+        RDT = spacepy.datamodel.dmarray(date2num(UTC), attrs={'dtype': 'RDT'})
         # for i in np.arange(nTAI):
         # RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
         # UTC[i].second/86400. + UTC[i].microsecond/86400000000.
@@ -1270,7 +1270,7 @@ class Ticktock(collections.MutableSequence):
         GPStup = [utc - GPS0 + datetime.timedelta(seconds=int(ls)) - datetime.timedelta(seconds=19)
                   for utc, ls in zip(self.UTC, leapsec)]
         GPS = [gps.days * 86400 + gps.seconds + gps.microseconds / 1.e6 for gps in GPStup]
-        self.GPS = spacepy.datamodel.dmarray(GPS)  # .astype(int)
+        self.GPS = spacepy.datamodel.dmarray(GPS, attrs={'dtype': 'GPS'})  # .astype(int)
         return self.GPS
 
     # -----------------------------------------------
@@ -1304,7 +1304,7 @@ class Ticktock(collections.MutableSequence):
         TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in zip(self.UTC, leapsec)]
         TAI = [tai.days * 86400 + tai.seconds + tai.microseconds / 1.e6 for tai in TAItup]
 
-        self.TAI = spacepy.datamodel.dmarray(TAI)
+        self.TAI = spacepy.datamodel.dmarray(TAI, attrs={'dtype': 'TAI'})
         return self.TAI
 
     # -----------------------------------------------
@@ -1342,7 +1342,7 @@ class Ticktock(collections.MutableSequence):
                 cnew = c.replace('59', '60')
                 ISO[i] = a + ':' + b + ':' + cnew
 
-        self.ISO = spacepy.datamodel.dmarray(ISO)
+        self.ISO = spacepy.datamodel.dmarray(ISO, attrs={'dtype': 'ISO'})
         return self.ISO
 
     # -----------------------------------------------
