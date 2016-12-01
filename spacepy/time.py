@@ -119,7 +119,6 @@ an "optimization flag" (-O), but currently this does not actually optimize the b
 """
 
 
-
 # -----------------------------------------------
 # Ticktock class
 # -----------------------------------------------
@@ -378,11 +377,7 @@ class Ticktock(collections.MutableSequence):
         will be called when deleting items in the sequence
         """
         self.data = np.delete(self.data, idx)
-
         self.update_items(self, 'data')
-
-        # del self.data[idx]
-        # self.update_items(self, 'data')
 
     # -----------------------------------------------
     def __len__(self):
@@ -510,7 +505,6 @@ class Ticktock(collections.MutableSequence):
         >>> a + delt
         Ticktock( ['2002-02-02T12:01:00'] , dtype=ISO)
 
-
         See Also
         ========
         __sub__
@@ -596,7 +590,7 @@ class Ticktock(collections.MutableSequence):
         if name.upper() == 'GPS': self.GPS = self.getGPS()
         # if name == 'isoformat': self.__isofmt = self.isoformat()
         if name == 'leaps': self.leaps = self.getleapsecs()
-        return eval('self.' + name)
+        return getattr(self, name)
 
     # -----------------------------------------------
     def insert(self, idx, val, dtype=None):
@@ -620,7 +614,7 @@ class Ticktock(collections.MutableSequence):
             dum = Ticktock(val)
         else:
             dum = Ticktock(val, dtype=dtype)
-        ival = eval('dum.{0}'.format(fmt))
+        ival = getattr(dum, fmt)
         self.data = np.insert(self.data, idx, ival)
 
         self.update_items(self, 'data')
@@ -764,7 +758,7 @@ class Ticktock(collections.MutableSequence):
         ISO
         UTC
         """
-        newdat = eval('self.' + dtype)
+        newdat = getattr(self, dtype)
         return Ticktock(newdat, dtype)
 
     # -----------------------------------------------
@@ -779,7 +773,7 @@ class Ticktock(collections.MutableSequence):
         other : Ticktock
             other (Ticktock instance)
         """
-        otherdata = eval('other.' + self.data.attrs['dtype'])
+        otherdata = getattr(other, self.data.attrs['dtype'])
         newobj = Ticktock(np.append(self.data, otherdata), dtype=self.data.attrs['dtype'])
         return newobj
 
@@ -1111,8 +1105,9 @@ class Ticktock(collections.MutableSequence):
 
         nTAI = len(self.data)
 
+        # if already UTC, we are done, no conversion
         if self.data.attrs['dtype'].upper() == 'UTC':
-            UTC = self.data  # return
+            UTC = self.data
 
         elif self.data.attrs['dtype'].upper() == 'ISO':
             self.ISO = self.data
@@ -1148,7 +1143,7 @@ class Ticktock(collections.MutableSequence):
             self.UTC = UTC
             leapsecs = self.getleapsecs()
             for i in np.arange(nTAI):
-                # there were 18 leap secinds before gps zero, need the -18 for that
+                # there were 18 leap seconds before gps zero, need the -18 for that
                 self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i])) + \
                               datetime.timedelta(seconds=19)
 
@@ -1159,7 +1154,6 @@ class Ticktock(collections.MutableSequence):
 
         elif self.data.attrs['dtype'].upper() == 'RDT':
             self.RDT = self.data
-            # import matplotlib.dates as mpd
             UTC = num2date(self.data)
             UTC = no_tzinfo(UTC)
             # for i in np.arange(nTAI):
@@ -1296,8 +1290,6 @@ class Ticktock(collections.MutableSequence):
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
 
         """
-
-        fmt = '%Y-%m-%dT%H:%M:%S'
         TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
 
         leapsec = self.getleapsecs()
@@ -1458,7 +1450,7 @@ class Ticktock(collections.MutableSequence):
 
         """
         dt = datetime.datetime.now()
-        return Ticktock(dt, 'utc')
+        return Ticktock(dt, 'UTC')
 
     # -----------------------------------------------
     @classmethod
@@ -1479,7 +1471,7 @@ class Ticktock(collections.MutableSequence):
         """
         dt = datetime.datetime.now()
         dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        return Ticktock(dt, 'utc')
+        return Ticktock(dt, 'UTC')
 
 
 # -----------------------------------------------
