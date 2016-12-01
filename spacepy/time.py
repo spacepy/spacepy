@@ -1319,18 +1319,16 @@ class Ticktock(collections.MutableSequence):
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
-
         nTAI = len(self.data)
         self.TAI = self.getTAI()
-        ISO = [utc.strftime(self.__isofmt) for utc in self.UTC]
+        self.ISO = spacepy.datamodel.dmarray([utc.strftime(self.__isofmt) for utc in self.UTC], attrs={'dtype': 'ISO'})
         for i in range(nTAI):
             if self.TAI[i] in self.TAIleaps:
                 tmptick = self.UTC[i] - datetime.timedelta(seconds=1)
                 a, b, c = tmptick.ISO[0].split(':')
                 cnew = c.replace('59', '60')
-                ISO[i] = a + ':' + b + ':' + cnew
+                self.ISO[i] = a + ':' + b + ':' + cnew
 
-        self.ISO = spacepy.datamodel.dmarray(ISO, attrs={'dtype': 'ISO'})
         return self.ISO
 
     # -----------------------------------------------
@@ -1376,7 +1374,7 @@ class Ticktock(collections.MutableSequence):
             mon = np.zeros(len(text))
             day = np.zeros(len(text))
 
-            months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', \
+            months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
                                'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
 
             for line, i in zip(text, np.arange(len(secs))):
@@ -1394,7 +1392,7 @@ class Ticktock(collections.MutableSequence):
                 TAIleaps[i] = TAItup[i].days * 86400 + TAItup[i].seconds + TAItup[i].microseconds / 1.e6
 
         # check if array:
-        if type(tup) == type(datetime.datetime(1, 1, 1)):  # not an array of objects
+        if isinstance(tup, datetime.datetime):  # not an array of objects
             tup = [tup]
             nTAI = 1
             aflag = False
@@ -1431,7 +1429,7 @@ class Ticktock(collections.MutableSequence):
 
     # -----------------------------------------------
     @classmethod
-    def now(self):
+    def now(cls):
         """
         Creates a Ticktock object with the current time, equivalent to datetime.now()
 
@@ -1450,7 +1448,7 @@ class Ticktock(collections.MutableSequence):
 
     # -----------------------------------------------
     @classmethod
-    def today(self):
+    def today(cls):
         """
         Creates a Ticktock object with the current date and time set to 00:00:00, equivalent to date.today() with time
         included
@@ -1584,7 +1582,7 @@ def tickrange(start, end, deltadays, dtype=None):
     Tend = Ticktock(end, dtype)
     diff = Tend.UTC[0] - Tstart.UTC[0]
     dmusec, dsec = diff.microseconds / 86400000000., diff.seconds / 86400.
-    if type(deltadays) == datetime.timedelta:
+    if isinstance(deltadays, datetime.timedelta):
         musec, sec = deltadays.microseconds / 86400000000., deltadays.seconds / 86400.
         deltat = musec + sec + deltadays.days
         nticks = int((dmusec + dsec + diff.days) / deltat + 1)
