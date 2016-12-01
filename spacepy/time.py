@@ -214,6 +214,8 @@ class Ticktock(collections.MutableSequence):
     def __init__(self, data, dtype=None):
         self._keylist = ['UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
         keylist_upper = [key.upper() for key in self._keylist]
+        self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
+        self.__isofmt = self.__isoformatstr['seconds']
 
         if isinstance(data, Ticktock):
             dtype = data.data.attrs['dtype']
@@ -242,28 +244,20 @@ class Ticktock(collections.MutableSequence):
                 self.data = dtype_func(self.data)
                 self.UTC = self.data
 
-        self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
-        self.__isofmt = self.__isoformatstr['seconds']
-
         try:
             self.data.attrs['dtype'] = dtype.upper()
         except AttributeError:
             self.data.attrs['dtype'] = str(dtype_func)
         else:
-            if dtype.upper() == 'ISO':
-                if self.data[0].find('Z'):  # remove timezones
-                    for i, v in np.ndenumerate(self.data):
-                        self.data[i] = v.split('Z')[0]
-                self.ISO = self.data
+            if dtype.upper() == 'ISO': self.ISO = self.data
             self.update_items(self, 'data')
             if dtype.upper() == 'TAI': self.TAI = self.data
-            if dtype.upper() == 'JD': self.JD = self.data
-            if dtype.upper() == 'MJD': self.MJD = self.data
-            if dtype.upper() == 'UNX': self.UNX = self.data
-            if dtype.upper() == 'RDT': self.RDT = self.data
-            if dtype.upper() == 'CDF': self.CDF = self.data
-            if dtype.upper() == 'UTC': self.UTC = self.data
-
+            elif dtype.upper() == 'JD': self.JD = self.data
+            elif dtype.upper() == 'MJD': self.MJD = self.data
+            elif dtype.upper() == 'UNX': self.UNX = self.data
+            elif dtype.upper() == 'RDT': self.RDT = self.data
+            elif dtype.upper() == 'CDF': self.CDF = self.data
+            elif dtype.upper() == 'UTC': self.UTC = self.data
 
             ## Brian and Steve were looking at this to see about making plot work directly on the object
             ## is also making iterate as an array of datetimes
