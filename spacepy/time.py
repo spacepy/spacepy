@@ -1062,18 +1062,16 @@ class Ticktock(collections.MutableSequence):
         getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
-        from matplotlib.dates import date2num, num2date
-        #        import matplotlib.dates as mpd
+        from matplotlib.dates import date2num
 
+        # This is how to do this without date2num
         # nTAI = len(self.data)
-        UTC = self.UTC
         # RDT = np.zeros(nTAI)
-        RDT = spacepy.datamodel.dmarray(date2num(UTC), attrs={'dtype': 'RDT'})
         # for i in np.arange(nTAI):
         # RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
         # UTC[i].second/86400. + UTC[i].microsecond/86400000000.
 
-        self.RDT = RDT
+        self.RDT = spacepy.datamodel.dmarray(date2num(self.UTC), attrs={'dtype': 'RDT'})
         return self.RDT
 
     # -----------------------------------------------
@@ -1099,7 +1097,7 @@ class Ticktock(collections.MutableSequence):
         getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
-        from matplotlib.dates import date2num, num2date
+        from matplotlib.dates import num2date
 
         nTAI = len(self.data)
 
@@ -1119,7 +1117,13 @@ class Ticktock(collections.MutableSequence):
                     try:
                         UTC = [datetime.datetime.strptime(isot, '%Y-%m-%d') for isot in self.data]
                     except ValueError:
-                        UTC = [dup.parse(isot) for isot in self.data]
+                        try:
+                            UTC = [datetime.datetime.strptime(isot, '%Y%m%d') for isot in self.data]
+                        except ValueError:
+                            try:
+                                UTC = [datetime.datetime.strptime(isot, '%Y%m%d %H:%M:%S') for isot in self.data]
+                            except ValueError:
+                                UTC = [dup.parse(isot) for isot in self.data]
 
         elif self.data.attrs['dtype'].upper() == 'TAI':
             self.TAI = self.data
