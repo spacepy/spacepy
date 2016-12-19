@@ -107,8 +107,6 @@ import spacepy.datamodel
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
-
-
 """
 Notes:
 Python's assert statement is a good way to catch situations that should never happen. And it can be removed by Python
@@ -235,8 +233,7 @@ class Ticktock(collections.MutableSequence):
                 elif self.data[0] > 1e13:
                     dtype = 'CDF'
                 if dtype.upper() not in keylist_upper:
-                    raise ValueError("data type " + dtype + " not provided, only " + str(
-                    self._keylist))
+                    raise ValueError("data type " + dtype + " not provided, only " + str(self._keylist))
             else:
                 # process input data using callable dtype to convert to datetime/UTC
                 dtype_func = np.vectorize(dtype)
@@ -250,13 +247,20 @@ class Ticktock(collections.MutableSequence):
         else:
             if dtype.upper() == 'ISO': self.ISO = self.data
             self.update_items(self, 'data')
-            if dtype.upper() == 'TAI': self.TAI = self.data
-            elif dtype.upper() == 'JD': self.JD = self.data
-            elif dtype.upper() == 'MJD': self.MJD = self.data
-            elif dtype.upper() == 'UNX': self.UNX = self.data
-            elif dtype.upper() == 'RDT': self.RDT = self.data
-            elif dtype.upper() == 'CDF': self.CDF = self.data
-            elif dtype.upper() == 'UTC': self.UTC = self.data
+            if dtype.upper() == 'TAI':
+                self.TAI = self.data
+            elif dtype.upper() == 'JD':
+                self.JD = self.data
+            elif dtype.upper() == 'MJD':
+                self.MJD = self.data
+            elif dtype.upper() == 'UNX':
+                self.UNX = self.data
+            elif dtype.upper() == 'RDT':
+                self.RDT = self.data
+            elif dtype.upper() == 'CDF':
+                self.CDF = self.data
+            elif dtype.upper() == 'UTC':
+                self.UTC = self.data
 
             ## Brian and Steve were looking at this to see about making plot work directly on the object
             ## is also making iterate as an array of datetimes
