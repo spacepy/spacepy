@@ -241,6 +241,14 @@ class TimeClassTests(unittest.TestCase):
         # super(tFunctionTests, self).tearDown()
         pass
 
+    def test_TAIinit(self):
+        """test that Ticktock can be made from TAI input"""
+        t0 = 1663236947
+        range_ex = list(range(t0, t0 + 5000, 500))
+        tt = t.Ticktock(range_ex, 'TAI')
+        ans = ['2010-09-15T10:15:13', '2010-09-15T10:23:33', '2010-09-15T10:31:53']
+        numpy.testing.assert_equal(tt.ISO[0:3], ans)
+
     def test_initRaises(self):
         """Ticktock init has a raise or two"""
         self.assertRaises(ValueError, t.Ticktock, 12345, 'BOGUS')
@@ -271,7 +279,7 @@ class TimeClassTests(unittest.TestCase):
         self.assertTrue(isinstance((n2 - n1)[0], datetime.timedelta))
         self.assertEqual(28, (n1 - n2)[0].days)
         self.assertEqual(40991, (n1 - n2)[0].seconds)
-        numpy.testing.assert_equal((n1 - n2), [datetime.timedelta(days=28, seconds=40991)]*3)
+        numpy.testing.assert_equal((n1 - n2), [datetime.timedelta(days=28, seconds=40991)] * 3)
 
     def test_subRaises(self):
         """subtracting ticktocks can raise"""
