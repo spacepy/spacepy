@@ -281,6 +281,16 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual(40991, (n1 - n2)[0].seconds)
         numpy.testing.assert_equal((n1 - n2), [datetime.timedelta(days=28, seconds=40991)] * 3)
 
+    def test_subTicktockRaises(self):
+        """a ticktock minus a bad type errors"""
+        n1 = t.Ticktock(['2002-03-01T11:23:11'] * 3, 'ISO')
+        self.assertRaises(TypeError, n1.__sub__, ['bob'])
+
+    def test_subTicktockRaises2(self):
+        """a ticktock minus a bad shape errors"""
+        n1 = t.Ticktock(['2002-03-01T11:23:11'] * 2, 'ISO')
+        self.assertRaises(TypeError, n1.__sub__, [datetime.timedelta(seconds=1)]*3)
+
     def test_subRaises(self):
         """subtracting ticktocks can raise"""
         n1 = t.Ticktock(['2002-03-01T11:23:11',
@@ -289,6 +299,7 @@ class TimeClassTests(unittest.TestCase):
         n2 = t.Ticktock(['2002-03-01T11:23:11',
                          '2002-03-01T12:23:11'], 'ISO')
         self.assertRaises(ValueError, n1.__sub__, n2)
+        self.assertRaises(TypeError, n1.__sub__, 4)
 
     def test_subtimedeltalist(self):
         """a ticktock minus a list of timedeltas is a ticktock"""
