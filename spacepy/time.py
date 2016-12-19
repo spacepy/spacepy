@@ -462,10 +462,11 @@ class Ticktock(collections.MutableSequence):
         if isinstance(other, datetime.timedelta):
             newobj = Ticktock(self.UTC - other, 'UTC')
         elif isinstance(other, Ticktock):
-            if not (len(other) == len(self.data)) or not (len(other) == 1):
+            if not (len(other) == len(self.data)) and not (len(other) == 1):
                 raise ValueError('Ticktock lengths are mismatched, subtraction is not possible')
             same = True
-            if len(other) == 1: same = False
+            if len(other) == 1:
+                same = False
             if same:
                 return [datetime.timedelta(seconds=t - other.TAI[i])
                         for i, t in enumerate(self.TAI)]
