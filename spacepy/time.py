@@ -677,7 +677,7 @@ class Ticktock(collections.MutableSequence):
         ==========
         fmt : string, optional
         """
-        if not fmt:
+        if fmt is None:
             print('Current ISO output format is %s' % self._isofmt)
             print('Options are: {0}'.format([(k, Ticktock._isoformatstr[k]) for k in list(Ticktock._isoformatstr.keys())]))
         else:

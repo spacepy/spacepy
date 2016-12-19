@@ -10,12 +10,17 @@ import datetime
 import itertools
 
 try:
+    import StringIO
+except:
+    import io as StringIO
+try:
     from itertools import izip as zip
 except ImportError:
     pass  # just use system zip. In python3 itertools.izip is just python zip
 import unittest
 import pickle
 import time
+import sys
 import warnings
 
 import numpy
@@ -58,6 +63,8 @@ class TimeFunctionTests(unittest.TestCase):
             except TypeError:
                 self.assertEqual(real_ans[i], (ans2.month, ans2.day))
         self.assertRaises(ValueError, t.doy2date, (2000, 2000, 2000), (5, 4))
+        numpy.testing.assert_array_equal(t.doy2date((2000, 2000, 2000), (5, 4, 3.3), flAns=True),
+                                         [[1, 1, 1],[5, 4, 3]])
 
     def test_doy2datefail(self):
         '''doy2date should fail for bad input'''
@@ -450,6 +457,33 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_equal(t1.ISO, expected)
         self.assertRaises(ValueError, t1.isoformat, 'badval')
 
+    def test_isoformat4(self):
+        """gives a message with nothing specified in isoformat"""
+        t1 = t.Ticktock(['2002-01-01T12', '2002-01-02T23', '2001-12-12T13'])
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        self.assertTrue(t1.isoformat() is None)
+        result = output.getvalue()
+        output.close()
+        self.assertTrue(result.startswith("Current ISO"))
+        sys.stdout = realstdout
+
+    def test_ISO(self):
+        """converting to ISO format should work"""
+        t0 = 1663236947
+        range_ex = list(numpy.linspace(t0, t0 + 4000, 4))
+        # make a TAI that is a leapsecond time
+        tt2 = t.Ticktock.now()
+        tt2tai = tt2.TAI
+        taileaps = tt2.TAIleaps
+        range_ex.append(taileaps[-1])
+        range_ex.append(taileaps[-2])
+        tt = t.Ticktock(range_ex, 'TAI')
+        ans = ['2010-09-15T10:15:13', '2010-09-15T10:37:26', '2010-09-15T10:59:39',
+               '2010-09-15T11:21:53', '2015-07-01T00:00:00', '2012-07-01T00:00:00']
+        numpy.testing.assert_array_equal(tt.ISO, ans)
+
     def test_DOY(self):
         """DOY conversion should work"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
@@ -497,7 +531,7 @@ class TimeClassTests(unittest.TestCase):
         n2 = t.Ticktock(['2002-03-01T11:23:11',
                          '2002-03-01T12:23:11'], 'ISO')
         self.assertRaises(TypeError, n1.__add__, n2)  # can't add Ticktocks
-        self.assertRaises(TypeError, n1.__add__, [datetime.timedelta(seconds=5)]*8)
+        self.assertRaises(TypeError, n1.__add__, [datetime.timedelta(seconds=5)] * 8)
         self.assertRaises(TypeError, n1.__add__, 345)
 
     def test_insert(self):
@@ -515,6 +549,7 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([52275.04166667, 52276.])
         numpy.testing.assert_almost_equal(t1.MJD, expected)
+        t2 = t.Ticktock(['1581-01-01T01:00:00'])
 
     def test_GPS(self):
         """conversions to GPS should work"""
