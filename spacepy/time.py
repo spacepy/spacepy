@@ -233,7 +233,7 @@ class Ticktock(collections.MutableSequence):
                 elif self.data[0] > 1e13:
                     dtype = 'CDF'
                 if dtype.upper() not in Ticktock._keylist_upper:
-                    raise ValueError("data type " + dtype + " not provided, only " + str(_keylist))
+                    raise ValueError("data type " + dtype + " not provided, only " + str(Ticktock._keylist))
             else:
                 # process input data using callable dtype to convert to datetime/UTC
                 dtype_func = np.vectorize(dtype)
@@ -1232,7 +1232,7 @@ class Ticktock(collections.MutableSequence):
         else:
             warnstr1 = 'Input data type {0} does not support calculation of UTC times'.format(self.data.attrs['dtype'])
             warnstr2 = 'Valid input dtypes are: {0}'.format(
-                ', '.join([kk for kk in _keylist if kk not in ['DOY', 'eDOY', 'leaps']]))
+                ', '.join([kk for kk in Ticktock._keylist if kk not in ['DOY', 'eDOY', 'leaps']]))
             raise TypeError('{0}\n{1}'.format(warnstr1, warnstr2))
 
         UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})

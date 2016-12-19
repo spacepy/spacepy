@@ -241,6 +241,10 @@ class TimeClassTests(unittest.TestCase):
         # super(tFunctionTests, self).tearDown()
         pass
 
+    def test_initRaises(self):
+        """Ticktock init has a raise or two"""
+        self.assertRaises(ValueError, t.Ticktock, 12345, 'BOGUS')
+
     def test_sliceTicktock(self):
         """a ticktock sliced returns a ticktock"""
         n1 = t.Ticktock(['2002-03-01T11:23:11',
