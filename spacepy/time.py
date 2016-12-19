@@ -207,12 +207,12 @@ class Ticktock(collections.MutableSequence):
     .. automethod:: sort
     .. automethod:: update_items
     """
+    _keylist = ['UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
+    _keylist_upper = [key.upper() for key in _keylist]
+    _isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
 
     def __init__(self, data, dtype=None):
-        self._keylist = ['UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
-        keylist_upper = [key.upper() for key in self._keylist]
-        self.__isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
-        self.__isofmt = self.__isoformatstr['seconds']
+        self._isofmt = Ticktock._isoformatstr['seconds']
 
         if isinstance(data, Ticktock):
             dtype = data.data.attrs['dtype']
@@ -232,8 +232,8 @@ class Ticktock(collections.MutableSequence):
                     dtype = 'UTC'
                 elif self.data[0] > 1e13:
                     dtype = 'CDF'
-                if dtype.upper() not in keylist_upper:
-                    raise ValueError("data type " + dtype + " not provided, only " + str(self._keylist))
+                if dtype.upper() not in Ticktock._keylist_upper:
+                    raise ValueError("data type " + dtype + " not provided, only " + str(_keylist))
             else:
                 # process input data using callable dtype to convert to datetime/UTC
                 dtype_func = np.vectorize(dtype)
@@ -581,7 +581,7 @@ class Ticktock(collections.MutableSequence):
 
 
         """
-        assert name in self._keylist, "data type " + str(name) + " not provided, only " + str(self._keylist)
+        assert name in Ticktock._keylist, "data type " + str(name) + " not provided, only " + str(Ticktock._keylist)
         if name.upper() == 'TAI': self.TAI = self.getTAI()
         if name.upper() == 'ISO': self.ISO = self.getISO()
         if name.upper() == 'JD': self.JD = self.getJD()
@@ -669,7 +669,7 @@ class Ticktock(collections.MutableSequence):
         """
         a.update_items(b, attrib)
 
-        This changes the self.__isofmt attribute by and subsequently this
+        This changes the self._isofmt attribute by and subsequently this
         function will update the ISO attribute.
 
         Parameters
@@ -677,16 +677,14 @@ class Ticktock(collections.MutableSequence):
         fmt : string, optional
         """
         if not fmt:
-            print('Current ISO output format is %s' % self.__isofmt)
-            print('Options are: {0}'.format([(k, self.__isoformatstr[k]) for k in list(self.__isoformatstr.keys())]))
+            print('Current ISO output format is %s' % self._isofmt)
+            print('Options are: {0}'.format([(k, Ticktock._isoformatstr[k]) for k in list(Ticktock._isoformatstr.keys())]))
         else:
             try:
-                self.__isofmt = self.__isoformatstr[fmt]
+                self._isofmt = Ticktock._isoformatstr[fmt]
                 self.update_items(self, 'data')
             except KeyError:
-                raise (ValueError('Not a valid option: Use {0}'.format(list(self.__isoformatstr.keys()))))
-
-        return
+                raise (ValueError('Not a valid option: Use {0}'.format(list(Ticktock._isoformatstr.keys()))))
 
     # -----------------------------------------------
     def update_items(self, cls, attrib):
@@ -1233,7 +1231,7 @@ class Ticktock(collections.MutableSequence):
         else:
             warnstr1 = 'Input data type {0} does not support calculation of UTC times'.format(self.data.attrs['dtype'])
             warnstr2 = 'Valid input dtypes are: {0}'.format(
-                ', '.join([kk for kk in self._keylist if kk not in ['DOY', 'eDOY', 'leaps']]))
+                ', '.join([kk for kk in _keylist if kk not in ['DOY', 'eDOY', 'leaps']]))
             raise TypeError('{0}\n{1}'.format(warnstr1, warnstr2))
 
         UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
@@ -1329,7 +1327,7 @@ class Ticktock(collections.MutableSequence):
         """
         nTAI = len(self.data)
         self.TAI = self.getTAI()
-        self.ISO = spacepy.datamodel.dmarray([utc.strftime(self.__isofmt) for utc in self.UTC], attrs={'dtype': 'ISO'})
+        self.ISO = spacepy.datamodel.dmarray([utc.strftime(self._isofmt) for utc in self.UTC], attrs={'dtype': 'ISO'})
         for i in range(nTAI):
             if self.TAI[i] in self.TAIleaps:
                 tmptick = self.UTC[i] - datetime.timedelta(seconds=1)
