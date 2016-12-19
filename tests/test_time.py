@@ -289,7 +289,7 @@ class TimeClassTests(unittest.TestCase):
     def test_subTicktockRaises2(self):
         """a ticktock minus a bad shape errors"""
         n1 = t.Ticktock(['2002-03-01T11:23:11'] * 2, 'ISO')
-        self.assertRaises(TypeError, n1.__sub__, [datetime.timedelta(seconds=1)]*3)
+        self.assertRaises(TypeError, n1.__sub__, [datetime.timedelta(seconds=1)] * 3)
 
     def test_subRaises(self):
         """subtracting ticktocks can raise"""
@@ -488,6 +488,17 @@ class TimeClassTests(unittest.TestCase):
         expected = t.Ticktock(["2002-01-01T01:45:00", "2002-01-02T00:45:00"], dtype='UTC')
         self.assertTrue((t1 + datetime.timedelta(minutes=45) == expected).all())
         self.assertTrue((datetime.timedelta(minutes=45) + t1 == expected).all())
+
+    def test_addRaises(self):
+        """adding ticktocks can raise"""
+        n1 = t.Ticktock(['2002-03-01T11:23:11',
+                         '2002-03-01T12:23:11',
+                         '2002-03-01T13:23:11'], 'ISO')
+        n2 = t.Ticktock(['2002-03-01T11:23:11',
+                         '2002-03-01T12:23:11'], 'ISO')
+        self.assertRaises(TypeError, n1.__add__, n2)  # can't add Ticktocks
+        self.assertRaises(TypeError, n1.__add__, [datetime.timedelta(seconds=5)]*8)
+        self.assertRaises(TypeError, n1.__add__, 345)
 
     def test_insert(self):
         """you can insert to a TickTock"""
