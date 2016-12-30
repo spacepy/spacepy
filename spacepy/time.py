@@ -238,7 +238,7 @@ class Ticktock(collections.MutableSequence):
                 # process input data using callable dtype to convert to datetime/UTC
                 dtype_func = np.vectorize(dtype)
                 self.data = dtype_func(self.data)
-                self.UTC = self.data
+                self.UTC = no_tzinfo(self.data)
 
         try:
             self.data.attrs['dtype'] = dtype.upper()
@@ -260,7 +260,7 @@ class Ticktock(collections.MutableSequence):
             elif dtype.upper() == 'CDF':
                 self.CDF = self.data
             elif dtype.upper() == 'UTC':
-                self.UTC = self.data
+                self.UTC = no_tzinfo(self.data)
 
             ## Brian and Steve were looking at this to see about making plot work directly on the object
             ## is also making iterate as an array of datetimes
@@ -1236,8 +1236,8 @@ class Ticktock(collections.MutableSequence):
             raise TypeError('{0}\n{1}'.format(warnstr1, warnstr2))
 
         UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
-        self.UTC = UTC
-        return self.UTC
+        self.UTC = no_tzinfo(UTC)
+        return no_tzinfo(self.UTC)
 
     # -----------------------------------------------
     def getGPS(self):
