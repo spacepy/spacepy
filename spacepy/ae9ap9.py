@@ -35,24 +35,25 @@ targeted at the AE9/AP9 output. Additional functions for working with the data a
 
 """
 
-__contact__ = 'Brian Larsen, balarsen@lanl.gov'
-
 import datetime as dt
-import functools
 import gzip
-import os, re
+import os
+import re
 
 from dateutil import relativedelta
 import numpy as np
-import spacepy.toolbox as tb
-import spacepy.datamodel as dm
-import spacepy.time as spt
+
 import spacepy.coordinates as spc
+import spacepy.datamodel as dm
 import spacepy.plot as splot
+import spacepy.time as spt
+import spacepy.toolbox as tb
+
+__contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
 
 class Ae9Data(dm.SpaceData):
-    '''Dictionary-like container for AE9/AP9/SPM data, derived from SpacePy's datamodel
+    """Dictionary-like container for AE9/AP9/SPM data, derived from SpacePy's datamodel
 
     To inspect the variables within this class, use the tree method.
     To export the data to a CDF, HDF5 or JSON-headed ASCII file use the relevant "to" method
@@ -71,10 +72,10 @@ class Ae9Data(dm.SpaceData):
     .. automethod:: plotSummary
     .. automethod:: plotSpectrogram
     .. automethod:: setUnits
-    '''
+    """
 
     def setUnits(self, per=None):
-        '''Set units of energy and flux/fluence
+        """Set units of energy and flux/fluence
 
         If keyword 'per' is set to None, this method reports the units currently set.
         To set energy in MeV and flux/fluence in 'per MeV', set 'per=MeV'. Valid options are
@@ -84,7 +85,7 @@ class Ae9Data(dm.SpaceData):
         ----------------
         per : string (optional)
             Energy units for both energy and flux/fluence
-        '''
+        """
 
         curr = self['Energy'].attrs['UNITS']
         particle_var = self.attrs['varname']
@@ -92,52 +93,53 @@ class Ae9Data(dm.SpaceData):
             print('Energy units: {0}'.format(curr))
             print('{0} units: {1}'.format(particle_var, self[particle_var].attrs['UNITS']))
             return
-        unitlist = ['eV','keV','MeV','GeV']
+        unitlist = ['eV', 'keV', 'MeV', 'GeV']
         faclist = [1, 1e3, 1e6, 1e9]
         if per not in unitlist:
             raise ValueError("Units of {0} are not supported: Valid options are {1}".format(per, unitlist))
         else:
-            if per==curr: return
+            if per == curr: return
             unitidx_from = unitlist.index(curr)
             unitidx_to = unitlist.index(per)
-            self[particle_var] /= faclist[unitidx_from] #convert to eV
-            self[particle_var] *= faclist[unitidx_to] #convert to target units
+            self[particle_var] /= faclist[unitidx_from]  # convert to eV
+            self[particle_var] *= faclist[unitidx_to]  # convert to target units
             self[particle_var].attrs['UNITS'] = self[particle_var].attrs['UNITS'].replace(curr, per)
-            self['Energy'] *= faclist[unitidx_from] #convert to eV
-            self['Energy'] /= faclist[unitidx_to] #convert to target units
+            self['Energy'] *= faclist[unitidx_from]  # convert to eV
+            self['Energy'] /= faclist[unitidx_to]  # convert to target units
             self['Energy'].attrs['UNITS'] = self['Energy'].attrs['UNITS'].replace(curr, per)
 
     def getLm(self, alpha=[90], model='T89'):
-        '''Calculate McIlwain L for the imported AE9/AP9 run and add to object
-        '''
+        """Calculate McIlwain L for the imported AE9/AP9 run and add to object
+        """
         import spacepy.irbempy as ib
         ticks = spt.Ticktock(self['Epoch'])
         loci = spc.Coords(self['Coords'], self['Coords'].attrs['COORD_SYS'], 'car')
         loci.ticks = ticks
         retvals = ib.get_Lm(ticks, loci, alpha, extMag=model)
-        self['Lm'] = dm.dmarray(retvals['Lm'].squeeze(), attrs={'MODEL': model})
+        self['Lm'] = dm.dmarray(retvals['Lm'].squeeze(), attrs={ 'MODEL': model })
 
     def _makeOrbitAxis(self, ser1, ser2, ax_target):
-        '''Helper function. Not intended for direct use.
+        """Helper function. Not intended for direct use.
         
-        cx is the set of coordinates for plotting, ax_target is an axes object'''
+        cx is the set of coordinates for plotting, ax_target is an axes object"""
         l1 = ax_target.plot(ser1, ser2)
-        if np.abs((ax_target.get_xlim()[1]-ax_target.get_xlim()[0]))<1:
+        if np.abs((ax_target.get_xlim()[1] - ax_target.get_xlim()[0])) < 1:
             refpt = np.abs(np.max(ax_target.get_xlim()))
-            ax_target.set_xlim([-1.25*refpt, 1.25*refpt])
+            ax_target.set_xlim([-1.25 * refpt, 1.25 * refpt])
             ax_target.set_ylim(ax_target.get_xlim())
             l1[0].set_marker('o')
-            c1 = splot.plt.Circle([0,0], radius=1.0, fc='none', ec='k')
+            c1 = splot.plt.Circle([0, 0], radius=1.0, fc='none', ec='k')
             ax_target.add_artist(c1)
         else:
             splot.dual_half_circle(ax=ax_target)
         return ax_target
 
-    def plotSummary(self, timerange=None, coord_sys=None, fig_target=None, spec=False, orbit_params=(False,True), **kwargs):
-        '''Generate summary plot of AE9/AP9/SPM data loaded
+    def plotSummary(self, timerange=None, coord_sys=None, fig_target=None, spec=False, orbit_params=(False, True),
+                    **kwargs):
+        """Generate summary plot of AE9/AP9/SPM data loaded
         
         spec : if True, plot spectrogram instead of flux/fluence lineplot, requires 'ecol' keyword
-        '''
+        """
         if timerange:
             if isinstance(timerange, spt.Ticktock):
                 t1 = timerange.UTC[0]
@@ -147,18 +149,18 @@ class Ae9Data(dm.SpaceData):
                 t2 = timerange[-1]
             else:
                 raise TypeError('Incorrect data type provided for timerange')
-            #now select subset
-            i_use = tb.tOverlapHalf([t1,t2], self['Epoch'])
+            # now select subset
+            i_use = tb.tOverlapHalf([t1, t2], self['Epoch'])
             t_use = self['Epoch'][i_use]
             c_use = self['Coords'][i_use]
-            f_use = self[self.attrs['varname']][i_use,...]
+            f_use = self[self.attrs['varname']][i_use, ...]
         else:
             t_use = self['Epoch']
             c_use = self['Coords']
             f_use = self[self.attrs['varname']]
 
         if coord_sys and (coord_sys.upper() != c_use.attrs['COORD_SYS']):
-            #TODO: We assume cartesian, make flexible so can take spherical
+            # TODO: We assume cartesian, make flexible so can take spherical
             cx = spc.Coords(c_use, c_use.attrs['COORD_SYS'], 'car')
             cx.ticks = spt.Ticktock(t_use)
             cx = cx.convert(coord_sys.upper(), 'car').data
@@ -170,30 +172,30 @@ class Ae9Data(dm.SpaceData):
         splot.style('spacepy')
         if orbit_params[0]:
             landscape = orbit_params[1]
-            locs = [121,122] if landscape else [211,212]
+            locs = [121, 122] if landscape else [211, 212]
         else:
-            locs = [223,224]
+            locs = [223, 224]
             landscape = True
         if fig_target:
             fig, ax1 = splot.set_target(fig_target, loc=locs[0])
         else:
-            fig, ax1 = splot.set_target(fig_target, figsize=(8,8), loc=locs[0])
+            fig, ax1 = splot.set_target(fig_target, figsize=(8, 8), loc=locs[0])
         fig, ax2 = splot.set_target(fig, loc=locs[1])
 
-        ax1 = self._makeOrbitAxis(cx[:,0], cx[:,1], ax1)
-        ax2 = self._makeOrbitAxis(cx[:,0], cx[:,2], ax2)
+        ax1 = self._makeOrbitAxis(cx[:, 0], cx[:, 1], ax1)
+        ax2 = self._makeOrbitAxis(cx[:, 0], cx[:, 2], ax2)
         if landscape: ax1.set_xlabel('X{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
         ax2.set_xlabel('X{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
         ax1.set_ylabel('Y{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
         ax2.set_ylabel('Z{0} [{1}]'.format(sys_subs, self['Coords'].attrs['UNITS']))
         ax1xl, ax1yl, ax2xl, ax2yl = ax1.get_xlim(), ax1.get_ylim(), ax2.get_xlim(), ax2.get_ylim()
         maxabslim = np.max(np.abs([ax1xl, ax1yl, ax2xl, ax2yl]))
-        if np.abs((ax1.get_xlim()[1]-ax1.get_xlim()[0]))<1:
+        if np.abs((ax1.get_xlim()[1] - ax1.get_xlim()[0])) < 1:
             refpt = maxabslim
-            ax1.set_xlim([-1.25*refpt, 1.25*refpt])
+            ax1.set_xlim([-1.25 * refpt, 1.25 * refpt])
             ax1.set_ylim(ax1.get_xlim())
             refpt = ax2.get_xlim()[0]
-            ax2.set_xlim([-1.25*refpt, 1.25*refpt])
+            ax2.set_xlim([-1.25 * refpt, 1.25 * refpt])
             ax2.set_ylim(ax1.get_xlim())
         else:
             ax1.set_xlim([-maxabslim, maxabslim])
@@ -205,32 +207,32 @@ class Ae9Data(dm.SpaceData):
         ax2.invert_xaxis()
         ax1.set_aspect('equal')
         ax2.set_aspect('equal')
-        
+
         if not orbit_params[0]:
             ax3 = splot.plt.subplot2grid((2, 2), (0, 0), colspan=2)
             if not spec:
                 l3 = ax3.semilogy(t_use, f_use)
-                ylab = '{0} ['.format(self.attrs['varname']) + re.sub('(\^[\d|-]*)+', _grp2mathmode, 
-                                      self[self.attrs['varname']].attrs['UNITS']) + ']'
+                ylab = '{0} ['.format(self.attrs['varname']) + re.sub('(\^[\d|-]*)+', _grp2mathmode,
+                                                                      self[self.attrs['varname']].attrs['UNITS']) + ']'
                 ax3.set_ylabel(ylab)
                 for ll, nn in zip(l3, self['Energy']):
                     ll.set_label('{0} {1}'.format(nn, self['Energy'].attrs['UNITS']))
-                ncol = len(self['Energy'])//2 if len(self['Energy'])<=6 else 3
-                leg = ax3.legend(loc='center', bbox_to_anchor=(0.5,1), ncol=ncol,
+                ncol = len(self['Energy']) // 2 if len(self['Energy']) <= 6 else 3
+                leg = ax3.legend(loc='center', bbox_to_anchor=(0.5, 1), ncol=ncol,
                                  frameon=True, framealpha=0.5)
                 lims3 = ax3.get_ylim()
-                newupper = 10**(np.log10(lims3[0])+(np.log10(lims3[1]/lims3[0])*1.125))
+                newupper = 10 ** (np.log10(lims3[0]) + (np.log10(lims3[1] / lims3[0]) * 1.125))
                 ax3.set_ylim([lims3[0], newupper])
                 splot.applySmartTimeTicks(ax3, t_use)
                 fig.tight_layout()
                 pos3 = ax3.get_position()
-                ax3.set_position([pos3.x0, pos3.y0, pos3.width, pos3.height*0.8])
-                #fig.suptitle('{model_type}\n'.format(**self.attrs) + 
+                ax3.set_position([pos3.x0, pos3.y0, pos3.width, pos3.height * 0.8])
+                # fig.suptitle('{model_type}\n'.format(**self.attrs) +
                 #             '{0} - {1}'.format(t_use[0].isoformat()[:19], t_use[-1].isoformat()[:19]))
             else:
                 if timerange: raise NotImplementedError('Time range selection not yet implemented for spectrograms')
                 pos3 = ax3.get_position()
-                ax3.set_position([pos3.x0, pos3.y0, pos3.width, pos3.height*0.9])
+                ax3.set_position([pos3.x0, pos3.y0, pos3.width, pos3.height * 0.9])
                 ecol = kwargs['ecol'] if 'ecol' in kwargs else 0
                 ax3 = self.plotSpectrogram(target=ax3, ecol=ecol)
                 splot.plt.subplots_adjust(wspace=0.3)
@@ -241,15 +243,15 @@ class Ae9Data(dm.SpaceData):
         return fig
 
     def plotOrbit(self, timerange=None, coord_sys=None, landscape=True, fig_target=None):
-        '''
+        """
         Plot X-Y and X-Z projections of satellite orbit in requested coordinate system
-        '''
-        fig = self.plotSummary(timerange=timerange, coord_sys=coord_sys, 
-                         fig_target=fig_target, orbit_params=(True, landscape))
+        """
+        fig = self.plotSummary(timerange=timerange, coord_sys=coord_sys,
+                               fig_target=fig_target, orbit_params=(True, landscape))
         return fig
 
     def plotSpectrogram(self, ecol=0, **kwargs):
-        '''
+        """
         Plot a spectrogram of the flux along the requested orbit, as a function of Lm and time
 
         Other Parameters
@@ -262,41 +264,41 @@ class Ae9Data(dm.SpaceData):
             text to label y-axis (default is 'Lm' plus the field model name)
         title : string
             text to appear above spectrogram (default is climatology model name, data type and energy)
-        '''
+        """
         import spacepy.plot as splot
         if 'Lm' not in self:
             self.getLm()
         sd = dm.SpaceData()
         sd['Lm'] = self['Lm']
-        #filter any bad Lm
-        goodidx = sd['Lm']>1
+        # filter any bad Lm
+        goodidx = sd['Lm'] > 1
         sd['Lm'] = sd['Lm'][goodidx]
-        Lm_lim = [2.0,8.0]
-        #TODO: allow user-definition of bins in time and Lm
+        Lm_lim = [2.0, 8.0]
+        # TODO: allow user-definition of bins in time and Lm
         varname = self.attrs['varname']
-        sd['Epoch'] = dm.dmcopy(self['Epoch'])[goodidx] #TODO: assumes 1 pitch angle, generalize
-        sd['1D_dataset'] = self[varname][goodidx,ecol] #TODO: assumes 1 pitch angle, generalize
+        sd['Epoch'] = dm.dmcopy(self['Epoch'])[goodidx]  # TODO: assumes 1 pitch angle, generalize
+        sd['1D_dataset'] = self[varname][goodidx, ecol]  # TODO: assumes 1 pitch angle, generalize
         spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim)
         if 'zlim' not in kwargs:
-            zmax = 10**(int(np.log10(max(sd['1D_dataset'])))+1)
-            idx = np.logical_and(sd['1D_dataset']>0, sd['Lm']>Lm_lim[0])
-            idx = np.logical_and(idx, sd['Lm']<=Lm_lim[1])
-            zmin = 10**int(np.log10(min(sd['1D_dataset'][idx])))
+            zmax = 10 ** (int(np.log10(max(sd['1D_dataset']))) + 1)
+            idx = np.logical_and(sd['1D_dataset'] > 0, sd['Lm'] > Lm_lim[0])
+            idx = np.logical_and(idx, sd['Lm'] <= Lm_lim[1])
+            zmin = 10 ** int(np.log10(min(sd['1D_dataset'][idx])))
             kwargs['zlim'] = [zmin, zmax]
         if 'colorbar_label' not in kwargs:
             flux_units = self[varname].attrs['UNITS']
             kwargs['colorbar_label'] = '{0} ['.format(varname) + re.sub('(\^[\d|-]*)+', _grp2mathmode, flux_units) + ']'
         if 'ylabel' not in kwargs:
-            kwargs['ylabel'] = 'L$_M$'+' '+'[{0}]'.format(self['Lm'].attrs['MODEL'])
+            kwargs['ylabel'] = 'L$_M$' + ' ' + '[{0}]'.format(self['Lm'].attrs['MODEL'])
         if 'title' not in kwargs:
             kwargs['title'] = '{model_type} {varname}: '.format(**self.attrs) + \
                               '{0} {1}'.format(self['Energy'][ecol], self['Energy'].attrs['UNITS'])
         reset_shrink = splot.mpl.mathtext.SHRINK_FACTOR
         splot.mpl.mathtext.SHRINK_FACTOR = 0.85
-        splot.mpl.mathtext.GROW_FACTOR =  1/0.85
+        splot.mpl.mathtext.GROW_FACTOR = 1 / 0.85
         ax = spec.plot(cmap='plasma', **kwargs)
         splot.mpl.mathtext.SHRINK_FACTOR = reset_shrink
-        splot.mpl.mathtext.GROW_FACTOR =  1/reset_shrink
+        splot.mpl.mathtext.GROW_FACTOR = 1 / reset_shrink
         return ax
 
 
@@ -330,52 +332,52 @@ def readFile(fname, comments='#'):
     |____posComp (spacepy.datamodel.dmarray (3,))
     """
     if not os.path.isfile(fname):
-        raise(ValueError("File {0} not found".format(fname)))
+        raise (ValueError("File {0} not found".format(fname)))
     # get the header information first
     header = parseHeader(fname)
     # and read in all the data
     data = np.loadtxt(fname, delimiter=header['delimiter'], comments=comments)
     # now parse the data    
     ans = Ae9Data()
-    #parse the datetime if it is there (it is always first)
+    # parse the datetime if it is there (it is always first)
     if 'datetime' in header['columns'][0]:
-        if header['time_format'] == 'eDOY': # have to massage the data first
-            year = data[:,0].astype(int)
-            frac = data[:,1]
-            time = spt.Ticktock([dt.datetime(y,1,1) + relativedelta.relativedelta(days=v)
-                               for y, v in zip(year, frac)], 'UTC')
-            ans[header['time_format']] = dm.dmarray(data[:,0:2])
+        if header['time_format'] == 'eDOY':  # have to massage the data first
+            year = data[:, 0].astype(int)
+            frac = data[:, 1]
+            time = spt.Ticktock([dt.datetime(y, 1, 1) + relativedelta.relativedelta(days=v)
+                                 for y, v in zip(year, frac)], 'UTC')
+            ans[header['time_format']] = dm.dmarray(data[:, 0:2])
             ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
             ans[header['time_format']].attrs['LABL_PTR_1'] = 'timeComp'
             ans['timeComp'] = dm.dmarray(['Year', 'eDOY'])
             ans['timeComp'].attrs['VAR_TYPE'] = 'metadata'
             del header['columns'][0:2]
-            data = data[:,2:]
-        elif header['time_format'] == 'UTC': # have to massage the data first
-            tm = data[:,0:6].astype(int)
-            time = spt.Ticktock([dt.datetime(*v) for v in tm], 'UTC' )
-            ans[header['time_format']] = dm.dmarray(data[:,0:6])
+            data = data[:, 2:]
+        elif header['time_format'] == 'UTC':  # have to massage the data first
+            tm = data[:, 0:6].astype(int)
+            time = spt.Ticktock([dt.datetime(*v) for v in tm], 'UTC')
+            ans[header['time_format']] = dm.dmarray(data[:, 0:6])
             ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
             ans[header['time_format']].attrs['LABL_PTR_1'] = 'timeComp'
             ans['timeComp'] = dm.dmarray(['Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'])
             ans['timeComp'].attrs['VAR_TYPE'] = 'metadata'
             del header['columns'][0:6]
-            data = data[:,6:]
+            data = data[:, 6:]
         else:
-            time = spt.Ticktock(data[:,0], header['time_format'])
-            ans[header['time_format']] = dm.dmarray(data[:,0])
+            time = spt.Ticktock(data[:, 0], header['time_format'])
+            ans[header['time_format']] = dm.dmarray(data[:, 0])
             ans[header['time_format']].attrs['VAR_TYPE'] = 'support_data'
             del header['columns'][0]
-            data = data[:,1:]
+            data = data[:, 1:]
 
         ans['Epoch'] = dm.dmarray(time.UTC)
         ans['Epoch'].attrs['VAR_TYPE'] = 'support_data'
     # parse the position, it is always next
     if 'posx' in header['columns'][0]:
         varname = 'Coords'
-        pos = dm.dmarray(data[:,0:3])
+        pos = dm.dmarray(data[:, 0:3])
         ans[varname] = pos
-        ans[varname].attrs['UNITS'] =  header['coord_system'][1]
+        ans[varname].attrs['UNITS'] = header['coord_system'][1]
         ans[varname].attrs['FIELDNAM'] = varname
         ans[varname].attrs['LABLAXIS'] = 'Position'
         ans[varname].attrs['DEPEND_0'] = 'Epoch'
@@ -385,14 +387,14 @@ def readFile(fname, comments='#'):
         ans['posComp'] = dm.dmarray(['X', 'Y', 'Z'])
         ans['posComp'].attrs['VAR_TYPE'] = 'metadata'
         del header['columns'][0:3]
-        data = data[:,3:]
-    
+        data = data[:, 3:]
+
     # if there are PA they are now
     if header['columns'] and ('pitch' in header['columns'][0]):
-        raise(NotImplementedError("Sorry have not implemented pitch angle resolved files yet"))
+        raise (NotImplementedError("Sorry have not implemented pitch angle resolved files yet"))
     ## This is an issue and the files have repeadedlines at the same time for each pitch
     ##  angle. They would all need to be read in them combines into a multi-d array
-    
+
     # now parse fluence, flux, or doserate
     # do all the rest of the column headers match?
     col_arr = np.asarray(header['columns'])
@@ -401,11 +403,13 @@ def readFile(fname, comments='#'):
         ans[varname] = dm.dmarray(data)
         ans[varname].attrs['UNITS'] = str(col_arr[0][1])
         ans[varname].attrs['FIELDNAM'] = varname
-        ans[varname].attrs['LABLAXIS'] = varname        
-        ans[varname].attrs['VAR_TYPE'] = 'data'        
-        ans[varname].attrs['SCALETYP'] = 'log'        
+        ans[varname].attrs['LABLAXIS'] = varname
+        ans[varname].attrs['VAR_TYPE'] = 'data'
+        ans[varname].attrs['SCALETYP'] = 'log'
         header['varname'] = varname
-        ans[varname].attrs['Description'] = '{flux_direction} {varname} based on {flux_type} from the {model_type} model'.format(**header)
+        ans[varname].attrs[
+            'Description'] = '{flux_direction} {varname} based on {flux_type} from the {model_type} model'.format(
+            **header)
         ans[varname].attrs['DEPEND_0'] = 'Epoch'
         if ans[varname].shape[1] == header['energy'][0].shape[0]:
             ans[varname].attrs['DEPEND_1'] = 'Energy'
@@ -425,9 +429,10 @@ def readFile(fname, comments='#'):
     skip_header = ['columns', 'coord_system', 'delimiter', 'energy', 'flux_direction']
     for k in header:
         if k not in skip_header:
-            ans.attrs[k] = header[k]   
+            ans.attrs[k] = header[k]
     return ans
-    
+
+
 def _parseInfo(header):
     """
     given a header parse and return the common information in all headers
@@ -438,7 +443,7 @@ def _parseInfo(header):
     # Data Delimiter:           comma
     """
     # get the time format, it is in all the files
-    ans = {}
+    ans = { }
     for ind, val in enumerate(header):
         if "Time format:" in val:
             if "Modified Julian Date" in val:
@@ -448,7 +453,7 @@ def _parseInfo(header):
             elif "Year, Month, Day, Hour, Minute, Seconds" in val:
                 ans['time_format'] = 'UTC'
             else:
-                raise(NotImplementedError("Sorry can't read that time format yet: {0}".format(val)))
+                raise (NotImplementedError("Sorry can't read that time format yet: {0}".format(val)))
         elif "Coordinate system:" in val:
             coord_sys = val.split(':')[1].strip().split()[0]
             if "in Earth radii" in val:
@@ -459,7 +464,7 @@ def _parseInfo(header):
             if "comma" in val:
                 ans['delimiter'] = ','
             else:
-                raise(NotImplementedError("Sorry can't read that delimiter yet"))
+                raise (NotImplementedError("Sorry can't read that delimiter yet"))
         elif "Ae9Ap9 Software Version:" in val:
             match = re.match(r'^Ae9Ap9 Software Version:.*(\d\.\d\d\.\d\d\d)$', val)
             version = match.group(1).strip()
@@ -483,7 +488,7 @@ def _parseInfo(header):
                 fdir = match.group(1).strip()
             else:
                 pa = val.split('=')[1].strip()
-                fdir = np.asarray(pa.split())                
+                fdir = np.asarray(pa.split())
             ans['flux_direction'] = fdir
         elif "Energy levels" in val:
             match = re.match(r'^Energy levels.*\((.*)\):(.*)$', val)
@@ -492,7 +497,7 @@ def _parseInfo(header):
             match = re.search(r'^generated from specified elements.*:\ (.*)$', val)
             ans['propagator'] = match.group(1).strip()
     return ans
-                    
+
 
 def _readHeader(fname):
     """
@@ -512,6 +517,7 @@ def _readHeader(fname):
     fp.close()
     return dat
 
+
 def parseHeader(fname):
     """
     given an AE9AP9 output test file parse the header and return the information in a
@@ -527,17 +533,17 @@ def parseHeader(fname):
     out : dict
         Dictionary of the header information in the file
     """
-    ans = {}
+    ans = { }
     ans['filename'] = os.path.abspath(fname)
-           
+
     header = _readHeader(fname)
     # get the information
     ans.update(_parseInfo(header))
-            
+
     columns = header[-1].split(ans['delimiter'])
     columns_unq = _unique_elements_order(columns)
     len_columns_unq = len(columns)
-            
+
     # pull the units off the column headings
     cols = []
     while columns_unq:
@@ -559,13 +565,14 @@ def parseHeader(fname):
             del cols[v]
     # and now replicate the last entry enough times to make it the right length
     cols.extend([cols[-1]] * (len_columns_unq - len(cols)))
-            
+
     ans['columns'] = cols
 
-    if 'pctile' in os.path.basename(fname): #capture the percentile
+    if 'pctile' in os.path.basename(fname):  # capture the percentile
         match = re.match(r'.*_(\d\d).txt', os.path.basename(fname))
         ans['percentile'] = float(match.group(1))
     return ans
+
 
 def _unique_elements_order(seq):
     """
@@ -573,7 +580,8 @@ def _unique_elements_order(seq):
     """
     seen = set()
     seen_add = seen.add
-    return [ x for x in seq if not (x in seen or seen_add(x))]
+    return [x for x in seq if not (x in seen or seen_add(x))]
+
 
 def combinePercentiles(files, timeframe='all', verbose=True):
     """
@@ -600,21 +608,21 @@ def combinePercentiles(files, timeframe='all', verbose=True):
         Combined output spectra of the file
     """
     if not files:
-        raise(ValueError("Must input files"))
-    data = {}
+        raise (ValueError("Must input files"))
+    data = { }
     for fname in files:
         if verbose: print("Reading: {0}".format(fname))
         tmp = readFile(fname)
         if 'percentile' not in tmp.attrs:
-            raise(ValueError("File {0} does not have a percentile key".format(fname)))
+            raise (ValueError("File {0} does not have a percentile key".format(fname)))
         data[tmp.attrs['percentile']] = tmp
 
     varnames = ['Flux', 'Fluence', 'Dose', None]
     for varname in varnames:
         if varname in data[list(data.keys())[0]]:
-            break # this leaves it where it was found
+            break  # this leaves it where it was found
     if varname is None:
-        raise(ValueError("Did not understand file type could not find one of {0}".format(varnames)))
+        raise (ValueError("Did not understand file type could not find one of {0}".format(varnames)))
 
     # now that they are all read in, we collapse them down to different time bases
     if timeframe == 'all':
@@ -624,16 +632,16 @@ def combinePercentiles(files, timeframe='all', verbose=True):
         ps = sorted(data.keys())[::-1]
         for p in ps:
             if data[p][varname].attrs['DEPEND_0'] == 'Epoch':
-                d_comp = np.concatenate((d_comp, data[p][varname].mean(axis=0))) # full time collapse
+                d_comp = np.concatenate((d_comp, data[p][varname].mean(axis=0)))  # full time collapse
             else:
-                d_comp = np.concatenate((d_comp, data[p][varname])) # full time collapse
+                d_comp = np.concatenate((d_comp, data[p][varname]))  # full time collapse
         d_comp = d_comp.reshape(len(ps), -1).T
     else:
         try:
             import pandas as pd
         except ImportError:
-            raise(ImportError("panads is required for timeframe other than 'all'"))
-        raise(NotImplementedError("Timeframes other than 'all' not yet implemented"))
+            raise (ImportError("panads is required for timeframe other than 'all'"))
+        raise (NotImplementedError("Timeframes other than 'all' not yet implemented"))
         # make a dataframe
         # resample to timeframe
         # join everything
@@ -659,18 +667,20 @@ def combinePercentiles(files, timeframe='all', verbose=True):
     ans['Percentile'].attrs['SCALETYP'] = 'support_data'
     return ans
 
+
 def _getData(fnames):
     """
     helper routine for dm.toCDF and dm.toHDF5 and dm.toJSONheadedASCII since the data
     prep is all the same
     """
-    if hasattr(fnames, 'strip'): # it is a string
+    if hasattr(fnames, 'strip'):  # it is a string
         return readFile(fnames)
     else:
         return combinePercentiles(fnames)
 
+
 def _grp2mathmode(matchobj):
-    '''Helper function to latex-ify the units for plotting'''
+    """Helper function to latex-ify the units for plotting"""
     unitstr = matchobj.group()
-    unitstr = unitstr[0]+'{'+unitstr[1:]
-    return '$'+unitstr+'}$'
+    unitstr = unitstr[0] + '{' + unitstr[1:]
+    return '$' + unitstr + '}$'
