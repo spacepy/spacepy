@@ -299,7 +299,18 @@ class Ae9Data(dm.SpaceData):
             sd['1D_dataset'] = self[varname][goodidx,ecol] #TODO: assumes 1 pitch angle, generalize
         except IndexError: #1-D
             sd['1D_dataset'] = self[varname][goodidx]
-        spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim)
+        bins = [[],[]]
+        if 'tbins' not in kwargs:
+            bins[0] = spt.tickrange(self[epvar][0], self[epvar][-1], 3/24.).UTC
+        else:
+            bins[0] = kwargs['tbins']
+            del kwargs['tbins']
+        if 'Lbins' not in kwargs:
+            bins[1] = np.arange(Lm_lim[0], Lm_lim[1], 1./4.)
+        else:
+            bins[1] = kwargs['Lbins']
+            del kwargs['Lbins']
+        spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim, bins=bins)
         if 'zlim' not in kwargs:
             zmax = 10**(int(np.log10(max(sd['1D_dataset'])))+1)
             idx = np.logical_and(sd['1D_dataset']>0, sd['Lm']>Lm_lim[0])
