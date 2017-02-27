@@ -291,7 +291,7 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, **extra_kwargs):
 
     return body, arch
 
-def add_body(ax, rad=2.5, facecolor='lightgrey', add_planet=True, 
+def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True, 
              ang=0.0, add_night=True, **extra_kwargs):
     '''
     Creates a circle of radius=self.attrs['rbody'] and returns the
@@ -302,7 +302,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', add_planet=True,
     
     Because the body is rarely the size of the planet at the center of 
     the modeling domain, add_planet is automatically called.  This can
-    be negated by using the add_planet kwarg.
+    be negated by using the show_planet kwarg.
     
     Parameters
     ==========
@@ -316,7 +316,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', add_planet=True,
     facecolor : string
        Set color of face of inner boundary circle via Matplotlib color 
        selectors (name, hex, etc.)  Defaults to 'lightgrey'.
-    add_planet : boolean
+    show_planet : boolean
        Turns on/off planet indicator inside inner boundary.  
        Defaults to **True**
     ang : float
@@ -332,7 +332,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', add_planet=True,
     body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=999,
                    **extra_kwargs)
 
-    if DoPlanet:
+    if show_planet:
         add_planet(ax, ang=ang, add_night=add_night)
 
     ax.add_artist(body)
