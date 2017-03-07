@@ -533,7 +533,7 @@ def readarray(f,dtype=np.float32,inttype=np.int32):
 
     return A
 
-def _read_idl_bin(pbdat, header='units', keep_case=True):
+def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
