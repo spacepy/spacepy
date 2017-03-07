@@ -481,9 +481,9 @@ class SpaceData(dict):
     #They will be recreated by __init__
     def __getstate__(self):
         d = copy.copy(self.__dict__)
-        del d['toCDF']
-        del d['toHDF5']
-        del d['toJSONheadedASCII']
+        if 'toCDF' in d: del d['toCDF']
+        if 'toHDF5' in d: del d['toHDF5']
+        if 'toJSONheadedASCII' in d: del d['toJSONheadedASCII']
         return d
 
 ## To enable string output of repr, instead of just printing, uncomment his block
