@@ -4,6 +4,14 @@ SpacePy Installation Instructions:
 For detailed, platform-specific installation information,
 see Doc/build/html/install.html
 
+To build an official version, export the version number as SPACEPY_VERSION.
+e.g.:
+
+export SPACEPY_VERSION=0.1.7
+
+The default unofficial version will be the YYYY.MM.DD.cccccccc of the last
+git commit (where cccccccc are the first 8 characters of the commit ID).
+
 Option 1) to install it in the standard loction (depending on your system)
 
 >>> python setup.py install
