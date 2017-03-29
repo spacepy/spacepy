@@ -471,7 +471,7 @@ class spectrogram(dm.SpaceData):
             ax.set_xlim(self.plotSettings['xlim'])
 
         if self.plotSettings['colorbar']:
-            cb =plt.colorbar(pcm)
+            cb =plt.colorbar(pcm, ax=ax)
             cb.set_label(self.plotSettings['colorbar_label'])
         return ax
 

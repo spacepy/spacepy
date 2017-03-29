@@ -250,8 +250,8 @@ class Ae9Data(dm.SpaceData):
                                fig_target=fig_target, orbit_params=(True, landscape))
         return fig
 
-    def plotSpectrogram(self, ecol=0, **kwargs):
-        """
+    def plotSpectrogram(self, ecol=0, pvars=None, **kwargs):
+        '''
         Plot a spectrogram of the flux along the requested orbit, as a function of Lm and time
 
         Other Parameters
@@ -264,21 +264,57 @@ class Ae9Data(dm.SpaceData):
             text to label y-axis (default is 'Lm' plus the field model name)
         title : string
             text to appear above spectrogram (default is climatology model name, data type and energy)
-        """
+        pvars : list
+            list of plotting variable names in order [Epoch-like (X axis), Flux-like (Z axis), Energy (Index var for Flux-like)]
+        ylim : list
+            2-element list with upper and lower bounds for y axis
+        '''
         import spacepy.plot as splot
         if 'Lm' not in self:
             self.getLm()
         sd = dm.SpaceData()
-        sd['Lm'] = self['Lm']
-        # filter any bad Lm
-        goodidx = sd['Lm'] > 1
+
+        if pvars is None:
+            varname = self.attrs['varname']
+            enname = 'Energy'
+            epvar = 'Epoch'
+        else:
+            epvar = pvars[0]
+            varname = pvars[1]
+            enname = pvars[2]
+        if len(self['Lm']) != len(self[epvar]): #Lm needs interpolating to new timebase
+            import matplotlib.dates as mpd
+            tmptimetarg, tmptimesrc = mpd.date2num(self[epvar]), mpd.date2num(self['Epoch'])
+            sd['Lm'] = dm.dmarray(np.interp(tmptimetarg, tmptimesrc, self['Lm'], left=np.nan, right=np.nan))
+        else:
+            sd['Lm'] = self['Lm']
+        #filter any bad Lm
+        goodidx = sd['Lm']>1
         sd['Lm'] = sd['Lm'][goodidx]
-        Lm_lim = [2.0, 8.0]
-        # TODO: allow user-definition of bins in time and Lm
-        varname = self.attrs['varname']
-        sd['Epoch'] = dm.dmcopy(self['Epoch'])[goodidx]  # TODO: assumes 1 pitch angle, generalize
-        sd['1D_dataset'] = self[varname][goodidx, ecol]  # TODO: assumes 1 pitch angle, generalize
-        spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim)
+        if 'ylim' in kwargs:
+            Lm_lim = kwargs['ylim']
+            del kwargs['ylim']
+        else:
+            Lm_lim = [2.0,8.0]
+        #TODO: allow user-definition of bins in time and Lm
+        sd['Epoch'] = dm.dmcopy(self[epvar])[goodidx] #TODO: assumes 1 pitch angle, generalize
+        try:
+            sd['1D_dataset'] = self[varname][goodidx,ecol] #TODO: assumes 1 pitch angle, generalize
+        except IndexError: #1-D
+            sd['1D_dataset'] = self[varname][goodidx]
+        bins = [[],[]]
+        if 'tbins' not in kwargs:
+            bins[0] = spt.tickrange(self[epvar][0], self[epvar][-1], 3/24.).UTC
+        else:
+            bins[0] = kwargs['tbins']
+            del kwargs['tbins']
+        if 'Lbins' not in kwargs:
+            bins[1] = np.arange(Lm_lim[0], Lm_lim[1], 1./4.)
+        else:
+            bins[1] = kwargs['Lbins']
+            del kwargs['Lbins']
+        spec = splot.spectrogram(sd, variables=['Epoch', 'Lm', '1D_dataset'], ylim=Lm_lim, bins=bins)
+
         if 'zlim' not in kwargs:
             zmax = 10 ** (int(np.log10(max(sd['1D_dataset']))) + 1)
             idx = np.logical_and(sd['1D_dataset'] > 0, sd['Lm'] > Lm_lim[0])
@@ -292,7 +328,7 @@ class Ae9Data(dm.SpaceData):
             kwargs['ylabel'] = 'L$_M$' + ' ' + '[{0}]'.format(self['Lm'].attrs['MODEL'])
         if 'title' not in kwargs:
             kwargs['title'] = '{model_type} {varname}: '.format(**self.attrs) + \
-                              '{0} {1}'.format(self['Energy'][ecol], self['Energy'].attrs['UNITS'])
+                              '{0:5.2f} {1}'.format(self[enname][ecol], self[enname].attrs['UNITS'])
         reset_shrink = splot.mpl.mathtext.SHRINK_FACTOR
         splot.mpl.mathtext.SHRINK_FACTOR = 0.85
         splot.mpl.mathtext.GROW_FACTOR = 1 / 0.85
