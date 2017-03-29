@@ -455,7 +455,7 @@ class MltSlice(PbData):
     
         # Parse header.
         self.attrs['mlt'] = float(f.readline().split()[-1])
-        self['L'] = dmarray(np.array(f.readline().split()[1:], dtype=float),
+        self['L'] = dmarray(np.array(f.readline().split()[2:], dtype=float),
                             {'units':'$R_E$'})
 
         # Parse remainder of file.
