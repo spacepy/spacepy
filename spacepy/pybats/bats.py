@@ -594,6 +594,11 @@ class Bats2d(IdlFile):
         i_iter, runtime, time = parse_filename_time(self.attrs['file'])
         if 'time' not in self.attrs: self.attrs['time'] = time
         if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
+
+        # Behavior of output files changed Jan. 2017:
+        # Check for 'r' instead of 'rbody' in attrs.
+        if 'r' in self.attrs and 'rbody' not in self.attrs:
+            self.attrs['rbody'] = self.attrs['r']
         
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
@@ -1072,8 +1077,8 @@ class Bats2d(IdlFile):
     ######################
     # VISUALIZATION TOOLS
     ######################
-    def add_grid_plot(self, target=None, loc=111, DoLabel=True, DoShowNums=False,
-                      title='BATS-R-US Grid Layout'):
+    def add_grid_plot(self, target=None, loc=111, do_label=True,
+                      show_nums=False, title='BATS-R-US Grid Layout'):
         '''
         Create a plot of the grid resolution by coloring regions of constant
         resolution.  Kwarg "target" specifies where to place the plot and can
@@ -1083,7 +1088,7 @@ class Bats2d(IdlFile):
         axis object.  If target is None, a new figure and axis are created
         and used to display the plot. 
 
-        Resolution labels can be disabled by setting kwarg DoLabel to False.
+        Resolution labels can be disabled by setting kwarg do_label to False.
 
         Plot title is set using the 'title' kwarg, defaults to 'BATS-R-US
         Grid Layout'.
@@ -1117,7 +1122,7 @@ class Bats2d(IdlFile):
 
         for key in list(self.qtree.keys()):
             self.qtree[key].plotbox(ax)
-        self.qtree.plot_res(ax, tagLeafs=DoShowNums)
+        self.qtree.plot_res(ax, tagLeafs=show_nums, do_label=do_label)
 
         # Customize plot.
         ax.set_xlabel('GSM %s' % xdim.upper())
