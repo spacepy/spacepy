@@ -1122,7 +1122,7 @@ class Bats2d(IdlFile):
 
         for key in list(self.qtree.keys()):
             self.qtree[key].plotbox(ax)
-        self.qtree.plot_res(ax, tagLeafs=show_nums, do_label=do_label)
+        self.qtree.plot_res(ax, tag_leafs=show_nums, do_label=do_label)
 
         # Customize plot.
         ax.set_xlabel('GSM %s' % xdim.upper())
