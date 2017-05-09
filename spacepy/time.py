@@ -1658,8 +1658,8 @@ def no_tzinfo(dt):
     returnclass = dt.__class__
     try:
         retval = [val.replace(tzinfo=None) for val in dt]
-    except TypeError:  # was not an iterable
-        retval = dt.replace(tzinfo=None)
+    except TypeError:  # was not an iterable, assume datetime
+        return dt.replace(tzinfo=None)
     #special case: numpy ndarray - dmarray and masked array work, but not ndarray
     if returnclass is not np.ndarray:
         return returnclass(retval)
