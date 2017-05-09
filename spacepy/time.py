@@ -1654,12 +1654,17 @@ def no_tzinfo(dt):
     out : list
         list of datetime.datetime without tzinfo
 
-    TODO should this return the same type as was input?
     """
+    returnclass = dt.__class__
     try:
-        return [val.replace(tzinfo=None) for val in dt]
+        retval = [val.replace(tzinfo=None) for val in dt]
     except TypeError:  # was not an iterable
-        return dt.replace(tzinfo=None)
+        retval = dt.replace(tzinfo=None)
+    #special case: numpy ndarray - dmarray and masked array work, but not ndarray
+    if returnclass is not np.ndarray:
+        return returnclass(retval)
+    else:
+        return np.asarray(retval)
 
 
 def leapyear(year, numdays=False):
