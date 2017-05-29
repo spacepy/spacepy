@@ -115,6 +115,11 @@ class KyotoKp(PbData):
         '''
         Given raw ascii input as a list of lines, parse into object.
         '''
+
+        # Decode binary data:
+        if type(lines[0])==bytes:
+            for i in range(len(lines)):
+                lines[i] = lines[i].decode()
         
         # Kill header as necessary.
         if lines[0][1:5]=='HTML':
@@ -345,7 +350,7 @@ def dstfetch(yrstart, mostart, yrstop, mostop):
 
     # Fetch data from web.
     f = urllib.request.urlopen(target)
-    lines = f.readlines()
+    lines = f.readlines().decode()
 
     return(lines)
 
@@ -390,17 +395,17 @@ def kpfetch(yrstart, mostart, yrstop, mostop):
     target='http://wdc.kugi.kyoto-u.ac.jp/cgi-bin/kp-cgi'#
     data='%s=%2i&%s=%i&%s=%i&%s=%s&%s=%2i&%s=%i&%s=%i&%s=%s&%s=%s' % \
         ('SCent', forminfo['SCent'], \
-             'STens', forminfo['STens'], \
-             'SYear', forminfo['SYear'], \
-             'SMonth',forminfo['SMonth'],\
-             'ECent', forminfo['ECent'], \
-             'ETens', forminfo['ETens'], \
-             'EYear', forminfo['EYear'], \
-             'EMonth',forminfo['EMonth'],\
-             'Email' ,email)
+         'STens', forminfo['STens'], \
+         'SYear', forminfo['SYear'], \
+         'SMonth',forminfo['SMonth'],\
+         'ECent', forminfo['ECent'], \
+         'ETens', forminfo['ETens'], \
+         'EYear', forminfo['EYear'], \
+         'EMonth',forminfo['EMonth'],\
+         'Email' ,email)
 
     # Fetch data from web.
-    f = urllib.request.urlopen(target, data) 
+    f = urllib.request.urlopen(target, data.encode()) 
     lines = f.readlines()
     return(lines)
 #===========================================================================
