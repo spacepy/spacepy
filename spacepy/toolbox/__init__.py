@@ -2560,6 +2560,58 @@ def timeout_check_call(timeout, *args, **kwargs):
     return 0
 
 
+def poisson_fit(data, initial=None, method='Powell'):
+    """
+    Fit a Poisson distribution to data using the method and initial guess provided.
+
+    Parameters
+    ==========
+    data : array-like
+        Data to fit a Poisson distribution to.
+    initial : int or None
+        initial guess for the fit, if None np.median(data) is used
+    method : str
+        method passed to scipy.optimize.minimize, default='Powell'
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> from scipy.stats import poisson
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
+    >>> data = poisson.rvs(20, size=1000)
+    >>> res = tb.poisson_fit(data)
+    >>> print(res.x)
+    19.718000038769095
+    >>> xvals = np.arange(0, np.max(data)+5)
+    >>> plt.hist(data, bins=xvals, normed=True)
+    >>> plt.plot(xvals, poisson.pmf(xvals, np.round(res.x)))
+
+    Returns
+    =======
+    result : scipy.optimize.optimize.OptimizeResult
+        Resulting fit results from scipy.optimize, answer is result.x,
+        user should likely round.
+
+    """
+    from scipy.optimize import minimize
+    from scipy.stats import poisson
+
+    def negLogLikelihood(params, data):
+        """ the negative log-Likelihood-Function"""
+        return (- np.sum(np.log(poisson.pmf(data, params[0]))))
+
+    if initial is None:
+        initial = np.median(data)
+
+    ans = minimize(negLogLikelihood,  # function to minimize
+                   x0=initial,  # start value
+                   args=(data,),  # additional arguments for function
+                   method=method,  # minimization method, see docs
+                   )
+    return ans
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

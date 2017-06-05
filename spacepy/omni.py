@@ -250,9 +250,9 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
             st, en = ticks[0].RDT, ticks[-1].RDT
             ##check that requested requested times are within range of data
             enval, stval = omnirange(dbase=ldb)[1], omnirange(dbase=ldb)[0]
-            if (ticks[0].UTC>enval) or (ticks[-1]<stval):
+            if (ticks.UTC[0]>enval) or (ticks[-1]<stval):
                 raise ValueError('Requested dates are outside data range')
-            if (ticks[-1].UTC>enval) or (ticks[0]<stval):
+            if (ticks.UTC[-1]>enval) or (ticks[0]<stval):
                 print('Warning: Some requested dates are outside data range ({0})'.format(ldb))
             inds = tOverlapHalf([st, en], hfile['RDT'], presort=True) #returns an xrange
             inds = indsFromXrange(inds)
