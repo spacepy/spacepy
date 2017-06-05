@@ -145,6 +145,7 @@ def tex_label(varname):
     known = {
         'phi': r'$\Phi_{Ionosphere}$',
         'sigmah':r'$\sigma_{Hall}$',
+        'sigmap':r'$\sigma_{Peder}$',
         'jr':r'$J_{radial}$',
         'mA/m^2':r'$mA/m^{2}$'
         }
@@ -258,7 +259,7 @@ class Iono(PbData):
 
     def add_cont(self, var, target=None, n=24, maxz=False, lines=True, 
                  cmap=False, add_cbar=False, label=None, loc=111,
-                 xticksize=12, yticksize=12, **kwargs):
+                 xticksize=12, yticksize=12, max_colat=40, **kwargs):
         '''
         Create a polar contour of variable *var*.  Plot will be either drawn
         on a new matplotlib figure and axes, or you can specify a plot target
@@ -296,6 +297,8 @@ class Iono(PbData):
             contrast.  Default is **True**.
         maxz : real
             Set the max/min value for the color bar.  Default is set by data.
+        max_colat : real
+            Set the co-latitude range of the plot, in degrees.  Defaults to 40.
         cmap : str
             Set the colormap.  Default is to autoselect using classic IE maps.
             Can be 'bwr', 'wr', or any name of a matplotlib colar map.
@@ -350,7 +353,8 @@ class Iono(PbData):
 
         # Create contour:
         cnt1 = ax.contourf(self[hemi+'psi']*pi/180.0+pi/2., theta,
-                           np.array(self[var]), levs, norm=crange, cmap=cmap)
+                           np.array(self[var]), levs, norm=crange, cmap=cmap,
+                           **kwargs)
         # Set xtick label size, increase font of top label.
         labels = ax.get_xticklabels()
         for l in labels: l.set_size(xticksize)
@@ -364,14 +368,14 @@ class Iono(PbData):
 
         if add_cbar:
             cbarticks = MaxNLocator(7)
-            cbar = colorbar(cnt1, ticks=cbarticks, shrink=0.75, pad=0.08)
+            cbar = colorbar(cnt1, ticks=cbarticks, shrink=0.75, pad=0.08, ax=ax)
             cbar.set_label(tex_label(self[var].attrs['units']))
         else:
             cbar=False
         ax.set_xticks(xticks)
         ax.set_xticklabels(lt_labels)
         ax.yaxis.set_major_locator(lct)
-        ax.set_ylim([0,40])
+        ax.set_ylim([0,max_colat])
 
         # Use text function to manually add pretty ticks.
         ax.set_yticklabels('') # old ticks off.
@@ -382,3 +386,189 @@ class Iono(PbData):
             ax.text(pi/4., 90.-theta, txt, color='k', weight='light', **opts)
 
         return fig, ax, cnt1, cbar
+
+class OvalDebugFile(PbData):
+    '''
+    The auroral oval calculations in RIM may spit out special debug files that
+    are extremely useful.  This class handles reading and plotting the data
+    contained within those files.
+    '''
+
+    def __init__(self, infile, *args, **kwargs):
+        super(OvalDebugFile, self).__init__(*args, **kwargs)
+        self.attrs['file']=infile
+        self._readascii()
+
+    def _readascii(self):
+        '''
+        Loads data & populates object upon instantiation.
+        '''
+
+        import datetime as dt
+        
+        # Slurp in lines:
+        f = open(self.attrs['file'])
+        lines = f.readlines()
+        f.close()
+
+        # Parse header to get longitude in radians:
+        l = lines.pop(0)
+        self['lon'] = np.array(l.split('=')[-1].split(), dtype=float)* np.pi/180.
+        l = lines.pop(0)
+
+        # Some helper vars:
+        nLons = self['lon'].size
+        nLine = len(lines)
+    
+        # Create container arrays:
+        self['time'] = np.zeros(nLine, dtype=object)
+        self['oval'] = np.zeros( (nLine, nLons) )
+        
+        # Parse rest of file:
+        for j,l in enumerate(lines):
+            self['time'][j]   = dt.datetime.strptime(l[:19], '%Y %m %d %H %M %S')
+            self['oval'][j,:] = l.split()[7:]
+
+
+    def get_oval(self, time, interp=True):
+        '''
+        Given a datetime, *time*, interpolate the oval position to that time.
+        If *time* is outside the range of self['time'], an exception will be
+        raised.  Linear interpolation is used unless kwarg *interp* is False.
+        In that case, the value of the oval nearest to *time* will be used
+        without interpolation.
+
+         Parameters
+        ==========
+        time : datetime.datetime
+           The time at which the oval is requested.
+
+        Returns
+        =======
+        oval : numpy.ndarray
+           Oval location at time *time* in radians.  Zero corresponds to local
+           noon.
+
+        Other Parameters
+        ================
+        interp : bool
+            Set interpolation behavior.  If **True**, linear interpolation is 
+            used.  If **False**, the oval location nearest to *time* is used
+            without interpolation.
+
+        Examples
+        ========
+        >>> 
+        '''
+
+        from matplotlib.dates import date2num
+
+        # If *time* is outside the bounds of self['time'], raise exception
+        # to avoid extrapolation.
+        if time<self['time'][0] or time>self['time'][-1]:
+            raise ValueError('Given time outside object range ' +
+                             'and requires extrapolation')
+        
+        # Turn datetimes into numbers.
+        time     = date2num(time)
+        ovaltime = date2num(self['time'])
+        
+        # Start by obtaining the indices of the time array that bound
+        index = np.arange(self['time'].size)
+        i1 = index[time>=ovaltime][-1] # Value before time
+        i2 = index[time<=ovaltime][ 0] # Value after time
+
+        # Check for exact matches:
+        dT1 = np.abs(ovaltime[i1]-time)
+        dT2 = np.abs(ovaltime[i2]-time)
+        if dT1==0: return self['oval'][i1]
+        if dT2==0: return self['oval'][i2]
+        
+        # If no interpolation, just send back nearest neighbor:
+        if not interp:
+            if dT1<dT2:
+                return self['oval'][i1]
+            else:
+                return self['oval'][i2]
+
+        # If interpolation, get slope and y-intercept vectors:
+        dT = ovaltime[i2]-ovaltime[i1]
+        m  = (self['oval'][i2]-self['oval'][i1])/dT
+        b  = self['oval'][i2] - m*ovaltime[i2]
+        
+        # Interpolate and return:
+        return m*time + b
+        
+            
+    def add_oval_line(self, time, *args, **kwargs):
+        '''
+        Adds the location of the auroral oval at time *time* as a line plot on to
+        *target*, which must be a Matplotlib figure/axes.  
+
+        If *target* not given, a new axes object is created.  If *target* is
+        not an existing axes object, a new axes object is created and customized
+        to be an ionosphere polar plot.
+
+        Extra arguments/kwargs are sent to :meth:`matplotlib.pyplot.plot`.
+
+        Parameters
+        ==========
+        time : integer or datetime
+           Sets the time at which to plot the line.  If an integer is used,
+           the integer is used to index the internal array naively.  If a
+           datetime object is given and is within the bounds of self['time'],
+           the oval location will be interpolated to *time*.  Control of the
+           interpolation happens via the *interp* keyword.
+
+        Returns
+        =======
+        fig  : matplotlib figure object
+        ax   : matplotlib axes object
+        line : matplotlib line object
+
+        Other Parameters
+        ================
+        target : Figure or Axes
+            If None (default), a new figure is generated from scratch.
+            If a matplotlib Figure object, a new axis is created
+            to fill that figure.
+            If a matplotlib Axes object, the plot is placed
+            into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+        interp : bool
+            Control the behavior of time interpolation when the *time* argument
+            is given as a datetime object.  Defaults to **True**, meaning that
+            oval location is interpolated in time.  
+
+        Examples
+        ========
+        >>> 
+        '''
+
+        import datetime as dt
+
+        # Handle kwargs not being handed to plot:
+        target=None; loc=111; interp=True
+        if 'target' in kwargs: target=kwargs.pop('target')
+        if 'interp' in kwargs: interp=kwargs.pop('interp')
+        if 'loc'    in kwargs: loc=kwargs.pop('loc')
+            
+        # Set plot targets:
+        fig, ax = set_target(target, polar=True, loc=loc)
+
+        # Get oval interpolated in time:
+        if type(time) == dt.datetime:
+            oval = self.get_oval(time, interp=interp)
+        elif type(time) == int:
+            oval = self['oval'][time]
+        else:
+            raise TypeError('Unrecognized type for *time*:'+type(time))
+
+        # Plot oval:
+        line = ax.plot(self['lon']+np.pi/2., oval, *args, **kwargs)
+
+        return fig, ax, line
+        
