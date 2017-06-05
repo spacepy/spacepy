@@ -294,6 +294,8 @@ def fetch(dtype, tstart, tstop, debug=False):
     dst=fetch('dst', t1, t2)
     '''
 
+    from calendar import monthrange as mrng
+    
     objts={'dst':KyotoDst,'kp':KyotoKp,'ae':KyotoAe,'sym':KyotoSym}
     funcs={'dst':dstfetch,'kp':kpfetch,'ae':aefetch,'sym':symfetch}
 
@@ -308,7 +310,7 @@ def fetch(dtype, tstart, tstop, debug=False):
     # Stop time:
     if type(tstop)==list or type(tstop)==tuple:
         # Convert tuples into datetime:
-        tstop  = dt.datetime(tstop[0], tstop[1],  1, 0, 0)
+        tstop  = dt.datetime(tstop[0], tstop[1], mrng(tstop[0],tstop[1])[1],0,0)
     elif type(tstop)!=dt.datetime and type(tstop)!=dt.date:
         # Not a date time or list/tuple?  Fail.
         raise ValueError('Unrecognized type for input time.')
