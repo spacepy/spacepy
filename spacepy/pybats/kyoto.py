@@ -29,6 +29,9 @@ class KyotoDst(PbData):
     :function:`load` to instantiate from the web or from file.
     '''
 
+    def __repr__(self):
+        return 'KyotoDst object for handling observed Dst data.'
+
     def __init__(self, lines=None, *args, **kwargs):
         # Init as PbData:
         super(KyotoDst, self).__init__(*args, **kwargs)
@@ -81,6 +84,9 @@ class KyotoAe(PbData):
     :function:`load` to instantiate from the web or from file.
     '''
 
+    def __repr__(self):
+        return 'KyotoDst object for handling auroral index data.'
+
     def __init__(self, lines=None, *args, **kwargs):
         # Init as PbData:
         super(KyotoAe, self).__init__(*args, **kwargs)
@@ -96,6 +102,33 @@ class KyotoAe(PbData):
             self[k] = data[k]
             
 #===========================================================================
+class KyotoSym(PbData):
+    '''
+    Handle Sym-H and related indices from Kyoto WDC.  
+
+    Use the specialized constructor functions :function:`fetch` and 
+    :function:`load` to instantiate from the web or from file.
+    '''
+
+    def __repr__(self):
+        return 'KyotoDst object for handling observations-based '+\
+            'SYM- and ASY- data.'
+
+    def __init__(self, lines=None, *args, **kwargs):
+        # Init as PbData:
+        super(KyotoSym, self).__init__(*args, **kwargs)
+        if lines:
+            self._parse(lines)
+        else:
+            pass
+
+    def _parse(self, lines):
+        # Call parse_iaga to parse lines:
+        data = parse_iaga(lines, 'ASY/SYM')
+        for k in data:
+            self[k] = data[k]
+
+#===========================================================================
 class KyotoKp(PbData):
     '''
     Handles global Kp index from Kyoto WDC.
@@ -103,6 +136,10 @@ class KyotoKp(PbData):
     Use the specialized constructor functions :function:`fetch` and 
     :function:`load` to instantiate from the web or from file.
     '''
+    def __repr__(self):
+        return 'KyotoDst object for handling observations-based global '+\
+            'Kp index data'
+
     def __init__(self, lines=None, *args, **kwargs):
         # Init as PbData:
         super(KyotoKp, self).__init__(*args, **kwargs)
@@ -231,10 +268,16 @@ def fetch(dtype, tstart, tstop, debug=False):
     Fetch Kyoto data of type dtype from the web given a start time, tstart,
     and a stop time, tstop.
 
-    dtype can be any of the following strings: dst, kp
+    dtype can be any of the following strings: 
+
+    1. dst -- The hourly Dst index.
+    2. kp  -- The 3-hour global Kp index.
+    3. ae  -- The AE, AL, and AU minute-resolution auroral indices.
+    4. sym -- The minute resolution SYM and ASY indices for H and D directions.
+
     Start and stop times can be year-month tuples or datetime objects.
 
-    The correct, filled data class will be returned.
+    The filled corresponding data class will be returned.
 
     Example 1: Get Kp for the whole year of 2005:
     kp=fetch('kp', (2005,1), (2005,12))
@@ -246,27 +289,37 @@ def fetch(dtype, tstart, tstop, debug=False):
     dst=fetch('dst', t1, t2)
     '''
 
-    objts={'dst':KyotoDst,'kp':KyotoKp,'ae':KyotoAe}
-    funcs={'dst':dstfetch,'kp':kpfetch,'ae':aefetch}
+    objts={'dst':KyotoDst,'kp':KyotoKp,'ae':KyotoAe,'sym':KyotoSym}
+    funcs={'dst':dstfetch,'kp':kpfetch,'ae':aefetch,'sym':symfetch}
 
-    time=[]
-    # Check and parse input times.
-    for t in ([tstart, tstop]):
-        if type(t)==dt.datetime:
-            time.append( (t.year, t.month) )
-        elif type(t)==type( () ) or type(t)==type( [] ):
-            time.append(t)
-        else:
-            raise ValueError('Unrecognized type for input time.')
-
+    # Convert times into datetime objects:
+    # Start time:
+    if type(tstart)==list or type(tstart)==tuple:
+        # Convert tuples into datetimes:
+        tstart = dt.datetime(tstart[0], tstart[1], 1, 0, 0)
+    elif type(tstart)!=dt.datetime and type(tstop)!=dt.date:
+        # Not a date time or list/tuple?  Fail.
+        raise ValueError('Unrecognized type for input time.')
+    # Stop time:
+    if type(tstop)==list or type(tstop)==tuple:
+        # Convert tuples into datetime:
+        tstop  = dt.datetime(tstop[0], tstop[1],  1, 0, 0)
+    elif type(tstop)!=dt.datetime and type(tstop)!=dt.date:
+        # Not a date time or list/tuple?  Fail.
+        raise ValueError('Unrecognized type for input time.')
+    
     if debug:
-        print('Fetching from datetuple ', t[0], ' to ', t[1])
         print('Using functions for ', dtype)
-        print('Calling with ', time[0][0], time[0][1], time[1][0], time[1][1])
-    if dtype!='ae':
-        lines=funcs[dtype](time[0][0], time[0][1], time[1][0], time[1][1])
+        print('Fetching from {0:%Y-%m-%d %H:%M} to {1:%Y-%m-%d %H:%M}'.format(
+            tstart,tstop))
+
+    # Call correct function:
+    if dtype=='dst' or dtype=='kp':
+        lines=funcs[dtype](tstart.year, tstart.month, tstop.year, tstop.month)
     else:
         lines=funcs[dtype](tstart, tstop)
+
+    # Instantiate proper object and parse lines:    
     obj=objts[dtype]()
     obj._parse(lines)
     
@@ -403,6 +456,83 @@ def kpfetch(yrstart, mostart, yrstop, mostop):
     f = urllib.request.urlopen(target, data) 
     lines = f.readlines()
     return(lines)
+#===========================================================================
+
+def symfetch(t_start, t_stop):
+    '''
+    A function to fetch Kyoto SYM-H directly from the Kyoto WDC website.
+    Returns raw ascii lines obtained from the website representing the data
+    in IAGA 2002 format.  
+
+    Note that, because of the higher density of the data, full datetimes
+    are required for the start and stop time.  This is in contrast to
+    other fetch functions, where hourly or three-hourly resolution allows
+    for only the start and stop years and months are required as integers.
+
+    Parameters
+    ----------
+    t_start : datetime.datetime
+       Start time for range of requested data as a datetime object.
+    t_stop : datetime.datetime
+       Stop time for range of requested data as a datetime object.
+
+    '''
+    try:
+        import urllib.parse, urllib.request
+    except ImportError: #glue the python 3 names onto python 2
+        import urllib
+        urllib.parse = urllib
+        urllib.request = urllib
+
+    # Get difference between start and stop time:
+    deltaT = t_stop - t_start
+        
+    # Set up all form info.
+    forminfo = {} # Date-time stuff - requires special formatting.
+
+    # GENERATE FORM INFO:
+    # First three digits of year, last digit of year:
+    forminfo['Tens'] = t_start.year/10
+    forminfo['Year'] = t_start.year - 10*forminfo['Tens']
+    # Month:
+    forminfo['Month']= t_start.month
+    # Day (right now, locked in to one month of data):
+    forminfo['Day_Tens'] = t_start.day/10
+    forminfo['Days']     = t_start.day - 10*forminfo['Day_Tens'] 
+    # Hour/minute:
+    forminfo['Hour'] = t_start.hour
+    forminfo['min']  = t_start.minute
+    # Duration:
+    forminfo['Dur_Day_Tens'] = deltaT.days/10
+    forminfo['Dur_Day']      = deltaT.days - 10*forminfo['Dur_Day_Tens']
+    forminfo['Dur_Hour']     = int(deltaT.seconds/3600.)
+    forminfo['Dur_Min']      = int(deltaT.seconds/60.-forminfo['Dur_Hour']*60.)
+
+    # Email and other information:
+    forminfo['Output']     = 'ASY'
+    forminfo['Out+format'] = 'IAGA2002'
+    forminfo['Email']      =  urllib.parse.quote('spacepy@lanl.gov')
+
+    # Build and open URL.  Note that the forminfo must be
+    # in a certain order for the request to work...
+    target='http://wdc.kugi.kyoto-u.ac.jp/cgi-bin/aeasy-cgi'
+    data='Tens={0[Tens]:03d}&Year={0[Year]:d}&'.format(forminfo)
+    data+='Month={0[Month]:02d}&Day_Tens={0[Day_Tens]:d}&'.format(forminfo)
+    data+='Days={0[Days]:d}&Hour={0[Hour]:02d}&min={0[min]:02d}'.format(forminfo)
+    data+='&Dur_Day_Tens={0[Dur_Day_Tens]:02d}&'.format(forminfo)
+    data+='Dur_Day={0[Dur_Day]:d}&Dur_Hour={0[Dur_Hour]:02d}&'.format(forminfo)
+    data+='Dur_Min={0[Dur_Min]:02d}&Image+Type=GIF&COLOR='.format(forminfo)
+    data+='COLOR&AE+Sensitivity=0&ASY%2FSYM++Sensitivity=0&'
+    data+='Output={0[Output]}&Out+format='.format(forminfo)
+    data+='IAGA2002&Email={0[Email]}'.format(forminfo)
+    #print good
+    #print target+'?'+data
+    
+    # Fetch data from web.
+    f = urllib.request.urlopen(target+'?'+data) 
+    lines = f.readlines()
+    return(lines)
+
 #===========================================================================
 
 def aefetch(t_start, t_stop):
