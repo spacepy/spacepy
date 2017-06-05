@@ -96,6 +96,11 @@ class KyotoAe(PbData):
             pass
 
     def _parse(self, lines):
+        # Decode binary data:
+        if type(lines[0])==bytes:
+            for i in range(len(lines)):
+                lines[i] = lines[i].decode()
+                
         # Call parse_iaga to parse lines:
         data = parse_iaga(lines)
         for k in data:
@@ -123,6 +128,10 @@ class KyotoSym(PbData):
             pass
 
     def _parse(self, lines):
+        # Decode binary data:
+        if type(lines[0])==bytes:
+            for i in range(len(lines)):
+                lines[i] = lines[i].decode()
         # Call parse_iaga to parse lines:
         data = parse_iaga(lines, 'ASY/SYM')
         for k in data:
@@ -499,19 +508,19 @@ def symfetch(t_start, t_stop):
 
     # GENERATE FORM INFO:
     # First three digits of year, last digit of year:
-    forminfo['Tens'] = t_start.year/10
-    forminfo['Year'] = t_start.year - 10*forminfo['Tens']
+    forminfo['Tens'] = int(t_start.year/10)
+    forminfo['Year'] = int(t_start.year - 10*forminfo['Tens'])
     # Month:
     forminfo['Month']= t_start.month
     # Day (right now, locked in to one month of data):
-    forminfo['Day_Tens'] = t_start.day/10
-    forminfo['Days']     = t_start.day - 10*forminfo['Day_Tens'] 
+    forminfo['Day_Tens'] = int(t_start.day/10)
+    forminfo['Days']     = int(t_start.day - 10*forminfo['Day_Tens'])
     # Hour/minute:
     forminfo['Hour'] = t_start.hour
     forminfo['min']  = t_start.minute
     # Duration:
-    forminfo['Dur_Day_Tens'] = deltaT.days/10
-    forminfo['Dur_Day']      = deltaT.days - 10*forminfo['Dur_Day_Tens']
+    forminfo['Dur_Day_Tens'] = int(deltaT.days/10)
+    forminfo['Dur_Day']      = int(deltaT.days - 10*forminfo['Dur_Day_Tens'])
     forminfo['Dur_Hour']     = int(deltaT.seconds/3600.)
     forminfo['Dur_Min']      = int(deltaT.seconds/60.-forminfo['Dur_Hour']*60.)
 
@@ -576,19 +585,19 @@ def aefetch(t_start, t_stop):
 
     # GENERATE FORM INFO:
     # First three digits of year, last digit of year:
-    forminfo['Tens'] = t_start.year/10
-    forminfo['Year'] = t_start.year - 10*forminfo['Tens']
+    forminfo['Tens'] = int(t_start.year/10)
+    forminfo['Year'] = int(t_start.year - 10*forminfo['Tens'])
     # Month:
     forminfo['Month']= t_start.month
     # Day (right now, locked in to one month of data):
-    forminfo['Day_Tens'] = t_start.day/10
-    forminfo['Days']     = t_start.day - 10*forminfo['Day_Tens'] 
+    forminfo['Day_Tens'] = int(t_start.day/10)
+    forminfo['Days']     = int(t_start.day - 10*forminfo['Day_Tens'])
     # Hour/minute:
     forminfo['Hour'] = t_start.hour
     forminfo['min']  = t_start.minute
     # Duration:
-    forminfo['Dur_Day_Tens'] = deltaT.days/10
-    forminfo['Dur_Day']      = deltaT.days - 10*forminfo['Dur_Day_Tens']
+    forminfo['Dur_Day_Tens'] = int(deltaT.days/10)
+    forminfo['Dur_Day']      = int(deltaT.days - 10*forminfo['Dur_Day_Tens'])
     forminfo['Dur_Hour']     = int(deltaT.seconds/3600.)
     forminfo['Dur_Min']      = int(deltaT.seconds/60.-forminfo['Dur_Hour']*60.)
 
