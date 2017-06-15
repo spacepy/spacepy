@@ -117,7 +117,7 @@ class PlasmaFile(PbData):
         # Read the header of the file.
         infile = open(filename, 'r')
         parts = infile.readline().split()
-        nLat, nLon = int(parts[0]), int(parts[1])
+        nLat, nLon = int(parts[-2]), int(parts[-1])
 
         # Create arrays and fill 'em up.
         # First couple are 1D...
