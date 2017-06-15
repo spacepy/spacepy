@@ -304,7 +304,7 @@ def add_body_polar(ax, noon=90.0):
     ax.add_artist(circ)
     ax.add_artist(arc)
 
-def _adjust_dialplot(ax, rad, title='12',labelsize=15):
+def _adjust_dialplot(ax, rad, title='Noon',labelsize=15, c='gray'):
     '''
     Ram output is often visualized with equatorial dial plots.  This
     function quickly adjusts those plots to give a uniform, clean
@@ -324,8 +324,8 @@ def _adjust_dialplot(ax, rad, title='12',labelsize=15):
     ax.yaxis.set_major_locator(MultipleLocator(2))
     labels=ax.get_yticklabels()
     labels[0].set_visible(False)
-    ax.tick_params('y', labelcolor='w', labelsize=labelsize)
-    ax.grid(True, c='w', lw=1.5, ls=':')
+    ax.tick_params('y', labelcolor=c, labelsize=labelsize)
+    ax.grid(True, c=c, lw=1, ls=':')
     # Change background color so labels stand out.
     ax.set_axis_bgcolor('gray')
     add_body_polar(ax)
@@ -368,60 +368,91 @@ def get_iono_cb(ct_name='bwr'):
     return cmap
 
 ############################################################################
-class weimer(object):
+class EfieldFile(PbData):
     '''
-    Read a Weimer electric field input file meant to be used for RAM-SCB.
+    Base class for reading electric field input and output ASCII files.
+    Subclasses such as WeqFile are customized to handle specific formats.
+
+    The default object is configured to handle 
     '''
     
-    def __init__(self,filename):
-        self.filename = filename
+    def __init__(self,filename, *args, **kwargs):
+        # Init base object.
+        super(EfieldFile, self).__init__(*args, **kwargs)
+
+        # Stash file name and read:
+        self.attrs['file'] = filename
         self.read()
 
-    def _parse_head(self, headlines):
-        parts= headlines.split()
-        self.doy = int(parts[0])
-        self.hour= float(parts[1])
-        self.time = dt.datetime(year, 1,1,0,0) + \
-            dt.timedelta(days=doy-1) + \
-            dt.timedelta(hours=hour)
+    def _parse_head(self, fileobj):
+        '''
+        The function to parse the header should obtain:
+        1) The date and time
+        2) Relevant indices
+
+        For input, pass the file object.  Header lines will be
+        read such that only the value names and data are left to
+        be read.
+        '''
+        
+        head1 = fileobj.readline()
+        head2 = fileobj.readline()
+        self.attrs['time'] = dt.datetime.strptime(
+            head1.split()[-1],'Date=%Y-%m-%d_%H:%M:%S.000')
+        self.attrs['kp']   = float(head2.split()[1])
+        self.attrs['f107'] = float(head2.split()[-1])
+        # Original code: works with weimer files:
+        #parts= headlines.split()
+        #self.doy = int(parts[0])
+        #self.hour= float(parts[1])
+        #self.time = dt.datetime(year, 1,1,0,0) + \
+        #    dt.timedelta(days=doy-1) + \
+        #    dt.timedelta(hours=hour)
 
     def read(self):
-        import datetime as dt
+        '''
+        Load and parse the information in the file.
+        '''
+                                   
+        # Open file object.  Send object to header parser.
+        infile = open(self.attrs['file'], 'r')
+        self._parse_head(infile)
 
-        infile = open(self.filename, 'r')
+        # Save last header line:
+        head = infile.readline()
         
-        # Get year, time:
-        head = infile.readline()
-        year = int(head.split()[-1])
-        
-        self._parse_head(infile.readline())
-
-        # skip rest of crap header.
-        head = infile.readline()
-        head = infile.readline()
-
-        # Read data
+        # Slurp rest of lines:
         raw = infile.readlines()
-        self.epot = np.zeros(len(raw)-1)
-        self.l   = np.zeros(len(raw)-1)
-        self.lt  = np.zeros(len(raw)-1)
 
-        for i, line in enumerate(raw[0:-1]):
+        # Create containers.  Note that we don't know if the file
+        # contains longitude or MLT at this point...
+        self['epot'] = dmarray(np.zeros(len(raw)),{'units':'keV'})
+        self['l']    = dmarray(np.zeros(len(raw)),{'units':'Re'})
+        mlt          = dmarray(np.zeros(len(raw)))
+
+        for i, line in enumerate(raw):
             parts = line.split()
-            self.l[i]    = float(parts[0])
-            self.lt[i]   = float(parts[1])
-            self.epot[i] = float(parts[2])
+            self['l'][i]    = parts[0]
+            mlt[i]          = parts[1]
+            self['epot'][i] = parts[2]
 
-        # Make polar angle:
-        self.phi=self.lt*np.pi/12.0
+        # Use header to determine if we have MLT or Phi.
+        # Calculate the one we don't have.
+        if 'mlt' in head.lower():
+            self['mlt'] = mlt
+            self['phi'] = self['mlt']*np.pi/12.0
+        else:
+            self['phi'] = mlt
+            self['mlt'] = self['phi']*12/np.pi
+        
         # Make CPCP
-        self.cpcp = self.epot.max() - self.epot.min()
+        self.attrs['cpcp'] = self['epot'].max() - self['epot'].min()
 
         infile.close()
 
 
     def add_potplot(self, target=None, loc=111, zlim=50, n=31, figsize=(5,4),
-                    add_cbar=True):
+                    add_cbar=True, labcolor='lightgray', title='Noon'):
         '''
         Quickly add a potential plot to MPL object *target*.
 
@@ -442,7 +473,10 @@ class weimer(object):
            The upper limit for the color bar range.  Defaults to 50.
         n : int
            The number of contours.  Defaults to 31.
-        
+        labcolor : color
+           A matplotlib-compatable color indicator for the ticks and labels.
+        title : string
+           A string title to set at the top of the plot.  Defaults to "Noon".
         '''
         import matplotlib.pyplot as plt
         from matplotlib.colors import Normalize
@@ -455,9 +489,9 @@ class weimer(object):
         crange = Normalize(vmin=-1.*zlim, vmax=zlim)
         levs = linspace(-1*zlim, zlim, n)
 
-        cont=ax.tricontourf(self.phi+np.pi/2.0, self.l, self.epot, levs, 
-                            norm=crange, cmap=cmap)
-        _adjust_dialplot(ax,self.l)
+        cont=ax.tricontourf(self['phi']-np.pi/2.0, self['l'], self['epot'],
+                            levs, norm=crange, cmap=cmap)
+        _adjust_dialplot(ax,self['l'], c=labcolor, title=title)
         cbar=False
         if add_cbar:
             cticks = MultipleLocator(25)
@@ -466,7 +500,7 @@ class weimer(object):
 
         return fig, ax, cont, cbar
 
-class WeqFile(weimer):
+class WeqFile(EfieldFile):
     '''
     Slight variation on :class:`weimer` to read weq_***.in files.
     '''
@@ -1181,19 +1215,27 @@ class PressureFile(PbData):
         except:
             self.attrs['time']='unknown'
 
+        # Are electron values included?
+        do_elec = 'PPAR_e' in lines[1]
+
+        # This needs to be re-written with a smart loop.
+        # Use a list of variable strings, append e values if used.
         for i, line in enumerate(lines[2:]): #Skip header.
             parts = line.split()
-            self['L'][i]     =float(parts[0])
-            self['mlt'][i]   =float(parts[1])
-            self['perH'][i]  =float(parts[2])
-            self['parH'][i]  =float(parts[3]) 
-            self['perO'][i]  =float(parts[4])
-            self['parO'][i]  =float(parts[5]) 
-            self['perHe'][i] =float(parts[6])
-            self['parHe'][i] =float(parts[7])
-            self['pere'][i]  =float(parts[8])
-            self['pare'][i]  =float(parts[9])
-            self['total'][i] =float(parts[10])
+            self['L'][i]     = parts[0]
+            self['mlt'][i]   = parts[1]
+            self['perH'][i]  = parts[2]
+            self['parH'][i]  = parts[3] 
+            self['perO'][i]  = parts[4]
+            self['parO'][i]  = parts[5] 
+            self['perHe'][i] = parts[6]
+            self['parHe'][i] = parts[7]
+            if do_elec:
+                self['pere'][i]  = parts[8]
+                self['pare'][i]  = parts[9]
+                self['total'][i] = parts[10]
+            else:
+                self['total'][i] = parts[8]
 
         # Theta is an angle used for polar plots.
         self['theta']=self['mlt']*pi/12.0 - pi/2.0

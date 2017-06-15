@@ -594,6 +594,11 @@ class Bats2d(IdlFile):
         i_iter, runtime, time = parse_filename_time(self.attrs['file'])
         if 'time' not in self.attrs: self.attrs['time'] = time
         if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
+
+        # Behavior of output files changed Jan. 2017:
+        # Check for 'r' instead of 'rbody' in attrs.
+        if 'r' in self.attrs and 'rbody' not in self.attrs:
+            self.attrs['rbody'] = self.attrs['r']
         
         # Parse grid into quad tree.
         if self['grid'].attrs['gtype'] != 'Regular':
@@ -1072,8 +1077,8 @@ class Bats2d(IdlFile):
     ######################
     # VISUALIZATION TOOLS
     ######################
-    def add_grid_plot(self, target=None, loc=111, DoLabel=True, DoShowNums=False,
-                      title='BATS-R-US Grid Layout'):
+    def add_grid_plot(self, target=None, loc=111, do_label=True,
+                      show_nums=False, title='BATS-R-US Grid Layout'):
         '''
         Create a plot of the grid resolution by coloring regions of constant
         resolution.  Kwarg "target" specifies where to place the plot and can
@@ -1083,7 +1088,7 @@ class Bats2d(IdlFile):
         axis object.  If target is None, a new figure and axis are created
         and used to display the plot. 
 
-        Resolution labels can be disabled by setting kwarg DoLabel to False.
+        Resolution labels can be disabled by setting kwarg do_label to False.
 
         Plot title is set using the 'title' kwarg, defaults to 'BATS-R-US
         Grid Layout'.
@@ -1117,7 +1122,7 @@ class Bats2d(IdlFile):
 
         for key in list(self.qtree.keys()):
             self.qtree[key].plotbox(ax)
-        self.qtree.plot_res(ax, tagLeafs=DoShowNums)
+        self.qtree.plot_res(ax, tag_leafs=show_nums, do_label=do_label)
 
         # Customize plot.
         ax.set_xlabel('GSM %s' % xdim.upper())
@@ -2854,10 +2859,14 @@ class VirtSat(LogFile):
         target.set_xlim(xlim)
 
     def add_orbit_plot(self, plane='XY', target=None, loc=111, rbody=1.0,
-                       title=None, trange=None, add_grid=True):
+                       title=None, trange=None, add_grid=True, style='g.',
+                       adjust_axes=True, add_arrow=True,
+                       arrow_kwargs={'color':'g', 'width':.05, 'ec':'k'},
+                       **kwargs):
         '''
         Create a 2D orbit plot in the given plane (e.g. 'XY' or 'ZY').
-        
+        Extra kwargs are handed to the plot function. 
+
 
         Parameters
         ==========
@@ -2871,6 +2880,11 @@ class VirtSat(LogFile):
            Set plot destination.  Defaults to new figure.
         loc : 3-digit integer
            Set subplot location.  Defaults to 111.
+        adjust_axes : bool
+           If True, axes will be customized to best display orbit (equal 
+           aspect ratio, grid on, planet drawn, etc.).  Defaults to True.
+        style: string
+           A matplotlib line style specifier.  Defaults to 'g.'.
         title : string
            Set title of axes.
         rbody : real
@@ -2879,6 +2893,11 @@ class VirtSat(LogFile):
            Set the time range to plot.  Defaults to None, or entire dataset.
         add_grid : boolean
            Turn on or off grid style of axes.  Default is True.
+        add_arrow : boolean
+           Add arrow at end of orbit path to indicate direction.
+           Default is True.
+        arrow_kwargs : dict
+           Dictionary of arrow kwargs.  Defaults to match line style.
         '''
 
         from spacepy.pybats import add_body
@@ -2903,20 +2922,26 @@ class VirtSat(LogFile):
             y = self[plane[1]][tloc]
         else:
             raise ValueError('Bad dimension specifier: ' + plane[1])
-                
 
-        ax.plot(x, y, 'g.')
+        # Actually plot:
+        ax.plot(x, y, style, **kwargs)
 
+        # Add arrow to plot:
+        if add_arrow:
+            x_arr, y_arr = x[-1], y[-1]
+            dx, dy = x[-1]-x[-2], y[-1] - y[-2]
+            ax.arrow(x_arr, y_arr, dx, dy, **arrow_kwargs)
+        
         # Finish customizing axis.
-        ax.axis('equal')
-        ax.set_xlabel('GSM %s'%(plane[0].upper()))
-        ax.set_ylabel('GSM %s'%(plane[1].upper()))
-        if title:
-            ax.set_title(title)
-        grid_zeros(ax)
-        if add_grid: ax.grid()
-        #set_orb_ticks(ax)
-
-        add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
+        if adjust_axes:
+            ax.axis('equal')
+            ax.set_xlabel('GSM %s'%(plane[0].upper()))
+            ax.set_ylabel('GSM %s'%(plane[1].upper()))
+            if title:
+                ax.set_title(title)
+            if add_grid:
+                ax.grid()
+            grid_zeros(ax)
+            add_body(ax, rad=rbody, add_night=('X' in plane.upper()) )
 
         return fig, ax

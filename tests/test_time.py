@@ -477,12 +477,12 @@ class TimeClassTests(unittest.TestCase):
         tt2 = t.Ticktock.now()
         tt2tai = tt2.TAI
         taileaps = tt2.TAIleaps
-        range_ex.append(taileaps[-1])
-        range_ex.append(taileaps[-2])
+        range_ex.append(taileaps[39])
+        range_ex.append(taileaps[38])
         tt = t.Ticktock(range_ex, 'TAI')
         ans = ['2010-09-15T10:15:13', '2010-09-15T10:37:26', '2010-09-15T10:59:39',
                '2010-09-15T11:21:53', '2015-07-01T00:00:00', '2012-07-01T00:00:00']
-        numpy.testing.assert_array_equal(tt.ISO, ans)
+        numpy.testing.assert_equal(tt.ISO, ans)
 
     def test_DOY(self):
         """DOY conversion should work"""
@@ -549,7 +549,7 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([52275.04166667, 52276.])
         numpy.testing.assert_almost_equal(t1.MJD, expected)
-        t2 = t.Ticktock(['1581-01-01T01:00:00'])
+        self.assertRaises(ValueError, t.Ticktock, ['1581-01-01T01:00:00'])
 
     def test_GPS(self):
         """conversions to GPS should work"""

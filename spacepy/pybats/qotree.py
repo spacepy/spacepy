@@ -152,7 +152,7 @@ class QTree(object):
     rd = rightdaughter
     ld = leftdaughter
 
-    def plot_res(self, ax, DoLabel=True, tagLeafs=False):
+    def plot_res(self, ax, do_label=True, tag_leafs=False):
         res_colors={
             1./32.: 'black',
             1./16.: 'darkred',
@@ -174,9 +174,9 @@ class QTree(object):
                     color=res_colors[self[key].dx]
                 else:
                     color='k'
-                self[key].plot_res(ax, fc=color, label=key*tagLeafs)
+                self[key].plot_res(ax, fc=color, label=key*tag_leafs)
 
-        if DoLabel:
+        if do_label:
             ax.annotate('Resolution:', [1.01,0.99], xycoords='axes fraction', 
                         color='k',size='medium')
             for i,key in enumerate(sorted(dx_vals.keys())):

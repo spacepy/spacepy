@@ -27,6 +27,8 @@ except ImportError:
 import numpy
 from numpy import array
 from scipy import inf
+from scipy.stats import poisson
+
 import spacepy.toolbox as tb
 import spacepy.time as st
 import spacepy.lib
@@ -581,7 +583,15 @@ class SimpleFunctionTests(unittest.TestCase):
                             [1, 1, 1, 1, 1]])
         numpy.testing.assert_array_equal(ans1, tb.unique_columns(a, axis=1))
         numpy.testing.assert_array_equal(ans0, tb.unique_columns(a, axis=0))
-        
+
+    def test_poisson_fit(self):
+        """Make sure that we get the right Poisson fit answer"""
+        numpy.random.seed(8675309)
+        ans = 20
+        data = poisson.rvs(ans, size=1000)
+        res = tb.poisson_fit(data)
+        self.assertEqual(ans, numpy.round(res.x))
+
             
 class TBTimeFunctionTests(unittest.TestCase):
     def setUp(self):

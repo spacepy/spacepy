@@ -3,6 +3,7 @@ For some output, slight changes to PARAM.in are required (e.g., changing
 output format from binary to ascii.)
 
 Note that file names have been changed for simplicity.
+Files may no longer test results as SWMF is frequently updated.
 
 SWMF test 3:
 ------------
@@ -11,3 +12,15 @@ y0_binary.out
 batslog.log
 magnetometers.mag
 mag_grid_ascii.out
+
+SWMF test_swpc:
+--------------
+oval_ref.dat with #TEST\ndetermine_oval_characteristics, truncated.
+
+Others/synthetic:
+-----------------
+testsat.dat
+sat_multispecies.sat
+z0_sine.out
+imf_multi.dat
+imf_single.dat

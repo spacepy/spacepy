@@ -7,7 +7,7 @@ Core Plasma Model (DGCPM), a plasmasphere module of the SWMF.
 
 import numpy as np
 import spacepy.plot.apionly
-from spacepy.plot import applySmartTimeTicks
+from spacepy.plot import applySmartTimeTicks, set_target
 from spacepy.pybats import PbData
 
 def _adjust_dialplot(ax, rad, title='12',labelsize=15):
@@ -103,49 +103,48 @@ class PlasmaFile(PbData):
         self._default_cmaps={'n':'Greens_r', 'pot':'bwr'}
         self._default_zlims={'n':[1, 1000], 'pot':[-150,150]}
 
-        # With no real header, these files require sufficient a priori
-        # knowledge of the contents.  Let's hammer that out here.
-        # Order is non-negotiable.
+        # Set units and variable names.
         # Some units are not what are actually in the file; see conversions
         # below (i.e. density defaults to m^-3, but that's unweildy.)
-        varlist = [('n','cm^{-3}'), ('x','R_E'), ('y','R_E'), 
-                   ('b_open','boolean'),
-                   ('pot','kV',), ('corot','kV'), ('vr','m/s'), 
-                   ('vphi','m/s'), ('source','m^-3'),('fluxphi','m^{-3}s^{-1}'),
-                   ('fluxr','m^{-3}s^{-1}'), ('totaln','#'), ('vol','km^3')]
-
+        units = [('n','cm^{-3}'), ('x','R_E'), ('y','R_E'), 
+                 ('b_open','boolean'), ('theta','degrees'), ('phi','degrees'),
+                 ('pot','kV',), ('corot','kV'), ('vr','m/s'), 
+                 ('vphi','m/s'), ('source','m^-3'),('fluxphi','m^{-3}s^{-1}'),
+                 ('fluxr','m^{-3}s^{-1}'), ('totaln','#'), ('vol','km^3')]
+        units = dict(units)
+        
         # Read the header of the file.
         infile = open(filename, 'r')
         parts = infile.readline().split()
         nLat, nLon = int(parts[-2]), int(parts[-1])
+        self['time'] = dt.datetime.strptime(parts[0], 'T=%Y%m%d_%H%M%S_000')
+        varlist = infile.readline().lower().split()[2:]
 
-        # Create arrays and fill 'em up.
-        # First couple are 1D...
-        self['lat'] = dmarray(np.zeros(nLat), {'units':'degrees'})
-        self['lat'][:] = infile.readline().split()
-        self['lon'] = dmarray(np.zeros(nLon), {'units':'degrees'})
-        self['lon'][:] = infile.readline().split()
-
-        # Rest are 2D.
+        # Create containers for data:
         for v in varlist:
-            self[v[0]] = dmarray(
-                np.array(infile.readline().split(), dtype=float).reshape(
-                    (nLat,nLon), order='F'), {'units':v[1]})
+            self[v] = dmarray(np.zeros( (nLat,nLon) ), {'units':units[v]})
 
-        # Final variables are time-related.
-        self.attrs['time'] = dt.datetime(1965,1,1,0,0,0) + \
-            dt.timedelta(seconds=float(infile.readline()))
+        # Read rest of file and sort data into arrays:
+        for l in infile.readlines():
+            parts = l.split()
+            i,j = int(parts.pop(0))-1, int(parts.pop(0))-1
+            for v, x in zip(varlist, parts):
+                self[v][i,j] = x
 
         # That's it for our file.
         infile.close()
 
+        # Create some "helper" variables:
+        self['lat']=dmarray(self['theta'][:,0], {'units':'degrees'})
+        self['lon']=dmarray(self['phi'][  0,:], {'units':'degrees'})
+
         # Calculate L-Shell for convenience.
-        self['L'] = dmarray(np.cos(self['lat']*np.pi/180.0)**-2,{'units':'R_E'})
+        self['L'] = dmarray(np.cos(self['lat']*np.pi/180.)**-2,{'units':'R_E'})
 
         # Sometimes, SI units aren't the best.
-        self['n']    /= 100**3
-        self['pot']  /= 1000.0
-        self['corot']/= 1000.0
+        if 'n'     in self: self['n']    /= 100**3
+        if 'pot'   in self: self['pot']  /= 1000.0
+        if 'corot' in self: self['corot']/= 1000.0
 
         # Some other useful attributes.
         self.attrs['dLat'] = self['lat'][1] - self['lat'][0]
@@ -182,22 +181,8 @@ class PlasmaFile(PbData):
         from matplotlib.colors import LogNorm
 
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc, polar=True)
-            doAdjust = True
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-            doAdjust = False
-        elif type(target).__base__ == plt.PolarAxes:
-            ax  = target
-            fig = ax.figure
-            doAdjust = False
-        else:
-            fig = plt.figure(figsize=(10.5,8))
-            ax  = fig.add_subplot(loc, polar=True)
-            doAdjust = True
+        fig, ax  = set_target(target, figsize=(10.5,8), loc=loc, polar=True)
+        doAdjust = not target==ax
 
         # Get max/min if none given.
         if zlim==None:
@@ -262,22 +247,8 @@ class PlasmaFile(PbData):
         from matplotlib.ticker import MultipleLocator, LogLocator
 
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc, polar=True)
-            doAdjust = True
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-            doAdjust = False
-        elif type(target).__base__ == plt.PolarAxes:
-            ax  = target
-            fig = ax.figure
-            doAdjust = False
-        else:
-            fig = plt.figure(figsize=(10.5,8))
-            ax  = fig.add_subplot(loc, polar=True)
-            doAdjust = True
+        fig, ax  = set_target(target, figsize=(10.5,8), loc=loc, polar=True)
+        doAdjust = not target==ax
 
         # Set function based on boolean "filled":
         if filled:
@@ -388,23 +359,8 @@ class PlasmaFile(PbData):
             kwargs['linestyles'] = 'solid'
 
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc, polar=True)
-            doAdjust = True
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-            doAdjust = False
-        elif type(target).__base__ == plt.PolarAxes:
-            ax  = target
-            fig = ax.figure
-            doAdjust = False
-        else:
-            fig = plt.figure(figsize=(10.5,8))
-            ax  = fig.add_subplot(loc, polar=True)
-            doAdjust = True
-
+        fig, ax  = set_target(target, figsize=(10.5,8), loc=loc, polar=True)
+        doAdjust = not target==ax
             
         # Find the stagnation point by looking for E = 0.
         # Get the potential value at that spot.
@@ -455,6 +411,7 @@ class MltSlice(PbData):
     
         # Parse header.
         self.attrs['mlt'] = float(f.readline().split()[-1])
+
         line = f.readline().split('=')[-1]
         self['L'] = dmarray(np.array(line.split(), dtype=float),
                             {'units':'$R_E$'})
@@ -508,15 +465,7 @@ class MltSlice(PbData):
         from matplotlib.colors import LogNorm
 
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure()
-            ax  = fig.add_subplot(loc)
+        fig, ax  = set_target(target, loc=loc)
 
         # Enforce values to be within limits.
         z=np.where(self['n']>zlim[0], self['n'], 1.01*zlim[0])
@@ -635,16 +584,7 @@ class Lslice(PbData):
         from matplotlib.colors import LogNorm
 
         # Set ax and fig based on given target.
-        if type(target) == plt.Figure:
-            fig = target
-            ax  = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
-            ax  = target
-            fig = ax.figure
-        else:
-            fig = plt.figure()
-            ax  = fig.add_subplot(loc)
-
+        fig, ax  = set_target(target, loc=loc)
         # Enforce values to be within limits.
         z=np.where(self['n']>zlim[0], self['n'], 1.01*zlim[0])
         z[z>zlim[1]] = zlim[1]
