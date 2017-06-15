@@ -414,7 +414,7 @@ def dstfetch(yrstart, mostart, yrstop, mostop):
 
     # Fetch data from web.
     f = urllib.request.urlopen(target)
-    lines = f.readlines().decode()
+    lines = f.readlines()
 
     return(lines)
 
