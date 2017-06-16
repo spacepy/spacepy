@@ -1454,6 +1454,83 @@ class ImfInput(PbData):
                 ' '.join('{:10.2f}'.format(self[key][i]) for key in var)))
         out.close()
 
+    def add_pram_bz(self, target=None, loc=111, pcol='#CC3300', bcol='#3333CC',
+                    xlim=None, plim=None, blim=None, epoch=None):
+        '''
+        Plot, on a single set of axes, both ram pressure and IMF Bz for a 
+        quick-look summary of an event. 
+
+        The figure and main axes object are returned.
+
+        Parameters
+        ==========
+
+        Other Parameters
+        ================
+        target : Figure or Axes
+            If None (default), a new figure is generated from scratch.
+            If a matplotlib Figure object, a new axis is created
+            to fill that figure.
+            If a matplotlib Axes object, the plot is placed
+            into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+        pcol : matplotlib color specifier
+            Set the line and label color for ram pressure.
+        bcol : matplotlib color specifier
+            Set the line and label color for IMF Bz.
+        xlim : 2-element list of datetimes
+            Set the time range for the plot.  Defaults to full range.
+        plim : 2-element list
+            Set the y-axis range for dynamic pressure.
+        blim : 2-element list
+            Set the y-axis range for IMF Bz.
+        epoch : datetime.datetime
+            Create an epoch marker (vertical line) at time=epoch.
+
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        '''
+
+        import matplotlib.pyplot as plt
+        from spacepy.plot import set_target, applySmartTimeTicks
+        
+        # Set ax and fig based on given target.
+        fig, a1 = set_target(target, figsize=(8,4), loc=loc)
+        a2 = a1.twinx()
+        
+        self.calc_pram()
+
+        # Plot lines:
+        a1.plot(self['time'], self['bz'],   color=bcol)
+        a2.plot(self['time'], self['pram'], color=pcol, lw=1.5)
+
+        # Restrict x-range:
+        if not xlim: xlim=self['time']
+        applySmartTimeTicks(a1, xlim, dolabel=True)
+
+        # Zero line for IMF Bz:
+        a1.hlines(0, xlim[0], xlim[-1], color=bcol, linestyles='dashed')
+
+        # Label axes:
+        a1.set_ylabel('IMF B$_{Z}$ ($nT$)', color=bcol, size=16)
+        a2.set_ylabel('P$_{dyn}$ ($nPa$)',  color=pcol, size=16)
+        plt.setp(a1.get_yticklabels(), color=bcol)
+        plt.setp(a2.get_yticklabels(), color=pcol)
+
+        # Add epoch marker.
+        if epoch:
+            ymin, ymax = a1.get_ylim()
+            a1.vlines(epoch, ymin, ymax, linestyles='solid', color='g', 
+                      linewidths=2.)
+            a1.set_ylim([ymin, ymax])
+
+        return fig, a1
+        
     def quicklook(self, timerange=None):
         '''
         Generate a quick-look plot of solar wind conditions driving the

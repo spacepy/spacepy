@@ -29,13 +29,18 @@ def _adjust_dialplot(ax, rad, title='12',labelsize=15):
     xticks    = [   0,   pi/2,   pi, 3*pi/2]
     ax.set_xticks(xticks)
     ax.set_xticklabels(lt_labels)
-    ax.tick_params('x', labelsize=labelsize)
+    ax.tick_params('x', labelsize=14)
 
     # Set L labels and grid.  Turn off label at L=0.
     ax.yaxis.set_major_locator(MultipleLocator(2))
     ax.figure.canvas.draw()
     labs = [item.get_text() for item in ax.get_yticklabels()]
-    ax.set_yticklabels(labs, color='w', size=labelsize, backgroundcolor='k')
+    if labelsize>0:
+        ax.set_yticklabels(labs, color='w', size=labelsize, backgroundcolor='k')
+        labels=ax.get_yticklabels()
+        labels[0].set_visible(False)
+    else:
+        ax.set_yticklabels('')
     labels=ax.get_yticklabels()
     labels[0].set_visible(False)
 
@@ -117,7 +122,7 @@ class PlasmaFile(PbData):
         infile = open(filename, 'r')
         parts = infile.readline().split()
         nLat, nLon = int(parts[-2]), int(parts[-1])
-        self['time'] = dt.datetime.strptime(parts[0], 'T=%Y%m%d_%H%M%S_000')
+        self.attrs['time']=dt.datetime.strptime(parts[0],'T=%Y%m%d_%H%M%S_000')
         varlist = infile.readline().lower().split()[2:]
 
         # Create containers for data:
@@ -174,7 +179,7 @@ class PlasmaFile(PbData):
 
     def add_pcolor(self, var, zlim=None, target=None, loc=111, title=None,
                    Lmax=None, add_cbar=False, clabel=None, dolog=False, 
-                   **kwargs):
+                   labelsize=14, **kwargs):
         
         from numpy import linspace, pi
         import matplotlib.pyplot as plt
@@ -182,7 +187,6 @@ class PlasmaFile(PbData):
 
         # Set ax and fig based on given target.
         fig, ax  = set_target(target, figsize=(10.5,8), loc=loc, polar=True)
-        doAdjust = not target==ax
 
         # Get max/min if none given.
         if zlim==None:
@@ -225,21 +229,20 @@ class PlasmaFile(PbData):
             cbar=None
         
         # Adjust plot appropriately.
-        if doAdjust:
-            if not Lmax:
-                # Default to inside ghost cells.
-                Lmax = self['L'][-3]
-                if title:
-                    ax.set_title(title+'\n'+self.attrs['time'].isoformat(), 
-                                 position=(0,1), ha='left', size=14)
-            _adjust_dialplot(ax, Lmax, labelsize=14)
+        if not Lmax:
+            # Default to inside ghost cells.
+            Lmax = self['L'][-3]
+            if title:
+                ax.set_title(title+'\n'+self.attrs['time'].isoformat(), 
+                             position=(0,1), ha='left', size=14)
+        _adjust_dialplot(ax, Lmax, labelsize=labelsize)
 
         return fig, ax, pcol, cbar
 
 
     def add_contour(self, var, zlim=None, target=None, loc=111, title=None,
                     Lmax=None, add_cbar=False, clabel=None, dolog=False, 
-                    filled=True, nLev=31, **kwargs):
+                    filled=True, nLev=31, labelsize=14, **kwargs):
         
         from numpy import linspace, pi
         import matplotlib.pyplot as plt
@@ -248,7 +251,6 @@ class PlasmaFile(PbData):
 
         # Set ax and fig based on given target.
         fig, ax  = set_target(target, figsize=(10.5,8), loc=loc, polar=True)
-        doAdjust = not target==ax
 
         # Set function based on boolean "filled":
         if filled:
@@ -301,14 +303,13 @@ class PlasmaFile(PbData):
             cbar=None
         
         # Adjust plot appropriately.
-        if doAdjust:
-            if not Lmax:
-                # Default to inside ghost cells.
-                Lmax = self['L'][-3]
-                if title:
-                    ax.set_title(title+'\n'+self.attrs['time'].isoformat(), 
-                                 position=(0,1), ha='left', size=14)
-            _adjust_dialplot(ax, Lmax, labelsize=14)
+        if not Lmax:
+            # Default to inside ghost cells.
+            Lmax = self['L'][-3]
+            if title:
+                ax.set_title(title+'\n'+self.attrs['time'].isoformat(), 
+                             position=(0,1), ha='left', size=14)
+        _adjust_dialplot(ax, Lmax, labelsize=labelsize)
 
         return fig, ax, cont, cbar
 
