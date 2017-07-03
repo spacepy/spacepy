@@ -177,16 +177,16 @@ class QTree(object):
                 self[key].plot_res(ax, fc=color, label=key*tag_leafs)
 
         if do_label:
-            ax.annotate('Resolution:', [1.01,0.99], xycoords='axes fraction', 
+            ax.annotate('Resolution:', [1.02,0.99], xycoords='axes fraction', 
                         color='k',size='medium')
             for i,key in enumerate(sorted(dx_vals.keys())):
                 if key<1:
                     label = '1/%i' % (key**-1)
                 else:
                     label = '%i' % key
-                ax.annotate('%s $R_{E}$'%label, [1.01,0.95-i*0.05],
+                ax.annotate('%s $R_{E}$'%label, [1.02,0.87-i*0.1],
                             xycoords='axes fraction', color=res_colors[key],
-                            size='x-large')
+                            size='x-large',path_effects=[patheffects.withStroke(linewidth=1,foreground='k')])
 
 class Branch(object):
     '''
