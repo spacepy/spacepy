@@ -976,15 +976,8 @@ class LogFile(PbData):
         self.attrs['npts']=npts
 
         # Pop time/date/iteration names off of Namevar.
-        if 'year'in loc: names.pop(names.index('year'))
-        if 'mo'  in loc: names.pop(names.index('mo'))
-        if 'dy'  in loc: names.pop(names.index('dy'))
-        if 'hr'  in loc: names.pop(names.index('hr'))
-        if 'mn'  in loc: names.pop(names.index('mn'))
-        if 'sc'  in loc: names.pop(names.index('sc'))
-        if 'msc' in loc: names.pop(names.index('msc'))
-        if 't'   in loc: names.pop(names.index('t'))
-        if 'it'  in loc: names.pop(names.index('it'))
+        for key in ['year','mo','dy','hr','mn','sc','msc','t','it','yy','mm','dd','hh','ss','ms']:
+            if key in loc: names.pop(names.index(key))
 
         # Create containers for data:
         time=dmarray(np.zeros(npts, dtype=object))
@@ -996,17 +989,30 @@ class LogFile(PbData):
         for i in range(npts):
             vals = raw[i].split()
             # Set time:
-            if 'year' in loc:
-                # If "year" is listed, we have the full datetime.
-                time[i]=(dt.datetime(
-                        int(vals[loc['year']]), # Year
-                        int(vals[loc['mo']  ]), # Month
-                        int(vals[loc['dy']]), # Day
-                        int(vals[loc['hr']]), # Hour
-                        int(vals[loc['mn']]), # Minute
-                        int(vals[loc['sc']]), # Second
-                        int(vals[loc['msc']]) * 1000 #microsec
-                        ))
+            if 'year' in loc or 'yy' in loc:
+                # If "year" or "yy" is listed, we have the full datetime.
+                if 'year' in loc:
+                    # BATS date format
+                    time[i]=(dt.datetime(
+                            int(vals[loc['year']]), # Year
+                            int(vals[loc['mo']  ]), # Month
+                            int(vals[loc['dy']]), # Day
+                            int(vals[loc['hr']]), # Hour
+                            int(vals[loc['mn']]), # Minute
+                            int(vals[loc['sc']]), # Second
+                            int(vals[loc['msc']]) * 1000 #microsec
+                            ))
+                elif 'yy' in loc:
+                    # RIM date format
+                    time[i]=(dt.datetime(
+                            int(vals[1]), # Year
+                            int(vals[2]), # Month
+                            int(vals[3]), # Day
+                            int(vals[4]), # Hour
+                            int(vals[5]), # Minute
+                            int(vals[6]), # Second
+                            int(vals[7]) * 1000 #microsec
+                            ))
                 diffT = time[i] - time[0]
                 runtime[i]=diffT.days*24.0*3600.0 + \
                     diffT.seconds + \
