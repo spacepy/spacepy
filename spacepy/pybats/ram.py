@@ -638,8 +638,8 @@ class RamSat(object):
                 dMu[i] = 4*np.pi*self['pa_grid'][i] -self['pa_grid'][i-1]
 
         # Integrate.
-        tempH=self['FluxH+']; tempO=self['FluxO+']
-        tempe=self['Fluxe-']; tempHe=self['FluxHe+']
+        tempH=self['FluxH+'].copy(); tempO=self['FluxO+'].copy()
+        tempe=self['Fluxe-'].copy(); tempHe=self['FluxHe+'].copy()
         for i in range(1, nPa):
             tempH[:,i,:] =tempH[:,i,:] * dMu[i]
             tempe[:,i,:] =tempe[:,i,:] * dMu[i]
