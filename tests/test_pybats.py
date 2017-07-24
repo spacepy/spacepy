@@ -82,6 +82,13 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
 
+class TestRim(unittest.TestCase):
+
+    def testRead(self):
+        from spacepy.pybats import rim
+
+        # Open file:
+        iono=rim.Iono('data/pybats_test/it000321_104510_000.idl.gz')
 
 class TestBats2d(unittest.TestCase):
     '''
