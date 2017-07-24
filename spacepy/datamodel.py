@@ -1110,7 +1110,7 @@ def toHDF5(fname, SDobject, **kwargs):
         h5_compr_opts = kwargs['compression_opts']
 
     if 'overwrite' not in kwargs: kwargs['overwrite'] = True
-    if type(fname) == str:
+    if type(fname) in str_classes:
         if os.path.isfile(fname) and not kwargs['overwrite']:
             raise(IOError('Cannot write HDF5, file exists (see overwrite) "{0!s}"'.format(fname)))
         if os.path.isfile(fname) and kwargs['overwrite']:
