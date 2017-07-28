@@ -472,6 +472,7 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
     gridnames = names[:ndim]
     if gtyp == 'Irregular':
         for v in names:
+            if v not in pbdat: continue
             pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'], order='F'),
                                attrs=pbdat[v].attrs)
     elif gtyp == 'Regular':
@@ -481,6 +482,7 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
             pbdat[x] = dmarray(pbdat[x][0:prod[i+1]-prod[i]+1:prod[i]],
                 attrs=pbdat[x].attrs)
         for v in names:
+            if v not in pbdat.keys(): continue
             if v not in pbdat['grid'].attrs['dims']:
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
