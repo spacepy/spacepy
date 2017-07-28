@@ -101,6 +101,21 @@ class TestBats2d(unittest.TestCase):
         # Test all calculations:
         self.mhd.calc_all()
         
+    def testMultispecies(self):
+        # Open file:
+        mhd = pbs.Bats2d('data/pybats_test/cut_multispecies.out', format='ascii')
+        mspec_varnames='x Rho Ux Uy Uz Bx By Bz P OpRho OpUx OpUy OpUz OpP jx jy jz g rbody cuty cutz'.split()
+        mspec_units='km Mp/cc km/s km/s km/s nT nT nT nPa Mp/cc km/s km/s km/s nPa uA/m2 uA/m2 uA/m2'.split()
+        knownMultispecUnits = dict(zip(mspec_varnames,
+                                       mspec_units))
+
+        # Test units are loaded correctly:
+        for v in mhd:
+            if v not in mspec_varnames: continue
+            self.assertEqual(knownMultispecUnits[v], mhd[v].attrs['units'])
+
+        mhd.calc_all()
+
 class TestMagGrid(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.bats.MagGridFile` to ensure opening,
