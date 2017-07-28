@@ -29,7 +29,7 @@ from spacepy.datamodel import dmarray
 #### Module-level variables:
 # recognized species:
 mass = {'hp':1.0, 'op':16.0, 'he':4.0, 
-        'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0}
+        'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0, '':1.0}
 
 #### Module-level functions:
 
@@ -929,7 +929,6 @@ class Bats2d(IdlFile):
         if units.lower == 'kev':
             conv=conv/1000.0
 
-        mass={'Hp':1.0, 'Op':16.0, 'He':4.0, 'Sw':1.0, '':1.0}
         species = []
 
         # Find all species, the variable names end in "rho".
@@ -943,7 +942,7 @@ class Bats2d(IdlFile):
             self[s+'Ekin'] = dmarray(sqrt( self[s+'ux']**2+
                                            self[s+'uy']**2+
                                            self[s+'uz']**2)
-                                     * conv * mass[s],
+                                     * conv * mass[s.lower()],
                                      attrs={'units':units})
 
 
