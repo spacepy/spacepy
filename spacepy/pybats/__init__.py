@@ -593,6 +593,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
         inttype.newbyteorder(EndChar)
         infile.seek(0)
         headline=readarray(infile,str,)
+    headline=headline.decode('utf-8')
     
     pbdat.attrs['endian']=endian
 
@@ -655,7 +656,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
     if npar>0:
         para[:] = readarray(infile,floattype,inttype)
 
-    names = readarray(infile,str,inttype)
+    names = readarray(infile,str,inttype).decode('utf-8')
 
     # Preserve or destroy original case of variable names:
     if not keep_case: names = names.lower()
