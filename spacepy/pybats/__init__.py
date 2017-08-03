@@ -515,9 +515,9 @@ def readarray(f,dtype=np.float32,inttype=np.int32):
 
     # Read the data
     if dtype is str:
-        A=f.read(rec_len)
+        A=f.read(rec_len[0])
     else:
-        A=np.fromfile(f,dtype=dtype,count=rec_len/dtype_size_bytes)
+        A=np.fromfile(f,dtype=dtype,count=int(rec_len[0]/dtype_size_bytes))
 
     # Check the record length marker at the end
     rec_len_end=np.fromfile(f,dtype=inttype,count=1)
