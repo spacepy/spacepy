@@ -617,6 +617,10 @@ class Bats2d(IdlFile):
                     print_exc()
                     #print 'On dataset:',self.filename
                     self._qtree=False
+                    self.find_block=lambda: False
+            else:
+                self._qtree=False
+                self.find_block=lambda: False
 
         return self._qtree
 
@@ -819,6 +823,10 @@ class Bats2d(IdlFile):
 
         from spacepy.datamodel import dmarray
         from spacepy.pybats.batsmath import d_dx, d_dy
+
+        if self.qtree==False:
+            print('Warning: calc_divmomen requires a valid qtree')
+            return
         
         print("SUPER WARNING!  This is very, very exploratory.")
 
@@ -856,6 +864,10 @@ class Bats2d(IdlFile):
 
         from spacepy.datamodel import dmarray
         from spacepy.pybats.batsmath import d_dx, d_dy
+
+        if self.qtree==False:
+            print('Warning: calc_gradP requires a valid qtree')
+            return
 
         if 'p' not in self:
             raise KeyError('Pressure not found in object!')
