@@ -221,7 +221,7 @@ class PlasmaFile(PbData):
                              norm=norm, **kwargs)
         # Add cbar if requested:
         if add_cbar:
-            cbar=plt.colorbar(pcol, pad=0.08, shrink=.8)
+            cbar=plt.colorbar(pcol, pad=0.08, shrink=.8, ax=ax)
             if clabel==None: 
                 clabel="%s ($%s$)" % (var, self[var].attrs['units'])
             cbar.set_label(clabel)
@@ -295,7 +295,7 @@ class PlasmaFile(PbData):
         cont = contour(phi, self['L'], z, levs, norm=norm, **kwargs)
         # Add cbar if requested:
         if add_cbar:
-            cbar=plt.colorbar(cont, pad=0.08, shrink=.8, ticks=lct)
+            cbar=plt.colorbar(cont, pad=0.08, shrink=.8, ticks=lct, ax=ax)
             if clabel==None: 
                 clabel="%s ($%s$)" % (var, self[var].attrs['units'])
             cbar.set_label(clabel)
@@ -555,7 +555,7 @@ class Lslice(PbData):
 
     def add_ltut(self, target=None, loc=111, cmap='Greens_r', zlim=[1,1000], 
                  add_cbar=True, clabel='Density $cm^{-3}$', xlabel='full', 
-                 title=None, grid=True, ntick=5):
+                 ylim=[4,20], title=None, grid=True, ntick=5):
         '''
         Plot log(density) as a contour against local time (y-axis) and
         universal time (x-axis) using the PyBats *target* method of other
@@ -571,6 +571,7 @@ class Lslice(PbData):
         add_cbar   Toggles the automatic colorbar.  Default is**True**.
         cmap       Selects Matplotlib color table.  Defaults to *Greens_r*.
         zlim       Limits for z-axis.  Defaults to [0.1, 1000]
+        ylim       Sets the MLT range on the y-axis.  Defaults to [4,20].
         clabel     Sets colorbar label.  Defaults to units.
         xlabel     Sets x-axis labels, use 'full', 'ticks', or **None**.
         title      Sets axis title; defaults to **None**.
@@ -598,7 +599,7 @@ class Lslice(PbData):
         # Use LT ticks and markers on y-axis:
         ax.set_yticks([6, 12, 18])
         ax.set_yticklabels(['Dawn', 'Noon', 'Dusk'])
-        ax.set_ylim([4,20])
+        ax.set_ylim(ylim)
 
         # White ticks, slightly thicker:
         ax.tick_params(axis='both', which='both', color='w', width=1.2)
