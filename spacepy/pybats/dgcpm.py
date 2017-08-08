@@ -142,6 +142,7 @@ class PlasmaFile(PbData):
         # Create some "helper" variables:
         self['lat']=dmarray(self['theta'][:,0], {'units':'degrees'})
         self['lon']=dmarray(self['phi'][  0,:], {'units':'degrees'})
+        self['mlt']=dmarray(self['lon']/15.0,   {'units':'hours'})
 
         # Calculate L-Shell for convenience.
         self['L'] = dmarray(np.cos(self['lat']*np.pi/180.)**-2,{'units':'R_E'})
@@ -180,7 +181,52 @@ class PlasmaFile(PbData):
     def add_pcolor(self, var, zlim=None, target=None, loc=111, title=None,
                    Lmax=None, add_cbar=False, clabel=None, dolog=False, 
                    labelsize=14, **kwargs):
-        
+        '''
+        Create a polar pcolor plot of variable *var* and add it to *target*. 
+        Extra keyword arguments are handed to matplotlib's pcolor command.
+
+        Parameters
+        ==========
+        var : string
+             The variable within the object to plot.
+
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        cont : matplotlib contour object
+        cbar : matplotlib colorbar object
+
+        Other Parameters
+        ================
+        zlim : two-element list or array
+             Set the color bar range.  Some variables have default ranges.  Others
+             will use max and min of *var*.
+        Lmax : real
+             Set the radial extent of the plot.
+        add_cbar : bool
+             Set whether to add a color bar or not.  Defaults to **False**.
+        dolog : bool
+             If **True**, use a log scale to plot *var*.  Defaults to **False**.
+        labelsize : int
+             Sets the font size of the labels.  Defaults to 14.
+        title : string
+             Sets the plot title.  Defaults to 'auto', using the variable label.
+        clabel : string
+             Set label for the color bar.  Defaults to *var* and associated units.
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+
+        '''
+
         from numpy import linspace, pi
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
@@ -243,7 +289,53 @@ class PlasmaFile(PbData):
     def add_contour(self, var, zlim=None, target=None, loc=111, title=None,
                     Lmax=None, add_cbar=False, clabel=None, dolog=False, 
                     filled=True, nLev=31, labelsize=14, **kwargs):
-        
+        '''
+        Create a polar contour plot of variable *var* and add it to *target*. 
+        Extra keyword arguments are handed to matplotlib's contourf command.
+
+        Parameters
+        ==========
+        var : string
+             The variable within the object to plot.
+
+        Returns
+        =======
+        fig : matplotlib figure object
+        ax  : matplotlib axes object
+        cont : matplotlib contour object
+        cbar : matplotlib colorbar object
+
+        Other Parameters
+        ================
+        nLev : int
+             Sets the number of contour levels.  Defaults to 31.
+        zlim : two-element list or array
+             Set the color bar range.  Some variables have default ranges.  Others
+             will use max and min of *var*.
+        Lmax : real
+             Set the radial extent of the plot.
+        add_cbar : bool
+             Set whether to add a color bar or not.  Defaults to **False**.
+        dolog : bool
+             If **True**, use a log scale to plot *var*.  Defaults to **False**.
+        labelsize : int
+             Sets the font size of the labels.  Defaults to 14.
+        title : string
+             Sets the plot title.  Defaults to 'auto', using the variable label.
+        clabel : string
+             Set label for the color bar.  Defaults to *var* and associated units.
+        target : Figure or Axes
+             If None (default), a new figure is generated from scratch.
+             If a matplotlib Figure object, a new axis is created
+             to fill that figure.
+             If a matplotlib Axes object, the plot is placed
+             into that axis.
+        loc : int
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
+
+        '''        
         from numpy import linspace, pi
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
