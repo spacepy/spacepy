@@ -327,7 +327,7 @@ def _adjust_dialplot(ax, rad, title='Noon',labelsize=15, c='gray'):
     ax.tick_params('y', labelcolor=c, labelsize=labelsize)
     ax.grid(True, c=c, lw=1, ls=':')
     # Change background color so labels stand out.
-    ax.set_axis_bgcolor('gray')
+    ax.set_facecolor('gray')
     add_body_polar(ax)
 
 def get_iono_cb(ct_name='bwr'):

@@ -48,7 +48,7 @@ def _adjust_dialplot(ax, rad, title='12',labelsize=15):
     ax.grid(True, c='w', lw=1.5, ls=':')
 
     # Change background color so labels stand out.
-    ax.set_axis_bgcolor('gray')
+    ax.set_facecolor('gray')
     add_body_polar(ax)
 
 def saturation(L):
