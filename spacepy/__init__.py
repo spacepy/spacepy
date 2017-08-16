@@ -328,7 +328,7 @@ if not os.path.exists(DOT_FLN):
 else:
     _read_config(rcfile)
 
-if len(__version__.split('.')[0]) > 2 and config['support_notice']:
+if __version__ == 'UNRELEASED' and config['support_notice']:
     print('This unreleased version of SpacePy is not supported '
           'by the SpacePy team.')
 
