@@ -161,7 +161,28 @@ def f2py_options(fcompiler, dist=None):
     fcomp.customize(dist)
     if 'LDFLAGS' in os.environ:
         env = os.environ.copy()
-        env['LDFLAGS'] += ' ' + ' '.join(fcomp.get_flags_linker_so())
+        currflags = os.environ['LDFLAGS'].split()
+        fcompflags = fcomp.get_flags_linker_so()
+        it = iter(range(len(fcompflags)))
+        for i in it:
+            if i == len(fcompflags) - 1 or fcompflags[i + 1].startswith('-'):
+                #a simple flag
+                if not fcompflags[i] in currflags:
+                    currflags.append(fcompflags[i])
+                continue
+            #Flag that takes an option, consume the option (and maybe add)
+            next(it)
+            idx = 0
+            while fcompflags[i] in currflags[idx:]:
+                idx = currflags.index(fcompflags[i], idx)
+                if idx < len(currflags) + 1 and \
+                   currflags[idx + 1] == fcompflags[i + 1]:
+                    break
+            else:
+                #Was NOT found, so add it
+                currflags.append(fcompflags[i])
+                currflags.append(fcompflags[i + 1])
+        env['LDFLAGS'] = ' '.join(currflags)
     return (env, fcomp.executables)
 
 
