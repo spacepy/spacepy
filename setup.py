@@ -161,7 +161,7 @@ def f2py_options(fcompiler, dist=None):
     fcomp.customize(dist)
     if 'LDFLAGS' in os.environ:
         env = os.environ.copy()
-        env['LDFLAGS'] += ' '.join(fcomp.get_flags_linker_so())
+        env['LDFLAGS'] += ' ' + ' '.join(fcomp.get_flags_linker_so())
     return (env, fcomp.executables)
 
 
