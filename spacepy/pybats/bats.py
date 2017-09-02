@@ -230,8 +230,8 @@ class Extraction(PbData):
     :class:`~spacepy.pybats.PbData` 2D data sets.  Bilinear interpolation is 
     used to obtain data between points.  At present, this class only
     works with :class:`~spacepy.pybats.bats.Bats2d` objects, but will be
-    generalized in the future.  Though it can be instantiated in typical fashion,
-    It is best to create these objects via other object methods (e.g., 
+    generalized in the future.  Though it can be instantiated in typical 
+    fashion, It is best to create these objects via other object methods (e.g., 
     :func:`~spacepy.pybats.bats.Bats2d.extract`)
 
     Parameters
@@ -241,7 +241,7 @@ class Extraction(PbData):
     y : float or sequence
         Y value(s) for points at which to extract data values.
     dataset : Bats
-        :class:`~spacepy.pybats.bats.Bats2d` object from which to extract values.
+        :class:`~spacepy.pybats.bats.Bats2d` object from which to extract values
 
     Other Parameters
     ----------------
@@ -360,7 +360,8 @@ class Stream(Extraction):
 
     Notes
     -----
-    .. Not really "notes" but need to keep this section from being parsed as parameters
+    .. Not really "notes" but need to keep this section from being parsed 
+       as parameters
 
     .. rubric:: Methods
 
@@ -1041,20 +1042,24 @@ class Bats2d(IdlFile):
 
     def vth(self,m_avg=3.1):
         """
-        Calculate the thermal velocity. m_avg denotes the average ion mass in AMU.
+        Calculate the thermal velocity. m_avg denotes the average ion 
+        mass in AMU.
 
         Result is stored in self['vth'].
         """
 
         m_avg_kg=m_avg*1.6276e-27
         ndensity=self['rho']/m_avg*1e6
-        self['vth']=dmarray(np.sqrt(self['p']*1e-9/ndensity/(m_avg_kg))/1000,attrs={'units':'km/s'})
+        self['vth']=dmarray(np.sqrt(self['p']*1e-9/ndensity/(m_avg_kg))
+                            /1000,attrs={'units':'km/s'})
 
     def gyroradius(self,velocities=('u','vth'),m_avg=3.1):
         """
         Calculate the ion gyroradius in each cell.
 
-        velocities to use in calculating the gyroradius are listed by name in the sequence argument velocities. If more than one variable is given, they are summed in quadrature.
+        velocities to use in calculating the gyroradius are listed by name in 
+        the sequence argument velocities. If more than one variable is given, 
+        they are summed in quadrature.
 
         m_avg denotes the average ion mass in AMU.
 
@@ -1088,7 +1093,8 @@ class Bats2d(IdlFile):
 
         q=1.6022e-19
 
-        self['gyroradius']=dmarray(m_avg_kg*v/(q*B)/6378000,attrs={'units':'Re'})
+        self['gyroradius']=dmarray(m_avg_kg*v/(q*B)/6378000,
+                                   attrs={'units':'Re'})
 
     def plasma_freq(self,m_avg=3.1):
         """
@@ -1103,7 +1109,8 @@ class Bats2d(IdlFile):
         m_avg_kg=m_avg*1.6276e-27
         ndensity=self['rho']/m_avg*1e6
         q=1.6022e-19
-        self['plasma_freq']=dmarray(sqrt(4*pi*ndensity*q**2/m_avg_kg),attrs={'units':'rad/s'})
+        self['plasma_freq']=dmarray(sqrt(4*pi*ndensity*q**2/m_avg_kg),
+                                    attrs={'units':'rad/s'})
 
     def inertial_length(self,m_avg=3.1):
         """
@@ -1121,7 +1128,8 @@ class Bats2d(IdlFile):
 
         if 'alfven' not in self: self.calc_alfven()
 
-        self['inertial_length']=dmarray(self['alfven']/self['plasma_freq']/6378000,attrs={'units':'Re'})
+        self['inertial_length']=dmarray(self['alfven']/self['plasma_freq']
+                                        /6378000, attrs={'units':'Re'})
 
     def regrid(self, cellsize=1.0, dim1range=-1, dim2range=-1, debug=False):
         '''
@@ -1390,7 +1398,8 @@ class Bats2d(IdlFile):
         return tilt, theta_day, theta_night, day, night
 
     def add_b_magsphere_new(self, target=None, loc=111,  style='mag', 
-                            DoLast=True, DoOpen=True, DoTail=True,compX='bx',compY='bz',
+                            DoLast=True, DoOpen=True, DoTail=True,
+                            compX='bx',compY='bz',
                             method='rk4', tol=np.pi/360., DoClosed=True,
                             nOpen=5, nClosed=15, **kwargs):
         '''
@@ -1429,6 +1438,8 @@ class Bats2d(IdlFile):
                    :class:`spacepy.pybats.bats.Stream`.
         tol        Tolerance for finding open-closed boundary; see
                    :func:`~spacepy.pybats.bats.Bats2d.find_earth_lastclosed`.
+        compX      Name of x-variable through which to trace, defaults to 'bx'.
+        compY      Name of y-variable through which to trace, defaults to 'bz'.
         ========== ===========================================================
         
         Extra kwargs are passed to Matplotlib's LineCollection class.
@@ -2420,7 +2431,8 @@ class MagFile(PbData):
                 line=ielns[i*nmags+2]
                 self[namemag[0]].parse_ieline(i, line, ie_namevar)
                 for j in range(1, nmags):
-                    self[namemag[j]].parse_ieline(i, ielns[i*nmags+j+2], ie_namevar)
+                    self[namemag[j]].parse_ieline(i, ielns[i*nmags+j+2],
+                                                  ie_namevar)
 
         for j in range(nmags):
             mag=self[namemag[j]]
@@ -2791,7 +2803,7 @@ class GeoIndexFile(LogFile):
         The target kwarg works like in other PyBats plot functions: it can be
         a figure, an axes, or None, and it determines where the plot is placed.
 
-        Other kwargs customize the line.  Extra kwargs are passed to pyplot.plot.
+        Other kwargs customize the line.  Extra kwargs are passed to pyplot.plot
         '''
         import matplotlib.pyplot as plt
 

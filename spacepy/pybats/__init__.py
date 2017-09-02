@@ -489,11 +489,13 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
 
 def readarray(f,dtype=np.float32,inttype=np.int32):
     """
-    Read an array from an unformatted binary file written out by a Fortran program.
+    Read an array from an unformatted binary file written out by a 
+    Fortran program.
 
     :param f: File to read
     :type f: File-like
-    :param nrec: Number of records to read. If nrec is greater than one, all records read will be appended together into a single 1-D array.
+    :param nrec: Number of records to read. If nrec is greater than one, 
+    all records read will be appended together into a single 1-D array.
     :type nrec: int
     """
 
@@ -507,7 +509,8 @@ def readarray(f,dtype=np.float32,inttype=np.int32):
 
     # Check that the record length is consistent with the data type
     if rec_len%dtype_size_bytes!=0:
-        raise ValueError('Read error: Data type inconsistent with record length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(dtype_size_bytes),int(n)))
+        raise ValueError('Read error: Data type inconsistent with record' +
+                         ' length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(dtype_size_bytes),int(n)))
 
     if len(rec_len)==0:
         # Zero-length record...file may be truncated
@@ -528,10 +531,10 @@ def readarray(f,dtype=np.float32,inttype=np.int32):
     if rec_len_end!=rec_len:
         # End marker is inconsistent with start marker. Something is wrong.
         raise ValueError(
-            'Read error: End marker does not match start marker (start marker says record length is {0:d} bytes, end marker says {1:d} bytes). This indicates incorrect endiannes, wrong file type, or file is corrupt'.format(
-                int(rec_len),int(rec_len_end)
-            )
-        )
+            'Read error: End marker does not match start marker '+
+            '(start marker says record length is {0:d} bytes, end marker says {1:d} bytes).'.format(int(rec_len),int(rec_len_end)) +
+            'This indicates incorrect endiannes, wrong file type, '+
+            'or file is corrupt'.format(int(rec_len),int(rec_len_end)))
 
     return A
 
@@ -979,7 +982,8 @@ class LogFile(PbData):
         self.attrs['npts']=npts
 
         # Pop time/date/iteration names off of Namevar.
-        for key in ['year','mo','dy','hr','mn','sc','msc','t','it','yy','mm','dd','hh','ss','ms']:
+        for key in ['year','mo','dy','hr','mn','sc','msc',
+                    't','it','yy','mm','dd','hh','ss','ms']:
             if key in loc: names.pop(names.index(key))
 
         # Create containers for data:
