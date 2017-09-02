@@ -181,9 +181,13 @@ class Iono(PbData):
         import re
         import datetime as dt
         from numpy import zeros, reshape
+        import gzip
 
         # slurp entire file.
-        infile = open(self.attrs['file'], 'r')
+        if self.attrs['file'][-3:]=='.gz':
+            infile=gzip.open(self.attrs['file'],'rt',encoding='utf-8')
+        else:
+            infile = open(self.attrs['file'], 'r',encoding='utf-8')
         raw = infile.readlines()
         infile.close()
 

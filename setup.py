@@ -161,7 +161,28 @@ def f2py_options(fcompiler, dist=None):
     fcomp.customize(dist)
     if 'LDFLAGS' in os.environ:
         env = os.environ.copy()
-        env['LDFLAGS'] += ' '.join(fcomp.get_flags_linker_so())
+        currflags = os.environ['LDFLAGS'].split()
+        fcompflags = fcomp.get_flags_linker_so()
+        it = iter(range(len(fcompflags)))
+        for i in it:
+            if i == len(fcompflags) - 1 or fcompflags[i + 1].startswith('-'):
+                #a simple flag
+                if not fcompflags[i] in currflags:
+                    currflags.append(fcompflags[i])
+                continue
+            #Flag that takes an option, consume the option (and maybe add)
+            next(it)
+            idx = 0
+            while fcompflags[i] in currflags[idx:]:
+                idx = currflags.index(fcompflags[i], idx)
+                if idx < len(currflags) + 1 and \
+                   currflags[idx + 1] == fcompflags[i + 1]:
+                    break
+            else:
+                #Was NOT found, so add it
+                currflags.append(fcompflags[i])
+                currflags.append(fcompflags[i + 1])
+        env['LDFLAGS'] = ' '.join(currflags)
     return (env, fcomp.executables)
 
 
@@ -768,30 +789,9 @@ packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*', 'data/TS07D/TAIL_PAR/*']
 
-if 'SPACEPY_VERSION' in os.environ:
-    version = os.environ['SPACEPY_VERSION']
-else:
-    sed_command="s/Date: *//;s/-/./gp;s/commit \\(........\\).*$/\\1/p"
-    proc = subprocess.Popen(["sh", "-c",
-            "git log -1  --date=short | sed -n '%s'" % (sed_command,)],
-            stdout=subprocess.PIPE)
-    (out, err) = proc.communicate()
-    lines = out.decode('ascii').split('\n')
-    if len(lines) > 1:
-        version = "%s.%s" % (lines[1].strip(), lines[0].strip())
-
-if version:
-    print("Using version " + version)
-    os.system("sed -i 's/UNRELEASED/%s/' spacepy/__init__.py" % (version,))
-    os.system("sed -i 's/UNRELEASED/%s/' Doc/source/conf.py" % (version,))
-else:
-    print("""Cannot determine version number;
-please set the SPACEPY_VERSION environment variable.""")
-    exit()
-
 setup_kwargs = {
     'name': 'spacepy',
-    'version': version,
+    'version': '0.1.6',
     'description': 'SpacePy: Tools for Space Science Applications',
     'long_description': 'SpacePy: Tools for Space Science Applications',
     'author': 'SpacePy team',

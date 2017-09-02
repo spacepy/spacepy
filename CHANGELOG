@@ -1,3 +1,8 @@
+Changes in Version 0.1.7 (2017-xx-xx)
+=====================================
+pybats
+ - Many small changes and bugfixes (thanks John Haiducek)	
+
 Changes in Version 0.1.6 (2016-09-08)
 =====================================
 - Improvements to test suite (coverage and design)

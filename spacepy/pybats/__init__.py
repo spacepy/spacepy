@@ -472,6 +472,7 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
     gridnames = names[:ndim]
     if gtyp == 'Irregular':
         for v in names:
+            if v not in pbdat: continue
             pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'], order='F'),
                                attrs=pbdat[v].attrs)
     elif gtyp == 'Regular':
@@ -481,11 +482,60 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
             pbdat[x] = dmarray(pbdat[x][0:prod[i+1]-prod[i]+1:prod[i]],
                 attrs=pbdat[x].attrs)
         for v in names:
+            if v not in pbdat.keys(): continue
             if v not in pbdat['grid'].attrs['dims']:
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
-def _read_idl_bin(pbdat, header='units', keep_case=True):
+def readarray(f,dtype=np.float32,inttype=np.int32):
+    """
+    Read an array from an unformatted binary file written out by a Fortran program.
+
+    :param f: File to read
+    :type f: File-like
+    :param nrec: Number of records to read. If nrec is greater than one, all records read will be appended together into a single 1-D array.
+    :type nrec: int
+    """
+
+    if dtype is str:
+        dtype_size_bytes=1
+    else:
+        dtype_size_bytes=dtype.itemsize
+
+    # Get the record length
+    rec_len=np.fromfile(f,dtype=inttype,count=1)
+
+    # Check that the record length is consistent with the data type
+    if rec_len%dtype_size_bytes!=0:
+        raise ValueError('Read error: Data type inconsistent with record length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(dtype_size_bytes),int(n)))
+
+    if len(rec_len)==0:
+        # Zero-length record...file may be truncated
+        raise EOFError('Zero-length read at start marker')
+
+    # Read the data
+    if dtype is str:
+        A=f.read(rec_len[0])
+    else:
+        A=np.fromfile(f,dtype=dtype,count=int(rec_len[0]/dtype_size_bytes))
+
+    # Check the record length marker at the end
+    rec_len_end=np.fromfile(f,dtype=inttype,count=1)
+    if len(rec_len_end)==0:
+        # Couldn't read, file may be truncated
+        raise EOFError('Zero-length read at end marker')
+
+    if rec_len_end!=rec_len:
+        # End marker is inconsistent with start marker. Something is wrong.
+        raise ValueError(
+            'Read error: End marker does not match start marker (start marker says record length is {0:d} bytes, end marker says {1:d} bytes). This indicates incorrect endiannes, wrong file type, or file is corrupt'.format(
+                int(rec_len),int(rec_len_end)
+            )
+        )
+
+    return A
+
+def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
@@ -528,33 +578,55 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     
     # On the first try, we may fail because of wrong-endianess.
     # If that is the case, swap that endian and try again.
-    EndChar = '<' # Endian marker (default: little.)
-    pbdat.attrs['endian']='little'
-    RecLenRaw = infile.read(4)
-    
-    RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
-    if (RecLen > 10000) or (RecLen < 0):
-        EndChar = '>'
-        pbdat.attrs['endian']='big'
-        RecLen = ( struct.unpack(EndChar+'l', RecLenRaw) )[0]
-        
-    headline = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
-                             infile.read(RecLen)) )[0].strip()
-    if str is not bytes:
-        headline = headline.decode()
 
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    pformat = 'f'
-    # parse rest of header; detect double-precision file.
-    if RecLen > 20: pformat = 'd'
+    endian='little'
+
+    inttype=np.dtype(np.int32)
+    EndChar='<'
+    inttype.newbyteorder(EndChar)
+
+    try:
+        headline=readarray(infile,str,np.int32)
+    except (ValueError,EOFError):
+        endian='big'
+        EndChar='>'
+        inttype.newbyteorder(EndChar)
+        infile.seek(0)
+        headline=readarray(infile,str,)
+    headline=headline.decode('utf-8')
+    
+    pbdat.attrs['endian']=endian
+
+    # detect double-precision file.
+    pos=infile.tell()
+
+    RecLen=np.fromfile(infile,dtype=inttype,count=1)
+    infile.seek(pos)
+
+    # Set data types
+
+
+    if RecLen > 20:
+        floattype=np.dtype(np.float64)
+    else:
+        floattype=np.dtype(np.float32)
+    floattype.newbyteorder(EndChar)
+
+    # Parse rest of header
+    header_fields_dtype=np.dtype([
+        ('it',np.int32),('t',floattype),('ndim',np.int32),
+        ('npar',np.int32),('nvar',np.int32)])
+    header_fields_dtype.newbyteorder(EndChar)
+
     (pbdat.attrs['iter'], pbdat.attrs['runtime'],
      pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
-        struct.unpack('{0}l{1}3l'.format(EndChar, pformat), infile.read(RecLen))
+        readarray(infile,
+                  dtype=header_fields_dtype,
+                  inttype=inttype)[0]
+
     # Get gridsize
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    #pbdat['grid']=dmarray(struct.unpack(EndChar+'%il' % abs(pbdat.attrs['ndim']),  
-    pbdat['grid']=dmarray(struct.unpack('{0}{1}l'.format(EndChar, abs(pbdat.attrs['ndim'])), 
-                                       infile.read(RecLen)))
+    pbdat['grid']=dmarray(readarray(infile,inttype,inttype))
+
     # Data from generalized (structured but irregular) grids can be 
     # detected by a negative ndim value.  Unstructured grids (e.g.
     # BATS, AMRVAC) are signified by negative ndim values AND
@@ -582,15 +654,9 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     # Read parameters stored in file.
     para  = np.zeros(npar)
     if npar>0:
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        para[:] = struct.unpack('{0}{1}{2}'.format(EndChar, npar, pformat),
-                                infile.read(RecLen))
+        para[:] = readarray(infile,floattype,inttype)
 
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-    names = ( struct.unpack('{0}{1}s'.format(EndChar, RecLen),
-                            infile.read(RecLen)) )[0]
-    if str is not bytes:
-        names = names.decode()
+    names = readarray(infile,str,inttype).decode('utf-8')
 
     # Preserve or destroy original case of variable names:
     if not keep_case: names = names.lower()
@@ -626,12 +692,14 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
     pbdat.attrs['strtime'] = '{0:04d}h{1:02d}m{2:06.3f}s'.format(int(time//3600), int(time%3600//60), time%60)
 
     # Get the grid points...
-    (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
     prod = [1] + pbdat['grid'].cumprod().tolist()
+
+    # Read the data into a temporary array
+    griddata = readarray(infile,floattype,inttype)
     for i in range(0,ndim):
-        # Read the data into a temporary grid.
-        tempgrid = np.array(struct.unpack('{0}{1}{2}'.format(EndChar, npts, pformat),
-                                          infile.read(int(RecLen//ndim)) ) )
+        # Get the grid coordinates for this dimension
+        tempgrid = griddata[npts*i:npts*(i+1)]
+
         # Unstructred grids get loaded as vectors.
         if gtyp == 'Unstructured':
             pbdat[names[i]] = dmarray(tempgrid)
@@ -651,11 +719,8 @@ def _read_idl_bin(pbdat, header='units', keep_case=True):
 
     # Get the actual data and sort.
     for i in range(ndim,nvar+ndim):
-        (OldLen, RecLen) = struct.unpack(EndChar+'2l', infile.read(8))
-        pbdat[names[i]] = dmarray(
-            np.array(struct.unpack('{0}{1}{2}'.format(EndChar, npts, pformat),
-                                       infile.read(RecLen))) )
-        pbdat[names[i]].attrs['units'] = units.pop(nSkip)
+        pbdat[names[i]] = dmarray(readarray(infile,floattype,inttype))
+        pbdat[names[i]].attrs['units']=units.pop(nSkip)
         if gtyp != 'Unstructured':
             # Put data into multidimensional arrays.
             pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'], order='F')
@@ -782,7 +847,7 @@ class IdlFile(PbData):
     as an "unpack requires a string of argument length 'X'".
     '''
 
-    def __init__(self, filename,format='binary',header='units',
+    def __init__(self, filename,format=None,header='units',
                  keep_case=True, *args,**kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
         self.attrs['file']   = filename   # Save file name.
@@ -799,8 +864,13 @@ class IdlFile(PbData):
         set when the object is instantiation.
         '''
 
-        if self.attrs['format'][:3] == 'bin':
-            _read_idl_bin(  self, header=header, keep_case=keep_case)
+        if self.attrs['format'] is None:
+            try:
+                _read_idl_bin(self, header=header, keep_case=keep_case)
+            except (ValueError,EOFError):
+                _read_idl_ascii(self, header=header, keep_case=keep_case)
+        elif self.attrs['format'][:3] == 'bin':
+            _read_idl_bin(self, header=header, keep_case=keep_case)
         elif self.attrs['format'][:3] == 'asc':
             _read_idl_ascii(self, header=header, keep_case=keep_case)
         else:
@@ -909,15 +979,8 @@ class LogFile(PbData):
         self.attrs['npts']=npts
 
         # Pop time/date/iteration names off of Namevar.
-        if 'year'in loc: names.pop(names.index('year'))
-        if 'mo'  in loc: names.pop(names.index('mo'))
-        if 'dy'  in loc: names.pop(names.index('dy'))
-        if 'hr'  in loc: names.pop(names.index('hr'))
-        if 'mn'  in loc: names.pop(names.index('mn'))
-        if 'sc'  in loc: names.pop(names.index('sc'))
-        if 'msc' in loc: names.pop(names.index('msc'))
-        if 't'   in loc: names.pop(names.index('t'))
-        if 'it'  in loc: names.pop(names.index('it'))
+        for key in ['year','mo','dy','hr','mn','sc','msc','t','it','yy','mm','dd','hh','ss','ms']:
+            if key in loc: names.pop(names.index(key))
 
         # Create containers for data:
         time=dmarray(np.zeros(npts, dtype=object))
@@ -929,17 +992,30 @@ class LogFile(PbData):
         for i in range(npts):
             vals = raw[i].split()
             # Set time:
-            if 'year' in loc:
-                # If "year" is listed, we have the full datetime.
-                time[i]=(dt.datetime(
-                        int(vals[loc['year']]), # Year
-                        int(vals[loc['mo']  ]), # Month
-                        int(vals[loc['dy']]), # Day
-                        int(vals[loc['hr']]), # Hour
-                        int(vals[loc['mn']]), # Minute
-                        int(vals[loc['sc']]), # Second
-                        int(vals[loc['msc']]) * 1000 #microsec
-                        ))
+            if 'year' in loc or 'yy' in loc:
+                # If "year" or "yy" is listed, we have the full datetime.
+                if 'year' in loc:
+                    # BATS date format
+                    time[i]=(dt.datetime(
+                            int(vals[loc['year']]), # Year
+                            int(vals[loc['mo']  ]), # Month
+                            int(vals[loc['dy']]), # Day
+                            int(vals[loc['hr']]), # Hour
+                            int(vals[loc['mn']]), # Minute
+                            int(vals[loc['sc']]), # Second
+                            int(vals[loc['msc']]) * 1000 #microsec
+                            ))
+                elif 'yy' in loc:
+                    # RIM date format
+                    time[i]=(dt.datetime(
+                            int(vals[1]), # Year
+                            int(vals[2]), # Month
+                            int(vals[3]), # Day
+                            int(vals[4]), # Hour
+                            int(vals[5]), # Minute
+                            int(vals[6]), # Second
+                            int(vals[7]) * 1000 #microsec
+                            ))
                 diffT = time[i] - time[0]
                 runtime[i]=diffT.days*24.0*3600.0 + \
                     diffT.seconds + \

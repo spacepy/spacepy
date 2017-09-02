@@ -29,7 +29,7 @@ from spacepy.datamodel import dmarray
 #### Module-level variables:
 # recognized species:
 mass = {'hp':1.0, 'op':16.0, 'he':4.0, 
-        'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0}
+        'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0, '':1.0}
 
 #### Module-level functions:
 
@@ -291,11 +291,10 @@ class Extraction(PbData):
         
         for v, value in zip(data['grid'].attrs['dims'], (x, y)):
             self[v] = dmarray(value, attrs=data[v].attrs)
-        nPts = len(x)
         # Create data object for holding extracted values.
         # One vector for each value w/ same units as parent object.
         for v in self._var_list:
-            self[v]=dmarray(np.zeros(nPts), attrs=data[v].attrs)
+            self[v]=dmarray(np.zeros(x.shape), attrs=data[v].attrs)
 
         # Some helpers:
         xAll = data[data['grid'].attrs['dims'][0]]
@@ -582,13 +581,13 @@ class Bats2d(IdlFile):
     '''
     # Init by calling IdlFile init and then building qotree, etc.
     def __init__(self, filename, format='binary'):
-        from numpy import array
 
         from spacepy.pybats import parse_filename_time
-        import spacepy.pybats.qotree as qo
         
         # Read file.
         IdlFile.__init__(self, filename, format=format, keep_case=False)
+
+        self._qtree=None
 
         # Extract time from file name:
         i_iter, runtime, time = parse_filename_time(self.attrs['file'])
@@ -600,16 +599,37 @@ class Bats2d(IdlFile):
         if 'r' in self.attrs and 'rbody' not in self.attrs:
             self.attrs['rbody'] = self.attrs['r']
         
-        # Parse grid into quad tree.
-        if self['grid'].attrs['gtype'] != 'Regular':
-            xdim, ydim = self['grid'].attrs['dims'][0:2]
-            try:
-                self.qtree=qo.QTree(array([self[xdim],self[ydim]]))
-                self.find_block = self.qtree.find_leaf
-            except:
-                self.qtree=False
+    @property
+    def qtree(self):
+        if self._qtree is None:
+
+            from numpy import array
+
+            import spacepy.pybats.qotree as qo
+
+            # Parse grid into quad tree.
+            if self['grid'].attrs['gtype'] != 'Regular':
+                xdim, ydim = self['grid'].attrs['dims'][0:2]
+                try:
+                    self._qtree=qo.QTree(array([self[xdim],self[ydim]]))
+                except:
+                    from traceback import print_exc
+                    print_exc()
+                    #print 'On dataset:',self.filename
+                    self._qtree=False
+                    self.find_block=lambda: False
+            else:
+                self._qtree=False
                 self.find_block=lambda: False
-            
+
+        return self._qtree
+
+    @property
+    def find_block(self):
+        if self.qtree:
+            return self._qtree.find_leaf
+        else:
+            return lambda: False
 
     ####################
     # CALCULATIONS
@@ -803,6 +823,10 @@ class Bats2d(IdlFile):
 
         from spacepy.datamodel import dmarray
         from spacepy.pybats.batsmath import d_dx, d_dy
+
+        if self.qtree==False:
+            print('Warning: calc_divmomen requires a valid qtree')
+            return
         
         print("SUPER WARNING!  This is very, very exploratory.")
 
@@ -840,6 +864,10 @@ class Bats2d(IdlFile):
 
         from spacepy.datamodel import dmarray
         from spacepy.pybats.batsmath import d_dx, d_dy
+
+        if self.qtree==False:
+            print('Warning: calc_gradP requires a valid qtree')
+            return
 
         if 'p' not in self:
             raise KeyError('Pressure not found in object!')
@@ -913,7 +941,6 @@ class Bats2d(IdlFile):
         if units.lower == 'kev':
             conv=conv/1000.0
 
-        mass={'Hp':1.0, 'Op':16.0, 'He':4.0, 'Sw':1.0, '':1.0}
         species = []
 
         # Find all species, the variable names end in "rho".
@@ -927,7 +954,7 @@ class Bats2d(IdlFile):
             self[s+'Ekin'] = dmarray(sqrt( self[s+'ux']**2+
                                            self[s+'uy']**2+
                                            self[s+'uz']**2)
-                                     * conv * mass[s],
+                                     * conv * mass[s.lower()],
                                      attrs={'units':units})
 
 
@@ -984,6 +1011,117 @@ class Bats2d(IdlFile):
         p =self['p']*10E-9        # nPa to Pa
         self[newvars[0]], self[newvars[1]]=gradient(p, dx, dx)
         self['gradp']=sqrt(self[newvars[0]]**2.0 + self[newvars[1]]**2.0)
+
+    def cfl(self,dt,xcoord='x',ycoord='z'):
+        """
+        Calculate the CFL number in each cell given time step dt.
+
+        Result is stored in self['cfl'].
+        """
+
+        try:
+            U=self['u']
+        except KeyError:
+            self.calc_utotal()
+
+        cfl=np.zeros(self['u'].shape)
+
+        for key in list(self.qtree.keys()):
+            child=self.qtree[key]
+            if not child.isLeaf: continue
+            pts=np.where(np.logical_and.reduce((self[xcoord]>=child.lim[0],
+                                        self[xcoord]<=child.lim[1],
+                                        self[ycoord]>=child.lim[2],
+                                        self[ycoord]<=child.lim[3]))
+            )
+
+            cfl[pts]=self['u'][pts]*dt/child.dx
+
+        self['cfl']=dmarray(cfl,attrs={'units':''})
+
+    def vth(self,m_avg=3.1):
+        """
+        Calculate the thermal velocity. m_avg denotes the average ion mass in AMU.
+
+        Result is stored in self['vth'].
+        """
+
+        m_avg_kg=m_avg*1.6276e-27
+        ndensity=self['rho']/m_avg*1e6
+        self['vth']=dmarray(np.sqrt(self['p']*1e-9/ndensity/(m_avg_kg))/1000,attrs={'units':'km/s'})
+
+    def gyroradius(self,velocities=('u','vth'),m_avg=3.1):
+        """
+        Calculate the ion gyroradius in each cell.
+
+        velocities to use in calculating the gyroradius are listed by name in the sequence argument velocities. If more than one variable is given, they are summed in quadrature.
+
+        m_avg denotes the average ion mass in AMU.
+
+        Result is stored in self['gyroradius']
+        """
+
+        if 'vth' in velocities:
+            try:
+                self['vth']
+            except KeyError:
+                self.vth()
+
+        if 'u' in velocities:
+            try:
+                U=self['u']
+            except KeyError:
+                self.calc_utotal()
+
+        velocities_squared_sum=self[velocities[0]]**2
+
+        for vname in velocities[1:]:
+            velocities_squared_sum+=self[vname]**2
+
+        v=np.sqrt(velocities_squared_sum)*1000
+
+        if 'b' not in self: self.calc_b()
+
+        B=self['b']*1e-9
+
+        m_avg_kg=m_avg*1.6276e-27
+
+        q=1.6022e-19
+
+        self['gyroradius']=dmarray(m_avg_kg*v/(q*B)/6378000,attrs={'units':'Re'})
+
+    def plasma_freq(self,m_avg=3.1):
+        """
+        Calculate the ion plasma frequency.
+
+        m_avg denotes the average ion mass in AMU.
+
+        Result is stored in self['plasm_freq'].
+        """
+
+        from numpy import sqrt, pi
+        m_avg_kg=m_avg*1.6276e-27
+        ndensity=self['rho']/m_avg*1e6
+        q=1.6022e-19
+        self['plasma_freq']=dmarray(sqrt(4*pi*ndensity*q**2/m_avg_kg),attrs={'units':'rad/s'})
+
+    def inertial_length(self,m_avg=3.1):
+        """
+        Calculate the ion inertial length.
+
+        m_avg denotes the average ion mass in AMU.
+
+        Result is stored in self['inertial_length'].
+        """
+
+        try:
+            self['plasma_freq']
+        except KeyError:
+            self.plasma_freq(m_avg=m_avg)
+
+        if 'alfven' not in self: self.calc_alfven()
+
+        self['inertial_length']=dmarray(self['alfven']/self['plasma_freq']/6378000,attrs={'units':'Re'})
 
     def regrid(self, cellsize=1.0, dim1range=-1, dim2range=-1, debug=False):
         '''
@@ -1252,7 +1390,7 @@ class Bats2d(IdlFile):
         return tilt, theta_day, theta_night, day, night
 
     def add_b_magsphere_new(self, target=None, loc=111,  style='mag', 
-                            DoLast=True, DoOpen=True, DoTail=True, 
+                            DoLast=True, DoOpen=True, DoTail=True,compX='bx',compY='bz',
                             method='rk4', tol=np.pi/360., DoClosed=True,
                             nOpen=5, nClosed=15, **kwargs):
         '''
@@ -1328,9 +1466,9 @@ class Bats2d(IdlFile):
                     linspace(0,     thetaD[0]-dTheta, nClosed),
                     linspace(np.pi, thetaN[1]-dTheta, nClosed)):
                 x, y = R*cos(tDay), R*sin(tDay)
-                sD   = self.get_stream(x,y,'bx','bz',method=method)
+                sD   = self.get_stream(x,y,compX,compY,method=method)
                 x, y = R*cos(tNit), R*sin(tNit)
-                sN   = self.get_stream(x,y,'bx','bz',method=method)
+                sN   = self.get_stream(x,y,compY,compY,method=method)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
@@ -1343,9 +1481,9 @@ class Bats2d(IdlFile):
                     linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
                     linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
                 x, y = R*cos(tNorth), R*sin(tNorth)
-                sD   = self.get_stream(x,y,'bx','bz',method=method)
+                sD   = self.get_stream(x,y,compX,compY,method=method)
                 x, y = R*cos(tSouth), R*sin(tSouth)
-                sN   = self.get_stream(x,y,'bx','bz',method=method)
+                sN   = self.get_stream(x,y,compX,compY,method=method)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
@@ -2201,9 +2339,12 @@ class MagFile(PbData):
         infile.close()
 
         # Parse header.
-        trash=lines.pop(0) # Get station names.
-        nmags=int((trash.split(':')[0]).split()[0])
-        names=trash.split(':')[1] # Remove number of magnetometers.
+
+        # Get number of stations.
+        nmags=int((lines[0].split(':')[0]).split()[0])
+
+        # Get station names.
+        names=lines[0].split(':')[1]
         namemag = names.split()
         self.attrs['namemag']=namemag
 
@@ -2212,25 +2353,23 @@ class MagFile(PbData):
             raise BaseException(
                 'ERROR: GM file claims %i magnetomers, lists %i'
                 % (nmags, len(namemag)))
-        trash=lines.pop(0)
 
         # Grab variable names.  Use legacy mode if necessary:
         prefix = 'gm_'*self.legacy
         # skip time, iter, and loc; add prefix to var names:
-        gm_namevar = [prefix+x for x in trash.split()[12:]]
+        gm_namevar = [prefix+x for x in lines[1].split()[12:]]
 
         # Set number of mags and records.
         self.attrs['nmag']=len(namemag)
-        nlines = len(lines)/nmags
+        nrecords = (len(lines)-2)/nmags
 
         # If there is an IE file, Parse that header, too.
         if self.attrs['iefile']:
             infile=open(self.attrs['iefile'], 'r')
             ielns =infile.readlines()
             infile.close()
-            trash=ielns.pop(0)
-            nmags=int((trash.split(':')[0]).split()[0])
-            iestats=(trash.split(':')[1]).split()
+            nmags=int((ielns[0].split(':')[0]).split()[0])
+            iestats=(ielns[0].split(':')[1]).split()
             # Check nmags vs number of mags in header.
             if nmags != len(iestats):
                 raise BaseException(
@@ -2238,25 +2377,27 @@ class MagFile(PbData):
                     % (nmags, len(namemag)))
             if iestats != self.attrs['namemag']:
                 raise RuntimeError("Files do not have matching stations.")
-            ie_namevar=ielns.pop(0).split()[11:]
+            ie_namevar=ielns[1].split()[11:]
             self.attrs['ie_namevar']=ie_namevar
-            if (len(ielns)/self.attrs['nmag']) != (nlines-1):
+            if (len(ielns)/self.attrs['nmag']) != (nrecords-1):
                 print('Number of lines do not match: GM=%d, IE=%d!' %
-                      (nlines-1, len(ielns)/self.attrs['nmag']))
-                nlines=min(ielns, nlines-1)
+                      (nrecords-1, len(ielns)/self.attrs['nmag']))
+                nrecords=min(ielns, nrecords-1)
         else:
             ie_namevar=()
             self.attrs['ie_namevar']=()
 
         # Build containers.
-        self['time']=np.zeros(nlines, dtype=object)
-        self['iter']=np.zeros(nlines, dtype=float)
+        self['time']=np.zeros(nrecords, dtype=object)
+        self['iter']=np.zeros(nrecords, dtype=float)
         for name in namemag:
-            self[name]=Mag(nlines, self['time'], gm_namevar, ie_namevar)
+            self[name]=Mag(nrecords, self['time'], gm_namevar, ie_namevar)
+
+        data_buffer=np.zeros((nrecords,nmags,(len(gm_namevar)+3)))
 
         # Read file data.
-        for i in range(nlines):
-            line = lines.pop(0)
+        for i in range(nrecords):
+            line = lines[i*nmags+2]
             parts=line.split()
             self['iter'][i]=parts[0]
             self['time'][i]=dt.datetime(
@@ -2268,14 +2409,26 @@ class MagFile(PbData):
                 int(parts[6]), #second
                 int(parts[7])*1000 #microsec
                 )
-            self[namemag[0]].parse_gmline(i, line, gm_namevar)
-            for j in range(1, nmags):
-                self[namemag[j]].parse_gmline(i, lines.pop(0), gm_namevar)
+            for j in range(nmags):
+                line=lines[i*nmags+j+2]
+                if j>0:
+                    parts=line.split()
+                values=[float(part) for part in parts[9:]]
+                data_buffer[i,j]=values
+
             if self.attrs['iefile'] and i>0:
-                line=ielns.pop(0)
+                line=ielns[i*nmags+2]
                 self[namemag[0]].parse_ieline(i, line, ie_namevar)
                 for j in range(1, nmags):
-                    self[namemag[j]].parse_ieline(i, ielns.pop(0), ie_namevar)
+                    self[namemag[j]].parse_ieline(i, ielns[i*nmags+j+2], ie_namevar)
+
+        for j in range(nmags):
+            mag=self[namemag[j]]
+            mag['x']=data_buffer[:,j,0]
+            mag['y']=data_buffer[:,j,1]
+            mag['z']=data_buffer[:,j,2]
+            for k, key in enumerate(gm_namevar):
+                mag[key]=data_buffer[:,j,k+3]
 
         # Sum up IE/GM components if necessary (legacy only):
         if self.legacy: self._recalc()
