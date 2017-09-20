@@ -185,9 +185,9 @@ class Iono(PbData):
 
         # slurp entire file.
         if self.attrs['file'][-3:]=='.gz':
-            infile=gzip.open(self.attrs['file'],'rt',encoding='utf-8')
+            infile=gzip.open(self.attrs['file'],'rt')
         else:
-            infile = open(self.attrs['file'], 'r',encoding='utf-8')
+            infile = open(self.attrs['file'], 'r')
         raw = infile.readlines()
         infile.close()
 
