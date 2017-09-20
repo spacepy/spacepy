@@ -84,11 +84,30 @@ class TestIdlFile(unittest.TestCase):
 
 class TestRim(unittest.TestCase):
 
-    def testRead(self):
+    def testReadZip(self):
         from spacepy.pybats import rim
 
         # Open file:
         iono=rim.Iono('data/pybats_test/it000321_104510_000.idl.gz')
+
+    def testReadAscii(self):
+        import gzip
+        from os import remove
+        from shutil import copyfileobj
+        from spacepy.pybats import rim
+
+        # Unzip file and create a copy of it:
+        name_in = 'data/pybats_test/it000321_104510_000.idl.gz'
+        name_out= name_in[:-3]
+        with gzip.open(name_in, 'rb') as f_in, open(name_out, 'wb') as f_out:
+            copyfileobj(f_in, f_out)
+
+        # Test file:
+        iono = rim.Iono(name_out)
+
+        # Remove temp file:
+        remove(name_out)
+        
 
 class TestBats2d(unittest.TestCase):
     '''
