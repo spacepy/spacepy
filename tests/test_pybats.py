@@ -6,6 +6,8 @@ Test suite for SpacePy's PyBats subpackage.
 Copyright 2015 University of Michigan
 """
 
+import matplotlib
+matplotlib.use('Agg')
 
 import datetime as dt
 import unittest
