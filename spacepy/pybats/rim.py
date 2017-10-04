@@ -331,6 +331,10 @@ class Iono(PbData):
         
         hemi = var[:2]
 
+        # user defined variables may not have hemisphere marking.
+        # Assume nothern hemi in those cases.
+        if hemi!='n_' and hemi!='s_': hemi = 'n_'
+
         # Set levels and ticks:
         if label==None:
             label=tex_label(var)
