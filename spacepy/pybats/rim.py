@@ -312,6 +312,10 @@ class Iono(PbData):
             not add one to the plot.
         label : str or None
             Label to place at top of plot.  Defaults to variable name.
+        xticksize : int
+            Size of longitude markers in text points.  Defaults to 12.
+        yticksize : int
+            Size of latitude markers in text points.  Defaults to 12.
 
         Extra keywords are passed to the contourf routine.
 
