@@ -460,7 +460,7 @@ class Library(object):
         #Finally, defaults places CDF gets installed uner
         #CDF_BASE is usually a subdir of these (with "cdf" in the name)
         #Searched in order given here!
-        cdfdists = { 'win32': ['c:\\CDF Distribution\\'],
+        cdfdists = { 'win32': ['c:\\CDF Distribution\\', 'c:\\CDF_Distribution\\'],
                     'darwin': ['/Applications/', '/usr/local/',
                                os.path.expanduser('~')],
                     'linux2': ['/usr/local/', os.path.expanduser('~')],
