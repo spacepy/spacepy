@@ -3519,9 +3519,10 @@ class _Hyperslice(object):
                 del types[-1]
             if not lib.supports_int8:
                 del types[-1]
-        elif d is data: #numpy array came in, use its type
+        elif d is data: #numpy array came in, use its type (or byte-swapped)
             types = [k for k in lib.numpytypedict
-                     if lib.numpytypedict[k] == d.dtype
+                     if (lib.numpytypedict[k] == d.dtype
+                         or lib.numpytypedict[k] == d.dtype.newbyteorder())
                      and not k in lib.timetypes]
 
         if not types: #not a numpy array, or can't parse its type
