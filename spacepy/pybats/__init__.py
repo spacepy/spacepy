@@ -692,7 +692,8 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
             
             
     # Create string representation of time.
-    pbdat.attrs['strtime'] = '{0:04d}h{1:02d}m{2:06.3f}s'.format(int(time//3600), int(time%3600//60), time%60)
+    pbdat.attrs['strtime'] = '{0:04d}h{1:02d}m{2:06.3f}s'.format(
+        int(time//3600), int(time%3600//60), time%60)
 
     # Get the grid points...
     prod = [1] + pbdat['grid'].cumprod().tolist()
@@ -718,12 +719,12 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
         else:
             raise ValueError('Unknown grid type: {0}'.format(pbdat.gridtype))
         # Add units to grid.
-        pbdat[names[i]].attrs['units'] = units.pop(nSkip)
+        if units: pbdat[names[i]].attrs['units'] = units.pop(nSkip)
 
     # Get the actual data and sort.
     for i in range(ndim,nvar+ndim):
         pbdat[names[i]] = dmarray(readarray(infile,floattype,inttype))
-        pbdat[names[i]].attrs['units']=units.pop(nSkip)
+        if units: pbdat[names[i]].attrs['units']=units.pop(nSkip)
         if gtyp != 'Unstructured':
             # Put data into multidimensional arrays.
             pbdat[names[i]] = pbdat[names[i]].reshape(pbdat['grid'], order='F')
