@@ -17,7 +17,9 @@ import numpy as np
 import spacepy.pybats as pb
 import spacepy.pybats.bats as pbs
 
-__all__ = ['TestIdlFile']
+__all__ = ['TestParseFileTime', 'TestIdlFile', 'TestRim', 'TestBats2d',
+           'TestMagGrid', 'TestSatOrbit', 'TestVirtSat', 'TestImfInput',
+           'TestExtraction']
 
 class TestParseFileTime(unittest.TestCase):
     '''

@@ -35,7 +35,8 @@ import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
 __all__ = ['NoCDF', 'MakeCDF', 'CDFTestsBase', 'CDFTests', 'ColCDFTests',
-           'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ChangeCDF', 'ChangeColCDF']
+           'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ChangeCDFBase', 'ChangeCDF',
+           'ChangezVar', 'ChangeAttr', 'ChangeColCDF']
 
 
 class est_tz(datetime.tzinfo):
