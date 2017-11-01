@@ -2872,6 +2872,19 @@ class ChangeAttr(ChangeCDFBase):
             self.assertEqual(oldlist.type(attrname),
                              newlist.type(attrname))
 
+    def testUnicodeAttribute(self):
+        """Assign unicode string to attributes"""
+        self.cdf['ATC'].attrs['foo'] = u'C'
+        self.assertEqual('C', self.cdf['ATC'].attrs['foo'])
+        try:
+            self.cdf['ATC'].attrs['foo2'] = u'\xb0C'
+        except UnicodeEncodeError:
+            pass
+        else:
+            self.fail('Should have raised UnicodeEncodeError')
+        #This basically fails same way as numpy.array(u'\xb0C', dtype='|S2')
+#        self.assertEqual(b'C', self.cdf['ATC'].attrs['foo2'])
+
 
 class ChangeColCDF(ColCDFTests):
     """Tests that modify an existing colum-major CDF"""
