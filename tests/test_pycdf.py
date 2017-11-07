@@ -35,7 +35,8 @@ import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
 __all__ = ['NoCDF', 'MakeCDF', 'CDFTestsBase', 'CDFTests', 'ColCDFTests',
-           'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ChangeCDF', 'ChangeColCDF']
+           'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ChangeCDFBase', 'ChangeCDF',
+           'ChangezVar', 'ChangeAttr', 'ChangeColCDF']
 
 
 class est_tz(datetime.tzinfo):
@@ -2870,6 +2871,19 @@ class ChangeAttr(ChangeCDFBase):
             self.assertEqual(oldlist[attrname], newlist[attrname])
             self.assertEqual(oldlist.type(attrname),
                              newlist.type(attrname))
+
+    def testUnicodeAttribute(self):
+        """Assign unicode string to attributes"""
+        self.cdf['ATC'].attrs['foo'] = u'C'
+        self.assertEqual('C', self.cdf['ATC'].attrs['foo'])
+        try:
+            self.cdf['ATC'].attrs['foo2'] = u'\xb0C'
+        except UnicodeEncodeError:
+            pass
+        else:
+            self.fail('Should have raised UnicodeEncodeError')
+        #This basically fails same way as numpy.array(u'\xb0C', dtype='|S2')
+#        self.assertEqual(b'C', self.cdf['ATC'].attrs['foo2'])
 
 
 class ChangeColCDF(ColCDFTests):
