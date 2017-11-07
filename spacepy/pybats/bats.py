@@ -31,6 +31,8 @@ from spacepy.datamodel import dmarray
 mass = {'hp':1.0, 'op':16.0, 'he':4.0, 
         'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0, '':1.0}
 
+RE = 6371000 # Earth radius in meters.
+
 #### Module-level functions:
 
 def _calc_ndens(obj):
@@ -157,7 +159,7 @@ class BatsLog(LogFile):
             self.obs_dst = kt.fetch('dst', stime, etime)
         # Warn on failure:
         except BaseException as args:
-            print('WARNING! Failed to fetch Kyoto Dst: ', args)
+            raise Warning('Failed to fetch Kyoto Dst: ', args)
             return False
 
         return True
@@ -816,21 +818,19 @@ class Bats2d(IdlFile):
                                             sqrt(mu_naught*self[k]),
                                             attrs={'units':'km/s'})
 
-    def calc_divmomen(self):
+    def _calc_divmomen(self):
         '''
         Calculate the divergence of momentum, i.e. 
         $\rho(u \dot \nabla)u$.
+        This is currently exploratory.
         '''
 
         from spacepy.datamodel import dmarray
         from spacepy.pybats.batsmath import d_dx, d_dy
 
         if self.qtree==False:
-            print('Warning: calc_divmomen requires a valid qtree')
-            return
+            raise ValueError('calc_divmomen requires a valid qtree')
         
-        print("SUPER WARNING!  This is very, very exploratory.")
-
         # Create empty arrays to hold new values.
         size = self['ux'].shape
         self['divmomx'] = dmarray(np.zeros(size), {'units':'nN/m3'})
@@ -857,7 +857,70 @@ class Bats2d(IdlFile):
         self['divmomx']*=self['rho']*c1*c2*c3
         self['divmomz']*=self['rho']*c1*c2*c3
 
+    def calc_vort(self, conv=1000./RE):
+        '''
+        Calculate the vorticity (curl of bulk velocity) for the direction
+        orthogonal to the cut plane.  For example, if output file is 
+        a cut in the equatorial plane (GSM X-Y plane), only the z-component
+        of the curl is calculated.
 
+        Output is saved as self['wD'], where D is the resulting dimension
+        (e.g., 'wz' for the z-component of vorticity in the X-Y plane).
+
+        Parameters
+        ==========
+        None
+        
+        Other Parameters
+        ================
+        conv : float
+           Required unit conversion such that output units are 1/s.  
+           Defaults to 1/RE (in km), which assumes grid is in RE and 
+           velocity is in km/s.
+        '''
+
+        from batsmath import d_dx, d_dy
+
+        if self.qtree==False:
+            raise ValueError('calc_vort requires a valid qtree')
+
+
+        # Determine which direction to calculate based on what direction
+        # is not present.  Save appropriate derivative operators, order
+        # useful directions, create new variable name.
+        dims = self['grid'].attrs['dims']
+        if 'x' not in dims:
+            w = 'wx'
+            dim1, dim2 = 'z', 'y'
+            dx1,  dx2  = d_dy, d_dx
+        elif 'y' not in dims:
+            w = 'wy'
+            dim1, dim2 = 'x', 'z'
+            dx1,  dx2  = d_dy, d_dx
+        else:
+            w = 'wz'
+            dim1, dim2 = 'x', 'y'
+            dx1,  dx2  = d_dy, d_dx
+
+        
+        # Create new arrays to hold curl.
+        size = self['ux'].shape
+        self[w] = dmarray(np.zeros(size), {'units':'1/s'})
+
+        # Navigate quad tree, calculate curl at every leaf.
+        for k in self.qtree:
+            # Plot only leafs of the tree.
+            if not self.qtree[k].isLeaf: continue
+
+            # Get location of points and extract velocity:
+            leaf=self.qtree[k]
+            u1=self['u'+dim1][leaf.locs]
+            u2=self['u'+dim2][leaf.locs]
+
+            # Calculate curl
+            self[w][leaf.locs] = conv * (dx1(u1, leaf.dx) - dx2(u2, leaf.dx))
+        
+        
     def calc_gradP(self):
         '''
         Calculate the pressure gradient force.
@@ -867,11 +930,10 @@ class Bats2d(IdlFile):
         from spacepy.pybats.batsmath import d_dx, d_dy
 
         if self.qtree==False:
-            print('Warning: calc_gradP requires a valid qtree')
-            return
+            raise ValueError('calc_gradP requires a valid qtree')
 
         if 'p' not in self:
-            raise KeyError('Pressure not found in object!')
+            raise KeyError('Pressure not found in object')
 
         # Create new arrays to hold pressure.
         dims = self['grid'].attrs['dims']
@@ -927,7 +989,7 @@ class Bats2d(IdlFile):
                                         self[s+'uz']**2), 
                                   attrs={'units':units})
 
-    def calc_Ekin(self, units='eV'):
+    def _calc_Ekin(self, units='eV'):
         '''
         Calculate average kinetic energy per particle using 
         $E=\frac{1}{2}mv^2$.  Note that this is not the same as energy
@@ -936,7 +998,7 @@ class Bats2d(IdlFile):
         from numpy import sqrt
         from spacepy.datamodel import dmarray
 
-        print("WARNING - self.calc_Ekin: I think this is wrong!")
+        raise Warning("This calculation is unverified.")
         
         conv =  0.5 * 0.0103783625 # km^2-->m^2, amu-->kg, J-->eV.
         if units.lower == 'kev':
@@ -971,7 +1033,8 @@ class Bats2d(IdlFile):
                 try:
                     eval('self.'+command+'()')
                 except AttributeError:
-                    print('WARNING: Did not perform {0}: {1}'.format(command, sys.exc_info()[0]))
+                    raise Warning('Did not perform {0}: {1}'.format(
+                        command, sys.exc_info()[0]))
 
     #####################
     # Other calculations
@@ -2709,7 +2772,7 @@ class GeoIndexFile(LogFile):
             self.obs_kp = kt.fetch('kp', stime, etime)
         # Warn on failure:
         except BaseException as args:
-            print('WARNING! Failed to fetch Kyoto Kp: ', args)
+            raise Warning('Failed to fetch Kyoto Kp: ', args)
             return False
 
         return True
@@ -2738,7 +2801,7 @@ class GeoIndexFile(LogFile):
             self.obs_ae = kt.fetch('ae', stime, etime)
         # Warn on failure:
         except BaseException as args:
-            print('WARNING! Failed to fetch Kyoto AE: ', args)
+            raise Warning('Failed to fetch Kyoto AE: ', args)
             return False
 
         return True   
