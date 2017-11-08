@@ -1382,7 +1382,7 @@ class Bats2d(IdlFile):
         # Get the dipole tilt by tracing a field line near the inner
         # boundary.  Find the max radial distance; tilt angle == angle off
         # equator of point of min R (~=max |B|).
-        x_small = self.attrs['rbody']*-1.2
+        x_small = self.attrs['rbody']*-1.2  # check nightside.
         stream = self.get_stream(x_small, 0, 'bx', 'bz', method=method)
         r = stream.x**2 + stream.y**2
         loc = r==r.max()
@@ -1395,21 +1395,32 @@ class Bats2d(IdlFile):
         # Dayside- start by tracing from plane of min |B| and perp. to that: 
         R = self.attrs['rbody']*1.10
         s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'bx','bz', method=method)
-        s2 = self.get_stream(R*cos(pi/2.+tilt), R*sin(pi/2.+tilt), 
-                             'bx', 'bz', method=method)
+        # Dayside or nightside?  Look in equatorial plane.
+        loc = s1.y==s1.y.min()
+        
+        #s2 = self.get_stream(R*cos(pi/2.+tilt), R*sin(pi/2.+tilt), 
+        #'bx', 'bz', method=method)
         
         theta = tilt
         dTheta=np.pi/4. # Initially, search 90 degrees.
         nIter = 0
         while (dTheta>tol)or(s1.open):
             nIter += 1
+
+            # Are we closed or open?  Day or nightside?
             closed = not(s1.open)
+            isNig  = s1.x[loc][0]<0
+            isDay  = not isNig
+            
             # Adjust the angle towards the open-closed boundary.
-            theta += closed*dTheta 
-            theta -= s1.open*dTheta
+            theta += (closed  and isDay)*dTheta # adjust nightwards.
+            theta -= (s1.open or  isNig)*dTheta # adjust daywards.
             # Trace at the new theta to further restrict angular range:
             s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz', 
                                  method=method)
+            # Dayside or nightside?
+            loc = s1.y==s1.y.min()
+            # Reduce angular step:
             dTheta /= 2.
             if nIter>max_iter:
                 if debug: print('Did not converge before reaching max_iter')
@@ -1425,24 +1436,22 @@ class Bats2d(IdlFile):
         theta_day = [theta+0, 2*np.pi+arctan(ySouth/xSouth)[0]+0]
         day = s1
 
-        # Nightside: 
-        theta+=tol
-        R = self.attrs['rbody']*1.0
-        s2 = self.get_stream(R*cos(theta),R*sin(theta),'bx','bz',method=method)
-        s1 = self.get_stream(R*cos(pi+tilt), R*sin(pi+tilt), 
-                             'bx', 'bz', method=method)
+        # Nightside: Use more points in tracing (lines are long!)
+        theta+=dTheta  # Nudge nightwards.
+        s1 = self.get_stream(R*cos(theta),R*sin(theta),'bx','bz',
+                             method=method, maxPoints=1E6)
         
+        # Set dTheta to half way between equator and dayside last-closed:
         dTheta=(pi+tilt-theta)/2.
-        theta = pi+tilt
+
         nIter = 0
         while (dTheta>tol)or(s1.open):
             nIter += 1
             closed = not(s1.open)
-            theta -= closed*dTheta 
-            theta += s1.open*dTheta
-            #print("Theta = {:f} (dTheta={})".format(theta, dTheta))
+            theta -= closed*dTheta  # closed? move poleward.
+            theta += s1.open*dTheta # open?   move equatorward.
             s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz', 
-                                 method=method)
+                                 method=method, maxPoints=1E6)
             dTheta /= 2.
             if nIter>max_iter:
                 if debug: print('Did not converge before reaching max_iter')
@@ -1542,13 +1551,14 @@ class Bats2d(IdlFile):
                 x, y = R*cos(tDay), R*sin(tDay)
                 sD   = self.get_stream(x,y,compX,compY,method=method)
                 x, y = R*cos(tNit), R*sin(tNit)
-                sN   = self.get_stream(x,y,compY,compY,method=method)
+                sN   = self.get_stream(x,y,compX,compY,method=method,
+                                       maxPoints=1E6)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
                 colors.append(sD.style[0])
                 colors.append(sN.style[0])
-
+                
         ## Do open field lines ##
         if DoOpen:
             for tNorth, tSouth in zip(
