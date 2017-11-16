@@ -1357,7 +1357,9 @@ class Bats2d(IdlFile):
         defaults to 'rk4' (4th order Runge Kutta, see 
         :class:`~spacepy.pybats.bats.Stream` for more information).
         The maximum number of iterations the algorithm will take is set
-        by *max_iter*, which defaults to 100.
+        by *max_iter*, which defaults to 100.  Latitudinal footprints of the
+        last closed field lines at the inner boundary (not the ionosphere!)
+        are also returned.
 
         This method returns 5 objects: 
         
@@ -1393,14 +1395,10 @@ class Bats2d(IdlFile):
                 tilt*180./pi))
         
         # Dayside- start by tracing from plane of min |B| and perp. to that: 
-        R = self.attrs['rbody']*1.10
+        R = self.attrs['rbody']*1.15
         s1 = self.get_stream(R*cos(tilt), R*sin(tilt), 'bx','bz', method=method)
-        # Dayside or nightside?  Look in equatorial plane.
-        loc = s1.y==s1.y.min()
-        
-        #s2 = self.get_stream(R*cos(pi/2.+tilt), R*sin(pi/2.+tilt), 
-        #'bx', 'bz', method=method)
-        
+
+        # Get initial angle and step.
         theta = tilt
         dTheta=np.pi/4. # Initially, search 90 degrees.
         nIter = 0
@@ -1408,8 +1406,8 @@ class Bats2d(IdlFile):
             nIter += 1
 
             # Are we closed or open?  Day or nightside?
-            closed = not(s1.open)
-            isNig  = s1.x[loc][0]<0
+            closed = not(s1.open)  # open or closed?
+            isNig  = s1.x.mean()<0 # line on day or night side?
             isDay  = not isNig
             
             # Adjust the angle towards the open-closed boundary.
@@ -1418,28 +1416,33 @@ class Bats2d(IdlFile):
             # Trace at the new theta to further restrict angular range:
             s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz', 
                                  method=method)
-            # Dayside or nightside?
-            loc = s1.y==s1.y.min()
             # Reduce angular step:
             dTheta /= 2.
             if nIter>max_iter:
                 if debug: print('Did not converge before reaching max_iter')
                 break
 
+        # Possible to land on open or nightside line.
+        # If this happens, inch back to dayside.
+        isNig  = s1.x.mean()<0
+        while (s1.open or isNig):
+            theta-=tol/2 # inch daywards.
+            s1 = self.get_stream(R*cos(theta), R*sin(theta), 'bx', 'bz', 
+                                 method=method)
+            isNig  = s1.x.mean()<0
+            
         # Use last line to get southern hemisphere theta:
         npts = s1.x.size/2
         r = sqrt(s1.x**2+s1.y**2)
         loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
-            r[:npts]-self.attrs['rbody']))
+            r[:npts]-self.attrs['rbody'])) #point closest to IB.
         xSouth, ySouth = s1.x[loc], s1.y[loc]
         # "+ 0" syntax is to quick-copy object.
         theta_day = [theta+0, 2*np.pi+arctan(ySouth/xSouth)[0]+0]
         day = s1
 
         # Nightside: Use more points in tracing (lines are long!)
-        theta+=dTheta  # Nudge nightwards.
-        s1 = self.get_stream(R*cos(theta),R*sin(theta),'bx','bz',
-                             method=method, maxPoints=1E6)
+        theta+=tol/2.0  # Nudge nightwards.
         
         # Set dTheta to half way between equator and dayside last-closed:
         dTheta=(pi+tilt-theta)/2.
@@ -1447,11 +1450,25 @@ class Bats2d(IdlFile):
         nIter = 0
         while (dTheta>tol)or(s1.open):
             nIter += 1
-            closed = not(s1.open)
-            theta -= closed*dTheta  # closed? move poleward.
-            theta += s1.open*dTheta # open?   move equatorward.
+
             s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz', 
                                  method=method, maxPoints=1E6)
+            # Closed?  Nightside?
+            closed = not(s1.open)
+            isNig  = s1.x.mean()<0
+            isDay  = not isNig
+
+            theta -= (closed and isNig) *dTheta # closed? move poleward.
+            theta += (s1.open or isDay) *dTheta # open?   move equatorward.
+
+            # Don't cross over into dayside territory.
+            if theta < theta_day[0]:
+                theta = theta_day[0]+tol
+                s1 = self.get_stream(R*cos(theta),R*sin(theta), 'bx','bz', 
+                                     method=method, maxPoints=1E6)
+                if debug: print('No open flux over polar cap.')
+                break
+            
             dTheta /= 2.
             if nIter>max_iter:
                 if debug: print('Did not converge before reaching max_iter')
