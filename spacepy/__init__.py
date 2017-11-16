@@ -230,6 +230,10 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
         if thissec != -1:
             while f.readline() != '[{section}]\n'.format(section=section):
                 pass
+        if sys.platform == 'win32':
+            #Tickle the file for read/write switch
+            #https://stackoverflow.com/questions/11176724/python-file-operations
+            f.seek(0, 2)
         #Write default values for anything not read
         for k in sorted(writeme):
             f.write("#{key}: {value} #default in SpacePy {ver}\n".format(

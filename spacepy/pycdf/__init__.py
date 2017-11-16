@@ -1033,6 +1033,57 @@ class Library(object):
             'TT2000 functions require CDF library 3.4.0 or later')
 
 
+def download_library():
+    """Download and install the CDF library"""
+    if sys.platform != 'win32':
+        raise NotImplementedError(
+            'CDF library install only supported on Windows')
+    try:
+        import html.parser as HTMLParser
+    except ImportError:
+        import HTMLParser
+    #https://stackoverflow.com/questions/1713038/super-fails-with-error-typeerror-argument-1-must-be-type-not-classobj
+    class LinkParser(HTMLParser.HTMLParser, object):
+        def __init__(self, *args, **kwargs):
+            self.links_found = []
+            super(LinkParser, self).__init__(*args, **kwargs)
+        def handle_starttag(self, tag, attrs):
+            if tag != 'a' or attrs[0][0] != 'href':
+                return
+            self.links_found.append(attrs[0][1])
+    import re
+    import subprocess
+    try:
+        import urllib.request as u
+    except ImportError:
+        import urllib as u
+    import spacepy
+    if spacepy.config.get('user_agent', None):
+        class AppURLopener(u.FancyURLopener):
+            version = spacepy.config['user_agent']
+        u._urlopener = AppURLopener()
+    baseurl = 'https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/'
+    url = u.urlopen(baseurl)
+    listing = url.read()
+    url.close()
+    p = LinkParser()
+    p.feed(listing)
+    cdfdist = [l for l in p.links_found if re.match('^cdf3\d_\d(?:_\d)?/$', l)]
+    if not cdfdist:
+        raise RuntimeError(
+            "Couldn't find CDF distribution directory to download")
+    cdfdist.sort(key=lambda x: x.rstrip('/').split('_'))
+    cdfverbase = cdfdist[-1].rstrip('/')
+    instfname = cdfverbase + ('_0' if cdfverbase.count('_') == 1 else '') + \
+                '-setup-{0}.exe'.format(len('%x' % sys.maxsize)*4)
+    insturl = baseurl + cdfverbase + '/windows/' + instfname
+    tmpdir = tempfile.mkdtemp()
+    try:
+        fname, status = u.urlretrieve(insturl, os.path.join(tmpdir, instfname))
+        subprocess.check_call([fname, '/install', '/q1'], shell=False)
+    finally:
+        shutil.rmtree(tmpdir)
+
 try:
     _libpath, _library = Library._find_lib()
 except:
