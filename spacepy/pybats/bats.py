@@ -2095,11 +2095,11 @@ class ShellSlice(IdlFile):
         self.dphi   = d2r*self.dlon
         self.dtheta = d2r*self.dlat
 
-        # Get uniform grid in units of r_body/radians:
+        # Get spherical, uniform grid in units of r_body/radians:
         self.lon, self.r, self.lat = np.meshgrid(
             np.array(self['lon']), np.array(self['r']), np.array(self['lat']))
         self.phi   = d2r*self.lon
-        self.theta = d2r*self.lat
+        self.theta = d2r*(90-self.lat)
 
         
     def calc_urad(self):
