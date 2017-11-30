@@ -226,7 +226,12 @@ class Library(object):
 
         if not library:
             if not libpath:
-                self._library, self.libpath = self._find_lib()
+                self.libpath, self._library = self._find_lib()
+                if self._library is None:
+                    raise Exception((
+                        'Cannot load CDF C library; checked {0}. '
+                        'Try \'os.environ["CDF_LIB"] = library_directory\' '
+                        'before import.').format(', '.join(self.libpath)))
             else:
                 self._library = ctype.CDLL(libpath)
                 self.libpath = libpath
@@ -405,6 +410,16 @@ class Library(object):
     def _find_lib():
         """
         Search for the CDF library
+
+        Searches in likely locations for CDF libraries and attempts to load
+        them. Stops at first successful load and, if fails, reports all
+        the files that were tried as libraries.
+
+        Returns
+        =======
+        out : tuple
+             This is either (path to library, loaded library)
+             or, in the event of failure, (None, list of libraries tried)
         """
         failed = []
         for libpath in Library._lib_paths():
@@ -414,9 +429,7 @@ class Library(object):
                 failed.append(libpath)
             else:
                 return libpath, lib
-        raise Exception(('Cannot load CDF C library from {0}.'
-                        'Try os.environ["CDF_LIB"] = library_directory '
-                        'before import.').format(', '.join(failed)))
+        return (failed, None)
 
     @staticmethod
     def _lib_paths():
@@ -1084,14 +1097,11 @@ def download_library():
     finally:
         shutil.rmtree(tmpdir)
 
-try:
-    _libpath, _library = Library._find_lib()
-except:
-    if 'sphinx' in sys.argv[0]:
-        warnings.warn('CDF library did not load. '
-                      'You appear to be building docs, so ignoring this error.')
-    else:
-        raise
+_libpath, _library = Library._find_lib()
+if _library is None:
+    raise Exception(('Cannot load CDF C library; checked {0}. '
+                     'Try \'os.environ["CDF_LIB"] = library_directory\' '
+                     'before import.').format(', '.join(_libpath)))
 from . import const
 lib = Library(_libpath, _library)
 """Module global library object.
