@@ -879,7 +879,7 @@ class Bats2d(IdlFile):
            velocity is in km/s.
         '''
 
-        from batsmath import d_dx, d_dy
+        from spacepy.pybats.batsmath import d_dx, d_dy
 
         if self.qtree==False:
             raise ValueError('calc_vort requires a valid qtree')
