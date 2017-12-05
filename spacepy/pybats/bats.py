@@ -2197,7 +2197,7 @@ class Mag(PbData):
         components).
         '''
 
-        allvars = self.keys()
+        allvars = list(self.keys())
         
         for v in allvars:
             # Find all dB-north variables:
@@ -2225,7 +2225,7 @@ class Mag(PbData):
         dt = np.array([x.total_seconds() for x in np.diff(self['time'])])
 
         # Loop through variables:
-        oldvars = self.keys()
+        oldvars = list(self.keys())
         for k in oldvars:
             if 'dB' not in k: continue
 
@@ -2462,7 +2462,7 @@ class MagFile(PbData):
 
         # Set number of mags and records.
         self.attrs['nmag']=len(namemag)
-        nrecords = (len(lines)-2)/nmags
+        nrecords = (len(lines)-2)//nmags
 
         # If there is an IE file, Parse that header, too.
         if self.attrs['iefile']:
