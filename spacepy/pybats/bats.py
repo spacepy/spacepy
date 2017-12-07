@@ -2428,9 +2428,11 @@ class Mag(PbData):
             
     def calc_h(self):
         '''
-        Calculate the total horizontal perturbation, 'h', using the pythagorean
+        Calculate the total horizontal perturbation, 'H', using the pythagorean
         sum of the two horizontal components (north-south and east-west
-        components).
+        components):
+
+        $\Delta B_H = \sqrt{\Delta B_N^2 + \Delta B_E^2}$
         '''
 
         allvars = self.keys()
@@ -2447,6 +2449,10 @@ class Mag(PbData):
         Calculate the time derivative of all dB-like variables and save as 
         'dBdt[direction][component].  For example, the time derivative of 
         dBeMhd will be saved as dBdteMhd.
+
+        |dB/dt|_h is also calculated following the convention of 
+        Pulkkinen et al, 2013:
+        $|dB/dt|_H = \sqrt{(\dB_N/dt)^2 + (dB_E/dt)^2}$
 
         A 2nd-order accurate centeral difference method is used to
         calculate the time derivative.  For the first and last points, 
@@ -2791,7 +2797,10 @@ class MagFile(PbData):
     def calc_h(self):
         '''
         For each magnetometer object, calculate the horizontal component of
-        the perturbations.
+        the perturbations using the pythagorean sum of the two horizontal 
+        components (north-south and east-west components):
+
+        $\Delta B_H = \sqrt{\Delta B_N^2 + \Delta B_E^2}$
         '''
         for k in self:
             if k=='time' or k=='iter': continue
@@ -2801,6 +2810,10 @@ class MagFile(PbData):
         '''
         For each magnetometer object, calculate the horizontal component of
         the perturbations.
+
+        |dB/dt|_h is also calculated following the convention of 
+        Pulkkinen et al, 2013:
+        $|dB/dt|_H = \sqrt{(\dB_N/dt)^2 + (dB_E/dt)^2}$
         '''
         for k in self:
             if k=='time' or k=='iter': continue
