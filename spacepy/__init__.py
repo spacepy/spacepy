@@ -253,7 +253,7 @@ def _read_config(rcfile):
                 'ncpus': str(multiprocessing.cpu_count()),
                 'qindenton_url': 'http://virbo.org/ftp/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
                 'omni2_url': 'http://virbo.org/ftp/OMNI/OMNI2/merged/latest/OMNI_OMNI2-latest.cdf.zip',
-                'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
+                'leapsec_url': 'http://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
                 'support_notice': str(True),
                 'apply_plot_styles': str(True),

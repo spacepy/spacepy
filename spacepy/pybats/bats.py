@@ -921,7 +921,7 @@ class Bats2d(IdlFile):
            velocity is in km/s.
         '''
 
-        from batsmath import d_dx, d_dy
+        from spacepy.pybats.batsmath import d_dx, d_dy
 
         if self.qtree==False:
             raise ValueError('calc_vort requires a valid qtree')
@@ -2435,7 +2435,7 @@ class Mag(PbData):
         $\Delta B_H = \sqrt{\Delta B_N^2 + \Delta B_E^2}$
         '''
 
-        allvars = self.keys()
+        allvars = list(self.keys())
         
         for v in allvars:
             # Find all dB-north variables:
@@ -2467,7 +2467,7 @@ class Mag(PbData):
         dt = np.array([x.total_seconds() for x in np.diff(self['time'])])
 
         # Loop through variables:
-        oldvars = self.keys()
+        oldvars = list(self.keys())
         for k in oldvars:
             if 'dB' not in k: continue
 
@@ -2704,7 +2704,7 @@ class MagFile(PbData):
 
         # Set number of mags and records.
         self.attrs['nmag']=len(namemag)
-        nrecords = (len(lines)-2)/nmags
+        nrecords = (len(lines)-2)//nmags
 
         # If there is an IE file, Parse that header, too.
         if self.attrs['iefile']:
