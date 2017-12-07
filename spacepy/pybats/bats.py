@@ -163,9 +163,40 @@ class BatsLog(LogFile):
             return False
 
         return True
-            
+
+    def fetch_obs_sym(self):
+        '''
+        Fetch the observed SYM-H index for the time period covered in the 
+        logfile.  Return *True* on success.
+
+        Observed SYM-H is automatically fetched from the Kyoto World Data Center
+        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoSym` object, which holds the observed
+        Dst, is stored as *self.obs_sym* for future use.
+        '''
+
+        import spacepy.pybats.kyoto as kt
+
+        # Return if already obtained:
+        if hasattr(self, 'obs_sym'): return True
+
+        # Start and end time to collect observations:
+        stime = self['time'][0]; etime = self['time'][-1]
+
+        # Attempt to fetch from Kyoto website:
+        try:
+            self.obs_sym = kt.fetch('sym', stime, etime)
+        # Warn on failure:
+        except BaseException as args:
+            raise Warning('Failed to fetch Kyoto Dst: ', args)
+            return False
+
+        return True
+    
     def add_dst_quicklook(self, target=None, loc=111, plot_obs=False,
-                          epoch=None, add_legend=True, **kwargs):
+                          epoch=None, add_legend=True, plot_sym=False,
+                          obs_kwargs={'c':'k', 'ls':'--'},
+                          **kwargs):
         '''
         Create a quick-look plot of Dst (if variable present in file) 
         and compare against observations.
@@ -178,10 +209,13 @@ class BatsLog(LogFile):
         *loc* (defaults to 111).  If target is a matplotlib Axes object, 
         the plot is placed into that axis at subplot location *loc*.
 
-        Observed Dst is automatically fetched from the Kyoto World Data Center
-        via the :mod:`spacepy.pybats.kyoto` module.  The associated 
-        :class:`spacepy.pybats.kyoto.KyotoDst` object, which holds the observed
-        Dst, is stored as *self.obs_dst* for future use.
+        Observed Dst and SYM-H is automatically fetched from the Kyoto World 
+        Data Center via the :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoDst` or 
+        :class:`spacepy.pybats.kyoto.KyotoSym` object, which holds the observed
+        Dst/SYM-H, is stored as *self.obs_dst* for future use.
+        The observed line can be customized via the *obs_kwargs* kwarg, which
+        is a dictionary of plotting keyword arguments.
 
         If kwarg *epoch* is set to a datetime object, a vertical dashed line
         will be placed at that time.
@@ -207,13 +241,21 @@ class BatsLog(LogFile):
         ax.set_ylabel('D$_{ST}$ ($nT$)')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
+        # Add observations (Dst and/or SYM-H):
         if(plot_obs):
             # Attempt to fetch observations, plot if success.
             if self.fetch_obs_dst():
                 ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
-                        'k--', label='Obs. Dst')
+                        label='Obs. Dst', **obs_kwargs)
+                applySmartTimeTicks(ax, self['time'])
+        if(plot_sym):
+            # Attempt to fetch SYM-h observations, plot if success.
+            if self.fetch_obs_sym():
+                ax.plot(self.obs_sym['time'], self.obs_sym['sym-h'], 
+                        label='Obs. SYM-H', **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
 
+        # Place vertical line at epoch:
         if type(epoch) == datetime:
             yrange = ax.get_ylim()
             ax.vlines(epoch, yrange[0], yrange[1], linestyles='dashed',
@@ -3028,7 +3070,8 @@ class GeoIndexFile(LogFile):
         return True   
 
     def add_kp_quicklook(self, target=None, loc=111, label=None, 
-                         plot_obs=False, **kwargs):
+                         plot_obs=False, add_legend=True, 
+                         obs_kwargs={'c':'k', 'ls':'--', 'lw':3}, **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
         Kp from the web and plots it alongside the Kp read from the GeoInd file.
@@ -3039,6 +3082,14 @@ class GeoIndexFile(LogFile):
 
         Other kwargs customize the line.  Label defaults to fa$K$e$_{P}$, extra
         kwargs are passed to pyplot.plot.
+
+        Observed Kp can be added via the *plot_obs* kwarg.  Kp is automatically 
+        fetched from the Kyoto World Data Center via the 
+        :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoKp` object, which holds the observed
+        Kp, is stored as *self.obs_kp* for future use.
+        The observed line can be customized via the *obs_kwargs* kwarg, which
+        is a dictionary of plotting keyword arguments.
         '''
         import matplotlib.pyplot as plt
 
@@ -3067,14 +3118,15 @@ class GeoIndexFile(LogFile):
             # Attempt to fetch Kp:
             if self.fetch_obs_kp():
                 # If successful, add to plot:
-                self.obs_kp.add_histplot(target=ax, color='k', ls='--', lw=3.0)
-                ax.legend(loc='best')
+                self.obs_kp.add_histplot(target=ax, **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
-                
+
+        if add_legend: ax.legend(loc='best')       
         return fig, ax
 
     def add_ae_quicklook(self, target=None, loc=111, label=None, 
-                         plot_obs=False, val='AE', **kwargs):
+                         plot_obs=False, val='AE', add_legend=True, 
+                         obs_kwargs={'c':'k', 'ls':'--', 'lw':1.5}, **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
         AE indices from the web and plots it alongside the corresponding 
@@ -3088,6 +3140,14 @@ class GeoIndexFile(LogFile):
         a figure, an axes, or None, and it determines where the plot is placed.
 
         Other kwargs customize the line.  Extra kwargs are passed to pyplot.plot
+
+        Observed AE can be added via the *plot_obs* kwarg.  AE is automatically 
+        fetched from the Kyoto World Data Center via the 
+        :mod:`spacepy.pybats.kyoto` module.  The associated 
+        :class:`spacepy.pybats.kyoto.KyotoAe` object, which holds the observed
+        AE, is stored as *self.obs_kp* for future use.
+        The observed line can be customized via the *obs_kwargs* kwarg, which
+        is a dictionary of plotting keyword arguments.
         '''
         import matplotlib.pyplot as plt
 
@@ -3107,9 +3167,11 @@ class GeoIndexFile(LogFile):
         if plot_obs:
             if self.fetch_obs_ae():
                 ax.plot(self.obs_ae['time'], self.obs_ae[val.lower()],
-                        'k--', lw=1.5, label='Obs.')
-                ax.legend(loc='best')
+                        label='Obs.', **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
+
+        if add_legend: ax.legend(loc='best')
+
                 
         return fig, ax
 
