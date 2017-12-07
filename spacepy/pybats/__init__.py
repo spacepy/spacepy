@@ -1663,7 +1663,7 @@ class ImfInput(PbData):
 
         a5 = fig.add_subplot(515)
         a5.plot(self['time'], -1.0*self['ux'], lw=1.25, c='green')
-        adjust_plots(a5, '$V_{X}$ ($km/s$)', Zero=False, xlab=True)
+        adjust_plots(a5, '$|V_{X}|$ ($km/s$)', Zero=False, xlab=True)
 
         return fig
 
