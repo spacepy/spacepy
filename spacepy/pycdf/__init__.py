@@ -1282,6 +1282,11 @@ class CDF(collections.MutableMapping):
         a new file. If not provided, an existing file is
         opened; if provided but evaluates to ``False``
         (e.g., ``''``), an empty new CDF is created.
+    create : bool
+        Create a new CDF even if masterpath isn't provided
+    readonly : bool
+        Open the CDF read-only. Default True if opening an
+        existing CDF; False if creating a new one.
 
     Raises
     ======
@@ -1458,7 +1463,7 @@ class CDF(collections.MutableMapping):
     .. automethod:: save
     .. automethod:: version
     """
-    def __init__(self, pathname, masterpath=None):
+    def __init__(self, pathname, masterpath=None, create=None, readonly=None):
         """Open or create a CDF file.
 
         Parameters
@@ -1470,6 +1475,11 @@ class CDF(collections.MutableMapping):
             a new file. If not provided, an existing file is
             opened; if provided but evaluates to ``False``
             (e.g., ``''``), an empty new CDF is created.
+        create : bool
+            Create a new CDF even if masterpath isn't provided
+        readonly : bool
+            Open the CDF read-only. Default True if opening an
+            existing CDF; False if creating a new one.
 
         Raises
         ======
@@ -1486,6 +1496,13 @@ class CDF(collections.MutableMapping):
         Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`
         when done.
         """
+        if masterpath is not None: #Looks like we want to create
+            if create is False:
+                raise ValueError('Cannot specify a master CDF without creating a CDF')
+            if readonly is True:
+                raise ValueError('Cannot create a CDF in readonly mode')
+        if create and readonly:
+            raise ValueError('Cannot create a CDF in readonly mode')
         try:
             self.pathname = pathname.encode()
         except AttributeError:
@@ -1494,8 +1511,8 @@ class CDF(collections.MutableMapping):
         self._handle = ctypes.c_void_p(None)
         self._opened = False
         if masterpath is None:
-            self._open()
-        elif masterpath:
+            self._open(True if readonly is None else readonly)
+        elif masterpath or create:
             self._from_master(masterpath.encode())
         else:
             self._create()
@@ -1655,7 +1672,7 @@ class CDF(collections.MutableMapping):
             else:
                 return 'Closed CDF {0}'.format(self.pathname.decode('ascii'))
 
-    def _open(self):
+    def _open(self, readonly=True):
         """Opens the CDF file (called on init)
 
         Will open an existing CDF file read/write.
@@ -1672,7 +1689,7 @@ class CDF(collections.MutableMapping):
 
         lib.call(const.OPEN_, const.CDF_, self.pathname, ctypes.byref(self._handle))
         self._opened = True
-        self.readonly(True)
+        self.readonly(readonly)
 
     def _create(self):
         """Creates (and opens) a new CDF file
