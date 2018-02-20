@@ -538,6 +538,14 @@ class MakeCDF(unittest.TestCase):
         newcdf.close()
         os.remove(self.testfspec)
 
+    def testCreateCDFKeyword(self):
+        """Create a CDF specifying the create keyword"""
+        newcdf = cdf.CDF(self.testfspec, create=True)
+        self.assertTrue(os.path.isfile(self.testfspec))
+        self.assertFalse(newcdf.readonly())
+        newcdf.close()
+        os.remove(self.testfspec)
+
     def testOpenCDFNonexistent(self):
         """Open a CDF which doesn't exist"""
 

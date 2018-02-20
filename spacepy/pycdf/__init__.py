@@ -1510,9 +1510,9 @@ class CDF(collections.MutableMapping):
                 'pathname must be string-like: {0}'.format(pathname))
         self._handle = ctypes.c_void_p(None)
         self._opened = False
-        if masterpath is None:
+        if masterpath is None and not create:
             self._open(True if readonly is None else readonly)
-        elif masterpath or create:
+        elif masterpath:
             self._from_master(masterpath.encode())
         else:
             self._create()
