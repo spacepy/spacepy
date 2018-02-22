@@ -3,6 +3,8 @@ Changes in Version 0.1.7 (2017-xx-xx)
 - Fix writing of configuration file on Windows
 pybats
  - Many small changes and bugfixes (thanks John Haiducek)
+pycdf
+ - Proper handling of type guessing for negative integers and numpy scalars
 
 Changes in Version 0.1.6 (2016-09-08)
 =====================================

@@ -452,15 +452,18 @@ class NoCDF(unittest.TestCase):
                    [1.0],
                    0.0,
                    numpy.array([1, 2, 3], dtype=numpy.int32),
-                   numpy.array([1, 2, 3], dtype=numpy.float64),
-                   numpy.array([1, 2, 3], dtype=numpy.int64),
+                   numpy.array([1, 2, 4], dtype=numpy.float64),
+                   numpy.array([1, 2, 5], dtype=numpy.int64),
                    2 ** 62,
                    -1.0,
-                   numpy.array([1, 2, 3], dtype='<u2'),
-                   numpy.array([1, 2, 3], dtype='>u2'),
+                   numpy.array([1, 2, 6], dtype='<u2'),
+                   numpy.array([1, 2, 7], dtype='>u2'),
+                   numpy.int64(-1 * 2 ** 63),
+                   numpy.int32(-1 * 2 ** 31),
+                   -1 * 2 ** 31,
                    ]
-        if cdf.lib.supports_int8:
-            types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+        if True:
+            type8 = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                              const.CDF_INT2, const.CDF_UINT2,
                              const.CDF_INT4, const.CDF_UINT4, const.CDF_INT8,
                              const.CDF_FLOAT, const.CDF_REAL4,
@@ -485,8 +488,13 @@ class NoCDF(unittest.TestCase):
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ((3,), [const.CDF_UINT2], 1),
                      ((3,), [const.CDF_UINT2], 1),
+                     ((), [const.CDF_INT8], 1),
+                     ((), [const.CDF_INT4], 1),
+                     ((), [const.CDF_INT4, const.CDF_INT8,
+                           const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ]
-        else:
+        if True:
             types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                              const.CDF_INT2, const.CDF_UINT2,
                              const.CDF_INT4, const.CDF_UINT4,
@@ -514,11 +522,22 @@ class NoCDF(unittest.TestCase):
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ((3,), [const.CDF_UINT2], 1),
                      ((3,), [const.CDF_UINT2], 1),
+                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                     ((), [const.CDF_INT4], 1),
+                     ((), [const.CDF_INT4, const.CDF_FLOAT, const.CDF_REAL4,
+                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
                      ]
+        if cdf.lib.supports_int8: #explicitly test backward-compatible
+            cdf.lib.supports_int8 = False
+            for (s, t) in zip(samples, types):
+                t = (t[0], [i.value for i in t[1]], t[2])
+                self.assertEqual(t, cdf._Hyperslice.types(s))
+            types = type8
+            cdf.lib.supports_int8 = True
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
             self.assertEqual(t, cdf._Hyperslice.types(s))
-
 
 class MakeCDF(unittest.TestCase):
     def setUp(self):
