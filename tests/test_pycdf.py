@@ -238,9 +238,11 @@ class NoCDF(unittest.TestCase):
                               datetime.datetime(2009, 1, 1))
             return
         epochs = [284040066184000000,
-                  284040066184000000]
+                  284040066184000000,
+                  -9223372036854775808]
         dts = [datetime.datetime(2009, 1, 1),
                datetime.datetime(2008, 12, 31, 19, tzinfo=est_tz()),
+               datetime.datetime(9999, 12, 31, 23, 59, 59, 999999)
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(epoch, cdf.lib.datetime_to_tt2000(dt))

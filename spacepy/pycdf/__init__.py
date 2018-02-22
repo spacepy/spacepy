@@ -918,7 +918,9 @@ class Library(object):
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
-        dt.replace(tzinfo=None)
+        dt = dt.replace(tzinfo=None)
+        if dt  == datetime.datetime.max:
+            return -2**63
         return self._library.CDF_TT2000_from_UTC_parts(
             dt.year, dt.month, dt.day, dt.hour,
             dt.minute, dt.second,
