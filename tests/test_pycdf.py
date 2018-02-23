@@ -531,12 +531,14 @@ class NoCDF(unittest.TestCase):
                  ]
         if cdf.lib.supports_int8: #explicitly test backward-compatible
             cdf.lib.supports_int8 = False
-            for (s, t) in zip(samples, types):
-                t = (t[0], [i.value for i in t[1]], t[2])
-                self.assertEqual(t, cdf._Hyperslice.types(s),
-                                 msg='Input ' + str(s))
+            try:
+                for (s, t) in zip(samples, types):
+                    t = (t[0], [i.value for i in t[1]], t[2])
+                    self.assertEqual(t, cdf._Hyperslice.types(s),
+                                     msg='Input ' + str(s))
+            finally: #don't leave the library hashed if test fails
+                cdf.lib.supports_int8 = True
             types = type8
-            cdf.lib.supports_int8 = True
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
             self.assertEqual(t, cdf._Hyperslice.types(s),
