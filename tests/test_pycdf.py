@@ -446,6 +446,7 @@ class NoCDF(unittest.TestCase):
 
     def testTypeGuessing(self):
         """Guess CDF types based on input data"""
+        self.longMessage = True #doesn't help on 2.6, but that's dying
         samples = [[1, 2, 3, 4],
                    [[1.2, 1.3, 1.4], [2.2, 2.3, 2.4]],
                    ['hello', 'there', 'everybody'],
@@ -532,12 +533,14 @@ class NoCDF(unittest.TestCase):
             cdf.lib.supports_int8 = False
             for (s, t) in zip(samples, types):
                 t = (t[0], [i.value for i in t[1]], t[2])
-                self.assertEqual(t, cdf._Hyperslice.types(s))
+                self.assertEqual(t, cdf._Hyperslice.types(s),
+                                 msg='Input ' + str(s))
             types = type8
             cdf.lib.supports_int8 = True
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
-            self.assertEqual(t, cdf._Hyperslice.types(s))
+            self.assertEqual(t, cdf._Hyperslice.types(s),
+                             msg='Input ' + str(s))
 
 class MakeCDF(unittest.TestCase):
     def setUp(self):
