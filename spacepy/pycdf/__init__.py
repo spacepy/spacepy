@@ -918,7 +918,9 @@ class Library(object):
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
-        dt.replace(tzinfo=None)
+        dt = dt.replace(tzinfo=None)
+        if dt  == datetime.datetime.max:
+            return -2**63
         return self._library.CDF_TT2000_from_UTC_parts(
             dt.year, dt.month, dt.day, dt.hour,
             dt.minute, dt.second,
@@ -1282,6 +1284,11 @@ class CDF(collections.MutableMapping):
         a new file. If not provided, an existing file is
         opened; if provided but evaluates to ``False``
         (e.g., ``''``), an empty new CDF is created.
+    create : bool
+        Create a new CDF even if masterpath isn't provided
+    readonly : bool
+        Open the CDF read-only. Default True if opening an
+        existing CDF; False if creating a new one.
 
     Raises
     ======
@@ -1458,7 +1465,7 @@ class CDF(collections.MutableMapping):
     .. automethod:: save
     .. automethod:: version
     """
-    def __init__(self, pathname, masterpath=None):
+    def __init__(self, pathname, masterpath=None, create=None, readonly=None):
         """Open or create a CDF file.
 
         Parameters
@@ -1470,6 +1477,11 @@ class CDF(collections.MutableMapping):
             a new file. If not provided, an existing file is
             opened; if provided but evaluates to ``False``
             (e.g., ``''``), an empty new CDF is created.
+        create : bool
+            Create a new CDF even if masterpath isn't provided
+        readonly : bool
+            Open the CDF read-only. Default True if opening an
+            existing CDF; False if creating a new one.
 
         Raises
         ======
@@ -1486,6 +1498,13 @@ class CDF(collections.MutableMapping):
         Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`
         when done.
         """
+        if masterpath is not None: #Looks like we want to create
+            if create is False:
+                raise ValueError('Cannot specify a master CDF without creating a CDF')
+            if readonly is True:
+                raise ValueError('Cannot create a CDF in readonly mode')
+        if create and readonly:
+            raise ValueError('Cannot create a CDF in readonly mode')
         try:
             self.pathname = pathname.encode()
         except AttributeError:
@@ -1493,8 +1512,8 @@ class CDF(collections.MutableMapping):
                 'pathname must be string-like: {0}'.format(pathname))
         self._handle = ctypes.c_void_p(None)
         self._opened = False
-        if masterpath is None:
-            self._open()
+        if masterpath is None and not create:
+            self._open(True if readonly is None else readonly)
         elif masterpath:
             self._from_master(masterpath.encode())
         else:
@@ -1655,7 +1674,7 @@ class CDF(collections.MutableMapping):
             else:
                 return 'Closed CDF {0}'.format(self.pathname.decode('ascii'))
 
-    def _open(self):
+    def _open(self, readonly=True):
         """Opens the CDF file (called on init)
 
         Will open an existing CDF file read/write.
@@ -1672,7 +1691,7 @@ class CDF(collections.MutableMapping):
 
         lib.call(const.OPEN_, const.CDF_, self.pathname, ctypes.byref(self._handle))
         self._opened = True
-        self.readonly(True)
+        self.readonly(readonly)
 
     def _create(self):
         """Creates (and opens) a new CDF file
@@ -3578,13 +3597,17 @@ class _Hyperslice(object):
             if backward:
                 del types[types.index(const.CDF_EPOCH16)]
                 del types[-1]
-            if not lib.supports_int8:
+            elif not lib.supports_int8:
                 del types[-1]
-        elif d is data: #numpy array came in, use its type (or byte-swapped)
+        elif d is data or isinstance(data, numpy.generic):
+            #numpy array came in, use its type (or byte-swapped)
             types = [k for k in lib.numpytypedict
                      if (lib.numpytypedict[k] == d.dtype
                          or lib.numpytypedict[k] == d.dtype.newbyteorder())
                      and not k in lib.timetypes]
+            if (not lib.supports_int8 or backward) \
+               and const.CDF_INT8.value in types:
+                del types[types.index(const.CDF_INT8.value)]
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
@@ -3607,7 +3630,8 @@ class _Hyperslice(object):
                     cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
                                2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32, 2 ** 63,
                                1.7e38, 1.7e38, 8e307, 8e307]
-                types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
+                types = [t for (t, c) in zip(types, cutoffs) if c > maxval
+                         and (minval >= 0 or minval >= -c)]
                 if (not lib.supports_int8 or backward) \
                        and const.CDF_INT8 in types:
                     del types[types.index(const.CDF_INT8)]
