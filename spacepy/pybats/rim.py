@@ -147,7 +147,9 @@ def tex_label(varname):
         'sigmah':r'$\sigma_{Hall}$',
         'sigmap':r'$\sigma_{Peder}$',
         'jr':r'$J_{radial}$',
-        'mA/m^2':r'$mA/m^{2}$'
+        'mA/m^2':r'$\mu A/m^{2}$',
+        'W/m2':r'$W/m^2$',
+        'eV':'$eV$'
         }
 
 
