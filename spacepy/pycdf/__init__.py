@@ -3738,14 +3738,18 @@ class Attr(collections.MutableSequence):
 
     .. autosummary::
 
+        ~Attr.append
         ~Attr.has_entry
+        ~Attr.insert
         ~Attr.max_idx
         ~Attr.new
         ~Attr.number
         ~Attr.rename
         ~Attr.type
 
+    .. automethod:: append
     .. automethod:: has_entry
+    .. automethod:: insert
     .. automethod:: max_idx
     .. automethod:: new
     .. automethod:: number
@@ -4028,11 +4032,38 @@ class Attr(collections.MutableSequence):
     def insert(self, index, data):
         """Insert an entry at a particular number
 
-        Entry numbers do not change on insertion/deletion, so this function
-        cannot be implemented.
-        @raise NotImplementedError: always
+        Inserts entry at particular number while moving all subsequent
+        entries to one entry number later. Does not close gaps.
+
+        Parameters
+        ==========
+        index : int
+            index where to put the new entry
+        data : 
+            data for the new entry
         """
-        raise NotImplementedError
+        max_entry = self.max_idx()
+        if index > max_entry: #Easy case
+            self[index] = data
+            return
+        for i in range(max_entry, index - 1, -1):
+            if self.has_entry(i+1):
+                self.__delitem__(i+1)
+            if self.has_entry(i):
+                self.new(self.__getitem__(i), type=self.type(i), number=i+1)
+        self[index] = data
+
+    def append(self, data):
+        """Add an entry to end of attribute
+
+        Puts entry after last defined entry (does not fill gaps)
+
+        Parameters
+        ==========
+        data : 
+            data for the new entry
+        """
+        self[self.max_idx() + 1] = data
 
     def _call(self, *args, **kwargs):
         """Select this CDF and Attr and call the CDF internal interface
@@ -4364,6 +4395,30 @@ class zAttr(Attr):
         self.ENTRY_DATATYPE_ = const.zENTRY_DATATYPE_
         self.ENTRY_DATASPEC_ = const.zENTRY_DATASPEC_
         super(zAttr, self).__init__(*args, **kwargs)
+
+    def insert(self, index, data):
+        """Insert entry at particular index number
+
+        Since there can only be one zEntry per zAttr, this cannot be
+        implemented.
+
+        Raises
+        ======
+        NotImplementedError : always
+        """
+        raise NotImplementedError
+
+    def append(self, index, data):
+        """Add entry to end of attribute list
+
+        Since there can only be one zEntry per zAttr, this cannot be
+        implemented.
+
+        Raises
+        ======
+        NotImplementedError : always
+        """
+        raise NotImplementedError
 
 
 class gAttr(Attr):

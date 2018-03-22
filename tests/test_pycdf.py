@@ -2408,6 +2408,36 @@ class ChangeCDF(ChangeCDFBase):
         out = self.cdf['string62'][...]
         numpy.testing.assert_array_equal(inarray, numpy.char.rstrip(out))
 
+    def testAppendgEntry(self):
+        """Append to a gAttr"""
+        self.cdf.attrs['foo'] = ['foo', 'bar', 'baz']
+        self.cdf.attrs['foo'].append('qux')
+        self.assertEqual(['foo', 'bar', 'baz', 'qux'],
+                         self.cdf.attrs['foo'][:])
+        self.cdf.attrs['foo'].new(5, type=const.CDF_INT2, number=5)
+        self.cdf.attrs['foo'].append('quxx')
+        self.assertEqual('quxx', self.cdf.attrs['foo'][6])
+
+    def testInsertgEntry(self):
+        """Insert into a gAttr"""
+        self.cdf.attrs.new('foo')
+        a = self.cdf.attrs['foo']
+        a.new(0, const.CDF_INT2, number=0)
+        a.new(1, const.CDF_INT4, number=1)
+        a.new(2, const.CDF_UINT2, number=2)
+        a.new(5, const.CDF_UINT4, number=5)
+        a.insert(2, 10)
+        self.assertEqual(const.CDF_INT2.value, a.type(0))
+        self.assertEqual(0, a[0])
+        self.assertEqual(const.CDF_INT4.value, a.type(1))
+        self.assertEqual(1, a[1])
+        self.assertEqual(10, a[2])
+        self.assertEqual(const.CDF_UINT2.value, a.type(2))
+        self.assertEqual(2, a[3])
+        self.assertEqual(const.CDF_UINT4.value, a.type(6))
+        self.assertEqual(5, a[6])
+        self.assertFalse(a.has_entry(5))
+
 
 class ChangezVar(ChangeCDFBase):
     """Tests that modify a zVar"""
