@@ -1357,6 +1357,11 @@ class ReadCDF(CDFTests):
                              'gAttr ' + name +
                              ' ' + str(length) + ' != ' + str(actual_length))
 
+    def testGetAllgEntries(self):
+        """Get all gEntries in a gAttr"""
+        self.assertEqual(['T. Fritz'], self.cdf.attrs['PI_name'][:])
+        self.assertEqual(['T. Fritz'], self.cdf.attrs['PI_name'][...])
+
     def testzEntryValue(self):
         """Get the value of a zEntry"""
         names = ['DEPEND_0', 'VALIDMAX', ]

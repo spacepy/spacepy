@@ -3797,6 +3797,8 @@ class Attr(collections.MutableSequence):
         @raise IndexError: if L{key} is an int and that Entry number does not
                            exist.
         """
+        if key is Ellipsis:
+            key = slice(None, None, None)
         if hasattr(key, 'indices'):
             idx = range(*key.indices(self.max_idx() + 1))
             return [self._get_entry(i) if self.has_entry(i) else None
