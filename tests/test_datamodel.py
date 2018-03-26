@@ -785,7 +785,29 @@ class JSONTests(unittest.TestCase):
         self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
         self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
         os.remove(t_file.name)
-       
+
+    def test_toJSONmetadata_globals(self):
+        """Test for handling of int, float, bool, list & dict in global attrs"""
+        a = dm.SpaceData()
+        a.attrs['Global1'] = 'A global string attribute'
+        a.attrs['Global2'] = 2
+        a.attrs['Global3'] = 3.0
+        a.attrs['Global4'] = [1,2,3,4]
+        a.attrs['Global5'] = True
+        a['Var1'] = dm.dmarray([1,2,3,4,5], attrs={'Local1': 'A local attribute'})
+        a['Var2'] = dm.dmarray([[8,9],[9,1],[3,4],[8,9],[7,8]])
+        a['MVar'] = dm.dmarray([7.8], attrs={'Note': 'Metadata'})
+        t_file = tempfile.NamedTemporaryFile(delete=False)
+        t_file.close()
+        dm.writeJSONMetadata(t_file.name, a)
+        dat2 = dm.readJSONMetadata(t_file.name)
+        #test global attr
+        self.assertTrue(a.attrs==dat2.attrs)
+        #test that metadata is back and all original keys are present
+        for key in a['MVar'].attrs:
+            self.assertTrue(key in dat2['MVar'].attrs)
+        np.testing.assert_array_equal(a['MVar'], dat2['MVar'])
+        os.remove(t_file.name)
 
 
 if __name__ == "__main__":
