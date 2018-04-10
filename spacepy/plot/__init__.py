@@ -365,14 +365,14 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
     idx = 0
     inds = usearr>levels[0]
     subset[inds] = np.nan
-    kwargs['label'] = '<{0}'.format(levels[idx])
+    kwargs['label'] = u'≤{0}'.format(levels[idx])
     fill_between_steps(ax, times, subset, color=colors[0], zorder=30, **kwargs)
     #for each of the "between" thresholds
     for idx in range(1,len(levels)):
         subset = np.asarray(dmcopy(usearr))
         inds = np.bitwise_or(usearr<=levels[idx-1], usearr>levels[idx])
         subset[inds] = np.nan
-        kwargs['label'] = '{0}-{1}'.format(levels[idx-1], levels[idx])
+        kwargs['label'] = u'>{0},≤{1}'.format(levels[idx-1], levels[idx])
         fill_between_steps(ax, times, subset, color=colors[idx], zorder=30-(idx*2), **kwargs)
     #last
     idx += 1
