@@ -5,6 +5,8 @@ pybats
  - Many small changes and bugfixes (thanks John Haiducek)
 pycdf
  - Proper handling of type guessing for negative integers and numpy scalars
+ - Allow ... to get all gEntries
+ - Allow insert, append on gAttrs
 
 Changes in Version 0.1.6 (2016-09-08)
 =====================================
