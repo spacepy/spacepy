@@ -7,6 +7,7 @@ pycdf
  - Proper handling of type guessing for negative integers and numpy scalars
  - Allow ... to get all gEntries
  - Allow insert, append on gAttrs
+ - Properly handle reading from empty variables
 
 Changes in Version 0.1.6 (2016-09-08)
 =====================================
