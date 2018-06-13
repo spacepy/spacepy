@@ -147,7 +147,9 @@ def tex_label(varname):
         'sigmah':r'$\sigma_{Hall}$',
         'sigmap':r'$\sigma_{Peder}$',
         'jr':r'$J_{radial}$',
-        'mA/m^2':r'$mA/m^{2}$'
+        'mA/m^2':r'$\mu A/m^{2}$',
+        'W/m2':r'$W/m^2$',
+        'eV':'$eV$'
         }
 
 
@@ -312,6 +314,10 @@ class Iono(PbData):
             not add one to the plot.
         label : str or None
             Label to place at top of plot.  Defaults to variable name.
+        xticksize : int
+            Size of longitude markers in text points.  Defaults to 12.
+        yticksize : int
+            Size of latitude markers in text points.  Defaults to 12.
 
         Extra keywords are passed to the contourf routine.
 
@@ -326,6 +332,10 @@ class Iono(PbData):
         fig, ax = set_target(target, polar=True, loc=loc)
         
         hemi = var[:2]
+
+        # user defined variables may not have hemisphere marking.
+        # Assume nothern hemi in those cases.
+        if hemi!='n_' and hemi!='s_': hemi = 'n_'
 
         # Set levels and ticks:
         if label==None:

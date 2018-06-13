@@ -230,6 +230,10 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
         if thissec != -1:
             while f.readline() != '[{section}]\n'.format(section=section):
                 pass
+        if sys.platform == 'win32':
+            #Tickle the file for read/write switch
+            #https://stackoverflow.com/questions/11176724/python-file-operations
+            f.seek(0, 2)
         #Write default values for anything not read
         for k in sorted(writeme):
             f.write("#{key}: {value} #default in SpacePy {ver}\n".format(
@@ -249,7 +253,7 @@ def _read_config(rcfile):
                 'ncpus': str(multiprocessing.cpu_count()),
                 'qindenton_url': 'http://virbo.org/ftp/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
                 'omni2_url': 'http://virbo.org/ftp/OMNI/OMNI2/merged/latest/OMNI_OMNI2-latest.cdf.zip',
-                'leapsec_url': 'ftp://maia.usno.navy.mil/ser7/tai-utc.dat',
+                'leapsec_url': 'http://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
                 'support_notice': str(True),
                 'apply_plot_styles': str(True),

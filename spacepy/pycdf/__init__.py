@@ -226,7 +226,12 @@ class Library(object):
 
         if not library:
             if not libpath:
-                self._library, self.libpath = self._find_lib()
+                self.libpath, self._library = self._find_lib()
+                if self._library is None:
+                    raise Exception((
+                        'Cannot load CDF C library; checked {0}. '
+                        'Try \'os.environ["CDF_LIB"] = library_directory\' '
+                        'before import.').format(', '.join(self.libpath)))
             else:
                 self._library = ctype.CDLL(libpath)
                 self.libpath = libpath
@@ -405,6 +410,16 @@ class Library(object):
     def _find_lib():
         """
         Search for the CDF library
+
+        Searches in likely locations for CDF libraries and attempts to load
+        them. Stops at first successful load and, if fails, reports all
+        the files that were tried as libraries.
+
+        Returns
+        =======
+        out : tuple
+             This is either (path to library, loaded library)
+             or, in the event of failure, (None, list of libraries tried)
         """
         failed = []
         for libpath in Library._lib_paths():
@@ -414,9 +429,7 @@ class Library(object):
                 failed.append(libpath)
             else:
                 return libpath, lib
-        raise Exception(('Cannot load CDF C library from {0}.'
-                        'Try os.environ["CDF_LIB"] = library_directory '
-                        'before import.').format(', '.join(failed)))
+        return (failed, None)
 
     @staticmethod
     def _lib_paths():
@@ -460,7 +473,7 @@ class Library(object):
         #Finally, defaults places CDF gets installed uner
         #CDF_BASE is usually a subdir of these (with "cdf" in the name)
         #Searched in order given here!
-        cdfdists = { 'win32': ['c:\\CDF Distribution\\'],
+        cdfdists = { 'win32': ['c:\\CDF Distribution\\', 'c:\\CDF_Distribution\\'],
                     'darwin': ['/Applications/', '/usr/local/',
                                os.path.expanduser('~')],
                     'linux2': ['/usr/local/', os.path.expanduser('~')],
@@ -905,7 +918,9 @@ class Library(object):
         """
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
-        dt.replace(tzinfo=None)
+        dt = dt.replace(tzinfo=None)
+        if dt  == datetime.datetime.max:
+            return -2**63
         return self._library.CDF_TT2000_from_UTC_parts(
             dt.year, dt.month, dt.day, dt.hour,
             dt.minute, dt.second,
@@ -1033,14 +1048,62 @@ class Library(object):
             'TT2000 functions require CDF library 3.4.0 or later')
 
 
-try:
-    _libpath, _library = Library._find_lib()
-except:
-    if 'sphinx' in sys.argv[0]:
-        warnings.warn('CDF library did not load. '
-                      'You appear to be building docs, so ignoring this error.')
-    else:
-        raise
+def download_library():
+    """Download and install the CDF library"""
+    if sys.platform != 'win32':
+        raise NotImplementedError(
+            'CDF library install only supported on Windows')
+    try:
+        import html.parser as HTMLParser
+    except ImportError:
+        import HTMLParser
+    #https://stackoverflow.com/questions/1713038/super-fails-with-error-typeerror-argument-1-must-be-type-not-classobj
+    class LinkParser(HTMLParser.HTMLParser, object):
+        def __init__(self, *args, **kwargs):
+            self.links_found = []
+            super(LinkParser, self).__init__(*args, **kwargs)
+        def handle_starttag(self, tag, attrs):
+            if tag != 'a' or attrs[0][0] != 'href':
+                return
+            self.links_found.append(attrs[0][1])
+    import re
+    import subprocess
+    try:
+        import urllib.request as u
+    except ImportError:
+        import urllib as u
+    import spacepy
+    if spacepy.config.get('user_agent', None):
+        class AppURLopener(u.FancyURLopener):
+            version = spacepy.config['user_agent']
+        u._urlopener = AppURLopener()
+    baseurl = 'https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/'
+    url = u.urlopen(baseurl)
+    listing = url.read()
+    url.close()
+    p = LinkParser()
+    p.feed(listing)
+    cdfdist = [l for l in p.links_found if re.match('^cdf3\d_\d(?:_\d)?/$', l)]
+    if not cdfdist:
+        raise RuntimeError(
+            "Couldn't find CDF distribution directory to download")
+    cdfdist.sort(key=lambda x: x.rstrip('/').split('_'))
+    cdfverbase = cdfdist[-1].rstrip('/')
+    instfname = cdfverbase + ('_0' if cdfverbase.count('_') == 1 else '') + \
+                '-setup-{0}.exe'.format(len('%x' % sys.maxsize)*4)
+    insturl = baseurl + cdfverbase + '/windows/' + instfname
+    tmpdir = tempfile.mkdtemp()
+    try:
+        fname, status = u.urlretrieve(insturl, os.path.join(tmpdir, instfname))
+        subprocess.check_call([fname, '/install', '/q1'], shell=False)
+    finally:
+        shutil.rmtree(tmpdir)
+
+_libpath, _library = Library._find_lib()
+if _library is None:
+    raise Exception(('Cannot load CDF C library; checked {0}. '
+                     'Try \'os.environ["CDF_LIB"] = library_directory\' '
+                     'before import.').format(', '.join(_libpath)))
 from . import const
 lib = Library(_libpath, _library)
 """Module global library object.
@@ -1221,6 +1284,11 @@ class CDF(collections.MutableMapping):
         a new file. If not provided, an existing file is
         opened; if provided but evaluates to ``False``
         (e.g., ``''``), an empty new CDF is created.
+    create : bool
+        Create a new CDF even if masterpath isn't provided
+    readonly : bool
+        Open the CDF read-only. Default True if opening an
+        existing CDF; False if creating a new one.
 
     Raises
     ======
@@ -1397,7 +1465,7 @@ class CDF(collections.MutableMapping):
     .. automethod:: save
     .. automethod:: version
     """
-    def __init__(self, pathname, masterpath=None):
+    def __init__(self, pathname, masterpath=None, create=None, readonly=None):
         """Open or create a CDF file.
 
         Parameters
@@ -1409,6 +1477,11 @@ class CDF(collections.MutableMapping):
             a new file. If not provided, an existing file is
             opened; if provided but evaluates to ``False``
             (e.g., ``''``), an empty new CDF is created.
+        create : bool
+            Create a new CDF even if masterpath isn't provided
+        readonly : bool
+            Open the CDF read-only. Default True if opening an
+            existing CDF; False if creating a new one.
 
         Raises
         ======
@@ -1425,6 +1498,13 @@ class CDF(collections.MutableMapping):
         Be sure to :py:meth:`pycdf.CDF.close` or :py:meth:`pycdf.CDF.save`
         when done.
         """
+        if masterpath is not None: #Looks like we want to create
+            if create is False:
+                raise ValueError('Cannot specify a master CDF without creating a CDF')
+            if readonly is True:
+                raise ValueError('Cannot create a CDF in readonly mode')
+        if create and readonly:
+            raise ValueError('Cannot create a CDF in readonly mode')
         try:
             self.pathname = pathname.encode()
         except AttributeError:
@@ -1432,8 +1512,8 @@ class CDF(collections.MutableMapping):
                 'pathname must be string-like: {0}'.format(pathname))
         self._handle = ctypes.c_void_p(None)
         self._opened = False
-        if masterpath is None:
-            self._open()
+        if masterpath is None and not create:
+            self._open(True if readonly is None else readonly)
         elif masterpath:
             self._from_master(masterpath.encode())
         else:
@@ -1594,7 +1674,7 @@ class CDF(collections.MutableMapping):
             else:
                 return 'Closed CDF {0}'.format(self.pathname.decode('ascii'))
 
-    def _open(self):
+    def _open(self, readonly=True):
         """Opens the CDF file (called on init)
 
         Will open an existing CDF file read/write.
@@ -1611,7 +1691,7 @@ class CDF(collections.MutableMapping):
 
         lib.call(const.OPEN_, const.CDF_, self.pathname, ctypes.byref(self._handle))
         self._opened = True
-        self.readonly(True)
+        self.readonly(readonly)
 
     def _create(self):
         """Creates (and opens) a new CDF file
@@ -2482,6 +2562,13 @@ class Var(collections.MutableSequence):
         @raise CDFError: for errors from the CDF library
         """
         hslice = _Hyperslice(self, key)
+        #Hyperslice mostly catches this sort of thing, but
+        #an empty variable is a special case, since we might want to
+        #WRITE to 0th record (which Hyperslice also supports) but
+        #can't READ from it, and iterating over tries to read from it.
+        if hslice.rv and hslice.dimsizes[0] == 0 and hslice.degen[0] and \
+           hslice.starts[0] == 0:
+            raise IndexError('record index out of range')
         result = hslice.create_array()
         if hslice.counts[0] != 0:
             hslice.select()
@@ -3517,12 +3604,17 @@ class _Hyperslice(object):
             if backward:
                 del types[types.index(const.CDF_EPOCH16)]
                 del types[-1]
-            if not lib.supports_int8:
+            elif not lib.supports_int8:
                 del types[-1]
-        elif d is data: #numpy array came in, use its type
+        elif d is data or isinstance(data, numpy.generic):
+            #numpy array came in, use its type (or byte-swapped)
             types = [k for k in lib.numpytypedict
-                     if lib.numpytypedict[k] == d.dtype
+                     if (lib.numpytypedict[k] == d.dtype
+                         or lib.numpytypedict[k] == d.dtype.newbyteorder())
                      and not k in lib.timetypes]
+            if (not lib.supports_int8 or backward) \
+               and const.CDF_INT8.value in types:
+                del types[types.index(const.CDF_INT8.value)]
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
@@ -3545,7 +3637,8 @@ class _Hyperslice(object):
                     cutoffs = [2 ** 7, 2 ** 7, 2 ** 8,
                                2 ** 15, 2 ** 16, 2 ** 31, 2 ** 32, 2 ** 63,
                                1.7e38, 1.7e38, 8e307, 8e307]
-                types = [t for (t, c) in zip(types, cutoffs) if c > maxval]
+                types = [t for (t, c) in zip(types, cutoffs) if c > maxval
+                         and (minval >= 0 or minval >= -c)]
                 if (not lib.supports_int8 or backward) \
                        and const.CDF_INT8 in types:
                     del types[types.index(const.CDF_INT8)]
@@ -3652,14 +3745,18 @@ class Attr(collections.MutableSequence):
 
     .. autosummary::
 
+        ~Attr.append
         ~Attr.has_entry
+        ~Attr.insert
         ~Attr.max_idx
         ~Attr.new
         ~Attr.number
         ~Attr.rename
         ~Attr.type
 
+    .. automethod:: append
     .. automethod:: has_entry
+    .. automethod:: insert
     .. automethod:: max_idx
     .. automethod:: new
     .. automethod:: number
@@ -3711,6 +3808,8 @@ class Attr(collections.MutableSequence):
         @raise IndexError: if L{key} is an int and that Entry number does not
                            exist.
         """
+        if key is Ellipsis:
+            key = slice(None, None, None)
         if hasattr(key, 'indices'):
             idx = range(*key.indices(self.max_idx() + 1))
             return [self._get_entry(i) if self.has_entry(i) else None
@@ -3940,11 +4039,38 @@ class Attr(collections.MutableSequence):
     def insert(self, index, data):
         """Insert an entry at a particular number
 
-        Entry numbers do not change on insertion/deletion, so this function
-        cannot be implemented.
-        @raise NotImplementedError: always
+        Inserts entry at particular number while moving all subsequent
+        entries to one entry number later. Does not close gaps.
+
+        Parameters
+        ==========
+        index : int
+            index where to put the new entry
+        data : 
+            data for the new entry
         """
-        raise NotImplementedError
+        max_entry = self.max_idx()
+        if index > max_entry: #Easy case
+            self[index] = data
+            return
+        for i in range(max_entry, index - 1, -1):
+            if self.has_entry(i+1):
+                self.__delitem__(i+1)
+            if self.has_entry(i):
+                self.new(self.__getitem__(i), type=self.type(i), number=i+1)
+        self[index] = data
+
+    def append(self, data):
+        """Add an entry to end of attribute
+
+        Puts entry after last defined entry (does not fill gaps)
+
+        Parameters
+        ==========
+        data : 
+            data for the new entry
+        """
+        self[self.max_idx() + 1] = data
 
     def _call(self, *args, **kwargs):
         """Select this CDF and Attr and call the CDF internal interface
@@ -4276,6 +4402,30 @@ class zAttr(Attr):
         self.ENTRY_DATATYPE_ = const.zENTRY_DATATYPE_
         self.ENTRY_DATASPEC_ = const.zENTRY_DATASPEC_
         super(zAttr, self).__init__(*args, **kwargs)
+
+    def insert(self, index, data):
+        """Insert entry at particular index number
+
+        Since there can only be one zEntry per zAttr, this cannot be
+        implemented.
+
+        Raises
+        ======
+        NotImplementedError : always
+        """
+        raise NotImplementedError
+
+    def append(self, index, data):
+        """Add entry to end of attribute list
+
+        Since there can only be one zEntry per zAttr, this cannot be
+        implemented.
+
+        Raises
+        ======
+        NotImplementedError : always
+        """
+        raise NotImplementedError
 
 
 class gAttr(Attr):

@@ -153,6 +153,7 @@ class QTree(object):
     ld = leftdaughter
 
     def plot_res(self, ax, do_label=True, tag_leafs=False):
+        from matplotlib import patheffects
         res_colors={
             1./32.: 'black',
             1./16.: 'darkred',

@@ -35,7 +35,8 @@ import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
 
 __all__ = ['NoCDF', 'MakeCDF', 'CDFTestsBase', 'CDFTests', 'ColCDFTests',
-           'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ChangeCDF', 'ChangeColCDF']
+           'OpenCDF', 'ReadCDF', 'ReadColCDF', 'ChangeCDFBase', 'ChangeCDF',
+           'ChangezVar', 'ChangeAttr', 'ChangeColCDF']
 
 
 class est_tz(datetime.tzinfo):
@@ -237,9 +238,11 @@ class NoCDF(unittest.TestCase):
                               datetime.datetime(2009, 1, 1))
             return
         epochs = [284040066184000000,
-                  284040066184000000]
+                  284040066184000000,
+                  -9223372036854775808]
         dts = [datetime.datetime(2009, 1, 1),
                datetime.datetime(2008, 12, 31, 19, tzinfo=est_tz()),
+               datetime.datetime(9999, 12, 31, 23, 59, 59, 999999)
                ]
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(epoch, cdf.lib.datetime_to_tt2000(dt))
@@ -443,6 +446,7 @@ class NoCDF(unittest.TestCase):
 
     def testTypeGuessing(self):
         """Guess CDF types based on input data"""
+        self.longMessage = True #doesn't help on 2.6, but that's dying
         samples = [[1, 2, 3, 4],
                    [[1.2, 1.3, 1.4], [2.2, 2.3, 2.4]],
                    ['hello', 'there', 'everybody'],
@@ -451,67 +455,94 @@ class NoCDF(unittest.TestCase):
                    [1.0],
                    0.0,
                    numpy.array([1, 2, 3], dtype=numpy.int32),
-                   numpy.array([1, 2, 3], dtype=numpy.float64),
-                   numpy.array([1, 2, 3], dtype=numpy.int64),
+                   numpy.array([1, 2, 4], dtype=numpy.float64),
+                   numpy.array([1, 2, 5], dtype=numpy.int64),
                    2 ** 62,
                    -1.0,
+                   numpy.array([1, 2, 6], dtype='<u2'),
+                   numpy.array([1, 2, 7], dtype='>u2'),
+                   numpy.int64(-1 * 2 ** 63),
+                   numpy.int32(-1 * 2 ** 31),
+                   -1 * 2 ** 31,
                    ]
-        if cdf.lib.supports_int8:
-            types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                             const.CDF_INT2, const.CDF_UINT2,
-                             const.CDF_INT4, const.CDF_UINT4, const.CDF_INT8,
-                             const.CDF_FLOAT, const.CDF_REAL4,
-                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
-                               const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
-                     ((), [const.CDF_EPOCH, const.CDF_EPOCH16,
-                           const.CDF_TIME_TT2000], 1),
-                     ((), [const.CDF_EPOCH16, const.CDF_EPOCH,
-                           const.CDF_TIME_TT2000], 1),
-                     ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
-                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
+        type8 = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                         const.CDF_INT2, const.CDF_UINT2,
+                         const.CDF_INT4, const.CDF_UINT4, const.CDF_INT8,
+                         const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((3,), [const.CDF_INT4], 1),
-                     ((3,), [const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((3,), [const.CDF_INT8], 1),
-                     ((), [const.CDF_INT8, const.CDF_FLOAT, const.CDF_REAL4,
+                 ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16,
+                       const.CDF_TIME_TT2000], 1),
+                 ((), [const.CDF_EPOCH16, const.CDF_EPOCH,
+                       const.CDF_TIME_TT2000], 1),
+                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_INT4], 1),
+                 ((3,), [const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_INT8], 1),
+                 ((), [const.CDF_INT8, const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_UINT2], 1),
+                 ((3,), [const.CDF_UINT2], 1),
+                 ((), [const.CDF_INT8], 1),
+                 ((), [const.CDF_INT4], 1),
+                 ((), [const.CDF_INT4, const.CDF_INT8,
+                       const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ]
+        types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                         const.CDF_INT2, const.CDF_UINT2,
+                         const.CDF_INT4, const.CDF_UINT4,
+                         const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
                            const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ]
-        else:
-            types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                             const.CDF_INT2, const.CDF_UINT2,
-                             const.CDF_INT4, const.CDF_UINT4,
-                             const.CDF_FLOAT, const.CDF_REAL4,
-                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((2, 3), [const.CDF_FLOAT, const.CDF_REAL4,
-                               const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
-                     ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
-                     ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
-                     ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
-                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((3,), [const.CDF_INT4], 1),
-                     ((3,), [const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((3,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
-                             const.CDF_INT2, const.CDF_UINT2,
-                             const.CDF_INT4, const.CDF_UINT4,
-                             const.CDF_FLOAT, const.CDF_REAL4,
-                             const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ((), [const.CDF_FLOAT, const.CDF_REAL4,
-                           const.CDF_DOUBLE, const.CDF_REAL8], 1),
-                     ]
+                 ((3,), [const.CDF_CHAR, const.CDF_UCHAR], 9),
+                 ((), [const.CDF_EPOCH, const.CDF_EPOCH16], 1),
+                 ((), [const.CDF_EPOCH16, const.CDF_EPOCH], 1),
+                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_INT4], 1),
+                 ((3,), [const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                         const.CDF_INT2, const.CDF_UINT2,
+                         const.CDF_INT4, const.CDF_UINT4,
+                         const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_UINT2], 1),
+                 ((3,), [const.CDF_UINT2], 1),
+                 ((), [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((), [const.CDF_INT4], 1),
+                 ((), [const.CDF_INT4, const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ]
+        if cdf.lib.supports_int8: #explicitly test backward-compatible
+            cdf.lib.supports_int8 = False
+            try:
+                for (s, t) in zip(samples, types):
+                    t = (t[0], [i.value for i in t[1]], t[2])
+                    self.assertEqual(t, cdf._Hyperslice.types(s),
+                                     msg='Input ' + str(s))
+            finally: #don't leave the library hashed if test fails
+                cdf.lib.supports_int8 = True
+            types = type8
         for (s, t) in zip(samples, types):
             t = (t[0], [i.value for i in t[1]], t[2])
-            self.assertEqual(t, cdf._Hyperslice.types(s))
-
+            self.assertEqual(t, cdf._Hyperslice.types(s),
+                             msg='Input ' + str(s))
 
 class MakeCDF(unittest.TestCase):
     def setUp(self):
@@ -526,6 +557,14 @@ class MakeCDF(unittest.TestCase):
         """Create a new CDF"""
 
         newcdf = cdf.CDF(self.testfspec, '')
+        self.assertTrue(os.path.isfile(self.testfspec))
+        self.assertFalse(newcdf.readonly())
+        newcdf.close()
+        os.remove(self.testfspec)
+
+    def testCreateCDFKeyword(self):
+        """Create a CDF specifying the create keyword"""
+        newcdf = cdf.CDF(self.testfspec, create=True)
         self.assertTrue(os.path.isfile(self.testfspec))
         self.assertFalse(newcdf.readonly())
         newcdf.close()
@@ -1317,6 +1356,11 @@ class ReadCDF(CDFTests):
             self.assertEqual(actual_length, length,
                              'gAttr ' + name +
                              ' ' + str(length) + ' != ' + str(actual_length))
+
+    def testGetAllgEntries(self):
+        """Get all gEntries in a gAttr"""
+        self.assertEqual(['T. Fritz'], self.cdf.attrs['PI_name'][:])
+        self.assertEqual(['T. Fritz'], self.cdf.attrs['PI_name'][...])
 
     def testzEntryValue(self):
         """Get the value of a zEntry"""
@@ -2364,6 +2408,86 @@ class ChangeCDF(ChangeCDFBase):
         out = self.cdf['string62'][...]
         numpy.testing.assert_array_equal(inarray, numpy.char.rstrip(out))
 
+    def testAppendgEntry(self):
+        """Append to a gAttr"""
+        self.cdf.attrs['foo'] = ['foo', 'bar', 'baz']
+        self.cdf.attrs['foo'].append('qux')
+        self.assertEqual(['foo', 'bar', 'baz', 'qux'],
+                         self.cdf.attrs['foo'][:])
+        self.cdf.attrs['foo'].new(5, type=const.CDF_INT2, number=5)
+        self.cdf.attrs['foo'].append('quxx')
+        self.assertEqual('quxx', self.cdf.attrs['foo'][6])
+
+    def testInsertgEntry(self):
+        """Insert into a gAttr"""
+        self.cdf.attrs.new('foo')
+        a = self.cdf.attrs['foo']
+        a.new(0, const.CDF_INT2, number=0)
+        a.new(1, const.CDF_INT4, number=1)
+        a.new(2, const.CDF_UINT2, number=2)
+        a.new(5, const.CDF_UINT4, number=5)
+        a.insert(2, 10)
+        self.assertEqual(const.CDF_INT2.value, a.type(0))
+        self.assertEqual(0, a[0])
+        self.assertEqual(const.CDF_INT4.value, a.type(1))
+        self.assertEqual(1, a[1])
+        self.assertEqual(10, a[2])
+        self.assertEqual(const.CDF_UINT2.value, a.type(2))
+        self.assertEqual(2, a[3])
+        self.assertEqual(const.CDF_UINT4.value, a.type(6))
+        self.assertEqual(5, a[6])
+        self.assertFalse(a.has_entry(5))
+
+    def testIterateEmpty(self):
+        """Make an empty variable and iterate over it"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        self.assertEqual([], list(self.cdf['Empty']))
+        self.assertRaises(StopIteration,
+                          next,
+                          iter(self.cdf['Empty']))
+
+    def testReadAllEmpty(self):
+        """Make an empty variable and read all data"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        self.assertEqual((0,), self.cdf['Empty'][...].shape)
+
+    def testReadSomeEmpty(self):
+        """Make an empty variable and read off end"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        self.assertEqual((0,), self.cdf['Empty'][0:2].shape)
+
+    def testLengthEmpty(self):
+        """Make an empty variable and check its length"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        self.assertEqual(0, len(self.cdf['Empty']))
+
+    def testIndexEmpty(self):
+        """Make an empty variable and index it"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        try:
+            self.cdf['Empty'][1]
+        except IndexError:
+            pass
+        else:
+            self.fail('Should have raised IndexError on 1')
+        try:
+            self.cdf['Empty'][0]
+        except IndexError:
+            pass
+        else:
+            self.fail('Should have raised IndexError on 0')
+
+    def testIndexOneValue(self):
+        """Put a single value into a var and index past it"""
+        #This is basically to test that indexing empty at [0] is special case
+        self.cdf.new('Single', data=[1], type=const.CDF_INT1)
+        try:
+            self.cdf['Single'][1]
+        except IndexError:
+            pass
+        else:
+            self.fail('Should have raised IndexError on 1')
+
 
 class ChangezVar(ChangeCDFBase):
     """Tests that modify a zVar"""
@@ -2512,7 +2636,6 @@ class ChangezVar(ChangeCDFBase):
             self.assertEqual(str(v), message)
         else:
             self.fail('Should have raised TypeError: ' + message)
-
 
 class ChangeAttr(ChangeCDFBase):
     """Tests that modify Attributes and Attribute lists"""
@@ -2864,6 +2987,19 @@ class ChangeAttr(ChangeCDFBase):
             self.assertEqual(oldlist[attrname], newlist[attrname])
             self.assertEqual(oldlist.type(attrname),
                              newlist.type(attrname))
+
+    def testUnicodeAttribute(self):
+        """Assign unicode string to attributes"""
+        self.cdf['ATC'].attrs['foo'] = u'C'
+        self.assertEqual('C', self.cdf['ATC'].attrs['foo'])
+        try:
+            self.cdf['ATC'].attrs['foo2'] = u'\xb0C'
+        except UnicodeEncodeError:
+            pass
+        else:
+            self.fail('Should have raised UnicodeEncodeError')
+        #This basically fails same way as numpy.array(u'\xb0C', dtype='|S2')
+#        self.assertEqual(b'C', self.cdf['ATC'].attrs['foo2'])
 
 
 class ChangeColCDF(ColCDFTests):

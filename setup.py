@@ -242,6 +242,60 @@ def finalize_compiler_options(cmd):
             '--fcompiler=intelem requires a 64-bit architecture')
     if cmd.compiler == None and sys.platform == 'win32':
         cmd.compiler = 'mingw32'
+    #Add interpreter to f2py if it needs it (usually on Windows)
+    #If it's a list, it's already been patched up
+    if sys.platform == 'win32' and isinstance(cmd.f2py, str) \
+       and not is_win_exec(cmd.f2py):
+        f2py = cmd.f2py
+        if not os.path.isfile(f2py): #Not a file, and didn't exec
+            f2pydir = next((d for d in os.environ['PATH'].split(os.pathsep)
+                            if os.path.isfile(os.path.join(d, f2py))), None)
+            if f2pydir: #Found the file, try it
+                f2py = os.path.join(f2pydir, f2py)
+                if not is_win_exec(f2py): #Try the interpreter
+                    if is_win_exec(sys.executable, f2py):
+                        cmd.f2py = [sys.executable, f2py]
+                    else: #Nothing to be done
+                        raise RuntimeError(
+                            'f2py {0} found but not executable'.format(
+                                cmd.f2py))
+                else: #Found and executable (unlikely, since would have worked)
+                    cmd.f2py = [f2py]
+            else: #Couldn't find the file, just try the interpreter
+                if is_win_exec(sys.executable, f2py):
+                    cmd.f2py = [sys.executable, f2py]
+                else: #Nothing to be done
+                    raise RuntimeError(
+                        'f2py {0} not found and not executable'.format(
+                            cmd.f2py))
+        else: #Not executable, but IS a file
+            if is_win_exec(sys.executable, f2py):
+                cmd.f2py = [sys.executable, f2py]
+            else: #Nothing to be done
+                raise RuntimeError(
+                    'f2py {0} exists but not executable'.format(
+                        cmd.f2py))
+    else:
+        cmd.f2py = [cmd.f2py]
+
+
+def is_win_exec(*args):
+    """Test if a file spec is an executable
+
+    This is really only useful on Windows
+
+    :param list args: arguments to call
+    :returns: True if the arguments can be called with subprocess
+    :rtype: bool
+    """
+    try:
+        p = subprocess.Popen(args, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+    except WindowsError:
+        return False
+    else:
+        output, errors = p.communicate()
+        return not(p.returncode)
 
 
 compiler_options = [
@@ -429,7 +483,7 @@ class build(_build):
                      'trace_field_line2_1', 'trace_field_line_towards_earth1', 'trace_drift_bounce_orbit']
 
         # call f2py
-        cmd = [self.f2py, '--overwrite-signature', '-m', 'irbempylib', '-h',
+        cmd = self.f2py + ['--overwrite-signature', '-m', 'irbempylib', '-h',
                'irbempylib.pyf'] + F90files + ['only:'] + functions + [':']
         subprocess.check_call(cmd)
         # intent(out) substitute list
@@ -548,7 +602,7 @@ class build(_build):
             f2py_flags.append('--f90exec={0}'.format(self.f90exec))
         try:
             subprocess.check_call(
-                [self.f2py, '-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
+                self.f2py + ['-c', 'irbempylib.pyf', 'source/onera_desp_lib.f',
                  '-Lsource', '-lBL2'] + f2py_flags, env=f2py_env)
         except:
             warnings.warn(

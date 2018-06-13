@@ -1334,12 +1334,14 @@ def readJSONMetadata(fname, **kwargs):
 
     mdata = SpaceData()
     for key in mdatadict:
-       if 'START_COLUMN' in mdatadict[key]:
+       if not hasattr(mdatadict[key], 'keys'): # not dict-like, must be global attrs
+           mdata.attrs[key] = mdatadict[key]
+       elif 'START_COLUMN' in mdatadict[key]: # is a variable
            mdata[key] = SpaceData(attrs=mdatadict[key])
-       elif 'VALUES' in mdatadict[key]:
+       elif 'VALUES' in mdatadict[key]: # is global metadata
            dum = mdatadict[key].pop('VALUES')
            mdata[key] = dmarray(dum, attrs=mdatadict[key])
-       else:
+       else: # don't know how to deal with this, store as global attrs
            mdata.attrs[key] = mdatadict[key]
 
     if 'verbose' in kwargs:

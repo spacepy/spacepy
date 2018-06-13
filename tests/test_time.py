@@ -549,7 +549,6 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([52275.04166667, 52276.])
         numpy.testing.assert_almost_equal(t1.MJD, expected)
-        self.assertRaises(ValueError, t.Ticktock, ['1581-01-01T01:00:00'])
 
     def test_GPS(self):
         """conversions to GPS should work"""
