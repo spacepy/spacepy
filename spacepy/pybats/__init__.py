@@ -248,7 +248,8 @@ def parse_tecvars(line):
     return ret
 
 
-def add_planet(ax, rad=1.0, ang=0.0, add_night=True, **extra_kwargs):
+def add_planet(ax, rad=1.0, ang=0.0, add_night=True, zorder=1000,
+               **extra_kwargs):
     '''
     Creates a circle of ``radius=self.para['rbody']`` and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
@@ -277,14 +278,18 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, **extra_kwargs):
        Defaults to zero (terminator is aligned with Y-axis.)
     add_night : boolean
        Add night hemisphere.  Defaults to **True**
+    zorder : int
+       Set the matplotlib zorder of the patch to set how other plot
+       elements order with the inner boundary patch. Defaults to 1000,
+       nightside patch is given zorder of *zorder+5*.
     
     '''
 
     from matplotlib.patches import Circle, Wedge
 
-    body = Circle((0,0), rad, fc='w', zorder=1000, **extra_kwargs)
+    body = Circle((0,0), rad, fc='w', zorder=zorder, **extra_kwargs)
     arch = Wedge((0,0), rad, 90+ang, -90+ang, fc='k', 
-                 zorder=1001, **extra_kwargs)
+                 zorder=zorder+5, **extra_kwargs)
         
     ax.add_artist(body)
     if add_night: ax.add_artist(arch)
@@ -292,7 +297,7 @@ def add_planet(ax, rad=1.0, ang=0.0, add_night=True, **extra_kwargs):
     return body, arch
 
 def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True, 
-             ang=0.0, add_night=True, **extra_kwargs):
+             ang=0.0, add_night=True, zorder=1000, **extra_kwargs):
     '''
     Creates a circle of radius=self.attrs['rbody'] and returns the
     MatPlotLib Ellipse patch object for plotting.  If an axis is specified
@@ -324,16 +329,20 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
        Defaults to zero (terminator is aligned with Y-axis.)
     add_night : boolean
        Add night hemisphere.  Defaults to **True**
+    zorder : int
+       Set the matplotlib zorder of the patch to set how other plot
+       elements order with the inner boundary patch. Defaults to 1000.
+       If a planet is added, it is given a zorder of *zorder*+5.
 
     '''
     from matplotlib.patches import Ellipse
     
     dbody = 2.0 * rad
-    body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=999,
+    body = Ellipse((0,0),dbody,dbody,facecolor=facecolor, zorder=zorder,
                    **extra_kwargs)
 
     if show_planet:
-        add_planet(ax, ang=ang, add_night=add_night)
+        add_planet(ax, ang=ang, add_night=add_night, zorder=zorder+5)
 
     ax.add_artist(body)
         
