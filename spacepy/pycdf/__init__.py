@@ -2562,6 +2562,13 @@ class Var(collections.MutableSequence):
         @raise CDFError: for errors from the CDF library
         """
         hslice = _Hyperslice(self, key)
+        #Hyperslice mostly catches this sort of thing, but
+        #an empty variable is a special case, since we might want to
+        #WRITE to 0th record (which Hyperslice also supports) but
+        #can't READ from it, and iterating over tries to read from it.
+        if hslice.rv and hslice.dimsizes[0] == 0 and hslice.degen[0] and \
+           hslice.starts[0] == 0:
+            raise IndexError('record index out of range')
         result = hslice.create_array()
         if hslice.counts[0] != 0:
             hslice.select()

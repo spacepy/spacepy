@@ -9,8 +9,19 @@ import numpy as np
 import math
 import pylab as plt
 
+def b_mag(x,y):
+    '''
+    For a position *x*, *y* in units of planetary radius, return the
+    strength of the dipole magnetic field in nanoTesla.
+    '''
+    r = np.sqrt(x**2 + y**2)
+    cos = y/r
+
+    return 30400 * np.sqrt(1+3*cos**2)/r**3
+    
 def b_hat(x, y):
-    '''For given parameters, return two matrices, x and y, corresponding
+    ''' 
+    For given parameters, return two arrays, x and y, corresponding
     to the x and y components of b_hat for a dipole field.  Plotting these
     two matrices using MatPlotLib's quiver function will create a beautiful
     dipole field for tracing and other stuff.

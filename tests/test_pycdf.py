@@ -2438,6 +2438,56 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual(5, a[6])
         self.assertFalse(a.has_entry(5))
 
+    def testIterateEmpty(self):
+        """Make an empty variable and iterate over it"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        self.assertEqual([], list(self.cdf['Empty']))
+        self.assertRaises(StopIteration,
+                          next,
+                          iter(self.cdf['Empty']))
+
+    def testReadAllEmpty(self):
+        """Make an empty variable and read all data"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        self.assertEqual((0,), self.cdf['Empty'][...].shape)
+
+    def testReadSomeEmpty(self):
+        """Make an empty variable and read off end"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        self.assertEqual((0,), self.cdf['Empty'][0:2].shape)
+
+    def testLengthEmpty(self):
+        """Make an empty variable and check its length"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        self.assertEqual(0, len(self.cdf['Empty']))
+
+    def testIndexEmpty(self):
+        """Make an empty variable and index it"""
+        self.cdf.new('Empty', type=const.CDF_INT1)
+        try:
+            self.cdf['Empty'][1]
+        except IndexError:
+            pass
+        else:
+            self.fail('Should have raised IndexError on 1')
+        try:
+            self.cdf['Empty'][0]
+        except IndexError:
+            pass
+        else:
+            self.fail('Should have raised IndexError on 0')
+
+    def testIndexOneValue(self):
+        """Put a single value into a var and index past it"""
+        #This is basically to test that indexing empty at [0] is special case
+        self.cdf.new('Single', data=[1], type=const.CDF_INT1)
+        try:
+            self.cdf['Single'][1]
+        except IndexError:
+            pass
+        else:
+            self.fail('Should have raised IndexError on 1')
+
 
 class ChangezVar(ChangeCDFBase):
     """Tests that modify a zVar"""
@@ -2586,7 +2636,6 @@ class ChangezVar(ChangeCDFBase):
             self.assertEqual(str(v), message)
         else:
             self.fail('Should have raised TypeError: ' + message)
-
 
 class ChangeAttr(ChangeCDFBase):
     """Tests that modify Attributes and Attribute lists"""
