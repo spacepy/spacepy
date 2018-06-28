@@ -137,7 +137,7 @@ class TestBats2d(unittest.TestCase):
             if v not in mspec_varnames: continue
             self.assertEqual(knownMultispecUnits[v], mhd[v].attrs['units'])
 
-        mhd.calc_all()
+        mhd.calc_all(exclude=['calc_gradP', 'calc_vort'])
 
 class TestMagGrid(unittest.TestCase):
     '''

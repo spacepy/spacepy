@@ -1063,7 +1063,7 @@ class Bats2d(IdlFile):
                                      attrs={'units':units})
 
 
-    def calc_all(self):
+    def calc_all(self, exclude=[]):
         '''
         Perform all variable calculations (e.g. calculations that
         begin with 'calc_').  Any exceptions raised by functions that
@@ -1071,7 +1071,7 @@ class Bats2d(IdlFile):
         discarded.
         '''
         for command in dir(self):
-            if (command[0:5] == 'calc_') and (command != 'calc_all'):
+            if (command[0:5] == 'calc_') and (command != 'calc_all') and (command not in exclude):
                 try:
                     eval('self.'+command+'()')
                 except AttributeError:
@@ -1890,7 +1890,7 @@ class Bats2d(IdlFile):
         Create a pcolor plot of variable **value** against **dim1** on the 
         x-axis and **dim2** on the y-axis.  Pcolor plots shade each
         computational cell with the value at the cell center.  Because no 
-        interpolation or smoothin is used in the visualization, pcolor plots
+        interpolation or smoothing is used in the visualization, pcolor plots
         are excellent for examining the raw output.
         
         Simple example:
@@ -1925,6 +1925,7 @@ class Bats2d(IdlFile):
         =========== ==========================================================
         '''
 
+        import numbers
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
 
@@ -1976,9 +1977,23 @@ class Bats2d(IdlFile):
         if ylabel==None: ylabel='%s ($R_{E}$)'%dim2.upper()
         if xlabel==None: xlabel='%s ($R_{E}$)'%dim1.upper()
         ax.set_ylabel(ylabel); ax.set_xlabel(xlabel)
-        if type(xlim)==type([]) and len(xlim)==2:
+        try:
+            assert len(xlim)==2
+            assert isinstance(xlim[0], numbers.Number)
+            assert isinstance(xlim[1], numbers.Number)
+        except (TypeError, AssertionError):
+            if xlim is not None:
+                raise ValueError('add_pcolor: xlim must be list- or array-like and have 2 elements')
+        else:
             ax.set_xlim(xlim)
-        if type(ylim)==type([]) and len(ylim)==2:
+        try:
+            assert len(ylim)==2
+            assert isinstance(ylim[0], numbers.Number)
+            assert isinstance(ylim[1], numbers.Number)
+        except (TypeError, AssertionError):
+            if ylim is not None:
+                raise ValueError('add_pcolor: ylim must be list- or array-like and have 2 elements')
+        else:
             ax.set_ylim(ylim)
 
         # Add body/planet.  Determine where the sun is first.
@@ -2033,6 +2048,7 @@ class Bats2d(IdlFile):
         =========== ==========================================================
         '''
 
+        import numbers
         import matplotlib.pyplot as plt
         from matplotlib.colors import (LogNorm, Normalize)
         from matplotlib.ticker import (LogLocator, LogFormatter, 
@@ -2092,8 +2108,24 @@ class Bats2d(IdlFile):
         if ylabel==None: ylabel='%s ($R_{E}$)'%dim2.upper()
         if xlabel==None: xlabel='%s ($R_{E}$)'%dim1.upper()
         ax.set_ylabel(ylabel); ax.set_xlabel(xlabel)
-        if type(xlim) != None: ax.set_xlim(xlim)
-        if type(ylim) != None: ax.set_ylim(ylim)
+        try:
+            assert len(xlim)==2
+            assert isinstance(xlim[0], numbers.Number)
+            assert isinstance(xlim[1], numbers.Number)
+        except (TypeError, AssertionError):
+            if xlim is not None:
+                raise ValueError('add_contour: xlim must be list- or array-like and have 2 elements')
+        else:
+            ax.set_xlim(xlim)
+        try:
+            assert len(ylim)==2
+            assert isinstance(ylim[0], numbers.Number)
+            assert isinstance(ylim[1], numbers.Number)
+        except (TypeError, AssertionError):
+            if ylim is not None:
+                raise ValueError('add_contour: ylim must be list- or array-like and have 2 elements')
+        else:
+            ax.set_ylim(ylim)
 
         # Add body/planet.  Determine where the sun is first.
         if dim1=='x':

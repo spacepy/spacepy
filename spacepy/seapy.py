@@ -626,7 +626,7 @@ class Sea2d(SeaBase):
             nmask = 0 #set mask to exclude none
 
         #build SEA matrix and perform analysis
-        wind = self.window
+        wind = int(self.window)
         l = y.shape[0]
         m = 2*int(wind) + 1
         n = len(t_epoch)
