@@ -174,6 +174,11 @@ try:
 except ImportError:
     import io as StringIO
 
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
+
 import numpy
 from . import toolbox
 from . import time as spt
@@ -194,7 +199,7 @@ class DMWarning(Warning):
     pass
 warnings.simplefilter('always', DMWarning)
 
-class dmarray(numpy.ndarray):
+class dmarray(numpy.ma.MaskedArray):
     """
     Container for data within a SpaceData object
 
@@ -230,152 +235,201 @@ class dmarray(numpy.ndarray):
     """
     Allowed_Attributes = ['attrs']
 
-    def __new__(cls, input_array, attrs=None, dtype=None):
-       # Input array is an already formed ndarray instance
-       # We first cast to be our class type
-       if not dtype:
-           obj = numpy.asarray(input_array).view(cls)
-       else:
-           obj = numpy.asarray(input_array).view(cls).astype(dtype)
-       # add the new attribute to the created instance
-       if attrs != None:
-           obj.attrs = attrs
-       else:
-           obj.attrs = {}
-       # Finally, return the newly created object:
-       return obj
-
-    def __array_finalize__(self, obj):
-       # see InfoArray.__array_finalize__ for comments
-        if obj is None:
-            return
-        for val in self.Allowed_Attributes:
-            self.__setattr__(val, copy.deepcopy(getattr(obj, val, {})))
-
-    def __array_wrap__(self, out_arr, context=None):
-        #check for zero-dims (numpy bug means subclass behaviour isn't consistent with ndarray
-        #this traps most of the bad behaviour ( std() and var() still problems)
-        if out_arr.ndim > 0:
-            return numpy.ndarray.__array_wrap__(self, out_arr, context)
+    def __new__(cls, input_array, attrs=None, dtype=None, **kwargs):
+        # Input array is an already formed ndarray instance
+        # We first cast to be our class type
+        if not dtype:
+            obj = super(dmarray, cls).__new__(cls, input_array, **kwargs)
         else:
-            return numpy.ndarray.__array_wrap__(self, out_arr, context).tolist()
+            obj = super(dmarray, cls).__new__(cls, input_array, **kwargs).astype(dtype)
+        # add the new attribute to the created instance
+        if attrs != None:
+            obj.attrs = attrs
+        else:
+            obj.attrs = {}
+        # Finally, return the newly created object:
+        return obj
 
-    def __reduce__(self):
-        """This is called when pickling, see:
-        http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
-        for this particular example.
-        Only the attributes in Allowed_Attributes can exist
+    def __repr__(self):
+        name = self.__class__.__name__
+        keys = ['data']
+        if self.mask.any():
+            keys = ['data', 'mask', 'fill_value']
+        prefix = '{}('.format(name)
+
+        dtype_needed = (
+            not numpy.core.arrayprint.dtype_is_implied(self.dtype) or
+            numpy.all(self.mask) or
+            self.size == 0
+        )
+
+        # determine which keyword args need to be shown
+        if dtype_needed:
+            keys.append('dtype')
+
+        # array has only one row (non-column)
+        is_one_row = builtins.all(dim == 1 for dim in self.shape[:-1])
+
+        # choose what to indent each keyword with
+        min_indent = 2
+        if is_one_row:
+            # first key on the same line as the type, remaining keys
+            # aligned by equals
+            indents = {}
+            indents[keys[0]] = prefix
+            for k in keys[1:]:
+                n = builtins.max(min_indent, len(prefix + keys[0]) - len(k))
+                indents[k] = ' ' * n
+        else:
+            # each key on its own line, indented by two spaces
+            indents = {k: ' ' * min_indent for k in keys}
+            prefix = prefix  # first key on the next line
+
+        # format the field values
+        reprs = {}
+        reprs['data'] = numpy.array2string(
+            self._insert_masked_print(),
+            separator=", ",
+            prefix=indents['data'] + 'data=',
+            suffix=',')
+        if 'mask' in keys:
+            reprs['mask'] = numpy.array2string(
+                self._mask,
+                separator=", ",
+                prefix=indents['mask'] + 'mask=',
+                suffix=',')
+        if 'fill_value' in keys:
+            reprs['fill_value'] = repr(self.fill_value)
+        if dtype_needed:
+            reprs['dtype'] = numpy.core.arrayprint.dtype_short_repr(self.dtype)
+
+        # join keys with values and indentations
+        dataline = '{}'.format(reprs['data'])
+        if len(keys)>1:
+            dataline = dataline + '\n'
+        result = ',\n'.join(
+            '{}{}={}'.format(indents[k], k, reprs[k])
+            for k in reprs if k not in ['data']
+        )
+        return prefix + dataline + result + ')'
+
+    def _update_from(self, obj):
         """
-        object_state = list(numpy.ndarray.__reduce__(self))
-        subclass_state = tuple([tuple([val, self.__getattribute__(val)]) for val in self.Allowed_Attributes])
-        object_state[2] = (object_state[2],subclass_state)
-        return tuple(object_state)
+        Copies some attributes of obj to self.
+        Modified from numpy.ma.core.MaskedArray
+        """
+        if isinstance(obj, numpy.ndarray):
+            _baseclass = type(obj)
+        else:
+            _baseclass = numpy.ndarray
+        # We need to copy the _basedict to avoid backward propagation
+        _optinfo = {}
+        _optinfo.update(getattr(obj, '_optinfo', {}))
+        _optinfo.update(getattr(obj, '_basedict', {}))
+        if not isinstance(obj, numpy.ma.MaskedArray):
+            _optinfo.update(getattr(obj, '__dict__', {}))
+        _dict = dict(_fill_value=getattr(obj, '_fill_value', None),
+                     _hardmask=getattr(obj, '_hardmask', False),
+                     _sharedmask=getattr(obj, '_sharedmask', False),
+                     _isfield=getattr(obj, '_isfield', False),
+                     _baseclass=getattr(obj, '_baseclass', _baseclass),
+                     attrs=getattr(obj, 'attrs', {}),
+                     _optinfo=_optinfo,
+                     _basedict=_optinfo)
+        self.__dict__.update(_dict)
+        self.__dict__.update(_optinfo)
+        return
+
+    # Pickling
+    def __reduce__(self):
+        """Return a 3-tuple for pickling a dmarray.
+        """
+        object_state = list(self.__getstate__())
+        attrs_state = tuple([tuple([val, self.__getattribute__(val)]) for val in ['attrs']])
+        object_state[2] = (object_state[2], attrs_state)
+        return (_dmreconstruct, (self.__class__, self._baseclass, (0,), 'b',), object_state)
+    
 
     def __setstate__(self, state):
         """Used for unpickling after __reduce__ the self.attrs is recovered from
         the way it was saved and reset.
         """
-        nd_state, own_state = state
-        numpy.ndarray.__setstate__(self,nd_state)
-        for i, val in enumerate(own_state):
-            if not val[0] in self.Allowed_Attributes: # this is attrs
-                self.Allowed_Attributes.append(own_state[i][0])
-            self.__setattr__(own_state[i][0], own_state[i][1])
+        nd_state = list(state)
+        _attrs = nd_state[2][1]
+        nd_state[2] = nd_state[2][0]
+        numpy.ma.MaskedArray.__setstate__(self,nd_state)
+        self.__setattr__(_attrs[0][0], _attrs[0][1])
 
-    def __setattr__(self, name, value):
-        """Make sure that .attrs is the only attribute that we are allowing
-        dmarray_ne took 15.324803 s
-        dmarray_eq took 15.665865 s
-        dmarray_assert took 16.025478 s
-        It looks like != is the fastest, but not by much over 10000000 __setattr__
+    def count(self, srchval=None, **kwargs):
         """
-        if name == 'Allowed_Attributes':
-            pass
-        elif not name in self.Allowed_Attributes:
-            raise(TypeError("Only attribute listed in Allowed_Attributes can be set"))
-        super(dmarray, self).__setattr__(name, value)
-
-    def addAttribute(self, name, value=None):
-        """Method to add an attribute to a dmarray
-        equivalent to
-        a = datamodel.dmarray([1,2,3])
-        a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
-        """
-        if name in self.Allowed_Attributes:
-            raise(NameError('{0} is already an attribute cannot add again'.format(name)))
-        self.Allowed_Attributes.append(name)
-        self.__setattr__(name, value)
-
-    def count(self, srchval):
-        """
-        Equivalent to count method on list
+        If using a search value, equivalent to count method on list. Otherwise, equivalent to count on arrays
 
         """
-        mask = self == srchval
-        return int(mask.sum())
-
-    def _saveAttrs(self):
-        Allowed_Attributes = self.Allowed_Attributes
-        backup = []
-        for atr in Allowed_Attributes:
-            backup.append( (atr, dmcopy(self.__getattribute__(atr)) ) )
-        return backup
-
-    @classmethod
-    def _replaceAttrs(cls, arr, backup):
-        for key, val in backup:
-            if key != 'attrs':
-                try:
-                    arr.addAttribute(key)
-                except NameError:
-                    pass
-            arr.__setattr__(key, val)
-        return arr
+        if srchval is not None:
+            mask = self == srchval
+            return int(mask.sum())
+        else:
+            return super(dmarray, self).count(**kwargs)
 
     @classmethod
     def append(cls, one, other):
         """
         append data to an existing dmarray
         """
-        backup = one._saveAttrs()
-        outarr = dmarray(numpy.append(one, other))
-        return cls._replaceAttrs(outarr, backup)
+        outarr = dmarray(numpy.ma.append( one, other ))
+        if hasattr(one, 'attrs'): outarr.attrs.update(one.attrs)
+        if hasattr(other, 'attrs'): outarr.attrs.update(other.attrs)
+        return outarr
 
     @classmethod
     def vstack(cls, one, other):
         """
         vstack data to an existing dmarray
         """
-        backup = one._saveAttrs()
-        outarr = dmarray(numpy.vstack( (one, other) ))
-        return cls._replaceAttrs(outarr, backup)
+        outarr = dmarray(numpy.ma.vstack( (one, other) ))
+        if hasattr(one, 'attrs'): outarr.attrs.update(one.attrs)
+        if hasattr(other, 'attrs'): outarr.attrs.update(other.attrs)
+        return outarr
 
     @classmethod
     def hstack(cls, one, other):
         """
         hstack data to an existing dmarray
         """
-        backup = one._saveAttrs()
-        outarr = dmarray(numpy.hstack( (one, other) ))
-        return cls._replaceAttrs(outarr, backup)
+        outarr = dmarray(numpy.ma.hstack( (one, other) ))
+        if hasattr(one, 'attrs'): outarr.attrs.update(one.attrs)
+        if hasattr(other, 'attrs'): outarr.attrs.update(other.attrs)
+        return outarr
 
     @classmethod
     def dstack(cls, one, other):
         """
         dstack data to an existing dmarray
         """
-        backup = one._saveAttrs()
-        outarr = dmarray(numpy.dstack( (one, other) ))
-        return cls._replaceAttrs(outarr, backup)
+        outarr = dmarray(numpy.ma.dstack( (one, other) ))
+        if hasattr(one, 'attrs'): outarr.attrs.update(one.attrs)
+        if hasattr(other, 'attrs'): outarr.attrs.update(other.attrs)
+        return outarr
 
     @classmethod
     def concatenate(cls, one, other, axis=0):
         """
         concatenate data to an existing dmarray
         """
-        backup = one._saveAttrs()
-        outarr = dmarray(numpy.concatenate( (one, other) , axis=axis ))
-        return cls._replaceAttrs(outarr, backup)
+        outarr = dmarray(numpy.ma.concatenate( (one, other) , axis=axis ))
+        if hasattr(one, 'attrs'): outarr.attrs.update(one.attrs)
+        if hasattr(other, 'attrs'): outarr.attrs.update(other.attrs)
+        return outarr
+
+
+def _dmreconstruct(subtype, baseclass, baseshape, basetype):
+    """Internal function that builds a new dmarray from the
+    information stored in a pickle.
+    """
+    _data = numpy.ndarray.__new__(baseclass, baseshape, basetype)
+    _mask = numpy.ndarray.__new__(numpy.ndarray, baseshape, numpy.ma.make_mask_descr(basetype))
+    return subtype.__new__(subtype, _data, mask=_mask, dtype=basetype)
+
 
 def dmfilled(shape, fillval=0, dtype=None, order='C', attrs=None):
     """
@@ -1977,7 +2031,7 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
         t_int = time.UTC
     else:
         t_int = dmarray(time)
-    if t_int.any() and ((st_time is None) and isinstance(t_int[0], datetime.datetime)):
+    if t_int.shape[0] and ((st_time is None) and isinstance(t_int[0], datetime.datetime)):
         st_time = t_int[0].replace(hour=0, minute=0, second=0, microsecond=0)
 
     ans = SpaceData()
