@@ -537,8 +537,8 @@ class PPro(object):
             tb.thread_job(len(lags), 0, thread_targ)
             for i in range(len(lags)):
                 assoc_totals[i, :].sort()
-                ci_low[i], ci_high[i] = matplotlib.mlab.prctile(
-                    assoc_totals[i, :], p=(perc_low,perc_high))
+                ci_low[i], ci_high[i] = np.percentile(
+                    assoc_totals[i, :], (perc_low,perc_high))
                 conf_above[i] = 100.0 - value_percentile(assoc_totals[i, :],
                                                          self.asympt_assoc)
         self.ci = [ci_low, ci_high]
@@ -764,9 +764,9 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None, use
     if nretvals>1:
         pul = np.empty((2, nretvals))
         for nn in range(nretvals):
-            pul[:,nn] = matplotlib.mlab.prctile(surr_quan[:,nn], p=(perc_low,perc_high))
+            pul[:,nn] = np.percentile(surr_quan[:,nn], (perc_low,perc_high))
     else:
-        pul = matplotlib.mlab.prctile(surr_quan, p=(perc_low,perc_high))
+        pul = np.percentile(surr_quan, (perc_low,perc_high))
     if target == None:
         return pul[0], pul[1]
     else:
