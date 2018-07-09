@@ -3615,6 +3615,11 @@ class _Hyperslice(object):
             if (not lib.supports_int8 or backward) \
                and const.CDF_INT8.value in types:
                 del types[types.index(const.CDF_INT8.value)]
+            #Maintain priority to match the ordered lists below:
+            #float/double (44, 45) before real (21/22), and
+            #byte (41) before int (1) before char (51). So hack.
+            #Consider making typedict an ordered dict once 2.6 is dead.
+            types.sort(key=lambda x: x.value % 50, reverse=True)
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
