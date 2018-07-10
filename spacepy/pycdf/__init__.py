@@ -3619,7 +3619,7 @@ class _Hyperslice(object):
             #float/double (44, 45) before real (21/22), and
             #byte (41) before int (1) before char (51). So hack.
             #Consider making typedict an ordered dict once 2.6 is dead.
-            types.sort(key=lambda x: x.value % 50, reverse=True)
+            types.sort(key=lambda x: x % 50, reverse=True)
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
