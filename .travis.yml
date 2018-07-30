@@ -18,5 +18,5 @@ install:
  - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_0/linux/cdf37_0-dist-cdf.tar.gz; tar xzvf cdf37_0-dist-cdf.tar.gz; cd cdf37_0-dist; make OS=linux ENV=gnu all; make install; cd ..
 
 script:
- - sudo python setup.py install
+ - python setup.py install
  - cd tests; python test_spacepy.py
