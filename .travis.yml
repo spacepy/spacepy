@@ -15,8 +15,8 @@ install:
  - pip install --upgrade h5py
  - pip install --upgrade networkx
  - pip install --upgrade ffnet
- - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_0/linux/cdf37_0-dist-cdf.tar.gz; tar xzvf cdf37_0-dist-cdf.tar.gz; cd cdf37_0-dist; make OS=linux ENV=gnu all; make install; cd ..
+ - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_0/linux/cdf37_0-dist-cdf.tar.gz; tar xzf cdf37_0-dist-cdf.tar.gz; cd cdf37_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME install; cd ..
 
 script:
  - python setup.py install
- - cd tests; python test_spacepy.py
+ - cd tests; export CDF_LIB=$HOME; python test_spacepy.py
