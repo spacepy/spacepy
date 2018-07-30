@@ -17,6 +17,11 @@ install:
  - pip install --upgrade ffnet
  - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_0/linux/cdf37_0-dist-cdf.tar.gz; tar xzf cdf37_0-dist-cdf.tar.gz; cd cdf37_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME install; cd ..
 
+before_script:
+ - "export DISPLAY=:99.0" #Travis has no X11, so we dummy this here to allow our graphical tests to run
+ - "sh -e /etc/init.d/xvfb start"
+ - sleep 3 # give xvfb some time to start
+
 script:
  - python setup.py install
  - cd tests; . /home/travis/bin/definitions.B; python test_spacepy.py
