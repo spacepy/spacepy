@@ -19,4 +19,4 @@ install:
 
 script:
  - python setup.py install
- - cd tests; export CDF_LIB=$HOME; python test_spacepy.py
+ - cd tests; . /home/travis/bin/definitions.B; python test_spacepy.py
