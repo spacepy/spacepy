@@ -1,7 +1,6 @@
 language: python
 python:
- - "2.7"
- - "3.5"
+ - "3.5" #temporarily removed 2.7 as the build was stalling when compiling sources...
  - "3.6"
 
 before_install:
