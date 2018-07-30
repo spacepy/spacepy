@@ -175,8 +175,16 @@ class NoCDF(unittest.TestCase):
                     (q, 4, slice(None), slice(None), 0),
                     ]
         for i, e in zip(inputs, expected):
-            numpy.testing.assert_array_equal(
-                cdf._Hyperslice.expand_ellipsis(*i), e)
+            output = cdf._Hyperslice.expand_ellipsis(*i)
+            #Later versions of numpy compare poorly with mixed-type arrays,
+            #so have to loop over (which makes figuring out which one failed
+            #pretty difficult!)
+            self.assertEqual(len(e), len(output))
+            for idx in range(len(e)):
+                if isinstance(output[idx], numpy.ndarray):
+                    numpy.testing.assert_array_equal(output[idx], e[idx])
+                else:
+                    self.assertEqual(e[idx], output[idx])
 
     def testExpandEllipsisError(self):
         """Test hyperslice expand ellipsis with too many indices"""
@@ -464,6 +472,7 @@ class NoCDF(unittest.TestCase):
                    numpy.int64(-1 * 2 ** 63),
                    numpy.int32(-1 * 2 ** 31),
                    -1 * 2 ** 31,
+                   numpy.array([5, 6, 7], dtype=numpy.uint8),
                    ]
         type8 = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -495,6 +504,7 @@ class NoCDF(unittest.TestCase):
                  ((), [const.CDF_INT4, const.CDF_INT8,
                        const.CDF_FLOAT, const.CDF_REAL4,
                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_UINT1, const.CDF_UCHAR], 1),
                  ]
         types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -528,6 +538,7 @@ class NoCDF(unittest.TestCase):
                  ((), [const.CDF_INT4], 1),
                  ((), [const.CDF_INT4, const.CDF_FLOAT, const.CDF_REAL4,
                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((3,), [const.CDF_UINT1, const.CDF_UCHAR], 1),
                  ]
         if cdf.lib.supports_int8: #explicitly test backward-compatible
             cdf.lib.supports_int8 = False
@@ -736,6 +747,7 @@ class MakeCDF(unittest.TestCase):
             f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
             f.new('two', data=numpy.array([1, 2, 3], dtype=numpy.float32))
             f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            self.assertEqual(const.CDF_UINT1.value, f['three'].type())
             for k in f:
                 f[k].attrs['foo'] = 5
             self.assertNotEqual(const.CDF_FLOAT.value,
@@ -750,6 +762,7 @@ class MakeCDF(unittest.TestCase):
             f.new('one', data=numpy.array([1, 2, 3], dtype=numpy.float32))
             f.new('two', data=numpy.array([1, 2, 3], dtype=numpy.float32))
             f.new('three', data=numpy.array([1, 2, 3], dtype=numpy.uint8))
+            self.assertEqual(const.CDF_UINT1.value, f['three'].type())
             f['one'].attrs.new('foo', 5, type=const.CDF_INT2)
             f['two'].attrs.new('foo', 5, type=const.CDF_INT4)
             f['three'].attrs['foo'] = 5

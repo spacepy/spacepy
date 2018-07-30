@@ -8,6 +8,7 @@ pycdf
  - Allow ... to get all gEntries
  - Allow insert, append on gAttrs
  - Properly handle reading from empty variables
+ - Fix some type-guessing ordering in Python 3.6
 
 Changes in Version 0.1.6 (2016-09-08)
 =====================================

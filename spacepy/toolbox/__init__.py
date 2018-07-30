@@ -1194,8 +1194,7 @@ def binHisto(data, verbose=False):
     ========
     matplotlib.pyplot.hist
     """
-    from matplotlib.mlab import prctile
-    pul = prctile(data, p=(25,75)) #get confidence interval
+    pul = np.percentile(data, (25, 75)) #get confidence interval
     ql, qu = pul[0], pul[1]
     iqr = qu-ql
     binw = 2.*iqr/(len(data)**(1./3.))

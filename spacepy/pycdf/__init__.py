@@ -2401,7 +2401,7 @@ class Var(collections.MutableSequence):
 
     The topic of array majority can be very confusing; good background material
     is available at `IDL Array Storage and Indexing
-    <http://www.dfanning.com/misc_tips/colrow_major.html>`_. In brief,
+    <http://www.idlcoyote.com/misc_tips/colrow_major.html>`_. In brief,
     *regardless of the majority stored in the CDF*, pycdf will always present
     the data in the native Python majority, row-major order, also known as
     C order. This is the default order in `NumPy
@@ -3615,6 +3615,11 @@ class _Hyperslice(object):
             if (not lib.supports_int8 or backward) \
                and const.CDF_INT8.value in types:
                 del types[types.index(const.CDF_INT8.value)]
+            #Maintain priority to match the ordered lists below:
+            #float/double (44, 45) before real (21/22), and
+            #byte (41) before int (1) before char (51). So hack.
+            #Consider making typedict an ordered dict once 2.6 is dead.
+            types.sort(key=lambda x: x % 50, reverse=True)
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind in ('i', 'u'): #integer
