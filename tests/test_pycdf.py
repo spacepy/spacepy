@@ -1584,7 +1584,7 @@ class ReadCDF(CDFTests):
             orig = self.cdf[key][...]
             cp = cdfcopy[key]
             self.assertEqual(orig.shape, cp.shape)
-            numpy.testing.assert_array_equal(orig.flat, cp.flat)
+            numpy.testing.assert_array_equal(orig.flatten(), cp.flatten())
             self.assertFalse(self.cdf[key] is cdfcopy[key])
         for key in self.cdf.attrs:
             self.assertEqual(self.cdf.attrs[key][:], cdfcopy.attrs[key])
@@ -2620,8 +2620,8 @@ class ChangezVar(ChangeCDFBase):
             SectorRateScalersCountsCopy[...].shape,
             self.cdf['SectorRateScalersCounts'][...].shape)
         numpy.testing.assert_array_equal(
-            SectorRateScalersCountsCopy[...].flat,
-            self.cdf['SectorRateScalersCounts'][...].flat)
+            SectorRateScalersCountsCopy[...].flatten(),
+            self.cdf['SectorRateScalersCounts'][...].flatten())
 
         oldlen = len(self.cdf['SectorRateScalersCounts'])
         del self.cdf['SectorRateScalersCounts'][-1:-5]
