@@ -1,0 +1,22 @@
+language: python
+python:
+ - "2.7"
+ - "3.5"
+ - "3.6"
+
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install libhdf5-serial-dev gcc gfortran
+
+install:
+ - pip install --upgrade numpy
+ - pip install --upgrade scipy
+ - pip install --upgrade matplotlib
+ - pip install --upgrade h5py
+ - pip install --upgrade networkx
+ - pip install --upgrade ffnet
+ - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_0/linux/cdf37_0-dist-cdf.tar.gz; tar xzvf cdf37_0-dist-cdf.tar.gz; cd cdf37_0-dist-cdf; make OS=linux ENV=gnu all; make install
+
+script:
+ - sudo python setup.py install
+ - cd tests; python test_spacepy.py
