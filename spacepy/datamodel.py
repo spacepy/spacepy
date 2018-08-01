@@ -180,6 +180,7 @@ except ImportError:
     import __builtin__ as builtins
 
 import numpy
+from distutils.version import LooseVersion as Version
 from . import toolbox
 from . import time as spt
 
@@ -258,7 +259,7 @@ class dmarray(numpy.ma.MaskedArray):
         prefix = '{}('.format(name)
 
         dtype_needed = (
-            not numpy.core.arrayprint.dtype_is_implied(self.dtype) or
+            #not numpy.core.arrayprint.dtype_is_implied(self.dtype) or #NOTE: requires numpy 1.14 or later
             numpy.all(self.mask) or
             self.size == 0
         )
@@ -286,22 +287,23 @@ class dmarray(numpy.ma.MaskedArray):
             prefix = prefix  # first key on the next line
 
         # format the field values
+        pkwargs = {'separator': ', '}
+        datarep = self
+        dtyperep = repr(self.dtype)
+        if Version(numpy.version.version) >= Version('1.14'):
+            datarep = self._insert_masked_print()
+            pkwargs['suffix'] = ','
+            dtyperep = numpy.core.arrayprint.dtype_short_repr(self.dtype)
         reprs = {}
-        reprs['data'] = numpy.array2string(
-            self._insert_masked_print(),
-            separator=", ",
-            prefix=indents['data'] + 'data=',
-            suffix=',')
+        pkwargs['prefix'] = indents['data'] + 'data='
+        reprs['data'] = numpy.array2string(datarep, **pkwargs)
         if 'mask' in keys:
-            reprs['mask'] = numpy.array2string(
-                self._mask,
-                separator=", ",
-                prefix=indents['mask'] + 'mask=',
-                suffix=',')
+            pkwargs['prefix'] = indents['mask'] + 'mask='
+            reprs['mask'] = numpy.array2string(self._mask, **pkwargs)
         if 'fill_value' in keys:
             reprs['fill_value'] = repr(self.fill_value)
         if dtype_needed:
-            reprs['dtype'] = numpy.core.arrayprint.dtype_short_repr(self.dtype)
+            reprs['dtype'] = dtyperep
 
         # join keys with values and indentations
         dataline = '{}'.format(reprs['data'])
