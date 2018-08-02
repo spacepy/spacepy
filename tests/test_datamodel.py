@@ -364,7 +364,8 @@ class dmarrayTests(unittest.TestCase):
         tmp = pickle.dumps(self.dat)
         for i, val in enumerate(self.dat):
             self.assertEqual(pickle.loads(tmp)[i], val)
-        self.assertEqual(pickle.loads(tmp).attrs, self.dat.attrs)
+        reloaded = pickle.loads(tmp)
+        self.assertEqual(reloaded.attrs, self.dat.attrs)
 
     def test_pickle_dump(self):
         """things should pickle and unpickle to a file"""
@@ -381,55 +382,12 @@ class dmarrayTests(unittest.TestCase):
         np.testing.assert_almost_equal(self.dat, dat2)
         self.assertEqual(self.dat.attrs, dat2.attrs)
 
-    def test_attrs_only(self):
-        """dmarray can only have .attrs"""
-        self.assertRaises(TypeError, dm.dmarray, [1,2,3], setme = 123 )
-
-    def test_more_attrs(self):
-        """more attrs are allowed if they are predefined"""
-        a = dm.dmarray([1,2,3])
-        a.Allowed_Attributes = a.Allowed_Attributes + ['blabla']
-        a.blabla = {}
-        a.blabla['foo'] = 'you'
-        self.assertEqual(a.blabla['foo'], 'you')
-
     def test_extra_pickle(self):
-        """Extra attrs are pickled and unpicked"""
-        self.dat.addAttribute('blabla', {'foo':'you'})
+        """Unsupported attributes are lost on pickle/unpickle"""
+        self.dat.blabla = {'foo':'you'}
         val = pickle.dumps(self.dat)
         b = pickle.loads(val)
-        self.assertTrue('blabla' in b.Allowed_Attributes)
-        self.assertEqual(b.blabla['foo'], 'you')
-
-    def test_extra_pickle2(self):
-        """Order should not matter of Allowed_Attributes"""
-        # added new one to the front
-        self.dat.Allowed_Attributes = ['foo'] + self.dat.Allowed_Attributes
-        self.dat.foo = 'bar'
-        val = pickle.dumps(self.dat)
-        b = pickle.loads(val)
-        self.assertTrue('foo' in b.Allowed_Attributes)
-        self.assertEqual(b.foo, 'bar')
-
-    def test_addAttribute(self):
-        """addAttribute should work"""
-        a = dm.dmarray([1,2,3])
-        a.addAttribute('bla')
-        self.assertEqual(a.bla, None)
-        a.addAttribute('bla2', {'foo': 'bar'})
-        self.assertEqual(a.bla2['foo'], 'bar')
-        self.assertRaises(NameError, a.addAttribute, 'bla2')
-
-    def test_attrs(self):
-        """The only attribute the can be set is attrs"""
-        self.assertRaises(TypeError, dm.dmarray, [1,2,3], bbb=23)
-        try:
-            self.dat.bbb = 'someval'
-        except TypeError:
-            pass
-        else:
-            self.fail(
-                'Assigning to arbitrary Python attribute should raise TypeError')
+        self.assertRaises(AttributeError, b.__getattribute__, 'blabla')
 
     def test_dmfilled(self):
         """dmfilled should fill an array"""

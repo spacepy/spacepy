@@ -3522,7 +3522,7 @@ class _Hyperslice(object):
         d = numpy.asanyarray(data)
         if d.dtype == numpy.object: #this is probably going to be bad
             try:
-                len(d.flat[0])
+                len(d.flatten()[0])
             except TypeError: #at least it's not a list
                 pass
             else:
