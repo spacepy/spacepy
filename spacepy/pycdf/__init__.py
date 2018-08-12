@@ -2344,6 +2344,13 @@ class Var(collections.MutableSequence):
     >>> variable[...]
     10
 
+    Reading any empty non-record-varying variable will return an empty
+    with the same *number* of dimensions, but all dimensions will be
+    of zero length. The scalar is, again, a special case: due to the
+    inability to have a numpy array which is both zero-dimensional and empty,
+    reading an NRV scalar variable with no data will return an empty
+    one-dimensional array. This is really not recommended.
+
     As a list type, variables are also `iterable
     <http://docs.python.org/tutorial/classes.html#iterators>`_; iterating
     over a variable returns a single complete record at a time.
@@ -2566,9 +2573,28 @@ class Var(collections.MutableSequence):
         #an empty variable is a special case, since we might want to
         #WRITE to 0th record (which Hyperslice also supports) but
         #can't READ from it, and iterating over tries to read from it.
-        if hslice.rv and hslice.dimsizes[0] == 0 and hslice.degen[0] and \
-           hslice.starts[0] == 0:
-            raise IndexError('record index out of range')
+        if hslice.rv:
+            if hslice.dimsizes[0] == 0 and hslice.degen[0] and \
+               hslice.starts[0] == 0:
+                raise IndexError('record index out of range')
+        #For NRV, again hslice will assume 0th record exists since we might
+        #want to write. So ANY degenerate dim other than the glued-on 0th
+        #suggests an explicit index that should fail. None degenerate suggests
+        #make an empty array.
+        #Note this is pulling a lot of hyperslice stuff into getitem!
+        elif hslice.dimsizes[0] == 0:
+            if len(hslice.degen) > 1 and max(hslice.degen[1:]):
+                raise IndexError('record index out of range')
+            else:
+                #The zero-length dimension is degenerate so it gets chopped,
+                #and you can't have a zero-length numpy array that still
+                #maintains the size of all other dimensions. So just force
+                #a zero-dim array and the rest will follow
+                hslice.counts[...] = 0
+                #If this is a scalar, need to make a single non-degenerate
+                #dimension so it can be empty.
+                if len(hslice.counts) == 1:
+                    hslice.degen[0] = False
         result = hslice.create_array()
         if hslice.counts[0] != 0:
             hslice.select()
