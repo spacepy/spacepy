@@ -12,6 +12,7 @@ import ctypes
 import datetime
 import gc
 import hashlib
+import operator
 import os, os.path
 import re
 import shutil
@@ -792,6 +793,45 @@ class MakeCDF(unittest.TestCase):
             f['three'].attrs.new('foo', 5)
             self.assertEqual(const.CDF_INT2.value,
                              f['three'].attrs.type('foo'))
+
+    def testEmptyNRV(self):
+        """Read an empty NRV variable, should be empty"""
+        #This is strictly a READ test, but creating a new CDF and
+        #new variable is the easiest way to get to it
+        with cdf.CDF(self.testfspec, '') as f:
+            v = f.new('nrv_test', recVary=False, dims=[5, 3],
+                      type=const.CDF_INT1)
+            hslice = cdf._Hyperslice(v, (0, 0))
+            self.assertEqual(3, hslice.dims)
+            #This is 1 for both NRV and RV but it still raises index error,
+            #in the actual __getitem__
+            numpy.testing.assert_array_equal(hslice.counts, [1, 1, 1])
+            numpy.testing.assert_array_equal(hslice.degen, [True, True, True])
+            numpy.testing.assert_array_equal(hslice.dimsizes, [0, 5, 3])
+            self.assertRaises(IndexError, operator.getitem, v, 0)
+
+            hslice = cdf._Hyperslice(v, Ellipsis)
+            self.assertEqual(3, hslice.dims)
+            self.assertEqual((0, 0, 1, False),
+                             hslice.convert_range(None, None, None, 0))
+            #For RV, this is zero, since it's a slice.
+            #For NRV, this is a 1, since there's an implicit 0,
+            #at the front.
+            numpy.testing.assert_array_equal(hslice.counts, [1, 5, 3])
+            numpy.testing.assert_array_equal(hslice.degen, [True, False, False])
+            numpy.testing.assert_array_equal(hslice.dimsizes, [0, 5, 3])
+            data = v[...]
+            self.assertEqual((0, 0), data.shape)
+
+            #One more test: NRV scalar with no records
+            v = f.new('nrv_scalar', recVary=False, dims=[],
+                      type=const.CDF_INT1)
+            hslice = cdf._Hyperslice(v, Ellipsis)
+            data = v[...]
+            #TODO: This is an awful special case, but it's impossible to
+            #have a SCALAR with no value! i.e. you cannot be both
+            #zero-dimensional and empty
+            self.assertEqual((0,), data.shape)
 
 
 class CDFTestsBase(unittest.TestCase):
