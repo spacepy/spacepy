@@ -855,8 +855,8 @@ setup_kwargs = {
     'url': 'http://spacepy.lanl.gov',
 #download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
 #    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
-    'requires': ['numpy', 'scipy', 'matplotlib (>=0.99)', 'python_dateutil',
-                 'h5py', 'python (>=2.6, !=3.0)'],
+    'requires': ['numpy (>=1.6)', 'scipy (>=0.10)', 'matplotlib (>=1.5)', 'python_dateutil',
+                 'h5py', 'python (>=2.7, !=3.0)'],
     'packages': packages,
     'package_data': {'spacepy': package_data},
     'classifiers': [
@@ -891,10 +891,9 @@ setup_kwargs = {
 if use_setuptools:
 #Sadly the format here is DIFFERENT than the distutils format
     setup_kwargs['install_requires'] = [
-        'numpy>=1.4',
-        #Probably pessimistic, but I KNOW 0.7 works
-        'scipy>=0.7',
-        'matplotlib>=0.99',
+        'numpy>=1.6',
+        'scipy>=0.10',
+        'matplotlib>=1.5',
         'h5py',
         'ffnet',
         #ffnet needs networkx but not marked as requires, so to get it via pip
