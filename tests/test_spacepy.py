@@ -17,6 +17,7 @@ try:
 except ImportError:
     import unittest as ut
 
+from test_pybats import *
 from test_time import *
 from test_empiricals import *
 from test_toolbox import *
@@ -34,7 +35,6 @@ from test_base import *
 from test_plot_utils import *
 from test_rst import *
 from test_lib import *
-from test_pybats import *
 from test_ae9ap9 import *
 # add others here as they are written
 

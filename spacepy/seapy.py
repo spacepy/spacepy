@@ -322,10 +322,9 @@ class Sea(SeaBase):
         self.bound_high = np.zeros((m,1))
 
         if kwargs['quartiles']:
-            from matplotlib.mlab import prctile
             for i in range(m):
                 dum = np.sort(y_sea_m[:,i].compressed())
-                qul = prctile(dum,p=(25,75))
+                qul = np.percentile(dum, (25,75))
                 self.bound_low[i], self.bound_high[i] = qul[0], qul[1]
                 self.bound_type = 'quartiles'
         elif kwargs['ci']: #bootstrapped confidence intervals (95%)
@@ -440,10 +439,9 @@ class Sea(SeaBase):
         #outobj.bound_high = np.zeros((m,1))
 
         #if quartiles:
-            #from matplotlib.mlab import prctile
             #for i in range(m):
                 #dum = np.sort(y_sea_m[:,i].compressed())
-                #qul = prctile(dum,p=(25,75))
+                #qul = np.percentile(dum, (25,75))
                 #outobj.bound_low[i], outobj.bound_high[i] = qul[0], qul[1]
         #elif ci: #bootstrapped confidence intervals (95%)
             #from spacepy.poppy import boots_ci
