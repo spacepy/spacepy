@@ -528,7 +528,6 @@ class Sea(SeaBase):
         else:
             ax0.fill_between(self.x, self.bound_low.ravel(), self.bound_high.ravel(),
                              edgecolor='none', facecolor=color, interpolate=True)
-        plt.hold(True)
         ax0.plot(self.x, self.semedian, 'k-', lw=2.0)
         ax0.plot(self.x, self.semean, 'r--', lw=1.25)
         plt.xlabel(xlstr)
@@ -1018,7 +1017,6 @@ def sea_signif(obj1, obj2, test='KS', show=True, xquan = 'Time Since Epoch',
     ax1 = fig.add_subplot(212, position=[pos.bounds[0], 0.1, pos.bounds[2], 0.25])
     #overlay superposed epochs
     ax0.plot(obj1.x, obj1.semedian, lw=1.5)
-    plt.hold(True)
     ax0.plot(obj1.x, obj1.bound_high, color='royalblue', ls='--')
     ax0.plot(obj1.x, obj1.bound_low, color='royalblue', ls='--')
     ax0.plot(obj2.x, obj2.semedian, color='crimson', lw=1.5)
