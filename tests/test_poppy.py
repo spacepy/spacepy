@@ -15,7 +15,6 @@ except ImportError:
 import sys
 import unittest
 
-import matplotlib.mlab
 import numpy
 import numpy.random
 import scipy.special
@@ -287,7 +286,7 @@ class ValuePercentileTests(unittest.TestCase):
         for sequence, target in zip(sequences, targets):
             for t in target:
                 result = poppy.value_percentile(sequence, t)
-                rt_target = matplotlib.mlab.prctile(sequence, result)
+                rt_target = numpy.percentile(sequence, result)
                 if result == 0.0:
                     self.assertTrue(t <= rt_target)
                 elif result == 100.0:

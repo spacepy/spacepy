@@ -65,7 +65,6 @@ import warnings
 import datetime as dt
 
 import numpy as np
-import matplotlib.mlab
 
 from spacepy import help
 #Try to pull in the C version. Assumption is that if you import this module,
@@ -217,7 +216,6 @@ class PPro(object):
                 first_idx = [bisect.bisect_left(p2, starts[nss] + self.lags[ilag])
                              for nss in nss_list]
                 self.n_assoc[ilag, :] = [last_idx[i] - first_idx[i] for i in nss_list]
-            pul = matplotlib.mlab.prctile_rank(lags, p=(20,80))
         else:
             def fracday(dd):
                 '''turn a timedelta into a fractional day'''
@@ -244,10 +242,11 @@ class PPro(object):
             n_assoc = self.n_assoc.ctypes.data_as(lib.lptr)
             lib.assoc(p2, p1, lags.ctypes.data_as(lib.dptr), n_assoc,
                       winhalf, len(p2), len(p1), len(self.lags))
-            pul = matplotlib.mlab.prctile_rank(lags, p=(20,80))
+        left20perc = int(np.round((len(lags)*0.2)))
+        right20perc = int(np.round((len(lags)*0.8)))
         self.assoc_total = np.sum(self.n_assoc, axis=1)
-        valsL = self.assoc_total[pul==0]
-        valsR = self.assoc_total[pul==2]
+        valsL = self.assoc_total[:left20perc]
+        valsR = self.assoc_total[right20perc:]
         self.asympt_assoc = np.mean([np.mean(valsL), np.mean(valsR)])
 
         self.expected = np.empty([len(self.lags)], dtype='float64')
