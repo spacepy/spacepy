@@ -233,7 +233,7 @@ class Library(object):
                         'Try \'os.environ["CDF_LIB"] = library_directory\' '
                         'before import.').format(', '.join(self.libpath)))
             else:
-                self._library = ctype.CDLL(libpath)
+                self._library = ctypes.CDLL(libpath)
                 self.libpath = libpath
         else:
             self._library = library
