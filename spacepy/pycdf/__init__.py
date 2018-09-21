@@ -336,6 +336,46 @@ class Library(object):
             del self.numpytypedict[const.CDF_INT8.value]
             del self.cdftypenames[const.CDF_TIME_TT2000.value]
             del self.numpytypedict[const.CDF_TIME_TT2000.value]
+        elif sys.platform == 'linux2' and os.uname()[4].startswith('arm') \
+             and hasattr(self._library, 'CDF_TT2000_from_UTC_parts') \
+             and self._library.CDF_TT2000_from_UTC_parts(
+                 2010, 1, 1, 0, 0, 0, 0, 0, 0) != 315576066184000000:
+            #TT2000 call failed, so probably need to type-pun
+            #double arguments to variadic functions.
+            #Calling convention for non-variadic functions with floats
+            #is unique, but convention for ints is same as variadic.
+            #So type-pun arguments to integers to force that calling
+            #convention.
+            if ctypes.sizeof(ctypes.c_longlong) != \
+               ctypes.sizeof(ctypes.c_double):
+                warnings.warn('ARM with unknown type sizes; '
+                              'TT200 functions will not work.')
+            else:
+                self._library.CDF_TT2000_from_UTC_parts.argtypes = \
+                    [ctypes.c_longlong] * 9
+                c_ll_p = ctypes.POINTER(ctypes.c_longlong)
+                if self._library.CDF_TT2000_from_UTC_parts(
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        2010)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        1)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        1)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        0)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        0)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        0)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        0)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        0)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        0)), c_ll_p).contents) != 315576066184000000:
+                    warnings.warn('ARM with unknown calling convention; '
+                                  'TT2000 functions will not work.')
+                self.datetime_to_tt2000 = self._datetime_to_tt2000_typepunned
 
         v_epoch16_to_datetime = numpy.frompyfunc(
             self.epoch16_to_datetime, 2, 1)
@@ -926,6 +966,53 @@ class Library(object):
             dt.minute, dt.second,
             int(dt.microsecond / 1000),
             dt.microsecond % 1000, 0)
+
+    def _datetime_to_tt2000_typepunned(self, dt):
+        """
+        Converts a Python datetime to a CDF TT2000 value
+
+        Typepunned version that passes doubles as longlongs, to get around
+        ARM calling convention oddness.
+
+        Parameters
+        ==========
+        dt :  :class:`datetime.datetime`
+            date and time to convert
+
+        Returns
+        =======
+        out : int
+            tt2000 corresponding to dt
+
+        See Also
+        ========
+        v_datetime_to_tt2000
+        """
+        c_ll_p = ctypes.POINTER(ctypes.c_longlong)
+        if dt.tzinfo != None and dt.utcoffset() != None:
+            dt = dt - dt.utcoffset()
+        dt = dt.replace(tzinfo=None)
+        if dt  == datetime.datetime.max:
+            return -2**63
+        return self._library.CDF_TT2000_from_UTC_parts(
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        dt.year)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        dt.month)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        dt.day)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        dt.hour)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        dt.minute)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        dt.second)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        dt.microsecond // 1000)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        dt.microsecond % 1000)), c_ll_p).contents,
+                    ctypes.cast(ctypes.pointer(ctypes.c_double(
+                        0)), c_ll_p).contents)
 
     def epoch_to_tt2000(self, epoch):
         """
