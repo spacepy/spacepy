@@ -129,7 +129,7 @@ class EventClicker(object):
     True
     >>> troughs = e[:, 1, 0] #x value of event ends
     >>> troughs -= 2 * numpy.pi * numpy.floor(troughs / (2 * numpy.pi))
-    >>> max(numpy.abs(peaks - 3 * numpy.pi / 2)) < 0.2 #troughs near 3pi/2
+    >>> max(numpy.abs(troughs - 3 * numpy.pi / 2)) < 0.2 #troughs near 3pi/2
     True
     >>> d = clicker.get_events_data() #snap-to-data of events
     >>> peakvals = d[:, 0, 1] #y value, snapped near peaks
@@ -355,7 +355,7 @@ class EventClicker(object):
         self.ax.axvline(
             xval,
             color=self._colors[self._curr_phase % len(self._colors)],
-            ls=self._styles[self._curr_phase / len(self._colors) % len(self._styles)])
+            ls=self._styles[self._curr_phase // len(self._colors) % len(self._styles)])
         if not self._xydata is None:
             point_disp = self.ax.transData.transform(
                 numpy.array([[xval, yval]])
