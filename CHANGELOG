@@ -11,6 +11,7 @@ pycdf
  - Fix some type-guessing ordering in Python 3.6
  - Reading empty NRV variables will now return empty array (not padding)
  - Fix more cases of BAD_ENTRY_NUM when reading attribute entries
+ - Fix UTC-to-TT2000 conversions on ARM (thanks Rodrigue Piberne for the bug)
 
 Changes in Version 0.1.6 (2016-09-08)
 =====================================
