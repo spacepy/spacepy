@@ -349,7 +349,7 @@ class Library(object):
             if ctypes.sizeof(ctypes.c_longlong) != \
                ctypes.sizeof(ctypes.c_double):
                 warnings.warn('ARM with unknown type sizes; '
-                              'TT200 functions will not work.')
+                              'TT2000 functions will not work.')
             else:
                 self._library.CDF_TT2000_from_UTC_parts.argtypes = \
                     [ctypes.c_longlong] * 9
