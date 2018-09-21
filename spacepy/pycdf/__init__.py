@@ -4131,7 +4131,7 @@ class Attr(collections.MutableSequence):
             raise IndexError('list index ' + str(number) + ' out of range.')
         count = ctypes.c_long(0)
         self._call(
-            const.SELECT_, self.ENTRY_, number,
+            const.SELECT_, self.ENTRY_, ctypes.c_long(number),
             const.GET_, self.ENTRY_NUMELEMS_, ctypes.byref(count))
         return count.value
 
@@ -4315,7 +4315,7 @@ class Attr(collections.MutableSequence):
             buff = numpy.empty((length,), lib.numpytypedict[cdftype],
                                order='C')
         buff = numpy.require(buff, requirements=('C', 'A', 'W'))
-        self._call(const.SELECT_, self.ENTRY_, number,
+        self._call(const.SELECT_, self.ENTRY_, ctypes.c_long(number),
                    const.GET_, self.ENTRY_DATA_,
                    buff.ctypes.data_as(ctypes.c_void_p))
 

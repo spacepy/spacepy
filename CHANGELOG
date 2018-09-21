@@ -10,6 +10,7 @@ pycdf
  - Properly handle reading from empty variables
  - Fix some type-guessing ordering in Python 3.6
  - Reading empty NRV variables will now return empty array (not padding)
+ - Fix more cases of BAD_ENTRY_NUM when reading attribute entries
 
 Changes in Version 0.1.6 (2016-09-08)
 =====================================
