@@ -336,7 +336,8 @@ class Library(object):
             del self.numpytypedict[const.CDF_INT8.value]
             del self.cdftypenames[const.CDF_TIME_TT2000.value]
             del self.numpytypedict[const.CDF_TIME_TT2000.value]
-        elif sys.platform == 'linux2' and os.uname()[4].startswith('arm') \
+        elif sys.platform.startswith('linux') \
+             and os.uname()[4].startswith('arm') \
              and hasattr(self._library, 'CDF_TT2000_from_UTC_parts') \
              and self._library.CDF_TT2000_from_UTC_parts(
                  2010, 1, 1, 0, 0, 0, 0, 0, 0) != 315576066184000000:
