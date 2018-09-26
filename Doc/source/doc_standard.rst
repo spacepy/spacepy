@@ -16,7 +16,7 @@ In addition to Sphinx, SpacePy uses the following extensions:
  * 'sphinx.ext.doctest''
  * 'sphinx.ext.intersphinx'
  * 'sphinx.ext.todo'
- * 'sphinx.ext.pngmath'
+ * 'sphinx.ext.imgmath'
  * 'sphinx.ext.ifconfig'
  * 'sphinx.ext.viewcode'
  * 'numpydoc'
