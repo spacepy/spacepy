@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
               'sphinx.ext.intersphinx',
-              'sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.ifconfig',
+              'sphinx.ext.todo', 'sphinx.ext.imgmath', 'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode', 'numpydoc',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.autosummary', 'sphinx.ext.extlinks',
