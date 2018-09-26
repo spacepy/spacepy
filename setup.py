@@ -18,9 +18,16 @@ if 'pip-egg-info' in sys.argv:
     import setuptools
 use_setuptools = "setuptools" in globals()
 
+import copy
 import os, shutil, getopt, glob, re
 import subprocess
 import warnings
+
+import distutils.ccompiler
+#Save these because numpy will smash them, but need numpy for Fortran stuff
+#numpy REPLACES new_compiler function, and EDITS compiler class dict
+real_compiler_class = copy.deepcopy(distutils.ccompiler.compiler_class)
+real_distutils_ccompiler_new_compiler = distutils.ccompiler.new_compiler
 from numpy.distutils.core import setup
 from numpy.distutils.command.build import build as _build
 #The numpy versions automatically use setuptools if necessary
@@ -638,7 +645,22 @@ class build(_build):
         srcdir = os.path.join('spacepy', 'libspacepy')
         outdir = os.path.join(self.build_lib, 'spacepy')
         try:
-            comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
+            if sys.platform == 'win32':
+                #numpy whacks our C compiler options. We need it for Fortran,
+                #but since we're using C to build a standard shared object,
+                #not a numpy extension module, need vanilla C back.
+                numpy_compiler_class = distutils.ccompiler.compiler_class
+                distutils.ccompiler.compiler_class = real_compiler_class
+                comp = real_distutils_ccompiler_new_compiler(
+                    compiler=self.compiler)
+                distutils.ccompiler.compiler_class = numpy_compiler_class
+                #Cut out MSVC runtime https://bugs.python.org/issue16472
+                #For some reason they're named differently on py2 and py3
+                comp.dll_libraries = [
+                    l for l in comp.dll_libraries if not l.startswith((
+                        'msvcr', 'vcruntime'))]
+            else:
+                comp = distutils.ccompiler.new_compiler(compiler=self.compiler)
             if hasattr(distutils.ccompiler, 'customize_compiler'):
                 distutils.ccompiler.customize_compiler(comp)
             else:
