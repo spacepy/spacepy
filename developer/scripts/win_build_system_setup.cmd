@@ -35,6 +35,7 @@ IF "%1"=="32" (
 CALL %USERPROFILE%\Miniconda3\Scripts\activate py%2_%1
 CALL conda install -y numpy scipy matplotlib networkx m2w64-gcc-fortran libpython h5py
 :: libpython sets things up to use ming by default, otherwise try distutils.cfg
+:: note we need libpython or else ffnet requires MSVC to install
 SET FC_VENDOR=gfortran
 CALL pip install ffnet
 CALL deactivate
