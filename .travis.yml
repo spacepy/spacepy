@@ -23,11 +23,11 @@ before_install:
 
 install:
  - pip install --force-reinstall numpy==$NUMPY_VERSION
- - pip install --upgrade scipy
- - pip install --upgrade matplotlib
- - pip install --upgrade h5py
- - pip install --upgrade networkx
- - pip install --upgrade ffnet
+ - pip install scipy
+ - pip install matplotlib
+ - pip install h5py
+ - pip install networkx
+ - pip install ffnet
  - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_0/linux/cdf37_0-dist-cdf.tar.gz; tar xzf cdf37_0-dist-cdf.tar.gz; cd cdf37_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME install; cd ..
 
 before_script:
