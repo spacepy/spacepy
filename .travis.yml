@@ -1,14 +1,28 @@
 language: python
-python:
- - "3.5" #temporarily removed 2.7 as the build was stalling when compiling sources...
- - "3.6"
+
+matrix:
+ include:
+  - python: 2.7
+    env: NUMPY_VERSION=1.15.2
+  - python: 2.7
+    env: NUMPY_VERSION=1.13.3
+  - python: 2.7
+    env: NUMPY_VERSION=1.11.3
+  - python: 3.5
+    env: NUMPY_VERSION=1.15.2
+  - python: 3.5
+    env: NUMPY_VERSION=1.13.3
+  - python: 3.6
+    env: NUMPY_VERSION=1.15.2
+  - python: 3.6
+    env: NUMPY_VERSION=1.13.3
 
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install libhdf5-serial-dev gcc gfortran
 
 install:
- - pip install --upgrade numpy
+ - pip install --force-reinstall numpy==$NUMPY_VERSION
  - pip install --upgrade scipy
  - pip install --upgrade matplotlib
  - pip install --upgrade h5py
