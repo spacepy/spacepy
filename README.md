@@ -22,7 +22,7 @@ Our latest release version is available through PyPI and can be installed using
 pip install spacepy --user
 ```
 
-The latest "bleeding-edge" source code is available from our github repository at (https://github.com/spacepy/spacepy)[https://github.com/spacepy/spacepy] and can be installed using the standard
+The latest "bleeding-edge" source code is available from our github repository at [https://github.com/spacepy/spacepy](https://github.com/spacepy/spacepy) and can be installed using the standard
 
 ```
 python setup.py install --user
@@ -35,7 +35,7 @@ SpacePy supports both Python 2.7 and 3.x.
 
 ### Dependencies
 
-SpacePy has a number of well-maintained dependencies, most of which are aoutmatically installed by ```pip```. These include:
+SpacePy has a number of well-maintained dependencies, most of which are automatically installed by ```pip```. These include:
  - numpy (>=1.6, !=1.15.0)
  - scipy (>=0.10)
  - matplotlib (>=1.5)
@@ -47,7 +47,7 @@ Soft dependencies (that are required only for a very limited part of SpacePy's f
 
 For complete installation SpacePy also requires C and Fortran compilers. We test with GCC compilers but try to maintain support for all major compilers.
 
-#### CDF
+#### NASA CDF
 If you wish to use CDF files, download and install the NASA CDF library. The default installation directory is recommended to help SpacePy find the library. Get the package from [https://cdf.gsfc.nasa.gov/html/sw_and_docs.html](https://cdf.gsfc.nasa.gov/html/sw_and_docs.html)
 
 ## Attribution
@@ -68,7 +68,6 @@ address = {Austin, TX}
 
 Certain modules may provide additional citations in the ```__citation__``` attribute. Contact a module's author before publication or public presentation of analysis performed by that module. This allows the author to validate the analysis and receive appropriate credit for his or her work.
 
-For acknowledging SpacePy, please provide the URL to our github repository.
-(https://github.com/spacepy/spacepy)[https://github.com/spacepy/spacepy]
+For acknowledging SpacePy, please provide the URL to our github repository. [github.com/spacepy/spacepy](https://github.com/spacepy/spacepy)
 
 
