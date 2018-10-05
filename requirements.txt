@@ -1,0 +1,5 @@
+numpy>=1.6,!=1.15.0
+scipy>=0.10
+matplotlib>=1.5
+h5py
+ffnet
