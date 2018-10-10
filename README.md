@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.com/spacepy/spacepy.svg?branch=master)](https://travis-ci.org/spacepy/spacepy)
+[![Build Status](https://api.travis-ci.com/spacepy/spacepy.svg?branch=master)](https://travis-ci.com/spacepy/spacepy)
 
 # SpacePy
 
