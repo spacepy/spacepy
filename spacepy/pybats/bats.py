@@ -195,7 +195,7 @@ class BatsLog(LogFile):
     
     def add_dst_quicklook(self, target=None, loc=111, plot_obs=False,
                           epoch=None, add_legend=True, plot_sym=False,
-                          obs_kwargs={'c':'k', 'ls':'--'},
+                          dstvar=None, obs_kwargs={'c':'k', 'ls':'--'},
                           **kwargs):
         '''
         Create a quick-look plot of Dst (if variable present in file) 
@@ -208,6 +208,12 @@ class BatsLog(LogFile):
         object, a new axis is created to fill that figure at subplot location
         *loc* (defaults to 111).  If target is a matplotlib Axes object, 
         the plot is placed into that axis at subplot location *loc*.
+
+        With newer versions of BATS-R-US, new dst-like variables are included,
+        named 'dst', 'dst-sm', 'dstflx', etc.  This subroutine will attempt
+        to first use 'dst-sm' as it is calculated consistently with 
+        observations.  If not found, 'dst' is used.  Users may choose which
+        value to use via the *dstvar* kwarg.
 
         Observed Dst and SYM-H is automatically fetched from the Kyoto World 
         Data Center via the :mod:`spacepy.pybats.kyoto` module.  The associated 
@@ -225,8 +231,14 @@ class BatsLog(LogFile):
 
         from datetime import datetime
         import matplotlib.pyplot as plt
+
+        # Set the correct dst value to be used.
+        if not dstvar:
+            if 'dst_sm' in self:
+                dstvar = 'dst_sm'
+            else: dstvar='dst'
         
-        if 'dst' not in self:
+        if dstvar not in self:
             return None, None
 
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
@@ -234,7 +246,7 @@ class BatsLog(LogFile):
         if 'label' not in kwargs:
             kwargs['label']='BATS-R-US $D_{ST}$ (Biot-Savart)'
         
-        ax.plot(self['time'], self['dst'], **kwargs)
+        ax.plot(self['time'], self[dstvar], **kwargs)
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
         applySmartTimeTicks(ax, self['time'])
