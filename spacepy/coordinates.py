@@ -37,7 +37,18 @@ class Coords(object):
     data : list or ndarray, dim = (n,3)
         coordinate points [X,Y,Z] or [rad, lat, lon]
     dtype : string
-        coordinate system, possible are GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
+        coordinate system; possible values are:
+
+        * **GDZ** (Geodetic – WGS84),
+        * **GEO** (Geographic Coordinate System),
+        * **GSM** (Geocentric Solar Magnetospheric),
+        * **GSE** (Geocentric Solar Ecliptic),
+        * **SM** (Solar Magnetic),
+        * **GEI** (Geocentric Equatorial Inertial),
+        * **MAG** (Geomagnetic Coordinate System),
+        * **SPH** (Spherical Coordinate System),
+        * **RLL** (Radius, Latitude, Longitude)
+
     carsph : string
         Cartesian or spherical, 'car' or 'sph'
     units : list of strings, optional
