@@ -27,7 +27,7 @@ class Coords(object):
     in units of Re and degrees
 
     Coordinate transforms are based on the IRBEM library; `its manual
-    <http://irbem.svn.sourceforge.net/viewvc/irbem/trunk/manual/user_guide.html>`_
+    <http://svn.code.sf.net/p/irbem/code/tags/IRBEM-4.4.0/manual/user_guide.html>`_
     may prove useful. For a good reference on heliospheric and magnetospheric
     coordinate systems, see Franz & Harper, "Heliospheric Coordinate Systems",
     Planet. Space Sci., 50, pp 217-233, 2002.
