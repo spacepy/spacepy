@@ -27,7 +27,7 @@ class Coords(object):
     in units of Re and degrees
 
     Coordinate transforms are based on the IRBEM library; `its manual
-    <http://svn.code.sf.net/p/irbem/code/tags/IRBEM-4.4.0/manual/user_guide.html>`_
+    <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
     may prove useful. For a good reference on heliospheric and magnetospheric
     coordinate systems, see Franz & Harper, "Heliospheric Coordinate Systems",
     Planet. Space Sci., 50, pp 217-233, 2002.
@@ -39,7 +39,7 @@ class Coords(object):
     dtype : string
         coordinate system; possible values are:
 
-        * **GDZ** (Geodetic – WGS84),
+        * **GDZ** (Geodetic),
         * **GEO** (Geographic Coordinate System),
         * **GSM** (Geocentric Solar Magnetospheric),
         * **GSE** (Geocentric Solar Ecliptic),
@@ -170,7 +170,7 @@ class Coords(object):
          [1 2 2]] ), dtype=GEO,car, units=['Re', 'Re', 'Re']
         '''
         rstr = "Coords( {0} , '{1}', '{2}')".format(self.data.tolist(), self.dtype, self.carsph)
-        return rstr 
+        return rstr
     __repr__ = __str__
 
     # -----------------------------------------------
