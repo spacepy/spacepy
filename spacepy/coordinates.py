@@ -30,7 +30,8 @@ class Coords(object):
     <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
     may prove useful. For a good reference on heliospheric and magnetospheric
     coordinate systems, see Franz & Harper, "Heliospheric Coordinate Systems",
-    Planet. Space Sci., 50, pp 217-233, 2002.
+    Planet. Space Sci., 50, pp 217-233, 2002
+    (https://doi.org/10.1016/S0032-0633(01)00119-2).
 
     Parameters
     ==========
@@ -39,15 +40,15 @@ class Coords(object):
     dtype : string
         coordinate system; possible values are:
 
-        * **GDZ** (Geodetic),
+        * **GDZ** (Geodetic; WGS84),
         * **GEO** (Geographic Coordinate System),
         * **GSM** (Geocentric Solar Magnetospheric),
         * **GSE** (Geocentric Solar Ecliptic),
         * **SM** (Solar Magnetic),
-        * **GEI** (Geocentric Equatorial Inertial),
+        * **GEI** (Geocentric Equatorial Inertial; True-of-Date),
         * **MAG** (Geomagnetic Coordinate System),
         * **SPH** (Spherical Coordinate System),
-        * **RLL** (Radius, Latitude, Longitude)
+        * **RLL** (Radius, Latitude, Longitude; Geodetic)
 
     carsph : string
         Cartesian or spherical, 'car' or 'sph'
