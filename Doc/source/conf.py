@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 try: #Sphinx 1.4 and later replaces pngmath with imgmath
     import sphinx.ext.imgmath
     imgmath = 'sphinx.ext.imgmath'
-except NameError:
+except ImportError:
     imgmath = 'sphinx.ext.pngmath'
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
