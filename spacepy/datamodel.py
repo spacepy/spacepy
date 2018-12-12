@@ -195,7 +195,44 @@ class DMWarning(Warning):
     pass
 warnings.simplefilter('always', DMWarning)
 
-class dmarray(numpy.ndarray):
+class MetaMixin(object):
+    """Mixin class that adds a 'meta' attribute that acts like 'attrs'
+
+    Recommendation from the Python Heliophysics community is to allow
+    access to metadata via either an ``attrs`` attribute or ``meta``.
+    This mixin class supports that recommendation.
+    """
+    
+    @property
+    def meta(self):
+        """Equivalent to ``attrs``
+
+        Some APIs use ``attrs`` for metadata; some use ``meta``. This
+        is a convenience property to make it easier for those familiar
+        with the ``meta`` convention.
+        """
+        return self.attrs
+
+    @meta.setter
+    def meta(self, v):
+        """Set meta as with attrs"""
+        self.attrs = v
+
+    @meta.deleter
+    def meta(self):
+        """Remove meta (and thus attrs)
+
+        This isn't a good idea but you can do it with attrs,
+        so might as well support it in meta.
+
+        This still leaves the meta property hanging around, but
+        cannot delete a property from an instance (have to delete
+        from the class).
+        """
+        del self.attrs
+
+
+class dmarray(numpy.ndarray, MetaMixin):
     """
     Container for data within a SpaceData object
 
@@ -315,35 +352,6 @@ class dmarray(numpy.ndarray):
         """
         mask = self == srchval
         return int(mask.sum())
-
-    @property
-    def meta(self):
-        """Equivalent to ``attrs``
-
-        Some APIs use ``attrs`` for metadata; some use ``meta``. This
-        is a convenience property to make it easier for those familiar
-        with the ``meta`` convention.
-        """
-        return self.attrs
-
-    @meta.setter
-    def meta(self, v):
-        """Set meta as with attrs"""
-        self.attrs = v
-
-    @meta.deleter
-    def meta(self):
-        """Remove meta (and thus attrs)
-
-        This isn't a good idea but you can do it with attrs,
-        so might as well support it in meta.
-
-        This still leaves the meta property hanging around, but
-        cannot delete a property from an instance (have to delete
-        from the class).
-        """
-        del self.attrs
-    
     def _saveAttrs(self):
         Allowed_Attributes = self.Allowed_Attributes
         backup = []
@@ -445,7 +453,7 @@ def dmfilled(shape, fillval=0, dtype=None, order='C', attrs=None):
     return a
 
 
-class SpaceData(dict):
+class SpaceData(dict, MetaMixin):
     """
     Datamodel class extending dict by adding attributes.
 
