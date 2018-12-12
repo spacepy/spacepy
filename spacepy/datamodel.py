@@ -290,7 +290,8 @@ class dmarray(numpy.ndarray):
         dmarray_assert took 16.025478 s
         It looks like != is the fastest, but not by much over 10000000 __setattr__
         """
-        if name == 'Allowed_Attributes':
+        #meta is special-handled because it should NOT be pickled
+        if name in ('Allowed_Attributes', 'meta'):
             pass
         elif not name in self.Allowed_Attributes:
             raise(TypeError("Only attribute listed in Allowed_Attributes can be set"))
@@ -325,6 +326,24 @@ class dmarray(numpy.ndarray):
         """
         return self.attrs
 
+    @meta.setter
+    def meta(self, v):
+        """Set meta as with attrs"""
+        self.attrs = v
+
+    @meta.deleter
+    def meta(self):
+        """Remove meta (and thus attrs)
+
+        This isn't a good idea but you can do it with attrs,
+        so might as well support it in meta.
+
+        This still leaves the meta property hanging around, but
+        cannot delete a property from an instance (have to delete
+        from the class).
+        """
+        del self.attrs
+    
     def _saveAttrs(self):
         Allowed_Attributes = self.Allowed_Attributes
         backup = []
