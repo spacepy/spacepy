@@ -281,6 +281,35 @@ class SpaceDataTests(unittest.TestCase):
         for k, v in out.items():
             np.testing.assert_equal(v,  ans[k])
 
+    def test_readmeta(self):
+        """Check on reading from the meta property"""
+        a = dm.SpaceData(attrs={'a': 1, 'b': 2})
+        self.assertEqual(1, a.meta['a'])
+
+    def test_writemeta(self):
+        """Check on writing to the meta property"""
+        a = dm.SpaceData(attrs={'a': 1, 'b': 2})
+        a.meta['c'] = 3
+        self.assertEqual(3, a.attrs['c'])
+        a.meta['a'] = 99
+        self.assertEqual(99, a.attrs['a'])
+
+    def test_assignmeta(self):
+        """Assign to the meta property"""
+        a = dm.SpaceData(attrs={'a': 1, 'b': 2})
+        a.meta = {'c': 3}
+        self.assertEqual(3, a.attrs['c'])
+        self.assertFalse('a' in a.attrs)
+
+    def test_deletemeta(self):
+        """Remove the meta property"""
+        a = dm.SpaceData(attrs={'a': 1, 'b': 2})
+        del a.meta
+        self.assertFalse(hasattr(a, 'attrs'))
+        self.assertFalse(hasattr(a, 'meta'))
+        # Known failure, cannot delete property from instance.
+#        self.assertFalse('meta' in dir(a))
+
         
 class dmarrayTests(unittest.TestCase):
     def setUp(self):
