@@ -438,6 +438,19 @@ class dmarrayTests(unittest.TestCase):
             self.fail(
                 'Assigning to arbitrary Python attribute should raise TypeError')
 
+    def test_readmeta(self):
+        """Check on reading from the meta property"""
+        a = dm.dmarray([1, 2, 3], attrs={'a': 1, 'b': 2})
+        self.assertEqual(1, a.meta['a'])
+
+    def test_writemeta(self):
+        """Check on writing to the meta property"""
+        a = dm.dmarray([1, 2, 3], attrs={'a': 1, 'b': 2})
+        a.meta['c'] = 3
+        self.assertEqual(3, a.attrs['c'])
+        a.meta['a'] = 99
+        self.assertEqual(99, a.attrs['a'])
+
     def test_dmfilled(self):
         """dmfilled should fill an array"""
         ans = np.asarray([1,1,1], dtype=int)

@@ -315,6 +315,16 @@ class dmarray(numpy.ndarray):
         mask = self == srchval
         return int(mask.sum())
 
+    @property
+    def meta(self):
+        """Equivalent to ``attrs``
+
+        Some APIs use ``attrs`` for metadata; some use ``meta``. This
+        is a convenience property to make it easier for those familiar
+        with the ``meta`` convention.
+        """
+        return self.attrs
+
     def _saveAttrs(self):
         Allowed_Attributes = self.Allowed_Attributes
         backup = []
