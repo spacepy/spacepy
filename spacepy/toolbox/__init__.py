@@ -1947,16 +1947,13 @@ def normalize(vec, minmax=(0.0, 1.0)):
     out : array_like
         normalized vector
 
-    **Note:** NaN in the input vector does not behave and will return all NaN
-
     Examples
     ========
     >>> import spacepy.toolbox as tb
     >>> tb.normalize([1,2,3])
     [0.0, 0.5, 1.0]
     """
-    vec = np.asanyarray(vec)
-    return np.interp(vec, (vec.min(), vec.max()), minmax)
+    return np.interp(vec, (np.nanmin(vec), np.nanmax(vec)), minmax)
 
 
 def intsolve(func, value, start=None, stop=None, maxit=1000):
