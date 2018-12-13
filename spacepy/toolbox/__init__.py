@@ -1931,19 +1931,23 @@ def quaternionConjugate(Qin, scalarPos='last'):
 
 # -----------------------------------------------
 
-def normalize(vec):
+def normalize(vec, minmax=(0.0, 1.0)):
     """
-    Given an input vector normalize the vector
+    Given an input vector normalize the vector to a given range
 
     Parameters
     ==========
     vec : array_like
         input vector to normalize
+    minmax : array_like
+        minimum and maximum value to scale to, default (0,1)
 
     Returns
     =======
     out : array_like
         normalized vector
+
+    **Note:** NaN in the input vector does not behave and will return all NaN
 
     Examples
     ========
@@ -1951,14 +1955,9 @@ def normalize(vec):
     >>> tb.normalize([1,2,3])
     [0.0, 0.5, 1.0]
     """
-    # check to see if vec is numpy array, this is fastest
-    if isinstance(vec, np.ndarray):
-        out = (vec - vec.min())/np.ptp(vec)
-    else:
-        vecmin = np.min(vec)
-        ptp = np.ptp(vec)
-        out = [(val -  vecmin)/ptp for val in vec]
-    return out
+    vec = np.asanyarray(vec)
+    return np.interp(vec, (vec.min(), vec.max()), minmax)
+
 
 def intsolve(func, value, start=None, stop=None, maxit=1000):
     """

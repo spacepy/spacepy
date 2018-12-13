@@ -242,8 +242,8 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_normalize(self):
         """normalize should give known results"""
-        self.assertEqual([0.0, 0.5, 1.0], tb.normalize([1,2,3]))
         numpy.testing.assert_equal(array([0.0, 0.5, 1.0]), tb.normalize(array([1,2,3])))
+        numpy.testing.assert_equal(array([1.0, 6.0, 11.0]), tb.normalize(array([1,2,3]), minmax=(1, 11)))
 
     def testfeq_equal(self):
         """feq should return true when they are equal"""
