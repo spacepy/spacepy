@@ -38,3 +38,7 @@ before_script:
 script:
  - python setup.py install
  - cd tests; . /home/travis/bin/definitions.B; python test_spacepy.py
+
+notifications:
+ webhooks: https://www.travisbuddy.com/
+ on_success: never
