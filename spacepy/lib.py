@@ -106,10 +106,9 @@ def load_lib():
     else:
         libnames = ['libspacepy.so']
     if sysconfig:
-        if sys.version_info[0] < 3:
+        ext = sysconfig.get_config_var('EXT_SUFFIX')
+        if ext is None:
             ext = sysconfig.get_config_var('SO')
-        else:
-            ext = sysconfig.get_config_var('EXT_SUFFIX')
         if ext:
             libnames.append('libspacepy' + ext)
             libnames.append('spacepy' + ext)
