@@ -14,6 +14,8 @@ SpacePy is a package for Python, targeted at the space sciences, that aims to ma
 
 The SpacePy project seeks to promote accurate and open research standards by providing an open environment for code development. In the space physics community there has long been a significant reliance on proprietary languages that restrict free transfer of data and reproducibility of results. By providing a comprehensive, open-source library of widely-used analysis and visualization tools in a free, modern and intuitive language, we hope that this reliance will be diminished.
 
+To help foster an open and welcoming environment, we have adopted a [code of conduct](https://github.com/spacepy/spacepy/blob/master/code-of-conduct.md) that we encourage members of the SpacePy community to read and follow.
+
 ## Getting SpacePy
 
 Our latest release version is available through PyPI and can be installed using
