@@ -570,7 +570,7 @@ def human_sort( l ):
     ['r1.txt', 'r2.txt', 'r10.txt']
     """
     convert = lambda text: int(text) if text.isdigit() else text
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+    alphanum_key = lambda key: [ convert(c) for c in re.split(r'([0-9]+)', key) ]
     alphanum_key = None
     try:
         l.sort( key=alphanum_key )
@@ -934,10 +934,10 @@ def indsFromXrange(inxrange):
     if not isinstance(inxrange, xrange): return None
     valstr = inxrange.__str__()
     if ',' not in valstr:
-        res = re.search('(\d+)', valstr)
+        res = re.search(r'(\d+)', valstr)
         retval = [int(0), int(res.group(1))]
     else:
-        res = re.search('(\d+), (\d+)', valstr)
+        res = re.search(r'(\d+), (\d+)', valstr)
         retval = [int(res.group(1)), int(res.group(2))]
     return retval
 
