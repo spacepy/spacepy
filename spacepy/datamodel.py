@@ -1319,7 +1319,7 @@ def readJSONMetadata(fname, **kwargs):
     header = "".join(hreg)
 
     # isolate JSON field
-    srch = re.search( r'\{\s*(.*)\s*\}', header )
+    srch = re.search(r'\{\s*(.*)\s*\}', header )
     if isinstance(srch, type(None)):
         raise IOError('The input file has no valid JSON header. Must be valid JSON bounded by braces "{ }".')
     js = srch.group(1)
@@ -1595,7 +1595,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
             except:
                 pass
     json_str = json.dumps(js_out, indent=4, sort_keys=True)
-    reob = re.compile('\[.*?\]', re.DOTALL)
+    reob = re.compile(r'\[.*?\]', re.DOTALL)
     json_str = re.sub(reob, stripNL, json_str) #put lists back onto one line
     #add comment field for header
     json_str = ''.join(['#', json_str])

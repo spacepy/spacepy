@@ -570,7 +570,7 @@ def human_sort( l ):
     ['r1.txt', 'r2.txt', 'r10.txt']
     """
     convert = lambda text: int(text) if text.isdigit() else text
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+    alphanum_key = lambda key: [ convert(c) for c in re.split(r'([0-9]+)', key) ]
     alphanum_key = None
     try:
         l.sort( key=alphanum_key )
@@ -934,10 +934,10 @@ def indsFromXrange(inxrange):
     if not isinstance(inxrange, xrange): return None
     valstr = inxrange.__str__()
     if ',' not in valstr:
-        res = re.search('(\d+)', valstr)
+        res = re.search(r'(\d+)', valstr)
         retval = [int(0), int(res.group(1))]
     else:
-        res = re.search('(\d+), (\d+)', valstr)
+        res = re.search(r'(\d+), (\d+)', valstr)
         retval = [int(res.group(1)), int(res.group(2))]
     return retval
 
@@ -1931,7 +1931,7 @@ def quaternionConjugate(Qin, scalarPos='last'):
 
 # -----------------------------------------------
 
-def normalize(vec, minmax=(0.0, 1.0)):
+def normalize(vec, low=0.0, high=1.0):
     """
     Given an input vector normalize the vector to a given range
 
@@ -1939,8 +1939,10 @@ def normalize(vec, minmax=(0.0, 1.0)):
     ==========
     vec : array_like
         input vector to normalize
-    minmax : array_like
-        minimum and maximum value to scale to, default (0,1)
+    low : float
+        minimum value to scale to, default 0.0
+    high : float
+        maximum value to scale to, default 1.0
 
     Returns
     =======
@@ -1953,7 +1955,7 @@ def normalize(vec, minmax=(0.0, 1.0)):
     >>> tb.normalize([1,2,3])
     [0.0, 0.5, 1.0]
     """
-    return np.interp(vec, (np.nanmin(vec), np.nanmax(vec)), minmax)
+    return np.interp(vec, (np.nanmin(vec), np.nanmax(vec)), (low, high))
 
 
 def intsolve(func, value, start=None, stop=None, maxit=1000):

@@ -241,13 +241,23 @@ class SimpleFunctionTests(unittest.TestCase):
         numpy.testing.assert_equal(real_ans, tb.interpol([1.5, 10.5, 359.5], x, y, wrap=360.0))
 
     def test_normalize(self):
-        """normalize should give known results"""
-        numpy.testing.assert_equal(array([0.0, 0.5, 1.0]), tb.normalize(array([1,2,3])))
-        numpy.testing.assert_equal(array([1.0, 6.0, 11.0]), tb.normalize(array([1,2,3]), minmax=(1, 11)))
-        numpy.testing.assert_equal(array([1.0, 6.0, 11.0,numpy.nan]), tb.normalize(array([1,2,3,numpy.nan]),
-                                                                                   minmax=(1, 11)))
-        numpy.testing.assert_equal(array([1.0, 6.0, numpy.nan, 11.0]), tb.normalize(array([1,2,numpy.nan, 3,]),
-                                                                                   minmax=(1, 11)))
+        """normalize should give known results, default range"""
+        numpy.testing.assert_array_almost_equal(array([0.0, 0.5, 1.0]), tb.normalize(array([1,2,3])))
+
+    def test_normalize_small(self):
+        """normalize should give known results, smaller range"""
+        numpy.testing.assert_array_almost_equal(array([0.1 , 0.45, 0.8 ]), tb.normalize(array([1,2,3]), low=0.1, high=0.8))
+
+    def test_normalize_large(self):
+        """normalize should give known results, larger range"""
+        numpy.testing.assert_array_almost_equal(array([1.0, 6.0, 11.0]), tb.normalize(array([1,2,3]), low=1, high=11))
+
+    def test_normalize_nan(self):
+        """normalize should give known results, larger range with nan"""
+        numpy.testing.assert_array_almost_equal(array([1.0, 6.0, 11.0,numpy.nan]), tb.normalize(array([1,2,3,numpy.nan]),
+                                                                                   low=1, high=11))
+        numpy.testing.assert_array_almost_equal(array([1.0, 6.0, numpy.nan, 11.0]), tb.normalize(array([1,2,numpy.nan, 3,]),
+                                                                                    low=1, high=11))
 
     def testfeq_equal(self):
         """feq should return true when they are equal"""
