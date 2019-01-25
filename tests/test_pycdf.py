@@ -2105,6 +2105,14 @@ class ChangeCDF(ChangeCDFBase):
         self.assertRaises(AssertionError, numpy.testing.assert_array_equal,
                           zvar[...], self.cdf['PhysRecNo'][...])
 
+    def testDeleteWithRef(self):
+        """Delete a variable while have a reference to another one"""
+        zvar = self.cdf['PhysRecNo']
+        zvardata = zvar[...]
+        del self.cdf['ATC']
+        numpy.testing.assert_array_equal(
+            zvardata, zvar[...])
+        
     def testNewVar(self):
         """Create a new variable"""
         self.cdf.new('newzVar', [[1, 2, 3], [4, 5, 6]],
