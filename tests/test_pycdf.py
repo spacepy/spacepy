@@ -2065,6 +2065,8 @@ class ChangeCDF(ChangeCDFBase):
         zvar.rename('foobar')
         numpy.testing.assert_array_equal(
             zvardata, self.cdf['foobar'][...])
+        numpy.testing.assert_array_equal(
+            zvardata, zvar[...])
         try:
             zvar = self.cdf['PhysRecNo']
         except KeyError:
@@ -2079,6 +2081,26 @@ class ChangeCDF(ChangeCDFBase):
             self.assertEqual(v.status, cdf.const.BAD_VAR_NAME)
         else:
             self.fail('Should have raised CDFError')
+
+    @unittest.expectedFailure
+    def testRenameSameVar(self):
+        """Rename a variable while keeping a reference to it"""
+        zvar = self.cdf['PhysRecNo']
+        self.cdf['PhysRecNo'].rename('foobar')
+        numpy.testing.assert_array_equal(
+            zvar[...], self.cdf['foobar'][...])
+
+    def testDeleteSameName(self):
+        """Delete a variable and re-make with same name"""
+        zvar = self.cdf['PhysRecNo']
+        number = zvar._num()
+        del self.cdf['PhysRecNo']
+        self.cdf['PhysRecNo'] = [1, 2, 3, 4]
+        #Verify we have different record numbers between two things
+        #with the same name
+        self.assertNotEqual(number, self.cdf['PhysRecNo']._num())
+        numpy.testing.assert_array_equal(
+            zvar[...], self.cdf['PhysRecNo'][...])
 
     def testNewVar(self):
         """Create a new variable"""
