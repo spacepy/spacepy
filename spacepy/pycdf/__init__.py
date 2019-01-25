@@ -1513,6 +1513,41 @@ class CDF(collections.MutableMapping):
     or, if more control is needed over the type and dimensions, use
     :py:meth:`new`.
 
+    Although it is supported to assign Var objects to Python variables for
+    convenience, there are some minor pitfalls that can arise when changing
+    a CDF that will not affect most users. This is only a concern when
+    assigning a zVar object to a Python variable, and then deleting or
+    renaming the variable via a *different* Python variable.
+
+    Deleting a variable and then trying to access it via a different Python
+    object:
+
+        >>> var = cdffile['Var1']
+        >>> del cdffile['Var1']
+        >>> var[0] #fail
+
+    Renaming a variable and trying to access it via a different Python object:
+
+        >>> var = cdffile['Var1']
+        >>> cdffile['Var1'].rename('Var2')
+        >>> var[0] #fail
+
+    Renaming a variable through the same object will work:
+
+        >>> var = cdffile['Var1']
+        >>> var.rename('Var2')
+        >>> var[0] #fine
+
+    Deleting a variable and then creating another variable with the same name
+    may lead to some surprises:
+
+        >>> var = cdffile['Var1']
+        >>> var[...] = [1, 2, 3, 4]
+        >>> del cdffile['Var1']
+        >>> cdffile.new('Var1', data=[5, 6, 7, 8]
+        >>> var[...]
+        [5, 6, 7, 8]
+
     .. autosummary::
 
         ~CDF.attrs
