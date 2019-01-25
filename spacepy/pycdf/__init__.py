@@ -4508,19 +4508,15 @@ class zAttr(Attr):
     ========
     :class:`Attr`
     """
-
-    def __init__(self, *args, **kwargs):
-        """Initialize this attribute"""
-        self.ENTRY_ = const.zENTRY_
-        self.ENTRY_DATA_ = const.zENTRY_DATA_
-        self.SCOPE = const.VARIABLE_SCOPE
-        self.ENTRY_EXISTENCE_ = const.zENTRY_EXISTENCE_
-        self.ATTR_NUMENTRIES_ = const.ATTR_NUMzENTRIES_
-        self.ATTR_MAXENTRY_ = const.ATTR_MAXzENTRY_
-        self.ENTRY_NUMELEMS_ = const.zENTRY_NUMELEMS_
-        self.ENTRY_DATATYPE_ = const.zENTRY_DATATYPE_
-        self.ENTRY_DATASPEC_ = const.zENTRY_DATASPEC_
-        super(zAttr, self).__init__(*args, **kwargs)
+    ENTRY_ = const.zENTRY_
+    ENTRY_DATA_ = const.zENTRY_DATA_
+    SCOPE = const.VARIABLE_SCOPE
+    ENTRY_EXISTENCE_ = const.zENTRY_EXISTENCE_
+    ATTR_NUMENTRIES_ = const.ATTR_NUMzENTRIES_
+    ATTR_MAXENTRY_ = const.ATTR_MAXzENTRY_
+    ENTRY_NUMELEMS_ = const.zENTRY_NUMELEMS_
+    ENTRY_DATATYPE_ = const.zENTRY_DATATYPE_
+    ENTRY_DATASPEC_ = const.zENTRY_DATASPEC_
 
     def insert(self, index, data):
         """Insert entry at particular index number
@@ -4614,19 +4610,15 @@ class gAttr(Attr):
     ========
     :class:`Attr`
     """
-
-    def __init__(self, *args, **kwargs):
-        """Initialize this attribute"""
-        self.ENTRY_ = const.gENTRY_
-        self.ENTRY_DATA_ = const.gENTRY_DATA_
-        self.SCOPE = const.GLOBAL_SCOPE
-        self.ENTRY_EXISTENCE_ = const.gENTRY_EXISTENCE_
-        self.ATTR_NUMENTRIES_ = const.ATTR_NUMgENTRIES_
-        self.ATTR_MAXENTRY_ = const.ATTR_MAXgENTRY_
-        self.ENTRY_NUMELEMS_ = const.gENTRY_NUMELEMS_
-        self.ENTRY_DATATYPE_ = const.gENTRY_DATATYPE_
-        self.ENTRY_DATASPEC_ = const.gENTRY_DATASPEC_
-        super(gAttr, self).__init__(*args, **kwargs)
+    ENTRY_ = const.gENTRY_
+    ENTRY_DATA_ = const.gENTRY_DATA_
+    SCOPE = const.GLOBAL_SCOPE
+    ENTRY_EXISTENCE_ = const.gENTRY_EXISTENCE_
+    ATTR_NUMENTRIES_ = const.ATTR_NUMgENTRIES_
+    ATTR_MAXENTRY_ = const.ATTR_MAXgENTRY_
+    ENTRY_NUMELEMS_ = const.gENTRY_NUMELEMS_
+    ENTRY_DATATYPE_ = const.gENTRY_DATATYPE_
+    ENTRY_DATASPEC_ = const.gENTRY_DATASPEC_
 
 
 class AttrList(collections.MutableMapping):
@@ -4850,6 +4842,7 @@ class AttrList(collections.MutableMapping):
         """
         if name in self:
             raise KeyError(name + ' already exists.')
+        #A zAttr without an Entry in this zVar will be a "get" not "create"
         attr = self._get_or_create(name)
         if data is not None:
             if self.special_entry is None:
