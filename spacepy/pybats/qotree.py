@@ -16,7 +16,7 @@ class QTree(object):
         Build QO Tree for input grid.  Grid should be a NxM numpy array where
         N is the number of dimensions and M is the number of points.
         '''
-        from numpy import sqrt, where, arange, lexsort
+        from numpy import sqrt, where, arange, lexsort, inf
         (self.d, self.npoints) = grid.shape
 
         if(self.d != 2):
@@ -50,6 +50,8 @@ class QTree(object):
         # Some things all trees should know about themselves.
         self.nleafs=0
         self.aspect_ratio = (xmax-xmin)/(ymax-ymin)
+        self.dx_min = inf # Minimum and maximum spacing
+        self.dx_max = -1  # over all leafs in tree.
 
         # Use spatial range of grid to seed root of QTree.
         self[1]=[xmin,xmax,ymin,ymax]
@@ -61,7 +63,9 @@ class QTree(object):
         '''
         Internal recursive method for populating tree.
         '''
-        from numpy import sqrt, max, min, log2, arange, meshgrid
+        from numpy import sqrt, max, min, log2, arange, meshgrid, mod
+
+        # Start by limiting locations to within block limits:
         self[i].locs=self.locs[(grid[0,:][self.locs]>self[i].lim[0]) &
                                (grid[0,:][self.locs]<self[i].lim[1]) &
                                (grid[1,:][self.locs]>self[i].lim[2]) &
@@ -92,12 +96,50 @@ class QTree(object):
 
                 self[i].locs=self[i].locs.reshape( (a, a) )
                 self[i].dx = dx
+                if dx>self.dx_max: self.dx_max=dx
+                if dx<self.dx_min: self.dx_min=dx
                 self[i].cells = meshgrid(
                     arange(self[i].lim[0], self[i].lim[1]+dx, dx),
                     arange(self[i].lim[2], self[i].lim[3]+dx, dx))
                 self.nleafs+=1
                 return
+        elif (self[i].npts < 64):
+            # If we do not reach a true leaf but have few points,
+            # we likely have hit an interface surface.  This is an
+            # interface region: the space between two blocks of
+            # different resolution.  Points from **both** resoultions
+            # are included in the output file.  Create a leaf that uses the
+            # smaller of the two and discards the rest.
+            self[i].isLeaf = True             # Interfaces are considered leafs
+            xmax=max(grid[0,:][self[i].locs]) # These conditions still hold...
+            xmin=min(grid[0,:][self[i].locs])
 
+            # The number of points along each dimension should follow
+            # this relationship at interface blocks:
+            a=2*sqrt(self[i].npts/5)
+            if int(a)!=a: raise ValueError(
+                    "Failure to handle interface " +
+                    "surface!  Please report to Spacepy devs.")
+            a = int(a)
+
+            # Calculate dx based on this value:
+            dx = (xmax-xmin) / (a-1)
+
+            # Refine locs so that only multiples of dx are included:
+            subloc = mod(grid[0,:][self[i].locs]-grid[0,:][
+                self[i].locs[0]], dx) == 0
+            self[i].locs = self[i].locs[ subloc ]
+            
+            self[i].locs=self[i].locs.reshape( (a, a) )
+            self[i].dx = dx
+            if dx>self.dx_max: self.dx_max=dx
+            if dx<self.dx_min: self.dx_min=dx
+            self[i].cells = meshgrid(
+                arange(self[i].lim[0], self[i].lim[1]+dx, dx),
+                arange(self[i].lim[2], self[i].lim[3]+dx, dx))
+            self.nleafs+=1
+            return
+            
         # If above criteria are not met, this block is 
         # not a constant-resolution zone.
         # Subdivide section into four new ones (8 if oct tree)
@@ -152,42 +194,45 @@ class QTree(object):
     rd = rightdaughter
     ld = leftdaughter
 
-    def plot_res(self, ax, do_label=True, tag_leafs=False):
+    def plot_res(self, ax, do_label=True, tag_leafs=False, zlim=False,
+                 cmap='jet_r'):
+
+        from matplotlib.pyplot import get_cmap
         from matplotlib import patheffects
-        res_colors={
-            1./32.: 'black',
-            1./16.: 'darkred',
-            1./8. : 'red',
-            1./4. : 'orange',
-            1./2. : 'yellow',
-            1.    : 'green',
-            2.    : 'darkblue',
-            4.    : 'blue',
-            8.    : 'lightblue',
-            16.   : 'grey',
-            32.   : 'black'}
+        from matplotlib.colors import LogNorm
+        from matplotlib.cm import ScalarMappable
+        
+        # Create a color map using either zlim as given or max/min resolution.
+        cNorm = LogNorm(vmin=self.dx_min, vmax=self.dx_max, clip=True)
+        cMap  = ScalarMappable(cmap=get_cmap(cmap), norm=cNorm)
             
         dx_vals = {}
+        
         for key in self.tree:
             if self[key].isLeaf:
-                if self[key].dx in res_colors:
-                    dx_vals[self[key].dx] = 1.0
-                    color=res_colors[self[key].dx]
-                else:
-                    color='k'
+                color = cMap.to_rgba(self[key].dx)
+                dx_vals[self[key].dx] = 1.0
+                #if self[key].dx in res_colors:
+                #    dx_vals[self[key].dx] = 1.0
+                #    color=#res_colors[self[key].dx]
+                #else:
+                #    color='k'
                 self[key].plot_res(ax, fc=color, label=key*tag_leafs)
 
         if do_label:
+            
             ax.annotate('Resolution:', [1.02,0.99], xycoords='axes fraction', 
                         color='k',size='medium')
             for i,key in enumerate(sorted(dx_vals.keys())):
+                #dx_int = log2(key)
                 if key<1:
                     label = '1/%i' % (key**-1)
                 else:
                     label = '%i' % key
                 ax.annotate('%s $R_{E}$'%label, [1.02,0.87-i*0.1],
-                            xycoords='axes fraction', color=res_colors[key],
-                            size='x-large',path_effects=[patheffects.withStroke(linewidth=1,foreground='k')])
+                            xycoords='axes fraction', color=cMap.to_rgba(key),
+                            size='x-large',path_effects=[patheffects.withStroke(
+                                linewidth=1,foreground='k')])
 
 class Branch(object):
     '''
@@ -229,7 +274,7 @@ class Branch(object):
         verts = array([
                 [l[0],l[2] ], [ l[1],l[2]],
                 [l[1],l[3] ], [ l[0],l[3]]])
-        poly = Polygon(verts, True, ec=None, fc=fc, lw=0.0001)
+        poly = Polygon(verts, True, ec=None, fc=fc, lw=0.0)
         if label:
             x = l[0]+(l[1]-l[0])/2.0
             y = l[2]+(l[3]-l[2])/2.0
