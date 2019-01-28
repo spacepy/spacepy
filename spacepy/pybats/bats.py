@@ -1341,7 +1341,8 @@ class Bats2d(IdlFile):
     # VISUALIZATION TOOLS
     ######################
     def add_grid_plot(self, target=None, loc=111, do_label=True,
-                      show_nums=False, title='BATS-R-US Grid Layout'):
+                      show_nums=False, show_borders=True, cmap='jet_r',
+                      title='BATS-R-US Grid Layout'):
         '''
         Create a plot of the grid resolution by coloring regions of constant
         resolution.  Kwarg "target" specifies where to place the plot and can
@@ -1362,6 +1363,26 @@ class Bats2d(IdlFile):
         one yourself.
 
         Figure and axis, even if none given, are returned.
+
+         Parameters
+        ----------
+        target : Matplotlib Figure or Axes object
+           Set plot destination.  Defaults to new figure.
+        loc : 3-digit integer
+           Set subplot location.  Defaults to 111.
+        do_label : boolean
+           Adds resolution legend to righthand margin.  Defaults to True.
+        show_nums : boolean
+           Adds quadtree values to each region.  Useful for debugging.
+           Defaults to False.
+        show_borders : True
+           Show black borders around each quadtree leaf.  Defaults to True.
+        cmap : string
+           Sets the color map used to color each region.  Must be a Matplotlib
+           named colormap.  Defaults to 'jet_r'.
+        title : string
+           Sets the title at the top of the plot.  Defaults to 
+           'BATS-R-US Grid Layout'.
         '''
         import matplotlib.pyplot as plt
         from matplotlib.colors import Normalize
@@ -1383,9 +1404,11 @@ class Bats2d(IdlFile):
         ax.set_ylim([self.qtree[1].lim[2],self.qtree[1].lim[3]])
         # Plot.
 
-        for key in list(self.qtree.keys()):
-            self.qtree[key].plotbox(ax)
-        self.qtree.plot_res(ax, tag_leafs=show_nums, do_label=do_label)
+        if(show_borders):
+            for key in list(self.qtree.keys()):
+                self.qtree[key].plotbox(ax)
+        self.qtree.plot_res(ax, tag_leafs=show_nums, do_label=do_label,
+                            cmap=cmap)
 
         # Customize plot.
         ax.set_xlabel('GSM %s' % xdim.upper())
