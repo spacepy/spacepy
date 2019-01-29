@@ -1509,8 +1509,9 @@ class Bats2d(IdlFile):
             isNig  = s1.x.mean()<0
             
         # Use last line to get southern hemisphere theta:
-        npts = s1.x.size/2
-        r = sqrt(s1.x**2+s1.y**2)
+        npts = int(s1.x.size/2)
+        r = sqrt(s1.x**2+s1.y**2) # Distance from origin.
+        # This loc finds the point(s) nearest to Rbody.
         loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
             r[:npts]-self.attrs['rbody'])) #point closest to IB.
         xSouth, ySouth = s1.x[loc], s1.y[loc]
@@ -1552,7 +1553,7 @@ class Bats2d(IdlFile):
                 break
             
         # Use last line to get southern hemisphere theta:
-        npts = s1.x.size/2
+        npts = int(s1.x.size/2) # Similar to above for dayside.
         r = sqrt(s1.x**2+s1.y**2)
         loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
             r[:npts]-self.attrs['rbody']))
