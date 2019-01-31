@@ -22,11 +22,11 @@ matrix:
     env: NUMPY_VERSION=">=1.6,!=1.15.0"
   - python: 3.7
     dist: xenial
-    env: NUMPY_VERSION="==1.13.3"
+    env: NUMPY_VERSION="==1.14.5"
 
 before_install:
  - sudo apt-get update -qq
- - sudo apt-get install libhdf5-serial-dev gcc gfortran
+ - sudo apt-get install libhdf5-serial-dev gcc gfortran xvfb
 
 install:
  - pip install --force-reinstall "numpy${NUMPY_VERSION}"
