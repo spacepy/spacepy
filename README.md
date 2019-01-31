@@ -38,7 +38,7 @@ SpacePy supports both Python 2.7 and 3.x.
 ### Dependencies
 
 SpacePy has a number of well-maintained dependencies, most of which are automatically installed by ```pip```. These include:
- - numpy (>=1.6, !=1.15.0)
+ - numpy (>=1.6, !=1.15.0. Numpy 1.16.0 has led to problems building IRBEM on some systems.)
  - scipy (>=0.10)
  - matplotlib (>=1.5)
  - h5py
