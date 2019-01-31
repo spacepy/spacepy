@@ -17,8 +17,11 @@ matrix:
   - python: 3.6
     env: NUMPY_VERSION="==1.13.3"
   - python: 3.7
+    dist: xenial
+    sudo: yes
     env: NUMPY_VERSION=">=1.6,!=1.15.0"
   - python: 3.7
+    dist: xenial
     env: NUMPY_VERSION="==1.13.3"
 
 before_install:
