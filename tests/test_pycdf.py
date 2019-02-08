@@ -1843,6 +1843,14 @@ class ReadCDF(CDFTests):
         self.assertEqual('6', str(self.cdf['StringUnpadded'].dtype)[-1])
         self.assertEqual('6', str(self.cdf['StringUnpadded'][...].dtype)[-1])
 
+    def testCachezVarNum(self):
+        """Test basic reads of the zVar number cache"""
+        self.assertFalse(b'ATC' in self.cdf._var_nums)
+        self.assertEqual(0, self.cdf.var_num(b'ATC'))
+        self.assertTrue(b'ATC' in self.cdf._var_nums)
+        self.assertEqual(0, self.cdf._var_nums['ATC'])
+        self.assertRaises(cdf.CDFError, self.cdf.var_num, b'foobar')
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
