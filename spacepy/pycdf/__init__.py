@@ -1540,6 +1540,7 @@ class CDF(collections.MutableMapping):
         ~CDF.raw_var
         ~CDF.readonly
         ~CDF.save
+        ~CDF.var_num
         ~CDF.version
 
     .. attribute:: CDF.attrs
@@ -1563,6 +1564,7 @@ class CDF(collections.MutableMapping):
     .. automethod:: raw_var
     .. automethod:: readonly
     .. automethod:: save
+    .. automethod:: var_num
     .. automethod:: version
 
     """
@@ -1622,6 +1624,8 @@ class CDF(collections.MutableMapping):
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
         self._attrlistref = weakref.ref(gAttrList(self))
         self.backward = self.version()[0] < 3
+        self._var_nums = {}
+        """Cache of name-to-number mappings for variables in this CDF"""
 
     def __del__(self):
         """Destructor; called when CDF object is destroyed.
@@ -2332,6 +2336,37 @@ class CDF(collections.MutableMapping):
         """Global attributes for this CDF in a dict-like format.
         See :class:`gAttrList` for details.
         """)
+
+    def var_num(self, varname):
+        """Get the variable number of a particular variable name
+
+        This maintains a cache of name-to-number mappings for zVariables
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        varname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+
+        Raises
+        ======
+        CDFError : if variable is not found
+
+        Returns
+        =======
+        out : int
+            Variable number of this zvariable.
+        """
+        num = self._var_nums.get(varname, None)
+        if num is None: #Copied from Var._get, which can hopefully be thinned
+            varNum = ctypes.c_long(0)
+            self._call(const.GET_, const.zVAR_NUMBER_, varname,
+                       ctypes.byref(varNum))
+            num = varNum.value
+            self._var_nums[varname] = num
+        return num
+
 
 class CDFCopy(spacepy.datamodel.SpaceData):
     """
