@@ -1530,6 +1530,7 @@ class CDF(collections.MutableMapping):
         ~CDF.attrs
         ~CDF.backward
         ~CDF.checksum
+        ~CDF.clear_from_cache
         ~CDF.clone
         ~CDF.close
         ~CDF.col_major
@@ -1554,6 +1555,7 @@ class CDF(collections.MutableMapping):
        (for opening with CDF library before 3.x)
 
     .. automethod:: checksum
+    .. automethod:: clear_from_cache
     .. automethod:: clone
     .. automethod:: close
     .. automethod:: col_major
@@ -2366,6 +2368,29 @@ class CDF(collections.MutableMapping):
             num = varNum.value
             self._var_nums[varname] = num
         return num
+
+    def clear_from_cache(self, varname):
+        """Mark a variable deleted in the name-to-number cache
+
+        Will remove a variable, and all variables with higher numbers,
+        from the variable cache.
+
+        Does NOT delete the variable!
+
+        This maintains a cache of name-to-number mappings for zVariables
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        varname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+        """
+        num = self.var_num(varname)
+        #All numbers higher than this are renumbered
+        for v, n in list(self._var_nums.items()):
+            if n >= num:
+                del self._var_nums[v]
 
 
 class CDFCopy(spacepy.datamodel.SpaceData):

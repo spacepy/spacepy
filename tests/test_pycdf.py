@@ -1851,6 +1851,18 @@ class ReadCDF(CDFTests):
         self.assertEqual(0, self.cdf._var_nums['ATC'])
         self.assertRaises(cdf.CDFError, self.cdf.var_num, b'foobar')
 
+    def testDeleteCachezVarNum(self):
+        """Test deleting something from the zvar cache"""
+        #This is a bit backwards, but easiest way to fill the cache
+        _ = [self.cdf.var_num(self.cdf[i].name()) for i in range(len(self.cdf))]
+        #This is variable #8
+        self.cdf.clear_from_cache('SpinRateScalersCounts')
+        self.assertFalse('SpinRateScalersCounts' in self.cdf._var_nums)
+        self.assertFalse('SpinRateScalersCountSigma' in self.cdf._var_nums) #9
+        self.assertFalse('MajorNumbers' in self.cdf._var_nums) #10
+        self.assertTrue('SectorRateScalersCountsSigma' in self.cdf._var_nums) #8
+        self.assertEqual(10, self.cdf.var_num(b'MajorNumbers')) #Repopulated
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
