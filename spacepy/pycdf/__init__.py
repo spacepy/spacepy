@@ -4121,21 +4121,28 @@ class Attr(collections.MutableSequence):
                                      ctypes.byref(attrno))
                 self._cdf_file.add_attr_to_cache(
                     self._name, attrno.value, self.SCOPE == const.GLOBAL_SCOPE)
-            else: #Ensure exists, and populate cache
-                self._cdf_file._call(const.GET_, const.ATTR_NUMBER_, self._name,
-                                     ctypes.byref(attrno))
-                #Do NOT populate cache yet, because we have weirdness
-                #that may call this where our scope and the scope of the
-                #named attribute may not match
+            else: #Ensure exists, and populate cache. See scope note below
+                attrno, scope = self._cdf_file.attr_num(self._name)
         else:
             name = ctypes.create_string_buffer(const.CDF_ATTR_NAME_LEN256 + 1)
+            scope = ctypes.c_long(0)
             self._cdf_file._call(const.SELECT_, const.ATTR_,
                                  ctypes.c_long(attr_name))
-            self._cdf_file._call(const.GET_, const.ATTR_NAME_, name)
+            #Because it's possible to create a gAttr Python objecting
+            #referencing an Attribute with variable scope, and vice-versa,
+            #do NOT assume the scope matches
+            #(Higher level code checks for that being a bad thing.)
+            self._cdf_file._call(
+                const.GET_, const.ATTR_NAME_, name,
+                const.GET_, const.ATTR_SCOPE_, ctypes.byref(scope))
             self._name = name.value.rstrip()
-            #Again, do not populate cache yet
-#            self._cdf_file.add_attr_to_cache(self._name, attr_name,
-#                                            self.SCOPE == const.GLOBAL_SCOPE)
+            if scope.value == const.GLOBAL_SCOPE.value:
+                scope = True
+            elif scope.value == const.VARIABLE_SCOPE.value:
+                scope = False
+            else:
+                raise CDFError(const.BAD_SCOPE)
+            self._cdf_file.add_attr_to_cache(self._name, attr_name, scope)
 
     def __getitem__(self, key):
         """Return a slice of Entries.
