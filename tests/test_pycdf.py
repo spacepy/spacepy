@@ -1848,13 +1848,18 @@ class ReadCDF(CDFTests):
         self.assertFalse(b'ATC' in self.cdf._var_nums)
         self.assertEqual(0, self.cdf.var_num(b'ATC'))
         self.assertTrue(b'ATC' in self.cdf._var_nums)
-        self.assertEqual(0, self.cdf._var_nums['ATC'])
+        self.assertEqual(0, self.cdf._var_nums[b'ATC'])
         self.assertRaises(cdf.CDFError, self.cdf.var_num, b'foobar')
 
     def testDeleteCachezVarNum(self):
         """Test deleting something from the zvar cache"""
         #This is a bit backwards, but easiest way to fill the cache
-        _ = [self.cdf.var_num(self.cdf[i].name()) for i in range(len(self.cdf))]
+        #without assuming it's being used
+        for i in range(len(self.cdf)):
+            n = self.cdf[i].name()
+            if str is not bytes:
+                n = n.encode('ascii')
+            _ = self.cdf.var_num(n)
         #This is variable #8
         self.cdf.clear_from_cache(b'SpinRateScalersCounts')
         self.assertFalse(b'SpinRateScalersCounts' in self.cdf._var_nums)
