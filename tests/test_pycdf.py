@@ -1856,12 +1856,37 @@ class ReadCDF(CDFTests):
         #This is a bit backwards, but easiest way to fill the cache
         _ = [self.cdf.var_num(self.cdf[i].name()) for i in range(len(self.cdf))]
         #This is variable #8
-        self.cdf.clear_from_cache('SpinRateScalersCounts')
-        self.assertFalse('SpinRateScalersCounts' in self.cdf._var_nums)
-        self.assertFalse('SpinRateScalersCountSigma' in self.cdf._var_nums) #9
-        self.assertFalse('MajorNumbers' in self.cdf._var_nums) #10
-        self.assertTrue('SectorRateScalersCountsSigma' in self.cdf._var_nums) #8
+        self.cdf.clear_from_cache(b'SpinRateScalersCounts')
+        self.assertFalse(b'SpinRateScalersCounts' in self.cdf._var_nums)
+        self.assertFalse(b'SpinRateScalersCountSigma' in self.cdf._var_nums) #9
+        self.assertFalse(b'MajorNumbers' in self.cdf._var_nums) #10
+        #7
+        self.assertTrue(b'SectorRateScalersCountsSigma' in self.cdf._var_nums)
         self.assertEqual(10, self.cdf.var_num(b'MajorNumbers')) #Repopulated
+
+    def testCachezAttrNum(self):
+        """Test basic reads of the attr number cache"""
+        self.assertFalse(b'Project' in self.cdf._attr_info)
+        self.assertEqual((0, True), self.cdf.attr_num(b'Project'))
+        self.assertTrue(b'Project' in self.cdf._attr_info)
+        self.assertEqual((0, True), self.cdf._attr_info[b'Project'])
+        self.assertRaises(cdf.CDFError, self.cdf.attr_num, b'foobar')
+        #zAttr?
+        self.assertEqual((41, False), self.cdf.attr_num(b'VALIDMIN'))
+
+    def testDeleteCacheAttrNum(self):
+        """Test deleting something from the attr cache"""
+        #This is a bit backwards, but easiest way to fill the cache
+        _ = [self.cdf.attr_num(self.cdf.attrs[i]._name)
+             for i in range(len(self.cdf.attrs))]
+        #This is attr #8
+        self.cdf.clear_attr_from_cache(b'PI_affiliation')
+        self.assertFalse(b'PI_affiliation' in self.cdf._attr_info)
+        self.assertFalse(b'TEXT' in self.cdf._attr_info) #9
+        self.assertFalse(b'Instrument_type' in self.cdf._attr_info) #10
+        self.assertTrue(b'PI_name' in self.cdf._attr_info) #7
+        #Repopulated
+        self.assertEqual((10, True), self.cdf.attr_num(b'Instrument_type'))
 
 
 class ReadColCDF(ColCDFTests):
