@@ -1550,10 +1550,13 @@ class CDF(collections.MutableMapping):
 
     .. autosummary::
 
+        ~CDF.attr_num
         ~CDF.attrs
+        ~CDF.add_attr_to_cache
         ~CDF.add_to_cache
         ~CDF.backward
         ~CDF.checksum
+        ~CDF.clear_attr_from_cache
         ~CDF.clear_from_cache
         ~CDF.clone
         ~CDF.close
@@ -1579,8 +1582,11 @@ class CDF(collections.MutableMapping):
        (for opening with CDF library before 3.x)
 
     .. automethod:: add_to_cache
+    .. automethod:: add_attr_to_cache
+    .. automethod:: attr_num
     .. automethod:: checksum
     .. automethod:: clear_from_cache
+    .. automethod:: clear_attr_from_cache
     .. automethod:: clone
     .. automethod:: close
     .. automethod:: col_major
@@ -1653,6 +1659,9 @@ class CDF(collections.MutableMapping):
         self.backward = self.version()[0] < 3
         self._var_nums = {}
         """Cache of name-to-number mappings for variables in this CDF"""
+        self._attr_info = {}
+        """Cache of name-to-(number, global) mappings for attributes
+        in this CDF"""
 
     def __del__(self):
         """Destructor; called when CDF object is destroyed.
@@ -2394,6 +2403,68 @@ class CDF(collections.MutableMapping):
             self._var_nums[varname] = num
         return num
 
+    def attr_num(self, attrname):
+        """Get the attribute number and scope by attribute name
+
+        This maintains a cache of name-to-number mappings for attributes
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        attrname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+
+        Raises
+        ======
+        CDFError : if variable is not found
+
+        Returns
+        =======
+        out : tuple
+            attribute number, scope (True for global) of this attribute
+        """
+        res = self._attr_info.get(attrname, None)
+        if res is None: #Copied from Var._get, which can hopefully be thinned
+            attrNum = ctypes.c_long(0)
+            self._call(const.GET_, const.ATTR_NUMBER_, attrname,
+                       ctypes.byref(attrNum))
+            scope = ctypes.c_long(0)
+            self._call(const.SELECT_, const.ATTR_, attrNum,
+                       const.GET_, const.ATTR_SCOPE_, ctypes.byref(scope))
+            if scope.value == const.GLOBAL_SCOPE.value:
+                scope = True
+            elif scope.value == const.VARIABLE_SCOPE.value:
+                scope = False
+            else:
+                raise CDFError(const.BAD_SCOPE)
+            res = (attrNum.value, scope)
+            self._attr_info[attrname] = res
+        return res
+
+    def clear_attr_from_cache(self, attrname):
+        """Mark an attribute deleted in the name-to-number cache
+
+        Will remove an attribute, and all attributes with higher numbers,
+        from the attribute cache.
+
+        Does NOT delete the variable!
+
+        This maintains a cache of name-to-number mappings for attributes
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        attrname : bytes
+            name of the attribute. Not this is NOT a string in Python 3!
+        """
+        num, scope = self.attr_num(attrname)
+        #All numbers higher than this are renumbered
+        for a, n in list(self._attr_info.items()):
+            if n[0] >= num:
+                del self._attr_info[a]
+
     def clear_from_cache(self, varname):
         """Mark a variable deleted in the name-to-number cache
 
@@ -2417,6 +2488,24 @@ class CDF(collections.MutableMapping):
             if n >= num:
                 del self._var_nums[v]
 
+    def add_attr_to_cache(self, attrname, num, scope):
+        """Add an attribute to the name-to-number cache
+
+        This maintains a cache of name-to-number mappings for attributes
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        varname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+        num : int
+            number of the variable
+        scope : bool
+            True if global scope; False if variable scope.
+        """
+        self._attr_info[attrname] = (num, scope)
+
     def add_to_cache(self, varname, num):
         """Add a variable to the name-to-number cache
 
@@ -2434,8 +2523,9 @@ class CDF(collections.MutableMapping):
         self._var_nums[varname] = num
 
     #Note there is no function for delete, currently handled in Var.rename
-    #by just deleting from the dict directly. Maybe this should be different
-    #(maybe should be possible to follow a variable across a rename...)
+    #and Attr.rename by just deleting from the dict directly. Maybe this
+    #should be differen (maybe should be possible to follow a variable across
+    #a rename...)
 
 
 class CDFCopy(spacepy.datamodel.SpaceData):
