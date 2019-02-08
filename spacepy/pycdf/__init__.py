@@ -4114,20 +4114,28 @@ class Attr(collections.MutableSequence):
                 self._name = attr_name.encode('ascii')
             except AttributeError:
                 self._name = attr_name
+            attrno = ctypes.c_long()
             if create:
-                attrno = ctypes.c_long(0)
                 self._cdf_file._call(const.CREATE_, const.ATTR_,
                                      self._name, self.SCOPE,
                                      ctypes.byref(attrno))
-            else:
-                self._cdf_file._call(const.CONFIRM_, const.ATTR_EXISTENCE_,
-                                     self._name)
+                self._cdf_file.add_attr_to_cache(
+                    self._name, attrno.value, self.SCOPE == const.GLOBAL_SCOPE)
+            else: #Ensure exists, and populate cache
+                self._cdf_file._call(const.GET_, const.ATTR_NUMBER_, self._name,
+                                     ctypes.byref(attrno))
+                #Do NOT populate cache yet, because we have weirdness
+                #that may call this where our scope and the scope of the
+                #named attribute may not match
         else:
             name = ctypes.create_string_buffer(const.CDF_ATTR_NAME_LEN256 + 1)
             self._cdf_file._call(const.SELECT_, const.ATTR_,
                                  ctypes.c_long(attr_name))
             self._cdf_file._call(const.GET_, const.ATTR_NAME_, name)
             self._name = name.value.rstrip()
+            #Again, do not populate cache yet
+#            self._cdf_file.add_attr_to_cache(self._name, attr_name,
+#                                            self.SCOPE == const.GLOBAL_SCOPE)
 
     def __getitem__(self, key):
         """Return a slice of Entries.
@@ -4418,7 +4426,8 @@ class Attr(collections.MutableSequence):
                            is set to error on warnings.
         """
         return self._cdf_file._call(
-            const.SELECT_, const.ATTR_NAME_, self._name,
+            const.SELECT_, const.ATTR_,
+            ctypes.c_long(self._cdf_file.attr_num(self._name)[0]),
             *args, **kwargs)
 
     def _entry_len(self, number):
@@ -4568,14 +4577,7 @@ class Attr(collections.MutableSequence):
         out : bool
             True if global (i.e. gAttr), False if zAttr
         """
-        scope = ctypes.c_long(0)
-        self._call(const.GET_, const.ATTR_SCOPE_, ctypes.byref(scope))
-        if scope.value == const.GLOBAL_SCOPE.value:
-            return True
-        elif scope.value == const.VARIABLE_SCOPE.value:
-            return False
-        else:
-            raise CDFError(const.BAD_SCOPE)
+        return self._cdf_file.attr_num(self._name)[1]
 
     def rename(self, new_name):
         """Rename this attribute
@@ -4594,6 +4596,10 @@ class Attr(collections.MutableSequence):
         if len(enc_name) > const.CDF_ATTR_NAME_LEN256:
             raise CDFError(const.BAD_ATTR_NAME)
         self._call(const.PUT_, const.ATTR_NAME_, enc_name)
+        self._cdf_file.add_attr_to_cache(
+            enc_name,
+            *self._cdf_file.attr_num(self._name)) #still in cache
+        del self._cdf_file._attr_info[self._name]
         self._name = enc_name
 
     def _get_entry(self, number):
@@ -4704,6 +4710,8 @@ class Attr(collections.MutableSequence):
         Also deletes all Entries associated with it.
         """
         self._call(const.DELETE_, const.ATTR_)
+        self._cdf_file.clear_attr_from_cache(self._name)
+        self._name = None
 
 
 class zAttr(Attr):
