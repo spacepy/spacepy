@@ -2112,6 +2112,15 @@ class ChangeCDF(ChangeCDFBase):
         del self.cdf['ATC']
         numpy.testing.assert_array_equal(
             zvardata, zvar[...])
+
+    def testDeleteAttrWithRef(self):
+        """Delete a gAttr while having reference to another one"""
+        #This is #19
+        ack = self.cdf.attrs['Acknowledgement']
+        ackdata = ack[...]
+        #This is #3
+        del self.cdf.attrs['Data_type']
+        numpy.testing.assert_array_equal(ackdata, ack[...])
         
     def testNewVar(self):
         """Create a new variable"""
