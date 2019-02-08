@@ -6,7 +6,7 @@ The actual test case was for CHAR entries on FLOAT vars with types
 specified, so that's why that's used here. That has 1492 variables with
 18 attrs each.
 
-32s initially
+32s initially. Down to 17.4 at this point.
 """
 
 import os
