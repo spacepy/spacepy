@@ -2102,6 +2102,8 @@ class ChangeCDF(ChangeCDFBase):
         else:
             self.fail('Should have raised CDFError')
 
+    #This is renamed via a *different* reference, so the original
+    #reference still has the old name, and referenced by name.
     @unittest.expectedFailure
     def testRenameSameVar(self):
         """Rename a variable while keeping a reference to it"""
@@ -2110,6 +2112,20 @@ class ChangeCDF(ChangeCDFBase):
         numpy.testing.assert_array_equal(
             zvar[...], self.cdf['foobar'][...])
 
+    #A variable is deleted but we still have a reference to it
+    #I'm not sure what would be expected behavior here, but
+    #there's a NO_SUCH_VAR error raised.
+    @unittest.expectedFailure
+    def testDeleteAndAccess(self):
+        """Delete a variable and then try to access it again"""
+        zvar = self.cdf['PhysRecNo']
+        number = zvar._num()
+        del self.cdf['PhysRecNo']
+        foo = zvar[...]
+
+    #A completely different variable is made with the same name,
+    #so the old reference will point to the new variable
+    #(referenced by name)
     @unittest.expectedFailure
     def testDeleteSameName(self):
         """Delete a variable and re-make with same name"""

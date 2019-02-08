@@ -1516,14 +1516,37 @@ class CDF(collections.MutableMapping):
     Although it is supported to assign Var objects to Python variables
     for convenience, there are some minor pitfalls that can arise when
     changing a CDF that will not affect most users. This is only a
-    concern when assigning a zVar object to a Python variable,
-    deleting the variable in the CDF, and then trying to use the zVar
-    object via the originally assigned variable. The results will be
-    undefined:
+    concern when assigning a zVar object to a Python variable, changing the
+    CDF through some other variable, and then trying to use the zVar
+    object via the originally assigned variable.
+
+    Deleting a variable:
 
         >>> var = cdffile['Var1']
         >>> del cdffile['Var1']
-        >>> var[0] #fail
+        >>> var[0] #fail, no such variable
+
+    Renaming a variable:
+
+        >>> var = cdffile['Var1']
+        >>> cdffile['Var1'].rename('Var2')
+        >>> var[0] #fail, no such variable
+
+    Renaming via the same variable works:
+
+        >>> var = cdffile['Var1']
+        >>> var.rename('Var2')
+        >>> var[0] #succeeds, aware of new name
+
+    Deleting a variable and then creating another variable with the same name
+    may lead to some surprises:
+
+        >>> var = cdffile['Var1']
+        >>> var[...] = [1, 2, 3, 4]
+        >>> del cdffile['Var1']
+        >>> cdffile.new('Var1', data=[5, 6, 7, 8]
+        >>> var[...]
+        [5, 6, 7, 8]
 
     .. autosummary::
 
@@ -3331,6 +3354,9 @@ class Var(collections.MutableSequence):
         if len(enc_name) > const.CDF_VAR_NAME_LEN256:
             raise CDFError(const.BAD_VAR_NAME)
         self._call(const.PUT_, const.zVAR_NAME_, enc_name)
+        self.cdf_file.add_to_cache(
+            enc_name,
+            self.cdf_file.var_num(self._name)) #Still in cache
         del self.cdf_file._var_nums[self._name]
         self._name = enc_name
 
