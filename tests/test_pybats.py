@@ -161,6 +161,18 @@ class TestMagGrid(unittest.TestCase):
         self.assertAlmostEqual(self.knownDbnMax, m2['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m2['dBnPed'].max())
 
+    def testOpenTypeGuess(self):
+        # Open both binary and ascii versions of same data
+        # without specifying the type.
+        # Ensure expected values are loaded.
+        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out')
+        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+
+        self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
+        self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
+        self.assertAlmostEqual(self.knownDbnMax, m2['dBn'].max())
+        self.assertAlmostEqual(self.knownPedMax, m2['dBnPed'].max())
+
     def testCalc(self):
         # Open both binary and ascii versions of same data.
         # Ensure calculations give expected values.
