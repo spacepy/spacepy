@@ -92,7 +92,7 @@ class DataManager(object):
         #Convert to system path format
         directories = [os.path.expandvars(os.path.expanduser(
             os.path.normpath(d))) for d in directories]
-        file_fmt = os.path.normpath(file_fmt)
+        file_fmt = posixpath.normpath(file_fmt)
         #The period matching might go into RePath
         if period is None:
             period = next(
@@ -118,25 +118,45 @@ class DataManager(object):
     def files_matching(self, dt=None):
         """
         Return all the files matching this file format
+
+        Parameters
+        ==========
+        dt : datetime
+            Optional; if specified, match only files for this date.
+
+        Returns
+        =======
+        out : generator
+            Iterates over every file matching the format specified at
+            creation. Note this is specified in native path format!
         """
         #Use os.walk. If descend is False, only continue for matching
         #the re to this point. If True, compare branch to entire re but
         #walk everything
         for d in self.directories:
+            native_d = os.path.normpath(d) #Do the walk in native paths
             for (dirpath, dirnames, filenames) in \
-                os.walk(d, topdown=True, followlinks=True):
-                #dirpath is FULL DIRECTORY to this point
-                relpath = dirpath[len(d) + 1:]
+                os.walk(native_d, topdown=True, followlinks=True):
+                #dirpath is FULL DIRECTORY to this point, make relative
+                relpath = dirpath[len(native_d) + 1:]
+                #Convert to POSIX for comparisons
+                if os.path.sep != posixpath.sep and relpath:
+                    relpath = posixpath.join(*RePath.path_split(
+                        relpath, native=True))
                 if not self.descend:
                     if relpath and not \
                        self.file_fmt.match(relpath, dt, 'start'):
                         continue
                     for i in range(-len(dirnames), 0):
-                        if not self.file_fmt.match(os.path.join(
-                                relpath, dirnames[i]), dt, 'start'):
+                        dirname = dirnames[i]
+                        if os.path.sep != posixpath.sep and dirname:
+                            dirname = posixpath.join(*RePath.path_split(
+                                dirname, native=True))
+                        if not self.file_fmt.match(posixpath.join(
+                                relpath, dirname), dt, 'start'):
                             del dirnames[i]
                 for f in filenames:
-                    if self.file_fmt.match(os.path.join(relpath, f), dt,
+                    if self.file_fmt.match(posixpath.join(relpath, f), dt,
                                            'end' if self.descend else None):
                         yield os.path.join(dirpath, f)
 

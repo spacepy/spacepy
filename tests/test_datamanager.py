@@ -11,6 +11,7 @@ import itertools
 import ntpath
 import os
 import os.path
+import posixpath
 import shutil
 import sys
 import tempfile
@@ -62,6 +63,9 @@ class DataManagerClassTests(unittest.TestCase):
                                                  c['descend'])
             expected = [os.path.join(dirlist[0], f) for f in c['files1']]
             expected.extend([os.path.join(dirlist[1], f) for f in c['files2']])
+            #We're not going to be crazy and put slashes in the tests....
+            expected = [e.replace(posixpath.sep, os.path.sep)
+                        for e in expected]
             output = list(dm.files_matching(c['dt']))
             numpy.testing.assert_array_equal(
                 sorted(expected), sorted(output), 'Case:' + str(c))
@@ -161,6 +165,14 @@ class RePathTests(unittest.TestCase):
         self.assertTrue(r.match(
             '2015/rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf',
             where='end'))
+
+    def test_path_match_toplevel(self):
+        """Single toplevel dir"""
+        #This is the reduced case of Case 3 in test_files_matching,
+        #which fails on Windows
+        r = spacepy.datamanager.RePath(
+            r'%Y/rbspa_ect-hope-sci-L2_%Y%m%d_v(\d\.){3}cdf')
+        self.assertTrue(r.match('2015', None, 'start'))
 
 
 class DataManagerFunctionTests(unittest.TestCase):
