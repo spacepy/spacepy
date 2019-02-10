@@ -243,7 +243,7 @@ class RePath(object):
         return res
 
     @staticmethod
-    def path_slice(path, start, stop=None, step=None):
+    def path_slice(path, start, stop=None, step=None, native=False):
         """
         Slice a path by elements, as in getitem or []
 
@@ -262,6 +262,8 @@ class RePath(object):
             If ``stop`` is not specified but ``step`` is, return to end.
         step : int
             Increment between each.
+        native : bool
+            Is this a native path or UNIX-style? (default False, UNIX)
 
         Returns
         =======
@@ -279,9 +281,11 @@ class RePath(object):
         "bar/baz"
         """
         if stop is None and step is None:
-            return RePath.path_split(path)[start]
+            return RePath.path_split(path, native=native)[start]
         else:
-            return os.path.join(*RePath.path_split(path)[start:stop:step])
+            join = (os.path if native else posixpath).join
+            return join(*RePath.path_split(path, native=native)
+                        [start:stop:step])
 
 
 def insert_fill(times, data, fillval=numpy.nan, tol=1.5, absolute=None, doTimes=True):
