@@ -12,6 +12,7 @@ import ntpath
 import os
 import os.path
 import shutil
+import sys
 import tempfile
 import unittest
 
@@ -79,8 +80,9 @@ class RePathTests(unittest.TestCase):
 
     def test_path_split_win(self):
         """Simple splitting on Windows paths"""
-        oldpath = os.path
-        os.path = ntpath #Pretend we're on Windows
+        if sys.platform != 'win32':
+            oldpath = os.path
+            os.path = ntpath #Pretend we're on Windows
         try:
             path = "foo\\bar\\baz"
             self.assertEqual(
@@ -91,7 +93,8 @@ class RePathTests(unittest.TestCase):
                 ["C:\\", "foo", "rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"],
                 spacepy.datamanager.RePath.path_split(path, native=True))
         finally:
-            os.path = oldpath
+            if sys.platform != 'win32':
+                os.path = oldpath
 
     def test_path_slice(self):
         """Verify slicing on a path"""
@@ -104,6 +107,27 @@ class RePathTests(unittest.TestCase):
         self.assertEqual("bar/baz",
                          spacepy.datamanager.RePath.path_slice(
                              path, 1, 3))
+
+    def test_path_slice_win(self):
+        """Verify slicing on a path, Windows"""
+        if sys.platform != 'win32':
+            oldpath = os.path
+            os.path = ntpath #Pretend we're on Windows
+        try:
+            path = "foo\\bar\\baz"
+            self.assertEqual(
+                "bar",
+                spacepy.datamanager.RePath.path_slice(path, 1, native=True))
+            self.assertEqual(
+                "foo\\baz",
+                spacepy.datamanager.RePath.path_slice(
+                    path, 0, step=2, native=True))
+            self.assertEqual(
+                "bar\\baz",
+                spacepy.datamanager.RePath.path_slice(path, 1, 3, native=True))
+        finally:
+            if sys.platform != 'win32':
+                os.path = oldpath
 
     def test_path_match(self):
         """Verify matching a path regex"""
