@@ -60,7 +60,8 @@ class DataManagerClassTests(unittest.TestCase):
             expected = [os.path.join(dirlist[0], f) for f in c['files1']]
             expected.extend([os.path.join(dirlist[1], f) for f in c['files2']])
             output = list(dm.files_matching(c['dt']))
-            numpy.testing.assert_array_equal(expected, output, 'Case:' + str(c))
+            numpy.testing.assert_array_equal(
+                sorted(expected), sorted(output), 'Case:' + str(c))
 
 
 class RePathTests(unittest.TestCase):
