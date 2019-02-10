@@ -86,6 +86,18 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
 
+    def testReadAsciiAsBin(self):
+        """Read an ASCII file as a binary"""
+        try:
+            data = pb.IdlFile('data/pybats_test/mag_grid_ascii.out',
+                              format='bin', header=None, keep_case=True)
+        except EOFError as e:
+            msg = str(e)
+        else:
+            self.fail('Should have raised EOFError')
+        self.assertEqual(msg, 'File is shorter than expected data')
+
+
 class TestRim(unittest.TestCase):
 
     def testReadZip(self):
