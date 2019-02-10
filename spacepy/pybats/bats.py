@@ -3273,7 +3273,7 @@ class VirtSat(LogFile):
         try:
             s = self.attrs['file']
             a = findall('sat_([\-\w]+)_\d+_n\d+\.sat|sat_(\w+)_n\d+\.sat', s)[0]
-            name = filter(None, a)[0]
+            name = list(filter(None, a))[0]
         except IndexError:
             name = None
         self.attrs['name']=name
