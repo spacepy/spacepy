@@ -525,6 +525,26 @@ def readarray(f,dtype=np.float32,inttype=np.int32):
         # Zero-length record...file may be truncated
         raise EOFError('Zero-length read at start marker')
 
+    try:
+        startpos = f.tell()
+    except IOError:
+        seekable = False
+    else:
+        seekable = True
+    if seekable:
+        f.seek(0, 2)
+        endpos = f.tell()
+        if endpos - startpos < (rec_len[0] + np.dtype(inttype).itemsize):
+            raise EOFError('File is shorter than expected data')
+        f.seek(startpos + rec_len[0], 0)
+        rec_len_end = np.fromfile(f,dtype=inttype,count=1)
+        f.seek(startpos, 0)
+        if rec_len_end != rec_len:
+            raise ValueError((
+                'Read error: End marker length ({0:d}) does not match start '
+                'marker length ({1:d}).').format(rec_len[0], rec_len_end[0]) + 
+                'This indicates incorrect endiannes, wrong file type, '
+                'or file is corrupt.')
     # Read the data
     if dtype is str:
         A=f.read(rec_len[0])
