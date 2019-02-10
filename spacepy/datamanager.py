@@ -422,7 +422,7 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, absolute=None, doTimes=
                 "Unable to uniquely match shape of data to count of times.")
         timeaxis = matches[0]
     fillshape = numpy.delete(data.shape, timeaxis) #shape of data w/o time axis
-    if numpy.shape(fillval) != fillshape:
+    if (numpy.shape(fillval) != fillshape).any():
         if numpy.shape(fillval) == ():
             fillval = numpy.tile(fillval, fillshape)
         else:
