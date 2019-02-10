@@ -50,6 +50,7 @@ __all__ = ["DataManager", "apply_index", "array_interleave", "axis_index",
 import datetime
 import operator
 import os.path
+import posixpath
 import re
 
 import numpy
@@ -214,7 +215,7 @@ class RePath(object):
         return re.match('^' + pat + '$', string)
 
     @staticmethod
-    def path_split(path):
+    def path_split(path, native=False):
         """
         Break a path apart into a list for each path element.
 
@@ -222,19 +223,23 @@ class RePath(object):
         ==========
         path : str
             Path to split
+        native : bool
+            Is this a native path or UNIX-style? (default False, UNIX)
 
         Returns
         =======
         out : list of str
             One path element (directory or file) per item
         """
+        split = os.path.split if native else posixpath.split
         res = []
         while path:
-            path, tail = os.path.split(path)
-            res.insert(0, tail)
-            if path == '/':
-                res.insert(0, '/')
+            base, tail = split(path)
+            if base == path: #No further splitting
+                res.insert(0, path)
                 break
+            res.insert(0, tail)
+            path = base
         return res
 
     @staticmethod

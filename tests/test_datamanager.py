@@ -8,7 +8,9 @@ Copyright 2015 University System of New Hampshire
 
 import datetime
 import itertools
+import ntpath
 import os
+import os.path
 import shutil
 import tempfile
 import unittest
@@ -74,6 +76,22 @@ class RePathTests(unittest.TestCase):
         self.assertEqual(
             ["/", "foo", "rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"],
             spacepy.datamanager.RePath.path_split(path))
+
+    def test_path_split_win(self):
+        """Simple splitting on Windows paths"""
+        oldpath = os.path
+        os.path = ntpath #Pretend we're on Windows
+        try:
+            path = "foo\\bar\\baz"
+            self.assertEqual(
+                ["foo", "bar", "baz"],
+                spacepy.datamanager.RePath.path_split(path, native=True))
+            path = "C:\\foo\\rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"
+            self.assertEqual(
+                ["C:\\", "foo", "rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"],
+                spacepy.datamanager.RePath.path_split(path, native=True))
+        finally:
+            os.path = oldpath
 
     def test_path_slice(self):
         """Verify slicing on a path"""
