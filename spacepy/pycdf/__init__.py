@@ -49,7 +49,10 @@ Copyright 2010-2015 Los Alamos National Security, LLC.
 
 __contact__ = 'Jon Niehof, Jonathan.Niehof@unh.edu'
 
-import collections
+try:
+    from collections.abc import MutableMapping, MutableSequence
+except ImportError:
+    from collections import MutableMapping, MutableSequence
 import ctypes
 import ctypes.util
 import datetime
@@ -1357,7 +1360,7 @@ def _compress(obj, comptype=None, param=None):
     return (comptype, param)
 
 
-class CDF(collections.MutableMapping):
+class CDF(MutableMapping):
     """
     Python object representing a CDF file.
 
@@ -2561,7 +2564,7 @@ class CDFCopy(spacepy.datamodel.SpaceData):
                                       attrs = cdf.attrs.copy())
 
 
-class Var(collections.MutableSequence):
+class Var(MutableSequence):
     """
     A CDF variable.
 
@@ -4048,7 +4051,7 @@ class _Hyperslice(object):
         return (start, count, step, rev)
 
 
-class Attr(collections.MutableSequence):
+class Attr(MutableSequence):
     """An attribute, g or z, for a CDF
 
     .. warning::
@@ -4850,7 +4853,7 @@ class gAttr(Attr):
     ENTRY_DATASPEC_ = const.gENTRY_DATASPEC_
 
 
-class AttrList(collections.MutableMapping):
+class AttrList(MutableMapping):
     """Object representing a list of attributes.
 
     .. warning::

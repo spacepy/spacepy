@@ -15,7 +15,10 @@ Copyright 2010 Los Alamos National Security, LLC.
 """
 
 import itertools, numbers
-from collections import Iterable
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 import sys, os
 import warnings
 
