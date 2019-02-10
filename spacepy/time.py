@@ -88,7 +88,10 @@ Contact: smorley@lanl.gov,
 Copyright 2010 Los Alamos National Security, LLC.
 """
 import bisect
-import collections
+try:
+    from collections.abc import Callable, MutableSequence
+except ImportError:
+    from collections import Callable, MutableSequence
 import datetime
 
 try:
@@ -120,7 +123,7 @@ an "optimization flag" (-O), but currently this does not actually optimize the b
 # -----------------------------------------------
 # Ticktock class
 # -----------------------------------------------
-class Ticktock(collections.MutableSequence):
+class Ticktock(MutableSequence):
     """
     Ticktock( data, dtype )
 
@@ -225,7 +228,7 @@ class Ticktock(collections.MutableSequence):
             else:
                 self.data = spacepy.datamodel.dmarray(data)
 
-            if not isinstance(dtype, collections.Callable):
+            if not isinstance(dtype, Callable):
                 if isinstance(self.data[0], str):
                     dtype = 'ISO'
                 elif isinstance(self.data[0], datetime.datetime):

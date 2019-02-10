@@ -7,7 +7,10 @@ Unit test suite for pycdf
 Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
-import collections
+try:
+    from collections.abc import Callable
+except ImportError:
+    from collections import Callable
 import ctypes
 import datetime
 import gc
@@ -20,13 +23,6 @@ import sys
 import tempfile
 import unittest
 import warnings
-
-try:
-    type(callable)
-except NameError:
-    import collections
-    def callable(obj):
-        return isinstance(obj, collections.Callable)
 
 import matplotlib.dates
 import numpy
@@ -945,7 +941,7 @@ class ReadCDF(CDFTests):
         #cmp() function'
         testnames = [name for name in dir(self)
                      if name[0:4] == 'test' and
-                     isinstance(getattr(self,name), collections.Callable)]
+                     isinstance(getattr(self,name), Callable)]
         self.last_test = max(testnames)
 
     def setUp(self):
@@ -1905,7 +1901,7 @@ class ReadColCDF(ColCDFTests):
         #cmp() function'
         testnames = [name for name in dir(self)
                      if name[0:4] == 'test' and
-                     isinstance(getattr(self,name), collections.Callable)]
+                     isinstance(getattr(self,name), Callable)]
         self.last_test = max(testnames)
 
     def setUp(self):
