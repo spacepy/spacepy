@@ -43,6 +43,8 @@ SpacePy has a number of well-maintained dependencies, most of which are automati
  - matplotlib (>=1.5)
  - h5py
 
+Numpy versions 1.16.0 and 1.16.1 have a currently unresolved regression that fails to build SpacePy's Fortran modules. This may affect all versions of Python 3.
+
 Soft dependencies (that are required only for a very limited part of SpacePy's functionality) are:
  - ffnet
  - NASA CDF

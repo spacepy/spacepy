@@ -8,8 +8,12 @@ Copyright 2015 University System of New Hampshire
 
 import datetime
 import itertools
+import ntpath
 import os
+import os.path
+import posixpath
 import shutil
+import sys
 import tempfile
 import unittest
 
@@ -59,8 +63,12 @@ class DataManagerClassTests(unittest.TestCase):
                                                  c['descend'])
             expected = [os.path.join(dirlist[0], f) for f in c['files1']]
             expected.extend([os.path.join(dirlist[1], f) for f in c['files2']])
+            #We're not going to be crazy and put slashes in the tests....
+            expected = [e.replace(posixpath.sep, os.path.sep)
+                        for e in expected]
             output = list(dm.files_matching(c['dt']))
-            numpy.testing.assert_array_equal(expected, output, 'Case:' + str(c))
+            numpy.testing.assert_array_equal(
+                sorted(expected), sorted(output), 'Case:' + str(c))
 
 
 class RePathTests(unittest.TestCase):
@@ -74,6 +82,24 @@ class RePathTests(unittest.TestCase):
             ["/", "foo", "rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"],
             spacepy.datamanager.RePath.path_split(path))
 
+    def test_path_split_win(self):
+        """Simple splitting on Windows paths"""
+        if sys.platform != 'win32':
+            oldpath = os.path
+            os.path = ntpath #Pretend we're on Windows
+        try:
+            path = "foo\\bar\\baz"
+            self.assertEqual(
+                ["foo", "bar", "baz"],
+                spacepy.datamanager.RePath.path_split(path, native=True))
+            path = "C:\\foo\\rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"
+            self.assertEqual(
+                ["C:\\", "foo", "rbspa_ect-hope-sci-L2_20150409_v5.0.0.cdf"],
+                spacepy.datamanager.RePath.path_split(path, native=True))
+        finally:
+            if sys.platform != 'win32':
+                os.path = oldpath
+
     def test_path_slice(self):
         """Verify slicing on a path"""
         path = "foo/bar/baz"
@@ -85,6 +111,27 @@ class RePathTests(unittest.TestCase):
         self.assertEqual("bar/baz",
                          spacepy.datamanager.RePath.path_slice(
                              path, 1, 3))
+
+    def test_path_slice_win(self):
+        """Verify slicing on a path, Windows"""
+        if sys.platform != 'win32':
+            oldpath = os.path
+            os.path = ntpath #Pretend we're on Windows
+        try:
+            path = "foo\\bar\\baz"
+            self.assertEqual(
+                "bar",
+                spacepy.datamanager.RePath.path_slice(path, 1, native=True))
+            self.assertEqual(
+                "foo\\baz",
+                spacepy.datamanager.RePath.path_slice(
+                    path, 0, step=2, native=True))
+            self.assertEqual(
+                "bar\\baz",
+                spacepy.datamanager.RePath.path_slice(path, 1, 3, native=True))
+        finally:
+            if sys.platform != 'win32':
+                os.path = oldpath
 
     def test_path_match(self):
         """Verify matching a path regex"""
@@ -118,6 +165,14 @@ class RePathTests(unittest.TestCase):
         self.assertTrue(r.match(
             '2015/rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf',
             where='end'))
+
+    def test_path_match_toplevel(self):
+        """Single toplevel dir"""
+        #This is the reduced case of Case 3 in test_files_matching,
+        #which fails on Windows
+        r = spacepy.datamanager.RePath(
+            r'%Y/rbspa_ect-hope-sci-L2_%Y%m%d_v(\d\.){3}cdf')
+        self.assertTrue(r.match('2015', None, 'start'))
 
 
 class DataManagerFunctionTests(unittest.TestCase):

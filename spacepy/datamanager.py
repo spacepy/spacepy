@@ -50,6 +50,7 @@ __all__ = ["DataManager", "apply_index", "array_interleave", "axis_index",
 import datetime
 import operator
 import os.path
+import posixpath
 import re
 
 import numpy
@@ -91,7 +92,7 @@ class DataManager(object):
         #Convert to system path format
         directories = [os.path.expandvars(os.path.expanduser(
             os.path.normpath(d))) for d in directories]
-        file_fmt = os.path.normpath(file_fmt)
+        file_fmt = posixpath.normpath(file_fmt)
         #The period matching might go into RePath
         if period is None:
             period = next(
@@ -117,25 +118,45 @@ class DataManager(object):
     def files_matching(self, dt=None):
         """
         Return all the files matching this file format
+
+        Parameters
+        ==========
+        dt : datetime
+            Optional; if specified, match only files for this date.
+
+        Returns
+        =======
+        out : generator
+            Iterates over every file matching the format specified at
+            creation. Note this is specified in native path format!
         """
         #Use os.walk. If descend is False, only continue for matching
         #the re to this point. If True, compare branch to entire re but
         #walk everything
         for d in self.directories:
+            native_d = os.path.normpath(d) #Do the walk in native paths
             for (dirpath, dirnames, filenames) in \
-                os.walk(d, topdown=True, followlinks=True):
-                #dirpath is FULL DIRECTORY to this point
-                relpath = dirpath[len(d) + 1:]
+                os.walk(native_d, topdown=True, followlinks=True):
+                #dirpath is FULL DIRECTORY to this point, make relative
+                relpath = dirpath[len(native_d) + 1:]
+                #Convert to POSIX for comparisons
+                if os.path.sep != posixpath.sep and relpath:
+                    relpath = posixpath.join(*RePath.path_split(
+                        relpath, native=True))
                 if not self.descend:
                     if relpath and not \
                        self.file_fmt.match(relpath, dt, 'start'):
                         continue
                     for i in range(-len(dirnames), 0):
-                        if not self.file_fmt.match(os.path.join(
-                                relpath, dirnames[i]), dt, 'start'):
+                        dirname = dirnames[i]
+                        if os.path.sep != posixpath.sep and dirname:
+                            dirname = posixpath.join(*RePath.path_split(
+                                dirname, native=True))
+                        if not self.file_fmt.match(posixpath.join(
+                                relpath, dirname), dt, 'start'):
                             del dirnames[i]
                 for f in filenames:
-                    if self.file_fmt.match(os.path.join(relpath, f), dt,
+                    if self.file_fmt.match(posixpath.join(relpath, f), dt,
                                            'end' if self.descend else None):
                         yield os.path.join(dirpath, f)
 
@@ -214,7 +235,7 @@ class RePath(object):
         return re.match('^' + pat + '$', string)
 
     @staticmethod
-    def path_split(path):
+    def path_split(path, native=False):
         """
         Break a path apart into a list for each path element.
 
@@ -222,23 +243,27 @@ class RePath(object):
         ==========
         path : str
             Path to split
+        native : bool
+            Is this a native path or UNIX-style? (default False, UNIX)
 
         Returns
         =======
         out : list of str
             One path element (directory or file) per item
         """
+        split = os.path.split if native else posixpath.split
         res = []
         while path:
-            path, tail = os.path.split(path)
-            res.insert(0, tail)
-            if path == '/':
-                res.insert(0, '/')
+            base, tail = split(path)
+            if base == path: #No further splitting
+                res.insert(0, path)
                 break
+            res.insert(0, tail)
+            path = base
         return res
 
     @staticmethod
-    def path_slice(path, start, stop=None, step=None):
+    def path_slice(path, start, stop=None, step=None, native=False):
         """
         Slice a path by elements, as in getitem or []
 
@@ -257,6 +282,8 @@ class RePath(object):
             If ``stop`` is not specified but ``step`` is, return to end.
         step : int
             Increment between each.
+        native : bool
+            Is this a native path or UNIX-style? (default False, UNIX)
 
         Returns
         =======
@@ -274,9 +301,11 @@ class RePath(object):
         "bar/baz"
         """
         if stop is None and step is None:
-            return RePath.path_split(path)[start]
+            return RePath.path_split(path, native=native)[start]
         else:
-            return os.path.join(*RePath.path_split(path)[start:stop:step])
+            join = (os.path if native else posixpath).join
+            return join(*RePath.path_split(path, native=native)
+                        [start:stop:step])
 
 
 def insert_fill(times, data, fillval=numpy.nan, tol=1.5, absolute=None, doTimes=True):
@@ -393,7 +422,7 @@ def insert_fill(times, data, fillval=numpy.nan, tol=1.5, absolute=None, doTimes=
                 "Unable to uniquely match shape of data to count of times.")
         timeaxis = matches[0]
     fillshape = numpy.delete(data.shape, timeaxis) #shape of data w/o time axis
-    if numpy.shape(fillval) != fillshape:
+    if (numpy.shape(fillval) != fillshape).any():
         if numpy.shape(fillval) == ():
             fillval = numpy.tile(fillval, fillshape)
         else:

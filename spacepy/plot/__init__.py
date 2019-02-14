@@ -70,6 +70,10 @@ several submodules listed below
     utils
 
 """
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
 import os
 import numpy as np
 import matplotlib as mpl
@@ -305,8 +309,7 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
             raise KeyError('Key "{1}" not present in data'.format(var))
     else:
         #var is None, so make sure we don't have a dict-like
-        import collections
-        if not isinstance(data, collections.Mapping):
+        if not isinstance(data, Mapping):
             usearr = np.asarray(data)
         else:
             raise TypeError('Data appears to be dict-like without a key being given')

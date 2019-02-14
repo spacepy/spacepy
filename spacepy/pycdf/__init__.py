@@ -49,7 +49,10 @@ Copyright 2010-2015 Los Alamos National Security, LLC.
 
 __contact__ = 'Jon Niehof, Jonathan.Niehof@unh.edu'
 
-import collections
+try:
+    from collections.abc import MutableMapping, MutableSequence
+except ImportError:
+    from collections import MutableMapping, MutableSequence
 import ctypes
 import ctypes.util
 import datetime
@@ -1357,7 +1360,7 @@ def _compress(obj, comptype=None, param=None):
     return (comptype, param)
 
 
-class CDF(collections.MutableMapping):
+class CDF(MutableMapping):
     """
     Python object representing a CDF file.
 
@@ -1513,11 +1516,51 @@ class CDF(collections.MutableMapping):
     or, if more control is needed over the type and dimensions, use
     :py:meth:`new`.
 
+    Although it is supported to assign Var objects to Python variables
+    for convenience, there are some minor pitfalls that can arise when
+    changing a CDF that will not affect most users. This is only a
+    concern when assigning a zVar object to a Python variable, changing the
+    CDF through some other variable, and then trying to use the zVar
+    object via the originally assigned variable.
+
+    Deleting a variable:
+
+        >>> var = cdffile['Var1']
+        >>> del cdffile['Var1']
+        >>> var[0] #fail, no such variable
+
+    Renaming a variable:
+
+        >>> var = cdffile['Var1']
+        >>> cdffile['Var1'].rename('Var2')
+        >>> var[0] #fail, no such variable
+
+    Renaming via the same variable works:
+
+        >>> var = cdffile['Var1']
+        >>> var.rename('Var2')
+        >>> var[0] #succeeds, aware of new name
+
+    Deleting a variable and then creating another variable with the same name
+    may lead to some surprises:
+
+        >>> var = cdffile['Var1']
+        >>> var[...] = [1, 2, 3, 4]
+        >>> del cdffile['Var1']
+        >>> cdffile.new('Var1', data=[5, 6, 7, 8]
+        >>> var[...]
+        [5, 6, 7, 8]
+
     .. autosummary::
 
+        ~CDF.attr_num
         ~CDF.attrs
+        ~CDF.add_attr_to_cache
+        ~CDF.add_to_cache
         ~CDF.backward
         ~CDF.checksum
+        ~CDF.clear_attr_from_cache
+        ~CDF.clear_from_cache
         ~CDF.clone
         ~CDF.close
         ~CDF.col_major
@@ -1528,6 +1571,7 @@ class CDF(collections.MutableMapping):
         ~CDF.raw_var
         ~CDF.readonly
         ~CDF.save
+        ~CDF.var_num
         ~CDF.version
 
     .. attribute:: CDF.attrs
@@ -1540,7 +1584,12 @@ class CDF(collections.MutableMapping):
        True if this CDF was created in backward-compatible mode
        (for opening with CDF library before 3.x)
 
+    .. automethod:: add_to_cache
+    .. automethod:: add_attr_to_cache
+    .. automethod:: attr_num
     .. automethod:: checksum
+    .. automethod:: clear_from_cache
+    .. automethod:: clear_attr_from_cache
     .. automethod:: clone
     .. automethod:: close
     .. automethod:: col_major
@@ -1551,7 +1600,9 @@ class CDF(collections.MutableMapping):
     .. automethod:: raw_var
     .. automethod:: readonly
     .. automethod:: save
+    .. automethod:: var_num
     .. automethod:: version
+
     """
     def __init__(self, pathname, masterpath=None, create=None, readonly=None):
         """Open or create a CDF file.
@@ -1609,6 +1660,11 @@ class CDF(collections.MutableMapping):
         lib.call(const.SELECT_, const.CDF_zMODE_, ctypes.c_long(2))
         self._attrlistref = weakref.ref(gAttrList(self))
         self.backward = self.version()[0] < 3
+        self._var_nums = {}
+        """Cache of name-to-number mappings for variables in this CDF"""
+        self._attr_info = {}
+        """Cache of name-to-(number, global) mappings for attributes
+        in this CDF"""
 
     def __del__(self):
         """Destructor; called when CDF object is destroyed.
@@ -2320,6 +2376,161 @@ class CDF(collections.MutableMapping):
         See :class:`gAttrList` for details.
         """)
 
+    def var_num(self, varname):
+        """Get the variable number of a particular variable name
+
+        This maintains a cache of name-to-number mappings for zVariables
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        varname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+
+        Raises
+        ======
+        CDFError : if variable is not found
+
+        Returns
+        =======
+        out : int
+            Variable number of this zvariable.
+        """
+        num = self._var_nums.get(varname, None)
+        if num is None: #Copied from Var._get, which can hopefully be thinned
+            varNum = ctypes.c_long(0)
+            self._call(const.GET_, const.zVAR_NUMBER_, varname,
+                       ctypes.byref(varNum))
+            num = varNum.value
+            self._var_nums[varname] = num
+        return num
+
+    def attr_num(self, attrname):
+        """Get the attribute number and scope by attribute name
+
+        This maintains a cache of name-to-number mappings for attributes
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        attrname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+
+        Raises
+        ======
+        CDFError : if variable is not found
+
+        Returns
+        =======
+        out : tuple
+            attribute number, scope (True for global) of this attribute
+        """
+        res = self._attr_info.get(attrname, None)
+        if res is None: #Copied from Var._get, which can hopefully be thinned
+            attrNum = ctypes.c_long(0)
+            self._call(const.GET_, const.ATTR_NUMBER_, attrname,
+                       ctypes.byref(attrNum))
+            scope = ctypes.c_long(0)
+            self._call(const.SELECT_, const.ATTR_, attrNum,
+                       const.GET_, const.ATTR_SCOPE_, ctypes.byref(scope))
+            if scope.value == const.GLOBAL_SCOPE.value:
+                scope = True
+            elif scope.value == const.VARIABLE_SCOPE.value:
+                scope = False
+            else:
+                raise CDFError(const.BAD_SCOPE)
+            res = (attrNum.value, scope)
+            self._attr_info[attrname] = res
+        return res
+
+    def clear_attr_from_cache(self, attrname):
+        """Mark an attribute deleted in the name-to-number cache
+
+        Will remove an attribute, and all attributes with higher numbers,
+        from the attribute cache.
+
+        Does NOT delete the variable!
+
+        This maintains a cache of name-to-number mappings for attributes
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        attrname : bytes
+            name of the attribute. Not this is NOT a string in Python 3!
+        """
+        num, scope = self.attr_num(attrname)
+        #All numbers higher than this are renumbered
+        for a, n in list(self._attr_info.items()):
+            if n[0] >= num:
+                del self._attr_info[a]
+
+    def clear_from_cache(self, varname):
+        """Mark a variable deleted in the name-to-number cache
+
+        Will remove a variable, and all variables with higher numbers,
+        from the variable cache.
+
+        Does NOT delete the variable!
+
+        This maintains a cache of name-to-number mappings for zVariables
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        varname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+        """
+        num = self.var_num(varname)
+        #All numbers higher than this are renumbered
+        for v, n in list(self._var_nums.items()):
+            if n >= num:
+                del self._var_nums[v]
+
+    def add_attr_to_cache(self, attrname, num, scope):
+        """Add an attribute to the name-to-number cache
+
+        This maintains a cache of name-to-number mappings for attributes
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        varname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+        num : int
+            number of the variable
+        scope : bool
+            True if global scope; False if variable scope.
+        """
+        self._attr_info[attrname] = (num, scope)
+
+    def add_to_cache(self, varname, num):
+        """Add a variable to the name-to-number cache
+
+        This maintains a cache of name-to-number mappings for zVariables
+        to keep from having to query the CDF library constantly. It's mostly
+        an internal function.
+
+        Parameters
+        ==========
+        varname : bytes
+            name of the zVariable. Not this is NOT a string in Python 3!
+        num : int
+            number of the variable
+        """
+        self._var_nums[varname] = num
+
+    #Note there is no function for delete, currently handled in Var.rename
+    #and Attr.rename by just deleting from the dict directly. Maybe this
+    #should be differen (maybe should be possible to follow a variable across
+    #a rename...)
+
+
 class CDFCopy(spacepy.datamodel.SpaceData):
     """
     A dictionary-like copy of all data and attributes in a :py:class:`CDF`
@@ -2353,7 +2564,7 @@ class CDFCopy(spacepy.datamodel.SpaceData):
                                       attrs = cdf.attrs.copy())
 
 
-class Var(collections.MutableSequence):
+class Var(MutableSequence):
     """
     A CDF variable.
 
@@ -2636,6 +2847,7 @@ class Var(collections.MutableSequence):
             if CDF library reports a warning
         """
         self.cdf_file = cdf_file
+        #This is the definitive "identify" of variable
         self._name = None
         self._type = None #CDF type (long)
         self._raw = False #Raw access (skip all conversions)
@@ -2891,6 +3103,7 @@ class Var(collections.MutableSequence):
                  ctypes.c_long(n_elements), ctypes.c_long(len(dims)), dim_array,
                  recVary, dim_vary_array, ctypes.byref(varNum))
         self._name = enc_name
+        self.cdf_file.add_to_cache(enc_name, varNum.value)
 
     def _delete(self):
         """Removes this zVariable from the CDF
@@ -2899,9 +3112,8 @@ class Var(collections.MutableSequence):
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
         """
-
-        self.cdf_file._call(const.SELECT_, const.zVAR_NAME_, self._name,
-                 const.DELETE_, const.zVAR_)
+        self._call(const.DELETE_, const.zVAR_)
+        self.cdf_file.clear_from_cache(self._name)
         self._name = None
 
     def _get(self, var_name):
@@ -2922,15 +3134,17 @@ class Var(collections.MutableSequence):
                 enc_name = var_name.encode('ascii').rstrip()
             except AttributeError:
                 enc_name = var_name.rstrip() #already in ASCII
-            #This call simply 'touches' the CDF to cause an error if the name isn't there
+            #'touch' CDF to cause an error if the name isn't there; get number
             varNum = ctypes.c_long(0)
             self.cdf_file._call(const.GET_, const.zVAR_NUMBER_, enc_name, ctypes.byref(varNum))
             self._name = enc_name
-        else:
+            self.cdf_file.add_to_cache(enc_name, varNum.value)
+        else: #Looking up by number
             name = ctypes.create_string_buffer(const.CDF_VAR_NAME_LEN256+1)
             self.cdf_file._call(const.SELECT_, const.zVAR_, ctypes.c_long(var_name),
                      const.GET_, const.zVAR_NAME_, name)
             self._name = name.value.rstrip()
+            self.cdf_file.add_to_cache(self._name, var_name)
 
     def _num(self):
         """Returns the zVar number for this variable
@@ -2938,9 +3152,7 @@ class Var(collections.MutableSequence):
         @return: number of this zVar
         @rtype: int
         """
-        varNum = ctypes.c_long(0)
-        self.cdf_file._call(const.GET_, const.zVAR_NUMBER_, self._name, ctypes.byref(varNum))
-        return varNum.value
+        return self.cdf_file.var_num(self._name)
 
     def __len__(self):
         """Get number of records for this variable in this file
@@ -3096,8 +3308,9 @@ class Var(collections.MutableSequence):
         @raise CDFWarning: if CDF library reports a warning and interpreter
                            is set to error on warnings.
         """
-        return self.cdf_file._call(const.SELECT_, const.zVAR_NAME_, self._name,
-                                   *args, **kwargs)
+        return self.cdf_file._call(
+            const.SELECT_, const.zVAR_,
+            ctypes.c_long(self.cdf_file.var_num(self._name)), *args, **kwargs)
 
     def _np_type(self):
         """Returns the numpy type of this variable
@@ -3234,6 +3447,10 @@ class Var(collections.MutableSequence):
         if len(enc_name) > const.CDF_VAR_NAME_LEN256:
             raise CDFError(const.BAD_VAR_NAME)
         self._call(const.PUT_, const.zVAR_NAME_, enc_name)
+        self.cdf_file.add_to_cache(
+            enc_name,
+            self.cdf_file.var_num(self._name)) #Still in cache
+        del self.cdf_file._var_nums[self._name]
         self._name = enc_name
 
     @property
@@ -3834,7 +4051,7 @@ class _Hyperslice(object):
         return (start, count, step, rev)
 
 
-class Attr(collections.MutableSequence):
+class Attr(MutableSequence):
     """An attribute, g or z, for a CDF
 
     .. warning::
@@ -3900,20 +4117,35 @@ class Attr(collections.MutableSequence):
                 self._name = attr_name.encode('ascii')
             except AttributeError:
                 self._name = attr_name
+            attrno = ctypes.c_long()
             if create:
-                attrno = ctypes.c_long(0)
                 self._cdf_file._call(const.CREATE_, const.ATTR_,
                                      self._name, self.SCOPE,
                                      ctypes.byref(attrno))
-            else:
-                self._cdf_file._call(const.CONFIRM_, const.ATTR_EXISTENCE_,
-                                     self._name)
+                self._cdf_file.add_attr_to_cache(
+                    self._name, attrno.value, self.SCOPE == const.GLOBAL_SCOPE)
+            else: #Ensure exists, and populate cache. See scope note below
+                attrno, scope = self._cdf_file.attr_num(self._name)
         else:
             name = ctypes.create_string_buffer(const.CDF_ATTR_NAME_LEN256 + 1)
+            scope = ctypes.c_long(0)
             self._cdf_file._call(const.SELECT_, const.ATTR_,
                                  ctypes.c_long(attr_name))
-            self._cdf_file._call(const.GET_, const.ATTR_NAME_, name)
+            #Because it's possible to create a gAttr Python objecting
+            #referencing an Attribute with variable scope, and vice-versa,
+            #do NOT assume the scope matches
+            #(Higher level code checks for that being a bad thing.)
+            self._cdf_file._call(
+                const.GET_, const.ATTR_NAME_, name,
+                const.GET_, const.ATTR_SCOPE_, ctypes.byref(scope))
             self._name = name.value.rstrip()
+            if scope.value == const.GLOBAL_SCOPE.value:
+                scope = True
+            elif scope.value == const.VARIABLE_SCOPE.value:
+                scope = False
+            else:
+                raise CDFError(const.BAD_SCOPE)
+            self._cdf_file.add_attr_to_cache(self._name, attr_name, scope)
 
     def __getitem__(self, key):
         """Return a slice of Entries.
@@ -4204,7 +4436,8 @@ class Attr(collections.MutableSequence):
                            is set to error on warnings.
         """
         return self._cdf_file._call(
-            const.SELECT_, const.ATTR_NAME_, self._name,
+            const.SELECT_, const.ATTR_,
+            ctypes.c_long(self._cdf_file.attr_num(self._name)[0]),
             *args, **kwargs)
 
     def _entry_len(self, number):
@@ -4297,7 +4530,7 @@ class Attr(collections.MutableSequence):
     def new(self, data, type=None, number=None):
         """Create a new Entry in this Attribute
 
-        .. note:: If ``number`` is provide and an Entry with that number
+        .. note:: If ``number`` is provided and an Entry with that number
                   already exists, it will be overwritten.
 
         Parameters
@@ -4354,14 +4587,7 @@ class Attr(collections.MutableSequence):
         out : bool
             True if global (i.e. gAttr), False if zAttr
         """
-        scope = ctypes.c_long(0)
-        self._call(const.GET_, const.ATTR_SCOPE_, ctypes.byref(scope))
-        if scope.value == const.GLOBAL_SCOPE.value:
-            return True
-        elif scope.value == const.VARIABLE_SCOPE.value:
-            return False
-        else:
-            raise CDFError(const.BAD_SCOPE)
+        return self._cdf_file.attr_num(self._name)[1]
 
     def rename(self, new_name):
         """Rename this attribute
@@ -4380,6 +4606,10 @@ class Attr(collections.MutableSequence):
         if len(enc_name) > const.CDF_ATTR_NAME_LEN256:
             raise CDFError(const.BAD_ATTR_NAME)
         self._call(const.PUT_, const.ATTR_NAME_, enc_name)
+        self._cdf_file.add_attr_to_cache(
+            enc_name,
+            *self._cdf_file.attr_num(self._name)) #still in cache
+        del self._cdf_file._attr_info[self._name]
         self._name = enc_name
 
     def _get_entry(self, number):
@@ -4490,6 +4720,8 @@ class Attr(collections.MutableSequence):
         Also deletes all Entries associated with it.
         """
         self._call(const.DELETE_, const.ATTR_)
+        self._cdf_file.clear_attr_from_cache(self._name)
+        self._name = None
 
 
 class zAttr(Attr):
@@ -4508,19 +4740,15 @@ class zAttr(Attr):
     ========
     :class:`Attr`
     """
-
-    def __init__(self, *args, **kwargs):
-        """Initialize this attribute"""
-        self.ENTRY_ = const.zENTRY_
-        self.ENTRY_DATA_ = const.zENTRY_DATA_
-        self.SCOPE = const.VARIABLE_SCOPE
-        self.ENTRY_EXISTENCE_ = const.zENTRY_EXISTENCE_
-        self.ATTR_NUMENTRIES_ = const.ATTR_NUMzENTRIES_
-        self.ATTR_MAXENTRY_ = const.ATTR_MAXzENTRY_
-        self.ENTRY_NUMELEMS_ = const.zENTRY_NUMELEMS_
-        self.ENTRY_DATATYPE_ = const.zENTRY_DATATYPE_
-        self.ENTRY_DATASPEC_ = const.zENTRY_DATASPEC_
-        super(zAttr, self).__init__(*args, **kwargs)
+    ENTRY_ = const.zENTRY_
+    ENTRY_DATA_ = const.zENTRY_DATA_
+    SCOPE = const.VARIABLE_SCOPE
+    ENTRY_EXISTENCE_ = const.zENTRY_EXISTENCE_
+    ATTR_NUMENTRIES_ = const.ATTR_NUMzENTRIES_
+    ATTR_MAXENTRY_ = const.ATTR_MAXzENTRY_
+    ENTRY_NUMELEMS_ = const.zENTRY_NUMELEMS_
+    ENTRY_DATATYPE_ = const.zENTRY_DATATYPE_
+    ENTRY_DATASPEC_ = const.zENTRY_DATASPEC_
 
     def insert(self, index, data):
         """Insert entry at particular index number
@@ -4614,22 +4842,18 @@ class gAttr(Attr):
     ========
     :class:`Attr`
     """
-
-    def __init__(self, *args, **kwargs):
-        """Initialize this attribute"""
-        self.ENTRY_ = const.gENTRY_
-        self.ENTRY_DATA_ = const.gENTRY_DATA_
-        self.SCOPE = const.GLOBAL_SCOPE
-        self.ENTRY_EXISTENCE_ = const.gENTRY_EXISTENCE_
-        self.ATTR_NUMENTRIES_ = const.ATTR_NUMgENTRIES_
-        self.ATTR_MAXENTRY_ = const.ATTR_MAXgENTRY_
-        self.ENTRY_NUMELEMS_ = const.gENTRY_NUMELEMS_
-        self.ENTRY_DATATYPE_ = const.gENTRY_DATATYPE_
-        self.ENTRY_DATASPEC_ = const.gENTRY_DATASPEC_
-        super(gAttr, self).__init__(*args, **kwargs)
+    ENTRY_ = const.gENTRY_
+    ENTRY_DATA_ = const.gENTRY_DATA_
+    SCOPE = const.GLOBAL_SCOPE
+    ENTRY_EXISTENCE_ = const.gENTRY_EXISTENCE_
+    ATTR_NUMENTRIES_ = const.ATTR_NUMgENTRIES_
+    ATTR_MAXENTRY_ = const.ATTR_MAXgENTRY_
+    ENTRY_NUMELEMS_ = const.gENTRY_NUMELEMS_
+    ENTRY_DATATYPE_ = const.gENTRY_DATATYPE_
+    ENTRY_DATASPEC_ = const.gENTRY_DATASPEC_
 
 
-class AttrList(collections.MutableMapping):
+class AttrList(MutableMapping):
     """Object representing a list of attributes.
 
     .. warning::
@@ -4659,6 +4883,7 @@ class AttrList(collections.MutableMapping):
         @type cdf_file: :py:class:`pycdf.CDF`
         @param special_entry: callable which returns a "special" entry number,
         used to limit results for zAttrs to those which match the zVar
+        (i.e. the var number)
         @type special_entry: callable
         """
         self._cdf_file = cdf_file
@@ -4850,6 +5075,7 @@ class AttrList(collections.MutableMapping):
         """
         if name in self:
             raise KeyError(name + ' already exists.')
+        #A zAttr without an Entry in this zVar will be a "get" not "create"
         attr = self._get_or_create(name)
         if data is not None:
             if self.special_entry is None:
@@ -5101,9 +5327,8 @@ class zAttrList(AttrList):
             attr = super(zAttrList, self).__getitem__(name)
         except KeyError:
             attr = zAttr(self._cdf_file, name, True)
-        zvar_num = self._zvar._num()
         attr._raw = self._zvar._raw
-        attr[zvar_num] = data
+        attr[self._zvar._num()] = data
 
     def __len__(self):
         """Number of zAttributes in this variable

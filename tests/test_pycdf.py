@@ -7,7 +7,10 @@ Unit test suite for pycdf
 Copyright 2010-2014 Los Alamos National Security, LLC.
 """
 
-import collections
+try:
+    from collections.abc import Callable
+except ImportError:
+    from collections import Callable
 import ctypes
 import datetime
 import gc
@@ -20,13 +23,6 @@ import sys
 import tempfile
 import unittest
 import warnings
-
-try:
-    type(callable)
-except NameError:
-    import collections
-    def callable(obj):
-        return isinstance(obj, collections.Callable)
 
 import matplotlib.dates
 import numpy
@@ -945,7 +941,7 @@ class ReadCDF(CDFTests):
         #cmp() function'
         testnames = [name for name in dir(self)
                      if name[0:4] == 'test' and
-                     isinstance(getattr(self,name), collections.Callable)]
+                     isinstance(getattr(self,name), Callable)]
         self.last_test = max(testnames)
 
     def setUp(self):
@@ -1843,6 +1839,56 @@ class ReadCDF(CDFTests):
         self.assertEqual('6', str(self.cdf['StringUnpadded'].dtype)[-1])
         self.assertEqual('6', str(self.cdf['StringUnpadded'][...].dtype)[-1])
 
+    def testCachezVarNum(self):
+        """Test basic reads of the zVar number cache"""
+        self.assertFalse(b'ATC' in self.cdf._var_nums)
+        self.assertEqual(0, self.cdf.var_num(b'ATC'))
+        self.assertTrue(b'ATC' in self.cdf._var_nums)
+        self.assertEqual(0, self.cdf._var_nums[b'ATC'])
+        self.assertRaises(cdf.CDFError, self.cdf.var_num, b'foobar')
+
+    def testDeleteCachezVarNum(self):
+        """Test deleting something from the zvar cache"""
+        #This is a bit backwards, but easiest way to fill the cache
+        #without assuming it's being used
+        for i in range(len(self.cdf)):
+            n = self.cdf[i].name()
+            if str is not bytes:
+                n = n.encode('ascii')
+            _ = self.cdf.var_num(n)
+        #This is variable #8
+        self.cdf.clear_from_cache(b'SpinRateScalersCounts')
+        self.assertFalse(b'SpinRateScalersCounts' in self.cdf._var_nums)
+        self.assertFalse(b'SpinRateScalersCountSigma' in self.cdf._var_nums) #9
+        self.assertFalse(b'MajorNumbers' in self.cdf._var_nums) #10
+        #7
+        self.assertTrue(b'SectorRateScalersCountsSigma' in self.cdf._var_nums)
+        self.assertEqual(10, self.cdf.var_num(b'MajorNumbers')) #Repopulated
+
+    def testCachezAttrNum(self):
+        """Test basic reads of the attr number cache"""
+        self.assertFalse(b'Project' in self.cdf._attr_info)
+        self.assertEqual((0, True), self.cdf.attr_num(b'Project'))
+        self.assertTrue(b'Project' in self.cdf._attr_info)
+        self.assertEqual((0, True), self.cdf._attr_info[b'Project'])
+        self.assertRaises(cdf.CDFError, self.cdf.attr_num, b'foobar')
+        #zAttr?
+        self.assertEqual((41, False), self.cdf.attr_num(b'VALIDMIN'))
+
+    def testDeleteCacheAttrNum(self):
+        """Test deleting something from the attr cache"""
+        #This is a bit backwards, but easiest way to fill the cache
+        _ = [self.cdf.attr_num(self.cdf.attrs[i]._name)
+             for i in range(len(self.cdf.attrs))]
+        #This is attr #8
+        self.cdf.clear_attr_from_cache(b'PI_affiliation')
+        self.assertFalse(b'PI_affiliation' in self.cdf._attr_info)
+        self.assertFalse(b'TEXT' in self.cdf._attr_info) #9
+        self.assertFalse(b'Instrument_type' in self.cdf._attr_info) #10
+        self.assertTrue(b'PI_name' in self.cdf._attr_info) #7
+        #Repopulated
+        self.assertEqual((10, True), self.cdf.attr_num(b'Instrument_type'))
+
 
 class ReadColCDF(ColCDFTests):
     """Tests that read a column-major CDF, but do not modify it."""
@@ -1855,7 +1901,7 @@ class ReadColCDF(ColCDFTests):
         #cmp() function'
         testnames = [name for name in dir(self)
                      if name[0:4] == 'test' and
-                     isinstance(getattr(self,name), collections.Callable)]
+                     isinstance(getattr(self,name), Callable)]
         self.last_test = max(testnames)
 
     def setUp(self):
@@ -2065,6 +2111,8 @@ class ChangeCDF(ChangeCDFBase):
         zvar.rename('foobar')
         numpy.testing.assert_array_equal(
             zvardata, self.cdf['foobar'][...])
+        numpy.testing.assert_array_equal(
+            zvardata, zvar[...])
         try:
             zvar = self.cdf['PhysRecNo']
         except KeyError:
@@ -2080,6 +2128,63 @@ class ChangeCDF(ChangeCDFBase):
         else:
             self.fail('Should have raised CDFError')
 
+    #This is renamed via a *different* reference, so the original
+    #reference still has the old name, and referenced by name.
+    @unittest.expectedFailure
+    def testRenameSameVar(self):
+        """Rename a variable while keeping a reference to it"""
+        zvar = self.cdf['PhysRecNo']
+        self.cdf['PhysRecNo'].rename('foobar')
+        numpy.testing.assert_array_equal(
+            zvar[...], self.cdf['foobar'][...])
+
+    #A variable is deleted but we still have a reference to it
+    #I'm not sure what would be expected behavior here, but
+    #there's a NO_SUCH_VAR error raised.
+    @unittest.expectedFailure
+    def testDeleteAndAccess(self):
+        """Delete a variable and then try to access it again"""
+        zvar = self.cdf['PhysRecNo']
+        number = zvar._num()
+        del self.cdf['PhysRecNo']
+        foo = zvar[...]
+
+    #A completely different variable is made with the same name,
+    #so the old reference will point to the new variable
+    #(referenced by name)
+    @unittest.expectedFailure
+    def testDeleteSameName(self):
+        """Delete a variable and re-make with same name"""
+        zvar = self.cdf['PhysRecNo']
+        number = zvar._num()
+        del self.cdf['PhysRecNo']
+        self.cdf['PhysRecNo'] = [1, 2, 3, 4]
+        #Verify we have different variable numbers between two things
+        #with the same name
+        self.assertNotEqual(number, self.cdf['PhysRecNo']._num())
+        #And since they're referring to different variables, the
+        #contents should be different.
+        #https://stackoverflow.com/questions/38506044/numpy-testing-assert-array-not-equal
+        self.assertRaises(AssertionError, numpy.testing.assert_array_equal,
+                          zvar[...], self.cdf['PhysRecNo'][...])
+
+    def testDeleteWithRef(self):
+        """Delete a variable while have a reference to another one"""
+        zvar = self.cdf['PhysRecNo']
+        zvardata = zvar[...]
+        del self.cdf['ATC']
+        numpy.testing.assert_array_equal(
+            zvardata, zvar[...])
+
+    def testDeleteAttrWithRef(self):
+        """Delete a gAttr while having reference to another one"""
+        #This is #19
+        ack = self.cdf.attrs['Acknowledgement']
+        ackdata = ack[...]
+        #This is #3
+        del self.cdf.attrs['Data_type']
+        numpy.testing.assert_array_equal(ackdata, ack[...])
+        
     def testNewVar(self):
         """Create a new variable"""
         self.cdf.new('newzVar', [[1, 2, 3], [4, 5, 6]],
