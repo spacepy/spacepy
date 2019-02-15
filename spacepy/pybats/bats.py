@@ -2001,7 +2001,7 @@ class Bats2d(IdlFile):
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(pcol, pad=0.01)
+            cbar=plt.colorbar(pcol, ax=ax, pad=0.01)
             if clabel==None: 
                 clabel="%s (%s)" % (value, self[value].attrs['units'])
             cbar.set_label(clabel)
@@ -2132,7 +2132,7 @@ class Bats2d(IdlFile):
                      levs,*args, norm=norm, **kwargs)
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
+            cbar=plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
             if clabel==None: 
                 clabel="%s (%s)" % (value, self[value].attrs['units'])
             cbar.set_label(clabel)
@@ -2335,7 +2335,7 @@ class ShellSlice(IdlFile):
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cnt, ticks=ticks, format=fmt, shrink=.85)
+            cbar=plt.colorbar(cnt, ax=ax, ticks=ticks, format=fmt, shrink=.85)
             if clabel==None: 
                 clabel="{} ({})".format(value, self[value].attrs['units'])
             cbar.set_label(clabel)
@@ -2374,8 +2374,8 @@ class Mag(PbData):
     raw magnetometer data, additional values are calculated and stored,
     including total pertubations (the sum of all global and ionospheric 
     pertubations as measured by the magnetometer).  Users will be interested
-    in methods :meth:`~spacepy.pybats.bats.Mag.add_plot` and 
-    :meth:`~spacepy.pybats.bats.Mag.recalc`.
+    in methods :meth:`~spacepy.pybats.bats.Mag.add_comp_plot` and 
+    :meth:`~spacepy.pybats.bats.Mag.calc_dbdt`.
 
     Instantiation is best done through :class: `spacepy.pybats.MagFile`
     objects, which load and parse organize many virtual magnetometers from a 
@@ -2609,7 +2609,8 @@ class Mag(PbData):
         
         return fig, ax
 
-    def add_comp_plot(self, direc, target=None, add_legend=True, loc=111):
+    def add_comp_plot(self, direc, target=None, add_legend=True,
+                      loc=111, lw=2.0):
         '''
         Create a plot with,  or add to an existing plot, an illustration of 
         how the
@@ -2630,6 +2631,24 @@ class Mag(PbData):
         direction along with line plots of each component that builds this
         total.  This method uses the familiar PyBats **target** kwarg system
         to allow users to add these plots to existing figures or axes.
+
+        Parameters
+        ==========
+        direc : string
+           Indicate the direction to plot: either 'n', 'e', 'd', or 
+           'h' if calculated.
+
+        Other Parameters
+        ================
+        target : Matplotlib Figure or Axes object
+           Set plot destination.  Defaults to new figure.
+        loc : 3-digit integer
+           Set subplot location.  Defaults to 111.
+        add_legend : bool
+           Add legend to plot.  Defaults to True.
+        lw : float
+           Set the width of the lines.  Defaults to 2.0  Total field
+           is always 1.5 times thicker.
         '''
 
         import matplotlib.pyplot as plt
@@ -2643,9 +2662,9 @@ class Mag(PbData):
         styles={prefix+'Mhd':'--', prefix+'Fac':'--',
                 prefix+'Hal':'-.', prefix+'Ped':'-.',
                 prefix:'-'}
-        widths={prefix+'Mhd':1.0, prefix+'Fac':1.0,
-                prefix+'Hal':1.0, prefix+'Ped':1.0,
-                prefix:1.5}
+        widths={prefix+'Mhd':lw, prefix+'Fac':lw,
+                prefix+'Hal':lw, prefix+'Ped':lw,
+                prefix:1.5*lw}
         colors={prefix+'Mhd':'#FF6600', prefix+'Fac':'r',
                 prefix+'Hal':'b',       prefix+'Ped':'c',
                 prefix:'k'}
@@ -2694,7 +2713,7 @@ class MagFile(PbData):
     >>> # Open up the GM magnetometer file only.
     >>> obj = spacepy.pybats.bats.MagFile('GM_file.mag')
     >>>
-    >>> # Open up both the GM and IE file.
+    >>> # Open up both the GM and IE file [LEGACY SWMF ONLY]
     >>> obj = spacepy.pybats.bats.MagFile('GM_file.mag', 'IE_file.mag')
     >>>
     >>> # Open up the GM magnetometer file; search for the IE file.
@@ -3011,7 +3030,7 @@ class MagGridFile(IdlFile):
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
+            cbar=plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
             if clabel==None:
                 varname = mhdname_to_tex(value)
                 units   = mhdname_to_tex(self[value].attrs['units'])
