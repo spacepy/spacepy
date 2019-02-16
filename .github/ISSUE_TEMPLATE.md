@@ -59,7 +59,7 @@ import matplotlib
 
 print(platform.platform())
 print(sys.version_info)
-print('numpy={0}'.formatnumpy.__version__))
+print('numpy={0}'.format(numpy.__version__))
 print('scipy={0}'.format(scipy.__version__))
 print('matplotlib={0}'.format(matplotlib.__version__))
 ```
