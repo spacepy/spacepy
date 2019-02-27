@@ -86,6 +86,18 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
 
+    def testReadAsciiAsBin(self):
+        """Read an ASCII file as a binary"""
+        try:
+            data = pb.IdlFile('data/pybats_test/mag_grid_ascii.out',
+                              format='bin', header=None, keep_case=True)
+        except EOFError as e:
+            msg = str(e)
+        else:
+            self.fail('Should have raised EOFError')
+        self.assertEqual(msg, 'File is shorter than expected data')
+
+
 class TestRim(unittest.TestCase):
 
     def testReadZip(self):
@@ -154,6 +166,18 @@ class TestMagGrid(unittest.TestCase):
         # Ensure expected values are loaded.
         m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out',
                               format='ascii')
+        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+
+        self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
+        self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
+        self.assertAlmostEqual(self.knownDbnMax, m2['dBn'].max())
+        self.assertAlmostEqual(self.knownPedMax, m2['dBnPed'].max())
+
+    def testOpenTypeGuess(self):
+        # Open both binary and ascii versions of same data
+        # without specifying the type.
+        # Ensure expected values are loaded.
+        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out')
         m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
