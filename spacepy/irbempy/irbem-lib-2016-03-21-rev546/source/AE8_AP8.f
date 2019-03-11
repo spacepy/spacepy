@@ -218,11 +218,12 @@ c
       INCLUDE 'ntime_max.inc'
 c
       REAL*8       xMinP_L, xMaxP_L, XMinE_L, xMaxE_L
-      PARAMETER   (xMINP_L = 1.0)   ! minimum Lshell to calculate proton fluxes
-      PARAMETER   (xMAXP_L = 11.0)  ! maximum Lshell to calculate proton fluxes
-
-      PARAMETER   (xMINE_L = 1.2)   ! minimum Lshell to calculate electron fluxes
-      PARAMETER   (xMAXE_L = 12.0)  ! maximum Lshell to calculate electron fluxes
+c  minimum and maximum Lshell to calculate proton fluxes
+      PARAMETER   (xMINP_L = 1.0)
+      PARAMETER   (xMAXP_L = 11.0)
+c  minimum and maximum Lshell to calculate electron fluxes
+      PARAMETER   (xMINE_L = 1.2)
+      PARAMETER   (xMAXE_L = 12.0)
 
       INTEGER*4   ntmax,i,nene,ieny
       INTEGER*4   whichm  !1=AE8min 2=AE8max 3=AP8min 4=AP8max
