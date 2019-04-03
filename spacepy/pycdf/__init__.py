@@ -1379,7 +1379,9 @@ class CDF(MutableMapping):
         Create a new CDF even if masterpath isn't provided
     readonly : bool
         Open the CDF read-only. Default True if opening an
-        existing CDF; False if creating a new one.
+        existing CDF; False if creating a new one. A readonly
+        CDF with many variables may be slow to close. See
+        :meth:`readonly`.
 
     Raises
     ======
@@ -2013,6 +2015,12 @@ class CDF(MutableMapping):
 
         If the CDF has been changed since opening, setting readonly mode
         will have no effect.
+
+        .. note::
+            Closing a CDF that has been opened readonly, or setting readonly
+            False, may take a substantial amount of time if there are many
+            variables in the CDF. Consider specifying ``readonly=False``
+            when opening the file if this is an issue.
 
         Other Parameters
         ================
