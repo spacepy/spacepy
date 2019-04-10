@@ -1838,7 +1838,8 @@ class CDF(MutableMapping):
 
         lib.call(const.OPEN_, const.CDF_, self.pathname, ctypes.byref(self._handle))
         self._opened = True
-        self.readonly(readonly)
+        if readonly: #Default is RW
+            self.readonly(readonly)
 
     def _create(self):
         """Creates (and opens) a new CDF file
@@ -1883,9 +1884,7 @@ class CDF(MutableMapping):
         if os.path.exists(self.pathname):
             raise CDFError(const.CDF_EXISTS)
         shutil.copy2(master_path, self.pathname)
-        self._open()
-        self._opened = True
-        self.readonly(False)
+        self._open(False)
 
     @classmethod
     def from_data(cls, filename, sd):

@@ -15,6 +15,7 @@ pycdf
  - Speed up many operations by cacheing variable numbers. This is the biggest
    change to pycdf internals in several years; please report any bugs.
  - Fix TT2000-to-EPOCH16 conversions crashing in very rare cases.
+ - Minimize setting/unsetting readonly mode, as this can be very slow.
 
 Changes in Version 0.1.6 (2016-09-08)
 =====================================
