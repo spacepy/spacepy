@@ -2019,8 +2019,10 @@ class CDF(MutableMapping):
         .. note::
             Closing a CDF that has been opened readonly, or setting readonly
             False, may take a substantial amount of time if there are many
-            variables in the CDF. Consider specifying ``readonly=False``
-            when opening the file if this is an issue.
+            variables in the CDF, as a (potentially large) cache needs to
+            be cleared. Consider specifying ``readonly=False`` when opening
+            the file if this is an issue. However, this may make some reading
+            operations slower.
 
         Other Parameters
         ================
