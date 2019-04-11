@@ -14,6 +14,7 @@ pycdf
  - Fix UTC-to-TT2000 conversions on ARM (thanks Rodrigue Piberne for the bug)
  - Speed up many operations by cacheing variable numbers. This is the biggest
    change to pycdf internals in several years; please report any bugs.
+ - Fix TT2000-to-EPOCH16 conversions crashing in very rare cases.
 
 Changes in Version 0.1.6 (2016-09-08)
 =====================================

@@ -266,7 +266,7 @@ class Library(object):
             self._library.CDF_TT2000_from_UTC_EPOCH.restype = ctypes.c_longlong
             self._library.CDF_TT2000_from_UTC_EPOCH.argtypes = [ctypes.c_double]
         if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH16'):
-            self._library.CDF_TT2000_to_UTC_EPOCH16.restype = None
+            self._library.CDF_TT2000_to_UTC_EPOCH16.restype = ctypes.c_double
             self._library.CDF_TT2000_to_UTC_EPOCH16.argtypes = \
                 [ctypes.c_longlong, ctypes.POINTER(ctypes.c_double * 2)]
         if hasattr(self._library, 'CDF_TT2000_from_UTC_EPOCH16'):
@@ -803,12 +803,14 @@ class Library(object):
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
         dt.replace(tzinfo=None)
-        epoch16 = (ctypes.c_double * 2)(0.0, 0.0)
-        self._library.computeEPOCH16(dt.year, dt.month, dt.day, dt.hour,
-                                     dt.minute, dt.second,
-                                     int(dt.microsecond / 1000),
-                                     dt.microsecond % 1000, 0, 0,
-                                     epoch16)
+        #Default to "illegal epoch"
+        epoch16 = (ctypes.c_double * 2)(-1., -1.)
+        if self._library.computeEPOCH16(dt.year, dt.month, dt.day, dt.hour,
+                                        dt.minute, dt.second,
+                                        int(dt.microsecond / 1000),
+                                        dt.microsecond % 1000, 0, 0,
+                                        epoch16):
+            return (-1., -1.) #Failure, so illegal epoch
         return (epoch16[0], epoch16[1])
 
     def epoch_to_epoch16(self, epoch):
@@ -1126,11 +1128,10 @@ class Library(object):
         ========
         v_tt2000_to_epoch16
         """
-        epoch16 = numpy.empty((2,), dtype=numpy.float64)
-        self._library.CDF_TT2000_to_UTC_EPOCH16(
-            tt2000, numpy.ctypeslib.as_ctypes(epoch16))
-        #without this, vectorized version breaks
-        str(epoch16)
+        #Default to "illegal epoch" if isn't populated
+        epoch16 = (ctypes.c_double * 2)(-1., -1.)
+        if self._library.CDF_TT2000_to_UTC_EPOCH16(tt2000, epoch16):
+            return (-1., -1.) #Failure; illegal epoch
         return (epoch16[0], epoch16[1])
 
     def _bad_tt2000(*args, **kwargs):

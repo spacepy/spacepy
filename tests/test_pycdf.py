@@ -349,6 +349,26 @@ class NoCDF(unittest.TestCase):
         for (epoch, tt2000) in zip(epochs, tt2000s):
             self.assertEqual(epoch, list(cdf.lib.tt2000_to_epoch16(tt2000)))
 
+    def testTT2000ToEpoch16Stress(self):
+        """Test TT2000toEpoch16 repeatedly to make sure it doesn't crash"""
+        epochs = [[63366364799.0, 999999999000.0],
+                  [63400665600.0, 100000000.0],
+                  ]
+        tt2000s = [252417665183999999,
+                   286718466184100000,
+                   ]
+        #this is basically 2x what reliably fails in the Win32/py2.7 case,
+        #where this problem was found
+        for i in range(10):
+            for (epoch, tt2000) in zip(epochs, tt2000s):
+                self.assertEqual(epoch, list(cdf.lib.tt2000_to_epoch16(tt2000)))
+
+    def testTT2000ToEpoch16Filled(self):
+        """Test conversion of TT2000 fill value to epoch 16"""
+        self.assertEqual(
+            (-1.e31, -1.e31),
+            cdf.lib.tt2000_to_epoch16(const.FILLED_TT2000_VALUE))
+
     def testEpochtoEpoch16(self):
         """Convert an Epoch to Epoch16"""
         epochs = [63397987200000.0,
