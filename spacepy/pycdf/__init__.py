@@ -3799,7 +3799,7 @@ class _Hyperslice(object):
                       for i in range(self.dims) if not self.degen[i]]
             if cdftype == const.CDF_EPOCH16.value: #don't reverse last dim
                 sliced.extend(slice(None))
-            data = operator.getitem(data, sliced)
+            data = operator.getitem(data, tuple(sliced))
         return data
 
     def select(self):
