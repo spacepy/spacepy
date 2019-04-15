@@ -541,7 +541,10 @@ def _readHeader(fname):
     """
     dat = []
     if fname.endswith('.gz'):
-        fp = gzip.open(fname, 'rt')
+        try:
+            fp = gzip.open(fname, 'rt')
+        except ValueError: #Python 2.7 (Windows) compatibility
+            fp = gzip.open(fname)
     else:
         fp = open(fname, 'rt')
     while True:
