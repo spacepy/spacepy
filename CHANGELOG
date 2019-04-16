@@ -3,6 +3,8 @@ Changes in Version 0.1.7 (2017-xx-xx)
 - Fix writing of configuration file on Windows
 ae9ap9
  - Fix handling of gzipped files under Windows/Python2
+datamodel
+ - Datatypes are now explicitly preserved by function "toRecArray"
 pybats
  - Many small changes and bugfixes (thanks John Haiducek)
  - Fix handling of gzipped files under Windows/Python2
