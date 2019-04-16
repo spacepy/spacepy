@@ -1774,8 +1774,8 @@ def toRecArray(sdo):
     >>> print(ra, ra.dtype)
     [(2, 1.0) (4, 2.0)] (numpy.record, [('y', '<i8'), ('x', '<f8')])
     '''
-    keys = list(sdo.keys())
-    recarr = numpy.rec.fromarrays( [sdo[k] for k in sdo], names=keys)
+    nametype = numpy.dtype([(k, sdo[k].dtype.str) for k in sdo])
+    recarr = numpy.rec.fromarrays( [sdo[k] for k in sdo], dtype=nametype)
     return recarr
 
 
