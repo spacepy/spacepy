@@ -1564,11 +1564,11 @@ class Bats2d(IdlFile):
 
         return tilt, theta_day, theta_night, day, night
 
-    def add_b_magsphere_new(self, target=None, loc=111,  style='mag', 
-                            DoLast=True, DoOpen=True, DoTail=True,
-                            compX='bx',compY='bz',
-                            method='rk4', tol=np.pi/360., DoClosed=True,
-                            nOpen=5, nClosed=15, **kwargs):
+    def add_b_magsphere(self, target=None, loc=111,  style='mag', 
+                        DoLast=True, DoOpen=True, DoTail=True,
+                        compX='bx',compY='bz',
+                        method='rk4', tol=np.pi/360., DoClosed=True,
+                        nOpen=5, nClosed=15, **kwargs):
         '''
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
@@ -1681,10 +1681,28 @@ class Bats2d(IdlFile):
 
         return fig, ax, collect
 
-    def add_b_magsphere(self, target=None, loc=111, style='mag', 
-                        DoImf=False, DoOpen=False, DoTail=False, 
-                        DoDay=True, method='rk4', **kwargs):
+    def add_b_magsphere_new(self, *args, **kwargs):
         '''
+        This method is included to ease the transistion from the legacy
+        version of *add_b_magsphere* to *add_b_magsphere_new*, whose suffix
+        has been dropped now that it is the standard method.
+        '''
+
+        import warnings
+        
+        print('ATTENTION: add_b_magsphere_new is now simply add_b_magsphere')
+        warnings.warn('add_b_magsphere_new is a candidate for removal',
+                      category=DeprecationWarning)
+        return add_b_magsphere(*args, **kwargs)
+    
+    def add_b_magsphere_legacy(self, target=None, loc=111, style='mag', 
+                               DoImf=False, DoOpen=False, DoTail=False, 
+                               DoDay=True, method='rk4', **kwargs):
+        '''
+        This object method is considered LEGACY and is a candidate for
+        removal.  An updated algorithm using the same name (add_b_magsphere)
+        is the replacement.
+
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
         If no *target* is specified, a new figure and axis are created.
