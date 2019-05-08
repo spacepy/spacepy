@@ -245,7 +245,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
         else:
             ldb = 'Test'
             fln = testfln
-        with h5.File(fln) as hfile:
+        with h5.File(fln, 'r') as hfile:
             QDkeylist = [kk for kk in hfile if kk not in ['Qbits', 'UTC']]
             st, en = ticks[0].RDT, ticks[-1].RDT
             ##check that requested requested times are within range of data
