@@ -490,6 +490,7 @@ class NoCDF(unittest.TestCase):
                    numpy.int32(-1 * 2 ** 31),
                    -1 * 2 ** 31,
                    numpy.array([5, 6, 7], dtype=numpy.uint8),
+                   [4611686018427387904],
                    ]
         type8 = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -522,6 +523,9 @@ class NoCDF(unittest.TestCase):
                        const.CDF_FLOAT, const.CDF_REAL4,
                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((3,), [const.CDF_UINT1, const.CDF_UCHAR], 1),
+                 ((1,), [const.CDF_INT8,
+                       const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ]
         types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -556,6 +560,8 @@ class NoCDF(unittest.TestCase):
                  ((), [const.CDF_INT4, const.CDF_FLOAT, const.CDF_REAL4,
                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((3,), [const.CDF_UINT1, const.CDF_UCHAR], 1),
+                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ]
         if cdf.lib.supports_int8: #explicitly test backward-compatible
             cdf.lib.supports_int8 = False
