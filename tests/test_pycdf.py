@@ -2065,8 +2065,12 @@ class ChangeCDFBase(CDFTests):
         self.cdf.readonly(False)
 
     def tearDown(self):
+        warnings.filterwarnings(
+            'ignore', message='^DID_NOT_COMPRESS.*$', category=cdf.CDFWarning,
+            module='^spacepy.pycdf')
         self.cdf.close()
         del self.cdf
+        del warnings.filters[0]
         os.remove(self.testfile)
         super(ChangeCDFBase, self).tearDown()
 
@@ -2438,6 +2442,14 @@ class ChangeCDF(ChangeCDFBase):
                 self.assertEqual(oldlist[attrname], newlist[attrname])
                 self.assertEqual(oldlist.type(attrname),
                                  newlist.type(attrname))
+
+    def testCloneVarCompressed(self):
+        """Clone a variable and keep its compression"""
+        self.cdf.new('IAmCompressed', data=numpy.array([1, 2, 3, 4, 5]),
+                     compress=const.GZIP_COMPRESSION, compress_param=7)
+        self.cdf.clone(self.cdf['IAmCompressed'], 'IAmCompressed_2')
+        output = self.cdf['IAmCompressed_2'].compress()
+        self.assertEqual((const.GZIP_COMPRESSION, 7), output)
 
     def testDimVariance(self):
         """Check and change dimension variance of a variable"""
