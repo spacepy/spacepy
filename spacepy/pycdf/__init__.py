@@ -3963,6 +3963,23 @@ class _Hyperslice(object):
             types.sort(key=lambda x: x % 50, reverse=True)
 
         if not types: #not a numpy array, or can't parse its type
+            if d.dtype.kind == 'O': #Object. Try to make it numeric
+                #Can't do safe casting from Object, so try and compare
+                #Basically try most restrictive to least restrictive
+                trytypes = (numpy.uint64, numpy.int64, numpy.float64)
+                for t in trytypes:
+                    try:
+                        newd = d.astype(dtype=t)
+                    except: #Failure to cast, try next type
+                        continue
+                    if (newd == d).all(): #Values preserved, use this type
+                        d = newd
+                        #Continue with normal guessing, as if a list
+                        break
+                else:
+                    #fell through without a match
+                    raise ValueError(
+                        'Cannot convert generic objects to CDF type.')
             if d.dtype.kind in ('i', 'u'): #integer
                 minval = numpy.min(d)
                 maxval = numpy.max(d)

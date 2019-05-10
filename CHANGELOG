@@ -9,7 +9,8 @@ pybats
  - Many small changes and bugfixes (thanks John Haiducek)
  - Fix handling of gzipped files under Windows/Python2
 pycdf
- - Proper handling of type guessing for negative integers and numpy scalars
+ - Proper handling of type guessing for negative integers, numpy scalars, and
+   object arrays.
  - Allow ... to get all gEntries
  - Allow insert, append on gAttrs
  - Properly handle reading from empty variables
