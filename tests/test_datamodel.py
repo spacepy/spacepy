@@ -445,8 +445,8 @@ class dmarrayTests(unittest.TestCase):
         np.testing.assert_equal(tst, ans)
         self.assertEqual(tst.dtype, ans.dtype)
 
-    def test_toRecArray(self):
-        '''a record array can be created from a SpaceData'''
+    def test_toRecArray_contents(self):
+        '''a record array can be created from a SpaceData, keys and values equal'''
         sd = dm.SpaceData()
         sd['x'] = dm.dmarray([1.0, 2.0])
         sd['y'] = dm.dmarray([2,4])
@@ -454,8 +454,27 @@ class dmarrayTests(unittest.TestCase):
         np.testing.assert_equal(ra['x'], [1.0, 2.0])
         np.testing.assert_equal(ra['y'], [2, 4])
         self.assertEqual(['x', 'y'], sorted(ra.dtype.fields))
-        self.assertTrue(ra.dtype in (np.dtype((np.record, [('x', '<f8'), ('y', '<i8'), ])), np.dtype((np.record, [ ('y', '<i8'), ('x', '<f8'), ]))))
 
+    def test_toRecArray_dtypes1(self):
+        '''recarray created from dmarray preserves data types (32-bit)'''
+        sd = dm.SpaceData()
+        sd['x'] = dm.dmarray([1.0, 2.0], dtype=np.float32)
+        sd['y'] = dm.dmarray([2,4], dtype=np.int32)
+        ra = dm.toRecArray(sd)
+        expected = [sd[key].dtype for key in sd]
+        got = [ra.dtype[name] for name in ra.dtype.names]
+        self.assertEqual(expected, got)
+
+    def test_toRecArray_dtypes2(self):
+        '''recarray created from dmarray preserves data types (16-bit+str)'''
+        sd = dm.SpaceData()
+        sd['x'] = dm.dmarray([1.0, 2.0], dtype=np.float16)
+        sd['y'] = dm.dmarray([2,4], dtype=np.int16)
+        sd['str'] = dm.dmarray(['spam', 'eggs'], dtype='|S5')
+        ra = dm.toRecArray(sd)
+        expected = [sd[key].dtype for key in sd]
+        got = [ra.dtype[name] for name in ra.dtype.names]
+        self.assertEqual(expected, got)
         
 class converterTests(unittest.TestCase):
     def setUp(self):

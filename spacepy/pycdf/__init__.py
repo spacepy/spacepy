@@ -266,7 +266,7 @@ class Library(object):
             self._library.CDF_TT2000_from_UTC_EPOCH.restype = ctypes.c_longlong
             self._library.CDF_TT2000_from_UTC_EPOCH.argtypes = [ctypes.c_double]
         if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH16'):
-            self._library.CDF_TT2000_to_UTC_EPOCH16.restype = None
+            self._library.CDF_TT2000_to_UTC_EPOCH16.restype = ctypes.c_double
             self._library.CDF_TT2000_to_UTC_EPOCH16.argtypes = \
                 [ctypes.c_longlong, ctypes.POINTER(ctypes.c_double * 2)]
         if hasattr(self._library, 'CDF_TT2000_from_UTC_EPOCH16'):
@@ -803,12 +803,14 @@ class Library(object):
         if dt.tzinfo != None and dt.utcoffset() != None:
             dt = dt - dt.utcoffset()
         dt.replace(tzinfo=None)
-        epoch16 = (ctypes.c_double * 2)(0.0, 0.0)
-        self._library.computeEPOCH16(dt.year, dt.month, dt.day, dt.hour,
-                                     dt.minute, dt.second,
-                                     int(dt.microsecond / 1000),
-                                     dt.microsecond % 1000, 0, 0,
-                                     epoch16)
+        #Default to "illegal epoch"
+        epoch16 = (ctypes.c_double * 2)(-1., -1.)
+        if self._library.computeEPOCH16(dt.year, dt.month, dt.day, dt.hour,
+                                        dt.minute, dt.second,
+                                        int(dt.microsecond / 1000),
+                                        dt.microsecond % 1000, 0, 0,
+                                        epoch16):
+            return (-1., -1.) #Failure, so illegal epoch
         return (epoch16[0], epoch16[1])
 
     def epoch_to_epoch16(self, epoch):
@@ -1126,11 +1128,10 @@ class Library(object):
         ========
         v_tt2000_to_epoch16
         """
-        epoch16 = numpy.empty((2,), dtype=numpy.float64)
-        self._library.CDF_TT2000_to_UTC_EPOCH16(
-            tt2000, numpy.ctypeslib.as_ctypes(epoch16))
-        #without this, vectorized version breaks
-        str(epoch16)
+        #Default to "illegal epoch" if isn't populated
+        epoch16 = (ctypes.c_double * 2)(-1., -1.)
+        if self._library.CDF_TT2000_to_UTC_EPOCH16(tt2000, epoch16):
+            return (-1., -1.) #Failure; illegal epoch
         return (epoch16[0], epoch16[1])
 
     def _bad_tt2000(*args, **kwargs):
@@ -1837,7 +1838,8 @@ class CDF(MutableMapping):
 
         lib.call(const.OPEN_, const.CDF_, self.pathname, ctypes.byref(self._handle))
         self._opened = True
-        self.readonly(readonly)
+        if readonly: #Default is RW
+            self.readonly(readonly)
 
     def _create(self):
         """Creates (and opens) a new CDF file
@@ -1882,9 +1884,7 @@ class CDF(MutableMapping):
         if os.path.exists(self.pathname):
             raise CDFError(const.CDF_EXISTS)
         shutil.copy2(master_path, self.pathname)
-        self._open()
-        self._opened = True
-        self.readonly(False)
+        self._open(False)
 
     @classmethod
     def from_data(cls, filename, sd):
@@ -2019,8 +2019,10 @@ class CDF(MutableMapping):
         .. note::
             Closing a CDF that has been opened readonly, or setting readonly
             False, may take a substantial amount of time if there are many
-            variables in the CDF. Consider specifying ``readonly=False``
-            when opening the file if this is an issue.
+            variables in the CDF, as a (potentially large) cache needs to
+            be cleared. Consider specifying ``readonly=False`` when opening
+            the file if this is an issue. However, this may make some reading
+            operations slower.
 
         Other Parameters
         ================
@@ -3799,7 +3801,7 @@ class _Hyperslice(object):
                       for i in range(self.dims) if not self.degen[i]]
             if cdftype == const.CDF_EPOCH16.value: #don't reverse last dim
                 sliced.extend(slice(None))
-            data = operator.getitem(data, sliced)
+            data = operator.getitem(data, tuple(sliced))
         return data
 
     def select(self):
@@ -3961,6 +3963,23 @@ class _Hyperslice(object):
             types.sort(key=lambda x: x % 50, reverse=True)
 
         if not types: #not a numpy array, or can't parse its type
+            if d.dtype.kind == 'O': #Object. Try to make it numeric
+                #Can't do safe casting from Object, so try and compare
+                #Basically try most restrictive to least restrictive
+                trytypes = (numpy.uint64, numpy.int64, numpy.float64)
+                for t in trytypes:
+                    try:
+                        newd = d.astype(dtype=t)
+                    except: #Failure to cast, try next type
+                        continue
+                    if (newd == d).all(): #Values preserved, use this type
+                        d = newd
+                        #Continue with normal guessing, as if a list
+                        break
+                else:
+                    #fell through without a match
+                    raise ValueError(
+                        'Cannot convert generic objects to CDF type.')
             if d.dtype.kind in ('i', 'u'): #integer
                 minval = numpy.min(d)
                 maxval = numpy.max(d)

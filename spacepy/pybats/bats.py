@@ -195,7 +195,7 @@ class BatsLog(LogFile):
     
     def add_dst_quicklook(self, target=None, loc=111, plot_obs=False,
                           epoch=None, add_legend=True, plot_sym=False,
-                          obs_kwargs={'c':'k', 'ls':'--'},
+                          dstvar=None, obs_kwargs={'c':'k', 'ls':'--'},
                           **kwargs):
         '''
         Create a quick-look plot of Dst (if variable present in file) 
@@ -208,6 +208,12 @@ class BatsLog(LogFile):
         object, a new axis is created to fill that figure at subplot location
         *loc* (defaults to 111).  If target is a matplotlib Axes object, 
         the plot is placed into that axis at subplot location *loc*.
+
+        With newer versions of BATS-R-US, new dst-like variables are included,
+        named 'dst', 'dst-sm', 'dstflx', etc.  This subroutine will attempt
+        to first use 'dst-sm' as it is calculated consistently with 
+        observations.  If not found, 'dst' is used.  Users may choose which
+        value to use via the *dstvar* kwarg.
 
         Observed Dst and SYM-H is automatically fetched from the Kyoto World 
         Data Center via the :mod:`spacepy.pybats.kyoto` module.  The associated 
@@ -225,8 +231,14 @@ class BatsLog(LogFile):
 
         from datetime import datetime
         import matplotlib.pyplot as plt
+
+        # Set the correct dst value to be used.
+        if not dstvar:
+            if 'dst_sm' in self:
+                dstvar = 'dst_sm'
+            else: dstvar='dst'
         
-        if 'dst' not in self:
+        if dstvar not in self:
             return None, None
 
         fig, ax = set_target(target, figsize=(10,4), loc=loc)
@@ -234,7 +246,7 @@ class BatsLog(LogFile):
         if 'label' not in kwargs:
             kwargs['label']='BATS-R-US $D_{ST}$ (Biot-Savart)'
         
-        ax.plot(self['time'], self['dst'], **kwargs)
+        ax.plot(self['time'], self[dstvar], **kwargs)
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
         applySmartTimeTicks(ax, self['time'])
@@ -1329,7 +1341,8 @@ class Bats2d(IdlFile):
     # VISUALIZATION TOOLS
     ######################
     def add_grid_plot(self, target=None, loc=111, do_label=True,
-                      show_nums=False, title='BATS-R-US Grid Layout'):
+                      show_nums=False, show_borders=True, cmap='jet_r',
+                      title='BATS-R-US Grid Layout'):
         '''
         Create a plot of the grid resolution by coloring regions of constant
         resolution.  Kwarg "target" specifies where to place the plot and can
@@ -1350,6 +1363,26 @@ class Bats2d(IdlFile):
         one yourself.
 
         Figure and axis, even if none given, are returned.
+
+         Parameters
+        ----------
+        target : Matplotlib Figure or Axes object
+           Set plot destination.  Defaults to new figure.
+        loc : 3-digit integer
+           Set subplot location.  Defaults to 111.
+        do_label : boolean
+           Adds resolution legend to righthand margin.  Defaults to True.
+        show_nums : boolean
+           Adds quadtree values to each region.  Useful for debugging.
+           Defaults to False.
+        show_borders : True
+           Show black borders around each quadtree leaf.  Defaults to True.
+        cmap : string
+           Sets the color map used to color each region.  Must be a Matplotlib
+           named colormap.  Defaults to 'jet_r'.
+        title : string
+           Sets the title at the top of the plot.  Defaults to 
+           'BATS-R-US Grid Layout'.
         '''
         import matplotlib.pyplot as plt
         from matplotlib.colors import Normalize
@@ -1371,9 +1404,11 @@ class Bats2d(IdlFile):
         ax.set_ylim([self.qtree[1].lim[2],self.qtree[1].lim[3]])
         # Plot.
 
-        for key in list(self.qtree.keys()):
-            self.qtree[key].plotbox(ax)
-        self.qtree.plot_res(ax, tag_leafs=show_nums, do_label=do_label)
+        if(show_borders):
+            for key in list(self.qtree.keys()):
+                self.qtree[key].plotbox(ax)
+        self.qtree.plot_res(ax, tag_leafs=show_nums, do_label=do_label,
+                            cmap=cmap)
 
         # Customize plot.
         ax.set_xlabel('GSM %s' % xdim.upper())
@@ -1474,8 +1509,9 @@ class Bats2d(IdlFile):
             isNig  = s1.x.mean()<0
             
         # Use last line to get southern hemisphere theta:
-        npts = s1.x.size/2
-        r = sqrt(s1.x**2+s1.y**2)
+        npts = int(s1.x.size/2)
+        r = sqrt(s1.x**2+s1.y**2) # Distance from origin.
+        # This loc finds the point(s) nearest to Rbody.
         loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
             r[:npts]-self.attrs['rbody'])) #point closest to IB.
         xSouth, ySouth = s1.x[loc], s1.y[loc]
@@ -1517,7 +1553,7 @@ class Bats2d(IdlFile):
                 break
             
         # Use last line to get southern hemisphere theta:
-        npts = s1.x.size/2
+        npts = int(s1.x.size/2) # Similar to above for dayside.
         r = sqrt(s1.x**2+s1.y**2)
         loc = np.abs(r-self.attrs['rbody'])==np.min(np.abs(
             r[:npts]-self.attrs['rbody']))
@@ -1528,11 +1564,11 @@ class Bats2d(IdlFile):
 
         return tilt, theta_day, theta_night, day, night
 
-    def add_b_magsphere_new(self, target=None, loc=111,  style='mag', 
-                            DoLast=True, DoOpen=True, DoTail=True,
-                            compX='bx',compY='bz',
-                            method='rk4', tol=np.pi/360., DoClosed=True,
-                            nOpen=5, nClosed=15, **kwargs):
+    def add_b_magsphere(self, target=None, loc=111,  style='mag', 
+                        DoLast=True, DoOpen=True, DoTail=True,
+                        compX='bx',compY='bz',
+                        method='rk4', tol=np.pi/360., DoClosed=True,
+                        nOpen=5, nClosed=15, **kwargs):
         '''
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
@@ -1645,10 +1681,28 @@ class Bats2d(IdlFile):
 
         return fig, ax, collect
 
-    def add_b_magsphere(self, target=None, loc=111, style='mag', 
-                        DoImf=False, DoOpen=False, DoTail=False, 
-                        DoDay=True, method='rk4', **kwargs):
+    def add_b_magsphere_new(self, *args, **kwargs):
         '''
+        This method is included to ease the transistion from the legacy
+        version of *add_b_magsphere* to *add_b_magsphere_new*, whose suffix
+        has been dropped now that it is the standard method.
+        '''
+
+        import warnings
+        
+        print('ATTENTION: add_b_magsphere_new is now simply add_b_magsphere')
+        warnings.warn('add_b_magsphere_new is a candidate for removal',
+                      category=DeprecationWarning)
+        return add_b_magsphere(*args, **kwargs)
+    
+    def add_b_magsphere_legacy(self, target=None, loc=111, style='mag', 
+                               DoImf=False, DoOpen=False, DoTail=False, 
+                               DoDay=True, method='rk4', **kwargs):
+        '''
+        This object method is considered LEGACY and is a candidate for
+        removal.  An updated algorithm using the same name (add_b_magsphere)
+        is the replacement.
+
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
         If no *target* is specified, a new figure and axis are created.
@@ -1965,7 +2019,7 @@ class Bats2d(IdlFile):
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(pcol, pad=0.01)
+            cbar=plt.colorbar(pcol, ax=ax, pad=0.01)
             if clabel==None: 
                 clabel="%s (%s)" % (value, self[value].attrs['units'])
             cbar.set_label(clabel)
@@ -2096,7 +2150,7 @@ class Bats2d(IdlFile):
                      levs,*args, norm=norm, **kwargs)
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
+            cbar=plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
             if clabel==None: 
                 clabel="%s (%s)" % (value, self[value].attrs['units'])
             cbar.set_label(clabel)
@@ -2299,7 +2353,7 @@ class ShellSlice(IdlFile):
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cnt, ticks=ticks, format=fmt, shrink=.85)
+            cbar=plt.colorbar(cnt, ax=ax, ticks=ticks, format=fmt, shrink=.85)
             if clabel==None: 
                 clabel="{} ({})".format(value, self[value].attrs['units'])
             cbar.set_label(clabel)
@@ -2338,8 +2392,8 @@ class Mag(PbData):
     raw magnetometer data, additional values are calculated and stored,
     including total pertubations (the sum of all global and ionospheric 
     pertubations as measured by the magnetometer).  Users will be interested
-    in methods :meth:`~spacepy.pybats.bats.Mag.add_plot` and 
-    :meth:`~spacepy.pybats.bats.Mag.recalc`.
+    in methods :meth:`~spacepy.pybats.bats.Mag.add_comp_plot` and 
+    :meth:`~spacepy.pybats.bats.Mag.calc_dbdt`.
 
     Instantiation is best done through :class: `spacepy.pybats.MagFile`
     objects, which load and parse organize many virtual magnetometers from a 
@@ -2573,7 +2627,8 @@ class Mag(PbData):
         
         return fig, ax
 
-    def add_comp_plot(self, direc, target=None, add_legend=True, loc=111):
+    def add_comp_plot(self, direc, target=None, add_legend=True,
+                      loc=111, lw=2.0):
         '''
         Create a plot with,  or add to an existing plot, an illustration of 
         how the
@@ -2594,6 +2649,24 @@ class Mag(PbData):
         direction along with line plots of each component that builds this
         total.  This method uses the familiar PyBats **target** kwarg system
         to allow users to add these plots to existing figures or axes.
+
+        Parameters
+        ==========
+        direc : string
+           Indicate the direction to plot: either 'n', 'e', 'd', or 
+           'h' if calculated.
+
+        Other Parameters
+        ================
+        target : Matplotlib Figure or Axes object
+           Set plot destination.  Defaults to new figure.
+        loc : 3-digit integer
+           Set subplot location.  Defaults to 111.
+        add_legend : bool
+           Add legend to plot.  Defaults to True.
+        lw : float
+           Set the width of the lines.  Defaults to 2.0  Total field
+           is always 1.5 times thicker.
         '''
 
         import matplotlib.pyplot as plt
@@ -2607,9 +2680,9 @@ class Mag(PbData):
         styles={prefix+'Mhd':'--', prefix+'Fac':'--',
                 prefix+'Hal':'-.', prefix+'Ped':'-.',
                 prefix:'-'}
-        widths={prefix+'Mhd':1.0, prefix+'Fac':1.0,
-                prefix+'Hal':1.0, prefix+'Ped':1.0,
-                prefix:1.5}
+        widths={prefix+'Mhd':lw, prefix+'Fac':lw,
+                prefix+'Hal':lw, prefix+'Ped':lw,
+                prefix:1.5*lw}
         colors={prefix+'Mhd':'#FF6600', prefix+'Fac':'r',
                 prefix+'Hal':'b',       prefix+'Ped':'c',
                 prefix:'k'}
@@ -2658,7 +2731,7 @@ class MagFile(PbData):
     >>> # Open up the GM magnetometer file only.
     >>> obj = spacepy.pybats.bats.MagFile('GM_file.mag')
     >>>
-    >>> # Open up both the GM and IE file.
+    >>> # Open up both the GM and IE file [LEGACY SWMF ONLY]
     >>> obj = spacepy.pybats.bats.MagFile('GM_file.mag', 'IE_file.mag')
     >>>
     >>> # Open up the GM magnetometer file; search for the IE file.
@@ -2975,7 +3048,7 @@ class MagGridFile(IdlFile):
 
         # Add cbar if necessary.
         if add_cbar:
-            cbar=plt.colorbar(cont, ticks=ticks, format=fmt, pad=0.01)
+            cbar=plt.colorbar(cont, ax=ax, ticks=ticks, format=fmt, pad=0.01)
             if clabel==None:
                 varname = mhdname_to_tex(value)
                 units   = mhdname_to_tex(self[value].attrs['units'])
@@ -3237,7 +3310,7 @@ class VirtSat(LogFile):
         try:
             s = self.attrs['file']
             a = findall('sat_([\-\w]+)_\d+_n\d+\.sat|sat_(\w+)_n\d+\.sat', s)[0]
-            name = filter(None, a)[0]
+            name = list(filter(None, a))[0]
         except IndexError:
             name = None
         self.attrs['name']=name

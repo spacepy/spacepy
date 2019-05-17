@@ -1187,8 +1187,8 @@ def binHisto(data, verbose=False):
     >>> data = numpy.random.randn(1000)
     >>> binw, nbins = spacepy.toolbox.binHisto(data)
     >>> print(nbins)
-    19.0
-    >>> p = plt.hist(data, bins=nbins, histtype='step', normed=True)
+    19
+    >>> p = plt.hist(data, bins=nbins, histtype='step', density=True)
 
     See Also
     ========
@@ -1199,10 +1199,10 @@ def binHisto(data, verbose=False):
     iqr = qu-ql
     binw = 2.*iqr/(len(data)**(1./3.))
     if binw != 0:
-        nbins = round((max(data)-min(data))/binw)
+        nbins = int(round((max(data)-min(data))/binw))
     # if nbins is 0, NaN or inf don't use the F-D rule just use sqrt(num) rule
     if binw == 0 or nbins == 0 or not np.isfinite(nbins) or nbins >= len(data)/2.:
-        nbins = round(np.sqrt(len(data)))
+        nbins = int(round(np.sqrt(len(data))))
         binw = len(data)/nbins
         if verbose:
             print("Used sqrt rule")

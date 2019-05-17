@@ -1099,7 +1099,7 @@ class BoundaryGroup(PbData):
         self._dtime     = date2num(self['time']) # create decimal time.
         self._zlims     = {'p':[0,40], 'R':[0,8], 'r':[0,60], 'n':[0,8]}
 
-    def add_ltut(self, var, target=None, loc=111, cmap='jet', zlim=None, 
+    def add_ltut(self, var, target=None, loc=111, cmap='inferno', zlim=None, 
                  add_cbar=True, clabel=None, xlabel='full', title=None,
                  grid=True, ntick=5):
         '''
@@ -1115,7 +1115,7 @@ class BoundaryGroup(PbData):
         target     Select plot destination.  Defaults to new figure/axis.
         loc        The location of any generated subplots.  Default is 111.
         add_cbar   Toggles the automatic colorbar.  Default is**True**.
-        cmap       Selects Matplotlib color table.  Defaults to *jet*.
+        cmap       Selects Matplotlib color table.  Defaults to *inferno*.
         zlim       Limits for z-axis.  Defaults to best-guess.
         clabel     Sets colorbar label.  Defaults to *var* units.
         xlabel     Sets x-axis limits, use 'full', 'ticks', or **None**.
@@ -1141,8 +1141,7 @@ class BoundaryGroup(PbData):
             
         # Create plot:
         mesh = ax.pcolormesh(self._dtime, self._y, self[var], 
-                             cmap=plt.get_cmap(cmap), 
-                             vmin=zlim[0], vmax=zlim[-1])
+                             cmap=cmap, vmin=zlim[0], vmax=zlim[-1])
         # Use LT ticks and markers on y-axis:
         ax.set_yticks(self._yticks)
         ax.set_yticklabels(self._lt_labels)
@@ -1285,7 +1284,7 @@ class PressureFile(PbData):
 
     def add_cont_press(self, var='total', n=31, target=None, maxz=1000.0, 
                        minz=1.0, loc=111, add_cbar=False, npa=False, 
-                       labelsize=15,  title='auto', **kwargs):
+                       labelsize=15,  title='auto', cmap='inferno', **kwargs):
         '''
         Create a polar log-axis contour plot of pressure and add it to
         *target*.  For speedier plots, use plot_cont_press, which makes its
@@ -1314,6 +1313,8 @@ class PressureFile(PbData):
              The color bar minimum.  Defaults to 1.0.
         add_cbar : bool
              Set whether to add a color bar or not.  Defaults to **False**.
+        cmap : string
+             Set name of contour color map to use.  Defaults to 'inferno'.
         npa : bool
              If **True**, plot in units of nanopascal instead of energy density.
              Defaults to **False**.
@@ -1336,7 +1337,6 @@ class PressureFile(PbData):
         from numpy import linspace, power, max, pi, log10
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
-        from matplotlib.cm import get_cmap
         from matplotlib.pyplot import colorbar
         from matplotlib.ticker import (LogLocator, LogFormatter, 
                                        LogFormatterMathtext, MultipleLocator)
@@ -1344,21 +1344,17 @@ class PressureFile(PbData):
         fig, ax = set_target(target, loc=loc, polar=True)
 
         p=self[var]
-        mapname='spectral'
         label='$KeV/cm^-3$'
         if title=='auto':
             title=self[var].attrs['label']
         if npa:
             p=p*0.16 # Energy Density to Pressure in nPa.
-            mapname='jet'
             label='nPa'
         # Set up color bar & levels.
         levs = power(10, linspace(log10(minz), log10(maxz), n))
         minz=0.01
-        cont = ax.tricontour(self['theta'], self['L'], p, levs, 
-                             norm=LogNorm(), cmap=get_cmap(mapname))
         cont = ax.tricontourf(self['theta'], self['L'], p, levs, 
-                              norm=LogNorm(), cmap=get_cmap(mapname))
+                              norm=LogNorm(), cmap=cmap)
         _adjust_dialplot(ax, self['L'], title=title, labelsize=labelsize)
         if add_cbar:
             cbar = colorbar(cont, pad=0.1, ticks=LogLocator(), ax=ax,
@@ -1436,7 +1432,7 @@ class PressureFile(PbData):
         R=linspace(self['L'][0]-dL/2.0,self['L'][-1]+dL/2.0,self.attrs['nL']+1)
         p=reshape(self[var], [self.attrs['nL'], self.attrs['nTheta']])
         pcol = ax.pcolormesh(T, R, p[:,:-1], norm=LogNorm(),
-                             vmin=minz, vmax=maxz, cmap=get_cmap('spectral'))
+                             vmin=minz, vmax=maxz, cmap=get_cmap('inferno'))
         _adjust_dialplot(ax, R, title=title, labelsize=15)
         if add_cbar:
             cbar = colorbar(pcol, pad=0.1, ticks=LogLocator(), ax=ax,
@@ -1541,7 +1537,7 @@ class BoundaryFluxFile(object):
         flux = self.flux.transpose()
         flux[flux<0.01] = 0.01
         flx = ax.pcolor(self.LT, egrid, flux, norm=LogNorm(), vmin=zlim[0],
-                        vmax=zlim[-1], cmap=plt.get_cmap('gnuplot2'))
+                        vmax=zlim[-1], cmap=plt.get_cmap('inferno'))
         cbar = plt.colorbar(flx, pad=0.01, shrink=0.85, ticks=LogLocator(),
                             format=LogFormatterMathtext())
         cbar.set_label('$cm^{-2}s^{-1}ster^{-1}keV^{-1}$')
@@ -2208,7 +2204,7 @@ class GeoMltFile(object):
         flux[flux<0.01] = 0.01
         flx = ax.pcolormesh(lgrid, egrid, flux, norm=LogNorm(),
                             vmin=0.01, vmax=1e10, 
-                            cmap=plt.get_cmap('gnuplot2'))
+                            cmap=plt.get_cmap('inferno'))
         cbar = plt.colorbar(flx, pad=0.01, shrink=0.85, ticks=LogLocator(),
                             format=LogFormatterMathtext())
         cbar.set_label('$cm^{-2}s^{-1}ster^{-1}keV^{-1}$')

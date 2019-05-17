@@ -349,6 +349,26 @@ class NoCDF(unittest.TestCase):
         for (epoch, tt2000) in zip(epochs, tt2000s):
             self.assertEqual(epoch, list(cdf.lib.tt2000_to_epoch16(tt2000)))
 
+    def testTT2000ToEpoch16Stress(self):
+        """Test TT2000toEpoch16 repeatedly to make sure it doesn't crash"""
+        epochs = [[63366364799.0, 999999999000.0],
+                  [63400665600.0, 100000000.0],
+                  ]
+        tt2000s = [252417665183999999,
+                   286718466184100000,
+                   ]
+        #this is basically 2x what reliably fails in the Win32/py2.7 case,
+        #where this problem was found
+        for i in range(10):
+            for (epoch, tt2000) in zip(epochs, tt2000s):
+                self.assertEqual(epoch, list(cdf.lib.tt2000_to_epoch16(tt2000)))
+
+    def testTT2000ToEpoch16Filled(self):
+        """Test conversion of TT2000 fill value to epoch 16"""
+        self.assertEqual(
+            (-1.e31, -1.e31),
+            cdf.lib.tt2000_to_epoch16(const.FILLED_TT2000_VALUE))
+
     def testEpochtoEpoch16(self):
         """Convert an Epoch to Epoch16"""
         epochs = [63397987200000.0,
@@ -470,6 +490,8 @@ class NoCDF(unittest.TestCase):
                    numpy.int32(-1 * 2 ** 31),
                    -1 * 2 ** 31,
                    numpy.array([5, 6, 7], dtype=numpy.uint8),
+                   [4611686018427387904],
+                   numpy.array([1], dtype=numpy.object),
                    ]
         type8 = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -502,6 +524,14 @@ class NoCDF(unittest.TestCase):
                        const.CDF_FLOAT, const.CDF_REAL4,
                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((3,), [const.CDF_UINT1, const.CDF_UCHAR], 1),
+                 ((1,), [const.CDF_INT8,
+                       const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((1,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                         const.CDF_INT2, const.CDF_UINT2,
+                         const.CDF_INT4, const.CDF_UINT4, const.CDF_INT8,
+                         const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ]
         types = [((4,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
                          const.CDF_INT2, const.CDF_UINT2,
@@ -536,7 +566,15 @@ class NoCDF(unittest.TestCase):
                  ((), [const.CDF_INT4, const.CDF_FLOAT, const.CDF_REAL4,
                        const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ((3,), [const.CDF_UINT1, const.CDF_UCHAR], 1),
+                 ((1,), [const.CDF_FLOAT, const.CDF_REAL4,
+                       const.CDF_DOUBLE, const.CDF_REAL8], 1),
+                 ((1,), [const.CDF_BYTE, const.CDF_INT1, const.CDF_UINT1,
+                         const.CDF_INT2, const.CDF_UINT2,
+                         const.CDF_INT4, const.CDF_UINT4,
+                         const.CDF_FLOAT, const.CDF_REAL4,
+                         const.CDF_DOUBLE, const.CDF_REAL8], 1),
                  ]
+        self.assertRaises(ValueError, cdf._Hyperslice.types, [object()])
         if cdf.lib.supports_int8: #explicitly test backward-compatible
             cdf.lib.supports_int8 = False
             try:
@@ -2045,8 +2083,12 @@ class ChangeCDFBase(CDFTests):
         self.cdf.readonly(False)
 
     def tearDown(self):
+        warnings.filterwarnings(
+            'ignore', message='^DID_NOT_COMPRESS.*$', category=cdf.CDFWarning,
+            module='^spacepy.pycdf')
         self.cdf.close()
         del self.cdf
+        del warnings.filters[0]
         os.remove(self.testfile)
         super(ChangeCDFBase, self).tearDown()
 
@@ -2418,6 +2460,14 @@ class ChangeCDF(ChangeCDFBase):
                 self.assertEqual(oldlist[attrname], newlist[attrname])
                 self.assertEqual(oldlist.type(attrname),
                                  newlist.type(attrname))
+
+    def testCloneVarCompressed(self):
+        """Clone a variable and keep its compression"""
+        self.cdf.new('IAmCompressed', data=numpy.array([1, 2, 3, 4, 5]),
+                     compress=const.GZIP_COMPRESSION, compress_param=7)
+        self.cdf.clone(self.cdf['IAmCompressed'], 'IAmCompressed_2')
+        output = self.cdf['IAmCompressed_2'].compress()
+        self.assertEqual((const.GZIP_COMPRESSION, 7), output)
 
     def testDimVariance(self):
         """Check and change dimension variance of a variable"""

@@ -188,7 +188,10 @@ class Iono(PbData):
 
         # slurp entire file.
         if self.attrs['file'][-3:]=='.gz':
-            infile=gzip.open(self.attrs['file'],'rt')
+            try:
+                infile = gzip.open(self.attrs['file'],'rt')
+            except ValueError: #Python2.7 (Windows) compatibility
+                infile = gzip.open(self.attrs['file'])
         else:
             infile = open(self.attrs['file'], 'r')
         raw = infile.readlines()
@@ -264,6 +267,67 @@ class Iono(PbData):
             self[nkey] = reshape(self[nkey], (ntheta, nphi), 'F')
             self[skey] = reshape(self[skey], (ntheta, nphi), 'F')
 
+        # Some extra grid info:
+        self.dlon = self['n_psi'  ][0,3]-self['n_psi'  ][0,2]
+        self.dlat = self['n_theta'][3,0]-self['n_theta'][2,0]
+        
+    def calc_I(self):
+        '''
+        Integrate radial current to get the following values:
+        I:     The total radial current over one hemisphere.
+        Iup:   The total upward current over one hemisphere.
+        Idown: The total downward current over one hemisphere.
+
+        Values are stored in the object with the prefix 'n_' or 's_'
+        to indicate the hemisphere and may be accessed via self['n_I'], etc.
+
+        Values are stored in units of mega Amps.
+
+        Parameters
+        ==========
+
+
+        Returns
+        =======
+        True
+
+
+        Examples
+        ========
+        >>> a = rim.Iono('spacepy/tests/data/pybats_test/it000321_104510_000.idl.gz')
+        >>> a.calc_I()
+        >>> print(a['n_Iup'])
+        
+        '''
+
+        # Calculate some physically meaningful values/units
+        units = 1E-6*1E-6  # micro amps to amps, amps to MegaAmps
+        R = (6371.0+110.0)*1000.0 # Radius of Earth + iono altitude
+        dTheta = np.pi*self.dlat/180.
+        dPhi   = np.pi*self.dlon/180.
+        
+        # -----NORTHERN HEMISPHERE-----
+        # Get relevant values:
+        colat     = self['n_theta']*np.pi/180.
+        integrand = self['n_jr']*np.sin(colat)*dTheta*dPhi
+        # Get locations of "up" and "down"
+        loc_up = self['n_jr']>0
+        loc_do = self['n_jr']<0
+        self['n_I']     = units*R**2 * np.sum(integrand)
+        self['n_Iup']   = units*R**2 * np.sum(integrand[loc_up])
+        self['n_Idown'] = units*R**2 * np.sum(integrand[loc_do])
+
+        # -----SOUTHERN HEMISPHERE-----
+        # Get relevant values:
+        colat     = self['s_theta']*np.pi/180.
+        integrand = self['s_jr']*np.sin(colat)*dTheta*dPhi
+        # Get locations of "up" and "down"
+        loc_up = self['s_jr']>0
+        loc_do = self['s_jr']<0
+        self['s_I']     = units*R**2 * np.sum(integrand)
+        self['s_Iup']   = units*R**2 * np.sum(integrand[loc_up])
+        self['s_Idown'] = units*R**2 * np.sum(integrand[loc_do])
+        
     def add_cont(self, var, target=None, n=24, maxz=False, lines=True, 
                  cmap=False, add_cbar=False, label=None, loc=111,
                  xticksize=12, yticksize=12, max_colat=40, **kwargs):
