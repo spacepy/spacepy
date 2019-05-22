@@ -7,7 +7,6 @@ import numpy as np
 from numpy.linalg import svd
 import pdb
 from spacepy.toolbox import feq
-from matplotlib.mlab import find
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -627,10 +626,10 @@ def getobs4window(dd, Tnow):
 
     Lmean = np.mean(Lmean)
     # move to actual grid point
-    print(Lmeana)
-    idx = find(Lgrid>Lmean)[0]
+    print(Lmean)
+    idx,  = np.where(Lgrid>Lmean)
 
-    Lmean = Lgrid[idx]
+    Lmean = Lgrid[idx[0]]
     ymean = np.mean(ymean)
     return dd, np.array([Lmean]), np.array([ymean])
 
