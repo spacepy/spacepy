@@ -50,11 +50,27 @@ SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
     'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
     'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': None, 'car': 6},
     'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car': None},
-    'TOD': {'sph': None, 'car': 12}, 'TEME': {'sph': None, 'car': 13}}
+    'TOD': {'sph': None, 'car': 12}, 'J2000': {'sph': None, 'car': 13}}
 
 # -----------------------------------------------
 def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
-    '''
+    '''Update coefficients for TS07 magnetic field model
+
+    Parameters
+    ----------
+    path : str
+        Base path for TS07 dynamic coefficients. If None (default)
+        then the TS07_DATA_PATH environment variable is used.
+    force : boolean
+        If True (default is False) then missing paths will be created.
+    verbose : boolean
+        Print verbose output. Default is False.
+    start : datetime.datetime or string
+        Start time for archive retrieval. If start is a string then it should
+        ISO8601 format (YYYY-MM-DDTHH:mm:SS). Defaults to 2007-01-01.
+    end : datetime.datetime or string
+        End time for archive retrieval. Required format same as start.
+        Defaults to time of query (i.e. latest available).
     '''
     import glob, tarfile
     import spacepy.time as spt
@@ -94,12 +110,18 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
     else:
         lastDate = spt.Ticktock(kwargs['end']).UTC[0]
         
-    baseURL = 'http://rbspgway.jhuapl.edu/sites/default/files/SpaceWeather/coeffsForAthena/'
+    baseURL = 'http://rbspgway.jhuapl.edu/models/magneticfieldmodeling/ts07d/coeffs_v02/'
 
     #make inventory of current TS07 data
     current_days = sorted(glob.glob(os.path.join(path,'Coeffs','*')))
     current_days = [os.path.split(dd)[-1] for dd in current_days if 'tgz' not in dd]
-    current_dates = [spt.doy2date(int(v.split('_')[0]),int(v.split('_')[1]), dtobj=True) for v in current_days]
+    current_dates = []
+    for vals in current_days:
+        try:
+            adddate = spt.doy2date(int(vals.split('_')[0]),int(vals.split('_')[1]), dtobj=True)
+        except ValueError: #not a valid date format
+            continue
+        current_dates.append(adddate)
 
     request_days = spt.tickrange(firstDate, lastDate, 1)
     timewant = set(request_days.UTC)
@@ -111,10 +133,10 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
         doy = spt.Ticktock(day).DOY[0]
         name = '{0}_{1:03d}'.format(day.year, doy)
         target = os.path.join(path, 'Coeffs', name)
-        source = baseURL+'/'+'{0}.tgz'.format(name)
+        source = baseURL+'/{0}/'.format(day.year)+'{0}.tgz'.format(name)
         targetfile = os.path.join('{0}.tgz'.format(name))
         if verbose:
-            print("Fetching archive for {0}\n".format(day.date().isoformat()))
+            print("\nFetching archive for {0}".format(day.date().isoformat()))
             tmp, report = u.urlretrieve(source, targetfile, reporthook=tb.progressbar)
         else:
             tmp, report = u.urlretrieve(source, targetfile)
