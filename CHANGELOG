@@ -5,6 +5,10 @@ ae9ap9
  - Fix handling of gzipped files under Windows/Python2
 datamodel
  - Datatypes are now explicitly preserved by function "toRecArray"
+irbempy
+ - Update IRBEMlib to rev616
+ - Update build for compatibility with numpy>=1.16 and GCC 8
+ - Update retrieval of TS07 dynamic coefficient files
 pybats
  - Many small changes and bugfixes (thanks John Haiducek)
  - Fix handling of gzipped files under Windows/Python2
