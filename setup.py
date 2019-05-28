@@ -392,7 +392,7 @@ class build(_build):
             return
         # 64 bit or 32 bit?
         bit = len('%x' % sys.maxsize)*4
-        irbemdir = 'irbem-lib-2016-03-21-rev546'
+        irbemdir = 'irbem-lib-2019-04-04-rev616'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
         outdir = os.path.join(os.path.abspath(self.build_lib),
                               'spacepy', 'irbempy')
@@ -530,7 +530,7 @@ class build(_build):
         compflags = {
             'pg': '-Mnosecond_underscore -w -fastsse -fPIC',
             'gnu': '-w -O2 -fPIC -fno-second-underscore',
-            'gnu95': '-w -O2 -fPIC -ffixed-line-length-none',
+            'gnu95': '-w -O2 -fPIC -ffixed-line-length-none -std=legacy',
             'intel': '-Bstatic -assume 2underscores -O2 -fPIC',
             'intelem': '-Bdynamic -O2 -fPIC',
             }[fcompiler]
