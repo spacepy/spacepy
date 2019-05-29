@@ -2499,7 +2499,7 @@ def do_with_timeout(timeout, target, *args, **kwargs):
     t = ReturningThread(None, target, None, args, kwargs)
     t.start()
     retval = t.join(timeout)
-    if t.isAlive():
+    if t.is_alive():
         raise TimeoutError()
     return retval
 
