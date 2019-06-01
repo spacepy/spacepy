@@ -32,5 +32,5 @@ for %%f in (dist\spacepy-*.*.*.win32.exe dist\spacepy-*.*.*.win-amd64.exe) DO (
 )
 popd
 ::This turns off echo!
-CALL %USERPROFILE%\Miniconda3\Scripts\deactivate
+CALL conda deactivate
 GOTO :EOF
