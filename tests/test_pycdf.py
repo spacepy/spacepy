@@ -228,9 +228,14 @@ class NoCDF(unittest.TestCase):
                   0.0,
                   ]
         dts = [datetime.datetime(2009, 1, 1),
-               datetime.datetime(9999, 12, 13, 23, 59, 59, 999000),
+               datetime.datetime(9999, 12, 31, 23, 59, 59, 999000),
                datetime.datetime(9999, 12, 13, 23, 59, 59, 999000),
                ]
+        #3.7.1 updated the "invalid" value to 12/31, but only in one
+        #case; rest remain 12/13.
+        if cdf.lib.version[0:3] < (3, 7, 1):
+            dts[1] = datetime.datetime(
+                9999, 12, 13, 23, 59, 59, 999000)
         for (epoch, dt) in zip(epochs, dts):
             self.assertEqual(dt, cdf.lib.epoch_to_datetime(epoch))
         result = cdf.lib.v_epoch_to_datetime(numpy.array(epochs))

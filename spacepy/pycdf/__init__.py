@@ -251,13 +251,23 @@ class Library(object):
         if hasattr(self._library, 'CDFsetFileBackward'):
             self._library.CDFsetFileBackward.restype = None
             self._library.CDFsetFileBackward.argtypes = [ctypes.c_long]
-        if hasattr(self._library, 'CDF_TT2000_from_UTC_parts'):
-            self._library.CDF_TT2000_from_UTC_parts.restype = ctypes.c_longlong
-            self._library.CDF_TT2000_from_UTC_parts.argtypes = \
+        #Map old name to the 3.7.1+ name
+        if not hasattr(self._library, 'computeTT2000') \
+           and hasattr(self._library, 'CDF_TT2000_from_UTC_parts'):
+            self._library.computeTT2000 \
+                = self._library.CDF_TT2000_from_UTC_parts
+        if hasattr(self._library, 'computeTT2000'):
+            self._library.computeTT2000.restype = ctypes.c_longlong
+            self._library.computeTT2000.argtypes = \
                 [ctypes.c_double] *9
-        if hasattr(self._library, 'CDF_TT2000_to_UTC_parts'):
-            self._library.CDF_TT2000_to_UTC_parts.restype = None
-            self._library.CDF_TT2000_to_UTC_parts.argtypes = \
+        #Map old name to the 3.7.1+ name
+        if not hasattr(self._library, 'breakdownTT2000') \
+           and hasattr(self._library, 'CDF_TT2000_to_UTC_parts'):
+            self._library.breakdownTT2000 \
+                = self._library.CDF_TT2000_to_UTC_parts
+        if hasattr(self._library, 'breakdownTT2000'):
+            self._library.breakdownTT2000.restype = None
+            self._library.breakdownTT2000.argtypes = \
                 [ctypes.c_longlong] + [ctypes.POINTER(ctypes.c_double)] * 9
         if hasattr(self._library, 'CDF_TT2000_to_UTC_EPOCH'):
             self._library.CDF_TT2000_to_UTC_EPOCH.restype = ctypes.c_double
@@ -341,8 +351,8 @@ class Library(object):
             del self.numpytypedict[const.CDF_TIME_TT2000.value]
         elif sys.platform.startswith('linux') \
              and os.uname()[4].startswith('arm') \
-             and hasattr(self._library, 'CDF_TT2000_from_UTC_parts') \
-             and self._library.CDF_TT2000_from_UTC_parts(
+             and hasattr(self._library, 'computeTT2000') \
+             and self._library.computeTT2000(
                  2010, 1, 1, 0, 0, 0, 0, 0, 0) != 315576066184000000:
             #TT2000 call failed, so probably need to type-pun
             #double arguments to variadic functions.
@@ -355,10 +365,10 @@ class Library(object):
                 warnings.warn('ARM with unknown type sizes; '
                               'TT2000 functions will not work.')
             else:
-                self._library.CDF_TT2000_from_UTC_parts.argtypes = \
+                self._library.computeTT2000.argtypes = \
                     [ctypes.c_longlong] * 9
                 c_ll_p = ctypes.POINTER(ctypes.c_longlong)
-                if self._library.CDF_TT2000_from_UTC_parts(
+                if self._library.computeTT2000(
                     ctypes.cast(ctypes.pointer(ctypes.c_double(
                         2010)), c_ll_p).contents,
                     ctypes.cast(ctypes.pointer(ctypes.c_double(
@@ -915,7 +925,7 @@ class Library(object):
         msec = ctypes.c_double(0)
         usec = ctypes.c_double(0)
         nsec = ctypes.c_double(0)
-        self._library.CDF_TT2000_to_UTC_parts(
+        self._library.breakdownTT2000(
             ctypes.c_longlong(tt2000),
             ctypes.byref(yyyy), ctypes.byref(mm), ctypes.byref(dd),
             ctypes.byref(hh), ctypes.byref(min), ctypes.byref(sec),
@@ -967,7 +977,7 @@ class Library(object):
         dt = dt.replace(tzinfo=None)
         if dt  == datetime.datetime.max:
             return -2**63
-        return self._library.CDF_TT2000_from_UTC_parts(
+        return self._library.computeTT2000(
             dt.year, dt.month, dt.day, dt.hour,
             dt.minute, dt.second,
             int(dt.microsecond / 1000),
@@ -1000,7 +1010,7 @@ class Library(object):
         dt = dt.replace(tzinfo=None)
         if dt  == datetime.datetime.max:
             return -2**63
-        return self._library.CDF_TT2000_from_UTC_parts(
+        return self._library.computeTT2000(
                     ctypes.cast(ctypes.pointer(ctypes.c_double(
                         dt.year)), c_ll_p).contents,
                     ctypes.cast(ctypes.pointer(ctypes.c_double(
