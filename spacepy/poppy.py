@@ -481,11 +481,12 @@ class PPro(object):
 
         Warnings
         ========
-        If ``seed`` is specified on numpy 1.5 and earlier, the available
-        entropy is reduced to work around a random number generator bug.
-        Upgrade to numpy 1.6 to avoid this limitation.
+        On 64-bit Windows only, if ``seed`` is specified on numpy 1.11 and
+        earlier, the available entropy is reduced to work around a random
+        number limitation. Upgrade to numpy 1.11 to avoid this limitation.
         Because of this workaround, if a seed is specified, results
-        from numpy 1.5 are not reproducible with numpy 1.6
+        from numpy 1.10- are not reproducible with numpy 1.11+. This does
+        not apply to other operating systems or 32-bit Windows.
         """
         lags = self.lags
 
@@ -495,16 +496,27 @@ class PPro(object):
 
         if seed != None:
             np.random.seed(seed)
-            #TODO: This is a bit ugly and we potentially lose entropy
-            #should be unsigned long, but numpy forces signed int...
             minseed = -sys.maxsize - 1
             maxseed = sys.maxsize
-            (maj, minor) = np.__version__.split('.')[0:2]
-            if int(maj) < 2 and int(minor) < 6:
-                warnings.warn('Upgrade to numpy 1.6 to avoid reduced entropy.')
-                maxseed = sys.maxsize
-                minseed = 0
-            lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
+            #randint used to be system-size signed integer only.
+            #so used that and cast to the required unsigned later
+            #cast does not lose entropy: negative numbers map to high positives.
+            #For reproducibility, keep doing that even though dtype
+            #kwarg now available.
+            kwargs = {}
+            if sys.platform.startswith('win') and sys.maxsize > 2 ** 32:
+                #Defaults to 32-bit, force 64 if possible
+                #see https://github.com/numpy/numpy/pull/6910
+                if tuple([int(v) for v in np.__version__.split('.')]) \
+                   < (1, 11, 0):
+                    warnings.warn(
+                        'Upgrade to numpy 1.11 to avoid reduced entropy.')
+                    minseed = -2 ** 31
+                    maxseed = 2 ** 31 - 1
+                else:
+                    kwargs = {'dtype': np.int64}
+            lag_seeds = np.random.randint(minseed, maxseed, [len(lags)],
+                                          **kwargs)
             newtype = np.dtype('u' + str(lag_seeds.dtype))
             lag_seeds = np.require(lag_seeds, dtype=newtype)
         if lib.have_libspacepy == False:

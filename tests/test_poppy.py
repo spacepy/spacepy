@@ -247,12 +247,17 @@ class AssocTests(unittest.TestCase):
         This is a regression test: values are taken from existing
         implementation and assumed correct.
         """
-        if sys.maxsize <= 2 ** 31: #don't test on 32-bit
-            return
         pop = poppy.PPro(self.t1, self.t2)
         lags = [(i - 144) * 120 for i in range(289)]
         pop.assoc(lags, 120)
         pop.aa_ci(95, n_boots=100, seed=0)
+        #Know that the code runs at this point, but do not have expected values
+        #for these platforms (test assumes 64-bit seed).
+        if sys.maxsize <= 2 ** 31 \
+           or sys.platform.startswith('win') \
+           and tuple([int(v) for v in np.__version__.split('.')]) \
+           < (1, 11, 0):
+            return
         self.assertEqual(self.expected_low, list(pop.ci[0]))
         self.assertEqual(self.expected_high, list(pop.ci[1]))
         self.assertEqual(self.expected_conf_above,
