@@ -13,9 +13,11 @@ import datetime as dt
 import unittest
 
 import numpy as np
+import numpy.testing
 
 import spacepy.pybats as pb
 import spacepy.pybats.bats as pbs
+import spacepy.pybats.ram as ram
 
 __all__ = ['TestParseFileTime', 'TestIdlFile', 'TestRim', 'TestBats2d',
            'TestMagGrid', 'TestSatOrbit', 'TestVirtSat', 'TestImfInput',
@@ -408,7 +410,29 @@ class TestExtraction(unittest.TestCase):
         extr = self.mhd.extract(range(-5, 6),[-8]*11)
         for x, rho in zip(extr['x'], extr['rho']):
             self.assertAlmostEqual(rho, analytic(x), 2)
-        
+
+class RampyTests(unittest.TestCase):
+    '''
+    Tests for pybats.rampy
+    '''
+    def setUp(self):
+        super(RampyTests, self).setUp()
+        self.testfile = 'data/pybats_test/ramsat_test.nc'
+
+    def tearDown(self):
+        super(RampyTests, self).tearDown()
+
+    def test_RamSat_load(self):
+        data = ram.RamSat(self.testfile)
+
+    def test_RamSat_contents_time(self):
+        data = ram.RamSat(self.testfile)
+        self.assertEqual(data.starttime, dt.datetime(2012, 10, 29))
+        numpy.testing.assert_array_equal(data['Time'], [60., 120., 180.])
+
+    def test_RamSat_contents_dims(self):
+        data = ram.RamSat(self.testfile)
+        numpy.testing.assert_array_equal(data['FluxH+'].shape, [3, 72, 35])
         
 if __name__=='__main__':
     unittest.main()
