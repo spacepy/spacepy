@@ -591,7 +591,7 @@ class RamSat(object):
 
         # Get start time, set default if not found.
         try:
-            stringtime = self.attrs['start_time']
+            stringtime = self.attrs['start_time'].decode()
         except KeyError:
             stringtime = '20000101000000'
 
