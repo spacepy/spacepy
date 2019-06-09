@@ -86,7 +86,7 @@ def young_comp(kp, f107):
     '''
     Determine plasma sheet composition using the Young et al. empirical 
     relationship based on Kp and F10.7 (first and second arguments, 
-    respectively) as give by *Young et al.* [JGR, 1982, Vol. 87 No. A11]
+    respectively) as given by *Young et al.* [JGR, 1982, Vol. 87 No. A11]
 
     Returns fraction of total number density that is Hydrogen, 
     Helium, and Oxygen.
@@ -96,10 +96,8 @@ def young_comp(kp, f107):
     >>> FracH, FracHe, FracO = young_comp(5, 150.0)
 
     '''
-    from numpy import exp
-
-    ratOH = 4.5E-2 * exp(0.17*kp + 0.01*f107) # Eq. 5, pg. 9088
-    ratHeH= 0.618182*ratOH*exp(-0.24*kp - 0.011*f107) + 0.011*ratOH
+    ratOH = 4.5E-2 * np.exp(0.17*kp + 0.01*f107) # Eq. 5, pg. 9088
+    ratHeH= 0.618182*ratOH*np.exp(-0.24*kp - 0.011*f107) + 0.011*ratOH
     fracH = 1.0 / (1.0 + ratHeH + ratOH)
     fracHe= ratHeH * fracH
     fracO = ratOH  * fracH
@@ -113,7 +111,6 @@ def viz_young_comp():
     '''
     import matplotlib.pyplot as plt
     from matplotlib.ticker import MultipleLocator
-    import numpy as np
     
     kp = np.arange(0, 9.1, 0.1)
     f7 = np.arange(0, 301, 1.0)
@@ -149,10 +146,9 @@ def viz_egrid(nE=36, lb=0.1, ew=3E-2, power=1.27):
     '''
 
     import matplotlib.pyplot as plt
-    from numpy import zeros
 
     ecent, ebound, ewidth = gen_egrid(nE, lb, ew, power)
-    y=zeros(len(ecent))
+    y = np.zeros(len(ecent))
 
     fig = plt.figure(figsize=(12,4))
     fig.subplots_adjust(bottom=0.1,right=0.98, left=0.02)
@@ -282,23 +278,22 @@ def add_body_polar(ax, noon=90.0):
     x-axis, in degrees, that is local noon (e.g. sun facing.)  Default is
     90 degrees, or in the +Y direction.
     '''
-    from numpy import pi, zeros, linspace, array
     from matplotlib.patches import Polygon
 
     # Number of points:
     nPts = 101
 
     # Convert "noon" to radians.
-    noon = pi*noon/180.0
+    noon = np.pi*noon/180.0
 
     # First, a circle.
-    x=linspace(0., 2.0*pi, nPts) # Polar angle.
-    y=zeros(nPts) + 1.0          # Polar radius.
-    circ = Polygon( array([x,y]).transpose(), fc='w', ec='k', zorder=1001)
+    x = np.linspace(0., 2.0*np.pi, nPts) # Polar angle.
+    y = np.zeros(nPts) + 1.0          # Polar radius.
+    circ = Polygon( np.array([x,y]).transpose(), fc='w', ec='k', zorder=1001)
 
     # Now, nightside.
-    x=linspace(noon+pi/2.0, noon+3.0*pi/2.0, nPts)
-    arc = Polygon( array([x,y]).transpose(), fc='k', ec='k', zorder=1002)
+    x = np.linspace(noon+np.pi/2.0, noon+3.0*np.pi/2.0, nPts)
+    arc = Polygon( np.array([x,y]).transpose(), fc='k', ec='k', zorder=1002)
 
     # Add to plot.
     ax.add_artist(circ)
@@ -310,19 +305,18 @@ def _adjust_dialplot(ax, rad, title='Noon',labelsize=15, c='gray'):
     function quickly adjusts those plots to give a uniform, clean
     look and feel.
     '''
-    from numpy import max, pi
     from matplotlib.ticker import MultipleLocator
     # Constrain range of plot:
-    ax.set_ylim([0,max(rad)])
+    ax.set_ylim([0, np.max(rad)])
     # Set MLT labels:
     lt_labels = ['06', title, '18', '00']
-    xticks    = [   0,   pi/2,   pi, 3*pi/2]
+    xticks    = [   0,   np.pi/2,   np.pi, 3*np.pi/2]
     ax.set_xticks(xticks)
     ax.set_xticklabels(lt_labels)
     ax.tick_params('x', labelsize=labelsize)
     # Set L labels and grid.  Turn off label at L=0.
     ax.yaxis.set_major_locator(MultipleLocator(2))
-    labels=ax.get_yticklabels()
+    labels = ax.get_yticklabels()
     labels[0].set_visible(False)
     ax.tick_params('y', labelcolor=c, labelsize=labelsize)
     ax.grid(True, c=c, lw=1, ls=':')
@@ -481,16 +475,15 @@ class EfieldFile(PbData):
         import matplotlib.pyplot as plt
         from matplotlib.colors import Normalize
         from matplotlib.ticker import MultipleLocator
-        from numpy import linspace
 
         fig, ax = set_target(target, figsize=figsize, loc=loc, polar=True)
 
-        cmap=get_iono_cb('bwr')
+        cmap = get_iono_cb('bwr')
         crange = Normalize(vmin=-1.*zlim, vmax=zlim)
-        levs = linspace(-1*zlim, zlim, n)
+        levs = np.linspace(-1*zlim, zlim, n)
 
-        cont=ax.tricontourf(self['phi']-np.pi/2.0, self['l'], self['epot'],
-                            levs, norm=crange, cmap=cmap)
+        cont = ax.tricontourf(self['phi']-np.pi/2.0, self['l'], self['epot'],
+                              levs, norm=crange, cmap=cmap)
         _adjust_dialplot(ax,self['l'], c=labcolor, title=title)
         cbar=False
         if add_cbar:
@@ -971,8 +964,6 @@ class PlasmaBoundary(PbData):
         '''
         Read and parse the ascii boundary file.
         '''
-        import datetime as dt
-
         # Read contents, slurp.
         infile = open(self.attrs['file'], 'r')
         raw = infile.readlines()
@@ -1181,14 +1172,13 @@ class PressureFile(PbData):
     '''
 
     def __init__(self, filename, *args, **kwargs):
-        from numpy import array, pi, round
         from dateutil.parser import parse
 
         # Init base object.
         super(PressureFile, self).__init__(*args, **kwargs)
 
         # Set up object.
-        self.attrs['file']=filename
+        self.attrs['file'] = filename
 
         # Read and parse file.
         f = open(filename, 'r')
@@ -1196,23 +1186,23 @@ class PressureFile(PbData):
         f.close()
 
         # Create variables:
-        nRec=len(lines[2:])
-        self['L']    =dmarray(np.zeros(nRec),attrs={'units':'RE'})
-        self['mlt']  =dmarray(np.zeros(nRec),attrs={'units':'Hours'})
-        self['perH'] =dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
-        self['parH'] =dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
-        self['perO'] =dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
-        self['parO'] =dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
-        self['perHe']=dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
-        self['parHe']=dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
-        self['pere'] =dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
-        self['pare'] =dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
-        self['total']=dmarray(np.zeros(nRec),attrs={'units':'keV/cm-3'})
+        nRec = len(lines[2:])
+        self['L']     = dmarray(np.zeros(nRec), attrs={'units': 'RE'})
+        self['mlt']   = dmarray(np.zeros(nRec), attrs={'units': 'Hours'})
+        self['perH']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        self['parH']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        self['perO']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        self['parO']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        self['perHe'] = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        self['parHe'] = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        self['pere']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        self['pare']  = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
+        self['total'] = dmarray(np.zeros(nRec), attrs={'units': 'keV/cm-3'})
 
         try:
-            self.attrs['time']=parse(lines[0][5:28], fuzzy=True)
+            self.attrs['time'] = parse(lines[0][5:28], fuzzy=True)
         except:
-            self.attrs['time']='unknown'
+            self.attrs['time'] = 'unknown'
 
         # Are electron values included?
         do_elec = 'PPAR_e' in lines[1]
@@ -1237,12 +1227,12 @@ class PressureFile(PbData):
                 self['total'][i] = parts[8]
 
         # Theta is an angle used for polar plots.
-        self['theta']=self['mlt']*pi/12.0 - pi/2.0
-        self['theta'].attrs={'units':'rad'}
+        self['theta'] = self['mlt']*np.pi/12.0 - np.pi/2.0
+        self['theta'].attrs = {'units':'rad'}
         
         # Grid spacing/size:
         self.attrs['dTheta'] = self['theta'][1]-self['theta'][0]
-        self.attrs['nTheta'] = int(np.round(2.*pi/self.attrs['dTheta'])+1)
+        self.attrs['nTheta'] = int(np.round(2.*np.pi/self.attrs['dTheta'])+1)
         self.attrs['nL'] = len(self['L'])/self.attrs['nTheta']
         self.attrs['dL'] = self['L'][self.attrs['nTheta']] - self['L'][0]
 
@@ -1257,29 +1247,29 @@ class PressureFile(PbData):
         self['aniO']  = self['perO']  / self['parO']  - 1.0
 
         # Isotropy units.
-        self['anie'].attrs={'units':''}
-        self['aniH'].attrs={'units':''}
-        self['aniHe'].attrs={'units':''}
-        self['aniO'].attrs={'units':''}
+        self['anie'].attrs  = {'units':''}
+        self['aniH'].attrs  = {'units':''}
+        self['aniHe'].attrs = {'units':''}
+        self['aniO'].attrs  = {'units':''}
 
         # Labels for plots.
-        self.labels={}
-        self['pere'].attrs['label'] = r'$\bot$ Pressure, e$^{-}$'
-        self['pare'].attrs['label'] = r'$\parallel$ Pressure, e$^{-}$'
-        self['tote'].attrs['label'] = r'Pressure, e$^{-}$'
-        self['perH'].attrs['label'] = r'$\bot$ Pressure, H$^{+}$'
-        self['parH'].attrs['label'] = r'$\parallel$ Pressure, H$^{+}$'
-        self['totH'].attrs['label'] = r'Pressure, H$^{+}$'
-        self['aniH'].attrs['label'] = r'Anisotropy, H$^{+}$'
-        self['perHe'].attrs['label']= r'$\bot$ Pressure, He$^{+}$'
-        self['parHe'].attrs['label']= r'$\parallel$ Pressure, He$^{+}$'
-        self['totHe'].attrs['label']= r'Pressure, He$^{+}$'
-        self['aniHe'].attrs['label']= r'Anisotropy, He$^{+}$'
-        self['perO'].attrs['label'] = r'$\bot$ Pressure, O$^{+}$'
-        self['parO'].attrs['label'] = r'$\parallel$ Pressure, O$^{+}$'
-        self['totO'].attrs['label'] = r'Pressure, O$^{+}$'
-        self['aniO'].attrs['label'] = r'Anisotropy, O$^{+}$'
-        self['total'].attrs['label']= r'Total Pressure'
+        self.labels = {}
+        self['pere'].attrs['label']  = r'$\bot$ Pressure, e$^{-}$'
+        self['pare'].attrs['label']  = r'$\parallel$ Pressure, e$^{-}$'
+        self['tote'].attrs['label']  = r'Pressure, e$^{-}$'
+        self['perH'].attrs['label']  = r'$\bot$ Pressure, H$^{+}$'
+        self['parH'].attrs['label']  = r'$\parallel$ Pressure, H$^{+}$'
+        self['totH'].attrs['label']  = r'Pressure, H$^{+}$'
+        self['aniH'].attrs['label']  = r'Anisotropy, H$^{+}$'
+        self['perHe'].attrs['label'] = r'$\bot$ Pressure, He$^{+}$'
+        self['parHe'].attrs['label'] = r'$\parallel$ Pressure, He$^{+}$'
+        self['totHe'].attrs['label'] = r'Pressure, He$^{+}$'
+        self['aniHe'].attrs['label'] = r'Anisotropy, He$^{+}$'
+        self['perO'].attrs['label']  = r'$\bot$ Pressure, O$^{+}$'
+        self['parO'].attrs['label']  = r'$\parallel$ Pressure, O$^{+}$'
+        self['totO'].attrs['label']  = r'Pressure, O$^{+}$'
+        self['aniO'].attrs['label']  = r'Anisotropy, O$^{+}$'
+        self['total'].attrs['label'] = r'Total Pressure'
 
 
     def add_cont_press(self, var='total', n=31, target=None, maxz=1000.0, 
@@ -1334,7 +1324,6 @@ class PressureFile(PbData):
             Default 111 (single plot).
 
         '''
-        from numpy import linspace, power, max, pi, log10
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
         from matplotlib.pyplot import colorbar
@@ -1343,16 +1332,16 @@ class PressureFile(PbData):
 
         fig, ax = set_target(target, loc=loc, polar=True)
 
-        p=self[var]
-        label='$KeV/cm^-3$'
+        p = self[var]
+        label = '$KeV/cm^-3$'
         if title=='auto':
-            title=self[var].attrs['label']
+            title = self[var].attrs['label']
         if npa:
-            p=p*0.16 # Energy Density to Pressure in nPa.
-            label='nPa'
+            p = p*0.16 # Energy Density to Pressure in nPa.
+            label = 'nPa'
         # Set up color bar & levels.
-        levs = power(10, linspace(log10(minz), log10(maxz), n))
-        minz=0.01
+        levs = np.power(10, np.linspace(np.log10(minz), np.log10(maxz), n))
+        minz = 0.01
         cont = ax.tricontourf(self['theta'], self['L'], p, levs, 
                               norm=LogNorm(), cmap=cmap)
         _adjust_dialplot(ax, self['L'], title=title, labelsize=labelsize)
@@ -1409,7 +1398,6 @@ class PressureFile(PbData):
 
         '''
         
-        from numpy import reshape, linspace, pi
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
         from matplotlib.cm import get_cmap
@@ -1425,12 +1413,12 @@ class PressureFile(PbData):
             title=self[var].attrs['label']
 
         # Set up grid centered on gridpoints.
-        dT=self.attrs['dTheta']
-        dL=self.attrs['dL']
-        T=linspace(-1.0*dT/2.0, 2.*pi-dT/2.0, self.attrs['nTheta'])
-        T=T-pi/2.0
-        R=linspace(self['L'][0]-dL/2.0,self['L'][-1]+dL/2.0,self.attrs['nL']+1)
-        p=reshape(self[var], [self.attrs['nL'], self.attrs['nTheta']])
+        dT = self.attrs['dTheta']
+        dL = self.attrs['dL']
+        T = np.linspace(-1.0*dT/2.0, 2.*np.pi-dT/2.0, self.attrs['nTheta'])
+        T = T-np.pi/2.0
+        R = np.linspace(self['L'][0]-dL/2.0,self['L'][-1]+dL/2.0,self.attrs['nL']+1)
+        p = np.reshape(self[var], [self.attrs['nL'], self.attrs['nTheta']])
         pcol = ax.pcolormesh(T, R, p[:,:-1], norm=LogNorm(),
                              vmin=minz, vmax=maxz, cmap=get_cmap('inferno'))
         _adjust_dialplot(ax, R, title=title, labelsize=15)
@@ -1533,7 +1521,7 @@ class BoundaryFluxFile(object):
         fig = plt.figure()
         ax = fig.add_subplot(111)
         
-        egrid = array(range(self.nE))
+        egrid = np.array(range(self.nE))
         flux = self.flux.transpose()
         flux[flux<0.01] = 0.01
         flx = ax.pcolor(self.LT, egrid, flux, norm=LogNorm(), vmin=zlim[0],
@@ -1541,14 +1529,14 @@ class BoundaryFluxFile(object):
         cbar = plt.colorbar(flx, pad=0.01, shrink=0.85, ticks=LogLocator(),
                             format=LogFormatterMathtext())
         cbar.set_label('$cm^{-2}s^{-1}ster^{-1}keV^{-1}$')
-        ax.set_xlim([0,24])
-        ax.set_ylim([0,self.nE-1])
+        ax.set_xlim([0, 24])
+        ax.set_ylim([0, self.nE-1])
         if self.time:
             ax.set_title(self.time.isoformat())
         ax.set_xlabel('Local Time Sector')
         if hasattr(self, 'E'):
             ax.set_ylabel('Energy (keV)')
-            newlabs=[]
+            newlabs = []
             for val in ax.get_yticks()[:-1]:
                 newlabs.append('%6.2f' % self.E[int(val)])
             ax.set_yticklabels(newlabs)
@@ -1569,9 +1557,6 @@ class LogFile(PbData):
         Load the ascii logfile located at self.filename.
         This method is automatically called upon instantiation.
         '''
-        import numpy as np
-        import datetime as dt
-
         # Slurp in entire file.
         infile = open(self.attrs['file'], 'r')
         raw = infile.readlines()
@@ -1718,8 +1703,6 @@ def read_ram_dst(infile):
     This function is a candidate for removal as more efficient ways
     of saving Dst from RAM_SCB are devised.
     '''
-
-    import datetime as dt
 
     raise DeprecationWarning('This function acts on files no longer written '+
                              'by RAM-SCB')
@@ -2198,8 +2181,8 @@ class GeoMltFile(object):
 
         fig, ax = set_target(target, loc=loc)
         
-        egrid = array(range(len(self.egrid)+1))
-        lgrid = array(range(len(self.lgrid)+1))
+        egrid = np.array(range(len(self.egrid)+1))
+        lgrid = np.array(range(len(self.lgrid)+1))
         flux = self.flux[epoch,:,:].transpose()
         flux[flux<0.01] = 0.01
         flx = ax.pcolormesh(lgrid, egrid, flux, norm=LogNorm(),
