@@ -254,9 +254,7 @@ class AssocTests(unittest.TestCase):
         #Know that the code runs at this point, but do not have expected values
         #for these platforms (test assumes 64-bit seed).
         if sys.maxsize <= 2 ** 31 \
-           or sys.platform.startswith('win') \
-           and tuple([int(v) for v in np.__version__.split('.')]) \
-           < (1, 11, 0):
+           or sys.platform.startswith('win'):
             return
         self.assertEqual(self.expected_low, list(pop.ci[0]))
         self.assertEqual(self.expected_high, list(pop.ci[1]))

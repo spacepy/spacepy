@@ -481,12 +481,12 @@ class PPro(object):
 
         Warnings
         ========
-        On 64-bit Windows only, if ``seed`` is specified on numpy 1.11 and
-        earlier, the available entropy is reduced to work around a random
-        number limitation. Upgrade to numpy 1.11 to avoid this limitation.
-        Because of this workaround, if a seed is specified, results
-        from numpy 1.10- are not reproducible with numpy 1.11+. This does
-        not apply to other operating systems or 32-bit Windows.
+        If ``seed`` is specified, results may not be reproducible between
+        systems with different sizes for C long type. Note that 64-bit
+        Windows uses a 32-bit long and so results will be the same between
+        64 and 32-bit Windows, but not between 64-bit Windows and other 64-bit
+        operating systems. If ``seed`` is not specified, results are
+        not reproducible anyhow.
         """
         lags = self.lags
 
@@ -503,20 +503,13 @@ class PPro(object):
             #cast does not lose entropy: negative numbers map to high positives.
             #For reproducibility, keep doing that even though dtype
             #kwarg now available.
-            kwargs = {}
             if sys.platform.startswith('win') and sys.maxsize > 2 ** 32:
-                #Defaults to 32-bit, force 64 if possible
-                #see https://github.com/numpy/numpy/pull/6910
-                if tuple([int(v) for v in np.__version__.split('.')]) \
-                   < (1, 11, 0):
-                    warnings.warn(
-                        'Upgrade to numpy 1.11 to avoid reduced entropy.')
-                    minseed = -2 ** 31
-                    maxseed = 2 ** 31 - 1
-                else:
-                    kwargs = {'dtype': np.int64}
-            lag_seeds = np.random.randint(minseed, maxseed, [len(lags)],
-                                          **kwargs)
+                #32-bit long, so this defaults to 32-bit.
+                #Can't override because the actual randomkit uses long
+                #as well.
+                minseed = -2 ** 31
+                maxseed = 2 ** 31 - 1
+            lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
             newtype = np.dtype('u' + str(lag_seeds.dtype))
             lag_seeds = np.require(lag_seeds, dtype=newtype)
         if lib.have_libspacepy == False:
