@@ -11,6 +11,7 @@ import time, datetime
 import glob, os, sys
 import shutil
 import random
+import re
 import tempfile
 try:
     import StringIO
@@ -761,9 +762,12 @@ class TBTimeFunctionTests(unittest.TestCase):
         sys.stdout = realstdout
         result = output.getvalue()
         output.close()
-#        numpy.testing.assert_allclose(t2-t1, 0.25, atol=0.1, rtol=0.1)
-        numpy.testing.assert_almost_equal(t2-t1, 0.25, decimal=1)
-        self.assertTrue(result in ("""('0.25', '')\n""", """('0.26', '')\n"""))
+        #There may be some overhead that pushes this past 0.25, but should
+        #never be less
+        self.assertTrue(0.25 <= t2 - t1 < 0.28)
+        m = re.match(r"^\('(\d\.\d\d)', ''\)\n$", result)
+        self.assertTrue(m)
+        self.assertTrue(0.25 <= float(m.group(1)) < 0.28)
 
     def test_windowMean_outputTimes(self):
         '''windowMean should return a known set of output times for a given set of input times and windows'''
