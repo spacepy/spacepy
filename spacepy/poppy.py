@@ -493,22 +493,17 @@ class PPro(object):
         ci_low = np.empty([len(lags)])
         ci_high = np.empty([len(lags)])
         conf_above = np.empty([len(lags)])
+        long_size = ctypes.sizeof(ctypes.c_long) * 8
 
         if seed != None:
             np.random.seed(seed)
-            minseed = -sys.maxsize - 1
-            maxseed = sys.maxsize
+            minseed = -2 ** (long_size - 1)
+            maxseed = 2 ** (long_size - 1) - 1
             #randint used to be system-size signed integer only.
             #so used that and cast to the required unsigned later
             #cast does not lose entropy: negative numbers map to high positives.
             #For reproducibility, keep doing that even though dtype
             #kwarg now available.
-            if sys.platform.startswith('win') and sys.maxsize > 2 ** 32:
-                #32-bit long, so this defaults to 32-bit.
-                #Can't override because the actual randomkit uses long
-                #as well.
-                minseed = -2 ** 31
-                maxseed = 2 ** 31 - 1
             lag_seeds = np.random.randint(minseed, maxseed, [len(lags)])
             newtype = np.dtype('u' + str(lag_seeds.dtype))
             lag_seeds = np.require(lag_seeds, dtype=newtype)
@@ -523,7 +518,7 @@ class PPro(object):
         else:
             perc_low = (100.-inter)/2. #set confidence interval
             perc_high = inter + perc_low
-            dtype = 'int' + str(ctypes.sizeof(ctypes.c_long) * 8)
+            dtype = 'int' + str(long_size)
             assoc_totals = np.empty([len(lags), n_boots],
                                     dtype=dtype, order='C')
             if seed == None:
