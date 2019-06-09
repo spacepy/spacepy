@@ -423,17 +423,27 @@ class RampyTests(unittest.TestCase):
         super(RampyTests, self).tearDown()
 
     def test_RamSat_load(self):
+        '''Test that RAM satellite netCDF will load'''
         data = ram.RamSat(self.testfile)
 
     def test_RamSat_contents_time(self):
+        '''Test that start time attribute and Time variable are as expected'''
         data = ram.RamSat(self.testfile)
         self.assertEqual(data.starttime, dt.datetime(2012, 10, 29))
         numpy.testing.assert_array_equal(data['Time'], [60., 120., 180.])
 
     def test_RamSat_contents_dims(self):
+        '''Test for expected shape of loaded data array'''
         data = ram.RamSat(self.testfile)
         numpy.testing.assert_array_equal(data['FluxH+'].shape, [3, 72, 35])
-        
+
+    def test_RamSat_preserveFlux(self):
+        '''Ensure that original flux is unchanged on calculating omni-flux'''
+        data = ram.RamSat(self.testfile)
+        flux_h = data['FluxH+'].copy()
+        data.create_omniflux()
+        numpy.testing.assert_array_equal(flux_h, data['FluxH+'])
+
 if __name__=='__main__':
     unittest.main()
 
