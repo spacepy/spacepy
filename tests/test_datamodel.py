@@ -730,13 +730,10 @@ class JSONTests(unittest.TestCase):
         t_file.close()
         dat = dm.readJSONheadedASCII(self.filename)
         dm.toHTML(t_file.name, dat, attrs=['DESCRIPTION', 'UNITS', 'ELEMENT_LABELS'], varLinks=True)
-        if sys.platform == 'win32':
-            expected = 12916 #different line-endings
+        if sys.platform == 'win32': #Different line endings
+            expected = 12916 if str is bytes else 12892
         else:
-            if str is bytes:
-                expected = 12834
-            else:
-                expected = 12810 #no u on the unicode strings
+            expected = 12834 if str is bytes else 12810 #no u on unicode strings
         self.assertEqual(expected, os.path.getsize(t_file.name)) # not the best test but I am lazy
         os.remove(t_file.name)
 
