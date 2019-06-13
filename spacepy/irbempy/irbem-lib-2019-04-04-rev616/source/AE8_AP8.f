@@ -152,7 +152,8 @@ c
       UT_dip=0.d0
       DO isat = 1,ntime
          ! need to reinitialize sun for GEI to GEO coordinate transforms
-         CALL INIT_GSM(iyear(isat),idoy(isat),UT(isat),psi) ! compute sun among other things
+         ! INIT_GSM: compute sun among other things
+         CALL INIT_GSM(iyear(isat),idoy(isat),UT(isat),psi)
          tilt = psi/rad ! in common block dip_ang
 
 	    call get_coordinates ( sysaxes, 
@@ -226,8 +227,10 @@ c  minimum and maximum Lshell to calculate electron fluxes
       PARAMETER   (xMAXE_L = 12.0)
 
       INTEGER*4   ntmax,i,nene,ieny
-      INTEGER*4   whichm  !1=AE8min 2=AE8max 3=AP8min 4=AP8max
-      INTEGER*4   whatf  !1=diff 2=E range 3=int
+      !model flags: 1=AE8min 2=AE8max 3=AP8min 4=AP8max
+      INTEGER*4   whichm
+      !flux flags: 1=diff 2=E range 3=int
+      INTEGER*4   whatf
       INTEGER*4 MAPPMIN(16582), MAPPMAX(16291),
      &           MAPEMIN(13168), MAPEMAX(13548)
       REAL*8      energy(2,25)

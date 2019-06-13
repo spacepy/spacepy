@@ -22,8 +22,8 @@ C-----------------------------------------------------------------------------
 
 
 c function returns version of fortran source code
-
-      REAL*4 FUNCTION IRBEM_FORTRAN_VERSION(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION IRBEM_FORTRAN_VERSION(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -44,8 +44,8 @@ c function returns version of fortran source code
 
 
 c function returns release of fortran source code
-
-      REAL*4 FUNCTION IRBEM_FORTRAN_RELEASE(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION IRBEM_FORTRAN_RELEASE(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -66,8 +66,8 @@ c function returns release of fortran source code
 
 
 c function returns maximum size of variables
-
-      REAL*4 FUNCTION GET_IRBEM_NTIME_MAX(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION GET_IRBEM_NTIME_MAX(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -85,8 +85,8 @@ c function returns maximum size of variables
         INTEGER*4 ntime_max1
         ntime_max1 = ntime_max
       END
-
-      REAL*4 FUNCTION make_lstar(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION make_lstar(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -224,8 +224,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION make_lstar_shell_splitting(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION make_lstar_shell_splitting(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -366,8 +366,8 @@ c Compute Bmin assuming 90� PA at S/C
       END
 c
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION Lstar_Phi(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION Lstar_Phi(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -438,8 +438,8 @@ c
       end
 c
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION drift_shell(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION drift_shell(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -524,8 +524,8 @@ c
       END
 
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION trace_field_line(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION trace_field_line(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -548,8 +548,8 @@ c  subroutine make_Lstar: 17 arguments
       END
 c
 c --------------------------------------------------------------------
-c
-      REAL*4 FUNCTION trace_field_line2(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION trace_field_line2(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -656,8 +656,8 @@ c
       END
 c
 c --------------------------------------------------------------------
-c
-      REAL*4 FUNCTION trace_field_line_towards_earth(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION trace_field_line_towards_earth(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -743,8 +743,8 @@ c
       END
 
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION find_mirror_point(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION find_mirror_point(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -850,8 +850,8 @@ c
 
 
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION find_MAGequator(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION find_MAGequator(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -929,8 +929,8 @@ c
         CALL loc_equator_opt(xGeo,BMIN,posit)
       END
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION GET_FIELD(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION GET_FIELD(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1014,8 +1014,8 @@ c
       END
 C-----------------------------------------------------------------------------
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION GET_FIELD_MULTI_IDL(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION GET_FIELD_MULTI_IDL(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1078,8 +1078,8 @@ c      endif
       end
 c
 c --------------------------------------------------------------------
-c
-      REAL*4 FUNCTION GET_MLT(argc, argv) ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION GET_MLT(argc, argv)
       INCLUDE 'wrappers.inc'
 
       j = loc(argc)             ! Obtains the number of arguments (argc)
@@ -1138,7 +1138,8 @@ C
 C-----------------------------------------------------------------------------
 c******************************************************************************
 c *****************************************************************************
-      REAL*4 FUNCTION GET_HEMI(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION GET_HEMI(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1159,7 +1160,8 @@ c
 C-----------------------------------------------------------------------------
 c******************************************************************************
 c *****************************************************************************
-      REAL*4 FUNCTION GET_HEMI_MULTI_IDL(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION GET_HEMI_MULTI_IDL(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1734,8 +1736,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION coord_trans(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION coord_trans(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1757,8 +1759,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION coord_trans_vec(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION coord_trans_vec(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1781,8 +1783,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION geo2gsm(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION geo2gsm(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1817,8 +1819,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION gsm2geo(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION gsm2geo(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1855,8 +1857,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION geo2gse(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION geo2gse(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1892,8 +1894,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION gse2geo(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION gse2geo(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1932,8 +1934,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION gdz2geo(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION gdz2geo(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1954,8 +1956,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION geo2gdz(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION geo2gdz(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -1976,8 +1978,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION geo2gei(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION geo2gei(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2014,8 +2016,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION gei2geo(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION gei2geo(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2052,8 +2054,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION geo2sm(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION geo2sm(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2090,8 +2092,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION sm2geo(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION sm2geo(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2128,8 +2130,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION gsm2sm(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION gsm2sm(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2161,8 +2163,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION sm2gsm(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION sm2gsm(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2198,8 +2200,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION geo2mag(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION geo2mag(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2231,8 +2233,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION mag2geo(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION mag2geo(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2263,8 +2265,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION sph2car(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION sph2car(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2285,8 +2287,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION car2sph(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION car2sph(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2307,8 +2309,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION rll2gdz(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION rll2gdz(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2328,8 +2330,8 @@ c  subroutine geo2gsm: 6 arguments
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION gse2hee(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION gse2hee(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2350,8 +2352,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION hee2gse(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION hee2gse(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2372,8 +2374,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION hae2hee(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION hae2hee(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2394,8 +2396,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION hee2hae(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION hee2hae(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2416,8 +2418,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION hae2heeq(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION hae2heeq(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2438,8 +2440,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure for ONERA library
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION heeq2hae(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION heeq2hae(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2472,7 +2474,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_nasa_aeap_', ntime,sysaxes,whichm,whatf,energy,xIN1,xIN2,xIN3,flux, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION fly_in_nasa_aeap(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION fly_in_nasa_aeap(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2502,7 +2504,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'get_AE8_AP8_flux_idl_', ntime,whichm,whatf,nene,energy,BBo,L,flux, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION get_ae8_ap8_flux_idl(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION get_ae8_ap8_flux_idl(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2532,7 +2534,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_afrl_crres_', ntime,sysaxes,whichm,whatf,energy,xIN1,xIN2,xIN3,flux, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION fly_in_afrl_crres(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION fly_in_afrl_crres(argc, argv)
 !
       INTEGER*4   CHAR_SIZE
       PARAMETER      (CHAR_SIZE=500)
@@ -2568,7 +2570,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'get_crres_flux_idl_', ntime,whichm,whatf,Nene,energy,BBo,L,Ap15,flux,afrl_crres_path,strlen, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION get_crres_flux_idl(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION get_crres_flux_idl(argc, argv)
 !
       INTEGER*4   CHAR_SIZE
       PARAMETER      (CHAR_SIZE=500)
@@ -2604,7 +2606,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_ige1_', launch_year,duration,whichm,whatf,Nene,energy,Lower_flux,Mean_flux,Upper_flux, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION fly_in_ige(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION fly_in_ige(argc, argv)
 !
       INTEGER*4   CHAR_SIZE
       PARAMETER      (CHAR_SIZE=500)
@@ -2638,7 +2640,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'fly_in_meo_gnss1_', launch_year,duration,whichm,whatf,Nene,energy,Lower_flux,Mean_flux,Upper_flux, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION fly_in_meo_gnss(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION fly_in_meo_gnss(argc, argv)
 !
       INTEGER*4   CHAR_SIZE
       PARAMETER      (CHAR_SIZE=500)
@@ -2672,7 +2674,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'SGP4_TLE_', runtype,startsfe,stopsfe,deltasec,InFileByte,strlenIn,OutFileByte,strlenOut, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION SGP4_TLE(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION SGP4_TLE(argc, argv)
 !
       INTEGER*4   CHAR_SIZE
       PARAMETER      (CHAR_SIZE=500)
@@ -2707,7 +2709,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'SGP4_ORB_', runtype,startsfe,stopsfe,deltasec,InFileByte,strlenIn,OutFileByte,strlenOut, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION SGP4_ELE(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION SGP4_ELE(argc, argv)
 !
       INCLUDE 'wrappers.inc'
 !
@@ -2741,7 +2743,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'RV2COE_IDL_', R, V, P, A, Ecc, Incl, Omega, Argp, Nu, M, ArgLat, TrueLon, LonPer, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION RV2COE_IDL(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION RV2COE_IDL(argc, argv)
 !
       INCLUDE 'wrappers.inc'
 !
@@ -2773,7 +2775,7 @@ c
 !
 ! CALLING SEQUENCE: result=call_external(lib_name, 'DATE_AND_TIME2DECY_IDL_', Year,Month,Day,hour,minute,second,decy, /f_value)
 !---------------------------------------------------------------------------------------------------
-      REAL*4 FUNCTION DATE_AND_TIME2DECY_IDL(argc, argv)   ! Called by IDL
+      REAL*4 FUNCTION DATE_AND_TIME2DECY_IDL(argc, argv)
 !
       INCLUDE 'wrappers.inc'
 !
@@ -2793,8 +2795,8 @@ c
 C-----------------------------------------------------------------------------
 C IDL Wrappers
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION msis86_idl(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION msis86_idl(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2857,8 +2859,8 @@ c
 C-----------------------------------------------------------------------------
 C IDL Wrappers
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION msise90_idl(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION msise90_idl(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2911,8 +2913,8 @@ c
 C-----------------------------------------------------------------------------
 C IDL Wrappers
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION nrlmsise00_idl(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION nrlmsise00_idl(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                    ! Obtains the number of arguments (argc)
@@ -2967,8 +2969,8 @@ c
 C-----------------------------------------------------------------------------
 C Wrapper and procedure
 C-----------------------------------------------------------------------------
-
-      REAL*4 FUNCTION make_lstar_shell_splitting2_idl(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION make_lstar_shell_splitting2_idl(argc, argv)
       INCLUDE 'wrappers.inc'
 
        j = loc(argc)                   ! Obtains the number of arguments (argc)

@@ -24,8 +24,8 @@ c
 C Routine to find foot point of field line at specified altitude and hemi
 C finds foot point at specified altitude to within 1 km
 C
-
-      REAL*4 FUNCTION find_foot_point(argc, argv)   ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION find_foot_point(argc, argv)
       INCLUDE 'wrappers.inc'
 c      INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
 
@@ -204,8 +204,8 @@ C
 
        INTEGER*4  I,J
        REAL*8     Lb
-C
-       integer*4  IFOUND ! dummy loop result variable
+C      IFOUND is a dummy loop result variable
+       integer*4  IFOUND
 C
 C
        CALL GEO_SM(xx0,xx)
@@ -219,7 +219,8 @@ C
           goto 999
        ENDIF
 
-       call geo_gdz(xx0(1),xx0(2),xx0(3),XFOOT(2),XFOOT(3),XFOOT(1)) ! provides lat/lon/alt at x2
+       !geo_gdz provides lat/lon/alt at x2
+       call geo_gdz(xx0(1),xx0(2),xx0(3),XFOOT(2),XFOOT(3),XFOOT(1))
        if (XFOOT(1).LE.stop_alt) then
             goto 999 ! fail altitude of starting point to low
        endif
@@ -243,13 +244,14 @@ C
        ENDIF
 
 C calcul du sens du depart 
-C
-       CALL sksyst(-dsreb,xx0,x1,Bl,Ifail) ! southward step
+C sksyst call takes southward step
+       CALL sksyst(-dsreb,xx0,x1,Bl,Ifail)
        IF (Ifail.LT.0) THEN
           goto 999
        ENDIF
        B1 = Bl
-       CALL sksyst(dsreb,xx0,x2,Bl,Ifail)! northward step
+C sksyst call takes northward step
+       CALL sksyst(dsreb,xx0,x2,Bl,Ifail)
        IF (Ifail.LT.0) THEN
           goto 999
        ENDIF
@@ -290,7 +292,8 @@ C
 c
 c test for completion
 c need to check: alt < stop_alt, and moving to lower alt (higher B)
-         call geo_gdz(x2(1),x2(2),x2(3),XFOOT(2),XFOOT(3),XFOOT(1)) ! provides lat/lon/alt at x2
+         ! geo_gdz provides lat/lon/alt at x2
+         call geo_gdz(x2(1),x2(2),x2(3),XFOOT(2),XFOOT(3),XFOOT(1))
          if (XFOOT(1).LE.stop_alt) then
             IFOUND = 1
             goto 20 ! done with loop
@@ -305,7 +308,8 @@ C
        if (IFOUND.EQ.1) then
           ! footpoint is between x1 and x2
           if (abs(XFOOT(1)-stop_alt).le.1.0) then
-             call champ(x2,BFOOT,BFOOTMAG,Ifail) ! get field at x2
+             !get B field at x2
+             call champ(x2,BFOOT,BFOOTMAG,Ifail)
              if (Ifail.LT.0) then
                 goto 999
              endif

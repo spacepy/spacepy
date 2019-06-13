@@ -20,7 +20,8 @@
 C-----------------------------------------------------------------------------
 C     Wrappers and procedures for ONERA_DESP_LIB
 C-----------------------------------------------------------------------------
-      REAL*4 FUNCTION drift_bounce_orbit(argc, argv) ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION drift_bounce_orbit(argc, argv)
       INCLUDE 'wrappers.inc'
 c     INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
       
@@ -42,7 +43,8 @@ c
       RETURN
       END
 
-      REAL*4 FUNCTION drift_bounce_orbit2(argc, argv) ! Called by IDL
+      ! Called by IDL
+      REAL*4 FUNCTION drift_bounce_orbit2(argc, argv)
       INCLUDE 'wrappers.inc'
 c     INTEGER*4 argc, argv(*)                      ! Argc and Argv are integers
       
@@ -263,7 +265,8 @@ C     Internal Variables
       
       INTEGER*4  I,J,K,Iflag,Iflag_I,Ilflag,Ifail
       INTEGER*4  Ibounce_flag
-      INTEGER*4  istore         ! azimuth cursor
+      !istore is azimuth cursor
+      INTEGER*4  istore
       REAL*8     Lb
       REAL*8     leI,leI1
       REAL*8     XY,YY
@@ -686,13 +689,15 @@ C
       IMPLICIT NONE
 
 c     Declare input variables
-      REAL*8 xstart(3) ! GEO
-      REAL*8 Bmirror  ! particles mirror field strength
-      INTEGER*4 istore ! where to store bounce orbit
+      !xstart in GEO, Bmirror is particle mirror field strength
+      !istore stores bounce orbit
+      REAL*8 xstart(3)
+      REAL*8 Bmirror
+      INTEGER*4 istore
       ! hmin,hmin_lon are also inputs
 
 c     Declare output variables
-      INTEGER*4  Nposit(25),Iflag ! Iflag=1 means success
+      INTEGER*4  Nposit(25),Iflag
       REAL*8     posit(3,1000,25)
       REAL*8     Bposit(1000,25),R0,hmin,hmin_lon
 
@@ -702,8 +707,10 @@ c     Declare internal variables
       REAL*8 xmir(3)
       REAL*8 alpha
       REAL*8 dsreb0,dsreb,x1(3),x2(3),B1,B2,Bvec(3)
-      INTEGER*4 store ! store or not?
+      ! store or not?
+      INTEGER*4 store
 
+      ! Iflag=1 means success, set to fail until succeeded
       Iflag = 0
 
       if ((istore.gt.25).or.(istore.lt.1)) then
