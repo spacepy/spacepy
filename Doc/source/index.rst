@@ -55,6 +55,7 @@ SpacePy Documents
 .. toctree::
     :maxdepth: 1
 
+    help
     install
     quickstart
     doc_standard
