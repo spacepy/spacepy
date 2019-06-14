@@ -394,7 +394,7 @@ class build(_build):
         bit = len('%x' % sys.maxsize)*4
         irbemdir = 'irbem-lib-2019-04-04-rev616'
         srcdir = os.path.join('spacepy', 'irbempy', irbemdir, 'source')
-        outdir = os.path.join(os.path.abspath(self.build_lib),
+        outdir = os.path.join(os.path.abspath(self.build_platlib),
                               'spacepy', 'irbempy')
         #Possible names of the output library. Unfortunately this seems
         #to depend on Python version, f2py version, and phase of the moon
@@ -643,7 +643,7 @@ class build(_build):
     def compile_libspacepy(self):
         """Compile the C library, libspacepy. JTN 20110224"""
         srcdir = os.path.join('spacepy', 'libspacepy')
-        outdir = os.path.join(self.build_lib, 'spacepy')
+        outdir = os.path.join(self.build_platlib, 'spacepy')
         try:
             if sys.platform == 'win32':
                 #numpy whacks our C compiler options. We need it for Fortran,
@@ -737,6 +737,7 @@ class build(_build):
         _build.run(self) #need subcommands BEFORE building irbem
         self.compile_irbempy()
         delete_old_files(self.build_lib)
+        delete_old_files(self.build_platlib)
         if self.build_docs:
             self.make_docs()
         else:
@@ -777,15 +778,15 @@ class install(_install):
             distutils.sysconfig.customize_compiler(comp)
         libspacepy = os.path.join(
             'spacepy', comp.library_filename('spacepy', lib_type='shared'))
-        if os.path.exists(os.path.join(self.build_lib, libspacepy)):
-            spacepylibs = [os.path.join(self.install_libbase, libspacepy)]
+        if os.path.exists(os.path.join(self.install_platlib, libspacepy)):
+            spacepylibs = [os.path.join(self.install_platlib, libspacepy)]
         else:
             spacepylibs = []
         irbemlibfiles = [os.path.join('spacepy', 'irbempy', f)
                          for f in get_irbem_libfiles()]
         irbemlibs = [
-            os.path.join(self.install_libbase, f) for f in irbemlibfiles
-            if os.path.exists(os.path.join(self.build_lib, f))]
+            os.path.join(self.install_platlib, f) for f in irbemlibfiles
+            if os.path.exists(os.path.join(self.install_platlib, f))]
         return outputs + docs + spacepylibs + irbemlibs
 
 
