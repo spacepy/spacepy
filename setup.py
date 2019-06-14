@@ -802,29 +802,30 @@ class bdist_wininst(_bdist_wininst):
         _bdist_wininst.finalize_options(self)
         finalize_compiler_options(self)
 
-    def copy_fortran_libs(self):
-        """Copy the fortran runtime libraries into the build"""
-        fortdir = None
-        fortnames = None
+    def copy_dlls(self):
+        """Copy the mingw runtime libraries into the build"""
+        libdir = None
+        libnames = None
+        libneeded = ('libgfortran', 'libgcc_s', 'libquadmath', 'libwinpthread')
         for p in os.environ['PATH'].split(';'):
-            fortnames = [f for f in os.listdir(p)
-                         if f[-4:].lower() == '.dll' and
-                         (f[:11] == 'libgfortran' or
-                          f[:8] == 'libgcc_s' or
-                          f[:11] == 'libquadmath')]
-            if len(fortnames) == 3:
-                fortdir = p
+            if not os.path.isdir(p):
+                continue
+            libnames = [
+                f for f in os.listdir(p) if f[-4:].lower() == '.dll'
+                and f.startswith(libneeded)]
+            if len(libnames) == len(libneeded):
+                libdir = p
                 break
-        if fortdir is None:
-            raise RuntimeError("Can't locate fortran libraries.")
+        if libdir is None:
+            raise RuntimeError("Can't locate runtime libraries.")
         outdir = os.path.join(self.bdist_dir, 'PLATLIB', 'spacepy', 'mingw')
         if not os.path.exists(outdir):
             os.makedirs(outdir)
-        for f in fortnames:
-            shutil.copy(os.path.join(fortdir, f), outdir)
+        for f in libnames:
+            shutil.copy(os.path.join(libdir, f), outdir)
 
     def run(self):
-        self.copy_fortran_libs()
+        self.copy_dlls()
         _bdist_wininst.run(self)
 
 
