@@ -14,8 +14,10 @@ Copyright 2010 - 2014 Los Alamos National Security, LLC.
 #pip force-imports setuptools, on INSTALL, so then need to use its versions
 #but on reading the egg info, it DOESN'T force-import, assumes you are using
 import sys
-if 'pip-egg-info' in sys.argv:
+if any([a in sys.argv for a in ('pip-egg-info', 'bdist_wheel')]):
     import setuptools
+if 'bdist_wheel' in sys.argv:
+    import wheel
 use_setuptools = "setuptools" in globals()
 
 import copy
@@ -38,6 +40,8 @@ if use_setuptools:
     from setuptools.command.bdist_wininst import bdist_wininst as _bdist_wininst
 else:
     from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
+if 'bdist_wheel' in sys.argv:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 import distutils.ccompiler
 import distutils.dep_util
 import distutils.sysconfig
@@ -734,6 +738,11 @@ class build(_build):
     def run(self):
         """Actually perform the build"""
         self.compile_libspacepy()
+        if sys.platform == 'win32':
+            #Copy mingw32 DLLs. This keeps them around if ming is uninstalled,
+            #but more important puts them where bdist_wininst and bdist_wheel
+            #will include them in binary installers
+            copy_dlls(os.path.join(self.build_lib, 'spacepy', 'mingw'))
         _build.run(self) #need subcommands BEFORE building irbem
         self.compile_irbempy()
         delete_old_files(self.build_lib)
@@ -744,7 +753,7 @@ class build(_build):
 
 
 class install(_install):
-    """Extends base distutils install to check versions, install .spacepy"""
+    """Extends base distutils install to fix compiler options"""
 
     user_options = _install.user_options + compiler_options + [
         ('build-docs', None,
@@ -757,6 +766,10 @@ class install(_install):
         _install.initialize_options(self)
 
     def finalize_options(self):
+        #Because we are building extension modules ourselves, distutils
+        #can't tell this is non-pure and we need to use platlib.
+        if self.install_lib is None:
+            self.install_lib = self.install_platlib
         _install.finalize_options(self)
         finalize_compiler_options(self)
 
@@ -789,8 +802,33 @@ class install(_install):
         return outputs + docs + spacepylibs + irbemlibs
 
 
+def copy_dlls(outdir):
+    """Copy the mingw runtime libraries into a build
+
+    :param str outdir: Final target directory of the DLLs in the build.
+    """
+    libdir = None
+    libnames = None
+    libneeded = ('libgfortran', 'libgcc_s', 'libquadmath', 'libwinpthread')
+    for p in os.environ['PATH'].split(';'):
+        if not os.path.isdir(p):
+            continue
+        libnames = [
+            f for f in os.listdir(p) if f[-4:].lower() == '.dll'
+            and f.startswith(libneeded)]
+        if len(libnames) == len(libneeded):
+            libdir = p
+            break
+    if libdir is None:
+        raise RuntimeError("Can't locate runtime libraries.")
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    for f in libnames:
+        shutil.copy(os.path.join(libdir, f), outdir)
+
+
 class bdist_wininst(_bdist_wininst):
-    """Handle compiler options for build on Windows install"""
+    """Handle compiler options, libraries for build on Windows install"""
 
     user_options = _bdist_wininst.user_options + compiler_options
 
@@ -802,31 +840,36 @@ class bdist_wininst(_bdist_wininst):
         _bdist_wininst.finalize_options(self)
         finalize_compiler_options(self)
 
-    def copy_dlls(self):
-        """Copy the mingw runtime libraries into the build"""
-        libdir = None
-        libnames = None
-        libneeded = ('libgfortran', 'libgcc_s', 'libquadmath', 'libwinpthread')
-        for p in os.environ['PATH'].split(';'):
-            if not os.path.isdir(p):
-                continue
-            libnames = [
-                f for f in os.listdir(p) if f[-4:].lower() == '.dll'
-                and f.startswith(libneeded)]
-            if len(libnames) == len(libneeded):
-                libdir = p
-                break
-        if libdir is None:
-            raise RuntimeError("Can't locate runtime libraries.")
-        outdir = os.path.join(self.bdist_dir, 'PLATLIB', 'spacepy', 'mingw')
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
-        for f in libnames:
-            shutil.copy(os.path.join(libdir, f), outdir)
 
-    def run(self):
-        self.copy_dlls()
-        _bdist_wininst.run(self)
+if 'bdist_wheel' in sys.argv:
+    class bdist_wheel(_bdist_wheel):
+        """Handle compiler options for wheel build on Windows"""
+
+        user_options = _bdist_wheel.user_options + compiler_options
+
+        def initialize_options(self):
+            initialize_compiler_options(self)
+            _bdist_wheel.initialize_options(self)
+
+        def finalize_options(self):
+            _bdist_wheel.finalize_options(self)
+            finalize_compiler_options(self)
+            #Force platform-specific build (wheel finalize does this based
+            #on explicitly declaring extension modules, and we handle them
+            #by hand)
+            #TODO: Complains config variable Py_DEBUG and WITH_PYMALLOC are
+            #unset; python ABI tag may be incorrect
+            #https://github.com/pypa/pip/issues/3383
+            self.root_is_pure = False
+
+        def run(self):
+            #TODO: These aren't actually getting copied
+            #TODO: libspacepy and the irbem pyd aren't, either
+            #This probably requires us to hook the "install" command.
+            if sys.platform == 'win32':
+                copy_dlls(os.path.join(
+                    self.data_dir, 'platlib', 'spacepy', 'mingw'))
+            _bdist_wheel.run(self)
 
 
 class sdist(_sdist):
@@ -924,6 +967,8 @@ if use_setuptools:
         'networkx',
         'python_dateutil',
     ]
+if 'bdist_wheel' in sys.argv:
+    setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
 
 # run setup from distutil
 with warnings.catch_warnings(record=True) as warnlist:
