@@ -362,7 +362,7 @@ def get_irbem_libfiles():
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
 
-    sub_commands = [('config_fc', lambda *args:True),]
+    sub_commands = [('config_fc', lambda *args:True)] + _build.sub_commands
 
     user_options = _build.user_options + compiler_options + [
         ('build-docs', None,
