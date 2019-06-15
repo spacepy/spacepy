@@ -862,15 +862,6 @@ if 'bdist_wheel' in sys.argv:
             #https://github.com/pypa/pip/issues/3383
             self.root_is_pure = False
 
-        def run(self):
-            #TODO: These aren't actually getting copied
-            #TODO: libspacepy and the irbem pyd aren't, either
-            #This probably requires us to hook the "install" command.
-            if sys.platform == 'win32':
-                copy_dlls(os.path.join(
-                    self.data_dir, 'platlib', 'spacepy', 'mingw'))
-            _bdist_wheel.run(self)
-
 
 class sdist(_sdist):
     """Rebuild the docs before making a source distribution"""
