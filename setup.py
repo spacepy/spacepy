@@ -19,6 +19,8 @@ if any([a in sys.argv for a in ('pip-egg-info', 'bdist_wheel')]):
 if 'bdist_wheel' in sys.argv:
     import wheel
 use_setuptools = "setuptools" in globals()
+#Calling egg info, so a lot of stuff doesn't have to work
+egginfo_only = ('pip-egg-info' in sys.argv)
 
 import copy
 import os, shutil, getopt, glob, re
@@ -30,12 +32,25 @@ import distutils.ccompiler
 #numpy REPLACES new_compiler function, and EDITS compiler class dict
 real_compiler_class = copy.deepcopy(distutils.ccompiler.compiler_class)
 real_distutils_ccompiler_new_compiler = distutils.ccompiler.new_compiler
-from numpy.distutils.core import setup
-from numpy.distutils.command.build import build as _build
-#The numpy versions automatically use setuptools if necessary
-#We need the numpy setup to handle fortran compiler options
-from numpy.distutils.command.install import install as _install
-from numpy.distutils.command.sdist import sdist as _sdist
+try:
+    from numpy.distutils.core import setup
+    from numpy.distutils.command.build import build as _build
+    #The numpy versions automatically use setuptools if necessary
+    #We need the numpy setup to handle fortran compiler options
+    from numpy.distutils.command.install import install as _install
+    from numpy.distutils.command.sdist import sdist as _sdist
+except: #numpy not installed, hopefully just getting egg info
+    if not egginfo_only:
+        raise
+    from distutils.core import setup
+    from distutils.command.build import build as _build
+    if use_setuptools:
+        from setuptools.command.install import install as _install
+        from setuptools.command.sdist import sdist as _sdist
+    else:
+        from distutils.command.install import install as _install
+        from distutils.command.sdist import sdist as _sdist
+
 if use_setuptools:
     from setuptools.command.bdist_wininst import bdist_wininst as _bdist_wininst
 else:
@@ -56,8 +71,14 @@ else:
         imp = None
     else:
         import imp #fall back to old-style
-import numpy
-import numpy.distutils.command.config_compiler
+try:
+    import numpy
+    import numpy.distutils.command.config_compiler
+except:
+    if egginfo_only:
+        pass
+    else:
+        raise
 
 
 #These are files that are no longer in spacepy (or have been moved)
@@ -257,6 +278,9 @@ def finalize_compiler_options(cmd):
     #If it's a list, it's already been patched up
     if sys.platform == 'win32' and isinstance(cmd.f2py, str) \
        and not is_win_exec(cmd.f2py):
+        if egginfo_only: #Punt, we're not going to call it
+            cmd.f2py = [cmd.f2py]
+            return
         f2py = cmd.f2py
         if not os.path.isfile(f2py): #Not a file, and didn't exec
             f2pydir = next((d for d in os.environ['PATH'].split(os.pathsep)
@@ -366,7 +390,8 @@ def get_irbem_libfiles():
 class build(_build):
     """Extends base distutils build to make pybats, libspacepy, irbem"""
 
-    sub_commands = [('config_fc', lambda *args:True)] + _build.sub_commands
+    if not egginfo_only:
+        sub_commands = [('config_fc', lambda *args:True)] + _build.sub_commands
 
     user_options = _build.user_options + compiler_options + [
         ('build-docs', None,
@@ -881,18 +906,24 @@ class sdist(_sdist):
         _sdist.run(self)
 
 
-class config_fc(numpy.distutils.command.config_compiler.config_fc):
-    """Get the options sharing with build, install"""
+try:
+    class config_fc(numpy.distutils.command.config_compiler.config_fc):
+        """Get the options sharing with build, install"""
 
-    def initialize_options(self):
-        initialize_compiler_options(self)
-        numpy.distutils.command.config_compiler.config_fc.initialize_options(
-            self)
+        def initialize_options(self):
+            initialize_compiler_options(self)
+            numpy.distutils.command.config_compiler.config_fc.initialize_options(
+                self)
 
-    def finalize_options(self):
-        numpy.distutils.command.config_compiler.config_fc.finalize_options(
-            self)
-        finalize_compiler_options(self)
+        def finalize_options(self):
+            numpy.distutils.command.config_compiler.config_fc.finalize_options(
+                self)
+            finalize_compiler_options(self)
+except:
+    if egginfo_only:
+        pass
+    else:
+        raise
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
@@ -941,9 +972,11 @@ setup_kwargs = {
                  'install': install,
                  'bdist_wininst': bdist_wininst,
                  'sdist': sdist,
-                 'config_fc': config_fc,
           },
 }
+
+if not egginfo_only:
+    setup_kwargs['cmdclass']['config_fc'] = config_fc
 
 if use_setuptools:
 #Sadly the format here is DIFFERENT than the distutils format
