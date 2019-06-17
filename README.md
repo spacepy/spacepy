@@ -24,6 +24,8 @@ Our latest release version is available through PyPI and can be installed using
 pip install spacepy --user
 ```
 
+This will also automatically install most dependencies. To permit binary installations without a compiler, this will not install ffnet on Windows. Users needing the LANLstar module can install ffnet separately (requires Fortran compiler); this can be done before or after the SpacePy install.
+
 The latest "bleeding-edge" source code is available from our github repository at [https://github.com/spacepy/spacepy](https://github.com/spacepy/spacepy) and can be installed using the standard
 
 ```
@@ -47,7 +49,7 @@ Soft dependencies (that are required only for a very limited part of SpacePy's f
  - ffnet
  - NASA CDF
 
-For complete installation SpacePy also requires C and Fortran compilers. We test with GCC compilers but try to maintain support for all major compilers.
+For complete installation, excepting pre-built Windows binaries, SpacePy also requires C and Fortran compilers. We test with GCC compilers but try to maintain support for all major compilers.
 
 #### NASA CDF
 If you wish to use CDF files, download and install the NASA CDF library. The default installation directory is recommended to help SpacePy find the library. Get the package from [https://cdf.gsfc.nasa.gov/html/sw_and_docs.html](https://cdf.gsfc.nasa.gov/html/sw_and_docs.html)
