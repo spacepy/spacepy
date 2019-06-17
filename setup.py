@@ -985,7 +985,9 @@ if use_setuptools:
         'scipy>=0.10',
         'matplotlib>=1.5',
         'h5py',
-        'ffnet',
+        #Do not install ffnet on Windows since there's no binary
+        #(people must hand-install)
+        'ffnet;platform_system!="Windows"',
         #ffnet needs networkx but not marked as requires, so to get it via pip
         #we need to ask for it ourselves
         'networkx',
