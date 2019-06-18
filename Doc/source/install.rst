@@ -2,7 +2,7 @@
 Installing SpacePy
 ******************
 
-SpacePy uses the standard Python distutils to compile and install.
+SpacePy uses the standard Python distutils and setuptools to compile and install.
 For detailed, platform-specific installation instructions, see:
 
 .. toctree::
@@ -17,22 +17,31 @@ For a list of dependencies, see :doc:`dependencies`.
 
 Following are generic instructions.
 
-Option 1) to install it in a standard location (depending on your system)::
+The latest stable release is provided via the Python Package Index (PyPI).
+To install from PyPI, make sure you have pip installed::
+
+    pip install --upgrade spacepy
+
+If you are installing for a single user, and are not working in a virtual environment,
+add the --user flag when installing with pip.
+
+To build from source (available at `our github <https://github.com/spacepy/spacepy>`_
+just run (from a virtual environment, such as a conda environment)::
 
     python setup.py install
 
-or::
+or, to install for all users (not in a virtual environment)::
 
     sudo python setup.py install
 
-or::
+or, to install for a single user (not in a virtual environment)::
 
     python setup.py install --user
 
 If you do not have administrative privileges, or you will be developing for SpacePy,
-the latter is recommended.
+we strongly recommend using virtual environments.
 
-Option 2) to install in custom location, e.g.::
+To install in custom location, e.g.::
 
     python setup.py install --home=/n/packages/lib/python
 
