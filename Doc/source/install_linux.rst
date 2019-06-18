@@ -2,68 +2,61 @@
 Linux Installation
 ******************
 
-Dependencies
-============
-Installing SpacePy on linux using pip should automatically install the core
-dependencies. Installing numpy prior to SpacePy should make the installation
-process a little smoother.
+Installation on Linux requires both a C and a Fortran compiler; a
+recent GCC is recommended (the C compiler is likely included with your
+distribution). On Debian and Ubuntu::
+  
+      sudo apt-get install gfortran
 
-The first is to download a single software suite that installs a
-comprehensive set of Python libraries; the second is to install the core 
-dependencies yourself.
+Once this is set up, ``pip install spacepy`` should Just Work. If
+you're installing as a single user (not in a virtual environment) then
+add the ``--user`` flag.
 
-The Easy Way
-------------
-Both `Anaconda <https://www/anaconda.com>`_ and 
-`Enthought Canopy <https://www.enthought.com/>`_
-will provide Python, numpy, scipy, matplotlib and a host of other useful
-3rd-party libraries. In both cases you will still need to install 
-:ref:`CDF <linux_CDF>` by hand.
+You will also need the :ref:`NASA CDF library <linux_CDF>` to use
+:mod:`~spacepy.pycdf`.
 
-Assuming you have a fortran compiler installed, you should be able to install
-Spacepy using pip::
+Our recommended (but not required) Python distribution is `Anaconda
+<https://docs.anaconda.com/anaconda/>`_ running 64-bit
+Python 3. Anaconda includes much of the scientific Python
+stack. Another excellent distribution is `Canopy
+<https://www.enthought.com/product/canopy/>`_.
 
-    pip install spacepy
+.. contents::
+   :local:
 
-If you're installing as a single user (not in a virtual environment)
-then add the --user flag.
+Dependencies via conda
+======================
 
-If you are installing by hand, follow the instructions for your linux
-distribution below.
+Installation via ``pip`` will automatically install most Python
+dependencies (but not the :ref:`NASA CDF library <linux_CDF>`). They
+can also be installed from conda::
 
-Debian and Ubuntu
------------------
-Installation on the Python distribution and scientific stack via the
-system package manager is no longer recommended. Use of pip or conda
-is recommended so that packages updates can be obtained in a timely
-manner. However, your system may not come with some of the required
-packages, like gfortran.
+  conda install numpy scipy matplotlib networkx h5py
 
-The following command should install gfortran on Ubuntu and Debian::
+Dependencies via system packages
+================================
 
-    sudo apt install gfortran
+SpacePy usually works with the system Python on Linux. To install dependencies via the package manager on Debian or Ubuntu::
 
-To make installing the NASA CDF library easier, and to enable the CDF
-command line tools to be built::
+  sudo apt-get install python-dev python-h5py python-matplotlib python-networkx python-numpy python-scipy
 
-    sudo apt install ncurses-dev
+For Python 3, use::
 
-You can also, of course, install the same packages via synaptic or
-other package manager of your choice.
+  sudo apt-get install python3-dev python3-h5py python3-matplotlib python3-networkx python3-numpy python3-scipy
 
-Since no packages are available that provide it, install 
-:ref:`CDF <linux_CDF>` by hand.
-
-Other distributions
--------------------
 For other distributions, check :doc:`dependencies` and install by hand
 or via your package manager. 
-
 
 .. _linux_CDF:
 
 CDF
----
+===
+
+It is recommended to install the ncurses library; on Ubuntu and Debian::
+
+    sudo apt-get install ncurses-dev
+
+
 Download the latest `CDF library <http://cdf.gsfc.nasa.gov/>`_. Choose
 the file ending in ``-dist-all.tar.gz`` from the ``linux``
 directory. Untar and cd into the resulting directory. Then build::
@@ -86,11 +79,18 @@ SpacePy uses these variables to find the library.
 .. _linux_ffnet:
 
 ffnet
------
-Download the latest `ffnet module
-<http://ffnet.sourceforge.net/install.html>`_. Compilation requires
-f2py (from numpy), installed in the distribution-specific directions
-above. Untar and cd into the resulting directory. Then build::
+=====
+
+ffnet can be installed from ``pip``; if the wrong Fortran compiler is
+found try::
+
+  FC_VENDOR=gfortran pip install ffnet
+
+It can also be installed from 
+`sourcea <http://ffnet.sourceforge.net/install.html>`_.
+Compilation requires f2py (from numpy), installed per the
+distribution-specific directions above. Untar and cd into the
+resulting directory. Then build::
 
     python setup.py build
 
@@ -107,12 +107,14 @@ fails, try specifying the older GNU compiler at the build step::
 
     python setup.py build --fcompiler=gnu
 
-SpacePy
-=======
-With the dependencies installed, SpacePy is ready to build and install.
+Compiling
+=========
+
+With the dependencies installed, SpacePy can be built from source.
 This uses the same basic setup as ffnet (standard Python distutils).
-You can always get the latest source code for SpacePy from our
-`github repository <https://github.com/spacepy/spacepy>`_.
+You can always get the latest source code for SpacePy from our `github
+repository <https://github.com/spacepy/spacepy>`_ and the latest
+release from `PyPI <https://pypi.org/project/SpacePy/#files>`_
 
 Build::
 
@@ -136,3 +138,21 @@ If you're using conda, installation as user isn't recommended::
 Or install for all users on the system::
 
     sudo python setup.py install
+
+If you want to build the documentation yourself (rather than using the
+documentation shipped with SpacePy), install sphinx and numpydoc. The
+easiest way is via pip::
+
+  pip install sphinx numpydoc
+
+They are also available via conda::
+
+  conda install sphinx numpydoc
+
+Or the package manager:
+
+  sudo apt-get install python-sphinx python-numpydoc
+
+For Python 3:
+
+  sudo apt-get install python3-sphinx python3-numpydoc

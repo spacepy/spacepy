@@ -2,116 +2,121 @@
 Windows Installation
 ********************
 
-Although the SpacePy team makes every effort to keep code portable, and has
-expended considerable effort on Windows specifically, Windows is not a
-primary development platform for any of the developers. There may be some
-limitations and/or bugs under Windows which are not present in OSX or Linux.
-Bug reports and patches are always welcome.
+The SpacePy team currently provides binary "wheels" via PyPI so it can
+be installed on Windows without a compiler. Binaries are provided for
+Python 2.7, 3.6, and 3.7 in 64-bit and 32-bit variants for each. ``pip
+install spacepy`` should find and install these binaries.
 
-The Easy Way
-============
+Our recommended (but not required) Python distribution is `Anaconda
+<https://docs.anaconda.com/anaconda/>`_ running 64-bit
+Python 3. Anaconda includes much of the scientific Python
+stack. Another excellent distribution is `Canopy
+<https://www.enthought.com/product/canopy/>`_.
 
-Download the `Python(x,y) distribution 
-<http://code.google.com/p/pythonxy/>`_. The standard plugins include
-most of the dependencies required for SpacePy. Like SpacePy, this currently
-only supports 32-bit code, but will run on 64-bit machines.
+.. contents::
+   :local:
 
-If you wish to use the lanlstar module, you will need `ffnet-0.7.1.win32-py2.7.exe <https://sourceforge.net/projects/ffnet/files/ffnet/ffnet-0.7.1/>`_.
+.. _windows_fortran:
 
-If you wish to use CDF files, download and install the `NASA CDF library
-<http://cdf.gsfc.nasa.gov/>`_. Again, the 32-bit installer is required, e.g.
-CDF34_1_0-SETUP-32.EXE. The default installation directory is recommended to
-help SpacePy find the library.
+Fortran and ffnet
+=================
 
-Finally, install SpacePy using the installer EXE. Be sure to choose the
-installer that matches your version of Python, either 2.6 or 2.7.
+`ffnet <http://ffnet.sourceforge.net/download.html>`_ is required for
+:mod:`~spacepy.LANLstar`. It can be installed either before or after
+SpacePy. Binary wheels are not provided, so a Fortran compiler is
+required
 
+With Anaconda, the compiler and ffnet can be installed with::
 
-The Hard Way
-============
+  conda install m2w64-gcc-fortran libpython
+  SET FC_VENDOR=gfortran
+  pip install ffnet
 
-Installing dependencies
------------------------
+The `FC_VENDOR` line is necessary because ffnet defaults to the
+Microsoft compiler.
 
-This is a step-by-step guide to installing all of the spacepy dependencies
-individiually. This is the easiest way to install all dependencies by hand;
-if you are comfortable downloading, compiling, and installing Python modules
-yourself, that will also work.
+Some standalone binary installers (no ``pip`` support) are also
+available on the `ffnet site
+<http://ffnet.sourceforge.net/download.html>`_. These do not require a
+compiler but support only a limited set of Python versions.
 
-Download and install the 32-bit `Python Windows installer
-<http://python.org/download/>`_ .  The 2.7 version is recommended since
-most dependencies are now built against 2.7.
+Compiling
+=========
 
-The following filenames are given for Python 2.7 and were the latest
-as of this writing; download the appropriate file for your version of
-Python and the latest version available of the required package. 
+If a binary wheel is not available for your version of Python, ``pip``
+will try to compile SpacePy. The only supported compiler is
+``mingw32``. Install it with::
 
-Download and install `numpy-1.7.1-win32-superpack-python2.7.exe
-<http://sourceforge.net/projects/numpy/files/>`_.
+  conda install m2w64-gcc-fortran libpython
 
-Download and install `scipy-0.12.0-win32-superpack-python2.7.exe
-<http://sourceforge.net/projects/scipy/files/>`_.
+This is also required if installing from a source distribution or git checkout.
 
-Download and install `matplotlib-1.2.1.win32-py2.7.exe
-<http://matplotlib.org/downloads.html>`_.
+:mod:`~spacepy.irbempy` requires Fortran to compile and the only
+supported compiler is ``gnu95``; this is the default and provided
+by ``m2w64-gcc-fortran``.
 
-Download and install `h5py-2.1.3.win32-py2.7.msi
-<http://code.google.com/p/h5py/downloads/list>`_.
+If you have difficulties, it may be useful to reference the `build
+scripts
+<https://github.com/spacepy/spacepy/tree/master/developer/scripts>`
+the SpacePy developers use.
 
-Download and install `networkx-1.7_py27.exe
-<http://code.google.com/p/pythonxy/wiki/StandardPlugins>`_.
+.. _windows_CDF:
 
-Download and install `ffnet-0.7.1.win32-py2.7.exe
-<https://sourceforge.net/projects/ffnet/files/ffnet/ffnet-0.7.1/>`_.
+NASA CDF
+========
 
-If you wish to use CDF files, download and install the `NASA CDF library
-<http://cdf.gsfc.nasa.gov/>`_. Again, the 32-bit installer is required, e.g.
-CDF34_1_0-SETUP-32.EXE. The default installation directory is recommended to
-help SpacePy find the library.
+:mod:`~spacepy.pycdf` requires the `NASA CDF library
+<https://cdf.gsfc.nasa.gov/html/sw_and_docs.html>`_ . Binary
+installers are available for Windows; be sure to pick the version
+that matches your Python installation. The current 32-bit version
+is `cdf37_1_0-setup-32.exe
+<https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_1/windows/cdf37_1_0-setup-32.exe>`_;
+for 64-bit, `cdf37_1_0-setup-64.exe
+<https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_1/windows/cdf37_1_0-setup-64.exe>`_.
 
-At this point, you can install SpacePy from the installer EXE, or continue
-to build SpacePy from source.
+This is a simple self-extracting installer that can be installed either before or after installing SpacePy.
 
+Standalone installers
+=====================
 
-Building and installing SpacePy
--------------------------------
+Self-extracting and self-installing executables are also available for
+download direct from `PyPI
+<https://pypi.org/project/SpacePy/#files>`_. Be sure to choose the
+file that matches your Python installation, both in Python version and
+word size (64-bit vs. 32-bit.)
+E.g. ``spacepy-0.2.0.win-amd64.py36.exe`` is the installer for Python
+3.6 on 64-bit Windows and ``spacepy-0.2.0.win32.py27.exe`` is the
+installer for Python 2.7 on 32-bit Windows.
 
-Edit your Windows path: Right-click my computer, choose properties,
-advanced, environment variables.  Edit the path variable: append
-``;c:\python27;c:\python27\Scripts;c:\MinGW\bin`` (`more information
-<http://docs.python.org/using/windows.html#finding-the-python-executable>`_).
+Once downloaded, these can be installed without an internet connection.
 
-Download the latest `mingwget <http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/mingw-get/>`_. mingw32 is the only C and Fortran compiler supported by SpacePy on Windows. Unzip into C:\MinGW. At a command prompt (Start, Run, cmd) type::
+If using these installers, the :doc:`dependencies` will not be
+installed automatically.
 
-      mingw-get install gcc g++ mingw32-make fortran
+Dependencies via conda
+======================
 
-See also `the mingw docs <http://www.mingw.org/wiki/Getting_Started>`_
+Installation via ``pip`` will automatically install most Python
+dependencies (but not :ref:`ffnet <windows_fortran>` or the :ref:`NASA
+CDF library <windows_CDF>`). They can also be installed from conda::
 
-Create a file ``distutils.cfg`` in ``C:\Python27\Lib\distutils``
-(change appropriately for Python 2.6). It should contain::
+  conda install numpy scipy matplotlib networkx h5py
 
-    [build]
-    compiler=mingw32
+Standalone dependencies
+=======================
 
-Unzip the SpacePy source documentation. Open a command prompt in the
-resulting directory and run::
-
-    python setup.py install
-
+Most of the :doc:`dependencies` have Windows installers available via
+their pages, but ``pip`` or ``conda`` are recommended instead.
 
 Developers
 ==========
 
 If you want to build the documentation yourself (rather than using the
 documentation shipped with SpacePy), install sphinx and numpydoc. The
-easiest way is via pip.
+easiest way is via pip::
 
-Download and run `distribute_setup.py
-<https://pypi.python.org/pypi/distribute/#distribute-setup-py>`_.
+  pip install sphinx numpydoc
 
-Download and run `get-pip.py
-<http://www.pip-installer.org/en/latest/installing.html#using-get-pip>`_.
+They are also available via conda::
 
-Then::
-
-    pip install sphinx numpydoc
+  conda install sphinx numpydoc
