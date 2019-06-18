@@ -55,8 +55,10 @@ If this fails, specify a FORTRAN compiler::
 
     python setup.py build --fcompiler=gnu
 
-(``python setup.py build --help-fcompiler`` will list options for
-FORTRAN compilers.)
+``python setup.py build --help-fcompiler`` will list options for
+FORTRAN compilers. Currently available compilers are ``pg``,
+``gnu95``, ``gnu``, ``intelem``, ``intel`` or ``none`` (to skip all
+Fortran); ``gnu95`` (the GNU gfortran compiler) is recommended.
 
 Install for one user::
 
