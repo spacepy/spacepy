@@ -4,40 +4,60 @@ Linux Installation
 
 Dependencies
 ============
-To ensure that you have all dependencies for SpacePy satisfied, there are two
-approaches. The first is to download a single software suite that installs a
+Installing SpacePy on linux using pip should automatically install the core
+dependencies. Installing numpy prior to SpacePy should make the installation
+process a little smoother.
+
+The first is to download a single software suite that installs a
 comprehensive set of Python libraries; the second is to install the core 
 dependencies yourself.
 
 The Easy Way
 ------------
-Either the `Enthought Python Distribution (EPD) <http://www.enthought.com/>`_
-or the `Python(x,y) distribution <https://code.google.com/p/pythonxy-linux/>`_
+Both `Anaconda <https://www/anaconda.com>`_ and 
+`Enthought Canopy <https://www.enthought.com/>`_
 will provide Python, numpy, scipy, matplotlib and a host of other useful
-3rd-party libraries. In both cases you will still need to install
-:ref:`ffnet <linux_ffnet>` and :ref:`CDF <linux_CDF>` by hand.
+3rd-party libraries. In both cases you will still need to install 
+:ref:`CDF <linux_CDF>` by hand.
+
+Assuming you have a fortran compiler installed, you should be able to install
+Spacepy using pip::
+
+    pip install spacepy
+
+If you're installing as a single user (not in a virtual environment)
+then add the --user flag.
 
 If you are installing by hand, follow the instructions for your linux
 distribution below.
 
 Debian and Ubuntu
 -----------------
-The following command will install most of the dependencies. It has
-been checked for Ubuntu 11.10 and Debian 7.0 "wheezy"::
+Installation on the Python distribution and scientific stack via the
+system package manager is no longer recommended. Use of pip or conda
+is recommended so that packages updates can be obtained in a timely
+manner. However, your system may not come with some of the required
+packages, like gfortran.
 
-    sudo apt-get install python-dev python-numpy build-essential \
-    python-scipy python-matplotlib python-networkx python-h5py \
-    python-f2py gfortran ncurses-dev
+The following command should install gfortran on Ubuntu and Debian::
+
+    sudo apt install gfortran
+
+To make installing the NASA CDF library easier, and to enable the CDF
+command line tools to be built::
+
+    sudo apt install ncurses-dev
 
 You can also, of course, install the same packages via synaptic or
 other package manager of your choice.
 
-Since no packages are available for them, install :ref:`CDF <linux_CDF>`
-and :ref:`ffnet <linux_ffnet>` by hand.
+Since no packages are available that provide it, install 
+:ref:`CDF <linux_CDF>` by hand.
 
 Other distributions
 -------------------
-For other distributions, check :doc:`dependencies` and install by hand or via your package manager. Once you figure it out, please contact the SpacePy team so we can update this documentation.
+For other distributions, check :doc:`dependencies` and install by hand
+or via your package manager. 
 
 
 .. _linux_CDF:
@@ -57,7 +77,10 @@ Install::
 
     sudo make install
 
-This will install the library into the default location ``/usr/local/cdf``, where SpacePy can find it. If you choose to install elsewhere, see the CDF documentation, particularly the notes on the ``CDF_BASE`` and ``CDF_LIB`` environment variables. SpacePy uses these variables to find the library.
+This will install the library into the default location ``/usr/local/cdf``, where 
+SpacePy can find it. If you choose to install elsewhere, see the CDF documentation, 
+particularly the notes on the ``CDF_BASE`` and ``CDF_LIB`` environment variables. 
+SpacePy uses these variables to find the library.
 
 
 .. _linux_ffnet:
@@ -86,7 +109,10 @@ fails, try specifying the older GNU compiler at the build step::
 
 SpacePy
 =======
-With the dependencies installed, SpacePy is ready to build and install. This uses the same basic setup as ffnet (standard Python distutils).
+With the dependencies installed, SpacePy is ready to build and install.
+This uses the same basic setup as ffnet (standard Python distutils).
+You can always get the latest source code for SpacePy from our
+`github repository <https://github.com/spacepy/spacepy>`_.
 
 Build::
 
@@ -94,7 +120,7 @@ Build::
 
 If this fails, specify a Fortran compiler::
 
-    python setup.py build --fcompiler=gnu
+    python setup.py build --fcompiler=gnu95
 
 (``python setup.py build --help-fcompiler`` will list options for
 Fortran compilers.)
@@ -102,6 +128,10 @@ Fortran compilers.)
 Install for one user::
 
     python setup.py install --user
+
+If you're using conda, installation as user isn't recommended::
+
+    python setup.py install
 
 Or install for all users on the system::
 
