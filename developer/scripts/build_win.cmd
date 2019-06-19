@@ -3,7 +3,7 @@
 @ECHO OFF
 SETLOCAL EnableDelayedExpansion
 
-FOR %%B in (32 64) DO (FOR %%P in (2 3) DO CALL :build %%B %%P)
+FOR %%B in (32 64) DO (FOR %%P in (27 36 37) DO CALL :build %%B %%P)
 
 GOTO :EOF
 
@@ -17,14 +17,12 @@ IF "%1"=="32" (
     set CONDA_SUBDIR=win-64
     set CONDA_FORCE_32_BIT=
 )
-IF "%2"=="2" (
-    set PYVER=27
-) ELSE (
-    set PYVER=36
-)
+set PYVER="%2"
 CALL %USERPROFILE%\Miniconda3\Scripts\activate py%2_%1
 pushd %~dp0\..\..\
-CALL python setup.py bdist_wininst --fcompiler=gnu95
+rmdir /s /y build
+CALL python setup.py bdist_wheel
+CALL python setup.py bdist_wininst
 for %%f in (dist\spacepy-*.*.*.win32.exe dist\spacepy-*.*.*.win-amd64.exe) DO (
     set OLDNAME=%%f
     :: Strip off the dist/ on the target...

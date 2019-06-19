@@ -12,17 +12,19 @@ start /wait "" %USERPROFILE%\Downloads\Miniconda3-latest-Windows-x86_64.exe /Ins
 :: base environment needs to be activated
 CALL %USERPROFILE%\Miniconda3\Scripts\activate
 CALL conda update -y conda
-CALL conda create -y -n py3_64 python=3.6
-CALL conda create -y -n py2_64 python=2.7
+CALL conda create -y -n py37_64 python=3.7
+CALL conda create -y -n py36_64 python=3.6
+CALL conda create -y -n py27_64 python=2.7
 
 set CONDA_PKGS_DIRS=%USERPROFILE%\Miniconda3\PKGS32
 set CONDA_SUBDIR=win-32
 set CONDA_FORCE_32_BIT=1
-CALL conda create -y -n py3_32 python=3.6
-CALL conda create -y -n py2_32 python=2.7
+CALL conda create -y -n py37_32 python=3.7
+CALL conda create -y -n py36_32 python=3.6
+CALL conda create -y -n py27_32 python=2.7
 CALL conda deactivate
 
-FOR %%B in (32 64) DO (FOR %%P in (2 3) DO CALL :installs %%B %%P)
+FOR %%B in (32 64) DO (FOR %%P in (27 36 37) DO CALL :installs %%B %%P)
 
 GOTO :EOF
 
