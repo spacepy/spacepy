@@ -17,7 +17,7 @@ within Python/IPython::
 >>> print(spacepy.pycdf.__contact__)
 
 A web version of this documentation is currently hosted at
-`pythonhosted.org <https://pythonhosted.org/SpacePy/>`_.
+`spacepy.github.io <https://spacepy.github.io/>`_.
 
 
 Contributing
