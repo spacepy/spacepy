@@ -57,6 +57,8 @@ Test PyPI
 
 https://packaging.python.org/guides/using-testpypi/
 
+Consider https://www.python.org/dev/peps/pep-0440/#pre-releases
+
 Make a .pypirc file, see https://docs.python.org/3.3/distutils/packageindex.html
 
 [distutils]
@@ -79,7 +81,12 @@ Put all the builds (wheels, source dists) into one directory and:
 
 PyPI does not support Windows standalone installers.
 
+Test installing with:
 
+  pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ spacepy
+
+Do this on Windows without compilers installed, and in a clean Linux
+Anaconda env.
 
 Release to PyPI
 ---------------
