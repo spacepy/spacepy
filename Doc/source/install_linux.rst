@@ -21,8 +21,16 @@ Python 3. Anaconda includes much of the scientific Python
 stack. Another excellent distribution is `Canopy
 <https://www.enthought.com/product/canopy/>`_.
 
+You may need to install the dependencies some way other than pip; for
+example, if you are running an earlier version of Python. The latest
+version of many dependencies requires Python 3.6 and pip will not
+install older versions to get around this. See :ref:`linux_dep_conda`
+and :ref:`linux_dep_apt`.
+
 .. contents::
    :local:
+
+.. _linux_dep_conda:
 
 Dependencies via conda
 ======================
@@ -32,6 +40,8 @@ dependencies (but not the :ref:`NASA CDF library <linux_CDF>`). They
 can also be installed from conda::
 
   conda install numpy scipy matplotlib networkx h5py
+
+.. _linux_dep_apt:
 
 Dependencies via system packages
 ================================
