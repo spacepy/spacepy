@@ -80,8 +80,8 @@ Standalone installers
 =====================
 
 Self-extracting and self-installing executables are also available for
-download direct from `PyPI
-<https://pypi.org/project/SpacePy/#files>`_. Be sure to choose the
+download direct from `our github
+<https://github.com/spacepy/spacepy/releases>`__. Be sure to choose the
 file that matches your Python installation, both in Python version and
 word size (64-bit vs. 32-bit.)
 E.g. ``spacepy-0.2.0.win-amd64.py36.exe`` is the installer for Python

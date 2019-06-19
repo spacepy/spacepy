@@ -40,9 +40,12 @@ If you are installing for a single user, and are not working in a
 virtual environment, add the ``--user`` flag when installing with pip.
 
 Source releases are available from `PyPI
-<https://pypi.org/project/SpacePy/#files>`__; releases and current
-development are available from `our github
-<https://github.com/spacepy/spacepy>`_. After downloading and
+<https://pypi.org/project/SpacePy/#files>`__ and `our github
+<https://github.com/spacepy/spacepy/releases>`__. Development versions
+are on `github <https://github.com/spacepy/spacepy>`__.
+
+
+After downloading and
 unpacking, run (a virtual environment, such as a conda environment, is
 recommended)::
 
