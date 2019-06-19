@@ -1,64 +1,119 @@
-Building spacepy for distribution (20141223)
+Building spacepy for distribution (20190619)
 ============================================
 Since this has to happen on multiple platforms, a single script doesn't work.
 
-Edit Doc/source/conf.py. Around line 124, remove (DRAFT) from the title.
-    Change version around line 68 (two places!)
-Change version in setup.py, actual call to setup near bottom.
-Change __version__ around line 136 of __init__.py. Also change all through
-    the license.
+Prepare the release commit
+--------------------------
+
+Note: it's probably best to get the latest up on test PyPI first to
+make sure it works!
+
+Edit the CHANGELOG to include the release date.
+
+Edit Doc/source/conf.py. Around line 128, remove (DRAFT) from the title.
+    Change version around line 72 (two places!)
+Change version in setup.py, in setup_kwargs near bottom.
+Change __version__ around line 136 of __init__.py.
+
+Commit these changes. Tag as release-VERSION
+(e.g. release-0.2.0). Push commit and tags.
+
+Prepare the source build
+------------------------
 
 On a Unix machine:
-check out the latest from git.
+check out the latest from git (hopefully the release commit!)
+
+Build and install so you're getting the latest inputs for the autodocs. Then:
     python setup.py sdist --formats=gztar,zip
 Tarball and zip are in the dist directory.
 
 Note: building the source distribution will build the docs, but no longer needs
 to do a binary build.
 
-Windows build:
-Follow the "hard way" directions from the installation docs.
-unzip the source distribution from the Unix side
-(Rebuilding of the source distribution will ensure the latest
-docs are in the Windows installer.)
-    python setup.py bdist_wininst
-installer exe is in the dist directory.
-Run the installer and make sure it works. Copy it out.
+Prepare the Windows binaries
+----------------------------
 
-Now revert to the snapshot and do it ALL OVER for Python 2.7!
+Unzip the source distribution from the Unix side. Get the Windows
+build scripts from the repository. They're in developer/scripts but
+are not included in the source distribution. They need to be put in
+developer/scripts in the unzipped source so they can find the rest of
+SpacePy. Yes this could be improved.
 
-Website is in /n/www/html/spacepy/external
-newgroup spacepy
-umask 002
-under repository, make spacepy-VERSION directory
-In here should go:
--.zip and .tar.gz of source
--2.6 and 2.7 of Windows installer
--PDF documentation, called spacepy-VER-doc.pdf
--html documentation spacepy-VER-html_docs.zip. Rooted at build/html.
-(DOUBLE CHECK PERMISSIONS)
-(in Doc/build/html, zip -r spacepy-VER-html_docs.zip *)
-Unzip the new docs into doc-VER
-Move old docs (doc) to doc-OLDVER
-Move new docs to doc
-Copy new pdf docs into doc, named SpacePy.pdf
-(DOUBLE CHECK PERMISSIONS ON DOCS)
-Put latest CHANGELOG in top level directory of site
+Download latest (currently 3.7) 64-bit Miniconda from
+https://docs.conda.io/en/latest/miniconda.html and put it in the
+system-default download directory (%USERPROFILE%\Downloads)
 
-Now get the latest on sourceforge:
-log in, click on files
-in spacepy folder, add folder (spacepy-VER)
-upload everything that went into repository on website:
-scp * USER@frs.sourceforge.net:/home/frs/project/spacepy/spacepy/spacepy-VER
-In the version folder, click on the "i" next to .tar.gz; set as default for BSD, Linux, Solaris. .zip as default for other, mac; exe as default for windows.
+Run win_build_system_setup.cmd, build_win.cmd, and
+win_build_system_teardown.cmd. Windows binaries and wheels will be in
+the "dist" directory of the SpacePy distribution.
 
-Log in to pypi.python.org
-Click on "SpacePy" under "your packages"
-Now click "edit" (top bar)
-EDIT PKG-INFO from the source distribution tarball, put "Name" field into CamelCase (this should probably be fixed in the installer, or make it not camelcase on pypi)
-Upload PKG-INFO (there's a browse button, and then "add package information" DIRECTLY under that)
-hide the release until it's propagated out
-upload the zip file for the latest documentation
-(go to https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=SpacePy and click on "Upload Documentation", basically the same zip file as goes on LANL page)
-Same page, file, upload a source distribution.
-Testing pip installation: see https://wiki.python.org/moin/TestPyPI
+The wheels are compliant with metadata 2.0 but are labeled as 2.1, which makes for problems unless everybody has the very newest version of everything. For now, we should edit them.
+
+for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
+
+Test PyPI
+---------
+
+https://packaging.python.org/guides/using-testpypi/
+
+Make a .pypirc file, see https://docs.python.org/3.3/distutils/packageindex.html
+
+[distutils]
+index-servers =
+    pypi
+    testpypi
+
+[pypi]
+username: <username>
+
+[testpypi]
+repository: https://test.pypi.org/legacy
+username: <username>
+
+(end of .pypirc)
+
+Put all the builds (wheels, source dists) into one directory and:
+
+  twine upload -r testpypi spacepy-*.gz spacepy-*.zip spacepy-*.whl
+
+PyPI does not support Windows standalone installers.
+
+
+
+Release to PyPI
+---------------
+
+https://python-packaging-tutorial.readthedocs.io/en/latest/uploading_pypi.html
+
+  twine upload spacepy-*.gz spacepy-*.zip spacepy-*.whl
+
+There's no longer any capability to edit information on PyPI, it's
+straight from the setup.py metadata. This may cause problems with the
+face that we're CamelCase on PyPI...
+
+Release to github
+-----------------
+
+https://help.github.com/en/articles/creating-releases
+
+Upload all the files: source distribution, Windows installers, wheels.
+
+Relevant notes
+--------------
+
+Reference that have been useful for putting the wheels together (this
+can eventually be captured elsewhere.)
+
+https://www.python.org/dev/peps/pep-0427/
+https://pip.pypa.io/en/stable/reference/pip_wheel/
+https://docs.python.org/2/library/sysconfig.html#installation-paths
+https://github.com/dask/hdfs3/issues/113
+https://python-packaging-tutorial.readthedocs.io/en/latest/uploading_pypi.html
+https://packaging.python.org/tutorials/packaging-projects/
+
+Wheel is a separate package but seems to be included with
+miniconda. (It's not just pip or setuptools, but it might be a
+requirement for pip? Although not installed on Linux with pip.)
+
+https://stackoverflow.com/questions/45150304/how-to-force-a-python-wheel-to-be-platform-specific-when-building-it
