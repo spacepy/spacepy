@@ -32,8 +32,8 @@ The latest "bleeding-edge" source code is available from our github repository a
 python setup.py install --user
 ```
 
-Further installation documentation can be found [here](https://pythonhosted.org/SpacePy/install.html) Mac-specific information can be found [here](https://pythonhosted.org/SpacePy/install_mac.html)
-Full documentation is at [https://pythonhosted.org/SpacePy](https://pythonhosted.org/SpacePy)
+Further installation documentation can be found [here](https://spacepy.github.io/install.html) Mac-specific information can be found [here](https://spacepy.github.io/install_mac.html)
+Full documentation is at [https://spacepy.github.io](https://spacepy.github.io)
 
 SpacePy supports both Python 2.7 and 3.x.
 
