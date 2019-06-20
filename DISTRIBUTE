@@ -97,7 +97,7 @@ https://python-packaging-tutorial.readthedocs.io/en/latest/uploading_pypi.html
 
 There's no longer any capability to edit information on PyPI, it's
 straight from the setup.py metadata. This may cause problems with the
-face that we're CamelCase on PyPI...
+fact that we're CamelCase on PyPI...
 
 Release to github
 -----------------
