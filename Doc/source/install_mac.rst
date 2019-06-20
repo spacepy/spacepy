@@ -18,8 +18,6 @@ Once python is installed (Anaconda assumed) install the Fortran compiler:
 
       conda install gfortran_osx-64
 
-.. contents::
-   :local:
 
 Dependencies via conda and pip
 ==============================
