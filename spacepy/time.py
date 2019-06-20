@@ -1450,7 +1450,7 @@ class Ticktock(MutableSequence):
 
         See Also
         ========
-        datetime.datetime.now()
+        datetime.datetime.now
 
         """
         dt = datetime.datetime.now()
