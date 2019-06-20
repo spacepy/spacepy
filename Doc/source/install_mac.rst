@@ -30,7 +30,7 @@ can also be installed from conda::
   pip install ffnet
 
 
-Once this is set up, ``pip install spacepy`` should just work. If
+Once this is set up, ``pip install git+https://github.com/spacepy/spacepy`` should just work. If
 you're installing as a single user (not in a virtual environment) then
 add the ``--user`` flag.
 
