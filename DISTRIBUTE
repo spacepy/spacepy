@@ -15,8 +15,7 @@ Edit Doc/source/conf.py. Around line 128, remove (DRAFT) from the title.
 Change version in setup.py, in setup_kwargs near bottom.
 Change __version__ around line 136 of __init__.py.
 
-Commit these changes. Tag as release-VERSION
-(e.g. release-0.2.0). Push commit and tags.
+Commit these changes. Submit PR. (Tagging is done on github now.)
 
 Prepare the source build
 ------------------------
@@ -93,7 +92,9 @@ Release to PyPI
 
 https://python-packaging-tutorial.readthedocs.io/en/latest/uploading_pypi.html
 
-  twine upload spacepy-*.gz spacepy-*.zip spacepy-*.whl
+  twine upload spacepy-*.zip spacepy-*.whl
+
+Do not upload the .tar.gz since can only upload one source package per release.
 
 There's no longer any capability to edit information on PyPI, it's
 straight from the setup.py metadata. This may cause problems with the
@@ -104,7 +105,24 @@ Release to github
 
 https://help.github.com/en/articles/creating-releases
 
-Upload all the files: source distribution, Windows installers, wheels.
+On the code tab, click on "n releases" (between branches and
+contributors). Click "Draft a new release." Make the tag
+"release-x.y.z" and hopefully the target will be master if it's up to
+date. The most consistent with what we've done so far (which is not
+necessarily the best) is to use just "x.y.z" as the title with nothing
+the "describe."
+
+Click in the "upload binaries" area and upload all the files: source
+distribution, Windows installers, wheels. Also upload the
+documentation PDF (spacepy-x.y.z-doc.pdf) and a zip
+(spacepy-x.y.z-doc.zip).
+
+Documentation update
+--------------------
+
+Check out the spacepy.github.io repository. Right now the root of the
+repo is basically the root of the Doc/build/html output. Copy all the
+freshly-built docs there, commit, submit PR.
 
 Relevant notes
 --------------
