@@ -31,6 +31,13 @@ try:
 except:
     import pickle
 
+# python2 python3 string wrangling
+try:
+    str_classes = (str, bytes, unicode)
+except NameError:
+    str_classes = (str, bytes)
+    unicode = str
+
 __all__ = ['SpaceDataTests', 'dmarrayTests', 'converterTests', 'JSONTests', 'converterTestsCDF']
 
 
@@ -644,8 +651,9 @@ class converterTestsCDF(unittest.TestCase):
 class JSONTests(unittest.TestCase):
     def setUp(self):
         super(JSONTests, self).setUp()
-        self.filename = 'data/20130218_rbspa_MagEphem.txt'
-        self.filename_bad = 'data/20130218_rbspa_MagEphem_bad.txt'
+        pth = os.path.dirname(os.path.abspath(__file__))
+        self.filename = os.path.join(pth, 'data', '20130218_rbspa_MagEphem.txt')
+        self.filename_bad = os.path.join(pth, 'data', '20130218_rbspa_MagEphem_bad.txt')
 
     def tearDown(self):
         super(JSONTests, self).tearDown()
