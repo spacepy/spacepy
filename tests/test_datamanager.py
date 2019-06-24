@@ -29,8 +29,9 @@ __all__ = ["RePathTests", "DataManagerFunctionTests"]
 class DataManagerClassTests(unittest.TestCase):
     def test_files_matching(self):
         """Files matching a format"""
-        dirlist = ['data/datamanager_test/1',
-                   'data/datamanager_test/2',
+        pth = os.path.dirname(os.path.abspath(__file__))
+        dirlist = [os.path.join(pth, 'data', 'datamanager_test', '1'),
+                   os.path.join(pth, 'data', 'datamanager_test', '2'),
                    ]
         cases = [
             {'files1': ['rbspa_ect-hope-sci-L2_20150409_v4.0.0.cdf',
