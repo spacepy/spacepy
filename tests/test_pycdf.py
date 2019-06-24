@@ -599,7 +599,8 @@ class MakeCDF(unittest.TestCase):
     def setUp(self):
         self.testdir = tempfile.mkdtemp()
         self.testfspec = os.path.join(self.testdir, 'foo.cdf')
-        self.testmaster = 'po_l1_cam_testc.cdf'
+        pth = os.path.dirname(os.path.abspath(__file__))
+        self.testmaster = os.path.join(pth, 'po_l1_cam_testc.cdf')
 
     def tearDown(self):
         shutil.rmtree(self.testdir)
@@ -890,14 +891,16 @@ class CDFTestsBase(unittest.TestCase):
 
 class CDFTests(CDFTestsBase):
     """Tests that involve an existing CDF, read or write"""
-    testmaster = 'po_l1_cam_test.cdf'
+    pth = os.path.dirname(os.path.abspath(__file__))
+    testmaster = os.path.join(pth, 'po_l1_cam_test.cdf')
     testbase = 'test.cdf'
     expected_digest = '8c1a2b1552de1cb3cd6bdd03bdaf5f52'
 
 
 class ColCDFTests(CDFTestsBase):
     """Tests that involve an existing column-major CDF, read or write"""
-    testmaster = 'po_l1_cam_testc.cdf'
+    pth = os.path.dirname(os.path.abspath(__file__))
+    testmaster = os.path.join(pth, 'po_l1_cam_testc.cdf')
     testbase = 'testc.cdf'
     expected_digest = '7728439e20bece4c0962a125373345bf'
 
