@@ -29,7 +29,8 @@ class ae9ap9Tests(unittest.TestCase):
     
     def setUp(self):
         super(ae9ap9Tests, self).setUp()
-        self.datafiles = glob.glob('data/Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        self.datafiles = glob.glob(os.path.join(pth, 'data', 'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt'))
         
     def tearDown(self):
         super(ae9ap9Tests, self).tearDown()
