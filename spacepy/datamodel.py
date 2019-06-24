@@ -181,6 +181,7 @@ from . import time as spt
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
+# python2 python3 string wrangling
 try:
     str_classes = (str, bytes, unicode)
 except NameError:
@@ -593,7 +594,7 @@ def convertKeysToStr(SDobject):
     else:
         newSDobject = {}
     for key in SDobject:
-        if not isinstance(key, str):
+        if not isinstance(key, str_classes):
             if isinstance(SDobject[key], dict):
                 newSDobject[str(key)] = convertKeysToStr(SDobject[key])
             else:
@@ -1126,6 +1127,8 @@ def toHDF5(fname, SDobject, **kwargs):
     else:
         path = '/'
 
+    # long is a type in python2 not in python3
+    # unicode is a type in python2 not in python3
     try:
         allowed_attrs = [int, long, float, str, unicode, numpy.ndarray, list, tuple, numpy.string_]
     except NameError:
@@ -1378,15 +1381,11 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
     """
     import dateutil.parser as dup
     filelike = False
-    try:
-        if isinstance(fname, (str, unicode)):
-            fname=[fname]
-        elif hasattr(fname, 'readlines'):
-            fname = [fname]
-            filelike = True
-    except NameError: # for Py3
-        if isinstance(fname, str):
-            fname=[fname]
+    if isinstance(fname, str_classes):
+        fname=[fname]
+    elif hasattr(fname, 'readlines'):
+        fname = [fname]
+        filelike = True
     if not mdata:
         mdata = readJSONMetadata(fname[0])
     if restrict:
@@ -1525,10 +1524,10 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
                 insd[key] = dmarray(insd[key])
             if 'DEPEND_0' in insd[key].attrs:
                 depend0 = insd[key].attrs['DEPEND_0']
-                if not isinstance(depend0, str):
+                if not isinstance(depend0, str_classes):
                     #assume it's a singleton list
                     depend0 = depend0[0]
-                if not isinstance(depend0, str):
+                if not isinstance(depend0, str_classes):
                     depend0 = None #Failed to get a depend0
                 else:
                     break #we're done here
@@ -1602,7 +1601,7 @@ def writeJSONMetadata(fname, insd, depend0=None, order=None, verbose=False, retu
     json_str = '\n#'.join(json_str.split('\n'))
     json_str = ''.join([json_str,'\n'])
 
-    if isinstance(fname, str):
+    if isinstance(fname, str_classes):
         with open(fname,'w') as fh:
             fh.writelines(json_str)
     elif hasattr(fname, 'writelines'):
