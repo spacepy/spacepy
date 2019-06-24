@@ -10,6 +10,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import datetime as dt
+import os
 import unittest
 
 import numpy as np
@@ -60,7 +61,8 @@ class TestIdlFile(unittest.TestCase):
     
     def testBinary(self):
         # Open file:
-        mhd = pb.IdlFile('data/pybats_test/y0_binary.out')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        mhd = pb.IdlFile(os.path.join(pth, 'data', 'pybats_test', 'y0_binary.out'))
 
         # Test units are loaded correctly:
         for v in mhd:
@@ -75,7 +77,8 @@ class TestIdlFile(unittest.TestCase):
             
     def testAscii(self):
         # Open file:
-        mhd = pb.IdlFile('data/pybats_test/y0_ascii.out', format='ascii')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        mhd = pb.IdlFile(os.path.join(pth, 'data', 'pybats_test', 'y0_ascii.out'), format='ascii')
 
         # Test units are loaded correctly:
         for v in mhd:
@@ -91,7 +94,8 @@ class TestIdlFile(unittest.TestCase):
     def testReadAsciiAsBin(self):
         """Read an ASCII file as a binary"""
         try:
-            data = pb.IdlFile('data/pybats_test/mag_grid_ascii.out',
+            pth = os.path.dirname(os.path.abspath(__file__))
+            data = pb.IdlFile(os.path.join(pth, 'data', 'pybats_test', 'mag_grid_ascii.out'),
                               format='bin', header=None, keep_case=True)
         except EOFError as e:
             msg = str(e)
@@ -106,7 +110,8 @@ class TestRim(unittest.TestCase):
         from spacepy.pybats import rim
 
         # Open file:
-        iono=rim.Iono('data/pybats_test/it000321_104510_000.idl.gz')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        iono=rim.Iono(os.path.join(pth, 'data', 'pybats_test', 'it000321_104510_000.idl.gz'))
 
     def testReadAscii(self):
         import gzip
@@ -115,7 +120,8 @@ class TestRim(unittest.TestCase):
         from spacepy.pybats import rim
 
         # Unzip file and create a copy of it:
-        name_in = 'data/pybats_test/it000321_104510_000.idl.gz'
+        pth = os.path.dirname(os.path.abspath(__file__))
+        name_in = os.path.join(pth, 'data', 'pybats_test', 'it000321_104510_000.idl.gz')
         name_out= name_in[:-3]
         with gzip.open(name_in, 'rb') as f_in, open(name_out, 'wb') as f_out:
             copyfileobj(f_in, f_out)
@@ -131,8 +137,8 @@ class TestBats2d(unittest.TestCase):
     '''
     Test functionality of Bats2d objects.
     '''
-
-    mhd = pbs.Bats2d('data/pybats_test/y0_binary.out')
+    pth = os.path.dirname(os.path.abspath(__file__))
+    mhd = pbs.Bats2d(os.path.join(pth, 'data', 'pybats_test', 'y0_binary.out'))
     
     def testCalc(self):
         # Test all calculations:
@@ -140,7 +146,8 @@ class TestBats2d(unittest.TestCase):
         
     def testMultispecies(self):
         # Open file:
-        mhd = pbs.Bats2d('data/pybats_test/cut_multispecies.out', format='ascii')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        mhd = pbs.Bats2d(os.path.join(pth, 'data', 'pybats_test', 'cut_multispecies.out'), format='ascii')
         mspec_varnames='x Rho Ux Uy Uz Bx By Bz P OpRho OpUx OpUy OpUz OpP jx jy jz g rbody cuty cutz'.split()
         mspec_units='km Mp/cc km/s km/s km/s nT nT nT nPa Mp/cc km/s km/s km/s nPa uA/m2 uA/m2 uA/m2'.split()
         knownMultispecUnits = dict(zip(mspec_varnames,
@@ -166,9 +173,10 @@ class TestMagGrid(unittest.TestCase):
     def testOpen(self):
         # Open both binary and ascii versions of same data.
         # Ensure expected values are loaded.
-        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out',
+        pth = os.path.dirname(os.path.abspath(__file__))
+        m1 = pbs.MagGridFile(os.path.join(pth, 'data', 'pybats_test', 'mag_grid_ascii.out'),
                               format='ascii')
-        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+        m2 = pbs.MagGridFile(os.path.join(pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -179,8 +187,9 @@ class TestMagGrid(unittest.TestCase):
         # Open both binary and ascii versions of same data
         # without specifying the type.
         # Ensure expected values are loaded.
-        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out')
-        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        m1 = pbs.MagGridFile(os.path.join(pth, 'data', 'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -190,9 +199,10 @@ class TestMagGrid(unittest.TestCase):
     def testCalc(self):
         # Open both binary and ascii versions of same data.
         # Ensure calculations give expected values.
-        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out',
+        pth = os.path.dirname(os.path.abspath(__file__))
+        m1 = pbs.MagGridFile(os.path.join(pth, 'data', 'pybats_test', 'mag_grid_ascii.out'),
                               format='ascii')
-        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+        m2 = pbs.MagGridFile(os.path.join(pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
 
         # Calculation of H-component:
         m1.calc_h()
@@ -257,7 +267,8 @@ class TestSatOrbit(unittest.TestCase):
         from spacepy.pybats import SatOrbit
         from numpy.testing import assert_array_equal as assert_array
 
-        sat = SatOrbit('data/pybats_test/testsat.dat')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        sat = SatOrbit(os.path.join(pth, 'data', 'pybats_test', 'testsat.dat'))
 
         # Check header:
         self.assertEqual(sorted(sat.attrs['head']),
@@ -281,7 +292,8 @@ class TestVirtSat(unittest.TestCase):
     
     def testOpen(self):
         # Open file, ensure values are read properly.
-        sat = pbs.VirtSat('data/pybats_test/sat_multispecies.sat')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        sat = pbs.VirtSat(os.path.join(pth, 'data', 'pybats_test', 'sat_multispecies.sat'))
         self.assertEqual(self.knownSatXmax, sat['x'].max())
         self.assertEqual(self.knownSatPmax, sat['p'].max())
         self.assertEqual(self.knownSatHmax, sat['rhoh'].max())
@@ -289,7 +301,8 @@ class TestVirtSat(unittest.TestCase):
 
     def testCalc(self):
         # Test various unit calculations
-        sat = pbs.VirtSat('data/pybats_test/sat_multispecies.sat')
+        pth = os.path.dirname(os.path.abspath(__file__))
+        sat = pbs.VirtSat(os.path.join(pth, 'data', 'pybats_test', 'sat_multispecies.sat'))
 
         # Test calculation of species number density:
         sat.calc_ndens()
@@ -302,8 +315,9 @@ class TestImfInput(unittest.TestCase):
     '''
 
     # Files to open:
-    file_single = 'data/pybats_test/imf_single.dat'
-    file_multi  = 'data/pybats_test/imf_multi.dat'
+    pth = os.path.dirname(os.path.abspath(__file__))
+    file_single = os.path.join(pth, 'data', 'pybats_test', 'imf_single.dat')
+    file_multi  = os.path.join(pth, 'data', 'pybats_test', 'imf_multi.dat')
 
     # Known values:
     knownImfBz   = [3, -10.]
@@ -401,7 +415,8 @@ class TestExtraction(unittest.TestCase):
     '''
     Test Extraction class by opening a file with known solution.
     '''
-    mhd = pbs.Bats2d('data/pybats_test/z0_sine.out')
+    pth = os.path.dirname(os.path.abspath(__file__))
+    mhd = pbs.Bats2d(os.path.join(pth, 'data', 'pybats_test', 'z0_sine.out'))
     
     def testExtract(self):
         from numpy import pi, cos
@@ -417,7 +432,8 @@ class RampyTests(unittest.TestCase):
     '''
     def setUp(self):
         super(RampyTests, self).setUp()
-        self.testfile = 'data/pybats_test/ramsat_test.nc'
+        pth = os.path.dirname(os.path.abspath(__file__))
+        self.testfile = os.path.join(pth, 'data', 'pybats_test', 'ramsat_test.nc')
 
     def tearDown(self):
         super(RampyTests, self).tearDown()
