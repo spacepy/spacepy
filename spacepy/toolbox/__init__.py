@@ -1252,7 +1252,7 @@ def logspace(min, max, num, **kwargs):
     """
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
-        ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), int(num), **kwargs))
+        ans = num2date(np.logspace(np.log10(date2num(min)), np.log10(date2num(max)), num, **kwargs))
         ans = spt.no_tzinfo(ans)
         return np.array(ans)
     else:
@@ -1303,11 +1303,11 @@ def linspace(min, max, num, **kwargs):
         max = max.item()
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date
-        ans = num2date(np.linspace(date2num(min), date2num(max), int(num), **kwargs))
+        ans = num2date(np.linspace(date2num(min), date2num(max), num, **kwargs))
         ans = spt.no_tzinfo(ans)
         return np.array(ans)
     else:
-        return np.linspace(min, max, int(num), **kwargs)
+        return np.linspace(min, max, num, **kwargs)
 
 def geomspace(start, ratio=None, stop=False, num=50):
     """
