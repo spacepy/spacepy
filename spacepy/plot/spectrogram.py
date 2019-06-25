@@ -215,10 +215,10 @@ class spectrogram(dm.SpaceData):
                 # use the toolbox version of linspace so it works on dates
                 self.specSettings['bins'] = [dm.dmarray(tb.linspace(self.specSettings['xlim'][0],
                                                  self.specSettings['xlim'][1],
-                                                 np.sqrt(len(data[self.specSettings['variables'][0]])))),
+                                                 int(np.sqrt(len(data[self.specSettings['variables'][0]]))))),
                     dm.dmarray(tb.linspace(self.specSettings['ylim'][0],
                                                  self.specSettings['ylim'][1],
-                                                 np.sqrt(len(data[self.specSettings['variables'][1]]))))]
+                                                 int(np.sqrt(len(data[self.specSettings['variables'][1]])))))]
 
         # copy all the used keys
         for key in self.specSettings['variables']:
