@@ -1256,7 +1256,7 @@ def logspace(min, max, num, **kwargs):
         ans = spt.no_tzinfo(ans)
         return np.array(ans)
     else:
-        return np.logspace(np.log10(min), np.log10(max), int(num), **kwargs)
+        return np.logspace(np.log10(min), np.log10(max), num, **kwargs)
 
 def linspace(min, max, num, **kwargs):
     """
