@@ -34,6 +34,12 @@ import spacepy.toolbox as tb
 import spacepy.time as st
 import spacepy.lib
 
+#Py3k compatibility renamings
+try:
+    xrange
+except NameError:
+    xrange = range
+
 __all__ = ['PickleAssembleTests', 'SimpleFunctionTests', 'TBTimeFunctionTests',
            'ArrayBinTests']
 
@@ -115,7 +121,7 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_indsFromXrange(self):
         """indsFromXrange should have known result"""
-        foo = range(23, 39)
+        foo = xrange(23, 39)
         self.assertEqual([23, 39], tb.indsFromXrange(foo))
 
     def test_interweave(self):
