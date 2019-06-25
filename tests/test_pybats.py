@@ -10,6 +10,8 @@ import matplotlib
 matplotlib.use('Agg')
 
 import datetime as dt
+import glob
+import os
 import unittest
 
 import numpy as np
@@ -57,10 +59,12 @@ class TestIdlFile(unittest.TestCase):
     knownMhdXmax = 31.0
     knownMhdXmin = -220.0
     knownMhdZlim = 124.0
-    
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+
     def testBinary(self):
         # Open file:
-        mhd = pb.IdlFile('data/pybats_test/y0_binary.out')
+        mhd = pb.IdlFile(os.path.join(self.pth, 'data', 'pybats_test', 'y0_binary.out'))
 
         # Test units are loaded correctly:
         for v in mhd:
@@ -75,7 +79,8 @@ class TestIdlFile(unittest.TestCase):
             
     def testAscii(self):
         # Open file:
-        mhd = pb.IdlFile('data/pybats_test/y0_ascii.out', format='ascii')
+        mhd = pb.IdlFile(os.path.join(self.pth, 'data', 'pybats_test', 'y0_ascii.out'),
+                         format='ascii')
 
         # Test units are loaded correctly:
         for v in mhd:
@@ -91,7 +96,7 @@ class TestIdlFile(unittest.TestCase):
     def testReadAsciiAsBin(self):
         """Read an ASCII file as a binary"""
         try:
-            data = pb.IdlFile('data/pybats_test/mag_grid_ascii.out',
+            data = pb.IdlFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'),
                               format='bin', header=None, keep_case=True)
         except EOFError as e:
             msg = str(e)
@@ -101,12 +106,14 @@ class TestIdlFile(unittest.TestCase):
 
 
 class TestRim(unittest.TestCase):
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
 
     def testReadZip(self):
         from spacepy.pybats import rim
 
         # Open file:
-        iono=rim.Iono('data/pybats_test/it000321_104510_000.idl.gz')
+        iono=rim.Iono(os.path.join(self.pth, 'data', 'pybats_test', 'it000321_104510_000.idl.gz'))
 
     def testReadAscii(self):
         import gzip
@@ -114,25 +121,27 @@ class TestRim(unittest.TestCase):
         from shutil import copyfileobj
         from spacepy.pybats import rim
 
-        # Unzip file and create a copy of it:
-        name_in = 'data/pybats_test/it000321_104510_000.idl.gz'
-        name_out= name_in[:-3]
-        with gzip.open(name_in, 'rb') as f_in, open(name_out, 'wb') as f_out:
-            copyfileobj(f_in, f_out)
+        try:
+            # Unzip file and create a copy of it:
+            name_in = os.path.join(self.pth, 'data', 'pybats_test','it000321_104510_000.idl.gz')
+            name_out= name_in[:-3]
+            with gzip.open(name_in, 'rb') as f_in, open(name_out, 'wb') as f_out:
+                copyfileobj(f_in, f_out)
 
-        # Test file:
-        iono = rim.Iono(name_out)
-
-        # Remove temp file:
-        remove(name_out)
+            # Test file:
+            iono = rim.Iono(name_out)
+        finally:
+            # Remove temp file:
+            remove(name_out)
         
 
 class TestBats2d(unittest.TestCase):
     '''
     Test functionality of Bats2d objects.
     '''
-
-    mhd = pbs.Bats2d('data/pybats_test/y0_binary.out')
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+        self.mhd = pbs.Bats2d(os.path.join(self.pth, 'data', 'pybats_test', 'y0_binary.out'))
     
     def testCalc(self):
         # Test all calculations:
@@ -140,7 +149,7 @@ class TestBats2d(unittest.TestCase):
         
     def testMultispecies(self):
         # Open file:
-        mhd = pbs.Bats2d('data/pybats_test/cut_multispecies.out', format='ascii')
+        mhd = pbs.Bats2d(os.path.join(self.pth, 'data', 'pybats_test', 'cut_multispecies.out'), format='ascii')
         mspec_varnames='x Rho Ux Uy Uz Bx By Bz P OpRho OpUx OpUy OpUz OpP jx jy jz g rbody cuty cutz'.split()
         mspec_units='km Mp/cc km/s km/s km/s nT nT nT nPa Mp/cc km/s km/s km/s nPa uA/m2 uA/m2 uA/m2'.split()
         knownMultispecUnits = dict(zip(mspec_varnames,
@@ -162,13 +171,16 @@ class TestMagGrid(unittest.TestCase):
     knownDbnMax = 8.0770346781
     knownDbhMax = 8.07703468843
     knownPedMax = 2.783385368
-    
+
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+
     def testOpen(self):
         # Open both binary and ascii versions of same data.
         # Ensure expected values are loaded.
-        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out',
+        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data/', 'pybats_test', 'mag_grid_ascii.out'),
                               format='ascii')
-        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -179,8 +191,8 @@ class TestMagGrid(unittest.TestCase):
         # Open both binary and ascii versions of same data
         # without specifying the type.
         # Ensure expected values are loaded.
-        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out')
-        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -190,9 +202,9 @@ class TestMagGrid(unittest.TestCase):
     def testCalc(self):
         # Open both binary and ascii versions of same data.
         # Ensure calculations give expected values.
-        m1 = pbs.MagGridFile('data/pybats_test/mag_grid_ascii.out',
+        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'),
                               format='ascii')
-        m2 = pbs.MagGridFile('data/pybats_test/mag_grid_binary.out')
+        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
 
         # Calculation of H-component:
         m1.calc_h()
@@ -205,6 +217,7 @@ class TestSatOrbit(unittest.TestCase):
     Test reading and writing of satellite orbit files.
     '''
     def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
         # Create 5 minutes of fake data:
         self.start = dt.datetime(2000,1,1)
         self.time = np.array([self.start+dt.timedelta(minutes=i)
@@ -221,43 +234,42 @@ class TestSatOrbit(unittest.TestCase):
         from os import remove
         from spacepy.pybats import SatOrbit
         from numpy.testing import assert_array_equal as assert_array
+        try:
+            # New empty object:
+            sat = SatOrbit()
 
-        # New empty object:
-        sat = SatOrbit()
+            # Load in fake data:
+            sat['time'] = self.time
+            sat['xyz']  = self.pos
 
-        # Load in fake data:
-        sat['time'] = self.time
-        sat['xyz']  = self.pos
+            # Add some info:
+            sat.attrs['coor'] = 'SMG'
+            sat.attrs['file'] = 'testsat.dat'
+            sat.attrs['head'] = ['test','header','values']
 
-        # Add some info:
-        sat.attrs['coor'] = 'SMG'
-        sat.attrs['file'] = 'testsat.dat'
-        sat.attrs['head'] = ['test','header','values']
+            sat.write()
+            os.listdir('.')
 
-        sat.write()
-        import os
-        os.listdir('.')
+            #### Now, test the integrity of the file:
+            sat = SatOrbit('./testsat.dat')
 
-        #### Now, test the integrity of the file:
-        sat = SatOrbit('./testsat.dat')
+            # Check header:
+            self.assertEqual(sorted(sat.attrs['head']),
+                             sorted(['test','header','values']))
+            self.assertEqual(sat.attrs['coor'], 'SMG')
 
-        # Check header:
-        self.assertEqual(sorted(sat.attrs['head']),
-                         sorted(['test','header','values']))
-        self.assertEqual(sat.attrs['coor'], 'SMG')
-
-        # Check time and position:
-        assert_array(sat['time'], self.time)
-        assert_array(sat['xyz'],  self.pos)
-
-        # Get rid of file:
-        remove('./testsat.dat')
+            # Check time and position:
+            assert_array(sat['time'], self.time)
+            assert_array(sat['xyz'],  self.pos)
+        finally:
+            # Get rid of file:
+            remove('./testsat.dat')
 
     def testRead(self):
         from spacepy.pybats import SatOrbit
         from numpy.testing import assert_array_equal as assert_array
 
-        sat = SatOrbit('data/pybats_test/testsat.dat')
+        sat = SatOrbit(os.path.join(self.pth, 'data', 'pybats_test', 'testsat.dat'))
 
         # Check header:
         self.assertEqual(sorted(sat.attrs['head']),
@@ -278,10 +290,13 @@ class TestVirtSat(unittest.TestCase):
     knownSatPmax = 0.00509526
     knownSatOmax = 1.72270E-04
     knownSatHmax = 1.72235
-    
+
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+
     def testOpen(self):
         # Open file, ensure values are read properly.
-        sat = pbs.VirtSat('data/pybats_test/sat_multispecies.sat')
+        sat = pbs.VirtSat(os.path.join(self.pth, 'data', 'pybats_test', 'sat_multispecies.sat'))
         self.assertEqual(self.knownSatXmax, sat['x'].max())
         self.assertEqual(self.knownSatPmax, sat['p'].max())
         self.assertEqual(self.knownSatHmax, sat['rhoh'].max())
@@ -289,7 +304,7 @@ class TestVirtSat(unittest.TestCase):
 
     def testCalc(self):
         # Test various unit calculations
-        sat = pbs.VirtSat('data/pybats_test/sat_multispecies.sat')
+        sat = pbs.VirtSat(os.path.join(self.pth, 'data', 'pybats_test', 'sat_multispecies.sat'))
 
         # Test calculation of species number density:
         sat.calc_ndens()
@@ -300,10 +315,13 @@ class TestImfInput(unittest.TestCase):
     '''
     Test reading, writing, and plotting from ImfInput files.
     '''
-
-    # Files to open:
-    file_single = 'data/pybats_test/imf_single.dat'
-    file_multi  = 'data/pybats_test/imf_multi.dat'
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+        # Files to open:
+        self.file_single = os.path.join(self.pth, 'data', 'pybats_test', 'imf_single.dat')
+        self.file_multi  = os.path.join(self.pth, 'data', 'pybats_test', 'imf_multi.dat')
+        self.sing = pb.ImfInput(self.file_single)
+        self.mult = pb.ImfInput(self.file_multi)
 
     # Known values:
     knownImfBz   = [3, -10.]
@@ -311,14 +329,7 @@ class TestImfInput(unittest.TestCase):
     knownImfTemp = [.80E+05, 1.20E+05]
     knownImfIono = [4.99, 0.01]
 
-    def setUp(self):
-        self.sing = pb.ImfInput(self.file_single)
-        self.mult = pb.ImfInput(self.file_multi)
-
     def tearDown(self):
-        import os
-        import glob
-
         # Remove temporary files.
         for f in glob.glob('*.tmp'):
             os.remove(f)
@@ -401,12 +412,12 @@ class TestExtraction(unittest.TestCase):
     '''
     Test Extraction class by opening a file with known solution.
     '''
-    mhd = pbs.Bats2d('data/pybats_test/z0_sine.out')
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+        self.mhd = pbs.Bats2d(os.path.join(self.pth, 'data', 'pybats_test', 'z0_sine.out'))
     
     def testExtract(self):
-        from numpy import pi, cos
-        
-        analytic = lambda x: 1.+.5*cos(x*pi/10.)
+        analytic = lambda x: 1.+.5*np.cos(x*np.pi/10.)
         extr = self.mhd.extract(range(-5, 6),[-8]*11)
         for x, rho in zip(extr['x'], extr['rho']):
             self.assertAlmostEqual(rho, analytic(x), 2)
@@ -417,7 +428,8 @@ class RampyTests(unittest.TestCase):
     '''
     def setUp(self):
         super(RampyTests, self).setUp()
-        self.testfile = 'data/pybats_test/ramsat_test.nc'
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+        self.testfile = os.path.join(self.pth, 'data', 'pybats_test', 'ramsat_test.nc')
 
     def tearDown(self):
         super(RampyTests, self).tearDown()
