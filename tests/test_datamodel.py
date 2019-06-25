@@ -651,9 +651,9 @@ class converterTestsCDF(unittest.TestCase):
 class JSONTests(unittest.TestCase):
     def setUp(self):
         super(JSONTests, self).setUp()
-        pth = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(pth, 'data', '20130218_rbspa_MagEphem.txt')
-        self.filename_bad = os.path.join(pth, 'data', '20130218_rbspa_MagEphem_bad.txt')
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+        self.filename = os.path.join(self.pth, 'data', '20130218_rbspa_MagEphem.txt')
+        self.filename_bad = os.path.join(self.pth, 'data', '20130218_rbspa_MagEphem_bad.txt')
 
     def tearDown(self):
         super(JSONTests, self).tearDown()
