@@ -107,8 +107,19 @@ class PickleAssembleTests(unittest.TestCase):
 
 
 class SimpleFunctionTests(unittest.TestCase):
+    def test_quaternionNormalize(self):
+        """quaternionNormalize should have known results"""
+        tst = tb.quaternionNormalize([0.707, 0, 0.707, 0.2])
+        ans = [ 0.69337122,  0.        ,  0.69337122,  0.19614462]
+        numpy.testing.assert_array_almost_equal(ans, tst)
+
+    def test_indsFromXrange(self):
+        """indsFromXrange should have known result"""
+        foo = range(23, 39)
+        self.assertEqual([23, 39], tb.indsFromXrange(foo))
+
     def test_interweave(self):
-        """interweave should hav known result"""
+        """interweave should have known result"""
         a = numpy.arange(5)
         b = numpy.arange(5, 10)
         numpy.testing.assert_equal(numpy.vstack((a,b)).reshape((-1,),order='F'),
@@ -283,6 +294,13 @@ class SimpleFunctionTests(unittest.TestCase):
         data = numpy.random.normal(0, 1, 100000)
         real_ans = 0.7
         ans = tb.medAbsDev(data)
+        self.assertAlmostEqual(ans, real_ans, places=1)
+
+    def test_medAbsDev_scale(self):
+        """medAbsDev should return a known range for given random input"""
+        data = numpy.random.normal(0, 1, 100000)
+        real_ans = 0.7*1.4826
+        ans = tb.medAbsDev(data, scale=True)
         self.assertAlmostEqual(ans, real_ans, places=1)
 
     def test_binHisto(self):
@@ -547,6 +565,7 @@ class SimpleFunctionTests(unittest.TestCase):
         b = a[0:10]
         self.assertTrue(tb.isview(b))
         self.assertFalse(tb.isview(a))
+        self.assertFalse(tb.isview([1, 2, 3]))
         numpy.testing.assert_array_equal(tb.isview(a, [1,2,3]), [False, False]) # a bit of a pathological case
         numpy.testing.assert_array_equal(tb.isview(b, a), [True, True])
         numpy.testing.assert_array_equal(tb.isview(b, a[2:]), [True, False])
