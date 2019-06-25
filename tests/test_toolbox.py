@@ -135,7 +135,7 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_getNamedPath(self):
         """getNamedPath should have known result"""
-        curloc = os.path.abspath(os.path.curdir)
+        curloc = os.path.dirname(os.path.abspath(__file__))
         tmpdir = os.path.join(curloc, 'tmp', 'test1', 'test2')
         os.makedirs(tmpdir)
         ans = ['tests', 'tmp', 'test1']
