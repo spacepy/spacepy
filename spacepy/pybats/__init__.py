@@ -534,9 +534,9 @@ def readarray(f,dtype=np.float32,inttype=np.int32):
     if seekable:
         f.seek(0, 2)
         endpos = f.tell()
-        if endpos - startpos < (rec_len[0] + np.dtype(inttype).itemsize):
+        if endpos - startpos < (int(rec_len[0]) + np.dtype(inttype).itemsize):
             raise EOFError('File is shorter than expected data')
-        f.seek(startpos + rec_len[0], 0)
+        f.seek(startpos + int(rec_len[0]), 0)
         rec_len_end = np.fromfile(f,dtype=inttype,count=1)
         f.seek(startpos, 0)
         if rec_len_end != rec_len:
