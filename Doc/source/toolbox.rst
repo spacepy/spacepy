@@ -52,6 +52,7 @@ Other functions
     :toctree: autosummary
 
     assemble
+    bootHisto
     dictree
     eventTimer
     feq

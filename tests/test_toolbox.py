@@ -334,6 +334,28 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(result, "Used F-D rule\n")
         sys.stdout = realstdout
 
+    def testBootHisto(self):
+        """Bootstrap histogram known output for known input"""
+        numpy.random.seed(28420)
+        data = numpy.random.randn(1000)
+        bin_edges, ci_low, ci_high, sample = spacepy.toolbox.bootHisto(
+            data, n=1000, seed=28420)
+        numpy.testing.assert_allclose(
+            [-3.17371804, -2.40693385, -1.64014966, -0.87336547,
+             -0.10658127, 0.66020292,  1.42698711,  2.1937713 ,
+             2.9605555 ,  3.72733969, 4.49412388],
+            bin_edges, rtol=1e-5)
+        numpy.testing.assert_equal(
+            [  7,  45, 149, 283, 272, 162,  71,   9,   0,   2], sample)
+        #This is a very coarse chunk-check to allow for variations in
+        #RNGs. Values from 100000 iterations
+        numpy.testing.assert_allclose(
+            [3.,  34., 131., 260., 249., 143.,  58.,   4.,   0.,   0.],
+            ci_low, atol=2, rtol=1e-2)
+        numpy.testing.assert_allclose(
+            [12.,  56., 168., 306., 295., 181.,  84.,  14.,   0.,   5.],
+            ci_high, atol=2, rtol=1e-2)
+
     def test_logspace(self):
         """logspace should return know answer for known input"""
         try:
