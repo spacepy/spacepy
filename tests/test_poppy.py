@@ -162,6 +162,33 @@ class BootstrapTests(unittest.TestCase):
             self.assertAlmostEqual(3.57505503117, ci_low, places=10)
             self.assertAlmostEqual(4.4100232162, ci_high, places=10)
 
+    def testMultOutputs(self):
+        """Check bootstrap on a function with multiple outputs"""
+        numpy.random.seed(8201) #reproducible
+        data = numpy.random.randn(1000)
+        ci_low, ci_high = poppy.boots_ci(
+            data, 1000, 90.,
+            lambda x: (numpy.mean(x), numpy.median(x)),
+            nretvals=2, seed=8201)
+        #Simple regression. Mostly we want to test that this works at all,
+        #but this is coarse enough that should be near regardless of details
+        self.assertAlmostEqual(-0.08, ci_low[0], places=2)
+        self.assertAlmostEqual(-0.1, ci_low[1], places=2)
+        #Same thing with numpy output of function
+        ci_low, ci_high = poppy.boots_ci(
+            data, 1000, 90.,
+            lambda x: numpy.array([numpy.mean(x), numpy.median(x)]),
+            nretvals=2, seed=8201)
+        self.assertAlmostEqual(-0.08, ci_low[0], places=2)
+        self.assertAlmostEqual(-0.1, ci_low[1], places=2)
+        #And compare against single-value version
+        ci_low, ci_high = poppy.boots_ci(
+            data, 1000, 90., numpy.mean, seed=8201)
+        self.assertAlmostEqual(-0.08, ci_low, places=2)
+        ci_low, ci_high = poppy.boots_ci(
+            data, 1000, 90., numpy.median, seed=8201)
+        self.assertAlmostEqual(-0.1, ci_low, places=2)
+
 
 class AssocTests(unittest.TestCase):
     """Tests of association analysis"""
