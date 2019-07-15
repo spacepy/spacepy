@@ -62,7 +62,7 @@ except NameError:
 
 __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'assemble',
            'human_sort', 'feq', 'dictree', 'update', 'progressbar',
-           'windowMean', 'medAbsDev', 'binHisto',
+           'windowMean', 'medAbsDev', 'binHisto', 'bootHisto',
            'logspace', 'geomspace', 'linspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
@@ -1210,6 +1210,69 @@ def binHisto(data, verbose=False):
         if verbose:
             print("Used F-D rule")
     return (binw, nbins)
+
+def bootHisto(data, inter=90., n=100, seed=None, **kwargs):
+    """
+    Bootstrap confidence intervals for a histogram.
+
+    All other keyword arguments are passed to `numpy.histogram`.
+
+    Parameters
+    ==========
+
+    data : array_like
+        list/array of data values
+    inter : float (optional; default 90)
+        percentage confidence interval to return. Default 90% (i.e.
+        lower CI will be 5% and upper will be 95%)
+    n : int (optional; default 100)
+        number of bootstrap iterations
+    seed : int (optional)
+        Optional seed for the random number generator. If not
+        specified; numpy generator will not be reseeded.
+
+    Returns
+    =======
+    out : tuple
+      tuple of bin_edges, low, high, sample. Where ``bin_edges`` is the edges
+      of the bins used; ``low`` is the histogram with the value for each bin
+      from the bottom of that bin's confidence interval; ``high`` similarly
+      for the top; ``sample`` is the histogram of the input sample without
+      resampling.
+
+    Notes
+    =====
+    The confidence intervals are calculated for each bin individually and thus
+    the resulting low/high histograms may not have actually occurred in the
+    calculation from the surrogates. If using a probability density histogram,
+    this can have "interesting" implications for interpretation.
+
+    Examples
+    ========
+    >>> import numpy
+    >>> import spacepy.toolbox
+    >>> numpy.random.seed(0)
+    >>> data = numpy.random.randn(1000)
+    >>> bin_edges, ci_low, ci_high, sample = spacepy.toolbox.bootHisto(data)
+    >>> p = plt.bar(bin_edges[:-1], height=sample, width=numpy.diff(bin_edges),
+                    align='edge', ecolor='k',
+                    yerr=numpy.stack((sample - ci_low, ci_high - sample)))
+
+    See Also
+    ========
+    binHisto
+    numpy.histogram
+    matplotlib.pyplot.hist
+    """
+    import spacepy.poppy
+    sample, bin_edges = np.histogram(data, **kwargs)
+    new_kwargs = kwargs.copy()
+    new_kwargs['bins'] = bin_edges
+    ci_low, ci_high = spacepy.poppy.boots_ci(
+        data, n, inter,
+        lambda x: np.histogram(x, **new_kwargs)[0],
+        nretvals=len(bin_edges) - 1)
+    return bin_edges, ci_low, ci_high, sample
 
 def logspace(min, max, num, **kwargs):
     """
