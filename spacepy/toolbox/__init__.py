@@ -1211,11 +1211,11 @@ def binHisto(data, verbose=False):
             print("Used F-D rule")
     return (binw, nbins)
 
-def bootHisto(data, inter=90., n=100, seed=None, **kwargs):
-    """
-    Bootstrap confidence intervals for a histogram.
+def bootHisto(data, inter=90., n=100, seed=None, plot=False, **kwargs):
+    """Bootstrap confidence intervals for a histogram.
 
-    All other keyword arguments are passed to `numpy.histogram`.
+    All other keyword arguments are passed to `numpy.histogram`
+    or `matplotlib.pyplot.bar`.
 
     Parameters
     ==========
@@ -1230,15 +1230,20 @@ def bootHisto(data, inter=90., n=100, seed=None, **kwargs):
     seed : int (optional)
         Optional seed for the random number generator. If not
         specified; numpy generator will not be reseeded.
+    plot : bool or AxesSubplot (optional)
+        Plot the result. If True, create a new plot; also accepts
+        an AxesSubplot object into which to draw.
 
     Returns
     =======
     out : tuple
-      tuple of bin_edges, low, high, sample. Where ``bin_edges`` is the edges
-      of the bins used; ``low`` is the histogram with the value for each bin
-      from the bottom of that bin's confidence interval; ``high`` similarly
-      for the top; ``sample`` is the histogram of the input sample without
-      resampling.
+      tuple of bin_edges, low, high, sample[, bars]. Where
+      ``bin_edges`` is the edges of the bins used; ``low`` is the
+      histogram with the value for each bin from the bottom of that
+      bin's confidence interval; ``high`` similarly for the top;
+      ``sample`` is the histogram of the input sample without
+      resampling. If plotting, also returned is ``bars``, the
+      container object returned from matplotlib.
 
     Notes
     =====
@@ -1249,14 +1254,21 @@ def bootHisto(data, inter=90., n=100, seed=None, **kwargs):
 
     Examples
     ========
-    >>> import numpy
+    >>> import numpy.random
     >>> import spacepy.toolbox
     >>> numpy.random.seed(0)
     >>> data = numpy.random.randn(1000)
-    >>> bin_edges, ci_low, ci_high, sample = spacepy.toolbox.bootHisto(data)
-    >>> p = plt.bar(bin_edges[:-1], height=sample, width=numpy.diff(bin_edges),
-                    align='edge', ecolor='k',
-                    yerr=numpy.stack((sample - ci_low, ci_high - sample)))
+    >>> bin_edges, ci_low, ci_high, sample, bars = spacepy.toolbox.bootHisto(
+            data, plot=True)
+
+    .. plot::
+
+       import numpy.random
+       import spacepy.toolbox
+       numpy.random.seed(0)
+       data = numpy.random.randn(1000)
+       bin_edges, ci_low, ci_high, sample, bars = spacepy.toolbox.bootHisto(
+            data, plot=True)
 
     See Also
     ========
@@ -1265,14 +1277,30 @@ def bootHisto(data, inter=90., n=100, seed=None, **kwargs):
     matplotlib.pyplot.hist
     """
     import spacepy.poppy
-    sample, bin_edges = np.histogram(data, **kwargs)
-    new_kwargs = kwargs.copy()
-    new_kwargs['bins'] = bin_edges
+    histogram_allowed_kwargs = (
+        'bins', 'range', 'normed', 'weights', 'density')
+    histogram_kwargs = {k: v for k, v in kwargs
+                        if k in histogram_allowed_kwargs}
+    bar_kwargs = {k: v for k, v in kwargs
+                  if k not in histogram_allowed_kwargs}
+    sample, bin_edges = np.histogram(data, **histogram_kwargs)
+    histogram_kwargs['bins'] = bin_edges
     ci_low, ci_high = spacepy.poppy.boots_ci(
         data, n, inter,
-        lambda x: np.histogram(x, **new_kwargs)[0],
+        lambda x: np.histogram(x, **histogram_kwargs)[0],
         nretvals=len(bin_edges) - 1)
-    return bin_edges, ci_low, ci_high, sample
+    if not plot:
+        return bin_edges, ci_low, ci_high, sample
+    import matplotlib.pyplot as plt
+    ax = plt if plot is True else plot
+    if 'ecolor' not in bar_kwargs:
+        bar_kwargs['ecolor'] = 'k'
+    bars = ax.bar(
+        bin_edges[:-1], height=sample, width=np.diff(bin_edges),
+        align='edge', yerr=np.stack((sample - ci_low, ci_high - sample)),
+        **bar_kwargs)
+    return bin_edges, ci_low, ci_high, sample, bars
+
 
 def logspace(min, max, num, **kwargs):
     """
