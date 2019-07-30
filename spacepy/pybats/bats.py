@@ -1424,6 +1424,113 @@ class Bats2d(IdlFile):
 
         return fig, ax
 
+    def add_stream_scatter(self, xcomp, ycomp, nlines=100, target=None, loc=111,
+                           method='rk4', xlim=None, ylim=None,
+                           start_points=None,**kwargs):
+        '''
+        Add a set of stream traces to a figure or axes that are distributed
+        evenly but randomly throughout the plot domain.
+
+        Lines will be seeded randomly over a given spatial range given by
+        *xlim* and *ylim* **OR** the range of the axes (if *target* is set to
+        a non-empty axes object) **OR** over the entire object domain (in that
+        order).  
+
+        Extra keyword args are handed to matplotlib's LineCollection object.
+
+        Parameters
+        ==========
+        xcomp : string
+             The first component of the vector field to trace (e.g., 'bx').
+        ycomp : string
+             The second component of the vector field to trace (e.g., 'bz').
+
+        Other Parameters
+        ================
+        target : Matplotlib Figure or Axes object
+            Set plot destination.  Defaults to new figure.
+        loc : 3-digit integer
+            Set subplot location.  Defaults to 111.
+        xlim : Two-element list/tuple
+            Set the range in 1st dimension over which lines will be seeded.
+        ylim : Two-element list/tuple
+            Set the range in 2nd dimension over which lines will be seeded.
+        nlines : int
+            Number of stream lines to create; default is 100.
+        start_points : nlinesx2 array
+            Set start_points to define starting location of traces instead of
+            using random points.  This is useful for creating timeseries of
+            plots.
+
+        Returns:
+        ========
+        fig : matplotlib Figure object
+        ax  : matplotlib Axes object
+        collect : matplotlib Collection object of trace results
+        start_points : nlines x 2 array of line starting points
+        '''
+
+        from numpy import array
+        from numpy.random import sample
+        from matplotlib.collections import LineCollection
+        
+        # Set ax and fig based on given target.
+        fig, ax = set_target(target, figsize=(10,10), loc=loc)
+
+        # Try to determine the order of the dimensions used:
+        dims = self['grid'].attrs['dims'] # Default to standard order.
+        flip=False
+        for letters in zip(xcomp, ycomp): # Check for reverse order.
+            if letters == dims[::-1]: flip=True  # flip it!
+
+        # Set if using the axes limits is a viable option for setting limits
+        # of region over which to seed lines:
+        use_ax_lims = False
+        if type(target) == type(ax):
+            use_ax_lims = bool(ax.artists) and \
+                not(ax.get_xlim() == ax.get_ylim() == (0,1))
+        
+        # Set range over which to place lines.  Use keyword values OR
+        # axes ranges OR full domain (in that order).
+        if xlim == None:
+            if use_ax_lims:
+                xlim = ax.get_xlim()
+            else:
+                xlim = [self[dims[0]].min(), self[dims[0]].max()]
+        if ylim == None:
+            if use_ax_lims:
+                ylim = ax.get_ylim()
+            else:
+                ylim = [self[dims[1]].min(), self[dims[1]].max()]
+
+        # If initial source points not given, create a random set:
+        if not start_points:
+            # Get random points.
+            start_points = sample( [nlines, 2] )
+            # Scale to limits:
+            start_points[:,0] = (xlim[1]-xlim[0])*start_points[:,0]+xlim[0]
+            start_points[:,1] = (ylim[1]-ylim[0])*start_points[:,1]+ylim[0]
+        else:
+            nlines = start_points.shape[-1]
+
+        # Extract stream traces, organize x and y coords:
+        lines = []
+        for i in range(nlines):
+            stream = self.get_stream(start_points[i, 0], start_points[i, 1],
+                                     xcomp,ycomp,method=method)
+            
+            lines.append(array([stream.x, stream.y][::1-2*flip]).transpose())
+
+        # Create line collection & plot.
+        collect = LineCollection(lines, **kwargs)
+        ax.add_collection(collect)
+
+        # Set the plot limits to match
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        
+        return fig, ax, collect, start_points
+                         
     def find_earth_lastclosed(self, tol=np.pi/360., method='rk4',
                               max_iter=100, debug=False):
         '''
@@ -1566,6 +1673,7 @@ class Bats2d(IdlFile):
 
         return tilt, theta_day, theta_night, day, night
 
+    
     def add_b_magsphere(self, target=None, loc=111,  style='mag', 
                         DoLast=True, DoOpen=True, DoTail=True,
                         compX='bx',compY='bz',
