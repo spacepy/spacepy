@@ -455,7 +455,7 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
     if nSkip<0: nSkip=0
           
     # Save grid names (e.g. 'x' or 'r') and save associated params.
-    pbdat['grid'].attrs['dims']=names[0:ndim]
+    pbdat['grid'].attrs['dims']=tuple(names[0:ndim])
     for name, para in zip(names[(nvar+ndim):], para):
         pbdat.attrs[name]=para
         
@@ -725,7 +725,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
         if nSkip<0: nSkip = 0
         
         # Save grid names (e.g. 'x' or 'r') and save associated params.
-        pbdat['grid'].attrs['dims']=names[0:ndim]
+        pbdat['grid'].attrs['dims']=tuple(names[0:ndim])
         for name, para in zip(names[(nvar+ndim):], para):
             pbdat.attrs[name]=para
                 
