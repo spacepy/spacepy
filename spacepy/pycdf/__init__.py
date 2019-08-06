@@ -1371,7 +1371,7 @@ def _compress(obj, comptype=None, param=None):
     return (comptype, param)
 
 
-class CDF(MutableMapping):
+class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
     """
     Python object representing a CDF file.
 
@@ -2584,7 +2584,7 @@ class CDFCopy(spacepy.datamodel.SpaceData):
                                       attrs = cdf.attrs.copy())
 
 
-class Var(MutableSequence):
+class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     """
     A CDF variable.
 

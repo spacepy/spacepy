@@ -1634,6 +1634,21 @@ class ReadCDF(CDFTests):
                           ],
                          list(attrlist))
 
+    def testgAttrsViaMeta(self):
+        """Get gAttrs from the meta property"""
+        self.assertEqual(
+            'ISTP>International Solar-Terrestrial Physics',
+            self.cdf.meta['Project'][0])
+        self.assertTrue(self.cdf.attrs is self.cdf.meta)
+
+    def testzAttrsViaMeta(self):
+        """Get zAttrs from the meta property"""
+        self.assertEqual(
+            'ATC',
+            self.cdf['ATC'].meta['FIELDNAM'])
+        v = self.cdf['ATC']
+        self.assertTrue(v.attrs is v.meta)
+
     def testzAttribListCopy(self):
         """Make a copy of a zAttr list"""
         attrs = self.cdf['PhysRecNo'].attrs
