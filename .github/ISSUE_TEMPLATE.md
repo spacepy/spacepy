@@ -65,3 +65,7 @@ print('matplotlib={0}'.format(matplotlib.__version__))
 ```
 -->
 
+### Version of SpacePy
+<!-- What version of SpacePy are you using and where did you
+download it from?
+-->
