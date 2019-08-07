@@ -7,11 +7,11 @@ mv drift_bounce_orbit_new.f drift_bounce_orbit.f
 ### replace myOwnMagField.f with Dungey model
 cp [previousRev]/source/myOwnMagField.f [newRev]/source/myOwnMagField.f
 
-### fix comments
+### fix comments; unicode
 It seems that some comment lines confuse f2py.
 E.g., line 690 (in rev546) "      REAL*8 Bmirror  ! particle's mirror field strength"
 The apostrophe breaks the compile, so it needs to be removed.
-Lines 331 and 3058 (in rev546) have unicode degree symbols that should be removed.
+Lines 331 and 3083 (in rev616) have unicode degree symbols that should be removed.
 There are a lot of wanrings about lines with an exclamation as comment marker - for now we ignore these.
 
 ### TS07D updates
