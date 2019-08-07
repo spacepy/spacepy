@@ -1,5 +1,7 @@
 Changes in Version 0.2.1 (2019-xx-xx)
 =====================================
+irbempy
+ - Fix compilation issues on certain systems
 poppy
  - Fix bootstrapping when aggregating function has multiple outputs
 
