@@ -63,6 +63,7 @@ SpacePy Documents
     configuration
     case_studies
     publications
+    pythonic
 
 SpacePy Code
 ============
