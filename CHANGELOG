@@ -8,6 +8,7 @@ poppy
  - Fix bootstrapping when aggregating function has multiple outputs
 pycdf
  - Allow access to attributes via "meta" property
+ - Single element references now return Python types not numpy scalars
 
 Changes in Version 0.2.0 (2019-06-22)
 =====================================

@@ -3770,6 +3770,8 @@ class _Hyperslice(object):
                 result = lib.v_epoch16_to_datetime(result)
             elif cdftype == const.CDF_TIME_TT2000.value:
                 result = lib.v_tt2000_to_datetime(result)
+        if getattr(result, 'shape', None) == ():
+            result = result.item()
         return result
 
     def convert_output_array(self, buffer):

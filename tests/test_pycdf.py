@@ -1328,14 +1328,15 @@ class ReadCDF(CDFTests):
         self.assertEqual('0 ',
                          self.cdf['SpinNumbers'][0])
 
+    def testGetSingleNotArray(self):
+        """Get a single element of a variable, not array type"""
+        res = self.cdf['PhysRecNo'][0]
+        self.assertEqual(3, res)
+        self.assertFalse(isinstance(res, numpy.ndarray))
+
     def testcharType(self):
         """Get a CDF_CHAR variable and make sure it's a string"""
-        if str is bytes:
-            self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
-                             'S')
-        else:
-            self.assertEqual(self.cdf['SpinNumbers'][0].dtype.kind,
-                             'U')
+        self.assertTrue(isinstance(self.cdf['SpinNumbers'][0], str))
 
     def testGetVarUnicode(self):
         name = 'ATC'
