@@ -2706,6 +2706,18 @@ class Var(MutableSequence):
     This slicing notation is very flexible and allows reading
     specifically the desired data from the CDF.
 
+    .. note::
+        The C CDF library allows reading records which have not been
+        written to a file, returning a pad value. pycdf checks the
+        size of a variable and will raise `IndexError` for most
+        attempts to read past the end. If these checks fail, a value
+        is returned with a warning ``VIRTUAL_RECORD_DATA``. Please
+        `open an issue
+        <https://github.com/spacepy/spacepy/issues/new>`_ if this
+        occurs. See pg. 39 and following of the `CDF User's Guide
+        <https://cdf.gsfc.nasa.gov/html/cdf_docs.html>`_ for more on
+        virtual records.
+
     All data are, on read, converted to appropriate Python data
     types; EPOCH, EPOCH16, and TIME_TT2000 types are converted to
     :class:`~datetime.datetime`. Data are returned in numpy arrays.
