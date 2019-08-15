@@ -1298,7 +1298,7 @@ def bootHisto(data, inter=90., n=1000, seed=None,
         data, n, inter,
         lambda x: np.histogram(x, **histogram_kwargs)[0],
         nretvals=len(bin_edges) - 1)
-    if not plot and all([x is None for f in (target, figsize, loc)]):
+    if not plot and all([x is None for x in (target, figsize, loc)]):
         return bin_edges, ci_low, ci_high, sample
     import spacepy.plot.utils
     _, ax = spacepy.plot.utils.set_target(
