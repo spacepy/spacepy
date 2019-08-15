@@ -1211,7 +1211,7 @@ def binHisto(data, verbose=False):
             print("Used F-D rule")
     return (binw, nbins)
 
-def bootHisto(data, inter=90., n=100, seed=None, plot=False, **kwargs):
+def bootHisto(data, inter=90., n=1000, seed=None, plot=False, **kwargs):
     """Bootstrap confidence intervals for a histogram.
 
     All other keyword arguments are passed to `numpy.histogram`
