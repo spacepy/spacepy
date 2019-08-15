@@ -677,7 +677,7 @@ def smartTimeTicks(time):
     return(Mtick, mtick, fmt)
 
 
-def set_target(target, figsize=None, loc=111, polar=False):
+def set_target(target, figsize=None, loc=None, polar=False):
     '''
     Given a *target* on which to plot a figure, determine if that *target*
     is **None** or a matplotlib figure or axes object.  Based on the type
@@ -697,7 +697,7 @@ def set_target(target, figsize=None, loc=111, polar=False):
         Defaults to Matplotlib defaults.
     loc : integer 
         The subplot triple that specifies the location of the axes object.  
-        Defaults to 111.
+        Defaults to matplotlib default (111).
     polar : bool
         Set the axes object to polar coodinates.  Defaults to **False**.
 
@@ -717,19 +717,20 @@ def set_target(target, figsize=None, loc=111, polar=False):
     >>> fig, ax = set_target(target=fig, loc=211)
 
     '''
-    # Is target a figure?  Make a new axes.
-    if type(target) == plt.Figure:
-        fig = target
-        ax  = fig.add_subplot(loc, polar=polar)
     # Is target an axes?  Make no new items.
-    elif issubclass(type(target), plt.Axes):
+    if issubclass(type(target), plt.Axes):
         ax  = target
         fig = ax.figure
-    # Is target something else?  Make new everything.
-    else:
-        fig = plt.figure(figsize=figsize)
-        ax  = fig.add_subplot(loc, polar=polar)
-
+    else: # Make a new axis
+        # Make a new figure if target isn't one
+        fig = target if isinstance(target, plt.Figure) \
+              else plt.figure(figsize=figsize)
+        if loc is None:
+            ax = fig.add_subplot(polar=polar)
+            if ax is None: # matplotlib <3.1, no default subplot position
+                ax = fig.add_subplot(111, polar=polar)
+        else:
+            ax = fig.add_subplot(loc, polar=polar)
     return fig, ax
 
 
