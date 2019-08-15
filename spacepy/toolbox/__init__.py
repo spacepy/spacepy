@@ -1211,11 +1211,12 @@ def binHisto(data, verbose=False):
             print("Used F-D rule")
     return (binw, nbins)
 
-def bootHisto(data, inter=90., n=1000, seed=None, plot=False, **kwargs):
+def bootHisto(data, inter=90., n=1000, seed=None,
+              plot=False, target=None, figsize=None, loc=None, **kwargs):
     """Bootstrap confidence intervals for a histogram.
 
-    All other keyword arguments are passed to `numpy.histogram`
-    or `matplotlib.pyplot.bar`.
+    All other keyword arguments are passed to :func:`numpy.histogram`
+    or :func:`matplotlib.pyplot.bar`.
 
     Parameters
     ==========
@@ -1230,9 +1231,16 @@ def bootHisto(data, inter=90., n=1000, seed=None, plot=False, **kwargs):
     seed : int (optional)
         Optional seed for the random number generator. If not
         specified; numpy generator will not be reseeded.
-    plot : bool or AxesSubplot (optional)
-        Plot the result. If True, create a new plot; also accepts
-        an AxesSubplot object into which to draw.
+    plot : bool (optional)
+        Plot the result. Plots if True or ``target``, ``figsize``,
+        or ``loc`` specified.
+    target : (optional)
+        Target on which to plot the figure (figure or axes). See
+        :func:`spacepy.plot.utils.set_target` for details.
+    figsize : tuple (optional)
+        Passed to :func:`spacepy.plot.utils.set_target`.
+    loc : int (optional)
+        Passed to :func:`spacepy.plot.utils.set_target`.
 
     Returns
     =======
@@ -1273,6 +1281,7 @@ def bootHisto(data, inter=90., n=1000, seed=None, plot=False, **kwargs):
     See Also
     ========
     binHisto
+    plot.utils.set_target
     numpy.histogram
     matplotlib.pyplot.hist
     """
@@ -1289,10 +1298,11 @@ def bootHisto(data, inter=90., n=1000, seed=None, plot=False, **kwargs):
         data, n, inter,
         lambda x: np.histogram(x, **histogram_kwargs)[0],
         nretvals=len(bin_edges) - 1)
-    if not plot:
+    if not plot and all([x is None for f in (target, figsize, loc)]):
         return bin_edges, ci_low, ci_high, sample
-    import matplotlib.pyplot as plt
-    ax = plt if plot is True else plot
+    import spacepy.plot.utils
+    _, ax = spacepy.plot.utils.set_target(
+        target, figsize=figsize, loc=(111 if loc is None else loc))
     if 'ecolor' not in bar_kwargs:
         bar_kwargs['ecolor'] = 'k'
     bars = ax.bar(
