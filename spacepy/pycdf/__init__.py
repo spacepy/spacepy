@@ -3886,6 +3886,9 @@ class _Hyperslice(object):
         """Checks if input data is well-formed, regular array"""
         d = numpy.asanyarray(data)
         if d.dtype == numpy.object: #this is probably going to be bad
+            if d.shape != () and not len(d):
+                #Completely empty, so "well-formed" enough
+                return
             try:
                 len(d.flat[0])
             except TypeError: #at least it's not a list
@@ -3988,6 +3991,9 @@ class _Hyperslice(object):
 
         if not types: #not a numpy array, or can't parse its type
             if d.dtype.kind == 'O': #Object. Try to make it numeric
+                if d.shape != () and not len(d):
+                    raise ValueError(
+                        'Cannot determine CDF type of empty object array.')
                 #Can't do safe casting from Object, so try and compare
                 #Basically try most restrictive to least restrictive
                 trytypes = (numpy.uint64, numpy.int64, numpy.float64)

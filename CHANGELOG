@@ -9,6 +9,7 @@ poppy
 pycdf
  - Allow access to attributes via "meta" property
  - Single element references now return Python types not numpy scalars
+ - Fix type-guessing on numpy object arrays with no values
 
 Changes in Version 0.2.0 (2019-06-22)
 =====================================
