@@ -2351,6 +2351,26 @@ class ChangeCDF(ChangeCDFBase):
         self.cdf.new('newvar2', None, const.CDF_CHAR, dims=[])
         self.assertEqual(1, self.cdf['newvar2']._nelems())
 
+    def testNewVarEmptyArray(self):
+        """Create a variable with an empty numpy array"""
+        self.cdf['newvar1'] = numpy.array([], dtype=numpy.int32)
+        self.assertEqual(const.CDF_INT4.value, self.cdf['newvar1'].type())
+        #This should fail, can't guess a CDF type with no data
+        try:
+            self.cdf['newvar2'] = numpy.array([], dtype=object)
+        except ValueError:
+            (t, val, traceback) = sys.exc_info()
+            self.assertEqual('Cannot determine CDF type of empty object array.',
+                             str(val))
+        else:
+            self.fail('Should have raised ValueError')
+        self.assertFalse('newvar2' in self.cdf)
+
+    def testNewVarDatetimeArray(self):
+        """Create a variable with a datetime numpy array"""
+        self.cdf['newvar'] = numpy.array([datetime.datetime(2010, 1, 1)])
+        self.assertEqual(const.CDF_EPOCH.value, self.cdf['newvar'].type())
+
     def testNewVarNRV(self):
         """Create a new non-record-varying variable"""
         self.cdf.new('newvar2', [1, 2, 3], recVary=False)
