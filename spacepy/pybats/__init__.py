@@ -1529,6 +1529,8 @@ class ImfInput(PbData):
             out.write(head)
 
         # Handle Params:
+	if self.attrs['coor']:
+            out.write('#COOR\n{}\n\n'.format(self.attrs['coor']))
         if self.attrs['zerobx']:
             out.write('#ZEROBX\nT\n\n')
         if self.attrs['reread']:
