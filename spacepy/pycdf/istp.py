@@ -575,75 +575,65 @@ def format(v, use_scaleminmax=False, dryrun=False):
         v.attrs.new('FORMAT', data=fmt, type=spacepy.pycdf.const.CDF_CHAR)
 
 
-def get_max(type): 
+def _dtype_info(cdftype):
+    """Find the dtype info structure for a CDF type
+
+    :param int cdftype: the CDF type number
+    :return: numpy iinfo/finfo structure
+    """
+    dtype = spacepy.pycdf.lib.numpytypedict.get(cdftype, None)
+    if dtype is None:
+        raise ValueError('Unknown data type: {}'.format(cdftype))
+    if numpy.issubdtype(dtype, numpy.integer):
+        return numpy.iinfo(dtype)
+    elif numpy.issubdtype(dtype, numpy.float):
+        return numpy.finfo(dtype)
+    else:
+        raise ValueError('Unknown data type: {}'.format(cdftype))
+
+
+def get_max(cdftype):
     """Find maximum possible value based on datatype.
 
-    :param int type: Type number
-    :return: Maximum valid number
+    :param int cdftype: CDF type number from :mod:`~spacepy.pycdf.const`
+    :return: Maximum valid value
     :rtype: int
     """
+    try:
+        cdftype = cdftype.value
+    except:
+        pass
+    if cdftype == spacepy.pycdf.const.CDF_EPOCH.value:
+        #Can get asymptotically closer, but why bother
+        return spacepy.pycdf.lib.datetime_to_epoch(
+            datetime.datetime(9999, 12, 31, 23, 59, 59))
+    elif cdftype == spacepy.pycdf.const.CDF_EPOCH16.value:
+        #Can get asymptotically closer, but why bother
+        return spacepy.pycdf.lib.datetime_to_epoch16(
+            datetime.datetime(9999, 12, 31, 23, 59, 59))
+    elif cdftype == spacepy.pycdf.const.CDF_TIME_TT2000.value:
+        return numpy.iinfo(numpy.int64).max
+    return _dtype_info(cdftype).max
 
-    if(type == spacepy.pycdf.const.CDF_BYTE.value) or \
-      (type == spacepy.pycdf.const.CDF_INT1.value) or \
-      (type == spacepy.pycdf.const.CDF_CHAR.value):
-        return 127
-    elif(type == spacepy.pycdf.const.CDF_UINT1.value) or \
-        (type == spacepy.pycdf.const.CDF_UCHAR.value):
-        return 255
-    elif(type == spacepy.pycdf.const.CDF_INT2.value):
-        return 32767
-    elif(type == spacepy.pycdf.const.CDF_UINT2.value):
-        return 65535
-    elif(type == spacepy.pycdf.const.CDF_INT4.value):
-        return 2147483647
-    elif(type == spacepy.pycdf.const.CDF_UINT4.value):
-        return 4294967295
-    elif(type == spacepy.pycdf.const.CDF_INT8.value):
-        return 9223372036854775807
-    elif(type == spacepy.pycdf.const.CDF_REAL4.value) or \
-        (type == spacepy.pycdf.const.CDF_FLOAT.value): # from https://www.ias.ac.in/article/fulltext/reso/021/01/0011-0030
-        return 3.4E38
-    elif(type == spacepy.pycdf.const.CDF_REAL8.value) or \
-        (type == spacepy.pycdf.const.CDF_DOUBLE.value) or \
-        (type == spacepy.pycdf.const.CDF_EPOCH.value):
-        return 1E4932
-    elif(type == spacepy.pycdf.const.CDF_TIME_TT2000.value):
-        return 9223372036854775807
-    else:
-        raise ValueError('Unknown data type: {}'.format(type))
 
-    
-def get_min(type): 
+def get_min(cdftype):
     """Find minimum possible value based on datatype.
 
-    :param int type: Type number
+    :param int cdftype: CDF type number from :mod:`~spacepy.pycdf.const`
     :return: Minimum valid number
     :rtype: int
     """
+    try:
+        cdftype = cdftype.value
+    except:
+        pass
+    if cdftype == spacepy.pycdf.const.CDF_EPOCH.value:
+        return spacepy.pycdf.lib.datetime_to_epoch(
+            datetime.datetime(1, 1, 1))
+    elif cdftype == spacepy.pycdf.const.CDF_EPOCH16.value:
+        return spacepy.pycdf.lib.datetime_to_epoch16(
+            datetime.datetime(1, 1, 1))
+    elif cdftype == spacepy.pycdf.const.CDF_TIME_TT2000.value:
+            numpy.iinfo(numpy.int64).min + 2 #2ns is magic, but it works.
+    return _dtype_info(cdftype).min
 
-    if(type == spacepy.pycdf.const.CDF_BYTE.value) or \
-      (type == spacepy.pycdf.const.CDF_INT1.value) or \
-      (type == spacepy.pycdf.const.CDF_CHAR.value):
-        return -128
-    elif(type == spacepy.pycdf.const.CDF_UINT1.value) or \
-        (type == spacepy.pycdf.const.CDF_UINT2.value) or \
-        (type == spacepy.pycdf.const.CDF_UINT4.value) or \
-        (type == spacepy.pycdf.const.CDF_UCHAR.value):
-        return 0
-    elif(type == spacepy.pycdf.const.CDF_INT2.value):
-        return -32768
-    elif(type == spacepy.pycdf.const.CDF_INT4.value):
-        return -2147483648
-    elif(type == spacepy.pycdf.const.CDF_INT8.value):
-        return -9223372036854775808
-    elif(type == spacepy.pycdf.const.CDF_REAL4.value) or \
-        (type == spacepy.pycdf.const.CDF_FLOAT.value): # from https://www.ias.ac.in/article/fulltext/reso/021/01/0011-0030
-        return -3.4E38
-    elif(type == spacepy.pycdf.const.CDF_REAL8.value) or \
-        (type == spacepy.pycdf.const.CDF_DOUBLE.value) or \
-        (type == spacepy.pycdf.const.CDF_EPOCH.value):        
-        return -1E4932
-    elif(type == spacepy.pycdf.const.CDF_TIME_TT2000.value):
-        return -9223372036854775808
-    else:
-        raise ValueError('Unknown data type: {}'.format(type))    
