@@ -26,6 +26,7 @@ from test_coordinates import *
 from test_seapy import *
 from test_poppy import *
 from test_pycdf import *
+from test_pycdf_istp import *
 from test_data_assimilation import *
 from test_spectrogram import *
 from test_irbempy import *

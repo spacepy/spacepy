@@ -44,7 +44,6 @@ Contact: Jonathan.Niehof@unh.edu
 
 
 Copyright 2010-2015 Los Alamos National Security, LLC.
-
 """
 
 __contact__ = 'Jon Niehof, Jonathan.Niehof@unh.edu'
