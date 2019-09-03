@@ -33,7 +33,6 @@ import datetime
 import math
 import os.path
 import re
-import sys
 
 import numpy
 import spacepy.pycdf.const
@@ -258,22 +257,16 @@ class VariableChecks(object):
         :returns: All error messages
         :rtype: list of str
         """
-        if sys.version_info >= (3,0):
-            time_st = b'time_series'
-            spec_st = b'spectrogram'
-        else:
-            time_st = 'time_series'
-            spec_st = 'spectrogram'
+        time_st = 'time_series'
+        spec_st = 'spectrogram'
         errs = []
-        raw_v = v.cdf_file.raw_var(v.name())
-        data = raw_v[...]
-        if 'DISPLAY_TYPE' in raw_v.attrs:
-            if (len(raw_v.shape) == 1) and (raw_v.attrs['DISPLAY_TYPE'] != time_st):
+        if 'DISPLAY_TYPE' in v.attrs:
+            if (len(v.shape) == 1) and (v.attrs['DISPLAY_TYPE'] != time_st):
                 errs.append('{}: 1 dim variable with {} display type.'.format(
-                    raw_v.name(), raw_v.attrs['DISPLAY_TYPE']))
-            elif (len(raw_v.shape) > 1) and (raw_v.attrs['DISPLAY_TYPE'] != spec_st):
+                    v.name(), v.attrs['DISPLAY_TYPE']))
+            elif (len(v.shape) > 1) and (v.attrs['DISPLAY_TYPE'] != spec_st):
                 errs.append('{}: multi dim variable with {} display type.'.format(
-                    raw_v.name(), raw_v.attrs['DISPLAY_TYPE']))
+                    v.name(), v.attrs['DISPLAY_TYPE']))
         return errs
 
     @classmethod
