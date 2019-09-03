@@ -2,6 +2,12 @@
 
 """Support for ISTP-compliant CDFs
 
+The `ISTP metadata standard  <https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html>`_
+specifies the interpretation of the attributes in a CDF to describe
+relationships between the variables and their physical interpretation.
+
+This module supports that subset of CDFs.
+
 .. rubric:: Classes
 
 .. autosummary::
