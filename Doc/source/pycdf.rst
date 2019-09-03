@@ -16,6 +16,7 @@ Contents
     - `Non record-varying`_
     - `Slicing and indexing`_
 - `Class reference`_
+- `Submodules`_
 
 Quickstart
 ----------
@@ -237,7 +238,7 @@ The underlying C library is represented by the :attr:`~spacepy.pycdf.lib`
 variable.
 
 Class reference
-===============
+---------------
 
 .. autosummary::
     :template: clean_class.rst
@@ -270,6 +271,12 @@ Class reference
     >>> pycdf.lib.version
         (3, 3, 0, ' ')
 
-.. attribute:: const
+Submodules
+----------
 
-.. automodule:: spacepy.pycdf.const
+.. autosummary::
+    :toctree: autosummary  
+    :template: clean_module.rst
+
+    const
+    istp

@@ -18,6 +18,8 @@ include spacepy/pybats/ctrace2dtest.c
 #Tests
 graft tests
 prune tests/htmlcov
+#Scripts. Not installing right now but handy
+include scripts/*.py
 #Cruft to keep out
 recursive-exclude * *.o *.pyc *~ *.bak
 recursive-exclude spacepy realtime.*
