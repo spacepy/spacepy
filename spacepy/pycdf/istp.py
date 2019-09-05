@@ -8,6 +8,14 @@ relationships between the variables and their physical interpretation.
 
 This module supports that subset of CDFs.
 
+Authors: Jon Niehof
+
+Additional Contributors: Lorna Ellis, Asher Merrill
+
+Institution: University of New Hampshire
+
+Contact: Jonathan.Niehof@unh.edu
+
 .. rubric:: Classes
 
 .. autosummary::
