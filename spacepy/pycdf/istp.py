@@ -24,9 +24,7 @@ This module supports that subset of CDFs.
 
     fillval
     format
-    get_max
-    get_min
-
+    get_minmax
 """
 
 import datetime
@@ -183,6 +181,7 @@ class VariableChecks(object):
         errs = []
         raw_v = v.cdf_file.raw_var(v.name())
         data = raw_v[...]
+        minval, maxval = get_minmax(raw_v.type())
         if 'VALIDMIN' in raw_v.attrs:
             idx = data < raw_v.attrs['VALIDMIN']
             if ('FILLVAL' in raw_v.attrs) and (idx.size != 0):
@@ -193,10 +192,10 @@ class VariableChecks(object):
                     ', '.join(str(d) for d in v[...][idx]),
                     ', '.join(str(d) for d in numpy.nonzero(idx)[0]),
                     v.attrs['VALIDMIN']))
-            if (raw_v.attrs['VALIDMIN'] < get_min(raw_v.type())) or \
-               (raw_v.attrs['VALIDMIN'] > get_max(raw_v.type())):
+            if (raw_v.attrs['VALIDMIN'] < minval) or \
+               (raw_v.attrs['VALIDMIN'] > maxval):
                 errs.append('VALIDMIN ({}) outside data range ({},{}) for {}.'.format(
-                    raw_v.attrs['VALIDMIN'], get_min(raw_v.type()), get_max(raw_v.type()),
+                    raw_v.attrs['VALIDMIN'], minval, maxval,
                     raw_v.name()))
         if 'VALIDMAX' in raw_v.attrs:
             idx = data > raw_v.attrs['VALIDMAX']
@@ -208,10 +207,10 @@ class VariableChecks(object):
                     ', '.join(str(d) for d in v[...][idx]),
                     ', '.join(str(d) for d in numpy.nonzero(idx)[0]),
                     v.attrs['VALIDMAX']))
-            if (raw_v.attrs['VALIDMIN'] < get_min(raw_v.type())) or \
-               (raw_v.attrs['VALIDMAX'] > get_max(raw_v.type())):
+            if (raw_v.attrs['VALIDMIN'] < minval) or \
+               (raw_v.attrs['VALIDMAX'] > maxval):
                 errs.append('VALIDMAX ({}) outside data range ({},{}) for {}.'.format(
-                    raw_v.attrs['VALIDMAX'], get_min(raw_v.type()), get_max(raw_v.type()),
+                    raw_v.attrs['VALIDMAX'], minval, maxval,
                     raw_v.name()))
         if ('VALIDMIN' in raw_v.attrs) and ('VALIDMAX' in raw_v.attrs):
             if raw_v.attrs['VALIDMIN'] > raw_v.attrs['VALIDMAX']:
@@ -230,18 +229,19 @@ class VariableChecks(object):
         """
         errs = []
         raw_v = v.cdf_file.raw_var(v.name())
+        minval, maxval = get_minmax(raw_v.type())
         data = raw_v[...]
         if 'SCALEMIN' in raw_v.attrs:
-            if (raw_v.attrs['SCALEMIN'] < get_min(raw_v.type())) or \
-               (raw_v.attrs['SCALEMIN'] > get_max(raw_v.type())):
+            if (raw_v.attrs['SCALEMIN'] < minval) or \
+               (raw_v.attrs['SCALEMIN'] > maxval):
                 errs.append('SCALEMIN ({}) outside data range ({},{}) for {}.'.format(
-                    raw_v.attrs['SCALEMIN'], get_min(raw_v.type()), get_max(raw_v.type()),
+                    raw_v.attrs['SCALEMIN'], minval, maxval,
                     raw_v.name()))
         if 'SCALEMAX' in raw_v.attrs:
-            if (raw_v.attrs['SCALEMAX'] < get_min(raw_v.type())) or \
-               (raw_v.attrs['SCALEMAX'] > get_max(raw_v.type())):
+            if (raw_v.attrs['SCALEMAX'] < minval) or \
+               (raw_v.attrs['SCALEMAX'] > maxval):
                 errs.append('SCALEMAX ({}) outside data range ({},{}) for {}.'.format(
-                    raw_v.attrs['SCALEMAX'], get_min(raw_v.type()), get_max(raw_v.type()),
+                    raw_v.attrs['SCALEMAX'], minval, maxval,
                     raw_v.name()))
         if ('SCALEMIN' in raw_v.attrs) and ('SCALEMAX' in raw_v.attrs):
             if raw_v.attrs['SCALEMIN'] > raw_v.attrs['SCALEMAX']:
@@ -568,65 +568,42 @@ def format(v, use_scaleminmax=False, dryrun=False):
         v.attrs.new('FORMAT', data=fmt, type=spacepy.pycdf.const.CDF_CHAR)
 
 
-def _dtype_info(cdftype):
-    """Find the dtype info structure for a CDF type
+def get_minmax(cdftype):
+    """Find minimum, maximum possible value based on CDF type.
 
-    :param int cdftype: the CDF type number
-    :return: numpy iinfo/finfo structure
+    This returns the "raw" (unparsed) value.
+
+    :param int cdftype: CDF type number from :mod:`~spacepy.pycdf.const`
+    :return: minimum, maximum value supported by type
+    :rtype: tuple
     """
+    try:
+        cdftype = cdftype.value
+    except:
+        pass
+    if cdftype == spacepy.pycdf.const.CDF_EPOCH.value:
+        return (
+            spacepy.pycdf.lib.datetime_to_epoch(
+                datetime.datetime(1, 1, 1)),
+            #Can get asymptotically closer, but why bother
+            spacepy.pycdf.lib.datetime_to_epoch(
+                datetime.datetime(9999, 12, 31, 23, 59, 59)))
+    elif cdftype == spacepy.pycdf.const.CDF_EPOCH16.value:
+        return (
+            spacepy.pycdf.lib.datetime_to_epoch16(
+                datetime.datetime(1, 1, 1)),
+            spacepy.pycdf.lib.datetime_to_epoch16(
+                datetime.datetime(9999, 12, 31, 23, 59, 59)))
+    elif cdftype == spacepy.pycdf.const.CDF_TIME_TT2000.value:
+        inf = numpy.iinfo(numpy.int64)
+        return (inf.min, inf.max)
     dtype = spacepy.pycdf.lib.numpytypedict.get(cdftype, None)
     if dtype is None:
         raise ValueError('Unknown data type: {}'.format(cdftype))
     if numpy.issubdtype(dtype, numpy.integer):
-        return numpy.iinfo(dtype)
+        inf = numpy.iinfo(dtype)
     elif numpy.issubdtype(dtype, numpy.float):
-        return numpy.finfo(dtype)
+        inf = numpy.finfo(dtype)
     else:
         raise ValueError('Unknown data type: {}'.format(cdftype))
-
-
-def get_max(cdftype):
-    """Find maximum possible value based on datatype.
-
-    :param int cdftype: CDF type number from :mod:`~spacepy.pycdf.const`
-    :return: Maximum valid value
-    :rtype: int
-    """
-    try:
-        cdftype = cdftype.value
-    except:
-        pass
-    if cdftype == spacepy.pycdf.const.CDF_EPOCH.value:
-        #Can get asymptotically closer, but why bother
-        return spacepy.pycdf.lib.datetime_to_epoch(
-            datetime.datetime(9999, 12, 31, 23, 59, 59))
-    elif cdftype == spacepy.pycdf.const.CDF_EPOCH16.value:
-        #Can get asymptotically closer, but why bother
-        return spacepy.pycdf.lib.datetime_to_epoch16(
-            datetime.datetime(9999, 12, 31, 23, 59, 59))
-    elif cdftype == spacepy.pycdf.const.CDF_TIME_TT2000.value:
-        return numpy.iinfo(numpy.int64).max
-    return _dtype_info(cdftype).max
-
-
-def get_min(cdftype):
-    """Find minimum possible value based on datatype.
-
-    :param int cdftype: CDF type number from :mod:`~spacepy.pycdf.const`
-    :return: Minimum valid number
-    :rtype: int
-    """
-    try:
-        cdftype = cdftype.value
-    except:
-        pass
-    if cdftype == spacepy.pycdf.const.CDF_EPOCH.value:
-        return spacepy.pycdf.lib.datetime_to_epoch(
-            datetime.datetime(1, 1, 1))
-    elif cdftype == spacepy.pycdf.const.CDF_EPOCH16.value:
-        return spacepy.pycdf.lib.datetime_to_epoch16(
-            datetime.datetime(1, 1, 1))
-    elif cdftype == spacepy.pycdf.const.CDF_TIME_TT2000.value:
-            numpy.iinfo(numpy.int64).min + 2 #2ns is magic, but it works.
-    return _dtype_info(cdftype).min
-
+    return (inf.min, inf.max)
