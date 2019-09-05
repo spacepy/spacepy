@@ -107,6 +107,7 @@ class Library(object):
         ~Library.epoch16_to_datetime
         ~Library.epoch16_to_epoch
         ~Library.epoch16_to_tt2000
+        ~Library.get_minmax
         ~Library.set_backward
         supports_int8
         ~Library.tt2000_to_datetime
@@ -137,6 +138,7 @@ class Library(object):
     .. automethod:: epoch16_to_datetime
     .. automethod:: epoch16_to_epoch
     .. automethod:: epoch16_to_tt2000
+    .. automethod:: get_minmax
     .. automethod:: set_backward
 
     .. attribute:: supports_int8
@@ -1147,6 +1149,58 @@ class Library(object):
         """Convenience function for complaining that TT2000 not supported"""
         raise NotImplementedError(
             'TT2000 functions require CDF library 3.4.0 or later')
+
+    @staticmethod
+    def get_minmax(cdftype):
+        """Find minimum, maximum possible value based on CDF type.
+
+        This returns the "raw" (unparsed) value.
+
+        Parameters
+        ==========
+        cdftype : int
+            CDF type number from :mod:`~spacepy.pycdf.const`
+
+        Raises
+        ======
+        ValueError : if can't match the type
+
+        Returns
+        =======
+        out : tuple
+            minimum, maximum value supported by type (of type matching the
+            CDF type).
+        """
+        try:
+            cdftype = cdftype.value
+        except:
+            pass
+        if cdftype == spacepy.pycdf.const.CDF_EPOCH.value:
+            return (
+                spacepy.pycdf.lib.datetime_to_epoch(
+                    datetime.datetime(1, 1, 1)),
+                #Can get asymptotically closer, but why bother
+                spacepy.pycdf.lib.datetime_to_epoch(
+                    datetime.datetime(9999, 12, 31, 23, 59, 59)))
+        elif cdftype == spacepy.pycdf.const.CDF_EPOCH16.value:
+            return (
+                spacepy.pycdf.lib.datetime_to_epoch16(
+                    datetime.datetime(1, 1, 1)),
+                spacepy.pycdf.lib.datetime_to_epoch16(
+                    datetime.datetime(9999, 12, 31, 23, 59, 59)))
+        elif cdftype == spacepy.pycdf.const.CDF_TIME_TT2000.value:
+            inf = numpy.iinfo(numpy.int64)
+            return (inf.min, inf.max)
+        dtype = spacepy.pycdf.lib.numpytypedict.get(cdftype, None)
+        if dtype is None:
+            raise ValueError('Unknown data type: {}'.format(cdftype))
+        if numpy.issubdtype(dtype, numpy.integer):
+            inf = numpy.iinfo(dtype)
+        elif numpy.issubdtype(dtype, numpy.float):
+            inf = numpy.finfo(dtype)
+        else:
+            raise ValueError('Unknown data type: {}'.format(cdftype))
+        return (inf.min, inf.max)
 
 
 def download_library():
