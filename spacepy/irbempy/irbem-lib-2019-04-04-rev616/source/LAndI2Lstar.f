@@ -20625,7 +20625,7 @@ c Declare internal variables
       REAL*8     XJ_tmp(ntime_max),MLT_tmp(ntime_max)
       REAL*8     Lm_tmp(ntime_max),Lstar_tmp(ntime_max)
       REAL*8     xIN(3),xOUT(3),BL,BMIR,xGEO(3)
-      REAL*8     maginput_tmp(25)
+      REAL*8     maginput_tmp(1, 25)
       INTEGER*4  imagin
 c
 c Declare output variables
@@ -20651,7 +20651,7 @@ c Compute Bmin at all locations first.
       DO isat = 1,ntime
         if (BMIN(isat) .NE. baddata) then
            do imagin = 1,25
-              maginput_tmp(imagin) = maginput(isat,imagin)
+              maginput_tmp(1, imagin) = maginput(isat,imagin)
            enddo
            DO IPA=1,Nipa
               options(1)=0
@@ -20741,9 +20741,9 @@ c
 c declare inputs
       INTEGER*4    kext,options(5)
       INTEGER*4    ntime
-      INTEGER*4    iyearsat(ntime_max)
-      integer*4    idoy(ntime_max)
-      real*8     maginput(25,ntime_max)
+      INTEGER*4    iyearsat(ntime)
+      integer*4    idoy(ntime)
+      real*8     maginput(25,ntime)
 c                      1: Kp
 c                      2: Dst
 c                      3: dens
@@ -20755,7 +20755,7 @@ c                      8: G1
 c                      9: G2
 c                     10: G3
 c
-      REAL*8     XJ(ntime_max),Lm(ntime_max)
+      REAL*8     XJ(ntime),Lm(ntime)
 c
 c Declare internal variables
       INTEGER*4  isat,DayIndexL,DayIndexR,i,iflag,kint
@@ -20774,7 +20774,7 @@ c Declare internal variables
         common /rconst/rad,pi
 c
 c Declare output variables
-      REAL*8     Lstar(ntime_max)
+      REAL*8     Lstar(ntime)
 C
       COMMON/LAndI2LstarCom/Lmax,Imax,Lupper,Iupper,Lm4,A0,A1,A2,A3,A4,
      &Lm5,A50,A51,A52,A53,A54,A55
