@@ -519,6 +519,12 @@ class FileChecks(object):
         -------
         list of str
             Description of each validation failure.
+
+        Notes
+        -----
+        This function assumes daily files and should be extended based on the
+        File_naming_convention global attribute (which itself is another good
+        check to have.)
         """
         errs = []
         fname = os.path.basename(f.pathname)
