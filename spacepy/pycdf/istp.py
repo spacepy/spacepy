@@ -46,12 +46,14 @@ import spacepy.pycdf.const
 
 
 class VariableChecks(object):
-    """Tests of a single variable
+    """ISTP compliance checks for a single variable.
 
-    All tests return a list of errors (empty if none). :meth:`all`
-    will check all tests and concatenate all errors. :meth:`all`
-    should be updated with the list of all tests so that
-    helper functions aren't called, subtests aren't called twice, etc.
+    Checks a variable's compliance with ISTP standards. This mostly
+    performs checks that are not currently performed by the `ISTP
+    skeleton editor <https://spdf.gsfc.nasa.gov/skteditor/>`_.  All
+    tests return a list, one error string for every noncompliance
+    found (empty list if compliant). :meth:`all` will perform all
+    tests and concatenate all errors.
 
     .. autosummary::
 
@@ -72,11 +74,13 @@ class VariableChecks(object):
     .. automethod:: validplottype
     .. automethod:: validrange
     .. automethod:: validscale
+
     """
+    #When adding new tests, add to list above, and the list in all()
 
     @classmethod
     def all(cls, v):
-        """Call all test functions in this class
+        """Perform all variable tests
 
         Parameters
         ----------
@@ -86,8 +90,18 @@ class VariableChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
+
+        Examples
+        --------
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> f = spacepy.pycdf.CDF('foo.cdf', create=True)
+        >>> v = f.new('Var', data=[1, 2, 3])
+        >>> spacepy.pycdf.istp.VariableChecks.all(v)
+        ['Var: no FIELDNAM attribute.']
         """
+        #Update this list when adding new test functions
         callme = (cls.depends, cls.depsize, cls.fieldnam, cls.recordcount,
                   cls.validrange, cls.validscale, cls.validplottype)
         errors = []
@@ -107,7 +121,7 @@ class VariableChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         return ['{} variable {} missing'.format(a, v.attrs[a])
                 for a in v.attrs
@@ -126,7 +140,7 @@ class VariableChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         rv = int(v.rv()) #RV is a leading dimension
         errs = []
@@ -205,7 +219,7 @@ class VariableChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         if not v.rv() or not 'DEPEND_0' in v.attrs:
             return []
@@ -229,7 +243,7 @@ class VariableChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         errs = []
         raw_v = v.cdf_file.raw_var(v.name())
@@ -284,7 +298,7 @@ class VariableChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         errs = []
         raw_v = v.cdf_file.raw_var(v.name())
@@ -320,7 +334,7 @@ class VariableChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         time_st = 'time_series'
         spec_st = 'spectrogram'
@@ -346,7 +360,7 @@ class VariableChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         errs = []
         vname = v.name()
@@ -359,12 +373,14 @@ class VariableChecks(object):
 
 
 class FileChecks(object):
-    """Tests of a file
+    """ISTP compliance checks for a CDF file.
 
-    All tests return a list of errors (empty if none). :meth:`all`
-    will check all tests and concatenate all errors. :meth:`all`
-    should be updated with the list of all tests so that
-    helper functions aren't called, subtests aren't called twice, etc.
+    Checks a file's compliance with ISTP standards. This mostly
+    performs checks that are not currently performed by the `ISTP
+    skeleton editor <https://spdf.gsfc.nasa.gov/skteditor/>`_.  All
+    tests return a list, one error string for every noncompliance
+    found (empty list if compliant). :meth:`all` will perform all
+    tests and concatenate all errors.
 
     .. autosummary::
 
@@ -377,11 +393,16 @@ class FileChecks(object):
     .. automethod:: filename
     .. automethod:: time_monoton
     .. automethod:: times
+
     """
+    #When adding new tests, add to list above, and the list in all()
 
     @classmethod
     def all(cls, f):
-        """Call all test functions, AND all test functions on all variables
+        """Perform all variable and file-level tests
+
+        In addition to calling every test in this class, will also call
+        :meth:`VariableChecks.all` for every variable in the file.
 
         Parameters
         ----------
@@ -391,8 +412,21 @@ class FileChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
+
+        Examples
+        --------
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> f = spacepy.pycdf.CDF('foo.cdf', create=True)
+        >>> v = f.new('Var', data=[1, 2, 3])
+        >>> spacepy.pycdf.istp.FileChecks.all(f)
+        ['No Logical_source in global attrs',
+        'No Logical_file_id in global attrs',
+        'Cannot parse date from filename foo.cdf',
+        'Var: Var: no FIELDNAM attribute.']
         """
+        #Update this list when adding new test functions
         callme = (cls.filename, cls.time_monoton, cls.times,)
         errors = []
         for func in callme:
@@ -417,7 +451,7 @@ class FileChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         errs = []
         for a in ('Logical_source', 'Logical_file_id'):
@@ -450,7 +484,7 @@ class FileChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         errs = []
         for v in f:
@@ -480,7 +514,7 @@ class FileChecks(object):
         Returns
         -------
         list of str
-            All error messages
+            Description of each validation failure.
         """
         errs = []
         fname = os.path.basename(f.pathname)
@@ -507,12 +541,26 @@ class FileChecks(object):
 
 
 def fillval(v): 
-    """Automatically set ISTP-compliant FILLVAL on a variable
+    """Set ISTP-compliant FILLVAL on a variable
+
+    Sets a CDF variable's `FILLVAL
+    <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FILLVAL>`_
+    attribute to the value required by ISTP (based on variable type).
 
     Parameters
     ----------
     v : :class:`~spacepy.pycdf.Var`
-        Variable to update
+        CDF variable to update
+
+    Examples
+    --------
+    >>> import spacepy.pycdf
+    >>> import spacepy.pycdf.istp
+    >>> f = spacepy.pycdf.CDF('foo.cdf', create=True)
+    >>> v = f.new('Var', data=[1, 2, 3])
+    >>> spacepy.pycdf.istp.fillval(v)
+    >>> v.attrs['FILLVAL']
+    -128
     """
     #Fill value, indexed by the CDF type (numeric)
     fillvals = {}
@@ -544,7 +592,15 @@ def fillval(v):
 
 
 def format(v, use_scaleminmax=False, dryrun=False):
-    """Automatically set ISTP-compliant FORMAT on a variable
+    """Set ISTP-compliant FORMAT on a variable
+
+    Sets a CDF variable's `FORMAT
+    <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FORMAT>`_
+    attribute, which provides a Fortran-like format string that should
+    be useable for printing any valid value in the variable. Sets
+    according to the VALIDMIN/VALIDMAX attributes (or, optionally,
+    SCALEMIN/SCALEMAX) if present, otherwise uses the full range of
+    the type.
 
     Parameters
     ----------
@@ -556,6 +612,17 @@ def format(v, use_scaleminmax=False, dryrun=False):
     dryrun : bool, optional
         Print the decided format to stdout instead of modifying
         the CDF (for use in command-line debugging) (default False).
+
+    Examples
+    --------
+    >>> import spacepy.pycdf
+    >>> import spacepy.pycdf.istp
+    >>> f = spacepy.pycdf.CDF('foo.cdf', create=True)
+    >>> v = f.new('Var', data=[1, 2, 3])
+    >>> spacepy.pycdf.istp.format(v)
+    >>> v.attrs['FORMAT']
+    'I4'
+
     """
     if use_scaleminmax:
         minn = 'SCALEMIN'
