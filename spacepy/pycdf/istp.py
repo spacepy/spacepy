@@ -425,9 +425,9 @@ class FileChecks(object):
         >>> f = spacepy.pycdf.CDF('foo.cdf', create=True)
         >>> v = f.new('Var', data=[1, 2, 3])
         >>> spacepy.pycdf.istp.FileChecks.all(f)
-        ['No Logical_source in global attrs',
-        'No Logical_file_id in global attrs',
-        'Cannot parse date from filename foo.cdf',
+        ['No Logical_source in global attrs.',
+        'No Logical_file_id in global attrs.',
+        'Cannot parse date from filename foo.cdf.',
         'Var: No FIELDNAM attribute.']
         """
         #Update this list when adding new test functions
