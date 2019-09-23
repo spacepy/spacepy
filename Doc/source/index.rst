@@ -64,6 +64,7 @@ SpacePy Documents
     case_studies
     publications
     pythonic
+    scripts
 
 SpacePy Code
 ============
