@@ -52,16 +52,41 @@ class VariableChecks(object):
     will check all tests and concatenate all errors. :meth:`all`
     should be updated with the list of all tests so that
     helper functions aren't called, subtests aren't called twice, etc.
+
+    .. autosummary::
+
+        all
+        depends
+        depsize
+        fieldnam
+        recordcount
+        validplottype
+        validrange
+        validscale
+        
+    .. automethod:: all
+    .. automethod:: depends
+    .. automethod:: depsize
+    .. automethod:: fieldnam
+    .. automethod:: recordcount
+    .. automethod:: validplottype
+    .. automethod:: validrange
+    .. automethod:: validscale
     """
 
     @classmethod
     def all(cls, v):
         """Call all test functions in this class
 
-        :param v: Variable to check
-        :type v: :class:`~spacepy.pycdf.Var`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         callme = (cls.depends, cls.depsize, cls.fieldnam, cls.recordcount,
                   cls.validrange, cls.validscale, cls.validplottype)
@@ -74,10 +99,15 @@ class VariableChecks(object):
     def depends(cls, v):
         """Checks that DEPEND and LABL_PTR variables actually exist
 
-        :param v: Variable to check
-        :type v: :class:`~spacepy.pycdf.Var`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         return ['{} variable {} missing'.format(a, v.attrs[a])
                 for a in v.attrs
@@ -88,10 +118,15 @@ class VariableChecks(object):
     def depsize(cls, v):
         """Checks that DEPEND has same shape as that dim
 
-        :param v: Variable to check
-        :type v: :class:`~spacepy.pycdf.Var`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         rv = int(v.rv()) #RV is a leading dimension
         errs = []
@@ -162,10 +197,15 @@ class VariableChecks(object):
     def recordcount(cls, v):
         """Check that the DEPEND_0 has same record count as variable
 
-        :param v: Variable to check
-        :type v: :class:`~spacepy.pycdf.Var`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         if not v.rv() or not 'DEPEND_0' in v.attrs:
             return []
@@ -181,10 +221,15 @@ class VariableChecks(object):
     def validrange(cls, v):
         """Check that all values are within VALIDMIN/VALIDMAX, or FILLVAL
 
-        :param v: Variable to check
-        :type v: :class:`~spacepy.pycdf.Var`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         errs = []
         raw_v = v.cdf_file.raw_var(v.name())
@@ -230,10 +275,16 @@ class VariableChecks(object):
     def validscale(cls, v):
         """Check that SCALEMIN<=SCALEMAX, and neither goes out 
         of range for CDF datatype.
-        :param v: Variable to check
-        :type v: :class:`~spacepy.pycdf.Var`
-        :returns: All error messages
-        :rtype: list of str
+
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         errs = []
         raw_v = v.cdf_file.raw_var(v.name())
@@ -260,10 +311,16 @@ class VariableChecks(object):
     @classmethod
     def validplottype(cls, v):
         """Check that plottype matches dimensions.
-        :param v: Variable to check
-        :type v: :class:`~spacepy.pycdf.Var`
-        :returns: All error messages
-        :rtype: list of str
+
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         time_st = 'time_series'
         spec_st = 'spectrogram'
@@ -281,10 +338,15 @@ class VariableChecks(object):
     def fieldnam(cls, v):
         """Check that FIELDNAM attribute matches variable name.
 
-        :param v: Variable to check
-        :type v: :class:`~spacepy.pycdf.Var`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         errs = []
         vname = v.name()
@@ -303,16 +365,33 @@ class FileChecks(object):
     will check all tests and concatenate all errors. :meth:`all`
     should be updated with the list of all tests so that
     helper functions aren't called, subtests aren't called twice, etc.
+
+    .. autosummary::
+
+        all
+        filename
+        time_monoton
+        times
+        
+    .. automethod:: all
+    .. automethod:: filename
+    .. automethod:: time_monoton
+    .. automethod:: times
     """
 
     @classmethod
     def all(cls, f):
         """Call all test functions, AND all test functions on all variables
 
-        :param f: File to check
-        :type f: :class:`~spacepy.pycdf.CDF`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        f : :class:`~spacepy.pycdf.CDF`
+            Open CDF file to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         callme = (cls.filename, cls.time_monoton, cls.times,)
         errors = []
@@ -330,10 +409,15 @@ class FileChecks(object):
         Check that the logical_file_id matches the actual filename,
         and logical_source also matches.
 
-        :param f: File to check
-        :type f: :class:`~spacepy.pycdf.CDF`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        f : :class:`~spacepy.pycdf.CDF`
+            Open CDF file to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         errs = []
         for a in ('Logical_source', 'Logical_file_id'):
@@ -358,10 +442,15 @@ class FileChecks(object):
 
         Check that all Epoch variables are monotonically increasing.
 
-        :param f: File to check
-        :type f: :class:`~spacepy.pycdf.CDF`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        f : :class:`~spacepy.pycdf.CDF`
+            Open CDF file to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         errs = []
         for v in f:
@@ -383,10 +472,15 @@ class FileChecks(object):
 
         Check that all Epoch variables only contain times matching filename
 
-        :param f: File to check
-        :type f: :class:`~spacepy.pycdf.CDF`
-        :returns: All error messages
-        :rtype: list of str
+        Parameters
+        ----------
+        f : :class:`~spacepy.pycdf.CDF`
+            Open CDF file to check
+
+        Returns
+        -------
+        list of str
+            All error messages
         """
         errs = []
         fname = os.path.basename(f.pathname)
@@ -415,8 +509,10 @@ class FileChecks(object):
 def fillval(v): 
     """Automatically set ISTP-compliant FILLVAL on a variable
 
-    :param v: Variable to update
-    :type v: :class:`~spacepy.pycdf.Var`
+    Parameters
+    ----------
+    v : :class:`~spacepy.pycdf.Var`
+        Variable to update
     """
     #Fill value, indexed by the CDF type (numeric)
     fillvals = {}
@@ -450,12 +546,16 @@ def fillval(v):
 def format(v, use_scaleminmax=False, dryrun=False):
     """Automatically set ISTP-compliant FORMAT on a variable
 
-    :param v: Variable to update
-    :type v: :class:`~spacepy.pycdf.Var`
-    :param bool use_scaleminmax: Use SCALEMIN/MAX instead of VALIDMIN/MAX.
-                                 Note: istpchecks may complain about result.
-    :param bool dryrun: Print the decided format to stdout instead of modifying
-                        the CDF.  (For use in command-line debugging.)
+    Parameters
+    ----------
+    v : :class:`~spacepy.pycdf.Var`
+        Variable to update
+    use_scaleminmax : bool, optional
+        Use SCALEMIN/MAX instead of VALIDMIN/MAX (default False).
+        Note: istpchecks may complain about result.
+    dryrun : bool, optional
+        Print the decided format to stdout instead of modifying
+        the CDF (for use in command-line debugging) (default False).
     """
     if use_scaleminmax:
         minn = 'SCALEMIN'
