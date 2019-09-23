@@ -57,11 +57,11 @@ class VariablesTests(ISTPTestsBase):
         v.attrs['VALIDMIN'] = 2
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Value 1 at index 0 under VALIDMIN 2', errs[0])
+        self.assertEqual('Value 1 at index 0 under VALIDMIN 2.', errs[0])
         v.attrs['VALIDMAX'] = 2
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(2, len(errs))
-        self.assertEqual('Value 3 at index 2 over VALIDMAX 2', errs[1])
+        self.assertEqual('Value 3 at index 2 over VALIDMAX 2.', errs[1])
 
     def testValidRangeNRVFillval(self):
         """Validmin/validmax with fillval set"""
@@ -75,22 +75,22 @@ class VariablesTests(ISTPTestsBase):
         v.attrs['VALIDMIN'] = 2
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Value 1 at index 0 under VALIDMIN 2', errs[0])
+        self.assertEqual('Value 1 at index 0 under VALIDMIN 2.', errs[0])
         
         v.attrs['VALIDMAX'] = 2
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(2, len(errs))
-        self.assertEqual('Value 3 at index 2 over VALIDMAX 2', errs[1])
+        self.assertEqual('Value 3 at index 2 over VALIDMAX 2.', errs[1])
         
         v.attrs['FILLVAL'] = 3
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Value 1 at index 0 under VALIDMIN 2', errs[0])
+        self.assertEqual('Value 1 at index 0 under VALIDMIN 2.', errs[0])
 
         v.attrs['FILLVAL'] = 1
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Value 3 at index 2 over VALIDMAX 2', errs[0])
+        self.assertEqual('Value 3 at index 2 over VALIDMAX 2.', errs[0])
 
     def testValidRangeFillvalFloat(self):
         """Validmin/validmax with fillval set, floating-point"""
@@ -107,7 +107,7 @@ class VariablesTests(ISTPTestsBase):
         v[0] = -100
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Value -100.0 at index 0 under VALIDMIN 0.0', errs[0])
+        self.assertEqual('Value -100.0 at index 0 under VALIDMIN 0.0.', errs[0])
 
         v[0] = -1e31
         self.assertEqual(
@@ -127,7 +127,7 @@ class VariablesTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(1, len(errs))
         self.assertEqual('Value 2010-02-01 00:00:00 at index 4 over VALIDMAX '
-                         '2010-01-31 00:00:00', errs[0])
+                         '2010-01-31 00:00:00.', errs[0])
 
         v[-1] = datetime.datetime(9999, 12, 31, 23, 59, 59, 999000)
         self.assertEqual(
@@ -142,7 +142,7 @@ class VariablesTests(ISTPTestsBase):
         v.attrs['DEPEND_0'] = 'Epoch'
         errs = spacepy.pycdf.istp.VariableChecks.recordcount(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('4 records; DEPEND_0 Epoch has 5',
+        self.assertEqual('4 records; DEPEND_0 Epoch has 5.',
                          errs[0])
         v.append(5)
         errs = spacepy.pycdf.istp.VariableChecks.recordcount(v)
@@ -159,7 +159,7 @@ class VariablesTests(ISTPTestsBase):
         v.attrs['DEPEND_1'] = 'thedep'
         errs = spacepy.pycdf.istp.VariableChecks.depsize(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Dim 1 sized 2 but DEPEND_1 thedep sized 3', errs[0])
+        self.assertEqual('Dim 1 sized 2 but DEPEND_1 thedep sized 3.', errs[0])
         del self.cdf['thedep']
         d = self.cdf.new('thedep', recVary=False, data=[1, 2])
         errs = spacepy.pycdf.istp.VariableChecks.depsize(v)
@@ -178,7 +178,7 @@ class VariablesTests(ISTPTestsBase):
         v.attrs['DEPEND_2'] = 'dep2'
         errs = spacepy.pycdf.istp.VariableChecks.depsize(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Dim 2 sized 2 but DEPEND_2 dep2 sized 1', errs[0])
+        self.assertEqual('Dim 2 sized 2 but DEPEND_2 dep2 sized 1.', errs[0])
         del self.cdf['dep2']
         self.cdf.new('dep2', recVary=False, data=[1, 2])
         errs = spacepy.pycdf.istp.VariableChecks.depsize(v)
@@ -211,8 +211,8 @@ class VariablesTests(ISTPTestsBase):
         del self.cdf['dep1']
         vv = self.cdf.new('dep1', recVary=False, data=[10,20,30])
         errs = spacepy.pycdf.istp.VariableChecks.depsize(v)
-        self.assertEqual('Dim 1 sized 2 but DEPEND_1 dep1 sized 3', errs[0])
-        self.assertEqual('Dim 2 sized 3 but DEPEND_2 dep2 sized 2', errs[1])
+        self.assertEqual('Dim 1 sized 2 but DEPEND_1 dep1 sized 3.', errs[0])
+        self.assertEqual('Dim 2 sized 3 but DEPEND_2 dep2 sized 2.', errs[1])
         
     def testValidScale(self):
         """Check scale min and max."""
@@ -226,7 +226,7 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual(
             1, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMIN > SCALEMAX for var1', errs[0])
+        self.assertEqual('SCALEMIN > SCALEMAX for var1.', errs[0])
         v.attrs['SCALEMIN'] = -200
         self.assertEqual(
             1, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
@@ -250,8 +250,8 @@ class VariablesTests(ISTPTestsBase):
         
     def testValidPlotType(self):
         """Check plot type."""
-        err1 = 'var1: 1 dim variable with spectrogram display type.'
-        err2 = 'var2: multi dim variable with time_series display type.'
+        err1 = '1 dim variable with spectrogram display type.'
+        err2 = 'Multi dim variable with time_series display type.'
         v = self.cdf.new('var1', recVary=True, data=[1, 2, 3])
         v.attrs['DISPLAY_TYPE'] = 'time_series'
         self.assertEqual(
@@ -276,12 +276,12 @@ class VariablesTests(ISTPTestsBase):
         v = self.cdf.new('var1', recVary=True, data=[1, 2, 3])
         errs = spacepy.pycdf.istp.VariableChecks.fieldnam(v)
         self.assertEqual(1, len(errs))
-        self.assertEqual('var1: no FIELDNAM attribute.', errs[0])
+        self.assertEqual('No FIELDNAM attribute.', errs[0])
         v.attrs['FIELDNAM'] = 'var2'
         errs = spacepy.pycdf.istp.VariableChecks.fieldnam(v)
         self.assertEqual(1, len(errs))
         self.assertEqual(
-            'var1: FIELDNAM attribute var2 does not match var name.', errs[0])
+            'FIELDNAM attribute var2 does not match var name.', errs[0])
         v.attrs['FIELDNAM'] = 'var1'
         self.assertEqual(
             0, len(spacepy.pycdf.istp.VariableChecks.fieldnam(v)))
@@ -313,11 +313,11 @@ class FileTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.FileChecks.filename(self.cdf)
         self.assertEqual(2, len(errs))
         self.assertTrue("Logical_source source_descriptor_blargh doesn't match "
-                        "filename source_descriptor_datatype_19990101_v00.cdf"
+                        "filename source_descriptor_datatype_19990101_v00.cdf."
                         in errs)
         self.assertTrue(
             "Logical_file_id source_descriptor_datatype_19990102_v00 doesn't "
-            "match filename source_descriptor_datatype_19990101_v00.cdf"
+            "match filename source_descriptor_datatype_19990101_v00.cdf."
             in errs)
         self.cdf.attrs['Logical_source'] = \
             'source_descriptor_datatype'
@@ -333,7 +333,7 @@ class FileTests(ISTPTestsBase):
         self.cdf['Epoch'].append(datetime.datetime(1999, 1, 1, 4))
         errs = spacepy.pycdf.istp.FileChecks.time_monoton(self.cdf)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Epoch: nonmonotonic time at record 4', errs[0])
+        self.assertEqual('Epoch: Nonmonotonic time at record 4.', errs[0])
 
     def testTimes(self):
         """Compare filename to Epoch times"""
@@ -341,7 +341,7 @@ class FileTests(ISTPTestsBase):
         self.cdf['Epoch'].append(datetime.datetime(1999, 1, 2, 0))
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(1, len(errs))
-        self.assertEqual('Epoch: multiple days 19990101, 19990102', errs[0])
+        self.assertEqual('Epoch: multiple days 19990101, 19990102.', errs[0])
         del self.cdf['Epoch'][-1]
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(0, len(errs))
@@ -349,7 +349,8 @@ class FileTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(1, len(errs))
         self.assertEqual('Epoch: date 19990102 doesn\'t match file '
-                         'source_descriptor_datatype_19990101_v00.cdf', errs[0])
+                         'source_descriptor_datatype_19990101_v00.cdf.',
+                         errs[0])
 
 
 class FuncTests(ISTPTestsBase):
