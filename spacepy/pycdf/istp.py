@@ -77,6 +77,8 @@ class VariableChecks(object):
 
     """
     #When adding new tests, add to list above, and the list in all()
+    #Validation failures should be formatted as a sentence (initial cap,
+    #closing period) and NOT include the variable name.
 
     @classmethod
     def all(cls, v):
@@ -99,7 +101,7 @@ class VariableChecks(object):
         >>> f = spacepy.pycdf.CDF('foo.cdf', create=True)
         >>> v = f.new('Var', data=[1, 2, 3])
         >>> spacepy.pycdf.istp.VariableChecks.all(v)
-        ['Var: no FIELDNAM attribute.']
+        ['No FIELDNAM attribute.']
         """
         #Update this list when adding new test functions
         callme = (cls.depends, cls.depsize, cls.fieldnam, cls.recordcount,
@@ -184,7 +186,7 @@ class VariableChecks(object):
                     # record varying
                     dd = dv.attrs['DEPEND_0']
                     if dd[:5] != 'Epoch':
-                        errs.append('Expect DEPEND_0 to be Epoch')
+                        errs.append('Expect DEPEND_0 to be Epoch.')
                         continue
                     if dd in v.cdf_file:
                         ddv = v.cdf_file[dd]
@@ -202,7 +204,7 @@ class VariableChecks(object):
             else:
                 actual = dv.shape[int(dv.rv())]
             if target != actual:
-                errs.append('Dim {} sized {} but DEPEND_{} {} sized {}'.format(
+                errs.append('Dim {} sized {} but DEPEND_{} {} sized {}.'.format(
                     i, target, depidx, d, actual))
 
         return errs
@@ -227,7 +229,7 @@ class VariableChecks(object):
         if not dep0 in v.cdf_file: #This is a DIFFERENT error
             return []
         if len(v) != len(v.cdf_file[dep0]):
-            return ['{} records; DEPEND_0 {} has {}'.format(
+            return ['{} records; DEPEND_0 {} has {}.'.format(
                 len(v), dep0, len(v.cdf_file[dep0]))]
         return []
 
@@ -255,7 +257,7 @@ class VariableChecks(object):
                 is_fill = numpy.isclose(data, raw_v.attrs['FILLVAL'])
                 idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
             if idx.any():
-                errs.append('Value {} at index {} under VALIDMIN {}'.format(
+                errs.append('Value {} at index {} under VALIDMIN {}.'.format(
                     ', '.join(str(d) for d in v[...][idx]),
                     ', '.join(str(d) for d in numpy.nonzero(idx)[0]),
                     v.attrs['VALIDMIN']))
@@ -270,7 +272,7 @@ class VariableChecks(object):
                 is_fill = numpy.isclose(data, raw_v.attrs['FILLVAL'])
                 idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
             if idx.any():
-                errs.append('Value {} at index {} over VALIDMAX {}'.format(
+                errs.append('Value {} at index {} over VALIDMAX {}.'.format(
                     ', '.join(str(d) for d in v[...][idx]),
                     ', '.join(str(d) for d in numpy.nonzero(idx)[0]),
                     v.attrs['VALIDMAX']))
@@ -281,7 +283,7 @@ class VariableChecks(object):
                     raw_v.name()))
         if ('VALIDMIN' in raw_v.attrs) and ('VALIDMAX' in raw_v.attrs):
             if raw_v.attrs['VALIDMIN'] > raw_v.attrs['VALIDMAX']:
-                errs.append('VALIDMIM > VALIDMAX for {}'.format(v.name()))
+                errs.append('VALIDMIM > VALIDMAX for {}.'.format(v.name()))
         return errs
 
     
@@ -318,7 +320,7 @@ class VariableChecks(object):
                     raw_v.name()))
         if ('SCALEMIN' in raw_v.attrs) and ('SCALEMAX' in raw_v.attrs):
             if raw_v.attrs['SCALEMIN'] > raw_v.attrs['SCALEMAX']:
-                errs.append('SCALEMIN > SCALEMAX for {}'.format(v.name()))
+                errs.append('SCALEMIN > SCALEMAX for {}.'.format(v.name()))
         return errs
 
 
@@ -341,11 +343,11 @@ class VariableChecks(object):
         errs = []
         if 'DISPLAY_TYPE' in v.attrs:
             if (len(v.shape) == 1) and (v.attrs['DISPLAY_TYPE'] != time_st):
-                errs.append('{}: 1 dim variable with {} display type.'.format(
-                    v.name(), v.attrs['DISPLAY_TYPE']))
+                errs.append('1 dim variable with {} display type.'.format(
+                    v.attrs['DISPLAY_TYPE']))
             elif (len(v.shape) > 1) and (v.attrs['DISPLAY_TYPE'] != spec_st):
-                errs.append('{}: multi dim variable with {} display type.'.format(
-                    v.name(), v.attrs['DISPLAY_TYPE']))
+                errs.append('Multi dim variable with {} display type.'.format(
+                    v.attrs['DISPLAY_TYPE']))
         return errs
 
     @classmethod
@@ -365,10 +367,10 @@ class VariableChecks(object):
         errs = []
         vname = v.name()
         if 'FIELDNAM' not in v.attrs:
-            errs.append('{}: no FIELDNAM attribute.'.format(vname))
+            errs.append('No FIELDNAM attribute.')
         elif v.attrs['FIELDNAM'] != vname:
-            errs.append('{}: FIELDNAM attribute {} does not match var name.'
-                        .format(vname, v.attrs['FIELDNAM']))
+            errs.append('FIELDNAM attribute {} does not match var name.'
+                        .format(v.attrs['FIELDNAM']))
         return errs
 
 
@@ -396,6 +398,8 @@ class FileChecks(object):
 
     """
     #When adding new tests, add to list above, and the list in all()
+    #Validation failures should be formatted as a sentence (initial cap,
+    #closing period).
 
     @classmethod
     def all(cls, f):
@@ -424,7 +428,7 @@ class FileChecks(object):
         ['No Logical_source in global attrs',
         'No Logical_file_id in global attrs',
         'Cannot parse date from filename foo.cdf',
-        'Var: Var: no FIELDNAM attribute.']
+        'Var: No FIELDNAM attribute.']
         """
         #Update this list when adding new test functions
         callme = (cls.filename, cls.time_monoton, cls.times,)
@@ -456,17 +460,17 @@ class FileChecks(object):
         errs = []
         for a in ('Logical_source', 'Logical_file_id'):
             if not a in f.attrs:
-                errs.append('No {} in global attrs'.format(a))
+                errs.append('No {} in global attrs.'.format(a))
         if errs:
             return errs
         fname = os.path.basename(f.pathname)
         if not bytes is str:
             fname = fname.decode('ascii')
         if not fname.startswith(f.attrs['Logical_source'][0]):
-            errs.append("Logical_source {} doesn't match filename {}".format(
+            errs.append("Logical_source {} doesn't match filename {}.".format(
                 f.attrs['Logical_source'][0], fname))
         if fname[:-4] != f.attrs['Logical_file_id'][0]:
-            errs.append("Logical_file_id {} doesn't match filename {}".format(
+            errs.append("Logical_file_id {} doesn't match filename {}.".format(
                 f.attrs['Logical_file_id'][0], fname))
         return errs
 
@@ -496,7 +500,7 @@ class FileChecks(object):
             idx = numpy.where(numpy.diff(data) < datetime.timedelta(0))[0]
             if not any(idx):
                 continue
-            errs.append('{}: nonmonotonic time at record {}'.format(
+            errs.append('{}: Nonmonotonic time at record {}.'.format(
                 v, ', '.join((str(i) for i in (idx + 1)))))
         return errs
 
@@ -532,10 +536,10 @@ class FileChecks(object):
                 if len(datestrs) == 0:
                     continue
                 elif len(datestrs) > 1:
-                    errs.append('{}: multiple days {}'.format(
+                    errs.append('{}: multiple days {}.'.format(
                         v, ', '.join(sorted(datestrs))))
                 elif datestrs[0] != datestr:
-                    errs.append('{}: date {} doesn\'t match file {}'.format(
+                    errs.append('{}: date {} doesn\'t match file {}.'.format(
                         v, datestrs[0], fname))
         return errs
 
