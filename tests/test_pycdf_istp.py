@@ -268,27 +268,27 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual(
             1, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMIN > SCALEMAX for var1.', errs[0])
+        self.assertEqual('SCALEMIN > SCALEMAX.', errs[0])
         v.attrs['SCALEMIN'] = -200
         self.assertEqual(
             1, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMIN (-200) outside data range (-128,127) for var1.', errs[0])
+        self.assertEqual('SCALEMIN (-200) outside data range (-128,127).', errs[0])
         v.attrs['SCALEMIN'] = 200
         self.assertEqual(
             2, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMIN (200) outside data range (-128,127) for var1.', errs[0])
+        self.assertEqual('SCALEMIN (200) outside data range (-128,127).', errs[0])
         v.attrs['SCALEMAX'] = -200
         self.assertEqual(
             3, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMAX (-200) outside data range (-128,127) for var1.', errs[1])
+        self.assertEqual('SCALEMAX (-200) outside data range (-128,127).', errs[1])
         v.attrs['SCALEMAX'] = 200
         self.assertEqual(
             2, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMAX (200) outside data range (-128,127) for var1.', errs[1])
+        self.assertEqual('SCALEMAX (200) outside data range (-128,127).', errs[1])
         
     def testValidPlotType(self):
         """Check plot type."""
