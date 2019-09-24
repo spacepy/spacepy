@@ -305,7 +305,6 @@ class VariableChecks(object):
                 errs.append('VALIDMIN > VALIDMAX.')
         return errs
 
-    
     @classmethod
     def validscale(cls, v):
         """Check that SCALEMIN<=SCALEMAX, and neither goes out 
@@ -336,7 +335,6 @@ class VariableChecks(object):
             if raw_v.attrs['SCALEMIN'] > raw_v.attrs['SCALEMAX']:
                 errs.append('SCALEMIN > SCALEMAX.')
         return errs
-
 
     @classmethod
     def validplottype(cls, v):
