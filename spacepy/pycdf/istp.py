@@ -328,11 +328,30 @@ class VariableChecks(object):
             if not which in v.attrs:
                 continue
             rawattrval = raw_v.attrs[which]
-            if (rawattrval < minval) or (rawattrval > maxval):
+            #This is all c/p from validrange, should pull out
+            #but they're slightly different contexts.
+            multidim = bool(numpy.shape(rawattrval)) #multi-dimensional
+            if multidim: #Compare shapes, require only 1D var
+                #Match attribute dim to first non-record var dim
+                firstdim = int(v.rv())
+                if data.shape[firstdim] != numpy.shape(rawattrval)[0]:
+                    errs.append(('{} element count {} does not match first data'
+                                 ' dimension size {}.').format(
+                                     which, numpy.shape(rawattrval)[0],
+                                     data.shape[firstdim]))
+                    continue
+                if len(data.shape) != firstdim + 1: #only one non-record dim
+                    errs.append('Multi-element {} only valid with 1D variable.'
+                                .format(which))
+                    continue
+                if firstdim: #Add pseudo-record dim
+                    rawattrval = numpy.reshape(rawattrval, (1, -1))
+            if numpy.any(rawattrval < minval) or numpy.any(rawattrval > maxval):
                 errs.append('{} ({}) outside data range ({},{}).'.format(
-                    which, rawattrval, minval, maxval))
+                    which, rawattrval[0, :] if multidim else rawattrval,
+                    minval, maxval))
         if ('SCALEMIN' in raw_v.attrs) and ('SCALEMAX' in raw_v.attrs):
-            if raw_v.attrs['SCALEMIN'] > raw_v.attrs['SCALEMAX']:
+            if numpy.any(raw_v.attrs['SCALEMIN'] > raw_v.attrs['SCALEMAX']):
                 errs.append('SCALEMIN > SCALEMAX.')
         return errs
 
