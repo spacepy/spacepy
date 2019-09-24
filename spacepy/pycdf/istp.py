@@ -302,7 +302,7 @@ class VariableChecks(object):
                     which, rawattrval, minval, maxval, v.name()))
         if ('VALIDMIN' in v.attrs) and ('VALIDMAX' in v.attrs):
             if numpy.any(v.attrs['VALIDMIN'] > v.attrs['VALIDMAX']):
-                errs.append('VALIDMIM > VALIDMAX for {}.'.format(v.name()))
+                errs.append('VALIDMIN > VALIDMAX.')
         return errs
 
     
@@ -325,21 +325,16 @@ class VariableChecks(object):
         raw_v = v.cdf_file.raw_var(v.name())
         minval, maxval = spacepy.pycdf.lib.get_minmax(raw_v.type())
         data = raw_v[...]
-        if 'SCALEMIN' in raw_v.attrs:
-            if (raw_v.attrs['SCALEMIN'] < minval) or \
-               (raw_v.attrs['SCALEMIN'] > maxval):
-                errs.append('SCALEMIN ({}) outside data range ({},{}) for {}.'.format(
-                    raw_v.attrs['SCALEMIN'], minval, maxval,
-                    raw_v.name()))
-        if 'SCALEMAX' in raw_v.attrs:
-            if (raw_v.attrs['SCALEMAX'] < minval) or \
-               (raw_v.attrs['SCALEMAX'] > maxval):
-                errs.append('SCALEMAX ({}) outside data range ({},{}) for {}.'.format(
-                    raw_v.attrs['SCALEMAX'], minval, maxval,
-                    raw_v.name()))
+        for which in ('SCALEMIN', 'SCALEMAX'):
+            if not which in v.attrs:
+                continue
+            rawattrval = raw_v.attrs[which]
+            if (rawattrval < minval) or (rawattrval > maxval):
+                errs.append('{} ({}) outside data range ({},{}).'.format(
+                    which, rawattrval, minval, maxval))
         if ('SCALEMIN' in raw_v.attrs) and ('SCALEMAX' in raw_v.attrs):
             if raw_v.attrs['SCALEMIN'] > raw_v.attrs['SCALEMAX']:
-                errs.append('SCALEMIN > SCALEMAX for {}.'.format(v.name()))
+                errs.append('SCALEMIN > SCALEMAX.')
         return errs
 
 
