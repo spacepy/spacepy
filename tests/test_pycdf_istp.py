@@ -290,6 +290,45 @@ class VariablesTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
         self.assertEqual('SCALEMAX (200) outside data range (-128,127).', errs[1])
         
+    def testValidScaleDimensioned(self):
+        """Validmin/validmax with multiple elements"""
+        v = self.cdf.new('var1', data=[[1, 10], [2, 20], [3, 30]])
+        v.attrs['SCALEMIN'] = [2, 20]
+        v.attrs['SCALEMAX'] = [300, 320]
+        v.attrs['FILLVAL'] = -100
+        errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
+        self.assertEqual(1, len(errs))
+        self.assertEqual('SCALEMAX ([300 320]) outside data range (-128,127).',
+                         errs[0])
+        v.attrs['SCALEMAX'] = [30, 32]
+        errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
+        self.assertEqual(0, len(errs))
+
+    def testValidScaleDimensionMismatch(self):
+        """Validmin/validmax with something wrong in dimensionality"""
+        v = self.cdf.new('var1', data=[[1, 10], [2, 20], [3, 30]])
+        v.attrs['SCALEMIN'] = [1, 10, 100]
+        v.attrs['SCALEMAX'] = [3, 30, 300]
+        errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
+        self.assertEqual(2, len(errs))
+        self.assertEqual('SCALEMIN element count 3 does not match '
+                         'first data dimension size 2.', errs[0])
+        self.assertEqual('SCALEMAX element count 3 does not match '
+                         'first data dimension size 2.', errs[1])
+
+    def testValidScaleHighDimension(self):
+        """scalemin/scalemax with high-dimension variables"""
+        v = self.cdf.new('var1',
+                         data=numpy.reshape(numpy.arange(27.), (3, 3, 3,)))
+        v.attrs['SCALEMIN'] = [1, 10, 100]
+        v.attrs['SCALEMAX'] = [3, 30, 300]
+        errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
+        self.assertEqual(2, len(errs))
+        self.assertEqual('Multi-element SCALEMIN only valid with 1D variable.',
+                         errs[0])
+        self.assertEqual('Multi-element SCALEMAX only valid with 1D variable.',
+                         errs[1])
+
     def testValidPlotType(self):
         """Check plot type."""
         err1 = '1 dim variable with spectrogram display type.'
