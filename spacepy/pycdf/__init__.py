@@ -1150,11 +1150,12 @@ class Library(object):
         raise NotImplementedError(
             'TT2000 functions require CDF library 3.4.0 or later')
 
-    @staticmethod
-    def get_minmax(cdftype):
+    def get_minmax(self, cdftype):
         """Find minimum, maximum possible value based on CDF type.
 
-        This returns the "raw" (unparsed) value.
+        This returns the processed value (e.g. datetimes for Epoch
+        types) because comparisons to EPOCH16s are otherwise
+        difficult.
 
         Parameters
         ==========
@@ -1170,27 +1171,23 @@ class Library(object):
         out : tuple
             minimum, maximum value supported by type (of type matching the
             CDF type).
+
         """
         try:
             cdftype = cdftype.value
         except:
             pass
         if cdftype == spacepy.pycdf.const.CDF_EPOCH.value:
-            return (
-                spacepy.pycdf.lib.datetime_to_epoch(
-                    datetime.datetime(1, 1, 1)),
+            return (datetime.datetime(1, 1, 1),
                 #Can get asymptotically closer, but why bother
-                spacepy.pycdf.lib.datetime_to_epoch(
-                    datetime.datetime(9999, 12, 31, 23, 59, 59)))
+                datetime.datetime(9999, 12, 31, 23, 59, 59))
         elif cdftype == spacepy.pycdf.const.CDF_EPOCH16.value:
-            return (
-                spacepy.pycdf.lib.datetime_to_epoch16(
-                    datetime.datetime(1, 1, 1)),
-                spacepy.pycdf.lib.datetime_to_epoch16(
-                    datetime.datetime(9999, 12, 31, 23, 59, 59)))
+            return (datetime.datetime(1, 1, 1),
+                datetime.datetime(9999, 12, 31, 23, 59, 59))
         elif cdftype == spacepy.pycdf.const.CDF_TIME_TT2000.value:
             inf = numpy.iinfo(numpy.int64)
-            return (inf.min, inf.max)
+            return (self.tt2000_to_datetime(inf.min),
+                    self.tt2000_to_datetime(inf.max))
         dtype = spacepy.pycdf.lib.numpytypedict.get(cdftype, None)
         if dtype is None:
             raise ValueError('Unknown data type: {}'.format(cdftype))
