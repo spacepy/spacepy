@@ -234,97 +234,38 @@ class VariableChecks(object):
         return []
 
     @classmethod
-    def validrange(cls, v):
-        """Check that all values are within VALIDMIN/VALIDMAX, or FILLVAL
+    def _validhelper(cls, v, rng=True):
+        """Helper function for checking SCALEMIN/MAX, VALIDMIN/MAX
 
         Parameters
         ----------
         v : :class:`~spacepy.pycdf.Var`
             Variable to check
 
+        rng : bool
+            Do range check (True, default) or scale check (False)
+
         Returns
         -------
         list of str
             Description of each validation failure.
         """
+        validscale = 'VALID' if rng else 'SCALE'
+        whichmin, whichmax = ('VALIDMIN', 'VALIDMAX') if rng \
+                             else ('SCALEMIN', 'SCALEMAX')
         errs = []
         vshape = v.shape
         minval, maxval = spacepy.pycdf.lib.get_minmax(v.type())
-        data = v[...]
-        if 'FILLVAL' in v.attrs:
-            if numpy.issubdtype(v.dtype, numpy.float):
-                is_fill = numpy.isclose(data, v.attrs['FILLVAL'])
-            else:
-                is_fill = data == v.attrs['FILLVAL']
-        else:
-            is_fill = numpy.zeros(shape=data.shape, dtype=numpy.bool)
-        for which in ('VALIDMIN', 'VALIDMAX'):
-            if not which in v.attrs:
-                continue
-            attrval = v.attrs[which]
-            multidim = bool(numpy.shape(attrval)) #multi-dimensional
-            if multidim: #Compare shapes, require only 1D var
-                #Match attribute dim to first non-record var dim
-                firstdim = int(v.rv())
-                if vshape[firstdim] != numpy.shape(attrval)[0]:
-                    errs.append(('{} element count {} does not match first data'
-                                 ' dimension size {}.').format(
-                                     which, numpy.shape(attrval)[0],
-                                     data.shape[firstdim]))
-                    continue
-                if len(vshape) != firstdim + 1: #only one non-record dim
-                    errs.append('Multi-element {} only valid with 1D variable.'
-                                .format(which))
-                    continue
-                if firstdim: #Add pseudo-record dim
-                    attrval = numpy.reshape(attrval, (1, -1))
-            if numpy.any((attrval < minval)) \
-               or numpy.any((attrval > maxval)):
-                errs.append('{} ({}) outside data range ({},{}).'.format(
-                    which, attrval, minval, maxval, v.name()))
-            if not len(data): #nothing to compare
-                continue
-            #Always put numpy array on the left so knows to do element compare
-            idx = (data < attrval) if which == 'VALIDMIN' \
-                  else (data > attrval)
-            idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
-            if idx.any():
-                badidx = numpy.nonzero(idx)
-                badvals = data[badidx]
-                if len(badidx) > 1: #Multi-dimensional data
-                    badidx = numpy.transpose(badidx) #Group by value not axis
+        if rng:
+            data = v[...]
+            if 'FILLVAL' in v.attrs:
+                if numpy.issubdtype(v.dtype, numpy.float):
+                    is_fill = numpy.isclose(data, v.attrs['FILLVAL'])
                 else:
-                    badidx = badidx[0] #Just recover the index value
-                direction = 'under' if which == 'VALIDMIN' else 'over'
-                errs.append('Value {} at index {} {} {} {}.'.format(
-                    ', '.join(str(d) for d in badvals),
-                    ', '.join(str(d) for d in badidx),
-                    direction, which,
-                    attrval[0, :] if multidim else attrval))
-        if ('VALIDMIN' in v.attrs) and ('VALIDMAX' in v.attrs):
-            if numpy.any(v.attrs['VALIDMIN'] > v.attrs['VALIDMAX']):
-                errs.append('VALIDMIN > VALIDMAX.')
-        return errs
-
-    @classmethod
-    def validscale(cls, v):
-        """Check that SCALEMIN<=SCALEMAX, and neither goes out 
-        of range for CDF datatype.
-
-        Parameters
-        ----------
-        v : :class:`~spacepy.pycdf.Var`
-            Variable to check
-
-        Returns
-        -------
-        list of str
-            Description of each validation failure.
-        """
-        errs = []
-        vshape = v.shape
-        minval, maxval = spacepy.pycdf.lib.get_minmax(v.type())
-        for which in ('SCALEMIN', 'SCALEMAX'):
+                    is_fill = data == v.attrs['FILLVAL']
+            else:
+                is_fill = numpy.zeros(shape=data.shape, dtype=numpy.bool)
+        for which in (whichmin, whichmax):
             if not which in v.attrs:
                 continue
             attrval = v.attrs[which]
@@ -344,14 +285,66 @@ class VariableChecks(object):
                     continue
                 if firstdim: #Add pseudo-record dim
                     attrval = numpy.reshape(attrval, (1, -1))
-            if numpy.any(attrval < minval) or numpy.any(attrval > maxval):
+            if numpy.any((attrval < minval)) or numpy.any((attrval > maxval)):
                 errs.append('{} ({}) outside data range ({},{}).'.format(
                     which, attrval[0, :] if multidim else attrval,
                     minval, maxval))
-        if ('SCALEMIN' in v.attrs) and ('SCALEMAX' in v.attrs):
-            if numpy.any(v.attrs['SCALEMIN'] > v.attrs['SCALEMAX']):
-                errs.append('SCALEMIN > SCALEMAX.')
+            if not rng or not len(data): #nothing to compare
+                continue
+            #Always put numpy array on the left so knows to do element compare
+            idx = (data < attrval) if which == whichmin \
+                  else (data > attrval)
+            idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
+            if idx.any():
+                badidx = numpy.nonzero(idx)
+                badvals = data[badidx]
+                if len(badidx) > 1: #Multi-dimensional data
+                    badidx = numpy.transpose(badidx) #Group by value not axis
+                else:
+                    badidx = badidx[0] #Just recover the index value
+                direction = 'under' if which == whichmin else 'over'
+                errs.append('Value {} at index {} {} {} {}.'.format(
+                    ', '.join(str(d) for d in badvals),
+                    ', '.join(str(d) for d in badidx),
+                    direction, which,
+                    attrval[0, :] if multidim else attrval))
+        if (whichmin in v.attrs) and (whichmax in v.attrs):
+            if numpy.any(v.attrs[whichmin] > v.attrs[whichmax]):
+                errs.append('{} > {}.'.format(whichmin, whichmax))
         return errs
+
+    @classmethod
+    def validrange(cls, v):
+        """Check that all values are within VALIDMIN/VALIDMAX, or FILLVAL
+
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            Description of each validation failure.
+        """
+        return cls._validhelper(v)
+
+    @classmethod
+    def validscale(cls, v):
+        """Check that SCALEMIN<=SCALEMAX, and neither goes out 
+        of range for CDF datatype.
+
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            Description of each validation failure.
+        """
+        return cls._validhelper(v, False)
 
     @classmethod
     def validplottype(cls, v):
