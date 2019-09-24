@@ -250,10 +250,9 @@ class VariableChecks(object):
         errs = []
         #This makes datetime comparisons a lot easier
         raw_v = v.cdf_file.raw_var(v.name())
-        data = raw_v[...]
-        if not len(data): #nothing to compare
-            return errs
+        vshape = v.shape
         minval, maxval = spacepy.pycdf.lib.get_minmax(v.type())
+        data = raw_v[...]
         is_fill = numpy.isclose(data, raw_v.attrs['FILLVAL']) \
                   if 'FILLVAL' in raw_v.attrs \
                      else numpy.zeros(shape=data.shape, dtype=numpy.bool)
@@ -267,18 +266,24 @@ class VariableChecks(object):
             if multidim: #Compare shapes, require only 1D var
                 #Match attribute dim to first non-record var dim
                 firstdim = int(v.rv())
-                if data.shape[firstdim] != numpy.shape(attrval)[0]:
+                if vshape[firstdim] != numpy.shape(attrval)[0]:
                     errs.append(('{} element count {} does not match first data'
                                  ' dimension size {}.').format(
                                      which, numpy.shape(attrval)[0],
                                      data.shape[firstdim]))
                     continue
-                if len(data.shape) != firstdim + 1: #only one non-record dim
+                if len(vshape) != firstdim + 1: #only one non-record dim
                     errs.append('Multi-element {} only valid with 1D variable.'
                                 .format(which))
                     continue
                 if firstdim: #Add pseudo-record dim
                     attrval = numpy.reshape(attrval, (1, -1))
+            if numpy.any((rawattrval < minval)) \
+               or numpy.any((rawattrval > maxval)):
+                errs.append('{} ({}) outside data range ({},{}) for {}.'.format(
+                    which, rawattrval, minval, maxval, v.name()))
+            if not len(data): #nothing to compare
+                continue
             bigger, smaller = (data, rawattrval) if which == 'VALIDMIN' \
                               else (rawattrval, data)
             idx = bigger < smaller
@@ -296,10 +301,6 @@ class VariableChecks(object):
                     ', '.join(str(d) for d in badidx),
                     direction, which,
                     attrval[0, :] if multidim else attrval))
-            if numpy.any((rawattrval < minval)) \
-               or numpy.any((rawattrval > maxval)):
-                errs.append('{} ({}) outside data range ({},{}) for {}.'.format(
-                    which, rawattrval, minval, maxval, v.name()))
         if ('VALIDMIN' in v.attrs) and ('VALIDMAX' in v.attrs):
             if numpy.any(v.attrs['VALIDMIN'] > v.attrs['VALIDMAX']):
                 errs.append('VALIDMIN > VALIDMAX.')
@@ -321,7 +322,9 @@ class VariableChecks(object):
             Description of each validation failure.
         """
         errs = []
+        #This makes datetime comparisons a lot easier
         raw_v = v.cdf_file.raw_var(v.name())
+        vshape = v.shape
         minval, maxval = spacepy.pycdf.lib.get_minmax(raw_v.type())
         for which in ('SCALEMIN', 'SCALEMAX'):
             if not which in v.attrs:
@@ -333,13 +336,13 @@ class VariableChecks(object):
             if multidim: #Compare shapes, require only 1D var
                 #Match attribute dim to first non-record var dim
                 firstdim = int(v.rv())
-                if v.shape[firstdim] != numpy.shape(rawattrval)[0]:
+                if vshape[firstdim] != numpy.shape(rawattrval)[0]:
                     errs.append(('{} element count {} does not match first data'
                                  ' dimension size {}.').format(
                                      which, numpy.shape(rawattrval)[0],
                                      v.shape[firstdim]))
                     continue
-                if len(v.shape) != firstdim + 1: #only one non-record dim
+                if len(vshape) != firstdim + 1: #only one non-record dim
                     errs.append('Multi-element {} only valid with 1D variable.'
                                 .format(which))
                     continue
