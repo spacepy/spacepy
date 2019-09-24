@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import argparse
 
 import spacepy.pycdf
 import spacepy.pycdf.istp
@@ -18,4 +18,9 @@ def main(f):
 
 
 if __name__ == '__main__':
-    main(*sys.argv[1:])
+    parser = argparse.ArgumentParser(
+        description="Check a CDF file for ISTP compliance.")
+    parser.add_argument('cdffile', action='store',
+                        help='Path to CDF file to check')
+    args = parser.parse_args()
+    main(args.cdffile)
