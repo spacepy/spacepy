@@ -248,41 +248,36 @@ class VariableChecks(object):
             Description of each validation failure.
         """
         errs = []
+        #This makes datetime comparisons a lot easier
         raw_v = v.cdf_file.raw_var(v.name())
         data = raw_v[...]
-        minval, maxval = spacepy.pycdf.lib.get_minmax(raw_v.type())
-        if 'VALIDMIN' in raw_v.attrs:
-            idx = data < raw_v.attrs['VALIDMIN']
-            if ('FILLVAL' in raw_v.attrs) and (idx.size != 0):
-                is_fill = numpy.isclose(data, raw_v.attrs['FILLVAL'])
-                idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
+        if not len(data): #nothing to compare
+            return errs
+        minval, maxval = spacepy.pycdf.lib.get_minmax(v.type())
+        is_fill = numpy.isclose(data, raw_v.attrs['FILLVAL']) \
+                  if 'FILLVAL' in raw_v.attrs \
+                     else numpy.zeros(shape=data.shape, dtype=numpy.bool)
+        for which in ('VALIDMIN', 'VALIDMAX'):
+            if not which in v.attrs:
+                continue
+            #Some of these comparisons better raw, but display non-raw
+            rawattrval = raw_v.attrs[which]
+            attrval = v.attrs[which]
+            bigger, smaller = (data, rawattrval) if which == 'VALIDMIN' \
+                              else (rawattrval, data)
+            idx = bigger < smaller
+            idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
             if idx.any():
-                errs.append('Value {} at index {} under VALIDMIN {}.'.format(
+                errs.append('Value {} at index {} {} {} {}.'.format(
                     ', '.join(str(d) for d in v[...][idx]),
                     ', '.join(str(d) for d in numpy.nonzero(idx)[0]),
-                    v.attrs['VALIDMIN']))
-            if (raw_v.attrs['VALIDMIN'] < minval) or \
-               (raw_v.attrs['VALIDMIN'] > maxval):
-                errs.append('VALIDMIN ({}) outside data range ({},{}) for {}.'.format(
-                    raw_v.attrs['VALIDMIN'], minval, maxval,
-                    raw_v.name()))
-        if 'VALIDMAX' in raw_v.attrs:
-            idx = data > raw_v.attrs['VALIDMAX']
-            if 'FILLVAL' in raw_v.attrs:
-                is_fill = numpy.isclose(data, raw_v.attrs['FILLVAL'])
-                idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
-            if idx.any():
-                errs.append('Value {} at index {} over VALIDMAX {}.'.format(
-                    ', '.join(str(d) for d in v[...][idx]),
-                    ', '.join(str(d) for d in numpy.nonzero(idx)[0]),
-                    v.attrs['VALIDMAX']))
-            if (raw_v.attrs['VALIDMIN'] < minval) or \
-               (raw_v.attrs['VALIDMAX'] > maxval):
-                errs.append('VALIDMAX ({}) outside data range ({},{}) for {}.'.format(
-                    raw_v.attrs['VALIDMAX'], minval, maxval,
-                    raw_v.name()))
-        if ('VALIDMIN' in raw_v.attrs) and ('VALIDMAX' in raw_v.attrs):
-            if raw_v.attrs['VALIDMIN'] > raw_v.attrs['VALIDMAX']:
+                    'under' if which == 'VALIDMIN' else 'over',
+                    which, attrval))
+            if (rawattrval < minval) or (rawattrval > maxval):
+                errs.append('{} ({}) outside data range ({},{}) for {}.'.format(
+                    which, rawattrval, minval, maxval, v.name()))
+        if ('VALIDMIN' in v.attrs) and ('VALIDMAX' in v.attrs):
+            if v.attrs['VALIDMIN'] > v.attrs['VALIDMAX']:
                 errs.append('VALIDMIM > VALIDMAX for {}.'.format(v.name()))
         return errs
 
