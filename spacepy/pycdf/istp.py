@@ -248,19 +248,19 @@ class VariableChecks(object):
             Description of each validation failure.
         """
         errs = []
-        #This makes datetime comparisons a lot easier
-        raw_v = v.cdf_file.raw_var(v.name())
         vshape = v.shape
         minval, maxval = spacepy.pycdf.lib.get_minmax(v.type())
-        data = raw_v[...]
-        is_fill = numpy.isclose(data, raw_v.attrs['FILLVAL']) \
-                  if 'FILLVAL' in raw_v.attrs \
-                     else numpy.zeros(shape=data.shape, dtype=numpy.bool)
+        data = v[...]
+        if 'FILLVAL' in v.attrs:
+            if numpy.issubdtype(v.dtype, numpy.float):
+                is_fill = numpy.isclose(data, v.attrs['FILLVAL'])
+            else:
+                is_fill = data == v.attrs['FILLVAL']
+        else:
+            is_fill = numpy.zeros(shape=data.shape, dtype=numpy.bool)
         for which in ('VALIDMIN', 'VALIDMAX'):
             if not which in v.attrs:
                 continue
-            #Some of these comparisons better raw, but display non-raw
-            rawattrval = raw_v.attrs[which]
             attrval = v.attrs[which]
             multidim = bool(numpy.shape(attrval)) #multi-dimensional
             if multidim: #Compare shapes, require only 1D var
@@ -278,19 +278,19 @@ class VariableChecks(object):
                     continue
                 if firstdim: #Add pseudo-record dim
                     attrval = numpy.reshape(attrval, (1, -1))
-            if numpy.any((rawattrval < minval)) \
-               or numpy.any((rawattrval > maxval)):
+            if numpy.any((attrval < minval)) \
+               or numpy.any((attrval > maxval)):
                 errs.append('{} ({}) outside data range ({},{}) for {}.'.format(
-                    which, rawattrval, minval, maxval, v.name()))
+                    which, attrval, minval, maxval, v.name()))
             if not len(data): #nothing to compare
                 continue
-            bigger, smaller = (data, rawattrval) if which == 'VALIDMIN' \
-                              else (rawattrval, data)
-            idx = bigger < smaller
+            #Always put numpy array on the left so knows to do element compare
+            idx = (data < attrval) if which == 'VALIDMIN' \
+                  else (data > attrval)
             idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
             if idx.any():
                 badidx = numpy.nonzero(idx)
-                badvals = v[...][badidx] #non-raw data for display
+                badvals = data[badidx]
                 if len(badidx) > 1: #Multi-dimensional data
                     badidx = numpy.transpose(badidx) #Group by value not axis
                 else:
@@ -329,17 +329,17 @@ class VariableChecks(object):
         for which in ('SCALEMIN', 'SCALEMAX'):
             if not which in v.attrs:
                 continue
-            rawattrval = raw_v.attrs[which]
+            attrval = v.attrs[which]
             #This is all c/p from validrange, should pull out
             #but they're slightly different contexts.
-            multidim = bool(numpy.shape(rawattrval)) #multi-dimensional
+            multidim = bool(numpy.shape(attrval)) #multi-dimensional
             if multidim: #Compare shapes, require only 1D var
                 #Match attribute dim to first non-record var dim
                 firstdim = int(v.rv())
-                if vshape[firstdim] != numpy.shape(rawattrval)[0]:
+                if vshape[firstdim] != numpy.shape(attrval)[0]:
                     errs.append(('{} element count {} does not match first data'
                                  ' dimension size {}.').format(
-                                     which, numpy.shape(rawattrval)[0],
+                                     which, numpy.shape(attrval)[0],
                                      v.shape[firstdim]))
                     continue
                 if len(vshape) != firstdim + 1: #only one non-record dim
@@ -347,13 +347,13 @@ class VariableChecks(object):
                                 .format(which))
                     continue
                 if firstdim: #Add pseudo-record dim
-                    rawattrval = numpy.reshape(rawattrval, (1, -1))
-            if numpy.any(rawattrval < minval) or numpy.any(rawattrval > maxval):
+                    attrval = numpy.reshape(attrval, (1, -1))
+            if numpy.any(attrval < minval) or numpy.any(attrval > maxval):
                 errs.append('{} ({}) outside data range ({},{}).'.format(
-                    which, rawattrval[0, :] if multidim else rawattrval,
+                    which, attrval[0, :] if multidim else attrval,
                     minval, maxval))
-        if ('SCALEMIN' in raw_v.attrs) and ('SCALEMAX' in raw_v.attrs):
-            if numpy.any(raw_v.attrs['SCALEMIN'] > raw_v.attrs['SCALEMAX']):
+        if ('SCALEMIN' in v.attrs) and ('SCALEMAX' in v.attrs):
+            if numpy.any(v.attrs['SCALEMIN'] > v.attrs['SCALEMAX']):
                 errs.append('SCALEMIN > SCALEMAX.')
         return errs
 
