@@ -323,7 +323,6 @@ class VariableChecks(object):
         errs = []
         raw_v = v.cdf_file.raw_var(v.name())
         minval, maxval = spacepy.pycdf.lib.get_minmax(raw_v.type())
-        data = raw_v[...]
         for which in ('SCALEMIN', 'SCALEMAX'):
             if not which in v.attrs:
                 continue
@@ -334,13 +333,13 @@ class VariableChecks(object):
             if multidim: #Compare shapes, require only 1D var
                 #Match attribute dim to first non-record var dim
                 firstdim = int(v.rv())
-                if data.shape[firstdim] != numpy.shape(rawattrval)[0]:
+                if v.shape[firstdim] != numpy.shape(rawattrval)[0]:
                     errs.append(('{} element count {} does not match first data'
                                  ' dimension size {}.').format(
                                      which, numpy.shape(rawattrval)[0],
-                                     data.shape[firstdim]))
+                                     v.shape[firstdim]))
                     continue
-                if len(data.shape) != firstdim + 1: #only one non-record dim
+                if len(v.shape) != firstdim + 1: #only one non-record dim
                     errs.append('Multi-element {} only valid with 1D variable.'
                                 .format(which))
                     continue
