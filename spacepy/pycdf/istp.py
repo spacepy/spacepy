@@ -280,7 +280,7 @@ class VariableChecks(object):
                     attrval = numpy.reshape(attrval, (1, -1))
             if numpy.any((attrval < minval)) \
                or numpy.any((attrval > maxval)):
-                errs.append('{} ({}) outside data range ({},{}) for {}.'.format(
+                errs.append('{} ({}) outside data range ({},{}).'.format(
                     which, attrval, minval, maxval, v.name()))
             if not len(data): #nothing to compare
                 continue
@@ -322,16 +322,12 @@ class VariableChecks(object):
             Description of each validation failure.
         """
         errs = []
-        #This makes datetime comparisons a lot easier
-        raw_v = v.cdf_file.raw_var(v.name())
         vshape = v.shape
-        minval, maxval = spacepy.pycdf.lib.get_minmax(raw_v.type())
+        minval, maxval = spacepy.pycdf.lib.get_minmax(v.type())
         for which in ('SCALEMIN', 'SCALEMAX'):
             if not which in v.attrs:
                 continue
             attrval = v.attrs[which]
-            #This is all c/p from validrange, should pull out
-            #but they're slightly different contexts.
             multidim = bool(numpy.shape(attrval)) #multi-dimensional
             if multidim: #Compare shapes, require only 1D var
                 #Match attribute dim to first non-record var dim
