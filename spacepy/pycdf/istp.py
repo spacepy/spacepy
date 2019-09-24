@@ -263,21 +263,45 @@ class VariableChecks(object):
             #Some of these comparisons better raw, but display non-raw
             rawattrval = raw_v.attrs[which]
             attrval = v.attrs[which]
+            multidim = bool(numpy.shape(attrval)) #multi-dimensional
+            if multidim: #Compare shapes, require only 1D var
+                #Match attribute dim to first non-record var dim
+                firstdim = int(v.rv())
+                if data.shape[firstdim] != numpy.shape(attrval)[0]:
+                    errs.append(('{} element count {} does not match first data'
+                                 ' dimension size {}.').format(
+                                     which, numpy.shape(attrval)[0],
+                                     data.shape[firstdim]))
+                    continue
+                if len(data.shape) != firstdim + 1: #only one non-record dim
+                    errs.append('Multi-element {} only valid with 1D variable.'
+                                .format(which))
+                    continue
+                if firstdim: #Add pseudo-record dim
+                    attrval = numpy.reshape(attrval, (1, -1))
             bigger, smaller = (data, rawattrval) if which == 'VALIDMIN' \
                               else (rawattrval, data)
             idx = bigger < smaller
             idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
             if idx.any():
+                badidx = numpy.nonzero(idx)
+                badvals = v[...][badidx] #non-raw data for display
+                if len(badidx) > 1: #Multi-dimensional data
+                    badidx = numpy.transpose(badidx) #Group by value not axis
+                else:
+                    badidx = badidx[0] #Just recover the index value
+                direction = 'under' if which == 'VALIDMIN' else 'over'
                 errs.append('Value {} at index {} {} {} {}.'.format(
-                    ', '.join(str(d) for d in v[...][idx]),
-                    ', '.join(str(d) for d in numpy.nonzero(idx)[0]),
-                    'under' if which == 'VALIDMIN' else 'over',
-                    which, attrval))
-            if (rawattrval < minval) or (rawattrval > maxval):
+                    ', '.join(str(d) for d in badvals),
+                    ', '.join(str(d) for d in badidx),
+                    direction, which,
+                    attrval[0, :] if multidim else attrval))
+            if numpy.any((rawattrval < minval)) \
+               or numpy.any((rawattrval > maxval)):
                 errs.append('{} ({}) outside data range ({},{}) for {}.'.format(
                     which, rawattrval, minval, maxval, v.name()))
         if ('VALIDMIN' in v.attrs) and ('VALIDMAX' in v.attrs):
-            if v.attrs['VALIDMIN'] > v.attrs['VALIDMAX']:
+            if numpy.any(v.attrs['VALIDMIN'] > v.attrs['VALIDMAX']):
                 errs.append('VALIDMIM > VALIDMAX for {}.'.format(v.name()))
         return errs
 
