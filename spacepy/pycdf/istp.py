@@ -160,6 +160,10 @@ class VariableChecks(object):
                 dv = v.cdf_file[d]
             else:
                 continue #this is a different error
+            if dv.rv() != ('DEPEND_0' in dv.attrs):
+                errs.append('DEPEND_{} {} is RV but has no DEPEND_0.'
+                            .format(depidx, d))
+                continue
             #We hope the only weirdness is whether the dependency
             #is constant, or dependent on record. If it's dependent
             #on another dependency, this gets really weird really fast
