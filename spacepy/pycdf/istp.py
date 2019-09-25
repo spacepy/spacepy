@@ -481,7 +481,7 @@ class FileChecks(object):
         """
         errs = []
         for a in ('Logical_source', 'Logical_file_id'):
-            if not a in f.attrs:
+            if not a in f.attrs or len(f.attrs[a]) == 0:
                 errs.append('No {} in global attrs.'.format(a))
         if errs:
             return errs
