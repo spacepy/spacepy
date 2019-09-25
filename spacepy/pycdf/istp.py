@@ -62,7 +62,7 @@ class VariableChecks(object):
         depsize
         fieldnam
         recordcount
-        validplottype
+        validdisplaytype
         validrange
         validscale
         
@@ -71,7 +71,7 @@ class VariableChecks(object):
     .. automethod:: depsize
     .. automethod:: fieldnam
     .. automethod:: recordcount
-    .. automethod:: validplottype
+    .. automethod:: validdisplaytype
     .. automethod:: validrange
     .. automethod:: validscale
 
@@ -110,7 +110,7 @@ class VariableChecks(object):
         """
         #Update this list when adding new test functions
         callme = (cls.depends, cls.depsize, cls.fieldnam, cls.recordcount,
-                  cls.validrange, cls.validscale, cls.validplottype)
+                  cls.validrange, cls.validscale, cls.validdisplaytype)
         errors = []
         for f in callme:
             try:
@@ -127,6 +127,13 @@ class VariableChecks(object):
     def depends(cls, v):
         """Checks that DEPEND and LABL_PTR variables actually exist
 
+        Check that variables specified in the variable attributes for
+        `DEPEND
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DEPEND_0>`_
+        and `LABL_PTR
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#LABL_PTR_1>`_
+        exist in the CDF.
+
         Parameters
         ----------
         v : :class:`~spacepy.pycdf.Var`
@@ -136,6 +143,7 @@ class VariableChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         return ['{} variable {} missing'.format(a, v.attrs[a])
                 for a in v.attrs
@@ -146,6 +154,12 @@ class VariableChecks(object):
     def depsize(cls, v):
         """Checks that DEPEND has same shape as that dim
 
+        Compares the size of variables specified in the variable
+        attributes for `DEPEND
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DEPEND_0>`_
+        and compares to the size of the corresponding dimension in
+        this variable.
+
         Parameters
         ----------
         v : :class:`~spacepy.pycdf.Var`
@@ -155,6 +169,7 @@ class VariableChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         rv = int(v.rv()) #RV is a leading dimension
         errs = []
@@ -229,6 +244,11 @@ class VariableChecks(object):
     def recordcount(cls, v):
         """Check that the DEPEND_0 has same record count as variable
 
+        Checks the record count of the variable specified in the
+        variable attribute for `DEPEND_0
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DEPEND_0>`_
+        and compares to the record count for this variable.
+
         Parameters
         ----------
         v : :class:`~spacepy.pycdf.Var`
@@ -238,6 +258,7 @@ class VariableChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         if not v.rv() or not 'DEPEND_0' in v.attrs:
             return []
@@ -344,6 +365,12 @@ class VariableChecks(object):
     def validrange(cls, v):
         """Check that all values are within VALIDMIN/VALIDMAX, or FILLVAL
 
+        Compare all values of this variable to `VALIDMIN
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#VALIDMIN>`_
+        and ``VALIDMAX``; fails validation if any values are below
+        VALIDMIN or above ``VALIDMAX`` unless equal to `FILLVAL
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FILLVAL>`_.
+
         Parameters
         ----------
         v : :class:`~spacepy.pycdf.Var`
@@ -353,13 +380,18 @@ class VariableChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         return cls._validhelper(v)
 
     @classmethod
     def validscale(cls, v):
-        """Check that SCALEMIN<=SCALEMAX, and neither goes out 
-        of range for CDF datatype.
+        """Check SCALEMIN<=SCALEMAX, and both in range for CDF datatype.
+
+        Compares `SCALEMIN
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#SCALEMIN>`_
+        to ``SCALEMAX`` to make sure it isn't larger and both are
+        within range of the variable CDF datatype.
 
         Parameters
         ----------
@@ -370,12 +402,18 @@ class VariableChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         return cls._validhelper(v, False)
 
     @classmethod
-    def validplottype(cls, v):
+    def validdisplaytype(cls, v):
         """Check that plottype matches dimensions.
+
+        Check `DISPLAYTYPE
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DISPLAY_TYPE>`_
+        of this variable and makes sure it is reasonable for the
+        variable dimensions.
 
         Parameters
         ----------
@@ -386,6 +424,7 @@ class VariableChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         time_st = 'time_series'
         spec_st = 'spectrogram'
@@ -403,6 +442,11 @@ class VariableChecks(object):
     def fieldnam(cls, v):
         """Check that FIELDNAM attribute matches variable name.
 
+        Compare `FIELDNAM
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FIELDNAM>`_
+        attribute to the variable name; fail validation if they don't
+        match.
+
         Parameters
         ----------
         v : :class:`~spacepy.pycdf.Var`
@@ -412,6 +456,7 @@ class VariableChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         errs = []
         vname = v.name()
@@ -506,8 +551,11 @@ class FileChecks(object):
     def filename(cls, f):
         """Compare filename to global attributes
 
-        Check that the logical_file_id matches the actual filename,
-        and logical_source also matches.
+        Check global attribute `Logical_file_id
+        <https://spdf.gsfc.nasa.gov/istp_guide/gattributes.html#Logical_file_id>`_
+        and `Logical_source
+        <https://spdf.gsfc.nasa.gov/istp_guide/gattributes.html#Logical_source>`_
+        for consistency with CDF filename.
 
         Parameters
         ----------
@@ -518,6 +566,7 @@ class FileChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         errs = []
         for a in ('Logical_source', 'Logical_file_id'):
@@ -540,7 +589,9 @@ class FileChecks(object):
     def time_monoton(cls, f):
         """Checks that times are monotonic
 
-        Check that all Epoch variables are monotonically increasing.
+        Check that all `Epoch
+        <https://spdf.gsfc.nasa.gov/istp_guide/variables.html#support_data_eg1>`_
+        variables are monotonically increasing.
 
         Parameters
         ----------
@@ -551,6 +602,7 @@ class FileChecks(object):
         -------
         list of str
             Description of each validation failure.
+
         """
         errs = []
         for v in f:
@@ -570,7 +622,9 @@ class FileChecks(object):
     def times(cls, f):
         """Compare filename to times
 
-        Check that all Epoch variables only contain times matching filename
+        Check that all `Epoch
+        <https://spdf.gsfc.nasa.gov/istp_guide/variables.html#support_data_eg1>`_
+        variables only contain times matching filename.
 
         Parameters
         ----------
@@ -587,6 +641,7 @@ class FileChecks(object):
         This function assumes daily files and should be extended based on the
         File_naming_convention global attribute (which itself is another good
         check to have.)
+
         """
         errs = []
         fname = os.path.basename(f.pathname)

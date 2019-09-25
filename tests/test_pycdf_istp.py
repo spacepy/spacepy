@@ -357,27 +357,27 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual('Multi-element SCALEMAX only valid with 1D variable.',
                          errs[1])
 
-    def testValidPlotType(self):
+    def testValiddisplaytype(self):
         """Check plot type."""
         err1 = '1 dim variable with spectrogram display type.'
         err2 = 'Multi dim variable with time_series display type.'
         v = self.cdf.new('var1', recVary=True, data=[1, 2, 3])
         v.attrs['DISPLAY_TYPE'] = 'time_series'
         self.assertEqual(
-            0, len(spacepy.pycdf.istp.VariableChecks.validplottype(v)))
+            0, len(spacepy.pycdf.istp.VariableChecks.validdisplaytype(v)))
         v.attrs['DISPLAY_TYPE'] = 'spectrogram'
         self.assertEqual(
-            1, len(spacepy.pycdf.istp.VariableChecks.validplottype(v)))
-        errs = spacepy.pycdf.istp.VariableChecks.validplottype(v)
+            1, len(spacepy.pycdf.istp.VariableChecks.validdisplaytype(v)))
+        errs = spacepy.pycdf.istp.VariableChecks.validdisplaytype(v)
         self.assertEqual(err1, errs[0])
         v = self.cdf.new('var2', recVary=True, data=[[1, 2, 3],[4,5,6]])
         v.attrs['DISPLAY_TYPE'] = 'spectrogram'
         self.assertEqual(
-            0, len(spacepy.pycdf.istp.VariableChecks.validplottype(v)))
+            0, len(spacepy.pycdf.istp.VariableChecks.validdisplaytype(v)))
         v.attrs['DISPLAY_TYPE'] = 'time_series'
         self.assertEqual(
-            1, len(spacepy.pycdf.istp.VariableChecks.validplottype(v)))
-        errs = spacepy.pycdf.istp.VariableChecks.validplottype(v)
+            1, len(spacepy.pycdf.istp.VariableChecks.validdisplaytype(v)))
+        errs = spacepy.pycdf.istp.VariableChecks.validdisplaytype(v)
         self.assertEqual(err2, errs[0])
 
     def testFieldnam(self):
