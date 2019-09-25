@@ -15,6 +15,10 @@ issues found. This script is supplemental to the checker included with
 the `ISTP skeleton editor <https://spdf.gsfc.nasa.gov/skteditor/>`_;
 it primarily checks for errors that the skeleton editor does not.
 
+Badly noncompliant files may result in this script exiting with
+unusual errors because they violate some assumption underlying the
+check.
+
 This is just a thin wrapper to :meth:`spacepy.pycdf.istp.FileChecks.all`.
 
 .. option:: cdffile
