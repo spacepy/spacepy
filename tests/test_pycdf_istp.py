@@ -269,6 +269,21 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual(1, len(errs))
         self.assertEqual('DEPEND_1 thedep is RV but has no DEPEND_0.', errs[0])
 
+    def testValidRangeScalar(self):
+        """Check validmin/max on a scalar"""
+        v = self.cdf.new('var1', recVary=False, data=1)
+        v.attrs['VALIDMIN'] = 0
+        v.attrs['VALIDMAX'] = 2
+        v.attrs['FILLVAL'] = -100
+        self.assertEqual(
+            0, len(spacepy.pycdf.istp.VariableChecks.validrange(v)))
+        v.attrs['VALIDMIN'] = 2
+        v.attrs['VALIDMAX'] = 3
+        errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
+        self.assertEqual(1, len(errs))
+        self.assertEqual(
+            'Value 1 under VALIDMIN 2.', errs[0])
+
     def testValidScale(self):
         """Check scale min and max."""
         v = self.cdf.new('var1', recVary=False, data=[1, 2, 3])

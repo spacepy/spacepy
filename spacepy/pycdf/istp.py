@@ -268,7 +268,7 @@ class VariableChecks(object):
                 else:
                     is_fill = data == v.attrs['FILLVAL']
             else:
-                is_fill = numpy.zeros(shape=data.shape, dtype=numpy.bool)
+                is_fill = numpy.zeros(shape=vshape, dtype=numpy.bool)
         for which in (whichmin, whichmax):
             if not which in v.attrs:
                 continue
@@ -293,20 +293,25 @@ class VariableChecks(object):
                 errs.append('{} ({}) outside data range ({},{}).'.format(
                     which, attrval[0, :] if multidim else attrval,
                     minval, maxval))
-            if not rng or not len(data): #nothing to compare
+            if not rng or not len(v): #nothing to compare
                 continue
             #Always put numpy array on the left so knows to do element compare
             idx = (data < attrval) if which == whichmin \
                   else (data > attrval)
             idx = numpy.logical_and(idx, numpy.logical_not(is_fill))
             if idx.any():
+                direction = 'under' if which == whichmin else 'over'
+                if len(vshape) == 0: #Scalar
+                    errs.append('Value {} {} {} {}.'.format(
+                        data, direction, which,
+                        attrval[0, :] if multidim else attrval))
+                    continue
                 badidx = numpy.nonzero(idx)
                 badvals = data[badidx]
                 if len(badidx) > 1: #Multi-dimensional data
                     badidx = numpy.transpose(badidx) #Group by value not axis
                 else:
                     badidx = badidx[0] #Just recover the index value
-                direction = 'under' if which == whichmin else 'over'
                 if len(badvals) < 10:
                     badvalstr = ', '.join(str(d) for d in badvals)
                     badidxstr = ', '.join(str(d) for d in badidx)
