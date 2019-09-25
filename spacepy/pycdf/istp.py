@@ -81,13 +81,18 @@ class VariableChecks(object):
     #closing period) and NOT include the variable name.
 
     @classmethod
-    def all(cls, v):
+    def all(cls, v, catch=False):
         """Perform all variable tests
 
         Parameters
         ----------
         v : :class:`~spacepy.pycdf.Var`
             Variable to check
+        catch : bool
+            Catch exceptions in tests (default False). If True, any
+            exceptions in subtests will result in an addition to the
+            validation failures of the form "Test x did not complete."
+            Calling the individual test will reveal the full traceback.
 
         Returns
         -------
@@ -108,7 +113,14 @@ class VariableChecks(object):
                   cls.validrange, cls.validscale, cls.validplottype)
         errors = []
         for f in callme:
-            errors.extend(f(v))
+            try:
+                errors.extend(f(v))
+            except:
+                if catch:
+                    errors.append('Test {} did not complete.'.format(
+                        f.__name__))
+                else:
+                    raise
         return errors
 
     @classmethod
@@ -439,7 +451,7 @@ class FileChecks(object):
     #closing period).
 
     @classmethod
-    def all(cls, f):
+    def all(cls, f, catch=False):
         """Perform all variable and file-level tests
 
         In addition to calling every test in this class, will also call
@@ -449,6 +461,11 @@ class FileChecks(object):
         ----------
         f : :class:`~spacepy.pycdf.CDF`
             Open CDF file to check
+        catch : bool
+            Catch exceptions in tests (default False). If True, any
+            exceptions in subtests will result in an addition to the
+            validation failures of the form "Test x did not complete."
+            Calling the individual test will reveal the full traceback.
 
         Returns
         -------
@@ -471,10 +488,18 @@ class FileChecks(object):
         callme = (cls.filename, cls.time_monoton, cls.times,)
         errors = []
         for func in callme:
-            errors.extend(func(f))
+            try:
+                errors.extend(func(f))
+            except:
+                if catch:
+                    errors.append('Test {} did not complete.'.format(
+                        f.__name__))
+                else:
+                    raise
+
         for v in f:
             errors.extend(('{}: {}'.format(v, e)
-                           for e in VariableChecks.all(f[v])))
+                           for e in VariableChecks.all(f[v], catch=catch)))
         return errors
                 
     @classmethod

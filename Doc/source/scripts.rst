@@ -15,11 +15,15 @@ issues found. This script is supplemental to the checker included with
 the `ISTP skeleton editor <https://spdf.gsfc.nasa.gov/skteditor/>`_;
 it primarily checks for errors that the skeleton editor does not.
 
-Badly noncompliant files may result in this script exiting with
-unusual errors because they violate some assumption underlying the
-check.
+Badly noncompliant files generally result in the error "Test x did not
+complete". This means the test crashed due to some failure in the
+assumptions about the CDF structure. Please run the individual test to
+get a traceback and `open an issue
+<https://github.com/spacepy/spacepy/issues>`_.
 
-This is just a thin wrapper to :meth:`spacepy.pycdf.istp.FileChecks.all`.
+This is just a thin wrapper to
+:meth:`spacepy.pycdf.istp.FileChecks.all`; that documentation (plus
+other methods in the class) describes the actual checks.
 
 .. option:: cdffile
 
