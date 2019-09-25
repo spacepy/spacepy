@@ -307,11 +307,17 @@ class VariableChecks(object):
                 else:
                     badidx = badidx[0] #Just recover the index value
                 direction = 'under' if which == whichmin else 'over'
-                errs.append('Value {} at index {} {} {} {}.'.format(
-                    ', '.join(str(d) for d in badvals),
-                    ', '.join(str(d) for d in badidx),
-                    direction, which,
-                    attrval[0, :] if multidim else attrval))
+                if len(badvals) < 10:
+                    badvalstr = ', '.join(str(d) for d in badvals)
+                    badidxstr = ', '.join(str(d) for d in badidx)
+                    errs.append('Value {} at index {} {} {} {}.'.format(
+                        badvalstr, badidxstr,
+                        direction, which,
+                        attrval[0, :] if multidim else attrval))
+                else:
+                    errs.append('{} values {} {} {}'.format(
+                        len(badvals), direction, which,
+                        attrval[0, :] if multidim else attrval))
         if (whichmin in v.attrs) and (whichmax in v.attrs):
             if numpy.any(v.attrs[whichmin] > v.attrs[whichmax]):
                 errs.append('{} > {}.'.format(whichmin, whichmax))
