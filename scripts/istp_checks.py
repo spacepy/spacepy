@@ -12,7 +12,7 @@ def main(f):
     :param str f: filename to check
     """
     with spacepy.pycdf.CDF(f) as cdffile:
-        errs = spacepy.pycdf.istp.FileChecks.all(cdffile)
+        errs = spacepy.pycdf.istp.FileChecks.all(cdffile, catch=True)
     if errs:
         print('\n'.join(errs))
 
