@@ -17,6 +17,10 @@ import gc
 import hashlib
 import operator
 import os, os.path
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import re
 import shutil
 import sys
@@ -1686,6 +1690,50 @@ class ReadCDF(CDFTests):
         for i in zvarcopy.attrs:
             self.assertEqual(zvar.attrs[i], zvarcopy.attrs[i])
         numpy.testing.assert_array_equal(zvar[...], zvarcopy[...])
+
+    def testVarCopyNRV(self):
+        """VarCopy of NRV makes an NRV variable"""
+        varcopy = self.cdf['RateScalerNames'].copy()
+        testdir = tempfile.mkdtemp()
+        try:
+            with cdf.CDF(os.path.join(testdir, 'temp.cdf'), create=True) as f:
+                f['newvar'] = varcopy
+                self.assertFalse(f['newvar'].rv())
+        finally:
+            shutil.rmtree(testdir)
+
+    @unittest.skipIf(cdf.lib.version[0] < 3,
+                     "Not supported with CDF library < 3")
+    def testVarCopyCDFType(self):
+        """Assigning from VarCopy preserves CDF type"""
+        varcopy = self.cdf['ATC'].copy()
+        #Remove sub-second resolution so a normal Epoch would do
+        for i in range(len(varcopy)):
+            varcopy[i] = varcopy[i].replace(microsecond=0)
+        testdir = tempfile.mkdtemp()
+        cdf.lib.set_backward(False) #Enable Epoch16
+        try:
+            with cdf.CDF(os.path.join(testdir, 'temp.cdf'), create=True) as f:
+                f['newvar'] = varcopy
+                self.assertEqual(self.cdf['ATC'].type(),
+                                 f['newvar'].type())
+        finally:
+            cdf.lib.set_backward(True)
+            shutil.rmtree(testdir)
+
+    def testVarCopyPickle(self):
+        """Pickling a VarCopy preserves information"""
+        varcopy = self.cdf['RateScalerNames'].copy()
+        testdir = tempfile.mkdtemp()
+        testfile = os.path.join(testdir, 'foo.pkl')
+        try:
+            with open(testfile, 'wb') as f:
+                pickle.dump(varcopy, f)
+            with open(testfile, 'rb') as f:
+                varcopy2 = pickle.load(f)
+        finally:
+            shutil.rmtree(testdir)
+        self.assertFalse(varcopy2.rv())
 
     def testCDFCopy(self):
         """Make a copy of an entire CDF"""

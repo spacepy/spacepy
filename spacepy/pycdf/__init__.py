@@ -2200,10 +2200,9 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         """
         return _compress(self, comptype, param)
 
-    def new(self, name, data=None, type=None, recVary=True, dimVarys=None,
+    def new(self, name, data=None, type=None, recVary=None, dimVarys=None,
             dims=None, n_elements=None, compress=None, compress_param=None):
-        """
-        Create a new zVariable in this CDF
+        """Create a new zVariable in this CDF
 
         .. note::
             Either ``data`` or ``type`` must be specified. If type is not
@@ -2217,9 +2216,14 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         Other Parameters
         ================
         data
-            data to store in the new variable. If this has a an ``attrs``
-            attribute (e.g., :class:`~spacepy.datamodel.dmarray`), it
-            will be used to populate attributes of the new variable.
+            data to store in the new variable. If this has a an
+            ``attrs`` attribute (e.g.,
+            :class:`~spacepy.datamodel.dmarray`), it will be used to
+            populate attributes of the new variable. Similarly the CDF
+            type, record variance, etc. will, by default, be taken
+            from `data` if it is a
+            :class:`~spacepy.pycdf.VarCopy`. This can be overridden by
+            specifying other keywords.
         type : ctypes.c_long
             CDF type of the variable, from :mod:`~spacepy.pycdf.const`.
             See section 2.5 of the CDF user's guide for more information on
@@ -2287,7 +2291,26 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         This will switch to an eight-byte double in some cases where four bytes
         would be sufficient for IEEE 754 encoding, but where DEC formats would
         require eight.
+
         """
+        if hasattr(data, 'compress'):
+            try:
+                c, cp = data.compress()
+            except: #numpy arrays have "compress" and it behaves differently
+                pass
+            else:
+                if compress is None:
+                    compress = c
+                if compress_param is None:
+                    compresS_param = cp
+        #Get defaults from VarCopy if data looks like a VarCopy
+        if recVary is None:
+            recVary = data.rv() if hasattr(data, 'rv') else True
+        #Use dimension variance from the copy if it matches # of dims
+        if dimVarys is None and hasattr(data, 'dv') and hasattr(data, 'shape'):
+            dv = data.dv()
+            if len(dv) + int(recVary) == len(data.shape):
+                dimVarys = dv
         if type in (const.CDF_EPOCH16, const.CDF_INT8, const.CDF_TIME_TT2000) \
                 and self.backward:
             raise ValueError('Cannot use EPOCH16, INT8, or TIME_TT2000 '
@@ -2303,6 +2326,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             if n_elements is None:
                 n_elements = 1
         else:
+            #This supports getting the type straight from a VarCopy
             (guess_dims, guess_types, guess_elements) = _Hyperslice.types(data)
             if dims is None:
                 if recVary:
@@ -3603,8 +3627,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
 
 
 class VarCopy(spacepy.datamodel.dmarray):
-    """
-    A list-like copy of the data and attributes in a :class:`Var`
+    """A list-like copy of the data and attributes in a :class:`Var`
 
     Data are in the list elements. CDF attributes are in a dict,
     accessed through :attr:`attrs`. (I.e.,
@@ -3613,10 +3636,31 @@ class VarCopy(spacepy.datamodel.dmarray):
     Do not instantiate this class directly; use :meth:`~Var.copy`
     on an existing :class:`Var`.
 
+    Several methods provide access to details about how the original
+    variable was constructed. This is mostly for making it easier to
+    reproduce the variable by passing it to
+    :meth:`~spacepy.pycdf.CDF.new`.
+
+    .. autosummary::
+
+        compress
+        dv
+        nelems
+        rv
+        type
+
     .. attribute:: attrs
 
        Python dictionary containing attributes copied from the zVar
+
+    .. automethod:: compress
+    .. automethod:: dv
+    .. automethod:: nelems
+    .. automethod:: rv
+    .. automethod:: type
     """
+    Allowed_Attributes = spacepy.datamodel.dmarray.Allowed_Attributes \
+                         + ['_cdf_meta']
 
     def __new__(cls, zVar):
         """Copies all data and attributes from a zVariable
@@ -3624,7 +3668,76 @@ class VarCopy(spacepy.datamodel.dmarray):
         @param zVar: variable to take data from
         @type zVar: :py:class:`pycdf.Var`
         """
-        return super(VarCopy, cls).__new__(cls, zVar[...], zVar.attrs.copy())
+        obj = super(VarCopy, cls).__new__(cls, zVar[...], zVar.attrs.copy())
+        obj._cdf_meta = {
+            'compress': zVar.compress(),
+            'dv': zVar.dv(),
+            'nelems': zVar._nelems(),
+            'rv': zVar.rv(),
+            'type': zVar.type(),
+            }
+        return obj
+
+    def compress(self):
+        """Gets compression of the variable this was copied from.
+
+        For details on CDF compression, see
+        :meth:`spacepy.pycdf.Var.compress`.
+
+        Returns
+        =======
+        tuple
+            compression type, parameter currently in effect.
+
+        """
+        return self._cdf_meta['compress']
+
+    def dv(self):
+        """Gets dimension variance of the variable this was copied from.
+
+        Each dimension other than the record dimension may either vary
+        or not.
+
+        Returns
+        =======
+        list of boolean
+            True if that dimension has variance, else False
+
+        """
+        return self._cdf_meta['dv']
+
+    def nelems(self):
+        """Gets number of elements of the variable this was copied from.
+
+        This is usually 1 except for strings, where it is the length of the
+        string.
+
+        Returns
+        =======
+        int
+            Number of elements in parent variable
+        """
+        return self._cdf_meta['nelems']
+
+    def rv(self):
+        """Gets record variance of the variable this was copied from.
+
+        Returns
+        =======
+        boolean
+            True if parent variable was record varying, False if NRV
+        """
+        return self._cdf_meta['rv']
+
+    def type(self):
+        """Returns CDF type of the variable this was copied from.
+
+        Returns
+        =======
+        int
+            CDF type
+        """
+        return self._cdf_meta['type']
 
 
 class _Hyperslice(object):
@@ -4102,6 +4215,17 @@ class _Hyperslice(object):
                         types = [const.CDF_FLOAT, const.CDF_REAL4,
                                  const.CDF_DOUBLE, const.CDF_REAL8]
         types = [t.value if hasattr(t, 'value') else t for t in types]
+        #If data has a type, might be a VarCopy, prefer that type
+        if hasattr(data, 'type'):
+            t = data.type()
+            if t in types:
+                types = [t]
+        #And if the VarCopy specifies a number of elements, use that
+        #if compatible
+        if hasattr(data, 'nelems'):
+            ne = data.nelems()
+            if ne > elements:
+                elements = ne
         return (dims, types, elements)
 
     @staticmethod
