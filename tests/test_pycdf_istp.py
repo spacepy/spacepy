@@ -406,6 +406,11 @@ class FileTests(ISTPTestsBase):
             'source_descriptor_datatype_19990101_v00'
         errs = spacepy.pycdf.istp.FileChecks.filename(self.cdf)
         self.assertEqual(0, len(errs))
+        del self.cdf.attrs['Logical_source'][0]
+        errs = spacepy.pycdf.istp.FileChecks.filename(self.cdf)
+        self.assertEqual(1, len(errs))
+        self.assertEqual(['No Logical_source in global attrs.'],
+                         errs)
 
     def testTimesMonoton(self):
         """Test monotonic time"""
