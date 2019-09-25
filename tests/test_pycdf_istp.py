@@ -256,6 +256,19 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual('Dim 1 sized 2 but DEPEND_1 dep1 sized 3.', errs[0])
         self.assertEqual('Dim 2 sized 3 but DEPEND_2 dep2 sized 2.', errs[1])
         
+    def testDepSizeBadRV(self):
+        """Depend size check with RV, non-depend 0 dep"""
+        e = self.cdf.new(
+            'Epoch', type=spacepy.pycdf.const.CDF_EPOCH,
+            data=[datetime.datetime(2010, 1, i + 1) for i in range(5)])
+        v = self.cdf.new('Data', data=[[1, 2], [3, 4], [5, 6]])
+        v.attrs['DEPEND_0'] = 'Epoch'
+        d = self.cdf.new('thedep', recVary=True, data=[1, 2, 3])
+        v.attrs['DEPEND_1'] = 'thedep'
+        errs = spacepy.pycdf.istp.VariableChecks.depsize(v)
+        self.assertEqual(1, len(errs))
+        self.assertEqual('DEPEND_1 thedep is RV but has no DEPEND_0.', errs[0])
+
     def testValidScale(self):
         """Check scale min and max."""
         v = self.cdf.new('var1', recVary=False, data=[1, 2, 3])
