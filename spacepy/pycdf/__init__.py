@@ -3699,11 +3699,14 @@ class VarCopy(spacepy.datamodel.dmarray):
             }
         return obj
 
-    def compress(self):
+    def compress(self, *args, **kwargs):
         """Gets compression of the variable this was copied from.
 
         For details on CDF compression, see
         :meth:`spacepy.pycdf.Var.compress`.
+
+        If any arguments are specified, calls
+        :meth:`numpy.ndarray.compress` instead (as the names conflict)
 
         Returns
         =======
@@ -3711,7 +3714,10 @@ class VarCopy(spacepy.datamodel.dmarray):
             compression type, parameter currently in effect.
 
         """
-        return self._cdf_meta['compress']
+        if args or kwargs:
+            return super(VarCopy, self).compress(*args, **kwargs)
+        else:
+            return self._cdf_meta['compress']
 
     def dv(self):
         """Gets dimension variance of the variable this was copied from.
