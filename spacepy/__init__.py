@@ -220,8 +220,9 @@ def _write_defaults(rcfile, defaults, section='spacepy'):
             f.seek(0, 2)
         #Write default values for anything not read
         for k in sorted(writeme):
-            f.write("#{key}: {value} #default in SpacePy {ver}\n".format(
-                key=k, value=defaults[k], ver=__version__))
+            f.write(("#SpacePy {ver} default {key}: {value}\n"
+                     "#{key}: {value}\n").format(
+                         key=k, value=defaults[k], ver=__version__))
         #And write all the remaining lines from the section header to end
         if writeme:
             f.writelines(rclines[thissec+1:])
