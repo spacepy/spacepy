@@ -1742,6 +1742,15 @@ class ReadCDF(CDFTests):
         varcopy = self.cdf['MeanCharge'].copy()
         self.assertRaises(KeyError, varcopy.set, 'foo', 'bar')
 
+    def testVarCopyCompressThunk(self):
+        """Check that compress overloading works"""
+        varcopy = self.cdf['MeanCharge'].copy()
+        actual = varcopy.compress()
+        self.assertEqual(0, actual[0].value)
+        self.assertEqual(0, actual[1])
+        foo = varcopy.compress([False] * 17 + [True], axis=0)
+        numpy.testing.assert_allclose(foo, self.cdf['MeanCharge'][17:18, :])
+
     def testVarCopyPickle(self):
         """Pickling a VarCopy preserves information"""
         varcopy = self.cdf['RateScalerNames'].copy()
