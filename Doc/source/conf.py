@@ -283,7 +283,9 @@ epub_copyright = u'2011, The SpacePy Team'
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None,
-                       'http://docs.scipy.org/doc/numpy/': None,
-                       'http://docs.scipy.org/doc/scipy/reference/': None,
-                       'http://matplotlib.sourceforge.net/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/', None),
+    'numpy': ('https://docs.scipy.org/doc/numpy/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
+    'matplotlib': ('https://matplotlib.org/', None),
+}
