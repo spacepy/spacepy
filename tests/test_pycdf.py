@@ -1721,6 +1721,27 @@ class ReadCDF(CDFTests):
             cdf.lib.set_backward(True)
             shutil.rmtree(testdir)
 
+    def testVarCopyMungeCDFType(self):
+        """Change CDF type of VarCopy before assignment"""
+        varcopy = self.cdf['MeanCharge'].copy()
+        varcopy.set('type', const.CDF_DOUBLE)
+        testdir = tempfile.mkdtemp()
+        try:
+            with cdf.CDF(os.path.join(testdir, 'temp.cdf'), create=True) as f:
+                f.new('newvar', data=varcopy)
+                self.assertEqual(const.CDF_DOUBLE.value,
+                                 f['newvar'].type())
+                f['newvar2'] = varcopy
+                self.assertEqual(const.CDF_DOUBLE.value,
+                                 f['newvar2'].type())
+        finally:
+            shutil.rmtree(testdir)
+
+    def testVarCopyBadAssign(self):
+        """Assign to invalid CDF metadata"""
+        varcopy = self.cdf['MeanCharge'].copy()
+        self.assertRaises(KeyError, varcopy.set, 'foo', 'bar')
+
     def testVarCopyPickle(self):
         """Pickling a VarCopy preserves information"""
         varcopy = self.cdf['RateScalerNames'].copy()

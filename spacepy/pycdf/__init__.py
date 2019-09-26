@@ -3655,7 +3655,9 @@ class VarCopy(spacepy.datamodel.dmarray):
     Several methods provide access to details about how the original
     variable was constructed. This is mostly for making it easier to
     reproduce the variable by passing it to
-    :meth:`~spacepy.pycdf.CDF.new`.
+    :meth:`~spacepy.pycdf.CDF.new`. Operations that e.g. change the
+    dimensionality of the copy may make this (or any) metadata out of
+    date; see :meth:`set` to update.
 
     .. autosummary::
 
@@ -3663,6 +3665,7 @@ class VarCopy(spacepy.datamodel.dmarray):
         dv
         nelems
         rv
+        set
         type
 
     .. attribute:: attrs
@@ -3673,7 +3676,9 @@ class VarCopy(spacepy.datamodel.dmarray):
     .. automethod:: dv
     .. automethod:: nelems
     .. automethod:: rv
+    .. automethod:: set
     .. automethod:: type
+
     """
     Allowed_Attributes = spacepy.datamodel.dmarray.Allowed_Attributes \
                          + ['_cdf_meta']
@@ -3744,6 +3749,28 @@ class VarCopy(spacepy.datamodel.dmarray):
             True if parent variable was record varying, False if NRV
         """
         return self._cdf_meta['rv']
+
+    def set(self, key, value):
+        """Set CDF metadata
+
+        Set the metadata describing the original variable this was
+        copied from. Can be used to update the metadata if
+        transformation of the copy has made it out of date (e.g. by
+        removing dimensions.) There is very little checking done and
+        this function should only be used with care.
+
+        Parameters
+        ==========
+        key : str
+            Which metadata to set; this matches the name of the method
+            used to retrieve it (e.g. use ``type`` to set the CDF type, which
+            is returned by :meth:`type`).
+        value
+            Value to assign to `key`.
+        """
+        if key not in self._cdf_meta:
+            raise KeyError('Invalid CDF metadata key {}'.format(key))
+        self._cdf_meta[key] = value
 
     def type(self):
         """Returns CDF type of the variable this was copied from.
@@ -4233,9 +4260,22 @@ class _Hyperslice(object):
         types = [t.value if hasattr(t, 'value') else t for t in types]
         #If data has a type, might be a VarCopy, prefer that type
         if hasattr(data, 'type'):
-            t = data.type()
+            try:
+                t = data.type()
+            except:
+                t = None
+                pass
             if t in types:
                 types = [t]
+            #If passed array, types prefers its dtype, so try for compatible
+            #and let type() override
+            elif d is data:
+                try:
+                    _ = data.astype(dtype=lib.numpytypedict[t])
+                except:
+                    pass
+                finally:
+                    types = [t]
         #And if the VarCopy specifies a number of elements, use that
         #if compatible
         if hasattr(data, 'nelems'):
