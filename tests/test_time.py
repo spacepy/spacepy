@@ -277,6 +277,11 @@ class TimeClassTests(unittest.TestCase):
         """Ticktock init has a raise or two"""
         self.assertRaises(ValueError, t.Ticktock, 12345, 'BOGUS')
 
+    def test_notypeguess(self):
+        """Raise a reasonable error if can't guess type"""
+        self.assertRaises(ValueError, t.Ticktock,
+                          [6.36485472e+10, 3.89393000e+11])
+
     def test_sliceTicktock(self):
         """a ticktock sliced returns a ticktock"""
         n1 = t.Ticktock(['2002-03-01T11:23:11',
