@@ -235,6 +235,9 @@ class Ticktock(MutableSequence):
                     dtype = 'UTC'
                 elif self.data[0] > 1e13:
                     dtype = 'CDF'
+                elif dtype is None:
+                    raise ValueError('Unable to guess dtype from data; '
+                                     'please specify dtype.')
                 if dtype.upper() not in Ticktock._keylist_upper:
                     raise ValueError("data type " + dtype + " not provided, only " + str(Ticktock._keylist))
             else:
