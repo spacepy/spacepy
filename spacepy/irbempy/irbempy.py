@@ -1495,9 +1495,12 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
 
     Returns
     =======
+
         - results (dictionary) : containing keys: Lm, Bmin, Blocal (or Bmirr), Xj, MLT 
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
-            is returned if not provided, then "Blocal" at spacecraft is returned.
+            is returned if not provided, then "Blocal" at spacecraft is returned. A negative
+            value for Lm indicates the field line is closed but particles are lost to the
+            atmosphere; the absolute value indicates the L value.
 
     Examples
     ========
@@ -1550,7 +1553,11 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
     =======
         - results (dictionary) : containing keys: Lm, Lstar, Bmin, Blocal (or Bmirr), Xj, MLT 
             if pitch angles provided in "alpha" then drift shells are calculated and "Bmirr" 
-            is returned if not provided, then "Blocal" at spacecraft is returned.
+            is returned if not provided, then "Blocal" at spacecraft is returned. A negative
+            value for Lm indicates the field line is closed but particles are lost to the
+            atmosphere; the absolute value indicates the L value. A negative value for Lstar
+            indicates the field line is closed but particles are lost to the atmosphere
+            before completing a drift orbit; the absolute value indicates the drift shell.
 
     Examples
     ========
