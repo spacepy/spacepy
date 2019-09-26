@@ -1300,8 +1300,8 @@ class ReadCDF(CDFTests):
 
     def testnElems(self):
         """Read number of elements in a string variable"""
-        self.assertEqual(2, self.cdf['SpinNumbers']._nelems())
-        self.assertEqual(2, self.cdf['SectorNumbers']._nelems())
+        self.assertEqual(2, self.cdf['SpinNumbers'].nelems())
+        self.assertEqual(2, self.cdf['SectorNumbers'].nelems())
 
     def testSubscriptString(self):
         """Refer to a string array by subscript"""
@@ -2397,7 +2397,7 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual([], self.cdf['newvar']._dim_sizes())
 
         self.cdf.new('newvar2', None, const.CDF_CHAR, dims=[])
-        self.assertEqual(1, self.cdf['newvar2']._nelems())
+        self.assertEqual(1, self.cdf['newvar2'].nelems())
 
     def testNewVarEmptyArray(self):
         """Create a variable with an empty numpy array"""
@@ -2511,7 +2511,7 @@ class ChangeCDF(ChangeCDFBase):
             self.assertEqual(oldvar._n_dims(), newvar._n_dims(), msg)
             self.assertEqual(oldvar._dim_sizes(), newvar._dim_sizes(), msg)
             self.assertEqual(oldvar.type(), newvar.type(), msg)
-            self.assertEqual(oldvar._nelems(), newvar._nelems(), msg)
+            self.assertEqual(oldvar.nelems(), newvar.nelems(), msg)
             self.assertEqual(oldvar.compress(), newvar.compress(), msg)
             self.assertEqual(oldvar.rv(), newvar.rv(), msg)
             self.assertEqual(oldvar.dv(), newvar.dv(), msg)
@@ -2536,7 +2536,7 @@ class ChangeCDF(ChangeCDFBase):
             self.assertEqual(oldvar._n_dims(), newvar._n_dims(), msg)
             self.assertEqual(oldvar._dim_sizes(), newvar._dim_sizes(), msg)
             self.assertEqual(oldvar.type(), newvar.type(), msg)
-            self.assertEqual(oldvar._nelems(), newvar._nelems(), msg)
+            self.assertEqual(oldvar.nelems(), newvar.nelems(), msg)
             self.assertEqual(oldvar.compress(), newvar.compress(), msg)
             self.assertEqual(oldvar.rv(), newvar.rv(), msg)
             self.assertEqual(oldvar.dv(), newvar.dv(), msg)
@@ -2693,7 +2693,7 @@ class ChangeCDF(ChangeCDFBase):
         """make a zvar from a numpy string array and get the size right"""
         inarray = numpy.array(['hi', 'there'], dtype='|S6')
         self.cdf['string6'] = inarray
-        self.assertEqual(6, self.cdf['string6']._nelems())
+        self.assertEqual(6, self.cdf['string6'].nelems())
         expected = numpy.require(inarray, dtype=str)
         outarray = numpy.char.rstrip(self.cdf['string6'][...])
         numpy.testing.assert_array_equal(expected, outarray)
@@ -2704,7 +2704,7 @@ class ChangeCDF(ChangeCDFBase):
             return
         inarray = numpy.array(['hi', 'there'], dtype='U6')
         self.cdf['string62'] = inarray
-        self.assertEqual(6, self.cdf['string62']._nelems())
+        self.assertEqual(6, self.cdf['string62'].nelems())
         out = self.cdf['string62'][...]
         numpy.testing.assert_array_equal(inarray, numpy.char.rstrip(out))
 

@@ -856,8 +856,7 @@ def format(v, use_scaleminmax=False, dryrun=False):
             fmt = 'G10.2E3'
     elif cdftype in (spacepy.pycdf.const.CDF_CHAR.value,
                      spacepy.pycdf.const.CDF_UCHAR.value):
-        #This is a bit weird but pycdf consider nelems private. Should change.
-        fmt = 'A{}'.format(v._nelems())
+        fmt = 'A{}'.format(v.nelems())
     else:
         raise ValueError("Couldn't find FORMAT for {} of type {}".format(
             v.name(),

@@ -2033,7 +2033,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             del self[name]
         self.new(name, type=zVar.type(), recVary=zVar.rv(),
                  dimVarys=zVar.dv(), dims=zVar._dim_sizes(),
-                 n_elements=zVar._nelems())
+                 n_elements=zVar.nelems())
         self[name].compress(*zVar.compress())
         self[name].attrs.clone(zVar.attrs)
         if data:
@@ -2906,6 +2906,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         ~Var.dv
         ~Var.insert
         ~Var.name
+        ~Var.nelems
         ~Var.rename
         ~Var.rv
         ~Var.shape
@@ -2920,6 +2921,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
     .. automethod:: dv
     .. automethod:: insert
     .. automethod:: name
+    .. automethod:: nelems
     .. automethod:: rename
     .. automethod:: rv
     .. autoattribute:: shape
@@ -3298,7 +3300,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             chartypes = (const.CDF_CHAR.value, const.CDF_UCHAR.value)
             rv = self.rv()
             typestr = lib.cdftypenames[cdftype] + \
-                      ('*' + str(self._nelems()) if cdftype in chartypes else '' )
+                      ('*' + str(self.nelems()) if cdftype in chartypes else '' )
             if rv:
                 sizestr = str([len(self)] + self._dim_sizes())
             else:
@@ -3436,7 +3438,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         """
         cdftype = self.type()
         if cdftype == const.CDF_CHAR.value or cdftype == const.CDF_UCHAR.value:
-            return numpy.dtype('S' + str(self._nelems()))
+            return numpy.dtype('S' + str(self.nelems()))
         try:
             return lib.numpytypedict[cdftype]
         except KeyError:
@@ -3459,7 +3461,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         if new_type != None:
             if not hasattr(new_type, 'value'):
                 new_type = ctypes.c_long(new_type)
-            n_elements = ctypes.c_long(self._nelems())
+            n_elements = ctypes.c_long(self.nelems())
             self._call(const.PUT_, const.zVAR_DATASPEC_,
                        new_type, n_elements)
             self._type = None
@@ -3470,17 +3472,31 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
             self._type = cdftype.value
         return self._type
 
-    def _nelems(self):
+    def nelems(self):
         """Number of elements for each value in this variable
 
         This is the length of strings for CHAR and UCHAR,
         should be 1 otherwise.
-        @return: length of strings
-        @rtype: int
+
+        Returns
+        =======
+        int
+            length of strings
         """
         nelems = ctypes.c_long(0)
         self._call(const.GET_, const.zVAR_NUMELEMS_, ctypes.byref(nelems))
         return nelems.value
+
+    def _nelems(self):
+        """Number of elements for each value in this variable
+
+        .. deprecated:: 0.2.2
+            This method will be removed in the future. Use the public
+            interface `nelems` instead.
+        """
+        warnings.warn("_nelems is deprecated and will be removed. Use nelems.",
+                      DeprecationWarning)
+        return self.nelems()
 
     def name(self):
         """
@@ -3589,7 +3605,7 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         cdftype = self.type()
         if cdftype in (const.CDF_CHAR.value, const.CDF_UCHAR.value) and \
            str is not bytes and not self._raw:
-            return numpy.dtype('U' + str(self._nelems()))
+            return numpy.dtype('U' + str(self.nelems()))
         if cdftype in (const.CDF_EPOCH.value, const.CDF_EPOCH16.value,
                        const.CDF_TIME_TT2000.value) and not self._raw:
             return numpy.dtype('O')
@@ -3672,7 +3688,7 @@ class VarCopy(spacepy.datamodel.dmarray):
         obj._cdf_meta = {
             'compress': zVar.compress(),
             'dv': zVar.dv(),
-            'nelems': zVar._nelems(),
+            'nelems': zVar.nelems(),
             'rv': zVar.rv(),
             'type': zVar.type(),
             }
