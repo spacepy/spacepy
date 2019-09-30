@@ -79,6 +79,11 @@ psddata_url
   :py:func:`~spacepy.toolbox.update` will download from the URL if requested.
   The default should almost always be acceptable.
 
+support_notice
+  True to display a notice on import if not a release version of SpacePy
+  (default); False to omit. Those regularly installing from git instead
+  of a release may want to set this to False.
+
 user_agent
   User Agent for network access. If this is set,
   :func:`~spacepy.toolbox.update` will use this User Agent string on all
