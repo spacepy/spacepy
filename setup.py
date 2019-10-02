@@ -630,6 +630,9 @@ class build(_build):
             f2py_flags.append('--f77flags=-fno-second-underscore,-mno-align-double')
             if bit == 64:
                 f2py_flags[-1] += ',-m64'
+        if fcompiler == 'gnu95':
+            f2py_flags.extend(['--f77flags=-std=legacy',
+                               '--f90flags=-std=legacy'])
         if self.compiler:
             f2py_flags.append('--compiler={0}'.format(self.compiler))
         if self.f77exec:
