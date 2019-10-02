@@ -1,4 +1,4 @@
-Building spacepy for distribution (20190619)
+Building spacepy for distribution (20191002)
 ============================================
 Since this has to happen on multiple platforms, a single script doesn't work.
 
@@ -51,6 +51,14 @@ The wheels are compliant with metadata 2.0 but are labeled as 2.1, which makes f
 
 for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
 
+Docs
+----
+
+From the Doc directory:
+cp build/latex/SpacePy.pdf spacepy-x.y.z-doc.pdf
+cd build/html
+zip -r ../../spacepy-0.2.1-doc.zip *
+
 Test PyPI
 ---------
 
@@ -74,9 +82,9 @@ username: <username>
 
 (end of .pypirc)
 
-Put all the builds (wheels, source dists) into one directory and:
+Put all the builds (wheels, source dists, not the docs) into one directory and:
 
-  twine upload -r testpypi spacepy-*.gz spacepy-*.zip spacepy-*.whl
+  twine upload -r testpypi spacepy-*.zip spacepy-*.whl
 
 PyPI does not support Windows standalone installers.
 
