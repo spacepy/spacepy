@@ -936,7 +936,7 @@ package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*', 'data/TS0
 
 setup_kwargs = {
     'name': 'spacepy',
-    'version': '0.2.1',
+    'version': '0.2.2',
     'description': 'SpacePy: Tools for Space Science Applications',
     'long_description': 'SpacePy: Tools for Space Science Applications',
     'author': 'SpacePy team',
