@@ -1,4 +1,4 @@
-Changes in Version 0.2.1 (2019-xx-xx)
+Changes in Version 0.2.1 (2019-10-02)
 =====================================
 datamodel
  - Allow access to attributes via "meta" property
