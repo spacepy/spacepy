@@ -888,7 +888,8 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         fh_zip = zipfile.ZipFile(omni2_fname_zip)
         fh_zip.extractall();
         fh_zip.close()
-        omnicdf = fromCDF(fh_zip.namelist()[0])
+        file_to_convert = fh_zip.namelist()[0]
+        omnicdf = fromCDF(file_to_convert)
         #add RDT
         omnicdf['RDT'] = spt.Ticktock(omnicdf['Epoch'],'UTC').RDT
         #remove keys that get in the way
@@ -901,6 +902,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
 
         # delete left-overs
         os.remove(omni2_fname_zip)
+        os.remove(file_to_convert)
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
