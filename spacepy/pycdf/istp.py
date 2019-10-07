@@ -23,6 +23,7 @@ Contact: Jonathan.Niehof@unh.edu
     :template: clean_class.rst
 
     FileChecks
+    VarBundle
     VariableChecks
 
 .. rubric:: Functions
@@ -916,3 +917,78 @@ def format(v, use_scaleminmax=False, dryrun=False):
         v.attrs.new('FORMAT', data=fmt, type=spacepy.pycdf.const.CDF_CHAR)
 
 
+class VarBundle(object):
+    """ISTP-compliant variable and depenencies
+
+    Representation of an ISTP-compliant variable bundled together
+    with its dependencies to enable aggregate operations. Normally
+    used to copy a subset of data from one CDF to another by
+    chaining operations.
+
+    Parameters
+    ----------
+    var : :class:`~spacepy.pycdf.Var`
+        Variable to process
+
+    Examples
+    --------
+    >>> import spacepy.pycdf
+    >>> import spacepy.pycdf.istp
+    >>> infile = spacepy.pycdf.CDF('input.cdf')
+    >>> outfile = spacepy.pycdf.CDF('output.cdf')
+    >>> b = spacepy.pycdf.istp.VarBundle(infile['Flux'])
+    >>> b.write(outfile) #Writes Flux and all dependencies to outfile
+
+    .. autosummary::
+
+        write
+
+    .. automethod:: write
+
+    """
+
+    def __init__(self, var):
+        """Initialize variable bundle
+
+        Parameters
+        ----------
+        var : :class:`~spacepy.pycdf.Var`
+            Variable to process
+        """
+        self.mainvar = var
+        """The master variable to operate on."""
+        self.cdf = self.mainvar.cdf_file
+        """Input CDF file containing the master variable."""
+        self._varnames = []
+        """List of all variable names that are dependencies of ``mainvar``."""
+        self._getdeps()
+
+    def _getdeps(self):
+        """Get all dependencies for main variable, recursively"""
+        varnames = [self.mainvar.name()]
+        i = 0
+        while i < len(varnames): #modify-while-iterate
+            thisv = self.cdf[varnames[i]]
+            for a in thisv.attrs:
+                if a.startswith(('DEPEND_', 'LABL_PTR_', 'DELTA_')):
+                    d = thisv.attrs[a]
+                    if not d in varnames:
+                        varnames.append(d)
+            i+=1
+        self._varnames = varnames
+
+    def write(self, output):
+        """Write the variables as modified
+
+        Parameters
+        ----------
+        output : :class:`~spacepy.pycdf.CDF`
+            Output CDF to receive the new data.
+
+        Returns
+        -------
+        VarBundle
+            This bundle, for method chaining.
+        """
+        for v in self._varnames:
+            output.clone(self.cdf[v])
