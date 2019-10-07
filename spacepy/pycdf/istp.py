@@ -992,8 +992,9 @@ class VarBundle(object):
         """Keyed by variable name. Values are also dicts, keys are
         ``dims``, list of the main variable dimensions corresponding
         to each dimension of the variable, ``slice``, the slice
-        to apply when reading this variable from the input, and
-        ``thisdim``, the main dimension for which this var is a dep
+        to apply when reading this variable from the input, ``postidx``,
+        a numpy fancy index to apply after reading, and ``thisdim``,
+        the main dimension for which this var is a dep
         (and thus it should be removed if the dim is removed)."""
         self._degenerate = []
         """Degenerate dimensions, ones that are removed in a slice."""
@@ -1045,10 +1046,8 @@ class VarBundle(object):
                              .format(thisname))
         #If this is NRV and main is RV, that's okay, the R dim will
         #get removed when actually slicing.
-        return {
-            'dims': self._varinfo[mainname]['dims'][:],
-            'slice': self._varinfo[mainname]['slice'][:]
-        }
+        return { k: self._varinfo[mainname][k][:]
+                 for k in ('dims', 'slice', 'postidx') }
 
     def _getvarinfo(self):
         """Find dependency and dimension information
@@ -1066,7 +1065,9 @@ class VarBundle(object):
         #And every dimension is a full slice, to start
         self._varinfo[name] = {
             'dims': dims,
-            'slice': [slice(None)] * len(dims) }
+            'slice': [slice(None)] * len(dims),
+            'postidx': [slice(None)] * len(dims),
+        }
         mainattrs = self.mainvar.attrs
         #Get the attributes that matter here
         attrs = {a: mainattrs[a] for a in mainattrs
@@ -1106,6 +1107,7 @@ class VarBundle(object):
             self._varinfo[thisname] = {
                 'dims': dims,
                 'slice': [slice(None)] * len(dims),
+                'postidx': [slice(None)] * len(dims),
                 'thisdim': dim,
             }
             #Process DELTAs of the DEPENDs
@@ -1160,6 +1162,9 @@ class VarBundle(object):
 
         start : int
             Index of first element of ``dim`` to include in the output.
+            This can also be a sequence of indices to include, in which
+            case ``stop`` and ``step`` must not be specified. This can be
+            substantially slower than specifying ``stop`` and ``step``.
 
         stop : int
             Index of first element of ``dim`` to exclude from the output.
@@ -1188,18 +1193,26 @@ class VarBundle(object):
         >>> b.slice(2, 5)
         >>> #Select 10 through 15 on axis 2, but all of axis 1
         >>> b.slice(1).slice(2, 10, 15)
+        >>> #Select just record 5 and 10
+        >>> b.slice(2).slice(0, [5, 10])
         >>> infile.close()
         """
-        #TODO: enable multiple-index slicing
         #Do not allow simple slice on 0th dimension (record)
         if dim == 0 and single:
             raise ValueError('Cannot perform slice on record dimension.')
         self._degenerate[dim] = single
+
+        fancyidx = (stop is None and step is None and numpy.ndim(start) != 0)
+        sl = slice(None, None, None) if fancyidx else slice(start, stop, step)
         for v in self._varinfo.values():
             if not dim in v['dims']:
                 continue #This "main" var dimension isn't in this var
             idx = v['dims'].index(dim)
-            v['slice'][idx] = start if single else slice(start, stop, step)
+            #The slice to perform on read
+            v['slice'][idx] = start if single else sl
+            #And the slice to perform after the fact
+            if fancyidx:
+                v['postidx'][idx] = start
         return self
 
     def write(self, output):
@@ -1225,14 +1238,25 @@ class VarBundle(object):
             #(0 index is CDF dimension 1)
             invar = self.cdf.raw_var(vname)
             sl = vinfo['slice'] #including 0th dim
+            postidx = vinfo['postidx']
             dv = invar.dv() #starting from dim 1
             dims = invar.shape[int(invar.rv()):] #starting from dim 1
             #Cut out any degenerate dimensions, and resize based on slice
             #And always skip the record dim
             dv = [dv[i] for i in range(len(dv)) if not degen[i + 1]]
-            #If index, not slice, then always degenerate
-            dims = [len(range(*sl[i + 1].indices(dims[i])))
-                    for i in range(len(dims)) if not degen[i + 1]]
+            #Scrub degenerate dimensions from the post-indexing
+            #(record is never degenerate)
+            postidx = [postidx[i] for i in range(len(postidx))
+                       if not degen[i]]
+            #Now get the data
+            if not invar.rv(): #Remove fake record dimension
+                sl = sl[1:]
+                postidx = postidx[1:]
+            data = self.cdf[vname].__getitem__(tuple(sl))[postidx]
+            #Get shape of output variable from actual data
+            dims = data.shape
+            if invar.rv():
+                dims = dims[1:]
             #TODO: if variable already exists in output, check if it's the
             #same (e.g. if copied two variables with same depends)
             #TODO: support renaming of variables
@@ -1244,10 +1268,6 @@ class VarBundle(object):
                 n_elements=invar.nelems())
             #Must create it empty so can change compression
             newvar.compress(*invar.compress())
-            #Now get the data
-            if not invar.rv(): #Remove fake record dimension
-                sl = sl[1:]
-            data = self.cdf[vname].__getitem__(tuple(sl))
             newvar[...] = data
             newvar.attrs.clone(invar.attrs)
 

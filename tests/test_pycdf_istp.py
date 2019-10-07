@@ -746,6 +746,48 @@ class VarBundleChecks(unittest.TestCase):
             self.outcdf['SpinNumbers'][:],
             self.incdf['SpinNumbers'][:])
 
+    def testSliceMultiIDX(self):
+        """Slice multiple indices"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, [2, 3, 5])
+        bundle.write(self.outcdf)
+        numpy.testing.assert_array_equal(
+            self.outcdf['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...][:, [2, 3, 5], ...])
+        numpy.testing.assert_array_equal(
+            self.outcdf['ATC'][...],
+            self.incdf['ATC'][...])
+        for d in (range(4)):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.outcdf['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.outcdf['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][:][[2, 3, 5]])
+
+    def testSliceMultiIDXrecord(self):
+        """Slice on the record dimension, multiple index"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(0, [2, 3, 5])
+        bundle.write(self.outcdf)
+        numpy.testing.assert_array_equal(
+            self.outcdf['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...][[2, 3, 5], ...])
+        numpy.testing.assert_array_equal(
+            self.outcdf['ATC'][...],
+            self.incdf['ATC'][...][[2, 3, 5]])
+        for d in (range(4)):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.outcdf['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.outcdf['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][:])
+
 
 if __name__ == '__main__':
     unittest.main()
