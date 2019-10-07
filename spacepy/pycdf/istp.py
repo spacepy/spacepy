@@ -950,7 +950,7 @@ class VarBundle(object):
     >
     >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
     >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
-    >>> b.slice(1, 2).write(outfile)
+    >>> b.slice(1, 2, single=True).write(outfile)
     <spacepy.pycdf.istp.VarBundle at 0xdeadbeefffff>
     >>> outfile['FPDU']
     <Var:
@@ -1126,7 +1126,8 @@ class VarBundle(object):
                 self._varinfo[thisname] \
                     = self._process_delta(self.mainvar, thisname)
 
-    def slice(self, dim, index):
+    def slice(self, dim, start=None, stop=None, step=None,
+              single=False):
         """Slice on a single dimension
 
         Selects one index of a dimension to include in the output. Slicing
@@ -1136,6 +1137,12 @@ class VarBundle(object):
         multiple dimensions; however, if one dimension is indexed multiple
         times, only the last one in the chain takes effect.
 
+        Interpretation of the slice parameters is like normal Python slicing,
+        including the ability to use negative values, etc.
+
+        Passing in only a dimension "resets" the slice to include the
+        entire dimension.
+
         Parameters
         ----------
         dim : int
@@ -1144,27 +1151,52 @@ class VarBundle(object):
             not change with successive slicing. Each dimension can only be
             sliced once. Slicing on the record dimension is not yet supported.
 
-        index : int
-            This element of ``dim`` is included in the output.
+        single : bool
+            Treat ``start`` as a single index and return only that index
+            (reducing dimensionality of the data by one.)
+
+        start : int
+            Index of first element of ``dim`` to include in the output.
+
+        stop : int
+            Index of first element of ``dim`` to exclude from the output.
+
+        step : int
+            Increment between elements to include in the output.
 
         Returns
         -------
         VarBundle
-            This bundle, for method chaining.
+            This bundle, for method chaining. This is not a copy: the
+            original object is updated.
+
+        Examples
+        --------
+        See the :class:`VarBundle` examples for creating output from
+        the slices.
+
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
+        >>> #Select index 2 from axis 1
+        >>> b.slice(1, 2, single=True)
+        >>> #Select from index 5 to end for axis 2, keeping index 2 from axis 1
+        >>> b.slice(2, 5)
+        >>> #Select 10 through 15 on axis 2, but all of axis 1
+        >>> b.slice(1).slice(2, 10, 15)
+        >>> infile.close()
         """
-        #TODO: Enable "undoing" a slice, restoring to slicing the whole thing
-        #TODO: enable actual slices not just indexing, how to deal with
-        #ambiguity between [1:] and [1]?
         #TODO: enable multiple-index slicing
         #Do not allow simple slice on 0th dimension (record)
         if dim == 0:
-            raise ValueError('Cannot perform simple slice on record dimension.')
-        self._degenerate[dim] = True
+            raise ValueError('Cannot perform slice on record dimension.')
+        self._degenerate[dim] = single
         for v in self._varinfo.values():
             if not dim in v['dims']:
                 continue #This "main" var dimension isn't in this var
             idx = v['dims'].index(dim)
-            v['slice'][idx] = index
+            v['slice'][idx] = start if single else slice(start, stop, step)
         return self
 
     def write(self, output):
@@ -1184,17 +1216,20 @@ class VarBundle(object):
             #0th dimension is never degenerate, use that as default
             if self._degenerate[vinfo.get('thisdim', 0)]:
                 continue #Variable went away, don't copy it
-            invar = self.cdf.raw_var(vname)
             #Degeneracy of dimensions in this variable's "frame"
             degen = [self._degenerate[d] for d in vinfo['dims']]
             #Dimension size/variance for original variable
             #(0 index is CDF dimension 1)
-            dv = invar.dv()
-            dims = invar.shape[int(invar.rv()):]
-            #Cut out any degenerate dimensions
+            invar = self.cdf.raw_var(vname)
+            sl = vinfo['slice'] #including 0th dim
+            dv = invar.dv() #starting from dim 1
+            dims = invar.shape[int(invar.rv()):] #starting from dim 1
+            #Cut out any degenerate dimensions, and resize based on slice
+            #And always skip the record dim
             dv = [dv[i] for i in range(len(dv)) if not degen[i + 1]]
-            dims = [dims[i] for i in range(len(dims)) if not degen[i + 1]]
-
+            #If index, not slice, then always degenerate
+            dims = [len(range(*sl[i + 1].indices(dims[i])))
+                    for i in range(len(dims)) if not degen[i + 1]]
             #TODO: if variable already exists in output, check if it's the
             #same (e.g. if copied two variables with same depends)
             #TODO: support renaming of variables
@@ -1207,7 +1242,6 @@ class VarBundle(object):
             #Must create it empty so can change compression
             newvar.compress(*invar.compress())
             #Now get the data
-            sl = vinfo['slice']
             if not invar.rv(): #Remove fake record dimension
                 sl = sl[1:]
             data = self.cdf[vname].__getitem__(tuple(sl))
