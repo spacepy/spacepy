@@ -1133,8 +1133,10 @@ class VarBundle(object):
         Selects one index of a dimension to include in the output. Slicing
         is done with reference to the dimensions of the main varible and
         the corresponding dimensions of all other variables are sliced
-        similarly. Multiple slices can be applied to select subsets of
-        multiple dimensions; however, if one dimension is indexed multiple
+        similarly. The first non-record dimension of the variable is always
+        1; 0 is the record dimension (and is ignored for NRV variables).
+        Multiple slices can be applied to select subsets of multiple
+        dimensions; however, if one dimension is indexed multiple
         times, only the last one in the chain takes effect.
 
         Interpretation of the slice parameters is like normal Python slicing,
@@ -1149,11 +1151,12 @@ class VarBundle(object):
             CDF dimension to slice on. This is the dimension as specified
             in the CDF (0-base for RV variables, 1-base for NRV) and does
             not change with successive slicing. Each dimension can only be
-            sliced once. Slicing on the record dimension is not yet supported.
+            sliced once.
 
         single : bool
             Treat ``start`` as a single index and return only that index
-            (reducing dimensionality of the data by one.)
+            (reducing dimensionality of the data by one.) Not supported on
+            dimension 0 (the record dimension.)
 
         start : int
             Index of first element of ``dim`` to include in the output.
@@ -1189,7 +1192,7 @@ class VarBundle(object):
         """
         #TODO: enable multiple-index slicing
         #Do not allow simple slice on 0th dimension (record)
-        if dim == 0:
+        if dim == 0 and single:
             raise ValueError('Cannot perform slice on record dimension.')
         self._degenerate[dim] = single
         for v in self._varinfo.values():
