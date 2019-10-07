@@ -662,7 +662,7 @@ class VarBundleChecks(unittest.TestCase):
         """Slice single element on single dimension"""
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
-        bundle.slice(1, 2)
+        bundle.slice(1, 2, single=True)
         bundle.write(self.outcdf)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
@@ -682,6 +682,48 @@ class VarBundleChecks(unittest.TestCase):
         self.assertFalse('SpinNumbers' in self.outcdf)
         self.assertFalse('DEPEND_3'
                         in self.outcdf['SectorRateScalersCounts'].attrs)
+
+    def testSimpleRange(self):
+        """Slice a range on single dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 2, single=False)
+        bundle.write(self.outcdf)
+        numpy.testing.assert_array_equal(
+            self.outcdf['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][:, 2:, ...])
+        numpy.testing.assert_array_equal(
+            self.outcdf['ATC'][...],
+            self.incdf['ATC'][...])
+        for d in (range(4)):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.outcdf['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.outcdf['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][2:])
+
+    def testSliceUndo(self):
+        """Slice single element on single dimension, then undo"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 2, single=True).slice(1)
+        bundle.write(self.outcdf)
+        numpy.testing.assert_array_equal(
+            self.outcdf['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...])
+        numpy.testing.assert_array_equal(
+            self.outcdf['ATC'][...],
+            self.incdf['ATC'][...])
+        for d in (range(4)):
+            a = 'DEPEND_{}'.format(d)
+            self.assertEqual(
+                self.outcdf['SectorRateScalersCounts'].attrs[a],
+                self.incdf['SectorRateScalersCounts'].attrs[a])
+        numpy.testing.assert_array_equal(
+            self.outcdf['SpinNumbers'][:],
+            self.incdf['SpinNumbers'][:])
 
 
 if __name__ == '__main__':
