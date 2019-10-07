@@ -9,6 +9,7 @@ import tempfile
 import unittest
 
 import numpy
+import numpy.testing
 import spacepy.pycdf
 import spacepy.pycdf.const
 import spacepy.pycdf.istp
@@ -583,6 +584,60 @@ class FuncTests(ISTPTestsBase):
         v = self.cdf.new('var', data=['hi', 'there'])
         spacepy.pycdf.istp.format(v)
         self.assertEqual('A5', v.attrs['FORMAT'])
+
+
+class VarBundleChecks(unittest.TestCase):
+    """Checks for VarBundle class"""
+
+    def setUp(self):
+        """Setup: make an empty, open, writeable CDF"""
+        self.tempdir = tempfile.mkdtemp()
+        spacepy.pycdf.lib.set_backward(False)
+        self.outcdf = spacepy.pycdf.CDF(os.path.join(
+            self.tempdir, 'source_descriptor_datatype_19990101_v00.cdf'),
+                                     create=True)
+        spacepy.pycdf.lib.set_backward(True)
+        pth = os.path.dirname(os.path.abspath(__file__))
+        self.incdf = spacepy.pycdf.CDF(os.path.join(pth, 'po_l1_cam_test.cdf'))
+
+    def tearDown(self):
+        """Close CDFs; delete output"""
+        try:
+            self.incdf.close()
+            self.outcdf.close()
+        except:
+            pass
+        shutil.rmtree(self.tempdir)
+
+    def testGetDeps(self):
+        """Get dependencies for a variable"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        self.assertEqual(
+            [
+                'ATC',
+                'SectorNumbers',
+                'SectorRateScalerNames',
+                'SectorRateScalersCounts',
+                'SectorRateScalersCountsSigma',
+                'SpinNumbers',
+            ],
+            sorted(bundle._varnames))
+
+    def testWriteSimple(self):
+        """Copy a single variable and deps with no slicing"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.write(self.outcdf)
+        numpy.testing.assert_array_equal(
+            self.outcdf['SectorRateScalersCounts'][...],
+            self.incdf['SectorRateScalersCounts'][...])
+        numpy.testing.assert_array_equal(
+            self.outcdf['ATC'][...],
+            self.incdf['ATC'][...])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs,
+            self.incdf['SectorRateScalersCounts'].attrs)
 
 
 if __name__ == '__main__':
