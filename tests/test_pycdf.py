@@ -935,7 +935,7 @@ class CDFTests(CDFTestsBase):
     pth = os.path.dirname(os.path.abspath(__file__))
     testmaster = os.path.join(pth, 'po_l1_cam_test.cdf')
     testbase = 'test.cdf'
-    expected_digest = '8c1a2b1552de1cb3cd6bdd03bdaf5f52'
+    expected_digest = '94515e62d38a31ad02f6d435274cbfe7'
 
 
 class ColCDFTests(CDFTestsBase):
@@ -1084,7 +1084,7 @@ class ReadCDF(CDFTests):
 
     def testRecCount(self):
         """Get number of records in a zVariable"""
-        self.assertEqual(len(self.cdf['ATC']), 747)
+        self.assertEqual(len(self.cdf['ATC']), 100)
         self.assertEqual(len(self.cdf['MeanCharge']), 100)
         self.assertEqual(len(self.cdf['SpinNumbers']), 1)
 
@@ -1116,7 +1116,7 @@ class ReadCDF(CDFTests):
 
     def testShape(self):
         """Get numpy-like shape (n_recs plus dimensions) in zvar"""
-        expected = {'ATC': (747,), 'PhysRecNo': (100,), 'SpinNumbers': (18,),
+        expected = {'ATC': (100,), 'PhysRecNo': (100,), 'SpinNumbers': (18,),
                     'SectorNumbers': (32,), 'RateScalerNames': (16,),
                     'SectorRateScalerNames': (9,),
                     'SectorRateScalersCounts': (100, 18, 32, 9),
@@ -1150,7 +1150,7 @@ class ReadCDF(CDFTests):
                   } #Slice objects indexed by variable
         #Expected results [dims, dimsizes, starts, counts, intervals, degen, rev]
         #indexed by variable
-        expected = {'ATC': [1, [747], [1], [1], [1], [True], [False]],
+        expected = {'ATC': [1, [100], [1], [1], [1], [True], [False]],
                     'PhysRecNo': [1, [100], [4], [4], [2], [False], [True]],
                     'SpinNumbers': [2, [1, 18], [0, 2], [1, 8], [1, 2],
                                     [True, False], [False, False]],
@@ -1188,7 +1188,7 @@ class ReadCDF(CDFTests):
                   } #Slice objects indexed by variable
         #Expected results [dims, dimsizes, starts, counts, intervals, degen, rev]
         #indexed by variable
-        expected = {'ATC': [1, [747], [0], [747], [1], [False], [False]],
+        expected = {'ATC': [1, [100], [0], [100], [1], [False], [False]],
                     }
         for i in expected:
             zvar = self.cdf[i]
@@ -1828,14 +1828,14 @@ class ReadCDF(CDFTests):
 
     def testVarString(self):
         """Convert a variable to a string representation"""
-        expected = {'StringUnpadded': 'CDF_CHAR*6 [12]', 'String1D': 'CDF_CHAR*1 [2, 3]', 'SectorRateScalerNames': 'CDF_CHAR*9 [9] NRV', 'PhysRecNo': 'CDF_INT4 [100]', 'RateScalerNames': 'CDF_CHAR*9 [16] NRV', 'SpinRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 16]', 'SectorRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 32, 9]', 'SpinRateScalersCounts': 'CDF_FLOAT [100, 18, 16]', 'SpinNumbers': 'CDF_CHAR*2 [18] NRV', 'Epoch': 'CDF_EPOCH [11]', 'SectorRateScalersCounts': 'CDF_FLOAT [100, 18, 32, 9]', 'MeanCharge': 'CDF_FLOAT [100, 16]', 'SectorNumbers': 'CDF_CHAR*2 [32] NRV', 'MajorNumbers': 'CDF_CHAR*2 [11] NRV', 'Epoch2D': 'CDF_EPOCH16 [3, 2]', 'ATC': 'CDF_EPOCH16 [747]'}
+        expected = {'StringUnpadded': 'CDF_CHAR*6 [12]', 'String1D': 'CDF_CHAR*1 [2, 3]', 'SectorRateScalerNames': 'CDF_CHAR*9 [9] NRV', 'PhysRecNo': 'CDF_INT4 [100]', 'RateScalerNames': 'CDF_CHAR*9 [16] NRV', 'SpinRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 16]', 'SectorRateScalersCountsSigma': 'CDF_FLOAT [100, 18, 32, 9]', 'SpinRateScalersCounts': 'CDF_FLOAT [100, 18, 16]', 'SpinNumbers': 'CDF_CHAR*2 [18] NRV', 'Epoch': 'CDF_EPOCH [11]', 'SectorRateScalersCounts': 'CDF_FLOAT [100, 18, 32, 9]', 'MeanCharge': 'CDF_FLOAT [100, 16]', 'SectorNumbers': 'CDF_CHAR*2 [32] NRV', 'MajorNumbers': 'CDF_CHAR*2 [11] NRV', 'Epoch2D': 'CDF_EPOCH16 [3, 2]', 'ATC': 'CDF_EPOCH16 [100]'}
         actual = dict([(varname, str(zVar))
                        for (varname, zVar) in self.cdf.items()])
         self.assertEqual(expected, actual)
 
     def testCDFString(self):
         """Convert a CDF to a string representation"""
-        expected = 'ATC: CDF_EPOCH16 [747]\nEpoch: CDF_EPOCH [11]\nEpoch2D: CDF_EPOCH16 [3, 2]\nMajorNumbers: CDF_CHAR*2 [11] NRV\nMeanCharge: CDF_FLOAT [100, 16]\nPhysRecNo: CDF_INT4 [100]\nRateScalerNames: CDF_CHAR*9 [16] NRV\nSectorNumbers: CDF_CHAR*2 [32] NRV\nSectorRateScalerNames: CDF_CHAR*9 [9] NRV\nSectorRateScalersCounts: CDF_FLOAT [100, 18, 32, 9]\nSectorRateScalersCountsSigma: CDF_FLOAT [100, 18, 32, 9]\nSpinNumbers: CDF_CHAR*2 [18] NRV\nSpinRateScalersCounts: CDF_FLOAT [100, 18, 16]\nSpinRateScalersCountsSigma: CDF_FLOAT [100, 18, 16]\nString1D: CDF_CHAR*1 [2, 3]\nStringUnpadded: CDF_CHAR*6 [12]'
+        expected = 'ATC: CDF_EPOCH16 [100]\nEpoch: CDF_EPOCH [11]\nEpoch2D: CDF_EPOCH16 [3, 2]\nMajorNumbers: CDF_CHAR*2 [11] NRV\nMeanCharge: CDF_FLOAT [100, 16]\nPhysRecNo: CDF_INT4 [100]\nRateScalerNames: CDF_CHAR*9 [16] NRV\nSectorNumbers: CDF_CHAR*2 [32] NRV\nSectorRateScalerNames: CDF_CHAR*9 [9] NRV\nSectorRateScalersCounts: CDF_FLOAT [100, 18, 32, 9]\nSectorRateScalersCountsSigma: CDF_FLOAT [100, 18, 32, 9]\nSpinNumbers: CDF_CHAR*2 [18] NRV\nSpinRateScalersCounts: CDF_FLOAT [100, 18, 16]\nSpinRateScalersCountsSigma: CDF_FLOAT [100, 18, 16]\nString1D: CDF_CHAR*1 [2, 3]\nStringUnpadded: CDF_CHAR*6 [12]'
         actual = str(self.cdf)
         self.assertEqual(expected, actual)
 
