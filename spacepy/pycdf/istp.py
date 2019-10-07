@@ -918,7 +918,7 @@ def format(v, use_scaleminmax=False, dryrun=False):
 
 
 class VarBundle(object):
-    """ISTP-compliant variable and depenencies
+    """Collective handling of ISTP-compliant variable and its dependencies.
 
     Representation of an ISTP-compliant variable bundled together
     with its dependencies to enable aggregate operations. Normally
@@ -934,15 +934,44 @@ class VarBundle(object):
     --------
     >>> import spacepy.pycdf
     >>> import spacepy.pycdf.istp
-    >>> infile = spacepy.pycdf.CDF('input.cdf')
-    >>> outfile = spacepy.pycdf.CDF('output.cdf')
-    >>> b = spacepy.pycdf.istp.VarBundle(infile['Flux'])
-    >>> b.write(outfile) #Writes Flux and all dependencies to outfile
+    >>> #https://rbsp-ect.newmexicoconsortium.org/data_pub/rbspa/hope/level3/pitchangle/2012/
+    >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
+    >>> infile['FPDU']
+    <Var:
+    CDF_FLOAT [3228, 11, 72]
+    >
+    >>> infile['FPDU'].attrs
+    <zAttrList:
+    CATDESC: HOPE differential proton flux [CDF_CHAR]
+    DEPEND_0: Epoch_Ion [CDF_CHAR]
+    DEPEND_1: PITCH_ANGLE [CDF_CHAR]
+    DEPEND_2: HOPE_ENERGY_Ion [CDF_CHAR]
+    ...
+    >
+    >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
+    >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
+    >>> b.slice(1, 2).write(outfile)
+    <spacepy.pycdf.istp.VarBundle at 0xdeadbeefffff>
+    >>> outfile['FPDU']
+    <Var:
+    CDF_FLOAT [3228, 72]
+    >
+    >>> outfile['FPDU'].attrs
+    <zAttrList:
+    CATDESC: HOPE differential proton flux [CDF_CHAR]
+    DEPEND_0: Epoch_Ion [CDF_CHAR]
+    DEPEND_1: HOPE_ENERGY_Ion [CDF_CHAR]
+    ...
+    >
+    >>> outfile.close()
+    >>> infile.close()
 
     .. autosummary::
 
+        slice
         write
 
+    .. automethod:: slice
     .. automethod:: write
 
     """
@@ -956,26 +985,187 @@ class VarBundle(object):
             Variable to process
         """
         self.mainvar = var
-        """The master variable to operate on."""
+        """The variable to operate on."""
         self.cdf = self.mainvar.cdf_file
-        """Input CDF file containing the master variable."""
-        self._varnames = []
-        """List of all variable names that are dependencies of ``mainvar``."""
-        self._getdeps()
+        """Input CDF file containing the main variable."""
+        self._varinfo = {}
+        """Keyed by variable name. Values are also dicts, keys are
+        ``dims``, list of the main variable dimensions corresponding
+        to each dimension of the variable, ``slice``, the slice
+        to apply when reading this variable from the input, and
+        ``thisdim``, the main dimension for which this var is a dep
+        (and thus it should be removed if the dim is removed)."""
+        self._degenerate = []
+        """Degenerate dimensions, ones that are removed in a slice."""
+        self._getvarinfo()
 
-    def _getdeps(self):
-        """Get all dependencies for main variable, recursively"""
-        varnames = [self.mainvar.name()]
-        i = 0
-        while i < len(varnames): #modify-while-iterate
-            thisv = self.cdf[varnames[i]]
-            for a in thisv.attrs:
-                if a.startswith(('DEPEND_', 'LABL_PTR_', 'DELTA_')):
-                    d = thisv.attrs[a]
-                    if not d in varnames:
-                        varnames.append(d)
-            i+=1
-        self._varnames = varnames
+    def _process_delta(self, mainvar, deltaname):
+        """Handle DELTA_PLUS/DELTA_MINUS attributes
+
+        A DELTA variable should be the same shape and the same
+        dependencies as its referrer (except potentially NRV).
+
+        Parameters
+        ----------
+        mainvar : :class:`~spacepy.pycdf.Var`
+            Variable that references the DELTA, i.e. it has a
+            DELTA_PLUS_VAR/DELTA_MINUS_VAR attribute that references
+            ``deltavar``.
+
+        deltaname : str
+            Name of the DELTA variable itself.
+
+        Returns
+        -------
+        dict
+            dims/slice information suitable for inclusion in ``_varinfo``.
+        """
+        thisvar = self.cdf[deltaname]
+        mainname = mainvar.name()
+        for a in thisvar.attrs: #Check that all dependencies match
+            if not a.startswith(('DEPEND_', 'LABL_PTR_')):
+                continue
+            if a in mainvar.attrs:
+                if thisvar.attrs[a] != mainvar.attrs[a]:
+                    raise ValueError('{}: attribute {} mismatch with main var'
+                                     .format(thisname, a))
+            elif thisvar.attrs[a] != mainname:
+                raise ValueError('{}: attribute {} not in main var'
+                                 .format(thisname, a))
+        if thisvar.rv() and not mainvar.rv():
+            raise ValueError(
+                '{}: Cannot handle RV DELTA with NRV variable.'
+                .format(thisname))
+        thisshape = thisvar.shape
+        mainshape = mainvar.shape
+        if not thisvar.rv() and mainvar.rv(): #Ignore record dim
+            mainshape = mainshape[1:]
+        if thisshape != mainshape:
+            raise ValueError('{}: DELTA/main var shape mismatch.'
+                             .format(thisname))
+        #If this is NRV and main is RV, that's okay, the R dim will
+        #get removed when actually slicing.
+        return {
+            'dims': self._varinfo[mainname]['dims'][:],
+            'slice': self._varinfo[mainname]['slice'][:]
+        }
+
+    def _getvarinfo(self):
+        """Find dependency and dimension information
+
+        For main variable and its dependencies, find how dimensions
+        relate to the main variable, and find all DELTA variables.
+        """
+        name = self.mainvar.name()
+        #Every dim maps back to itself for the main variable
+        dims = list(range(len(self.mainvar.shape)
+                          + int(not self.mainvar.rv())))
+        self._degenerate = [False] * len(self.mainvar.shape)
+        if not self.mainvar.rv(): #Fake the 0-dim
+            self._degenerate.insert(0, False)
+        #And every dimension is a full slice, to start
+        self._varinfo[name] = {
+            'dims': dims,
+            'slice': [slice(None)] * len(dims) }
+        mainattrs = self.mainvar.attrs
+        #Get the attributes that matter here
+        attrs = {a: mainattrs[a] for a in mainattrs
+                if a.startswith(('DEPEND_', 'LABL_PTR'))
+                or a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR')}
+        for a in attrs: #Process DEPEND/LABL_PTR variables
+            if not a.startswith(('DEPEND_', 'LABL_PTR_')):
+                continue
+            thisname = attrs[a]
+            if thisname in self._varinfo: #Already handled
+                continue
+            thisvar = self.cdf[thisname]
+            #Dimension of main var that corresponds to this var
+            dim = int(a.split('_')[-1])
+            dims = [0,] #Record dim always matches
+            #For every CDF (non-record) dim, match to the main variable
+            for i in range(1, len(thisvar.shape) + int(not thisvar.rv())):
+                #DEPEND for this dimension
+                dim_dep = 'DEPEND_{}'.format(i)
+                if not dim_dep in thisvar.attrs:
+                    #No depend on this dim, so it's the dim that's represented
+                    #in this variable
+                    dims.append(dim)
+                else: #Match to parent var
+                    dim_dep = thisvar.attrs[dim_dep]
+                    parentdim = next([
+                        int(d.split('_')[-1]) for d in attrs
+                        if d.startswith('DEPEND_') and attrs[d] == dim_dep],
+                        None)
+                    if parentdim is None:
+                        raise ValueError('Cannot match dim {} of {}'.format(
+                            i, thisname))
+                    dims.append(parentdim)
+                if dims.count(dim) != 1:
+                    raise ValueError('Cannot find unique dimension for {}'
+                                     .format(thisname))
+            self._varinfo[thisname] = {
+                'dims': dims,
+                'slice': [slice(None)] * len(dims),
+                'thisdim': dim,
+            }
+            #Process DELTAs of the DEPENDs
+            for d in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'):
+                if d not in thisvar.attrs:
+                    continue
+                deltaname = thisvar.attrs[d]
+                if deltaname in self._varinfo:
+                    continue
+                self._varinfo[deltaname] \
+                    = self._process_delta(thisvar, deltaname)
+        for a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'): #Process DELTA vars
+            if not a in attrs:
+                continue
+            thisname = attrs[a]
+            if thisname not in self._varinfo:
+                #If DELTA_PLUS/DELTA_MINUS are same var, skip second one
+                self._varinfo[thisname] \
+                    = self._process_delta(self.mainvar, thisname)
+
+    def slice(self, dim, index):
+        """Slice on a single dimension
+
+        Selects one index of a dimension to include in the output. Slicing
+        is done with reference to the dimensions of the main varible and
+        the corresponding dimensions of all other variables are sliced
+        similarly. Multiple slices can be applied to select subsets of
+        multiple dimensions; however, if one dimension is indexed multiple
+        times, only the last one in the chain takes effect.
+
+        Parameters
+        ----------
+        dim : int
+            CDF dimension to slice on. This is the dimension as specified
+            in the CDF (0-base for RV variables, 1-base for NRV) and does
+            not change with successive slicing. Each dimension can only be
+            sliced once. Slicing on the record dimension is not yet supported.
+
+        index : int
+            This element of ``dim`` is included in the output.
+
+        Returns
+        -------
+        VarBundle
+            This bundle, for method chaining.
+        """
+        #TODO: Enable "undoing" a slice, restoring to slicing the whole thing
+        #TODO: enable actual slices not just indexing, how to deal with
+        #ambiguity between [1:] and [1]?
+        #TODO: enable multiple-index slicing
+        #Do not allow simple slice on 0th dimension (record)
+        if dim == 0:
+            raise ValueError('Cannot perform simple slice on record dimension.')
+        self._degenerate[dim] = True
+        for v in self._varinfo.values():
+            if not dim in v['dims']:
+                continue #This "main" var dimension isn't in this var
+            idx = v['dims'].index(dim)
+            v['slice'][idx] = index
+        return self
 
     def write(self, output):
         """Write the variables as modified
@@ -990,5 +1180,53 @@ class VarBundle(object):
         VarBundle
             This bundle, for method chaining.
         """
-        for v in self._varnames:
-            output.clone(self.cdf[v])
+        for vname, vinfo in self._varinfo.items():
+            #0th dimension is never degenerate, use that as default
+            if self._degenerate[vinfo.get('thisdim', 0)]:
+                continue #Variable went away, don't copy it
+            invar = self.cdf.raw_var(vname)
+            #Degeneracy of dimensions in this variable's "frame"
+            degen = [self._degenerate[d] for d in vinfo['dims']]
+            #Dimension size/variance for original variable
+            #(0 index is CDF dimension 1)
+            dv = invar.dv()
+            dims = invar.shape[int(invar.rv()):]
+            #Cut out any degenerate dimensions
+            dv = [dv[i] for i in range(len(dv)) if not degen[i + 1]]
+            dims = [dims[i] for i in range(len(dims)) if not degen[i + 1]]
+
+            #TODO: if variable already exists in output, check if it's the
+            #same (e.g. if copied two variables with same depends)
+            #TODO: support renaming of variables
+            #TODO: Try to work this as an assignment so it can be used
+            #in a SpaceData as well as a CDF
+            newvar = output.new(
+                vname, type=invar.type(), recVary=invar.rv(),
+                dimVarys=dv, dims=dims,
+                n_elements=invar.nelems())
+            #Must create it empty so can change compression
+            newvar.compress(*invar.compress())
+            #Now get the data
+            sl = vinfo['slice']
+            if not invar.rv(): #Remove fake record dimension
+                sl = sl[1:]
+            data = self.cdf[vname].__getitem__(tuple(sl))
+            newvar[...] = data
+            newvar.attrs.clone(invar.attrs)
+
+            #Repoint the DEPEND/LABL_PTR for ones that disappeared
+            #Index by old dim; returns the new dim (None if went away)
+            newdims = [None if degen[i] else i - sum(degen[0:i])
+                       for i in range(len(degen))]
+            for a in list(newvar.attrs.keys()): #Editing in loop!
+                if not a.startswith(('DEPEND_', 'LABL_PTR_')):
+                    continue
+                newdim = int(a.split('_')[-1])
+                if newdim in newdims: #An old value that belongs in this dim
+                    olddim = newdims.index(newdim)
+                    old_a = '{}_{}'.format('_'.join(a.split('_')[:-1]),
+                                           olddim)
+                    newvar.attrs[a] = invar.attrs[old_a]
+                else: #No corresponding old dim
+                    del newvar.attrs[a]
+        return self
