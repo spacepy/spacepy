@@ -642,6 +642,14 @@ class VarBundleChecks(unittest.TestCase):
         self.assertEqual(
             [0, 2],
             bundle._varinfo['SectorNumbers']['dims'])
+        self.assertEqual(
+            'S', bundle._varinfo['SectorRateScalersCounts']['sumtype'])
+        self.assertEqual(
+            'Q', bundle._varinfo['SectorRateScalersCountsSigma']['sumtype'])
+        self.assertEqual(
+            'F', bundle._varinfo['ATC']['sumtype'])
+        self.assertEqual(
+            'F', bundle._varinfo['SectorNumbers']['sumtype'])
 
     def testWriteSimple(self):
         """Copy a single variable and deps with no slicing"""
@@ -695,7 +703,7 @@ class VarBundleChecks(unittest.TestCase):
         numpy.testing.assert_array_equal(
             self.outcdf['ATC'][...],
             self.incdf['ATC'][...])
-        for d in (range(4)):
+        for d in range(4):
             a = 'DEPEND_{}'.format(d)
             self.assertEqual(
                 self.outcdf['SectorRateScalersCounts'].attrs[a],
@@ -787,6 +795,66 @@ class VarBundleChecks(unittest.TestCase):
         numpy.testing.assert_array_equal(
             self.outcdf['SpinNumbers'][:],
             self.incdf['SpinNumbers'][:])
+
+    def testSum(self):
+        """Sum over a dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.sum(2)
+        self.assertEqual([False, False, True, False], bundle._summed)
+        bundle.write(self.outcdf)
+        counts = self.incdf['SectorRateScalersCounts'][...]
+        expected = counts.sum(axis=2)
+        expected[(counts < 0).max(axis=2)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.outcdf['SectorRateScalersCounts'][...])
+        sigma = self.incdf['SectorRateScalersCountsSigma'][...]
+        expected = numpy.sqrt((sigma ** 2).sum(axis=2))
+        expected[(sigma < 0).max(axis=2)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.outcdf['SectorRateScalersCountsSigma'][...])
+        self.assertFalse('SectorNumbers' in self.outcdf)
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_1'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.outcdf['SectorRateScalersCounts'].attrs)
+
+    def testSliceSum(self):
+        """Slice and sum over a dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 0, 16).sum(1)
+        self.assertEqual([False, True, False, False], bundle._summed)
+        bundle.write(self.outcdf)
+        counts = self.incdf['SectorRateScalersCounts'][:, 0:16, ...]
+        expected = counts.sum(axis=1)
+        expected[(counts < 0).max(axis=1)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.outcdf['SectorRateScalersCounts'][...])
+        sigma = self.incdf['SectorRateScalersCountsSigma'][:, 0:16, ...]
+        expected = numpy.sqrt((sigma ** 2).sum(axis=1))
+        expected[(sigma < 0).max(axis=1)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.outcdf['SectorRateScalersCountsSigma'][...])
+        self.assertFalse('SpinNumbers' in self.outcdf)
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.outcdf['SectorRateScalersCounts'].attrs)
 
 
 if __name__ == '__main__':
