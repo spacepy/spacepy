@@ -23,8 +23,10 @@ import itertools
 import os
 import os.path
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import numbers
 import warnings
@@ -886,10 +888,20 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         print("Retrieving OMNI2 file ...")
         u.urlretrieve(config['omni2_url'], omni2_fname_zip, reporthook=progressbar)
         fh_zip = zipfile.ZipFile(omni2_fname_zip)
-        fh_zip.extractall();
-        fh_zip.close()
-        file_to_read = fh_zip.namelist()[0]
-        omnicdf = fromCDF(file_to_read)
+        flist = fh_zip.namelist()
+        if len(flist) != 1:
+            raise RuntimeError('Unable to find OMNI2 file in zip file.')
+        file_to_read = flist[0]
+        if os.path.dirname(file_to_read):
+            raise RuntimeError('Unexpected contents of OMNI2 zip file.')
+        td = tempfile.mkdtemp()
+        try:
+            fh_zip.extract(file_to_read, td)
+            omnicdf = fromCDF(os.path.join(td, file_to_read))
+        finally:
+            fh_zip.close()
+            os.remove(omni2_fname_zip)
+            shutil.rmtree(td)
         #add RDT
         omnicdf['RDT'] = spt.Ticktock(omnicdf['Epoch'],'UTC').RDT
         #remove keys that get in the way
@@ -899,10 +911,6 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
 
         # save as HDF5
         toHDF5(omni2_fname_h5, omnicdf)
-
-        # delete left-overs
-        os.remove(omni2_fname_zip)
-        os.remove(file_to_read)
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
