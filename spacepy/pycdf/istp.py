@@ -969,9 +969,11 @@ class VarBundle(object):
     .. autosummary::
 
         slice
+        sum
         write
 
     .. automethod:: slice
+    .. automethod:: sum
     .. automethod:: write
 
     """
@@ -993,11 +995,16 @@ class VarBundle(object):
         ``dims``, list of the main variable dimensions corresponding
         to each dimension of the variable, ``slice``, the slice
         to apply when reading this variable from the input, ``postidx``,
-        a numpy fancy index to apply after reading, and ``thisdim``,
+        a numpy fancy index to apply after reading, ``thisdim``,
         the main dimension for which this var is a dep
-        (and thus it should be removed if the dim is removed)."""
+        (and thus it should be removed if the dim is removed),
+        and ``sumtype``, how to sum this variable (S for simple sum,
+        Q for quadrature, F for simply take first slice.)
+        """
         self._degenerate = []
-        """Degenerate dimensions, ones that are removed in a slice."""
+        """Index by dim, is it degenerate, i.e. removed in a slice."""
+        self._summed = []
+        """Index by dim, is this dim summed."""
         self._getvarinfo()
 
     def _process_delta(self, mainvar, deltaname):
@@ -1060,13 +1067,16 @@ class VarBundle(object):
         dims = list(range(len(self.mainvar.shape)
                           + int(not self.mainvar.rv())))
         self._degenerate = [False] * len(self.mainvar.shape)
+        self._summed = [False] * len(self.mainvar.shape)
         if not self.mainvar.rv(): #Fake the 0-dim
             self._degenerate.insert(0, False)
+            self._summed.insert(0, False)
         #And every dimension is a full slice, to start
         self._varinfo[name] = {
             'dims': dims,
             'slice': [slice(None)] * len(dims),
             'postidx': [slice(None)] * len(dims),
+            'sumtype': 'S',
         }
         mainattrs = self.mainvar.attrs
         #Get the attributes that matter here
@@ -1109,6 +1119,7 @@ class VarBundle(object):
                 'slice': [slice(None)] * len(dims),
                 'postidx': [slice(None)] * len(dims),
                 'thisdim': dim,
+                'sumtype': 'F', #If sum over DEPEND, must be constant over axis
             }
             #Process DELTAs of the DEPENDs
             for d in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'):
@@ -1119,6 +1130,7 @@ class VarBundle(object):
                     continue
                 self._varinfo[deltaname] \
                     = self._process_delta(thisvar, deltaname)
+                self._varinfo[thisname]['sumtype'] = 'F' #just like other deps
         for a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'): #Process DELTA vars
             if not a in attrs:
                 continue
@@ -1127,13 +1139,14 @@ class VarBundle(object):
                 #If DELTA_PLUS/DELTA_MINUS are same var, skip second one
                 self._varinfo[thisname] \
                     = self._process_delta(self.mainvar, thisname)
+                self._varinfo[thisname]['sumtype'] = 'Q' #propagate error
 
     def slice(self, dim, start=None, stop=None, step=None,
               single=False):
         """Slice on a single dimension
 
-        Selects one index of a dimension to include in the output. Slicing
-        is done with reference to the dimensions of the main varible and
+        Selects subset of a dimension to include in the output. Slicing
+        is done with reference to the dimensions of the main variable and
         the corresponding dimensions of all other variables are sliced
         similarly. The first non-record dimension of the variable is always
         1; 0 is the record dimension (and is ignored for NRV variables).
@@ -1200,6 +1213,8 @@ class VarBundle(object):
         #Do not allow simple slice on 0th dimension (record)
         if dim == 0 and single:
             raise ValueError('Cannot perform slice on record dimension.')
+        if single and self._summed[dim]:
+            raise ValueError('Cannot sum on a single-element slice.')
         self._degenerate[dim] = single
 
         fancyidx = (stop is None and step is None and numpy.ndim(start) != 0)
@@ -1215,6 +1230,71 @@ class VarBundle(object):
                 v['postidx'][idx] = start
         return self
 
+    def sum(self, dim):
+        """Sum across a dimension.
+
+        Total the main variable of the bundle across the given dimension.
+        That dimension disappears from the output and dependencies
+        (including their uncertainties) are assumed to be constant across
+        the summed dimension. The uncertainty of the main variable, if
+        any, is appropriately propagated (quadrature sum.)
+
+        An invalid value for any element summed over will result in a fill
+        value on the output. This does not work well for variables that
+        define multiple VALIDMIN/VALIDMAX based on position within a
+        dimension; the smallest VALIDMIN/largest VALIDMAX rather than the
+        position-specific value.
+
+        Summing occurs after slicing, to allow summing of a subset of
+        a dimension. A single element slice (which removes the dimension)
+        is incompatible with summing over that dimension.
+
+        Selects one index of a dimension to include in the output. Slicing
+        is done with reference to the dimensions of the main varible and
+        the corresponding dimensions of all other variables are sliced
+        similarly. The first non-record dimension of the variable is always
+        1; 0 is the record dimension (and is ignored for NRV variables).
+
+        There is not currently a way to "undo" a sum; create a new
+        bundle instead.
+
+        Parameters
+        ----------
+        dim : int
+            CDF dimension to total. This is the dimension as specified
+            in the CDF (0-base for RV variables, 1-base for NRV) and does
+            not change with successive slicing or summing. The record
+            dimension (0) cannot be summed. This must be a positive number
+            (no support for e.g. -1 for last dimension.)
+
+        Returns
+        -------
+        VarBundle
+            This bundle, for method chaining. This is not a copy: the
+            original object is updated.
+
+        Examples
+        --------
+        See the :class:`VarBundle` examples for creating output.
+
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['Counts_P'])
+        >>> #Total over dimension 1 (pitch angle)
+        >>> b.sum(1)
+        >>> #Get a new bundle (without the previous sum)
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['Counts_P'])
+        >>> #Total over first 10 elements of dimension 2 (energy bins)
+        >>> b.slice(2, 0, 10).sum(1)
+        >>> infile.close()
+        """
+        if dim == 0:
+            raise ValueError('Cannot sum over record dimension.')
+        if self._degenerate[dim]:
+            raise ValueError('Cannot sum on a single-element slice.')
+        self._summed[dim] = True
+
     def write(self, output):
         """Write the variables as modified
 
@@ -1229,11 +1309,14 @@ class VarBundle(object):
             This bundle, for method chaining.
         """
         for vname, vinfo in self._varinfo.items():
-            #0th dimension is never degenerate, use that as default
-            if self._degenerate[vinfo.get('thisdim', 0)]:
+            #Dim of main var that depends on this (default 0, never degen)
+            maindim = vinfo.get('thisdim', 0)
+            if self._degenerate[maindim] or self._summed[maindim]:
                 continue #Variable went away, don't copy it
             #Degeneracy of dimensions in this variable's "frame"
             degen = [self._degenerate[d] for d in vinfo['dims']]
+            #And whether the dim was summed
+            summed = [self._summed[d] for d in vinfo['dims']]
             #Dimension size/variance for original variable
             #(0 index is CDF dimension 1)
             invar = self.cdf.raw_var(vname)
@@ -1241,22 +1324,60 @@ class VarBundle(object):
             postidx = vinfo['postidx']
             dv = invar.dv() #starting from dim 1
             dims = invar.shape[int(invar.rv()):] #starting from dim 1
-            #Cut out any degenerate dimensions, and resize based on slice
-            #And always skip the record dim
-            dv = [dv[i] for i in range(len(dv)) if not degen[i + 1]]
             #Scrub degenerate dimensions from the post-indexing
             #(record is never degenerate)
             postidx = [postidx[i] for i in range(len(postidx))
                        if not degen[i]]
+
             #Now get the data
             if not invar.rv(): #Remove fake record dimension
                 sl = sl[1:]
                 postidx = postidx[1:]
             data = self.cdf[vname].__getitem__(tuple(sl))[postidx]
+
+            #Sum data
+            #Degenerate slices have already been removed, so need
+            #a map from old dim numbers to new ones
+            newdims = [None if degen[i] else i - sum(degen[0:i])
+                       for i in range(len(degen))]
+            #Axis numbers to sum, with degenerate removed
+            #(NRV means dim 0 is axis 1, so correct for that)
+            summe = [newdims[i] - int(not invar.rv())
+                     for i in range(len(summed)) #old dim
+                     if newdims[i] is not None and summed[i]]
+            #Sum over axes in reverse order so axis renumbering
+            #doesn't affect future sums
+            a = invar.attrs
+            for ax in summe[::-1]:
+                if vinfo['sumtype'] == 'F':
+                    data = data.take(0, axis=ax)
+                    continue
+                #TODO: Handle element-specific VALIDMIN/VALIDMAX
+                invalid = numpy.isclose(data, a['FILLVAL'])
+                if 'VALIDMIN' in a:
+                    invalid = numpy.logical_or(
+                        invalid, data < numpy.min(a['VALIDMIN']))
+                if 'VALIDMAX' in a:
+                    invalid = numpy.logical_or(
+                        invalid, data > numpy.max(a['VALIDMAX']))
+                invalid = invalid.max(axis=ax)
+                if vinfo['sumtype'] == 'S':
+                    data = data.sum(axis=ax)
+                elif vinfo['sumtype'] == 'Q':
+                    data = numpy.sqrt((data ** 2).sum(axis=ax))
+                else: #Should not happen
+                    raise ValueError('Bad summation type.')
+                data[invalid] = a['FILLVAL']
+
+            #Summed dimensions are now also degenerate
+            degen = [d or s for d, s in zip(degen, summed)]
+
             #Get shape of output variable from actual data
             dims = data.shape
             if invar.rv():
                 dims = dims[1:]
+            #Cut out any degenerate dimensions from DV (skipping record dim)
+            dv = [dv[i] for i in range(len(dv)) if not degen[i + 1]]
             #TODO: if variable already exists in output, check if it's the
             #same (e.g. if copied two variables with same depends)
             #TODO: support renaming of variables
