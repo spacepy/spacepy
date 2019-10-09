@@ -1360,13 +1360,14 @@ class VarBundle(object):
                 if 'VALIDMAX' in a:
                     invalid = numpy.logical_or(
                         invalid, data > numpy.max(a['VALIDMAX']))
-                invalid = invalid.max(axis=ax)
                 if vinfo['sumtype'] == 'S':
                     data = data.sum(axis=ax)
                 elif vinfo['sumtype'] == 'Q':
+                    data[invalid] = 0. #avoid a warning
                     data = numpy.sqrt((data ** 2).sum(axis=ax))
                 else: #Should not happen
                     raise ValueError('Bad summation type.')
+                invalid = invalid.max(axis=ax)
                 data[invalid] = a['FILLVAL']
 
             #Summed dimensions are now also degenerate

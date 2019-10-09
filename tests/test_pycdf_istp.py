@@ -809,8 +809,10 @@ class VarBundleChecks(unittest.TestCase):
         numpy.testing.assert_allclose(
             expected, self.outcdf['SectorRateScalersCounts'][...])
         sigma = self.incdf['SectorRateScalersCountsSigma'][...]
+        bad = (sigma < 0)
+        sigma[bad] = 0 #avoid warning
         expected = numpy.sqrt((sigma ** 2).sum(axis=2))
-        expected[(sigma < 0).max(axis=2)] = -1e31
+        expected[bad.max(axis=2)] = -1e31
         numpy.testing.assert_allclose(
             expected, self.outcdf['SectorRateScalersCountsSigma'][...])
         self.assertFalse('SectorNumbers' in self.outcdf)
@@ -839,8 +841,10 @@ class VarBundleChecks(unittest.TestCase):
         numpy.testing.assert_allclose(
             expected, self.outcdf['SectorRateScalersCounts'][...])
         sigma = self.incdf['SectorRateScalersCountsSigma'][:, 0:16, ...]
+        bad = (sigma < 0)
+        sigma[bad] = 0 #avoid warning
         expected = numpy.sqrt((sigma ** 2).sum(axis=1))
-        expected[(sigma < 0).max(axis=1)] = -1e31
+        expected[bad.max(axis=1)] = -1e31
         numpy.testing.assert_allclose(
             expected, self.outcdf['SectorRateScalersCountsSigma'][...])
         self.assertFalse('SpinNumbers' in self.outcdf)
