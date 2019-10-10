@@ -951,6 +951,85 @@ class VarBundleChecks(unittest.TestCase):
         else:
             self.fail('Should have raised RuntimeError: ' + msg)
 
+    def testSumRename(self):
+        """Sum over a dimension, rename output"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.sum(2)
+        bundle.output(self.outcdf, suffix='_Summed')
+        counts = self.incdf['SectorRateScalersCounts'][...]
+        expected = counts.sum(axis=2)
+        expected[(counts < 0).max(axis=2)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.outcdf['SectorRateScalersCounts_Summed'][...])
+        sigma = self.incdf['SectorRateScalersCountsSigma'][...]
+        bad = (sigma < 0)
+        sigma[bad] = 0 #avoid warning
+        expected = numpy.sqrt((sigma ** 2).sum(axis=2))
+        expected[bad.max(axis=2)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.outcdf['SectorRateScalersCountsSigma_Summed'][...])
+        self.assertFalse('SectorNumbers' in self.outcdf)
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts_Summed'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts_Summed'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_1'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts_Summed'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.outcdf['SectorRateScalersCounts_Summed'].attrs)
+        self.assertEqual('SectorRateScalersCountsSigma_Summed',
+                         self.outcdf['SectorRateScalersCounts_Summed']
+                         .attrs['DELTA_PLUS_VAR'])
+
+    def testSumRenameConflict(self):
+        """Sum over a dimension, rename output, with a potential conflict"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(2, 0, 2)
+        bundle.output(self.outcdf, suffix='_0-1')
+        bundle.slice(2, 2, 4)
+        bundle.output(self.outcdf, suffix='_2-3')
+        counts = self.incdf['SectorRateScalersCounts'][...]
+        numpy.testing.assert_allclose(
+            counts[..., 0:2, :],
+            self.outcdf['SectorRateScalersCounts_0-1'][...])
+        sigma = self.incdf['SectorRateScalersCountsSigma'][...]
+        numpy.testing.assert_allclose(
+            sigma[..., 0:2, :],
+            self.outcdf['SectorRateScalersCountsSigma_0-1'][...])
+        self.assertFalse('SectorNumbers' in self.outcdf)
+        self.assertTrue('SectorRateScalerNames' in self.outcdf)
+        self.assertFalse('SectorRateScalerNames_0-1' in self.outcdf)
+        self.assertTrue('SectorNumbers_0-1' in self.outcdf)
+        self.assertTrue('SectorNumbers_2-3' in self.outcdf)
+        #Most depends are the same
+        for which in ('0-1', '2-3'):
+            for d in range(0, 4):
+                if d == 2:
+                    continue
+                self.assertEqual(
+                    self.outcdf['SectorRateScalersCounts_{}'.format(which)]
+                    .attrs['DEPEND_{}'.format(d)],
+                    self.incdf['SectorRateScalersCounts']
+                    .attrs['DEPEND_{}'.format(d)])
+        #But dim 2 is different
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts_2-3'].attrs['DEPEND_2'],
+            'SectorNumbers_2-3')
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts_0-1'].attrs['DEPEND_2'],
+            'SectorNumbers_0-1')
+        self.assertEqual(
+            'SectorRateScalersCounts_0-1',
+            self.outcdf['SectorRateScalersCounts_0-1'].attrs['FIELDNAM'])
+        self.assertEqual(
+            'SectorNumbers_2-3',
+            self.outcdf['SectorNumbers_2-3'].attrs['FIELDNAM'])
+
 
 if __name__ == '__main__':
     unittest.main()
