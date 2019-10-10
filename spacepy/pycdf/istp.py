@@ -36,6 +36,7 @@ Contact: Jonathan.Niehof@unh.edu
 """
 
 import datetime
+import itertools
 import math
 import os.path
 import re
@@ -1395,15 +1396,18 @@ class VarBundle(object):
         ia = invar.attrs
         na = newvar.attrs
         for a in ia:
-            if a.startswith(('DEPEND_', 'LABL_PTR_')):
-                pass #depends/labl ptr shift around, so test later
+            if a.startswith(('DEPEND_', 'LABL_PTR_')) \
+               or a == 'FIELDNAM':
+                #depends/LABL PTR shift around, and FIELDNAM may change,
+                #so test outside of this function.
+                pass
             if not a in na or ia.type(a) != na.type(a) \
                or ia[a] != na[a]:
                 return False
         #Finally check the data
         return (data == newvar[...]).all()
 
-    def output(self, output):
+    def output(self, output, suffix=None):
         """Output the variables as modified
 
         Parameters
@@ -1411,11 +1415,49 @@ class VarBundle(object):
         output : :class:`~spacepy.pycdf.CDF`
             Output CDF to receive the new data.
 
+        suffix : str
+            Suffix to append to the name of any variables that are changed
+            for the output. This allows the output to contain multiple
+            variables derived from the same input variable. The main variable
+            and its DELTA variables will always have the suffix applied.
+            Any dependencies will have the suffix applied only if they have
+            changed from the input CDF (e.g. from slicing.)
+
         Returns
         -------
         VarBundle
             This bundle, for method chaining.
+
+        Examples
+        --------
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
+        >>> infile['FPDU']
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
+        >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
+        >>> #Output the low energy half in one variable
+        >>> b.slice(2, 0, 36).output(outfile, suffix='_LoE')
+        >>> #And the high energy half in another variable
+        >>> b.slice(2, 36, 72).output(outfile, suffix='_HiE')
+        >>> outfile.close()
+        >>> infile.close()
         """
+        #TODO: Support V_PARENT
+        #https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#V_PARENT
+        #Map of variable names in the old CDF to those in the new for
+        #any variable that's changed
+        namemap = {}
+        if suffix is not None:
+            for vname, vinfo in self._varinfo.items():
+                if vinfo['sumtype'] in ('Q', 'S'): #main var, or DELTA
+                    namemap[vname] = vname + suffix
+                else: #Dependency. If any slice/sum, it's changed
+                    if any([any((self._summed[d], self._mean[d]))
+                            for d in vinfo['dims']]) \
+                    or any([s != slice(None) for s in itertools.chain(
+                        vinfo['slice'], vinfo['postidx'])]):
+                        namemap[vname] = vname + suffix
         for vname, vinfo in self._varinfo.items():
             #Dim of main var that depends on this (default 0, never degen)
             maindim = vinfo.get('thisdim', 0)
@@ -1499,26 +1541,30 @@ class VarBundle(object):
                 dims = dims[1:]
             #Cut out any degenerate dimensions from DV (skipping record dim)
             dv = [dv[i] for i in range(len(dv)) if not degen[i + 1]]
-            #TODO: support renaming of variables
-            if vname in output:
+
+            #Rename the variable if necessary
+            outname = namemap.get(vname, vname)
+            if outname in output:
                 preexist = True
-                newvar = output[vname]
+                newvar = output[outname]
                 if not self._same(newvar, invar, dv, dims, data):
                     raise RuntimeError(
                         'Incompatible {} already exists in output.'
-                        .format(vname))
+                        .format(outname))
             else:
                 preexist = False
                 #TODO: Try to work this as an assignment so it can be used
                 #in a SpaceData as well as a CDF
                 newvar = output.new(
-                    vname, type=invar.type(), recVary=invar.rv(),
+                    outname, type=invar.type(), recVary=invar.rv(),
                     dimVarys=dv, dims=dims,
                     n_elements=invar.nelems())
                 #Must create it empty so can change compression
                 newvar.compress(*invar.compress())
                 newvar[...] = data
                 newvar.attrs.clone(invar.attrs)
+                if vname != outname: #renamed
+                    newvar.attrs['FIELDNAM'] = outname
 
             #Repoint the DEPEND/LABL_PTR for ones that disappeared
             #(or verify they're correct if didn't create the variable)
@@ -1526,6 +1572,11 @@ class VarBundle(object):
             newdims = [None if degen[i] else i - sum(degen[0:i])
                        for i in range(len(degen))]
             for a in list(newvar.attrs.keys()): #Editing in loop!
+                #Handle a suffixed DELTA if necessary
+                if a.startswith('DELTA_'):
+                    olddelta = invar.attrs[a]
+                    newvar.attrs[a] = namemap.get(olddelta, olddelta)
+                    continue
                 if not a.startswith(('DEPEND_', 'LABL_PTR_')):
                     continue
                 newdim = int(a.split('_')[-1])
@@ -1533,19 +1584,22 @@ class VarBundle(object):
                     olddim = newdims.index(newdim)
                     old_a = '{}_{}'.format('_'.join(a.split('_')[:-1]),
                                            olddim)
+                    #Check for variable renaming from the input to output
+                    oldval = invar.attrs[old_a]
+                    newval = namemap.get(oldval, oldval)
                     if preexist:
-                        if newvar.attrs[a] != invar.attrs[old_a]:
+                        if newvar.attrs[a] != newval:
                             raise RuntimeError(
                                 'Incompatible {} already exists in output.'
-                                .format(vname))
+                                .format(outname))
                     else:
-                        newvar.attrs[a] = invar.attrs[old_a]
+                        newvar.attrs[a] = newval
                 else: #No corresponding old dim
                     if preexist:
                         if a in newvar.attrs:
                             raise RuntimeError(
                                 'Incompatible {} already exists in output.'
-                                .format(vname))
+                                .format(outname))
                     else:
                         del newvar.attrs[a]
         return self
