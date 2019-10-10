@@ -1435,7 +1435,6 @@ class VarBundle(object):
         >>> import spacepy.pycdf
         >>> import spacepy.pycdf.istp
         >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
-        >>> infile['FPDU']
         >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
         >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
         >>> #Output the low energy half in one variable
