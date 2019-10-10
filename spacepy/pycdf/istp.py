@@ -1384,7 +1384,7 @@ class VarBundle(object):
             averaged = [self._mean[d] for d in vinfo['dims']]
             #Dimension size/variance for original variable
             #(0 index is CDF dimension 1)
-            invar = self.cdf.raw_var(vname)
+            invar = self.cdf[vname]
             sl = vinfo['slice'] #including 0th dim
             postidx = vinfo['postidx']
             dv = invar.dv() #starting from dim 1
