@@ -5,6 +5,7 @@
 import datetime
 import os.path
 import shutil
+import sys
 import tempfile
 import unittest
 import warnings
@@ -903,6 +904,52 @@ class VarBundleChecks(unittest.TestCase):
             self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
         self.assertFalse('DEPEND_3'
                         in self.outcdf['SectorRateScalersCounts'].attrs)
+
+    def testNonconflictingMultiple(self):
+        """Put multiple variables without conflict in output"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.sum(1) #Sum over spin
+        bundle.output(self.outcdf)
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SpinRateScalersCounts'])
+        #This has some overlapping deps, but they're all the same
+        bundle.output(self.outcdf)
+        self.assertTrue('SpinNumbers' in self.outcdf)
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.outcdf['SectorRateScalersCounts'].attrs)
+        for i in range(3):
+            d = 'DEPEND_{}'.format(i)
+            self.assertEqual(
+                self.outcdf['SpinRateScalersCounts'].attrs[d],
+                self.incdf['SpinRateScalersCounts'].attrs[d])
+
+    def testConflictingMultiple(self):
+        """Put multiple variables with conflict in output"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(1, 0, 3)
+        bundle.output(self.outcdf)
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SpinRateScalersCounts'])
+        bundle.slice(1, 2, 5)
+        #This is a different slice on same dim, should fail
+        msg = 'Incompatible SpinNumbers already exists in output.'
+        try:
+            bundle.output(self.outcdf)
+        except RuntimeError:
+            self.assertEqual(msg, str(sys.exc_info()[1]))
+        else:
+            self.fail('Should have raised RuntimeError: ' + msg)
 
 
 if __name__ == '__main__':

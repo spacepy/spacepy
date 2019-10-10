@@ -1357,6 +1357,52 @@ class VarBundle(object):
             raise ValueError('Cannot sum and take mean of same dimension.')
         self._mean[dim] = True
 
+    def _same(self, newvar, invar, dv, dims, data):
+        """Checks if an existing variable matches a proposed new variable
+
+        Does not compare DEPEND and LABL_PTR attributes (those are handled
+        later.)
+
+        Parameters
+        ----------
+        newvar : :class:`~spacepy.pycdf.Var`
+            Existing variable to compare to requirements
+
+        invar : : class:`~spacepy.pycdf.Var`
+            Variable to use as reference for attributes, RV, CDF type,
+            number of elements.
+
+        dv : list of bool
+            Data variance for each dimension.
+
+        dims : list of int
+            Size of each dimension.
+
+        data : :class:`~numpy.ndarray`
+            Data that should be in the variable.
+
+        Returns
+        -------
+        bool
+            True if the existing variable is the same; False if not.
+        """
+        #Check basic type, dimensions, etc.
+        if newvar.rv() != invar.rv() or newvar.type() != invar.type() \
+            or len(dims) != (len(newvar.shape) - newvar.rv()) \
+            or newvar.dv() != dv or newvar.nelems() != invar.nelems() \
+            or list(dims) != list(newvar.shape[1:newvar.rv()]):
+            return False
+        ia = invar.attrs
+        na = newvar.attrs
+        for a in ia:
+            if a.startswith(('DEPEND_', 'LABL_PTR_')):
+                pass #depends/labl ptr shift around, so test later
+            if not a in na or ia.type(a) != na.type(a) \
+               or ia[a] != na[a]:
+                return False
+        #Finally check the data
+        return (data == newvar[...]).all()
+
     def output(self, output):
         """Output the variables as modified
 
@@ -1453,21 +1499,29 @@ class VarBundle(object):
                 dims = dims[1:]
             #Cut out any degenerate dimensions from DV (skipping record dim)
             dv = [dv[i] for i in range(len(dv)) if not degen[i + 1]]
-            #TODO: if variable already exists in output, check if it's the
-            #same (e.g. if copied two variables with same depends)
             #TODO: support renaming of variables
-            #TODO: Try to work this as an assignment so it can be used
-            #in a SpaceData as well as a CDF
-            newvar = output.new(
-                vname, type=invar.type(), recVary=invar.rv(),
-                dimVarys=dv, dims=dims,
-                n_elements=invar.nelems())
-            #Must create it empty so can change compression
-            newvar.compress(*invar.compress())
-            newvar[...] = data
-            newvar.attrs.clone(invar.attrs)
+            if vname in output:
+                preexist = True
+                newvar = output[vname]
+                if not self._same(newvar, invar, dv, dims, data):
+                    raise RuntimeError(
+                        'Incompatible {} already exists in output.'
+                        .format(vname))
+            else:
+                preexist = False
+                #TODO: Try to work this as an assignment so it can be used
+                #in a SpaceData as well as a CDF
+                newvar = output.new(
+                    vname, type=invar.type(), recVary=invar.rv(),
+                    dimVarys=dv, dims=dims,
+                    n_elements=invar.nelems())
+                #Must create it empty so can change compression
+                newvar.compress(*invar.compress())
+                newvar[...] = data
+                newvar.attrs.clone(invar.attrs)
 
             #Repoint the DEPEND/LABL_PTR for ones that disappeared
+            #(or verify they're correct if didn't create the variable)
             #Index by old dim; returns the new dim (None if went away)
             newdims = [None if degen[i] else i - sum(degen[0:i])
                        for i in range(len(degen))]
@@ -1479,7 +1533,19 @@ class VarBundle(object):
                     olddim = newdims.index(newdim)
                     old_a = '{}_{}'.format('_'.join(a.split('_')[:-1]),
                                            olddim)
-                    newvar.attrs[a] = invar.attrs[old_a]
+                    if preexist:
+                        if newvar.attrs[a] != invar.attrs[old_a]:
+                            raise RuntimeError(
+                                'Incompatible {} already exists in output.'
+                                .format(vname))
+                    else:
+                        newvar.attrs[a] = invar.attrs[old_a]
                 else: #No corresponding old dim
-                    del newvar.attrs[a]
+                    if preexist:
+                        if a in newvar.attrs:
+                            raise RuntimeError(
+                                'Incompatible {} already exists in output.'
+                                .format(vname))
+                    else:
+                        del newvar.attrs[a]
         return self
