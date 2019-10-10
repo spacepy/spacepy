@@ -950,7 +950,7 @@ class VarBundle(object):
     >
     >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
     >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
-    >>> b.slice(1, 2, single=True).write(outfile)
+    >>> b.slice(1, 2, single=True).output(outfile)
     <spacepy.pycdf.istp.VarBundle at 0xdeadbeefffff>
     >>> outfile['FPDU']
     <Var:
@@ -968,13 +968,13 @@ class VarBundle(object):
 
     .. autosummary::
 
+        output
         slice
         sum
-        write
 
+    .. automethod:: output
     .. automethod:: slice
     .. automethod:: sum
-    .. automethod:: write
 
     """
 
@@ -1295,8 +1295,8 @@ class VarBundle(object):
             raise ValueError('Cannot sum on a single-element slice.')
         self._summed[dim] = True
 
-    def write(self, output):
-        """Write the variables as modified
+    def output(self, output):
+        """Output the variables as modified
 
         Parameters
         ----------
