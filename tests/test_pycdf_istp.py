@@ -588,8 +588,9 @@ class FuncTests(ISTPTestsBase):
         self.assertEqual('A5', v.attrs['FORMAT'])
 
 
-class VarBundleChecks(unittest.TestCase):
-    """Checks for VarBundle class"""
+class VarBundleChecksBase(unittest.TestCase):
+    """Base class for VarBundle class checks"""
+    testfile = 'po_l1_cam_test.cdf'
 
     def setUp(self):
         """Setup: make an empty, open, writeable CDF"""
@@ -600,7 +601,7 @@ class VarBundleChecks(unittest.TestCase):
                                      create=True)
         spacepy.pycdf.lib.set_backward(True)
         pth = os.path.dirname(os.path.abspath(__file__))
-        self.incdf = spacepy.pycdf.CDF(os.path.join(pth, 'po_l1_cam_test.cdf'))
+        self.incdf = spacepy.pycdf.CDF(os.path.join(pth, self.testfile))
 
     def tearDown(self):
         """Close CDFs; delete output"""
@@ -610,6 +611,11 @@ class VarBundleChecks(unittest.TestCase):
         except:
             pass
         shutil.rmtree(self.tempdir)
+
+
+class VarBundleChecks(VarBundleChecksBase):
+    """Checks for VarBundle class, CAMMICE sample file"""
+    testfile = 'po_l1_cam_test.cdf'
 
     def testGetVarInfo(self):
         """Get dependencies, dims, etc. for a variable"""
@@ -1029,6 +1035,26 @@ class VarBundleChecks(unittest.TestCase):
         self.assertEqual(
             'SectorNumbers_2-3',
             self.outcdf['SectorNumbers_2-3'].attrs['FIELDNAM'])
+
+
+class VarBundleChecksHOPE(VarBundleChecksBase):
+    """Checks for VarBundle class, HOPE sample file"""
+    testfile = os.path.join('data',
+                            'rbspa_rel04_ect-hope-PA-L3_20121201_v0.0.0.cdf')
+
+    def testDepWithDelta(self):
+        """Properly handle a dependency with a delta"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['Counts_P'])
+        self.assertEqual('S', bundle._varinfo['Counts_P']['sumtype'])
+        self.assertEqual('F', bundle._varinfo['ENERGY_Ion_DELTA']['sumtype'])
+        bundle.slice(2, 0, 10).mean(2).output(self.outcdf)
+        expected = self.incdf['Counts_P'][:, :, 0:10, ...]
+        expected[expected < 0] = numpy.nan
+        expected = numpy.nanmean(expected, axis=2)
+        expected[numpy.isnan(expected)] = -1e31
+        numpy.testing.assert_allclose(
+            self.outcdf['Counts_P'], expected)
 
 
 if __name__ == '__main__':
