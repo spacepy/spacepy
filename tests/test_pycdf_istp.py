@@ -666,6 +666,9 @@ class VarBundleChecks(unittest.TestCase):
         self.assertEqual(
             self.outcdf['SectorRateScalersCounts'].attrs,
             self.incdf['SectorRateScalersCounts'].attrs)
+        self.assertEqual(
+            self.incdf['ATC'].attrs['FILLVAL'],
+            self.outcdf['ATC'].attrs['FILLVAL'])
 
     def testSimpleSlice(self):
         """Slice single element on single dimension"""
@@ -828,6 +831,9 @@ class VarBundleChecks(unittest.TestCase):
             self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
         self.assertFalse('DEPEND_3'
                         in self.outcdf['SectorRateScalersCounts'].attrs)
+        self.assertEqual(
+            self.incdf['ATC'].attrs['FILLVAL'],
+            self.outcdf['ATC'].attrs['FILLVAL'])
 
     def testSliceSum(self):
         """Slice and sum over a dimension"""
