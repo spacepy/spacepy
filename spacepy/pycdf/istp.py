@@ -1137,7 +1137,7 @@ class VarBundle(object):
                     continue
                 self._varinfo[deltaname] \
                     = self._process_delta(thisvar, deltaname)
-                self._varinfo[thisname]['sumtype'] = 'F' #just like other deps
+                self._varinfo[deltaname]['sumtype'] = 'F' #just like other deps
         for a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'): #Process DELTA vars
             if not a in attrs:
                 continue
