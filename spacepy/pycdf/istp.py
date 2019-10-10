@@ -1390,7 +1390,7 @@ class VarBundle(object):
         if newvar.rv() != invar.rv() or newvar.type() != invar.type() \
             or len(dims) != (len(newvar.shape) - newvar.rv()) \
             or newvar.dv() != dv or newvar.nelems() != invar.nelems() \
-            or list(dims) != list(newvar.shape[1:newvar.rv()]):
+            or list(dims) != list(newvar.shape[newvar.rv():]):
             return False
         ia = invar.attrs
         na = newvar.attrs
