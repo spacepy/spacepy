@@ -968,10 +968,12 @@ class VarBundle(object):
 
     .. autosummary::
 
+        mean
         output
         slice
         sum
 
+    .. automethod:: mean
     .. automethod:: output
     .. automethod:: slice
     .. automethod:: sum
@@ -1005,6 +1007,8 @@ class VarBundle(object):
         """Index by dim, is it degenerate, i.e. removed in a slice."""
         self._summed = []
         """Index by dim, is this dim summed."""
+        self._mean = []
+        """Index by dim, is this dim averaged."""
         self._getvarinfo()
 
     def _process_delta(self, mainvar, deltaname):
@@ -1068,9 +1072,11 @@ class VarBundle(object):
                           + int(not self.mainvar.rv())))
         self._degenerate = [False] * len(self.mainvar.shape)
         self._summed = [False] * len(self.mainvar.shape)
+        self._mean = [False] * len(self.mainvar.shape)
         if not self.mainvar.rv(): #Fake the 0-dim
             self._degenerate.insert(0, False)
             self._summed.insert(0, False)
+            self._mean.insert(0, False)
         #And every dimension is a full slice, to start
         self._varinfo[name] = {
             'dims': dims,
@@ -1213,8 +1219,8 @@ class VarBundle(object):
         #Do not allow simple slice on 0th dimension (record)
         if dim == 0 and single:
             raise ValueError('Cannot perform slice on record dimension.')
-        if single and self._summed[dim]:
-            raise ValueError('Cannot sum on a single-element slice.')
+        if single and (self._summed[dim] or self._mean[dim]):
+            raise ValueError('Cannot sum/average on a single-element slice.')
         self._degenerate[dim] = single
 
         fancyidx = (stop is None and step is None and numpy.ndim(start) != 0)
@@ -1287,7 +1293,69 @@ class VarBundle(object):
             raise ValueError('Cannot sum over record dimension.')
         if self._degenerate[dim]:
             raise ValueError('Cannot sum on a single-element slice.')
+        if self._mean[dim]:
+            raise ValueError('Cannot sum and take mean of same dimension.')
         self._summed[dim] = True
+
+    def mean(self, dim):
+        """Take the mean of a dimension.
+
+        Take mean of the main variable of the bundle across the given
+        dimension. That dimension disappears from the output and dependencies
+        (including their uncertainties) are assumed to be constant across
+        the summed dimension. The uncertainty of the main variable, if
+        any, is appropriately propagated.
+
+        Invalid values are excluded fromthe mean. This does not work well
+        for variables that define multiple VALIDMIN/VALIDMAX based on
+        position within a dimension; the smallest VALIDMIN/largest VALIDMAX
+        rather than the position-specific value.
+
+        Averaging occurs after slicing, to allow averaging of a subset of
+        a dimension. A single element slice (which removes the dimension)
+        is incompatible with averaging over that dimension.
+
+        There is not currently a way to "undo" a mean; create a new
+        bundle instead.
+
+        Parameters
+        ----------
+        dim : int
+            CDF dimension to average. This is the dimension as specified
+            in the CDF (0-base for RV variables, 1-base for NRV) and does
+            not change with successive slicing or summing. The record
+            dimension (0) cannot be summed. This must be a positive number
+            (no support for e.g. -1 for last dimension.)
+
+        Returns
+        -------
+        VarBundle
+            This bundle, for method chaining. This is not a copy: the
+            original object is updated.
+
+        Examples
+        --------
+        See the :class:`VarBundle` examples for creating output.
+
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['Counts_P'])
+        >>> #Average over dimension 1 (pitch angle)
+        >>> b.mean(1)
+        >>> #Get a new bundle (without the previous sum)
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['Counts_P'])
+        >>> #Average over first 10 elements of dimension 2 (energy bins)
+        >>> b.slice(2, 0, 10).mean(2)
+        >>> infile.close()
+        """
+        if dim == 0:
+            raise ValueError('Cannot average over record dimension.')
+        if self._degenerate[dim]:
+            raise ValueError('Cannot average on a single-element slice.')
+        if self._summed[dim]:
+            raise ValueError('Cannot sum and take mean of same dimension.')
+        self._mean[dim] = True
 
     def output(self, output):
         """Output the variables as modified
@@ -1305,12 +1373,15 @@ class VarBundle(object):
         for vname, vinfo in self._varinfo.items():
             #Dim of main var that depends on this (default 0, never degen)
             maindim = vinfo.get('thisdim', 0)
-            if self._degenerate[maindim] or self._summed[maindim]:
+            if max(self._degenerate[maindim], self._summed[maindim],
+                   self._mean[maindim]):
                 continue #Variable went away, don't copy it
             #Degeneracy of dimensions in this variable's "frame"
             degen = [self._degenerate[d] for d in vinfo['dims']]
             #And whether the dim was summed
             summed = [self._summed[d] for d in vinfo['dims']]
+            #And averaged
+            averaged = [self._mean[d] for d in vinfo['dims']]
             #Dimension size/variance for original variable
             #(0 index is CDF dimension 1)
             invar = self.cdf.raw_var(vname)
@@ -1338,7 +1409,10 @@ class VarBundle(object):
             #(NRV means dim 0 is axis 1, so correct for that)
             summe = [newdims[i] - int(not invar.rv())
                      for i in range(len(summed)) #old dim
-                     if newdims[i] is not None and summed[i]]
+                     if newdims[i] is not None and (summed[i] or averaged[i])]
+            avgme = [newdims[i] - int(not invar.rv())
+                     for i in range(len(averaged)) #old dim
+                     if newdims[i] is not None and averaged[i]]
             #Sum over axes in reverse order so axis renumbering
             #doesn't affect future sums
             a = invar.attrs
@@ -1354,18 +1428,24 @@ class VarBundle(object):
                 if 'VALIDMAX' in a:
                     invalid = numpy.logical_or(
                         invalid, data > numpy.max(a['VALIDMAX']))
+                data[invalid] = 0 #avoids warning and helps with mean
                 if vinfo['sumtype'] == 'S':
                     data = data.sum(axis=ax)
                 elif vinfo['sumtype'] == 'Q':
-                    data[invalid] = 0. #avoid a warning
                     data = numpy.sqrt((data ** 2).sum(axis=ax))
                 else: #Should not happen
                     raise ValueError('Bad summation type.')
-                invalid = invalid.max(axis=ax)
+                if ax in avgme: #divide out
+                    count = numpy.sum(~invalid, axis=ax)
+                    invalid = (count == 0)
+                    count[invalid] = 1 #avoid warning
+                    data = data / count
+                else: #Sum, so any fill on axis means value is fill
+                    invalid = invalid.max(axis=ax)
                 data[invalid] = a['FILLVAL']
 
-            #Summed dimensions are now also degenerate
-            degen = [d or s for d, s in zip(degen, summed)]
+            #Summed/averaged dimensions are now also degenerate
+            degen = [max(v) for v in zip(degen, summed, averaged)]
 
             #Get shape of output variable from actual data
             dims = data.shape

@@ -7,6 +7,7 @@ import os.path
 import shutil
 import tempfile
 import unittest
+import warnings
 
 import numpy
 import numpy.testing
@@ -854,6 +855,43 @@ class VarBundleChecks(unittest.TestCase):
         self.assertEqual(
             self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
             self.incdf['SectorRateScalersCounts'].attrs['DEPEND_2'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
+        self.assertFalse('DEPEND_3'
+                        in self.outcdf['SectorRateScalersCounts'].attrs)
+
+    def testMean(self):
+        """Average over a dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.mean(2)
+        self.assertEqual([False, False, False, False], bundle._summed)
+        self.assertEqual([False, False, True, False], bundle._mean)
+        bundle.output(self.outcdf)
+        counts = self.incdf['SectorRateScalersCounts'][...]
+        counts[counts < 0] = numpy.nan
+        #suppress bad value warnings
+        with warnings.catch_warnings(record=True) as w:
+            expected = numpy.nanmean(counts, axis=2)
+        expected[numpy.isnan(expected)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.outcdf['SectorRateScalersCounts'][...])
+        sigma = self.incdf['SectorRateScalersCountsSigma'][...]
+        sigma[sigma < 0] = numpy.nan
+        with warnings.catch_warnings(record=True) as w:
+            expected = numpy.sqrt(numpy.nansum(sigma ** 2, axis=2)) \
+                        / (~numpy.isnan(sigma)).sum(axis=2)
+        expected[numpy.isnan(expected)] = -1e31
+        numpy.testing.assert_allclose(
+            expected, self.outcdf['SectorRateScalersCountsSigma'][...])
+        self.assertFalse('SectorNumbers' in self.outcdf)
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_2'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_3'])
+        self.assertEqual(
+            self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_1'],
+            self.incdf['SectorRateScalersCounts'].attrs['DEPEND_1'])
         self.assertEqual(
             self.outcdf['SectorRateScalersCounts'].attrs['DEPEND_0'],
             self.incdf['SectorRateScalersCounts'].attrs['DEPEND_0'])
