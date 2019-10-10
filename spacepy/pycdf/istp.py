@@ -1249,12 +1249,6 @@ class VarBundle(object):
         a dimension. A single element slice (which removes the dimension)
         is incompatible with summing over that dimension.
 
-        Selects one index of a dimension to include in the output. Slicing
-        is done with reference to the dimensions of the main varible and
-        the corresponding dimensions of all other variables are sliced
-        similarly. The first non-record dimension of the variable is always
-        1; 0 is the record dimension (and is ignored for NRV variables).
-
         There is not currently a way to "undo" a sum; create a new
         bundle instead.
 
@@ -1286,7 +1280,7 @@ class VarBundle(object):
         >>> #Get a new bundle (without the previous sum)
         >>> b = spacepy.pycdf.istp.VarBundle(infile['Counts_P'])
         >>> #Total over first 10 elements of dimension 2 (energy bins)
-        >>> b.slice(2, 0, 10).sum(1)
+        >>> b.slice(2, 0, 10).sum(2)
         >>> infile.close()
         """
         if dim == 0:
