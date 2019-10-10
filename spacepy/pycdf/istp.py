@@ -1297,6 +1297,7 @@ class VarBundle(object):
         if self._mean[dim]:
             raise ValueError('Cannot sum and take mean of same dimension.')
         self._summed[dim] = True
+        return self
 
     def mean(self, dim):
         """Take the mean of a dimension.
@@ -1357,6 +1358,7 @@ class VarBundle(object):
         if self._summed[dim]:
             raise ValueError('Cannot sum and take mean of same dimension.')
         self._mean[dim] = True
+        return self
 
     def _same(self, newvar, invar, dv, dims, data):
         """Checks if an existing variable matches a proposed new variable
