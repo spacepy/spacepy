@@ -651,11 +651,11 @@ class VarBundleChecks(unittest.TestCase):
         self.assertEqual(
             'F', bundle._varinfo['SectorNumbers']['sumtype'])
 
-    def testWriteSimple(self):
+    def testOutputSimple(self):
         """Copy a single variable and deps with no slicing"""
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][...])
@@ -671,7 +671,7 @@ class VarBundleChecks(unittest.TestCase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(1, 2, single=True)
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][:, 2, ...])
@@ -696,7 +696,7 @@ class VarBundleChecks(unittest.TestCase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(1, 2, single=False)
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][:, 2:, ...])
@@ -717,7 +717,7 @@ class VarBundleChecks(unittest.TestCase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(1, 2, single=True).slice(1)
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][...])
@@ -738,7 +738,7 @@ class VarBundleChecks(unittest.TestCase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(0, 2, 20)
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][2:20, ...])
@@ -759,7 +759,7 @@ class VarBundleChecks(unittest.TestCase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(1, [2, 3, 5])
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][...][:, [2, 3, 5], ...])
@@ -780,7 +780,7 @@ class VarBundleChecks(unittest.TestCase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(0, [2, 3, 5])
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][...][[2, 3, 5], ...])
@@ -802,7 +802,7 @@ class VarBundleChecks(unittest.TestCase):
             self.incdf['SectorRateScalersCounts'])
         bundle.sum(2)
         self.assertEqual([False, False, True, False], bundle._summed)
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         counts = self.incdf['SectorRateScalersCounts'][...]
         expected = counts.sum(axis=2)
         expected[(counts < 0).max(axis=2)] = -1e31
@@ -834,7 +834,7 @@ class VarBundleChecks(unittest.TestCase):
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(1, 0, 16).sum(1)
         self.assertEqual([False, True, False, False], bundle._summed)
-        bundle.write(self.outcdf)
+        bundle.output(self.outcdf)
         counts = self.incdf['SectorRateScalersCounts'][:, 0:16, ...]
         expected = counts.sum(axis=1)
         expected[(counts < 0).max(axis=1)] = -1e31
