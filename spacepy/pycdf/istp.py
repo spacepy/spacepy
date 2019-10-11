@@ -1656,7 +1656,10 @@ class VarBundle(object):
             if not invar.rv(): #Remove fake record dimension
                 sl = sl[1:]
                 postidx = postidx[1:]
-            data = invar.__getitem__(tuple(sl))[postidx]
+            #Forces array scalars, makes the rest work better
+            data = numpy.asanyarray(invar.__getitem__(tuple(sl)))
+            if postidx:
+                data = data[postidx]
             data = self._sum_avg(data, invar, vinfo, degen, summed, averaged)
             #Summed/averaged dimensions are now also degenerate
             degen = [max(v) for v in zip(degen, summed, averaged)]
