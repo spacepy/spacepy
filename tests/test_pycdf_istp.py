@@ -1081,6 +1081,20 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
             self.outcdf['Epoch_Ion_DELTA'][...],
             self.incdf['Epoch_Ion_DELTA'][...])
 
+    def testSliceNoRecords(self):
+        """Slice when there are no records on the input"""
+        #Modify the input first
+        self.incdf.close()
+        newtest = os.path.join(self.tempdir, os.path.basename(self.testfile))
+        shutil.copy2(self.testfile, newtest)
+        with spacepy.pycdf.CDF(newtest, readonly=False) as cdf:
+            del cdf['FPDU'][...] #Delete data not variable
+        self.incdf = spacepy.pycdf.CDF(newtest)
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
+        bundle.sum(1).slice(2, 0, 6).output(self.outcdf)
+        self.assertEqual(
+            (0, 6), self.outcdf['FPDU'].shape)
+
 
 class VarBundleChecksEPILo(VarBundleChecksBase):
     """Checks for VarBundle class, EPILo sample file"""
