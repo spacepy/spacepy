@@ -651,13 +651,13 @@ class VarBundleChecks(VarBundleChecksBase):
             [0, 2],
             bundle._varinfo['SectorNumbers']['dims'])
         self.assertEqual(
-            'S', bundle._varinfo['SectorRateScalersCounts']['sumtype'])
+            'M', bundle._varinfo['SectorRateScalersCounts']['vartype'])
         self.assertEqual(
-            'Q', bundle._varinfo['SectorRateScalersCountsSigma']['sumtype'])
+            'U', bundle._varinfo['SectorRateScalersCountsSigma']['vartype'])
         self.assertEqual(
-            'F', bundle._varinfo['ATC']['sumtype'])
+            'D', bundle._varinfo['ATC']['vartype'])
         self.assertEqual(
-            'F', bundle._varinfo['SectorNumbers']['sumtype'])
+            'D', bundle._varinfo['SectorNumbers']['vartype'])
 
     def testOutputSimple(self):
         """Copy a single variable and deps with no slicing"""
@@ -1046,8 +1046,8 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         """Properly handle a dependency with a delta"""
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['Counts_P'])
-        self.assertEqual('S', bundle._varinfo['Counts_P']['sumtype'])
-        self.assertEqual('F', bundle._varinfo['ENERGY_Ion_DELTA']['sumtype'])
+        self.assertEqual('M', bundle._varinfo['Counts_P']['vartype'])
+        self.assertEqual('D', bundle._varinfo['ENERGY_Ion_DELTA']['vartype'])
         bundle.slice(2, 0, 10).mean(2).output(self.outcdf)
         expected = self.incdf['Counts_P'][:, :, 0:10, ...]
         expected[expected < 0] = numpy.nan
