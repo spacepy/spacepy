@@ -1409,6 +1409,187 @@ class VarBundle(object):
         #Finally check the data
         return (data == newvar[...]).all()
 
+    def _namemap(self, suffix=None):
+        """Map old variable names to new
+
+        Helper for :meth:`output` that maps the variable name in the
+        input CDF to variable name in the output CDF.
+
+        Parameters
+        ----------
+        suffix : str
+            String to append to name of variables that are changed
+            from input to output.
+
+        Returns
+        -------
+        dict
+            Keyed by name in input, values are name in the output. No
+            entry for names that don't change.
+        """
+        namemap = {}
+        if suffix is not None:
+            for vname, vinfo in self._varinfo.items():
+                if vinfo['vartype'] in ('M', 'U'):
+                    namemap[vname] = vname + suffix
+                else: #Dependency. If any slice/sum, it's changed
+                    if any([any((self._summed[d], self._mean[d]))
+                            for d in vinfo['dims']]) \
+                    or any([s != slice(None) for s in itertools.chain(
+                        vinfo['slice'], vinfo['postidx'])]):
+                        namemap[vname] = vname + suffix
+        return namemap
+
+    def _sum_avg(self, data, invar, vinfo, degen, summed, averaged):
+        """Sum/average data
+
+        Helper for :meth:`output` that performs summing and averaging
+        of the data for a single variable. Note dimensionality of all
+        input is before the removal of degenerate dimensions
+        (this function does the translation using ``degen``).
+
+        Parameters
+        ----------
+        data : :class:`numpy.ndarray`
+            Data as read from input CDF and properly sliced.
+
+        invar : :class:`~spacepy.pycdf.Var`
+            CDF input variable from which ``data`` was read.
+
+        vinfo : dict
+            Value from instance variable ``_varinfo`` for this variable.
+
+        degen : list of bool
+            For each dimension of this variable, whether the dimension
+            is degenerate (i.e. already gone at this point.)
+
+        summed : list of bool
+            For each dimension of this variable, whether the dimension
+            should be summed over.
+
+        averaged : list of bool
+            For each dimension of this variable, whether the dimension
+            should be averaged over.
+
+        Returns
+        -------
+        :class:`numpy.ndarray`
+            Data summed/averaged over dimensions according to ``summed``
+            and ``averaged`` inputs.
+        """
+        #Degenerate slices have already been removed, so need
+        #a map from old dim numbers to new ones
+        newdims = [None if degen[i] else i - sum(degen[0:i])
+                   for i in range(len(degen))]
+        #Axis numbers to sum, with degenerate removed
+        #(NRV means dim 0 is axis 1, so correct for that)
+        summe = [newdims[i] - int(not invar.rv())
+                 for i in range(len(summed)) #old dim
+                 if newdims[i] is not None and (summed[i] or averaged[i])]
+        avgme = [newdims[i] - int(not invar.rv())
+                 for i in range(len(averaged)) #old dim
+                 if newdims[i] is not None and averaged[i]]
+        #Sum over axes in reverse order so axis renumbering
+        #doesn't affect future sums
+        a = invar.attrs
+        for ax in summe[::-1]:
+            if vinfo['vartype'] == 'D':
+                #If sum over DEPEND, must be constant over axis
+                data = data.take(0, axis=ax)
+                continue
+            #TODO: Handle element-specific VALIDMIN/VALIDMAX
+            invalid = numpy.isclose(data, a['FILLVAL'])
+            if 'VALIDMIN' in a:
+                invalid = numpy.logical_or(
+                    invalid, data < numpy.min(a['VALIDMIN']))
+            if 'VALIDMAX' in a:
+                invalid = numpy.logical_or(
+                    invalid, data > numpy.max(a['VALIDMAX']))
+            data[invalid] = 0 #avoids warning and helps with mean
+            if vinfo['vartype'] == 'M':
+                data = data.sum(axis=ax)
+            elif vinfo['vartype'] == 'U': #propagate error
+                data = numpy.sqrt((data ** 2).sum(axis=ax))
+            else: #Should not happen
+                raise ValueError('Bad summation type.')
+            if ax in avgme: #divide out
+                count = numpy.sum(~invalid, axis=ax)
+                invalid = (count == 0)
+                count[invalid] = 1 #avoid warning
+                data = data / count
+            else: #Sum, so any fill on axis means value is fill
+                invalid = invalid.max(axis=ax)
+            data[invalid] = a['FILLVAL']
+        return data
+
+    def _repoint_depend(self, invar, newvar, preexist, namemap, degen):
+        """Change DEPEND for new dimensionality of one variable.
+
+        Slicing/summing might change variable dimensionality and thus
+        the relationship with its DEPENDs, and the DEPENDs themselves
+        may have a new name. This updates the DEPEND attributes for
+        these changes, or verifies they are correct if the output
+        variable already exists.
+
+        Parameters
+        ----------
+        invar : :class:`~spacepy.pycdf.Var`
+            The input variable (opened in raw mode).
+
+        newvar : :class:`~spacepy.pycdf.Var`
+            The output variable (opened in raw mode).
+
+        preexist : bool
+            True if ``newvar`` existed and doing a consistency check;
+            False if ``newvar`` was newly created and should be edited.
+
+        namemap : dict
+            Map from name in input variable (key) to name in output
+            variable (value). No entry if name didn't change.
+
+        degen : list of bool
+            For each dimension of this variable, whether the dimension
+            is degenerate (i.e. already gone at this point.) This
+            includes any degeneracy from summing/averaging as well as
+            slicing.
+
+
+        """
+        #Index by old dim; returns the new dim (None if went away)
+        newdims = [None if degen[i] else i - sum(degen[0:i])
+                   for i in range(len(degen))]
+        for a in list(newvar.attrs.keys()): #Editing in loop!
+            #Handle a suffixed DELTA if necessary
+            if a.startswith('DELTA_'):
+                olddelta = invar.attrs[a]
+                newvar.attrs[a] = namemap.get(olddelta, olddelta)
+                continue
+            if not a.startswith(('DEPEND_', 'LABL_PTR_')):
+                continue
+            newdim = int(a.split('_')[-1])
+            if newdim in newdims: #An old value that belongs in this dim
+                olddim = newdims.index(newdim)
+                old_a = '{}_{}'.format('_'.join(a.split('_')[:-1]),
+                                       olddim)
+                #Check for variable renaming from the input to output
+                oldval = invar.attrs[old_a]
+                newval = namemap.get(oldval, oldval)
+                if preexist:
+                    if newvar.attrs[a] != newval:
+                        raise RuntimeError(
+                            'Incompatible {} already exists in output.'
+                            .format(outvar.name()))
+                else:
+                    newvar.attrs[a] = newval
+            else: #No corresponding old dim
+                if preexist:
+                    if a in newvar.attrs:
+                        raise RuntimeError(
+                            'Incompatible {} already exists in output.'
+                            .format(outvar.name()))
+                else:
+                    del newvar.attrs[a]
+
     def output(self, output, suffix=None):
         """Output the variables as modified
 
@@ -1446,19 +1627,7 @@ class VarBundle(object):
         """
         #TODO: Support V_PARENT
         #https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#V_PARENT
-        #Map of variable names in the old CDF to those in the new for
-        #any variable that's changed
-        namemap = {}
-        if suffix is not None:
-            for vname, vinfo in self._varinfo.items():
-                if vinfo['vartype'] in ('M', 'U'):
-                    namemap[vname] = vname + suffix
-                else: #Dependency. If any slice/sum, it's changed
-                    if any([any((self._summed[d], self._mean[d]))
-                            for d in vinfo['dims']]) \
-                    or any([s != slice(None) for s in itertools.chain(
-                        vinfo['slice'], vinfo['postidx'])]):
-                        namemap[vname] = vname + suffix
+        namemap = self._namemap(suffix)
         for vname, vinfo in self._varinfo.items():
             #Dim of main var that depends on this (default 0, never degen)
             maindim = vinfo.get('thisdim', 0)
@@ -1471,69 +1640,24 @@ class VarBundle(object):
             summed = [self._summed[d] for d in vinfo['dims']]
             #And averaged
             averaged = [self._mean[d] for d in vinfo['dims']]
-            #Dimension size/variance for original variable
-            #(0 index is CDF dimension 1)
             invar = self.cdf.raw_var(vname)
             sl = vinfo['slice'] #including 0th dim
             postidx = vinfo['postidx']
-            dv = invar.dv() #starting from dim 1
+            #Dimension size/variance for original variable
+            #(0 index is CDF dimension 1)
+            dv = invar.dv()
             dims = invar.shape[int(invar.rv()):] #starting from dim 1
             #Scrub degenerate dimensions from the post-indexing
             #(record is never degenerate)
             postidx = [postidx[i] for i in range(len(postidx))
                        if not degen[i]]
 
-            #Now get the data
+            #Now get the data, and sum/average it
             if not invar.rv(): #Remove fake record dimension
                 sl = sl[1:]
                 postidx = postidx[1:]
             data = invar.__getitem__(tuple(sl))[postidx]
-
-            #Sum data
-            #Degenerate slices have already been removed, so need
-            #a map from old dim numbers to new ones
-            newdims = [None if degen[i] else i - sum(degen[0:i])
-                       for i in range(len(degen))]
-            #Axis numbers to sum, with degenerate removed
-            #(NRV means dim 0 is axis 1, so correct for that)
-            summe = [newdims[i] - int(not invar.rv())
-                     for i in range(len(summed)) #old dim
-                     if newdims[i] is not None and (summed[i] or averaged[i])]
-            avgme = [newdims[i] - int(not invar.rv())
-                     for i in range(len(averaged)) #old dim
-                     if newdims[i] is not None and averaged[i]]
-            #Sum over axes in reverse order so axis renumbering
-            #doesn't affect future sums
-            a = invar.attrs
-            for ax in summe[::-1]:
-                if vinfo['vartype'] == 'D':
-                    #If sum over DEPEND, must be constant over axis
-                    data = data.take(0, axis=ax)
-                    continue
-                #TODO: Handle element-specific VALIDMIN/VALIDMAX
-                invalid = numpy.isclose(data, a['FILLVAL'])
-                if 'VALIDMIN' in a:
-                    invalid = numpy.logical_or(
-                        invalid, data < numpy.min(a['VALIDMIN']))
-                if 'VALIDMAX' in a:
-                    invalid = numpy.logical_or(
-                        invalid, data > numpy.max(a['VALIDMAX']))
-                data[invalid] = 0 #avoids warning and helps with mean
-                if vinfo['vartype'] == 'M':
-                    data = data.sum(axis=ax)
-                elif vinfo['vartype'] == 'U': #propagate error
-                    data = numpy.sqrt((data ** 2).sum(axis=ax))
-                else: #Should not happen
-                    raise ValueError('Bad summation type.')
-                if ax in avgme: #divide out
-                    count = numpy.sum(~invalid, axis=ax)
-                    invalid = (count == 0)
-                    count[invalid] = 1 #avoid warning
-                    data = data / count
-                else: #Sum, so any fill on axis means value is fill
-                    invalid = invalid.max(axis=ax)
-                data[invalid] = a['FILLVAL']
-
+            data = self._sum_avg(data, invar, vinfo, degen, summed, averaged)
             #Summed/averaged dimensions are now also degenerate
             degen = [max(v) for v in zip(degen, summed, averaged)]
 
@@ -1572,40 +1696,5 @@ class VarBundle(object):
                 if vname != outname: #renamed
                     newvar.attrs['FIELDNAM'] = outname
 
-            #Repoint the DEPEND/LABL_PTR for ones that disappeared
-            #(or verify they're correct if didn't create the variable)
-            #Index by old dim; returns the new dim (None if went away)
-            newdims = [None if degen[i] else i - sum(degen[0:i])
-                       for i in range(len(degen))]
-            for a in list(newvar.attrs.keys()): #Editing in loop!
-                #Handle a suffixed DELTA if necessary
-                if a.startswith('DELTA_'):
-                    olddelta = invar.attrs[a]
-                    newvar.attrs[a] = namemap.get(olddelta, olddelta)
-                    continue
-                if not a.startswith(('DEPEND_', 'LABL_PTR_')):
-                    continue
-                newdim = int(a.split('_')[-1])
-                if newdim in newdims: #An old value that belongs in this dim
-                    olddim = newdims.index(newdim)
-                    old_a = '{}_{}'.format('_'.join(a.split('_')[:-1]),
-                                           olddim)
-                    #Check for variable renaming from the input to output
-                    oldval = invar.attrs[old_a]
-                    newval = namemap.get(oldval, oldval)
-                    if preexist:
-                        if newvar.attrs[a] != newval:
-                            raise RuntimeError(
-                                'Incompatible {} already exists in output.'
-                                .format(outname))
-                    else:
-                        newvar.attrs[a] = newval
-                else: #No corresponding old dim
-                    if preexist:
-                        if a in newvar.attrs:
-                            raise RuntimeError(
-                                'Incompatible {} already exists in output.'
-                                .format(outname))
-                    else:
-                        del newvar.attrs[a]
+            self._repoint_depend(invar, newvar, preexist, namemap, degen)
         return self
