@@ -1001,8 +1001,8 @@ class VarBundle(object):
         a numpy fancy index to apply after reading, ``thisdim``,
         the main dimension for which this var is a dep
         (and thus it should be removed if the dim is removed),
-        and ``sumtype``, how to sum this variable (S for simple sum,
-        Q for quadrature, F for simply take first slice.)
+        and ``vartype``, whether this variable is the main var (M),
+        a dependency (D), or DELTA of the main (U, for uncertainty).
         """
         self._degenerate = []
         """Index by dim, is it degenerate, i.e. removed in a slice."""
@@ -1083,7 +1083,7 @@ class VarBundle(object):
             'dims': dims,
             'slice': [slice(None)] * len(dims),
             'postidx': [slice(None)] * len(dims),
-            'sumtype': 'S',
+            'vartype': 'M',
         }
         mainattrs = self.mainvar.attrs
         #Get the attributes that matter here
@@ -1126,7 +1126,7 @@ class VarBundle(object):
                 'slice': [slice(None)] * len(dims),
                 'postidx': [slice(None)] * len(dims),
                 'thisdim': dim,
-                'sumtype': 'F', #If sum over DEPEND, must be constant over axis
+                'vartype': 'D',
             }
             #Process DELTAs of the DEPENDs
             for d in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'):
@@ -1137,7 +1137,7 @@ class VarBundle(object):
                     continue
                 self._varinfo[deltaname] \
                     = self._process_delta(thisvar, deltaname)
-                self._varinfo[deltaname]['sumtype'] = 'F' #just like other deps
+                self._varinfo[deltaname]['vartype'] = 'D' #just like other deps
         for a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'): #Process DELTA vars
             if not a in attrs:
                 continue
@@ -1146,7 +1146,7 @@ class VarBundle(object):
                 #If DELTA_PLUS/DELTA_MINUS are same var, skip second one
                 self._varinfo[thisname] \
                     = self._process_delta(self.mainvar, thisname)
-                self._varinfo[thisname]['sumtype'] = 'Q' #propagate error
+                self._varinfo[thisname]['vartype'] = 'U'
 
     def slice(self, dim, start=None, stop=None, step=None,
               single=False):
@@ -1451,7 +1451,7 @@ class VarBundle(object):
         namemap = {}
         if suffix is not None:
             for vname, vinfo in self._varinfo.items():
-                if vinfo['sumtype'] in ('Q', 'S'): #main var, or DELTA
+                if vinfo['vartype'] in ('M', 'U'):
                     namemap[vname] = vname + suffix
                 else: #Dependency. If any slice/sum, it's changed
                     if any([any((self._summed[d], self._mean[d]))
@@ -1506,7 +1506,8 @@ class VarBundle(object):
             #doesn't affect future sums
             a = invar.attrs
             for ax in summe[::-1]:
-                if vinfo['sumtype'] == 'F':
+                if vinfo['vartype'] == 'D':
+                    #If sum over DEPEND, must be constant over axis
                     data = data.take(0, axis=ax)
                     continue
                 #TODO: Handle element-specific VALIDMIN/VALIDMAX
@@ -1518,9 +1519,9 @@ class VarBundle(object):
                     invalid = numpy.logical_or(
                         invalid, data > numpy.max(a['VALIDMAX']))
                 data[invalid] = 0 #avoids warning and helps with mean
-                if vinfo['sumtype'] == 'S':
+                if vinfo['vartype'] == 'M':
                     data = data.sum(axis=ax)
-                elif vinfo['sumtype'] == 'Q':
+                elif vinfo['vartype'] == 'U': #propagate error
                     data = numpy.sqrt((data ** 2).sum(axis=ax))
                 else: #Should not happen
                     raise ValueError('Bad summation type.')
