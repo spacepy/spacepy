@@ -1082,5 +1082,42 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
             self.incdf['Epoch_Ion_DELTA'][...])
 
 
+class VarBundleChecksEPILo(VarBundleChecksBase):
+    """Checks for VarBundle class, EPILo sample file"""
+    testfile = os.path.join('data',
+                            'psp_isois-epilo_l2-ic_20190401_v0.0.0.cdf')
+
+    def testDoubleDep(self):
+        """Handle a variable with a 2D depend"""
+        countrate = self.incdf['H_CountRate_ChanT']
+        bundle = spacepy.pycdf.istp.VarBundle(countrate)
+        bundle.sum(1).slice(2, 0, 10).output(self.outcdf)
+        numpy.testing.assert_array_equal(
+            self.outcdf['H_CountRate_ChanT'],
+            countrate[:, :, 0:10].sum(axis=1))
+        #Look direction should go away
+        for v in ('Look_80_LABL', 'Look_Direction_80',
+                  'Look_Direction_80_DELTAMINUS',
+                  'Look_Direction_80_DELTAPLUS'):
+            self.assertFalse(v in self.outcdf)
+
+    def testDoubleDepSummed(self):
+        """Handle a variable with a 2D depend, sum all dims"""
+        countrate = self.incdf['H_CountRate_ChanT']
+        bundle = spacepy.pycdf.istp.VarBundle(countrate)
+        bundle.sum(1).slice(2, 0, 10).sum(2).output(self.outcdf, '_TS')
+        numpy.testing.assert_array_equal(
+            self.outcdf['H_CountRate_ChanT_TS'],
+            countrate[:, :, 0:10].sum(axis=2).sum(axis=1))
+        #Look direction and energy should go away
+        for v in ('Look_80_LABL', 'Look_Direction_80',
+                  'Look_Direction_80_DELTAMINUS',
+                  'Look_Direction_80_DELTAPLUS',
+                  'H_ChanT_Energy', 'H_ChanT_Energy_LABL',
+                  'H_ChanT_Energy_DELTAMINUS', 'H_ChanT_Energy_DELTAPLUS'):
+            self.assertFalse(v in self.outcdf)
+            self.assertFalse(v + '_TS' in self.outcdf)
+
+
 if __name__ == '__main__':
     unittest.main()
