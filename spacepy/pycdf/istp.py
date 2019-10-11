@@ -1543,7 +1543,6 @@ class VarBundle(object):
                 #If sum over DEPEND, must be constant over axis
                 data = data.take(0, axis=ax)
                 continue
-            #TODO: Handle element-specific VALIDMIN/VALIDMAX
             invalid = numpy.isclose(data, a['FILLVAL'])
             if 'VALIDMIN' in a:
                 invalid = numpy.logical_or(
@@ -1601,7 +1600,6 @@ class VarBundle(object):
 
 
         """
-        #TODO: Consider changing DISPLAY_TYPE if cut down to time series
         #Index by old dim; returns the new dim (None if went away)
         newdims = [None if degen[i] else i - sum(degen[0:i])
                    for i in range(len(degen))]
@@ -1676,8 +1674,6 @@ class VarBundle(object):
         >>> outfile.close()
         >>> infile.close()
         """
-        #TODO: Support V_PARENT
-        #https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#V_PARENT
         tokeep = self._tokeep()
         namemap = self._namemap(suffix)
         for vname in tokeep:
@@ -1738,8 +1734,6 @@ class VarBundle(object):
                         .format(outname))
             else:
                 preexist = False
-                #TODO: Try to work this as an assignment so it can be used
-                #in a SpaceData as well as a CDF
                 newvar = output.new(
                     outname, type=invar.type(), recVary=invar.rv(),
                     dimVarys=dv, dims=dims,
