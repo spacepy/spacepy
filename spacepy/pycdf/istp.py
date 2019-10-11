@@ -1555,6 +1555,7 @@ class VarBundle(object):
 
 
         """
+        #TODO: Consider changing DISPLAY_TYPE if cut down to time series
         #Index by old dim; returns the new dim (None if went away)
         newdims = [None if degen[i] else i - sum(degen[0:i])
                    for i in range(len(degen))]
