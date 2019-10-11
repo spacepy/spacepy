@@ -2698,6 +2698,18 @@ class ChangeCDF(ChangeCDFBase):
                          datetime.datetime(1996, 1, 2)]),
             self.cdf['epochtest'][:])
 
+    def testAttrsRawEpoch16(self):
+        """Assign float attribute to Epoch16"""
+        self.cdf.new('epochtest', type=const.CDF_EPOCH16)
+        data = numpy.array([[62987673600.0, 0.0],
+                            [62987760000.0, 0.0]], dtype=numpy.float64)
+        self.cdf['epochtest'][:] = data
+        self.cdf.raw_var('epochtest').attrs.new(
+            'FILLVAL', numpy.array([-1e31, -1e31]), const.CDF_EPOCH16)
+        numpy.testing.assert_array_equal(
+            numpy.array([-1e31, -1e31], dtype=numpy.float64),
+            self.cdf.raw_var('epochtest').attrs['FILLVAL'])
+
     def testInt8TT2000(self):
         """Write integers to a TT2000 variable"""
         if not cdf.lib.supports_int8:

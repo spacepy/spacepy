@@ -4965,20 +4965,23 @@ class Attr(MutableSequence):
         @param elements: number of elements in L{data}, 1 unless it is a string
         @type elements: int
         """
-        if len(dims) == 0:
-            n_write = 1
-        else:
-            n_write = dims[0]
+        n_write = 1 if len(dims) == 0 else dims[0]
         if cdf_type in (const.CDF_CHAR.value, const.CDF_UCHAR.value):
             data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.dtype('S' + str(elements)))
             n_write = elements
         elif cdf_type == const.CDF_EPOCH16.value:
+            raw_in = True #Assume each element is pair of floats
             if not self._raw:
                 try:
                     data = lib.v_datetime_to_epoch16(data)
+                    raw_in = False #Nope, not raw, was datetime
                 except AttributeError:
                     pass
+            if raw_in: #Floats passed in, extra dim of (2,)
+                dims = dims[:-1]
+                if len(dims) == 0:
+                    n_write = 1
             data = numpy.require(data, requirements=('C', 'A', 'W'),
                                  dtype=numpy.float64)
         elif cdf_type == const.CDF_EPOCH.value:
