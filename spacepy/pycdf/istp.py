@@ -1086,7 +1086,7 @@ class VarBundle(object):
             'vartype': 'M',
         }
         mainattrs = self.mainvar.attrs
-        #Get the attributes that matter here
+        #Get the attributes that matter in the MAIN var
         attrs = {a: mainattrs[a] for a in mainattrs
                 if a.startswith(('DEPEND_', 'LABL_PTR'))
                 or a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR')}
@@ -1102,25 +1102,27 @@ class VarBundle(object):
             dims = [0,] #Record dim always matches
             #For every CDF (non-record) dim, match to the main variable
             for i in range(1, len(thisvar.shape) + int(not thisvar.rv())):
-                #DEPEND for this dimension
+                #DEPEND; LABL_PTR for this dimension
                 dim_dep = 'DEPEND_{}'.format(i)
+                labl_dep = 'LABL_PTR_{}'.format(i)
                 if not dim_dep in thisvar.attrs:
                     #No depend on this dim, so it's the dim that's represented
                     #in this variable
                     dims.append(dim)
                 else: #Match to parent var
                     dim_dep = thisvar.attrs[dim_dep]
-                    parentdim = next([
+                    parentdim = next((
                         int(d.split('_')[-1]) for d in attrs
-                        if d.startswith('DEPEND_') and attrs[d] == dim_dep],
-                        None)
+                        if (d.startswith('DEPEND_') and attrs[d] == dim_dep)
+                        or (d.startswith('LABL_PTR_') and attrs[d] == labl_dep)
+                    ), None)
                     if parentdim is None:
                         raise ValueError('Cannot match dim {} of {}'.format(
                             i, thisname))
                     dims.append(parentdim)
-                if dims.count(dim) != 1:
-                    raise ValueError('Cannot find unique dimension for {}'
-                                     .format(thisname))
+            if dims.count(dim) != 1:
+                raise ValueError('Cannot find unique dimension for {}'
+                                 .format(thisname))
             self._varinfo[thisname] = {
                 'dims': dims,
                 'slice': [slice(None)] * len(dims),
@@ -1568,12 +1570,14 @@ class VarBundle(object):
             if not a.startswith(('DEPEND_', 'LABL_PTR_')):
                 continue
             newdim = int(a.split('_')[-1])
+            oldval = None #Sentinel value
             if newdim in newdims: #An old value that belongs in this dim
                 olddim = newdims.index(newdim)
                 old_a = '{}_{}'.format('_'.join(a.split('_')[:-1]),
                                        olddim)
+                oldval = invar.attrs.get(old_a, None)
+            if oldval is not None:
                 #Check for variable renaming from the input to output
-                oldval = invar.attrs[old_a]
                 newval = namemap.get(oldval, oldval)
                 if preexist:
                     if newvar.attrs[a] != newval:
@@ -1582,7 +1586,9 @@ class VarBundle(object):
                             .format(outvar.name()))
                 else:
                     newvar.attrs[a] = newval
-            else: #No corresponding old dim
+            else:
+                #Either there's no corresponding old dim, or it didn't have
+                #a DEPEND. Either way, shouldn't be a DEPEND in the new dim.
                 if preexist:
                     if a in newvar.attrs:
                         raise RuntimeError(
