@@ -1404,7 +1404,7 @@ class VarBundle(object):
                 #so test outside of this function.
                 pass
             if not a in na or ia.type(a) != na.type(a) \
-               or ia[a] != na[a]:
+               or not numpy.array_equal(ia[a], na[a]):
                 return False
         #Finally check the data
         return (data == newvar[...]).all()
@@ -1473,7 +1473,7 @@ class VarBundle(object):
             averaged = [self._mean[d] for d in vinfo['dims']]
             #Dimension size/variance for original variable
             #(0 index is CDF dimension 1)
-            invar = self.cdf[vname]
+            invar = self.cdf.raw_var(vname)
             sl = vinfo['slice'] #including 0th dim
             postidx = vinfo['postidx']
             dv = invar.dv() #starting from dim 1
@@ -1487,7 +1487,7 @@ class VarBundle(object):
             if not invar.rv(): #Remove fake record dimension
                 sl = sl[1:]
                 postidx = postidx[1:]
-            data = self.cdf[vname].__getitem__(tuple(sl))[postidx]
+            data = invar.__getitem__(tuple(sl))[postidx]
 
             #Sum data
             #Degenerate slices have already been removed, so need
@@ -1538,6 +1538,9 @@ class VarBundle(object):
 
             #Get shape of output variable from actual data
             dims = data.shape
+            #Raw Epoch16 have a trailing (2,)
+            if invar.type() == spacepy.pycdf.const.CDF_EPOCH16.value:
+                dims = dims[:-1]
             if invar.rv():
                 dims = dims[1:]
             #Cut out any degenerate dimensions from DV (skipping record dim)
@@ -1547,7 +1550,7 @@ class VarBundle(object):
             outname = namemap.get(vname, vname)
             if outname in output:
                 preexist = True
-                newvar = output[outname]
+                newvar = output.raw_var(outname)
                 if not self._same(newvar, invar, dv, dims, data):
                     raise RuntimeError(
                         'Incompatible {} already exists in output.'
@@ -1560,6 +1563,7 @@ class VarBundle(object):
                     outname, type=invar.type(), recVary=invar.rv(),
                     dimVarys=dv, dims=dims,
                     n_elements=invar.nelems())
+                newvar = output.raw_var(outname)
                 #Must create it empty so can change compression
                 newvar.compress(*invar.compress())
                 newvar[...] = data
