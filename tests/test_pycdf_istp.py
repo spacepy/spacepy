@@ -1101,6 +1101,17 @@ class VarBundleChecksEPILo(VarBundleChecksBase):
     testfile = os.path.join('data',
                             'psp_isois-epilo_l2-ic_20190401_v0.0.0.cdf')
 
+    def tearDown(self):
+        """Block warnings from CDF closing"""
+        warnings.filterwarnings(
+            'ignore', message='^DID_NOT_COMPRESS.*$',
+            category=spacepy.pycdf.CDFWarning,
+            module='^spacepy.pycdf')
+        try:
+            super(VarBundleChecksEPILo, self).tearDown()
+        finally:
+            del warnings.filters[0]
+
     def testDoubleDep(self):
         """Handle a variable with a 2D depend"""
         countrate = self.incdf['H_CountRate_ChanT']
