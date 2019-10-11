@@ -1056,6 +1056,31 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         numpy.testing.assert_allclose(
             self.outcdf['Counts_P'], expected)
 
+    def testSliceNRVScalar(self):
+        """Slice when the EPOCH_DELTA is NRV"""
+        #Modify the input first
+        self.incdf.close()
+        newtest = os.path.join(self.tempdir, os.path.basename(self.testfile))
+        shutil.copy2(self.testfile, newtest)
+        with spacepy.pycdf.CDF(newtest, readonly=False) as cdf:
+            delta = cdf['Epoch_Ion_DELTA']
+            newdelta = cdf.new(
+                'Epoch_Ion_DELTA_new', data=delta[0],
+                type=delta.type(), recVary=False)
+            newdelta.attrs.clone(delta.attrs)
+            del cdf['Epoch_Ion_DELTA']
+            newdelta.rename('Epoch_Ion_DELTA')
+        self.incdf = spacepy.pycdf.CDF(newtest)
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
+        bundle.slice(0, 0, 10).output(self.outcdf)
+        numpy.testing.assert_array_equal(
+            self.outcdf['FPDU'][...], self.incdf['FPDU'][0:10, ...])
+        numpy.testing.assert_array_equal(
+            self.outcdf['Epoch_Ion'][...], self.incdf['Epoch_Ion'][0:10, ...])
+        numpy.testing.assert_array_equal(
+            self.outcdf['Epoch_Ion_DELTA'][...],
+            self.incdf['Epoch_Ion_DELTA'][...])
+
 
 if __name__ == '__main__':
     unittest.main()
