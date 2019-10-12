@@ -927,6 +927,9 @@ class VarBundle(object):
     used to copy a subset of data from one CDF to another by
     chaining operations.
 
+    Unusual or indecipherable error messages may indicate an ISTP
+    compliance issue; see :class:`VariableChecks` for some checks.
+
     Parameters
     ----------
     var : :class:`~spacepy.pycdf.Var`
