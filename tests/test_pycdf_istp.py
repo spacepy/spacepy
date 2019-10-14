@@ -957,6 +957,24 @@ class VarBundleChecks(VarBundleChecksBase):
         else:
             self.fail('Should have raised RuntimeError: ' + msg)
 
+    def testNameMap(self):
+        """Test name mapping"""
+        #Essentially a subtest of below
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.sum(2)
+        namemap = bundle._namemap(suffix="_Summed")
+        expected = { n: n + '_Summed' for n in [
+            'SectorRateScalersCounts', #Main var
+            'SectorRateScalersCountsSigma', #its delta
+            #The sum dimension. Even though it is summed completely away,
+            #the check for going away is elsewhere (and if it existed, it
+            #would be renamed)
+            'SectorNumbers',
+            #no other variables change
+        ] }
+        self.assertEqual(expected, namemap)
+
     def testSumRename(self):
         """Sum over a dimension, rename output"""
         bundle = spacepy.pycdf.istp.VarBundle(

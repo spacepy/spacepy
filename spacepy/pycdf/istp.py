@@ -1610,6 +1610,8 @@ class VarBundle(object):
             #Handle a suffixed DELTA if necessary
             if a.startswith('DELTA_'):
                 olddelta = invar.attrs[a]
+                if str is not bytes and isinstance(olddelta, bytes):
+                    olddelta = olddelta.decode('ascii')
                 newvar.attrs[a] = namemap.get(olddelta, olddelta)
                 continue
             if not a.startswith(('DEPEND_', 'LABL_PTR_')):
@@ -1621,6 +1623,8 @@ class VarBundle(object):
                 old_a = '{}_{}'.format('_'.join(a.split('_')[:-1]),
                                        olddim)
                 oldval = invar.attrs.get(old_a, None)
+                if str is not bytes and isinstance(oldval, bytes):
+                    oldval = oldval.decode('ascii')
             if oldval is not None:
                 #Check for variable renaming from the input to output
                 newval = namemap.get(oldval, oldval)
