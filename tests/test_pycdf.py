@@ -599,6 +599,15 @@ class NoCDF(unittest.TestCase):
             self.assertEqual(t, cdf._Hyperslice.types(s),
                              msg='Input ' + str(s))
 
+    @unittest.skipIf(cdf.lib.version[0] < 3,
+                     "Not supported with CDF library < 3")
+    def testMinMaxTT2000(self):
+        """Get min/max values for TT2000 types"""
+        minval, maxval = cdf.lib.get_minmax(const.CDF_TIME_TT2000)
+        #Make sure the minimum isn't just plain invalid
+        self.assertTrue(minval < datetime.datetime(9999, 1, 1))
+
+
 class MakeCDF(unittest.TestCase):
     def setUp(self):
         self.testdir = tempfile.mkdtemp()

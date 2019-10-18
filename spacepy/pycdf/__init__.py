@@ -1186,7 +1186,8 @@ class Library(object):
                 datetime.datetime(9999, 12, 31, 23, 59, 59))
         elif cdftype == spacepy.pycdf.const.CDF_TIME_TT2000.value:
             inf = numpy.iinfo(numpy.int64)
-            return (self.tt2000_to_datetime(inf.min),
+            #Using actual min results in invalid/fill value
+            return (self.tt2000_to_datetime(inf.min + 2),
                     self.tt2000_to_datetime(inf.max))
         dtype = spacepy.pycdf.lib.numpytypedict.get(cdftype, None)
         if dtype is None:
