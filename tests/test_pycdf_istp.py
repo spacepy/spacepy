@@ -770,7 +770,9 @@ class VarBundleChecks(VarBundleChecksBase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(1, [2, 3, 5])
-        bundle.output(self.outcdf)
+        with warnings.catch_warnings(record=True) as w:
+            bundle.output(self.outcdf)
+        self.assertEqual(0, len(w)) #verify no deprecation warning
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][...][:, [2, 3, 5], ...])
