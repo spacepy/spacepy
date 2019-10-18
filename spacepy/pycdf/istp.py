@@ -1045,21 +1045,21 @@ class VarBundle(object):
             if a in mainvar.attrs:
                 if thisvar.attrs[a] != mainvar.attrs[a]:
                     raise ValueError('{}: attribute {} mismatch with main var'
-                                     .format(thisname, a))
+                                     .format(deltaname, a))
             elif thisvar.attrs[a] != mainname:
                 raise ValueError('{}: attribute {} not in main var'
-                                 .format(thisname, a))
+                                 .format(deltaname, a))
         if thisvar.rv() and not mainvar.rv():
             raise ValueError(
                 '{}: Cannot handle RV DELTA with NRV variable.'
-                .format(thisname))
+                .format(deltaname))
         thisshape = thisvar.shape
         mainshape = mainvar.shape
         if not thisvar.rv() and mainvar.rv(): #Ignore record dim
             mainshape = mainshape[1:]
         if thisshape != mainshape:
             raise ValueError('{}: DELTA/main var shape mismatch.'
-                             .format(thisname))
+                             .format(deltaname))
         #If this is NRV and main is RV, that's okay, the R dim will
         #get removed when actually slicing.
         return { k: self._varinfo[mainname][k][:]
