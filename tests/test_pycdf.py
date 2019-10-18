@@ -607,6 +607,20 @@ class NoCDF(unittest.TestCase):
         #Make sure the minimum isn't just plain invalid
         self.assertTrue(minval < datetime.datetime(9999, 1, 1))
 
+    def testMinMaxFloat(self):
+        """Get min/max values for a float"""
+        with warnings.catch_warnings(record=True) as w:
+            minval, maxval = cdf.lib.get_minmax(const.CDF_FLOAT)
+        self.assertEqual(0, len(w)) #make sure no deprecation warning
+        self.assertAlmostEqual(-3.4028234663853e+38, minval, places=-30)
+        self.assertAlmostEqual(3.4028234663853e+38, maxval, places=-30)
+
+    def testMinMaxInt(self):
+        """Get min/max values for an integer"""
+        minval, maxval = cdf.lib.get_minmax(const.CDF_INT1)
+        self.assertEqual(-128, minval)
+        self.assertEqual(127, maxval)
+
 
 class MakeCDF(unittest.TestCase):
     def setUp(self):
