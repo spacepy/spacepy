@@ -58,6 +58,7 @@ class VariableChecks(object):
     .. autosummary::
 
         all
+        deltas
         depends
         depsize
         fieldnam
@@ -67,6 +68,7 @@ class VariableChecks(object):
         validscale
         
     .. automethod:: all
+    .. automethod:: deltas
     .. automethod:: depends
     .. automethod:: depsize
     .. automethod:: fieldnam
@@ -109,8 +111,9 @@ class VariableChecks(object):
         ['No FIELDNAM attribute.']
         """
         #Update this list when adding new test functions
-        callme = (cls.depends, cls.depsize, cls.fieldnam, cls.recordcount,
-                  cls.validrange, cls.validscale, cls.validdisplaytype)
+        callme = (cls.deltas, cls.depends, cls.depsize, cls.fieldnam,
+                  cls.recordcount, cls.validrange, cls.validscale,
+                  cls.validdisplaytype)
         errors = []
         for f in callme:
             try:
@@ -125,11 +128,13 @@ class VariableChecks(object):
 
     @classmethod
     def depends(cls, v):
-        """Checks that DEPEND and LABL_PTR variables actually exist
+        """Checks that DELTA, DEPEND, and LABL_PTR variables exist
 
         Check that variables specified in the variable attributes for
+        `DELTA
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DELTA>`_,
         `DEPEND
-        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DEPEND_0>`_
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DEPEND_0>`_,
         and `LABL_PTR
         <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#LABL_PTR_1>`_
         exist in the CDF.
@@ -147,8 +152,44 @@ class VariableChecks(object):
         """
         return ['{} variable {} missing'.format(a, v.attrs[a])
                 for a in v.attrs
-                if a.startswith(('DEPEND_', 'LABL_PTR_')) and
-                not v.attrs[a] in v.cdf_file]
+                if (a.startswith(('DEPEND_', 'LABL_PTR_',))
+                    or a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'))
+                and not v.attrs[a] in v.cdf_file]
+
+    @classmethod
+    def deltas(cls, v):
+        """Checks that DELTA variables have appropriate type, units
+
+        Check that variables specified in the variable attributes for
+        `DELTA
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DELTA>`_
+        match the type and units of this variable.
+
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            Description of each validation failure.
+
+        """
+        errs = []
+        for delta in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'):
+            if not delta in v.attrs:
+                continue
+            deltavar = v.cdf_file[v.attrs[delta]]
+            if deltavar.type() != v.type():
+                errs.append(
+                    '{} type {} does not match variable type {}.'.format(
+                        delta, spacepy.pycdf.lib.cdftypenames[deltavar.type()],
+                        spacepy.pycdf.lib.cdftypenames[v.type()]))
+            if deltavar.attrs.get('UNITS', None) != v.attrs.get('UNITS', None):
+                errs.append('{} units do not match variable units.'.format(
+                    delta))
+        return errs
 
     @classmethod
     def depsize(cls, v):
