@@ -68,7 +68,7 @@ class VariablesTests(ISTPTestsBase):
         """Validmin/validmax with something wrong in dimensionality"""
         v = self.cdf.new('var1', data=[[1, 10], [2, 20], [3, 30]])
         v.attrs['VALIDMIN'] = [1, 10, 100]
-        v.attrs['VALIDMAX'] = [3, 30, 300]
+        v.attrs['VALIDMAX'] = [3, 30, 127]
         errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
         self.assertEqual(2, len(errs))
         self.assertEqual('VALIDMIN element count 3 does not match '
@@ -88,6 +88,20 @@ class VariablesTests(ISTPTestsBase):
                          errs[0])
         self.assertEqual('Multi-element VALIDMAX only valid with 1D variable.',
                          errs[1])
+
+    def testValidRangeWrongType(self):
+        """Validmin/validmax not matching variable type"""
+        v = self.cdf.new('var1', data=[1, 2, 3],
+                         type=spacepy.pycdf.const.CDF_INT4)
+        v.attrs.new('VALIDMIN', data=1, type=spacepy.pycdf.const.CDF_INT2)
+        v.attrs.new('VALIDMAX', data=3, type=spacepy.pycdf.const.CDF_INT2)
+        errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
+        errs.sort()
+        self.assertEqual(2, len(errs))
+        self.assertEqual(
+            ['VALIDMAX type CDF_INT2 does not match variable type CDF_INT4.',
+             'VALIDMIN type CDF_INT2 does not match variable type CDF_INT4.'],
+            errs)
 
     def testValidRangeNRV(self):
         """Validmin/validmax"""
@@ -298,25 +312,47 @@ class VariablesTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
         self.assertEqual('SCALEMIN > SCALEMAX.', errs[0])
         v.attrs['SCALEMIN'] = -200
-        self.assertEqual(
-            1, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMIN (-200) outside data range (-128,127).', errs[0])
+        self.assertEqual(2, len(errs))
+        errs.sort()
+        self.assertEqual(
+            ['SCALEMIN (-200) outside data range (-128,127).',
+             'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
+             ],
+             errs)
         v.attrs['SCALEMIN'] = 200
-        self.assertEqual(
-            2, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMIN (200) outside data range (-128,127).', errs[0])
+        self.assertEqual(3, len(errs))
+        errs.sort()
+        self.assertEqual(
+            ['SCALEMIN (200) outside data range (-128,127).',
+             'SCALEMIN > SCALEMAX.',
+             'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
+             ],
+             errs)
         v.attrs['SCALEMAX'] = -200
-        self.assertEqual(
-            3, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMAX (-200) outside data range (-128,127).', errs[1])
+        self.assertEqual(5, len(errs))
+        errs.sort()
+        self.assertEqual(
+            ['SCALEMAX (-200) outside data range (-128,127).',
+             'SCALEMAX type CDF_INT2 does not match variable type CDF_BYTE.',
+             'SCALEMIN (200) outside data range (-128,127).',
+             'SCALEMIN > SCALEMAX.',
+             'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
+             ],
+             errs)
         v.attrs['SCALEMAX'] = 200
-        self.assertEqual(
-            2, len(spacepy.pycdf.istp.VariableChecks.validscale(v)))
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual('SCALEMAX (200) outside data range (-128,127).', errs[1])
+        self.assertEqual(4, len(errs))
+        errs.sort()
+        self.assertEqual(
+            ['SCALEMAX (200) outside data range (-128,127).',
+             'SCALEMAX type CDF_INT2 does not match variable type CDF_BYTE.',
+             'SCALEMIN (200) outside data range (-128,127).',
+             'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
+             ],
+             errs)
         
     def testValidScaleDimensioned(self):
         """Validmin/validmax with multiple elements"""
@@ -325,24 +361,36 @@ class VariablesTests(ISTPTestsBase):
         v.attrs['SCALEMAX'] = [300, 320]
         v.attrs['FILLVAL'] = -100
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual(1, len(errs))
-        self.assertEqual('SCALEMAX ([300 320]) outside data range (-128,127).',
-                         errs[0])
+        self.assertEqual(2, len(errs))
+        errs.sort()
+        self.assertEqual([
+            'SCALEMAX ([300 320]) outside data range (-128,127).',
+            'SCALEMAX type CDF_INT2 does not match variable type CDF_BYTE.'
+            ],
+            errs)
         v.attrs['SCALEMAX'] = [30, 32]
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
-        self.assertEqual(0, len(errs))
+        self.assertEqual(1, len(errs))
+        self.assertEqual([
+            'SCALEMAX type CDF_INT2 does not match variable type CDF_BYTE.'
+            ],
+            errs)
 
     def testValidScaleDimensionMismatch(self):
         """Validmin/validmax with something wrong in dimensionality"""
         v = self.cdf.new('var1', data=[[1, 10], [2, 20], [3, 30]])
         v.attrs['SCALEMIN'] = [1, 10, 100]
-        v.attrs['SCALEMAX'] = [3, 30, 300]
+        v.attrs['SCALEMAX'] = [3, 30, 126]
         errs = spacepy.pycdf.istp.VariableChecks.validscale(v)
         self.assertEqual(2, len(errs))
-        self.assertEqual('SCALEMIN element count 3 does not match '
-                         'first data dimension size 2.', errs[0])
-        self.assertEqual('SCALEMAX element count 3 does not match '
-                         'first data dimension size 2.', errs[1])
+        errs.sort()
+        self.assertEqual([
+            'SCALEMAX element count 3 does not match '
+            'first data dimension size 2.',
+            'SCALEMIN element count 3 does not match '
+            'first data dimension size 2.',
+            ],
+            errs)
 
     def testValidScaleHighDimension(self):
         """scalemin/scalemax with high-dimension variables"""

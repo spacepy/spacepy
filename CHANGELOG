@@ -5,6 +5,7 @@ pycdf
  - Newly-public method nelems to get number of elements in zVar
  - Fix assignment of "raw" values to EPOCH16 Attribute
  - Fix "minimum value" calculation for TT2000 types
+ - istp.VariableChecks adds check for VALID/SCALE MIN/MAX Entry types
 
 Changes in Version 0.2.1 (2019-10-02)
 =====================================
