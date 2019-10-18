@@ -305,6 +305,12 @@ class VariableChecks(object):
         for which in (whichmin, whichmax):
             if not which in v.attrs:
                 continue
+            if v.attrs.type(which) != v.type():
+                errs.append(
+                    '{} type {} does not match variable type {}.'.format(
+                        which,
+                        spacepy.pycdf.lib.cdftypenames[v.attrs.type(which)],
+                        spacepy.pycdf.lib.cdftypenames[v.type()]))
             attrval = v.attrs[which]
             multidim = bool(numpy.shape(attrval)) #multi-dimensional
             if multidim: #Compare shapes, require only 1D var
