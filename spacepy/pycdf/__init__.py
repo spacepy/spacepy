@@ -1194,7 +1194,7 @@ class Library(object):
             raise ValueError('Unknown data type: {}'.format(cdftype))
         if numpy.issubdtype(dtype, numpy.integer):
             inf = numpy.iinfo(dtype)
-        elif numpy.issubdtype(dtype, numpy.float):
+        elif numpy.issubdtype(dtype, numpy.floating):
             inf = numpy.finfo(dtype)
         else:
             raise ValueError('Unknown data type: {}'.format(cdftype))
