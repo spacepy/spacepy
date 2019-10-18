@@ -847,6 +847,20 @@ class MakeCDF(unittest.TestCase):
             self.assertEqual(const.CDF_INT2.value,
                              f['three'].attrs.type('foo'))
 
+    def testEntryType4(self):
+        """Another case where Entry type should match variable type"""
+        with cdf.CDF(self.testfspec, create=True) as f:
+            v = f.new('newvar', data=[1, 2, 3])
+            v.attrs['foo'] = 5
+            self.assertEqual(v.type(), v.attrs.type('foo'))
+
+    def testEntryType4MultiElements(self):
+        """Entry with multiple elements, type should match variable type"""
+        with cdf.CDF(self.testfspec, create=True) as f:
+            v = f.new('newvar', data=[1, 2, 3])
+            v.attrs['foo'] = [5, 3]
+            self.assertEqual(v.type(), v.attrs.type('foo'))
+
     def testEmptyNRV(self):
         """Read an empty NRV variable, should be empty"""
         #This is strictly a READ test, but creating a new CDF and
@@ -3158,6 +3172,18 @@ class ChangeAttr(ChangeCDFBase):
         self.assertEqual(attrs['new_attr'], 'abc')
         self.assertEqual(const.CDF_CHAR.value,
                          attrs.type('new_attr'))
+
+    def testzEntryTypeGuessing(self):
+        """Guess the type of a zEntry"""
+        v = self.cdf.new('newvar', data=[1, 2, 3])
+        v.attrs['foo'] = 5
+        self.assertEqual(v.type(), v.attrs.type('foo'))
+
+    def testzEntryTypeGuessingMultiElements(self):
+        """Guess the type of a zEntry with mulitple elements"""
+        v = self.cdf.new('newvar', data=[1, 2, 3])
+        v.attrs['foo'] = [5, 3]
+        self.assertEqual(v.type(), v.attrs.type('foo'))
 
     def testgAttrNewEntry(self):
         """Create a new gEntry using Attr.new()"""
