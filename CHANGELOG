@@ -4,6 +4,7 @@ pycdf
  - VarCopy objects now carry information to help reproduce original
  - Newly-public method nelems to get number of elements in zVar
  - Fix assignment of "raw" values to EPOCH16 Attribute
+ - Fix "minimum value" calculation for TT2000 types
 
 Changes in Version 0.2.1 (2019-10-02)
 =====================================
