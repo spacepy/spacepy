@@ -6,6 +6,7 @@ pycdf
  - Fix assignment of "raw" values to EPOCH16 Attribute
  - Fix "minimum value" calculation for TT2000 types
  - istp.VariableChecks adds check for VALID/SCALE MIN/MAX Entry types
+ - istp.VariableChecks adds check for DELTA attributes
 
 Changes in Version 0.2.1 (2019-10-02)
 =====================================

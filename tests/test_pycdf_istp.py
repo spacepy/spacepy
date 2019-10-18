@@ -46,6 +46,31 @@ class VariablesTests(ISTPTestsBase):
         self.cdf['var2'] = [1, 2, 3]
         self.assertEqual(
             0, len(spacepy.pycdf.istp.VariableChecks.depends(self.cdf['var1'])))
+        self.cdf['var1'].attrs['DELTA_PLUS_VAR'] = 'foobar'
+        errs = spacepy.pycdf.istp.VariableChecks.depends(self.cdf['var1'])
+        self.assertEqual(1, len(errs))
+        self.assertEqual('DELTA_PLUS_VAR variable foobar missing', errs[0])
+
+    def testDeltas(self):
+        """DELTA variables"""
+        self.cdf['var1'] = [1, 2, 3]
+        self.cdf['var1'].attrs['DELTA_PLUS_VAR'] = 'var2'
+        self.cdf['var2'] = [1., 1, 1]
+        errs = spacepy.pycdf.istp.VariableChecks.deltas(self.cdf['var1'])
+        self.assertEqual(1, len(errs))
+        self.assertEqual([
+            'DELTA_PLUS_VAR type CDF_FLOAT does not match variable type '
+            'CDF_BYTE.'], errs)
+        del self.cdf['var2']
+        self.cdf['var2'] = [1, 1, 1]
+        self.cdf['var1'].attrs['UNITS'] = 'smoots'
+        errs = spacepy.pycdf.istp.VariableChecks.deltas(self.cdf['var1'])
+        self.assertEqual(1, len(errs))
+        self.assertEqual([
+            'DELTA_PLUS_VAR units do not match variable units.'], errs)
+        self.cdf['var2'].attrs['UNITS'] = 'smoots'
+        errs = spacepy.pycdf.istp.VariableChecks.deltas(self.cdf['var1'])
+        self.assertEqual(0, len(errs))
 
     def testValidRangeDimensioned(self):
         """Validmin/validmax with multiple elements"""
