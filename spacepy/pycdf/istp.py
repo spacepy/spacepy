@@ -161,12 +161,12 @@ class VariableChecks(object):
 
     @classmethod
     def deltas(cls, v):
-        """Checks that DELTA variables have appropriate type, units
+        """Check DELTA variables
 
         Check that variables specified in the variable attributes for
         `DELTA
         <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#DELTA>`_
-        match the type and units of this variable.
+        match the type, size, and units of this variable.
 
         Parameters
         ----------
@@ -180,6 +180,12 @@ class VariableChecks(object):
 
         """
         errs = []
+        if v.rv():
+            shape = v.shape[1:]
+            n_recs = len(v)
+        else:
+            shape = v.shape
+            n_recs = None
         for delta in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'):
             if not delta in v.attrs:
                 continue
@@ -192,6 +198,22 @@ class VariableChecks(object):
             if deltavar.attrs.get('UNITS', None) != v.attrs.get('UNITS', None):
                 errs.append('{} units do not match variable units.'.format(
                     delta))
+            if deltavar.rv():
+                dshape = deltavar.shape[1:]
+                d_n_recs = len(deltavar)
+            else:
+                dshape = deltavar.shape
+                d_n_recs = None
+            if dshape != shape:
+                errs.append(
+                    '{} shape {} does not match variable shape {}.'.format(
+                        delta, dshape, shape))
+            if d_n_recs is not None and n_recs is not None \
+               and d_n_recs != n_recs:
+                errs.append((
+                    '{} record count {} does not match variable record'
+                    ' count {}.').format(
+                        delta, d_n_recs, n_recs))
         return errs
 
     @classmethod
