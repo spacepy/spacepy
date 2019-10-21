@@ -72,6 +72,25 @@ class VariablesTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.VariableChecks.deltas(self.cdf['var1'])
         self.assertEqual(0, len(errs))
 
+    def testDeltasMisdimmed(self):
+        """DELTA variable dimension size mismatch"""
+        self.cdf['var1'] = [[1, 2, 3], [4, 5, 6]]
+        self.cdf['var1'].attrs['DELTA_PLUS_VAR'] = 'var2'
+        self.cdf.new('var2', data=[1, 1], recVary=False)
+        errs = spacepy.pycdf.istp.VariableChecks.deltas(self.cdf['var1'])
+        self.assertEqual(1, len(errs))
+        self.assertEqual(
+            'DELTA_PLUS_VAR shape (2,) does not match variable shape (3,).',
+            errs[0])
+        del self.cdf['var2']
+        self.cdf.new('var2', data=[[1, 1, 1]])
+        errs = spacepy.pycdf.istp.VariableChecks.deltas(self.cdf['var1'])
+        self.assertEqual(1, len(errs))
+        self.assertEqual(
+            'DELTA_PLUS_VAR record count 1 does not match variable record'
+            ' count 2.',
+            errs[0])
+
     def testValidRangeDimensioned(self):
         """Validmin/validmax with multiple elements"""
         v = self.cdf.new('var1', data=[[1, 10], [2, 20], [3, 30]])
