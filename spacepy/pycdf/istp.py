@@ -1651,10 +1651,13 @@ class VarBundle(object):
                 #Check for variable renaming from the input to output
                 newval = namemap.get(oldval, oldval)
                 if preexist:
-                    if newvar.attrs[a] != newval:
+                    existingval = newvar.attrs[a]
+                    if str is not bytes and isinstance(existingval, bytes):
+                        existingval = existingval.decode('ascii')
+                    if existingval != newval:
                         raise RuntimeError(
                             'Incompatible {} already exists in output.'
-                            .format(outvar.name()))
+                            .format(newvar.name()))
                 else:
                     newvar.attrs[a] = newval
             else:
@@ -1664,7 +1667,7 @@ class VarBundle(object):
                     if a in newvar.attrs:
                         raise RuntimeError(
                             'Incompatible {} already exists in output.'
-                            .format(outvar.name()))
+                            .format(newvar.name()))
                 else:
                     del newvar.attrs[a]
 
