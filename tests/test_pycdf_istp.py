@@ -1182,6 +1182,15 @@ class VarBundleChecksEPILo(VarBundleChecksBase):
             self.assertFalse(v in self.outcdf)
             self.assertFalse(v + '_TS' in self.outcdf)
 
+    def testConflictingEpoch(self):
+        """Regression test for complicated name conflict"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['H_CountRate_ChanT'])
+        bundle.sum(1).slice(2, 1).output(self.outcdf, suffix='_SP')
+        #Still summed on 1!
+        bundle.slice(2, 18, 32).sum(2).output(self.outcdf, suffix='_TS')
+        self.assertIn('H_CountRate_ChanT_SP', self.outcdf)
+        self.assertIn('H_CountRate_ChanT_TS', self.outcdf)
+
 
 if __name__ == '__main__':
     unittest.main()
