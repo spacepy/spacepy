@@ -39,6 +39,15 @@ class ISTPTestsBase(unittest.TestCase):
 class VariablesTests(ISTPTestsBase):
     """Tests of variable-checking functions"""
 
+    def testEmptyEntries(self):
+        """Are there any CHAR entries of empty string"""
+        self.cdf['var1'] = [1, 2, 3]
+        self.cdf['var1'].attrs['attribute'] = ''
+        errs = spacepy.pycdf.istp.VariableChecks.empty_entry(self.cdf['var1'])
+        self.assertEqual(1, len(errs))
+        self.assertEqual('Empty CHAR entry for attribute attribute.',
+                         errs[0])
+
     def testDepends(self):
         """Dependencies, valid and not"""
         self.cdf['var1'] = [1, 2, 3]
@@ -507,6 +516,15 @@ class FileTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.FileChecks.all(self.cdf)
         self.assertEqual(1, len(errs))
         self.assertEqual('var1: DEPEND_0 variable var2 missing', errs[0])
+
+    def testEmptyEntries(self):
+        """Are there any CHAR gEntries of empty string"""
+        self.cdf['var1'] = [1, 2, 3]
+        self.cdf.attrs['attribute'] = ''
+        errs = spacepy.pycdf.istp.FileChecks.empty_entry(self.cdf)
+        self.assertEqual(1, len(errs))
+        self.assertEqual('Empty CHAR entry 0 for attribute attribute.',
+                         errs[0])
 
     def testFilename(self):
         """Compare filename to global attrs"""

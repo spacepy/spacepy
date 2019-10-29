@@ -64,6 +64,7 @@ class VariableChecks(object):
         deltas
         depends
         depsize
+        empty_entry
         fieldnam
         recordcount
         validdisplaytype
@@ -74,6 +75,7 @@ class VariableChecks(object):
     .. automethod:: deltas
     .. automethod:: depends
     .. automethod:: depsize
+    .. automethod:: empty_entry
     .. automethod:: fieldnam
     .. automethod:: recordcount
     .. automethod:: validdisplaytype
@@ -114,7 +116,8 @@ class VariableChecks(object):
         ['No FIELDNAM attribute.']
         """
         #Update this list when adding new test functions
-        callme = (cls.deltas, cls.depends, cls.depsize, cls.fieldnam,
+        callme = (cls.deltas, cls.depends, cls.depsize, cls.empty_entry,
+                  cls.fieldnam,
                   cls.recordcount, cls.validrange, cls.validscale,
                   cls.validdisplaytype)
         errors = []
@@ -304,6 +307,31 @@ class VariableChecks(object):
                 errs.append('Dim {} sized {} but DEPEND_{} {} sized {}.'.format(
                     i, target, depidx, d, actual))
 
+        return errs
+
+    @classmethod
+    def empty_entry(cls, v):
+        """Check for attributes with empty string
+
+        Checks attributes for this variable for any entries consisting
+        of an empty string. These should be replaced with a single space.
+
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            Description of each validation failure.
+        """
+        errs = []
+        for a in v.attrs:
+            if v.attrs.type(a) in (spacepy.pycdf.const.CDF_CHAR.value,
+                                   spacepy.pycdf.const.CDF_UCHAR.value) \
+                and v.attrs[a] == '':
+                errs.append('Empty CHAR entry for attribute {}.'.format(a))
         return errs
 
     @classmethod
@@ -553,11 +581,13 @@ class FileChecks(object):
     .. autosummary::
 
         all
+        empty_entry
         filename
         time_monoton
         times
         
     .. automethod:: all
+    .. automethod:: empty_entry
     .. automethod:: filename
     .. automethod:: time_monoton
     .. automethod:: times
@@ -602,7 +632,7 @@ class FileChecks(object):
         'Var: No FIELDNAM attribute.']
         """
         #Update this list when adding new test functions
-        callme = (cls.filename, cls.time_monoton, cls.times,)
+        callme = (cls.empty_entry, cls.filename, cls.time_monoton, cls.times,)
         errors = []
         for func in callme:
             try:
@@ -619,6 +649,35 @@ class FileChecks(object):
                            for e in VariableChecks.all(f[v], catch=catch)))
         return errors
                 
+    @classmethod
+    def empty_entry(cls, f):
+        """Check for attributes with empty string
+
+        Checks global attributes for this variable for any entries consisting
+        of an empty string. These should be replaced with a single space.
+
+        Parameters
+        ----------
+        f : :class:`~spacepy.pycdf.CDF`
+            Open CDF file to check
+
+        Returns
+        -------
+        list of str
+            Description of each validation failure.
+        """
+        errs = []
+        for a in f.attrs:
+            attr = f.attrs[a]
+            for i in range(attr.max_idx() + 1):
+                if attr.has_entry(i) \
+                    and attr.type(i) in (spacepy.pycdf.const.CDF_CHAR.value,
+                                         spacepy.pycdf.const.CDF_UCHAR.value) \
+                    and attr[i] == '':
+                    errs.append('Empty CHAR entry {} for attribute {}.'
+                                .format(i, a))
+        return errs
+
     @classmethod
     def filename(cls, f):
         """Compare filename to global attributes
