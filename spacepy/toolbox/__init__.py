@@ -1236,7 +1236,7 @@ def bootHisto(data, inter=90., n=1000, seed=None,
     inter : float (optional; default 90)
         percentage confidence interval to return. Default 90% (i.e.
         lower CI will be 5% and upper will be 95%)
-    n : int (optional; default 100)
+    n : int (optional; default 1000)
         number of bootstrap iterations
     seed : int (optional)
         Optional seed for the random number generator. If not
