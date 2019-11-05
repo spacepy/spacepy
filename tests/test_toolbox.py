@@ -421,6 +421,16 @@ class SimpleFunctionTests(unittest.TestCase):
             self.assertEqual(val, tb.pmm(data[i]))
         self.assertEqual([[1, 6], [5, 24], [6.0, 67.340000000000003]], tb.pmm(*data) )
 
+    def test_pmm_object(self):
+        """Test pmm handling of object arrays"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            data = [array([5,9,23,24,6]).astype(object),
+                    [datetime.datetime(2000, 3, 1, 0, 1), datetime.datetime(2000, 2, 28), datetime.datetime(2000, 3, 1)] ]
+            real_ans = [[[5, 24]], [[datetime.datetime(2000, 2, 28), datetime.datetime(2000, 3, 1, 0, 1)]]]
+            for i, val in enumerate(real_ans):
+                self.assertEqual(val, tb.pmm(data[i]))
+
     def test_rad2mlt(self):
         """rad2mlt should give known answers (regression)"""
         real_ans = array([ -6.        ,  -4.10526316,  -2.21052632,  -0.31578947,
