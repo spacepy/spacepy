@@ -1619,7 +1619,7 @@ def pmm(a, *b):
     except TypeError:
         ind = np.arange(len(a)).astype(int)
         import warnings
-        warnings.warn('Check for finite values failed', RuntimeWarning)
+        warnings.warn('pmm: Unable to exclude non-finite values, results may be incorrect', RuntimeWarning)
     try:
         ans = [[ np.min(a[ind]), np.max(a[ind]) ]]
     except TypeError:
