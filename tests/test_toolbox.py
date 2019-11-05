@@ -426,8 +426,13 @@ class SimpleFunctionTests(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             data = [array([5,9,23,24,6]).astype(object),
-                    [datetime.datetime(2000, 3, 1, 0, 1), datetime.datetime(2000, 2, 28), datetime.datetime(2000, 3, 1)] ]
-            real_ans = [[[5, 24]], [[datetime.datetime(2000, 2, 28), datetime.datetime(2000, 3, 1, 0, 1)]]]
+                    [datetime.datetime(2000, 3, 1, 0, 1), datetime.datetime(2000, 2, 28), datetime.datetime(2000, 3, 1)],
+                    numpy.array(['foo', 'bar', 'baz'], dtype=object),
+                    ]
+            real_ans = [[[5, 24]],
+                        [[datetime.datetime(2000, 2, 28), datetime.datetime(2000, 3, 1, 0, 1)]],
+                        [['bar', 'foo']],
+            ]
             for i, val in enumerate(real_ans):
                 self.assertEqual(val, tb.pmm(data[i]))
 
