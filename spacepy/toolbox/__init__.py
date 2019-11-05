@@ -1614,7 +1614,12 @@ def pmm(a, *b):
     >>> tb.pmm(arange(10), arange(10)+3)
     [[0, 9], [3, 12]]
     """
-    ind = np.isfinite(a)
+    try:
+        ind = np.isfinite(a)
+    except TypeError:
+        ind = np.arange(len(a)).astype(int)
+        import warnings
+        warnings.warn('Check for finite values failed', RuntimeWarning)
     try:
         ans = [[ np.min(a[ind]), np.max(a[ind]) ]]
     except TypeError:
