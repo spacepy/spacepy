@@ -1624,7 +1624,7 @@ def pmm(a, *b):
         ans = [[ np.min(a[ind]), np.max(a[ind]) ]]
     except TypeError:
         a_tmp = np.asarray(a)
-        if np.issubdtype(a_tmp.dtype, 'S') or np.issubdtype(a_tmp.dtype, 'U'):
+        if a_tmp.dtype.type in [np.dtype('S').type, np.dtype('U').type]:
             a_tmp = np.require(a_tmp, dtype=object)
         ans = [[ np.min(a_tmp[ind]), np.max(a_tmp[ind]) ]]
     for val in b:
