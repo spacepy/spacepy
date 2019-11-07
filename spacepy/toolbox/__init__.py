@@ -1591,16 +1591,14 @@ def rad2mlt(rad, midnight=False):
     mlt_arr=rad_arr*(12/np.pi) + 12
     return mlt_arr
 
-def pmm(a, *b):
+def pmm(*args):
     """
     print min and max of input arrays
 
     Parameters
     ==========
-    a : numpy array
-        input array
-    b : list arguments
-        some additional number of arrays
+    a : array-like
+        arbitrary number of input arrays (or lists)
 
     Returns
     =======
@@ -1614,26 +1612,21 @@ def pmm(a, *b):
     >>> tb.pmm(arange(10), arange(10)+3)
     [[0, 9], [3, 12]]
     """
-    try:
-        ind = np.isfinite(a)
-    except TypeError:
-        ind = np.arange(len(a)).astype(int)
-        import warnings
-        warnings.warn('pmm: Unable to exclude non-finite values, results may be incorrect', RuntimeWarning)
-    try:
-        ans = [[ np.min(a[ind]), np.max(a[ind]) ]]
-    except TypeError:
-        a_tmp = np.asarray(a)
-        if a_tmp.dtype.type in [np.dtype('S').type, np.dtype('U').type]:
-            a_tmp = np.require(a_tmp, dtype=object)
-        ans = [[ np.min(a_tmp[ind]), np.max(a_tmp[ind]) ]]
-    for val in b:
-        ind = np.isfinite(val)
+    ans = []
+    for a in args:
         try:
-            ans.append( [np.min(val[ind]), np.max(val[ind])] )
+            ind = np.isfinite(a)
         except TypeError:
-            val_tmp = np.asarray(val)
-            ans.append( [np.min(val_tmp[ind]), np.max(val_tmp[ind])] )
+            ind = np.arange(len(a)).astype(int)
+            import warnings
+            warnings.warn('pmm: Unable to exclude non-finite values, results may be incorrect', RuntimeWarning)
+        try:
+            ans.append([np.min(a[ind]), np.max(a[ind])])
+        except TypeError:
+            a_tmp = np.asarray(a)
+            if a_tmp.dtype.type in [np.dtype('S').type, np.dtype('U').type]:
+                a_tmp = np.require(a_tmp, dtype=object)
+            ans.append([np.min(a_tmp[ind]), np.max(a_tmp[ind])])
     return ans
 
 def getNamedPath(name):
