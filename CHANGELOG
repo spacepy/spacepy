@@ -3,6 +3,7 @@ Changes in Version 0.2.2 (2019-xx-xx)
 pycdf
  - VarCopy objects now carry information to help reproduce original
  - Newly-public method nelems to get number of elements in zVar
+ - New function concatCDF to read data from multiple CDFs
  - Fix assignment of "raw" values to EPOCH16 Attribute
  - Fix "minimum value" calculation for TT2000 types
  - istp.VariableChecks adds check for VALID/SCALE MIN/MAX Entry types
