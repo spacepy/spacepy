@@ -55,6 +55,7 @@ except ImportError:
 import ctypes
 import ctypes.util
 import datetime
+import itertools
 import operator
 import os
 import os.path
@@ -2657,6 +2658,54 @@ class CDFCopy(spacepy.datamodel.SpaceData):
         super(CDFCopy, self).__init__(((key, var.copy())
                                       for (key, var) in cdf.items()),
                                       attrs = cdf.attrs.copy())
+
+
+def concatCDF(cdfs, varnames=None, raw=False):
+    """Concatenate data from multiple CDFs
+
+    Reads data from all specified CDFs in order and returns as if they
+    were from a single CDF. The assumption is that the CDFs all have the
+    same structure (same variables, each with the same dimensions and
+    variance.)
+
+    Parameters
+    ----------
+    cdfs : list of :class:`~spacepy.pycdf.Var`
+        Open CDFs, will be read from in order. Must be a list (cannot
+        be an iterable, as all files need to be open).
+    varnames : list of str
+        Names of variables to read (default: all variables in first CDF)
+    raw : bool
+        If True, read variables as raw (don't convert epochs, etc.)
+        Default False.
+
+    Returns
+    -------
+    :class:`~spacepy.datamodel.SpaceData`
+        data concatenated from each CDF, with all attributes from first.
+        Non-record-varying data is also only from first, and record
+        variance is only checked on the first!
+
+    Examples
+    --------
+    Read all data from all CDFs in the current directory. Note that
+    CDFs are closed when their variable goes out of scope.
+        >>> import glob
+        >>> import spacepy.pycdf
+        >>> data = spacepy.pycdf.concatCDF([
+        ...     spacepy.pycdf.CDF(f) for f in glob.glob('*.cdf')])
+    """
+    if varnames is None:
+        varnames = list(cdfs[0].keys()) #Iterate over this CDF only once
+    vargetter = lambda f, v: f.raw_var(v) if raw else f[v]
+    return spacepy.datamodel.SpaceData(
+        {v:
+         spacepy.datamodel.dmarray(
+             numpy.concatenate([vargetter(f, v)[...] for f in cdfs]),
+             attrs=vargetter(cdfs[0], v).attrs.copy())
+         if cdfs[0][v].rv() else vargetter(cdfs[0], v).copy()
+        for v in varnames},
+        attrs=cdfs[0].attrs.copy())
 
 
 class Var(MutableSequence, spacepy.datamodel.MetaMixin):

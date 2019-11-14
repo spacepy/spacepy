@@ -621,6 +621,63 @@ class NoCDF(unittest.TestCase):
         self.assertEqual(-128, minval)
         self.assertEqual(127, maxval)
 
+    def testConcatCDF(self):
+        """Read from two sequential CDFs"""
+        td = tempfile.mkdtemp()
+        try:
+            with cdf.CDF(os.path.join(td, 'one.cdf'), create=True) as cdffile:
+                cdffile.attrs['gattrone'] = 1
+                cdffile.attrs['gattrtwo'] = 2
+                cdffile.attrs['gattrthree'] = 3
+                cdffile['var1'] = numpy.array([1, 2, 3], dtype=numpy.float32)
+                cdffile['var2'] = numpy.array([11, 12, 13], dtype=numpy.float32)
+                cdffile['var3'] = numpy.array([21, 22, 23], dtype=numpy.float32)
+                cdffile['Epoch'] = numpy.array([datetime.datetime(2010, 1, i)
+                                            for i in range(1, 4)])
+                cdffile['var2'].attrs['foo'] = 'file1'
+                cdffile.new(
+                    'var4', data=numpy.array([99, 100], dtype=numpy.float32),
+                    recVary=False)
+            with cdf.CDF(os.path.join(td, 'two.cdf'),
+                                   create=True) as cdffile:
+                cdffile.attrs['gattrone'] = 1
+                cdffile.attrs['gattrtwo'] = 1
+                cdffile.attrs['gattrfour'] = 4
+                cdffile['var1'] = numpy.array([4, 5, 6], dtype=numpy.float32)
+                cdffile['var2'] = numpy.array([14, 15, 16], dtype=numpy.float32)
+                cdffile['var3'] = numpy.array([24, 25, 26], dtype=numpy.float32)
+                cdffile['var2'].attrs['foo'] = 'file2'
+                cdffile['Epoch'] = numpy.array([datetime.datetime(2010, 1, i)
+                                            for i in range(4, 7)])
+                cdffile.new('var4', data=numpy.array(
+                    [101, 102], dtype=numpy.float32), recVary=False)
+            with cdf.CDF(os.path.join(td, 'one.cdf')) as cdf1:
+                with cdf.CDF(os.path.join(td, 'two.cdf')) as cdf2:
+                    data = cdf.concatCDF(
+                        [cdf1, cdf2], ['var1', 'var2', 'var4', 'Epoch'],
+                        raw=True)
+        finally:
+            shutil.rmtree(td)
+        self.assertEqual(
+            ['gattrone', 'gattrthree', 'gattrtwo'],
+            sorted(data.attrs.keys()))
+        self.assertEqual(['Epoch', 'var1', 'var2', 'var4'], sorted(data.keys()))
+        self.assertEqual(['foo'], list(data['var2'].attrs.keys()))
+        self.assertEqual(b'file1', data['var2'].attrs['foo']) #raw variable
+        numpy.testing.assert_array_equal(
+            data['var1'][...],
+            numpy.array([1, 2, 3, 4, 5, 6], dtype=numpy.float32))
+        numpy.testing.assert_array_equal(
+            data['var2'][...],
+            numpy.array([11, 12, 13, 14, 15, 16], dtype=numpy.float32))
+        numpy.testing.assert_array_equal(
+            data['var4'][...],
+            numpy.array([99, 100], dtype=numpy.float32))
+        numpy.testing.assert_array_equal(
+            data['Epoch'][...],
+            cdf.lib.v_datetime_to_epoch([datetime.datetime(2010, 1, i)
+                                                   for i in range(1, 7)]))
+
 
 class MakeCDF(unittest.TestCase):
     def setUp(self):
