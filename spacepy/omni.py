@@ -82,7 +82,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
         time values for desired output
 
     dbase : str (optional)
-        Select data source, options are 'QDhourly', 'OMNI2', 'Mergedhourly'
+        Select data source, options are 'QDhourly', 'OMNI2hourly', 'Mergedhourly'
         Note - Custom data sources can be specified in the spacepy config file
         as described in the module documentation.
 
