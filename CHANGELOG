@@ -14,6 +14,8 @@ pycdf
  - istp.VarBundle class to copy variables, slices, and depends between CDFs
 pybats
  - Updated gitm.GitmBin reader to fix failures in Python 3.x.
+toolbox
+ - New function get_url to retrieve data from a URL
 
 Changes in Version 0.2.1 (2019-10-02)
 =====================================

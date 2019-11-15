@@ -23,6 +23,11 @@ import itertools
 import os
 import os.path
 import re
+try:
+    import urllib.request
+except ImportError: #python2
+    import urllib2 as urllib
+    urllib.request = urllib
 import shutil
 import subprocess
 import sys
@@ -723,6 +728,63 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
         pass
     return None
 
+
+def get_url(url, outfile=None, reporthook=None):
+    """Read data from a URL
+
+    Open an HTTP URL, honoring the user agent as specified in the
+    SpacePy config file. Returns the data, optionally also writing
+    out to a file.
+
+    This is similar to the deprecated ``urlretrieve``.
+
+    Parameters
+    ==========
+    url : str
+        The URL to open
+    outfile : str (optional)
+        Full path to file to write data to
+    reporthook : callable (optional)
+        Function for reporting progress; takes arguments of block
+        count, block size, and total size.
+
+    Returns
+    =======
+    bytes
+        The HTTP data from the server.
+
+    See Also
+    ========
+    progressbar
+    """
+    r = urllib.request.Request(url)
+    if spacepy.config.get('user_agent', ''):
+        r.add_header('User-Agent', spacepy.config['user_agent'])
+    r = urllib.request.urlopen(r)
+    if r.getcode() >= 400:
+        r.close()
+        raise RuntimeError('HTTP status {} {}'.format(r.code, r.msg))
+    headers = r.info()
+    size = int(headers.get('Content-Length', 0))
+    blocksize = 1024
+    count = 0
+    data = []
+    while True:
+        newdata = r.read(blocksize)
+        if not newdata:
+            break
+        data.append(newdata)
+        count += 1
+        if reporthook:
+            reporthook(count, blocksize, size)
+    r.close()
+    if outfile:
+        with open(outfile, 'wb') as f:
+            for d in data:
+                f.write(d)
+    return b''.join(data)
+
+
 def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDdata=False):
     """
     Download and update local database for omni, leapsecs etc
@@ -752,16 +814,6 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     """
     from spacepy.datamodel import SpaceData, dmarray, fromCDF, toHDF5
     from spacepy import DOT_FLN, config
-
-    if sys.version_info[0]<3:
-        import urllib as u
-    else:
-        import urllib.request as u
-
-    if 'user_agent' in config and config['user_agent']:
-        class AppURLopener(u.FancyURLopener):
-            version = config['user_agent']
-        u._urlopener = AppURLopener()
 
     datadir = os.path.join(DOT_FLN, 'data')
     if not os.path.exists(datadir):
@@ -797,7 +849,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     if omni == True:
         # retrieve omni, unzip and save as table
         print("Retrieving Qin_Denton file ...")
-        u.urlretrieve(config['qindenton_url'], omni_fname_zip, reporthook=progressbar)
+        get_url(config['qindenton_url'], omni_fname_zip, progressbar)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         fh_zip.close()
@@ -882,11 +934,10 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         # delete left-overs
         os.remove(omni_fname_zip)
 
-
     if omni2 == True:
         # adding missing values from original omni2
         print("Retrieving OMNI2 file ...")
-        u.urlretrieve(config['omni2_url'], omni2_fname_zip, reporthook=progressbar)
+        get_url(config['omni2_url'], omni2_fname_zip, progressbar)
         fh_zip = zipfile.ZipFile(omni2_fname_zip)
         flist = fh_zip.namelist()
         if len(flist) != 1:
@@ -914,11 +965,11 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
-        u.urlretrieve(config['leapsec_url'], leapsec_fname)
+        get_url(config['leapsec_url'], leapsec_fname, progressbar)
 
     if PSDdata == True:
         print("Retrieving PSD sql database")
-        u.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=progressbar)
+        get_url(config['psddata_url'], PSDdata_fname, progressbar)
     return datadir
 
 def indsFromXrange(inxrange):
@@ -963,7 +1014,7 @@ def progressbar(count, blocksize, totalsize, text='Download Progress'):
     """
     percent = int(count*blocksize*100/totalsize)
     sys.stdout.write("\r" + text + " " + "...%d%%" % percent)
-    if percent == 100: print('\n')
+    if percent >= 100: print('\n')
     sys.stdout.flush()
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
