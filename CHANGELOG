@@ -16,6 +16,7 @@ pybats
  - Updated gitm.GitmBin reader to fix failures in Python 3.x.
 toolbox
  - New function get_url to retrieve data from a URL
+ - Change update to retrieve OMNI2 data from SPDF not ViRBO
 
 Changes in Version 0.2.1 (2019-10-02)
 =====================================

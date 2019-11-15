@@ -19,6 +19,11 @@ from __future__ import absolute_import
 
 import datetime
 import glob
+try:
+    import html.parser
+except ImportError: #python2
+    import HTMLParser as html
+    html.parser = html
 import itertools
 import os
 import os.path
@@ -729,6 +734,154 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     return None
 
 
+def _get_cdaweb_omni2(omni2url=None):
+    """Download the OMNI2 data from SPDF
+
+    Parameters
+    ==========
+    omni2url : str (optional)
+        Base of the OMNI2 data at SPDF, in hourly CDF form. This URL
+        should point to the directory containing the yearly directories.
+        Default from ``omni2_url`` in config file.
+
+    Returns
+    =======
+    SpaceData
+        The data extracted from the OMNI2 dataset, with variables renamed
+        to match the old ViRBO combined OMNI2 CDF
+    """
+    import spacepy.pycdf
+    print("Retrieving OMNI2 files ...")
+    if omni2url is None:
+        omni2url = spacepy.config['omni2_url']
+    data = get_url(omni2url)
+    if str is not bytes:
+        data = data.decode('utf-8')
+    p = LinkExtracter()
+    p.feed(data)
+    p.close()
+    yearlist = [y[0:4] for y in p.links if re.match(r'\d{4}/', y)]
+    downloadme = {}
+    for y in yearlist:
+        yearurl = '{}{}/'.format(omni2url, y)
+        data = get_url(yearurl)
+        if str is not bytes:
+            data = data.decode('utf-8')
+        p = LinkExtracter()
+        p.feed(data)
+        p.close()
+        for f in p.links:
+            if not re.match(r'omni2_h0_mrg1hr_\d{8}_v\d+\.cdf', f):
+                continue
+            downloadme[f] = yearurl + f
+    filenames = sorted(list(downloadme.keys()))
+    td = tempfile.mkdtemp()
+    try:
+        for i, fname in enumerate(filenames):
+            get_url(downloadme[fname], os.path.join(td, fname))
+            progressbar(i + 1, 1, len(filenames))
+        print("Reading OMNI2 files ...")
+        data = spacepy.pycdf.concatCDF([spacepy.pycdf.CDF(os.path.join(td, f))
+                                        for f in filenames])
+    finally:
+        shutil.rmtree(td)
+    #Map keyed by the variable names as in the OMNI2 data from CDAWeb,
+    #valued by the variable names as in the OMNI2 data from ViRBO
+    #i.e. this is from: to
+    #None means not in VirBO, so delete.
+    keymap = {
+        'ABS_B': 'Field_mag_ave', #This is average of the magnitude
+        'AE': 'AE_index',
+        'AL_INDEX': 'AL_index',
+        'AP_INDEX': 'Ap_index',
+        'AU_INDEX': 'AU_index',
+        'BX_GSE': 'Bx_GSE',
+        'BY_GSE': 'By_GSE',
+        'BZ_GSE': 'Bz_GSE',
+        'BY_GSM': 'By_GSM',
+        'BZ_GSM': 'Bz_GSM',
+        'Beta': 'Plasma_beta',
+        'Day': 'Decimal_Day',
+        'DST': 'Dst_index',
+        'E': 'Electric_field_GSM',
+        #'Epoch': 'Epoch', #same, do not change
+        'F': 'Mag_of_ave_field_vect', #Magnitude of average
+        'F10_INDEX': 'f10_7_index',
+        'HR': 'Hour',
+        'IMF': 'IMF_spacecraft_ID',
+        'IMF_PTS': 'Num_pts_in_IMF_aves',
+        'KP': 'Kp_index',
+        'Mach_num': 'Alfven_mach_number',
+        'MFLX': 'Proton_flux_flag',
+        'Mgs_mach_num': None, #magnetosonic mach number
+        'N': 'Ion_density',
+        'PC_N_INDEX': 'PC_N_index',
+        'PHI-V': 'Plasma_bulk_flow_long_angle',
+        'PHI_AV': 'Long_angle_ave_field_vector',
+        'PLS': 'SW_plasma_spacecraft_ID',
+        'PLS_PTS': 'Num_pts_in_plasma_aves',
+        'PR-FLX_1': 'Proton_flux_gt_1_MeV',
+        'PR-FLX_10': 'Proton_flux_gt_10_MeV',
+        'PR-FLX_2': 'Proton_flux_gt_2_MeV',
+        'PR-FLX_30': 'Proton_flux_gt_30_MeV',
+        'PR-FLX_4': 'Proton_flux_gt_4_MeV',
+        'PR-FLX_60': 'Proton_flux_gt_60_MeV',
+        'Pressure': 'Flow_pressure',
+        'R': 'Sunspot_number',
+        'Ratio': 'Na_over_Np',
+        'Rot#': 'Bartels_rotation_num',
+        'SIGMA-ABS_B': 'sigma_field_mag_ave',
+        'SIGMA-B': 'sigma_mag_of_ave_field_vect',
+        'SIGMA-Bx': 'sigma_Bx_GSE',
+        'SIGMA-By': 'sigma_By_GSE',
+        'SIGMA-Bz': 'sigma_Bz_GSE',
+        'SIGMA-N': 'sigma_ion_density',
+        'SIGMA-PHI-V': 'sigma_plasma_flow_long_angle',
+        'SIGMA-T': 'sigma_temp',
+        'SIGMA-THETA-V': 'sigma_plasma_flow_lat_angle',
+        'SIGMA-V': 'sigma_plasma_bulk_speed',
+        'SIGMA-ratio': 'sigma_ratio',
+        'Solar_Lyman_alpha': None,
+        'T': 'Plasma_temp',
+        'THETA-V': 'Plasma_bulk_flow_lat_angle',
+        'THETA_AV': 'Lat_angle_ave_field_vector',
+        'V': 'Plasma_bulk_speed',
+        'YR': 'Year',
+        }
+    for k, v in keymap.items():
+        if v is not None:
+            data[v] = data[k]
+        del data[k]
+    #The CDAWeb Epochs are erroneously tagged as START of collection,
+    #not midpoint. So fix that
+    data['Epoch'] = data['Epoch'] + datetime.timedelta(minutes=30)
+    return data
+
+
+class LinkExtracter(html.parser.HTMLParser):
+    """Finds all links in a HTML page, useful for crawling.
+
+    After HTML has been parsed, the ``links`` attribute contains
+    a list of link targets.
+    """
+
+    def reset(self, *args, **kwargs):
+        if isinstance(LinkExtracter, type):
+            super(LinkExtracter, self).reset(*args, **kwargs)
+        else: #py2k, old-style class
+            html.parser.HTMLParser.reset(self, *args, **kwargs)
+        self.links = []
+        """List of link targets found in the page"""
+
+    def handle_starttag(self, tag, attrs):
+        if tag != 'a':
+            return
+        for name, value in attrs:
+            if name != 'href':
+                continue
+            self.links.append(value)
+
+
 def get_url(url, outfile=None, reporthook=None):
     """Read data from a URL
 
@@ -935,24 +1088,28 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         os.remove(omni_fname_zip)
 
     if omni2 == True:
-        # adding missing values from original omni2
-        print("Retrieving OMNI2 file ...")
-        get_url(config['omni2_url'], omni2_fname_zip, progressbar)
-        fh_zip = zipfile.ZipFile(omni2_fname_zip)
-        flist = fh_zip.namelist()
-        if len(flist) != 1:
-            raise RuntimeError('Unable to find OMNI2 file in zip file.')
-        file_to_read = flist[0]
-        if os.path.dirname(file_to_read):
-            raise RuntimeError('Unexpected contents of OMNI2 zip file.')
-        td = tempfile.mkdtemp()
-        try:
-            fh_zip.extract(file_to_read, td)
-            omnicdf = fromCDF(os.path.join(td, file_to_read))
-        finally:
-            fh_zip.close()
-            os.remove(omni2_fname_zip)
-            shutil.rmtree(td)
+        omni2_url = config['omni2_url']
+        if omni2_url.endswith('.zip'):
+            # adding missing values from original omni2
+            print("Retrieving OMNI2 file ...")
+            get_url(omni2_url, omni2_fname_zip, progressbar)
+            fh_zip = zipfile.ZipFile(omni2_fname_zip)
+            flist = fh_zip.namelist()
+            if len(flist) != 1:
+                raise RuntimeError('Unable to find OMNI2 file in zip file.')
+            file_to_read = flist[0]
+            if os.path.dirname(file_to_read):
+                raise RuntimeError('Unexpected contents of OMNI2 zip file.')
+            td = tempfile.mkdtemp()
+            try:
+                fh_zip.extract(file_to_read, td)
+                omnicdf = fromCDF(os.path.join(td, file_to_read))
+            finally:
+                fh_zip.close()
+                os.remove(omni2_fname_zip)
+                shutil.rmtree(td)
+        else:
+            omnicdf = _get_cdaweb_omni2(omni2_url)
         #add RDT
         omnicdf['RDT'] = spt.Ticktock(omnicdf['Epoch'],'UTC').RDT
         #remove keys that get in the way
