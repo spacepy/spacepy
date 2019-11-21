@@ -455,6 +455,9 @@ class EventClicker(object):
         if self._x_is_datetime:
             xmin = left_x - self.interval/10
             xmax = left_x + self.interval + self.interval/10
+            if not self._xdata[0].tzinfo:
+                xmin = xmin.replace(tzinfo=None)
+                xmax = xmax.replace(tzinfo=None)
         else:
             xmin = left_x - 0.1 * self.interval
             xmax = left_x + 1.1 * self.interval
