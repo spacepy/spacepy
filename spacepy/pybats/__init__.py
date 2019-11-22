@@ -496,17 +496,30 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
                 pbdat[v] = dmarray(np.reshape(pbdat[v], pbdat['grid'],
                                               order='F'), attrs=pbdat[v].attrs)
 
-def readarray(f,dtype=np.float32,inttype=np.int32):
-    """
+def readarray(f, dtype=np.float32, inttype=np.int32):
+    '''
     Read an array from an unformatted binary file written out by a 
     Fortran program.
 
-    :param f: File to read
-    :type f: File-like
-    :param nrec: Number of records to read. If nrec is greater than one, 
-    all records read will be appended together into a single 1-D array.
-    :type nrec: int
-    """
+        Parameters
+    ==========
+    f : Binary file object
+        The file from which to read the array of values.
+
+    Other Parameters
+    ================
+    dtype : data type
+        The data type used for data conversion.
+    inttype : Numpy integer type
+        Set the precision for the integers that store the size of each
+        entry.   Defaults to numpy.int32
+    
+    Returns
+    =======
+    numpy.array : Numpy array
+        Return the data read from file as a 1-dimensional array.
+
+    '''
 
     if dtype is str:
         dtype_size_bytes=1
@@ -519,7 +532,9 @@ def readarray(f,dtype=np.float32,inttype=np.int32):
     # Check that the record length is consistent with the data type
     if rec_len%dtype_size_bytes!=0:
         raise ValueError('Read error: Data type inconsistent with record' +
-                         ' length (data type size is {0:d} bytes, record length is {1:d} bytes'.format(int(dtype_size_bytes),int(n)))
+                         ' length (data type size is {0:d} bytes, record' +
+                         ' length is {1:d} bytes'.format(
+                             int(dtype_size_bytes),int(n)))
 
     if len(rec_len)==0:
         # Zero-length record...file may be truncated
@@ -601,7 +616,6 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
         Returns True on success.
 
     '''
-    import struct
 
     # Open, read, and parse the file into numpy arrays.
     # Note that Fortran writes integer buffers around records, so
