@@ -294,8 +294,11 @@ class EventClicker(object):
         if self.interval is None:
             (left, right) = self.ax.get_xaxis().get_view_interval()
             if self._x_is_datetime:
-                right = matplotlib.dates.num2date(right)
-                left = matplotlib.dates.num2date(left)
+                right = matplotlib.dates.num2date(right, tz=self._xdata[0].tzinfo)
+                left = matplotlib.dates.num2date(left, tz=self._xdata[0].tzinfo)
+                if not self._xdata[0].tzinfo:
+                    right = right.replace(tzinfo=None)
+                    left = left.replace(tzinfo=None)
             self.interval = right - left
 
         if not self._xdata is None:
@@ -370,7 +373,9 @@ class EventClicker(object):
             self._data_events[-1, self._curr_phase] = \
                                   [self._xdata[idx], self._ydata[idx]]
         if self._x_is_datetime:
-            xval = matplotlib.dates.num2date(xval)
+            xval = matplotlib.dates.num2date(xval, tz=self._xdata[0].tzinfo)
+            if not self._xdata[0].tzinfo:
+                xval = xval.replace(tzinfo=None)
         if self._events is None:
             self._events = numpy.array([[[xval, yval]] * self.n_phases])
         self._events[-1, self._curr_phase] = [xval, yval]
@@ -445,7 +450,9 @@ class EventClicker(object):
         if event.key == ' ':
             rightside = self.ax.xaxis.get_view_interval()[1]
             if self._x_is_datetime:
-                rightside = matplotlib.dates.num2date(rightside)
+                rightside = matplotlib.dates.num2date(rightside, tz=self._xdata[0].tzinfo)
+                if not self._xdata[0].tzinfo:
+                    rightside = rightside.replace(tzinfo=None)
             self._relim(rightside)
         if event.key == 'delete':
             self._delete_event_phase()
@@ -455,9 +462,6 @@ class EventClicker(object):
         if self._x_is_datetime:
             xmin = left_x - self.interval/10
             xmax = left_x + self.interval + self.interval/10
-            if not self._xdata[0].tzinfo:
-                xmin = xmin.replace(tzinfo=None)
-                xmax = xmax.replace(tzinfo=None)
         else:
             xmin = left_x - 0.1 * self.interval
             xmax = left_x + 1.1 * self.interval
