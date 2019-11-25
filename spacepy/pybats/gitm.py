@@ -36,61 +36,75 @@ class GitmBin(PbData):
         '''
 
         from re import sub
-        from struct import unpack
+        from spacepy.pybats import readarray
         
-        # Read data and header info
-        f=open(self.attrs['file'], 'rb')
+        # Open, read, and parse the file into numpy arrays.
+        # Note that Fortran writes integer buffers around records, so
+        # we must parse those as well.
+        with open(self.attrs['file'], 'rb') as infile:
+            # On the first try, we may fail because of wrong-endianess.
+            # If that is the case, swap that endian and try again.
+            endian='little'
 
-        # Using the first FORTRAN header, determine endian.
-        # Default is little.
-        self.attrs['endian']='little'
-        endChar='>'
-        rawRecLen=f.read(4)
-        recLen=(unpack(endChar+'l',rawRecLen))[0]
-        if (recLen>10000)or(recLen<0):
-            # Ridiculous record length implies wrong endian.
-            self.attrs['endian']='big'
-            endChar='<'
-            recLen=(unpack(endChar+'l',rawRecLen))[0]
+            inttype=np.dtype(np.int32)
+            EndChar='<'
+            inttype.newbyteorder(EndChar)
 
-        # Read version; read fortran footer+header.
-        self.attrs['version']=unpack(endChar+'d',f.read(recLen))[0]
-        (oldLen, recLen)=unpack(endChar+'2l',f.read(8))
+            # detect double-precision file by checking record length
+            # of version (stored as float). Simultaneously, test for
+            # byte ordering:
+            try:
+                RecLen=np.fromfile(infile,dtype=inttype,count=1)
+            except (ValueError,EOFError):
+                endian='big'
+                EndChar='>'
+                inttype.newbyteorder(EndChar)
+                infile.seek(0)
+                RecLen=np.fromfile(infile,dtype=inttype,count=1)
+            infile.seek(0) # return to beginning of file.
+            self.attrs['endian']  = endian # Store endian order.
+            
+            # Set data types based on record length from above:
+            if RecLen > 4:
+                floattype=np.dtype(np.float64)
+            else:
+                floattype=np.dtype(np.float32)
+            floattype.newbyteorder(EndChar)
 
-        # Read grid size information.
-        (self.attrs['nLon'],self.attrs['nLat'],self.attrs['nAlt'])=\
-            unpack(endChar+'lll',f.read(recLen))
-        (oldLen, recLen)=unpack(endChar+'2l',f.read(8))
+            # Get code version:
+            self.attrs['version']=readarray(infile,floattype,inttype)[0]
 
-        # Read number of variables.
-        self.attrs['nVars']=unpack(endChar+'l',f.read(recLen))[0]
-        (oldLen, recLen)=unpack(endChar+'2l',f.read(8))
+            # Read grid size information.  Because these three values
+            # are written at the same time, they get "packed" together and
+            # must be read together.
+            header_fields_dtype=np.dtype([
+                ('nLon',np.int32), ('nLat',np.int32), ('nAlt',np.int32)])
+            header_fields_dtype.newbyteorder(EndChar)
+            self.attrs['nLon'], self.attrs['nLat'], self.attrs['nAlt'] = \
+                readarray(infile,header_fields_dtype,inttype)[0]
+                
+            # Read number of variables:
+            self.attrs['nVars'] = readarray(infile,inttype,inttype)[0]
 
-        # Collect variable names.
-        var=[]
-        for i in range(self.attrs['nVars']):
-            var.append(unpack(endChar+'%is'%(recLen),f.read(recLen))[0])
-            (oldLen, recLen)=unpack(endChar+'2l',f.read(8))
+            # Collect variable names; decode into usable strings.
+            var=[]
+            for i in range(self.attrs['nVars']):
+                var.append(readarray(infile,str,inttype).decode('utf-8'))
 
-        # Extract time. 
-        (yy,mm,dd,hh,mn,ss,ms)=unpack(endChar+'lllllll',f.read(recLen))
-        self['time']=dt.datetime(yy,mm,dd,hh,mn,ss,ms/1000)
-        (oldLen)=unpack(endChar+'l',f.read(4))
+            # Extract time, stored as 7 consecuitive integers.
+            (yy,mm,dd,hh,mn,ss,ms)=readarray(infile,inttype,inttype)
+            self['time']=dt.datetime(yy,mm,dd,hh,mn,ss,int(ms/1000))
 
-
-        # Read the rest of the data.
-        nTotal=self.attrs['nLon']*self.attrs['nLat']*self.attrs['nAlt']
-        for val in var:
-            # Trim variable names.
-            v=sub('\[|\]', '', val).strip()
-            s=unpack(endChar+'l',f.read(4))[0]
-            self[v]=dmarray(np.array(unpack(
-                        endChar+'%id'%(nTotal),f.read(s))))
-            # Reshape arrays, note that ordering in file is Fortran-like.
-            self[v]=self[v].reshape( 
-                (self.attrs['nLon'],self.attrs['nLat'],self.attrs['nAlt']),
-                order='fortran')
-            f.read(4)
+            # Read the rest of the data.
+            nTotal=self.attrs['nLon']*self.attrs['nLat']*self.attrs['nAlt']
+            for val in var:
+                # Trim variable names.
+                v=sub('\[|\]', '', val).strip()
+                self[v] = readarray(infile,floattype,inttype)
+                # Reshape arrays, note that ordering in file is Fortran-like.
+                self[v]=self[v].reshape( 
+                    (self.attrs['nLon'],self.attrs['nLat'],self.attrs['nAlt']),
+                    order='F')
 
 
     def calc_deg(self):
@@ -106,10 +120,3 @@ class GitmBin(PbData):
         if 'Longitude' in self:
             self['dLon'] = dmarray(self['Longitude']*180.0/pi, 
                                    attrs={'units':'degrees'})
-        
-
-#    def add_alt_slice(alt, var, target=None):
-#        '''
-#        Add a contour plot of variable var against lat/lon for a given
-#        constant altitude slice, alt.
-#        '''
