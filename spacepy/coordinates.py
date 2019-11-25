@@ -94,6 +94,9 @@ class Coords(object):
         else:
             self.data = np.array(data)
 
+        dtype = dtype.upper()
+        carsph = carsph.lower()
+
         assert dtype in list(typedict.keys()), 'This dtype='+dtype+' is not supported. Only '+str(list(typedict.keys()))
         assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
         onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
