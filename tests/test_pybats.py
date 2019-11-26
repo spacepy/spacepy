@@ -17,9 +17,10 @@ import unittest
 import numpy as np
 import numpy.testing
 
-import spacepy.pybats as pb
+import spacepy.pybats      as pb
 import spacepy.pybats.bats as pbs
-import spacepy.pybats.ram as ram
+import spacepy.pybats.ram  as ram
+import spacepy.pybats.gitm as gitm
 
 __all__ = ['TestParseFileTime', 'TestIdlFile', 'TestRim', 'TestBats2d',
            'TestMagGrid', 'TestSatOrbit', 'TestVirtSat', 'TestImfInput',
@@ -422,6 +423,37 @@ class TestExtraction(unittest.TestCase):
         for x, rho in zip(extr['x'], extr['rho']):
             self.assertAlmostEqual(rho, analytic(x), 2)
 
+
+class TestGitm(unittest.TestCase):
+    '''
+    Test opening GITM binary files, handling files.
+    '''
+    nVars = 13
+    nLat  = 18
+    vers  = 4.03
+    time  = dt.datetime(2015, 3, 16, 20, 1, 8)
+    shape = (18,18)
+    lat1  = 1.48352986
+    
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+
+    def testBinary(self):
+        '''
+        This tests the ability to open a file and correctly read the attributes and 
+        variables as well as properly reshape the arrays and remove unused dimensions.
+        '''
+        # Open 2D file:
+        f = gitm.GitmBin(os.path.join(self.pth, 'data', 'pybats_test', 'gitm_2D.bin'))
+        # Check some critical attributes/values:
+        self.assertEqual(self.nVars, f.attrs['nVars'])
+        self.assertEqual(self.nLat,  f.attrs['nLat'])
+        self.assertEqual(self.vers,  f.attrs['version'])
+        self.assertEqual(self.time,  f['time'])
+        self.assertEqual(self.shape, f['Longitude'].shape)
+        self.assertAlmostEqual(   self.lat1, f['Latitude'][0,-1], 6)
+        self.assertAlmostEqual(-1*self.lat1, f['Latitude'][0, 0], 6)
+        
 class RampyTests(unittest.TestCase):
     '''
     Tests for pybats.rampy
