@@ -17,8 +17,10 @@ class GitmBin(PbData):
     stored in binary format.  Object inherits from spacepy.pybats.PbData; see
     that documentation for general information on how these objects work.
 
-    GITM index ordering is [lon, lat, altitude]; data arrays read from file
-    will always be of the same shape and size.
+    GITM index ordering is [lon, lat, altitude].  For 2D or 1D files, any
+    dimension that has only one value will have that dimension removed from the
+    final arrays (e.g., a 2D cut through a single altitude will have the 
+    altitude dimension removed; the final arrays will be lon X lat only.)
     '''
 
     def __init__(self, filename, *args, **kwargs):
@@ -105,7 +107,8 @@ class GitmBin(PbData):
                 self[v]=self[v].reshape( 
                     (self.attrs['nLon'],self.attrs['nLat'],self.attrs['nAlt']),
                     order='F')
-
+                # Reduce dimensionality:
+                self[v] = np.squeeze(self[v])
 
     def calc_deg(self):
         '''
