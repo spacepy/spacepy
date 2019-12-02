@@ -501,7 +501,7 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
     Read an array from an unformatted binary file written out by a 
     Fortran program.
 
-        Parameters
+    Parameters
     ==========
     f : Binary file object
         The file from which to read the array of values.
