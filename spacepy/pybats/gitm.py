@@ -93,9 +93,9 @@ class GitmBin(PbData):
             for i in range(self.attrs['nVars']):
                 var.append(readarray(infile,str,inttype).decode('utf-8'))
 
-            # Extract time, stored as 7 consecuitive integers.
+            # Extract time, stored as 7 consecutive integers.
             (yy,mm,dd,hh,mn,ss,ms)=readarray(infile,inttype,inttype)
-            self['time']=dt.datetime(yy,mm,dd,hh,mn,ss,int(ms/1000))
+            self['time']=dt.datetime(yy,mm,dd,hh,mn,ss,ms//1000)
 
             # Read the rest of the data.
             nTotal=self.attrs['nLon']*self.attrs['nLat']*self.attrs['nAlt']
