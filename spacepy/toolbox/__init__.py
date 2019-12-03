@@ -909,6 +909,14 @@ def get_url(url, outfile=None, reporthook=None):
     See Also
     ========
     progressbar
+
+    Notes
+    =====
+    This function honors proxy settings as described in
+    :func:`urllib.request.getproxies`. Cryptic error messages (such as
+    ``Network is unreachable``) may indicate that proxy settings
+    should be defined as appropriate for your environment (e.g. with
+    ``HTTP_PROXY`` or ``HTTPS_PROXY`` environment variables).
     """
     r = urllib.request.Request(url)
     if spacepy.config.get('user_agent', ''):
@@ -942,6 +950,9 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     """
     Download and update local database for omni, leapsecs etc
 
+    Web access is via :func:`get_url`; notes there may be helpful in
+    debugging errors.
+
     Parameters
     ==========
     all : boolean (optional)
@@ -959,6 +970,10 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     =======
     out : string
         data directory where things are saved
+
+    See Also
+    ========
+    get_url
 
     Examples
     ========
