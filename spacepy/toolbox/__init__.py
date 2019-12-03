@@ -882,7 +882,7 @@ class LinkExtracter(html.parser.HTMLParser):
             self.links.append(value)
 
 
-def get_url(url, outfile=None, reporthook=None):
+def get_url(url, outfile=None, reporthook=None, cached=False):
     """Read data from a URL
 
     Open an HTTP URL, honoring the user agent as specified in the
@@ -900,6 +900,10 @@ def get_url(url, outfile=None, reporthook=None):
     reporthook : callable (optional)
         Function for reporting progress; takes arguments of block
         count, block size, and total size.
+    cached : bool (optional)
+        Compare modification time of the URL to the modification time
+        of ``outfile``; do not retrieve (and return None) unless
+        the URL is newer than the file.
 
     Returns
     =======
@@ -926,6 +930,20 @@ def get_url(url, outfile=None, reporthook=None):
         r.close()
         raise RuntimeError('HTTP status {} {}'.format(r.code, r.msg))
     headers = r.info()
+    if cached:
+        if outfile is None:
+            r.close()
+            raise RuntimeError('Must specify outfile if cached is True')
+        modified = headers.get('Last-Modified', None)
+        if os.path.exists(outfile) and modified is not None:
+            remote_mod = datetime.datetime.strptime(
+                modified, "%a, %d %b %Y %X GMT")
+            #Timestamp is truncated to second, so do same for local
+            local_mod = datetime.datetime.utcfromtimestamp(os.path.getmtime(
+                outfile)).replace(microsecond=0)
+            if remote_mod <= local_mod:
+                r.close()
+                return None
     size = int(headers.get('Content-Length', 0))
     blocksize = 1024
     count = 0

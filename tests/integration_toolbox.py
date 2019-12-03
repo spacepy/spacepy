@@ -93,6 +93,19 @@ class WebGettingIntegration(unittest.TestCase):
         self.assertEqual(
             b"This is a test\n", data)
 
+    def testGetUrlToFileCached(self):
+        """Call get_url, write to file with cache"""
+        with open(os.path.join(self.td, 'foo.txt'), 'wt') as f:
+            f.write('This is a test\n')
+        outfile = os.path.join(self.td, 'output.txt')
+        data = spacepy.toolbox.get_url(
+            'http://localhost:{}/foo.txt'.format(self.port),
+            outfile=outfile)
+        data = spacepy.toolbox.get_url(
+            'http://localhost:{}/foo.txt'.format(self.port),
+            outfile=outfile, cached=True)
+        self.assertTrue(data is None)
+
 
 if __name__ == "__main__":
     unittest.main()
