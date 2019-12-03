@@ -2690,10 +2690,11 @@ def concatCDF(cdfs, varnames=None, raw=False):
     --------
     Read all data from all CDFs in the current directory. Note that
     CDFs are closed when their variable goes out of scope.
-        >>> import glob
-        >>> import spacepy.pycdf
-        >>> data = spacepy.pycdf.concatCDF([
-        ...     spacepy.pycdf.CDF(f) for f in glob.glob('*.cdf')])
+
+    >>> import glob
+    >>> import spacepy.pycdf
+    >>> data = spacepy.pycdf.concatCDF([
+    ...     spacepy.pycdf.CDF(f) for f in glob.glob('*.cdf')])
     """
     if varnames is None:
         varnames = list(cdfs[0].keys()) #Iterate over this CDF only once
