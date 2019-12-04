@@ -1113,6 +1113,22 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         numpy.testing.assert_allclose(
             self.outcdf['Counts_P'], expected)
 
+    def testInspectOperations(self):
+        """Get operations of a bundle"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
+        bundle.slice(1, 1, single=True).slice(2, 0, 10).mean(2)
+        ops = bundle.inspect()['operations']
+        self.assertEqual(
+            [('slice', (1, 1), {'single': True}),
+             ('slice', (2, 0, 10), {}),
+             ('mean', (2,), {})],
+            ops)
+        #Check fancy index
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
+        bundle.slice(1, [5, 6])
+        ops = bundle.inspect()['operations']
+        self.assertEqual([('slice', (1, [5, 6]), {})], ops)
+
     def testSliceNRVScalar(self):
         """Slice when the EPOCH_DELTA is NRV"""
         #Modify the input first

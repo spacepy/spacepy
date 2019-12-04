@@ -1054,11 +1054,13 @@ class VarBundle(object):
 
     .. autosummary::
 
+        inspect
         mean
         output
         slice
         sum
 
+    .. automethod:: inspect
     .. automethod:: mean
     .. automethod:: output
     .. automethod:: slice
@@ -1729,6 +1731,56 @@ class VarBundle(object):
                             .format(newvar.name()))
                 else:
                     del newvar.attrs[a]
+
+    def inspect(self):
+        """Description of this bundle
+
+        Provides information describing the operations this bundle
+        would perform and the resulting output.
+
+        Returns
+        -------
+        dict
+            Key ``operations`` is a list describing the operations
+            to perform on the bundle. Each element is a tuple: first
+            element is a string with the name of the operation (i.e.
+            method of :class:`VarBundle`), next is also a tuple of
+            positional arguments, and finally a dict of keyword
+            arguments.
+
+        Examples
+        --------
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
+        >>> b.slice(1, 2, single=True).inspect()
+        { 'operations': [('slice', (1, 2), {'single': True})] }
+        >>> #Apply same operations to a different variable
+        >>> b2 = spacepy.pycdf.istp.VarBundle(infile['FEDU'])
+        >>> for op, args, kwargs in b2.inspect()['operations']:
+        ...     getattr(b2, op)(*args, **kwargs)
+        """
+        ops = []
+        vi = self._varinfo[self.mainvar.name()]
+        for dim in vi['dims']:
+            sl = vi['slice'][dim]
+            postidx = vi['postidx'][dim]
+            if sl != slice(None, None, None): #simple slice
+                if isinstance(sl, slice): #slice
+                    ops.append((
+                        'slice',
+                        tuple((s for s in (dim, sl.start, sl.stop, sl.step)
+                               if s is not None)),
+                        {}))
+                else: #single index
+                    ops.append(('slice', (dim, sl), {'single': True}))
+            elif postidx != slice(None, None, None): #fancy index
+                ops.append(('slice', (dim, postidx,), {}))
+            for v, name in zip((self._mean, self._summed), ('mean', 'sum')):
+                if v[dim]:
+                    ops.append((name, (dim,), {}))
+        return {'operations': ops}
 
     def output(self, output, suffix=None):
         """Output the variables as modified
