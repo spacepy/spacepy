@@ -72,8 +72,8 @@ class WebGettingIntegration(unittest.TestCase):
 
     def testGetUrlReturn(self):
         """Call get_url, return data directly"""
-        with open(os.path.join(self.td, 'foo.txt'), 'wt') as f:
-            f.write('This is a test\n')
+        with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
+            f.write(b'This is a test\n')
         data = spacepy.toolbox.get_url(
             'http://localhost:{}/foo.txt'.format(self.port))
         self.assertEqual(
@@ -81,8 +81,8 @@ class WebGettingIntegration(unittest.TestCase):
 
     def testGetUrlToFile(self):
         """Call get_url, write to file"""
-        with open(os.path.join(self.td, 'foo.txt'), 'wt') as f:
-            f.write('This is a test\n')
+        with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
+            f.write(b'This is a test\n')
         #Set its modification time to the distant past
         os.utime(os.path.join(self.td, 'foo.txt'),
                  (0, 0))
@@ -100,8 +100,8 @@ class WebGettingIntegration(unittest.TestCase):
 
     def testGetUrlToFileCached(self):
         """Call get_url, write to file with cache"""
-        with open(os.path.join(self.td, 'foo.txt'), 'wt') as f:
-            f.write('This is a test\n')
+        with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
+            f.write(b'This is a test\n')
         outfile = os.path.join(self.td, 'output.txt')
         data = spacepy.toolbox.get_url(
             'http://localhost:{}/foo.txt'.format(self.port),
