@@ -749,12 +749,14 @@ def _get_cdaweb_omni2(omni2url=None):
     =======
     SpaceData
         The data extracted from the OMNI2 dataset, with variables renamed
-        to match the old ViRBO combined OMNI2 CDF
+        to match the old ViRBO combined OMNI2 CDF. Returns ``None``
+        if there are no new data.
     """
     import spacepy.pycdf
     print("Retrieving OMNI2 files ...")
     if omni2url is None:
         omni2url = spacepy.config['omni2_url']
+    #Find all the files to download
     data = get_url(omni2url)
     if str is not bytes:
         data = data.decode('utf-8')
@@ -776,16 +778,29 @@ def _get_cdaweb_omni2(omni2url=None):
                 continue
             downloadme[f] = yearurl + f
     filenames = sorted(list(downloadme.keys()))
-    td = tempfile.mkdtemp()
-    try:
-        for i, fname in enumerate(filenames):
-            get_url(downloadme[fname], os.path.join(td, fname))
-            progressbar(i + 1, 1, len(filenames))
-        print("Reading OMNI2 files ...")
-        data = spacepy.pycdf.concatCDF([spacepy.pycdf.CDF(os.path.join(td, f))
-                                        for f in filenames])
-    finally:
-        shutil.rmtree(td)
+    datadir = os.path.join(spacepy.DOT_FLN, 'data', 'omni2cdfs')
+    if not os.path.exists(datadir):
+        os.makedirs(datadir)
+    newdata = False
+    #Check for existing files (delete them if no longer on CDAWeb)
+    have_files = os.listdir(datadir)
+    for f in have_files:
+        if not f in filenames:
+            os.remove(os.path.join(datadir, f))
+            #File was removed, so need to reparse even if no new downloads
+            newdata = True
+    #Download
+    for i, fname in enumerate(filenames):
+        if get_url(downloadme[fname], os.path.join(datadir, fname),
+                   cached=True) is not None:
+            newdata = True
+        progressbar(i + 1, 1, len(filenames))
+    if not newdata:
+        return None
+    #Read and process
+    print("Reading OMNI2 files ...")
+    data = spacepy.pycdf.concatCDF([spacepy.pycdf.CDF(os.path.join(datadir, f))
+                                    for f in filenames])
     #Map keyed by the variable names as in the OMNI2 data from CDAWeb,
     #valued by the variable names as in the OMNI2 data from ViRBO
     #i.e. this is from: to
@@ -1146,15 +1161,17 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
                 shutil.rmtree(td)
         else:
             omnicdf = _get_cdaweb_omni2(omni2_url)
-        #add RDT
-        omnicdf['RDT'] = spt.Ticktock(omnicdf['Epoch'],'UTC').RDT
-        #remove keys that get in the way
-        del omnicdf['Hour']
-        del omnicdf['Year']
-        del omnicdf['Decimal_Day']
 
-        # save as HDF5
-        toHDF5(omni2_fname_h5, omnicdf)
+        if omnicdf is not None: #If no new data, skip all this
+            #add RDT
+            omnicdf['RDT'] = spt.Ticktock(omnicdf['Epoch'],'UTC').RDT
+            #remove keys that get in the way
+            del omnicdf['Hour']
+            del omnicdf['Year']
+            del omnicdf['Decimal_Day']
+
+            # save as HDF5
+            toHDF5(omni2_fname_h5, omnicdf)
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
