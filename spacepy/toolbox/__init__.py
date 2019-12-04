@@ -17,6 +17,7 @@ Copyright 2010 Los Alamos National Security, LLC.
 from __future__ import division
 from __future__ import absolute_import
 
+import calendar
 import datetime
 import glob
 try:
@@ -930,18 +931,18 @@ def get_url(url, outfile=None, reporthook=None, cached=False):
         r.close()
         raise RuntimeError('HTTP status {} {}'.format(r.code, r.msg))
     headers = r.info()
+    modified = headers.get('Last-Modified', None)
+    if modified is not None:
+        modified = datetime.datetime.strptime(modified, "%a, %d %b %Y %X GMT")
+        modified = calendar.timegm(modified.timetuple())
     if cached:
         if outfile is None:
             r.close()
             raise RuntimeError('Must specify outfile if cached is True')
-        modified = headers.get('Last-Modified', None)
         if os.path.exists(outfile) and modified is not None:
-            remote_mod = datetime.datetime.strptime(
-                modified, "%a, %d %b %Y %X GMT")
             #Timestamp is truncated to second, so do same for local
-            local_mod = datetime.datetime.utcfromtimestamp(os.path.getmtime(
-                outfile)).replace(microsecond=0)
-            if remote_mod <= local_mod:
+            local_mod = int(os.path.getmtime(outfile))
+            if modified <= local_mod:
                 r.close()
                 return None
     size = int(headers.get('Content-Length', 0))
@@ -961,6 +962,8 @@ def get_url(url, outfile=None, reporthook=None, cached=False):
         with open(outfile, 'wb') as f:
             for d in data:
                 f.write(d)
+        if modified is not None: #Copy web mtime to file
+            os.utime(outfile, (int(time.time()), modified))
     return b''.join(data)
 
 

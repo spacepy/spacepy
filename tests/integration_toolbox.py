@@ -83,6 +83,9 @@ class WebGettingIntegration(unittest.TestCase):
         """Call get_url, write to file"""
         with open(os.path.join(self.td, 'foo.txt'), 'wt') as f:
             f.write('This is a test\n')
+        #Set its modification time to the distant past
+        os.utime(os.path.join(self.td, 'foo.txt'),
+                 (0, 0))
         data = spacepy.toolbox.get_url(
             'http://localhost:{}/foo.txt'.format(self.port),
             outfile=os.path.join(self.td, 'output.txt'))
@@ -92,6 +95,8 @@ class WebGettingIntegration(unittest.TestCase):
             data = f.read()
         self.assertEqual(
             b"This is a test\n", data)
+        self.assertEqual(
+            0, os.path.getmtime(os.path.join(self.td, 'output.txt')))
 
     def testGetUrlToFileCached(self):
         """Call get_url, write to file with cache"""
