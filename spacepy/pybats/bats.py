@@ -245,7 +245,11 @@ class BatsLog(LogFile):
 
         if 'label' not in kwargs:
             kwargs['label']='BATS-R-US $D_{ST}$ (Biot-Savart)'
-        
+
+        if 'label' not in obs_kwargs:
+            obs_kwargs['label'] = 'Obs. Dst'
+            if plot_sym: obs_kwargs['label'] = 'Obs. SYM-H'
+            
         ax.plot(self['time'], self[dstvar], **kwargs)
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
@@ -257,14 +261,12 @@ class BatsLog(LogFile):
         if(plot_obs):
             # Attempt to fetch observations, plot if success.
             if self.fetch_obs_dst():
-                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], 
-                        label='Obs. Dst', **obs_kwargs)
+                ax.plot(self.obs_dst['time'], self.obs_dst['dst'], **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
         if(plot_sym):
             # Attempt to fetch SYM-h observations, plot if success.
             if self.fetch_obs_sym():
-                ax.plot(self.obs_sym['time'], self.obs_sym['sym-h'], 
-                        label='Obs. SYM-H', **obs_kwargs)
+                ax.plot(self.obs_sym['time'],self.obs_sym['sym-h'],**obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
 
         # Place vertical line at epoch:
@@ -3189,7 +3191,7 @@ class GeoIndexFile(LogFile):
 
     def add_kp_quicklook(self, target=None, loc=111, label=None, 
                          plot_obs=False, add_legend=True, 
-                         obs_kwargs={'c':'k', 'ls':'--', 'lw':3}, **kwargs):
+                         obs_kwargs={'c':'k', 'ls':'--', 'lw':2}, **kwargs):
         '''
         Similar to "dst_quicklook"-type functions, this method fetches observed
         Kp from the web and plots it alongside the Kp read from the GeoInd file.
