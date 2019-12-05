@@ -191,8 +191,7 @@ class KyotoKp(PbData):
                 kp[8*i+j]  = float(line[9+2*j])+frac[line[10+2*j]]
                 time[8*i+j]= dt.datetime(yy,mm,dd,hrs[j],30,0)
                 t1[8*i+j]= dt.datetime(yy,mm,dd,hr1[j],0,0)
-                t2[8*i+j]= dt.datetime(yy,mm,dd,hr1[j+1],0,0) \
-                    +dt.timedelta(days=j/7)
+                t2[8*i+j]= t1[8*i+j]+dt.timedelta(hours=3)
         # Store data into object.
         self['time']=dmarray(time)
         self['binstart']=dmarray(t1)
