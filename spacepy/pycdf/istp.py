@@ -1780,8 +1780,10 @@ class VarBundle(object):
         >>> b.slice(1, 2, single=True).variables()
         [[('FPDU', (100, 72))],
          [('Epoch_Ion', (100,)), ('Epoch_Ion_DELTA', (100,))],
-         [('PITCH_ANGLE', None)],
-         [('HOPE_ENERGY_Ion', (72,)), ('ENERGY_Ion_DELTA', (72,))]]
+         [('PITCH_ANGLE', None), ('Pitch_LABL', None],
+         [('HOPE_ENERGY_Ion', (100, 72)),
+          ('ENERGY_Ion_DELTA', (100, 72)),
+          ('Energy_LABL', (72,))]]
         """
         #List of every variable in each dimension
         v_by_dim = functools.reduce(
