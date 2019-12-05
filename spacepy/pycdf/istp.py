@@ -1055,17 +1055,19 @@ class VarBundle(object):
 
     .. autosummary::
 
-        inspect
         mean
+        operations
         output
         slice
         sum
+        variables
 
-    .. automethod:: inspect
     .. automethod:: mean
     .. automethod:: output
+    .. automethod:: operations
     .. automethod:: slice
     .. automethod:: sum
+    .. automethod:: variables
 
     """
 
@@ -1753,25 +1755,17 @@ class VarBundle(object):
         #Make a fake array the size of the input, and slice it
         return numpy.empty(shape=shape)[slices].shape
 
-    def inspect(self):
-        """Description of this bundle
+    def variables(self):
+        """Description of variable output from the bundle
 
-        Provides information describing the operations this bundle
-        would perform and the resulting output.
+        Provides information describing the variables output
+        from the bundle
 
         Returns
         -------
-        dict
-            Key ``operations`` is a list describing the operations
-            to perform on the bundle. Each element is a tuple: first
-            element is a string with the name of the operation (i.e.
-            method of :class:`VarBundle`), next is also a tuple of
-            positional arguments, and finally a dict of keyword
-            arguments.
-
-            Key ``vars`` is a list-of-lists-of-tuples. From the top
-            level, each element is a list corresponding to a dimension
-            of the master var: first the master var itself, then the
+        list
+            Each element is a list-of-tuples. The list corresponds to a
+            dimension of the master var: first the master var itself, then the
             uncertainties and labels associated with each dimension. Each
             element of these sublists is then a tuple of variable name and
             shape on the output (itself a tuple). If a variable isn't
@@ -1783,16 +1777,11 @@ class VarBundle(object):
         >>> import spacepy.pycdf.istp
         >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
         >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
-        >>> b.slice(1, 2, single=True).inspect()
-        { 'vars': [[('FPDU', (100, 72))],
-                   [('Epoch_Ion', (100,)), ('Epoch_Ion_DELTA', (100,))],
-                   [('PITCH_ANGLE', None)],
-                   [('HOPE_ENERGY_Ion', (72,)), ('ENERGY_Ion_DELTA', (72,))]],
-          'operations': [('slice', (1, 2), {'single': True})] }
-        >>> #Apply same operations to a different variable
-        >>> b2 = spacepy.pycdf.istp.VarBundle(infile['FEDU'])
-        >>> for op, args, kwargs in b2.inspect()['operations']:
-        ...     getattr(b2, op)(*args, **kwargs)
+        >>> b.slice(1, 2, single=True).variables()
+        [[('FPDU', (100, 72))],
+         [('Epoch_Ion', (100,)), ('Epoch_Ion_DELTA', (100,))],
+         [('PITCH_ANGLE', None)],
+         [('HOPE_ENERGY_Ion', (72,)), ('ENERGY_Ion_DELTA', (72,))]]
         """
         #List of every variable in each dimension
         v_by_dim = functools.reduce(
@@ -1801,9 +1790,42 @@ class VarBundle(object):
             self._varinfo.keys(), collections.defaultdict(list))
         for l in v_by_dim.values():
             l.sort(key=lambda x: (self._varinfo[x]['sortorder'], x))
-        ops = []
-        variables= [[(v, self._outshape(v))
+        variables = [[(v, self._outshape(v))
                       for v in v_by_dim.get(None, [])]]
+        vi = self._varinfo[self.mainvar.name()]
+        for dim in vi['dims']:
+            variables.append([
+                (v, self._outshape(v)) for v in v_by_dim.get(dim, [])])
+        return variables
+
+    def operations(self):
+        """Operations of this bundle
+
+        Provides information describing the operations this bundle
+        would perform.
+
+        Returns
+        -------
+        list
+            Each element is a tuple: first element is a string with
+            the name of the operation (i.e. method of
+            :class:`VarBundle`), next is also a tuple of positional
+            arguments, and finally a dict of keyword arguments.
+
+        Examples
+        --------
+        >>> import spacepy.pycdf
+        >>> import spacepy.pycdf.istp
+        >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
+        >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
+        >>> b.slice(1, 2, single=True).operations()
+          [('slice', (1, 2), {'single': True})]
+        >>> #Apply same operations to a different variable
+        >>> b2 = spacepy.pycdf.istp.VarBundle(infile['FEDU'])
+        >>> for op, args, kwargs in b2.operations():
+        ...     getattr(b2, op)(*args, **kwargs)
+        """
+        ops = []
         vi = self._varinfo[self.mainvar.name()]
         for dim in vi['dims']:
             sl = vi['slice'][dim]
@@ -1822,9 +1844,7 @@ class VarBundle(object):
             for v, name in zip((self._mean, self._summed), ('mean', 'sum')):
                 if v[dim]:
                     ops.append((name, (dim,), {}))
-            variables.append([
-                (v, self._outshape(v)) for v in v_by_dim.get(dim, [])])
-        return { 'vars': variables, 'operations': ops}
+        return ops
 
     def output(self, output, suffix=None):
         """Output the variables as modified
