@@ -37,6 +37,7 @@ Contact: Jonathan.Niehof@unh.edu
 
 import collections
 import datetime
+import functools
 import itertools
 import math
 import os.path
@@ -1088,8 +1089,11 @@ class VarBundle(object):
         a numpy fancy index to apply after reading, ``thisdim``,
         the main dimension for which this var is a dep
         (and thus it should be removed if the dim is removed),
-        and ``vartype``, whether this variable is the main var (M),
-        a dependency (D), or DELTA of the main (U, for uncertainty).
+        ``vartype``, whether this variable is the main var (M),
+        a dependency (D), or DELTA of the main (U, for uncertainty),
+        ``sortorder``, the order in which it should be displayed (0 for
+        the main variable, 1 for dependencies, 2 for all DELTAs, and 3 for
+        labels).
         """
         self._degenerate = []
         """Index by dim, is it degenerate, i.e. removed in a slice."""
@@ -1145,8 +1149,10 @@ class VarBundle(object):
                              .format(deltaname))
         #If this is NRV and main is RV, that's okay, the R dim will
         #get removed when actually slicing.
-        return { k: self._varinfo[mainname][k][:]
-                 for k in ('dims', 'slice', 'postidx') }
+        result = { k: self._varinfo[mainname][k][:]
+                  for k in ('dims', 'slice', 'postidx') }
+        result['sortorder'] = 2
+        return result
 
     def _getvarinfo(self):
         """Find dependency and dimension information
@@ -1170,6 +1176,7 @@ class VarBundle(object):
             'dims': dims,
             'slice': [slice(None)] * len(dims),
             'postidx': [slice(None)] * len(dims),
+            'sortorder': 0,
             'vartype': 'M',
         }
         mainattrs = self.mainvar.attrs
@@ -1214,6 +1221,7 @@ class VarBundle(object):
                 'dims': dims,
                 'slice': [slice(None)] * len(dims),
                 'postidx': [slice(None)] * len(dims),
+                'sortorder': 1 if a.startswith('DEPEND_') else 3,
                 'thisdim': dim,
                 'vartype': 'D',
             }
@@ -1710,6 +1718,41 @@ class VarBundle(object):
                 else:
                     del newvar.attrs[a]
 
+    def _outshape(self, vname):
+        """Calculate shape of the variable on output
+
+        Parameters
+        ----------
+        vname : str
+            Name of the variable to check the shape of.
+
+        Returns
+        -------
+        tuple
+            The shape of the variable after all slicing, etc. applied, or
+            None of the variable is not included in output.
+        """
+        if vname not in self._tokeep():
+            return None
+        vinfo = self._varinfo[vname]
+        invar = self.cdf[vname]
+        rv = invar.rv()
+        shape = invar.shape
+        sl = vinfo['slice']
+        postidx = vinfo['postidx']
+        #no dimension has BOTH a slice and a postindex, so combine
+        slices = [pi if s == slice(None, None, None) else s
+                  for s, pi in zip(sl, postidx)]
+        #And any dim that is summed/averaged is degenerate, so
+        #slice with a single index to make it go away
+        for d in vinfo['dims']:
+            if self._summed[d] or self._mean[d]:
+                slices[d] = 0
+        if not rv: #Remove record dimension
+            slices = slices[1:]
+        #Make a fake array the size of the input, and slice it
+        return numpy.empty(shape=shape)[slices].shape
+
     def inspect(self):
         """Description of this bundle
 
@@ -1726,6 +1769,14 @@ class VarBundle(object):
             positional arguments, and finally a dict of keyword
             arguments.
 
+            Key ``vars`` is a list-of-lists-of-tuples. From the top
+            level, each element is a list corresponding to a dimension
+            of the master var: first the master var itself, then the
+            uncertainties and labels associated with each dimension. Each
+            element of these sublists is then a tuple of variable name and
+            shape on the output (itself a tuple). If a variable isn't
+            included in the output (sliced away), its shape will be ``None``.
+
         Examples
         --------
         >>> import spacepy.pycdf
@@ -1733,13 +1784,26 @@ class VarBundle(object):
         >>> infile = spacepy.pycdf.CDF('rbspa_rel04_ect-hope-PA-L3_20121201_v7.1.0.cdf')
         >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
         >>> b.slice(1, 2, single=True).inspect()
-        { 'operations': [('slice', (1, 2), {'single': True})] }
+        { 'vars': [[('FPDU', (100, 72))],
+                   [('Epoch_Ion', (100,)), ('Epoch_Ion_DELTA', (100,))],
+                   [('PITCH_ANGLE', None)],
+                   [('HOPE_ENERGY_Ion', (72,)), ('ENERGY_Ion_DELTA', (72,))]],
+          'operations': [('slice', (1, 2), {'single': True})] }
         >>> #Apply same operations to a different variable
         >>> b2 = spacepy.pycdf.istp.VarBundle(infile['FEDU'])
         >>> for op, args, kwargs in b2.inspect()['operations']:
         ...     getattr(b2, op)(*args, **kwargs)
         """
+        #List of every variable in each dimension
+        v_by_dim = functools.reduce(
+            lambda x, vname:
+            x[self._varinfo[vname].get('thisdim', None)].append(vname) or x,
+            self._varinfo.keys(), collections.defaultdict(list))
+        for l in v_by_dim.values():
+            l.sort(key=lambda x: (self._varinfo[x]['sortorder'], x))
         ops = []
+        variables= [[(v, self._outshape(v))
+                      for v in v_by_dim.get(None, [])]]
         vi = self._varinfo[self.mainvar.name()]
         for dim in vi['dims']:
             sl = vi['slice'][dim]
@@ -1758,7 +1822,9 @@ class VarBundle(object):
             for v, name in zip((self._mean, self._summed), ('mean', 'sum')):
                 if v[dim]:
                     ops.append((name, (dim,), {}))
-        return {'operations': ops}
+            variables.append([
+                (v, self._outshape(v)) for v in v_by_dim.get(dim, [])])
+        return { 'vars': variables, 'operations': ops}
 
     def output(self, output, suffix=None):
         """Output the variables as modified

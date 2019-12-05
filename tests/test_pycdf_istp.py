@@ -1110,6 +1110,25 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
     """Checks for VarBundle class, HOPE sample file"""
     testfile = os.path.join('data',
                             'rbspa_rel04_ect-hope-PA-L3_20121201_v0.0.0.cdf')
+    longMessage = True
+
+    def testSortOrder(self):
+        """Check sort order of variables"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['Counts_P'])
+        for varname, sortorder in {
+                'Counts_P': 0,
+                'Epoch_Ion': 1,
+                'Epoch_Ion_DELTA': 2,
+                'PITCH_ANGLE': 1,
+                'Pitch_LABL': 3,
+                'HOPE_ENERGY_Ion': 1,
+                'ENERGY_Ion_DELTA': 2,
+                'Energy_LABL': 3,
+                }.items():
+            self.assertEqual(
+                sortorder, bundle._varinfo[varname].get('sortorder', None),
+                varname)
 
     def testDepWithDelta(self):
         """Properly handle a dependency with a delta"""
@@ -1179,6 +1198,35 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         self.assertFalse('Epoch' in self.outcdf)
         self.assertEqual(
             'PITCH_ANGLE', self.outcdf['Counts_P'].attrs['DEPEND_1'])
+
+    def testInspectVars(self):
+        """Get variables of a bundle"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
+        bundle.slice(1, 1, single=True).slice(2, 0, 10)
+        variables = bundle.inspect()['vars']
+        self.assertEqual([
+            [('FPDU', (100, 10))],
+            [('Epoch_Ion', (100,)), ('Epoch_Ion_DELTA', (100,))],
+            [('PITCH_ANGLE', None), ('Pitch_LABL', None)],
+            [('HOPE_ENERGY_Ion', (100, 10)), ('ENERGY_Ion_DELTA', (100, 10)),
+             ('Energy_LABL', (10,))]],
+            variables)
+
+    def testOutshape(self):
+        """Get the output shape of variables"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
+        bundle.slice(1, 1, single=True).slice(2, 0, 10)
+        expected = {
+            'FPDU': (100, 10),
+            'Epoch_Ion': (100,),
+            'Epoch_Ion_DELTA': (100,),
+            'PITCH_ANGLE': None,
+            'HOPE_ENERGY_Ion': (100, 10),
+            'ENERGY_Ion_DELTA': (100, 10),
+            }
+        for vname, shape in expected.items():
+            self.assertEqual(
+                shape, bundle._outshape(vname), vname)
 
     def testSliceNRVScalar(self):
         """Slice when the EPOCH_DELTA is NRV"""
