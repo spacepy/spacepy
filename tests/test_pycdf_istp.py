@@ -1212,6 +1212,19 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
              ('Energy_LABL', (10,))]],
             variables)
 
+    def testStrRepr(self):
+        """Get string representation of bundle"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
+        bundle.slice(1, 1, single=True).slice(2, 0, 10)
+        self.assertEqual(
+            'FPDU Epoch_Ion Epoch_Ion_DELTA [PITCH_ANGLE] [Pitch_LABL] '
+            'HOPE_ENERGY_Ion ENERGY_Ion_DELTA Energy_LABL',
+            str(bundle))
+        self.assertEqual(
+            '<VarBundle: FPDU Epoch_Ion Epoch_Ion_DELTA [PITCH_ANGLE] '
+            '[Pitch_LABL] HOPE_ENERGY_Ion ENERGY_Ion_DELTA Energy_LABL>',
+            repr(bundle))
+
     def testOutshape(self):
         """Get the output shape of variables"""
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])

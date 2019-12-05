@@ -1038,7 +1038,7 @@ class VarBundle(object):
     >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
     >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
     >>> b.slice(1, 2, single=True).output(outfile)
-    <spacepy.pycdf.istp.VarBundle at 0xdeadbeefffff>
+    <VarBundle: FPDU Epoch_Ion Epoch_Ion_DELTA [PITCH_ANGLE] [Pitch_LABL] HOPE_ENERGY_Ion ENERGY_Ion_DELTA Energy_LABL>
     >>> outfile['FPDU']
     <Var:
     CDF_FLOAT [3228, 72]
@@ -1957,3 +1957,33 @@ class VarBundle(object):
 
             self._repoint_depend(invar, newvar, preexist, namemap, degen)
         return self
+
+    def __str__(self):
+        """String representation of the bundle
+
+        Returns a string representation of the bundle, which is all the
+        variables that are involved on the input. Variables which are
+        not included on the output are in []
+
+        Returns
+        -------
+        str
+            Brief string description of the bundle.
+        """
+        return ' '.join([
+            vname if shape is not None else '[{}]'.format(vname)
+            for dimvars in self.variables() for vname, shape in dimvars])
+
+    def __repr__(self):
+        """Representation of bundle
+
+        Cannot return anything that can be evaluated to create a copy
+        of the CDF, so this is just the informal str representation in
+        angle brackets.
+
+        Returns
+        -------
+        str
+            Informal representation of bundle contents.
+        """
+        return '<VarBundle: {}>'.format(str(self))
