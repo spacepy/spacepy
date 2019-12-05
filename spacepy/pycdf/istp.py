@@ -1267,8 +1267,7 @@ class VarBundle(object):
 
         single : bool
             Treat ``start`` as a single index and return only that index
-            (reducing dimensionality of the data by one.) Not supported on
-            dimension 0 (the record dimension.)
+            (reducing dimensionality of the data by one.)
 
         start : int
             Index of first element of ``dim`` to include in the output.
@@ -1307,9 +1306,6 @@ class VarBundle(object):
         >>> b.slice(2).slice(0, [5, 10])
         >>> infile.close()
         """
-        #Do not allow simple slice on 0th dimension (record)
-        if dim == 0 and single:
-            raise ValueError('Cannot perform slice on record dimension.')
         if single and (self._summed[dim] or self._mean[dim]):
             raise ValueError('Cannot sum/average on a single-element slice.')
         self._degenerate[dim] = single
@@ -1354,9 +1350,8 @@ class VarBundle(object):
         dim : int
             CDF dimension to total. This is the dimension as specified
             in the CDF (0-base for RV variables, 1-base for NRV) and does
-            not change with successive slicing or summing. The record
-            dimension (0) cannot be summed. This must be a positive number
-            (no support for e.g. -1 for last dimension.)
+            not change with successive slicing or summing. This must be a
+            positive number (no support for e.g. -1 for last dimension.)
 
         Returns
         -------
@@ -1380,8 +1375,6 @@ class VarBundle(object):
         >>> b.slice(2, 0, 10).sum(2)
         >>> infile.close()
         """
-        if dim == 0:
-            raise ValueError('Cannot sum over record dimension.')
         if self._degenerate[dim]:
             raise ValueError('Cannot sum on a single-element slice.')
         if self._mean[dim]:
@@ -1415,9 +1408,8 @@ class VarBundle(object):
         dim : int
             CDF dimension to average. This is the dimension as specified
             in the CDF (0-base for RV variables, 1-base for NRV) and does
-            not change with successive slicing or summing. The record
-            dimension (0) cannot be summed. This must be a positive number
-            (no support for e.g. -1 for last dimension.)
+            not change with successive slicing or summing. This must be a
+            positive number (no support for e.g. -1 for last dimension.)
 
         Returns
         -------
@@ -1441,8 +1433,6 @@ class VarBundle(object):
         >>> b.slice(2, 0, 10).mean(2)
         >>> infile.close()
         """
-        if dim == 0:
-            raise ValueError('Cannot average over record dimension.')
         if self._degenerate[dim]:
             raise ValueError('Cannot average on a single-element slice.')
         if self._summed[dim]:
@@ -1469,7 +1459,7 @@ class VarBundle(object):
         return [v for v, i in self._varinfo.items()
                 if i.get('thisdim', None) not in deleted]
 
-    def _same(self, newvar, invar, dv, dims, data):
+    def _same(self, newvar, invar, rv, dv, dims, data):
         """Checks if an existing variable matches a proposed new variable
 
         Does not compare DEPEND and LABL_PTR attributes (those are handled
@@ -1483,6 +1473,9 @@ class VarBundle(object):
         invar : : class:`~spacepy.pycdf.Var`
             Variable to use as reference for attributes, RV, CDF type,
             number of elements.
+
+        rv : bool
+            Is the new variable record-varying
 
         dv : list of bool
             Data variance for each dimension.
@@ -1499,7 +1492,7 @@ class VarBundle(object):
             True if the existing variable is the same; False if not.
         """
         #Check basic type, dimensions, etc.
-        if newvar.rv() != invar.rv() or newvar.type() != invar.type() \
+        if newvar.rv() != rv or newvar.type() != invar.type() \
             or len(dims) != (len(newvar.shape) - newvar.rv()) \
             or newvar.dv() != dv or newvar.nelems() != invar.nelems() \
             or list(dims) != list(newvar.shape[newvar.rv():]):
@@ -1555,7 +1548,9 @@ class VarBundle(object):
         Helper for :meth:`output` that performs summing and averaging
         of the data for a single variable. Note dimensionality of all
         input is before the removal of degenerate dimensions
-        (this function does the translation using ``degen``).
+        (this function does the translation using ``degen``), and it is
+        by dimension not axis (so NRV variables have a vestigial 0th
+        dimension that is not interpreted.)
 
         Parameters
         ----------
@@ -1586,17 +1581,21 @@ class VarBundle(object):
             Data summed/averaged over dimensions according to ``summed``
             and ``averaged`` inputs.
         """
+        #Correction for NRV variables in the mapping between dim and axis
+        nrv = int(not invar.rv())
         #Degenerate slices have already been removed, so need
-        #a map from old dim numbers to new ones
-        newdims = [None if degen[i] else i - sum(degen[0:i])
+        #a map from old dim numbers to new ones. Note removing
+        #the record dimension does not shift other dims!
+        newdims = [None if degen[i] else i - sum(degen[1:i])
                    for i in range(len(degen))]
         #Axis numbers to sum, with degenerate removed
-        #(NRV means dim 0 is axis 1, so correct for that)
-        summe = [newdims[i] - int(not invar.rv())
-                 for i in range(len(summed)) #old dim
+        #(NRV means dim 0 is axis 1, so correct for that,
+        #and also don't do any actions on dim 0 for NRV)
+        summe = [newdims[i] - nrv
+                 for i in range(nrv, len(summed)) #old dim
                  if newdims[i] is not None and (summed[i] or averaged[i])]
-        avgme = [newdims[i] - int(not invar.rv())
-                 for i in range(len(averaged)) #old dim
+        avgme = [newdims[i] - nrv
+                 for i in range(nrv, len(averaged)) #old dim
                  if newdims[i] is not None and averaged[i]]
         #Sum over axes in reverse order so axis renumbering
         #doesn't affect future sums
@@ -1664,7 +1663,9 @@ class VarBundle(object):
 
         """
         #Index by old dim; returns the new dim (None if went away)
-        newdims = [None if degen[i] else i - sum(degen[0:i])
+        #Note slicing away DEPEND_0 (record dimension) does NOT change
+        #subsequent depends!
+        newdims = [None if degen[i] else i - sum(degen[1:i])
                    for i in range(len(degen))]
         for a in list(newvar.attrs.keys()): #Editing in loop!
             #Handle a suffixed DELTA if necessary
@@ -1798,10 +1799,11 @@ class VarBundle(object):
         namemap = self._namemap(suffix)
         for vname in tokeep:
             vinfo = self._varinfo[vname]
-            #Dim of main var that depends on this (default 0, never degen)
-            maindim = vinfo.get('thisdim', 0)
-            if max(self._degenerate[maindim], self._summed[maindim],
-                   self._mean[maindim]):
+            #Dim of main var that depends on this (None if main var or delta)
+            maindim = vinfo.get('thisdim', None)
+            if maindim is not None and max(
+                    self._degenerate[maindim],
+                    self._summed[maindim], self._mean[maindim]):
                 continue #Variable went away, don't copy it
             #Degeneracy of dimensions in this variable's "frame"
             degen = [self._degenerate[d] for d in vinfo['dims']]
@@ -1816,13 +1818,14 @@ class VarBundle(object):
             #(0 index is CDF dimension 1)
             dv = invar.dv()
             dims = invar.shape[int(invar.rv()):] #starting from dim 1
+            rv = invar.rv() #and record variance
             #Scrub degenerate dimensions from the post-indexing
             #(record is never degenerate)
             postidx = [postidx[i] for i in range(len(postidx))
                        if not degen[i]]
 
             #Now get the data, and sum/average it
-            if not invar.rv(): #Remove fake record dimension
+            if not rv: #Remove fake record dimension
                 sl = sl[1:]
                 postidx = postidx[1:]
             #Forces array scalars, makes the rest work better
@@ -1838,24 +1841,27 @@ class VarBundle(object):
             #Raw Epoch16 have a trailing (2,)
             if invar.type() == spacepy.pycdf.const.CDF_EPOCH16.value:
                 dims = dims[:-1]
-            if invar.rv():
-                dims = dims[1:]
             #Cut out any degenerate dimensions from DV (skipping record dim)
             dv = [dv[i] for i in range(len(dv)) if not degen[i + 1]]
+            #Change record variance for the output if sliced away 0th
+            if rv and degen[0]:
+                rv = False
+            if rv: #remove record dimension from size IF output is RV
+                dims = dims[1:]
 
             #Rename the variable if necessary
             outname = namemap.get(vname, vname)
             if outname in output:
                 preexist = True
                 newvar = output.raw_var(outname)
-                if not self._same(newvar, invar, dv, dims, data):
+                if not self._same(newvar, invar, rv, dv, dims, data):
                     raise RuntimeError(
                         'Incompatible {} already exists in output.'
                         .format(outname))
             else:
                 preexist = False
                 newvar = output.new(
-                    outname, type=invar.type(), recVary=invar.rv(),
+                    outname, type=invar.type(), recVary=rv,
                     dimVarys=dv, dims=dims,
                     n_elements=invar.nelems())
                 newvar = output.raw_var(outname)

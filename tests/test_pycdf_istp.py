@@ -1141,6 +1141,45 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         ops = bundle.inspect()['operations']
         self.assertEqual([('slice', (1, [5, 6]), {})], ops)
 
+    def testSumRecord(self):
+        """Sum on the record dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
+        bundle.sum(0).output(self.outcdf)
+        expected = numpy.sum(self.incdf['Counts_P'][...], axis=0)
+        numpy.testing.assert_array_equal(
+            self.outcdf['Counts_P'][...], expected)
+        self.assertFalse(self.outcdf['Counts_P'].rv())
+        self.assertFalse('DEPEND_0' in self.outcdf['Counts_P'].attrs)
+        self.assertFalse('Epoch' in self.outcdf)
+        self.assertEqual(
+            'PITCH_ANGLE', self.outcdf['Counts_P'].attrs['DEPEND_1'])
+
+    def testAvgRecord(self):
+        """Average on the record dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
+        bundle.mean(0).output(self.outcdf)
+        expected = numpy.mean(self.incdf['Counts_P'][...], axis=0)
+        numpy.testing.assert_array_equal(
+            self.outcdf['Counts_P'][...], expected)
+        self.assertFalse(self.outcdf['Counts_P'].rv())
+        self.assertFalse('Epoch' in self.outcdf)
+        self.assertFalse('DEPEND_0' in self.outcdf['Counts_P'].attrs)
+        self.assertEqual(
+            'PITCH_ANGLE', self.outcdf['Counts_P'].attrs['DEPEND_1'])
+
+    def testSliceSingleRecord(self):
+        """Slice single element on the record dimension"""
+        bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
+        bundle.slice(0, 0, single=True).output(self.outcdf)
+        expected = self.incdf['Counts_P'][0, ...]
+        numpy.testing.assert_array_equal(
+            self.outcdf['Counts_P'][...], expected)
+        self.assertFalse(self.outcdf['Counts_P'].rv())
+        self.assertFalse('DEPEND_0' in self.outcdf['Counts_P'].attrs)
+        self.assertFalse('Epoch' in self.outcdf)
+        self.assertEqual(
+            'PITCH_ANGLE', self.outcdf['Counts_P'].attrs['DEPEND_1'])
+
     def testSliceNRVScalar(self):
         """Slice when the EPOCH_DELTA is NRV"""
         #Modify the input first
