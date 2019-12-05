@@ -1462,36 +1462,12 @@ class VarBundle(object):
         list of str
             Names of variables to include in the output.
         """
-        tokeep = [self.mainvar.name()]
-        #What dims of the main variable disappear?
+        #What dims of main var disappear?
         deleted = [i for i in range(len(self._degenerate))
-                   if any((self._degenerate[i],
-                           self._summed[i],
+                   if any((self._degenerate[i], self._summed[i],
                            self._mean[i]))]
-        i = 0
-        while i < len(tokeep):
-            thisvar = tokeep[i]
-            #Get dependency information for this variable
-            attrlist = self.cdf[tokeep[i]].attrs
-            attrs = { a: attrlist[a] for a in attrlist
-                     if a.startswith(('DEPEND_', 'LABL_PTR_', 'DELTA_')) }
-            deps_by_dim = collections.defaultdict(list)
-            for a in attrs:
-                depname = attrs[a]
-                if depname in tokeep:
-                    continue
-                #DELTAs do not disappear unless their variable does
-                if a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'):
-                    tokeep.append(depname)
-                else:
-                    deps_by_dim[int(a.split('_')[-1])].append(depname)
-            for dim, vnames in deps_by_dim.items():
-                if self._varinfo[tokeep[i]]['dims'][dim] not in deleted:
-                    for v in vnames:
-                        if not v in tokeep: #Handles dupes WITHIN a variable too
-                            tokeep.append(v)
-            i += 1
-        return tokeep
+        return [v for v, i in self._varinfo.items()
+                if i.get('thisdim', None) not in deleted]
 
     def _same(self, newvar, invar, dv, dims, data):
         """Checks if an existing variable matches a proposed new variable
