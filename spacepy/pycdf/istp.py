@@ -1801,10 +1801,6 @@ class VarBundle(object):
             vinfo = self._varinfo[vname]
             #Dim of main var that depends on this (None if main var or delta)
             maindim = vinfo.get('thisdim', None)
-            if maindim is not None and max(
-                    self._degenerate[maindim],
-                    self._summed[maindim], self._mean[maindim]):
-                continue #Variable went away, don't copy it
             #Degeneracy of dimensions in this variable's "frame"
             degen = [self._degenerate[d] for d in vinfo['dims']]
             #And whether the dim was summed
@@ -1817,7 +1813,6 @@ class VarBundle(object):
             #Dimension size/variance for original variable
             #(0 index is CDF dimension 1)
             dv = invar.dv()
-            dims = invar.shape[int(invar.rv()):] #starting from dim 1
             rv = invar.rv() #and record variance
             #Scrub degenerate dimensions from the post-indexing
             #(record is never degenerate)
