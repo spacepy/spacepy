@@ -1144,11 +1144,11 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         numpy.testing.assert_allclose(
             self.outcdf['Counts_P'], expected)
 
-    def testInspectOperations(self):
+    def testOperations(self):
         """Get operations of a bundle"""
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
         bundle.slice(1, 1, single=True).slice(2, 0, 10).mean(2)
-        ops = bundle.inspect()['operations']
+        ops = bundle.operations()
         self.assertEqual(
             [('slice', (1, 1), {'single': True}),
              ('slice', (2, 0, 10), {}),
@@ -1157,7 +1157,7 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         #Check fancy index
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['Counts_P'])
         bundle.slice(1, [5, 6])
-        ops = bundle.inspect()['operations']
+        ops = bundle.operations()
         self.assertEqual([('slice', (1, [5, 6]), {})], ops)
 
     def testSumRecord(self):
@@ -1199,11 +1199,11 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         self.assertEqual(
             'PITCH_ANGLE', self.outcdf['Counts_P'].attrs['DEPEND_1'])
 
-    def testInspectVars(self):
+    def testVars(self):
         """Get variables of a bundle"""
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
         bundle.slice(1, 1, single=True).slice(2, 0, 10)
-        variables = bundle.inspect()['vars']
+        variables = bundle.variables()
         self.assertEqual([
             [('FPDU', (100, 10))],
             [('Epoch_Ion', (100,)), ('Epoch_Ion_DELTA', (100,))],
