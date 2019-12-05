@@ -653,6 +653,7 @@ class VarBundleChecksBase(unittest.TestCase):
 class VarBundleChecks(VarBundleChecksBase):
     """Checks for VarBundle class, CAMMICE sample file"""
     testfile = 'po_l1_cam_test.cdf'
+    longMessage = True
 
     def testGetVarInfo(self):
         """Get dependencies, dims, etc. for a variable"""
@@ -695,6 +696,17 @@ class VarBundleChecks(VarBundleChecksBase):
             'D', bundle._varinfo['ATC']['vartype'])
         self.assertEqual(
             'D', bundle._varinfo['SectorNumbers']['vartype'])
+        for varname, dimension in {
+                'ATC': 0,
+                'SectorNumbers': 2,
+                'SectorRateScalerNames': 3,
+                'SectorRateScalersCounts': None,
+                'SectorRateScalersCountsSigma': None,
+                'SpinNumbers': 1,
+                }.items():
+            self.assertEqual(
+                dimension, bundle._varinfo[varname].get('thisdim', None),
+                varname)
 
     def testOutputSimple(self):
         """Copy a single variable and deps with no slicing"""

@@ -1227,6 +1227,7 @@ class VarBundle(object):
                 self._varinfo[deltaname] \
                     = self._process_delta(thisvar, deltaname)
                 self._varinfo[deltaname]['vartype'] = 'D' #just like other deps
+                self._varinfo[deltaname]['thisdim'] = dim
         for a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'): #Process DELTA vars
             if not a in attrs:
                 continue
