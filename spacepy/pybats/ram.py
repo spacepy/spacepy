@@ -1233,7 +1233,7 @@ class PressureFile(PbData):
         # Grid spacing/size:
         self.attrs['dTheta'] = self['theta'][1]-self['theta'][0]
         self.attrs['nTheta'] = int(np.round(2.*np.pi/self.attrs['dTheta'])+1)
-        self.attrs['nL'] = len(self['L'])/self.attrs['nTheta']
+        self.attrs['nL'] = len(self['L'])//self.attrs['nTheta']
         self.attrs['dL'] = self['L'][self.attrs['nTheta']] - self['L'][0]
 
         # Calculate isotropic pressures and anisotropies.
@@ -1650,10 +1650,10 @@ class LogFile(PbData):
         
         import matplotlib.pyplot as plt
         
-        if type(target) == plt.Figure:
+        if isinstance(target, plt.Figure):
             fig = target
             ax = fig.add_subplot(loc)
-        elif type(target).__base__ == plt.Axes:
+        elif isinstance(target, plt.Axes):
             ax = target
             fig = ax.figure
         else:
@@ -1666,7 +1666,7 @@ class LogFile(PbData):
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
         applySmartTimeTicks(ax, self['time'])
-        ax.set_ylabel('Dst ($nT$)')
+        ax.set_ylabel('Dst [$nT$]')
         ax.set_xlabel('Time from '+ self['time'][0].isoformat()+' UTC')
 
         try:
