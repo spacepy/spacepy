@@ -143,6 +143,24 @@ class EventClicker(object):
     >>> min(troughvals) <= -1.0 #should bottom-out at -1
     True
 
+    >>> import spacepy.plot
+    >>> import datetime
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy
+    >>> import pytz
+    >>> xmax = 1000
+    >>> tz = pytz.timezone('America/New_York') #get a timezone
+    >>> x, y = numpy.linspace(0, xmax, xmax + 1), numpy.linspace(0, 100, 101)
+    >>> x_like_date = numpy.array([tz.localize(
+    ... datetime.datetime(2019, 12, 1, 0, 0, 0) + datetime.timedelta(hours=i))
+    ... for i in range(0, xmax + 1)])
+    >>> xx, yy = numpy.meshgrid(x, y)
+    >>> z = 1 + numpy.exp(-(yy - 20)**2 / (25)**2)
+    ... * numpy.sin(2 * numpy.pi * xx * 3 / xmax)**2 #something like a spetrogram
+    >>> plt.pcolormesh(x_like_date, y, z)
+    >>> clicker = spacepy.plot.utils.EventClicker(n_phases=1)
+    >>> clicker.analyze()
+
     .. autosummary::
          ~EventClicker.analyze
          ~EventClicker.get_events
@@ -268,12 +286,18 @@ class EventClicker(object):
         else:
             if not self._line in lines:
                 self._line = None
-                
         if self._line is None:
             self._xdata = None
             self._ydata = None
+            self._xydata = None
             self._autoscale = False
-            self._x_is_datetime = False
+            self._x_is_datetime = isinstance(self.ax.xaxis.converter,
+                                             matplotlib.dates.DateConverter)
+            if self._x_is_datetime:
+                try:
+                    self._tz = self.ax.xaxis.get_major_formatter()._tz
+                except AttributeError:
+                    self._tz = None
         else:
             self._xdata = self._line.get_xdata()
             self._ydata = self._line.get_ydata()
@@ -282,6 +306,7 @@ class EventClicker(object):
             if self._x_is_datetime:
                 self._xydata = numpy.column_stack(
                     (matplotlib.dates.date2num(self._xdata), self._ydata))
+                self._tz = self._xdata[0].tzinfo
             else:
                 self._xydata = numpy.column_stack((self._xdata, self._ydata))
             if self._ymin is None: #Make the clipping comparison always fail
@@ -294,15 +319,21 @@ class EventClicker(object):
         if self.interval is None:
             (left, right) = self.ax.get_xaxis().get_view_interval()
             if self._x_is_datetime:
-                right = matplotlib.dates.num2date(right, tz=self._xdata[0].tzinfo)
-                left = matplotlib.dates.num2date(left, tz=self._xdata[0].tzinfo)
-                if not self._xdata[0].tzinfo:
-                    right = right.replace(tzinfo=None)
-                    left = left.replace(tzinfo=None)
+                #For naive datetimes, smash explicitly back to naive;
+                #otherwise it's just replacing with the same.
+                right = matplotlib.dates.num2date(right, tz=self._tz).replace(
+                    tzinfo=self._tz)
+                left = matplotlib.dates.num2date(left, tz=self._tz).replace(
+                    tzinfo=self._tz)
             self.interval = right - left
 
         if not self._xdata is None:
             self._relim(self._xdata[0])
+        elif self._x_is_datetime:
+            #Handle the case of no xdata but we are using a datetime, such as
+            #spectrum data (that's not a line, hence no xdata):
+            self._relim(matplotlib.dates.num2date(self.ax.get_xaxis().\
+                get_view_interval()[0]).replace(tzinfo=self._tz))
         else:
             self._relim(self.ax.get_xaxis().get_view_interval()[0])
         self._cids = []
@@ -373,9 +404,8 @@ class EventClicker(object):
             self._data_events[-1, self._curr_phase] = \
                                   [self._xdata[idx], self._ydata[idx]]
         if self._x_is_datetime:
-            xval = matplotlib.dates.num2date(xval, tz=self._xdata[0].tzinfo)
-            if not self._xdata[0].tzinfo:
-                xval = xval.replace(tzinfo=None)
+            xval = matplotlib.dates.num2date(xval, tz=self._tz).replace(
+                tzinfo=self._tz)
         if self._events is None:
             self._events = numpy.array([[[xval, yval]] * self.n_phases])
         self._events[-1, self._curr_phase] = [xval, yval]
@@ -395,9 +425,10 @@ class EventClicker(object):
             self._events.resize((self._events.shape[0] + 1,
                                  self.n_phases, 2
                                  ))
-            self._data_events.resize((self._data_events.shape[0] + 1,
-                                      self.n_phases, 2
-                                      ))
+            if not self._data_events is None:
+                self._data_events.resize((self._data_events.shape[0] + 1,
+                                          self.n_phases, 2
+                                          ))
             self._relim(xval)
         else:
             self.fig.canvas.draw()
@@ -450,9 +481,8 @@ class EventClicker(object):
         if event.key == ' ':
             rightside = self.ax.xaxis.get_view_interval()[1]
             if self._x_is_datetime:
-                rightside = matplotlib.dates.num2date(rightside, tz=self._xdata[0].tzinfo)
-                if not self._xdata[0].tzinfo:
-                    rightside = rightside.replace(tzinfo=None)
+                rightside = matplotlib.dates.num2date(rightside, tz=self._tz).\
+                    replace(tzinfo=self._tz)
             self._relim(rightside)
         if event.key == 'delete':
             self._delete_event_phase()
