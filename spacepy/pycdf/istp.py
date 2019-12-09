@@ -1753,7 +1753,7 @@ class VarBundle(object):
         if not rv: #Remove record dimension
             slices = slices[1:]
         #Make a fake array the size of the input, and slice it
-        return numpy.empty(shape=shape)[slices].shape
+        return numpy.empty(shape=shape)[tuple(slices)].shape
 
     def variables(self):
         """Description of variable output from the bundle
