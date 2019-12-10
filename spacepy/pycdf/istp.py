@@ -1038,7 +1038,16 @@ class VarBundle(object):
     >>> b = spacepy.pycdf.istp.VarBundle(infile['FPDU'])
     >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
     >>> b.slice(1, 2, single=True).output(outfile)
-    <VarBundle: FPDU Epoch_Ion Epoch_Ion_DELTA [PITCH_ANGLE] [Pitch_LABL] HOPE_ENERGY_Ion ENERGY_Ion_DELTA Energy_LABL>
+    <VarBundle:
+    FPDU CDF_FLOAT [3228, 72]
+    Epoch_Ion CDF_EPOCH [3228]
+        Epoch_Ion_DELTA CDF_REAL4 [3228]
+    PITCH_ANGLE CDF_FLOAT ---
+        Pitch_LABL CDF_CHAR*5 ---
+    HOPE_ENERGY_Ion CDF_FLOAT [3228, 72]
+        ENERGY_Ion_DELTA CDF_FLOAT [3228, 72]
+        Energy_LABL CDF_CHAR*3 [72] NRV
+    >
     >>> outfile['FPDU']
     <Var:
     CDF_FLOAT [3228, 72]
@@ -1970,8 +1979,19 @@ class VarBundle(object):
         str
             Brief string description of the bundle.
         """
-        return ' '.join([
-            vname if shape is not None else '[{}]'.format(vname)
+        return '\n'.join([
+            '{}{} {} {}{}'.format(
+                ' ' * 4 if self._varinfo[vname]['sortorder'] > 1 else '',
+                vname,
+                str(self.cdf[vname]).split(' ')[0], #Grab type from Var str
+                str(list(shape)) if shape is not None else '---',
+                #RV vars always have dim 0 as axis 0, so they become
+                #NRV iff dim 0 of the main var goes away
+                ' NRV' if shape is not None
+                and (not self.cdf[vname].rv() or max(
+                    self._degenerate[0], self._summed[0], self._mean[0]))
+                else ''
+            )
             for dimvars in self.variables() for vname, shape in dimvars])
 
     def __repr__(self):
@@ -1986,4 +2006,4 @@ class VarBundle(object):
         str
             Informal representation of bundle contents.
         """
-        return '<VarBundle: {}>'.format(str(self))
+        return '<VarBundle:\n{}\n>'.format(str(self))

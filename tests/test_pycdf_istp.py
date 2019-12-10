@@ -3,6 +3,7 @@
 """Unit testing for istp support"""
 
 import datetime
+import inspect
 import os.path
 import shutil
 import sys
@@ -814,6 +815,22 @@ class VarBundleChecks(VarBundleChecksBase):
             self.outcdf['SpinNumbers'][:],
             self.incdf['SpinNumbers'][:])
 
+    def testSliceRecordStr(self):
+        """Slice away record dimension and get str"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        bundle.slice(0, 2, 20).mean(0)
+        expected = """
+        SectorRateScalersCounts CDF_FLOAT [18, 32, 9] NRV
+            SectorRateScalersCountsSigma CDF_FLOAT [18, 32, 9] NRV
+        ATC CDF_EPOCH16 ---
+            SpinNumbers CDF_CHAR*2 [18] NRV
+            SectorNumbers CDF_CHAR*2 [32] NRV
+            SectorRateScalerNames CDF_CHAR*9 [9] NRV
+        """
+        expected = inspect.cleandoc(expected).split('\n')
+        self.assertEqual(expected, str(bundle).split('\n'))
+
     def testSliceMultiIDX(self):
         """Slice multiple indices"""
         bundle = spacepy.pycdf.istp.VarBundle(
@@ -1216,14 +1233,21 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         """Get string representation of bundle"""
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
         bundle.slice(1, 1, single=True).slice(2, 0, 10)
-        self.assertEqual(
-            'FPDU Epoch_Ion Epoch_Ion_DELTA [PITCH_ANGLE] [Pitch_LABL] '
-            'HOPE_ENERGY_Ion ENERGY_Ion_DELTA Energy_LABL',
-            str(bundle))
-        self.assertEqual(
-            '<VarBundle: FPDU Epoch_Ion Epoch_Ion_DELTA [PITCH_ANGLE] '
-            '[Pitch_LABL] HOPE_ENERGY_Ion ENERGY_Ion_DELTA Energy_LABL>',
-            repr(bundle))
+        expected = """
+        FPDU CDF_FLOAT [100, 10]
+        Epoch_Ion CDF_EPOCH [100]
+            Epoch_Ion_DELTA CDF_REAL4 [100]
+        PITCH_ANGLE CDF_FLOAT ---
+            Pitch_LABL CDF_CHAR*5 ---
+        HOPE_ENERGY_Ion CDF_FLOAT [100, 10]
+            ENERGY_Ion_DELTA CDF_FLOAT [100, 10]
+            Energy_LABL CDF_CHAR*3 [10] NRV
+        """
+        expected = inspect.cleandoc(expected).split('\n')
+        #Split on linebreak to get a better diff
+        self.assertEqual(expected, str(bundle).split('\n'))
+        self.assertEqual(['<VarBundle:'] + expected + ['>'],
+                         repr(bundle).split('\n'))
 
     def testOutshape(self):
         """Get the output shape of variables"""
