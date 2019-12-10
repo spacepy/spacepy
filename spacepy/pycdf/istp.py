@@ -1200,6 +1200,12 @@ class VarBundle(object):
                 continue
             thisname = attrs[a]
             if thisname in self._varinfo: #Already handled
+                if self._varinfo[thisname]['sortorder'] == 3 \
+                   and a.startswith('DEPEND_'):
+                    #Processed before as a LABL, but also is a DEPEND.
+                    #Technically ISTP violation, but have the DEPEND take
+                    #priority
+                    self._varinfo[thisname]['sortorder'] = 1
                 continue
             thisvar = self.cdf[thisname]
             #Dimension of main var that corresponds to this var

@@ -824,12 +824,28 @@ class VarBundleChecks(VarBundleChecksBase):
         SectorRateScalersCounts CDF_FLOAT [18, 32, 9] NRV
             SectorRateScalersCountsSigma CDF_FLOAT [18, 32, 9] NRV
         ATC CDF_EPOCH16 ---
-            SpinNumbers CDF_CHAR*2 [18] NRV
-            SectorNumbers CDF_CHAR*2 [32] NRV
-            SectorRateScalerNames CDF_CHAR*9 [9] NRV
+        SpinNumbers CDF_CHAR*2 [18] NRV
+        SectorNumbers CDF_CHAR*2 [32] NRV
+        SectorRateScalerNames CDF_CHAR*9 [9] NRV
         """
         expected = inspect.cleandoc(expected).split('\n')
         self.assertEqual(expected, str(bundle).split('\n'))
+
+    def testCAMMICESortOrder(self):
+        """More tests of sort order"""
+        bundle = spacepy.pycdf.istp.VarBundle(
+            self.incdf['SectorRateScalersCounts'])
+        for varname, sortorder in {
+                'SectorRateScalersCounts': 0,
+                'SectorRateScalersCountsSigma': 2,
+                'ATC': 1,
+                'SpinNumbers': 1,
+                'SectorNumbers': 1,
+                'SectorRateScalerNames': 1,
+                }.items():
+            self.assertEqual(
+                sortorder, bundle._varinfo[varname].get('sortorder', None),
+                varname)
 
     def testSliceMultiIDX(self):
         """Slice multiple indices"""
