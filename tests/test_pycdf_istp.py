@@ -821,12 +821,12 @@ class VarBundleChecks(VarBundleChecksBase):
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(0, 2, 20).mean(0)
         expected = """
-        SectorRateScalersCounts CDF_FLOAT [18, 32, 9] NRV
-            SectorRateScalersCountsSigma CDF_FLOAT [18, 32, 9] NRV
-        ATC CDF_EPOCH16 ---
-        SpinNumbers CDF_CHAR*2 [18] NRV
-        SectorNumbers CDF_CHAR*2 [32] NRV
-        SectorRateScalerNames CDF_CHAR*9 [9] NRV
+        SectorRateScalersCounts: CDF_FLOAT [18, 32, 9] NRV
+            SectorRateScalersCountsSigma: CDF_FLOAT [18, 32, 9] NRV
+        ATC: CDF_EPOCH16 ---
+        SpinNumbers: CDF_CHAR*2 [18] NRV
+        SectorNumbers: CDF_CHAR*2 [32] NRV
+        SectorRateScalerNames: CDF_CHAR*9 [9] NRV
         """
         expected = inspect.cleandoc(expected).split('\n')
         self.assertEqual(expected, str(bundle).split('\n'))
@@ -1250,14 +1250,14 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
         bundle = spacepy.pycdf.istp.VarBundle(self.incdf['FPDU'])
         bundle.slice(1, 1, single=True).slice(2, 0, 10)
         expected = """
-        FPDU CDF_FLOAT [100, 10]
-        Epoch_Ion CDF_EPOCH [100]
-            Epoch_Ion_DELTA CDF_REAL4 [100]
-        PITCH_ANGLE CDF_FLOAT ---
-            Pitch_LABL CDF_CHAR*5 ---
-        HOPE_ENERGY_Ion CDF_FLOAT [100, 10]
-            ENERGY_Ion_DELTA CDF_FLOAT [100, 10]
-            Energy_LABL CDF_CHAR*3 [10] NRV
+        FPDU: CDF_FLOAT [100, 10]
+        Epoch_Ion: CDF_EPOCH [100]
+            Epoch_Ion_DELTA: CDF_REAL4 [100]
+        PITCH_ANGLE: CDF_FLOAT ---
+            Pitch_LABL: CDF_CHAR*5 ---
+        HOPE_ENERGY_Ion: CDF_FLOAT [100, 10]
+            ENERGY_Ion_DELTA: CDF_FLOAT [100, 10]
+            Energy_LABL: CDF_CHAR*3 [10] NRV
         """
         expected = inspect.cleandoc(expected).split('\n')
         #Split on linebreak to get a better diff

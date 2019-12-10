@@ -1039,14 +1039,14 @@ class VarBundle(object):
     >>> outfile = spacepy.pycdf.CDF('output.cdf', create=True)
     >>> b.slice(1, 2, single=True).output(outfile)
     <VarBundle:
-    FPDU CDF_FLOAT [3228, 72]
-    Epoch_Ion CDF_EPOCH [3228]
-        Epoch_Ion_DELTA CDF_REAL4 [3228]
-    PITCH_ANGLE CDF_FLOAT ---
-        Pitch_LABL CDF_CHAR*5 ---
-    HOPE_ENERGY_Ion CDF_FLOAT [3228, 72]
-        ENERGY_Ion_DELTA CDF_FLOAT [3228, 72]
-        Energy_LABL CDF_CHAR*3 [72] NRV
+    FPDU: CDF_FLOAT [3228, 72]
+    Epoch_Ion: CDF_EPOCH [3228]
+        Epoch_Ion_DELTA: CDF_REAL4 [3228]
+    PITCH_ANGLE: CDF_FLOAT ---
+        Pitch_LABL: CDF_CHAR*5 ---
+    HOPE_ENERGY_Ion: CDF_FLOAT [3228, 72]
+        ENERGY_Ion_DELTA: CDF_FLOAT [3228, 72]
+        Energy_LABL: CDF_CHAR*3 [72] NRV
     >
     >>> outfile['FPDU']
     <Var:
@@ -1986,7 +1986,7 @@ class VarBundle(object):
             Brief string description of the bundle.
         """
         return '\n'.join([
-            '{}{} {} {}{}'.format(
+            '{}{}: {} {}{}'.format(
                 ' ' * 4 if self._varinfo[vname]['sortorder'] > 1 else '',
                 vname,
                 str(self.cdf[vname]).split(' ')[0], #Grab type from Var str
