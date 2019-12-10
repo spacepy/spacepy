@@ -1272,21 +1272,15 @@ def bootHisto(data, inter=90., n=1000, seed=None,
 
     Examples
     ========
-    >>> import numpy.random
-    >>> import spacepy.toolbox
-    >>> numpy.random.seed(0)
-    >>> data = numpy.random.randn(1000)
-    >>> bin_edges, ci_low, ci_high, sample, bars = spacepy.toolbox.bootHisto(
-            data, plot=True)
-
     .. plot::
+        :include-source:
 
-       import numpy.random
-       import spacepy.toolbox
-       numpy.random.seed(0)
-       data = numpy.random.randn(1000)
-       bin_edges, ci_low, ci_high, sample, bars = spacepy.toolbox.bootHisto(
-            data, plot=True)
+        >>> import numpy.random
+        >>> import spacepy.toolbox
+        >>> numpy.random.seed(0)
+        >>> data = numpy.random.randn(1000)
+        >>> bin_edges, low, high, sample, bars = spacepy.toolbox.bootHisto(
+        ...     data, plot=True)
 
     See Also
     ========
