@@ -332,8 +332,8 @@ class EventClicker(object):
         elif self._x_is_datetime:
             #Handle the case of no xdata but we are using a datetime, such as
             #spectrum data (that's not a line, hence no xdata):
-            self._relim(matplotlib.dates.num2date(self.ax.get_xaxis().\
-                get_view_interval()[0]).replace(tzinfo=self._tz))
+            self._relim(matplotlib.dates.num2date(self.ax.get_xaxis()\
+                .get_view_interval()[0]).replace(tzinfo=self._tz))
         else:
             self._relim(self.ax.get_xaxis().get_view_interval()[0])
         self._cids = []
@@ -425,7 +425,7 @@ class EventClicker(object):
             self._events.resize((self._events.shape[0] + 1,
                                  self.n_phases, 2
                                  ))
-            if not self._data_events is None:
+            if self._data_events is not None:
                 self._data_events.resize((self._data_events.shape[0] + 1,
                                           self.n_phases, 2
                                           ))
@@ -481,8 +481,8 @@ class EventClicker(object):
         if event.key == ' ':
             rightside = self.ax.xaxis.get_view_interval()[1]
             if self._x_is_datetime:
-                rightside = matplotlib.dates.num2date(rightside, tz=self._tz).\
-                    replace(tzinfo=self._tz)
+                rightside = matplotlib.dates.num2date(rightside, tz=self._tz)\
+                    .replace(tzinfo=self._tz)
             self._relim(rightside)
         if event.key == 'delete':
             self._delete_event_phase()
