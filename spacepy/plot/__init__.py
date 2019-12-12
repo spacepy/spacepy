@@ -62,6 +62,7 @@ through the *plot* namespace. However, the plot module does contain
 several submodules listed below
 
 .. autosummary::
+    :toctree: autosummary
     :template: clean_module.rst
 
     carrington
