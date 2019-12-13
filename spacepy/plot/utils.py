@@ -143,23 +143,29 @@ class EventClicker(object):
     >>> min(troughvals) <= -1.0 #should bottom-out at -1
     True
 
-    >>> import spacepy.plot
+    >>> import spacepy.plot.utils
+    >>> import spacepy.time
     >>> import datetime
     >>> import matplotlib.pyplot as plt
     >>> import numpy
-    >>> import pytz
-    >>> xmax = 1000
-    >>> tz = pytz.timezone('America/New_York') #get a timezone
-    >>> x, y = numpy.linspace(0, xmax, xmax + 1), numpy.linspace(0, 100, 101)
-    >>> x_like_date = numpy.array([tz.localize(
-    ... datetime.datetime(2019, 12, 1, 0, 0, 0) + datetime.timedelta(hours=i))
-    ... for i in range(0, xmax + 1)])
-    >>> xx, yy = numpy.meshgrid(x, y)
-    >>> z = 1 + numpy.exp(-(yy - 20)**2 / (25)**2)
-    ... * numpy.sin(2 * numpy.pi * xx * 3 / xmax)**2 #something like a spetrogram
-    >>> plt.pcolormesh(x_like_date, y, z)
+    >>> t = spacepy.time.tickrange('2019-01-01', #get a range of days
+    ...                            '2019-12-31',
+    ...                            deltadays=datetime.timedelta(days=1))
+    >>> y = numpy.linspace(0, 100, 1001)
+    >>> seconds = t.TAI - t.TAI[0]
+    >>> seconds = numpy.asarray(seconds) #normal ndarray so reshape (in meshgrid) works
+    >>> tt, yy = numpy.meshgrid(seconds, y) #use TAI to get seconds
+    >>> z = 1 + (numpy.exp(-(yy - 20)**2 / 625) #something like a spectrogram
+    ...          * numpy.sin(1e-7 * numpy.pi**2 * tt)**2) #pi*1e7 seconds per year
+    >>> plt.pcolormesh(t.UTC, y, z)
     >>> clicker = spacepy.plot.utils.EventClicker(n_phases=1)
-    >>> clicker.analyze()
+    >>> clicker.analyze() #double-click on center of peak; close
+    >>> events = clicker.get_events() #returns an array of the things clicked
+    >>> len(events) == 10 #10 if you click on the centers, including the last one
+    True
+    >>> clicker.get_events_data() is None #should be nothing
+    True
+
 
     .. autosummary::
          ~EventClicker.analyze
