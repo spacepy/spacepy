@@ -243,31 +243,14 @@ class KyotoKp(PbData):
         >>> kp.add_histplot(lw=2.0, lc='r', label='Example KP')
 
         '''
-
         import matplotlib.pyplot as plt
 
-        # Shortcuts for the lazy.
-        bstart=self['binstart']
-        bstop =self['binstop']
-        npts  =self.attrs['npts']
-
-        # Reformulate time to get histogram-type look.
-        newtime=np.zeros(npts*24, dtype=object)
-        newkp  =np.zeros(npts*24)
-
-        # Set time range.
         if not time_range:
-            time_range = newtime
-        
-        for i in range(npts*8):
-            newtime[3*i  ] = bstart[i]
-            newtime[3*i+1] = self['time'][i]
-            newtime[3*i+2] = bstop[i]
-            newkp[3*i:3*i+3] = self['kp'][i], self['kp'][i], self['kp'][i]
+            time_range = self['time']
     
-
-        fig, ax = set_target(target, figsize=(10,4), loc=loc)
-        line=ax.plot(newtime, newkp, label=label, **kwargs)
+        fig, ax = set_target(target, figsize=(10,4),  loc=loc)
+        line=ax.plot(self['time'], self['kp'], label=label,
+                     ds='steps-mid', **kwargs)
         applySmartTimeTicks(ax, time_range, dolabel=True)
 
         return fig, ax
