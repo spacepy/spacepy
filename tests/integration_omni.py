@@ -26,7 +26,7 @@ class OMNIIntegration(unittest.TestCase):
         expected = spacepy.dmarray([0.305, 0.295, numpy.nan, numpy.nan, 0.295])
         #There is a very small difference resulting from float/double mismatch
         numpy.testing.assert_array_almost_equal(
-            omni['Proton_flux_gt_10_MeV'], expected, decimal=15)
+            omni['Proton_flux_gt_10_MeV'], expected, decimal=8)
 
 
 if __name__ == "__main__":

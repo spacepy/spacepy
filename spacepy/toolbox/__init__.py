@@ -753,6 +753,7 @@ def _get_cdaweb_omni2(omni2url=None):
         if there are no new data.
     """
     import spacepy.pycdf
+    import spacepy.pycdf.istp
     if omni2url is None:
         omni2url = spacepy.config['omni2_url']
     #Find all the files to download
@@ -874,6 +875,14 @@ def _get_cdaweb_omni2(omni2url=None):
     #The CDAWeb Epochs are erroneously tagged as START of collection,
     #not midpoint. So fix that
     data['Epoch'] = data['Epoch'] + datetime.timedelta(minutes=30)
+    #Castings to match ViRBO: everything is an int, and fill turns to NaN
+    for k, v in data.items():
+        if v.dtype == np.object: #Skip epoch
+            continue
+        if v.dtype == np.int32:
+            data[k] = v.astype(np.float32)
+            v = data[k]
+        spacepy.pycdf.istp.nanfill(v)
     return data
 
 
