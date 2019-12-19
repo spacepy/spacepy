@@ -33,6 +33,7 @@ Contact: Jonathan.Niehof@unh.edu
 
     fillval
     format
+    nanfill
 """
 
 import collections
@@ -999,6 +1000,68 @@ def format(v, use_scaleminmax=False, dryrun=False):
         if 'FORMAT' in v.attrs:
             del v.attrs['FORMAT']
         v.attrs.new('FORMAT', data=fmt, type=spacepy.pycdf.const.CDF_CHAR)
+
+
+def nanfill(v):
+    """Set fill values to NaN
+
+    Finds all values which are equal to ``FILLVAL``, greater than
+    ``VALIDMAX``, or less than ``VALIDMIN``, and replace with ``NaN``
+    (not-a-number). This is an update-in-place operation; does not return
+    a copy.
+
+    Assumes a single value for ``VALIDMIN``, ``VALIDMAX``, ``FILLVAL``
+    (although if the attribute is not present, will simply assume no
+    restriction.)
+
+    Only applicable to floating-point types. Best applied to a
+    :class:`~spacepy.pycdf.VarCopy` or :class:`~spacepy.datamodel.dmarray`
+    rather than :class:`~spacepy.pycdf.Var`. Updating a variable in a CDF
+    requires one write per changed value, and also will result in a CDF
+    that is no longer ISTP compliant.
+
+    Because of floating-point comparison, the matching to ``FILLVAL`` may
+    fail.
+
+    Parameters
+    ----------
+    v : :class:`~spacepy.pycdf.Var` or :class:`~spacepy.datamodel.dmarray`
+        CDF variable, data, or copy to update
+
+    Examples
+    --------
+    >>> import spacepy.pycdf
+    >>> import spacepy.pycdf.istp
+    >>> f = spacepy.pycdf.CDF('foo.cdf', create=True)
+    >>> v = f.new('Var', data=[1, 2, 3, -1e31])
+    >>> spacepy.pycdf.istp.fillval(v)
+    >>> data = v.copy()
+    >>> data
+    VarCopy([1., 2., 3., -1.e31], dtype=float32)
+    >>> spacepy.pycdf.istp.nanfill(data)
+    >>> data
+    VarCopy([1., 2., 3., nan], dtype=float32)
+    """
+    #If input is a zVar, read all the data; if not, this is a no-copy operation
+    indata = v[...]
+    badidx = numpy.zeros(shape=v.shape, dtype=numpy.bool)
+    if 'FILLVAL' in v.attrs:
+        badidx |= (indata == v.attrs['FILLVAL'][...])
+    if 'VALIDMIN' in v.attrs:
+        badidx |= (indata < v.attrs['VALIDMIN'][...])
+    if 'VALIDMAX' in v.attrs:
+        badidx |= (indata > v.attrs['VALIDMAX'][...])
+    #Try a simple assignment with fancy indexing
+    try:
+        v[badidx] = numpy.nan
+    except (IndexError, ValueError):
+        pass
+    else:
+        return #success
+    #Fancy indexing failed, do element-by-element assignment
+    badidx = numpy.transpose(badidx.nonzero())
+    for i in badidx:
+        v[tuple(i)] = numpy.nan
 
 
 class VarBundle(object):
