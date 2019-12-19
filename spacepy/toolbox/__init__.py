@@ -753,10 +753,11 @@ def _get_cdaweb_omni2(omni2url=None):
         if there are no new data.
     """
     import spacepy.pycdf
-    print("Retrieving OMNI2 files ...")
     if omni2url is None:
         omni2url = spacepy.config['omni2_url']
     #Find all the files to download
+    print("Finding OMNI2 files to download ...")
+    progressbar(0, 1, 1, text='Listing files')
     data = get_url(omni2url)
     if str is not bytes:
         data = data.decode('utf-8')
@@ -765,7 +766,7 @@ def _get_cdaweb_omni2(omni2url=None):
     p.close()
     yearlist = [y[0:4] for y in p.links if re.match(r'\d{4}/', y)]
     downloadme = {}
-    for y in yearlist:
+    for i, y in enumerate(yearlist):
         yearurl = '{}{}/'.format(omni2url, y)
         data = get_url(yearurl)
         if str is not bytes:
@@ -777,6 +778,8 @@ def _get_cdaweb_omni2(omni2url=None):
             if not re.match(r'omni2_h0_mrg1hr_\d{8}_v\d+\.cdf', f):
                 continue
             downloadme[f] = yearurl + f
+        progressbar(i + 1, 1, len(yearlist), text='Listing files')
+    print("Retrieving OMNI2 files ...")
     filenames = sorted(list(downloadme.keys()))
     datadir = os.path.join(spacepy.DOT_FLN, 'data', 'omni2cdfs')
     if not os.path.exists(datadir):
