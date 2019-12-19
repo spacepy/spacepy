@@ -625,6 +625,36 @@ class FuncTests(ISTPTestsBase):
         spacepy.pycdf.istp.format(v)
         self.assertEqual('A5', v.attrs['FORMAT'])
 
+    def testNanFill(self):
+        """Replace fill/invalid values with nan"""
+        indata = numpy.array([[5., 99., -1., 3., 4., 12.],
+                              [2., 2., 2., 2., 3., -1.]])
+        attrs = { 'FILLVAL': 3,
+                  'VALIDMIN': 0,
+                  'VALIDMAX': 12 }
+        var = self.cdf.new('var', data=indata)
+        var.attrs = attrs
+        data = var.copy()
+        expected = numpy.array(
+            [[5., numpy.nan, numpy.nan, numpy.nan, 4., 12.],
+             [2., 2.,        2.,        2., numpy.nan, numpy.nan]])
+        spacepy.pycdf.istp.nanfill(data)
+        numpy.testing.assert_almost_equal(
+            data, expected, decimal=15)
+        #But variable wasn't touched
+        numpy.testing.assert_almost_equal(
+            var[...], indata, decimal=15)
+        #Impose it on the actual variable
+        spacepy.pycdf.istp.nanfill(var)
+        data = var[...]
+        numpy.testing.assert_almost_equal(
+            data, expected, decimal=15)
+        #And check that integers fail
+        var2 = self.cdf.new(
+            'var2', data=indata, type=spacepy.pycdf.const.CDF_INT2)
+        var2.attrs = attrs
+        self.assertRaises(ValueError, spacepy.pycdf.istp.nanfill, var2)
+
 
 class VarBundleChecksBase(unittest.TestCase):
     """Base class for VarBundle class checks"""
