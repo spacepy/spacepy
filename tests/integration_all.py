@@ -12,6 +12,7 @@ Copyright 2019 SpacePy contributors
 
 import unittest
 
+from integration_omni import *
 from integration_toolbox import *
 
 
