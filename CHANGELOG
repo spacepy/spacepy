@@ -15,6 +15,7 @@ pycdf
  - istp.nanfill function to replace fill values with NaN
 pybats
  - Updated gitm.GitmBin reader to fix failures in Python 3.x.
+ - Fix for incorrect Kyoto Kp plots.
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
