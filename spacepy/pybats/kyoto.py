@@ -13,7 +13,7 @@ for more information.
 import numpy as np
 import datetime as dt
 import spacepy.plot.apionly
-from spacepy.plot import set_target, applySmartTimeTicks
+from spacepy.plot import set_target, applySmartTimeTicks, levelPlot
 from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray, SpaceData
 
@@ -200,7 +200,8 @@ class KyotoKp(PbData):
         self.attrs['npts']=npoints
 
     def add_histplot(self, target=False, loc=111, label='Kyoto $K_{p}$', 
-                     time_range=None, **kwargs):
+                     time_range=None, filled=False, level_kwargs={},
+                     **kwargs):
         '''
         Make a quick histogram-style plot of the Kp data.
 
@@ -212,16 +213,16 @@ class KyotoKp(PbData):
         Other Parameters
         ================
         target : Figure or Axes
-             If None (default), a new figure is generated from scratch.
-             If a matplotlib Figure object, a new axis is created
-             to fill that figure.
-             If a matplotlib Axes object, the plot is placed
-             into that axis.
+            If None (default), a new figure is generated from scratch.
+            If a matplotlib Figure object, a new axis is created
+            to fill that figure.
+            If a matplotlib Axes object, the plot is placed
+            into that axis.
         
         loc : int
-           Use to specify the subplot placement of the axis
-           (e.g. loc=212, etc.) Used if target is a Figure or None.
-           Default 111 (single plot).
+            Use to specify the subplot placement of the axis
+            (e.g. loc=212, etc.) Used if target is a Figure or None.
+            Default 111 (single plot).
 
         label : string
             The label applied to the line when a legend is added to the axes.
@@ -233,14 +234,22 @@ class KyotoKp(PbData):
             two.  Defaults to **None**, meaning that the full time range
             available is used.
 
+        filled : Boolean
+            If True, make a filled 'traffic light' plot of Kp using
+            spacepy.plot.levelPlot. Extra keyword arguments for levelPlot can
+            be supplied via level_kwargs.
+
         Extra keyword arguments are passed to :function:`matplotlib.pyplot.plot`
-        to customize the line style.
+        to customize the line style (and are ignored if filled is True).
 
         Examples
         ========
+        >>> import matplotlib.pyplot as plt
         >>> import spacepy.pybats.kyoto as kt
         >>> kp = kt.fetch('kp', (1981, 11), (1981, 11)
-        >>> kp.add_histplot(lw=2.0, lc='r', label='Example KP')
+        >>> kp.add_histplot(lw=2.0, color='r', label='Example Kp')
+        >>> ax = plt.gca()
+        >>> kp.add_histplot(filled=True)
 
         '''
         import matplotlib.pyplot as plt
@@ -249,8 +258,14 @@ class KyotoKp(PbData):
             time_range = self['time']
     
         fig, ax = set_target(target, figsize=(10,4),  loc=loc)
-        line=ax.plot(self['time'], self['kp'], label=label,
-                     ds='steps-mid', **kwargs)
+        if not filled:
+            tvar = self['binstart'].tolist()
+            tvar.append(tvar[-1]+dt.timedelta(hours=3))
+            kpvar = self['kp'].tolist()
+            kpvar.append(kpvar[-1])
+            line = ax.plot(tvar, kpvar, label=label, ds='steps-post', **kwargs)
+        else:
+            ax = levelPlot(self, time='binstart', var='kp', target=ax, **level_kwargs)
         applySmartTimeTicks(ax, time_range, dolabel=True)
 
         return fig, ax
