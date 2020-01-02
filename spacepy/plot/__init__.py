@@ -396,7 +396,7 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
         except (IndexError, KeyError):
             #using data array to index, so should just use time
             applySmartTimeTicks(ax, time)
-        ax.grid('off', which='minor') #minor grid usually looks bad on these...
+        ax.grid(False, which='minor') #minor grid usually looks bad on these...
 
     if legend:
         ncols = len(levels)+1
