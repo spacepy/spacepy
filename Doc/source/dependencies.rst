@@ -14,15 +14,13 @@ Hard Dependencies
 =================
 Without these packages installed, SpacePy will not function.
 
-Python 2.6+
+Python 2.7+
 -----------
 
 `Python <http://www.python.org/>`_ is the core language for SpacePy.
-Python 2.6 or later is required. SpacePy works under Python 3, but
-Python 2 is still recommended for most users.  *Python 3 is not simply
-a "newer" Python 2; there are substantial differences in the
-language*. See `Should I use Python 2 or Python 3?
-<http://wiki.python.org/moin/Python2orPython3>`_.
+Python 3 is strongly recommended; while SpacePy currently supports
+Python 2.7, this support will be phased out over the course
+of 2020. See :doc:`py2k_eol`.
 
 Required to install SpacePy.
 

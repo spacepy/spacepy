@@ -57,6 +57,7 @@ SpacePy Documents
 
     help
     install
+    py2k_eol
     quickstart
     doc_standard
     tips
