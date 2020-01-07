@@ -4,9 +4,10 @@ PyBats submodule for handling input/output for the Polar Wind Outflow Model
 (PWOM), one of the choices for the PW module in the SWMF.
 '''
 
-# Global imports:
-import numpy as np
 import datetime as dt
+import struct
+
+import numpy as np
 from spacepy.plot import set_target
 from spacepy.pybats import PbData
 from spacepy.datamodel import dmarray
@@ -92,10 +93,32 @@ class Line(PbData):
         return 'PWOM single field line output file %s' % (self.attrs['file'])
 
     def _read(self, starttime):
-        '''
-        Read ascii line file; should only be called upon instantiation.
-        '''
-        
+        """Read line file; should only be called upon instantiation.
+
+        Parameters
+        ----------
+        starttime : datetime.datetime
+            Start date and time of the simulation
+        """
+
+        def is_binary_string(bytes_):
+            textchars = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
+            return bool(bytes_.translate(None, textchars))
+        IsBinary = is_binary_string(open(self.attrs['file'], 'rb').read(1024))
+        if IsBinary:
+            self._read_binary(starttime)
+        else:
+            self._read_ascii(starttime)
+
+    def _read_ascii(self, starttime):
+        """Read ASCII line file; should only be called upon instantiation.
+
+        Parameters
+        ----------
+        starttime : datetime.datetime
+            Start date and time of the simulation
+        """
+
         # Slurp whole file.
         f=open(self.attrs['file'], 'r')
         lines=f.readlines()
@@ -141,6 +164,133 @@ class Line(PbData):
                 parts=l.split()
                 for k,v in enumerate(var):
                     self[v][i,j]=float(parts[k+1])
+
+    def _read_binary(self, starttime):
+        """Read binary line file; should only be called upon instantiation.
+
+        Parameters
+        ----------
+        starttime : datetime.datetime
+            Start date and time of the simulation
+        """
+        char_size = 1
+        int_size = 4
+        long_size = 8
+        float_size = 4
+        dbl_size = 8
+        # Slurp whole file.
+        fileContent = open(self.attrs['file'], 'rb').read()
+
+        #get the record length
+        RecordLength=struct.unpack('i', fileContent[0 : 0+int_size])
+        #save the first time
+        NextDataStart = RecordLength[0] + 2*int_size + 2*int_size
+        t = struct.unpack('d', fileContent[NextDataStart : NextDataStart+dbl_size])
+
+        #next data skiping ndim and nparam
+        NextDataStart = NextDataStart + dbl_size + int_size + int_size
+
+        #get number of vars
+        nVar = struct.unpack('i',
+                             fileContent[NextDataStart : NextDataStart+int_size])
+        nVars = nVar[0]
+        NextDataStart = NextDataStart + 3*int_size
+        #get nAlts
+        nAlt = \
+            struct.unpack('i',
+            fileContent[NextDataStart : NextDataStart+int_size])
+        nAlts = nAlt[0]
+        NextDataStart = NextDataStart + 3*int_size
+        #skip reading params
+        NextDataStart = NextDataStart + 2*dbl_size
+
+        #read vars
+        NameVarList = \
+            str(struct.unpack('77s',
+            fileContent[NextDataStart : NextDataStart+77]))
+        # Get variable names; pop radius (altitude).
+        var = NameVarList.split()[1:-1]
+        #skip to next record
+        i = NextDataStart + 77
+        while fileContent[i : i+1] == b' ':
+            i += 1
+        NextDataStart = i + 8
+
+        #get the total length of a snapshot
+        #note the 164 comes from the byte pads between variables
+        SnapshotLength = NextDataStart + nAlts*dbl_size*(nVars+1) + 164
+        #get number of times in the file
+        nTimes = int(len(fileContent) / SnapshotLength)
+        # Start building time array.
+        self['time'] = np.zeros(nTimes, dtype=object)
+        self['time'][0] = starttime + dt.timedelta(seconds=t[0])
+        #correct length of snapshot due to padding issues
+        #SnapshotLength=int(len(fileContent)/nTimes)
+        self.attrs['nAlt'] = nAlts; self.attrs['nTime'] = nTimes
+        # Get altitude, which is constant at all times.
+        self['r'] = dmarray(np.zeros(nAlts), {'units':'km'})
+
+        # Create 2D arrays for data that is time and alt. dependent.
+        # Set as many units as possible.
+        for v in var:
+            self[v]=dmarray(np.zeros((nTimes, nAlts)))
+            if v=='Lat' or v=='Lon':
+                self[v].attrs['units']='deg'
+            elif v[0]=='u':
+                self[v].attrs['units']='km/s'
+            elif v[0:3]=='lgn':
+                self[v].attrs['units']='log(cm-3)'
+            elif v[0]=='T':
+                self[v].attrs['units']='K'
+            else:
+                self[v].attrs['units']=None
+
+        # read in data for the first time
+        iTime = 0
+        for iAlt in range(nAlts):
+            variable = \
+                struct.unpack('d', fileContent
+                [NextDataStart : NextDataStart+dbl_size])
+            self['r'][iAlt] = variable[0]
+            NextDataStart = NextDataStart + dbl_size
+        #read in the data for the variables
+        for v in var:
+            NextDataStart=NextDataStart+dbl_size
+            for iAlt in range(nAlts):
+                self[v][iTime,iAlt] = \
+                    struct.unpack('d', fileContent
+                    [NextDataStart : NextDataStart+dbl_size])[0]
+                NextDataStart = NextDataStart + dbl_size
+
+        # read in other snapshots if nTimes>1
+        for iTime in range(1, nTimes):
+            #save the time
+            NextDataStart = iTime*int(SnapshotLength) + RecordLength[0]\
+                + 2*int_size + 2*int_size
+            t = struct.unpack('d', fileContent[NextDataStart : NextDataStart+dbl_size])
+            self['time'][iTime] = starttime + dt.timedelta(seconds=t[0])
+
+            #next data skiping ndim, nparam, nVars,nAlts
+            NextDataStart = \
+                NextDataStart + dbl_size + int_size + int_size + 6*int_size
+            #skip reading params
+            NextDataStart = NextDataStart + 2*dbl_size
+            #skip to next record
+            i = NextDataStart + 77
+            while fileContent[i : i+1] == b' ':
+                i = i + 1
+            NextDataStart = i + 8
+            # skip reading r
+            NextDataStart = NextDataStart + nAlts*dbl_size
+
+            for v in var:
+                NextDataStart = NextDataStart + dbl_size
+                for iAlt in range(nAlts):
+                    self[v][iTime,iAlt] = \
+                        struct.unpack('d',
+                        fileContent[NextDataStart : NextDataStart+dbl_size])[0]
+                    NextDataStart = NextDataStart + dbl_size
+
 
 class Lines(PbData):
     '''
