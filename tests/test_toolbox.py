@@ -119,6 +119,43 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = [ 0.69337122,  0.        ,  0.69337122,  0.19614462]
         numpy.testing.assert_array_almost_equal(ans, tst)
 
+    def test_quaternionNormalize_2(self):
+        """quaternionNormalize should have known result and magnitude 1"""
+        tst1 = tb.quaternionNormalize([1, 0, 1, 0], scalarPos='first')
+        tst2 = tb.quaternionNormalize([1, 0, 1, 0], scalarPos='last')
+        ans = [0.70710678, 0.0, 0.70710678, 0]
+        numpy.testing.assert_array_almost_equal(ans, tst1)
+        numpy.testing.assert_array_almost_equal(ans, tst2)
+        numpy.testing.assert_almost_equal(1.0, numpy.linalg.norm(tst1))
+        numpy.testing.assert_almost_equal(1.0, numpy.linalg.norm(tst2))
+
+    def test_quaternionNormalize_small(self):
+        """test quaternionNormalize for very small values"""
+        tst1 = tb.quaternionNormalize([1e-15, 0, 1e-15, 0], scalarPos='first')
+        tst2 = tb.quaternionNormalize([1e-15, 0, 1e-15, 0], scalarPos='last')
+        ans1 = [1.0, 0.0, 0.0, 0.0]
+        ans2 = [0.0, 0.0, 0.0, 1.0]
+        numpy.testing.assert_array_almost_equal(ans1, tst1)
+        numpy.testing.assert_array_almost_equal(ans2, tst2)
+
+    def test_quaternionMultiply(self):
+        """quaternionMultiply should have known results"""
+        q1 = [1.0, 0.0, 0.0, 0.0]
+        q2 = [0.0, 0.0, 0.0, 1.0]
+        ans = [0.0, 0.0, 0.0, 1.0]
+        tst = tb.quaternionMultiply(q2, q1, scalarPos='first')
+        numpy.testing.assert_array_almost_equal(ans, tst)
+
+    def test_quaternionConjugate_last(self):
+        tst = tb.quaternionConjugate([0.707, 0, 0.707, 0.2], scalarPos='last')
+        ans = [ -0.707,  -0.        ,  -0.707,  0.2]
+        numpy.testing.assert_array_almost_equal(ans, tst)
+
+    def test_quaternionConjugate_first(self):
+        tst = tb.quaternionConjugate([0.2, 0.707, 0, 0.707], scalarPos='first')
+        ans = [ 0.2,  -0.707,  -0.        ,  -0.707]
+        numpy.testing.assert_array_almost_equal(ans, tst)
+
     def test_indsFromXrange(self):
         """indsFromXrange should have known result"""
         foo = xrange(23, 39)
