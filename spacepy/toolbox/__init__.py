@@ -78,7 +78,8 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'windowMean', 'medAbsDev', 'binHisto', 'bootHisto',
            'logspace', 'geomspace', 'linspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
-           'interpol', 'normalize', 'intsolve', 'dist_to_list',
+           'quaternionNormalize', 'quaternionRotateVector', 'quaternionMultiply',
+           'quaternionConjugate', 'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot',
            'do_with_timeout', 'TimeoutError', 'timeout_check_call', 'unique_columns']
