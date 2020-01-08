@@ -246,7 +246,7 @@ class KyotoKp(PbData):
         ========
         >>> import matplotlib.pyplot as plt
         >>> import spacepy.pybats.kyoto as kt
-        >>> kp = kt.fetch('kp', (1981, 11), (1981, 11)
+         >>> kp = kt.fetch('kp', (1981, 11), (1981, 11))
         >>> kp.add_histplot(lw=2.0, color='r', label='Example Kp')
         >>> ax = plt.gca()
         >>> kp.add_histplot(filled=True)
