@@ -263,7 +263,8 @@ class KyotoKp(PbData):
             tvar.append(tvar[-1]+dt.timedelta(hours=3))
             kpvar = self['kp'].tolist()
             kpvar.append(kpvar[-1])
-            line = ax.plot(tvar, kpvar, label=label, ds='steps-post', **kwargs)
+            line = ax.plot(tvar, kpvar, label=label, drawstyle='steps-post',
+            **kwargs)
         else:
             ax = levelPlot(self, time='binstart', var='kp', target=ax, **level_kwargs)
         applySmartTimeTicks(ax, time_range, dolabel=True)
