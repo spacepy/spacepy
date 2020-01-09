@@ -59,13 +59,21 @@ SpacePy Documents
     install
     py2k_eol
     quickstart
-    doc_standard
     tips
     configuration
     case_studies
     publications
     pythonic
     scripts
+
+SpacePy Developer Guide
+=======================
+
+.. toctree::
+    :maxdepth: 1
+
+    dep_versions
+    doc_standard
 
 SpacePy Code
 ============
