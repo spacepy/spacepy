@@ -10,6 +10,9 @@ Unless otherwise noted, a dependency may be installed *after*
 SpacePy, and the new functionality will be available the next
 time SpacePy is imported.
 
+Currently required versions are documented
+here. :doc:`dep_versions`. describes future support.
+
 Hard Dependencies
 =================
 Without these packages installed, SpacePy will not function.
@@ -34,6 +37,8 @@ Required to install SpacePy. f2py is part of NumPy, but is sometimes
 packaged separately; it is required (at installation time) if
 :mod:`~spacepy.irbempy` is to be used.
 
+Due to a numpy bug, numpy 1.15.0 is not supported. Use 1.15.1 or later.
+
 dateutil
 --------
 If you choose not to install :ref:`matplotlib <dependencies_mpl>`,
@@ -54,12 +59,12 @@ These are simply marked as dependencies in SpacePy metadata and thus
 will be automatically installed when using dependency-resolving
 methods such as pip.
 
-SciPy
------
+SciPy 0.10+
+-----------
 `SciPy <http://www.scipy.org/>`_ provides several useful scientific
 and numerical functions build on top of NumPy.  It is highly
-recommended. Version 0.7.0 or later should suffice. The following
-modules may have limited functionality without SciPy:
+recommended. The following modules may have limited functionality
+without SciPy:
 
     * :mod:`~spacepy.empiricals`
     * :mod:`~spacepy.seapy`
@@ -68,8 +73,8 @@ modules may have limited functionality without SciPy:
 
 .. _dependencies_mpl:
 
-matplotlib
-----------
+matplotlib 1.5.0+
+-----------------
 `matplotlib <http://matplotlib.sourceforge.net/>`_ is the preferred
 plotting package for Python. It is highly recommended. Without it, you
 will not be able to effectively visualize data, and the following
@@ -86,12 +91,7 @@ modules may have limited functionality:
 ffnet
 -----
 `ffnet <http://ffnet.sourceforge.net/>`_ is a neural network package,
-required for :mod:`~spacepy.LANLstar`. The latest release of ffnet
-at this writing, 0.7.1, does not support Python 3. We have submitted
-patches for Python 3 support and they have been integrated into SVN
-as of r364, so they should be in the next version. In the meantime,
-users who require Python 3 support will need to install ffnet from
-a `subversion checkout <http://sourceforge.net/p/ffnet/code/HEAD/tree/>`_.
+required for :mod:`~spacepy.LANLstar`.
 
 networkx
 --------
