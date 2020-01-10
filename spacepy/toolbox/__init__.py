@@ -737,6 +737,77 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     return None
 
 
+def _crawl_yearly(base_url, pattern, datadir, name=None):
+    """Crawl files in a directory-by-year structure
+
+    Parameters
+    ==========
+    base_url : str
+        Base of the data. This URL should point to a directory containing
+        yearly directories (YYYY).
+    pattern : str
+        Regular expression to match filenames. Will download files in each
+        yearly directory that match the pattern.
+    datadir : str
+        Directory to store downloaded files. A mirror will be maintained in
+        this directory. Note this is a "flat" mirror without the year
+        directories.
+    name : str (optional)
+        Name of the data set, used only in status messages.
+
+    Returns
+    =======
+    list
+        All the filenames that were mirrored, in order; or None if there
+        were no updates. If there are any updates, all filenames are
+        included.
+    """
+    name = '' if name is None else '{} '.format(name)
+    #Find all the files to download
+    print("Finding {}files to download ...".format(name))
+    progressbar(0, 1, 1, text='Listing files')
+    data = get_url(base_url)
+    if str is not bytes:
+        data = data.decode('utf-8')
+    p = LinkExtracter()
+    p.feed(data)
+    p.close()
+    yearlist = [y[0:4] for y in p.links if re.match(r'\d{4}/', y)]
+    downloadme = {}
+    for i, y in enumerate(yearlist):
+        yearurl = '{}{}/'.format(base_url, y)
+        data = get_url(yearurl)
+        if str is not bytes:
+            data = data.decode('utf-8')
+        p = LinkExtracter()
+        p.feed(data)
+        p.close()
+        for f in p.links:
+            if not re.match(pattern, f):
+                continue
+            downloadme[f] = yearurl + f
+        progressbar(i + 1, 1, len(yearlist), text='Listing files')
+    print("Retrieving {}files ...".format(name))
+    filenames = sorted(list(downloadme.keys()))
+    if not os.path.exists(datadir):
+        os.makedirs(datadir)
+    newdata = False
+    #Check for existing files (delete them if no longer on server)
+    have_files = os.listdir(datadir)
+    for f in have_files:
+        if not f in filenames:
+            os.remove(os.path.join(datadir, f))
+            #File was removed, so need to reparse even if no new downloads
+            newdata = True
+    #Download
+    for i, fname in enumerate(filenames):
+        if get_url(downloadme[fname], os.path.join(datadir, fname),
+                   cached=True) is not None:
+            newdata = True
+        progressbar(i + 1, 1, len(filenames))
+    return filenames if newdata else None
+
+
 def _get_cdaweb_omni2(omni2url=None):
     """Download the OMNI2 data from SPDF
 
@@ -758,50 +829,10 @@ def _get_cdaweb_omni2(omni2url=None):
     import spacepy.pycdf.istp
     if omni2url is None:
         omni2url = spacepy.config['omni2_url']
-    #Find all the files to download
-    print("Finding OMNI2 files to download ...")
-    progressbar(0, 1, 1, text='Listing files')
-    data = get_url(omni2url)
-    if str is not bytes:
-        data = data.decode('utf-8')
-    p = LinkExtracter()
-    p.feed(data)
-    p.close()
-    yearlist = [y[0:4] for y in p.links if re.match(r'\d{4}/', y)]
-    downloadme = {}
-    for i, y in enumerate(yearlist):
-        yearurl = '{}{}/'.format(omni2url, y)
-        data = get_url(yearurl)
-        if str is not bytes:
-            data = data.decode('utf-8')
-        p = LinkExtracter()
-        p.feed(data)
-        p.close()
-        for f in p.links:
-            if not re.match(r'omni2_h0_mrg1hr_\d{8}_v\d+\.cdf', f):
-                continue
-            downloadme[f] = yearurl + f
-        progressbar(i + 1, 1, len(yearlist), text='Listing files')
-    print("Retrieving OMNI2 files ...")
-    filenames = sorted(list(downloadme.keys()))
     datadir = os.path.join(spacepy.DOT_FLN, 'data', 'omni2cdfs')
-    if not os.path.exists(datadir):
-        os.makedirs(datadir)
-    newdata = False
-    #Check for existing files (delete them if no longer on CDAWeb)
-    have_files = os.listdir(datadir)
-    for f in have_files:
-        if not f in filenames:
-            os.remove(os.path.join(datadir, f))
-            #File was removed, so need to reparse even if no new downloads
-            newdata = True
-    #Download
-    for i, fname in enumerate(filenames):
-        if get_url(downloadme[fname], os.path.join(datadir, fname),
-                   cached=True) is not None:
-            newdata = True
-        progressbar(i + 1, 1, len(filenames))
-    if not newdata:
+    filenames = _crawl_yearly(omni2url, r'omni2_h0_mrg1hr_\d{8}_v\d+\.cdf',
+                              datadir, name='OMNI2')
+    if filenames is None:
         return None
     #Read and process
     print("Reading OMNI2 files ...")
