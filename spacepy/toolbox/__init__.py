@@ -807,6 +807,31 @@ def _crawl_yearly(base_url, pattern, datadir, name=None):
     return filenames if newdata else None
 
 
+def _get_qindenton(qindenton_url=None):
+    """Download the Qin-Denton OMNI-like data
+    
+    Parameters
+    ==========
+    qindenton_url : str (optional)
+        Base of the Qin-Denton data, in hourly JSON-headed ASCII. This URL
+        should point to the directory containing the yearly directories.
+        Default from ``qindenton_url`` in config file.
+
+    Returns
+    =======
+    SpaceData
+        The data extracted from the Q-D dataset, fully processed for saving
+        as SpacePy HDF5 OMNI data. Returns ``None`` if there are no new data.
+    """
+    if qindenton_url is None:
+        qindenton_url = spacepy.config['qindenton_url']
+    datadir = os.path.join(spacepy.DOT_FLN, 'data', 'qindenton_files')
+    _crawl_yearly(qindenton_url, r'QinDenton_\d{8}_hour.txt',
+                  datadir, name='Q-D')
+    #Read and process
+    print("Reading Q-D files ...")
+
+
 def _get_cdaweb_omni2(omni2url=None):
     """Download the OMNI2 data from SPDF
 
