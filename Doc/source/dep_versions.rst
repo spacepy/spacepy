@@ -3,10 +3,13 @@ Dependency version support
 **************************
 
 SpacePy will occasionally drop support for old versions of
-:doc:`dependencies <dependencies>`. Dependency support is based on
-these principles:
+:doc:`dependencies <dependencies>`. Failures with older versions will
+not be treated as SpacePy bugs. Dependency support is based on these
+principles:
 
- #. The latest released version of a dependency is always supported.
+ #. SpacePy supports released versions of a dependency that meet a
+    minimum version requirement; there is no maximum supported
+    version.
  #. Support for old versions of dependencies will be dropped only for
     reason, e.g. if a new version is required to support a new feature
     or fix a bug. Maintenance of convoluted workarounds is included in
@@ -31,7 +34,7 @@ these principles:
        subminor releases (x.y.z for the same x.y). Where x.y.0 is supported,
        so is x.y.z for all z.
     #. All versions of all dependencies and all combinations thereof will
-       *not* necessarily be supported in continuous integration.
+       *not* necessarily be tested in continuous integration.
 
  #. No support will be provided for conflicting versions of
     dependencies. E.g. SciPy 1.4 requires NumPy 1.13. Although SpacePy
