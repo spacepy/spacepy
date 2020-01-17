@@ -8,7 +8,7 @@ import datetime as dt
 import numpy as np
 from scipy.io import netcdf
 
-from spacepy.datamodel import dmarray
+from spacepy.datamodel import dmarray, SpaceData
 import spacepy.plot.apionly
 from spacepy.plot import set_target, smartTimeTicks, applySmartTimeTicks
 from spacepy.pybats import PbData
@@ -502,7 +502,7 @@ class WeqFile(EfieldFile):
         self.UT=float(parts[0])
 
 ############################################################################
-class RamSat(object):
+class RamSat(SpaceData):
     '''
     A class to handle and plot RAM-SCB virtual satellite files.  Instantiate
     an object by simply calling:
@@ -528,40 +528,11 @@ class RamSat(object):
     Be sure to peruse the docstrings of the many object methods to discover
     the many plotting functions and other capabilities.
     '''
-
-    # Make'em work like a dictionary:
-    def __getitem__(self, key):
-        if key in self.filedata:
-            return self.filedata[key][...]
-        elif key in self.data:
-            return self.data[key]
-        else:
-            raise KeyError(key)
-        
-    def __setitem__(self, key, value):
-        self.data[key] = value
-        if not key in self.namevars:
-            self.namevars.append(key)
-
-    def keys(self):
-        '''
-        List all keys for data objects stored in the RamSat object.
-        '''
-        return list(self.filedata.keys()) + list(self.data.keys())
-
-    def __contains__(self, key):
-        return key in self.filedata or key in self.data
-
     def __init__(self, filename):
         # Filename:
-        self.filename=filename
+        super(RamSat, self).__init__()
+        self.filename = filename
         self._read()
-
-    def close(self):
-        self.f.close()
-
-    def __del__(self):
-        self.close()
 
     def _read(self):
         '''
@@ -575,12 +546,13 @@ class RamSat(object):
             if k[0] == '_' or k in ('dimensions', 'filename', 'fp', 'mode',
                                     'use_mmap', 'variables', 'version_byte'):
                 continue
-            self.attrs[k] = getattr(self.f, k)
+            tmp = getattr(self.f, k)
+            if not callable(tmp): self.attrs[k] = tmp
         # self.filedata contains the raw netcdf_variable objects.
-        self.filedata = self.f.variables
-        # New values saved as self[key] are stored in self.data, not
-        # self.filedata which cannot be changed.
-        self.data={}
+        for var in self.f.variables:
+            # New values saved as self[key] are stored in self.data, not
+            # self.filedata which cannot be changed.
+            self[var] = dmarray(self.f.variables[var][...])
 
         # Get start time, set default if not found.
         try:
@@ -595,31 +567,47 @@ class RamSat(object):
         secs = self.f.variables['Time'][...]
         self.time = np.array(
             [self.starttime + dt.timedelta(seconds=float(s)) for s in secs])
+        self['Time'] = self.time
 
         # Some other variables to keep handy:
         try:
             self.dt = self['DtWrite']
         except KeyError:
             # Old files do not have DtWrite.
-            self.dt = np.diff(time).min()
+            self.dt = np.diff(self.time).min()
 
-    def create_omniflux(self):
+    def create_omniflux(self, check=True):
         '''
         Integrate the flux(currently as a function of energy and 
         pitch angle) to get omnidirectional flux as a function of
         energy.  New units = (cm-2*s*keV)^-1
 
         Usage: just call this method to integrate all species.
+
+        Arguments
+        ---------
+        check : Boolean
+                If check is True (default) then the presence of existing
+                omni variables will cause this calculation to abort cleanly.
+                If check is False, anything pre-calculated will be overwritten.
         '''
-        
+        def get_species_label(keyname, omni=False):
+            uvar = 'omni' if omni else 'Flux'
+            if uvar+'_' in keyname:
+                return keyname[5:].replace('+', '')
+            elif uvar in keyname:
+                return keyname[4:].replace('+', '')
+
+        omnipresent = [True for kk in self if get_species_label(kk, omni=True)
+                       is not None]
+        if check and omnipresent:
+            return None
         # Create new flux attributes:
         nTime = self.time.size
         nPa   = self['pa_grid'].size
         nEner = self['energy_grid'].size
-        self['omniH'] = np.zeros((nTime, nEner))
-        self['omniHe']= np.zeros((nTime, nEner))
-        self['omniO'] = np.zeros((nTime, nEner))
-        self['omnie'] = np.zeros((nTime, nEner))
+        omnikeys = [('omni{0}'.format(get_species_label(kk)), kk) for kk in self
+                    if get_species_label(kk) is not None]
         # Create delta mu, where mu = cos(pitch angle)
         dMu = np.zeros(nPa)
         if 'pa_width' in self:
@@ -630,29 +618,18 @@ class RamSat(object):
                 # Factor of pi here so we don't need it later.
                 dMu[i] = 4*np.pi*self['pa_grid'][i] -self['pa_grid'][i-1]
 
-        # Integrate.
-        tempH=self['FluxH+'].copy(); tempO=self['FluxO+'].copy()
-        tempe=self['Fluxe-'].copy(); tempHe=self['FluxHe+'].copy()
-        for i in range(1, nPa):
-            tempH[:,i,:] =tempH[:,i,:] * dMu[i]
-            tempe[:,i,:] =tempe[:,i,:] * dMu[i]
-            tempO[:,i,:] =tempO[:,i,:] * dMu[i]
-            tempHe[:,i,:]=tempHe[:,i,:]* dMu[i]
+        for omkey, fluxkey in omnikeys:
+            self[omkey] = np.zeros((nTime, nEner))
+            # Integrate.
+            temp = self[fluxkey].copy()
+            temp = np.ma.masked_where(temp<=0, temp)
+            for i in range(1, nPa):
+                temp[:,i,:] = temp[:,i,:] * dMu[i]
 
-        self.data['omniH']=tempH.sum(1)
-        self.data['omnie']=tempe.sum(1)
-        self.data['omniO']=tempO.sum(1)
-        self.data['omniHe']=tempHe.sum(1)
+            self[omkey] = temp.sum(1)
 
-        # Mask out bad values.
-        self.data['omniH'] =np.ma.masked_where(self.data['omniH'] 
-                                               <=0,self.data['omniH'])
-        self.data['omniHe']=np.ma.masked_where(self.data['omniHe']
-                                               <=0,self.data['omniHe'])
-        self.data['omniO'] =np.ma.masked_where(self.data['omniO'] 
-                                               <=0,self.data['omniO'])
-        self.data['omnie'] =np.ma.masked_where(self.data['omnie'] 
-                                               <=0,self.data['omnie'])
+            # Mask out bad values.
+            self[omkey] = np.ma.masked_where(self[omkey]<=0, self[omkey])
 
     #####RamSat Viz Routines#####
     def _orbit_formatter(self, x, pos):
