@@ -513,7 +513,8 @@ class RampyTests(unittest.TestCase):
         '''Test that start time attribute and Time variable are as expected'''
         data = ram.RamSat(self.testfile)
         self.assertEqual(data.starttime, dt.datetime(2012, 10, 29))
-        numpy.testing.assert_array_equal(data['Time'], [60., 120., 180.])
+        tst = [dt.datetime(2012, 10, 29) + dt.timedelta(seconds=sc) for sc in [60, 120, 180]]
+        numpy.testing.assert_array_equal(data['Time'], tst)
 
     def test_RamSat_contents_dims(self):
         '''Test for expected shape of loaded data array'''
