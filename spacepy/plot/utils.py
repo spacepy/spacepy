@@ -762,7 +762,7 @@ def set_target(target, figsize=None, loc=None, polar=False):
 
     '''
     # Is target an axes?  Make no new items.
-    if issubclass(type(target), plt.Axes):
+    if isinstance(target, plt.Axes):
         ax  = target
         fig = ax.figure
     else: # Make a new axis
