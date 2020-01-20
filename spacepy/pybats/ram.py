@@ -1627,15 +1627,7 @@ class LogFile(PbData):
         
         import matplotlib.pyplot as plt
         
-        if isinstance(target, plt.Figure):
-            fig = target
-            ax = fig.add_subplot(loc)
-        elif isinstance(target, plt.Axes):
-            ax = target
-            fig = ax.figure
-        else:
-            fig = plt.figure(figsize=(10,4))
-            ax = fig.add_subplot(loc)
+        fig, ax = set_target(target, loc=loc)
         
         ax.plot(self['time'], self['dstRam'], label='RAM Dst (DPS)')
         if 'dstBiot' in self and showBiot:
