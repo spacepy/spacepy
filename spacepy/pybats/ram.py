@@ -816,14 +816,14 @@ class RamSat(SpaceData):
         time[1:]=date2num(self.time+dt.timedelta(seconds=self.dt/2.0))
         #egrid=self['energy_grid']
         ecenter, eboundary, ewidth=gen_egrid(nE=self['energy_grid'].size)
-#        print("Need better energy grid setup for pcolormesh.")
-        flx=ax.pcolormesh(time,eboundary,self[nameflux].transpose(),
-                          norm=LogNorm(),vmin=zlim[0],vmax=zlim[1])
+        #print("Need better energy grid setup for pcolormesh.")
+        flx = ax.pcolormesh(time, eboundary, np.asarray(self[nameflux]).transpose(),
+                            norm=LogNorm(), vmin=zlim[0], vmax=zlim[1])
         ax.set_yscale('log')
-        ax.set_ylim( [eboundary[0],eboundary[-1]] )
+        ax.set_ylim( [eboundary[0], eboundary[-1]] )
         if not timelim:
-            timelim=[self.time[0],self.time[-1]]
-        applySmartTimeTicks(ax,timelim,dolabel=True)
+            timelim=[self.time[0], self.time[-1]]
+        applySmartTimeTicks(ax, timelim, dolabel=True)
         if no_xlabels:
             ax.set_xlabel('')
             ax.set_xticklabels([''])
