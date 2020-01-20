@@ -584,8 +584,8 @@ class RamSat(SpaceData):
 
         Usage: just call this method to integrate all species.
 
-        Arguments
-        ---------
+        Other Parameters
+        ================
         check : Boolean
                 If check is True (default) then the presence of existing
                 omni variables will cause this calculation to abort cleanly.
