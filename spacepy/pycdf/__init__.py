@@ -2303,7 +2303,7 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                 if compress is None:
                     compress = c
                 if compress_param is None:
-                    compresS_param = cp
+                    compress_param = cp
         #Get defaults from VarCopy if data looks like a VarCopy
         if recVary is None:
             recVary = data.rv() if hasattr(data, 'rv') else True
