@@ -1472,6 +1472,20 @@ class ReadCDF(CDFTests):
         else:
             self.fail('Should have raised CDFError: '+ message)
 
+    def testgAttrContains(self):
+        """Check for attribute in global attrlist"""
+        self.assertTrue('Mission_group' in self.cdf.attrs)
+        self.assertFalse('DEPEND_0' in self.cdf.attrs)
+        self.assertFalse('notanattratall' in self.cdf.attrs)
+
+    def testzAttrContains(self):
+        """Check for attribute in variable attrlist"""
+        attrs = self.cdf['PhysRecNo'].attrs
+        self.assertFalse('Mission_group' in attrs)
+        self.assertTrue('DEPEND_0' in attrs)
+        self.assertFalse('notanattratall' in attrs)
+        self.assertFalse('LABL_PTR_1' in attrs)
+
     def testzEntryType(self):
         """Get the type of a zEntry"""
         names = ['DEPEND_0', 'VALIDMAX', ]
