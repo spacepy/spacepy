@@ -1842,15 +1842,14 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         @return: True if L{key} is the name of a variable in CDF, else False
         @rtype: Boolean
         """
-        try:
-            foo = self[key]
+        if str is not bytes and isinstance(key, str):
+            key = key.encode('ascii')
+        key = key.rstrip()
+        if key in self._var_nums:
             return True
-        except KeyError as e:
-            expected = str(key) + \
-               ": NO_SUCH_VAR: Named variable not found in this CDF."
-            if expected in e.args:
-                return False
-            raise
+        status = self._call(const.CONFIRM_, const.zVAR_EXISTENCE_, key,
+                            ignore=(const.NO_SUCH_VAR,))
+        return status != const.NO_SUCH_VAR
 
     def __repr__(self):
         """Returns representation of CDF
