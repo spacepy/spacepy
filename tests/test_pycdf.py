@@ -2473,6 +2473,16 @@ class ChangeCDF(ChangeCDFBase):
         self.assertEqual('bob', self.cdf['newzVar'].attrs['name'])
         self.assertEqual(numpy.int8, self.cdf['newzVar'].dtype)
 
+    def testNewVarFromVarCompress(self):
+        """Create a new variable from a variable, check compression"""
+        self.cdf.new('newzvar1', compress=const.GZIP_COMPRESSION,
+                     compress_param=8, data=numpy.arange(1000))
+        zvar = self.cdf.new('newzvar2', data=self.cdf['newzvar1'])
+        comptype, compparam = zvar.compress()
+        self.assertEqual(const.GZIP_COMPRESSION.value,
+                         comptype.value)
+        self.assertEqual(8, compparam)
+
     def testNewVarFromdmarrayAssign(self):
         """Create a new variable by assigning from dmarray"""
         indata = datamodel.dmarray([1,2,3], dtype=numpy.int8,
