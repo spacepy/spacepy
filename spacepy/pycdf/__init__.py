@@ -2512,11 +2512,11 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         Parameters
         ==========
         attrname : bytes
-            name of the zVariable. Not this is NOT a string in Python 3!
+            name of the attribute. Not this is NOT a string in Python 3!
 
         Raises
         ======
-        CDFError : if variable is not found
+        CDFError : if attribute is not found
 
         Returns
         =======
