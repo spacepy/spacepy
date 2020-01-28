@@ -4474,7 +4474,7 @@ class Attr(MutableSequence):
             scope = ctypes.c_long(0)
             self._cdf_file._call(const.SELECT_, const.ATTR_,
                                  ctypes.c_long(attr_name))
-            #Because it's possible to create a gAttr Python objecting
+            #Because it's possible to create a gAttr Python object
             #referencing an Attribute with variable scope, and vice-versa,
             #do NOT assume the scope matches
             #(Higher level code checks for that being a bad thing.)
