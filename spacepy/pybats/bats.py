@@ -1632,7 +1632,7 @@ class Bats2d(IdlFile):
 
         # Start by finding open/closed boundary.
         tilt, thetaD, thetaN, last1, last2 = self.find_earth_lastclosed(
-            method=method)
+            method=method, tol=tol)
 
         # Useful parameters for the following traces:
         R = self.attrs['rbody']
