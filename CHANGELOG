@@ -17,6 +17,7 @@ pycdf
 pybats
  - Updated gitm.GitmBin reader to fix failures in Python 3.x.
  - Fix for incorrect Kyoto Kp plots.
+ - Fixed open/closed tolerance kwarg not working in add_b_magsphere.
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
