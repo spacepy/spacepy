@@ -1434,7 +1434,8 @@ class Bats2d(IdlFile):
         a non-empty axes object) **OR** over the entire object domain (in that
         order).  
 
-        Extra keyword args are handed to matplotlib's LineCollection object.
+        Extra keyword args are handed to matplotlib's LineCollection object:
+        :class:`matplotlib.collections.LineCollection`.  
 
         Parameters
         ==========
@@ -1514,8 +1515,14 @@ class Bats2d(IdlFile):
         # Extract stream traces, organize x and y coords:
         lines = []
         for i in range(nlines):
-            stream = self.get_stream(start_points[i, 0], start_points[i, 1],
-                                     xcomp,ycomp,method=method)
+            # Some index errors crop up from time to time.
+            # While a better solution is dug up, we use a try
+            # block for the time being.
+            try:
+                stream = self.get_stream(start_points[i, 0], start_points[i, 1],
+                                         xcomp,ycomp,method=method)
+            except IndexError:
+                continue
             
             lines.append(array([stream.x, stream.y][::1-2*flip]).transpose())
 
