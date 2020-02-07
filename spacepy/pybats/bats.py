@@ -571,9 +571,14 @@ class Stream(Extraction):
             if xbwd.size>maxPoints: 
                 block=False
 
+        # Trim duplicate points created when backwards tracing.
+        # There's always at least 1 duplicate.
+        for i in range(1, xbwd.size):
+            if xbwd[-(i+1)]-xfwd[0] != 0: break
+        
         # Combine foward and backward traces.
-        self.x = np.append(xbwd[:-1],xfwd)
-        self.y = np.append(ybwd[:-1],yfwd)
+        self.x = np.append(xbwd[:-i],xfwd)
+        self.y = np.append(ybwd[:-i],yfwd)
 
         # If planetary run w/ body:
         # 1) Check if line is closed to body.
