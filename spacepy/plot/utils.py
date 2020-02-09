@@ -1400,3 +1400,129 @@ def show_used(fig=None):
                      alpha=0.3, figure=fig, axes=ax, ec='none', fc=next(colors),
                      fill=True)))
     return rects
+
+def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
+               positions=False):
+    '''
+    Add directional arrows along a plotted line.  Useful for plotting flow
+    lines, magnetic field lines, or other directional traces.
+
+    *lines* can be either :class:`~matplotlib.lines.Line2D`, a list or tuple
+    of lines, or a :class:`~matplotlib.collections.LineCollection` object.
+
+    For each line, arrows will be added using 
+    :method:`~matplotlib.axes.Axes.annotate`.  Arrows will be spread evenly
+    over the line using the number of points in the line as the metric for
+    spacing.  Arrow color and alpha is obtained from the parent line.
+
+    Parameters
+    ==========
+    lines : :class:`~matplotlib.lines.Line2D`, a list/tuple, or :class:`~matplotlib.collections.LineCollection`
+        A single line or group of lines on which to place the arrows.
+        Arrows inherent color and transparency (alpha) from the line on which
+        they are placed.
+
+
+    Other Parameters
+    ================
+    n : integer
+        Number of arrows to add to each line; defaults to 3.
+
+    size : integer
+        The size of the arrows in points.  Defaults to 12.
+
+    style : string
+        Set the style of the arrow, e.g. '->' (default) or '-|>'
+
+    dorestrict : boolean
+        If True (default), only points along the line within the current
+        limits of the axes will be considered when distributing arrows.
+
+    positions : Nx2 array
+        N must be the number of lines provided via the argument *lines*.
+        If provided, only one arrow will be placed per line.
+        *positions* sets the explicit location of each arrow for each line as
+        X-Y space in Axes coordinates.
+
+    Returns
+    =======
+    None
+
+    Example
+    =======
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
+    >>> x = np.arange(1, 10, .01)
+    >>> y = np.sin(x)
+    >>> line = plt.plot(x,y)
+    >>> add_arrows(line, n=15, style='-|>')
+
+    '''
+    from numpy import floor, argmin
+    from matplotlib.collections import LineCollection
+    from matplotlib.lines import Line2D
+    
+    # Convert our line, lines, or LineCollection into
+    # a series of arrays with the x/y data.
+    # Also, grab the axes, colors, and line alpha.
+    if isinstance(lines, Line2D):
+        # Single line: turn into a list for iteration.
+        ax   = lines.axes
+        data = [lines.get_xydata()]
+        cols = [lines.get_color()]
+        alph = [lines.get_alpha()]
+    elif isinstance(lines, (tuple, list)):
+        # Multiple lines: convert into list of xy points.
+        ax   = lines[0].axes
+        data = [x.get_xydata() for x in lines]
+        cols = [x.get_color()  for x in lines]
+        alph = [x.get_alpha()  for x in lines] 
+    elif isinstance(lines, LineCollection):
+        # LineCollection: use "get paths" to extract points into list.
+        ax   = lines.axes
+        data = [x.vertices for x in lines.get_paths()]
+        cols = lines.get_colors()
+        alph = len(data) * [lines.get_alpha()]
+    else:
+        raise ValueError('Unknown input type for lines.')
+
+    # Check to make sure that we have as many colors as lines.
+    # With LineCollections, this isn't always the case!
+    if len(data)>1 and len(cols)==1:
+        cols=list(cols)*len(data)
+
+    # Grab plot limits (sometimes needed):
+    xlim, ylim = ax.get_xlim(), ax.get_ylim()
+
+    if type(positions) != bool:
+        # Explicitly set positions:
+        for l, c, a, p in zip(data, cols, alph, positions):
+            x, y = l[:,0], l[:,1]
+            i, j = argmin(abs(x - p[0])), argmin(abs(y - p[1]))
+            ax.annotate('',xytext=(x[i], y[j]), xy=(x[i+1], y[j+1]), alpha=a,
+                        arrowprops=dict(arrowstyle=style,color=c),size=size)
+        return
+    
+    for l, c, a in zip(data, cols, alph):
+        # Get info about line:
+        x, y = l[:,0], l[:,1]
+        if dorestrict:
+            loc = (x>=xlim[0])&(x<=xlim[1])&(y>=ylim[0])&(y<=ylim[1])
+            x, y = x[loc], y[loc]
+        
+        # Get size of lines.  Skip those with too few points:
+        npts = x.size
+        if npts <= 3: continue
+        
+        # If number of arrows is greater than the number of
+        # points along the line/2, reduce the number of arrows.
+        # Guarantee at least one arrow per line.
+        n_now = max(1, min(n, int(floor(npts/2))) )
+        
+        # Place evenly-spaced arrows:
+        for iArr in range(0,n_now):
+            # Get location as fraction of no. of points along line:
+            i  = int( floor((iArr+1) * npts/(n_now+1)) )
+            # Place an arrow:
+            ax.annotate('',xytext=(x[i], y[i]), xy=(x[i+1], y[i+1]), alpha=a,
+                        arrowprops=dict(arrowstyle=style,color=c),size=size)
