@@ -36,6 +36,7 @@ Functions
     show_used
     smartTimeTicks
     timestamp
+    add_arrows
 """
 
 __contact__ = 'Jonathan Niehof: jniehof@lanl.gov'
@@ -57,7 +58,7 @@ import numpy
 
 __all__ = ['add_logo', 'annotate_xaxis', 'applySmartTimeTicks', 'collapse_vertical', 'filter_boxes', 
            'smartTimeTicks', 'get_biggest_clear', 'get_clear', 'get_used_boxes', 'EventClicker', 
-           'set_target', 'shared_ylabel', 'show_used', 'timestamp']
+           'set_target', 'shared_ylabel', 'show_used', 'timestamp', 'add_arrows']
 
 class EventClicker(object):
     """
@@ -1369,7 +1370,9 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
     For each line, arrows will be added using 
     :method:`~matplotlib.axes.Axes.annotate`.  Arrows will be spread evenly
     over the line using the number of points in the line as the metric for
-    spacing.  Arrow color and alpha is obtained from the parent line.
+    spacing.  For example, if a line has 120 points and 3 arrows are requested,
+    an arrow will be added at point number 30, 60, and 90.
+    Arrow color and alpha is obtained from the parent line.
 
     Parameters
     ==========
@@ -1403,6 +1406,18 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
     Returns
     =======
     None
+
+    Notes
+    =====
+    The algorithm works by dividing the line in to *n*+1 segements and 
+    placing an arrow between each segement, endpoints excluded.  Arrows span
+    the shortest distance possible, i.e., two adjacent points along a line.
+    For lines that are long spatially but sparse in points, the arrows will
+    have long tails that may extend beyond axes bounds.  For explicit positions,
+    the arrow is placed at the point on the curve closest to that position
+    and the exact position is not always attainable.  A maximum number of arrows
+    equal to one-half of the number of points in a line per line will be
+    created, so not all lines will receive *n* arrows.
 
     Example
     =======
@@ -1451,17 +1466,23 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
     xlim, ylim = ax.get_xlim(), ax.get_ylim()
 
     if type(positions) != bool:
-        # Explicitly set positions:
+        # Explicitly set positions of arrows, one per line.
         for l, c, a, p in zip(data, cols, alph, positions):
+            # Get x-y points of line:
             x, y = l[:,0], l[:,1]
+            # Get point on line closest to desired position:
             i, j = argmin(abs(x - p[0])), argmin(abs(y - p[1]))
+            # Annotate, matching color/alpha:
             ax.annotate('',xytext=(x[i], y[j]), xy=(x[i+1], y[j+1]), alpha=a,
                         arrowprops=dict(arrowstyle=style,color=c),size=size)
+        # Nothing else to do at this point.
         return
-    
+
+    # Get positions for arrows and add them:
     for l, c, a in zip(data, cols, alph):
-        # Get info about line:
+        # Get x-y points of line:
         x, y = l[:,0], l[:,1]
+        # Restrict to axes limits as necessary:
         if dorestrict:
             loc = (x>=xlim[0])&(x<=xlim[1])&(y>=ylim[0])&(y<=ylim[1])
             x, y = x[loc], y[loc]
