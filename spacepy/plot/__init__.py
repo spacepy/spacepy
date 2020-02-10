@@ -56,6 +56,7 @@ Copyright 2011-2016 Los Alamos National Security, LLC.
    spectrogram
    style
    timestamp
+   add_arrows
 
 Most of the functionality in the plot module is made available directly 
 through the *plot* namespace. However, the plot module does contain
