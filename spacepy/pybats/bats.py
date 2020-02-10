@@ -1428,8 +1428,9 @@ class Bats2d(IdlFile):
         return fig, ax
 
     def add_stream_scatter(self, xcomp, ycomp, nlines=100, target=None, loc=111,
-                           method='rk4', xlim=None, ylim=None,
-                           start_points=None,**kwargs):
+                           method='rk4', xlim=None, ylim=None, narrow=0,
+                           arrsize=12, arrstyle='->', start_points=None,
+                           **kwargs):
         '''
         Add a set of stream traces to a figure or axes that are distributed
         evenly but randomly throughout the plot domain.
@@ -1465,6 +1466,15 @@ class Bats2d(IdlFile):
             Set start_points to define starting location of traces instead of
             using random points.  This is useful for creating timeseries of
             plots.
+        narrow : int
+            Add "n" arrows to each line to indicate direction.  Default is 
+            zero, or no lines.  If narrow=1, arrows will be placed at 
+            *start_points*.
+        arrstyle : string
+            Set the arrow style in the same manner as Matplotlib's 
+            annotate function.  Default is '->'.
+        arrsize : int
+            Set the size, in points, of each directional arrow.  Default is 12.
 
         Returns:
         ========
@@ -1477,6 +1487,7 @@ class Bats2d(IdlFile):
         from numpy import array
         from numpy.random import sample
         from matplotlib.collections import LineCollection
+        from spacepy.plot import add_arrows
         
         # Set ax and fig based on given target.
         fig, ax = set_target(target, figsize=(10,10), loc=loc)
@@ -1538,6 +1549,10 @@ class Bats2d(IdlFile):
         # Set the plot limits to match
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
+
+        # Add arrows if requested:
+        if narrow > 0:
+            add_arrows(collect, n=narrow, size=arrsize, style=arrstyle)
         
         return fig, ax, collect, start_points
                          
@@ -1686,9 +1701,9 @@ class Bats2d(IdlFile):
     
     def add_b_magsphere(self, target=None, loc=111,  style='mag', 
                         DoLast=True, DoOpen=True, DoTail=True,
-                        compX='bx',compY='bz',
-                        method='rk4', tol=np.pi/360., DoClosed=True,
-                        nOpen=5, nClosed=15, **kwargs):
+                        compX='bx',compY='bz', narrow=0, arrsize=12,
+                        method='rk4', tol=np.pi/720., DoClosed=True,
+                        nOpen=5, nClosed=15, arrstyle='->', **kwargs):
         '''
         Create an array of field lines closed to the central body in the
         domain.  Add these lines to Matplotlib target object *target*.
@@ -1721,6 +1736,12 @@ class Bats2d(IdlFile):
                    Defaults to 5.
         nClosed    Number of open field lines to trace per hemisphere.
                    Defaults to 15.
+        narrow     Add "n" arrows to each line to indicate direction.
+                   Default is zero, or no lines.
+        arrstyle   Set the arrow style in the same manner as Matplotlib's 
+                   annotate function.  Default is '->'.
+        arrsize    Set the size, in points, of each directional arrow.
+                   Default is 12.
         method     The tracing method; defaults to 'rk4'.   See 
                    :class:`spacepy.pybats.bats.Stream`.
         tol        Tolerance for finding open-closed boundary; see
@@ -1739,6 +1760,7 @@ class Bats2d(IdlFile):
         from matplotlib.collections import LineCollection
         from numpy import (arctan, cos, sin, where, pi, log, 
                            arange, sqrt, linspace, array)
+        from spacepy.plot import add_arrows
         
         # Set ax and fig based on given target.
         fig, ax = set_target(target, figsize=(10,10), loc=111)
@@ -1799,6 +1821,10 @@ class Bats2d(IdlFile):
         collect = LineCollection(lines, colors=colors, **kwargs)
         ax.add_collection(collect)
 
+        # Add lines if required:
+        if narrow>0:
+            add_arrows(collect, n=narrow, size=arrsize, style=arrstyle)
+        
         return fig, ax, collect
 
     def add_b_magsphere_new(self, *args, **kwargs):
