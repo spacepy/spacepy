@@ -1,8 +1,12 @@
 Changes in Version 0.2.1 (2019-xx-xx)
 =====================================
+plot
+ - New method for adding arrows to lines in utils
 poppy
  - Fix bootstrapping when aggregating function has multiple outputs
-
+pybats
+ - Added new stream trace visualization method for Bats2d objects: add_stream_scatter
+ - Bats2d.add_b_magsphere and add_stream_scatter now have kwargs for adding arrows on ray traces
 Changes in Version 0.2.0 (2019-06-22)
 =====================================
 - Many installer updates, including binary wheels for Windows
