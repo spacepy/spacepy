@@ -1550,8 +1550,12 @@ class Bats2d(IdlFile):
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
 
-        # Add arrows if requested:
-        if narrow > 0:
+        # Add arrows if requested.  If one point per line, use starting points.
+        # Otherwise, distribute arrows along lines.
+        if narrow == 1:
+            add_arrows(collect, n=narrow, size=arrsize,
+                       positions=start_points, style=arrstyle)
+        elif narrow > 1:
             add_arrows(collect, n=narrow, size=arrsize, style=arrstyle)
         
         return fig, ax, collect, start_points
