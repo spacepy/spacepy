@@ -163,6 +163,25 @@ class TestBats2d(unittest.TestCase):
 
         mhd.calc_all(exclude=['calc_gradP', 'calc_vort'])
 
+    def testPlotting(self):
+        '''
+        Create a contour plot, add stream traces with arrows, 
+        close plot, pass if no Exceptions.  This is a basic test that
+        ensures that all methods and functions underlying contours and
+        field line tracing are at least operating to completion.
+        '''
+
+        import matplotlib.pyplot as plt
+
+        # Test adding a basic contour:
+        fig, ax, cnt, cbar = self.mhd.add_contour('x', 'z', 'p', add_cbar=True)
+
+        # Test adding field lines via "add_b_magsphere":
+        self.mhd.add_b_magsphere(target=ax, narrow=5)
+
+        # Test adding streams via "add_stream_scatter":
+        self.mhd.add_stream_scatter('ux','uz',target=ax,narrow=1)
+        
 class TestMagGrid(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.bats.MagGridFile` to ensure opening,
