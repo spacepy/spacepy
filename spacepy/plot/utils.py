@@ -1509,7 +1509,7 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
     # Grab plot limits (sometimes needed):
     xlim, ylim = ax.get_xlim(), ax.get_ylim()
 
-    if type(positions) != bool:
+    if not isinstance(positions, bool):
         # Explicitly set positions of arrows, one per line.
         for l, c, a, p in zip(data, cols, alph, positions):
             # Get x-y points of line:
