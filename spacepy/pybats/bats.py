@@ -1532,13 +1532,13 @@ class Bats2d(IdlFile):
 
         # Extract stream traces, organize x and y coords:
         lines = []
-        for i in range(nlines):
+        for xstart, ystart in start_points:
             # Some index errors crop up from time to time.
             # While a better solution is dug up, we use a try
             # block for the time being.
             try:
-                stream = self.get_stream(start_points[i, 0], start_points[i, 1],
-                                         xcomp,ycomp,method=method)
+                stream = self.get_stream(xstart, ystart, xcomp, ycomp,
+                                         method=method)
             except IndexError:
                 continue
             
