@@ -23,6 +23,8 @@ pybats
  - Fixed open/closed tolerance kwarg not working in add_b_magsphere.
  - Added new stream trace visualization method for Bats2d objects: add_stream_scatter
  - Bats2d.add_b_magsphere and add_stream_scatter now have kwargs for adding arrows on ray traces
+ - Updates to ram.RamSat including omnidirectional flux calculation
+ - ram.PressureFile fixed for Python 3.x failures
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
