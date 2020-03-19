@@ -525,8 +525,28 @@ class RampyTests(unittest.TestCase):
         '''Ensure that original flux is unchanged on calculating omni-flux'''
         data = ram.RamSat(self.testfile)
         flux_h = data['FluxH+'].copy()
-        data.create_omniflux()
+        data.create_omniflux(check=False)
         numpy.testing.assert_array_equal(flux_h, data['FluxH+'])
+
+    def test_RamSat_omnicalc_regress(self):
+        '''Regression test for omni flux calculation'''
+        data = ram.RamSat(self.testfile)
+        #remove any precalculated omniflux
+        rmkeys = [key for key in data if key.lower().startswith('omni')]
+        for rmk in rmkeys:
+            del data[rmk]
+        regrH = np.array([0.0000000e+00, 1.4857327e+07, 1.4904620e+07, 1.4523555e+07,
+                          1.3417377e+07, 1.1787100e+07, 9.8903560e+06, 8.0948140e+06,
+                          6.6876425e+06, 5.7112065e+06, 5.0520345e+06, 4.5785050e+06,
+                          4.2270450e+06, 3.9780850e+06, 3.8351362e+06, 3.7873392e+06,
+                          3.9363230e+06, 4.0524422e+06, 2.9526408e+06, 9.0399219e+05,
+                          5.2025672e+05, 2.4965306e+05, 9.1892180e+04, 3.0133383e+04,
+                          1.6105718e+04, 1.4831358e+04, 1.7809768e+04, 2.2456926e+04,
+                          2.5075262e+04, 2.3687787e+04, 1.8142951e+04, 1.0017233e+04,
+                          3.8184448e+03, 1.1123656e+03, 2.2883945e+02], dtype=np.float32)
+        data.create_omniflux(check=False)
+        testarr = np.array(data['omniH'][0].data)
+        numpy.testing.assert_array_almost_equal(regrH, testarr)
 
 if __name__=='__main__':
     unittest.main()
