@@ -625,12 +625,8 @@ class RamSat(SpaceData):
         for omkey, fluxkey in omnikeys:
             self[omkey] = np.zeros((nTime, nEner))
             # Integrate.
-            temp = self[fluxkey].copy()
-            temp = np.ma.masked_where(temp<=0, temp)
-            for i in range(1, nPa):
-                temp[:,i,:] = temp[:,i,:] * dMu[i]
-
-            self[omkey] = temp.sum(1)
+            temp = np.ma.masked_where(self[fluxkey]<=0, self[fluxkey])
+            self[omkey] = (temp * np.reshape(dMu, (1, -1, 1))).sum(axis=1)
 
             # Mask out bad values.
             self[omkey] = np.ma.masked_where(self[omkey]<=0, self[omkey])
