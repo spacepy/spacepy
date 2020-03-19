@@ -569,6 +569,10 @@ class RamSat(SpaceData):
             [self.starttime + dt.timedelta(seconds=float(s)) for s in secs])
         self['Time'] = self.time
 
+        # Close netcdf file and remove reference
+        self.f.close()
+        del self.f
+
         # Some other variables to keep handy:
         try:
             self.dt = self['DtWrite']
