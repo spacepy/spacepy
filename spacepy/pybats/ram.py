@@ -597,10 +597,10 @@ class RamSat(SpaceData):
         '''
         def get_species_label(keyname, omni=False):
             uvar = 'omni' if omni else 'Flux'
-            if uvar+'_' in keyname:
-                return keyname[5:].replace('+', '')
-            elif uvar in keyname:
-                return keyname[4:].replace('+', '')
+            if keyname.startswith(uvar + '_'):
+                return keyname[len(uvar)+1:].replace('+', '')
+            elif keyname.startswith(uvar):
+                return keyname[len(uvar):].replace('+', '')
 
         omnipresent = [True for kk in self if get_species_label(kk, omni=True)
                        is not None]
