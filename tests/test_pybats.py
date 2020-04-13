@@ -329,12 +329,32 @@ class TestImfInput(unittest.TestCase):
     knownImfRho  = [5., 15.]
     knownImfTemp = [.80E+05, 1.20E+05]
     knownImfIono = [4.99, 0.01]
+    knownSubMilli= dt.datetime(2017, 9, 6, 16, 42, 36, 999000)
 
     def tearDown(self):
         # Remove temporary files.
         for f in glob.glob('*.tmp'):
             os.remove(f)
 
+    def testSubMillisec(self):
+        '''
+        Test case where sub-millisecond time values can create problems on
+        read/write.
+        '''
+        # Create an IMF object from scratch, fill with zeros.
+        imf = pb.ImfInput()
+        for key in imf: imf[key]=[0]
+        
+        # Add a sub-millisecond time:
+        imf['time'] = [dt.datetime(2017,9,6,16,42,36,999500)]
+
+        # Write and test for non-failure on re-read:
+        imf.write('testme.tmp')
+        imf2 = pb.ImfInput('testme.tmp')
+
+        # Test for floor of sub-millisecond times:
+        self.assertEqual(self.knownSubMilli, imf2['time'][0])
+            
     def testWrite(self):
         # Test that files are correctly written to file.
         
