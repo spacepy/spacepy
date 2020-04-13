@@ -1569,7 +1569,7 @@ class ImfInput(PbData):
         out.write('\n#START\n')
         for i in range(len(self['time'])):
             out.write('{:%Y %m %d %H %M %S} {:03d} '.format(
-                self['time'][i], int(round(self['time'][i].microsecond/1000.))))
+                self['time'][i], int(self['time'][i].microsecond/1000.)))
             out.write(' {}\n'.format(
                 ' '.join('{:10.2f}'.format(self[key][i]) for key in var)))
         out.close()
