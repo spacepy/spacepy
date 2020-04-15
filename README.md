@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3470304.svg)](https://doi.org/10.5281/zenodo.3470304)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3252523.svg)](https://doi.org/10.5281/zenodo.3252523)
 [![Build Status](https://api.travis-ci.com/spacepy/spacepy.svg?branch=master)](https://travis-ci.com/spacepy/spacepy)
 
 # SpacePy
