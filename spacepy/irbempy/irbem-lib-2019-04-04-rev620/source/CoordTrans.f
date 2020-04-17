@@ -1850,7 +1850,7 @@ c input=SPH
             do i=1,3
                xTMP(i)=xOUT(i)
             enddo
-            xOUT(1)=SQRT(xIN(1)*xIN(1)+xIN(2)*xIN(2)+xIN(3)*xIN(3))
+            xOUT(1)=xIN(1)
             xOUT(2)=xTMP(1)
             xOUT(3)=xTMP(2)
          endif
