@@ -1,6 +1,11 @@
 Changes in Version 0.2.2 (2020-xx-xx)
 =====================================
 - Document end of support for Python 2
+coordinates
+ - Include upstream fix for SPH->RLL coordinate transform
+irbempy
+ - Update IRBEMlib to rev620
+ - Rev620 adds IGRF13 coefficients
 plot
  - utils.EventClicker support for non-line plots (e.g. pcolor)
 pycdf
