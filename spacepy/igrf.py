@@ -1,4 +1,5 @@
 # std. lib.
+from __future__ import division
 import os
 import datetime as dt
 import warnings
@@ -9,6 +10,7 @@ import numpy as np
 # third-party or current
 from spacepy import __path__ as basepath
 from spacepy import DOT_FLN
+import spacepy.time as spt
 
 class IGRF():
     def __init__(self):
@@ -103,22 +105,21 @@ class IGRF():
 
         # Find the indices for the epochs surrounding input time
         utc = self.time
-        # TODO: sort out numeric times... something like TAI in Ticktock
-        tstamp = utc.timestamp()
+        tstamp = spt.Ticktock(utc, 'UTC').MJD[0]
 
         # Compute the various IGRF dependent things like position of CD
         # TODO: So that full IGRF can be used eventually, for each in
         # __coeffs, interp to time and save as '[g|h][n][m]' e.g., 'h32' (entries in self.coeffs)
         if not self.__valid_extrap:
             # Interpolate coefficients linearly
-            numepochs = [dt.datetime(int(val), 1, 1).timestamp() for val in self._epochs]
+            numepochs = [spt.Ticktock(dt.datetime(int(val), 1, 1)).MJD[0] for val in self._epochs]
             g10 = np.interp(tstamp, numepochs, self.__coeffs['g'][1][0])
             g11 = np.interp(tstamp, numepochs, self.__coeffs['g'][1][1])
             h11 = np.interp(tstamp, numepochs, self.__coeffs['h'][1][1])
         else:
             # Extrapolate using secular variation
-            ref_ep = dt.datetime(int(self._epochs[-1]), 1, 1).timestamp()
-            diff_years = (tstamp - ref_ep)/(86400*365.25)  # in years
+            ref_ep = spt.Ticktock(dt.datetime(int(self._epochs[-1]), 1, 1)).MJD[0]
+            diff_years = ((tstamp % 1 + tstamp//1) - (ref_ep % 1 + ref_ep//1))/365.25 # in years
             g10 = self.__coeffs['g_SV'][1][0]*diff_years + self.__coeffs['g'][1][0][-1]
             g11 = self.__coeffs['g_SV'][1][1]*diff_years + self.__coeffs['g'][1][1][-1]
             h11 = self.__coeffs['h_SV'][1][1]*diff_years + self.__coeffs['h'][1][1][-1]
@@ -129,7 +130,7 @@ class IGRF():
         # Compute dipole moments.
         self.moment = {'cd': mom,
                        'cd_McIlwain': 31165.3,
-                       'cd_2010': 29950.126496041714,
+                       'cd_2010': 29950.126496,
                        }
 
         self.dipole = dict()
