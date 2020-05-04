@@ -941,7 +941,8 @@ except:
 
 
 packages = ['spacepy', 'spacepy.irbempy', 'spacepy.pycdf',
-            'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox', ]
+            'spacepy.plot', 'spacepy.pybats', 'spacepy.toolbox',
+            'spacepy.ctrans', ]
 #If adding to package_data, also put in MANIFEST.in
 package_data = ['data/*.*', 'pybats/sample_data/*', 'data/LANLstar/*', 'data/TS07D/TAIL_PAR/*']
 
