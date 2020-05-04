@@ -297,14 +297,13 @@ class CTrans(dm.SpaceData):
         if not self.__status['transformCore'] or recalc:
             self.calcCoreTransforms()
 
+        # Call IGRF to calculate centered dipole
         self['IGRF'] = igrf.IGRF()
         self['IGRF'].initialize(self['UTC'].UTC[0])
 
-        # TODO: add in transformations for GSM and SM
-        #c->CD_gcolat = gclat*DegPerRad;
-        #c->CD_glon   = glon*DegPerRad;
-        glon = self['IGRF'].dipole['cd_glon']
-        gcolat = self['IGRF'].dipole['cd_gcolat']
+        # Get dipole axis unit vector
+        glon = self['IGRF'].dipole['cd_glon_rad']
+        gcolat = self['IGRF'].dipole['cd_gcolat_rad']
         dip = np.empty(3)
         dip[0] = np.cos(glon)*np.sin(gcolat)
         dip[1] = np.sin(glon)*np.sin(gcolat)
@@ -331,28 +330,51 @@ class CTrans(dm.SpaceData):
         self['Transform']['ECIMOD_GSM'] = ecimod_gsm
         self['Transform']['GSM_ECIMOD'] = ecimod_gsm.T
 
-        ### Compute the Dipole Tilt angle. First convert Dmod into GSM.
-        ### Then psi is just the angle between Dgsm and Zgsm
-        ##Dgsm.x = c->Amod_to_gsm[0][0]*Dmod.x + c->Amod_to_gsm[1][0]*Dmod.y + c->Amod_to_gsm[2][0]*Dmod.z;
-        ##Dgsm.y = c->Amod_to_gsm[0][1]*Dmod.x + c->Amod_to_gsm[1][1]*Dmod.y + c->Amod_to_gsm[2][1]*Dmod.z;
-        ##Dgsm.z = c->Amod_to_gsm[0][2]*Dmod.x + c->Amod_to_gsm[1][2]*Dmod.y + c->Amod_to_gsm[2][2]*Dmod.z;
+        # Compute the Dipole Tilt angle (psi). First convert dipmod into GSM.
+        # Then psi is just the angle between dipgsm and Zgsm
+        dipgsm = self.convert(dipmod, 'ECIMOD', 'GSM')
+        psidot = np.array([0, 0, 1]).dot(dipgsm)
+        self._normVec(psidot)
+        psi = np.arccos(psidot)
+        psi *= -1 if (dipgsm[0] < 0) else 1
+        self['DipoleTilt_rad'] = psi
+        self['DipoleTilt'] = np.rad2deg(psi)
+        cos_psi = np.cos(psi)
+        sin_psi = np.sin(psi)
+        tan_psi = sin_psi/cos_psi
 
-        ##spsi = fabs( Dgsm.x )
-        ##psi = asin( spsi )
-        ##psi *= -1 if (dipgsm[0] < 0) else 1
-        ##c->psi = psi
-        ##c->cos_psi = cos( psi )
-        ##c->sin_psi = sin( psi )
-        ##c->tan_psi = c->sin_psi/c->cos_psi
+        # Set up transformation matrices for GSM <-> SM
+        gsm_sm = np.empty((3, 3))
+        gsm_sm[:, 0] = np.array([cos_psi, 0, sin_psi])
+        gsm_sm[:, 1] = np.array([0, 1, 0], dtype=np.float)
+        gsm_sm[:, 2] = np.array([-1*sin_psi, 0, cos_psi])
+        self['Transform']['GSM_SM'] = gsm_sm
+        self['Transform']['SM_GSM'] = gsm_sm.T
+        # Get conversion to MOD for completeness
+        self['Transform']['ECIMOD_SM'] = gsm_sm.dot(self['Transform']['ECIMOD_GSM'])
+        self['Transform']['SM_ECIMOD'] = self['Transform']['ECIMOD_SM'].T
 
-        ### Construct trans. matrices for GSM <-> SM
-        ##c->Agsm_to_sm[0][0] = c->cos_psi, c->Agsm_to_sm[1][0] = 0.0, c->Agsm_to_sm[2][0] = -c->sin_psi;
-        ##c->Agsm_to_sm[0][1] = 0.0,        c->Agsm_to_sm[1][1] = 1.0, c->Agsm_to_sm[2][1] =  0.0;
-        ##c->Agsm_to_sm[0][2] = c->sin_psi, c->Agsm_to_sm[1][2] = 0.0, c->Agsm_to_sm[2][2] =  c->cos_psi;
-        ##Lgm_Transpose( c->Agsm_to_sm, c->Asm_to_gsm );
+    def convert(self, vec, sys_in, sys_out):
+        """Convert an input vector between two coordinate systems
+        """
+        transform = '{0}_{1}'.format(sys_in, sys_out)
+        if transform not in self['Transform']:
+            try:
+                trans1 = '{0}_{1}'.format(sys_in, 'ECIMOD')
+                trans2 = '{0}_{1}'.format('ECIMOD', sys_out)
+                assert trans1 in self['Transform']
+                assert trans1 in self['Transform']
+                # If we have A->MOD and MOD->B then we can just
+                # construct the conversion
+                tmatr = self['Transform'][trans2].dot(self['Transform'][trans1])
+            except (KeyError, AssertionError):
+                self._raiseError(ValueError, 'transform')
+        else:
+            tmatr= self['Transform'][transform]
+        return tmatr.dot(vec)
 
     def gmst(self):
-        """
+        """Calculate Greenwich Mean Sidereal Time
         """
         if not (self.__status['time'] or self.__status['timeInProgress']):
             self.calcTimes(from_gmst=True)
@@ -437,7 +459,7 @@ class CTrans(dm.SpaceData):
             sunVec[2] = sin_epsilon*sin_lambda
             self['SunVector_MOD'] = sunVec
             # Convert to ECI2000
-            self['SunVector_J2000'] = self['Transform']['ECIMOD_ECI2000'].dot(sunVec)
+            self['SunVector_J2000'] = self.convert(sunVec, 'ECIMOD', 'ECI2000')
         elif self.attrs['ephmodel'] == 'DE421':
             raise NotImplementedError
             # TODO: get Sun vector from DE421 (read HDF5 of coeffs from LGM github?)
@@ -457,6 +479,8 @@ class CTrans(dm.SpaceData):
             err = 'Earth Oriention Parameters not found'
         elif code == 'sun':
             err = 'Invalid entry into Sun vector routine. Not intended for direct use.'
+        elif code == 'transform':
+            err = 'Requested coordinate transform not defined.'
         else:
             err = 'Operation not defined'
 
