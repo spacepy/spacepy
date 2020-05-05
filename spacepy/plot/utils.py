@@ -1435,7 +1435,8 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
         The size of the arrows in points.  Defaults to 12.
 
     style : string
-        Set the style of the arrow, e.g. '->' (default) or '-|>'
+        Set the style of the arrow via :class:`~matplotlib.patches.ArrowStyle`,
+        e.g. '->' (default) or '-|>'
 
     dorestrict : boolean
         If True (default), only points along the line within the current
