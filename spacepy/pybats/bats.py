@@ -1743,7 +1743,7 @@ class Bats2d(IdlFile):
         nClosed    Number of open field lines to trace per hemisphere.
                    Defaults to 15.
         narrow     Add "n" arrows to each line to indicate direction.
-                   Default is zero, or no lines.
+                   Default is zero, or no arrows.
         arrstyle   Set the arrow style in the same manner as Matplotlib's 
                    annotate function.  Default is '->'.
         arrsize    Set the size, in points, of each directional arrow.
@@ -1769,6 +1769,7 @@ class Bats2d(IdlFile):
         from spacepy.plot import add_arrows
         
         # Set ax and fig based on given target.
+        adj_lims = not(target) # If no target set, adjust axes limits.
         fig, ax = set_target(target, figsize=(10,10), loc=111)
         self.add_body(ax)
 
@@ -1831,6 +1832,23 @@ class Bats2d(IdlFile):
         if narrow>0:
             add_arrows(collect, n=narrow, size=arrsize, style=arrstyle)
         
+        # On fresh axes, adjust limits from default ([0,1]):
+        if adj_lims:
+            # Set defaults:
+            xlim, ylim = [0,1], [0,1]
+
+            # Get x,y locations along each line:
+            points = [path.vertices for path in collect.get_paths()]
+            
+            # Get max/min from each line, update lims:
+            for p in points:
+                xlim = min(xlim[0], p.min(0)[0]), max(xlim[1], p.max(0)[0])
+                ylim = min(ylim[0], p.min(0)[1]), max(ylim[1], p.max(0)[1])
+
+            # Set new axes limits:
+            ax.set_xlim(xlim)
+            ax.set_ylim(ylim)
+            
         return fig, ax, collect
 
     def add_b_magsphere_new(self, *args, **kwargs):
