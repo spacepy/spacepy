@@ -289,6 +289,7 @@ class CTrans(dm.SpaceData):
         self['Transform']['GSE_ECIMOD'] = ecimod_gse.T
 
         # TODO: add in transformations for TEME, PEF, and ECEF
+        # TODO: ECEF(GEO) is the key here... how bad is an approximate direct path?
 
         self.__status['transformCore'] = True
 
@@ -341,7 +342,6 @@ class CTrans(dm.SpaceData):
         self['DipoleTilt'] = np.rad2deg(psi)
         cos_psi = np.cos(psi)
         sin_psi = np.sin(psi)
-        tan_psi = sin_psi/cos_psi
 
         # Set up transformation matrices for GSM <-> SM
         gsm_sm = np.empty((3, 3))
@@ -370,7 +370,7 @@ class CTrans(dm.SpaceData):
             except (KeyError, AssertionError):
                 self._raiseError(ValueError, 'transform')
         else:
-            tmatr= self['Transform'][transform]
+            tmatr = self['Transform'][transform]
         return tmatr.dot(vec)
 
     def gmst(self):
@@ -389,7 +389,7 @@ class CTrans(dm.SpaceData):
         coeffD = 6.2e-6
         if pnmodel.upper() == 'LGMDEFAULT':
             self['GMST'] = fmod((67310.54841 + (876600*3600 + coeffB)*UT1_P1 +
-                            coeffC*UT1_P2 - coeffD*UT1_P3)/3600, 24)
+                                coeffC*UT1_P2 - coeffD*UT1_P3)/3600, 24)
             self['GMST_rad'] = np.deg2rad(self['GMST']*15)
         elif pnmodel.upper() == 'IAU82':
             # total fractional part of UT1 Julian day
