@@ -482,15 +482,27 @@ class Stream(Extraction):
         'mag' : treat line as a magnetic field line.  Closed lines are
                 white, other lines are black.
         '''
+
+        import re
         
+        # Here, we can set line color and style based on
+        # line characteristics.  Right now, only one preset is
+        # available.
         if style == 'mag':
             if self.open:
                 self.style = 'k-'
+                self.color = 'k'
             else:
                 self.style = 'w-'
+                self.color = 'w'
         else:
             self.style = style
-
+            col = re.match('([bgrcmykw])', style)
+            if col:
+                self.color=col.groups()[0]
+            else:
+                self.color='k'
+                
     def treetrace(self, bats, maxPoints=20000):
         '''
         Trace through the vector field using the quad tree.
@@ -1709,6 +1721,7 @@ class Bats2d(IdlFile):
                         DoLast=True, DoOpen=True, DoTail=True,
                         compX='bx',compY='bz', narrow=0, arrsize=12,
                         method='rk4', tol=np.pi/720., DoClosed=True,
+                        colors=None, linestyles=None,
                         nOpen=5, nClosed=15, arrstyle='->', **kwargs):
         '''
         Create an array of field lines closed to the central body in the
@@ -1716,8 +1729,17 @@ class Bats2d(IdlFile):
         If no *target* is specified, a new figure and axis are created.
 
         A tuple containing the figure, axes, and LineCollection object
-        is returned.  Any additional kwargs are handed to the LineCollection
-        object.
+        is returned.  
+
+        Any additional kwargs are handed to the LineCollection object with
+        some limitations.  Line colors and styles should be handled by 
+        the *style*, *colors*, and *linestyles* kwargs.  Default is "mag",
+        `None` and `None`, respectively, which colors open field lines
+        as black and closed field lines as black.  The last-closed boundary
+        lines are always solid red lines.  Users may control groups 
+        individually using multiple calls and plotting one group at a time.
+        Note that *colors* and *linestyles* kwargs will override *style*;
+        *colors* allows for more flexibility concerning color choice.
 
         Note that this should currently only be used for GSM y=0 cuts
         of the magnetosphere.
@@ -1733,7 +1755,10 @@ class Bats2d(IdlFile):
         ========== ===========================================================
         target     The figure or axes to place the resulting lines.
         style      The color coding system for field lines.  Defaults to 'mag'.
-                   See :class:`spacepy.pybats.bats.Stream`.
+                   See :class:`spacepy.pybats.bats.Stream`.  Because lines are 
+                   added as a :class:`~matplotlib.collections.LineCollection`,
+                   only certain styles are allowed (i.e., line styles only,
+                   no marker styles).
         loc        The location of the subplot on which to place the lines.
         DoLast     Plot last-closed lines as red lines.  Defaults to **True**.
         DoOpen     Plot open field lines.  Defaults to **True**.
@@ -1754,14 +1779,35 @@ class Bats2d(IdlFile):
                    :func:`~spacepy.pybats.bats.Bats2d.find_earth_lastclosed`.
         compX      Name of x-variable through which to trace, defaults to 'bx'.
         compY      Name of y-variable through which to trace, defaults to 'bz'.
+        colors     Matplotlib-compatable color name (single) to apply to lines.
+        linestyles A single line style indicator, defaults to '-'; 
+                   see :class:`~matplotlib.collections.LineCollection` for 
+                   possible options.
         ========== ===========================================================
         
-        Extra kwargs are passed to Matplotlib's LineCollection class.
+        Extra kwargs are passed to Matplotlib's LineCollection class as
+        described above.
 
-        Three objects are returned: the figure and axes on which lines are
-        placed and the LineCollection object containing the plotted lines.
+        Returns
+        =======
+        fig : matplotlib Figure object
+        ax  : matplotlib Axes object
+        collect : matplotlib Collection object of trace results
+
+        Examples
+        ========   
+        >>> import matplotlib.pyplot as plt
+        >>> from spacepy.pybats import bats
+        >>> # Open a 2D slice, add a pressure contour:
+        >>> mhd = bats.Bats2d('./y0_binary.out')
+        >>> mhd.add_contour('x','z','p')
+        >>> # Add field lines using default styling:
+        >>> mhd.add_b_magsphere(target=plt.gca())
+        >>> # Add a subset of lines using custom styling:
+        >>> mhd.add_b_magsphere(target=plt.gca(), DoLast=False, DoOpen=False, style='g--')
+
         '''
-        
+        import re
         import matplotlib.pyplot as plt
         from matplotlib.collections import LineCollection
         from numpy import (arctan, cos, sin, where, pi, log, 
@@ -1773,9 +1819,18 @@ class Bats2d(IdlFile):
         fig, ax = set_target(target, figsize=(10,10), loc=111)
         self.add_body(ax)
 
-        # Lines and colors:
+        # Lines, colors, and styles:
         lines = []
-        colors= []
+        cols  = []
+
+        # Try to get line style from "style" string.
+        # Default to regular line if not successful.
+        if not linestyles:
+            lstyle = re.sub('\w','',style)
+            if not lstyle:
+                linestyles = '-'
+            else:
+                linestyles=lstyle
 
         # Start by finding open/closed boundary.
         tilt, thetaD, thetaN, last1, last2 = self.find_earth_lastclosed(
@@ -1793,15 +1848,16 @@ class Bats2d(IdlFile):
                     linspace(0,     thetaD[0]-dTheta, nClosed),
                     linspace(np.pi, thetaN[1]-dTheta, nClosed)):
                 x, y = R*cos(tDay), R*sin(tDay)
-                sD   = self.get_stream(x,y,compX,compY,method=method)
+                sD   = self.get_stream(x,y,compX,compY,method=method,
+                                       style=style)
                 x, y = R*cos(tNit), R*sin(tNit)
                 sN   = self.get_stream(x,y,compX,compY,method=method,
-                                       maxPoints=1E6)
+                                       maxPoints=1E6,style=style)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
-                colors.append(sD.style[0])
-                colors.append(sN.style[0])
+                cols.append(sD.color)
+                cols.append(sN.color)
                 
         ## Do open field lines ##
         if DoOpen:
@@ -1809,23 +1865,31 @@ class Bats2d(IdlFile):
                     linspace(thetaD[0]+dThetaN, thetaN[0]-dThetaN, nOpen),
                     linspace(thetaN[1]+dThetaS, thetaD[1]-dThetaS, nOpen)):
                 x, y = R*cos(tNorth), R*sin(tNorth)
-                sD   = self.get_stream(x,y,compX,compY,method=method)
+                sD   = self.get_stream(x,y,compX,compY,method=method,
+                                       style=style)
                 x, y = R*cos(tSouth), R*sin(tSouth)
-                sN   = self.get_stream(x,y,compX,compY,method=method)
+                sN   = self.get_stream(x,y,compX,compY,method=method,
+                                       style=style)
                 # Append to lines, colors.
                 lines.append(array([sD.x, sD.y]).transpose())
                 lines.append(array([sN.x, sN.y]).transpose())
-                colors.append(sD.style[0])
-                colors.append(sN.style[0])  
-                    
+                cols.append(sD.color)
+                cols.append(sN.color)  
+
+        ## Finalize Collection ##
+        # If colors is given, replace what is given from
+        # individual lines.  Keep the list-approach, however.
+        if colors: cols = [colors]*len(cols)
+                
         # Add last-closed field lines at end so they are plotted "on top".
         if DoLast:
             lines+=[array([last1.x,last1.y]).transpose(),
                     array([last2.x,last2.y]).transpose()]
-            colors+=2*['r']
-     
+            cols+=2*['r']
+            
         # Create line collection & plot.
-        collect = LineCollection(lines, colors=colors, **kwargs)
+        collect = LineCollection(lines, colors=cols, linestyles=linestyles,
+                                 **kwargs)
         ax.add_collection(collect)
 
         # Add lines if required:

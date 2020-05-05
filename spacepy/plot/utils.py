@@ -1454,8 +1454,8 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
 
     Notes
     =====
-    The algorithm works by dividing the line in to *n*+1 segements and 
-    placing an arrow between each segement, endpoints excluded.  Arrows span
+    The algorithm works by dividing the line in to *n*+1 segments and 
+    placing an arrow between each segment, endpoints excluded.  Arrows span
     the shortest distance possible, i.e., two adjacent points along a line.
     For lines that are long spatially but sparse in points, the arrows will
     have long tails that may extend beyond axes bounds.  For explicit positions,
