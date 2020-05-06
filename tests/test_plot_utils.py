@@ -127,5 +127,38 @@ class PlotUtilFunctionTests(unittest.TestCase):
         self.assertTrue(ann.get_text().startswith(now[:7]))
         plt.close()
 
+    def test_add_arrows(self):
+        '''Test different cases for adding arrows to lines.'''
+        from matplotlib.collections import LineCollection
+        
+        fig = plt.figure()
+        ax  = fig.add_subplot(111)
+        # Basic line2d and tuple of line2Ds:
+        x, y = numpy.arange(10), numpy.arange(10)
+        line = ax.plot(x,y)[0]
+        lines= ax.plot(x,y+5, x,y+10, x,y+15)
+        # Gin up a LineCollection:
+        xs = numpy.arange(100)
+        ys = xs[:10, numpy.newaxis] + xs[numpy.newaxis, :]
+        segs = numpy.zeros((10, 100, 2), float)
+        segs[:, :, 1] = ys/5
+        segs[:, :, 0] = xs/10.
+        collect = LineCollection(segs)
+        ax.add_collection(collect)
+
+        #### Should finish successfully ####
+        # Add arrows to all:
+        spacepy.plot.utils.add_arrows(line)
+        spacepy.plot.utils.add_arrows(lines)
+        spacepy.plot.utils.add_arrows(collect)
+
+        #### Should fail ####
+        with self.assertRaises(ValueError):
+            spacepy.plot.utils.add_arrows( (line, 1) )
+        with self.assertRaises(ValueError):
+            spacepy.plot.utils.add_arrows( 'not a line' )
+        
+        plt.close('all')
+        
 if __name__ == "__main__":
     unittest.main()

@@ -1798,7 +1798,8 @@ class Bats2d(IdlFile):
         ========   
         >>> import matplotlib.pyplot as plt
         >>> from spacepy.pybats import bats
-        >>> # Open a 2D slice, add a pressure contour:
+        >>> # Open a 2D slice, add a pressure contour.
+        >>> # Example file in spacepy/tests/data/pybats_test/:
         >>> mhd = bats.Bats2d('./y0_binary.out')
         >>> mhd.add_contour('x','z','p')
         >>> # Add field lines using default styling:
