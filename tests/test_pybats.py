@@ -348,7 +348,7 @@ class TestImfInput(unittest.TestCase):
     knownImfRho  = [5., 15.]
     knownImfTemp = [.80E+05, 1.20E+05]
     knownImfIono = [4.99, 0.01]
-    knownSubMilli= dt.datetime(2017, 9, 6, 16, 42, 36, 999000)
+    knownSubMilli= dt.datetime(2017, 9, 6, 16, 42, 37, 0)
 
     def tearDown(self):
         # Remove temporary files.
@@ -365,7 +365,7 @@ class TestImfInput(unittest.TestCase):
         for key in imf: imf[key]=[0]
         
         # Add a sub-millisecond time:
-        imf['time'] = [dt.datetime(2017,9,6,16,42,36,999500)]
+        imf['time'] = [dt.datetime(2017,9,6,16,42,36,999600)]
 
         # Write and test for non-failure on re-read:
         imf.write('testme.tmp')

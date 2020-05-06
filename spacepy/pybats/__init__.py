@@ -1564,12 +1564,19 @@ class ImfInput(PbData):
             out.write('#PLANE\n{}\n'.format(
                 ''.join('{:-6.2f}\n'.format(n)
                 for n in self.attrs['plane'])))
-
+            
         # Write the data:
         out.write('\n#START\n')
         for i in range(len(self['time'])):
-            out.write('{:%Y %m %d %H %M %S} {:03d} '.format(
-                self['time'][i], self['time'][i].microsecond//1000))
+            # Round to nearest millisecond; check for rounding
+            # to nearest second:
+            t = self['time'][i]
+            ms = int(round(t.microsecond / 1000.))
+            if ms >999:
+                ms = 0
+                t += dt.timedelta(microseconds=1000)
+            # Write record to file:
+            out.write('{:%Y %m %d %H %M %S} {:03d} '.format(t, ms))
             out.write(' {}\n'.format(
                 ' '.join('{:10.2f}'.format(self[key][i]) for key in var)))
         out.close()
