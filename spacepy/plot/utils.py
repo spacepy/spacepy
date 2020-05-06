@@ -1481,27 +1481,29 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
     # Convert our line, lines, or LineCollection into
     # a series of arrays with the x/y data.
     # Also, grab the axes, colors, and line alpha.
-    if isinstance(lines, Line2D):
-        # Single line: turn into a list for iteration.
-        ax   = lines.axes
-        data = [lines.get_xydata()]
-        cols = [lines.get_color()]
-        alph = [lines.get_alpha()]
-    elif isinstance(lines, (tuple, list)):
-        # Multiple lines: convert into list of xy points.
-        ax   = lines[0].axes
+    def _parse_line_list(lines): #handles lists of lines
         data = [x.get_xydata() for x in lines]
         cols = [x.get_color()  for x in lines]
-        alph = [x.get_alpha()  for x in lines] 
-    elif isinstance(lines, LineCollection):
-        # LineCollection: use "get paths" to extract points into list.
-        ax   = lines.axes
-        data = [x.vertices for x in lines.get_paths()]
-        cols = lines.get_colors()
-        alph = len(data) * [lines.get_alpha()]
+        alph = [x.get_alpha()  for x in lines]
+        ax   = lines[0].axes
+        return data, cols, alph, ax
+    
+    if hasattr(lines, 'axes'):  # Matplotlib-like objects:
+        try: # Collection-like: use "get paths" to extract points into list
+            ax   = lines.axes
+            data = [x.vertices for x in lines.get_paths()]
+            cols = lines.get_colors()
+            alph = len(data) * [lines.get_alpha()]
+        except AttributeError: # Line2D-like: put in list and parse
+            data, cols, alph, ax = _parse_line_list( [lines] )
+    elif isinstance(lines, (tuple, list)): # List/tuple of Line-like objects:
+        try: 
+            data, cols, alph, ax = _parse_line_list( lines )
+        except AttributeError:
+            raise ValueError('Non-Line2d-like item found in list of lines.')
     else:
         raise ValueError('Unknown input type for lines.')
-
+    
     # Check to make sure that we have as many colors as lines.
     # With LineCollections, this isn't always the case!
     if len(data)>1 and len(cols)==1:
