@@ -1718,7 +1718,7 @@ class Bats2d(IdlFile):
 
     
     def add_b_magsphere(self, target=None, loc=111,  style='mag', 
-                        DoLast=True, DoOpen=True, DoTail=True,
+                        DoLast=True, DoOpen=True,
                         compX='bx',compY='bz', narrow=0, arrsize=12,
                         method='rk4', tol=np.pi/720., DoClosed=True,
                         colors=None, linestyles=None,
@@ -1728,21 +1728,35 @@ class Bats2d(IdlFile):
         domain.  Add these lines to Matplotlib target object *target*.
         If no *target* is specified, a new figure and axis are created.
 
+        Note that this should currently only be used for GSM y=0 cuts
+        of the magnetosphere.
+
         A tuple containing the figure, axes, and LineCollection object
         is returned.  
 
-        Any additional kwargs are handed to the LineCollection object with
-        some limitations.  Line colors and styles should be handled by 
-        the *style*, *colors*, and *linestyles* kwargs.  Default is "mag",
-        `None` and `None`, respectively, which colors open field lines
-        as black and closed field lines as black.  The last-closed boundary
-        lines are always solid red lines.  Users may control groups 
+        Basic styling (color and linestyle) can be handled with the
+        *style*, *colors*, and *linestyles* kwargs.  *style* can accept 
+        style names as defined in :class:`~spacepy.pybats.bats.Stream`, which
+        colors and styles lines based on characteristics (e.g., open, closed).
+        The default is 'mag', which colors open lines black and closed lines
+        white.  Alternatively, this kwarg works in a similar manner as 
+        it does in :function:`~matplotlib.pyplot.plot`,
+        i.e., a string code such as "b-" (a solid blue line) or 'r:' (a
+        dotted red line), etc.  Both *colors* and *linestyles* work much
+        as they do for :class:`~matplotlib.collections.LineCollection`, but
+        only a single value (not a list or tuple) should be provided.
+        *colors* can be a CSS4 color name, an RGB tuple, or a string hex code.
+        *linestyles* can be the name of the style (e.g., "dashed") or a
+        shortcut compatable with the *style* kwarg (e.g., "--").  See the
+        documentation for the associated Matplotlib classes & functions to 
+        see all options.  Note that *linestyles* and *colors* override
+        *style*.
+
+        If the styling kwargs are used, they will set the colors for all
+        lines except last-closed boundaries.  Users may control groups 
         individually using multiple calls and plotting one group at a time.
         Note that *colors* and *linestyles* kwargs will override *style*;
         *colors* allows for more flexibility concerning color choice.
-
-        Note that this should currently only be used for GSM y=0 cuts
-        of the magnetosphere.
 
         Algorithm:  This method, unlike its predecessor, starts by finding
         the last closed field lines via 
@@ -1909,6 +1923,14 @@ class Bats2d(IdlFile):
             for p in points:
                 xlim = min(xlim[0], p.min(0)[0]), max(xlim[1], p.max(0)[0])
                 ylim = min(ylim[0], p.min(0)[1]), max(ylim[1], p.max(0)[1])
+
+            # Convert to arrays for element arithmatic:
+            xlim, ylim = np.array(xlim), np.array(ylim)
+            
+            # Add a buffer:
+            dX, dY = min(5,xlim[1]-xlim[0]), min(5,ylim[1]-ylim[0])
+            xlim+=(-dX, dX)
+            ylim+=(-dY, dY)
 
             # Set new axes limits:
             ax.set_xlim(xlim)
