@@ -909,6 +909,25 @@ class JSONTests(unittest.TestCase):
         restype = type(data['Epoch'][0])
         self.assertEqual(exptype, restype)
 
+    def test_dateToISOunaltered_SD(self):
+        """Test to check that _dateToISO doesn't change datatypes, input SpaceData"""
+        data = dm.SpaceData()
+        data['Epoch'] = spt.tickrange('20200101', '20200102',
+                                      deltadays=datetime.timedelta(hours=1)).UTC
+        exptype = type(data['Epoch'][0])
+        newdata = dm._dateToISO(data)
+        restype = type(data['Epoch'][0])
+        self.assertEqual(exptype, restype)
+
+    def test_dateToISOunaltered_dm(self):
+        """Test to check that _dateToISO doesn't change datatypes, input dmarray"""
+        data = spt.tickrange('20200101', '20200102',
+                             deltadays=datetime.timedelta(hours=1)).UTC
+        exptype = type(data[0])
+        newdata = dm._dateToISO(data)
+        restype = type(data[0])
+        self.assertEqual(exptype, restype)
+
 
 if __name__ == "__main__":
     unittest.main()
