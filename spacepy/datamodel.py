@@ -1666,7 +1666,7 @@ def _dateToISO(indict):
         if isinstance(indict, datetime.datetime):
             retdict = retdict.isoformat()
         elif hasattr(indict, '__iter__'):
-            retdict = numpy.asanyarray(indict)
+            retdict = numpy.asanyarray(retdict)
             for idx, el in numpy.ndenumerate(indict):
                 if isinstance(el, datetime.datetime):
                     retdict[idx] = el.isoformat()
