@@ -891,6 +891,24 @@ class JSONTests(unittest.TestCase):
         np.testing.assert_array_equal(a['MVar'], dat2['MVar'])
         os.remove(t_file.name)
 
+    def test_toJSON_timeunaltered(self):
+        """Test to check that stored datetimes aren't changed on write"""
+        data = dm.SpaceData()
+        data['Epoch'] = spt.tickrange('20200101', '20200102',
+                                      deltadays=datetime.timedelta(hours=1)).UTC
+        exptype = type(data['Epoch'][0]) #datetime.datetime
+        # save to file, then immediately clean up
+        fname = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False) as fp:
+                fname = fp.name
+                data.toJSONheadedASCII(fname)
+        finally:
+            if fname != None:
+                os.remove(fname)
+        restype = type(data['Epoch'][0])
+        self.assertEqual(exptype, restype)
+
 
 if __name__ == "__main__":
     unittest.main()
