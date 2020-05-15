@@ -174,6 +174,7 @@ try:
 except ImportError:
     import io as StringIO
 
+import h5py
 import numpy
 from . import toolbox
 from . import time as spt
@@ -995,13 +996,8 @@ def fromHDF5(fname, **kwargs):
                                     'key = {0} ({1})\n'.format(key, type(key)) +
                                     'value = {0} ({1})'.format(value, type(value)), DMWarning)
 
-    try:
-        import h5py as hdf
-    except ImportError:
-        raise ImportError('HDF5 converter requires h5py')
-
     if type(fname) in str_classes:
-        hfile = hdf.File(fname, mode='r')
+        hfile = h5py.File(fname, mode='r')
     else:
         hfile = fname
         #should test here for HDF file object
@@ -1012,7 +1008,7 @@ def fromHDF5(fname, **kwargs):
         path = kwargs['path']
 
     SDobject = SpaceData()
-    allowed_elems = [hdf.Group, hdf.Dataset]
+    allowed_elems = [h5py.Group, h5py.Dataset]
     ##carry over the attributes
     hdfcarryattrs(SDobject, hfile, path)
     ##carry over the groups and datasets
@@ -1097,7 +1093,7 @@ def toHDF5(fname, SDobject, **kwargs):
                             if uni:
                                 #Tell hdf5 this is unicode. Numpy is UCS-4, HDF5 is UTF-8
                                 hfile[path].attrs.create(dumkey, dumval,
-                                    dtype=hdf.special_dtype(vlen=unicode))
+                                    dtype=h5py.special_dtype(vlen=unicode))
                             else:
                                 hfile[path].attrs[dumkey] = dumval
                         except TypeError:
@@ -1122,11 +1118,6 @@ def toHDF5(fname, SDobject, **kwargs):
                                     'value type {0} is not in the allowed attribute list'.format(type(value)),
                                         DMWarning)
 
-    try:
-        import h5py as hdf
-    except ImportError:
-        raise ImportError('h5py is required to use HDF5 files')
-    
     try:
         assert isinstance(SDobject, SpaceData)
     except AssertionError:
@@ -1153,7 +1144,7 @@ def toHDF5(fname, SDobject, **kwargs):
             raise(IOError('Cannot write HDF5, file exists (see overwrite) "{0!s}"'.format(fname)))
         if os.path.isfile(fname) and kwargs['overwrite']:
             os.remove(fname)
-        hfile = hdf.File(fname, mode=wr_mo)
+        hfile = h5py.File(fname, mode=wr_mo)
         must_close = True
     else:
         hfile = fname
