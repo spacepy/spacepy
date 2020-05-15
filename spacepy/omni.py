@@ -245,7 +245,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
         else:
             ldb = 'Test'
             fln = testfln
-        with h5.File(fln, 'r') as hfile:
+        with h5.File(fln, mode='r') as hfile:
             QDkeylist = [kk for kk in hfile if kk not in ['Qbits', 'UTC']]
             st, en = ticks[0].RDT, ticks[-1].RDT
             ##check that requested requested times are within range of data
@@ -271,7 +271,7 @@ def get_omni(ticks, dbase='QDhourly', **kwargs):
 
     if dbase_options[dbase] == 2 or dbase_options[dbase] == 3:
         ldb = 'OMNI2hourly'
-        with h5.File(omni2fln) as hfile:
+        with h5.File(omni2fln, mode='r') as hfile:
             O2keylist = [kk for kk in hfile if kk not in ['Epoch','RDT']]
             st, en = ticks[0].RDT, ticks[-1].RDT
             ##check that requested requested times are within range of data
@@ -373,7 +373,7 @@ def omnirange(dbase='QDhourly'):
               'Test': testfln}
     if dbase not in infile:
         raise NotImplementedError('')
-    with h5.File(infile[dbase]) as hfile:
+    with h5.File(infile[dbase], mode='r') as hfile:
         start, end = hfile['RDT'][0], hfile['RDT'][-1]
         start = spt.Ticktock(start, 'RDT').UTC[0]
         end = spt.Ticktock(end, 'RDT').UTC[0]
