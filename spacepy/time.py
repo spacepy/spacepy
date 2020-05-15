@@ -131,19 +131,31 @@ class Ticktock(MutableSequence):
     (TAI, UTC, ISO, JD, MJD, UNX, RDT, CDF, DOY, eDOY)
 
     Possible input data types:
-    ISO: ISO standard format like '2002-02-25T12:20:30'
-    UTC: datetime object with UTC time
-    TAI: elapsed seconds since 1958/1/1 (includes leap seconds)
-    UNX: elapsed seconds since 1970/1/1 (all days have 86400 secs sometimes unequal lenghts)
-    JD: Julian days elapsed
-    MJD: Modified Julian days
-    RDT: Rata Die days elapsed since 1/1/1
-    CDF: CDF epoch: milliseconds since 1/1/0000
 
-    Possible output data types:
-    All those listed above, plus
-    DOY:  Integer day of year, starts with day 1
-    eDOY: Fractional day of year, starts at day 0
+    ISO
+        ISO standard format like '2002-02-25T12:20:30'
+    UTC
+        datetime object with UTC time
+    TAI
+        Elapsed seconds since 1958/1/1 (includes leap seconds)
+    UNX
+        Elapsed seconds since 1970/1/1 ignoring leapseconds (all days have
+        86400 secs).
+    JD
+        Julian days elapsed
+    MJD
+        Modified Julian days
+    RDT
+        Rata Die days elapsed since 1/1/1
+    CDF
+        CDF Epoch type: float milliseconds since 1/1/0000 ignoring leapseconds
+
+    Possible output data types: All those listed above, plus:
+
+    DOY
+        Integer day of year, starts with day 1
+    eDOY
+        Fractional day of year, starts at day 0
 
     Parameters
     ==========
@@ -156,6 +168,15 @@ class Ticktock(MutableSequence):
     =======
     out : Ticktock
         instance with self.data, self.dtype, self.UTC etc
+
+    Notes
+    =====
+    UTC data type is implemented as Python datetime, which cannot represent
+    leap seconds. The time within a leap second is regarded as not happening.
+
+    The CDF data type is the older CDF_EPOCH time type, not the newer
+    CDF_TIME_TT2000. It similarly cannot represent leap seconds. Year
+    0 is considered a leap year.
 
     Examples
     ========
@@ -209,6 +230,7 @@ class Ticktock(MutableSequence):
     .. automethod:: now
     .. automethod:: sort
     .. automethod:: update_items
+
     """
     _keylist = ['UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
     _keylist_upper = [key.upper() for key in _keylist]
