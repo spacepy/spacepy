@@ -1532,53 +1532,53 @@ class ImfInput(PbData):
             else:
                 outfile='imfinput.dat'
 
-        out = open(outfile, 'w')
+        out = open(outfile, 'wb')
         
         # Convenience variable:
         var=self.attrs['var']
 
         # Write the header:
-        out.write('File created on {}\n'.format(dt.datetime.now().isoformat()))
+        out.write('File created on {}\n'.format(dt.datetime.now().isoformat())
+                  .encode())
         for head in self.attrs['header']:
-            out.write(head)
+            out.write(head.encode())
 
         # Handle Params:
         if self.attrs['coor']:
-            out.write('#COOR\n{}\n\n'.format(self.attrs['coor']))
+            out.write('#COOR\n{}\n\n'.format(self.attrs['coor']).encode())
         if self.attrs['zerobx']:
-            out.write('#ZEROBX\nT\n\n')
+            out.write(b'#ZEROBX\nT\n\n')
         if self.attrs['reread']:
-            out.write('#REREAD')
+            out.write(b'#REREAD')
         if not self.attrs['std_var']:
-            out.write('#VAR\n{}\n\n'.format(' '.join(var)))
+            out.write('#VAR\n{}\n\n'.format(' '.join(var)).encode())
         if self.attrs['satxyz'].count(None)<3:
             xyz = self.attrs['satxyz']
             if (xyz[0]==None) and (None not in xyz[1:]):
-                out.write('#POSITION\n{0[1]:-6.2f}\n{0[2]:-6.2f}\n\n'.format(xyz))
+                out.write('#POSITION\n{0[1]:-6.2f}\n{0[2]:-6.2f}\n\n'
+                          .format(xyz).encode())
             elif None not in xyz:
                 out.write('#SATELLITEXYZ\n{}\n'.format(
-                    ''.join("{:-6.2f}\n".format(n) for n in xyz)))
+                    ''.join("{:-6.2f}\n".format(n) for n in xyz)).encode())
         if self.attrs['delay']:
-            out.write('#DELAY\n{:-9.2f}\n\n'.format(self.attrs['delay']))
+            out.write('#DELAY\n{:-9.2f}\n\n'.format(self.attrs['delay'])
+                      .encode())
         if None not in self.attrs['plane']:
             out.write('#PLANE\n{}\n'.format(
                 ''.join('{:-6.2f}\n'.format(n)
-                for n in self.attrs['plane'])))
-            
+                        for n in self.attrs['plane'])).encode())
+
         # Write the data:
-        out.write('\n#START\n')
-        for i in range(len(self['time'])):
-            # Round to nearest millisecond; check for rounding
-            # to nearest second:
-            t = self['time'][i]
-            ms = int(round(t.microsecond / 1000.))
-            if ms >999:
-                ms = 0
-                t += dt.timedelta(microseconds=1000)
-            # Write record to file:
-            out.write('{:%Y %m %d %H %M %S} {:03d} '.format(t, ms))
-            out.write(' {}\n'.format(
-                ' '.join('{:10.2f}'.format(self[key][i]) for key in var)))
+        out.write(b'\n#START\n')
+        # Round time to millisecond and format it
+        timestr = np.vectorize(
+            lambda t: (t.replace(microsecond=0)
+            + dt.timedelta(microseconds=int(round(t.microsecond, -3))))
+            .strftime('%Y %m %d %H %M %S %f')[:-3] + ' ',
+            otypes=[bytes])(self['time'])
+        outarray = np.column_stack([timestr] + [
+                np.char.mod('%10.2f', self[key]) for key in var])
+        np.savetxt(out, outarray, delimiter=' ', fmt='%s')
         out.close()
 
     def add_pram_bz(self, target=None, loc=111, pcol='#CC3300', bcol='#3333CC',
