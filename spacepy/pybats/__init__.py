@@ -1435,82 +1435,68 @@ class ImfInput(PbData):
         Read an SWMF IMF/solar wind input file into a newly
         instantiated imfinput object.
         '''
-        from numpy import zeros
         import datetime as dt
-
-        # Slurp lines into memory.
-        f = open(infile, 'r')
-        lines = f.readlines()
-        f.close()
         
-        # Read header.  All non-blank lines before first Param are header.
-        self.attrs['header']=[]
-        while 1:
-            if (lines[0].strip() != '') and lines[0][0] != '#':
-                self.attrs['header'].append(lines.pop(0)) 
-            else:
-                break
-
-        # Parse all Params.
-        while len(lines)>0:
-            # Grab line, continue if it's not a Param.
-            param=lines.pop(0).strip()
-            if param=='': continue
-            if param[0] != '#': continue
-            # For all possible Params, set object attributes/info.
-            if param[:5] == '#COOR':
-                self.attrs['coor']=lines.pop(0)[0:3]
-            elif param[:7] == '#REREAD':
-                self.attrs['reread']=True
-            elif param[:7] == '#ZEROBX':
-                setting=lines.pop(0)[0]
-                if setting=='T':
-                    self.attrs['zerobx']=True
+        in_header = True
+        with open(infile, 'r') as f:
+            while True:
+                line = f.readline()
+                # All non-blank lines before first Param are header
+                if in_header:
+                    if line.strip() and line[0] != '#':
+                        self.attrs['header'].append(line)
+                        continue
+                    else:
+                        in_header = False
+                # Parse all params.
+                # Grab line, continue if it's not a Param.
+                param = line.strip()
+                if not param or param[0] != '#':
+                    continue
+                # For all possible Params, set object attributes/info.
+                if param[:5] == '#COOR':
+                    self.attrs['coor'] = f.readline()[0:3]
+                elif param[:7] == '#REREAD':
+                    self.attrs['reread']=True
+                elif param[:7] == '#ZEROBX':
+                    setting = f.readline()[0]
+                    self.attrs['zerobx'] = (setting == 'T')
+                elif param[:4] == '#VAR':
+                    self.attrs['var'] = f.readline().split()
+                    self.attrs['std_var']=False
+                elif param[:6] == '#PLANE':
+                    xp = float(f.readline().split()[0])
+                    yp = float(f.readline().split()[0])
+                    self.attrs['plane']=[xp, yp]
+                elif param[:9] == '#POSITION':
+                    yp = float(f.readline().split()[0])
+                    zp = float(f.readline().split()[0])
+                    self.attrs['satxyz'][1:]=(yp, zp)
+                elif param[:13] == '#SATELLITEXYZ':
+                    xp = float(f.readline().split()[0])
+                    yp = float(f.readline().split()[0])
+                    zp = float(f.readline().split()[0])
+                    self.attrs['satxyz']=[xp, yp, zp]
+                elif param[:10] == '#TIMEDELAY':
+                    self.attrs['delay']=float(f.readline().split()[0])
+                elif param[:6] == '#START':
+                    break
                 else:
-                    self.attrs['zerobx']=False
-            elif param[:4] == '#VAR':
-                self.attrs['var']=lines.pop(0).split()
-                self.attrs['std_var']=False
-            elif param[:6] == '#PLANE':
-                xp = float(lines.pop(0).split()[0])
-                yp = float(lines.pop(0).split()[0])
-                self.attrs['plane']=[xp, yp]
-            elif param[:9] == '#POSITION':
-                yp = float(lines.pop(0).split()[0])
-                zp = float(lines.pop(0).split()[0])
-                self.attrs['satxyz'][1:]=(yp, zp)
-            elif param[:13] == '#SATELLITEXYZ':
-                xp = float(lines.pop(0).split()[0])
-                yp = float(lines.pop(0).split()[0])
-                zp = float(lines.pop(0).split()[0])
-                self.attrs['satxyz']=[xp, yp, zp]
-            elif param[:10] == '#TIMEDELAY':
-                self.attrs['delay']=float(lines.pop(0).split()[0])
-            elif param[:6] == '#START':
-                break
-            else:
-                raise Exception('Unknown file parameter: ' + param)
+                    raise Exception('Unknown file parameter: ' + param)
 
+            # Read data
+            indata = np.fromfile(f, sep=' ').reshape(
+                -1, 7 + len(self.attrs['var']))
+        npoints = indata.shape[0]
         # Create containers for data.
-        npoints = len(lines)
-        self['time']=dmarray(zeros(npoints, dtype=object))
+        self['time'] = dmarray(np.empty(npoints, dtype=object))
         for key in self.attrs['var']:
-            self[key]=dmarray(zeros(npoints))
-
-        # Parse data.
-        for i, line in enumerate(lines):
-            parts = line.split()
-            self['time'][i]=(dt.datetime(
-                    int(parts[0]), #year
-                    int(parts[1]), #month
-                    int(parts[2]), #day
-                    int(parts[3]), #hour
-                    int(parts[4]), #min
-                    int(parts[5]), #sec
-                    int(parts[6]) * 1000 #micro seconds
-                    )) 
-            for j, name in enumerate(self.attrs['var']):
-                self[name][i] = float(parts[7+j])
+            self[key] = dmarray(np.empty(npoints, dtype=np.float64))
+        indata[:, 6] *= 1000 # to microseconds
+        self['time'][:] = np.frompyfunc(dt.datetime, 7, 1)(
+            *np.require(indata[:, 0:7], dtype=np.int).transpose())
+        for i, name in enumerate(self.attrs['var']):
+            self[name][:] = indata[:, i + 7]
 
     def write(self, outfile=False):
         '''
