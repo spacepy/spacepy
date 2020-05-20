@@ -1518,54 +1518,53 @@ class ImfInput(PbData):
             else:
                 outfile='imfinput.dat'
 
-        out = open(outfile, 'wb')
+        with open(outfile, 'wb') as out:
         
-        # Convenience variable:
-        var=self.attrs['var']
+            # Convenience variable:
+            var=self.attrs['var']
 
-        # Write the header:
-        out.write('File created on {}\n'.format(dt.datetime.now().isoformat())
-                  .encode())
-        for head in self.attrs['header']:
-            out.write(head.encode())
-
-        # Handle Params:
-        if self.attrs['coor']:
-            out.write('#COOR\n{}\n\n'.format(self.attrs['coor']).encode())
-        if self.attrs['zerobx']:
-            out.write(b'#ZEROBX\nT\n\n')
-        if self.attrs['reread']:
-            out.write(b'#REREAD')
-        if not self.attrs['std_var']:
-            out.write('#VAR\n{}\n\n'.format(' '.join(var)).encode())
-        if self.attrs['satxyz'].count(None)<3:
-            xyz = self.attrs['satxyz']
-            if (xyz[0]==None) and (None not in xyz[1:]):
-                out.write('#POSITION\n{0[1]:-6.2f}\n{0[2]:-6.2f}\n\n'
-                          .format(xyz).encode())
-            elif None not in xyz:
-                out.write('#SATELLITEXYZ\n{}\n'.format(
-                    ''.join("{:-6.2f}\n".format(n) for n in xyz)).encode())
-        if self.attrs['delay']:
-            out.write('#DELAY\n{:-9.2f}\n\n'.format(self.attrs['delay'])
+            # Write the header:
+            out.write('File created on {}\n'.format(dt.datetime.now().isoformat())
                       .encode())
-        if None not in self.attrs['plane']:
-            out.write('#PLANE\n{}\n'.format(
-                ''.join('{:-6.2f}\n'.format(n)
-                        for n in self.attrs['plane'])).encode())
+            for head in self.attrs['header']:
+                out.write(head.encode())
 
-        # Write the data:
-        out.write(b'\n#START\n')
-        # Round time to millisecond and format it
-        timestr = np.vectorize(
-            lambda t: (t.replace(microsecond=0)
-            + dt.timedelta(microseconds=int(round(t.microsecond, -3))))
-            .strftime('%Y %m %d %H %M %S %f')[:-3] + ' ',
-            otypes=[bytes])(self['time'])
-        outarray = np.column_stack([timestr] + [
-                np.char.mod('%10.2f', self[key]) for key in var])
-        np.savetxt(out, outarray, delimiter=' ', fmt='%s')
-        out.close()
+            # Handle Params:
+            if self.attrs['coor']:
+                out.write('#COOR\n{}\n\n'.format(self.attrs['coor']).encode())
+            if self.attrs['zerobx']:
+                out.write(b'#ZEROBX\nT\n\n')
+            if self.attrs['reread']:
+                out.write(b'#REREAD')
+            if not self.attrs['std_var']:
+                out.write('#VAR\n{}\n\n'.format(' '.join(var)).encode())
+            if self.attrs['satxyz'].count(None)<3:
+                xyz = self.attrs['satxyz']
+                if (xyz[0]==None) and (None not in xyz[1:]):
+                    out.write('#POSITION\n{0[1]:-6.2f}\n{0[2]:-6.2f}\n\n'
+                              .format(xyz).encode())
+                elif None not in xyz:
+                    out.write('#SATELLITEXYZ\n{}\n'.format(
+                        ''.join("{:-6.2f}\n".format(n) for n in xyz)).encode())
+            if self.attrs['delay']:
+                out.write('#DELAY\n{:-9.2f}\n\n'.format(self.attrs['delay'])
+                          .encode())
+            if None not in self.attrs['plane']:
+                out.write('#PLANE\n{}\n'.format(
+                    ''.join('{:-6.2f}\n'.format(n)
+                            for n in self.attrs['plane'])).encode())
+
+            # Write the data:
+            out.write(b'\n#START\n')
+            # Round time to millisecond and format it
+            timestr = np.vectorize(
+                lambda t: (t.replace(microsecond=0)
+                + dt.timedelta(microseconds=int(round(t.microsecond, -3))))
+                .strftime('%Y %m %d %H %M %S %f')[:-3] + ' ',
+                otypes=[bytes])(self['time'])
+            outarray = np.column_stack([timestr] + [
+                    np.char.mod('%10.2f', self[key]) for key in var])
+            np.savetxt(out, outarray, delimiter=' ', fmt='%s')
 
     def add_pram_bz(self, target=None, loc=111, pcol='#CC3300', bcol='#3333CC',
                     xlim=None, plim=None, blim=None, epoch=None):
