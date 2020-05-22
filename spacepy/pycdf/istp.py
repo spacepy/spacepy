@@ -392,7 +392,7 @@ class VariableChecks(object):
         if rng:
             data = v[...]
             if 'FILLVAL' in v.attrs:
-                if numpy.issubdtype(v.dtype, numpy.float):
+                if numpy.issubdtype(v.dtype, numpy.floating):
                     is_fill = numpy.isclose(data, v.attrs['FILLVAL'])
                 else:
                     is_fill = data == v.attrs['FILLVAL']
