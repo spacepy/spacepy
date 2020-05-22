@@ -4,10 +4,8 @@
 """
 Master test suite for SpacePy
 
-version: V1: 28-May-2011
-
-
-Copyright 2010-2014 Los Alamos National Security, LLC.
+Copyright 2010-2014 Triad National Security, LLC.
+Copyright 2015-2020 the contributors
 """
 
 import sys
