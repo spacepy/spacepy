@@ -1810,18 +1810,26 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
 
     # copy coordinates into array
     # prepare coordinates
-    d['sysaxes'] = loci.sysaxes
+    if loci.sysaxes is None:
+        # System type not supported by IRBEM
+        # Convert car -> sph or vice versa as required
+        newcarsph = [key for (key, val) in SYSAXES_TYPES[loci.dtype].items()
+                     if val is not None][0]
+        posi = loci.convert(loci.dtype, newcarsph)
+    else:
+        posi = loci
+    d['sysaxes'] = posi.sysaxes
     xin1 = np.zeros(ntime_max, dtype=float)
     xin2 = np.zeros(ntime_max, dtype=float)
     xin3 = np.zeros(ntime_max, dtype=float) 
-    if loci.carsph == 'sph':
-        xin1[0:nTAI] = loci.radi[:]
-        xin2[0:nTAI] = loci.lati[:]
-        xin3[0:nTAI] = loci.long[:]
+    if posi.carsph == 'sph':
+        xin1[0:nTAI] = posi.radi[:]
+        xin2[0:nTAI] = posi.lati[:]
+        xin3[0:nTAI] = posi.long[:]
     else:
-        xin1[0:nTAI] = loci.x[:]
-        xin2[0:nTAI] = loci.y[:]
-        xin3[0:nTAI] = loci.z[:]
+        xin1[0:nTAI] = posi.x[:]
+        xin2[0:nTAI] = posi.y[:]
+        xin3[0:nTAI] = posi.z[:]
     d['xin1'] = xin1
     d['xin2'] = xin2
     d['xin3'] = xin3
