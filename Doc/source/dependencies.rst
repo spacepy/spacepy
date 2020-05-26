@@ -152,7 +152,7 @@ unaffected by that dependency.
    :header-rows: 1
    :stub-columns: 1
 
-   * - Dependency
+   * -
      - :mod:`~spacepy.coordinates`
      - :mod:`~spacepy.datamodel`
      - :mod:`~spacepy.empiricals`
@@ -167,6 +167,7 @@ unaffected by that dependency.
      - :mod:`~spacepy.seapy`
      - :mod:`~spacepy.time`
      - :mod:`~spacepy.toolbox`
+     -
    * - :ref:`CDF <dependencies_cdf>`
      -
      - * :meth:`~spacepy.datamodel.SpaceData.toCDF`
@@ -184,6 +185,7 @@ unaffected by that dependency.
      -
      -
      -
+     - :ref:`CDF <dependencies_cdf>`
    * - :ref:`Fortran compiler <dependencies_fortran>`
      - :mod:`Entire module <spacepy.coordinates>` (except Windows binaries)
      -
@@ -199,6 +201,7 @@ unaffected by that dependency.
      -
      -
      -
+     - :ref:`Fortran compiler <dependencies_fortran>`
    * - :ref:`ffnet <dependencies_ffnet>`
      -
      -
@@ -214,6 +217,7 @@ unaffected by that dependency.
      -
      -
      -
+     - :ref:`ffnet <dependencies_ffnet>`
    * - :ref:`h5py <dependencies_h5py>`
      -
      - * :meth:`~spacepy.datamodel.SpaceData.toHDF5`
@@ -231,6 +235,7 @@ unaffected by that dependency.
      -
      -
      -
+     - :ref:`h5py <dependencies_h5py>`
    * - :ref:`matplotlib <dependencies_mpl>`
      -
      -
@@ -289,6 +294,7 @@ unaffected by that dependency.
          :class:`~datetime.datetime` inputs
        * :func:`~spacepy.toolbox.logspace` if using
          :class:`~datetime.datetime` inputs
+     - :ref:`matplotlib <dependencies_mpl>`
    * - :ref:`networkx <dependencies_networkx>`
      -
      -
@@ -304,6 +310,7 @@ unaffected by that dependency.
      -
      -
      -
+     - :ref:`networkx <dependencies_networkx>`
    * - :ref:`SciPy <dependencies_scipy>`
      -
      -
@@ -322,4 +329,4 @@ unaffected by that dependency.
      - * :func:`~spacepy.toolbox.dist_to_list`
        * :func:`~spacepy.toolbox.intsolve`
        * :func:`~spacepy.toolbox.poisson_fit`
-
+     - :ref:`SciPy <dependencies_scipy>`
