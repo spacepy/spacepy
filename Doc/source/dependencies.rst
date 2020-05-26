@@ -11,7 +11,7 @@ SpacePy, and the new functionality will be available the next
 time SpacePy is imported.
 
 Currently required versions are documented
-here. :doc:`dep_versions`. describes future support.
+here. :doc:`dep_versions` describes future support.
 
 Hard Dependencies
 =================
