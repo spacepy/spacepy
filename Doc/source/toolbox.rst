@@ -76,6 +76,7 @@ Other functions
     mlt2rad
     normalize
     pmm
+    poisson_fit
     rad2mlt
     windowMean
 
