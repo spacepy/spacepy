@@ -98,6 +98,12 @@ networkx
 `networkx <http://networkx.lanl.gov/>`_ is a requirement for ffnet,
 and thus :mod:`~spacepy.LANLstar`.
 
+Astropy 3.2+
+------------
+`Astropy <http://docs.astropy.org/>`_ is required only for methods of
+:class:`~spacepy.coordinates.Coords` to convert to and from Astropy's
+``SkyCoord`` class.
+
 h5py
 ----
 `h5py <http://code.google.com/p/h5py/>`_ provides a Python interface to

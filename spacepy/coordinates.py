@@ -81,9 +81,16 @@ class Coords(object):
     .. autosummary::
         ~Coords.append
         ~Coords.convert
+        ~Coords.from_skycoord
+        ~Coords.to_skycoord
     .. automethod:: append
     .. automethod:: convert
+    .. automethod:: from_skycoord
+    .. automethod:: to_skycoord
     '''
+
+    Re = 6371200.0 #metres
+
     def __init__(self, data, dtype, carsph, units=None, ticks=None):
 
         from . import irbempy as op
@@ -129,7 +136,6 @@ class Coords(object):
         self.dtype = dtype
         self.carsph = carsph
         # setup units
-        self.Re = 6371000.0 #metres
         if units is None and carsph == 'car':
             # use standard units
             self.units = ['Re', 'Re', 'Re']
@@ -391,3 +397,85 @@ class Coords(object):
         data.extend(list(otherdata.data))
         newobj = Coords(data, dtype=self.dtype, carsph=self.carsph)
         return newobj
+
+    # -----------------------------------------------
+    def to_skycoord(self):
+        '''
+        Create an Astropy SkyCoord instance based on this instance
+
+        Returns
+        =======
+        out : `astropy.coordinates.SkyCoord`
+            This coordinate as an Astropy SkyCoord
+
+        Notes
+        =====
+        This method requires Astropy to be installed.
+
+        This method uses the GEO coordinate frame as the common frame between the two libraries.
+        '''
+        if self.ticks is None:
+            raise ValueError("This method requires the attribute `ticks` to be specified.")
+
+        try:
+            import astropy.coordinates
+            import astropy.time
+        except ImportError as e:
+            raise e.__class__("This method requires Astropy to be installed.")
+
+        coord = self.convert('GEO', 'car')  # GEO is Astropy ITRS
+        data = coord.data * self.Re  # convert to meters
+        obstime = astropy.time.Time(coord.ticks.TAI, format='spacepy_tai')
+
+        return astropy.coordinates.SkyCoord(x=data[:, 0], y=data[:, 1], z=data[:, 2],
+                                            unit='m', frame='itrs', obstime=obstime)
+
+    # -----------------------------------------------
+    @classmethod
+    def from_skycoord(cls, skycoord):
+        '''
+        Create a Coords instance from an Astropy SkyCoord instance
+
+        Parameters
+        ==========
+        skycoord : `astropy.coordinates.SkyCoord`
+            The coordinate to be converted
+
+        Returns
+        =======
+        out : Coords instance
+            The converted coordinate
+
+        Notes
+        =====
+        This method requires Astropy to be installed.
+
+        This method uses the GEO coordinate frame as the common frame between the two libraries.
+        '''
+        try:
+            import astropy.coordinates
+        except ImportError as e:
+            raise e.__class__("This method requires Astropy to be installed.")
+
+        skycoord = astropy.coordinates.SkyCoord(skycoord).itrs  # Astropy ITRS is GEO
+        data = (skycoord.cartesian.xyz.to_value('m') / cls.Re).T  # convert Cartesian to Re units
+        ticks = spacepy.time.Ticktock(skycoord.obstime.spacepy_tai, 'TAI')
+
+        return cls(data, 'GEO', 'car', ticks=ticks)
+
+
+# If Astropy is installed, create a custom time format for SpacePy TAI
+try:
+    from astropy.time import TimeFromEpoch
+
+    # This class self-registers to astropy.time.Time
+    class TimeSpacePyTAI(TimeFromEpoch):
+        name = 'spacepy_tai'
+        unit = 1. / 86400
+        epoch_val = '1958-01-01 00:00:00'
+        epoch_val2 = None
+        epoch_scale = 'tai'
+        epoch_format = 'iso'
+
+except ImportError as e:
+    pass
