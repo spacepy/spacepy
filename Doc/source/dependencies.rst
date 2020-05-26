@@ -59,6 +59,8 @@ These are simply marked as dependencies in SpacePy metadata and thus
 will be automatically installed when using dependency-resolving
 methods such as pip.
 
+.. _dependencies_scipy:
+
 SciPy 0.10+
 -----------
 `SciPy <http://www.scipy.org/>`_ provides several useful scientific
@@ -78,31 +80,39 @@ matplotlib 1.5.0+
 `matplotlib <http://matplotlib.sourceforge.net/>`_ is the preferred
 plotting package for Python. It is highly recommended. Without it, you
 will not be able to effectively visualize data, and the following
-modules may have limited functionality:
+modules may have limited functionality or fail entirely:
 
-    * :mod:`~spacepy.data_assimilation`
     * :mod:`~spacepy.plot`
     * :mod:`~spacepy.poppy`
     * :mod:`~spacepy.pybats`
     * :mod:`~spacepy.radbelt`
+    * :mod:`~spacepy.seapy`
     * :mod:`~spacepy.time`
     * :mod:`~spacepy.toolbox`
+
+.. _dependencies_ffnet:
 
 ffnet
 -----
 `ffnet <http://ffnet.sourceforge.net/>`_ is a neural network package,
 required for :mod:`~spacepy.LANLstar`.
 
+.. _dependencies_networkx:
+
 networkx
 --------
 `networkx <http://networkx.lanl.gov/>`_ is a requirement for ffnet,
 and thus :mod:`~spacepy.LANLstar`.
+
+.. _dependencies_h5py:
 
 h5py
 ----
 `h5py <http://code.google.com/p/h5py/>`_ provides a Python interface to
 HDF5 files. It is required for the HDF import/export capability of
 :mod:`~spacepy.datamodel` and for use of the :mod:`~spacepy.omni` module.
+
+.. _dependencies_cdf:
 
 CDF
 ---
@@ -116,6 +126,8 @@ and thus for the CDF import/export capability of
     installed if pycdf support is needed; it will not be automatically
     installed.
 
+.. _dependencies_fortran:
+
 Fortran compiler
 ----------------
 If installing from source, :mod:`~spacepy.irbempy` requires a Fortran
@@ -125,3 +137,189 @@ compiler ``g77``, and the Portland Group PGI compiler.
 
 If :mod:`~spacepy.irbempy` is to be used, the Fortran compiler (and
 f2py) must be installed before SpacePy.
+
+:mod:`~spacepy.coordinates` requires :mod:`~spacepy.irbempy`.
+
+Soft Dependency Summary
+=======================
+
+The following table summarizes, by SpacePy module, the functionality
+that is *lost* if a soft dependency is not installed. If there is
+nothing for a given dependency/module combination, the module is
+unaffected by that dependency.
+
+.. list-table:: SpacePy functionality lost without soft dependencies
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Dependency
+     - :mod:`~spacepy.coordinates`
+     - :mod:`~spacepy.datamodel`
+     - :mod:`~spacepy.empiricals`
+     - :mod:`~spacepy.irbempy`
+     - :mod:`~spacepy.LANLstar`
+     - :mod:`~spacepy.omni`
+     - :mod:`~spacepy.plot`
+     - :mod:`~spacepy.poppy`
+     - :mod:`~spacepy.pybats`
+     - :mod:`~spacepy.pycdf`
+     - :mod:`~spacepy.radbelt`
+     - :mod:`~spacepy.seapy`
+     - :mod:`~spacepy.time`
+     - :mod:`~spacepy.toolbox`
+   * - :ref:`CDF <dependencies_cdf>`
+     -
+     - * :meth:`~spacepy.datamodel.SpaceData.toCDF`
+       * :func:`~spacepy.datamodel.fromCDF`
+       * :func:`~spacepy.datamodel.toCDF`
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     - :mod:`Entire module <spacepy.pycdf>`
+     -
+     -
+     -
+     -
+   * - :ref:`Fortran compiler <dependencies_fortran>`
+     - :mod:`Entire module <spacepy.coordinates>` (except Windows binaries)
+     -
+     -
+     - :mod:`Entire module <spacepy.irbempy>` (except Windows binaries)
+     - May be required to install :ref:`ffnet <dependencies_ffnet>`
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+   * - :ref:`ffnet <dependencies_ffnet>`
+     -
+     -
+     -
+     -
+     - :mod:`Entire module <spacepy.LANLstar>`
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+   * - :ref:`h5py <dependencies_h5py>`
+     -
+     - * :meth:`~spacepy.datamodel.SpaceData.toHDF5`
+       * :func:`~spacepy.datamodel.fromHDF5`
+       * :func:`~spacepy.datamodel.toHDF5`
+     -
+     -
+     -
+     - :mod:`Entire module <spacepy.omni>`
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+   * - :ref:`matplotlib <dependencies_mpl>`
+     -
+     -
+     -
+     -
+     -
+     -
+     - :mod:`Entire module <spacepy.plot>`
+     - * :meth:`~spacepy.poppy.PPro.assoc`
+       * :meth:`~spacepy.poppy.PPro.plot`
+       * :meth:`~spacepy.poppy.PPro.plot_mult`
+       * :func:`~spacepy.poppy.plot_two_ppro`
+     - * :meth:`~spacepy.pybats.bats.Bats2d.regrid`
+       * :mod:`~spacepy.pybats.dgcpm`
+       * :mod:`~spacepy.pybats.interact`
+       * :mod:`~spacepy.pybats.kyoto`
+       * :mod:`~spacepy.pybats.pwom`
+       * :mod:`~spacepy.pybats.ram`
+       * :mod:`~spacepy.pybats.rim`
+
+       All plotting functions:
+
+       * :func:`~spacepy.pybats.add_body`
+       * :func:`~spacepy.pybats.add_planet`
+       * :meth:`~spacepy.pybats.ImfInput.add_pram_bz`
+       * :meth:`~spacepy.pybats.ImfInput.quicklook`
+       * :meth:`~spacepy.pybats.bats.BatLog.add_dst_quicklook`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_b_magsphere`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_b_magsphere_legacy`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_body`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_comp_plot`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_contour`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_cont_shell`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_grid_plot`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_pcolor`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_planet`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_plot`
+       * :meth:`~spacepy.pybats.bats.Bats2d.add_stream_scatter`
+       * :meth:`~spacepy.pybats.bats.MagGridFile.add_ae_quicklook`
+       * :meth:`~spacepy.pybats.bats.MagGridFile.add_contour`
+       * :meth:`~spacepy.pybats.bats.MagGridFile.add_kp_quicklook`
+       * :meth:`~spacepy.pybats.bats.MagGridFile.add_orbit_plot`
+       * :meth:`~spacepy.pybats.quotree.QTree.plot_res`
+       * :meth:`~spacepy.pybats.quotree.Branch.plotbox`
+       * :meth:`~spacepy.pybats.quotree.Branch.plot_res`
+       * :func:`~spacepy.pybats.trace2d.test_asymtote`
+       * :func:`~spacepy.pybats.trace2d.test_dipole`
+     -
+     - * :meth:`~spacepy.radbelt.RBmodel.plot`
+       * :meth:`~spacepy.radbelt.RBmodel.plot_obs`
+     - :mod:`Entire module <spacepy.seapy>`
+     - * ``RDT`` support in :class:`~spacepy.time.Ticktock`
+       * :meth:`~spacepy.time.Ticktock.sort`
+     - * :func:`~spacepy.toolbox.tCommon`
+       * :func:`~spacepy.toolbox.linspace` if using
+         :class:`~datetime.datetime` inputs
+       * :func:`~spacepy.toolbox.logspace` if using
+         :class:`~datetime.datetime` inputs
+   * - :ref:`networkx <dependencies_networkx>`
+     -
+     -
+     -
+     -
+     - :mod:`Entire module <spacepy.LANLstar>`
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+   * - :ref:`SciPy <dependencies_scipy>`
+     -
+     -
+     - * :func:`~spacepy.empiricals.vampolaPA`
+       * :func:`~spacepy.empiricals.omniFromDirectionalFlux`
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     - * :func:`~spacepy.seapy.sea_signif`
+     -
+     - * :func:`~spacepy.toolbox.dist_to_list`
+       * :func:`~spacepy.toolbox.intsolve`
+       * :func:`~spacepy.toolbox.poisson_fit`
+
