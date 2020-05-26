@@ -153,72 +153,26 @@ unaffected by that dependency.
    :stub-columns: 1
 
    * -
-     - :mod:`~spacepy.coordinates`
-     - :mod:`~spacepy.datamodel`
-     - :mod:`~spacepy.empiricals`
-     - :mod:`~spacepy.irbempy`
-     - :mod:`~spacepy.LANLstar`
-     - :mod:`~spacepy.omni`
-     - :mod:`~spacepy.plot`
-     - :mod:`~spacepy.poppy`
-     - :mod:`~spacepy.pybats`
-     - :mod:`~spacepy.pycdf`
-     - :mod:`~spacepy.radbelt`
-     - :mod:`~spacepy.seapy`
-     - :mod:`~spacepy.time`
-     - :mod:`~spacepy.toolbox`
+     - :ref:`CDF <dependencies_cdf>`
+     - :ref:`Fortran compiler <dependencies_fortran>`
+     - :ref:`ffnet <dependencies_ffnet>`
+     - :ref:`h5py <dependencies_h5py>`
+     - :ref:`matplotlib <dependencies_mpl>`
+     - :ref:`networkx <dependencies_networkx>`
+     - :ref:`SciPy <dependencies_scipy>`
+   * - :mod:`~spacepy.coordinates`
      -
-   * - :ref:`CDF <dependencies_cdf>`
+     - :mod:`Entire module <spacepy.coordinates>` (except Windows binaries)
      -
+     -
+     -
+     -
+     -
+   * - :mod:`~spacepy.datamodel`
      - * :meth:`~spacepy.datamodel.SpaceData.toCDF`
        * :func:`~spacepy.datamodel.fromCDF`
        * :func:`~spacepy.datamodel.toCDF`
      -
-     -
-     -
-     -
-     -
-     -
-     -
-     - :mod:`Entire module <spacepy.pycdf>`
-     -
-     -
-     -
-     -
-     - :ref:`CDF <dependencies_cdf>`
-   * - :ref:`Fortran compiler <dependencies_fortran>`
-     - :mod:`Entire module <spacepy.coordinates>` (except Windows binaries)
-     -
-     -
-     - :mod:`Entire module <spacepy.irbempy>` (except Windows binaries)
-     - May be required to install :ref:`ffnet <dependencies_ffnet>`
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     - :ref:`Fortran compiler <dependencies_fortran>`
-   * - :ref:`ffnet <dependencies_ffnet>`
-     -
-     -
-     -
-     -
-     - :mod:`Entire module <spacepy.LANLstar>`
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     - :ref:`ffnet <dependencies_ffnet>`
-   * - :ref:`h5py <dependencies_h5py>`
      -
      - * :meth:`~spacepy.datamodel.SpaceData.toHDF5`
        * :func:`~spacepy.datamodel.fromHDF5`
@@ -226,28 +180,63 @@ unaffected by that dependency.
      -
      -
      -
+   * - :mod:`~spacepy.empiricals`
+     -
+     -
+     -
+     -
+     -
+     -
+     - * :func:`~spacepy.empiricals.vampolaPA`
+       * :func:`~spacepy.empiricals.omniFromDirectionalFlux`
+   * - :mod:`~spacepy.irbempy`
+     -
+     - :mod:`Entire module <spacepy.irbempy>` (except Windows binaries)
+     -
+     -
+     -
+     -
+     -
+   * - :mod:`~spacepy.LANLstar`
+     -
+     - May be required to install :ref:`ffnet <dependencies_ffnet>`
+     - :mod:`Entire module <spacepy.LANLstar>`
+     -
+     -
+     - :mod:`Entire module <spacepy.LANLstar>`
+     -
+   * - :mod:`~spacepy.omni`
+     -
+     -
+     -
      - :mod:`Entire module <spacepy.omni>`
      -
      -
      -
-     -
-     -
-     -
-     -
-     -
-     - :ref:`h5py <dependencies_h5py>`
-   * - :ref:`matplotlib <dependencies_mpl>`
-     -
-     -
+   * - :mod:`~spacepy.plot`
      -
      -
      -
      -
      - :mod:`Entire module <spacepy.plot>`
+     -
+     -
+   * - :mod:`~spacepy.poppy`
+     -
+     -
+     -
+     -
      - * :meth:`~spacepy.poppy.PPro.assoc`
        * :meth:`~spacepy.poppy.PPro.plot`
        * :meth:`~spacepy.poppy.PPro.plot_mult`
        * :func:`~spacepy.poppy.plot_two_ppro`
+     -
+     -
+   * - :mod:`~spacepy.pybats`
+     -
+     -
+     -
+     -
      - * :meth:`~spacepy.pybats.bats.Bats2d.regrid`
        * :mod:`~spacepy.pybats.dgcpm`
        * :mod:`~spacepy.pybats.interact`
@@ -284,49 +273,52 @@ unaffected by that dependency.
        * :func:`~spacepy.pybats.trace2d.test_asymtote`
        * :func:`~spacepy.pybats.trace2d.test_dipole`
      -
+     -
+   * - :mod:`~spacepy.pycdf`
+     - :mod:`Entire module <spacepy.pycdf>`
+     -
+     -
+     -
+     -
+     -
+     -
+   * - :mod:`~spacepy.radbelt`
+     -
+     -
+     -
+     -
      - * :meth:`~spacepy.radbelt.RBmodel.plot`
        * :meth:`~spacepy.radbelt.RBmodel.plot_obs`
+     -
+     -
+   * - :mod:`~spacepy.seapy`
+     -
+     -
+     -
+     -
      - :mod:`Entire module <spacepy.seapy>`
+     -
+     - * :func:`~spacepy.seapy.sea_signif`
+   * - :mod:`~spacepy.time`
+     -
+     -
+     -
+     -
      - * ``RDT`` support in :class:`~spacepy.time.Ticktock`
        * :meth:`~spacepy.time.Ticktock.sort`
+     -
+     -
+   * - :mod:`~spacepy.toolbox`
+     -
+     -
+     -
+     -
      - * :func:`~spacepy.toolbox.tCommon`
        * :func:`~spacepy.toolbox.linspace` if using
          :class:`~datetime.datetime` inputs
        * :func:`~spacepy.toolbox.logspace` if using
          :class:`~datetime.datetime` inputs
-     - :ref:`matplotlib <dependencies_mpl>`
-   * - :ref:`networkx <dependencies_networkx>`
-     -
-     -
-     -
-     -
-     - :mod:`Entire module <spacepy.LANLstar>`
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     - :ref:`networkx <dependencies_networkx>`
-   * - :ref:`SciPy <dependencies_scipy>`
-     -
-     -
-     - * :func:`~spacepy.empiricals.vampolaPA`
-       * :func:`~spacepy.empiricals.omniFromDirectionalFlux`
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     - * :func:`~spacepy.seapy.sea_signif`
      -
      - * :func:`~spacepy.toolbox.dist_to_list`
        * :func:`~spacepy.toolbox.intsolve`
        * :func:`~spacepy.toolbox.poisson_fit`
-     - :ref:`SciPy <dependencies_scipy>`
