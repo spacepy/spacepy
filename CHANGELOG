@@ -24,6 +24,8 @@ pycdf
  - istp.VariableChecks and FileChecks add check for empty attribute Entries
  - istp.VarBundle class to copy variables, slices, and depends between CDFs
  - istp.nanfill function to replace fill values with NaN
+ - Warn if make CDF without explicitly setting backward compatible mode
+   (either true or false); default will change to NOT backward compatible.
 pybats
  - Updated gitm.GitmBin reader to fix failures in Python 3.x.
  - Fix for incorrect Kyoto Kp plots.

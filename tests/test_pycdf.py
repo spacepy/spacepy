@@ -971,6 +971,66 @@ class MakeCDF(unittest.TestCase):
             #zero-dimensional and empty
             self.assertEqual((0,), data.shape)
 
+    def testNoSetBackward(self):
+        """Warn if create a CDF without explicitly setting backward/not"""
+        # Awkward, but need to make sure the default state at load "knows" that
+        # set_backward has not been called.
+        cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
+        self.assertFalse(cdf.lib._explicit_backward)
+        with warnings.catch_warnings(record=True) as w:
+            if sys.version_info[0:2] == (2, 7)\
+               and hasattr(cdf, '__warningregistry__'):
+                # filter 'always' is broken in Python 2.7
+                # https://stackoverflow.com/questions/56821539/
+                for k in cdf.__warningregistry__.keys():
+                    if k[0].startswith(
+                            'spacepy.pycdf.lib.set_backward not called') \
+                            and k[1] is DeprecationWarning:
+                        del cdf.__warningregistry__[k]
+                        break
+            warnings.simplefilter('always')
+            cdf.CDF(self.testfspec, create=True).close()
+        self.assertEqual(1, len(w))
+        self.assertEqual(
+            w[0].category, DeprecationWarning)
+        self.assertEqual(
+            'spacepy.pycdf.lib.set_backward not called; making'
+            ' backward-compatible CDF. This default will change in the future.',
+            str(w[0].message))
+        with cdf.CDF(self.testfspec) as f:
+            ver, rel, inc = f.version()
+        self.assertEqual(2, ver) # Still the default
+
+    def testSetBackward(self):
+        """But no warn if explicit set"""
+        # Awkward, but need to make sure the default state at load "knows" that
+        # set_backward has not been called.
+        cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
+        self.assertFalse(cdf.lib._explicit_backward)
+        cdf.lib.set_backward(True)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            cdf.CDF(self.testfspec, create=True).close()
+        self.assertEqual(0, len(w))
+        with cdf.CDF(self.testfspec) as f:
+            ver, rel, inc = f.version()
+        self.assertEqual(2, ver)
+
+    def testSetBackwardFalse(self):
+        """But no warn if explicit set"""
+        cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
+        self.assertFalse(cdf.lib._explicit_backward)
+        cdf.lib.set_backward(False)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            cdf.CDF(self.testfspec, create=True).close()
+        self.assertEqual(0, len(w))
+        with cdf.CDF(self.testfspec) as f:
+            ver, rel, inc = f.version()
+        self.assertEqual(3, ver)
+        # Revert to the default (for now)
+        cdf.lib.set_backward(True)
+
 
 class CDFTestsBase(unittest.TestCase):
     """Base class for tests involving existing CDF, column or row major"""
