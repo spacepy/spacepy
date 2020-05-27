@@ -461,6 +461,8 @@ class Library(object):
 
         #Default to V2 CDF
         self.set_backward(True)
+        # User has not explicitly called set_backward
+        self._explicit_backward = False
 
     @staticmethod
     def _find_lib():
@@ -650,6 +652,8 @@ class Library(object):
         ======
         ValueError : if backward=False and underlying CDF library is V2
         """
+        # User has explicitly chosen backward compat or not
+        self._explicit_backward = True
         if self.version[0] < 3:
             if not backward:
                 raise ValueError(
@@ -1917,7 +1921,12 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
             Not intended for direct call; pass parameters to
             :py:class:`pycdf.CDF` constructor.
         """
-
+        if not lib._explicit_backward:
+            warnings.warn(
+                'spacepy.pycdf.lib.set_backward not called;'
+                ' making backward-compatible CDF.'
+                ' This default will change in the future.',
+                DeprecationWarning)
         lib.call(const.CREATE_, const.CDF_, self.pathname, ctypes.c_long(0),
                               (ctypes.c_long * 1)(0), ctypes.byref(self._handle))
         self._opened = True
