@@ -25,6 +25,11 @@ try:
 except ImportError: #python2
     import HTMLParser as html
     html.parser = html
+try:
+    import http.client
+except ImportError: # Python2
+    import httplib as http
+    http.client = http
 import itertools
 import os
 import os.path
@@ -34,6 +39,7 @@ try:
 except ImportError: #python2
     import urllib2 as urllib
     urllib.request = urllib
+import select
 import shutil
 import subprocess
 import sys
@@ -1050,6 +1056,115 @@ def get_url(url, outfile=None, reporthook=None, cached=False):
         if modified is not None: #Copy web mtime to file
             os.utime(outfile, (int(time.time()), modified))
     return b''.join(data)
+
+
+def _get_url_keepalive(url, conn=None, outfile=None,
+                       reporthook=None, cached=False):
+    """Read data from a URL and maintain connection
+
+    Retrieve an HTTP URL, honoring the user agent as specified in the
+    SpacePy config file. Returns the data, optionally also writing
+    out to a file.
+
+    Requires existing HTTP connection and will not work in unusual
+    circumstances, e.g. proxy servers.
+
+    This is similar to the deprecated ``urlretrieve``.
+
+    Parameters
+    ==========
+    url : str
+        The URL to open
+    conn : http.client.HTTPConnection
+        An established http connection (HTTPS is also okay). If not provided,
+        will attempt to make a connection.
+    outfile : str (optional)
+        Full path to file to write data to
+    reporthook : callable (optional)
+        Function for reporting progress; takes arguments of block
+        count, block size, and total size.
+    cached : bool (optional)
+        Compare modification time of the URL to the modification time
+        of ``outfile``; do not retrieve (and return None) unless
+        the URL is newer than the file.
+
+    Returns
+    =======
+    http.client.HTTPConnection, bytes
+        Tuple of the open connection (caller must close it with ``.close()``)
+        and the HTTP data. The connection may be a new one if the one
+        passed in has been closed. The caller must always close the connection,
+        even in an error condition.
+
+    See Also
+    ========
+    get_url
+    progressbar
+
+    Notes
+    =====
+    Cryptic error messages (such as ``Network is unreachable``) may indicate
+    that your environment requires a proxy and this function will not work
+    """
+    scheme, _, host, path = url.split('/', 3)
+    if conn is not None and conn.sock is not None:
+        readable, writeable, _ = select.select([conn.sock], [conn.sock], [], 0)
+        # Make sure no stale data to read on socket, and can write to it
+        if readable or len(writeable) != 1:
+            conn.close()
+            conn = None
+    if conn is None:
+        ctype = http.client.HTTPConnection if scheme == 'http:'\
+                else http.client.HTTPSConnection
+        conn = ctype(host, timeout=1)
+    clheaders = {
+        "Connection": "keep-alive",
+    }
+    if spacepy.config.get('user_agent', ''):
+        clheaders['User-Agent'] =  spacepy.config['user_agent']
+    conn.request('HEAD' if cached else 'GET', path, headers=clheaders)
+    def checkresponse(conn):
+        """Get the response on a connection, return response and headers"""
+        r = conn.getresponse()
+        if r.status >= 400:
+            raise RuntimeError('HTTP status {} {}'.format(r.status, r.reason))
+        headers = dict(((k.title(), v) for k, v in r.getheaders()))
+        return r, headers
+    r, headers = checkresponse(conn)
+    modified = headers.get('Last-Modified')
+    if modified is not None:
+        modified = datetime.datetime.strptime(modified, "%a, %d %b %Y %X GMT")
+        modified = calendar.timegm(modified.timetuple())
+    if cached:
+        if outfile is None:
+            raise ValueError('Must specify outfile if cached is True')
+        if os.path.exists(outfile) and modified is not None:
+            #Timestamp is truncated to second, so do same for local
+            local_mod = int(os.path.getmtime(outfile))
+            if modified <= local_mod:
+                return (conn, None)
+        conn.request('GET', path, headers=clheaders)
+        r, headers= check_response(conn)
+    size = int(headers.get('Content-Length', 0))
+    blocksize = 1024
+    count = 0
+    data = []
+    while True:
+        newdata = r.read(blocksize)
+        if not newdata:
+            break
+        data.append(newdata)
+        count += 1
+        if reporthook:
+            reporthook(count, blocksize, size)
+    r.close()
+    if outfile:
+        with open(outfile, 'wb') as f:
+            for d in data:
+                f.write(d)
+        if modified is not None: #Copy web mtime to file
+            os.utime(outfile, (int(time.time()), modified))
+    return (conn, b''.join(data))
 
 
 def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDdata=False):
