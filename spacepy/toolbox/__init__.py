@@ -41,6 +41,7 @@ except ImportError: #python2
     urllib.request = urllib
 import select
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -771,7 +772,12 @@ def _crawl_yearly(base_url, pattern, datadir, name=None):
     #Find all the files to download
     print("Finding {}files to download ...".format(name))
     progressbar(0, 1, 1, text='Listing files')
-    data = get_url(base_url)
+    try:
+        data, conn = get_url(base_url, keepalive=True)
+    except socket.error: #Give up on keepalives
+        conn = None
+    if conn is None:
+        data = get_url(base_url)
     if str is not bytes:
         data = data.decode('utf-8')
     p = LinkExtracter()
@@ -781,7 +787,10 @@ def _crawl_yearly(base_url, pattern, datadir, name=None):
     downloadme = {}
     for i, y in enumerate(yearlist):
         yearurl = '{}{}/'.format(base_url, y)
-        data = get_url(yearurl)
+        if conn is None:
+            data = get_url(yearurl)
+        else:
+            data, conn = get_url(yearurl, keepalive=True, conn=conn)
         if str is not bytes:
             data = data.decode('utf-8')
         p = LinkExtracter()
@@ -806,10 +815,17 @@ def _crawl_yearly(base_url, pattern, datadir, name=None):
             newdata = True
     #Download
     for i, fname in enumerate(filenames):
-        if get_url(downloadme[fname], os.path.join(datadir, fname),
-                   cached=True) is not None:
+        if conn is None:
+            res = get_url(downloadme[fname], os.path.join(datadir, fname),
+                          cached=True)
+        else:
+            res, conn = get_url(downloadme[fname], os.path.join(datadir, fname),
+                                cached=True, keepalive=True, conn=conn)
+        if res is not None:
             newdata = True
         progressbar(i + 1, 1, len(filenames))
+    if conn is not None:
+        conn.close()
     return filenames if newdata else None
 
 
