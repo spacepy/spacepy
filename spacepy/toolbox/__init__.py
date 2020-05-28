@@ -1027,6 +1027,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         raise ValueError('Cannot specify connection without keepalive')
     if keepalive:
         scheme, _, host, path = url.split('/', 3)
+        path = '/' + path # Explicitly root on the server
         if conn is not None and conn.sock is not None:
             readable, writeable, _ = select.select(
                 [conn.sock], [conn.sock], [], 0)
