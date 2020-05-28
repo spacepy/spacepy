@@ -1081,7 +1081,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
                 return (conn, None) if keepalive else None
         if keepalive: # Replace previous header request with full get
             conn.request('GET', path, headers=clheaders)
-            r, headers= check_response(conn)
+            r, headers= checkresponse(conn)
     size = int(headers.get('Content-Length', 0))
     blocksize = 1024
     count = 0

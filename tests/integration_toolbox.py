@@ -147,6 +147,23 @@ class WebGettingIntegration(unittest.TestCase):
             conn.close()
         self.assertTrue(data is None)
 
+    def testGetUrlToFileCachedKeepaliveChanged(self):
+        """Call get_url keepalive, write to file with cache"""
+        with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
+            f.write(b'This is a test\n')
+        outfile = os.path.join(self.td, 'output.txt')
+        data, conn = spacepy.toolbox.get_url(
+            'http://localhost:{}/foo.txt'.format(self.port),
+            outfile=outfile, keepalive=True)
+        try:
+            os.utime(outfile, (0., 0.))
+            data, conn = spacepy.toolbox.get_url(
+                'http://localhost:{}/foo.txt'.format(self.port),
+                outfile=outfile, cached=True, conn=conn, keepalive=True)
+        finally:
+            conn.close()
+        self.assertEqual(b'This is a test\n', data)
+
 
 if __name__ == "__main__":
     unittest.main()
