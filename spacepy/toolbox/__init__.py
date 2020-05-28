@@ -999,7 +999,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         the URL is newer than the file.
     keepalive : bool (optional)
         Attempt to keep the connection open to retrieve more URLs.
-        The return becomes a tuple of (conn, data) to return the
+        The return becomes a tuple of (data, conn) to return the
         connection used so it can be used again. This mode does not
         support proxies. (Default False)
     conn : http.client.HTTPConnection (optional)
@@ -1078,7 +1078,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
             if modified <= local_mod:
                 if not keepalive:
                     r.close()
-                return (conn, None) if keepalive else None
+                return (None, conn) if keepalive else None
         if keepalive: # Replace previous header request with full get
             conn.request('GET', path, headers=clheaders)
             r, headers= checkresponse(conn)
@@ -1102,7 +1102,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         if modified is not None: #Copy web mtime to file
             os.utime(outfile, (int(time.time()), modified))
     data = b''.join(data)
-    return (conn, data) if keepalive else data
+    return (data, conn) if keepalive else data
 
 
 def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDdata=False):
