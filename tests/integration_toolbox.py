@@ -85,13 +85,15 @@ class WebGettingIntegration(unittest.TestCase):
         # doesn't support keepalive....
         with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
             f.write(b'This is a test\n')
-        conn, data = spacepy.toolbox._get_url_keepalive(
-            'http://localhost:{}/foo.txt'.format(self.port))
+        conn, data = spacepy.toolbox.get_url(
+            'http://localhost:{}/foo.txt'.format(self.port),
+            keepalive=True)
         try:
             self.assertEqual(
                 b"This is a test\n", data)
-            conn, data = spacepy.toolbox._get_url_keepalive(
-                'http://localhost:{}/foo.txt'.format(self.port), conn)
+            conn, data = spacepy.toolbox.get_url(
+                'http://localhost:{}/foo.txt'.format(self.port),
+                conn=conn, keepalive=True)
         finally:
             conn.close()
         self.assertEqual(
@@ -134,13 +136,13 @@ class WebGettingIntegration(unittest.TestCase):
         with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
             f.write(b'This is a test\n')
         outfile = os.path.join(self.td, 'output.txt')
-        conn, data = spacepy.toolbox._get_url_keepalive(
+        conn, data = spacepy.toolbox.get_url(
             'http://localhost:{}/foo.txt'.format(self.port),
-            outfile=outfile)
+            outfile=outfile, keepalive=True)
         try:
-            conn, data = spacepy.toolbox._get_url_keepalive(
-                'http://localhost:{}/foo.txt'.format(self.port), conn=conn,
-                outfile=outfile, cached=True)
+            conn, data = spacepy.toolbox.get_url(
+                'http://localhost:{}/foo.txt'.format(self.port),
+                outfile=outfile, cached=True, conn=conn, keepalive=True)
         finally:
             conn.close()
         self.assertTrue(data is None)
