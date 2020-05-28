@@ -79,6 +79,24 @@ class WebGettingIntegration(unittest.TestCase):
         self.assertEqual(
             b"This is a test\n", data)
 
+    def testGetUrlKeepaliveReturn(self):
+        """Call get_url, return data directly, keep connection"""
+        # This isn't the greatest test because the Python http server
+        # doesn't support keepalive....
+        with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
+            f.write(b'This is a test\n')
+        conn, data = spacepy.toolbox._get_url_keepalive(
+            'http://localhost:{}/foo.txt'.format(self.port))
+        try:
+            self.assertEqual(
+                b"This is a test\n", data)
+            conn, data = spacepy.toolbox._get_url_keepalive(
+                'http://localhost:{}/foo.txt'.format(self.port), conn)
+        finally:
+            conn.close()
+        self.assertEqual(
+            b"This is a test\n", data)
+
     def testGetUrlToFile(self):
         """Call get_url, write to file"""
         with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
@@ -109,6 +127,22 @@ class WebGettingIntegration(unittest.TestCase):
         data = spacepy.toolbox.get_url(
             'http://localhost:{}/foo.txt'.format(self.port),
             outfile=outfile, cached=True)
+        self.assertTrue(data is None)
+
+    def testGetUrlToFileCachedKeepalive(self):
+        """Call get_url keepalive, write to file with cache"""
+        with open(os.path.join(self.td, 'foo.txt'), 'wb') as f:
+            f.write(b'This is a test\n')
+        outfile = os.path.join(self.td, 'output.txt')
+        conn, data = spacepy.toolbox._get_url_keepalive(
+            'http://localhost:{}/foo.txt'.format(self.port),
+            outfile=outfile)
+        try:
+            conn, data = spacepy.toolbox._get_url_keepalive(
+                'http://localhost:{}/foo.txt'.format(self.port), conn=conn,
+                outfile=outfile, cached=True)
+        finally:
+            conn.close()
         self.assertTrue(data is None)
 
 
