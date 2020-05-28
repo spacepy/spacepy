@@ -1075,10 +1075,13 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
             #Timestamp is truncated to second, so do same for local
             local_mod = int(os.path.getmtime(outfile))
             if modified <= local_mod:
-                if not keepalive:
+                if keepalive:
+                    r.read()
+                else:
                     r.close()
                 return (None, conn) if keepalive else None
         if keepalive: # Replace previous header request with full get
+            r.read()
             conn.request('GET', path, headers=clheaders)
             r, headers= checkresponse(conn)
     size = int(headers.get('Content-Length', 0))
@@ -1093,7 +1096,8 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         count += 1
         if reporthook:
             reporthook(count, blocksize, size)
-    r.close()
+    if not keepalive:
+        r.close()
     if outfile:
         with open(outfile, 'wb') as f:
             for d in data:
