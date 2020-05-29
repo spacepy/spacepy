@@ -1403,6 +1403,9 @@ class Ticktock(MutableSequence):
             fname = os.path.join(DOT_FLN, 'data', 'tai-utc.dat')
             with open(fname) as fh:
                 text = fh.readlines()
+            # Some files have a "last checked" line at the top
+            if text[0].startswith('Checked'):
+                del text[0]
 
             secs = np.zeros(len(text))
             year = np.zeros(len(text))

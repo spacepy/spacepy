@@ -1391,7 +1391,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
-        get_url(config['leapsec_url'], leapsec_fname, progressbar)
+        get_url(config['leapsec_url'], leapsec_fname, progressbar, cached=True)
 
     if PSDdata == True:
         print("Retrieving PSD sql database")
