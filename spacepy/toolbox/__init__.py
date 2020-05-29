@@ -848,18 +848,34 @@ def _get_qindenton_daily(qd_daily_url=None):
         The data extracted from the Q-D dataset, fully processed for saving
         as SpacePy HDF5 OMNI data.
     """
-    import spacepy.datamodel
     if qd_daily_url is None:
         qd_daily_url = spacepy.config['qd_daily_url']
     datadir = os.path.join(spacepy.DOT_FLN, 'data', 'qindenton_daily_files')
     _crawl_yearly(qd_daily_url, r'QinDenton_\d{8}_hour.txt',
                   datadir, name='Q-D daliy')
     #Read and process
-    print("Reading Q-D daily files ...")
-    filelist = sorted(glob.glob(os.path.join(datadir, '*_hour.txt')))
+    print("Reading/processing Q-D daily files ...")
+    return _assemble_qindenton_daily(datadir)
+
+
+def _assemble_qindenton_daily(qd_daily_dir):
+    """Assemble Qin-Denton daily files into OMNI structure
+
+    Parameters
+    ==========
+    qd_daily_dir : str
+        Directory with Qin-Denton daily files.
+
+    Returns
+    =======
+    SpaceData
+        The data extracted from the Q-D dataset, fully processed for saving
+        as SpacePy HDF5 OMNI data.
+    """
+    import spacepy.datamodel
+    filelist = sorted(glob.glob(os.path.join(qd_daily_dir, '*_hour.txt')))
     data = [spacepy.datamodel.readJSONheadedASCII(f)
             for f in filelist]
-    print("Processing ...")
     omnidata = spacepy.datamodel.SpaceData()
     for k in data[0].keys():
         if k in ('DateTime', 'Minute', 'OriginFile', 'Second'):
@@ -916,6 +932,7 @@ def _get_qindenton_daily(qd_daily_url=None):
     for k in ('Year', 'Hour', 'Month', 'Day'):
         del omnidata[k]
     return omnidata
+
 
 def _get_cdaweb_omni2(omni2url=None):
     """Download the OMNI2 data from SPDF
