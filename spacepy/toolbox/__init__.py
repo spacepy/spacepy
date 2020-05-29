@@ -1038,7 +1038,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         if conn is None:
             ctype = http.client.HTTPConnection if scheme == 'http:'\
                     else http.client.HTTPSConnection
-            conn = ctype(host, timeout=1)
+            conn = ctype(host)
         clheaders = {
             "Connection": "keep-alive",
         }
