@@ -76,9 +76,15 @@ omni2_url
   The default should almost always be acceptable.
 
 qindenton_url
-  URL containing Qin-Denton packaging of OMNI data.
+  URL containing Qin-Denton packaging of OMNI data as as single file.
   :py:func:`~spacepy.toolbox.update` will download from the URL.
   The default should almost always be acceptable.
+
+qd_daily_url
+  URL containing Qin-Denton packaging of OMNI data in daily files,
+  supplemental to ``qindenton_url``. :py:func:`~spacepy.toolbox.update`
+  will download from the URL. The default should almost always be
+  acceptable.
 
 psddata_url
   URL containing PSD data.
