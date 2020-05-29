@@ -1198,7 +1198,8 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     if omni == True:
         # retrieve omni, unzip and save as table
         print("Retrieving Qin_Denton file ...")
-        get_url(config['qindenton_url'], omni_fname_zip, progressbar)
+        get_url(config['qindenton_url'], omni_fname_zip, progressbar,
+                cached=True)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         fh_zip.close()
@@ -1279,9 +1280,6 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         print("Now saving... ")
         ##for now, make one file -- think about whether monthly/annual files makes sense
         toHDF5(omni_fname_h5, omnidata)
-
-        # delete left-overs
-        os.remove(omni_fname_zip)
 
     if omni2 == True:
         omni2_url = config['omni2_url']
