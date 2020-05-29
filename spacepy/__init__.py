@@ -237,7 +237,8 @@ def _read_config(rcfile):
     defaults = {'enable_deprecation_warning': str(True),
                 'keepalive': str(True),
                 'ncpus': str(multiprocessing.cpu_count()),
-                'qindenton_url': 'http://virbo.org/ftp/QinDenton/hour/merged/latest/WGhour-latest.d.zip', # Future: https://rbsp-ect.newmexicoconsortium.org/data_pub/QinDenton/
+                'qindenton_url': 'http://virbo.org/ftp/QinDenton/hour/merged/latest/WGhour-latest.d.zip',
+                'qd_daily_url': 'https://rbsp-ect.newmexicoconsortium.org/data_pub/QinDenton/',
                 'omni2_url': 'https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hourly/',
                 'leapsec_url': 'http://maia.usno.navy.mil/ser7/tai-utc.dat',
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
