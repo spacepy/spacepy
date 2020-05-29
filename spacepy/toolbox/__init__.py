@@ -839,22 +839,82 @@ def _get_qindenton_daily(qd_daily_url=None):
     qd_daily_url : str (optional)
         Base of the Qin-Denton data, in hourly JSON-headed ASCII. This URL
         should point to the directory containing the yearly directories.
-        Default from ``qindenton_url`` in config file.
+        Default from ``qd_daily_url`` in config file.
 
     Returns
     =======
     SpaceData
         The data extracted from the Q-D dataset, fully processed for saving
-        as SpacePy HDF5 OMNI data. Returns ``None`` if there are no new data.
+        as SpacePy HDF5 OMNI data.
     """
+    import spacepy.datamodel
     if qd_daily_url is None:
         qd_daily_url = spacepy.config['qd_daily_url']
     datadir = os.path.join(spacepy.DOT_FLN, 'data', 'qindenton_daily_files')
     _crawl_yearly(qd_daily_url, r'QinDenton_\d{8}_hour.txt',
                   datadir, name='Q-D daliy')
     #Read and process
-    print("Reading Q-D files ...")
-
+    print("Reading Q-D daily files ...")
+    filelist = sorted(glob.glob(os.path.join(datadir, '*_hour.txt')))
+    data = [spacepy.datamodel.readJSONheadedASCII(f)
+            for f in filelist]
+    print("Processing ...")
+    omnidata = spacepy.datamodel.SpaceData()
+    for k in data[0].keys():
+        if k in ('DateTime', 'Minute', 'OriginFile', 'Second'):
+            continue
+        omnidata[k] = spacepy.datamodel.dmarray(
+            np.concatenate([d[k] for d in data]), dtype=np.float32)
+    del data
+    ntimes = set([len(v) for v in omnidata.values()])
+    if len(ntimes) != 1:
+        raise ValueError(
+            'Input Q-D daily file has different size for different variables')
+    ntimes = ntimes.pop()
+    # Renaming from the names in new file to old file names
+    for oldname, newname in (('dens', 'Den_P'),
+                             ('velo', 'Vsw')):
+        omnidata[oldname] = omnidata[newname]
+        del omnidata[newname]
+        if '{}_status'.format(newname) in omnidata:
+            omnidata['{}_status'.format(oldname)] \
+                = omnidata['{}_status'.format(newname)]
+            del omnidata['{}_status'.format(newname)]
+    # Quality flags
+    qbits = spacepy.datamodel.SpaceData()
+    for k in list(omnidata.keys()): # Edit while iterate
+        if not k.endswith('_status'):
+            continue
+        v = spacepy.datamodel.dmarray(omnidata[k], dtype=np.int8)
+        basename = k.split('_')[0]
+        if basename in ('G', 'W'): # Arrays
+            for i in range(omnidata[k].shape[1]):
+                qbits['{}{:d}'.format(basename, i + 1)] = v[:, i]
+        else:
+            qbits[basename] = v
+        del omnidata[k]
+    omnidata['Qbits'] = qbits
+    # Reformat some arrays to multi-variable
+    for name in ('Bz', 'G', 'W'):
+        for i in range(omnidata[name].shape[1]):
+            omnidata['{}{:d}'.format(name, i + 1)] = omnidata[name][:, i]
+        del omnidata[name]
+    # Make integers of integers
+    for k in ('Dst', 'Year', 'Month', 'Day', 'Hour'):
+        omnidata[k] = spacepy.datamodel.dmarray(omnidata[k], dtype=np.int16)
+    # Process time formats
+    omnidata['UTC'] = spacepy.datamodel.dmarray([
+        datetime.datetime(omnidata['Year'][i],
+                          omnidata['Month'][i],
+                          omnidata['Day'][i],
+                          omnidata['Hour'][i])
+        for i in range(len(omnidata['Year']))])
+    omnidata['DOY'] = spacepy.datamodel.dmarray([
+        dt.timetuple().tm_yday for dt in omnidata['UTC']], dtype=np.int16)
+    omnidata['RDT'] = spt.Ticktock(omnidata['UTC'], 'UTC').RDT
+    for k in ('Year', 'Hour', 'Month', 'Day'):
+        del omnidata[k]
+    return omnidata
 
 def _get_cdaweb_omni2(omni2url=None):
     """Download the OMNI2 data from SPDF
