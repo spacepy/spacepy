@@ -706,7 +706,28 @@ class SimpleFunctionTests(unittest.TestCase):
         res = tb.poisson_fit(data)
         self.assertEqual(ans, numpy.round(res.x))
 
-            
+    def test_assemble_qindenton_daily(self):
+        """Assemble OMNI data structure from Qin-Denton daily files"""
+        dailydir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'data', 'qindenton_daily')
+        omnidata = tb._assemble_qindenton_daily(dailydir)
+        self.assertEqual(
+            ['ByIMF', 'Bz1', 'Bz2', 'Bz3', 'Bz4', 'Bz5', 'Bz6', 'BzIMF',
+             'DOY', 'Dst', 'G1', 'G2', 'G3', 'Kp', 'Pdyn', 'Qbits',
+             'RDT', 'UTC', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'akp3',
+             'dens', 'velo'],
+            sorted(omnidata.keys()))
+        numpy.testing.assert_array_equal(
+            [14,  16,  18,  17,  17,  12,  10,  11,  11,   4,   0,  -8, -13,
+             -13, -12, -11,  -9,  -5,   2,   6,   9,   9,  10,   6,  -2,  -8,
+             -11, -11, -12, -20, -27, -29, -26, -22, -17, -22, -25, -29, -33,
+             -36, -41, -47, -47, -39, -35, -41, -42, -45],
+            omnidata['Dst'])
+        numpy.testing.assert_array_equal(
+            2, omnidata['Qbits']['W6'])
+
+
 class TBTimeFunctionTests(unittest.TestCase):
     def setUp(self):
         super(TBTimeFunctionTests, self).setUp()
