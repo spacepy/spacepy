@@ -772,10 +772,12 @@ def _crawl_yearly(base_url, pattern, datadir, name=None):
     #Find all the files to download
     print("Finding {}files to download ...".format(name))
     progressbar(0, 1, 1, text='Listing files')
-    try:
-        data, conn = get_url(base_url, keepalive=True)
-    except socket.error: #Give up on keepalives
-        conn = None
+    conn = None
+    if spacepy.config['keepalive']:
+        try:
+            data, conn = get_url(base_url, keepalive=True)
+        except socket.error: #Give up on keepalives
+            pass
     if conn is None:
         data = get_url(base_url)
     if str is not bytes:
@@ -1129,7 +1131,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
     Download and update local database for omni, leapsecs etc
 
     Web access is via :func:`get_url`; notes there may be helpful in
-    debugging errors.
+    debugging errors. See also the ``keepalive`` configuration option.
 
     Parameters
     ==========
