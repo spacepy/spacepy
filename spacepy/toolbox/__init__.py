@@ -1337,6 +1337,19 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         del omnidata['Year']
         del omnidata['Hr']
 
+        # Supplement with daily files
+        dailyomnidata = _get_qindenton_daily()
+        # Find where new files start
+        idx = np.searchsorted(omnidata['UTC'], dailyomnidata['UTC'][0])
+        for k in sorted(omnidata.keys()):
+            if k == 'Qbits':
+                for qk in sorted(omnidata[k].keys()):
+                    omnidata[k][qk] = spacepy.dmarray(np.concatenate((
+                        omnidata[k][qk][:idx, ...], dailyomnidata[k][qk])))
+            else:
+                omnidata[k] = spacepy.dmarray(np.concatenate((
+                    omnidata[k][:idx, ...], dailyomnidata[k])))
+
         print("Now saving... ")
         ##for now, make one file -- think about whether monthly/annual files makes sense
         toHDF5(omni_fname_h5, omnidata)

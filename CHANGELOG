@@ -37,6 +37,7 @@ pybats
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
+ - Change update to supplement ViRBO Qin-Denton files with NMC daily files
 
 Changes in Version 0.2.1 (2019-10-02)
 =====================================
