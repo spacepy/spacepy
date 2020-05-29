@@ -1,0 +1,216 @@
+# {
+#  "OriginFile":       { "DESCRIPTION": "ViRBO origin file for Qin-Denton data",
+#                               "NAME": "OriginFile",
+#                             "VALUES": [""]},
+#
+#  "DateTime":         { "DESCRIPTION": "The date and time in ISO 8601 compliant format.",
+#                               "NAME": "IsoDateTime",
+#                              "TITLE": "ISO DateTime",
+#                              "LABEL": "Time",
+#                              "UNITS": "UTC",
+#                       "START_COLUMN": 0 },
+#
+#  "Year":             { "DESCRIPTION": "Year.",
+#                               "NAME": "Year",
+#                              "TITLE": "Year",
+#                              "LABEL": "Year",
+#                       "START_COLUMN": 1,
+#                              "UNITS": "Years" },
+#
+#  "Month":              { "DESCRIPTION": "Month",
+#                               "NAME": "Month",
+#                              "TITLE": "Month",
+#                              "LABEL": "Month",
+#                       "START_COLUMN": 2,
+#                              "UNITS": "Months"},
+#
+#  "Day":             { "DESCRIPTION": "Day of month.",
+#                               "NAME": "Day",
+#                              "TITLE": "Day",
+#                              "LABEL": "Day",
+#                       "START_COLUMN": 3,
+#                              "UNITS": "Days" },
+#
+#  "Hour":             { "DESCRIPTION": "Hour of current day.",
+#                               "NAME": "Hours",
+#                              "TITLE": "Hours",
+#                              "LABEL": "Hours",
+#                       "START_COLUMN": 4,
+#                              "UNITS": "Hours" },
+#
+#  "Minute":           { "DESCRIPTION": "Minute of the current hour.",
+#                               "NAME": "Minutes",
+#                              "TITLE": "Minutes",
+#                              "LABEL": "Minutes",
+#                       "START_COLUMN": 5,
+#                              "UNITS": "Minutes" },
+#
+#  "Second":           { "DESCRIPTION": "Second of the current minute.",
+#                               "NAME": "Seconds",
+#                              "TITLE": "Seconds",
+#                              "LABEL": "Seconds",
+#                       "START_COLUMN": 6,
+#                              "UNITS": "Seconds" },
+#
+#  "ByIMF":            { "DESCRIPTION": "Y-component of the interplanetary magnetic field.",
+#                               "NAME": "ByIMF",
+#                              "TITLE": "IMF By",
+#                              "LABEL": "IMF B!By!N, nT",
+#                       "START_COLUMN": 7,
+#                              "UNITS": "nT" },
+#
+#  "BzIMF":            { "DESCRIPTION": "Z-component of the interplanetary magnetic field.",
+#                               "NAME": "BzIMF",
+#                              "TITLE": "IMF Bz",
+#                              "LABEL": "IMF B!Bz!N, nT",
+#                       "START_COLUMN": 8,
+#                              "UNITS": "nT" },
+#
+#  "Vsw":             { "DESCRIPTION": "Solar wind speed.",
+#                               "NAME": "Vsw",
+#                              "TITLE": "Solar Wind Speed",
+#                              "LABEL": "V!BSW!N, km/s",
+#                       "START_COLUMN": 9,
+#                              "UNITS": "km/s" },
+#
+#  "Den_P":               { "DESCRIPTION": "Solar wind proton density.",
+#                               "NAME": "Den_P",
+#                              "TITLE": "Solar Wind Proton Density",
+#                              "LABEL": "N!Bp!N, cm!E-3!N",
+#                       "START_COLUMN": 10,
+#                              "UNITS": "cm^-3" },
+#
+#  "Pdyn":             { "DESCRIPTION": "Solar wind dynamic pressure.",
+#                               "NAME": "Pdyn",
+#                              "TITLE": "Solar Wind Dynamic Pressure",
+#                              "LABEL": "P!Bdyn!N, nPa",
+#                       "START_COLUMN": 11,
+#                              "UNITS": "nPa" },
+#
+#  "G":                { "DESCRIPTION": "Tsyganeko G parameters.",
+#                               "NAME": "G",
+#                              "TITLE": "Tsyganeko G parameters",
+#                              "LABEL": "Tsyganeko G!Bi!N",
+#                          "DIMENSION": [ 3 ],
+#                       "START_COLUMN": 12,
+#                      "ELEMENT_NAMES": [ "G1", "G2", "G3" ],
+#                     "ELEMENT_LABELS": [ "G1", "G2", "G3" ] },
+#
+#  "ByIMF_status":     { "DESCRIPTION": "Quality flag for ByIMF value.",
+#                               "NAME": "ByIMF_status",
+#                              "TITLE": "ByIMF_status",
+#                              "LABEL": "ByIMF_status",
+#                       "START_COLUMN": 15,
+#                              "UNITS": "dimless" },
+#
+#  "BzIMF_status":     { "DESCRIPTION": "Quality flag for BzIMF value.",
+#                               "NAME": "BzIMF_status",
+#                              "TITLE": "BzIMF_status",
+#                              "LABEL": "BzIMF_status",
+#                       "START_COLUMN": 16,
+#                              "UNITS": "dimless" },
+#
+#  "Vsw_status":       { "DESCRIPTION": "Quality flag for Vsw value.",
+#                               "NAME": "Vsw_status",
+#                              "TITLE": "Vsw_status",
+#                              "LABEL": "Vsw_status",
+#                       "START_COLUMN": 17,
+#                              "UNITS": "dimless" },
+#
+#  "Den_P_status":     { "DESCRIPTION": "Quality flag for Den_P value.",
+#                               "NAME": "Den_P_status",
+#                              "TITLE": "Den_P_status",
+#                              "LABEL": "Den_P_status",
+#                       "START_COLUMN": 18,
+#                              "UNITS": "dimless" },
+#
+#  "Pdyn_status":     { "DESCRIPTION": "Quality flag for Pdyn value.",
+#                               "NAME": "Pdyn_status",
+#                              "TITLE": "Pdyn_status",
+#                              "LABEL": "Pdyn_status",
+#                       "START_COLUMN": 19,
+#                              "UNITS": "dimless" },
+#
+#  "G_status":         { "DESCRIPTION": "Quality flag for G values.",
+#                               "NAME": "G_status",
+#                              "TITLE": "G_status",
+#                              "LABEL": "G_status",
+#                          "DIMENSION": [ 3 ],
+#                       "START_COLUMN": 20,
+#                      "ELEMENT_NAMES": [ "G1_status", "G2_status", "G3_status" ],
+#                     "ELEMENT_LABELS": [ "dimless", "dimless", "dimless" ] },
+#
+#
+#  "Kp":               { "DESCRIPTION": "Kp index.",
+#                               "NAME": "Kp",
+#                              "TITLE": "Kp Index",
+#                              "LABEL": "Kp",
+#                       "START_COLUMN": 23,
+#                              "UNITS": "dimless" },
+#
+#  "akp3":               { "DESCRIPTION": "akp3 index.",
+#                               "NAME": "akp3",
+#                              "TITLE": "akp3 Index",
+#                              "LABEL": "akp3",
+#                       "START_COLUMN": 24,
+#                              "UNITS": "dimless" },
+#
+#  "Dst":               { "DESCRIPTION": "Dst index.",
+#                               "NAME": "Dst",
+#                              "TITLE": "Dst Index",
+#                              "LABEL": "Dst, nT",
+#                       "START_COLUMN": 25,
+#                              "UNITS": "nT" },
+#
+#  "Bz":               { "DESCRIPTION": "Tsyganeko Bz parameters.",
+#                               "NAME": "Bz",
+#                              "TITLE": "Tsyganeko Bz parameters",
+#                              "LABEL": "Bz!Bi!N, nT",
+#                          "DIMENSION": [ 6 ],
+#                       "START_COLUMN": 26,
+#                      "ELEMENT_NAMES": [ "Bz1", "Bz2", "Bz3", "Bz4", "Bz5", "Bz6" ],
+#                      "ELEMENT_LABELS": [ "Bz1", "Bz2", "Bz3", "Bz4", "Bz5", "Bz6" ] },
+#
+#  "W":                { "DESCRIPTION": "Tsyganeko W parameters.",
+#                               "NAME": "W",
+#                              "TITLE": "Tsyganeko W parameters",
+#                              "LABEL": "Tsyganeko W!Bi!N",
+#                          "DIMENSION": [ 6 ],
+#                       "START_COLUMN": 32,
+#                      "ELEMENT_NAMES": [ "W1", "W2", "W3", "W4", "W5", "W6" ],
+#                      "ELEMENT_LABELS": [ "W1", "W2", "W3", "W4", "W5", "W6" ] },
+#
+#  "W_status":         { "DESCRIPTION": "Quality flags for Tsyganeko W parameters.",
+#                               "NAME": "W_status",
+#                              "TITLE": "Tsyganeko W_status parameters",
+#                              "LABEL": "Tsyganeko W!Bi!N_status",
+#                          "DIMENSION": [ 6 ],
+#                       "START_COLUMN": 38,
+#                      "ELEMENT_NAMES": [ "W1_status", "W2_status", "W3_status", "W4_status", "W5_status", "W6_status" ],
+#                     "ELEMENT_LABELS": [ "W1_status", "W2_status", "W3_status", "W4_status", "W5_status", "W6_status" ] }
+#
+# } End JSON
+2012-09-02T00:00:00 2012   9  2  0  0 00    5.90  -4.90  319.0    3.60   0.76    6.43   6.82   2.51  2 2 2 2 2 2 2 2   3.00  1.42    -2   -4.90  -4.90  -4.90  -4.90  -4.90  -4.90   0.487  0.705  0.132  0.467  0.588  0.414  2 2 2 2 2 2
+2012-09-02T01:00:00 2012   9  2  1  0 00    5.40  -4.50  316.0    4.10   0.83    6.68   7.43   2.87  2 2 2 2 2 2 2 2   3.00  1.68    -8   -4.50  -4.50  -4.50  -4.50  -4.50  -4.50   0.586  0.809  0.146  0.580  0.641  0.471  2 2 2 2 2 2
+2012-09-02T02:00:00 2012   9  2  2  0 00    4.90  -4.10  314.0    5.50   1.06    5.60   6.74   3.27  2 2 2 2 2 2 2 2   3.00  1.96   -11   -4.10  -4.10  -4.10  -4.10  -4.10  -4.10   0.656  0.885  0.160  0.636  0.671  0.582  2 2 2 2 2 2
+2012-09-02T03:00:00 2012   9  2  3  0 00    4.00  -5.70  315.0    4.80   0.98    6.11   7.81   3.99  2 2 2 2 2 2 2 2   2.70  2.21   -11   -5.70  -5.70  -5.70  -5.70  -5.70  -5.70   0.751  0.992  0.177  0.760  0.752  0.667  2 2 2 2 2 2
+2012-09-02T04:00:00 2012   9  2  4  0 00    1.00  -6.70  315.0    7.00   1.57    7.23   9.83   5.92  2 2 2 2 2 2 2 2   2.70  2.45   -12   -6.70  -6.70  -6.70  -6.70  -6.70  -6.70   0.911  1.198  0.205  1.006  0.925  0.923  2 2 2 2 2 2
+2012-09-02T05:00:00 2012   9  2  5  0 00    0.90  -6.70  315.0    7.10   1.53    7.65  10.55   7.44  2 2 2 2 2 2 2 2   2.70  2.57   -20   -6.70  -6.70  -6.70  -6.70  -6.70  -6.70   1.059  1.363  0.235  1.215  1.032  1.144  2 2 2 2 2 2
+2012-09-02T06:00:00 2012   9  2  6  0 00    3.40  -6.20  315.0    7.20   1.60    7.53  10.13   7.24  2 2 2 2 2 2 2 2   2.30  2.64   -27   -6.20  -6.20  -6.20  -6.20  -6.20  -6.20   1.143  1.424  0.263  1.293  1.043  1.228  2 2 2 2 2 2
+2012-09-02T07:00:00 2012   9  2  7  0 00    2.20  -5.50  312.0    8.90   1.61    6.51   9.12   7.39  2 2 2 2 2 2 2 2   2.30  2.70   -29   -5.50  -5.50  -5.50  -5.50  -5.50  -5.50   1.183  1.453  0.287  1.289  1.032  1.366  2 2 2 2 2 2
+2012-09-02T08:00:00 2012   9  2  8  0 00    4.90  -5.10  316.0    6.60   1.22    6.12   8.30   6.36  2 2 2 2 2 2 2 2   2.30  2.62   -26   -5.10  -5.10  -5.10  -5.10  -5.10  -5.10   1.164  1.383  0.305  1.203  0.955  1.262  2 2 2 2 2 2
+2012-09-02T09:00:00 2012   9  2  9  0 00    4.60  -4.00  317.0    7.20   1.30    5.65   7.13   4.93  2 2 2 2 2 2 2 2   2.30  2.53   -22   -4.00  -4.00  -4.00  -4.00  -4.00  -4.00   1.093  1.260  0.317  1.049  0.851  1.129  2 2 2 2 2 2
+2012-09-02T10:00:00 2012   9  2 10  0 00    2.80  -5.30  321.0    6.90   1.31    5.24   7.51   5.28  2 2 2 2 2 2 2 2   2.30  2.44   -17   -5.30  -5.30  -5.30  -5.30  -5.30  -5.30   1.077  1.246  0.332  1.025  0.879  1.127  2 2 2 2 2 2
+2012-09-02T11:00:00 2012   9  2 11  0 00    2.90  -5.90  323.0    7.10   1.36    6.37   9.06   6.35  2 2 2 2 2 2 2 2   2.30  2.40   -22   -5.90  -5.90  -5.90  -5.90  -5.90  -5.90   1.119  1.310  0.353  1.117  0.966  1.203  2 2 2 2 2 2
+2012-09-02T12:00:00 2012   9  2 12  0 00    2.80  -5.90  324.0    8.80   1.77    6.91   9.54   7.66  2 2 2 2 2 2 2 2   2.30  2.35   -25   -5.90  -5.90  -5.90  -5.90  -5.90  -5.90   1.186  1.412  0.378  1.235  1.062  1.431  2 2 2 2 2 2
+2012-09-02T13:00:00 2012   9  2 13  0 00    2.80  -6.60  324.0    8.00   1.61    7.65  10.17   8.50  2 2 2 2 2 2 2 2   2.30  2.30   -29   -6.60  -6.60  -6.60  -6.60  -6.60  -6.60   1.263  1.504  0.405  1.366  1.133  1.561  2 2 2 2 2 2
+2012-09-02T14:00:00 2012   9  2 14  0 00    2.40  -7.00  325.0    7.30   1.47    8.68  11.06   8.43  2 2 2 2 2 2 2 2   2.30  2.30   -33   -7.00  -7.00  -7.00  -7.00  -7.00  -7.00   1.329  1.556  0.435  1.482  1.169  1.546  2 2 2 2 2 2
+2012-09-02T15:00:00 2012   9  2 15  0 00   -0.50  -7.50  322.0    8.00   1.57    9.17  11.76   9.03  2 2 2 2 2 2 2 2   2.70  2.35   -36   -7.50  -7.50  -7.50  -7.50  -7.50  -7.50   1.406  1.630  0.467  1.615  1.224  1.602  2 2 2 2 2 2
+2012-09-02T16:00:00 2012   9  2 16  0 00   -2.30  -7.40  318.0    8.80   1.73    9.57  11.91  10.04  2 2 2 2 2 2 2 2   2.70  2.40   -41   -7.40  -7.40  -7.40  -7.40  -7.40  -7.40   1.478  1.711  0.500  1.724  1.265  1.726  2 2 2 2 2 2
+2012-09-02T17:00:00 2012   9  2 17  0 00    1.30  -6.80  320.0    9.40   1.88    8.60  11.29  10.30  2 2 2 2 2 2 2 2   2.70  2.46   -47   -6.80  -6.80  -6.80  -6.80  -6.80  -6.80   1.516  1.745  0.530  1.748  1.267  1.848  2 2 2 2 2 2
+2012-09-02T18:00:00 2012   9  2 18  0 00    2.60  -7.10  317.0    9.10   1.78    8.60  11.08  10.24  2 2 2 2 2 2 2 2   3.70  2.64   -47   -7.10  -7.10  -7.10  -7.10  -7.10  -7.10   1.539  1.762  0.558  1.757  1.263  1.885  2 2 2 2 2 2
+2012-09-02T19:00:00 2012   9  2 19  0 00    2.70  -6.80  315.0    8.60   1.60    8.74  10.96   9.68  2 2 2 2 2 2 2 2   3.70  2.82   -39   -6.80  -6.80  -6.80  -6.80  -6.80  -6.80   1.537  1.740  0.583  1.726  1.224  1.805  2 2 2 2 2 2
+2012-09-02T20:00:00 2012   9  2 20  0 00    1.70  -7.10  318.0    9.30   1.69    8.61  11.02   9.90  2 2 2 2 2 2 2 2   3.70  2.99   -35   -7.10  -7.10  -7.10  -7.10  -7.10  -7.10   1.549  1.753  0.609  1.738  1.243  1.844  2 2 2 2 2 2
+2012-09-02T21:00:00 2012   9  2 21  0 00   -0.30  -8.00  313.0    8.90   1.58    9.61  11.96  10.86  2 2 2 2 2 2 2 2   4.70  3.30   -41   -8.00  -8.00  -8.00  -8.00  -8.00  -8.00   1.597  1.816  0.639  1.836  1.293  1.885  2 2 2 2 2 2
+2012-09-02T22:00:00 2012   9  2 22  0 00   -0.50  -8.10  310.0    9.80   1.70   10.52  12.54  11.77  2 2 2 2 2 2 2 2   4.70  3.60   -42   -8.10  -8.10  -8.10  -8.10  -8.10  -8.10   1.658  1.897  0.671  1.950  1.340  1.978  2 2 2 2 2 2
+2012-09-02T23:00:00 2012   9  2 23  0 00   -0.30  -7.70  311.0   10.30   1.76   10.09  12.24  12.32  2 2 2 2 2 2 2 2   4.70  3.85   -45   -7.70  -7.70  -7.70  -7.70  -7.70  -7.70   1.699  1.947  0.701  2.002  1.357  2.095  2 2 2 2 2 2
