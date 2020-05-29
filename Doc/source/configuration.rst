@@ -38,7 +38,6 @@ If you change the default location, make sure you add the environment
 variable ``$SPACEPY`` to your ``.cshrc, .tcshrc,`` or ``.bashrc``
 script.
 
-
 Available configuration options
 ===============================
 enable_deprecation_warning
@@ -48,6 +47,13 @@ enable_deprecation_warning
   deprecated function is called. Set this option to False to retain the default
   Python behavior. (See :py:mod:`warnings` module for details on custom warning
   filters.)
+
+keepalive
+  True to attempt to use HTTP keepalives when downloading data in
+  :py:func:`~spacepy.toolbox.update` (default). This is faster when
+  downloading many small files but may be fragile (e.g. if a proxy
+  server is required). Set to False for a more robust and flexible,
+  but slower, codepath.
 
 leapsec_url
   URL of the leapsecond database used by time conversions.
