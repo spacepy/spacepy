@@ -38,7 +38,9 @@ class ae9ap9Tests(unittest.TestCase):
     def test_setUnits_error(self):
         """Invalid units raise the correct error and message"""
         ans = ae9ap9.readFile(self.datafiles[0])
-        self.assertRaisesRegexp(ValueError, '^(Units of FeV)', ans.setUnits, 'FeV')
+        if not hasattr(unittest.TestCase, 'assertRaisesRegex'):
+            unittest.TestCase.assertRaisesRegex = getattr(unittest.TestCase, 'assertRaisesRegexp')
+        self.assertRaisesRegex(ValueError, '^(Units of FeV)', ans.setUnits, 'FeV')
 
     def test_setUnits_convert(self):
         """Conversion correctly changes flux/fluence values, energy values and units"""
