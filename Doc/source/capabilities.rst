@@ -67,6 +67,12 @@ Statistics
 :mod:`~spacepy.poppy` supports determining confidence intervals on
  population metrics using the non-parametric bootstrap method.
 
+Time conversions
+================
+:mod:`~spacepy.time` contains a class that easily allows time to be
+represented in, and converted among, many representations, including
+Python datetimes, ISO time strings, GPS time, TAI, etc.
+
 Time series analysis and correlations
 =====================================
 :mod:`~spacepy.poppy` implements association analysis to determine the
