@@ -5,7 +5,7 @@ SpacePy Capabilities
 This page lists some capabilities of SpacePy and, in some cases, of
 other packages that might be of interest to SpacePy users. It is
 organized by topic; searching within this page is recommended. See the
-:ref:`module reference <_module_reference>` for every class/function
+:ref:`module reference <module_reference>` for every class/function
 available in SpacePy, organized by module.
 
 .. contents::
