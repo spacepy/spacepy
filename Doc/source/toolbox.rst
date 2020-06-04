@@ -47,6 +47,8 @@ Array searching and masking
     tOverlap
     tOverlapHalf
 
+.. _toolbox_quaternions:
+
 Quaternion math
 ---------------
 .. autosummary::
