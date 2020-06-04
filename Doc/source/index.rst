@@ -39,6 +39,15 @@ To cite SpacePy in publications, use (BibTeX code):
     address = {Austin, TX}
     }
 
+Or to cite the code itself:
+    @software{SpacePy,
+    author       = {{Larsen}, B.~A. and {Morley}, S.~K. and {Niehof}, J.~T. and {Welling}, D.~T.},
+    title        = {SpacePy},
+    publisher    = {Zenodo},
+    doi          = {10.5281/zenodo.3252523},
+    url          = {https://doi.org/10.5281/zenodo.3252523}
+    }
+
 Certain modules may provide additional citations in the ``__citation__``
 attribute. Contact a module's author (details in the ``__citation__`` attribute) 
 before publication or public presentation of analysis performed by that 
