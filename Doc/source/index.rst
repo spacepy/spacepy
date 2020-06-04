@@ -69,6 +69,7 @@ Further reference material on how to use SpacePy, and examples.
 .. toctree::
     :maxdepth: 1
 
+    capabilities
     case_studies
     publications
     py2k_eol
@@ -87,6 +88,8 @@ For those developing SpacePy, plus tips for all Python developers.
     tips
     dep_versions
     doc_standard
+
+.. _module_reference:
 
 SpacePy Module Reference
 ========================
