@@ -49,34 +49,49 @@ work.
 
 .. module:: spacepy
 
+Getting Started
+===============
+
+First steps in SpacePy and scientific Python.
+
+.. toctree::
+    :maxdepth: 1
+
+    install
+    quickstart
+    help
+
 SpacePy Documents
 =================
 
+Further reference material on how to use SpacePy, and examples.
+
 .. toctree::
     :maxdepth: 1
 
-    help
-    install
-    py2k_eol
-    quickstart
-    tips
-    configuration
     case_studies
     publications
-    pythonic
+    py2k_eol
+    configuration
     scripts
 
-SpacePy Developer Guide
-=======================
+Developer Guide
+===============
+
+For those developing SpacePy, plus tips for all Python developers.
 
 .. toctree::
     :maxdepth: 1
 
+    pythonic
+    tips
     dep_versions
     doc_standard
 
-SpacePy Code
-============
+SpacePy Module Reference
+========================
+
+Description of all functions within SpacePy, by module.
 
 .. toctree::
     :maxdepth: 1
