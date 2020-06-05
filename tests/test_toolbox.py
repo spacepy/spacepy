@@ -205,6 +205,27 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(result, "\rDownload Progress ...0%")
         sys.stdout = realstdout
 
+    def test_progressbar_bigblock(self):
+        """progressbar should not go over 100% with big blocks"""
+        realstdout = sys.stdout
+        output = StringIO.StringIO()
+        sys.stdout = output
+        try:
+            for i in range(4):
+                self.assertEqual(tb.progressbar(i, 100, 205), None)
+            result = output.getvalue()
+        finally:
+            sys.stdout = realstdout
+            output.close()
+        self.assertEqual(
+            result,
+            "\rDownload Progress ...0%"
+            "\rDownload Progress ...49%"
+            "\rDownload Progress ...98%"
+            "\rDownload Progress ...100%"
+            "\n\n"
+        )
+
     def test_query_yes_no(self):
         '''query_yes_no should return known strings for known input'''
         realstdout = sys.stdout

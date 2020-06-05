@@ -1236,8 +1236,10 @@ def progressbar(count, blocksize, totalsize, text='Download Progress'):
     >>> import urllib
     >>> urllib.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=tb.progressbar)
     """
-    percent = int(count*blocksize*100/totalsize)
-    sys.stdout.write("\r" + text + " " + "...%d%%" % percent)
+    percent = count * blocksize * 100. / totalsize
+    if percent > 100:
+        percent = 100.
+    sys.stdout.write("\r{} ...{:.0f}%".format(text, percent))
     if percent >= 100: print('\n')
     sys.stdout.flush()
 
