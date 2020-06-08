@@ -1240,7 +1240,8 @@ def progressbar(count, blocksize, totalsize, text='Download Progress'):
     if percent > 100:
         percent = 100.
     sys.stdout.write("\r{} ...{:.0f}%".format(text, percent))
-    if percent >= 100: print('\n')
+    if percent >= 100:
+        sys.stdout.write("\n")
     sys.stdout.flush()
 
 def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):

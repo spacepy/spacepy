@@ -200,9 +200,11 @@ class SimpleFunctionTests(unittest.TestCase):
         output = StringIO.StringIO()
         sys.stdout = output
         self.assertEqual(tb.progressbar(0, 1, 100), None)
+        self.assertEqual(tb.progressbar(100, 1, 100), None)
         result = output.getvalue()
         output.close()
-        self.assertEqual(result, "\rDownload Progress ...0%")
+        self.assertEqual(result, "\rDownload Progress ...0%"
+                         "\rDownload Progress ...100%\n")
         sys.stdout = realstdout
 
     def test_progressbar_bigblock(self):
@@ -223,7 +225,7 @@ class SimpleFunctionTests(unittest.TestCase):
             "\rDownload Progress ...49%"
             "\rDownload Progress ...98%"
             "\rDownload Progress ...100%"
-            "\n\n"
+            "\n"
         )
 
     def test_query_yes_no(self):
