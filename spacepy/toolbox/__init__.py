@@ -743,7 +743,7 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     return None
 
 
-def _crawl_yearly(base_url, pattern, datadir, name=None):
+def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True):
     """Crawl files in a directory-by-year structure
 
     Parameters
@@ -760,6 +760,10 @@ def _crawl_yearly(base_url, pattern, datadir, name=None):
         directories.
     name : str (optional)
         Name of the data set, used only in status messages.
+    cached : boolean (optional)
+        Only update files if timestamp on server is newer than
+        timestamp on local file (default). Set False to always
+        download files.
 
     Returns
     =======
@@ -819,10 +823,10 @@ def _crawl_yearly(base_url, pattern, datadir, name=None):
     for i, fname in enumerate(filenames):
         if conn is None:
             res = get_url(downloadme[fname], os.path.join(datadir, fname),
-                          cached=True)
+                          cached=cached)
         else:
             res, conn = get_url(downloadme[fname], os.path.join(datadir, fname),
-                                cached=True, keepalive=True, conn=conn)
+                                cached=cached, keepalive=True, conn=conn)
         if res is not None:
             newdata = True
         progressbar(i + 1, 1, len(filenames))
@@ -831,7 +835,7 @@ def _crawl_yearly(base_url, pattern, datadir, name=None):
     return filenames if newdata else None
 
 
-def _get_qindenton_daily(qd_daily_url=None):
+def _get_qindenton_daily(qd_daily_url=None, cached=True):
     """Download the Qin-Denton OMNI-like daily files
     
     Parameters
@@ -840,6 +844,10 @@ def _get_qindenton_daily(qd_daily_url=None):
         Base of the Qin-Denton data, in hourly JSON-headed ASCII. This URL
         should point to the directory containing the yearly directories.
         Default from ``qd_daily_url`` in config file.
+    cached : boolean (optional)
+        Only update files if timestamp on server is newer than
+        timestamp on local file (default). Set False to always
+        download files.
 
     Returns
     =======
@@ -851,7 +859,7 @@ def _get_qindenton_daily(qd_daily_url=None):
         qd_daily_url = spacepy.config['qd_daily_url']
     datadir = os.path.join(spacepy.DOT_FLN, 'data', 'qindenton_daily_files')
     _crawl_yearly(qd_daily_url, r'QinDenton_\d{8}_hour.txt',
-                  datadir, name='Q-D daliy')
+                  datadir, name='Q-D daliy', cached=cached)
     #Read and process
     print("Reading/processing Q-D daily files ...")
     return _assemble_qindenton_daily(datadir)
@@ -1203,7 +1211,8 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
     return (data, conn) if keepalive else data
 
 
-def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDdata=False):
+def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
+           PSDdata=False, cached=True):
     """
     Download and update local database for omni, leapsecs etc
 
@@ -1222,6 +1231,10 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         if True, update OMNI2 and Qin-Denton
     leapsecs : boolean (optional)
         if True, update only leapseconds
+    cached : boolean (optional)
+        Only update files if timestamp on server is newer than
+        timestamp on local file (default). Set False to always
+        download files.
 
     Returns
     =======
@@ -1275,7 +1288,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         # retrieve omni, unzip and save as table
         print("Retrieving Qin_Denton file ...")
         get_url(config['qindenton_url'], omni_fname_zip, progressbar,
-                cached=True)
+                cached=cached)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
         data = fh_zip.read(fh_zip.namelist()[0])
         fh_zip.close()
@@ -1354,7 +1367,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         del omnidata['Hr']
 
         # Supplement with daily files
-        dailyomnidata = _get_qindenton_daily()
+        dailyomnidata = _get_qindenton_daily(cached=cached)
         # Find where new files start
         idx = np.searchsorted(omnidata['UTC'], dailyomnidata['UTC'][0])
         for k in sorted(omnidata.keys()):
@@ -1375,7 +1388,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
         if omni2_url.endswith('.zip'):
             # adding missing values from original omni2
             print("Retrieving OMNI2 file ...")
-            get_url(omni2_url, omni2_fname_zip, progressbar)
+            get_url(omni2_url, omni2_fname_zip, progressbar, cached=cached)
             fh_zip = zipfile.ZipFile(omni2_fname_zip)
             flist = fh_zip.namelist()
             if len(flist) != 1:
@@ -1407,11 +1420,13 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False, PSDd
 
     if leapsecs == True:
         print("Retrieving leapseconds file ... ")
-        get_url(config['leapsec_url'], leapsec_fname, progressbar, cached=True)
+        get_url(config['leapsec_url'], leapsec_fname, progressbar,
+                cached=cached)
 
     if PSDdata == True:
         print("Retrieving PSD sql database")
-        get_url(config['psddata_url'], PSDdata_fname, progressbar)
+        get_url(config['psddata_url'], PSDdata_fname, progressbar,
+                cached=cached)
     return datadir
 
 def indsFromXrange(inxrange):
