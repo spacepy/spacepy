@@ -860,9 +860,9 @@ def _get_qindenton_daily(qd_daily_url=None, cached=True):
         qd_daily_url = spacepy.config['qd_daily_url']
     datadir = os.path.join(spacepy.DOT_FLN, 'data', 'qindenton_daily_files')
     _crawl_yearly(qd_daily_url, r'QinDenton_\d{8}_hour.txt',
-                  datadir, name='Q-D daliy', cached=cached)
+                  datadir, name='Q-D daily', cached=cached)
     #Read and process
-    print("Reading/processing Q-D daily files ...")
+    print("Processing Q-D daily files ...")
     return _assemble_qindenton_daily(datadir)
 
 
@@ -1187,7 +1187,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         if keepalive: # Replace previous header request with full get
             r.read()
             conn.request('GET', path, headers=clheaders)
-            r, headers= checkresponse(conn)
+            r, headers = checkresponse(conn)
     size = int(headers.get('Content-Length', 0))
     blocksize = 1024
     count = 0
@@ -1287,7 +1287,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
 
     if omni == True:
         # retrieve omni, unzip and save as table
-        print("Retrieving Qin_Denton file ...")
+        print("Retrieving initial Qin-Denton file ...")
         get_url(config['qindenton_url'], omni_fname_zip, progressbar,
                 cached=cached)
         fh_zip = zipfile.ZipFile(omni_fname_zip)
@@ -1296,7 +1296,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         if not str is bytes:
             data = data.decode('ascii')
         A = np.array(data.split('\n'))
-        print("Now processing (this may take a minute) ...")
+        print("Processing initial Qin-Denton file ...")
 
         # create a keylist
         keys = A[0].split()
@@ -1368,6 +1368,8 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         del omnidata['Hr']
 
         # Supplement with daily files
+        print('Supplementing with latest Q-D daily files,'
+              ' this will take a while...')
         dailyomnidata = _get_qindenton_daily(cached=cached)
         # Find where new files start
         idx = np.searchsorted(omnidata['UTC'], dailyomnidata['UTC'][0])
@@ -1383,6 +1385,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         print("Now saving... ")
         ##for now, make one file -- think about whether monthly/annual files makes sense
         toHDF5(omni_fname_h5, omnidata)
+        print('Complete.')
 
     if omni2 == True:
         omni2_url = config['omni2_url']
