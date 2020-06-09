@@ -512,15 +512,17 @@ class build(_build):
         olddir = os.getcwd()
         os.chdir(builddir)
         F90files = ['source/onera_desp_lib.f', 'source/CoordTrans.f', 'source/AE8_AP8.f', 'source/find_foot.f',\
-                    'source/drift_bounce_orbit.f']
+                    'source/LAndI2Lstar.f', 'source/drift_bounce_orbit.f']
         functions = ['make_lstar1', 'make_lstar_shell_splitting1', 'find_foot_point1',\
                      'coord_trans1','find_magequator1', 'find_mirror_point1',
                      'get_field1', 'get_ae8_ap8_flux', 'fly_in_nasa_aeap1',
-                     'trace_field_line2_1', 'trace_field_line_towards_earth1', 'trace_drift_bounce_orbit']
+                     'trace_field_line2_1', 'trace_field_line_towards_earth1', 'trace_drift_bounce_orbit',
+                     'landi2lstar1', 'landi2lstar_shell_splitting1']
 
         # call f2py
         cmd = self.f2py + ['--overwrite-signature', '-m', 'irbempylib', '-h',
                'irbempylib.pyf'] + F90files + ['only:'] + functions + [':']
+        print(cmd)
         subprocess.check_call(cmd)
         # intent(out) substitute list
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \

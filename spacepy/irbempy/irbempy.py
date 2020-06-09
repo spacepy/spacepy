@@ -1322,7 +1322,7 @@ def get_AEP8(energy, loci, model='min', fluxtype='diff', particles='e'):
     
 
 # -----------------------------------------------
-def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None): 
+def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, landi2lstar=False): 
     """
     This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
     and will lookup omni values for given time if not provided (optional). If pitch angles
@@ -1341,6 +1341,8 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained below
         - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - landi2lstar : if True, will use the faster landi2lstar routine if possible. This 
+            routine can only be used with OPQUIET+IGRF magnetic field models.
 
     Returns
     =======
@@ -1433,16 +1435,29 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
     nTAI = len(ticks)
     d = prep_irbem(ticks, loci, alpha, extMag, options, omnivals)
     nalpha = d['nalpha']
+    if d['kext'] != 5 or d['options'][4] != 0:
+        landi2lstar = False
+    no_shell_splitting = (nalpha == 0) or (nalpha == 1 and alpha[0] == 90)
         
-    if isinstance(alpha, numbers.Number): # no drift shell splitting
-        raise Exception
-        lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], d['sysaxes'],\
-                    d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], d['xin3'], d['magin'])
+    if no_shell_splitting: # no drift shell splitting
+        if landi2lstar:
+            lm, lstar, blocal, bmin, xj, mlt = oplib.landi2lstar1(nTAI, d['kext'], d['options'], \
+                d['sysaxes'],d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], \
+                d['xin3'], d['magin'])
+        else:
+            lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], \
+                d['sysaxes'],d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], \
+                d['xin3'], d['magin'])
 
     elif nalpha > 0 and nalpha <= d['nalp_max']: # with drift shell splitting
-        lm, lstar, bmirr, bmin, xj, mlt = oplib.make_lstar_shell_splitting1(nTAI, nalpha, \
-            d['kext'], d['options'], d['sysaxes'], d['iyearsat'], d['idoysat'], d['utsat'], \
-            d['xin1'], d['xin2'], d['xin3'], d['degalpha'], d['magin'])
+        if landi2lstar:
+            lm, lstar, bmirr, bmin, xj, mlt = oplib.landi2lstar_shell_splitting1(nTAI, nalpha, \
+                d['kext'], d['options'], d['sysaxes'], d['iyearsat'], d['idoysat'], d['utsat'], \
+                d['xin1'], d['xin2'], d['xin3'], d['degalpha'], d['magin'])
+        else:
+            lm, lstar, bmirr, bmin, xj, mlt = oplib.make_lstar_shell_splitting1(nTAI, nalpha, \
+                d['kext'], d['options'], d['sysaxes'], d['iyearsat'], d['idoysat'], d['utsat'], \
+                d['xin1'], d['xin2'], d['xin3'], d['degalpha'], d['magin'])
 
     else:
         print('ERROR: too many pitch angles requested; 25 is maximum')
@@ -1455,13 +1470,13 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
     mlt[np.where( tb.feq(mlt,d['badval'])) ] = np.NaN
 
     results = {}
-    if nalpha == 0:
-        results['Lm'] = lm[0:nTAI]
-        results['Lstar'] = lstar[0:nTAI]
+    if no_shell_splitting:
+        results['Lm'] = lm[0:nTAI][:,None]
+        results['Lstar'] = lstar[0:nTAI][:,None]
         blocal[np.where( tb.feq(blocal,d['badval'])) ] = np.NaN
         results['Blocal'] = blocal[0:nTAI]
         results['Bmin'] = bmin[0:nTAI]
-        results['Xj'] = xj[0:nTAI]
+        results['Xj'] = xj[0:nTAI][:,None]
         results['MLT'] = mlt[0:nTAI]
     else:		
         results['Lm'] = lm[0:nTAI, 0:nalpha]
@@ -1529,7 +1544,7 @@ def get_Lm(ticks, loci, alpha, extMag='T01STORM', intMag='IGRF', IGRFset=0, omni
     return results
 
 # -----------------------------------------------
-def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None):
+def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omnivals=None, landi2lstar=False):
     """
     This will call make_lstar1 or make_lstar_shell_splitting_1 from the irbem library
     and will lookup omni values for given time if not provided (optional). If pitch angles
@@ -1548,6 +1563,8 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
                             'T05', 'ALEX', 'TS07']
         - options (optional list or array of integers length=5) : explained below
         - omni values as dictionary (optional) : if not provided, will use lookup table 
+        - landi2lstar : if True, will use the faster landi2lstar routine if possible. This 
+            routine can only be used with OPQUIET+IGRF magnetic field models.
 
     Returns
     =======
@@ -1656,6 +1673,7 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
     def reassemble(result):
         '''Reassemble the results from the multiprocessing'''
         funcs = {'Bmin': np.hstack,
+                 'Blocal': np.hstack,
                  'Bmirr': np.vstack,
                  'Lm': np.vstack,
                  'Lstar': np.vstack,
@@ -1706,11 +1724,11 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
             cc.append(loci[startind:endind]) #chunk positions
             if omnivals:
                 ov.append(get_ov(omnivals, startind, endind))
-        inputs = [[tch, cch, alpha, extMag, options, ov] for tch, cch in zip(tt,cc)]
+        inputs = [[tch, cch, alpha, extMag, options, ov, landi2lstar] for tch, cch in zip(tt,cc)]
         result = pool.map(_multi_get_Lstar, inputs)
         DALL = reassemble(result)
     else: # single NCPU, no chunking
-        DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals)
+        DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals, landi2lstar)
 
     return DALL
 
@@ -1724,7 +1742,8 @@ def _multi_get_Lstar(inputs):
     extMag = inputs[3]
     options = inputs[4]
     omnivals = inputs[5]
-    DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals)
+    landi2lstar = inputs[6]
+    DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals, landi2lstar)
     
     return DALL
 
