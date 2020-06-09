@@ -817,7 +817,7 @@ def _find_shape(bigshape, littleshape):
 
 
 def rebin(data, bindata, bins, axis=-1, bintype='mean',
-          weights=None, clip=False):
+          weights=None, clip=False, bindatadelta=None):
     """Rebin one axis of input data based on values of another array
 
     This is clearest with an example. Consider a flux as a function of time,
@@ -876,6 +876,11 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
         a bin and data outside the range of the bin edges will be assigned
         to the extreme bins. If false (default), input data outside the bin
         ranges will be ignored.
+    bindatadelta : :class:`~numpy.ndarray`
+        By default, the ``bindata`` are treated as point values. If
+        ``bindatadelta`` is specified, it is treated as the half-width of
+        the ``bindata``, allowing a single input value to be split between
+        output bins. Must be scalar, or same shape as `bindata`.
 
     Returns
     =======
@@ -891,27 +896,56 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     if weights is not None:
         assert weights.shape == bindata.shape
         weights = numpy.reshape(weights, binnedshape)
+    if bindatadelta is not None:
+        if not numpy.isscalar(bindatadelta):
+            assert bindata.shape == bindatadelta.shape
+            bindatadelta = numpy.reshape(bindatadelta, binnedshape)
     bindata = numpy.reshape(bindata, binnedshape)
     indata = data # Holding a reference without transformations
     # Move the axis to rebin to the end of the line.
     data = numpy.rollaxis(data, axis=axis, start=len(data.shape))
     bindata = numpy.rollaxis(bindata, axis=axis, start=len(data.shape))
-    # What bin is every data point of the binned data in
-    whichbin = numpy.digitize(bindata, bins) - 1
     nbins = len(bins) - 1
-    if clip:
-        whichbin[whichbin < 0] = 0
-        whichbin[whichbin >= nbins] = (nbins - 1)
     # Get an array, last two axes of which are a matrix of
-    # (newbin, oldbin) that is 1 where oldbin is in newbin, else 0
+    # (newbin, oldbin) that is the fraction of oldbin (the input bin) that
+    # falls within newbin
+    # Special case if bindata is point: 1 where oldbin is in newbin, else 0
     # This involves adding a newbin axis to the old bins, and an oldbin axis
     # to the (end of) the bins
     outbin_shape = (1,) * (len(data.shape) - 1) + (-1, 1)
-    select = numpy.require(
-        numpy.expand_dims(whichbin, axis=-2)
-        == numpy.reshape(numpy.arange(nbins, dtype=numpy.int), outbin_shape),
-        dtype=numpy.int)
-    if weights is not None: # Replace all the 0/1 with weights
+    if bindatadelta is None:
+        # What bin is every data point of the binned data in
+        whichbin = numpy.digitize(bindata, bins) - 1
+        if clip:
+            whichbin[whichbin < 0] = 0
+            whichbin[whichbin >= nbins] = (nbins - 1)
+        select = numpy.require(
+            numpy.expand_dims(whichbin, axis=-2)
+            == numpy.reshape(
+                numpy.arange(nbins, dtype=numpy.int), outbin_shape),
+            dtype=numpy.int)
+    else:
+        bindatamin = bindata - bindatadelta
+        bindatamax = bindata + bindatadelta
+        if clip:
+            bindatamin[bindatamin < bins[0]] = bins[0]
+            bindatamax[bindatamax > bins[-1]] = bins[-1]
+        # The edges of the output and input bins, on a common shape
+        # that ends with (outputbins, inputbins)
+        bindatamin = numpy.expand_dims(bindatamin, axis=-2)
+        bindatamax = numpy.expand_dims(bindatamax, axis=-2)
+        binmin = numpy.reshape(bins[:-1], outbin_shape)
+        binmax = numpy.reshape(bins[1:], outbin_shape)
+        # Overlap of input/output bins, if it exists,  ends when either does
+        overlap_top = numpy.minimum(bindatamax, binmax)
+        # And it start at the higher of the two
+        overlap_bottom = numpy.maximum(bindatamin, binmin)
+        # No overlap if top < bottom
+        overlap = numpy.maximum(overlap_top - overlap_bottom , 0)
+        # Normalize the overlap to fraction of the input bin
+        select = numpy.require(overlap, dtype=numpy.float) \
+                                               / (bindatamax - bindatamin)
+    if weights is not None: # Apply weights to the inputs
         select = select * numpy.expand_dims(weights, axis=-2)
     # Add a degenerate dimension to the end of data, so now
     # the data end in dims (oldbin, newbin)
