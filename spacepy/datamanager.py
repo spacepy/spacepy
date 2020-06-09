@@ -11,7 +11,7 @@ Institution: University of New Hampshire
 
 Contact: Jonathan.Niehof@unh.edu
 
-Copyright 2015
+Copyright 2015-2020 contributors
 
 
 About datamanager
@@ -40,12 +40,14 @@ Examples go here
     axis_index
     flatten_idx
     insert_fill
+    rebin
     rev_index
     values_to_steps
 """
 
 __all__ = ["DataManager", "apply_index", "array_interleave", "axis_index",
-           "flatten_idx", "insert_fill", "rev_index", "values_to_steps"]
+           "flatten_idx", "insert_fill", "rebin", "rev_index",
+           "values_to_steps"]
 
 import datetime
 import operator
@@ -775,3 +777,161 @@ def rev_index(idx, axis=-1):
     idx_out = numpy.empty_like(idx).ravel()
     idx_out[flatten_idx(idx, axis)] = axis_index(idx.shape, axis).ravel()
     return idx_out.reshape(idx.shape)
+
+
+def _find_shape(bigshape, littleshape):
+    """Increase dimensionality of small array to match larger
+
+    Add degenerate dimensions to a lesser-dimensioned array to match a
+    larger-dimensioned array.
+
+    Parameters
+    ==========
+    bigshape : tuple
+        The shape of the larger-dimmed array
+    littleshape : tuple
+        The shape of the smaller-dimmed array
+
+    Returns
+    =======
+    tuple
+        A shape of the same length/dimensions of ``bigshape`` with
+        dimension sizes taken from ``littleshape`` or of size 1. Suitable
+        for calling :func:`numpy.reshape` on array of shape ``littleshape``.
+    """
+    newshape = []
+    littleidx = 0
+    for i, size in enumerate(bigshape):
+        if littleidx < len(littleshape): # Still have "little" to consume
+            if size == littleshape[littleidx]: # Match, just move along
+                newshape.append(size)
+                littleidx += 1
+                continue
+            if littleshape[littleidx] == 1: # Consume degenerate dim
+                littleidx += 1
+        newshape.append(1) # Add a degenerate dim
+    if littleidx < len(littleshape): # Didn't consume them all
+        raise ValueError('Unable to make shape {} compatible with shape {}'
+                         .format(littleshape, bigshape))
+    return tuple(newshape)
+
+
+def rebin(data, bindata, bins, axis=-1, bintype='mean',
+          weights=None, clip=False):
+    """Rebin one axis of input data based on values of another array
+
+    This is clearest with an example. Consider a flux as a function of time,
+    energy, and the look direction of a detector (could be multiple detectors,
+    or spin sectors.) The flux is then 3-D, dimensioned Nt x Ne x Nl. Now
+    consider that each look direction has an associated pitch angle that is
+    a function of time and thus stored in an array Nt x Nl. Then this function
+    will redimension the flux into pitch angle bins (rather than tags.)
+
+    So consider the PA bins to have dimension Np + 1 (because it represents
+    the edges, the number of bins is one less than the dimension.) Then
+    the output will be dimensioned Nt x Ne x Np.
+
+    ``bindata`` must be same or lesser dimensionality than ``data``. Any
+    axes which are present must be either of size 1, or the same size as
+    ``data``. So for ``data`` 100x5x20, ``bindata`` may be 100x5x20, or
+    100, or 100x1x20, but not 100x20x5. This function will insert axes of
+    size 1 as needed to match dimensionality.
+
+    Parameters
+    ==========
+    data : :class:`~numpy.ndarray`
+        N-dimensional array of data to be rebinned. :class:`~numpy.nan`
+        are ignored.
+    bindata : :class:`~numpy.ndarray`
+        M-dimensional (M<=N) array of values to be compared to the bins.
+    bins : :class:`~numpy.ndarray`
+        1-D array of bin edges. Output dimension will be this size
+        minus 1. Any values in ``bindata`` that don't fall in the
+        bins will be omitted from the output. (See ``clip`` to change
+        this behavior).
+
+    Other Parameters
+    ================
+    axis : int
+        Axis of `data` to rebin. This axis will disappear in the
+        output and be replaced with an axis of the size of
+        ``bins`` less one. (Default -1, last axis)
+    bintype : str
+        Type of rebinning to perform:
+            mean
+                Return the mean of all values in the bin (default)
+            unc
+                Return the quadrature mean of all values in the bin,
+                for propagating uncertainty
+            count
+                Return the count of values that fall in each bin.
+    weights : :class:`~numpy.ndarray`
+        Relative weight of each sample in ``bindata``. Must be same
+        shape as ``bindata``. Purely relative, i.e. the output is
+        only affected based on the total of ``weights`` if ``bintype``
+        is ``count``. Note if ``weights`` is specified, ``count`` returns
+        the sum of the weights, not the count of individual samples.
+    clip : boolean
+        Clip data to the bins. If true, all input data will be assigned
+        a bin and data outside the range of the bin edges will be assigned
+        to the extreme bins. If false (default), input data outside the bin
+        ranges will be ignored.
+
+    Returns
+    =======
+    :class:`~numpy.ndarray`
+        ``data`` with one axis redimensioned, from its original
+        dimension to the bin dimension.
+    """
+    bintype = bintype.lower()
+    assert bintype in ('mean', 'count', 'unc')
+    if axis < 0:
+        axis = len(data.shape) + axis
+    binnedshape = _find_shape(data.shape, bindata.shape)
+    if weights is not None:
+        assert weights.shape == bindata.shape
+        weights = numpy.reshape(weights, binnedshape)
+    bindata = numpy.reshape(bindata, binnedshape)
+    indata = data # Holding a reference without transformations
+    # Move the axis to rebin to the end of the line.
+    data = numpy.rollaxis(data, axis=axis, start=len(data.shape))
+    bindata = numpy.rollaxis(bindata, axis=axis, start=len(data.shape))
+    # What bin is every data point of the binned data in
+    whichbin = numpy.digitize(bindata, bins) - 1
+    nbins = len(bins) - 1
+    if clip:
+        whichbin[whichbin < 0] = 0
+        whichbin[whichbin >= nbins] = (nbins - 1)
+    # Get an array, last two axes of which are a matrix of
+    # (newbin, oldbin) that is 1 where oldbin is in newbin, else 0
+    # This involves adding a newbin axis to the old bins, and an oldbin axis
+    # to the (end of) the bins
+    outbin_shape = (1,) * (len(data.shape) - 1) + (-1, 1)
+    select = numpy.require(
+        numpy.expand_dims(whichbin, axis=-2)
+        == numpy.reshape(numpy.arange(nbins, dtype=numpy.int), outbin_shape),
+        dtype=numpy.int)
+    if weights is not None: # Replace all the 0/1 with weights
+        select = select * numpy.expand_dims(weights, axis=-2)
+    # Add a degenerate dimension to the end of data, so now
+    # the data end in dims (oldbin, newbin)
+    data = numpy.expand_dims(data, axis=-1)
+    idx = numpy.isnan(data)
+    counts = numpy.matmul(select, ~idx)[..., 0]
+    if bintype == 'count':
+        return numpy.rollaxis(counts, axis=-1, start=axis)
+    if bintype == 'unc': # Square what we're summing over
+        data = data ** 2
+        select = select ** 2
+    if numpy.may_share_memory(indata, data): # Don't overwrite input
+        data = data.copy()
+    data[idx] = 0
+    data_sum = numpy.matmul(select, data)[..., 0]
+    data_sum[counts == 0] = numpy.nan
+    counts[counts == 0] = 1 # Suppress error when nan/0
+    if bintype == 'unc':
+        data_sum = numpy.sqrt(data_sum)
+    avg = data_sum / counts
+    # Put the binned axis back in place
+    avg = numpy.rollaxis(avg, axis=-1, start=axis)
+    return avg

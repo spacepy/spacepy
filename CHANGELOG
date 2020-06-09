@@ -3,6 +3,8 @@ Changes in Version 0.2.2 (2020-xx-xx)
 - Document end of support for Python 2
 coordinates
  - Include upstream fix for SPH->RLL coordinate transform
+datamanager
+ - New function "rebin", rebin an axis of an array by contents of another
 irbempy
  - Update IRBEMlib to rev620
  - Rev620 adds IGRF13 coefficients
