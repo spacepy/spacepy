@@ -3,7 +3,7 @@
 """
 Test suite for SpacePy's data manager
 
-Copyright 2015 University System of New Hampshire
+Copyright 2015-2020 contributors
 """
 
 import datetime
@@ -16,6 +16,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import warnings
 
 import numpy.random
 import numpy.testing
@@ -23,7 +24,8 @@ import numpy.testing
 import spacepy.datamanager
 
 
-__all__ = ["RePathTests", "DataManagerFunctionTests"]
+__all__ = ["RePathTests", "DataManagerFunctionTests",
+           "DataManagerBinningTests"]
 
 
 class DataManagerClassTests(unittest.TestCase):
@@ -396,6 +398,298 @@ class DataManagerFunctionTests(unittest.TestCase):
                 (inval.ravel()[spacepy.datamanager.flatten_idx(idx, axis)]
                  [spacepy.datamanager.flatten_idx(idx_rev, axis)]
                  .reshape(inval.shape) == inval).all())
+
+
+class DatamanagerBinningTests(unittest.TestCase):
+    """Test of binning and helper functions"""
+
+    def testFindShape(self):
+        """Test reshaping of smaller to larger"""
+        # Large, small, reshaped
+        cases = [
+            [(5, 6, 10), (5, 6, 10), (5, 6, 10)],
+            [(5, 6, 10), (5, 1, 10), (5, 1, 10)],
+            [(5, 6, 10), (5, 10), (5, 1, 10)],
+            [(5, 6, 10), (5,), (5, 1, 1)],
+            [(5, 6, 10), (5, 6), (5, 6, 1)],
+            [(5, 6, 10), (6, 10), (1, 6, 10)],
+            ]
+        for large, small, reshaped in cases:
+            newshape = spacepy.datamanager._find_shape(large, small)
+            self.assertEqual(reshaped, newshape)
+            if small == reshaped: # No actual reshaping
+                continue
+            numpy.random.seed(0xdeadbeef)
+            # Make sure reshaping doesn't affect indexing once the
+            # new dims are removed.
+            oldarray = numpy.random.randint(100, size=small)
+            newarray = numpy.reshape(oldarray, reshaped)
+            idx = [0 if i == 1 else slice(None) for i in newshape]
+            numpy.testing.assert_array_equal(
+                oldarray,
+                newarray[idx])
+
+    def testRebinSimple(self):
+        """Test rebinning of an array, simple case"""
+        numpy.random.seed(0xdeadbeef)
+        bins = numpy.arange(0, 11, 2)
+        indata = numpy.random.rand(100, 6, 10)
+        bindata = numpy.random.rand(10) * 10
+
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins)
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 6, 5))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    expected[i, j, binno] = numpy.mean(indata[i, j, :][idx])
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, bintype='unc')
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 6, 5))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    count = numpy.sum(numpy.require(idx, dtype=numpy.int64))
+                    if count:
+                        total = numpy.sum(indata[i, j, :][idx] ** 2)
+                        expected[i, j, binno] = numpy.sqrt(total) / count
+                    else:
+                        expected[i, j, binno] = numpy.nan
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, bintype='count')
+        expected = numpy.empty(dtype=numpy.int64, shape=(100, 6, 5))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    count = numpy.sum(numpy.require(idx, dtype=numpy.int64))
+                    expected[i, j, binno] = count
+        numpy.testing.assert_array_equal(
+            expected, rebinned)
+
+    def testRebinClipped(self):
+        """Test rebinning of an array with out-of-range data"""
+        numpy.random.seed(0xdeadbeef)
+        bins = numpy.arange(0, 11, 2)
+        indata = numpy.random.rand(100, 6, 10)
+        bindata = numpy.random.rand(10) * 10
+        bindata[0] = -99 # Force out-of-range bin
+
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins)
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 6, 5))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    expected[i, j, binno] = numpy.mean(indata[i, j, :][idx])
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins, clip=True)
+        # The out-of-range values, when clipped, go to lowest bin...
+        # so clip in advance and recalc our expected for that bin.
+        bindata[0] = 0
+        binno = 0
+        idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+        for i in range(100):
+            for j in range(6):
+                expected[i, j, binno] = numpy.mean(indata[i, j, :][idx])
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
+    def testRebinSimpleWeighted(self):
+        """Test rebinning of an array with weights specified"""
+        numpy.random.seed(0xdeadbeef)
+        bins = numpy.arange(0, 11, 2)
+        indata = numpy.random.rand(100, 6, 10)
+        bindata = numpy.random.rand(10) * 10
+        weights = numpy.arange(.1, 1.1, 0.1)
+
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, weights=weights)
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 6, 5))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    total = numpy.sum(indata[i, j, :][idx] * weights[idx])
+                    count = numpy.sum(weights[idx])
+                    expected[i, j, binno] = total / count if count \
+                                            else numpy.nan
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+        # Multiplying all the weights by a factor shouldn't change answer
+        newrebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, weights=weights * 10)
+        numpy.testing.assert_allclose(
+            rebinned, newrebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins,
+                                weights=weights, bintype='unc')
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 6, 5))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    total = numpy.sum((indata[i, j, :][idx]
+                                                  * weights[idx]) ** 2)
+                    count = numpy.sum(weights[idx])
+                    expected[i, j, binno] = numpy.sqrt(total) / count if count \
+                                            else numpy.nan
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+        # Multiplying all the weights by a factor shouldn't change answer
+        newrebinned = spacepy.datamanager.rebin(indata, bindata, bins,
+                                   weights=weights * 10, bintype='unc')
+        numpy.testing.assert_allclose(
+            rebinned, newrebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins,
+                                weights=weights, bintype='count')
+        expected = numpy.empty(dtype=numpy.float, shape=(100, 6, 5))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    count = numpy.sum(weights[idx])
+                    expected[i, j, binno] = count
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+        # Multiplying all the weights by 10 should increase counts by 10
+        newrebinned = spacepy.datamanager.rebin(indata, bindata, bins,
+                                   weights=weights * 10, bintype='count')
+        numpy.testing.assert_allclose(
+            rebinned * 10, newrebinned, atol=1e-20)
+
+    def testRebinSimpleNaN(self):
+        """Test rebinning of an array, NaN input"""
+        numpy.random.seed(0xdeadbeef)
+        bins = numpy.arange(0, 11, 2)
+        indata = numpy.random.rand(100, 6, 10)
+        bindata = numpy.random.rand(10) * 10
+        indata[0, 0, 0] = numpy.nan
+        indata[5, ...] = numpy.nan
+
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins)
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 6, 5))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    with warnings.catch_warnings(record=True):
+                        expected[i, j, binno] \
+                            = numpy.nanmean(indata[i, j, :][idx])
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+        self.assertTrue(numpy.isnan(rebinned[5, ...]).all())
+
+    def testRebinSimpleDiffAxis(self):
+        """Test rebinning of an array, simple case, different axis"""
+        numpy.random.seed(0xdeadbeef)
+        bins = numpy.arange(0, 11, 2)
+        indata = numpy.random.rand(100, 10, 6)
+        bindata = numpy.random.rand(10) * 10
+
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins, axis=1)
+        self.assertEqual((100, 5, 6), rebinned.shape)
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 5, 6))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    expected[i, binno, j] = numpy.mean(indata[i, :, j][idx])
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, axis=1, bintype='unc')
+        self.assertEqual((100, 5, 6), rebinned.shape)
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 5, 6))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    count = numpy.sum(numpy.require(idx, dtype=numpy.int64))
+                    if count:
+                        total = numpy.sum(indata[i, :, j][idx] ** 2)
+                        expected[i, binno, j] = numpy.sqrt(total) / count
+                    else:
+                        expected[i, binno, j] = numpy.nan
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, axis=1, bintype='count')
+        self.assertEqual((100, 5, 6), rebinned.shape)
+        expected = numpy.empty(dtype=numpy.int64, shape=(100, 5, 6))
+        for binno in range(len(bins) - 1):
+            idx = (bins[binno] <= bindata) & (bindata < bins[binno + 1])
+            for i in range(100):
+                for j in range(6):
+                    count = numpy.sum(numpy.require(idx, dtype=numpy.int64))
+                    expected[i, binno, j] = count
+        numpy.testing.assert_array_equal(
+            expected, rebinned)
+
+    def testRebin2DDiffAxis(self):
+        """Test rebinning of an array, 2D bin data, axis specified"""
+        numpy.random.seed(0xdeadbeef)
+        bins = numpy.arange(0, 11, 2)
+        indata = numpy.random.rand(100, 10, 6)
+        bindata = numpy.reshape(numpy.random.rand(100 * 10) * 10,
+                                (100, 10))
+
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins, axis=1)
+        self.assertEqual((100, 5, 6), rebinned.shape)
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 5, 6))
+        for binno in range(len(bins) - 1):
+            for i in range(100):
+                idx = (bins[binno] <= bindata[i, :])\
+                       & (bindata[i, :] < bins[binno + 1])
+                for j in range(6):
+                    with warnings.catch_warnings(record=True):
+                        expected[i, binno, j] = numpy.mean(indata[i, :, j][idx])
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, axis=1, bintype='unc')
+        self.assertEqual((100, 5, 6), rebinned.shape)
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 5, 6))
+        for binno in range(len(bins) - 1):
+            for i in range(100):
+                idx = (bins[binno] <= bindata[i, :])\
+                       & (bindata[i, :] < bins[binno + 1])
+                for j in range(6):
+                    count = numpy.sum(numpy.require(idx, dtype=numpy.int64))
+                    if count:
+                        total = numpy.sum(indata[i, :, j][idx] ** 2)
+                        expected[i, binno, j] = numpy.sqrt(total) / count
+                    else:
+                        expected[i, binno, j] = numpy.nan
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, axis=1, bintype='count')
+        self.assertEqual((100, 5, 6), rebinned.shape)
+        expected = numpy.empty(dtype=numpy.int64, shape=(100, 5, 6))
+        for binno in range(len(bins) - 1):
+            for i in range(100):
+                idx = (bins[binno] <= bindata[i, :])\
+                      & (bindata[i, :] < bins[binno + 1])
+                for j in range(6):
+                    count = numpy.sum(numpy.require(idx, dtype=numpy.int64))
+                    expected[i, binno, j] = count
+        numpy.testing.assert_array_equal(
+            expected, rebinned)
 
 
 if __name__ == "__main__":
