@@ -691,6 +691,30 @@ class DatamanagerBinningTests(unittest.TestCase):
         numpy.testing.assert_array_equal(
             expected, rebinned)
 
+    def testRebinBindataDelta(self):
+        """Rebin data where the binning data have deltas"""
+        bins = numpy.arange(6)
+        indata = numpy.array([1, 2, 3, 4, 5])
+        bindata = numpy.array([1, 1.5, 1, 3, 4])
+        # This means input ranges
+        # A 0.5 to 1.5: 1
+        # B 1.0 to 2.0: 2
+        # C 0.5 to 1.5: 3
+        # D 2.5 to 3.5: 4
+        # E 3.5 to 4.5: 5
+        #Outputs are 0-1, 1-2, 2-3, 3-4, 4-5
+        expected = numpy.array([
+            2, 2, 4, 4.5, 5])
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins,
+                                             bindatadelta=0.5)
+        numpy.testing.assert_array_equal(
+            expected, rebinned)
+        # Try this specifying an array of bins
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, bindatadelta=numpy.repeat([0.5], 5))
+        numpy.testing.assert_array_equal(
+            expected, rebinned)
+
 
 if __name__ == "__main__":
     unittest.main()
