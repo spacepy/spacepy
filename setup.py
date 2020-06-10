@@ -522,7 +522,6 @@ class build(_build):
         # call f2py
         cmd = self.f2py + ['--overwrite-signature', '-m', 'irbempylib', '-h',
                'irbempylib.pyf'] + F90files + ['only:'] + functions + [':']
-        print(cmd)
         subprocess.check_call(cmd)
         # intent(out) substitute list
         outlist = ['lm', 'lstar', 'blocal', 'bmin', 'xj', 'mlt', 'xout', 'bmin', 'posit', \

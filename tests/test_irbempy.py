@@ -107,7 +107,7 @@ class IRBEMBigTests(unittest.TestCase):
     def test_get_Lstar_T01(self):
         # test T01STORM
         expected = {'Xj': array([[ 0.000403], [ 0.00269002]]),
-            'Lstar': array([[ 3.025887], [ 2.0523954]]), 
+            'Lstar': array([[ 3.025887], [ 2.054195]]), 
             'Bmirr': array([[ 1031.008992], [ 3451.98937]]),
             'Lm': array([[ 3.079151], [ 2.059326]]),
             'Bmin': array([ 1030.456337,  3444.077016 ]),
@@ -126,6 +126,31 @@ class IRBEMBigTests(unittest.TestCase):
                     'MLT': array([ 11.97159175,  12.13313906])}
         actual = ib.get_Lstar(self.ticks, self.loci, [70], extMag='T05', omnivals=self.omnivals)
         for key in expected:
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
+
+    def test_get_Lstar_OPQuiet(self):
+        # test OP-Quiet
+        expected = {'Xj': array([[ 0.001051], [ 0.002722]]),
+            'Lstar': array([[ 3.029621], [ 2.059631]]),
+            'Blocal': array([ 1019.052401, 3467.52999]),
+            'Lm': array([[ 3.091352], [ 2.056261]]),
+            'Bmin': array([ 1018.669701,  3459.500966 ]),
+            'MLT': array([ 11.97159175,  12.13313906])}
+        actual = ib.get_Lstar(self.ticks, self.loci, [90], extMag="OPQUIET", omnivals=self.omnivals)
+        for key in expected.keys():
+            numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
+                
+    def test_get_Lstar_OPQuiet_landi2lstar(self):
+        # test OP-Quiet with LandI2Lstar routine
+        expected = {'Xj': array([[ 0.001051], [ 0.002722]]),
+            'Lstar': array([[3.02419 ], [2.053277]]),
+            'Blocal': array([ 1019.052401,  3467.52999]),
+            'Lm': array([[ 3.091352], [ 2.056261]]),
+            'Bmin': array([ 1018.669701,  3459.500966 ]),
+            'MLT': array([ 11.97159175,  12.13313906])}
+        actual = ib.get_Lstar(self.ticks, self.loci, [90], extMag="OPQUIET", omnivals=self.omnivals,
+                              landi2lstar=True)
+        for key in expected.keys():
             numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
 
     def test_AlphaOfK(self):

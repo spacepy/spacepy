@@ -1475,6 +1475,7 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
         results['Lstar'] = lstar[0:nTAI][:,None]
         blocal[np.where( tb.feq(blocal,d['badval'])) ] = np.NaN
         results['Blocal'] = blocal[0:nTAI]
+        results['Bmirr'] = results['Blocal'][:,None]
         results['Bmin'] = bmin[0:nTAI]
         results['Xj'] = xj[0:nTAI][:,None]
         results['MLT'] = mlt[0:nTAI]
