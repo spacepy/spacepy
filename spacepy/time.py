@@ -1141,8 +1141,7 @@ class Ticktock(MutableSequence):
         elif self.data.attrs['dtype'].upper() == 'ISO':
             self.ISO = self.data
             data = self.data if isinstance(self.data[0], str) \
-                   else [d.encode('ascii') for d in self.data] if str is bytes \
-                        else [d.decode('ascii') for d in self.data]
+                   else self.data.astype('S' if str is bytes else 'U')
             # try a few special cases that are faster than dateutil.parser
             for strfmt in ('%Y-%m-%dT%H:%M:%S',
                            '%Y-%m-%dT%H:%M:%SZ',
