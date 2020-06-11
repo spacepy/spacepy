@@ -880,7 +880,10 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
         By default, the ``bindata`` are treated as point values. If
         ``bindatadelta`` is specified, it is treated as the half-width of
         the ``bindata``, allowing a single input value to be split between
-        output bins. Must be scalar, or same shape as `bindata`.
+        output bins. Must be scalar, or same shape as `bindata`. Note that
+        input values are not weighted by the bin width, but by number of
+        input values or by ``weights``. (Combining ``weights`` with
+        ``bindatadelta`` is not comprehensively tested.)
 
     Returns
     =======
@@ -900,9 +903,11 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
         if not numpy.isscalar(bindatadelta):
             assert bindata.shape == bindatadelta.shape
             bindatadelta = numpy.reshape(bindatadelta, binnedshape)
+            bindatadelta = numpy.rollaxis(
+                bindatadelta, axis=axis, start=len(data.shape))
+    # Add axes to match shapes. Move the axis to rebin to the end of the line.
     bindata = numpy.reshape(bindata, binnedshape)
     indata = data # Holding a reference without transformations
-    # Move the axis to rebin to the end of the line.
     data = numpy.rollaxis(data, axis=axis, start=len(data.shape))
     bindata = numpy.rollaxis(bindata, axis=axis, start=len(data.shape))
     nbins = len(bins) - 1
