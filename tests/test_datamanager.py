@@ -751,6 +751,17 @@ class DatamanagerBinningTests(unittest.TestCase):
         numpy.testing.assert_array_equal(
             expected, rebinned)
 
+    def testRebinListInput(self):
+        """Test rebinning of an array, list instead of array input"""
+        bins = [0, 4, 8]
+        indata = [[40, 38, 51, 91], [56, 93, 60, 42]]
+        bindata = [[0.5, 2.5, 4, 6], [1, 3.5, 6, 6.5]]
+        expected = numpy.empty(dtype=numpy.float64, shape=(100, 6, 5))
+        expected = [[39, 71], [74.5, 51]]
+        rebinned = spacepy.datamanager.rebin(indata, bindata, bins)
+        numpy.testing.assert_allclose(
+            expected, rebinned, atol=1e-20)
+
 
 if __name__ == "__main__":
     unittest.main()

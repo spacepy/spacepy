@@ -893,14 +893,18 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     """
     bintype = bintype.lower()
     assert bintype in ('mean', 'count', 'unc')
+    data = numpy.require(data, dtype=numpy.floating)
+    bindata = numpy.require(bindata, dtype=numpy.floating)
     if axis < 0:
         axis = len(data.shape) + axis
     binnedshape = _find_shape(data.shape, bindata.shape)
     if weights is not None:
+        weights = numpy.require(weights, dtype=numpy.floating)
         assert weights.shape == bindata.shape
         weights = numpy.reshape(weights, binnedshape)
     if bindatadelta is not None:
         if not numpy.isscalar(bindatadelta):
+            bindatadelta = numpy.require(bindatadelta, dtype=numpy.floating)
             assert bindata.shape == bindatadelta.shape
             bindatadelta = numpy.reshape(bindatadelta, binnedshape)
             bindatadelta = numpy.rollaxis(
