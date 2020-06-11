@@ -251,7 +251,9 @@ class Ticktock(MutableSequence):
                 self.data = spacepy.datamodel.dmarray(data)
 
             if not isinstance(dtype, Callable):
-                if isinstance(self.data[0], str):
+                if isinstance(self.data[0], (str, bytes)):
+                    dtype = 'ISO'
+                elif str is bytes and isinstance(self.data[0], unicode): #Py2k
                     dtype = 'ISO'
                 elif isinstance(self.data[0], datetime.datetime):
                     dtype = 'UTC'
@@ -1138,23 +1140,26 @@ class Ticktock(MutableSequence):
 
         elif self.data.attrs['dtype'].upper() == 'ISO':
             self.ISO = self.data
+            data = self.data if isinstance(self.data[0], str) \
+                   else (d.encode('ascii') for d in self.data) if str is bytes \
+                        else (d.decode('ascii') for d in self.data)
             # try a few special cases that are faster than dateutil.parser
             try:
-                UTC = [datetime.datetime.strptime(isot, '%Y-%m-%dT%H:%M:%S') for isot in self.data]
+                UTC = [datetime.datetime.strptime(isot, '%Y-%m-%dT%H:%M:%S') for isot in data]
             except ValueError:
                 try:
-                    UTC = [datetime.datetime.strptime(isot, '%Y-%m-%dT%H:%M:%SZ') for isot in self.data]
+                    UTC = [datetime.datetime.strptime(isot, '%Y-%m-%dT%H:%M:%SZ') for isot in data]
                 except ValueError:
                     try:
-                        UTC = [datetime.datetime.strptime(isot, '%Y-%m-%d') for isot in self.data]
+                        UTC = [datetime.datetime.strptime(isot, '%Y-%m-%d') for isot in data]
                     except ValueError:
                         try:
-                            UTC = [datetime.datetime.strptime(isot, '%Y%m%d') for isot in self.data]
+                            UTC = [datetime.datetime.strptime(isot, '%Y%m%d') for isot in data]
                         except ValueError:
                             try:
-                                UTC = [datetime.datetime.strptime(isot, '%Y%m%d %H:%M:%S') for isot in self.data]
+                                UTC = [datetime.datetime.strptime(isot, '%Y%m%d %H:%M:%S') for isot in data]
                             except ValueError:
-                                UTC = [dup.parse(isot) for isot in self.data]
+                                UTC = [dup.parse(isot) for isot in data]
 
         elif self.data.attrs['dtype'].upper() == 'TAI':
             self.TAI = self.data

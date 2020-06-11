@@ -653,6 +653,21 @@ class TimeClassTests(unittest.TestCase):
         ans = [datetime.datetime(2002, 1, 1, 1, 0, 0), datetime.datetime(2002, 1, 2, 2, 3, 4)]
         numpy.testing.assert_equal(ans, tt.UTC)
 
+    def test_iso_nonstr(self):
+        """ISO string works with types other than str"""
+        isostr = b'2020-01-01T00:00:00'
+        if str is bytes: #Py2k
+            isostr = isostr.decode('ascii')
+        tt = t.Ticktock([isostr])
+        self.assertEqual(
+            datetime.datetime(2020, 1, 1),
+            tt.UTC[0])
+        # Do same thing with explicit type
+        tt = t.Ticktock([isostr], dtype='ISO')
+        self.assertEqual(
+            datetime.datetime(2020, 1, 1),
+            tt.UTC[0])
+
 
 if __name__ == "__main__":
     unittest.main()
