@@ -400,7 +400,7 @@ class DataManagerFunctionTests(unittest.TestCase):
                  .reshape(inval.shape) == inval).all())
 
 
-class DatamanagerBinningTests(unittest.TestCase):
+class DataManagerBinningTests(unittest.TestCase):
     """Test of binning and helper functions"""
 
     def testFindShape(self):
