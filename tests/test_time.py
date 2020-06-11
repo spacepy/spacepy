@@ -25,6 +25,7 @@ import warnings
 
 import numpy
 
+import spacepy
 import spacepy.time as t
 
 __all__ = ['TimeFunctionTests', 'TimeClassTests']
@@ -655,18 +656,23 @@ class TimeClassTests(unittest.TestCase):
 
     def test_iso_nonstr(self):
         """ISO string works with types other than str"""
-        isostr = b'2020-01-01T00:00:00'
-        if str is bytes: #Py2k
-            isostr = isostr.decode('ascii')
-        tt = t.Ticktock([isostr])
-        self.assertEqual(
-            datetime.datetime(2020, 1, 1),
-            tt.UTC[0])
-        # Do same thing with explicit type
-        tt = t.Ticktock([isostr], dtype='ISO')
-        self.assertEqual(
-            datetime.datetime(2020, 1, 1),
-            tt.UTC[0])
+        for isostr in (b'2020-01-01T00:00:00',
+                       b'2020-01-01T00:00:00Z',
+                       b'2020-01-01',
+                       b'20200101',
+                       b'20200101 00:00:00',
+                       b'2020 Jan 1'):
+            if str is bytes: #Py2k
+                isostr = isostr.decode('ascii')
+            tt = t.Ticktock([isostr])
+            self.assertEqual(
+                datetime.datetime(2020, 1, 1),
+                tt.UTC[0], isostr)
+            # Do same thing with explicit type
+            tt = t.Ticktock([isostr], dtype='ISO')
+            self.assertEqual(
+                datetime.datetime(2020, 1, 1),
+                tt.UTC[0])
 
 
 if __name__ == "__main__":
