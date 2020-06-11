@@ -1144,23 +1144,19 @@ class Ticktock(MutableSequence):
                    else (d.encode('ascii') for d in self.data) if str is bytes \
                         else (d.decode('ascii') for d in self.data)
             # try a few special cases that are faster than dateutil.parser
-            try:
-                UTC = [datetime.datetime.strptime(isot, '%Y-%m-%dT%H:%M:%S') for isot in data]
-            except ValueError:
+            for strfmt in ('%Y-%m-%dT%H:%M:%S',
+                           '%Y-%m-%dT%H:%M:%SZ',
+                           '%Y-%m-%d',
+                           '%Y%m%d',
+                           '%Y%m%d %H:%M:%S'):
                 try:
-                    UTC = [datetime.datetime.strptime(isot, '%Y-%m-%dT%H:%M:%SZ') for isot in data]
+                    UTC = [datetime.datetime.strptime(isot, strfmt)
+                           for isot in data]
+                    break
                 except ValueError:
-                    try:
-                        UTC = [datetime.datetime.strptime(isot, '%Y-%m-%d') for isot in data]
-                    except ValueError:
-                        try:
-                            UTC = [datetime.datetime.strptime(isot, '%Y%m%d') for isot in data]
-                        except ValueError:
-                            try:
-                                UTC = [datetime.datetime.strptime(isot, '%Y%m%d %H:%M:%S') for isot in data]
-                            except ValueError:
-                                UTC = [dup.parse(isot) for isot in data]
-
+                    continue
+            else:
+                UTC = [dup.parse(isot) for isot in data]
         elif self.data.attrs['dtype'].upper() == 'TAI':
             self.TAI = self.data
             TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
