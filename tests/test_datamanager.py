@@ -715,6 +715,42 @@ class DatamanagerBinningTests(unittest.TestCase):
         numpy.testing.assert_array_equal(
             expected, rebinned)
 
+    def testRebinBindataDelta2D(self):
+        """Rebin data where the binning data have deltas, multi-D"""
+        bins = numpy.arange(0, 9, 4)
+        indata = numpy.array([[40., 56], [38, 93], [51, 60], [91, 42]])
+        bindata = numpy.array([[0.5, 1], [2.5, 3.5], [5, 6], [6, 6.5]])
+        bindeltas = numpy.array([[0.5, 1], [1.5, 1.5], [1, 1], [1, 0.5]])
+        expected = numpy.array([[2, 5. / 3], [2, 7. / 3]])
+        counts = spacepy.datamanager.rebin(
+            indata, bindata, bins, bindatadelta=bindeltas, axis=0,
+            bintype='count')
+        numpy.testing.assert_allclose(expected, counts)
+        expected = numpy.array([[39, 70.8], [71, 57]])
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, bindatadelta=bindeltas, axis=0)
+        numpy.testing.assert_allclose(
+            expected, rebinned)
+        # Treat these values as uncertainties
+        expected = numpy.array([[27.586228448267445, 50.12783657809302],
+                                [52.15841255253078, 34.084229401257566]])
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, bindatadelta=bindeltas, axis=0,
+            bintype='unc')
+        numpy.testing.assert_allclose(
+            expected, rebinned)
+
+    def testRebinBindataAxis0Irregular(self):
+        """Rebin data on axis 0 with irregular sampling"""
+        bins = numpy.arange(0, 9, 4)
+        indata = numpy.array([[40., 56], [38, 93], [51, 60], [91, 42]])
+        bindata = numpy.array([[0.5, 1], [2.5, 3.5], [4, 6], [6, 6.5]])
+        expected = numpy.array([[39, 74.5], [71, 51]])
+        rebinned = spacepy.datamanager.rebin(
+            indata, bindata, bins, axis=0)
+        numpy.testing.assert_array_equal(
+            expected, rebinned)
+
 
 if __name__ == "__main__":
     unittest.main()
