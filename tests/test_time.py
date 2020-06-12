@@ -25,7 +25,6 @@ import warnings
 
 import numpy
 
-import spacepy
 import spacepy.time as t
 
 __all__ = ['TimeFunctionTests', 'TimeClassTests']
