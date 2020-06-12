@@ -890,6 +890,169 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     :class:`~numpy.ndarray`
         ``data`` with one axis redimensioned, from its original
         dimension to the bin dimension.
+
+    Examples
+    ========
+    Consider a particle flux distribution that's a function of energy and
+    pitch angle. For simplicity, assume that the energy dependence is a
+    simple power law and the pitch angle dependence is Gaussian, with a peak
+    whose position oscillates in time over a period of about one hour. This is
+    fairly non-physical but illustrative.
+
+    First making the relevant imports::
+
+        >>> import matplotlib.colors
+        >>> import matplotlib.pyplot
+        >>> import numpy
+        >>> import spacepy.datamanager
+        >>> import spacepy.toolbox
+
+    The functional form of the flux is then::
+
+        >>> def j(e, t, a):
+        ...     return e ** -2 * (1 / (90 * numpy.sqrt(2 * numpy.pi))) \\
+        ...     * numpy.exp(
+        ...         -0.5 * ((a - 90 + 90 * numpy.sin(t / 573.)) / 90.) ** 2)
+
+    Illustrating the flux at one energy as a function of pitch angle::
+
+        >>> times = numpy.arange(0., 7200, 5)
+        >>> alpha = numpy.arange(0, 181., 2)
+        # Add a dimension so the flux is a 2D array
+        >>> flux = j(1., numpy.expand_dims(times, 1),
+        ...          numpy.expand_dims(alpha, 0))
+        # The ordering of pcolormesh inputs is (y, x), so transpose
+        >>> matplotlib.pyplot.pcolormesh(
+        ...     spacepy.toolbox.bin_center_to_edge(times),
+        ...     spacepy.toolbox.bin_center_to_edges(alpha),
+        ...     flux.transpose(), norm=matplotlib.colors.LogNorm())
+        >>> matplotlib.pyplot.ylabel('Pitch angle (deg)')
+        >>> matplotlib.pyplot.xlabel('Time (sec)')
+        >>> matplotlib.pyplot.title('Flux at 1 MeV')
+
+    .. plot:: pyplots/datamanager_rebin_1.py
+
+    Or the flux at one pitch angle as a function of energy::
+
+        >>> energies = numpy.logspace(0, 3, 50)
+        >>> flux = j(numpy.expand_dims(energies, 0),
+        ...          numpy.expand_dims(times, 1), 90.)
+        >>> matplotlib.pyplot.pcolormesh(
+        ...     spacepy.toolbox.bin_center_to_edges(times),
+        ...     spacepy.toolbox.bin_center_to_edges(energies),
+        ...     flux.transpose(), norm=matplotlib.colors.LogNorm())
+        >>> matplotlib.pyplot.yscale('log')
+        >>> matplotlib.pyplot.ylabel('Energy (MeV)')
+        >>> matplotlib.pyplot.xlabel('Time (sec)')
+        >>> matplotlib.pyplot.title('Flux at 90 degrees')
+
+    .. plot:: pyplots/datamanager_rebin_2.py
+
+    The measurement is usually not aligned with a pitch angle grid, and
+    the detector pointing in pitch angle space usually varies with time.
+    Taking a very simple case of eight detectors that sweep through pitch
+    angle space in an organized fashion at ten degrees per minute, the
+    measured pitch angle as a function of detector and time is::
+
+        >>> def pa(d, t):
+        ...     return (d * 22.5 + t * (2 * (d % 2) - 1)) % 180
+        >>> lines = matplotlib.pyplot.plot(
+        ...     times, pa(numpy.arange(8).reshape(1, -1), times.reshape(-1, 1)),
+        ...     marker='o', ms=1, linestyle='')
+        >>> matplotlib.pyplot.legend(lines,
+        ...     ['Detector {}'.format(i) for i in range(4)], loc='best')
+        >>> matplotlib.pyplot.xlabel('Time (sec)')
+        >>> matplotlib.pyplot.ylabel('Pitch angle (deg)')
+        >>> matplotlib.pyplot.title('Measured pitch angle by detector')
+
+    .. plot:: pyplots/datamanager_rebin_3.py
+
+    Assuming a coarser measurement in time and energy than used to illustrate
+    the distribution above, the measured flux as a function of time, detector,
+    and energy is constructed::
+
+        >>> times = numpy.arange(0., 7200, 300) #5 min cadence
+        >>> alpha = pa(numpy.arange(8).reshape(1, -1), times.reshape(-1, 1))
+        >>> energies = numpy.logspace(0, 3, 10) #10 energy channels (3/decade)
+        # Every dimension (t, detector, e) gets its own numpy axis
+        >>> flux = j(numpy.reshape(energies, (1, 1, -1)),
+                     numpy.reshape(times, (-1, 1, 1)),
+                     numpy.expand_dims(alpha, -1))
+        >>> flux.shape
+        (24, 8, 10)
+
+    The flux at an energy as a function of detector is not very useful::
+
+        >>> matplotlib.pyplot.pcolormesh(
+        ...     spacepy.toolbox.bin_center_to_edges(times),
+        ...     spacepy.toolbox.bin_center_to_edges(numpy.arange(8)),
+        ...     flux[..., 0].transpose(), norm=matplotlib.colors.LogNorm())
+        >>> matplotlib.pyplot.ylabel('Detector')
+        >>> matplotlib.pyplot.xlabel('Time (sec)')
+        >>> matplotlib.pyplot.title('Flux at 1 MeV')
+
+    .. plot:: pyplots/datamanager_rebin_4.py
+
+    As a function of energy for one detector, the energy dependence is
+    apparent but time and pitch angle effects are confounded::
+
+        >>> matplotlib.pyplot.pcolormesh(
+        ...     spacepy.toolbox.bin_center_to_edges(times),
+        ...     spacepy.toolbox.bin_center_to_edges(energies),
+        ...     flux[:, 0, :].transpose(), norm=matplotlib.colors.LogNorm())
+        >>> matplotlib.pyplot.yscale('log')
+        >>> matplotlib.pyplot.ylabel('Energy (MeV)')
+        >>> matplotlib.pyplot.xlabel('Time (sec)')
+        >>> matplotlib.pyplot.title('Flux in detector 0')
+
+    .. plot:: pyplots/datamanager_rebin_5.py
+
+    What is needed is to recover the array of flux dimensioned by
+    time, pitch angle, and energy, with appropriate pitch angle bins.
+    The assumption is that the pitch angle as a function of time and
+    detector is measured and thus the ``alpha`` array is available.
+    Using that array, ``rebin`` can change flux from time, detector,
+    energy bins to time, pitch angle, energy bins. The axis 1 changes
+    from a detector dimension to pitch angle::
+
+        >>> pa_bins = numpy.arange(0, 181, 36)
+        >>> flux_by_pa = spacepy.datamanager.rebin(
+        ...     flux, alpha, pa_bins, axis=1)
+        >>> flux_by_pa.shape
+        (24, 6, 10)
+
+    This can then be visualized. The pitch angle coverage is not perfect,
+    but the original shape of the distribution is apparent, and further
+    analysis can be performed on the regular pitch angle grid::
+
+        >>> matplotlib.pyplot.pcolormesh(
+        ...     spacepy.toolbox.bin_center_to_edges(times), pa_bins,
+        ...     flux_by_pa[..., 0].transpose(),
+        ...     norm=matplotlib.colors.LogNorm())
+        >>> matplotlib.pyplot.ylabel('Pitch angle (deg)')
+        >>> matplotlib.pyplot.xlabel('Time (sec)')
+        >>> matplotlib.pyplot.title('Flux at 1MeV')
+
+    .. plot:: pyplots/datamanager_rebin_6.py
+
+    Or by energy::
+
+        >>> matplotlib.pyplot.pcolormesh(
+        ...     spacepy.toolbox.bin_center_to_edges(times), energies,
+        ...     flux_by_pa[:, 2, :].transpose(),
+        ...     norm=matplotlib.colors.LogNorm())
+        >>> matplotlib.pyplot.yscale('log')
+        >>> matplotlib.pyplot.ylabel('Energy (MeV)')
+        >>> matplotlib.pyplot.xlabel('Time (sec)')
+        >>> matplotlib.pyplot.title('Flux at 90 degrees')
+
+    .. plot:: pyplots/datamanager_rebin_7.py    
+
+    ``rebin`` can be used for higher dimension data, if the pitch angle
+    itself depends on energy (e.g. if an energy sweep takes substantial
+    time), and to propagate uncertainties through the rebinning. It can
+    also be used to rebin on the time axis, e.g. for transforming time
+    base.
     """
     bintype = bintype.lower()
     assert bintype in ('mean', 'count', 'unc')
