@@ -657,7 +657,8 @@ def simpleSpectrogram(*args, **kwargs):
     
     if cb: # add a colorbar
         cb_ = fig.colorbar(pc)
-        cb_.set_label(cbtitle)
+        if cbtitle is not None:
+            cb_.set_label(cbtitle)
     return ax
 
     
