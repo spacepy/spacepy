@@ -901,11 +901,10 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
 
     First making the relevant imports::
 
-        >>> import matplotlib.colors
         >>> import matplotlib.pyplot
         >>> import numpy
         >>> import spacepy.datamanager
-        >>> import spacepy.toolbox
+        >>> import spacepy.plot
 
     The functional form of the flux is then::
 
@@ -921,11 +920,8 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
         # Add a dimension so the flux is a 2D array
         >>> flux = j(1., numpy.expand_dims(times, 1),
         ...          numpy.expand_dims(alpha, 0))
-        # The ordering of pcolormesh inputs is (y, x), so transpose
-        >>> matplotlib.pyplot.pcolormesh(
-        ...     spacepy.toolbox.bin_center_to_edge(times),
-        ...     spacepy.toolbox.bin_center_to_edges(alpha),
-        ...     flux.transpose(), norm=matplotlib.colors.LogNorm())
+        >>> spacepy.plot.simpleSpectrogram(times, alpha, flux, cb=False,
+        ...                                ylog=False)
         >>> matplotlib.pyplot.ylabel('Pitch angle (deg)')
         >>> matplotlib.pyplot.xlabel('Time (sec)')
         >>> matplotlib.pyplot.title('Flux at 1 MeV')
@@ -937,11 +933,7 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
         >>> energies = numpy.logspace(0, 3, 50)
         >>> flux = j(numpy.expand_dims(energies, 0),
         ...          numpy.expand_dims(times, 1), 90.)
-        >>> matplotlib.pyplot.pcolormesh(
-        ...     spacepy.toolbox.bin_center_to_edges(times),
-        ...     spacepy.toolbox.bin_center_to_edges(energies),
-        ...     flux.transpose(), norm=matplotlib.colors.LogNorm())
-        >>> matplotlib.pyplot.yscale('log')
+        >>> spacepy.plot.simpleSpectrogram(times, energies, flux, cb=False)
         >>> matplotlib.pyplot.ylabel('Energy (MeV)')
         >>> matplotlib.pyplot.xlabel('Time (sec)')
         >>> matplotlib.pyplot.title('Flux at 90 degrees')
@@ -983,10 +975,8 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
 
     The flux at an energy as a function of detector is not very useful::
 
-        >>> matplotlib.pyplot.pcolormesh(
-        ...     spacepy.toolbox.bin_center_to_edges(times),
-        ...     spacepy.toolbox.bin_center_to_edges(numpy.arange(8)),
-        ...     flux[..., 0].transpose(), norm=matplotlib.colors.LogNorm())
+        >>> spacepy.plot.simpleSpectrogram(times, numpy.arange(8),
+        ...                                flux[..., 0], cb=False, ylog=False)
         >>> matplotlib.pyplot.ylabel('Detector')
         >>> matplotlib.pyplot.xlabel('Time (sec)')
         >>> matplotlib.pyplot.title('Flux at 1 MeV')
@@ -996,11 +986,8 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     As a function of energy for one detector, the energy dependence is
     apparent but time and pitch angle effects are confounded::
 
-        >>> matplotlib.pyplot.pcolormesh(
-        ...     spacepy.toolbox.bin_center_to_edges(times),
-        ...     spacepy.toolbox.bin_center_to_edges(energies),
-        ...     flux[:, 0, :].transpose(), norm=matplotlib.colors.LogNorm())
-        >>> matplotlib.pyplot.yscale('log')
+        >>> spacepy.plot.simpleSpectrogram(times, energies, flux[:, 0, :],
+        ...                                cb=False)
         >>> matplotlib.pyplot.ylabel('Energy (MeV)')
         >>> matplotlib.pyplot.xlabel('Time (sec)')
         >>> matplotlib.pyplot.title('Flux in detector 0')
@@ -1025,10 +1012,8 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
     but the original shape of the distribution is apparent, and further
     analysis can be performed on the regular pitch angle grid::
 
-        >>> matplotlib.pyplot.pcolormesh(
-        ...     spacepy.toolbox.bin_center_to_edges(times), pa_bins,
-        ...     flux_by_pa[..., 0].transpose(),
-        ...     norm=matplotlib.colors.LogNorm())
+        >>> spacepy.plot.simpleSpectrogram(times, pa_bins, flux_by_pa[..., 0],
+        ...                                cb=False, ylog=False)
         >>> matplotlib.pyplot.ylabel('Pitch angle (deg)')
         >>> matplotlib.pyplot.xlabel('Time (sec)')
         >>> matplotlib.pyplot.title('Flux at 1MeV')
@@ -1037,11 +1022,8 @@ def rebin(data, bindata, bins, axis=-1, bintype='mean',
 
     Or by energy::
 
-        >>> matplotlib.pyplot.pcolormesh(
-        ...     spacepy.toolbox.bin_center_to_edges(times), energies,
-        ...     flux_by_pa[:, 2, :].transpose(),
-        ...     norm=matplotlib.colors.LogNorm())
-        >>> matplotlib.pyplot.yscale('log')
+        >>> spacepy.plot.simpleSpectrogram(times, energies, flux_by_pa[:, 2, :],
+        ...                                cb=False)
         >>> matplotlib.pyplot.ylabel('Energy (MeV)')
         >>> matplotlib.pyplot.xlabel('Time (sec)')
         >>> matplotlib.pyplot.title('Flux at 90 degrees')

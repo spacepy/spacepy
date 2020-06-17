@@ -11,11 +11,8 @@ flux = j(numpy.reshape(energies, (1, 1, -1)),
 pa_bins = numpy.arange(0, 181, 36)
 flux_by_pa = spacepy.datamanager.rebin(
     flux, alpha, pa_bins, axis=1)
-matplotlib.pyplot.pcolormesh(
-    spacepy.toolbox.bin_center_to_edges(times), energies,
-    flux_by_pa[:, 2, :].transpose(),
-    norm=matplotlib.colors.LogNorm())
-matplotlib.pyplot.yscale('log')
+spacepy.plot.simpleSpectrogram(times, energies, flux_by_pa[:, 2, :],
+                               cb=False)
 matplotlib.pyplot.ylabel('Energy (MeV)')
 matplotlib.pyplot.xlabel('Time (sec)')
 matplotlib.pyplot.title('Flux at 90 degrees')

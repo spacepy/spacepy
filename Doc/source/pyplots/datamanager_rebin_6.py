@@ -11,10 +11,8 @@ flux = j(numpy.reshape(energies, (1, 1, -1)),
 pa_bins = numpy.arange(0, 181, 36)
 flux_by_pa = spacepy.datamanager.rebin(
     flux, alpha, pa_bins, axis=1)
-matplotlib.pyplot.pcolormesh(
-    spacepy.toolbox.bin_center_to_edges(times), pa_bins,
-    flux_by_pa[..., 0].transpose(),
-    norm=matplotlib.colors.LogNorm())
+spacepy.plot.simpleSpectrogram(times, pa_bins, flux_by_pa[..., 0],
+                               cb=False, ylog=False)
 matplotlib.pyplot.ylabel('Pitch angle (deg)')
 matplotlib.pyplot.xlabel('Time (sec)')
 matplotlib.pyplot.title('Flux at 1MeV')

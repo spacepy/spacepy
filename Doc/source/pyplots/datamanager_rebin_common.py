@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import matplotlib.colors
 import matplotlib.pyplot
 import numpy
 import spacepy.datamanager
-import spacepy.toolbox
+import spacepy.plot
 
 def j(e, t, a):
     return e ** -2 * (1 / (90 * numpy.sqrt(2 * numpy.pi))) \
