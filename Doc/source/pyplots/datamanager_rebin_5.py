@@ -8,11 +8,7 @@ energies = numpy.logspace(0, 3, 10)
 flux = j(numpy.reshape(energies, (1, 1, -1)),
                      numpy.reshape(times, (-1, 1, 1)),
                      numpy.expand_dims(alpha, -1))
-matplotlib.pyplot.pcolormesh(
-    spacepy.toolbox.bin_center_to_edges(times),
-    spacepy.toolbox.bin_center_to_edges(energies),
-    flux[:, 0, :].transpose(), norm=matplotlib.colors.LogNorm())
-matplotlib.pyplot.yscale('log')
+spacepy.plot.simpleSpectrogram(times, energies, flux[:, 0, :], cb=False)
 matplotlib.pyplot.ylabel('Energy (MeV)')
 matplotlib.pyplot.xlabel('Time (sec)')
 matplotlib.pyplot.title('Flux in detector 0')
