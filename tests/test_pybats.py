@@ -115,6 +115,7 @@ class TestRim(unittest.TestCase):
 
         # Open file:
         iono=rim.Iono(os.path.join(self.pth, 'data', 'pybats_test', 'it000321_104510_000.idl.gz'))
+        
 
     def testReadAscii(self):
         import gzip
@@ -134,7 +135,13 @@ class TestRim(unittest.TestCase):
         finally:
             # Remove temp file:
             remove(name_out)
-        
+
+    def testReadWrapped(self):
+        '''Test reading files where entries are wrapped over multiple lines.'''
+        from spacepy.pybats import rim
+        iono = rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
+                                     'it_wrapped.idl.gz'))
+                
 
 class TestBats2d(unittest.TestCase):
     '''
