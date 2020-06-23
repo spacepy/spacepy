@@ -107,6 +107,15 @@ class TestIdlFile(unittest.TestCase):
 
 
 class TestRim(unittest.TestCase):
+
+    # Solutions for calc_I:
+    knownI = {'n_I'    :2.4567986751877576e-10,
+              'n_Iup'  :0.25176036603984825,
+              'n_Idown':-0.25176036579416844,
+              's_I'    :-8.211648588249157e-10,
+              's_Iup'  :0.2517603660687805,
+              's_Idown':-0.2517603668899454}
+    
     def setUp(self):
         self.pth = os.path.dirname(os.path.abspath(__file__))
 
@@ -114,7 +123,8 @@ class TestRim(unittest.TestCase):
         from spacepy.pybats import rim
 
         # Open file:
-        iono=rim.Iono(os.path.join(self.pth, 'data', 'pybats_test', 'it000321_104510_000.idl.gz'))
+        iono=rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
+                                   'it000321_104510_000.idl.gz'))
         
 
     def testReadAscii(self):
@@ -125,7 +135,8 @@ class TestRim(unittest.TestCase):
 
         try:
             # Unzip file and create a copy of it:
-            name_in = os.path.join(self.pth, 'data', 'pybats_test','it000321_104510_000.idl.gz')
+            name_in = os.path.join(self.pth, 'data', 'pybats_test',
+                                   'it000321_104510_000.idl.gz')
             name_out= name_in[:-3]
             with gzip.open(name_in, 'rb') as f_in, open(name_out, 'wb') as f_out:
                 copyfileobj(f_in, f_out)
@@ -142,7 +153,30 @@ class TestRim(unittest.TestCase):
         iono = rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
                                      'it_wrapped.idl.gz'))
                 
+    def testIonoCalc(self):
+        '''Test calculations made by rim.Iono objects.'''
+        from spacepy.pybats import rim
 
+        iono = rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
+                                     'it000321_104510_000.idl.gz'))
+        iono.calc_I()
+        for key in self.knownI:
+            self.assertAlmostEqual(self.knownI[key], iono[key])
+
+    def testAddCont(self):
+        from spacepy.pybats import rim
+        import matplotlib as mpl
+        import matplotlib.pyplot as plt
+        
+        iono = rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
+                                     'it000321_104510_000.idl.gz'))
+        out = iono.add_cont('n_jr', add_cbar=True)
+
+        self.assertTrue(isinstance(out[0], plt.Figure))
+        self.assertTrue(isinstance(out[1], plt.Axes))
+        self.assertTrue(isinstance(out[2], mpl.contour.QuadContourSet))
+        self.assertTrue(isinstance(out[3], mpl.colorbar.Colorbar))
+        
 class TestBats2d(unittest.TestCase):
     '''
     Test functionality of Bats2d objects.
