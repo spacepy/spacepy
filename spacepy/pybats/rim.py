@@ -250,14 +250,30 @@ class Iono(PbData):
             self['n_'+key] = dmarray(zeros(nPts), {'units':units[key]})
             self['s_'+key] = dmarray(zeros(nPts), {'units':units[key]})
         i = raw.index('BEGIN NORTHERN HEMISPHERE\n')+1
-        # Fill data arrays
-        for j, line in enumerate(raw[i:i+nPts]):
-            parts = line.split()
+
+        # Some compilers insert line breaks automatically when fortran format
+        # string is not adequately specified.  Let's see if that's the
+        # case here: how many lines does it take to cover all variables?
+        nvars, nvarline, nwrap = len(namevar), 0, 0
+        while nvarline<nvars:
+            nvarline += len(raw[i+nwrap].split())
+            nwrap+=1
+        
+        # Fill data arrays:
+        for j in range(nPts):
+            # Build list of variables; accounting for line-wrapping:
+            parts = []
+            iLine = i + j*nwrap
+            for iwrap in range(nwrap):
+                parts += raw[iLine+iwrap].split()
             for k in range(self.attrs['nvars']):
                 self['n_'+namevar[k]][j] = parts[k]
         i = raw.index('BEGIN SOUTHERN HEMISPHERE\n')+1
-        for j, line in enumerate(raw[i:i+nPts]):
-            parts = line.split()
+        for j in range(nPts):
+            parts = []
+            iLine = i + j*nwrap
+            for iwrap in range(nwrap):
+                parts += raw[iLine+iwrap].split()
             for k in range(self.attrs['nvars']):
                 self['s_'+namevar[k]][j] = parts[k]
 
