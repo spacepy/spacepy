@@ -35,6 +35,9 @@ def fix_format(filename, finalize=True):
     '''
     
     import os
+    from warnings import warn
+
+    warn('rim.Iono can now read "broken" files without using this function. It is a candidate for removal.', DeprecationWarning)
     
     # Slurp in entire file.  This is necessary to detect the number of f.
     f = open(filename, 'r')
