@@ -130,7 +130,7 @@ class VariableChecks(object):
             except:
                 if catch:
                     errors.append('Test {} did not complete.'.format(
-                        func.__name__))
+                        f.__name__))
                 else:
                     raise
         return errors
