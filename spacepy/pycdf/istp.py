@@ -130,7 +130,7 @@ class VariableChecks(object):
             except:
                 if catch:
                     errors.append('Test {} did not complete.'.format(
-                        f.__name__))
+                        func.__name__))
                 else:
                     raise
         return errors
@@ -687,7 +687,7 @@ class FileChecks(object):
             except:
                 if catch:
                     errors.append('Test {} did not complete.'.format(
-                        f.__name__))
+                        func.__name__))
                 else:
                     raise
 
