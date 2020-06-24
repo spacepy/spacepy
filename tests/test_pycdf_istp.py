@@ -24,10 +24,12 @@ class ISTPTestsBase(unittest.TestCase):
     def setUp(self):
         """Setup: make an empty, open, writeable CDF"""
         self.tempdir = tempfile.mkdtemp()
+        # We know what the backward-compatible default is, suppress it.
         warnings.filterwarnings(
-            'ignore', message='^.*set_backward not called.*$',
+            'ignore',
+            message=r'^spacepy\.pycdf\.lib\.set_backward not called.*$',
             category=DeprecationWarning,
-            module='^spacepy.pycdf')
+            module='^spacepy.pycdf$')
         try:
             self.cdf = spacepy.pycdf.CDF(os.path.join(
                 self.tempdir, 'source_descriptor_datatype_19990101_v00.cdf'),
@@ -724,11 +726,17 @@ class VarBundleChecksBase(unittest.TestCase):
 
     def tearDown(self):
         """Close CDFs; delete output"""
+        # Suppress did-not-compress warnings on close
+        warnings.filterwarnings(
+            'ignore', r'^DID_NOT_COMPRESS.*',
+            spacepy.pycdf.CDFWarning, r'^spacepy\.pycdf$')
         try:
             self.incdf.close()
             self.outcdf.close()
         except:
             pass
+        finally:
+            del warnings.filters[0]
         shutil.rmtree(self.tempdir)
 
 
