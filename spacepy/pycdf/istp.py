@@ -39,6 +39,7 @@ Contact: Jonathan.Niehof@unh.edu
 import collections
 import datetime
 import functools
+import inspect
 import itertools
 import math
 import os.path
@@ -87,7 +88,7 @@ class VariableChecks(object):
     .. automethod:: validscale
 
     """
-    #When adding new tests, add to list above, and the list in all()
+    #When adding new tests, add to list above
     #Validation failures should be formatted as a sentence (initial cap,
     #closing period) and NOT include the variable name.
 
@@ -119,11 +120,9 @@ class VariableChecks(object):
         >>> spacepy.pycdf.istp.VariableChecks.all(v)
         ['No FIELDNAM attribute.']
         """
-        #Update this list when adding new test functions
-        callme = (cls.deltas, cls.depends, cls.depsize, cls.empty_entry,
-                  cls.fieldnam, cls.fillval,
-                  cls.recordcount, cls.validrange, cls.validscale,
-                  cls.validdisplaytype)
+        callme = [func for name, func in inspect.getmembers(cls)
+                  if not name.startswith('_') and not name.endswith('_')
+                  and callable(func) and name != 'all']
         errors = []
         for f in callme:
             try:
@@ -639,7 +638,7 @@ class FileChecks(object):
     .. automethod:: times
 
     """
-    #When adding new tests, add to list above, and the list in all()
+    #When adding new tests, add to list above.
     #Validation failures should be formatted as a sentence (initial cap,
     #closing period).
 
@@ -678,7 +677,9 @@ class FileChecks(object):
         'Var: No FIELDNAM attribute.']
         """
         #Update this list when adding new test functions
-        callme = (cls.empty_entry, cls.filename, cls.time_monoton, cls.times,)
+        callme = [func for name, func in inspect.getmembers(cls)
+                  if not name.startswith('_') and not name.endswith('_')
+                  and callable(func) and name != 'all']
         errors = []
         for func in callme:
             try:
