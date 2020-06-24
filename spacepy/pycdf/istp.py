@@ -68,6 +68,7 @@ class VariableChecks(object):
         depsize
         empty_entry
         fieldnam
+        fillval
         recordcount
         validdisplaytype
         validrange
@@ -79,6 +80,7 @@ class VariableChecks(object):
     .. automethod:: depsize
     .. automethod:: empty_entry
     .. automethod:: fieldnam
+    .. automethod:: fillval
     .. automethod:: recordcount
     .. automethod:: validdisplaytype
     .. automethod:: validrange
@@ -119,7 +121,7 @@ class VariableChecks(object):
         """
         #Update this list when adding new test functions
         callme = (cls.deltas, cls.depends, cls.depsize, cls.empty_entry,
-                  cls.fieldnam,
+                  cls.fieldnam, cls.fillval,
                   cls.recordcount, cls.validrange, cls.validscale,
                   cls.validdisplaytype)
         errors = []
@@ -337,6 +339,45 @@ class VariableChecks(object):
         return errs
 
     @classmethod
+    def fillval(cls, v):
+        """Check for FILLVAL presence, type, value
+
+        Checks variable for existence of `FILLVAL
+        <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FILLVAL>`_
+        attribute and makes sure it is the same type as variable and matches
+        ISTP value.
+
+        Parameters
+        ----------
+        v : :class:`~spacepy.pycdf.Var`
+            Variable to check
+
+        Returns
+        -------
+        list of str
+            Description of each validation failure.
+
+        See Also
+        --------
+        spacepy.pycdf.istp.fillval : Automatic setting of this value.
+        """
+        errs = []
+        if not 'FILLVAL' in v.attrs:
+            return ['No FILLVAL attribute.']
+        if v.attrs.type('FILLVAL') != v.type():
+            errs.append(
+                'FILLVAL type {} does not match variable type {}.'.format(
+                    spacepy.pycdf.lib.cdftypenames[v.attrs.type('FILLVAL')],
+                    spacepy.pycdf.lib.cdftypenames[v.type()]))
+        expected = fillval(v, ret=True)
+        if v.attrs['FILLVAL'] != expected:
+            errs.append(
+                'FILLVAL {}, should be {} for variable type {}.'.format(
+                    v.attrs['FILLVAL'], expected,
+                    spacepy.pycdf.lib.cdftypenames[v.type()]))
+        return errs
+
+    @classmethod
     def recordcount(cls, v):
         """Check that the DEPEND_0 has same record count as variable
 
@@ -391,13 +432,16 @@ class VariableChecks(object):
         minval, maxval = spacepy.pycdf.lib.get_minmax(v.type())
         if rng:
             data = v[...]
+            is_fill = False
             if 'FILLVAL' in v.attrs:
-                if numpy.issubdtype(v.dtype, numpy.floating):
+                filldtype = spacepy.pycdf.lib.numpytypedict.get(
+                    v.attrs.type('FILLVAL'), object)
+                if numpy.issubdtype(v.dtype, numpy.floating) \
+                   and numpy.issubdtype(filldtype, numpy.floating):
                     is_fill = numpy.isclose(data, v.attrs['FILLVAL'])
-                else:
+                elif numpy.can_cast(numpy.asanyarray(v.attrs['FILLVAL']),
+                                    v.dtype):
                     is_fill = data == v.attrs['FILLVAL']
-            else:
-                is_fill = numpy.zeros(shape=vshape, dtype=numpy.bool)
         for which in (whichmin, whichmax):
             if not which in v.attrs:
                 continue
@@ -800,10 +844,10 @@ class FileChecks(object):
         return errs
 
 
-def fillval(v): 
+def fillval(v, ret=False):
     """Set ISTP-compliant FILLVAL on a variable
 
-    Sets a CDF variable's `FILLVAL
+    Sets or returns a CDF variable's `FILLVAL
     <https://spdf.gsfc.nasa.gov/istp_guide/vattributes.html#FILLVAL>`_
     attribute to the value required by ISTP (based on variable type).
 
@@ -811,6 +855,18 @@ def fillval(v):
     ----------
     v : :class:`~spacepy.pycdf.Var`
         CDF variable to update
+
+    Other Parameters
+    ----------------
+    ret : boolean
+        If True, return the value instead of setting it (Default False, set).
+
+    Returns
+    -------
+    various
+        If ``ret`` is True, returns the correct value for variable type (which
+        may be of various Python types).  Otherwise sets the value and returns
+        ``None``.
 
     Examples
     --------
@@ -846,9 +902,12 @@ def fillval(v):
             (spacepy.pycdf.const.CDF_DOUBLE, spacepy.pycdf.const.CDF_REAL8),
     ):
         fillvals[cdf_t.value] = fillvals[equiv.value]
+    value = fillvals[v.type()]
+    if ret:
+        return value
     if 'FILLVAL' in v.attrs:
         del v.attrs['FILLVAL']
-    v.attrs.new('FILLVAL', data=fillvals[v.type()], type=v.type())
+    v.attrs.new('FILLVAL', data=value, type=v.type())
 
 
 def format(v, use_scaleminmax=False, dryrun=False):
