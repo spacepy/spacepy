@@ -160,7 +160,7 @@ class VariableChecks(object):
             Description of each validation failure.
 
         """
-        return ['{} variable {} missing'.format(a, v.attrs[a])
+        return ['{} variable {} missing.'.format(a, v.attrs[a])
                 for a in v.attrs
                 if (a.startswith(('DEPEND_', 'LABL_PTR_',))
                     or a in ('DELTA_PLUS_VAR', 'DELTA_MINUS_VAR'))

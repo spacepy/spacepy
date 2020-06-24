@@ -64,14 +64,14 @@ class VariablesTests(ISTPTestsBase):
         self.cdf['var1'].attrs['DEPEND_0'] = 'var2'
         errs = spacepy.pycdf.istp.VariableChecks.depends(self.cdf['var1'])
         self.assertEqual(1, len(errs))
-        self.assertEqual('DEPEND_0 variable var2 missing', errs[0])
+        self.assertEqual('DEPEND_0 variable var2 missing.', errs[0])
         self.cdf['var2'] = [1, 2, 3]
         self.assertEqual(
             0, len(spacepy.pycdf.istp.VariableChecks.depends(self.cdf['var1'])))
         self.cdf['var1'].attrs['DELTA_PLUS_VAR'] = 'foobar'
         errs = spacepy.pycdf.istp.VariableChecks.depends(self.cdf['var1'])
         self.assertEqual(1, len(errs))
-        self.assertEqual('DELTA_PLUS_VAR variable foobar missing', errs[0])
+        self.assertEqual('DELTA_PLUS_VAR variable foobar missing.', errs[0])
 
     def testDeltas(self):
         """DELTA variables"""
@@ -566,7 +566,7 @@ class FileTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.FileChecks.all(self.cdf)
         self.assertEqual(2, len(errs))
         self.assertEqual([
-            'var1: DEPEND_0 variable var2 missing',
+            'var1: DEPEND_0 variable var2 missing.',
             'var1: No FILLVAL attribute.',
             ],
             sorted(errs))
