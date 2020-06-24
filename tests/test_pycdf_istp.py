@@ -214,12 +214,12 @@ class VariablesTests(ISTPTestsBase):
 
     def testValidRangeFillvalFloat(self):
         """Validmin/validmax with fillval set, floating-point"""
-        #This is a bit contrived to force a difference that's only
-        #in terms of the precision of the float
         v = self.cdf.new('var1', recVary=False, data=[1, 2, 3],
                          type=spacepy.pycdf.const.CDF_DOUBLE)
         v.attrs['VALIDMIN'] = 0
         v.attrs['VALIDMAX'] = 10
+        #This is a bit contrived to force a difference between attribute
+        #and value that's only the precision of the float
         v.attrs.new('FILLVAL', -1e31, type=spacepy.pycdf.const.CDF_FLOAT)
         self.assertEqual(
             0, len(spacepy.pycdf.istp.VariableChecks.validrange(v)))
@@ -232,6 +232,19 @@ class VariablesTests(ISTPTestsBase):
         v[0] = -1e31
         self.assertEqual(
             0, len(spacepy.pycdf.istp.VariableChecks.validrange(v)))
+
+    def testValidRangeFillvalFloatWrongType(self):
+        """Validmin/validmax with fillval, floating-point, but fillval string"""
+        v = self.cdf.new('var1', recVary=False, data=[-1e31, 2, 3],
+                         type=spacepy.pycdf.const.CDF_DOUBLE)
+        v.attrs['VALIDMIN'] = 0
+        v.attrs['VALIDMAX'] = 10
+        v.attrs.new('FILLVAL', b'badstuff', type=spacepy.pycdf.const.CDF_CHAR)
+        expected = ['Value -1e+31 at index 0 under VALIDMIN 0.0.']
+        errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
+        self.assertEqual(len(expected), len(errs))
+        for a, e in zip(sorted(errs), sorted(expected)):
+            self.assertEqual(e, a)
 
     def testValidRangeFillvalDatetime(self):
         """Validmin/validmax with fillval set, Epoch var"""
@@ -252,6 +265,33 @@ class VariablesTests(ISTPTestsBase):
         v[-1] = datetime.datetime(9999, 12, 31, 23, 59, 59, 999000)
         self.assertEqual(
             0, len(spacepy.pycdf.istp.VariableChecks.validrange(v)))
+
+    def testFillval(self):
+        """Test for fillval presence, type, value"""
+        v = self.cdf.new('var1', data=[1, 2, 3],
+                         type=spacepy.pycdf.const.CDF_INT2)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual(1, len(errs))
+        self.assertEqual(
+            'No FILLVAL attribute.',
+            errs[0])
+        v.attrs.new('FILLVAL', -5, type=spacepy.pycdf.const.CDF_DOUBLE)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual([
+            'FILLVAL -5.0, should be -32768 for variable type CDF_INT2.',
+            'FILLVAL type CDF_DOUBLE does not match variable type CDF_INT2.',
+            ],
+            sorted(errs))
+        v.attrs['FILLVAL'] = -32768
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual([
+            'FILLVAL type CDF_DOUBLE does not match variable type CDF_INT2.',
+            ],
+            sorted(errs))
+        del v.attrs['FILLVAL']
+        v.attrs.new('FILLVAL', -32768, type=spacepy.pycdf.const.CDF_INT2)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual(0, len(errs))
 
     def testMatchingRecordCount(self):
         """Same number of records for DEPEND_0"""
@@ -522,8 +562,12 @@ class FileTests(ISTPTestsBase):
         self.cdf.attrs['Logical_file_id'] = \
             'source_descriptor_datatype_19990101_v00'
         errs = spacepy.pycdf.istp.FileChecks.all(self.cdf)
-        self.assertEqual(1, len(errs))
-        self.assertEqual('var1: DEPEND_0 variable var2 missing', errs[0])
+        self.assertEqual(2, len(errs))
+        self.assertEqual([
+            'var1: DEPEND_0 variable var2 missing',
+            'var1: No FILLVAL attribute.',
+            ],
+            sorted(errs))
 
     def testEmptyEntries(self):
         """Are there any CHAR gEntries of empty string"""

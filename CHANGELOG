@@ -24,6 +24,7 @@ pycdf
    another variable
  - istp.VariableChecks adds check for VALID/SCALE MIN/MAX Entry types
  - istp.VariableChecks adds check for DELTA attributes
+ - istp.VariableChecks adds check for FILLVAL
  - istp.VariableChecks and FileChecks add check for empty attribute Entries
  - istp.VarBundle class to copy variables, slices, and depends between CDFs
  - istp.nanfill function to replace fill values with NaN
