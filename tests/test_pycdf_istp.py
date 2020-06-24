@@ -13,6 +13,7 @@ import warnings
 
 import numpy
 import numpy.testing
+import spacepy
 import spacepy.pycdf
 import spacepy.pycdf.const
 import spacepy.pycdf.istp
@@ -48,6 +49,22 @@ class ISTPTestsBase(unittest.TestCase):
 
 class VariablesTests(ISTPTestsBase):
     """Tests of variable-checking functions"""
+
+    def testAllVarFailure(self):
+        """Call variable checks with a known bad one"""
+        class BadTestClass(spacepy.pycdf.istp.VariableChecks):
+            @classmethod
+            def varraiseserror(cls, v):
+                raise RuntimeError('Bad')
+        data = spacepy.dmarray([1, 2, 3], dtype=numpy.int8, attrs={
+            'FIELDNAM': 'var1',
+            'FILLVAL': -128,
+            })
+        var = self.cdf.new('var1', data=data)
+        errs = BadTestClass.all(var, catch=True)
+        self.assertEqual(
+            ['Test varraiseserror did not complete.'],
+            errs)
 
     def testEmptyEntries(self):
         """Are there any CHAR entries of empty string"""
