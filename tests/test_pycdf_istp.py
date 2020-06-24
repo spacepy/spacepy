@@ -571,6 +571,21 @@ class FileTests(ISTPTestsBase):
             ],
             sorted(errs))
 
+    def testAllFailure(self):
+        """Call file checks with a known bad one"""
+        self.cdf.attrs['Logical_source'] = \
+            'source_descriptor_datatype'
+        self.cdf.attrs['Logical_file_id'] = \
+            'source_descriptor_datatype_19990101_v00'
+        class BadTestClass(spacepy.pycdf.istp.FileChecks):
+            @classmethod
+            def raiseserror(cls, f):
+                raise RuntimeError('Bad')
+        errs = BadTestClass.all(self.cdf, catch=True)
+        self.assertEqual(
+            ['Test raiseserror did not complete.'],
+            errs)
+
     def testEmptyEntries(self):
         """Are there any CHAR gEntries of empty string"""
         self.cdf['var1'] = [1, 2, 3]
