@@ -439,7 +439,7 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual(2, len(errs))
         errs.sort()
         self.assertEqual(
-            ['SCALEMIN (-200) outside data range (-128,127).',
+            ['SCALEMIN (-200) outside valid data range (-128,127).',
              'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
              ],
              errs)
@@ -448,7 +448,7 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual(3, len(errs))
         errs.sort()
         self.assertEqual(
-            ['SCALEMIN (200) outside data range (-128,127).',
+            ['SCALEMIN (200) outside valid data range (-128,127).',
              'SCALEMIN > SCALEMAX.',
              'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
              ],
@@ -458,9 +458,9 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual(5, len(errs))
         errs.sort()
         self.assertEqual(
-            ['SCALEMAX (-200) outside data range (-128,127).',
+            ['SCALEMAX (-200) outside valid data range (-128,127).',
              'SCALEMAX type CDF_INT2 does not match variable type CDF_BYTE.',
-             'SCALEMIN (200) outside data range (-128,127).',
+             'SCALEMIN (200) outside valid data range (-128,127).',
              'SCALEMIN > SCALEMAX.',
              'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
              ],
@@ -470,9 +470,9 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual(4, len(errs))
         errs.sort()
         self.assertEqual(
-            ['SCALEMAX (200) outside data range (-128,127).',
+            ['SCALEMAX (200) outside valid data range (-128,127).',
              'SCALEMAX type CDF_INT2 does not match variable type CDF_BYTE.',
-             'SCALEMIN (200) outside data range (-128,127).',
+             'SCALEMIN (200) outside valid data range (-128,127).',
              'SCALEMIN type CDF_INT2 does not match variable type CDF_BYTE.'
              ],
              errs)
@@ -487,7 +487,7 @@ class VariablesTests(ISTPTestsBase):
         self.assertEqual(2, len(errs))
         errs.sort()
         self.assertEqual([
-            'SCALEMAX ([300 320]) outside data range (-128,127).',
+            'SCALEMAX ([300 320]) outside valid data range (-128,127).',
             'SCALEMAX type CDF_INT2 does not match variable type CDF_BYTE.'
             ],
             errs)
