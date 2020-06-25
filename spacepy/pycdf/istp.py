@@ -467,7 +467,17 @@ class VariableChecks(object):
                     continue
                 if firstdim: #Add pseudo-record dim
                     attrval = numpy.reshape(attrval, (1, -1))
-            if numpy.any((attrval < minval)) or numpy.any((attrval > maxval)):
+            # min, max, variable data all same dtype
+            if not numpy.can_cast(numpy.asanyarray(attrval),
+                                  numpy.asanyarray(minval).dtype):
+                errs.append(
+                    '{} type {} not comparable to variable type {}.'.format(
+                        which,
+                        spacepy.pycdf.lib.cdftypenames[v.attrs.type(which)],
+                        spacepy.pycdf.lib.cdftypenames[v.type()]
+                    ))
+                continue # Cannot do comparisons
+            if numpy.any((minval > attrval)) or numpy.any((maxval < attrval)):
                 errs.append('{} ({}) outside valid data range ({},{}).'.format(
                     which, attrval[0, :] if multidim else attrval,
                     minval, maxval))
