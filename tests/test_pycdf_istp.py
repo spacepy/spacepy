@@ -186,6 +186,23 @@ class VariablesTests(ISTPTestsBase):
              'VALIDMIN type CDF_INT2 does not match variable type CDF_INT4.'],
             errs)
 
+    def testValidRangeIncompatibleType(self):
+        """Validmin/validmax can't be compared to variable type"""
+        v = self.cdf.new('var1', data=[1, 2, 3],
+                         type=spacepy.pycdf.const.CDF_INT4)
+        v.attrs.new('VALIDMIN', data='2')
+        v.attrs.new('VALIDMAX', data='5')
+        errs = spacepy.pycdf.istp.VariableChecks.validrange(v)
+        errs.sort()
+        self.assertEqual(4, len(errs))
+        self.assertEqual(
+            ['VALIDMAX type CDF_CHAR does not match variable type CDF_INT4.',
+             'VALIDMAX type CDF_CHAR not comparable to variable type CDF_INT4.',
+             'VALIDMIN type CDF_CHAR does not match variable type CDF_INT4.',
+             'VALIDMIN type CDF_CHAR not comparable to variable type CDF_INT4.'
+            ],
+            errs)
+
     def testValidRangeNRV(self):
         """Validmin/validmax"""
         v = self.cdf.new('var1', recVary=False, data=[1, 2, 3])
