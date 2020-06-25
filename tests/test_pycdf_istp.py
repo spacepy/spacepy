@@ -346,6 +346,26 @@ class VariablesTests(ISTPTestsBase):
         errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
         self.assertEqual(0, len(errs), '\n'.join(errs))
 
+    def testFillvalEpoch(self):
+        """Test for fillval being okay with epoch"""
+        v = self.cdf.new('Epoch', type=spacepy.pycdf.const.CDF_EPOCH)
+        v.attrs.new(
+            'FILLVAL', -1e31,
+            type=spacepy.pycdf.const.CDF_EPOCH)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual(0, len(errs), '\n'.join(errs))
+        del v.attrs['FILLVAL']
+        v.attrs.new(
+            'FILLVAL', datetime.datetime(2000, 1, 1),
+            type=spacepy.pycdf.const.CDF_EPOCH)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual(1, len(errs), '\n'.join(errs))
+        self.assertEqual(
+            'FILLVAL {} (2000-01-01 00:00:00), should be -1e+31 '
+            '(9999-12-31 23:59:59.999000) for variable type CDF_EPOCH.'
+            .format(6.3113904e+13), #py2k and 3k format this differently
+            errs[0])
+
     def testMatchingRecordCount(self):
         """Same number of records for DEPEND_0"""
         e = self.cdf.new(
@@ -599,7 +619,39 @@ class VariablesTests(ISTPTestsBase):
         v.attrs['FIELDNAM'] = 'var1'
         self.assertEqual(
             0, len(spacepy.pycdf.istp.VariableChecks.fieldnam(v)))
-        
+
+
+@unittest.skipIf(spacepy.pycdf.lib.version[0] < 3,
+                 'Requires CDF library 3 or newer')
+class VariablesTestsNew(ISTPTestsBase):
+    """Tests of variable-checking functions that require CDF 3"""
+    longMessage = True
+
+    def setUp(self):
+        """Disable backward-compat before making test CDF"""
+        spacepy.pycdf.lib.set_backward(False)
+        super(VariablesTestsNew, self).setUp()
+        spacepy.pycdf.lib.set_backward(True)
+
+    def testFillvalEpoch16(self):
+        """Test for fillval being okay with epoch16"""
+        v = self.cdf.new('Epoch', type=spacepy.pycdf.const.CDF_EPOCH16)
+        v.attrs.new(
+            'FILLVAL', (-1e31, -1e31),
+            type=spacepy.pycdf.const.CDF_EPOCH16)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual(0, len(errs), '\n'.join(errs))
+
+    @unittest.skipIf(not spacepy.pycdf.lib.supports_int8,
+                     'Requires TT2000 support in CDF library')
+    def testFillvalTT2000(self):
+        """Test for fillval being okay with TT2000"""
+        v = self.cdf.new('Epoch', type=spacepy.pycdf.const.CDF_TIME_TT2000)
+        v.attrs.new(
+            'FILLVAL', -9223372036854775808,
+            type=spacepy.pycdf.const.CDF_TIME_TT2000)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual(0, len(errs), '\n'.join(errs))
 
         
 class FileTests(ISTPTestsBase):
