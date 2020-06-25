@@ -369,22 +369,43 @@ class VariableChecks(object):
                     spacepy.pycdf.lib.cdftypenames[v.attrs.type('FILLVAL')],
                     spacepy.pycdf.lib.cdftypenames[v.type()]))
         expected = fillval(v, ret=True)
+        timetype = v.type() in spacepy.pycdf.lib.timetypes
+        actual = (v.cdf_file.raw_var(v.name()) if timetype else v)\
+                 .attrs['FILLVAL']
         # isclose added in numpy 1.7, so fix this when go to 0.3.0
         if hasattr(numpy, 'isclose'):
             match = numpy.isclose(
-                v.attrs['FILLVAL'], expected, atol=0, rtol=1e-7)\
+                actual, expected, atol=0, rtol=1e-7)\
                 if numpy.issubdtype(v.dtype, numpy.floating)\
-                else v.attrs['FILLVAL'] == expected
+                else numpy.all(actual == expected)
         else:
             if numpy.issubdtype(v.dtype, numpy.floating):
-                match = (abs(v.attrs['FILLVAL'] - expected) / expected < 1e-7)
+                match = (abs(actual - expected) / expected < 1e-7)
             else:
-                match = v.attrs['FILLVAL'] == expected
+                match = numpy.all(actual == expected)
         if not match:
-            errs.append(
-                'FILLVAL {}, should be {} for variable type {}.'.format(
-                    v.attrs['FILLVAL'], expected,
-                    spacepy.pycdf.lib.cdftypenames[v.type()]))
+            if timetype:
+                converted_expected = {
+                    spacepy.pycdf.const.CDF_EPOCH.value:
+                    spacepy.pycdf.lib.v_epoch_to_datetime,
+                    spacepy.pycdf.const.CDF_EPOCH16.value:
+                    spacepy.pycdf.lib.v_epoch16_to_datetime,
+                    spacepy.pycdf.const.CDF_TIME_TT2000.value:
+                    spacepy.pycdf.lib.v_tt2000_to_datetime
+                }[v.type()](expected)
+                errs.append(
+                    'FILLVAL {} ({}), should be {} ({}) for variable type {}.'
+                    .format(
+                        actual,
+                        v.attrs['FILLVAL'],
+                        expected,
+                        converted_expected,
+                        spacepy.pycdf.lib.cdftypenames[v.type()]))
+            else:
+                errs.append(
+                    'FILLVAL {}, should be {} for variable type {}.'.format(
+                        actual, expected,
+                        spacepy.pycdf.lib.cdftypenames[v.type()]))
         return errs
 
     @classmethod
