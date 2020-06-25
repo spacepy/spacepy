@@ -49,6 +49,7 @@ class ISTPTestsBase(unittest.TestCase):
 
 class VariablesTests(ISTPTestsBase):
     """Tests of variable-checking functions"""
+    longMessage = True
 
     def testAllVarFailure(self):
         """Call variable checks with a known bad one"""
@@ -328,6 +329,22 @@ class VariablesTests(ISTPTestsBase):
         v.attrs.new('FILLVAL', -32768, type=spacepy.pycdf.const.CDF_INT2)
         errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
         self.assertEqual(0, len(errs))
+
+    def testFillvalFloat(self):
+        """Test for fillval being okay when off by float precision"""
+        v = self.cdf.new('var1', data=[1, 2, 3],
+                         type=spacepy.pycdf.const.CDF_FLOAT)
+        v.attrs.new('FILLVAL', -1e31, type=spacepy.pycdf.const.CDF_FLOAT)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual(0, len(errs), '\n'.join(errs))
+
+    def testFillvalString(self):
+        """Test for fillval being okay in a string"""
+        v = self.cdf.new('var1', data=['foo', 'bar'],
+                                       type=spacepy.pycdf.const.CDF_CHAR)
+        v.attrs.new('FILLVAL', ' ', type=spacepy.pycdf.const.CDF_CHAR)
+        errs = spacepy.pycdf.istp.VariableChecks.fillval(v)
+        self.assertEqual(0, len(errs), '\n'.join(errs))
 
     def testMatchingRecordCount(self):
         """Same number of records for DEPEND_0"""

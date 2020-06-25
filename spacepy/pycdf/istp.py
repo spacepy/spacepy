@@ -369,7 +369,18 @@ class VariableChecks(object):
                     spacepy.pycdf.lib.cdftypenames[v.attrs.type('FILLVAL')],
                     spacepy.pycdf.lib.cdftypenames[v.type()]))
         expected = fillval(v, ret=True)
-        if v.attrs['FILLVAL'] != expected:
+        # isclose added in numpy 1.7, so fix this when go to 0.3.0
+        if hasattr(numpy, 'isclose'):
+            match = numpy.isclose(
+                v.attrs['FILLVAL'], expected, atol=0, rtol=1e-7)\
+                if numpy.issubdtype(v.dtype, numpy.floating)\
+                else v.attrs['FILLVAL'] == expected
+        else:
+            if numpy.issubdtype(v.dtype, numpy.floating):
+                match = (abs(v.attrs['FILLVAL'] - expected) / expected < 1e-7)
+            else:
+                match = v.attrs['FILLVAL'] == expected
+        if not match:
             errs.append(
                 'FILLVAL {}, should be {} for variable type {}.'.format(
                     v.attrs['FILLVAL'], expected,
