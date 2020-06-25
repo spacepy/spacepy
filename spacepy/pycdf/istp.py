@@ -468,7 +468,7 @@ class VariableChecks(object):
                 if firstdim: #Add pseudo-record dim
                     attrval = numpy.reshape(attrval, (1, -1))
             if numpy.any((attrval < minval)) or numpy.any((attrval > maxval)):
-                errs.append('{} ({}) outside data range ({},{}).'.format(
+                errs.append('{} ({}) outside valid data range ({},{}).'.format(
                     which, attrval[0, :] if multidim else attrval,
                     minval, maxval))
             if not rng or not len(v): #nothing to compare
