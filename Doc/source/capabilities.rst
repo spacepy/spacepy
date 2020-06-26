@@ -59,8 +59,9 @@ many models compatible with the Space Weather Modeling Framework,
 including the BATS-R-US global MHD model and the RAM-SCB ring current
 model.
 
-:mod:`~spacepy.omni` provides ready access to the OMNI near-Earth
-solar wind dataset, useful for model inputs.
+:mod:`~spacepy.omni` provides ready access to the `OMNI
+<https://omniweb.gsfc.nasa.gov/>`_ near-Earth solar wind dataset,
+useful for model inputs.
 
 Statistics
 ==========
