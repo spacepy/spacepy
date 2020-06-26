@@ -33,8 +33,8 @@ File I/O
 with additional functionality for those with ISTP-compliant metadata.
 
 :mod:`~spacepy.datamodel` provides easy reading and writing of HDF5
-files. It also supports reading and writing ASCII-based data files
-with rich JSON metadata, supported by tools such as
+and most netCDF files. It also supports reading and writing ASCII-based
+data files with rich JSON metadata, supported by tools such as
 `Autoplot <http://autoplot.org>`_.
 
 :func:`numpy.loadtxt` and related functions are helpful for reading
@@ -59,8 +59,8 @@ many models compatible with the Space Weather Modeling Framework,
 including the BATS-R-US global MHD model and the RAM-SCB ring current
 model.
 
-:mod:`~spacepy.omni` provides ready access to the OMNI L1 solar wind
-dataset, useful for model inputs.
+:mod:`~spacepy.omni` provides ready access to the OMNI near-Earth
+solar wind dataset, useful for model inputs.
 
 Statistics
 ==========
