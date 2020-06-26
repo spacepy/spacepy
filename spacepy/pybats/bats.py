@@ -1613,22 +1613,22 @@ class Bats2d(IdlFile):
         if type(target) == type(ax):
             use_ax_lims = bool(ax.artists) and \
                 not(ax.get_xlim() == ax.get_ylim() == (0,1))
-        
+
         # Set range over which to place lines.  Use keyword values if provided
         # OR subset of axes ranges that fit in domain (if axes are reasonable)
-        if xlim == None:
+        if xlim is None:
             xlim = [self[dims[0]].min(), self[dims[0]].max()]
             if use_ax_lims:
                 axlim = ax.get_xlim()
                 xlim = [max(xlim[0], axlim[0]), min(xlim[1], axlim[1])]
-        if ylim == None:
+        if ylim is None:
             ylim = [self[dims[1]].min(), self[dims[1]].max()]
             if use_ax_lims:
                 axlim = ax.get_ylim()
                 ylim = [max(ylim[0], axlim[0]), min(ylim[1], axlim[1])]
 
         # If initial source points not given, create a random set:
-        if not start_points:
+        if start_points is None:
             # Get random points.
             start_points = sample( [nlines, 2] )
             # Scale to limits:
