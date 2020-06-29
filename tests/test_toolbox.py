@@ -156,6 +156,82 @@ class SimpleFunctionTests(unittest.TestCase):
         ans = [ 0.2,  -0.707,  -0.        ,  -0.707]
         numpy.testing.assert_array_almost_equal(ans, tst)
 
+    def test_quaternionToMatrix_simple(self):
+        """Test several simple rotations"""
+        # Rotations by 90 degrees around X, Y, and Z axis
+        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
+        inputs = numpy.array([
+            [cos45, 0, 0, cos45],
+            [0, cos45, 0, cos45],
+            [0, 0, cos45, cos45],
+            ])
+        expected = numpy.array([
+            [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
+            [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
+            [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
+            ])
+        actual = tb.quaternionToMatrix(inputs)
+        numpy.testing.assert_array_almost_equal(actual, expected)
+        # Put scalar on other side
+        inputs = numpy.array([
+            [cos45, cos45, 0, 0],
+            [cos45, 0, cos45, 0],
+            [cos45, 0, 0, cos45],
+            ])
+        actual = tb.quaternionToMatrix(inputs, scalarPos='first')
+        numpy.testing.assert_array_almost_equal(actual, expected)
+
+    def test_quaternionToMatrix_nasty(self):
+        """Pick an arbitrary rotation and verify it works"""
+        Qin = tb.quaternionNormalize(numpy.array([0.25, 0.5, 0.71, 0.25]))
+        matrix = tb.quaternionToMatrix(Qin)
+        ortho_test = numpy.dot(matrix, matrix.transpose())
+        numpy.testing.assert_array_almost_equal(
+            ortho_test, numpy.identity(3))
+        try:
+            det = numpy.linalg.det(matrix)
+        except AttributeError: # det new in numpy 1.8.0
+            det = matrix[0, 0] * matrix[1, 1] * matrix[2, 2] \
+                  + matrix[0, 1] * matrix[1, 2] * matrix[2, 0] \
+                  + matrix[0, 2] * matrix[1, 0] * matrix[2, 1] \
+                  - matrix[0, 2] * matrix[1, 1] * matrix[2, 0] \
+                  - matrix[0, 1] * matrix[1, 0] * matrix[2, 2] \
+                  - matrix[0, 0] * matrix[1, 2] * matrix[2, 1]
+        self.assertTrue(det > 0) # Proper?
+        invect = numpy.array([[5, 3, 2], [1, 0, 0], [.2, 5, 20],
+                              [0, 2, 2]])
+        # Single vector
+        expected = tb.quaternionRotateVector(Qin, invect[1, :])
+        actual = numpy.dot(matrix, invect[1, :])
+        numpy.testing.assert_array_almost_equal(
+            actual, expected)
+        # All at once
+        expected = tb.quaternionRotateVector(
+            numpy.tile(Qin, (4, 1)), invect)
+        actual = numpy.dot(matrix, invect.transpose()).transpose()
+        numpy.testing.assert_array_almost_equal(
+            actual, expected)
+
+    def test_quaternionToMatrix_errors(self):
+        """Test bad input"""
+        # Rotation by 90 degrees around X axis
+        Qin = numpy.array([0.5 ** 0.5, 0, 0, 0.5 ** 0.5])
+        with self.assertRaises(NotImplementedError) as cm:
+            tb.quaternionToMatrix(Qin, 'FOO')
+        self.assertEqual(
+            'quaternionToMatrix: scalarPos must be set to "First" or "Last"',
+            str(cm.exception))
+        with self.assertRaises(ValueError) as cm:
+            tb.quaternionToMatrix([1, 2, 3])
+        self.assertEqual(
+            'Input does not appear to be quaternion, wrong size.',
+            str(cm.exception))
+        with self.assertRaises(ValueError) as cm:
+            tb.quaternionToMatrix([1, 2, 3, 4])
+        self.assertEqual(
+            'Input quaternion not normalized.',
+            str(cm.exception))
+
     def test_indsFromXrange(self):
         """indsFromXrange should have known result"""
         foo = xrange(23, 39)

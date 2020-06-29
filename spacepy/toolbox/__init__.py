@@ -86,7 +86,8 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'logspace', 'geomspace', 'linspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'quaternionNormalize', 'quaternionRotateVector', 'quaternionMultiply',
-           'quaternionConjugate', 'interpol', 'normalize', 'intsolve', 'dist_to_list',
+           'quaternionConjugate', 'quaternionToMatrix',
+           'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot',
            'do_with_timeout', 'TimeoutError', 'timeout_check_call',
@@ -2548,6 +2549,71 @@ def quaternionConjugate(Qin, scalarPos='last'):
         outarr[idx, w] = row[w]
 
     return outarr.squeeze()
+
+def quaternionToMatrix(Qin, scalarPos='last'):
+    '''
+    Given an input quaternion, return the equivalent rotation matrix.
+
+    The output has one more axis than the input (the last axis) and the
+    shape is otherwise unchanged, allowing multi-dimensional quaternion input.
+
+    Parameters
+    ==========
+    Qin : array_like
+        input quaternion or array of quaternions, must be normalized.
+
+    Returns
+    =======
+    out : array_like
+        Rotation matrix
+
+    Other Parameters
+    ================
+    scalarPos : str
+        Location of the scalar component of the input quaternion, either
+        'last' (default) or 'first'.
+
+    Notes
+    =====
+    Implementation of the Euler–Rodrigues formula.
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.quaternionToMatrix([0.5, 0.5, 0.5, 0.5])
+    array([[ 0.,  0.,  1.],
+           [ 1.,  0.,  0.],
+           [ 0.,  1.,  0.]])
+    '''
+    if scalarPos.lower() not in ('last', 'first'):
+        raise NotImplementedError(
+            'quaternionToMatrix: scalarPos must be set to "First" or "Last"')
+    Qin = np.asanyarray(Qin)
+    if scalarPos.lower() == 'first':
+        Qin = np.roll(Qin, -1, axis=-1)
+    if Qin.shape[-1] != 4:
+        raise ValueError('Input does not appear to be quaternion, wrong size.')
+    if not np.allclose(np.sum(Qin ** 2, axis=-1), 1):
+        raise ValueError('Input quaternion not normalized.')
+    # Maintain dimensions at end for stacking
+    a, b, c, d = Qin[..., -1:], Qin[..., 0:1], Qin[..., 1:2], Qin[..., 2:3]
+    # Output array, "flattened"
+    # This can probably be written with a clever vector notation...
+    out = np.concatenate((
+        a ** 2 + b ** 2 - c ** 2 - d ** 2,
+        2 * (b * c - a * d),
+        2 * (b * d + a * c),
+        2 * (b * c + a * d),
+        a ** 2 + c ** 2 - b ** 2 - d ** 2,
+        2 * (c * d - a * b),
+        2 * (b * d - a * c),
+        2 * (c * d + a * b),
+        a ** 2 + d ** 2 - b ** 2 - c ** 2,
+        ), axis=-1)
+    # And last two dims are 3x3 array for matrix
+    out = np.reshape(out, out.shape[:-1] + (3, 3))
+    return out
+
 
 # -----------------------------------------------
 
