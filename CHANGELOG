@@ -41,6 +41,7 @@ toolbox
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
  - Change update to supplement ViRBO Qin-Denton files with NMC daily files
  - Change update to get leapseconds from NASA MODIS instead of USNO
+ - New function quaternionToMatrix converts quaternion to rotation matrix
 
 Changes in Version 0.2.1 (2019-10-02)
 =====================================
