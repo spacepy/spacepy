@@ -322,3 +322,5 @@ unaffected by that dependency.
      - * :func:`~spacepy.toolbox.dist_to_list`
        * :func:`~spacepy.toolbox.intsolve`
        * :func:`~spacepy.toolbox.poisson_fit`
+       * :func:`~spacepy.toolbox.quaternionFromMatrix` unless using
+         numpy 1.8 or later

@@ -86,7 +86,7 @@ __all__ = ['tOverlap', 'tOverlapHalf', 'tCommon', 'loadpickle', 'savepickle', 'a
            'logspace', 'geomspace', 'linspace', 'arraybin', 'mlt2rad',
            'rad2mlt', 'pmm', 'getNamedPath', 'query_yes_no',
            'quaternionNormalize', 'quaternionRotateVector', 'quaternionMultiply',
-           'quaternionConjugate', 'quaternionToMatrix',
+           'quaternionConjugate', 'quaternionFromMatrix', 'quaternionToMatrix',
            'interpol', 'normalize', 'intsolve', 'dist_to_list',
            'bin_center_to_edges', 'bin_edges_to_center', 'thread_job', 'thread_map',
            'eventTimer', 'isview', 'interweave', 'indsFromXrange', 'hypot',
@@ -2550,6 +2550,169 @@ def quaternionConjugate(Qin, scalarPos='last'):
 
     return outarr.squeeze()
 
+
+def quaternionFromMatrix(matrix, scalarPos='last'):
+    '''
+    Given an input rotation matrix, return the equivalent quaternion
+
+    The output has one fewer axis than the input (the last axis) and the
+    shape is otherwise unchanged, allowing multi-dimensional matrix input.
+
+    Parameters
+    ==========
+    matrix : array_like
+        input rotation matrix or array of matrices
+
+    Returns
+    =======
+    out : array_like
+        Quaternions representing the same rotation as the input rotation
+        matrices.
+
+    Other Parameters
+    ================
+    scalarPos : str
+        Location of the scalar component of the output quaternion, either
+        'last' (default) or 'first'.
+
+    Raises
+    ======
+    NotImplementedError
+        for invalid values of ``scalarPos``
+
+    ValueError
+        for inputs which are obviously not valid 3D rotation matrices or
+        arrays thereof: if the size doesn't end in (3, 3), if the matrix is
+        not orthogonal, or not a proper rotation.
+
+    See Also
+    ========
+    quaternionToMatrix
+
+    Notes
+    =====
+    The conversion of a rotation matrix to a quaternion suffers from some
+    of the same disadvantages inherent to rotation matrices, such as potential
+    numerical instabilities. Working in quaternion space as much as possible
+    is recommended.
+
+    There are several algorithms; the most well-known algorithm for this
+    conversion is Shepperd's [#Shepperd]_, although the many "rediscoveries"
+    indicate
+    it is not sufficiently well-known. This function uses the method of
+    Bar-Itzhack [#BarItzhack]_ (version 3), which should be resistant to small
+    errors in the rotation matrix. As a result, the input checking is quite
+    coarse and will likely accept many matrices that do not represent valid
+    rotations.
+
+    Also potentially of interest, although not implemented here, is Sarabandi
+    and Thomas [#Sarabandi]_.
+
+    References
+    ==========
+    .. [#Shepperd] S.W. Shepperd, "Quaternion from rotation matrix," Journal of
+            Guidance and Control, Vol. 1, No. 3, pp. 223-224, 1978,
+            `doi:10.2514/3.55767b <https://doi.org/10.2514/3.55767b>`_
+
+    .. [#BarItzhack] I. Y. Bar-Itzhack, "New method for extracting the
+            quaternion from a rotation matrix", AIAA Journal of Guidance,
+            Control and Dynamics, 23 (6): 1085–1087,
+            `doi:10.2514/2.4654 <https://doi.org/10.2514/2.4654>`_
+
+    .. [#Sarabandi] S. Sarabandi and F. Thomas, "Accurate Computation of
+            Quaternions from Rotation Matrices", In: Lenarcic J.,
+            Parenti-Castelli V. (eds) Advances in Robot Kinematics 2018,
+            Springer.
+            `doi:10.1007/978-3-319-93188-3_5
+            <https://doi.org/10.1007/978-3-319-93188-3_5>`_
+
+    Examples
+    ========
+    >>> import spacepy.toolbox as tb
+    >>> tb.quaternionFromMatrix(
+    ...     [[ 0.,  0.,  1.],
+    ...      [ 1.,  0.,  0.],
+    ...      [ 0.,  1.,  0.]])
+    array([0.5, 0.5, 0.5, 0.5])
+    '''
+    if scalarPos.lower() not in ('last', 'first'):
+        raise NotImplementedError(
+            'quaternionFromMatrix: scalarPos must be set to "First" or "Last"')
+    matrix = np.asanyarray(matrix)
+    if len(matrix.shape) < 2 or matrix.shape[-2:] != (3, 3):
+        raise ValueError(
+            'Input does not appear to be 3D rotation matrix, wrong size.')
+    for i in np.ndindex(matrix.shape[:-2]):
+        m = matrix[i + (Ellipsis,)]
+        if not np.allclose(np.dot(m, m.transpose()),
+                           np.identity(3), atol=0.2):
+            raise ValueError('Input rotation matrix{} not orthogonal.'.format(
+                '' if len(matrix.shape) == 2 else ' at ' + str(i)))
+        try:
+            det = np.linalg.det(m)
+        except AttributeError: # det new in numpy 1.8.0
+            det = m[0, 0] * m[1, 1] * m[2, 2] \
+                  + m[0, 1] * m[1, 2] * m[2, 0] \
+                  + m[0, 2] * m[1, 0] * m[2, 1] \
+                  - m[0, 2] * m[1, 1] * m[2, 0] \
+                  - m[0, 1] * m[1, 0] * m[2, 2] \
+                  - m[0, 0] * m[1, 2] * m[2, 1]
+        if det < 0:
+            raise ValueError('Input rotation matrix at {} not proper.'
+                             .format(str(i)))
+    inshape = matrix.shape
+    # Flatten out most dimensions, easier to index
+    matrix = np.reshape(matrix, (-1, 3, 3))
+    # This would be easier with numpy.stack, which adds an axis for us,
+    # only in numpy 1.10
+    # Indexing in Bar-Itzhack is reversed relative to numpy
+    k  = (
+        matrix[..., 0, 0] - matrix[..., 1, 1] - matrix[..., 2, 2],
+        matrix[..., 0, 1] + matrix[..., 1, 0],
+        matrix[..., 0, 2] + matrix[..., 2, 0],
+        matrix[..., 2, 1] - matrix[..., 1, 2], # row 0
+        matrix[..., 0, 1] + matrix[..., 1, 0],
+        matrix[..., 1, 1] - matrix[..., 0, 0] - matrix[..., 2, 2],
+        matrix[..., 1, 2] + matrix[..., 2, 1],
+        matrix[..., 0, 2] - matrix[..., 2, 0], # row 1
+        matrix[..., 0, 2] + matrix[..., 2, 0],
+        matrix[..., 1, 2] + matrix[..., 2, 1],
+        matrix[..., 2, 2] - matrix[..., 0, 0] - matrix[..., 1, 1],
+        matrix[..., 1, 0] - matrix[..., 0, 1], #row 2
+        matrix[..., 2, 1] - matrix[..., 1, 2],
+        matrix[..., 0, 2] - matrix[..., 2, 0],
+        matrix[..., 1, 0] - matrix[..., 0, 1],
+        matrix[..., 0, 0] + matrix[..., 1, 1] + matrix[..., 2, 2] #row 3
+        )
+    # Glue elements into a matrix, last index is input sample
+    k = np.reshape(np.concatenate(k), (4, 4, -1))
+    # Make the individual 4x4 k arrays the final indices
+    k = np.rollaxis(k, 2)
+    k = k / 3.
+    if hasattr(np.linalg, 'eig'): #new in numpy 1.8.0
+        evals, evects = np.linalg.eig(k)
+        evects = np.real(evects)
+    else: #fall back to scipy
+        import scipy.linalg
+        evals = []
+        evects = []
+        for i in range(k.shape[0]):
+            eigval, eigvect = scipy.linalg.eig(k[i, ...])
+            evals.append(eigval)
+            evects.append(eigvect)
+        evals = np.concatenate(evals).reshape((-1, 4))
+        evects = np.concatenate(evects).reshape((-1, 4, 4))
+        # Because K has been constructed symmetric, its eigenvalues must be real
+        evals = np.real(evals)
+    idx = np.argmax(evals, axis=-1)
+    Qout = evects[np.mgrid[0:len(idx)], :, idx]
+    if scalarPos.lower() == 'first':
+        Qout = np.roll(Qout, 1, axis=-1)
+    # Recover original shape
+    Qout = np.reshape(Qout, inshape[:-2] + (4,))
+    return Qout
+
+
 def quaternionToMatrix(Qin, scalarPos='last'):
     '''
     Given an input quaternion, return the equivalent rotation matrix.
@@ -2572,6 +2735,20 @@ def quaternionToMatrix(Qin, scalarPos='last'):
     scalarPos : str
         Location of the scalar component of the input quaternion, either
         'last' (default) or 'first'.
+
+    Raises
+    ======
+    NotImplementedError
+        for invalid values of ``scalarPos``.
+
+    ValueError
+        for inputs which are not valid normalized quaternions or arrays
+        thereof: if the size doesn't end in (4), if the quaternion is not
+        normalized.
+
+    See Also
+    ========
+    quaternionFromMatrix
 
     Notes
     =====
@@ -2599,6 +2776,8 @@ def quaternionToMatrix(Qin, scalarPos='last'):
     a, b, c, d = Qin[..., -1:], Qin[..., 0:1], Qin[..., 1:2], Qin[..., 2:3]
     # Output array, "flattened"
     # This can probably be written with a clever vector notation...
+    # This would be easier with numpy.stack, new in 1.10, allows
+    # specifying a new axis (just use stack with axis=-1 and no reshape)
     out = np.concatenate((
         a ** 2 + b ** 2 - c ** 2 - d ** 2,
         2 * (b * c - a * d),
