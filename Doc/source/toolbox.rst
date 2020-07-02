@@ -58,6 +58,7 @@ Quaternion math
     quaternionNormalize
     quaternionMultiply
     quaternionConjugate
+    quaternionFromMatrix
     quaternionToMatrix
 
 Other functions
