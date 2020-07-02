@@ -108,6 +108,7 @@ Description of all functions within SpacePy, by module.
 .. toctree::
     :maxdepth: 1
 
+    spacepy
     ae9ap9
     coordinates
     datamanager
