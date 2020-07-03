@@ -58,6 +58,70 @@ class TestParseFileTime(unittest.TestCase):
         for f, d, t, i in zip(self.files, self.dates, self.times, self.iters):
             self.assertEqual(parse_filename_time(f), (i, t, d))
 
+
+class TestParsers(unittest.TestCase):
+    '''
+    Test different text-parsing helper classes.
+    '''
+
+    # For variable names to latex conversion (from a 3 fluid run.)
+    knownTex = {'grid':'grid','x':'x','y':'y',
+                'rho':'$\rho_{}$','ux':'$U_{x}$','uy':'$U_{y}$','uz':'$U_{z}$',
+                'bx':'$B_{x}$','by':'$B_{y}$','bz':'$B_{z}$','pe':'pe',
+                'p':'$P_{}$','swrho':'$\rho_{sw}$','swux':'$U_{x, sw}$',
+                'swuy':'$U_{y, sw}$','swuz':'$U_{z, sw}$','swp':'$P_{sw}$',
+                'hprho':'$\rho_{hp}$','hpux':'$U_{x, hp}$','hpuy':'$U_{y, hp}$',
+                'hpuz':'$U_{z, hp}$','hpp':'$P_{hp}$','oprho':'$\rho_{op}$',
+                'opux':'$U_{x, op}$','opuy':'$U_{y, op}$','opuz':'$U_{z, op}$',
+                'opp':'$P_{op}$','jx':'$J_{x}$','jy':'$J_{y}$','jz':'$J_{z}$'}
+
+    # For parsing TecPlot variable names:
+    tecText = 'VARIABLES ="X [R]", "Y [R]", "Z [R]", "Rho [amu/cm^3]", "U_x [km/s]", "U_y [km/s]", "U_z [km/s]", "B_x [nT]", "B_y [nT]", "B_z [nT]", "P [nPa]", "J_x [`mA/m^2]", "J_y [`mA/m^2]", "J_z [`mA/m^2]"'
+
+    knownTec = [('x', 'R'), ('y', 'R'), ('z', 'R'),('rho', 'amu/cm^3'),
+                ('u_x', 'km/s'), ('u_y', 'km/s'), ('u_z', 'km/s'),
+                ('b_x', 'nT'), ('b_y', 'nT'), ('b_z', 'nT'), ('p', 'nPa'),
+                ('j_x', '`mA/m^2'), ('j_y', '`mA/m^2'), ('j_z', '`mA/m^2')]
+
+    
+    def testTexParse(self):
+        for varname in self.knownTex:
+            self.assertEqual(self.knownTex[varname].encode('unicode-escape'),
+                             pb.mhdname_to_tex(varname).encode())
+            
+    def testTecParse(self):
+        self.assertEqual(self.knownTec, pb.parse_tecvars(self.tecText))
+
+
+class TestPlotHelpers(unittest.TestCase):
+    '''
+    Test functions that assist in creating more complicated plots.
+    '''
+    import matplotlib.pyplot as plt
+    ax = plt.axes()
+    
+    def testAddPlanet(self):
+        from matplotlib.patches import Circle, Wedge
+    
+        body, arch = pb.add_planet(self.ax)
+        self.assertEqual(type(body), Circle)
+        self.assertEqual(type(arch), Wedge)
+        body, arch = pb.add_planet(self.ax, rad=10, ang=45.0)
+        self.assertEqual(type(body), Circle)
+        self.assertEqual(type(arch), Wedge)
+        body, arch = pb.add_planet(self.ax, add_night=False)
+        self.assertEqual(type(body), Circle)
+        self.assertEqual(type(arch), Wedge)
+        
+    def testAddBody(self):
+        pb.add_body(self.ax)
+        pb.add_body(self.ax, show_planet=False)
+        
+    def tearDown(self):
+        import matplotlib.pyplot as plt
+        plt.close('all')
+
+
 class TestProbeIdlFile(unittest.TestCase):
     '''
     Test the function :func:`spacepy.pybats._probe_idlfile` across many
@@ -82,6 +146,7 @@ class TestProbeIdlFile(unittest.TestCase):
             # Test for correct responses:
             for r, k in zip(response, known):
                 self.assertEqual(r, k)
+
 
 class TestScanBinHeader(unittest.TestCase):
     '''
