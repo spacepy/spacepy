@@ -192,6 +192,7 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_quaternionFromMatrix_4D(self):
         """Simple rotations with 4D input"""
+        # This is identical to simple tests, but with a different shape
         # Identity, and rotations by 90 degrees around X, Y, and Z axis
         inputs = numpy.array([
             [[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
@@ -221,11 +222,14 @@ class SimpleFunctionTests(unittest.TestCase):
     def test_quaternionFromMatrix_nasty(self):
         """Pick an arbitrary rotation and verify it works"""
         # https://csm.mech.utah.edu/content/wp-content/uploads/2011/08/orthList.pdf
+        # Axis of rotation
         u = [12. / 41, -24. / 41, 31. / 41]
+        # Rotation angle
         theta = numpy.radians(58)
         ux, uy, uz = u
         c = numpy.cos(theta)
         s = numpy.sin(theta)
+        # Construct rotation matrix from axis and angle
         # This might be doable more nicely in matrix notation...
         matrix = numpy.array([
             [c + ux ** 2 * (1 - c),
@@ -242,6 +246,9 @@ class SimpleFunctionTests(unittest.TestCase):
         # Sample inputs to rotate
         invect = numpy.array([[5, 3, 2], [1, 0, 0], [.2, 5, 20],
                               [0, 2, 2]])
+        # Transform the row vectors into column vectors so the
+        # numpy multiplication gives the right result (then
+        # transform back to row vectors for comparison.)
         expected = numpy.dot(matrix, invect.transpose()).transpose()
         actual = tb.quaternionRotateVector(
             numpy.tile(Qout, (4, 1)), invect)
@@ -309,8 +316,10 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_quaternionToMatrix_nasty(self):
         """Pick an arbitrary rotation and verify it works"""
+        # Numbers pulled out of air
         Qin = tb.quaternionNormalize(numpy.array([0.25, 0.5, 0.71, 0.25]))
         matrix = tb.quaternionToMatrix(Qin)
+        # Verify it's a rotation matrix
         ortho_test = numpy.dot(matrix, matrix.transpose())
         numpy.testing.assert_array_almost_equal(
             ortho_test, numpy.identity(3))
@@ -326,14 +335,17 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertTrue(det > 0) # Proper?
         invect = numpy.array([[5, 3, 2], [1, 0, 0], [.2, 5, 20],
                               [0, 2, 2]])
-        # Single vector
+        # Test matrix vs. quaternion rotation, single vector
         expected = tb.quaternionRotateVector(Qin, invect[1, :])
         actual = numpy.dot(matrix, invect[1, :])
         numpy.testing.assert_array_almost_equal(
             actual, expected)
-        # All at once
+        # All vectors at once
         expected = tb.quaternionRotateVector(
             numpy.tile(Qin, (4, 1)), invect)
+        # Transform the row vectors into column vectors so the
+        # numpy multiplication gives the right result (then
+        # transform back to row vectors for comparison.)
         actual = numpy.dot(matrix, invect.transpose()).transpose()
         numpy.testing.assert_array_almost_equal(
             actual, expected)
