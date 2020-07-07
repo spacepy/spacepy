@@ -414,35 +414,24 @@ def quaternionNormalize(Qin, scalarPos='last'):
     array([ 0.69337122,  0.        ,  0.69337122,  0.19614462])
 
     '''
-    if scalarPos.lower()=='last':
-        i, j, k = 0, 1, 2
-        w = 3
-    elif scalarPos.lower()=='first':
-        i, j, k = 1, 2, 3
-        w = 0
-    else:
+    w = {'first': 0, 'last': 3}.get(scalarPos.lower())
+    if w is None:
         raise NotImplementedError('quaternionNormalize: scalarPos must be set to "First" or "Last"')
 
     Quse = np.asanyarray(Qin).astype(float)
-    try:
-        Quse.shape[1]
-    except IndexError:
-        Quse = np.asanyarray([Quse])
-    outarr = np.empty_like(Quse)
-    for idx, row in enumerate(Quse):
-        magn = np.linalg.norm(row)
-        if magn>1e-12:
-            mag_inv = 1.0/magn
-            tmp = row*mag_inv
-        else:
-            tmp = [0]*4
-            tmp[i] = tmp[j] = tmp[k] = 0.0
-            tmp[w] = 1.0
-        outarr[idx, i] = tmp[i]
-        outarr[idx, j] = tmp[j]
-        outarr[idx, k] = tmp[k]
-        outarr[idx, w] = tmp[w]
-    return outarr.squeeze()
+    squeeze = Quse.ndim < 2
+    if squeeze:
+        Quse = np.expand_dims(Quse, axis=0)
+    magn = np.linalg.norm(Quse, axis=-1)
+    # Find places where the magnitude is tiny, convert to unit real
+    idx = np.where(magn <= 1e-12)
+    magn[idx] = 1
+    outarr = Quse / np.expand_dims(magn, axis=magn.ndim)
+    outarr[idx + (None,)] = 0
+    outarr[idx + (w,)] = 1
+    if squeeze:
+        outarr = outarr[0, ...]
+    return outarr
 
 
 def quaternionRotateVector(Qin, Vin, scalarPos='last', normalize=True):

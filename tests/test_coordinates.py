@@ -80,6 +80,12 @@ class QuaternionFunctionTests(unittest.TestCase):
         np.testing.assert_array_almost_equal(ans1, tst1)
         np.testing.assert_array_almost_equal(ans2, tst2)
 
+    def test_quaternionNormalize_leadingdim(self):
+        """test quaternionNormalize with leading degenerate dimensions"""
+        tst = spc.quaternionNormalize([[1, 0, 1, 0]])
+        ans = np.array([[0.7071068, 0, 0.7071068, 0]])
+        np.testing.assert_array_almost_equal(ans, tst)
+
     def test_quaternionMultiply(self):
         """quaternionMultiply should have known results"""
         q1 = [1.0, 0.0, 0.0, 0.0]
