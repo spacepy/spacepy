@@ -104,6 +104,31 @@ class QuaternionFunctionTests(unittest.TestCase):
         ans = [ 0.2,  -0.707,  -0.        ,  -0.707]
         np.testing.assert_array_almost_equal(ans, tst)
 
+    def test_quaternionRotateVector(self):
+        """Simple vector rotations"""
+        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
+        # No rotation, 90 degrees around each of X, Y, and Z
+        Qin = np.array([
+            [0, 0, 0, 1],
+            [cos45, 0, 0, cos45],
+            [0, cos45, 0, cos45],
+            [0, 0, cos45, cos45],
+            ])
+        invect = np.array([
+            [1, 0, 0],
+            [0, 0, 1],
+            [1, 0, 0],
+            [0, 1, 0]
+        ])
+        expected = np.array([
+            [1, 0, 0],
+            [0, -1, 0],
+            [0, 0, -1],
+            [-1, 0, 0]
+        ])
+        outvect = spc.quaternionRotateVector(Qin, invect)
+        np.testing.assert_array_almost_equal(outvect, expected)
+
     def test_quaternionFromMatrix_simple(self):
         """Test several simple rotations"""
         # Identity, and rotations by 90 degrees around X, Y, and Z axis
