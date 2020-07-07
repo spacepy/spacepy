@@ -2591,6 +2591,11 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
 
     Notes
     =====
+    No attempt is made to resolve the sign ambiguity; in particular,
+    conversions of very similar matrices may result in equivalent quaternions
+    with the opposite sign. This may have implications for interpolating a
+    sequence of quaternions.
+
     The conversion of a rotation matrix to a quaternion suffers from some
     of the same disadvantages inherent to rotation matrices, such as potential
     numerical instabilities. Working in quaternion space as much as possible
