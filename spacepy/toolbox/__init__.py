@@ -2718,7 +2718,7 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
     return Qout
 
 
-def quaternionToMatrix(Qin, scalarPos='last'):
+def quaternionToMatrix(Qin, scalarPos='last', normalize=True):
     '''
     Given an input quaternion, return the equivalent rotation matrix.
 
@@ -2741,6 +2741,10 @@ def quaternionToMatrix(Qin, scalarPos='last'):
         Location of the scalar component of the input quaternion, either
         'last' (default) or 'first'.
 
+    normalize : True
+        Normalize input quaternions before conversion (default). If False,
+        raises error for non-normalized.
+
     Raises
     ======
     NotImplementedError
@@ -2749,7 +2753,7 @@ def quaternionToMatrix(Qin, scalarPos='last'):
     ValueError
         for inputs which are not valid normalized quaternions or arrays
         thereof: if the size doesn't end in (4), if the quaternion is not
-        normalized.
+        normalized and ``normalize`` is False.
 
     See Also
     ========
@@ -2771,10 +2775,12 @@ def quaternionToMatrix(Qin, scalarPos='last'):
         raise NotImplementedError(
             'quaternionToMatrix: scalarPos must be set to "First" or "Last"')
     Qin = np.asanyarray(Qin)
-    if scalarPos.lower() == 'first':
-        Qin = np.roll(Qin, -1, axis=-1)
     if Qin.shape[-1] != 4:
         raise ValueError('Input does not appear to be quaternion, wrong size.')
+    if normalize:
+        Qin = quaternionNormalize(Qin, scalarPos=scalarPos)
+    if scalarPos.lower() == 'first':
+        Qin = np.roll(Qin, -1, axis=-1)
     if not np.allclose(np.sum(Qin ** 2, axis=-1), 1):
         raise ValueError('Input quaternion not normalized.')
     # Maintain dimensions at end for stacking
