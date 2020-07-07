@@ -416,10 +416,14 @@ class SimpleFunctionTests(unittest.TestCase):
             'Input does not appear to be quaternion, wrong size.',
             str(cm.exception))
         with self.assertRaises(ValueError) as cm:
-            tb.quaternionToMatrix([1, 2, 3, 4])
+            tb.quaternionToMatrix([1, 2, 3, 4], normalize=False)
         self.assertEqual(
             'Input quaternion not normalized.',
             str(cm.exception))
+        actual = tb.quaternionToMatrix([1, 2, 3, 4])
+        expected = tb.quaternionToMatrix(tb.quaternionNormalize([1, 2, 3, 4]))
+        numpy.testing.assert_array_almost_equal(
+            actual, expected)
 
     def test_indsFromXrange(self):
         """indsFromXrange should have known result"""
