@@ -1,6 +1,7 @@
 Changes in Version 0.2.2 (2020-xx-xx)
 =====================================
 - Document end of support for Python 2
+- Quaternion math functions moved to coordinates module
 coordinates
  - Include upstream fix for SPH->RLL coordinate transform
 datamanager

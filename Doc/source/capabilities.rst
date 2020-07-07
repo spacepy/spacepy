@@ -24,8 +24,7 @@ Coordinate Transforms
 most coordinate systems used in Earth magnetospheric and
 ionospheric physics.
 
-The :ref:`quaternion math <toolbox_quaternions>` functions of
-:mod:`~spacepy.toolbox` support generalized coordinate transforms.
+It also provides generalized coordinate transforms via quaternions.
 
 File I/O
 ========
