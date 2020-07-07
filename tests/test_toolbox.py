@@ -113,317 +113,52 @@ class PickleAssembleTests(unittest.TestCase):
 
 
 class SimpleFunctionTests(unittest.TestCase):
-    def test_quaternionNormalize(self):
-        """quaternionNormalize should have known results"""
-        tst = tb.quaternionNormalize([0.707, 0, 0.707, 0.2])
-        ans = [ 0.69337122,  0.        ,  0.69337122,  0.19614462]
-        numpy.testing.assert_array_almost_equal(ans, tst)
 
-    def test_quaternionNormalize_2(self):
-        """quaternionNormalize should have known result and magnitude 1"""
-        tst1 = tb.quaternionNormalize([1, 0, 1, 0], scalarPos='first')
-        tst2 = tb.quaternionNormalize([1, 0, 1, 0], scalarPos='last')
-        ans = [0.70710678, 0.0, 0.70710678, 0]
-        numpy.testing.assert_array_almost_equal(ans, tst1)
-        numpy.testing.assert_array_almost_equal(ans, tst2)
-        numpy.testing.assert_almost_equal(1.0, numpy.linalg.norm(tst1))
-        numpy.testing.assert_almost_equal(1.0, numpy.linalg.norm(tst2))
-
-    def test_quaternionNormalize_small(self):
-        """test quaternionNormalize for very small values"""
-        tst1 = tb.quaternionNormalize([1e-15, 0, 1e-15, 0], scalarPos='first')
-        tst2 = tb.quaternionNormalize([1e-15, 0, 1e-15, 0], scalarPos='last')
-        ans1 = [1.0, 0.0, 0.0, 0.0]
-        ans2 = [0.0, 0.0, 0.0, 1.0]
-        numpy.testing.assert_array_almost_equal(ans1, tst1)
-        numpy.testing.assert_array_almost_equal(ans2, tst2)
-
-    def test_quaternionMultiply(self):
-        """quaternionMultiply should have known results"""
-        q1 = [1.0, 0.0, 0.0, 0.0]
-        q2 = [0.0, 0.0, 0.0, 1.0]
-        ans = [0.0, 0.0, 0.0, 1.0]
-        tst = tb.quaternionMultiply(q2, q1, scalarPos='first')
-        numpy.testing.assert_array_almost_equal(ans, tst)
-
-    def test_quaternionConjugate_last(self):
-        tst = tb.quaternionConjugate([0.707, 0, 0.707, 0.2], scalarPos='last')
-        ans = [ -0.707,  -0.        ,  -0.707,  0.2]
-        numpy.testing.assert_array_almost_equal(ans, tst)
-
-    def test_quaternionConjugate_first(self):
-        tst = tb.quaternionConjugate([0.2, 0.707, 0, 0.707], scalarPos='first')
-        ans = [ 0.2,  -0.707,  -0.        ,  -0.707]
-        numpy.testing.assert_array_almost_equal(ans, tst)
-
-    def test_quaternionFromMatrix_simple(self):
-        """Test several simple rotations"""
-        # Identity, and rotations by 90 degrees around X, Y, and Z axis
-        inputs = numpy.array([
-            [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-            [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
-            [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
-            [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
-            ])
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
-        expected = numpy.array([
-            [0, 0, 0, 1],
-            [cos45, 0, 0, cos45],
-            [0, cos45, 0, cos45],
-            [0, 0, cos45, cos45],
-            ])
-        # Test single rotation at a time
-        for i in range(expected.shape[0]):
-            numpy.testing.assert_array_almost_equal(
-                tb.quaternionFromMatrix(inputs[i, ...]),
-                expected[i, ...])
-        # Whole array at once
-        actual = tb.quaternionFromMatrix(inputs)
-        numpy.testing.assert_array_almost_equal(actual, expected)
-        # Put scalar on other side
-        expected = numpy.array([
-            [1, 0, 0, 0],
-            [cos45, cos45, 0, 0],
-            [cos45, 0, cos45, 0],
-            [cos45, 0, 0, cos45],
-            ])
-        actual = tb.quaternionFromMatrix(inputs, scalarPos='first')
-        numpy.testing.assert_array_almost_equal(actual, expected)
-
-    def test_quaternionFromMatrix_4D(self):
-        """Simple rotations with 4D input"""
-        # This is identical to simple tests, but with a different shape
-        # Identity, and rotations by 90 degrees around X, Y, and Z axis
-        inputs = numpy.array([
-            [[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-             [[1, 0, 0], [0, 0, -1], [0, 1, 0]]],
-            [[[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
-             [[0, -1, 0], [1, 0, 0], [0, 0, 1]]],
-            ])
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
-        expected = numpy.array([
-            [[0, 0, 0, 1],
-             [cos45, 0, 0, cos45]],
-            [[0, cos45, 0, cos45],
-             [0, 0, cos45, cos45]],
-            ])
-        actual = tb.quaternionFromMatrix(inputs)
-        numpy.testing.assert_array_almost_equal(actual, expected)
-        # Put scalar on other side
-        expected = numpy.array([
-            [[1, 0, 0, 0],
-             [cos45, cos45, 0, 0]],
-            [[cos45, 0, cos45, 0],
-             [cos45, 0, 0, cos45]],
-            ])
-        actual = tb.quaternionFromMatrix(inputs, scalarPos='first')
-        numpy.testing.assert_array_almost_equal(actual, expected)
-
-    def test_quaternionFromMatrix_perturbed(self):
-        """Add error to a rotation matrix"""
-        # Rotation by 90 degrees around X axis
-        matrix = numpy.array(
-            [[1., 0, 0], [0, 0, -1], [0, 1, 0]],
-        )
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
-        # Equivalent quaternion
-        expected = numpy.array([cos45, 0, 0, cos45],)
-        # Add error, make sure still comes up with something reasonable
-        numpy.random.seed(0x0d15ea5e)
-        err = numpy.random.rand(3, 3) / 50 - 0.01 #-0.01 to 0.01
-        matrix += err
-        actual = tb.quaternionFromMatrix(matrix)
-        numpy.testing.assert_array_almost_equal(actual, expected, decimal=3)
-
-    def test_quaternionFromMatrix_nasty(self):
-        """Pick an arbitrary rotation and verify it works"""
-        # https://csm.mech.utah.edu/content/wp-content/uploads/2011/08/orthList.pdf
-        # Axis of rotation
-        u = [12. / 41, -24. / 41, 31. / 41]
-        # Rotation angle
-        theta = numpy.radians(58)
-        ux, uy, uz = u
-        c = numpy.cos(theta)
-        s = numpy.sin(theta)
-        # Construct rotation matrix from axis and angle
-        # This might be doable more nicely in matrix notation...
-        matrix = numpy.array([
-            [c + ux ** 2 * (1 - c),
-             ux * uy * (1 - c) - uz * s,
-             ux * uz * (1 - c) + uy * s],
-            [uy * ux * (1 - c) + uz * s,
-             c + uy ** 2 * (1 - c),
-             uy * uz * (1 - c) - ux * s],
-            [uz * ux * (1 - c) - uy * s,
-             uz * uy * (1 - c) + ux * s,
-             c + uz ** 2 * (1 - c)]
-        ])
-        Qout = tb.quaternionFromMatrix(matrix)
-        # Sample inputs to rotate
-        invect = numpy.array([[5, 3, 2], [1, 0, 0], [.2, 5, 20],
-                              [0, 2, 2]])
-        # Transform the row vectors into column vectors so the
-        # numpy multiplication gives the right result (then
-        # transform back to row vectors for comparison.)
-        expected = numpy.dot(matrix, invect.transpose()).transpose()
-        actual = tb.quaternionRotateVector(
-            numpy.tile(Qout, (4, 1)), invect)
+    def test_quaternionDeprecation(self):
+        """Make sure deprecated quaternion functions work"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            tst = tb.quaternionNormalize([0.707, 0, 0.707, 0.2])
+        self.assertEqual(1, len(w))
+        self.assertEqual(DeprecationWarning, w[0].category)
+        self.assertEqual(
+            'Use :func:`spacepy.coordinates.quaternionNormalize`',
+            str(w[0].message))
         numpy.testing.assert_array_almost_equal(
-            actual, expected)
+            [0.693,  0.,  0.693,  0.196], tst, decimal=2)
 
-    def test_quaternionFromMatrix_rt(self):
-        """Round-trip arbitrary rotation matrix to quaternion and back"""
-        # Same matrix as test_quaternionFromMatrix_nasty
-        u = [12. / 41, -24. / 41, 31. / 41]
-        theta = numpy.radians(58)
-        ux, uy, uz = u
-        c = numpy.cos(theta)
-        s = numpy.sin(theta)
-        matrix = numpy.array([
-            [c + ux ** 2 * (1 - c),
-             ux * uy * (1 - c) - uz * s,
-             ux * uz * (1 - c) + uy * s],
-            [uy * ux * (1 - c) + uz * s,
-             c + uy ** 2 * (1 - c),
-             uy * uz * (1 - c) - ux * s],
-            [uz * ux * (1 - c) - uy * s,
-             uz * uy * (1 - c) + ux * s,
-             c + uz ** 2 * (1 - c)]
-        ])
-        Qout = tb.quaternionFromMatrix(matrix)
-        matrix_rt = tb.quaternionToMatrix(Qout)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            tst = tb.quaternionRotateVector([0.7071, 0, 0, 0.7071],
+                                            [0, 1, 0])
+        self.assertEqual(1, len(w))
+        self.assertEqual(DeprecationWarning, w[0].category)
+        self.assertEqual(
+            'Use :func:`spacepy.coordinates.quaternionRotateVector`',
+            str(w[0].message))
         numpy.testing.assert_array_almost_equal(
-            matrix_rt, matrix)
+            [0, 0, 1], tst, decimal=5)
 
-    def test_quaternionFromMatrix_errors(self):
-        """Test bad input"""
-        matrix = numpy.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])
-        with self.assertRaises(NotImplementedError) as cm:
-            tb.quaternionFromMatrix(matrix, 'FOO')
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            tst = tb.quaternionMultiply([1., 0, 0, 0],
+                                        [0., 0, 0, 1], scalarPos='first')
+        self.assertEqual(1, len(w))
+        self.assertEqual(DeprecationWarning, w[0].category)
         self.assertEqual(
-            'quaternionFromMatrix: scalarPos must be set to "First" or "Last"',
-            str(cm.exception))
-        with self.assertRaises(ValueError) as cm:
-            tb.quaternionFromMatrix([[1, 2, 3]])
-        self.assertEqual(
-            'Input does not appear to be 3D rotation matrix, wrong size.',
-            str(cm.exception))
-        with self.assertRaises(ValueError) as cm:
-            tb.quaternionFromMatrix(
-                [[1, 1, 1], [2, 2, 2], [3, 3, 3]])
-        self.assertEqual(
-            'Input rotation matrix not orthogonal.',
-            str(cm.exception))
-        with self.assertRaises(ValueError) as cm:
-            tb.quaternionFromMatrix([
-                [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-                [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
-            ])
-        self.assertEqual(
-            'Input rotation matrix at (1,) not orthogonal.',
-            str(cm.exception))
-        with self.assertRaises(ValueError) as cm:
-            tb.quaternionFromMatrix(
-                [[1, 0, 0], [0, -1, 0], [0, 0, 1]])
-        self.assertEqual(
-            'Input rotation matrix at () not proper.',
-            str(cm.exception))
+            'Use :func:`spacepy.coordinates.quaternionMultiply`',
+            str(w[0].message))
+        numpy.testing.assert_array_equal([0, 0, 0, 1], tst)
 
-    def test_quaternionToMatrix_simple(self):
-        """Test several simple rotations"""
-        # Rotations by 90 degrees around X, Y, and Z axis
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
-        inputs = numpy.array([
-            [cos45, 0, 0, cos45],
-            [0, cos45, 0, cos45],
-            [0, 0, cos45, cos45],
-            ])
-        expected = numpy.array([
-            [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
-            [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
-            [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
-            ])
-        actual = tb.quaternionToMatrix(inputs)
-        numpy.testing.assert_array_almost_equal(actual, expected)
-        # Put scalar on other side
-        inputs = numpy.array([
-            [cos45, cos45, 0, 0],
-            [cos45, 0, cos45, 0],
-            [cos45, 0, 0, cos45],
-            ])
-        actual = tb.quaternionToMatrix(inputs, scalarPos='first')
-        numpy.testing.assert_array_almost_equal(actual, expected)
-
-    def test_quaternionToMatrix_nasty(self):
-        """Pick an arbitrary rotation and verify it works"""
-        # Numbers pulled out of air
-        Qin = tb.quaternionNormalize(numpy.array([0.25, 0.5, 0.71, 0.25]))
-        matrix = tb.quaternionToMatrix(Qin)
-        # Verify it's a rotation matrix
-        ortho_test = numpy.dot(matrix, matrix.transpose())
-        numpy.testing.assert_array_almost_equal(
-            ortho_test, numpy.identity(3))
-        try:
-            det = numpy.linalg.det(matrix)
-        except AttributeError: # det new in numpy 1.8.0
-            det = matrix[0, 0] * matrix[1, 1] * matrix[2, 2] \
-                  + matrix[0, 1] * matrix[1, 2] * matrix[2, 0] \
-                  + matrix[0, 2] * matrix[1, 0] * matrix[2, 1] \
-                  - matrix[0, 2] * matrix[1, 1] * matrix[2, 0] \
-                  - matrix[0, 1] * matrix[1, 0] * matrix[2, 2] \
-                  - matrix[0, 0] * matrix[1, 2] * matrix[2, 1]
-        self.assertTrue(det > 0) # Proper?
-        invect = numpy.array([[5, 3, 2], [1, 0, 0], [.2, 5, 20],
-                              [0, 2, 2]])
-        # Test matrix vs. quaternion rotation, single vector
-        expected = tb.quaternionRotateVector(Qin, invect[1, :])
-        actual = numpy.dot(matrix, invect[1, :])
-        numpy.testing.assert_array_almost_equal(
-            actual, expected)
-        # All vectors at once
-        expected = tb.quaternionRotateVector(
-            numpy.tile(Qin, (4, 1)), invect)
-        # Transform the row vectors into column vectors so the
-        # numpy multiplication gives the right result (then
-        # transform back to row vectors for comparison.)
-        actual = numpy.dot(matrix, invect.transpose()).transpose()
-        numpy.testing.assert_array_almost_equal(
-            actual, expected)
-
-    def testQuaternionToMatrixRT(self):
-        """Round-trip test quaternion to matrix and back"""
-        # Numbers pulled out of air
-        Qin = tb.quaternionNormalize(numpy.array([0.25, 0.5, 0.71, 0.25]))
-        matrix = tb.quaternionToMatrix(Qin)
-        Qrt = tb.quaternionFromMatrix(matrix)
-        if numpy.sign(Qrt[-1]) != numpy.sign(Qin[-1]):
-            Qrt *= -1 #Handle the sign ambiguity
-        numpy.testing.assert_array_almost_equal(
-            Qrt, Qin)
-
-    def test_quaternionToMatrix_errors(self):
-        """Test bad input"""
-        # Rotation by 90 degrees around X axis
-        Qin = numpy.array([0.5 ** 0.5, 0, 0, 0.5 ** 0.5])
-        with self.assertRaises(NotImplementedError) as cm:
-            tb.quaternionToMatrix(Qin, 'FOO')
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            tst = tb.quaternionConjugate([.707, 0, .707, 0.2])
+        self.assertEqual(1, len(w))
+        self.assertEqual(DeprecationWarning, w[0].category)
         self.assertEqual(
-            'quaternionToMatrix: scalarPos must be set to "First" or "Last"',
-            str(cm.exception))
-        with self.assertRaises(ValueError) as cm:
-            tb.quaternionToMatrix([1, 2, 3])
-        self.assertEqual(
-            'Input does not appear to be quaternion, wrong size.',
-            str(cm.exception))
-        with self.assertRaises(ValueError) as cm:
-            tb.quaternionToMatrix([1, 2, 3, 4], normalize=False)
-        self.assertEqual(
-            'Input quaternion not normalized.',
-            str(cm.exception))
-        actual = tb.quaternionToMatrix([1, 2, 3, 4])
-        expected = tb.quaternionToMatrix(tb.quaternionNormalize([1, 2, 3, 4]))
-        numpy.testing.assert_array_almost_equal(
-            actual, expected)
+            'Use :func:`spacepy.coordinates.quaternionConjugate`',
+            str(w[0].message))
+        numpy.testing.assert_array_equal([-.707, 0, -.707, 0.2], tst)
 
     def test_indsFromXrange(self):
         """indsFromXrange should have known result"""

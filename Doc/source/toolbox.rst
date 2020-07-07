@@ -11,10 +11,10 @@ toolbox - Toolbox of various functions and generic utilities
 - `Array binning`_
 - `Array creation`_
 - `Array searching and masking`_
-- `Quaternion math`_
 - `Other functions`_
 - `Multithreading and multiprocessing`_
 - `System tools`_
+- `Quaternion math`_
 
 Array binning
 -------------
@@ -46,20 +46,6 @@ Array searching and masking
     tCommon
     tOverlap
     tOverlapHalf
-
-.. _toolbox_quaternions:
-
-Quaternion math
----------------
-.. autosummary::
-    :toctree: autosummary
-
-    quaternionRotateVector
-    quaternionNormalize
-    quaternionMultiply
-    quaternionConjugate
-    quaternionFromMatrix
-    quaternionToMatrix
 
 Other functions
 ---------------
@@ -106,3 +92,19 @@ System tools
     timeout_check_call
     TimeoutError
     update
+
+.. _toolbox_quaternions:
+
+Quaternion math
+---------------
+
+Quaternion functions have moved to :mod:`~spacepy.coordinates`;
+new functions are also added there.
+
+.. autosummary::
+    :toctree: autosummary
+
+    quaternionRotateVector
+    quaternionNormalize
+    quaternionMultiply
+    quaternionConjugate

@@ -162,12 +162,13 @@ unaffected by that dependency.
      - :ref:`SciPy <dependencies_scipy>`
    * - :mod:`~spacepy.coordinates`
      -
-     - :mod:`Entire module <spacepy.coordinates>` (except Windows binaries)
+     - :class:`~spacepy.coordinates.Coords` (except Windows binaries)
      -
      -
      -
      -
-     -
+     - :func:`~spacepy.coordinates.quaternionFromMatrix` unless using
+       numpy 1.8 or later
    * - :mod:`~spacepy.datamodel`
      - * :meth:`~spacepy.datamodel.SpaceData.toCDF`
        * :func:`~spacepy.datamodel.fromCDF`
@@ -322,5 +323,4 @@ unaffected by that dependency.
      - * :func:`~spacepy.toolbox.dist_to_list`
        * :func:`~spacepy.toolbox.intsolve`
        * :func:`~spacepy.toolbox.poisson_fit`
-       * :func:`~spacepy.toolbox.quaternionFromMatrix` unless using
-         numpy 1.8 or later
+
