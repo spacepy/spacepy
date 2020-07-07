@@ -219,6 +219,22 @@ class SimpleFunctionTests(unittest.TestCase):
         actual = tb.quaternionFromMatrix(inputs, scalarPos='first')
         numpy.testing.assert_array_almost_equal(actual, expected)
 
+    def test_quaternionFromMatrix_perturbed(self):
+        """Add error to a rotation matrix"""
+        # Rotation by 90 degrees around X axis
+        matrix = numpy.array(
+            [[1., 0, 0], [0, 0, -1], [0, 1, 0]],
+        )
+        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
+        # Equivalent quaternion
+        expected = numpy.array([cos45, 0, 0, cos45],)
+        # Add error, make sure still comes up with something reasonable
+        numpy.random.seed(0x0d15ea5e)
+        err = numpy.random.rand(3, 3) / 50 - 0.01 #-0.01 to 0.01
+        matrix += err
+        actual = tb.quaternionFromMatrix(matrix)
+        numpy.testing.assert_array_almost_equal(actual, expected, decimal=3)
+
     def test_quaternionFromMatrix_nasty(self):
         """Pick an arbitrary rotation and verify it works"""
         # https://csm.mech.utah.edu/content/wp-content/uploads/2011/08/orthList.pdf
@@ -254,6 +270,30 @@ class SimpleFunctionTests(unittest.TestCase):
             numpy.tile(Qout, (4, 1)), invect)
         numpy.testing.assert_array_almost_equal(
             actual, expected)
+
+    def test_quaternionFromMatrix_rt(self):
+        """Round-trip arbitrary rotation matrix to quaternion and back"""
+        # Same matrix as test_quaternionFromMatrix_nasty
+        u = [12. / 41, -24. / 41, 31. / 41]
+        theta = numpy.radians(58)
+        ux, uy, uz = u
+        c = numpy.cos(theta)
+        s = numpy.sin(theta)
+        matrix = numpy.array([
+            [c + ux ** 2 * (1 - c),
+             ux * uy * (1 - c) - uz * s,
+             ux * uz * (1 - c) + uy * s],
+            [uy * ux * (1 - c) + uz * s,
+             c + uy ** 2 * (1 - c),
+             uy * uz * (1 - c) - ux * s],
+            [uz * ux * (1 - c) - uy * s,
+             uz * uy * (1 - c) + ux * s,
+             c + uz ** 2 * (1 - c)]
+        ])
+        Qout = tb.quaternionFromMatrix(matrix)
+        matrix_rt = tb.quaternionToMatrix(Qout)
+        numpy.testing.assert_array_almost_equal(
+            matrix_rt, matrix)
 
     def test_quaternionFromMatrix_errors(self):
         """Test bad input"""
@@ -349,6 +389,17 @@ class SimpleFunctionTests(unittest.TestCase):
         actual = numpy.dot(matrix, invect.transpose()).transpose()
         numpy.testing.assert_array_almost_equal(
             actual, expected)
+
+    def testQuaternionToMatrixRT(self):
+        """Round-trip test quaternion to matrix and back"""
+        # Numbers pulled out of air
+        Qin = tb.quaternionNormalize(numpy.array([0.25, 0.5, 0.71, 0.25]))
+        matrix = tb.quaternionToMatrix(Qin)
+        Qrt = tb.quaternionFromMatrix(matrix)
+        if numpy.sign(Qrt[-1]) != numpy.sign(Qin[-1]):
+            Qrt *= -1 #Handle the sign ambiguity
+        numpy.testing.assert_array_almost_equal(
+            Qrt, Qin)
 
     def test_quaternionToMatrix_errors(self):
         """Test bad input"""
