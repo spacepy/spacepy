@@ -675,6 +675,8 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
 
     Notes
     =====
+    .. versionadded:: 0.2.2
+
     No attempt is made to resolve the sign ambiguity; in particular,
     conversions of very similar matrices may result in equivalent quaternions
     with the opposite sign. This may have implications for interpolating a
@@ -845,6 +847,8 @@ def quaternionToMatrix(Qin, scalarPos='last', normalize=True):
 
     Notes
     =====
+    .. versionadded:: 0.2.2
+
     Implementation of the Euler–Rodrigues formula.
 
     Examples
