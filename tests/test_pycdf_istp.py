@@ -1182,6 +1182,17 @@ class VarBundleChecksHOPE(VarBundleChecksBase):
                             'rbspa_rel04_ect-hope-PA-L3_20121201_v0.0.0.cdf')
     longMessage = True
 
+    def tearDown(self):
+        """Block warnings from CDF closing"""
+        warnings.filterwarnings(
+            'ignore', message='^DID_NOT_COMPRESS.*$',
+            category=spacepy.pycdf.CDFWarning,
+            module='^spacepy.pycdf')
+        try:
+            super(VarBundleChecksHOPE, self).tearDown()
+        finally:
+            del warnings.filters[0]
+
     def testSortOrder(self):
         """Check sort order of variables"""
         bundle = spacepy.pycdf.istp.VarBundle(
