@@ -1677,7 +1677,9 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
     ncalc = len(ticks)
     nalpha = len(alpha)
 
-    if ncpus>1:
+    if ncalc < ncpus * 2: #Don't multiprocess if not worth it
+        ncpus = 1
+    if ncpus > 1:
         import __main__ as main
         if hasattr(main, '__file__'):
             try:
@@ -1688,7 +1690,7 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
         else:
             ncpus = 1 #won't multiprocess in interactive mode
 
-    if ncpus > 1 and ncalc >= ncpus*2:
+    if ncpus > 1:
         nblocks = ncpus
         blocklen = np.floor_divide(ncalc, ncpus)
         tt, cc = [], []
@@ -1708,6 +1710,8 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
                 ov.append(get_ov(omnivals, startind, endind))
         inputs = [[tch, cch, alpha, extMag, options, ov] for tch, cch in zip(tt,cc)]
         result = pool.map(_multi_get_Lstar, inputs)
+        pool.close()
+        pool.join()
         DALL = reassemble(result)
     else: # single NCPU, no chunking
         DALL = _get_Lstar(ticks, loci, alpha, extMag, options, omnivals)
