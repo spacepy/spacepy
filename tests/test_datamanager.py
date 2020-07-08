@@ -424,7 +424,7 @@ class DataManagerBinningTests(unittest.TestCase):
             # new dims are removed.
             oldarray = numpy.random.randint(100, size=small)
             newarray = numpy.reshape(oldarray, reshaped)
-            idx = [0 if i == 1 else slice(None) for i in newshape]
+            idx = tuple([0 if i == 1 else slice(None) for i in newshape])
             numpy.testing.assert_array_equal(
                 oldarray,
                 newarray[idx])
