@@ -1080,7 +1080,7 @@ def toHDF5(fname, SDobject, **kwargs):
                     try:
                         if value.nbytes: truth = True #empty arrays of any dimension are nbytes=0
                     except AttributeError: #not an array
-                        if value or value is 0: truth = True
+                        if value or value == 0: truth = True
 
                     if truth:
                         if bytes is str:

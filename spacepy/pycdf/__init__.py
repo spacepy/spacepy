@@ -4307,7 +4307,7 @@ class _Hyperslice(object):
                        and const.CDF_INT8 in types:
                     del types[types.index(const.CDF_INT8)]
             else: #float
-                if dims is ():
+                if dims == ():
                     if d != 0 and (abs(d) > 1.7e38 or abs(d) < 3e-39):
                         types = [const.CDF_DOUBLE, const.CDF_REAL8]
                     else:

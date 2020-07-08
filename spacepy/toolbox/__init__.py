@@ -1918,9 +1918,9 @@ def linspace(min, max, num, **kwargs):
     geomspace
     logspace
     """
-    if hasattr(min, 'shape') and min.shape is ():
+    if hasattr(min, 'shape') and min.shape == ():
         min = min.item()
-    if hasattr(max, 'shape') and max.shape is ():
+    if hasattr(max, 'shape') and max.shape == ():
         max = max.item()
     if isinstance(min, datetime.datetime):
         from matplotlib.dates import date2num, num2date

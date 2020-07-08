@@ -741,7 +741,7 @@ class Ticktock(MutableSequence):
         keylist = list(cls.__dict__.keys())
         # keylist.remove('dtype')
         keylist.remove('data')
-        if attrib is not 'data': keylist.remove(attrib)
+        if attrib != 'data': keylist.remove(attrib)
 
         self.UTC = self.getUTC()
         for key in keylist:
