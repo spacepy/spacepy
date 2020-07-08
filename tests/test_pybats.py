@@ -304,6 +304,42 @@ class TestIdlFile(unittest.TestCase):
         for v in ['Rho', 'Ux', 'Bz', 'P', 'jy']:
             self.assertAlmostEqual(self.knownMax1[v], mhd[v].max(), places=14)
 
+class TestLogFile(unittest.TestCase):
+    import datetime as dt
+    from spacepy.pybats import LogFile
+    
+    names='iter dt rho mx my mz p bx by bz pmin pmax dst_sm dstflx_R=3.0'.split()
+    vals1=[522, 1.07725E-001, 1.22266E+001, -2.61835E-014, -5.97144E-016,
+           8.74433E-016, 5.98567E-001, 3.33039E+000, -1.42289E+000,
+           -4.82856E+000, 1.56202E-001, 2.06341E+001, -9.88068E-001,
+           -1.43109E+001]
+    vals2=[172,  1.93450E-001, 1.22249E+001, -2.61702E-014, -5.96591E-016,
+           8.73380E-016,  6.00406E-001,  3.32447E+000, -1.40840E+000,
+           -4.83217E+000,  1.46799E-001,  2.05759E+001, -1.42995E+000,
+           -1.44595E+001,]
+    knownEntry1 = dict(zip(names, vals1))
+    knownEntry2 = dict(zip(names, vals2))
+    knownTime1  = dt.datetime(2014, 4,10, 0, 2, 0, 0)
+    knownTime2  = dt.datetime(2000, 1, 1, 0, 2, 52,0)
+
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+
+    def testReadTime(self):
+        '''Read a file that has date/time information.'''
+        log = self.LogFile(os.path.join(self.pth,'data','pybats_test',
+                                        'log_e20140410-000000.log'))
+        for n in self.knownEntry1:
+            self.assertEqual(self.knownEntry1[n], log[n][-1])
+        self.assertEqual(self.knownTime1, log['time'][-1])
+
+    def testReadNoTime(self):
+        '''Read a file that does not have time information.'''
+        log = self.LogFile(os.path.join(self.pth,'data','pybats_test',
+                                        'log_n000010.log'))
+        for n in self.knownEntry2:
+            self.assertEqual(self.knownEntry2[n], log[n][-1])
+        self.assertEqual(self.knownTime2, log['time'][-1])
 
 class TestRim(unittest.TestCase):
 
