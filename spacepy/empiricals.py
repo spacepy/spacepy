@@ -62,7 +62,7 @@ def getLmax(ticks, model='JKemp', dbase='QDhourly'):
     omni = om.get_omni(ticks, dbase=dbase)
     Dst = omni['Dst']
     Lmax = np.zeros(len(Dst))
-    if model is 'JKemp':
+    if model == 'JKemp':
         for i, iDst in enumerate(Dst):
             Lmax[i] = 6.07e-5*iDst*iDst + 0.0436*iDst + 9.37
     else:

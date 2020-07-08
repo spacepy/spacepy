@@ -610,7 +610,7 @@ def getobs4window(dd, Tnow):
         L_lower = np.mean([ Lgrid[i], Lgrid[i-1] ])
         L_upper = np.mean([ Lgrid[i+1], Lgrid[i] ])
         indices = np.where( (L_lower < L) & (L <= L_upper) )
-        if np.size(indices) is 0: continue
+        if np.size(indices) == 0: continue
 
         Lmean = np.append(Lmean, iL)
         ymean = np.append(ymean, np.mean(y[indices]))

@@ -1122,7 +1122,7 @@ class RBmodel(object):
         """
 
 
-        if DLL_model is 'BA2000': # Brautigam and Albert (2000)
+        if DLL_model == 'BA2000': # Brautigam and Albert (2000)
             if type(self.const_kp) == type(0.0):
                 Kp=self.const_kp
             else:
@@ -1130,18 +1130,18 @@ class RBmodel(object):
             alpha = 10.0**(0.506*Kp-9.325)
             beta = 10.0
 
-        elif DLL_model is 'FC2006': # Fei and Chan (2006)
+        elif DLL_model == 'FC2006': # Fei and Chan (2006)
             alpha = 1.5e-6
             beta  = 8.5
 
-        elif DLL_model is 'U2008': # Ukhorskiy (2008)
+        elif DLL_model == 'U2008': # Ukhorskiy (2008)
             alpha = 7.7e-6
             beta  = 6.0
 
-        elif DLL_model is 'S1997': # Selesnick (1997)
+        elif DLL_model == 'S1997': # Selesnick (1997)
             alpha = 1.9e-10
             beta  = 11.7
-        elif DLL_model is 'const': # Constant DLL.
+        elif DLL_model == 'const': # Constant DLL.
             alpha= 1.0
             beta = 1.0
             DLL  = np.zeros(len(Lgrid), dtype=ctypes.c_double)+10.
@@ -1308,7 +1308,7 @@ def get_local_accel(Lgrid, params, SRC_model='JK1'):
     calculate the diffusion coefficient D_LL
     """
 
-    if SRC_model is 'JK1':
+    if SRC_model == 'JK1':
         magn = params['SRCmagn'].seconds
         Lcenter = 5.6
         Lwidth = 0.3
