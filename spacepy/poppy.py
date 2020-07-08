@@ -756,8 +756,8 @@ def boots_ci(data, n, inter, func, seed=None, target=None, sample_size=None, use
                   ctypes.c_ulong(n), ctypes.c_ulong(n_els),
                   ctypes.c_ulong(sample_size),
                   ctypes.c_ulong(seed), clock_seed)
-        gen = (func(surr_ser[i * sample_size:(i  + 1) * sample_size])
-               for i in range(n))
+        gen = [func(surr_ser[i * sample_size:(i  + 1) * sample_size])
+               for i in range(n)]
         #Can't sort if more than one return value
         surr_quan = sorted(gen) if nretvals == 1 else np.stack(gen)
     #get confidence interval
