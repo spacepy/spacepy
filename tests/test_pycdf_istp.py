@@ -24,9 +24,16 @@ class ISTPTestsBase(unittest.TestCase):
     def setUp(self):
         """Setup: make an empty, open, writeable CDF"""
         self.tempdir = tempfile.mkdtemp()
-        self.cdf = spacepy.pycdf.CDF(os.path.join(
-            self.tempdir, 'source_descriptor_datatype_19990101_v00.cdf'),
-                                     create=True)
+        warnings.filterwarnings(
+            'ignore', message='^.*set_backward not called.*$',
+            category=DeprecationWarning,
+            module='^spacepy.pycdf')
+        try:
+            self.cdf = spacepy.pycdf.CDF(os.path.join(
+                self.tempdir, 'source_descriptor_datatype_19990101_v00.cdf'),
+                                         create=True)
+        finally:
+            del warnings.filters[0]
 
     def tearDown(self):
         """Delete the empty cdf"""
