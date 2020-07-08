@@ -304,6 +304,8 @@ class spectrogram(dm.SpaceData):
         np.add(overall_sum, H.transpose(), overall_sum)
 
         overall_count = np.ma.masked_array(overall_count, overall_count == 0)
+        # Explicitly ensure this array owns its mask
+        overall_count.unshare_mask()
         data = np.ma.divide(overall_sum, overall_count)
 
         ## for plotting
