@@ -581,7 +581,7 @@ def quaternionConjugate(Qin, scalarPos='last'):
 
     Parameters
     ==========
-    vec : array_like
+    Qin : array_like
         input quaternion to conjugate
 
     Returns
