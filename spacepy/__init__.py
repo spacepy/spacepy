@@ -95,6 +95,46 @@ if sys.platform == 'win32':
     else:
         os.environ['PATH'] = minglibs
 
+#actual deprecation decorator
+def _deprecator(version, message, docstring, func):
+    #this is the actual, deprecated function
+    @functools.wraps(func)
+    def _deprecated(*args, **kwargs):
+        warnings.warn(message, DeprecationWarning)
+        return func(*args, **kwargs)
+    if func.__doc__ is None:
+        doclines = []
+    else:
+        doclines = func.__doc__.split('\n')
+    # Docstring SHOULD be a single non-blank line with summary, blank line,
+    # and then the rest of the content. Want to put the deprecation
+    # information just before the first line of "rest of content"
+    isblank = [not bool(l.strip()) for l in doclines]
+    # All places with a non-blank line following a blank
+    paragraphs =  [i for i in range(len(isblank))
+                   if not isblank[i] and
+                   (i == 0 or isblank[i - 1])]
+    if not paragraphs: # No non-blank, guess indentation, insert at end
+        leading = '    '
+        insert_at = len(doclines) #insert at end
+    elif len(paragraphs) == 1: # Get indent from only para, insert at end
+        l = doclines[paragraphs[0]]
+        leading = l[:len(l) - len(l.lstrip())]
+        insert_at = len(doclines)
+    else: # Get indent from 2nd paragraph, insert just before it
+        l = doclines[paragraphs[1]]
+        leading = l[:len(l) - len(l.lstrip())]
+        # Insert before blank line before the paragraph.
+        insert_at = paragraphs[1] - 1
+    to_insert = [
+        '',
+        leading + '.. deprecated:: ' + version,
+    ] \
+    + [leading + '   ' + d for d in docstring.split('\n')]
+    doclines[insert_at:insert_at] = to_insert
+    _deprecated.__doc__ = '\n'.join(doclines)
+    return _deprecated
+
 def deprecated(version, message, docstring=None):
     """Decorator to deprecate a function/method
 
@@ -119,6 +159,12 @@ def deprecated(version, message, docstring=None):
         ``message``. It can be a multi-line string (separated with
         ``\\n``). It will be indented to match the existing docstring.
 
+    Notes
+    =====
+    On Python 2, the deprecated function's signature won't be preserved.
+    The function will work but will not have proper argument names listed
+    in e.g. ``help``.
+
     Examples
     ========
         >>> import spacepy
@@ -133,7 +179,7 @@ def deprecated(version, message, docstring=None):
         ...     return x + 1
         >>> help(foo)
         Help on function foo in module __main__:
-        foo(*args, **kwargs)
+        foo(x)
             This is a test function
             .. deprecated:: 0.2.1
                A different function is better
@@ -147,46 +193,7 @@ def deprecated(version, message, docstring=None):
     version = str(version)
     if docstring is None:
         docstring = message
-    #actual decorator, with version and message curried in
-    def _deprecator(func):
-        #this is the actual, deprecated function
-        @functools.wraps(func)
-        def _deprecated(*args, **kwargs):
-            warnings.warn(message, DeprecationWarning)
-            return func(*args, **kwargs)
-        if func.__doc__ is None:
-            doclines = []
-        else:
-            doclines = func.__doc__.split('\n')
-        # Docstring SHOULD be a single non-blank line with summary, blank line,
-        # and then the rest of the content. Want to put the deprecation
-        # information just before the first line of "rest of content"
-        isblank = [not bool(l.strip()) for l in doclines]
-        # All places with a non-blank line following a blank
-        paragraphs =  [i for i in range(len(isblank))
-                       if not isblank[i] and
-                       (i == 0 or isblank[i - 1])]
-        if not paragraphs: # No non-blank, guess indentation, insert at end
-            leading = '    '
-            insert_at = len(doclines) #insert at end
-        elif len(paragraphs) == 1: # Get indent from only para, insert at end
-            l = doclines[paragraphs[0]]
-            leading = l[:len(l) - len(l.lstrip())]
-            insert_at = len(doclines)
-        else: # Get indent from 2nd paragraph, insert just before it
-            l = doclines[paragraphs[1]]
-            leading = l[:len(l) - len(l.lstrip())]
-            # Insert before blank line before the paragraph.
-            insert_at = paragraphs[1] - 1
-        to_insert = [
-            '',
-            leading + '.. deprecated:: ' + version,
-        ] \
-        + [leading + '   ' + d for d in docstring.split('\n')]
-        doclines[insert_at:insert_at] = to_insert
-        _deprecated.__doc__ = '\n'.join(doclines)
-        return _deprecated
-    return _deprecator
+    return functools.partial(_deprecator, version, message, docstring)
 
 # Expose definitions from modules in this package.
 # since datamodel depends on top level, delay the variable binding
