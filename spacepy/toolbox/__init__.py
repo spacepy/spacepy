@@ -843,7 +843,7 @@ def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True,
     return filenames if newdata else None
 
 
-def _get_qindenton_daily(qd_daily_url=None, cached=True):
+def _get_qindenton_daily(qd_daily_url=None, cached=True, startyear=None):
     """Download the Qin-Denton OMNI-like daily files
     
     Parameters
@@ -856,6 +856,9 @@ def _get_qindenton_daily(qd_daily_url=None, cached=True):
         Only update files if timestamp on server is newer than
         timestamp on local file (default). Set False to always
         download files.
+    startyear : int (optional)
+        If specified, start downloading files from the year given,
+        rather than all years. This will delete older files!
 
     Returns
     =======
@@ -867,7 +870,7 @@ def _get_qindenton_daily(qd_daily_url=None, cached=True):
         qd_daily_url = spacepy.config['qd_daily_url']
     datadir = os.path.join(spacepy.DOT_FLN, 'data', 'qindenton_daily_files')
     _crawl_yearly(qd_daily_url, r'QinDenton_\d{8}_hour.txt',
-                  datadir, name='Q-D daily', cached=cached)
+                  datadir, name='Q-D daily', cached=cached, startyear=startyear)
     #Read and process
     print("Processing Q-D daily files ...")
     return _assemble_qindenton_daily(datadir)
@@ -1371,13 +1374,14 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         omnidata['ticks'] = spt.Ticktock(omnidata['UTC'], 'UTC')
         omnidata['RDT'] = omnidata['ticks'].RDT
         del omnidata['ticks'] #Can be quickly regenerated on import
+        startyear = omnidata['Year'][-1]
         del omnidata['Year']
         del omnidata['Hr']
 
         # Supplement with daily files
         print('Supplementing with latest Q-D daily files,'
               ' this will take a while...')
-        dailyomnidata = _get_qindenton_daily(cached=cached)
+        dailyomnidata = _get_qindenton_daily(cached=cached, startyear=startyear)
         # Find where new files start
         idx = np.searchsorted(omnidata['UTC'], dailyomnidata['UTC'][0])
         for k in sorted(omnidata.keys()):
