@@ -95,8 +95,13 @@ if sys.platform == 'win32':
     else:
         os.environ['PATH'] = minglibs
 
-def deprecated(version, message):
+def deprecated(version, message, docstring=None):
     """Decorator to deprecate a function/method
+
+    Modifies a function so that calls to it raise
+    ``DeprecationWarning`` and the docstring has a deprecation
+    note added in accordance with `numpydoc format
+    <https://numpydoc.readthedocs.io/en/latest/format.html#sections>`_
 
     Parameters
     ==========
@@ -104,10 +109,44 @@ def deprecated(version, message):
         What is the first version where this was deprecated?
 
     message : str
-        Message to include in the documentation and the warning message.
+        Message to include in the deprecation warning and in the
+        docstring.
+
+    Other Parameters
+    ================
+    docstring : str
+        If specified, this will be used in the docstring instead of
+        ``message``. It can be a multi-line string (separated with
+        ``\\n``). It will be indented to match the existing docstring.
+
+    Examples
+    ========
+        >>> import spacepy
+        >>> @spacepy.deprecated('0.2.1', 'Use a different function instead',
+        ...                     docstring='A different function is better\\n'
+        ...                               'because of reasons xyz')
+        ... def foo(x):
+        ...     '''This is a test function
+        ...
+        ...     It may do many useful things.
+        ...     '''
+        ...     return x + 1
+        >>> help(foo)
+        Help on function foo in module __main__:
+        foo(*args, **kwargs)
+            This is a test function
+            .. deprecated:: 0.2.1
+               A different function is better
+               because of reasons xyz
+            It may do many useful things.
+        >>> foo(2)
+        DeprecationWarning: Use a different function instead
+        3
     """
     message = str(message)
     version = str(version)
+    if docstring is None:
+        docstring = message
     #actual decorator, with version and message curried in
     def _deprecator(func):
         #this is the actual, deprecated function
@@ -139,10 +178,12 @@ def deprecated(version, message):
             leading = l[:len(l) - len(l.lstrip())]
             # Insert before blank line before the paragraph.
             insert_at = paragraphs[1] - 1
-        doclines[insert_at:insert_at] = [
+        to_insert = [
             '',
             leading + '.. deprecated:: ' + version,
-            leading + '   ' + message]
+        ] \
+        + [leading + '   ' + d for d in docstring.split('\n')]
+        doclines[insert_at:insert_at] = to_insert
         _deprecated.__doc__ = '\n'.join(doclines)
         return _deprecated
     return _deprecator
