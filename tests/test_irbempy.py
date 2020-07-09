@@ -79,7 +79,15 @@ class IRBEMBigTests(unittest.TestCase):
         for key in expected:
             numpy.testing.assert_almost_equal(expected[key],
                                               actual[key],
-                                              decimal=5)        
+                                              decimal=5)
+
+    def test_prep_irbem_too_many_PA(self):
+        """Call prep_irbem with too many pitch angles"""
+        with self.assertRaises(ValueError) as cm:
+            ib.prep_irbem(self.ticks, self.loci, numpy.arange(5, 180, 5),
+                          omnivals=self.omnivals)
+        self.assertEqual('Too many pitch angles requested; 25 is maximum.',
+                         str(cm.exception))
 
     def test_find_Bmirror(self):
         expected = {'Blocal': array([ 1031.008992,  3451.98937]),
@@ -139,6 +147,15 @@ class IRBEMBigTests(unittest.TestCase):
         actual = ib.get_Lstar(self.ticks, self.loci, [90], extMag="OPQUIET", omnivals=self.omnivals)
         for key in expected.keys():
             numpy.testing.assert_almost_equal(expected[key], actual[key], decimal=6)
+
+    def test_get_Lstar_TooManyPA(self):
+        """test OP-Quiet with too many pitch angles"""
+        with self.assertRaises(ValueError) as cm:
+            ib.get_Lstar(
+                self.ticks, self.loci, numpy.arange(5, 180, 5),
+                extMag="OPQUIET", omnivals=self.omnivals)
+        self.assertEqual('Too many pitch angles requested; 25 is maximum.',
+                         str(cm.exception))
                 
     def test_get_Lstar_OPQuiet_landi2lstar(self):
         # test OP-Quiet with LandI2Lstar routine
