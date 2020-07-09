@@ -1438,29 +1438,21 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
     if d['kext'] != 5 or d['options'][4] != 0:
         landi2lstar = False
     no_shell_splitting = (nalpha == 0) or (nalpha == 1 and alpha[0] == 90)
-        
+
+    # Arguments that are common to all flavors of L* functions
+    args = [nTAI, d['kext'], d['options'],
+            d['sysaxes'],d['iyearsat'], d['idoysat'], d['utsat'],
+            d['xin1'], d['xin2'], d['xin3'], d['magin']]
     if no_shell_splitting: # no drift shell splitting
-        if landi2lstar:
-            lm, lstar, blocal, bmin, xj, mlt = oplib.landi2lstar1(nTAI, d['kext'], d['options'], \
-                d['sysaxes'],d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], \
-                d['xin3'], d['magin'])
-        else:
-            lm, lstar, blocal, bmin, xj, mlt = oplib.make_lstar1(nTAI, d['kext'], d['options'], \
-                d['sysaxes'],d['iyearsat'], d['idoysat'], d['utsat'], d['xin1'], d['xin2'], \
-                d['xin3'], d['magin'])
-
-    elif nalpha > 0 and nalpha <= d['nalp_max']: # with drift shell splitting
-        if landi2lstar:
-            lm, lstar, bmirr, bmin, xj, mlt = oplib.landi2lstar_shell_splitting1(nTAI, nalpha, \
-                d['kext'], d['options'], d['sysaxes'], d['iyearsat'], d['idoysat'], d['utsat'], \
-                d['xin1'], d['xin2'], d['xin3'], d['degalpha'], d['magin'])
-        else:
-            lm, lstar, bmirr, bmin, xj, mlt = oplib.make_lstar_shell_splitting1(nTAI, nalpha, \
-                d['kext'], d['options'], d['sysaxes'], d['iyearsat'], d['idoysat'], d['utsat'], \
-                d['xin1'], d['xin2'], d['xin3'], d['degalpha'], d['magin'])
-
-    else:
-        print('ERROR: too many pitch angles requested; 25 is maximum')
+        func = oplib.landi2lstar1 if landi2lstar else oplib.make_lstar1
+    else: # with drift shell splitting
+        # Drift shell splitting requires pitch angle positional args
+        args.insert(1, nalpha)
+        args.insert(-1, d['degalpha'])
+        func = oplib.landi2lstar_shell_splitting1 if landi2lstar \
+               else oplib.make_lstar_shell_splitting1
+    # For a locally 90-degree particle, bmirr is blocal
+    lm, lstar, bmirr, bmin, xj, mlt = func(*args)
 
     # take out all the odd 'bad values' and turn them into NaN
     lm[np.where( tb.feq(lm,d['badval'])) ] = np.NaN
@@ -1473,8 +1465,8 @@ def _get_Lstar(ticks, loci, alpha, extMag='T01STORM', options=[1,0,0,0,0], omniv
     if no_shell_splitting:
         results['Lm'] = lm[0:nTAI][:,None]
         results['Lstar'] = lstar[0:nTAI][:,None]
-        blocal[np.where( tb.feq(blocal,d['badval'])) ] = np.NaN
-        results['Blocal'] = blocal[0:nTAI]
+        bmirr[np.where( tb.feq(bmirr,d['badval'])) ] = np.NaN
+        results['Blocal'] = bmirr[0:nTAI]
         results['Bmirr'] = results['Blocal'][:,None]
         results['Bmin'] = bmin[0:nTAI]
         results['Xj'] = xj[0:nTAI][:,None]
@@ -1871,6 +1863,9 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
         nalpha = 1
         alpha = [alpha]
     nalpha = len(alpha)
+    if nalpha > d['nalp_max']:
+        raise ValueError('Too many pitch angles requested; {} is maximum.'
+                         .format(d['nalp_max']))
     d['nalpha'] = nalpha
     if nalpha > 0:
         degalpha[0:nalpha] = alpha
