@@ -119,23 +119,31 @@ def deprecated(version, message):
             doclines = []
         else:
             doclines = func.__doc__.split('\n')
-        #first non-blank line
-        idx = next((i for i in range(len(doclines)) if doclines[i].strip()),
-                   None)
-        if idx is None: #no non-blank
+        # Docstring SHOULD be a single non-blank line with summary, blank line,
+        # and then the rest of the content. Want to put the deprecation
+        # information just before the first line of "rest of content"
+        isblank = [not bool(l.strip()) for l in doclines]
+        # All places with a non-blank line following a blank
+        paragraphs =  [i for i in range(len(isblank))
+                       if not isblank[i] and
+                       (i == 0 or isblank[i - 1])]
+        if not paragraphs: # No non-blank, guess indentation, insert at end
             leading = '    '
-            idx = len(doclines) #insert at end
-        else:
-            first = doclines[idx]
-            #copy whitespace
-            leading = first[0:len(first) - len(first.lstrip())]
-            idx += 1 #insert just after first non-blank
-        #REVERSE order since insert goes before
-        doclines.insert(idx, leading)
-        doclines.insert(idx, leading + '   ' + message)
-        doclines.insert(idx, leading + '.. deprecated:: ' + version)
-        doclines.insert(idx, leading)
-        _deprecated.__doc__ = '\n'.join(doclines) + '\n'
+            insert_at = len(doclines) #insert at end
+        elif len(paragraphs) == 1: # Get indent from only para, insert at end
+            l = doclines[paragraphs[0]]
+            leading = l[:len(l) - len(l.lstrip())]
+            insert_at = len(doclines)
+        else: # Get indent from 2nd paragraph, insert just before it
+            l = doclines[paragraphs[1]]
+            leading = l[:len(l) - len(l.lstrip())]
+            # Insert before blank line before the paragraph.
+            insert_at = paragraphs[1] - 1
+        doclines[insert_at:insert_at] = [
+            '',
+            leading + '.. deprecated:: ' + version,
+            leading + '   ' + message]
+        _deprecated.__doc__ = '\n'.join(doclines)
         return _deprecated
     return _deprecator
 
