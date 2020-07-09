@@ -745,7 +745,8 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     return None
 
 
-def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True):
+def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True,
+                  startyear=None):
     """Crawl files in a directory-by-year structure
 
     Parameters
@@ -766,6 +767,10 @@ def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True):
         Only update files if timestamp on server is newer than
         timestamp on local file (default). Set False to always
         download files.
+    startyear : int (optional)
+        First year to crawl, as four-digit number or four-character string.
+        If not specified, will download all years. If specified, will delete
+        years prior to this which have already been downloaded.
 
     Returns
     =======
@@ -791,7 +796,8 @@ def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True):
     p = LinkExtracter()
     p.feed(data)
     p.close()
-    yearlist = [y[0:4] for y in p.links if re.match(r'\d{4}/', y)]
+    yearlist = [y[0:4] for y in p.links if re.match(r'\d{4}/', y)
+                and (startyear is None or y[0:4] >= str(startyear))]
     downloadme = {}
     for i, y in enumerate(yearlist):
         yearurl = '{}{}/'.format(base_url, y)
