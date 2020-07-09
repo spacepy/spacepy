@@ -122,7 +122,7 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(1, len(w))
         self.assertEqual(DeprecationWarning, w[0].category)
         self.assertEqual(
-            'Use :func:`spacepy.coordinates.quaternionNormalize`',
+            'moved to spacepy.coordinates',
             str(w[0].message))
         numpy.testing.assert_array_almost_equal(
             [0.693,  0.,  0.693,  0.196], tst, decimal=2)
@@ -134,7 +134,7 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(1, len(w))
         self.assertEqual(DeprecationWarning, w[0].category)
         self.assertEqual(
-            'Use :func:`spacepy.coordinates.quaternionRotateVector`',
+            'moved to spacepy.coordinates',
             str(w[0].message))
         numpy.testing.assert_array_almost_equal(
             [0, 0, 1], tst, decimal=5)
@@ -146,7 +146,7 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(1, len(w))
         self.assertEqual(DeprecationWarning, w[0].category)
         self.assertEqual(
-            'Use :func:`spacepy.coordinates.quaternionMultiply`',
+            'moved to spacepy.coordinates',
             str(w[0].message))
         numpy.testing.assert_array_equal([0, 0, 0, 1], tst)
 
@@ -156,7 +156,7 @@ class SimpleFunctionTests(unittest.TestCase):
         self.assertEqual(1, len(w))
         self.assertEqual(DeprecationWarning, w[0].category)
         self.assertEqual(
-            'Use :func:`spacepy.coordinates.quaternionConjugate`',
+            'moved to spacepy.coordinates',
             str(w[0].message))
         numpy.testing.assert_array_equal([-.707, 0, -.707, 0.2], tst)
 

@@ -2314,32 +2314,38 @@ def interpol(newx, x, y, wrap=None, **kwargs):
 # -----------------------------------------------
 
 @spacepy.deprecated(
-    '0.2.2', 'Use :func:`spacepy.coordinates.quaternionNormalize`')
-def quaternionNormalize(*args, **kwargs):
+    '0.2.2', 'moved to spacepy.coordinates',
+    'use :func:`spacepy.coordinates.quaternionNormalize`')
+def quaternionNormalize(Qin, scalarPos='last'):
     """Given an input quaternion, return the unit quaternion."""
     import spacepy.coordinates
-    return spacepy.coordinates.quaternionNormalize(*args, **kwargs)
+    return spacepy.coordinates.quaternionNormalize(Qin, scalarPos=scalarPos)
 
 @spacepy.deprecated(
-    '0.2.2', 'Use :func:`spacepy.coordinates.quaternionRotateVector`')
-def quaternionRotateVector(*args, **kwargs):
+    '0.2.2', 'moved to spacepy.coordinates',
+    'use :func:`spacepy.coordinates.quaternionRotateVector`')
+def quaternionRotateVector(Qin, Vin, scalarPos='last', normalize=True):
     """Given quaternion and vector, return vector rotated by quaternion."""
     import spacepy.coordinates
-    return spacepy.coordinates.quaternionRotateVector(*args, **kwargs)
+    return spacepy.coordinates.quaternionRotateVector(
+        Qin, Vin, scalarPos=scalarPos, normalize=normalize)
 
 @spacepy.deprecated(
-    '0.2.2', 'Use :func:`spacepy.coordinates.quaternionMultiply`')
-def quaternionMultiply(*args, **kwargs):
+    '0.2.2', 'moved to spacepy.coordinates',
+    'use :func:`spacepy.coordinates.quaternionMultiply`')
+def quaternionMultiply(Qin1, Qin2, scalarPos='last'):
     """Given quaternions, return the product."""
     import spacepy.coordinates
-    return spacepy.coordinates.quaternionMultiply(*args, **kwargs)
+    return spacepy.coordinates.quaternionMultiply(
+        Qin1, Qin2, scalarPos=scalarPos)
 
 @spacepy.deprecated(
-    '0.2.2', 'Use :func:`spacepy.coordinates.quaternionConjugate`')
-def quaternionConjugate(*args, **kwargs):
+    '0.2.2', 'moved to spacepy.coordinates',
+    'use :func:`spacepy.coordinates.quaternionConjugate`')
+def quaternionConjugate(Qin, scalarPos='last'):
     """Given an input quaternion, return the conjugated."""
     import spacepy.coordinates
-    return spacepy.coordinates.quaternionConjugate(*args, **kwargs)
+    return spacepy.coordinates.quaternionConjugate(Qin, scalarPos=scalarPos)
 
 # -----------------------------------------------
 
