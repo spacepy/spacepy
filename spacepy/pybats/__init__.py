@@ -1103,8 +1103,8 @@ class LogFile(PbData):
                 self[name][i] = float(vals[loc[name]])
 
         # Convert time and runtime to dmarrays.
-        self['time']   =time
-        self['runtime']=runtime
+        self['time'] = time
+        self['runtime'] = runtime
 
 
 class NgdcIndex(PbData):
