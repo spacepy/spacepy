@@ -25,8 +25,8 @@ pybats
  - Bats2d.add_b_magsphere and add_stream_scatter now have kwargs for adding arrows on ray traces
  - Updates to ram.RamSat including omnidirectional flux calculation
  - ram.PressureFile fixed for Python 3.x failures
-toolbox
  - rim.Iono objects now load poorly-formatted files; rim.fix_format deprecated
+toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
 
