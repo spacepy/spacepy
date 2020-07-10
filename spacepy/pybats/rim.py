@@ -7,11 +7,14 @@ Ridley Serial.
 Copyright 2010 Los Alamos National Security, LLC.
 '''
 
+import os
 import numpy as np
+from spacepy import deprecated
 import spacepy.plot.apionly
 from spacepy.plot import set_target
 from spacepy.pybats import PbData, dmarray
 
+@deprecated('0.2.2', 'Functionality integrated into `rim.Iono`.')
 def fix_format(filename, finalize=True):
     '''
     Some 2D output files for RIM/RidleySerial have a broken format: values for
@@ -33,12 +36,6 @@ def fix_format(filename, finalize=True):
        run for testing purposes.  Defaults to **True**.
 
     '''
-    
-    import os
-    from warnings import warn
-
-    warn('rim.Iono can now read "broken" files without using this function. It is a candidate for removal.', DeprecationWarning)
-    
     # Slurp in entire file.  This is necessary to detect the number of f.
     f = open(filename, 'r')
     raw = f.readlines()
@@ -260,7 +257,7 @@ class Iono(PbData):
         nvars, nvarline, nwrap = len(namevar), 0, 0
         while nvarline<nvars:
             nvarline += len(raw[i+nwrap].split())
-            nwrap+=1
+            nwrap += 1
         
         # Fill data arrays:
         for j in range(nPts):
