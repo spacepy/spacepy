@@ -79,6 +79,7 @@ Further reference material on how to use SpacePy, and examples.
     :maxdepth: 1
 
     capabilities
+    release_notes
     case_studies
     publications
     py2k_eol
