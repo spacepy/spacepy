@@ -155,8 +155,12 @@ def deprecated(version, message, docstring=None):
     Other Parameters
     ================
     docstring : str
-        If specified, this will be used in the docstring instead of
-        ``message``. It can be a multi-line string (separated with
+
+        .. versionadded:: 0.2.2
+
+        If specified, ``docstring`` will be added to the modified function's
+        docstring instead of ``message`` (which will only be used in the
+        deprecation warning.) It can be a multi-line string (separated with
         ``\\n``). It will be indented to match the existing docstring.
 
     Notes
