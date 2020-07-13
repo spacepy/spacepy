@@ -19,7 +19,7 @@ Contact: Jonathan.Niehof@unh.edu
 .. rubric:: Classes
 
 .. autosummary::
-    :toctree: autosummary  
+    :toctree:
     :template: clean_class.rst
 
     FileChecks
@@ -29,7 +29,7 @@ Contact: Jonathan.Niehof@unh.edu
 .. rubric:: Functions
 
 .. autosummary::
-    :toctree: autosummary  
+    :toctree:
 
     fillval
     format
