@@ -211,7 +211,8 @@ unaffected by that dependency.
      -
      -
      - :mod:`Entire module <spacepy.omni>`
-     -
+     - * :func:`~spacepy.omni.get_omni`
+       * :func:`~spacepy.omni.omnirange`
      -
      -
    * - :mod:`~spacepy.plot`
