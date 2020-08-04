@@ -42,7 +42,7 @@ before_install:
 install:
  - pip install --force-reinstall "numpy${NUMPY_VERSION}"
  - pip install scipy
- - pip install matplotlib
+ - pip install "matplotlib<3.3"
  - pip install h5py
  - pip install networkx
  - pip install ffnet
