@@ -673,6 +673,11 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual(UserWarning, w[0].category)
         numpy.testing.assert_almost_equal(ans, [2299169.5])
 
+    def test_UTCHasDtype(self):
+        """Conversion to UTC has dtype"""
+        t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
+        self.assertEqual('UTC', t1.UTC.attrs['dtype'])
+
     def test_getleapsecs(self):
         """preform tests on just getleapsecs"""
         t1 = t.Ticktock([datetime.datetime(1995, 3, 22, 4, 18, 14, 350699),
@@ -715,6 +720,91 @@ class TimeClassTests(unittest.TestCase):
             self.assertEqual(
                 datetime.datetime(2020, 1, 1),
                 tt.UTC[0])
+
+    def testUpdateItems(self):
+        """Change data and call update"""
+        tt = t.Ticktock(['2001-01-01'])
+        # All the possible dtypes
+        attrs = ['ISO', 'TAI', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'UTC',
+                 'eDOY']
+        preattrs = [a for a in attrs if hasattr(tt, a)]
+        self.assertEqual(
+            datetime.datetime(2001, 1, 1),
+            tt.UTC[0])
+        tt.data[0] = '2002-01-01'
+        tt.update_items('data')
+        postattrs = [a for a in attrs if hasattr(tt, a)]
+        self.assertEqual(
+            datetime.datetime(2002, 1, 1),
+            tt.UTC[0])
+        # Nothing new calculated
+        self.assertEqual(preattrs, postattrs)
+
+    def testUpdateItemseDOY(self):
+        tt = t.Ticktock(['2001-01-01'])
+        # All the possible dtypes
+        attrs = ['ISO', 'TAI', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'UTC',
+                 'eDOY']
+        preattrs = [a for a in attrs if hasattr(tt, a)]
+        self.assertEqual(
+            0,
+            tt.eDOY[0])
+        tt.data[0] = '2002-02-02'
+        tt.update_items('data')
+        postattrs = [a for a in attrs if hasattr(tt, a)]
+        self.assertEqual(
+            32,
+            tt.eDOY[0])
+        # Nothing new calculated
+        self.assertEqual(preattrs, postattrs)
+
+    def testUpdateItemsNonDefault(self):
+        """Change non-data attribute and call update"""
+        tt = t.Ticktock([datetime.datetime(2001, 1, 1)])
+        self.assertEqual(
+            '2001-01-01T00:00:00',
+            tt.ISO[0])
+        # All the possible dtypes
+        attrs = ['ISO', 'TAI', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'UTC',
+                 'eDOY']
+        preattrs = [a for a in attrs if hasattr(tt, a)]
+        tt.ISO[0] = '2002-01-01'
+        tt.update_items('ISO')
+        postattrs = [a for a in attrs if hasattr(tt, a)]
+        # Not smashed by update_items
+        self.assertEqual(
+            '2002-01-01',
+            tt.ISO[0])
+        # The update also changed the UTC in the main data
+        self.assertEqual(
+            datetime.datetime(2002, 1, 1),
+            tt.UTC[0])
+        self.assertEqual(
+            datetime.datetime(2002, 1, 1),
+            tt.data[0])
+        # But dtype is the same
+        self.assertEqual('UTC', tt.data.attrs['dtype'])
+        # Nothing new calculated
+        self.assertEqual(preattrs, postattrs)
+
+    def testUpdateItemsGiveCls(self):
+        """Change data and call update with a class"""
+        tt = t.Ticktock(['2001-01-01'])
+        self.assertEqual(
+            datetime.datetime(2001, 1, 1),
+            tt.UTC[0])
+        tt.data[0] = '2002-01-01'
+        with warnings.catch_warnings(record=True) as w:
+            tt.update_items(type(tt), 'data')
+        self.assertEqual(1, len(w))
+        self.assertEqual(w[0].category, DeprecationWarning)
+        self.assertEqual(
+            'cls argument of update_items was deprecated in 0.2.2'
+            ' and will be ignored.',
+            str(w[0].message))
+        self.assertEqual(
+            datetime.datetime(2002, 1, 1),
+            tt.UTC[0])
 
 
 if __name__ == "__main__":
