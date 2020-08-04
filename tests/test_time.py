@@ -31,13 +31,6 @@ __all__ = ['TimeFunctionTests', 'TimeClassTests']
 
 
 class TimeFunctionTests(unittest.TestCase):
-    def setUp(self):
-        # super(tFunctionTests, self).setUp()
-        pass
-
-    def tearDown(self):
-        # super(tFunctionTests, self).tearDown()
-        pass
 
     def test_doy2dateconvert(self):
         """doy2date should return a known value for known input"""
@@ -257,13 +250,6 @@ class TimeFunctionTests(unittest.TestCase):
 
 
 class TimeClassTests(unittest.TestCase):
-    def setUp(self):
-        # super(tFunctionTests, self).setUp()
-        pass
-
-    def tearDown(self):
-        # super(tFunctionTests, self).tearDown()
-        pass
 
     def test_TAIinit(self):
         """test that Ticktock can be made from TAI input"""
@@ -523,6 +509,14 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         self.assertEqual(str(t1), "Ticktock( ['2002-01-01T01:00:00' '2002-01-02'], dtype=ISO)")
 
+    @unittest.expectedFailure
+    def test_TAIGregorian(self):
+        """Test TAI across the Gregorian-Julian change"""
+        t2 = t.Ticktock([datetime.datetime(1582, 10, 15)])
+        t1 = t.Ticktock([datetime.datetime(1582, 10, 4)])
+        #1582-10-15 was the day after 1582-10-4
+        self.assertEqual(86400, t2.TAI - t1.TAI)
+
     def test_pickle(self):
         """TickTock objects should pickle"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
@@ -571,6 +565,55 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([52275.04166667, 52276.])
         numpy.testing.assert_almost_equal(t1.MJD, expected)
+
+    @unittest.expectedFailure
+    def test_MJDLeapsecond(self):
+        """Fractional modified Julian Day on day with leapsecond"""
+        t1 = t.Ticktock([
+            '1979-12-31T12:00:00',
+            '1980-01-01T12:00:00',
+        ])
+        expected = numpy.array([
+            44238 + 43200. / 86491,
+            44239.5
+        ])
+        numpy.testing.assert_almost_equal(t1.MJD, expected)
+
+    def test_JD(self):
+        """Conversion to Julian Day should work"""
+        t = t.Ticktock([
+            '2000-01-01T12:00:00',
+            ])
+        expected = numpy.array([
+            2451545,
+            ])
+        numpy.testing.assert_almost_equal(t.JD, expected)
+
+    @unittest.expectedFailure
+    def test_JDLeapsecond(self):
+        """Fractional Julian Day on day with leapsecond"""
+        t1 = t.Ticktock([
+            '1979-12-31T12:00:00',
+            '1980-01-01T00:00:00',
+            '1980-01-01T12:00:00',
+            '1980-01-02T00:00:00',
+        ])
+        expected = numpy.array([
+            2444239.,
+            2444239. + 43201. / 86491,
+            2444240.,
+            2444240.5,
+        ])
+        numpy.testing.assert_almost_equal(t1.JD, expected)
+
+    def test_fromMJD(self):
+        """conversions from MJD should work"""
+        t1 = t.Ticktock([52275 + 1. / 24, 52276.], dtype='MJD')
+        expected = [datetime.datetime(2002, 1, 1, 1),
+                    datetime.datetime(2002, 1, 2)]
+        numpy.testing.assert_almost_equal(
+            [(t1.UTC[i] - expected[i]).total_seconds() for i in range(len(t1))],
+            0., decimal=5)
 
     def test_GPS(self):
         """conversions to GPS should work"""

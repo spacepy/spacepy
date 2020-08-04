@@ -957,6 +957,7 @@ class Ticktock(MutableSequence):
         # convert all types in to UTC first and call again
         UTCdata = self.UTC
 
+        #In TAI terms, if self.TAI[0] < -11840601564.0:
         if UTCdata[0] < datetime.datetime(1582, 10, 15):
             warnings.warn("Calendar date before the switch from Julian to Gregorian\n" +
                           "    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
@@ -973,9 +974,9 @@ class Ticktock(MutableSequence):
                 UTCdata[i] = UTCdata[i] - offset
 
             # extract year, month, day
-            Y = int(UTCdata[i].year)
-            M = int(UTCdata[i].month)
-            D = int(UTCdata[i].day)
+            Y = UTCdata[i].year
+            M = UTCdata[i].month
+            D = UTCdata[i].day
 
             # the following is from Wikipedia (but is wrong by 2 days)
             # JDN = D-32075+1461*(Y+4800+(M-14)/12)/4+367*(M-2-(M-14)/12*12)/12-3*((Y+4900+(M-14)/12)/100)/4
@@ -998,10 +999,9 @@ class Ticktock(MutableSequence):
             # add this to num.recipes to get fractional days
             # twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
             # sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
-            JD[i] = decimal.Decimal(str(JD[i])) + (decimal.Decimal(str(UTCdata[i].hour)) - twelve) / twofour + \
-                    decimal.Decimal(str(UTCdata[i].minute / 1440.)) + (decimal.Decimal(str(UTCdata[i].second)) / sind) + \
-                    (decimal.Decimal(str(UTCdata[i].microsecond)) / usind)
-            JD[i] = float(JD[i])
+            JD[i] = decimal.Decimal(str(JD[i])) + (decimal.Decimal(UTCdata[i].hour) - twelve) / twofour + \
+                    decimal.Decimal(str(UTCdata[i].minute / 1440.)) + (decimal.Decimal(UTCdata[i].second) / sind) + \
+                    (decimal.Decimal(UTCdata[i].microsecond) / usind)
             # JD[i] = JD[i] + (UTCdata[i].hour-12)/24. + UTCdata[i].minute/1440. + \
             # UTCdata[i].second/86400. + UTCdata[i].microsecond/86400000000.
 
@@ -1018,7 +1018,8 @@ class Ticktock(MutableSequence):
         Returns
         ========
         out : numpy array
-            elapsed days since November 17, 1858 (Julian date was 2,400 000)
+            elapsed days since midnight, start of November 17, 1858
+            (Julian date at noon of 1858-11-17 was 2 400 000)
 
         Examples
         ========
@@ -1032,8 +1033,9 @@ class Ticktock(MutableSequence):
 
         """
 
+        #In TAI terms, if self.TAI[0] < -11840601564.0:
         if self.UTC[0] < datetime.datetime(1582, 10, 15):
-            warnings.warn("WARNING: Calendar date before the switch from Julian to Gregorian\n" +
+            warnings.warn("Calendar date before the switch from Julian to Gregorian\n"
                           "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
 
         MJD = self.JD - 2400000.5
