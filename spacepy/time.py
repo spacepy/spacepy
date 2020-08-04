@@ -276,7 +276,7 @@ class Ticktock(MutableSequence):
             self.data.attrs['dtype'] = str(dtype_func)
         else:
             if dtype.upper() == 'ISO': self.ISO = self.data
-            self.update_items(self, 'data')
+            self.update_items('data')
             if dtype.upper() == 'TAI':
                 self.TAI = self.data
             elif dtype.upper() == 'JD':
@@ -401,7 +401,7 @@ class Ticktock(MutableSequence):
             self.data[idx] = tmp.__getattribute__(self.data.attrs['dtype'])[:]
         else:
             self.data[idx] = tmp.__getattribute__(self.data.attrs['dtype'])[0]
-        self.update_items(self, 'data')
+        self.update_items('data')
 
     # -----------------------------------------------
     def __delitem__(self, idx):
@@ -411,7 +411,7 @@ class Ticktock(MutableSequence):
         will be called when deleting items in the sequence
         """
         self.data = np.delete(self.data, idx)
-        self.update_items(self, 'data')
+        self.update_items('data')
 
     # -----------------------------------------------
     def __len__(self):
@@ -652,7 +652,7 @@ class Ticktock(MutableSequence):
         ival = getattr(dum, fmt)
         self.data = np.insert(self.data, idx, ival)
 
-        self.update_items(self, 'data')
+        self.update_items('data')
 
     # -----------------------------------------------
     def remove(self, idx):
@@ -675,7 +675,7 @@ class Ticktock(MutableSequence):
         RDTsorted = np.sort(RDT, kind=kind)
         tmp = Ticktock(RDTsorted, 'RDT').convert(self.data.attrs['dtype'])
         self.data = tmp.data
-        self.update_items(self, 'data')
+        self.update_items('data')
         return
 
     # -----------------------------------------------
@@ -713,14 +713,14 @@ class Ticktock(MutableSequence):
         else:
             try:
                 self._isofmt = Ticktock._isoformatstr[fmt]
-                self.update_items(self, 'data')
+                self.update_items('data')
             except KeyError:
                 raise (ValueError('Not a valid option: Use {0}'.format(list(Ticktock._isoformatstr.keys()))))
 
     # -----------------------------------------------
-    def update_items(self, cls, attrib):
+    def update_items(self, attrib, cls=None):
         """
-        a.update_items(b, attrib)
+        a.update_items(attrib)
 
         After changing the self.data attribute by either __setitem__ or __add__ etc
         this function will update all other attributes. This function is
@@ -728,9 +728,16 @@ class Ticktock(MutableSequence):
 
         Parameters
         ==========
-        cls : Ticktock
-        attrib : string
-            attribute to update
+        attrib : str
+            attribute that was updated; update others from this
+
+        Other Parameters
+        ================
+        cls : type
+            .. deprecated:: 0.2.2
+                Class is now taken from the ``self`` of the bound instance.
+
+            Class to use for finding possible attributes; now ignored.
 
         See Also
         ========
@@ -738,11 +745,27 @@ class Ticktock(MutableSequence):
         spacepy.Ticktock.__add__
         spacepy.Ticktock.__sub__
         """
-        keylist = list(cls.__dict__.keys())
-        # keylist.remove('dtype')
+        keylist = dir(self)
+        # Formerly took arguments (cls, attrib) but there's nothing from
+        # the class we can't get from the instance, so removed cls.
+        # If we got two position arguments, though, that indicates the cls
+        if cls is not None:
+            attrib = cls
+            warnings.warn(
+                'cls argument of update_items was deprecated in 0.2.2'
+                ' and will be ignored.',
+                DeprecationWarning)
         keylist.remove('data')
-        if attrib != 'data': keylist.remove(attrib)
-
+        if attrib != 'data':
+            keylist.remove(attrib)
+            attrib = attrib.upper()
+            if attrib != self.data.attrs['dtype']:
+                # Repopulating based on a different dtype, so make a temp
+                # Ticktock to do the conversion.
+                cls = type(self)
+                dt = self.data.attrs['dtype']
+                self.data = getattr(
+                    cls(getattr(self, attrib), dtype=attrib), dt)
         self.UTC = self.getUTC()
         for key in keylist:
             if key.upper() == 'TAI': self.TAI = self.getTAI()
@@ -753,7 +776,7 @@ class Ticktock(MutableSequence):
             if key.upper() == 'RDT': self.RDT = self.getRDT()
             if key.upper() == 'CDF': self.CDF = self.getCDF()
             if key.upper() == 'DOY': self.DOY = self.getDOY()
-            if key.upper() == 'eDOY': self.eDOY = self.geteDOY()
+            if key.upper() == 'EDOY': self.eDOY = self.geteDOY()
             if key.upper() == 'GPS': self.GPS = self.getGPS()
             if key == 'leaps': self.leaps = self.getleapsecs()
 
@@ -1265,9 +1288,9 @@ class Ticktock(MutableSequence):
                 ', '.join([kk for kk in Ticktock._keylist if kk not in ['DOY', 'eDOY', 'leaps']]))
             raise TypeError('{0}\n{1}'.format(warnstr1, warnstr2))
 
-        UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
-        self.UTC = no_tzinfo(UTC)
-        return no_tzinfo(self.UTC)
+        UTC = no_tzinfo(UTC)
+        self.UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
+        return self.UTC
 
     # -----------------------------------------------
     def getGPS(self):
