@@ -382,6 +382,13 @@ class TimeClassTests(unittest.TestCase):
         expected = [6.31770624e+13, 6.31771488e+13]
         numpy.testing.assert_equal(expected, t1.CDF)
 
+    def test_ticktock_unix(self):
+        """Create ticktock with Unix input"""
+        # 2000-01-01 00:00:00
+        tt = t.Ticktock([946684800], dtype='UNX')
+        self.assertEqual(
+            [datetime.datetime(2000, 1, 1)], tt.UTC)
+
     def testCDFAgainstpycdf(self):
         """Compare CDF time to pycdf calculated time"""
         intimes = [
