@@ -860,6 +860,20 @@ class TimeClassTests(unittest.TestCase):
         tt.update_items('data')
         self.assertEqual(oldrdt, tt.RDT[0])
 
+    def testDataPersistsJD(self):
+        """Verify input data is returned for JD input"""
+        # 2000-01-01 00:00:00
+        tt = t.Ticktock([2451544.5], dtype='JD')
+        # Calculate UTC, then munge it
+        oldutc = tt.UTC[0]
+        tt.UTC[0] = datetime.datetime(2001, 1, 1)
+        # But data is untouched
+        self.assertEqual([2451544.5], tt.getJD())
+        self.assertTrue(tt.data is tt.JD)
+        # And if recalc UTC, it's corrected
+        tt.update_items('data')
+        self.assertEqual(datetime.datetime(2000, 1, 1), tt.UTC[0])
+
 
 if __name__ == "__main__":
     unittest.main()
