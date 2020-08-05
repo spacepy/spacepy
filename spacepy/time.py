@@ -847,13 +847,17 @@ class Ticktock(MutableSequence):
         """
         a.getCDF() or a.CDF
 
-        Return CDF time which is milliseconds since 01-Jan-0000 00:00:00.000.
-        "Year zero" is a convention chosen by NSSDC to measure epoch values.
-        This date is more commonly referred to as 1 BC. Remember that 1 BC was a leap year.
-        The CDF date/time calculations do not take into account the changes to the Gregorian
-        calendar, and cannot be directly converted into Julian date/times.
+        Return CDF Epoch time which is milliseconds since 01-Jan-0000 at
+        00:00:00.000. "Year zero" is a convention chosen by NSSDC to measure
+        epoch values. This date is more commonly referred to as 1 BC and is
+        considered a leap year.
 
-        Always recalculates from ``RDT`` and calls :meth:`getRDT` to do so,
+        The CDF date/time calculations do not take into account the change
+        to the Gregorian calendar or leap seconds, and cannot be directly
+        converted into Julian date/times.
+
+        Returns ``data`` if it was provided in CDF; otherwise always
+        recalculates from ``RDT`` and calls :meth:`getRDT` to do so,
         updating the ``RDT`` attribute.
 
         Updates the ``CDF`` attribute.
@@ -861,7 +865,7 @@ class Ticktock(MutableSequence):
         Returns
         =======
         out : numpy array
-            days elapsed since Jan. 1st
+            milliseconds since 01-01-0000T00:00:00 assuming no discontinuities.
 
         Examples
         ========
@@ -881,8 +885,14 @@ class Ticktock(MutableSequence):
         getDOY
         geteDOY
         """
+        if self.data.attrs['dtype'] == 'CDF':
+            # This should be the case from the constructor
+            self.CDF = self.data
+            return self.CDF
         RDTdata = self.getRDT()
-        CDF = RDTdata * 86400000.0 + 86400000.0 * 365.0
+        # RDT has 0001-01-01 as day 1, but this is day 3666
+        # of CDF Epoch (since 0000-01-01 is day 0, and a leap year).
+        CDF = (RDTdata + 365) * 86400000.0
         self.CDF = CDF
         return self.CDF
 
@@ -1143,7 +1153,7 @@ class Ticktock(MutableSequence):
         Returns
         ========
         out : numpy array
-            elapsed days since 1/1/1
+            elapsed days counting 1/1/1 as day 1.
 
         Examples
         ========
