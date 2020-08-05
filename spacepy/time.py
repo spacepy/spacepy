@@ -157,6 +157,11 @@ class Ticktock(MutableSequence):
     eDOY
         Fractional day of year, starts at day 0
 
+    It is strongly recommended to access various time systems via the
+    attributes listed above, as in the examples. They will be calculated
+    automatically if necessary. Using the ``get`` methods will force a
+    recalculation.
+
     Parameters
     ==========
     data : array_like (int, datetime, float, string)
@@ -724,7 +729,9 @@ class Ticktock(MutableSequence):
 
         After changing the self.data attribute by either __setitem__ or __add__ etc
         this function will update all other attributes. This function is
-        called automatically in __add__ and __setitem__
+        called automatically in __add__, __init__, and __setitem__.
+
+        ``UTC`` is always updated (even if it was not previously set.)
 
         Parameters
         ==========
@@ -843,6 +850,11 @@ class Ticktock(MutableSequence):
         The CDF date/time calculations do not take into account the changes to the Gregorian
         calendar, and cannot be directly converted into Julian date/times.
 
+        Always recalculates from ``RDT`` and calls :meth:`getRDT` to do so,
+        updating the ``RDT`` attribute.
+
+        Updates the ``CDF`` attribute.
+
         Returns
         =======
         out : numpy array
@@ -878,6 +890,11 @@ class Ticktock(MutableSequence):
 
         extract DOY (days since January 1st of given year)
 
+        Always recalculates from the current value of ``UTC``, which will
+        be created if necessary.
+
+        Updates the ``DOY`` attribute.
+
         Returns
         =======
         out : numpy array
@@ -911,6 +928,11 @@ class Ticktock(MutableSequence):
         a.eDOY or a.geteDOY()
 
         extract eDOY (elapsed days since midnight January 1st of given year)
+
+        Always recalculates from the current value of ``UTC``, which will
+        be created if necessary.
+
+        Updates the ``eDOY`` attribute.
 
         Returns
         =======
@@ -949,6 +971,11 @@ class Ticktock(MutableSequence):
         a.JD or a.getJD()
 
         convert dtype data into Julian Date (JD)
+
+        Always recalculates from the current value of ``UTC`` (thus is
+        not leap-second aware), which will be created if necessary.
+
+        Updates the ``JD`` attribute.
 
         Returns
         =======
@@ -1038,6 +1065,11 @@ class Ticktock(MutableSequence):
 
         convert dtype data into MJD (modified Julian date)
 
+        Always recalculates from the current value of ``JD``, which
+        will be created if necessary.
+
+        Updates the ``MJD`` attribute.
+
         Returns
         ========
         out : numpy array
@@ -1053,7 +1085,6 @@ class Ticktock(MutableSequence):
         See Also
         ========
         getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, geteDOY
-
         """
 
         #In TAI terms, if self.TAI[0] < -11840601564.0:
@@ -1073,6 +1104,11 @@ class Ticktock(MutableSequence):
 
         convert dtype data into Unix Time (Posix Time)
         seconds since 1970-Jan-1 (not counting leap seconds)
+
+        Always recalculates from the current value of ``UTC``, which
+        will be created if necessary.
+
+        Updates the ``UNX`` attribute.
 
         Returns
         ========
@@ -1103,6 +1139,11 @@ class Ticktock(MutableSequence):
         a.RDT or a.RDT()
 
         convert dtype data into Rata Die (lat.) Time (days since 1/1/0001)
+
+        Always recalculates from the current value of ``UTC``, which
+        will be created if necessary.
+
+        Updates the ``RDT`` attribute.
 
         Returns
         ========
@@ -1138,6 +1179,10 @@ class Ticktock(MutableSequence):
         a.UTC or a.getUTC()
 
         convert dtype data into UTC object a la datetime()
+
+        Always recalculates from ``data``, the provided input data.
+
+        Updates the ``UTC`` attribute.
 
         Returns
         ========
@@ -1299,6 +1344,11 @@ class Ticktock(MutableSequence):
 
         return GPS epoch (0000 UT (midnight) on January 6, 1980)
 
+        Always recalculates from the current value of ``UTC``, which
+        will be created if necessary.
+
+        Updates the ``GPS`` attribute.
+
         Returns
         ========
             out : numpy array
@@ -1331,6 +1381,11 @@ class Ticktock(MutableSequence):
 
         return TAI (International Atomic Time)
 
+        Always recalculates from the current value of ``UTC``, which
+        will be created if necessary.
+
+        Updates the ``TAI`` attribute.
+
         Returns
         =======
         out : numpy array
@@ -1362,6 +1417,11 @@ class Ticktock(MutableSequence):
         a.ISO or a.getISO()
 
         convert dtype data into ISO string
+
+        Always recalculates from the current value of ``UTC``, which
+        will be created if necessary.
+
+        Updates the ``ISO`` attribute.
 
         Returns
         =======
@@ -1397,6 +1457,11 @@ class Ticktock(MutableSequence):
         a.leaps or a.getleapsecs()
 
         retrieve leapseconds from lookup table, used in getTAI
+
+        Always recalculates from the current value of ``UTC``, which
+        will be created if necessary.
+
+        Updates the ``leaps`` attribute.
 
         Returns
         =======
