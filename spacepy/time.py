@@ -93,6 +93,7 @@ try:
 except ImportError:
     from collections import Callable, MutableSequence
 import datetime
+import decimal
 
 try:
     from itertools import izip as zip
@@ -985,7 +986,9 @@ class Ticktock(MutableSequence):
 
         convert dtype data into Julian Date (JD)
 
-        Always recalculates from the current value of ``UTC`` (thus is
+
+        Returns ``data`` if it was provided in JD; otherwise always
+        recalculates from the current value of ``UTC`` (thus is
         not leap-second aware), which will be created if necessary.
 
         Updates the ``JD`` attribute.
@@ -1013,7 +1016,10 @@ class Ticktock(MutableSequence):
         getDOY
         geteDOY
         """
-        import decimal
+        if self.data.attrs['dtype'] == 'JD':
+            # This should be the case from the constructor
+            self.JD = self.data
+            return self.JD
 
         nTAI = len(self.data)
 
