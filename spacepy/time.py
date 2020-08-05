@@ -1161,10 +1161,15 @@ class Ticktock(MutableSequence):
         """
         a.RDT or a.RDT()
 
-        convert dtype data into Rata Die (lat.) Time (days since 1/1/0001)
+        convert dtype data into Rata Die (lat.) Time, or elapsed days
+        counting 0001-01-01 as day 1. This is a naive conversion: it
+        ignores the existence of leapseconds for fractional days and
+        ignores the conversion from Julian to Gregorian calendar, i.e.
+        it assumes Gregorian calendar infinitely into the past.
 
-        Always recalculates from the current value of ``UTC``, which
-        will be created if necessary.
+        Returns ``data`` if it was provided in RDT; otherwise always
+        recalculates from the current value of ``UTC``, which will be
+        created if necessary.
 
         Updates the ``RDT`` attribute.
 
@@ -1184,6 +1189,11 @@ class Ticktock(MutableSequence):
         getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
+        if self.data.attrs['dtype'] == 'RDT':
+            # This should be the case from the constructor
+            self.RDT = self.data
+            return self.RDT
+
         from matplotlib.dates import date2num
 
         # This is how to do this without date2num
