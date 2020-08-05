@@ -1711,14 +1711,17 @@ def no_tzinfo(dt):
         list of datetime.datetime without tzinfo
 
     """
-    returnclass = dt.__class__
+    returnclass = type(dt)
     try:
         retval = [val.replace(tzinfo=None) for val in dt]
     except TypeError:  # was not an iterable, assume datetime
         return dt.replace(tzinfo=None)
     #special case: numpy ndarray - dmarray and masked array work, but not ndarray
     if returnclass is not np.ndarray:
-        return returnclass(retval)
+        retval = returnclass(retval)
+        if hasattr(dt, 'attrs') and hasattr(retval, 'attrs'):
+            retval.attrs.update(dt.attrs)
+        return retval
     else:
         return np.asarray(retval)
 
