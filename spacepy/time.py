@@ -1270,7 +1270,14 @@ class Ticktock(MutableSequence):
         elif self.data.attrs['dtype'].upper() == 'UNX':
             self.UNX = self.data
             UNX0 = datetime.datetime(1970, 1, 1)
-            UTC = [datetime.timedelta(seconds=unxt) + UNX0 for unxt in self.data]
+            if np.issubdtype(self.data.dtype, np.integer)\
+                     and not issubclass(np.int64, int):
+                # numpy integer will not be accepted by timedelta
+                UTC = [datetime.timedelta(seconds=unxt.item()) + UNX0
+                       for unxt in self.data]
+            else:
+                UTC = [datetime.timedelta(seconds=unxt) + UNX0
+                       for unxt in self.data]
 
         elif self.data.attrs['dtype'].upper() == 'RDT':
             self.RDT = self.data
