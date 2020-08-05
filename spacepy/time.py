@@ -162,6 +162,9 @@ class Ticktock(MutableSequence):
     automatically if necessary. Using the ``get`` methods will force a
     recalculation.
 
+    The original input data will always be available as the ``data``
+    attribute.
+
     Parameters
     ==========
     data : array_like (int, datetime, float, string)
