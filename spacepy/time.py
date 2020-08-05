@@ -1414,7 +1414,12 @@ class Ticktock(MutableSequence):
         """
         a.TAI or a.getTAI()
 
-        return TAI (International Atomic Time)
+        return TAI (International Atomic Time), elapsed secs since 1958-1-1
+        (leap seconds are counted.) Ticktock's handling of TAI and UTC
+        conversions treats the UTC second as always equal in length to the SI
+        second (and thus TAI), ignoring frequency changes and fractional
+        leap seconds from 1958 through 1972, i.e. the UTC to TAI offset
+        is always treated as an integer.
 
         Returns ``data`` if it was provided in TAI; otherwise always
         recalculates from the current value of ``UTC``, which will be
@@ -1425,7 +1430,7 @@ class Ticktock(MutableSequence):
         Returns
         =======
         out : numpy array
-            elapsed secs since 1958-1-1 (includes leap secs, i.e. all secs have equal lengths)
+            TAI as seconds since 1958-1-1.
 
         Examples
         ========
