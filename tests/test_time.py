@@ -874,6 +874,20 @@ class TimeClassTests(unittest.TestCase):
         tt.update_items('data')
         self.assertEqual(datetime.datetime(2000, 1, 1), tt.UTC[0])
 
+    def testDataPersistsMJD(self):
+        """Verify input data is returned for MJD input"""
+        # 2000-01-01 00:00:00
+        tt = t.Ticktock([51544], dtype='MJD')
+        # Calculate JD, then munge it
+        oldjd = tt.JD[0]
+        tt.JD[0] = 2451545.5
+        # But data is untouched
+        self.assertEqual([51544], tt.getMJD())
+        self.assertTrue(tt.data is tt.MJD)
+        # And if recalc JD, it's corrected
+        tt.update_items('data')
+        self.assertEqual([2451544.5], tt.JD)
+
 
 if __name__ == "__main__":
     unittest.main()
