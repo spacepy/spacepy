@@ -496,11 +496,15 @@ class TimeClassTests(unittest.TestCase):
         tt2 = t.Ticktock.now()
         tt2tai = tt2.TAI
         taileaps = tt2.TAIleaps
+        range_ex.append(taileaps[39] - 1)
         range_ex.append(taileaps[39])
+        range_ex.append(taileaps[39] + 1)
         range_ex.append(taileaps[38])
         tt = t.Ticktock(range_ex, 'TAI')
         ans = ['2010-09-15T10:15:13', '2010-09-15T10:37:26', '2010-09-15T10:59:39',
-               '2010-09-15T11:21:53', '2015-07-01T00:00:00', '2012-07-01T00:00:00']
+               '2010-09-15T11:21:53',
+               '2015-06-30T23:59:59', '2015-06-30T23:59:60',
+               '2015-07-01T00:00:00', '2012-06-30T23:59:60']
         numpy.testing.assert_equal(tt.ISO, ans)
 
     def test_DOY(self):
@@ -816,6 +820,15 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual(
             datetime.datetime(2002, 1, 1),
             tt.UTC[0])
+
+    def testDataPersistsTAI(self):
+        """Verify that the input data is returned for TAI input"""
+        # Leap second at the end of 2008
+        tt = t.Ticktock([1609459233], dtype='TAI')
+        self.assertEqual([1609459233], tt.data)
+        self.assertEqual([1609459233], tt.TAI)
+        self.assertEqual([1609459233], tt.getTAI())
+        self.assertEqual([1609459233], tt.TAI)
 
 
 if __name__ == "__main__":
