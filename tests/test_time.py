@@ -743,6 +743,67 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_equal(ans, t1.getleapsecs())
         self.assertEqual(29, t.Ticktock(datetime.datetime(1995, 3, 22, 4, 18, 14, 350699)).getleapsecs())
 
+    def test_getleapsecs_early(self):
+        """Test of leapseconds in the fractional era"""
+        t1 = t.Ticktock([
+            datetime.datetime(1958, 1, 1),
+            datetime.datetime(1960, 12, 31),
+            datetime.datetime(1961, 1, 1),
+            datetime.datetime(1965, 3, 1)], dtype='UTC')
+        numpy.testing.assert_equal(
+            [0, 0, 1, 3], t1.getleapsecs())
+
+    def test_readleapsecs(self):
+        """Test that the leap second file was properly read"""
+        # Tickle the system to force the globals to be read
+        t.Ticktock([datetime.datetime(1958, 1, 1)]).TAI
+        numpy.testing.assert_equal(
+            [1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 4, 10],
+            spacepy.time.secs[:14])
+        # The date in the file (the moment after the leapsecond, i.e.
+        # the first time where the TAI-UTC changes).
+        expected = [(1961, 1, 1),
+                    (1961, 8, 1),
+                    (1962, 1, 1),
+                    (1963, 11, 1),
+                    (1964, 1, 1),
+                    (1964, 4, 1),
+                    (1964, 9, 1),
+                    (1965, 1, 1),
+                    (1965, 3, 1),
+                    (1965, 7, 1),
+                    (1965, 9, 1),
+                    (1966, 1, 1),
+                    (1968, 2, 1),
+                    (1972, 1, 1)]
+        actual = [(int(y), int(m), int(d))
+                  for y, m, d in zip(t.year, t.mon, t.day)][:14]
+        numpy.testing.assert_equal(expected, actual)
+
+    def test_diffAcrossLeaps(self):
+        """Do TAI differences across the first leapsecond"""
+        t1 = t.Ticktock([
+            datetime.datetime(1960, 12, 31, 23, 59, 58),
+            # 1 normal second in between
+            datetime.datetime(1960, 12, 31, 23, 59, 59),
+            # 2 seconds, one normal and one leap
+            datetime.datetime(1961, 1, 1),
+            # 1 normal second
+            datetime.datetime(1961, 1, 1, 0, 0, 1)], dtype='UTC')
+        numpy.testing.assert_equal(
+            [1, 2, 1], numpy.diff(t1.TAI))
+
+    def testTAIBase(self):
+        """Test the baseline of TAI"""
+        t1 = t.Ticktock([
+            datetime.datetime(1958, 1, 1),
+            datetime.datetime(1961, 1, 1)], dtype='UTC')
+        numpy.testing.assert_equal(
+            [0, # Start epoch.
+             (3 * 365 + 1) * 86400 + 1, # 1958, 1959, 1960 (leap) + 1 second
+             ],
+            t1.TAI)
+
     def test_callable_input(self):
         """can pass in a callable to convert to datetime"""
         times = ['2002-01-01T01:00:00', '2002-01-02T02:03:04']

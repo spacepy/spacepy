@@ -1419,7 +1419,8 @@ class Ticktock(MutableSequence):
         conversions treats the UTC second as always equal in length to the SI
         second (and thus TAI), ignoring frequency changes and fractional
         leap seconds from 1958 through 1972, i.e. the UTC to TAI offset
-        is always treated as an integer.
+        is always treated as an integer, truncated (not rounded) from the
+        value at the most recent leap second (or fraction thereof).
 
         Returns ``data`` if it was provided in TAI; otherwise always
         recalculates from the current value of ``UTC``, which will be
@@ -1581,7 +1582,7 @@ class Ticktock(MutableSequence):
                       y, m, d, s in zip(year, mon, day, secs)]
         for i, itup in enumerate(tup):
             ind = bisect.bisect_right(leap_dates, tup[i])
-            leaps[i] = secs[ind - 1]
+            leaps[i] = secs[ind - 1] if ind > 0 else 0
 
         ## ldatetime = datetime.datetime # avoid an expensive lookup below
         ## for i, itup in enumerate(tup):
