@@ -677,18 +677,15 @@ class Ticktock(MutableSequence):
         """
         a.sort()
 
-        This will sort the Ticktock values in place, if you need a stable sort use kind='mergesort'
+        This will sort the Ticktock values in place based on the values
+        in `data`. If you need a stable sort use kind='mergesort'
         """
-        RDT = self.RDT
-        # TODO does this not being stable matter? to make stable use kind='mergesort'
-        RDTsorted = np.sort(RDT, kind=kind)
-        tmp = Ticktock(RDTsorted, 'RDT').convert(self.data.attrs['dtype'])
-        self.data = tmp.data
+        idx = self.argsort(kind=kind)
+        self.data = self.data[idx]
         self.update_items('data')
-        return
 
     # -----------------------------------------------
-    def argsort(self, kind='mergesort'):
+    def argsort(self, kind='quicksort'):
         """
         idx = a.argsort()
 
@@ -700,9 +697,7 @@ class Ticktock(MutableSequence):
             indices that would sort the Ticktock values
 
         """
-        RDT = self.RDT
-        idx = np.argsort(RDT, kind=kind)
-        return idx
+        return np.argsort(self.TAI, kind=kind)
 
     # -----------------------------------------------
     def isoformat(self, fmt=None):

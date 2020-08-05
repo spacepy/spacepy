@@ -467,6 +467,17 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01', '2002-01-01', '2001-12-12'])  # argsort is stable by defualt
         numpy.testing.assert_equal(t1.argsort(), [2, 0, 1])
 
+    def test_sort_leapsecond(self):
+        """sort should get the leapsecond right"""
+        # Last second of 2008, first second of 2009
+        tt = t.Ticktock([1609459234, 1609459233], dtype='TAI')
+        # Use a stable sort so doesn't change if don't have to, i.e. this
+        # will fail if the leapsecond is ignored.
+        tt.sort(kind='mergesort')
+        numpy.testing.assert_equal(
+            [1609459233, 1609459234],
+            tt.data)
+
     def test_isoformat1(self):
         """can change the iso format '%Y-%m-%dT%H:%M:%S'"""
         t1 = t.Ticktock(['2002-01-01T01:02:12', '2002-01-02T02:04:12', '2001-12-12T23:56:23'])
