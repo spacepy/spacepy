@@ -39,6 +39,8 @@ pybats
  - Updates to ram.RamSat including omnidirectional flux calculation
  - ram.PressureFile fixed for Python 3.x failures
  - rim.Iono objects now load poorly-formatted files; rim.fix_format deprecated
+time
+ - Fix handling of leapseconds before 1961.
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
