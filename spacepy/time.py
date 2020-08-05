@@ -138,18 +138,18 @@ class Ticktock(MutableSequence):
     UTC
         datetime object with UTC time
     TAI
-        Elapsed seconds since 1958/1/1 (includes leap seconds)
+        Elapsed seconds since 1958-1-1 (includes leap seconds)
     UNX
-        Elapsed seconds since 1970/1/1 ignoring leapseconds (all days have
+        Elapsed seconds since 1970-1-1 ignoring leapseconds (all days have
         86400 secs).
     JD
         Julian days elapsed
     MJD
         Modified Julian days
     RDT
-        Rata Die days elapsed since 1/1/1
+        Rata Die days elapsed since 0001-1-1
     CDF
-        CDF Epoch type: float milliseconds since 1/1/0000 ignoring leapseconds
+        CDF Epoch type: float milliseconds since 0000-1-1 ignoring leapseconds
 
     Possible output data types: All those listed above, plus:
 
@@ -848,7 +848,7 @@ class Ticktock(MutableSequence):
         """
         a.getCDF() or a.CDF
 
-        Return CDF Epoch time which is milliseconds since 01-Jan-0000 at
+        Return CDF Epoch time which is milliseconds since 0000-1-1 at
         00:00:00.000. "Year zero" is a convention chosen by NSSDC to measure
         epoch values. This date is more commonly referred to as 1 BC and is
         considered a leap year.
@@ -866,7 +866,7 @@ class Ticktock(MutableSequence):
         Returns
         =======
         out : numpy array
-            milliseconds since 01-01-0000T00:00:00 assuming no discontinuities.
+            milliseconds since 0000-01-01T00:00:00 assuming no discontinuities.
 
         Examples
         ========
@@ -996,7 +996,7 @@ class Ticktock(MutableSequence):
         Returns
         =======
         out : numpy array
-            elapsed days since 12:00 January 1, 4713 BC
+            elapsed days since 4713 BCE 01-01T12:00
 
         Examples
         ========
@@ -1029,7 +1029,7 @@ class Ticktock(MutableSequence):
         #In TAI terms, if self.TAI[0] < -11840601564.0:
         if UTCdata[0] < datetime.datetime(1582, 10, 15):
             warnings.warn("Calendar date before the switch from Julian to Gregorian\n" +
-                          "    Calendar 1582-Oct-15: Use Julian Calendar dates as input")
+                          "    Calendar 1582-10-15: Use Julian Calendar dates as input")
 
         # include offset if given
         JD = spacepy.datamodel.dmarray(np.zeros(nTAI), attrs={'dtype': 'JD'})
@@ -1093,8 +1093,8 @@ class Ticktock(MutableSequence):
         Returns
         ========
         out : numpy array
-            elapsed days since midnight, start of November 17, 1858
-            (Julian date at noon of 1858-11-17 was 2 400 000)
+            elapsed days since 1858-11-17T00:00
+            (Julian date of 1858-11-17T12:00 was 2 400 000)
 
         Examples
         ========
@@ -1120,7 +1120,7 @@ class Ticktock(MutableSequence):
         a.UNX or a.getUNX()
 
         convert dtype data into Unix Time (Posix Time)
-        seconds since 1970-Jan-1 (not counting leap seconds)
+        seconds since 1970-1-1 (not counting leap seconds)
 
         Returns ``data`` if it was provided in UNX; otherwise always
         recalculates from the current value of ``UTC``, which will be
@@ -1131,7 +1131,7 @@ class Ticktock(MutableSequence):
         Returns
         ========
         out : numpy array
-            elapsed secs since 1970/1/1 (not counting leap secs)
+            elapsed secs since 1970-1-1 (not counting leap secs)
 
         Examples
         ========
@@ -1382,7 +1382,7 @@ class Ticktock(MutableSequence):
         """
         a.GPS or a.getGPS()
 
-        return GPS epoch (0000 UT (midnight) on January 6, 1980)
+        return GPS epoch (1980-1-6T00:00 UT)
 
         Always recalculates from the current value of ``UTC``, which
         will be created if necessary.
@@ -1392,7 +1392,7 @@ class Ticktock(MutableSequence):
         Returns
         ========
             out : numpy array
-                elapsed secs since 6Jan1980 (excludes leap secs)
+                elapsed secs since 1980-1-6 (excludes leap secs)
 
         Examples
         ========
@@ -1430,7 +1430,7 @@ class Ticktock(MutableSequence):
         Returns
         =======
         out : numpy array
-            elapsed secs since 1958/1/1 (includes leap secs, i.e. all secs have equal lengths)
+            elapsed secs since 1958-1-1 (includes leap secs, i.e. all secs have equal lengths)
 
         Examples
         ========
