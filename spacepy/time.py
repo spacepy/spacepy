@@ -1086,15 +1086,7 @@ class Ticktock(MutableSequence):
         ========
         getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, geteDOY
         """
-
-        #In TAI terms, if self.TAI[0] < -11840601564.0:
-        if self.UTC[0] < datetime.datetime(1582, 10, 15):
-            warnings.warn("Calendar date before the switch from Julian to Gregorian\n"
-                          "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
-
-        MJD = self.JD - 2400000.5
-
-        self.MJD = MJD
+        self.MJD = self.JD - 2400000.5
         return self.MJD
 
     # -----------------------------------------------
