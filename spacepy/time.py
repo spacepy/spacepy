@@ -1376,8 +1376,9 @@ class Ticktock(MutableSequence):
 
         return TAI (International Atomic Time)
 
-        Always recalculates from the current value of ``UTC``, which
-        will be created if necessary.
+        Returns ``data`` if it was provided in TAI; otherwise always
+        recalculates from the current value of ``UTC``, which will be
+        created if necessary.
 
         Updates the ``TAI`` attribute.
 
@@ -1397,6 +1398,11 @@ class Ticktock(MutableSequence):
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
 
         """
+        if self.data.attrs['dtype'] == 'TAI':
+            # This should be the case from the constructor
+            self.TAI = self.data
+            return self.TAI
+
         TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
 
         leapsec = self.getleapsecs()
@@ -1439,8 +1445,8 @@ class Ticktock(MutableSequence):
         self.ISO = spacepy.datamodel.dmarray([utc.strftime(self._isofmt) for utc in self.UTC], attrs={'dtype': 'ISO'})
         for i in range(nTAI):
             if self.TAI[i] in self.TAIleaps:
-                tmptick = self.UTC[i] - datetime.timedelta(seconds=1)
-                a, b, c = tmptick.ISO[0].split(':')
+                tmpdt = self.UTC[i] - datetime.timedelta(seconds=1)
+                a, b, c = tmpdt.strftime(self._isofmt).split(':')
                 cnew = c.replace('59', '60')
                 self.ISO[i] = a + ':' + b + ':' + cnew
 
