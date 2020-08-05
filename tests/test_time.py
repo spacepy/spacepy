@@ -25,6 +25,7 @@ import warnings
 
 import numpy
 
+import spacepy
 import spacepy.time as t
 
 __all__ = ['TimeFunctionTests', 'TimeClassTests']
@@ -142,6 +143,16 @@ class TimeFunctionTests(unittest.TestCase):
         self.assertEqual(dt.replace(tzinfo=None), t.no_tzinfo(dt))
         ans = [datetime.datetime(2000, 1, 1)] * 10
         self.assertEqual(ans, t.no_tzinfo([dt] * 10))
+
+    def test_no_tzinfo_attrs(self):
+        """no_tzinfo should preserve attributes"""
+        dt = spacepy.dmarray([
+            datetime.datetime(2001, 1, 1),
+            datetime.datetime(2001, 1, 2)
+        ], attrs={'dtype': 'UTC'})
+        dt2 = t.no_tzinfo(dt)
+        self.assertEqual(
+            {'dtype': 'UTC'}, dt2.attrs)
 
     def test_leapyear(self):
         """leapyear should give known output for known input"""
