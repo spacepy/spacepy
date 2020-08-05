@@ -26,6 +26,7 @@ import warnings
 import numpy
 
 import spacepy
+import spacepy.pycdf
 import spacepy.time as t
 
 __all__ = ['TimeFunctionTests', 'TimeClassTests']
@@ -380,6 +381,21 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01', '2002-01-02'])
         expected = [6.31770624e+13, 6.31771488e+13]
         numpy.testing.assert_equal(expected, t1.CDF)
+
+    def testCDFAgainstpycdf(self):
+        """Compare CDF time to pycdf calculated time"""
+        intimes = [
+            datetime.datetime(1, 1, 1),
+            datetime.datetime(1066, 1, 2),
+            datetime.datetime(1850, 2, 3),
+            datetime.datetime(1958, 3, 4),
+            datetime.datetime(2005, 4, 5),
+            datetime.datetime(2030, 5, 6),
+        ]
+        tt = t.Ticktock(intimes)
+        expected = spacepy.pycdf.lib.v_datetime_to_epoch(intimes)
+        actual = tt.CDF
+        numpy.testing.assert_equal(expected, actual)
 
     def test_setitem(self):
         """setitem should work"""
@@ -829,6 +845,20 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual([1609459233], tt.TAI)
         self.assertEqual([1609459233], tt.getTAI())
         self.assertEqual([1609459233], tt.TAI)
+
+    def testDataPersistsCDF(self):
+        """Verify input data is returned for CDF input"""
+        # 2000-01-01 00:00:00
+        tt = t.Ticktock([63113904000000.], dtype='CDF')
+        # Calculate RDT, then munge it
+        oldrdt = tt.RDT[0]
+        tt.RDT[0] += 1
+        # But data is untouched
+        self.assertEqual([63113904000000.], tt.getCDF())
+        self.assertTrue(tt.data is tt.CDF)
+        # And if recalc RDT, it's corrected
+        tt.update_items('data')
+        self.assertEqual(oldrdt, tt.RDT[0])
 
 
 if __name__ == "__main__":
