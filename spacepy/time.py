@@ -1084,8 +1084,9 @@ class Ticktock(MutableSequence):
 
         convert dtype data into MJD (modified Julian date)
 
-        Always recalculates from the current value of ``JD``, which
-        will be created if necessary.
+        Returns ``data`` if it was provided in MJD; otherwise always
+        recalculates from the current value of ``JD`` which will be
+        created if necessary.
 
         Updates the ``MJD`` attribute.
 
@@ -1105,6 +1106,11 @@ class Ticktock(MutableSequence):
         ========
         getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, geteDOY
         """
+        if self.data.attrs['dtype'] == 'MJD':
+            # This should be the case from the constructor
+            self.MJD = self.data
+            return self.MJD
+
         self.MJD = self.JD - 2400000.5
         return self.MJD
 
