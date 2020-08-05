@@ -895,6 +895,20 @@ class TimeClassTests(unittest.TestCase):
         tt.update_items('data')
         self.assertEqual([2451544.5], tt.JD)
 
+    def testDataPersistsUNX(self):
+        """Verify input data is returned for Unix input"""
+        # 2000-01-01 00:00:00
+        tt = t.Ticktock([946684800], dtype='UNX')
+        # Calculate UTC, then munge it
+        oldutc = tt.UTC[0]
+        tt.UTC[0] = datetime.datetime(2001, 1, 1)
+        # But data is untouched
+        self.assertEqual([946684800], tt.getUNX())
+        self.assertTrue(tt.data is tt.UNX)
+        # And if recalc UTC, it's corrected
+        tt.update_items('data')
+        self.assertEqual(datetime.datetime(2000, 1, 1), tt.UTC[0])
+
 
 if __name__ == "__main__":
     unittest.main()

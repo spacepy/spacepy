@@ -1122,8 +1122,9 @@ class Ticktock(MutableSequence):
         convert dtype data into Unix Time (Posix Time)
         seconds since 1970-Jan-1 (not counting leap seconds)
 
-        Always recalculates from the current value of ``UTC``, which
-        will be created if necessary.
+        Returns ``data`` if it was provided in UNX; otherwise always
+        recalculates from the current value of ``UTC``, which will be
+        created if necessary.
 
         Updates the ``UNX`` attribute.
 
@@ -1143,6 +1144,11 @@ class Ticktock(MutableSequence):
         getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
+        if self.data.attrs['dtype'] == 'UNX':
+            # This should be the case from the constructor
+            self.UNX = self.data
+            return self.UNX
+
         UNX0 = datetime.datetime(1970, 1, 1)
         d = [utc - UNX0 for utc in self.UTC]
         UNX = [dd.days * 86400 + dd.seconds + dd.microseconds / 1.e6 for dd in d]
