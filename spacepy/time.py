@@ -853,8 +853,8 @@ class Ticktock(MutableSequence):
         converted into Julian date/times.
 
         Returns ``data`` if it was provided in CDF; otherwise always
-        recalculates from ``RDT`` and calls :meth:`getRDT` to do so,
-        updating the ``RDT`` attribute.
+        recalculates from the current value of ``RDT``, which will be
+        created if necessary.
 
         Updates the ``CDF`` attribute.
 
@@ -885,10 +885,9 @@ class Ticktock(MutableSequence):
             # This should be the case from the constructor
             self.CDF = self.data
             return self.CDF
-        RDTdata = self.getRDT()
         # RDT has 0001-01-01 as day 1, but this is day 3666
         # of CDF Epoch (since 0000-01-01 is day 0, and a leap year).
-        CDF = (RDTdata + 365) * 86400000.0
+        CDF = (self.RDT + 365) * 86400000.0
         self.CDF = CDF
         return self.CDF
 
