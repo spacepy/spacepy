@@ -246,6 +246,11 @@ class Ticktock(MutableSequence):
     _isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
 
     def __init__(self, data, dtype=None):
+
+        try:
+            _ = TAIleaps
+        except NameError:
+            _read_leaps()
         self._isofmt = Ticktock._isoformatstr['seconds']
 
         if isinstance(data, Ticktock):
@@ -1525,45 +1530,7 @@ class Ticktock(MutableSequence):
         getTAI
 
         """
-        from spacepy import DOT_FLN
-
         tup = self.UTC
-        # so you don't have to read the file every single time
-        global secs, year, mon, day, TAIleaps
-
-        try:
-            leaps = secs[0]
-
-        except:  # then we are calling this routine the 1st time
-            # load current file
-            fname = os.path.join(DOT_FLN, 'data', 'tai-utc.dat')
-            with open(fname) as fh:
-                text = fh.readlines()
-            # Some files have a "last checked" line at the top
-            if text[0].startswith('Checked'):
-                del text[0]
-
-            secs = np.zeros(len(text))
-            year = np.zeros(len(text))
-            mon = np.zeros(len(text))
-            day = np.zeros(len(text))
-
-            months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                               'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
-
-            for line, i in zip(text, np.arange(len(secs))):
-                secs[i] = int(float(line.split()[6]))  # truncate float seconds
-                year[i] = int(line.split()[0])
-                mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
-                day[i] = int(line.split()[2])
-
-            TAIleaps = np.zeros(len(secs))
-            TAItup = [''] * len(secs)
-            TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
-            for i in np.arange(len(secs)):
-                TAItup[i] = datetime.datetime(int(year[i]), int(mon[i]), int(day[i])) - TAI0 + datetime.timedelta(
-                    seconds=int(secs[i]) - 1)
-                TAIleaps[i] = TAItup[i].days * 86400 + TAItup[i].seconds + TAItup[i].microseconds / 1.e6
 
         # check if array:
         if isinstance(tup, datetime.datetime):  # not an array of objects
@@ -1951,3 +1918,45 @@ def valid_YYYYMMDD(inval):
         return True
     else:
         return False
+
+
+def _read_leaps():
+    """Read leapseconds in from spacepy tai-utc file
+
+    Populates module-global variables with leapsecond information:
+    secs, year, mon, day, TAIleaps.
+    Called on first initialization of Ticktock.
+    """
+    # Has to be here because top-level SpacePy imports time,
+    # before DOT_FLN is defined.
+    from spacepy import DOT_FLN
+    global secs, year, mon, day, TAIleaps
+    # load current file
+    fname = os.path.join(spacepy.DOT_FLN, 'data', 'tai-utc.dat')
+    with open(fname) as fh:
+        text = fh.readlines()
+    # Some files have a "last checked" line at the top
+    if text[0].startswith('Checked'):
+        del text[0]
+
+    secs = np.zeros(len(text))
+    year = np.zeros(len(text))
+    mon = np.zeros(len(text))
+    day = np.zeros(len(text))
+
+    months = np.array(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                       'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
+
+    for line, i in zip(text, np.arange(len(secs))):
+        secs[i] = int(float(line.split()[6]))  # truncate float seconds
+        year[i] = int(line.split()[0])
+        mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
+        day[i] = int(line.split()[2])
+
+    TAIleaps = np.zeros(len(secs))
+    TAItup = [''] * len(secs)
+    TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
+    for i in np.arange(len(secs)):
+        TAItup[i] = datetime.datetime(int(year[i]), int(mon[i]), int(day[i])) - TAI0 + datetime.timedelta(
+            seconds=int(secs[i]) - 1)
+        TAIleaps[i] = TAItup[i].days * 86400 + TAItup[i].seconds + TAItup[i].microseconds / 1.e6

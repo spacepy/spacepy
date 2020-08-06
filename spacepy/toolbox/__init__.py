@@ -1437,6 +1437,10 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         print("Retrieving leapseconds file ... ")
         get_url(config['leapsec_url'], leapsec_fname, progressbar,
                 cached=cached)
+        # Reload leap seconds if they've already been used.
+        if 'spacepy.time' in sys.modules\
+           and hasattr(sys.modules['spacepy.time'], 'TAIleaps'):
+            sys.modules['spacepy.time']._read_leaps()
 
     if PSDdata == True:
         print("Retrieving PSD sql database")
