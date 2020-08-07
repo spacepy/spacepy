@@ -1040,6 +1040,20 @@ class TimeClassTests(unittest.TestCase):
         tt.update_items('data')
         self.assertEqual(datetime.datetime(2000, 1, 1), tt.UTC[0])
 
+    def testDataPersistsISO(self):
+        """Input is returned (transformed) for ISO input; data is untouched."""
+        iniso = ['2010-1-1',
+                 '2011-12-31T23:59:60',
+                 '2012-2-3T23:59:42.123']
+        expected = ([
+            '2010-01-01T00:00:00',
+            '2011-12-31T23:59:60',
+            '2012-02-03T23:59:42'])
+        tt = t.Ticktock(iniso)
+        numpy.testing.assert_equal(expected, tt.ISO)
+        numpy.testing.assert_equal(iniso, tt.data)
+        numpy.testing.assert_equal(expected, tt.getISO())
+        numpy.testing.assert_equal(iniso, tt.data)
 
 
 if __name__ == "__main__":
