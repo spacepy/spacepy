@@ -559,7 +559,6 @@ class TimeClassTests(unittest.TestCase):
         self.assertTrue(result.startswith("Current ISO"))
         sys.stdout = realstdout
 
-    @unittest.expectedFailure
     def test_isoformat_input(self):
         """Supports ISO input format"""
         t1 = t.Ticktock(['2008-12-31T23:59:60', '2008-12-31T23:59:00'])
