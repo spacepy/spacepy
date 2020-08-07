@@ -289,7 +289,7 @@ class Ticktock(MutableSequence):
         except AttributeError:
             self.data.attrs['dtype'] = str(dtype_func)
         else:
-            if dtype.upper() == 'ISO': self.ISO = self.data
+            if dtype.upper() == 'ISO': self.ISO = self.getISO()
             self.update_items('data')
             if dtype.upper() == 'TAI':
                 self.TAI = self.data
@@ -1455,7 +1455,8 @@ class Ticktock(MutableSequence):
         convert dtype data into ISO string
 
         Always recalculates from the current value of ``UTC``, which
-        will be created if necessary.
+        will be created if necessary. Applies leapsecond correction
+        based on ``TAI``, also created as necessary.
 
         Updates the ``ISO`` attribute.
 
@@ -1475,6 +1476,11 @@ class Ticktock(MutableSequence):
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
+        if self.data.attrs['dtype'] == 'ISO': # Convert the string directly.
+            self.ISO = spacepy.datamodel.dmarray(
+                dtstr2iso(self.data, fmt=self._isofmt)[0],
+                attrs={'dtype': 'ISO'})
+            return self.ISO
         nTAI = len(self.data)
         self.TAI = self.getTAI()
         self.ISO = spacepy.datamodel.dmarray([utc.strftime(self._isofmt) for utc in self.UTC], attrs={'dtype': 'ISO'})
