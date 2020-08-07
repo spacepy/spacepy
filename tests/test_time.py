@@ -265,19 +265,30 @@ class TimeFunctionTests(unittest.TestCase):
         inputs = [
             '2001-01-01T23:59:59',
             '2001-01-02',
+            '2005-12-31T23:59:60',
+            '2005-12-31T23:59:60.123',
             ]
         expectediso = [
             '2001-01-01T23:59:59',
             '2001-01-02T00:00:00',
+            '2005-12-31T23:59:60',
+            '2005-12-31T23:59:60',
             ]
         expectedUTC = [
             (2001, 1, 1, 23, 59, 59),
             (2001, 1, 2),
+            (2006, 1, 1),
+            (2006, 1, 1),
             ]
         expectedUTC = [datetime.datetime(*e) for e in expectedUTC]
         actualiso, actualUTC = t.dtstr2iso(inputs)
         numpy.testing.assert_equal(expectedUTC, actualUTC)
         numpy.testing.assert_equal(expectediso, actualiso)
+        self.assertEqual(
+            ('2005-12-31T23:59:60.123000',
+             datetime.datetime(2006, 1, 1)),
+            t.dtstr2iso('2005-12-31T23:59:60.123',
+                        fmt='%Y-%m-%dT%H:%M:%S.%f'))
 
 
 class TimeClassTests(unittest.TestCase):
