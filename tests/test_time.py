@@ -282,6 +282,8 @@ class TimeFunctionTests(unittest.TestCase):
             ]
         expectedUTC = [datetime.datetime(*e) for e in expectedUTC]
         actualiso, actualUTC = t.dtstr2iso(inputs)
+        # Make sure not overwritten.
+        self.assertEqual('2005-12-31T23:59:60', inputs[-2])
         numpy.testing.assert_equal(expectedUTC, actualUTC)
         numpy.testing.assert_equal(expectediso, actualiso)
         self.assertEqual(
@@ -289,6 +291,11 @@ class TimeFunctionTests(unittest.TestCase):
              datetime.datetime(2006, 1, 1)),
             t.dtstr2iso('2005-12-31T23:59:60.123',
                         fmt='%Y-%m-%dT%H:%M:%S.%f'))
+        # Make inputs numpy (more likely to be overwritten).
+        inputs = numpy.array(inputs)
+        actualiso, actualUTC = t.dtstr2iso(inputs)
+        # Make sure not overwritten.
+        self.assertEqual('2005-12-31T23:59:60', inputs[-2])
 
 
 class TimeClassTests(unittest.TestCase):
