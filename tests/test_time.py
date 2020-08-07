@@ -260,6 +260,25 @@ class TimeFunctionTests(unittest.TestCase):
         for tst, ans in zip(filenames, ans):
             self.assertEqual(ans, t.valid_YYYYMMDD(tst))
 
+    def test_dtstr2iso(self):
+        """convert datetime string to ISO + UTC"""
+        inputs = [
+            '2001-01-01T23:59:59',
+            '2001-01-02',
+            ]
+        expectediso = [
+            '2001-01-01T23:59:59',
+            '2001-01-02T00:00:00',
+            ]
+        expectedUTC = [
+            (2001, 1, 1, 23, 59, 59),
+            (2001, 1, 2),
+            ]
+        expectedUTC = [datetime.datetime(*e) for e in expectedUTC]
+        actualiso, actualUTC = t.dtstr2iso(inputs)
+        numpy.testing.assert_equal(expectedUTC, actualUTC)
+        numpy.testing.assert_equal(expectediso, actualiso)
+
 
 class TimeClassTests(unittest.TestCase):
 
@@ -521,6 +540,14 @@ class TimeClassTests(unittest.TestCase):
         output.close()
         self.assertTrue(result.startswith("Current ISO"))
         sys.stdout = realstdout
+
+    @unittest.expectedFailure
+    def test_isoformat_input(self):
+        """Supports ISO input format"""
+        t1 = t.Ticktock(['2008-12-31T23:59:60', '2008-12-31T23:59:00'])
+        expected = [datetime.datetime(2009, 1, 1),
+                    datetime.datetime(2008, 12, 31, 23, 59)]
+        numpy.testing.assert_equal(expected, t1.UTC)
 
     def test_ISO(self):
         """converting to ISO format should work"""

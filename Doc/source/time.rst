@@ -19,6 +19,7 @@ time - Time conversion, manipulation and implementation of Ticktock class
 .. autosummary::
     :toctree: autosummary
 
+    dtstr2iso
     doy2date
     leapyear
     randomDate

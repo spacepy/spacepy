@@ -1242,22 +1242,7 @@ class Ticktock(MutableSequence):
 
         elif self.data.attrs['dtype'].upper() == 'ISO':
             self.ISO = self.data
-            data = self.data if isinstance(self.data[0], str) \
-                   else self.data.astype('S' if str is bytes else 'U')
-            # try a few special cases that are faster than dateutil.parser
-            for strfmt in ('%Y-%m-%dT%H:%M:%S',
-                           '%Y-%m-%dT%H:%M:%SZ',
-                           '%Y-%m-%d',
-                           '%Y%m%d',
-                           '%Y%m%d %H:%M:%S'):
-                try:
-                    UTC = [datetime.datetime.strptime(isot, strfmt)
-                           for isot in data]
-                    break
-                except ValueError:
-                    continue
-            else:
-                UTC = [dup.parse(isot) for isot in data]
+            _, UTC = dtstr2iso(self.data, fmt=self._isofmt)
         elif self.data.attrs['dtype'].upper() == 'TAI':
             self.TAI = self.data
             TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
@@ -1733,6 +1718,57 @@ def tickrange(start, end, deltadays, dtype=None):
         trange = [Tstart.UTC[0] + datetime.timedelta(days=deltadays) * n for n in range(nticks)]
     ticks = Ticktock(trange, 'UTC')
     return ticks
+
+
+def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
+    """Convert a datetime string to a standard format
+
+    Attempts to maintain leap second representation while converting
+    time strings to the specified format (by default, ISO8601-like.)
+
+    The output sequence type is not necessarily the same as the input
+    sequence type (e.g. list, ndarray).
+
+    Parameters
+    ==========
+    dtstr : sequence of str
+        Date + time representation, format is fairly open.
+
+    Returns
+    =======
+    isostr : sequence of str
+        Representation of `dtstr` formatted according to `fmt`.
+        Always a new sequence even if contents are identical to ``dtstr``.
+    UTC : sequence of datetime.datetime
+        The closest-possible rendering of UTC time corresponding to `dtstr`.
+
+    Other Parameters
+    ================
+    fmt : str, optional
+        Format appropriate for :meth:`~datetime.datetime.strftime` for
+        rendering the output time.
+    """
+    dtstr = dtstr if isinstance(dtstr[0], str) \
+           else dtstr.astype('S' if str is bytes else 'U')
+    # try a few special cases that are faster than dateutil.parser
+    strfmts = ['%Y-%m-%dT%H:%M:%S',
+               '%Y-%m-%dT%H:%M:%SZ',
+               '%Y-%m-%d',
+               '%Y%m%d',
+               '%Y%m%d %H:%M:%S']
+    if fmt not in strfmts:
+        strfmts.insert(0, fmt)
+    for strfmt in strfmts:
+        try:
+            UTC = [datetime.datetime.strptime(isot, strfmt)
+                   for isot in dtstr]
+            break
+        except ValueError:
+            continue
+    else:
+        UTC = [dup.parse(isot) for isot in dtstr]
+    isostr = [u.strftime(fmt) for u in UTC]
+    return isostr, UTC
 
 
 def sec2hms(sec, rounding=True, days=False, dtobj=False):
