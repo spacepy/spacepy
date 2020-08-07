@@ -1725,9 +1725,12 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
 
     Attempts to maintain leap second representation while converting
     time strings to the specified format (by default, ISO8601-like.)
+    Only handles a single positive leap second; negative leap seconds
+    require no special handling and policy is for UTC-UT1 not to
+    exceed 0.9.
 
-    The output sequence type is not necessarily the same as the input
-    sequence type (e.g. list, ndarray).
+    This does not check that the provided time actually was in a leap
+    second.
 
     Parameters
     ==========
@@ -1736,10 +1739,10 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
 
     Returns
     =======
-    isostr : sequence of str
+    isostr : array of str
         Representation of `dtstr` formatted according to `fmt`.
         Always a new sequence even if contents are identical to ``dtstr``.
-    UTC : sequence of datetime.datetime
+    UTC : array of datetime.datetime
         The closest-possible rendering of UTC time corresponding to `dtstr`.
 
     Other Parameters
@@ -1748,8 +1751,29 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         Format appropriate for :meth:`~datetime.datetime.strftime` for
         rendering the output time.
     """
-    dtstr = dtstr if isinstance(dtstr[0], str) \
-           else dtstr.astype('S' if str is bytes else 'U')
+    dtstr = np.asanyarray(dtstr)
+    dtstr = np.require(dtstr, dtype='S' if str is bytes else 'U')
+    # Replace leapsecond with a valid "59"
+    # Indices of every place that might be leap second
+    # Leap second is sec==60, must come at LEAST after YYMMDDHHMM, if
+    # being very terse, but this still will avoid YYYY-060
+    leapidx = np.transpose(np.nonzero(np.char.rfind(dtstr, '60') >= 10))
+    # Add offset to datetime value to get actual UTC,
+    # in integer microseconds.
+    offset = np.zeros(shape=dtstr.shape, dtype=np.uint32)
+    for idx in leapidx: # Should be short list, so loop it
+        # Get the index to scalar if necessary
+        i = tuple(idx) if dtstr.shape else ()
+        # The leap second must be preceded by at least 10 char (above),
+        # followed by either nothing or fractional seconds,
+        # preceded by 59 minutes (and optional separator)
+        # It must also not be preceded by a . (to avoid replacing
+        # 60 milliseconds with 59 milliseconds).
+        dtstr[i], count = re.subn(
+            r'^([^\.]{8,}59[^\d]?)60((?:\.\d+)?)$', '\g<1>59\g<2>', dtstr[i])
+        # Doing this subtracted one second.
+        if count:
+            offset[i] = 1e6
     # try a few special cases that are faster than dateutil.parser
     strfmts = ['%Y-%m-%dT%H:%M:%S',
                '%Y-%m-%dT%H:%M:%SZ',
@@ -1760,14 +1784,31 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         strfmts.insert(0, fmt)
     for strfmt in strfmts:
         try:
-            UTC = [datetime.datetime.strptime(isot, strfmt)
-                   for isot in dtstr]
+            UTC = np.frompyfunc(
+                lambda x: datetime.datetime.strptime(x, strfmt), 1, 1)(dtstr)
             break
         except ValueError:
             continue
     else:
-        UTC = [dup.parse(isot) for isot in dtstr]
-    isostr = [u.strftime(fmt) for u in UTC]
+        UTC = np.frompyfunc(dup.parse, 1, 1)(dtstr)
+    isostr = np.vectorize(lambda x: x.strftime(fmt),
+                          otypes=['S' if str is bytes else 'U'])(UTC)
+    #Peg all leap seconds to the next second.
+    for idx in leapidx:
+        i = tuple(idx) if dtstr.shape else ()
+        if not offset[i]:
+            continue
+        # The time string is off by one second.
+        if i == (): # Scalar input.
+            isostr = UTC.strftime(fmt.replace('%S', '60'))
+            us = UTC.microsecond
+            UTC = UTC + datetime.timedelta(microseconds=(1e6 - us))
+            offset = us
+        else:
+            isostr[i] = UTC[i].strftime(fmt.replace('%S', '60'))
+            us = UTC[i].microsecond
+            UTC[i] = UTC[i] + datetime.timedelta(microseconds=(1e6 - us))
+            offset[i] = us
     return isostr, UTC
 
 
