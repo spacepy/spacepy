@@ -1751,8 +1751,10 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         Format appropriate for :meth:`~datetime.datetime.strftime` for
         rendering the output time.
     """
-    dtstr = np.asanyarray(dtstr)
-    dtstr = np.require(dtstr, dtype='S' if str is bytes else 'U')
+    # Will be editing this, so force it to own its data.
+    ndtstr = np.require(dtstr, dtype='S' if str is bytes else 'U',
+                        requirements='O')
+    dtstr = ndtstr.copy() if ndtstr is dtstr else ndtstr
     # Replace leapsecond with a valid "59"
     # Indices of every place that might be leap second
     # Leap second is sec==60, must come at LEAST after YYMMDDHHMM, if
