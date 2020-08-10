@@ -277,8 +277,8 @@ class TimeFunctionTests(unittest.TestCase):
         expectedUTC = [
             (2001, 1, 1, 23, 59, 59),
             (2001, 1, 2),
-            (2006, 1, 1),
-            (2006, 1, 1),
+            (2005, 12, 31, 23, 59, 59, 999999),
+            (2005, 12, 31, 23, 59, 59, 999999),
             ]
         expectedUTC = [datetime.datetime(*e) for e in expectedUTC]
         actualiso, actualUTC = t.dtstr2iso(inputs)
@@ -288,7 +288,7 @@ class TimeFunctionTests(unittest.TestCase):
         numpy.testing.assert_equal(expectediso, actualiso)
         self.assertEqual(
             ('2005-12-31T23:59:60.123000',
-             datetime.datetime(2006, 1, 1)),
+             datetime.datetime(2005, 12, 31, 23, 59, 59, 999999)),
             t.dtstr2iso('2005-12-31T23:59:60.123',
                         fmt='%Y-%m-%dT%H:%M:%S.%f'))
         # Make inputs numpy (more likely to be overwritten).
@@ -307,6 +307,30 @@ class TimeClassTests(unittest.TestCase):
         tt = t.Ticktock(range_ex, 'TAI')
         ans = ['2010-09-15T10:15:13', '2010-09-15T10:23:33', '2010-09-15T10:31:53']
         numpy.testing.assert_equal(tt.ISO[0:3], ans)
+
+    def test_TAIinit_leapsecond(self):
+        """Make from TAI input across a leap second"""
+        tt = t.Ticktock([1609459234, 1609459233, 1609459232, 1609459233.1],
+                        dtype='TAI')
+        numpy.testing.assert_equal(
+            [1609459234, 1609459233, 1609459232, 1609459233.1],
+            tt.TAI)
+        numpy.testing.assert_equal(
+            [34, 33, 33, 33], tt.leaps)
+        numpy.testing.assert_equal(
+            [datetime.datetime(2009, 1, 1),
+             datetime.datetime(2008, 12, 31, 23, 59, 59, 999999),
+             datetime.datetime(2008, 12, 31, 23, 59, 59),
+             datetime.datetime(2008, 12, 31, 23, 59, 59, 999999)],
+            tt.UTC)
+        numpy.testing.assert_equal(
+            ['2009-01-01T00:00:00',
+             '2008-12-31T23:59:60',
+             '2008-12-31T23:59:59',
+             '2008-12-31T23:59:60',
+            ],
+            tt.ISO
+            )
 
     def test_initRaises(self):
         """Ticktock init has a raise or two"""
@@ -562,7 +586,7 @@ class TimeClassTests(unittest.TestCase):
     def test_isoformat_input(self):
         """Supports ISO input format"""
         t1 = t.Ticktock(['2008-12-31T23:59:60', '2008-12-31T23:59:00'])
-        expected = [datetime.datetime(2009, 1, 1),
+        expected = [datetime.datetime(2008, 12, 31, 23, 59, 59, 999999),
                     datetime.datetime(2008, 12, 31, 23, 59)]
         numpy.testing.assert_equal(expected, t1.UTC)
 
