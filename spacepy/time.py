@@ -1249,11 +1249,19 @@ class Ticktock(MutableSequence):
             UTC = [datetime.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
             # add leap seconds after UTC is created
             self.UTC = UTC
-            leapsecs = self.getleapsecs()
             for i in np.arange(nTAI):
-                self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i]))
-                tmpleaps = Ticktock(self.UTC[i]).leaps
-                if tmpleaps == leapsecs[i] - 1: self.UTC[i] = self.UTC[i] + datetime.timedelta(seconds=1)
+                # This is the index of number of seconds to subtract from
+                # "naive" UTC, not just TAI - UTC.
+                # TAI of leap second does not have a new TAI - UTC, this
+                # is because UTC seconds = 60, but need to subtract off
+                # one more to make the UTC seconds = 59 in that case, thus
+                # "flip" to next leap second count 1s earlier.
+                idx = np.searchsorted(TAIleaps, self.data[i], side='right') - 1
+                self.UTC[i] = UTC[i] - datetime.timedelta(seconds=secs[idx])
+                if int(self.data[i]) == TAIleaps[idx]:
+                    # TAI is in leap second
+                    self.UTC[i] = self.UTC[i].replace(
+                        second=59, microsecond=999999)
 
         elif self.data.attrs['dtype'].upper() == 'GPS':
             self.GPS = self.data
@@ -1485,8 +1493,11 @@ class Ticktock(MutableSequence):
         self.TAI = self.getTAI()
         self.ISO = spacepy.datamodel.dmarray([utc.strftime(self._isofmt) for utc in self.UTC], attrs={'dtype': 'ISO'})
         for i in range(nTAI):
-            if self.TAI[i] in self.TAIleaps:
-                tmpdt = self.UTC[i] - datetime.timedelta(seconds=1)
+            if int(self.TAI[i]) in TAIleaps:
+                # UTC is 23:59:59.9999, get correct number of microseconds
+                tmpdt = self.UTC[i].replace(
+                    microsecond=int((self.TAI[i] % 1) * 1e6))
+                # And fudge the second
                 a, b, c = tmpdt.strftime(self._isofmt).split(':')
                 cnew = c.replace('59', '60')
                 self.ISO[i] = a + ':' + b + ':' + cnew
@@ -1500,8 +1511,9 @@ class Ticktock(MutableSequence):
 
         retrieve leapseconds from lookup table, used in getTAI
 
-        Always recalculates from the current value of ``UTC``, which
-        will be created if necessary.
+        Always recalculates from current value of ``TAI`` if ``data``
+        is dtype ``TAI``, otherwise from the current value of ``UTC``,
+        which will be created if necessary.
 
         Updates the ``leaps`` attribute.
 
@@ -1521,6 +1533,14 @@ class Ticktock(MutableSequence):
         getTAI
 
         """
+        if self.data.attrs['dtype'] == 'TAI':
+            # TAIleaps contains the TAI which IS the leap second.
+            # The leap second count increments in the NEXT second.
+            # (TAI - UTC changes at end of leap second.)
+            # So find the latest index where the TAI-after-leap-second
+            # is less than current TAI (i.e. we are not after leap second yet).
+            idx = np.searchsorted(TAIleaps + 1, self.data, side='right') - 1
+            return secs[idx]
         tup = self.UTC
 
         # check if array:
@@ -1749,7 +1769,7 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         Representation of `dtstr` formatted according to `fmt`.
         Always a new sequence even if contents are identical to ``dtstr``.
     UTC : array of datetime.datetime
-        The closest-possible rendering of UTC time corresponding to `dtstr`.
+        The closest-possible rendering of UTC time before or equal to `dtstr`.
 
     Other Parameters
     ================
@@ -1801,7 +1821,7 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         UTC = np.frompyfunc(dup.parse, 1, 1)(dtstr)
     isostr = np.vectorize(lambda x: x.strftime(fmt),
                           otypes=['S' if str is bytes else 'U'])(UTC)
-    #Peg all leap seconds to the next second.
+    #Peg all leap seconds to the end of the previous second
     for idx in leapidx:
         i = tuple(idx) if dtstr.shape else ()
         if not offset[i]:
@@ -1810,13 +1830,13 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         if i == (): # Scalar input.
             isostr = UTC.strftime(fmt.replace('%S', '60'))
             us = UTC.microsecond
-            UTC = UTC + datetime.timedelta(microseconds=(1e6 - us))
-            offset = us
+            UTC = UTC + datetime.timedelta(microseconds=(1e6 - us - 1))
+            offset = us + 1
         else:
             isostr[i] = UTC[i].strftime(fmt.replace('%S', '60'))
             us = UTC[i].microsecond
-            UTC[i] = UTC[i] + datetime.timedelta(microseconds=(1e6 - us))
-            offset[i] = us
+            UTC[i] = UTC[i] + datetime.timedelta(microseconds=(1e6 - us - 1))
+            offset[i] = us + 1
     return isostr, UTC
 
 
