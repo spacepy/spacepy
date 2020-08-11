@@ -207,8 +207,14 @@ class Ticktock(MutableSequence):
     The relationships between parameters and how they are calculated are
     listed in the ``get`` methods and illustrated below.
 
-    .. image:: ../images/ticktock_relationships.svg
-        :target: ../_images/ticktock_relationships.svg
+    .. only:: latex
+
+        .. image:: ../images/ticktock_relationships.pdf
+
+    .. only:: html
+
+        .. image:: ../images/ticktock_relationships.svg
+            :target: ../_images/ticktock_relationships.svg
 
     Parameters
     ==========
