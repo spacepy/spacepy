@@ -41,6 +41,9 @@ pybats
  - rim.Iono objects now load poorly-formatted files; rim.fix_format deprecated
 time
  - Fix handling of leapseconds before 1961.
+ - For types that cannot represent leapseconds (e.g. UTC datetime), time
+   within the leap second is now converted to the end of the day rather
+   than the beginning of the next day.
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
