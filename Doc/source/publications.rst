@@ -14,7 +14,7 @@ Peer-reviewed papers
 --------------------
 * Jordanova, V. K., Y. Yu, J. T. Niehof, R. M. Skoug, G. D. Reeves,
   C. A. Kletzing, J. F. Fennell, and H. E. Spence (2014), Simulations
-  of inner magnetosphere dynamics with an expanded RAM‐SCB model and
+  of inner magnetosphere dynamics with an expanded RAM-SCB model and
   comparisons with Van Allen Probes observations, Geopys. Res. Lett.,
   41 (8), 2687-2695, `doi:10.1002/2014GL059533
   <https://doi.org/10.1002/2014GL059533>`_
