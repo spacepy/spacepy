@@ -3,6 +3,51 @@
 """
 Time conversion, manipulation and implementation of Ticktock class
 
+Notes
+=====
+The handling of time, in particular the conversions between representations,
+can be more complicated than it seems on the surface. This can result in
+some surprising behavior, particularly when requiring second-level accuracy and
+converting between time systems outside of the period 1972 to present.
+
+Some time systems (e.g. the UTC representation via datetime) cannot represent
+times during a leapsecond. SpacePy represents all these times as the latest
+representable time in the day, e.g.::
+
+    >>> spacepy.time.Ticktock('2008-12-31T23:59:60').UTC[0]
+    datetime.datetime(2008, 12, 31, 23, 59, 59, 999999)
+
+Conversions between continuous time representations (e.g. TAI), leap second
+aware representations (e.g. ISO timestrings), and those that ignore leap
+seconds (e.g. UTC datetime, Unix time) are well-defined between the
+introduction of the leap second system to UTC in 1972 and the present.
+For systems that cannot represent leap seconds, the leap second moment is
+considered not to exist. For example, from 23:59:59 on 2008-12-31 to 00:00:00
+on 2009-01-01 is two seconds, but only represents a one-second increment in
+Unix time. Details are also discussed in the individual time representations.
+
+UTC times more than six months in the future are not well-defined, since
+the sechedule of leap second insertion is not known in advance. SpacePy
+performs conversions assuming there are no leapseconds after those which have
+been announced by IERS.
+
+Between 1960 and 1972, UTC was defined by means of fractional leap seconds
+and a varying-length second. SpacePy treats UTC time in this period similar
+to after 1972, with a consistent second the same length of the SI second.
+It applies leap seconds wherever there is an entry in the USNO record of
+TAI-UTC, truncating fractional leap seconds to the integer. This results
+in the application of six leap seconds at the beginning of 1972.
+
+Before 1960, UTC is not defined. SpacePy assumes days of constant length
+86400 seconds, equal to the SI second. This is almost guaranteed to be wrong;
+for times well out of the space era, it is strongly recommended to work
+consistently in either a continuous time system (e.g. TAI) or a day-based
+system (e.g. JD).
+
+SpacePy assumes dates including and after 1582-10-15 to be in the Gregorian
+calendar and dates including and before 1582-10-04 to be Julian. 10-05 through
+10-14 do not exist. This change is ignored for continuously-running non leap
+second aware timebases: CDF and RDT.
 
 Examples:
 =========

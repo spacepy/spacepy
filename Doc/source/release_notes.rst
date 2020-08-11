@@ -78,7 +78,10 @@ See :doc:`dependencies` for full details.
 
 Major bugfixes
 **************
-None of note (but many minor ones).
+Time conversions between time systems before 1961 now use the proper
+number of leapseconds (0).
+
+Many minor bugfixes.
 
 Other changes
 *************
@@ -86,6 +89,14 @@ Data sources for leapsecond files and :mod:`~spacepy.omni` Qin-Denton
 files have been updated to provide current sources. If present,
 entries in the :doc:`configuration file <configuration>` will still be
 used instead.
+
+The representation of leap second intervals in time systems which
+cannot directly represent them has been changed. Formerly times such
+as 2008-12-31T23:59:60 were represented in e.g. UTC datetime as the
+the beginning of the next day, e.g. 2009-01-01T00:00:00. They are
+now represented by the last possible moment of the same day, e.g.
+2008-12-31T23:59:59.999999. See :mod:`~spacepy.time` for full
+discussion of leap seconds and other conversion considerations.
 
 0.2.1 (2019-10-02)
 ------------------
