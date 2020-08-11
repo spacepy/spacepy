@@ -1436,6 +1436,10 @@ class Ticktock(MutableSequence):
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
 
         """
+        if self.data.attrs['dtype'] == 'GPS':
+            # This should be the case from the constructor
+            self.GPS = self.data
+            return self.GPS
         GPS0 = 694656019
         self.GPS = spacepy.datamodel.dmarray(
             self.TAI - GPS0, attrs={'dtype': 'GPS'})
