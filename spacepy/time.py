@@ -35,8 +35,9 @@ Between 1960 and 1972, UTC was defined by means of fractional leap seconds
 and a varying-length second. SpacePy treats UTC time in this period similar
 to after 1972, with a consistent second the same length of the SI second.
 It applies leap seconds wherever there is an entry in the USNO record of
-TAI-UTC, truncating fractional leap seconds to the integer. This results
-in the application of six leap seconds at the beginning of 1972.
+TAI-UTC, rounding fractional total leap second countss to the integer (0.5
+rounds up). This results in the application of six leap seconds at the
+beginning of 1972.
 
 Before 1960, UTC is not defined. SpacePy assumes days of constant length
 86400 seconds, equal to the SI second. This is almost guaranteed to be wrong;
@@ -2089,7 +2090,8 @@ def _read_leaps():
                        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'])
 
     for line, i in zip(text, np.arange(len(secs))):
-        secs[i] = int(float(line.split()[6]))  # truncate float seconds
+        # Round float seconds (0.5 always rounds up.)
+        secs[i] = int(float(line.split()[6]) + 0.5)
         year[i] = int(line.split()[0])
         mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
         day[i] = int(line.split()[2])

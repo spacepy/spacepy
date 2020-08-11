@@ -95,7 +95,13 @@ cannot directly represent them has been changed. Formerly times such
 as 2008-12-31T23:59:60 were represented in e.g. UTC datetime as the
 the beginning of the next day, e.g. 2009-01-01T00:00:00. They are
 now represented by the last possible moment of the same day, e.g.
-2008-12-31T23:59:59.999999. See :mod:`~spacepy.time` for full
+2008-12-31T23:59:59.999999. Fractional leapsecond counts are now rounded
+to the integer instead of truncated; this rounding is applied to the total
+TAI - UTC quantity not the individual increments of leap seconds. E.g
+successive 0.2, 0.2, 0.2 leap seconds will result in 0, 0, and 1 new
+leap seconds.
+
+See :mod:`~spacepy.time` for full
 discussion of leap seconds and other conversion considerations.
 
 0.2.1 (2019-10-02)
