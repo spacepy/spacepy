@@ -156,15 +156,6 @@ import spacepy.datamodel
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
 
-"""
-Notes:
-Python's assert statement is a good way to catch situations that should never happen. And it can be removed by Python
-optimization when the code is trusted to be correct. Assert is not to be used in program flow.
-
-In Python, on the other hand, there is no strict distinction between debug and release mode. The interpreter features
-an "optimization flag" (-O), but currently this does not actually optimize the byte code, but only removes asserts.
-"""
-
 
 # -----------------------------------------------
 # Ticktock class
