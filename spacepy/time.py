@@ -37,7 +37,8 @@ to after 1972, with a consistent second the same length of the SI second.
 It applies leap seconds wherever there is an entry in the USNO record of
 TAI-UTC, rounding fractional total leap second countss to the integer (0.5
 rounds up). This results in the application of six leap seconds at the
-beginning of 1972.
+beginning of 1972. The discrepancy with other means of calculating TAI-UTC
+may be as much as five seconds at the end of this period.
 
 Before 1960, UTC is not defined. SpacePy assumes days of constant length
 86400 seconds, equal to the SI second. This is almost guaranteed to be wrong;
