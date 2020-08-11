@@ -780,7 +780,8 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = numpy.asarray([2452275.54166667, 2452276.5])
         numpy.testing.assert_almost_equal(t1.JD, expected)
-        t2 = t.Ticktock(datetime.datetime(1582, 10, 14))
+        t2 = t.Ticktock([datetime.datetime(1582, 10, 4),
+                         datetime.datetime(1582, 10, 15)])
         with warnings.catch_warnings(record=True) as w:
             warnings.filterwarnings(
                 'always', 'Calendar date before the switch from Julian.*',
@@ -788,7 +789,7 @@ class TimeClassTests(unittest.TestCase):
             ans = t2.JD
         self.assertEqual(1, len(w))
         self.assertEqual(UserWarning, w[0].category)
-        numpy.testing.assert_almost_equal(ans, [2299169.5])
+        numpy.testing.assert_almost_equal(ans, [2299159.5, 2299160.5,])
 
     def test_UTCHasDtype(self):
         """Conversion to UTC has dtype"""
