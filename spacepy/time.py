@@ -1412,9 +1412,9 @@ class Ticktock(MutableSequence):
         """
         a.GPS or a.getGPS()
 
-        return GPS epoch (1980-1-6T00:00 UT)
+        Return seconds since the GPS epoch (1980-1-6T00:00 UT)
 
-        Always recalculates from the current value of ``UTC``, which
+        Always recalculates from the current value of ``TAI``, which
         will be created if necessary.
 
         Updates the ``GPS`` attribute.
@@ -1422,7 +1422,8 @@ class Ticktock(MutableSequence):
         Returns
         ========
             out : numpy array
-                elapsed secs since 1980-1-6 (excludes leap secs)
+                elapsed secs since 1980-1-6. Leap seconds are counted;
+                i.e. there are no discontinuities.
 
         Examples
         ========
@@ -1435,13 +1436,9 @@ class Ticktock(MutableSequence):
         getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
 
         """
-        GPS0 = datetime.datetime(1980, 1, 6, 0, 0, 0, 0)
-        leapsec = self.getleapsecs()
-
-        GPStup = [utc - GPS0 + datetime.timedelta(seconds=int(ls)) - datetime.timedelta(seconds=19)
-                  for utc, ls in zip(self.UTC, leapsec)]
-        GPS = [gps.days * 86400 + gps.seconds + gps.microseconds / 1.e6 for gps in GPStup]
-        self.GPS = spacepy.datamodel.dmarray(GPS, attrs={'dtype': 'GPS'})  # .astype(int)
+        GPS0 = 694656019
+        self.GPS = spacepy.datamodel.dmarray(
+            self.TAI - GPS0, attrs={'dtype': 'GPS'})
         return self.GPS
 
     # -----------------------------------------------
@@ -1457,9 +1454,10 @@ class Ticktock(MutableSequence):
         is always treated as an integer, truncated (not rounded) from the
         value at the most recent leap second (or fraction thereof).
 
-        Returns ``data`` if it was provided in TAI; otherwise always
-        recalculates from the current value of ``UTC``, which will be
-        created if necessary.
+        Returns ``data`` if it was provided in TAI. Otherwise always
+        recalculates from ``data`` if it was provided in GPS, else
+        from the current value of ``UTC``, which will be created if
+        necessary.
 
         Updates the ``TAI`` attribute.
 
@@ -1483,6 +1481,10 @@ class Ticktock(MutableSequence):
             # This should be the case from the constructor
             self.TAI = self.data
             return self.TAI
+        if self.data.attrs['dtype'] == 'GPS':
+            GPS0 = 694656019
+            self.TAI = spacepy.datamodel.dmarray(
+                self.data + GPS0, attrs={'dtype': 'TAI'})
 
         TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
 
