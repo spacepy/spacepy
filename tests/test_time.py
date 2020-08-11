@@ -995,6 +995,19 @@ class TimeClassTests(unittest.TestCase):
         self.assertEqual([1609459233], tt.getTAI())
         self.assertEqual([1609459233], tt.TAI)
 
+    def testDataPersistsGPS(self):
+        """Verify that the input data is returned for GPS input"""
+        tt = t.Ticktock([0, 86400], dtype='GPS')
+        numpy.testing.assert_equal([0, 86400], tt.data)
+        self.assertTrue(tt.GPS is tt.data)
+        tt.getGPS()
+        self.assertTrue(tt.GPS is tt.data)
+        tt.getTAI()
+        tt.TAI[0] = -1
+        self.assertTrue(tt.GPS is tt.data)
+        tt.getGPS()
+        self.assertTrue(tt.GPS is tt.data)
+
     def testDataPersistsCDF(self):
         """Verify input data is returned for CDF input"""
         # 2000-01-01 00:00:00
