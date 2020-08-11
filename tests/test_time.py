@@ -817,16 +817,17 @@ class TimeClassTests(unittest.TestCase):
             datetime.datetime(1958, 1, 1),
             datetime.datetime(1960, 12, 31),
             datetime.datetime(1961, 1, 1),
+            datetime.datetime(1964, 1, 1),
             datetime.datetime(1965, 3, 1)], dtype='UTC')
         numpy.testing.assert_equal(
-            [0, 0, 1, 3], t1.getleapsecs())
+            [0, 0, 1, 3, 4], t1.getleapsecs())
 
     def test_readleapsecs(self):
         """Test that the leap second file was properly read"""
         # Tickle the system to force the globals to be read
         t.Ticktock([datetime.datetime(1958, 1, 1)]).TAI
         numpy.testing.assert_equal(
-            [1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 4, 10],
+            [1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 10],
             spacepy.time.secs[:14])
         # The date in the file (the moment after the leapsecond, i.e.
         # the first time where the TAI-UTC changes).

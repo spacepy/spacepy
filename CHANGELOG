@@ -46,6 +46,8 @@ time
  - For types that cannot represent leapseconds (e.g. UTC datetime), time
    within the leap second is now converted to the end of the day rather
    than the beginning of the next day.
+ - Fractional leapsecond counts are now rounded to the integer rather than
+   truncated.
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
