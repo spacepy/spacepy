@@ -204,6 +204,12 @@ class Ticktock(MutableSequence):
     The original input data will always be available as the ``data``
     attribute.
 
+    The relationships between parameters and how they are calculated are
+    listed in the ``get`` methods and illustrated below.
+
+    .. image:: ../images/ticktock_relationships.svg
+        :target: ../_images/ticktock_relationships.svg
+
     Parameters
     ==========
     data : array_like (int, datetime, float, string)
