@@ -1551,7 +1551,12 @@ class Ticktock(MutableSequence):
             return self.ISO
         nTAI = len(self.data)
         self.TAI = self.getTAI()
-        self.ISO = spacepy.datamodel.dmarray([utc.strftime(self._isofmt) for utc in self.UTC], attrs={'dtype': 'ISO'})
+        try:
+            iso = [utc.strftime(self._isofmt) for utc in self.UTC]
+        except ValueError: # Python before 3.3 fails on strftime before 1900.
+            iso = [utc.replace(year=1900).strftime(
+                self._isofmt.replace('%Y', str(utc.year))) for utc in self.UTC]
+        self.ISO = spacepy.datamodel.dmarray(iso, attrs={'dtype': 'ISO'})
         for i in range(nTAI):
             if int(self.TAI[i]) in TAIleaps:
                 # UTC is 23:59:59.9999, get correct number of microseconds
@@ -1879,8 +1884,13 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
             continue
     else:
         UTC = np.frompyfunc(dup.parse, 1, 1)(dtstr)
-    isostr = np.vectorize(lambda x: x.strftime(fmt),
-                          otypes=['S' if str is bytes else 'U'])(UTC)
+    otypes = ['S' if str is bytes else 'U']
+    try:
+        isostr = np.vectorize(lambda x: x.strftime(fmt), otypes=otypes)(UTC)
+    except ValueError: # Python before 3.3 fails on strftime before 1900.
+        isostr = np.vectorize(
+            lambda x: x.replace(year=1900).strftime(fmt.replace(
+                '%Y', str(x.year))), otypes=otypes)(UTC)
     #Peg all leap seconds to the end of the previous second
     for idx in leapidx:
         i = tuple(idx) if dtstr.shape else ()
