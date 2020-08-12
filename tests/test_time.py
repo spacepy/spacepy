@@ -297,6 +297,22 @@ class TimeFunctionTests(unittest.TestCase):
         # Make sure not overwritten.
         self.assertEqual('2005-12-31T23:59:60', inputs[-2])
 
+    def test_dtstr2isoearly(self):
+        """convert datetime string to ISO + UTC before 1900"""
+        inputs = ['1890-01-1', '1858-11-18',
+                  '1858-11-17', '1858-11-16',
+                  '1066-10-14',]
+        expectedUTC = [(1890, 1, 1), (1858, 11, 18),
+                       (1858, 11, 17), (1858, 11, 16),
+                       (1066, 10, 14)]
+        expectedUTC = [datetime.datetime(*e) for e in expectedUTC]
+        expectediso = ['1890-01-01T00:00:00', '1858-11-18T00:00:00',
+                       '1858-11-17T00:00:00', '1858-11-16T00:00:00',
+                       '1066-10-14T00:00:00',]
+        actualiso, actualUTC = t.dtstr2iso(inputs)
+        numpy.testing.assert_equal(expectedUTC, actualUTC)
+        numpy.testing.assert_equal(expectediso, actualiso)
+
 
 class TimeClassTests(unittest.TestCase):
 
@@ -590,6 +606,15 @@ class TimeClassTests(unittest.TestCase):
                     datetime.datetime(2008, 12, 31, 23, 59)]
         numpy.testing.assert_equal(expected, t1.UTC)
 
+    def test_isoinput_early(self):
+        """Input ISO format before 1900."""
+        t1 = t.Ticktock(['1890-01-1', '1858-11-18', '1858-11-17',
+                         '1858-11-16', '1066-10-14',])
+        expected = [(1890, 1, 1), (1858, 11, 18), (1858, 11, 17),
+                    (1858, 11, 16), (1066, 10, 14)]
+        expected = [datetime.datetime(*e) for e in expected]
+        numpy.testing.assert_equal(expected, t1.UTC)
+
     def test_ISO(self):
         """converting to ISO format should work"""
         t0 = 1663236947
@@ -608,6 +633,12 @@ class TimeClassTests(unittest.TestCase):
                '2015-06-30T23:59:59', '2015-06-30T23:59:60',
                '2015-07-01T00:00:00', '2012-06-30T23:59:60']
         numpy.testing.assert_equal(tt.ISO, ans)
+
+    def test_ISOearly(self):
+        """Converting to ISO before 1900 should work"""
+        tt = t.Ticktock([datetime.datetime(1800, 1, 1)])
+        numpy.testing.assert_equal(
+            ['1800-01-01T00:00:00'], tt.ISO)
 
     def test_DOY(self):
         """DOY conversion should work"""
