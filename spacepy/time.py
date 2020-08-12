@@ -1075,7 +1075,7 @@ class Ticktock(MutableSequence):
         # convert all types in to UTC first and call again
         UTCdata = self.UTC
 
-        #In TAI terms, if self.TAI[0] < -11840601564.0:
+        #In TAI terms, if self.TAI[0] < -11840601600.0:
         if UTCdata[0] < datetime.datetime(1582, 10, 15):
             warnings.warn("Calendar date before the switch from Julian to Gregorian\n" +
                           "    Calendar 1582-10-15: Use Julian Calendar dates as input")
@@ -1508,7 +1508,11 @@ class Ticktock(MutableSequence):
         TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in zip(self.UTC, leapsec)]
         TAI = [tai.days * 86400 + tai.seconds + tai.microseconds / 1.e6 for tai in TAItup]
 
-        self.TAI = spacepy.datamodel.dmarray(TAI, attrs={'dtype': 'TAI'})
+        TAI = spacepy.datamodel.dmarray(TAI, attrs={'dtype': 'TAI'})
+        # 1582-10-5 through 1582-10-14 do not exist, so anything
+        # before 1582-10-15 is 10 TAI days later than the naive conversion.
+        TAI[TAI < -11840601600.0] += (86400 * 10)
+        self.TAI = TAI
         return self.TAI
 
     # -----------------------------------------------

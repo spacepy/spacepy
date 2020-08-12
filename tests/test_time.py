@@ -626,7 +626,6 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         self.assertEqual(str(t1), "Ticktock( ['2002-01-01T01:00:00' '2002-01-02'], dtype=ISO)")
 
-    @unittest.expectedFailure
     def test_TAIGregorian(self):
         """Test TAI across the Gregorian-Julian change"""
         t2 = t.Ticktock([datetime.datetime(1582, 10, 15)])
