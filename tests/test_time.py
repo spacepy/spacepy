@@ -461,6 +461,157 @@ class TimeFunctionTests(unittest.TestCase):
             expected[6],
             t._days1958(inputs[6], leaps='continuous', midnight=True))
 
+    def test_days1958toTAI(self):
+        """Test fractional days since 1958 to TAI"""
+        t._read_leaps()
+        self.assertRaises(ValueError, t._days1958totai, [0.], leaps='foo')
+        expected = [
+            0.,        # 1958-01-01 00:00:00
+            43200,     # 1958-01-01 12:00:00
+            126230400, # 1961-12-31 23:59:59
+            126230401, # 1961-12-31 23:59:60
+            126230402, # 1962-01-01 00:00:00
+            126316802, # 1962-01-02 00:00:00
+            1609459232,# 2008-12-31 23:59:59
+            1609459233,# 2008-12-31 23:59:60
+            1609459234,# 2009-01-01 00:00:00
+            1609459235,# 2009-01-01 00:00:01
+            ]
+
+        inputs = [
+            -0.5,
+            0,
+            1460 + 43199. / 86401,
+            1460 + 43200. / 86401,
+            1460 + 43201. / 86401,
+            1461.5,
+            18627. + 43199. / 86401,
+            18627. + 43200. / 86401,
+            18627. + 43201. / 86401,
+            18627. + 43202. / 86401,
+            ]
+        actual = t._days1958totai(inputs, leaps='rubber')
+        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+
+        inputs = [
+            -0.5,
+            0,
+            1460 + 43199. / 86400,
+            1460 + 43199.999999 / 86400,
+            1460.5,
+            1461.5,
+            18627. + 43199. / 86400,
+            18627. + 43199.999999 / 86400,
+            18627.5,
+            18627. + 43201. / 86400,
+            ]
+        actual = t._days1958totai(inputs, leaps='drop')
+        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+
+        inputs = [
+            -0.5,
+            0,
+            1460.5,
+            1460.5 + 1. / 86400,
+            1460.5 + 2. / 86400,
+            1461.5 + 2. / 86400,
+            18627.5 + 32. / 86400,
+            18627.5 + 33. / 86400,
+            18627.5 + 34. / 86400,
+            18627.5 + 35. / 86400,
+            ]
+        actual = t._days1958totai(inputs, leaps='continuous')
+        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+
+    def test_days1958toTAI_scalar(self):
+        """Fractional days since 1958 to TAI, scalar input"""
+        t._read_leaps()
+        self.assertAlmostEqual(
+            1609459233,
+            t._days1958totai(18627. + 43200. / 86401, leaps='rubber'),
+            places=5)
+        self.assertAlmostEqual(
+            1609459233,
+            t._days1958totai(18627. + 43199.999999 / 86400, leaps='drop'),
+            places=5)
+        self.assertAlmostEqual(
+            1609459233,
+            t._days1958totai(18627.5 + 33. / 86400, leaps='continuous'),
+            places=5)
+        for handler in ('rubber', 'drop', 'continuous'):
+            self.assertEqual(
+                (), t._days1958totai(18627.5, leaps=handler).shape)
+
+    def test_days1958toTAI_midnight(self):
+        """Test fractional days since 1958, using midnight start time"""
+        t._read_leaps()
+        expected = [
+            0.,        # 1958-01-01 00:00:00
+            43200,     # 1958-01-01 12:00:00
+            126230400, # 1961-12-31 23:59:59
+            126230401, # 1961-12-31 23:59:60
+            126230402, # 1962-01-01 00:00:00
+            126316802, # 1962-01-02 00:00:00
+            1609459232,# 2008-12-31 23:59:59
+            1609459233,# 2008-12-31 23:59:60
+            1609459234,# 2009-01-01 00:00:00
+            1609459235,# 2009-01-01 00:00:01
+            ]
+
+        inputs = [
+            0.,
+            0.5,
+            1460 + 86399. / 86401,
+            1460 + 86400. / 86401,
+            1461,
+            1462,
+            18627. + 86399. / 86401,
+            18627. + 86400. / 86401,
+            18628.,
+            18628. + 1. / 86400,
+            ]
+        actual = t._days1958totai(inputs, leaps='rubber', midnight=True)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        self.assertEqual(
+            expected[6],
+            t._days1958totai(inputs[6], leaps='rubber', midnight=True))
+
+        inputs = [
+            0.,
+            0.5,
+            1460 + 86399. / 86400,
+            1460 + 86399.999999 / 86400,
+            1461,
+            1462,
+            18627. + 86399. / 86400,
+            18627. + 86399.999999 / 86400,
+            18628.,
+            18628. + 1. / 86400,
+            ]
+        actual = t._days1958totai(inputs, leaps='drop', midnight=True)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        self.assertEqual(
+            expected[6],
+            t._days1958totai(inputs[6], leaps='drop', midnight=True))
+
+        inputs = [
+            0.,
+            0.5,
+            1461,
+            1461 + 1. / 86400,
+            1461 + 2. / 86400,
+            1462 + 2. / 86400,
+            18628. + 32. / 86400,
+            18628. + 33. / 86400,
+            18628. + 34. / 86400,
+            18628. + 35. / 86400,
+            ]
+        actual = t._days1958totai(inputs, leaps='continuous', midnight=True)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        self.assertEqual(
+            expected[6],
+            t._days1958totai(inputs[6], leaps='continuous', midnight=True))
+
 
 class TimeClassTests(unittest.TestCase):
 
