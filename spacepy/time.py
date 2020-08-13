@@ -2177,7 +2177,7 @@ def _days1958(tai, leaps='rubber', midnight=False):
         next. Accepted values are:
 
         rubber
-            Consider the day to be 86401 seconds long and thus treat
+            Consider these days to be 86401 seconds long and thus treat
             each second as a slightly smaller fraction of the day,
             so that all times are represented and evently spaced within
             the day. I.e. the day is "stretched" across more seconds, by
@@ -2270,3 +2270,92 @@ def _days1958(tai, leaps='rubber', midnight=False):
     else:
         daylen = 86400
     return day + ssd / daylen
+
+
+def _days1958totai(days, leaps='rubber', midnight=False):
+    """Calculate TAI days and fractional days since 1958-01-01T12:00
+
+    Input is basically a Julian Date but baselined from the start of TAI.
+    Since it is calculated from TAI, using this as day 0 maximizes the
+    resolution of the resulting values.
+
+    Requires _read_leaps to have been executed first.
+
+    Parameters
+    ==========
+    days : sequence of float
+        Days, including fraction, relative to 1958-01-01T12:00
+
+    leaps : str, optional
+        How to treat days with leapseconds. Since the Julian Date runs
+        noon (inclusive) to noon (exclusive), this affects the back
+        half of the date with the leapsecond, and the first half of the
+        next. Accepted values are:
+
+        rubber
+            Consider these days to be 86401 seconds long and thus treat
+            each second as a slightly smaller fraction of the day,
+            so that all times are represented and evently spaced within
+            the day. I.e. the day is "stretched" across more seconds, by
+            analogy with the "rubber second" of 1960-1972. (default)
+
+        drop
+            Treate time as a flow of SI seconds that is suspended during
+            leapseconds, i.e. leapsecond time does not exist. Time during
+            leap seconds is not recovered (no output time during leaps.)
+
+        continuous
+            Treat time as a continuous flow of SI seconds with days always
+            86400 seconds long. This is the proper handling for true
+            Julian Dates, i.e. JD(TAI), as recommended by IAU General Assembly
+            XXIII, resolution B1.
+
+    Returns
+    =======
+    sequence of float
+        TAI seconds (i.e. continuous SI seconds relative to 1958-01-01T00:00)
+
+    Other parameters
+    ================
+    midnight : bool, optional
+        Start the day at midnight instead of noon. This affects the allocation
+        of leap seconds, and of course `days` are relative to 1958-01-01T00:00
+    """
+    days = np.require(days, dtype=np.float64)
+    off = 0. if midnight else 43200. # Offset from midnight
+    if leaps == 'continuous': # Very simple case.
+        return days * 86400 + off
+    elif leaps not in ('rubber', 'drop'):
+        raise ValueError('leaps handling {} not recognized.'.format(leaps))
+    # Find only those leap seconds that are really changes
+    idx = np.nonzero(np.diff(np.concatenate(([0], secs))))[0]
+    leap_dtai = TAIleaps[idx] - off # delta-TAI of start of leap second
+    taiutc = secs[idx] # TAI - UTC after leap second (same index as leap_dtai)
+    # Add fake TAI - UTC = 0 at the Big Bang
+    leap_dtai = np.concatenate(([-np.inf], leap_dtai))
+    taiutc = np.concatenate(([0], taiutc))
+    # Days with leap second. Leap second is always late in day: end
+    # of day if doing midnight-to-midnight, halfway if noon-to-noon.
+    leap_day = np.floor((leap_dtai - taiutc) / 86400)
+    # Closest leapsecond-day before record.
+    ldidx = np.searchsorted(leap_day, days) - 1
+    # All records that happen on leap second days.
+    leap_sec_day = (ldidx > 0) \
+                   & (leap_day[ldidx] <= days) \
+                   & (days < leap_day[ldidx] + 1)
+    if leaps == 'rubber':
+        daylen = np.choose(leap_sec_day, (86400., 86401.))
+    else:
+        daylen = 86400.
+    # TAI start of day. On a leap second day, LS hasn't happened yet!
+    dayint = np.floor(days)
+    daystart = dayint * 86400 + taiutc[
+        ldidx - np.require(leap_sec_day, dtype=np.integer)]
+    # Mod does wrong thing if negative.
+    ssd = (days - dayint) * daylen
+    dtai = daystart + ssd
+    if leaps == 'drop':
+        # Any times after leap-second skip need an extra second
+        dtai += np.require(leap_sec_day & (dtai >= leap_dtai[ldidx]),
+                           dtype=np.integer)
+    return dtai + off
