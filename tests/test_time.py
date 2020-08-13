@@ -1082,15 +1082,9 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(
             [(t1.UTC[i] - expected[i]).total_seconds() for i in range(len(t1))],
             0., decimal=5)
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings(
-                'always', 'Calendar date before the switch from Julian.*',
-                UserWarning, '^spacepy\\.time')
-            t2 = t.Ticktock([52275 + 1. / 24, 52276.,
-                             -320., -100841., -100840.,
-                             37300., 41316., 41317.], dtype='MJD')
-        self.assertEqual(1, len(w))
-        self.assertEqual(UserWarning, w[0].category)
+        t2 = t.Ticktock([52275 + 1. / 24, 52276.,
+                         -320., -100841., -100840.,
+                         37300., 41316., 41317.], dtype='MJD')
         expected = [(2002, 1, 1, 1), (2002, 1, 2),
                     (1858, 1, 1), (1582, 10, 4), (1582, 10, 15),
                     (1961, 1, 1), (1971, 12, 31), (1972, 1, 1)]
