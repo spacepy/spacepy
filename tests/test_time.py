@@ -387,6 +387,80 @@ class TimeFunctionTests(unittest.TestCase):
         self.assertEqual(
             18627.5 + 33. / 86400,
             t._days1958(1609459233, leaps='continuous'))
+        for handler in ('rubber', 'drop', 'continuous'):
+            self.assertEqual(
+                (), t._days1958(1609459233, leaps=handler).shape)
+
+    def test_days1958_midnight(self):
+        """Test fractional days since 1958, using midnight start time"""
+        t._read_leaps()
+        inputs = [
+            0.,        # 1958-01-01 00:00:00
+            43200,     # 1958-01-01 12:00:00
+            126230400, # 1961-12-31 23:59:59
+            126230401, # 1961-12-31 23:59:60
+            126230402, # 1962-01-01 00:00:00
+            126316802, # 1962-01-02 00:00:00
+            1609459232,# 2008-12-31 23:59:59
+            1609459233,# 2008-12-31 23:59:60
+            1609459234,# 2009-01-01 00:00:00
+            1609459235,# 2009-01-01 00:00:01
+            ]
+
+        expected = [
+            0.,
+            0.5,
+            1460 + 86399. / 86401,
+            1460 + 86400. / 86401,
+            1461,
+            1462,
+            18627. + 86399. / 86401,
+            18627. + 86400. / 86401,
+            18628.,
+            18628. + 1. / 86400,
+            ]
+        actual = t._days1958(inputs, leaps='rubber', midnight=True)
+        numpy.testing.assert_equal(expected, actual)
+        self.assertEqual(
+            expected[6],
+            t._days1958(inputs[6], leaps='rubber', midnight=True))
+
+        expected = [
+            0.,
+            0.5,
+            1460 + 86399. / 86400,
+            1460 + 86399.999999 / 86400,
+            1461,
+            1462,
+            18627. + 86399. / 86400,
+            18627. + 86399.999999 / 86400,
+            18628.,
+            18628. + 1. / 86400,
+            ]
+        actual = t._days1958(inputs, leaps='drop', midnight=True)
+        numpy.testing.assert_equal(expected, actual)
+        self.assertEqual(
+            expected[6],
+            t._days1958(inputs[6], leaps='drop', midnight=True))
+
+        expected = [
+            0.,
+            0.5,
+            1461,
+            1461 + 1. / 86400,
+            1461 + 2. / 86400,
+            1462 + 2. / 86400,
+            18628. + 32. / 86400,
+            18628. + 33. / 86400,
+            18628. + 34. / 86400,
+            18628. + 35. / 86400,
+            ]
+        actual = t._days1958(inputs, leaps='continuous', midnight=True)
+        numpy.testing.assert_equal(expected, actual)
+        self.assertEqual(
+            expected[6],
+            t._days1958(inputs[6], leaps='continuous', midnight=True))
+
 
 class TimeClassTests(unittest.TestCase):
 

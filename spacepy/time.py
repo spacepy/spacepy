@@ -2156,7 +2156,7 @@ def _read_leaps():
         TAIleaps[i] = TAItup[i].days * 86400 + TAItup[i].seconds + TAItup[i].microseconds / 1.e6
 
 
-def _days1958(tai, leaps='rubber'):
+def _days1958(tai, leaps='rubber', midnight=False):
     """Calculate days and fractional days since 1958-01-01T12:00
 
     This is basically a Julian Date but baselined from the start of TAI.
@@ -2199,12 +2199,19 @@ def _days1958(tai, leaps='rubber'):
     =======
     sequence of float
         Days, including fraction, relative to 1958-01-01T12:00
+
+    Other parameters
+    ================
+    midnight : bool, optional
+        Start the day at midnight instead of noon. This affects the allocation
+        of leap seconds, and of course days are relative to 1958-01-01T00:00
     """
-    # Shift to time-since-noon (this also makes copy), call delta-TAI
-    dtai = np.require(tai, dtype=np.float64) - 43200.
+    off = 0. if midnight else 43200. # Offset from midnight
+    # Shift to time-since-noon, if desired (also makes copy), call delta-TAI
+    dtai = np.require(tai, dtype=np.float64) - off
     # Find only those leap seconds that are really changes
     idx = np.nonzero(np.diff(np.concatenate(([0], secs))))[0]
-    leap_dtai = TAIleaps[idx] - 43200. # delta-TAI of start of leap second
+    leap_dtai = TAIleaps[idx] - off # delta-TAI of start of leap second
     taiutc = secs[idx] # TAI - UTC after leap second (same index as leap_dtai)
     # Add fake TAI - UTC = 0 at the Big Bang
     leap_dtai = np.concatenate(([-np.inf], leap_dtai))
@@ -2215,19 +2222,26 @@ def _days1958(tai, leaps='rubber'):
     elif leaps != 'continuous':
         raise ValueError('leaps handling {} not recognized.'.format(leaps))
     if leaps == 'rubber':
-        # d-TAI of the noon before and noon after each leapsecond,
+        # d-TAI of start-of-day (noon or midnight) before/after each leapsecond
         # because leapseconds always start at 23:59:60 (43200s after noon).
-        noon_before_leap = leap_dtai - 43200
-        noon_after_leap = leap_dtai + 43201
-        # Closest leapsecond-day-noon before record.
+        if midnight:
+            daystart_before_leap = leap_dtai - 86400
+            daystart_after_leap = leap_dtai + 1
+        else:
+            daystart_before_leap = leap_dtai - 43200
+            daystart_after_leap = leap_dtai + 43201
+        # Closest leapsecond-day-start before record.
         # May be greater than lidx, if near but before leapsecond
-        ldidx = np.searchsorted(noon_before_leap, dtai, side='right') - 1
+        ldidx = np.searchsorted(daystart_before_leap, dtai, side='right') - 1
         # All records that happen on leap second days.
-        leap_sec_day = (noon_before_leap[ldidx] <= dtai) \
-                       & (dtai < noon_after_leap[ldidx])
+        leap_sec_day = (daystart_before_leap[ldidx] <= dtai) \
+                       & (dtai < daystart_after_leap[ldidx])
         # Save SSD on leap second days, about to be destroyed
-        ssd_leap_sec_day = dtai[leap_sec_day] \
-                           - noon_before_leap[ldidx[leap_sec_day]]
+        if leap_sec_day.shape == (): # Scalar
+            ssd_leap_sec_day = dtai - daystart_before_leap[ldidx]
+        else:
+            ssd_leap_sec_day = dtai[leap_sec_day] \
+                               - daystart_before_leap[ldidx[leap_sec_day]]
         # Destroy leap seconds, so days always break at 86400s
         dtai -= taiutc[lidx]
     elif leaps == 'drop':
