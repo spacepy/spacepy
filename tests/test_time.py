@@ -318,6 +318,7 @@ class TimeFunctionTests(unittest.TestCase):
         t._read_leaps()
         self.assertRaises(ValueError, t._days1958, [0.], leaps='foo')
         inputs = [
+            -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
             43200,     # 1958-01-01 12:00:00
             126230400, # 1961-12-31 23:59:59
@@ -331,6 +332,7 @@ class TimeFunctionTests(unittest.TestCase):
             ]
 
         expected = [
+            -365.25,
             -0.5,
             0,
             1460 + 43199. / 86401,
@@ -346,6 +348,7 @@ class TimeFunctionTests(unittest.TestCase):
         numpy.testing.assert_equal(expected, actual)
 
         expected = [
+            -365.25,
             -0.5,
             0,
             1460 + 43199. / 86400,
@@ -361,6 +364,7 @@ class TimeFunctionTests(unittest.TestCase):
         numpy.testing.assert_equal(expected, actual)
 
         expected = [
+            -365.25,
             -0.5,
             0,
             1460.5,
@@ -395,6 +399,7 @@ class TimeFunctionTests(unittest.TestCase):
         """Test fractional days since 1958, using midnight start time"""
         t._read_leaps()
         inputs = [
+            -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
             43200,     # 1958-01-01 12:00:00
             126230400, # 1961-12-31 23:59:59
@@ -408,6 +413,7 @@ class TimeFunctionTests(unittest.TestCase):
             ]
 
         expected = [
+            -364.75,
             0.,
             0.5,
             1460 + 86399. / 86401,
@@ -422,10 +428,11 @@ class TimeFunctionTests(unittest.TestCase):
         actual = t._days1958(inputs, leaps='rubber', midnight=True)
         numpy.testing.assert_equal(expected, actual)
         self.assertEqual(
-            expected[6],
-            t._days1958(inputs[6], leaps='rubber', midnight=True))
+            expected[7],
+            t._days1958(inputs[7], leaps='rubber', midnight=True))
 
         expected = [
+            -364.75,
             0.,
             0.5,
             1460 + 86399. / 86400,
@@ -440,10 +447,11 @@ class TimeFunctionTests(unittest.TestCase):
         actual = t._days1958(inputs, leaps='drop', midnight=True)
         numpy.testing.assert_equal(expected, actual)
         self.assertEqual(
-            expected[6],
-            t._days1958(inputs[6], leaps='drop', midnight=True))
+            expected[7],
+            t._days1958(inputs[7], leaps='drop', midnight=True))
 
         expected = [
+            -364.75,
             0.,
             0.5,
             1461,
@@ -466,6 +474,7 @@ class TimeFunctionTests(unittest.TestCase):
         t._read_leaps()
         self.assertRaises(ValueError, t._days1958totai, [0.], leaps='foo')
         expected = [
+            -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
             43200,     # 1958-01-01 12:00:00
             126230400, # 1961-12-31 23:59:59
@@ -479,6 +488,7 @@ class TimeFunctionTests(unittest.TestCase):
             ]
 
         inputs = [
+            -365.25,
             -0.5,
             0,
             1460 + 43199. / 86401,
@@ -494,6 +504,7 @@ class TimeFunctionTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(expected, actual, decimal=5)
 
         inputs = [
+            -365.25,
             -0.5,
             0,
             1460 + 43199. / 86400,
@@ -509,6 +520,7 @@ class TimeFunctionTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(expected, actual, decimal=5)
 
         inputs = [
+            -365.25,
             -0.5,
             0,
             1460.5,
@@ -546,6 +558,7 @@ class TimeFunctionTests(unittest.TestCase):
         """Test fractional days since 1958, using midnight start time"""
         t._read_leaps()
         expected = [
+            -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
             43200,     # 1958-01-01 12:00:00
             126230400, # 1961-12-31 23:59:59
@@ -559,6 +572,7 @@ class TimeFunctionTests(unittest.TestCase):
             ]
 
         inputs = [
+            -364.75,
             0.,
             0.5,
             1460 + 86399. / 86401,
@@ -573,10 +587,11 @@ class TimeFunctionTests(unittest.TestCase):
         actual = t._days1958totai(inputs, leaps='rubber', midnight=True)
         numpy.testing.assert_almost_equal(expected, actual, decimal=5)
         self.assertEqual(
-            expected[6],
-            t._days1958totai(inputs[6], leaps='rubber', midnight=True))
+            expected[7],
+            t._days1958totai(inputs[7], leaps='rubber', midnight=True))
 
         inputs = [
+            -364.75,
             0.,
             0.5,
             1460 + 86399. / 86400,
@@ -591,10 +606,11 @@ class TimeFunctionTests(unittest.TestCase):
         actual = t._days1958totai(inputs, leaps='drop', midnight=True)
         numpy.testing.assert_almost_equal(expected, actual, decimal=5)
         self.assertEqual(
-            expected[6],
-            t._days1958totai(inputs[6], leaps='drop', midnight=True))
+            expected[7],
+            t._days1958totai(inputs[7], leaps='drop', midnight=True))
 
         inputs = [
+            -364.75,
             0.,
             0.5,
             1461,
@@ -609,8 +625,8 @@ class TimeFunctionTests(unittest.TestCase):
         actual = t._days1958totai(inputs, leaps='continuous', midnight=True)
         numpy.testing.assert_almost_equal(expected, actual, decimal=5)
         self.assertEqual(
-            expected[6],
-            t._days1958totai(inputs[6], leaps='continuous', midnight=True))
+            expected[7],
+            t._days1958totai(inputs[7], leaps='continuous', midnight=True))
 
 
 class TimeClassTests(unittest.TestCase):
