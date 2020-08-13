@@ -2215,16 +2215,25 @@ def _days1958(tai, leaps='rubber'):
     elif leaps == 'drop':
         # Where in a leapsecond, pin to previous second
         inleap = dtai - leap_dtai[lidx] < 1
-        dtai[inleap] = np.floor(dtai[inleap]) - .000001
-        # Already subtracted ~1sec, now associated with previous TAI - UTC
-        lidx[inleap] -= 1
+        if inleap.shape == (): # Scalar
+            if inleap:
+                dtai = np.floor(dtai) - .000001
+                lidx -= 1 # Associated with previous TAI - UTC
+        else:
+            dtai[inleap] = np.floor(dtai[inleap]) - .000001
+            # Already subtracted ~1sec, now associated with previous TAI - UTC
+            lidx[inleap] -= 1
         # Remove all of the TAI seconds that "disappeared".
         dtai -= taiutc[lidx]
     day = np.floor(dtai / 86400)
     ssd = dtai - day * 86400 # Mod does wrong thing if negative.
     if leaps == 'rubber':
         # Patch back in the SSD on leap-second days.
-        ssd[leap_sec_day] = ssd_leap_sec_day
+        if leap_sec_day.shape == (): # Scalar
+            if leap_sec_day:
+                ssd = ssd_leap_sec_day
+        else:
+            ssd[leap_sec_day] = ssd_leap_sec_day
         daylen = np.choose(leap_sec_day, (86400., 86401.))
     else:
         daylen = 86400
