@@ -398,6 +398,18 @@ class TimeFunctionTests(unittest.TestCase):
         actual = t._days1958(inputs, leaps='continuous')
         numpy.testing.assert_equal(expected, actual)
 
+    def test_days1958_scalar(self):
+        """Fractional days since 1958, scalar input"""
+        t._read_leaps()
+        self.assertEqual(
+            18627. + 43200. / 86401,
+            t._days1958(1609459233, leaps='rubber'))
+        self.assertEqual(
+            18627. + 43199.999999 / 86400,
+            t._days1958(1609459233, leaps='drop'))
+        self.assertEqual(
+            18627.5 + 33. / 86400,
+            t._days1958(1609459233, leaps='continuous'))
 
 class TimeClassTests(unittest.TestCase):
 
