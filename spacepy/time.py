@@ -2209,13 +2209,8 @@ def _days1958(tai, leaps='rubber', midnight=False):
     off = 0. if midnight else 43200. # Offset from midnight
     # Shift to time-since-noon, if desired (also makes copy), call delta-TAI
     dtai = np.require(tai, dtype=np.float64) - off
-    # Find only those leap seconds that are really changes
-    idx = np.nonzero(np.diff(np.concatenate(([0], secs))))[0]
-    leap_dtai = TAIleaps[idx] - off # delta-TAI of start of leap second
-    taiutc = secs[idx] # TAI - UTC after leap second (same index as leap_dtai)
-    # Add fake TAI - UTC = 0 at the Big Bang
-    leap_dtai = np.concatenate(([-np.inf], leap_dtai))
-    taiutc = np.concatenate(([0], taiutc))
+    leap_dtai, taiutc = _changed_leaps()
+    leap_dtai -= off # delta-TAI of start of leap second
     if leaps in ('rubber', 'drop'):
         # Index of leapsecond equal to or before each time record
         lidx = np.searchsorted(leap_dtai, dtai, side='right') - 1
@@ -2327,13 +2322,8 @@ def _days1958totai(days, leaps='rubber', midnight=False):
         return days * 86400 + off
     elif leaps not in ('rubber', 'drop'):
         raise ValueError('leaps handling {} not recognized.'.format(leaps))
-    # Find only those leap seconds that are really changes
-    idx = np.nonzero(np.diff(np.concatenate(([0], secs))))[0]
-    leap_dtai = TAIleaps[idx] - off # delta-TAI of start of leap second
-    taiutc = secs[idx] # TAI - UTC after leap second (same index as leap_dtai)
-    # Add fake TAI - UTC = 0 at the Big Bang
-    leap_dtai = np.concatenate(([-np.inf], leap_dtai))
-    taiutc = np.concatenate(([0], taiutc))
+    leap_dtai, taiutc = _changed_leaps()
+    leap_dtai -= off # delta-TAI of start of leap second
     # Days with leap second. Leap second is always late in day: end
     # of day if doing midnight-to-midnight, halfway if noon-to-noon.
     leap_day = np.floor((leap_dtai - taiutc) / 86400)
@@ -2359,3 +2349,30 @@ def _days1958totai(days, leaps='rubber', midnight=False):
         dtai += np.require(leap_sec_day & (dtai >= leap_dtai[ldidx]),
                            dtype=np.integer)
     return dtai + off
+
+
+def _changed_leaps():
+    """Find only those times where leap seconds actually changed
+
+    There are leap second records where there is no actual change
+    in leap seconds, and there isn't a record for TAI-UTC == 0; this
+    adds a record (where the TAI of the leap second time is -inf) and
+    eliminated those with no actual change.
+
+    Requires _read_leaps to have been executed first.
+
+    Returns
+    =======
+    leap_tai : sequence of float
+        TAI of the start of every leap second.
+    taiutc : sequence of float
+        TAI - UTC at the end of the leap second.
+    """
+    # Find only those leap seconds that are really changes
+    idx = np.nonzero(np.diff(np.concatenate(([0], secs))))[0]
+    leap_tai = TAIleaps[idx] # TAI of start of leap second
+    taiutc = secs[idx] # TAI - UTC after leap second (same index as leap_tai)
+    # Add fake TAI - UTC = 0 at the Big Bang
+    leap_tai = np.concatenate(([-np.inf], leap_tai))
+    taiutc = np.concatenate(([0], taiutc))
+    return leap_tai, taiutc
