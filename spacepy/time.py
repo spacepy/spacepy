@@ -2182,54 +2182,50 @@ def _days1958(tai, leaps='rubber'):
     sequence of float
         Days, including fraction, relative to 1958-01-01T12:00
     """
-    # Shift to time-since-noon (this also makes copy)
+    # Shift to time-since-noon (this also makes copy), call delta-TAI
     dtai = np.require(tai, dtype=np.float64) - 43200.
     # Find only those leap seconds that are really changes
     idx = np.nonzero(np.diff(np.concatenate(([0], secs))))[0]
     leap_dtai = TAIleaps[idx] - 43200. # delta-TAI of start of leap second
-    taiutc = secs[idx] # TAI - UTC after this leap second is over
-    # Add a fake record of TAI - UTC = 0 that starts at eternity
+    taiutc = secs[idx] # TAI - UTC after leap second (same index as leap_dtai)
+    # Add fake TAI - UTC = 0 at the Big Bang
     leap_dtai = np.concatenate(([-np.inf], leap_dtai))
     taiutc = np.concatenate(([0], taiutc))
+    if leaps in ('rubber', 'drop'):
+        # Index of leapsecond equal to or before each time record
+        lidx = np.searchsorted(leap_dtai, dtai, side='right') - 1
+    elif leaps != 'continuous':
+        raise ValueError('leaps handling {} not recognized.'.format(leaps))
     if leaps == 'rubber':
         # d-TAI of the noon before and noon after each leapsecond,
-        # because leapseconds always start at 23:59:60 (43200s after noon)
+        # because leapseconds always start at 23:59:60 (43200s after noon).
         noon_before_leap = leap_dtai - 43200
         noon_after_leap = leap_dtai + 43201
-        # Closest leapsecond-day-noon before record. This is okay
-        # because leapseconds are more than one day apart.
-        lidx = np.searchsorted(noon_before_leap, dtai, side='right') - 1
+        # Closest leapsecond-day-noon before record.
+        # May be greater than lidx, if near but before leapsecond
+        ldidx = np.searchsorted(noon_before_leap, dtai, side='right') - 1
         # All records that happen on leap second days.
-        leap_sec_day = (noon_before_leap[lidx] <= dtai) \
-                       & (dtai < noon_after_leap[lidx])
-        # SSD on leap second days, before destroy it.
+        leap_sec_day = (noon_before_leap[ldidx] <= dtai) \
+                       & (dtai < noon_after_leap[ldidx])
+        # Save SSD on leap second days, about to be destroyed
         ssd_leap_sec_day = dtai[leap_sec_day] \
-                           - noon_before_leap[lidx[leap_sec_day]]
-        # Now destroy leap seconds, so day is 86400s long
-        lidx = np.searchsorted(leap_dtai, dtai, side='right') - 1
+                           - noon_before_leap[ldidx[leap_sec_day]]
+        # Destroy leap seconds, so days always break at 86400s
         dtai -= taiutc[lidx]
-        day = np.floor(dtai / 86400)
-        ssd = dtai - day * 86400 # Mod does wrong thing if negative.
-        # Patch back in the SSD on leap-second days.
-        ssd[leap_sec_day] = ssd_leap_sec_day
-        daylen = np.choose(leap_sec_day, (86400., 86401.))
     elif leaps == 'drop':
-        # Index of leapsecond equal to or before this time.
-        lidx = np.searchsorted(leap_dtai, dtai, side='right') - 1
         # Where in a leapsecond, pin to previous second
         inleap = dtai - leap_dtai[lidx] < 1
         dtai[inleap] = np.floor(dtai[inleap]) - .000001
-        # Now associated with previous TAI - UTC
+        # Already subtracted ~1sec, now associated with previous TAI - UTC
         lidx[inleap] -= 1
-        # Remove all of the seconds that "disappear"
+        # Remove all of the TAI seconds that "disappeared".
         dtai -= taiutc[lidx]
-        day = np.floor(dtai / 86400)
-        ssd = dtai - day * 86400
-        daylen = 86400
-    elif leaps == 'continuous':
-        day = np.floor(dtai / 86400)
-        ssd = dtai - day * 86400
-        daylen = 86400
+    day = np.floor(dtai / 86400)
+    ssd = dtai - day * 86400 # Mod does wrong thing if negative.
+    if leaps == 'rubber':
+        # Patch back in the SSD on leap-second days.
+        ssd[leap_sec_day] = ssd_leap_sec_day
+        daylen = np.choose(leap_sec_day, (86400., 86401.))
     else:
-        raise ValueError('leaps handling {} not recognized.'.format(leaps))
+        daylen = 86400
     return day + ssd / daylen
