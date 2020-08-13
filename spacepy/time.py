@@ -1134,7 +1134,7 @@ class Ticktock(MutableSequence):
         convert dtype data into MJD (modified Julian date)
 
         Returns ``data`` if it was provided in MJD; otherwise always
-        recalculates from the current value of ``JD`` which will be
+        recalculates from the current value of ``TAI`` which will be
         created if necessary.
 
         Updates the ``MJD`` attribute.
@@ -1145,11 +1145,28 @@ class Ticktock(MutableSequence):
             elapsed days since 1858-11-17T00:00
             (Julian date of 1858-11-17T12:00 was 2 400 000)
 
+        Notes
+        =====
+        This is based on the UTC day, defined as JD(UTC) - 2 400 000.5,
+        per the recommendation
+        of `IAU General Assembly XXIII resolution B1
+        <https://www.iers.org/IERS/EN/Science/Recommendations/
+        resolutionB1.html>`_.
+        Julian days with leapseconds are 86401 seconds long and each second
+        is a smaller fraction of the day. Note this "stretching" is across
+        the *Julian* Day not the MJD, so it will affect the last half of
+        the MJD before the leap second and the first half of the following
+        MJD, so that MJD is always JD - 2 400 000.5 This also means that
+        the MJD following a leap second does not begin exactly at midnight.
+
         Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.MJD
         array([ 52307.5])
+        >>> a = Ticktock('2009-01-01T00:00:00', 'ISO')
+        >>> a.MJD
+        array([ 54832.00000579])
 
         See Also
         ========
@@ -1160,7 +1177,8 @@ class Ticktock(MutableSequence):
             self.MJD = self.data
             return self.MJD
 
-        self.MJD = self.JD - 2400000.5
+        # 1958-01-01T12:00 is MJD 36204.5 (days since 1858-11-17T00:00)
+        self.MJD = _days1958(self.TAI, leaps='rubber') + 36204.5
         return self.MJD
 
     # -----------------------------------------------
@@ -2161,9 +2179,9 @@ def _days1958(tai, leaps='rubber'):
         rubber
             Consider the day to be 86401 seconds long and thus treat
             each second as a slightly smaller fraction of the day,
-            so that all times are represented and evently spaced.
-            Name is by analogy with the "rubber second" of 1960-1972.
-            (default)
+            so that all times are represented and evently spaced within
+            the day. I.e. the day is "stretched" across more seconds, by
+            analogy with the "rubber second" of 1960-1972. (default)
 
         drop
             Treate time as a flow of SI seconds that is suspended during

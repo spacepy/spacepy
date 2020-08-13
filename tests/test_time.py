@@ -788,7 +788,9 @@ class TimeClassTests(unittest.TestCase):
                          '1961-1-1', '1971-12-31', '1972-1-1'])
         expected = numpy.asarray([52275.04166667, 52276.,
                                   -320., -100841., -100840.,
-                                  37300., 41316., 41317.])
+                                  37299.5 + 43201. / 86401,
+                                  41316.,
+                                  41316.5 + 43201. / 86401])
         numpy.testing.assert_almost_equal(t1.MJD, expected)
 
     @unittest.expectedFailure

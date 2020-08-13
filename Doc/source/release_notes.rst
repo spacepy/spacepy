@@ -101,6 +101,10 @@ TAI - UTC quantity not the individual increments of leap seconds. E.g
 successive 0.2, 0.2, 0.2 leap seconds will result in 0, 0, and 1 new
 leap seconds.
 
+Similarly, leap seconds are now included in the fractional day
+calculation of MJD, so MJD values around a leap second may be different
+than in previous versions of SpacePy.
+
 See :mod:`~spacepy.time` for full
 discussion of leap seconds and other conversion considerations.
 
