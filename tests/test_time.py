@@ -1101,6 +1101,18 @@ class TimeClassTests(unittest.TestCase):
         # If get MJD on a non-JD basis, should be able to directly compare.
 #        numpy.testing.assert_equal(expected, t2.UTC)
 
+    @unittest.expectedFailure
+    def testMJDTAIJulian(self):
+        """Convert between MJD and TAI around calendar reform"""
+        mjd = [-100840, -100841]
+        tai = [-11840601600.0, -11840688000.0]
+        t1 = t.Ticktock(tai, dtype='TAI')
+        numpy.testing.assert_equal(mjd, t1.MJD)
+        # The following test fails because TAI to MJD goes through UTC
+        # and the UTC-TAI conversion doesn't account for the calendar
+        t2 = t.Ticktock(mjd, dtype='MJD')
+        numpy.testing.assert_equal(tai, t2.TAI)
+
     def test_GPS(self):
         """conversions to GPS should work"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
