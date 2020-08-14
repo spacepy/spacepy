@@ -268,6 +268,7 @@ class Ticktock(MutableSequence):
         ~Ticktock.isoformat
         ~Ticktock.now
         ~Ticktock.sort
+        ~Ticktock.today
         ~Ticktock.update_items
     .. automethod:: append
     .. automethod:: argsort
@@ -287,6 +288,7 @@ class Ticktock(MutableSequence):
     .. automethod:: isoformat
     .. automethod:: now
     .. automethod:: sort
+    .. automethod:: today
     .. automethod:: update_items
 
     """
@@ -1595,39 +1597,57 @@ class Ticktock(MutableSequence):
     @classmethod
     def now(cls):
         """
-        Creates a Ticktock object with the current time, equivalent to datetime.now()
+        Create Ticktock with the current UTC time.
+
+        Equivalent to datetime.utcnow()
+
+        .. versionchanged:: 0.2.2
+            This now returns a UTC time; previously it returned a Ticktock
+            UTC object, but in the local timezone, which made all conversions
+            incorrect.
 
         Returns
         =======
-            out : ticktock
-                Ticktock object with the current time, equivalent to datetime.now()
+        out : ticktock
+            Ticktock object with the current time, equivalent to datetime.utcnow()
 
         See Also
         ========
-        datetime.datetime.now
+        datetime.datetime.now, datetime.datetime.utcnow
 
         """
-        dt = datetime.datetime.now()
+        warnings.warn('now() returns UTC time as of 0.2.2.',
+                      DeprecationWarning)
+        dt = datetime.datetime.utcnow()
         return Ticktock(dt, 'UTC')
 
     # -----------------------------------------------
     @classmethod
     def today(cls):
         """
-        Creates a Ticktock object with the current date and time set to 00:00:00, equivalent to date.today() with time
-        included
+        Create Ticktock with the current UTC date and time set to 00:00:00
+
+        Similar to date.today() with time included but in UTC and with the
+        time included (zero hours, minutes, seconds)
+
+        .. versionchanged:: 0.2.2
+            This now returns the UTC day; previously it returned a Ticktock
+            UTC object, but in the local timezone, which made all conversions
+            incorrect.
 
         Returns
         =======
             out : ticktock
-                Ticktock object with the current time, equivalent to date.today() with time included
+                Ticktock object with the current UTC day
 
         See Also
         ========
         datetime.date.today()
 
         """
-        dt = datetime.datetime.now()
+        warnings.warn('today() returns UTC day as of 0.2.2.',
+                      DeprecationWarning)
+        dt = datetime.datetime.utcnow()
         dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
         return Ticktock(dt, 'UTC')
 

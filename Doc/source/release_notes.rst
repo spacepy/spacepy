@@ -112,6 +112,10 @@ affected for dates in the modern era. Time conversions around
 leapseconds may also be different; in many cases they were undefined
 in previous versions.
 
+:meth:`~spacepy.time.Ticktock.now` and :meth:`~spacepy.time.Ticktock.today`
+return times in UTC; in previous versions the value returned was local,
+but was treated as UTC for all conversions (and thus inaccurate.)
+
 See :mod:`~spacepy.time` for full
 discussion of leap seconds and other conversion considerations.
 
