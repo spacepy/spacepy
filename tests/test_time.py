@@ -1125,17 +1125,29 @@ class TimeClassTests(unittest.TestCase):
             36205.,  #1958-01-02T00
             36205.5, #1958-01-02T12
             44244.0, #1980-01-06T00
+            54831.5 + 43199. / 86401, # 2008-12-31T23:59:59
+            54831.5 + 43200. / 86401, # 2008-12-31T23:59:60
+            54831.5 + 43201. / 86401, # 2009-01-01T00:00:00
         ]
         tai = [
             0.,         # 1958-01-01T00
             86400.,     # 1958-01-02T00
             129600.,    # 1958-01-02T12
-            694656019., #1980-01-06T00
+            694656019., # 1980-01-06T00
+            1609459232.0, # 2008-12-31T23:59:59
+            1609459233.0, # 2008-12-31T23:59:60
+            1609459234.0, # 2009-01-01T00:00:00
         ]
         t1 = t.Ticktock(tai, dtype='TAI')
-        numpy.testing.assert_equal(mjd, t1.MJD)
+        numpy.testing.assert_almost_equal(mjd, t1.MJD)
         t2 = t.Ticktock(mjd, dtype='MJD')
-        numpy.testing.assert_equal(tai, t2.TAI)
+        numpy.testing.assert_almost_equal(tai, t2.TAI, decimal=6)
+        # Round-trip a leapsecond
+        self.assertEqual(
+            1609459233.,
+            t.Ticktock(
+                t.Ticktock(1609459233., 'TAI').MJD,
+                'MJD').TAI)
 
     def test_GPS(self):
         """conversions to GPS should work"""

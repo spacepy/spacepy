@@ -47,8 +47,8 @@ time
  - Fractional leapsecond counts are now rounded to the integer rather than
    truncated.
  - Fix conversions to ISO before 1900 on Python 2.
- - Include leapseconds in MJD calculation, so the length of a second on a day
-   with leapseconds is slightly shorter but leap second times are not lost.
+ - Include leapseconds in JD/MJD calculation, so the length of a second on a
+   day with leapseconds is slightly shorter but leap second times are not lost.
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
