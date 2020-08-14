@@ -2253,8 +2253,8 @@ def _days1958totai(days, leaps='rubber', midnight=False):
         return days * 86400 + off
     elif leaps not in ('rubber', 'drop'):
         raise ValueError('leaps handling {} not recognized.'.format(leaps))
-    leap_dtai, taiutc = _changed_leaps()
-    leap_dtai -= off # delta-TAI of start of leap second
+    leap_tai, taiutc = _changed_leaps()
+    leap_dtai = leap_tai - off # delta-TAI of start of leap second
     # Days with leap second. Leap second is always late in day: end
     # of day if doing midnight-to-midnight, halfway if noon-to-noon.
     leap_day = np.floor((leap_dtai - taiutc) / 86400)
@@ -2268,18 +2268,22 @@ def _days1958totai(days, leaps='rubber', midnight=False):
         daylen = np.choose(leap_sec_day, (86400., 86401.))
     else:
         daylen = 86400.
-    # TAI start of day. On a leap second day, LS hasn't happened yet!
+    # Naive TAI at start of day (no leapsecond corrections).
     dayint = np.floor(days)
-    daystart = dayint * 86400 + taiutc[
-        ldidx - np.require(leap_sec_day, dtype=np.integer)]
-    # Mod does wrong thing if negative.
-    ssd = (days - dayint) * daylen
-    dtai = daystart + ssd
+    daystart = dayint * 86400
+    # Seconds from the start of naive day.
+    ssd = (days - dayint) * daylen # Mod does wrong thing if negative
+    # Index TAIUTC for every input. Start of day w/LS is still previous value.
+    taiutcidx = ldidx - np.require(leap_sec_day, dtype=np.integer)
+    # Keep small number adds together: ssd and leapseconds.
+    taiout = daystart + (ssd + off + taiutc[taiutcidx])
     if leaps == 'drop':
-        # Any times after leap-second skip need an extra second
-        dtai += np.require(leap_sec_day & (dtai >= leap_dtai[ldidx]),
-                           dtype=np.integer)
-    return dtai + off
+        # Any times after leap-second skip need an extra second.
+        taiutcidx += np.require(leap_sec_day & (taiout >= leap_tai[ldidx]),
+                                dtype=np.integer)
+        # Recalculate to keep small-number addition together
+        taiout = daystart + (ssd + off + taiutc[taiutcidx])
+    return taiout
 
 
 def _changed_leaps():
