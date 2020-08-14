@@ -1274,7 +1274,7 @@ class Ticktock(MutableSequence):
 
         elif self.data.attrs['dtype'].upper() == 'ISO':
             self.ISO = self.data
-            _, UTC = dtstr2iso(self.data, fmt=self._isofmt)
+            _, UTC, _ = dtstr2iso(self.data, fmt=self._isofmt)
 
         elif self.data.attrs['dtype'].upper() == 'UNX':
             self.UNX = self.data
@@ -1773,9 +1773,11 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
     =======
     isostr : array of str
         Representation of `dtstr` formatted according to `fmt`.
-        Always a new sequence even if contents are identical to ``dtstr``.
+        Always a new sequence even if contents are identical to `dtstr`.
     UTC : array of datetime.datetime
         The closest-possible rendering of UTC time before or equal to `dtstr`.
+    offset : array of int
+        Amount (in microseconds) to add to `UTC` to get the real time.
 
     Other Parameters
     ================
@@ -1848,7 +1850,7 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
             us = UTC[i].microsecond
             UTC[i] = UTC[i] + datetime.timedelta(microseconds=(1e6 - us - 1))
             offset[i] = us + 1
-    return isostr, UTC
+    return isostr, UTC, offset
 
 
 def sec2hms(sec, rounding=True, days=False, dtobj=False):
