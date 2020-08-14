@@ -1276,8 +1276,6 @@ class Ticktock(MutableSequence):
                 # since those dates are Julian not Gregorian.
                 seconds=float(tait - (864000 if tait < -11840601600.0 else 0)))
                    + TAI0 for tait in self.data]
-            # add leap seconds after UTC is created
-            self.UTC = UTC
             for i in np.arange(nTAI):
                 # This is the index of number of seconds to subtract from
                 # "naive" UTC, not just TAI - UTC.
@@ -1286,23 +1284,23 @@ class Ticktock(MutableSequence):
                 # one more to make the UTC seconds = 59 in that case, thus
                 # "flip" to next leap second count 1s earlier.
                 idx = np.searchsorted(TAIleaps, self.data[i], side='right') - 1
-                self.UTC[i] = UTC[i] - datetime.timedelta(seconds=secs[idx]
+                UTC[i] = UTC[i] - datetime.timedelta(seconds=secs[idx]
                                                           if idx > 0 else 0)
                 if int(self.data[i]) == TAIleaps[idx]:
                     # TAI is in leap second
-                    self.UTC[i] = self.UTC[i].replace(
+                    UTC[i] = UTC[i].replace(
                         second=59, microsecond=999999)
 
         elif self.data.attrs['dtype'].upper() == 'GPS':
             self.GPS = self.data
             GPS0 = datetime.datetime(1980, 1, 6, 0, 0, 0, 0)
             UTC = [datetime.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
-            # add leap seconds after UTC is created
+            # Need UTC attribute to get leapsecond list.
             self.UTC = UTC
             leapsecs = self.getleapsecs()
             for i in np.arange(nTAI):
                 # there were 18 leap seconds before gps zero, need the -18 for that
-                self.UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i])) + \
+                UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i])) + \
                               datetime.timedelta(seconds=19)
 
         elif self.data.attrs['dtype'].upper() == 'UNX':
