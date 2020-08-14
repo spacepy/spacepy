@@ -195,10 +195,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_randomDate(self):
         """randomDate should give known result"""
-        try:
-            from matplotlib.dates import date2num, num2date
-        except ImportError:
-            return  # don't even do the test
         dt1 = datetime.datetime(2000, 1, 1)
         dt2 = datetime.datetime(2000, 2, 1)
         numpy.random.seed(8675309)
@@ -218,7 +214,14 @@ class TimeFunctionTests(unittest.TestCase):
         #TODO: improve testing for randomDate
         numpy.testing.assert_array_equal(ans, res)
         # check the exception
-        dt11 = num2date(date2num(dt1))
+        class junktzinfo(datetime.tzinfo):
+            def utcoffset(self, dt):
+                return 0
+            def dst(self, dt):
+                return 0
+            def tzname(self, dt):
+                return 'junk'
+        dt11 = dt1.replace(tzinfo=junktzinfo())
         self.assertRaises(ValueError, t.randomDate, dt11, dt2)
         ans.sort()
 

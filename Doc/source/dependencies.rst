@@ -87,7 +87,6 @@ modules may have limited functionality or fail entirely:
     * :mod:`~spacepy.pybats`
     * :mod:`~spacepy.radbelt`
     * :mod:`~spacepy.seapy`
-    * :mod:`~spacepy.time`
     * :mod:`~spacepy.toolbox`
 
 .. _dependencies_ffnet:
@@ -301,15 +300,6 @@ unaffected by that dependency.
      - :mod:`Entire module <spacepy.seapy>`
      -
      - * :func:`~spacepy.seapy.sea_signif`
-   * - :mod:`~spacepy.time`
-     -
-     -
-     -
-     -
-     - * ``RDT`` support in :class:`~spacepy.time.Ticktock`
-       * :meth:`~spacepy.time.Ticktock.sort`
-     -
-     -
    * - :mod:`~spacepy.toolbox`
      -
      -

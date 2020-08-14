@@ -54,6 +54,7 @@ time
    precision. Time conversions around leapseconds may also be different;
    in many cases they were undefined in previous versions.
  - now and today return UTC times, not local.
+ - matplotlib no longer required, including RDT and randomDate.
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
