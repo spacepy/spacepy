@@ -1192,7 +1192,7 @@ class Ticktock(MutableSequence):
         it assumes Gregorian calendar infinitely into the past.
 
         Returns ``data`` if it was provided in RDT; otherwise always
-        recalculates from the current value of ``UTC``, which will be
+        recalculates from the current value of ``TAI``, which will be
         created if necessary.
 
         Updates the ``RDT`` attribute.
@@ -1218,16 +1218,14 @@ class Ticktock(MutableSequence):
             self.RDT = self.data
             return self.RDT
 
-        from matplotlib.dates import date2num
+        # RDT date at 1958-1-1T00
+        RDTTAI0 = 714780.0
+        RDT = _days1958(self.TAI, leaps='drop', midnight=True) + RDTTAI0
+        # RDT can represent 1582-10-5 through 1582-10-14, which do not exist.
+        # So everything before 1582-10-15 (RDT day 563126) is ten days earlier.
+        RDT[RDT < 563126.0] -= 10
 
-        # This is how to do this without date2num
-        # nTAI = len(self.data)
-        # RDT = np.zeros(nTAI)
-        # for i in np.arange(nTAI):
-        # RDT[i] = UTC[i].toordinal() + UTC[i].hour/24. + UTC[i].minute/1440. + \
-        # UTC[i].second/86400. + UTC[i].microsecond/86400000000.
-
-        self.RDT = spacepy.datamodel.dmarray(date2num(self.UTC), attrs={'dtype': 'RDT'})
+        self.RDT = spacepy.datamodel.dmarray(RDT, attrs={'dtype': 'RDT'})
         return self.RDT
 
     # -----------------------------------------------
