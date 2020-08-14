@@ -17,6 +17,7 @@ import datetime
 import unittest
 import warnings
 
+import matplotlib.dates
 import matplotlib.pyplot as plt
 import numpy
 import numpy.testing
@@ -41,8 +42,8 @@ class PlotUtilFunctionTests(unittest.TestCase):
         fig.savefig(fp, format='png')
         fp.close()
         # should not have moved the ticks
-        real_ans = numpy.array([ 730882.,  730883.,  730884.,  730885.,  730886.,  730887.,
-        730888.])
+        real_ans = matplotlib.dates.date2num([
+            datetime.datetime(2002, 2, i) for i in range (1, 8)])
         numpy.testing.assert_almost_equal(real_ans, ax.get_xticks())
         # should have named them 01 Feb, 02 Feb etc
         try:
