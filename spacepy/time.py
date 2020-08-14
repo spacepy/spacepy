@@ -677,7 +677,9 @@ class Ticktock(MutableSequence):
 
 
         """
-        assert name in Ticktock._keylist, "data type " + str(name) + " not provided, only " + str(Ticktock._keylist)
+        if name not in Ticktock._keylist:
+            raise AttributeError("data type {} not provided, only {}".format(
+                str(name), str(Ticktock._keylist)))
         if name.upper() == 'TAI': self.TAI = self.getTAI()
         if name.upper() == 'UTC': self.UTC = self.getUTC()
         if name.upper() == 'ISO': self.ISO = self.getISO()
