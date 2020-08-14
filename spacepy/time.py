@@ -1821,7 +1821,10 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
     # Indices of every place that might be leap second
     # Leap second is sec==60, must come at LEAST after YYMMDDHHMM, if
     # being very terse, but this still will avoid YYYY-060
-    leapidx = np.transpose(np.nonzero(np.char.rfind(dtstr, '60') >= 10))
+    lsidx = np.char.rfind(dtstr, '60') >= 10
+    if lsidx.shape == ():
+        lsidx = lsidx.reshape((1,)) #atleast1d is only in new numpy
+    leapidx = np.transpose(np.nonzero(lsidx))
     # Add offset to datetime value to get actual UTC,
     # in integer microseconds.
     offset = np.zeros(shape=dtstr.shape, dtype=np.uint32)
