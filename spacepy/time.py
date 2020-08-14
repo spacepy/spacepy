@@ -140,7 +140,6 @@ try:
 except ImportError:
     from collections import Callable, MutableSequence
 import datetime
-import decimal
 
 try:
     from itertools import izip as zip
@@ -1035,10 +1034,9 @@ class Ticktock(MutableSequence):
 
         convert dtype data into Julian Date (JD)
 
-
         Returns ``data`` if it was provided in JD; otherwise always
-        recalculates from the current value of ``UTC`` (thus is
-        not leap-second aware), which will be created if necessary.
+        recalculates from the current value of ``TAI``, which will be
+        created if necessary.
 
         Updates the ``JD`` attribute.
 
@@ -1046,6 +1044,17 @@ class Ticktock(MutableSequence):
         =======
         out : numpy array
             elapsed days since 4713 BCE 01-01T12:00
+
+        Notes
+        =====
+        This is based on the UTC day, defined as JD(UTC) - 2 400 000.5,
+        per the recommendation
+        of `IAU General Assembly XXIII resolution B1
+        <https://www.iers.org/IERS/EN/Science/Recommendations/
+        resolutionB1.html>`_.
+        Julian days with leapseconds are 86401 seconds long and each second
+        is a smaller fraction of the day. Note this "stretching" is across
+        the *Julian* Day, noon to noon.
 
         Examples
         ========
@@ -1069,61 +1078,9 @@ class Ticktock(MutableSequence):
             # This should be the case from the constructor
             self.JD = self.data
             return self.JD
-
-        nTAI = len(self.data)
-
-        # convert all types in to UTC first and call again
-        UTCdata = self.UTC
-
-        #In TAI terms, if self.TAI[0] < -11840601600.0:
-        if UTCdata[0] < datetime.datetime(1582, 10, 15):
-            warnings.warn("Calendar date before the switch from Julian to Gregorian\n" +
-                          "    Calendar 1582-10-15: Use Julian Calendar dates as input")
-
-        # include offset if given
-        JD = spacepy.datamodel.dmarray(np.zeros(nTAI), attrs={'dtype': 'JD'})
-
-        twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
-        sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
-
-        for i in np.arange(nTAI):
-            offset = UTCdata[i].utcoffset()
-            if offset:
-                UTCdata[i] = UTCdata[i] - offset
-
-            # extract year, month, day
-            Y = UTCdata[i].year
-            M = UTCdata[i].month
-            D = UTCdata[i].day
-
-            # the following is from Wikipedia (but is wrong by 2 days)
-            # JDN = D-32075+1461*(Y+4800+(M-14)/12)/4+367*(M-2-(M-14)/12*12)/12-3*((Y+4900+(M-14)/12)/100)/4
-            # JD = JDN + (data.hour-12)/24. + data.minute/1440. + data.second/86400.
-
-            # following Press, "Numerical Recipes", Fct: JULDAY, p. 10
-            igreg = 15 + 31 * (10 + 12 * 1582)
-            if M > 2:
-                JY = Y
-                JM = M + 1
-            else:
-                JY = Y - 1
-                JM = M + 13
-            JD[i] = int(365.25 * JY) + int(30.6001 * JM) + D + 1720995
-            c_val = (D + 31 * (M + 12 * Y))
-            if c_val >= igreg:  # yes if date after the Gregorian Switch in 1582-Oct-15
-                JA = int(0.01 * JY)
-                JD[i] = JD[i] + 2 - JA + int(0.25 * JA)
-
-            # add this to num.recipes to get fractional days
-            # twelve, twofour, mind = decimal.Decimal('12.0'), decimal.Decimal('24.0'), decimal.Decimal('1440.0')
-            # sind, usind = decimal.Decimal('86400.0'), decimal.Decimal('86400000000.0')
-            JD[i] = decimal.Decimal(str(JD[i])) + (decimal.Decimal(UTCdata[i].hour) - twelve) / twofour + \
-                    decimal.Decimal(str(UTCdata[i].minute / 1440.)) + (decimal.Decimal(UTCdata[i].second) / sind) + \
-                    (decimal.Decimal(UTCdata[i].microsecond) / usind)
-            # JD[i] = JD[i] + (UTCdata[i].hour-12)/24. + UTCdata[i].minute/1440. + \
-            # UTCdata[i].second/86400. + UTCdata[i].microsecond/86400000000.
-
-        self.JD = JD
+        # 1958-01-01T12:00 is JD 2436205.0
+        JDofTAI0 = 2436205.0 # Days-since-1958 is relative to noon
+        self.JD = _days1958(self.TAI, leaps='rubber') + JDofTAI0
         return self.JD
 
     # -----------------------------------------------
@@ -1492,7 +1449,7 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in TAI, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in GPS or MJD.
+               provided in GPS, JD, or MJD.
             3. Else calculates from current value of ``UTC``, which
                will be created if necessary.
 
@@ -1528,6 +1485,13 @@ class Ticktock(MutableSequence):
             self.TAI = spacepy.datamodel.dmarray(
                 _days1958totai(
                     self.data - MJDofTAI0, leaps='rubber', midnight=False),
+                attrs={'dtype': 'TAI'})
+            return self.TAI
+        if self.data.attrs['dtype'] == 'JD':
+            JDofTAI0 = 2436205.0 # Days-since-1958 is relative to noon
+            self.TAI = spacepy.datamodel.dmarray(
+                _days1958totai(
+                    self.data - JDofTAI0, leaps='rubber', midnight=False),
                 attrs={'dtype': 'TAI'})
             return self.TAI
 
