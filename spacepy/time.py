@@ -1338,7 +1338,6 @@ class Ticktock(MutableSequence):
                 ', '.join([kk for kk in Ticktock._keylist if kk not in ['DOY', 'eDOY', 'leaps']]))
             raise TypeError('{0}\n{1}'.format(warnstr1, warnstr2))
 
-        UTC = no_tzinfo(UTC)
         self.UTC = spacepy.datamodel.dmarray(UTC, attrs={'dtype': 'UTC'})
         return self.UTC
 
