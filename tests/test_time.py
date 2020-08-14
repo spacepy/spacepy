@@ -1168,13 +1168,17 @@ class TimeClassTests(unittest.TestCase):
                 'MJD').TAI)
 
     def testRDTtofroTAI(self):
-        """Convert to and from RDT"""
+        """Convert RDT to and from TAI"""
         TAI = [
+            -61756041600.0, # 0001-01-01T00:00:00
+            -61755177600.0, # 0001-11-01T00:00:00
             1609459232.0, # 2008-12-31T23:59:59
             1609459233.0, # 2008-12-31T23:59:60
             1609459234.0, # 2009-01-01T00:00:00
             ]
         RDT = [
+            1., # 0001-01-01T00:00:00
+            11., # 0001-11-01T00:00:00
             733407. + numpy.float64(86399.) / 86400, # 2008-12-31T23:59:59
             # 2008-12-31T23:59.999999
             733407. + numpy.float64(86399.999999) / 86400,
@@ -1183,33 +1187,51 @@ class TimeClassTests(unittest.TestCase):
         tt1 = t.Ticktock(TAI, 'TAI')
         numpy.testing.assert_equal(RDT, tt1.RDT)
         # RDT can't represent the actual leapsecond, this is the closest
-        TAI[1] = 1609459232.999999
+        TAI[-2] = 1609459232.999999
         # RDT is rounded into next day (even on input), so this is
         # what is returned up to the precision available. Can
         # remove this if precision improves.
-        TAI[1] = 1609459234
+        TAI[-2] = 1609459234
         tt1 = t.Ticktock(RDT, 'RDT')
         numpy.testing.assert_almost_equal(TAI, tt1.TAI, decimal=5)
 
     def testRDTtofroUTC(self):
-        """Convert to and from RDT"""
+        """Convert RDT to and from UTC"""
         UTC = [
             (1, 1, 1),
+            (1, 1, 10),
+            (1, 1, 11),
+            (100, 1, 1),
             (1582, 10, 4),
             (1582, 10, 15),
             (1858, 11, 17),
             (1958, 1, 1),
+            (1999, 7, 1, 14),
+            (1999, 7, 1, 14, 0, 3),
+            (1999, 7, 1, 14, 3),
             (2009, 1, 1),
             ]
         UTC = [datetime.datetime(*u) for u in UTC]
         RDT = [
             1.,
+            10.,
+            11.,
+            36160.0,
             577725.,
             577736.,
             678576.,
             714780.,
+            729936.5833333334,
+            729936.5833680555,
+            729936.5854166667,
             733408.,
             ]
+        tt1 = t.Ticktock(UTC, 'UTC')
+        numpy.testing.assert_almost_equal(RDT, tt1.RDT, decimal=6)
+        tt1 = t.Ticktock(RDT, 'RDT')
+        numpy.testing.assert_almost_equal(
+            [(tt1.UTC[i] - UTC[i]).total_seconds() for i in range(len(UTC))],
+            0., decimal=5)
 
     def test_GPS(self):
         """conversions to GPS should work"""
