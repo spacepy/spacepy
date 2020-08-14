@@ -513,7 +513,7 @@ class TimeFunctionTests(unittest.TestCase):
             18627. + 43202. / 86401,
             ]
         actual = t._days1958totai(inputs, leaps='rubber')
-        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=6)
 
         inputs = [
             -365.25,
@@ -529,7 +529,7 @@ class TimeFunctionTests(unittest.TestCase):
             18627. + 43201. / 86400,
             ]
         actual = t._days1958totai(inputs, leaps='drop')
-        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=6)
 
         inputs = [
             -365.25,
@@ -545,7 +545,7 @@ class TimeFunctionTests(unittest.TestCase):
             18627.5 + 35. / 86400,
             ]
         actual = t._days1958totai(inputs, leaps='continuous')
-        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=6)
 
     def test_days1958toTAI_scalar(self):
         """Fractional days since 1958 to TAI, scalar input"""
@@ -553,15 +553,15 @@ class TimeFunctionTests(unittest.TestCase):
         self.assertAlmostEqual(
             1609459233,
             t._days1958totai(18627. + 43200. / 86401, leaps='rubber'),
-            places=5)
+            places=6)
         self.assertAlmostEqual(
-            1609459233,
+            1609459232.999999,
             t._days1958totai(18627. + 43199.999999 / 86400, leaps='drop'),
-            places=5)
+            places=6)
         self.assertAlmostEqual(
             1609459233,
             t._days1958totai(18627.5 + 33. / 86400, leaps='continuous'),
-            places=5)
+            places=6)
         for handler in ('rubber', 'drop', 'continuous'):
             self.assertEqual(
                 (), t._days1958totai(18627.5, leaps=handler).shape)
@@ -597,7 +597,7 @@ class TimeFunctionTests(unittest.TestCase):
             18628. + 1. / 86400,
             ]
         actual = t._days1958totai(inputs, leaps='rubber', midnight=True)
-        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=6)
         self.assertEqual(
             expected[7],
             t._days1958totai(inputs[7], leaps='rubber', midnight=True))
@@ -616,7 +616,7 @@ class TimeFunctionTests(unittest.TestCase):
             18628. + 1. / 86400,
             ]
         actual = t._days1958totai(inputs, leaps='drop', midnight=True)
-        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=6)
         self.assertEqual(
             expected[7],
             t._days1958totai(inputs[7], leaps='drop', midnight=True))
@@ -635,7 +635,7 @@ class TimeFunctionTests(unittest.TestCase):
             18628. + 35. / 86400,
             ]
         actual = t._days1958totai(inputs, leaps='continuous', midnight=True)
-        numpy.testing.assert_almost_equal(expected, actual, decimal=5)
+        numpy.testing.assert_almost_equal(expected, actual, decimal=6)
         self.assertEqual(
             expected[7],
             t._days1958totai(inputs[7], leaps='continuous', midnight=True))
@@ -1111,7 +1111,7 @@ class TimeClassTests(unittest.TestCase):
                     datetime.datetime(2002, 1, 2)]
         numpy.testing.assert_almost_equal(
             [(t1.UTC[i] - expected[i]).total_seconds() for i in range(len(t1))],
-            0., decimal=5)
+            0., decimal=6)
         t2 = t.Ticktock([52275 + 1. / 24, 52276.,
                          -320., -100841., -100840.,
                          37300., 41316., 41317.], dtype='MJD')
@@ -1121,7 +1121,7 @@ class TimeClassTests(unittest.TestCase):
         expected = [datetime.datetime(*e) for e in expected]
         numpy.testing.assert_almost_equal(
             [(t2.UTC[i] - expected[i]).total_seconds() for i in range(len(t1))],
-            0., decimal=5)
+            0., decimal=6)
         # If get MJD on a non-JD basis, should be able to directly compare.
 #        numpy.testing.assert_equal(expected, t2.UTC)
 
@@ -1182,7 +1182,7 @@ class TimeClassTests(unittest.TestCase):
             ]
         tt1 = t.Ticktock(TAI, 'TAI')
         numpy.testing.assert_equal(RDT, tt1.RDT)
-        # RDT can't represent this time
+        # RDT can't represent the actual leapsecond, this is the closest
         TAI[1] = 1609459232.999999
         # RDT is rounded into next day (even on input), so this is
         # what is returned up to the precision available. Can
