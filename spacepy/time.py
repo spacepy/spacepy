@@ -1237,7 +1237,14 @@ class Ticktock(MutableSequence):
 
         convert dtype data into UTC object a la datetime()
 
-        Always recalculates from ``data``, the provided input data.
+        Return value comes from (in priority order):
+
+            1. If ``data`` was provided in UTC, returns ``data``.
+            2. Else recalculates directly from ``data`` if it was
+               provided in CDF, ISO, RDT, UNX.
+            3. Else calculates from current value of ``TAI``, which
+               will be created if necessary. (``data`` is TAI, GPS,
+               JD, MJD).
 
         Updates the ``UTC`` attribute.
 
@@ -1268,40 +1275,6 @@ class Ticktock(MutableSequence):
         elif self.data.attrs['dtype'].upper() == 'ISO':
             self.ISO = self.data
             _, UTC = dtstr2iso(self.data, fmt=self._isofmt)
-        elif self.data.attrs['dtype'].upper() == 'TAI':
-            self.TAI = self.data
-            TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
-            UTC = [datetime.timedelta(
-                # Before 1582-10-15, UTC 10 days earlier than naive conversion
-                # since those dates are Julian not Gregorian.
-                seconds=float(tait - (864000 if tait < -11840601600.0 else 0)))
-                   + TAI0 for tait in self.data]
-            for i in np.arange(nTAI):
-                # This is the index of number of seconds to subtract from
-                # "naive" UTC, not just TAI - UTC.
-                # TAI of leap second does not have a new TAI - UTC, this
-                # is because UTC seconds = 60, but need to subtract off
-                # one more to make the UTC seconds = 59 in that case, thus
-                # "flip" to next leap second count 1s earlier.
-                idx = np.searchsorted(TAIleaps, self.data[i], side='right') - 1
-                UTC[i] = UTC[i] - datetime.timedelta(seconds=secs[idx]
-                                                          if idx > 0 else 0)
-                if int(self.data[i]) == TAIleaps[idx]:
-                    # TAI is in leap second
-                    UTC[i] = UTC[i].replace(
-                        second=59, microsecond=999999)
-
-        elif self.data.attrs['dtype'].upper() == 'GPS':
-            self.GPS = self.data
-            GPS0 = datetime.datetime(1980, 1, 6, 0, 0, 0, 0)
-            UTC = [datetime.timedelta(seconds=float(gpst)) + GPS0 for gpst in self.data]
-            # Need UTC attribute to get leapsecond list.
-            self.UTC = UTC
-            leapsecs = self.getleapsecs()
-            for i in np.arange(nTAI):
-                # there were 18 leap seconds before gps zero, need the -18 for that
-                UTC[i] = UTC[i] - datetime.timedelta(seconds=float(leapsecs[i])) + \
-                              datetime.timedelta(seconds=19)
 
         elif self.data.attrs['dtype'].upper() == 'UNX':
             self.UNX = self.data
@@ -1337,55 +1310,27 @@ class Ticktock(MutableSequence):
             # the following has round off errors
             # UTC[i] = datetime.timedelta(data[i]/86400000.-366) + datetime.datetime(1,1,1)
 
-        elif self.data.attrs['dtype'].upper() in ['JD', 'MJD']:
-            if self.data.attrs['dtype'].upper() == 'MJD':
-                self.JD = self.data + 2400000.5
-                self.MJD = self.data
-            else:
-                self.JD = self.data
-            UTC = [''] * nTAI
+        elif self.data.attrs['dtype'].upper() in ('TAI', 'GPS', 'JD', 'MJD'):
+            TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
+            UTC = [datetime.timedelta(
+                # Before 1582-10-15, UTC 10 days earlier than naive conversion
+                # since those dates are Julian not Gregorian.
+                seconds=float(tait - (864000 if tait < -11840601600.0 else 0)))
+                   + TAI0 for tait in self.TAI]
             for i in np.arange(nTAI):
-                # extract partial days
-                ja = int(np.floor(self.JD[i]))
-                p = self.JD[i] - np.floor(self.JD[i])
-                # after Press: "Numerical Recipes"
-                # http://www.rgagnon.com/javadetails/java-0506.html
-                # only good for after 15-Oct-1582
-                igreg = 15 + 31 * (10 + 12 * 1582)
-                if ja >= igreg:  # after switching to Gregorian Calendar
-                    jalpha = int(((ja - 1867216) - 0.25) / 36524.25)
-                    ja = ja + 1 + jalpha - jalpha // 4
-
-                jb = ja + 1524
-                jc = int(6680.0 + ((jb - 2439870) - 122.1) / 365.25)
-                jd = 365 * jc + jc // 4
-                je = int((jb - jd) / 30.6001)
-                day = jb - jd - int(30.6001 * je)
-                month = je - 1
-                if (month > 12): month = month - 12
-                year = jc - 4715
-                if (month > 2): year = year - 1
-                if (year <= 0): year = year - 1
-
-                # after http://aa.usno.navy.mil/faq/docs/JD_Formula.php
-                # also good only for after 1582-Oct-15
-                # L= JD+68569
-                # N= 4*L/146097
-                # = L-(146097*N+3)/4
-                # I= 4000*(L+1)/1461001
-                # L= L-1461*I/4+31
-                # J= 80*L/2447
-                # K= L-2447*J/80
-                # L= J/11
-                # J= J+2-12*L
-                # I= 100*(N-49)+I+L
-
-                UTC[i] = datetime.datetime(year, month, int(day)) + \
-                         datetime.timedelta(hours=12) + \
-                         datetime.timedelta(seconds=p * 86400)
-                if UTC[i] < datetime.datetime(1582, 10, 15):
-                    warnings.warn("WARNING: Calendar date before the switch from Julian to Gregorian\n" +
-                                  "Calendar 1582-Oct-15: Use Julian Calendar dates as input")
+                # This is the index of number of seconds to subtract from
+                # "naive" UTC, not just TAI - UTC.
+                # TAI of leap second does not have a new TAI - UTC, this
+                # is because UTC seconds = 60, but need to subtract off
+                # one more to make the UTC seconds = 59 in that case, thus
+                # "flip" to next leap second count 1s earlier.
+                idx = np.searchsorted(TAIleaps, self.TAI[i], side='right') - 1
+                UTC[i] = UTC[i] - datetime.timedelta(seconds=secs[idx]
+                                                          if idx > 0 else 0)
+                if int(self.data[i]) == TAIleaps[idx]:
+                    # TAI is in leap second
+                    UTC[i] = UTC[i].replace(
+                        second=59, microsecond=999999)
 
         else:
             warnstr1 = 'Input data type {0} does not support calculation of UTC times'.format(self.data.attrs['dtype'])
