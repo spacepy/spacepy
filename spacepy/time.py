@@ -1990,7 +1990,10 @@ def leapyear(year, numdays=False):
 
 def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     """
-    Return a (or many) random datetimes between two given dates, this is done under the convention dt <=1 rand < dt2
+    Return a (or many) random datetimes between two given dates
+
+    Convention used is dt1 <= rand < dt2. Leap second times will
+    not be returned.
 
     Parameters
     ==========
@@ -2016,21 +2019,15 @@ def randomDate(dt1, dt2, N=1, tzinfo=False, sorted=False):
     Examples
     ========
     """
-    from matplotlib.dates import date2num, num2date
-
     if dt1.tzinfo != dt2.tzinfo:
-        raise (ValueError('tzinfo for the input and output datetimes must match'))
-    dt1n = date2num(dt1)
-    dt2n = date2num(dt2)
-    rnd_tn = np.random.uniform(dt1n, dt2n, size=N)
-    rnd_t = num2date(rnd_tn)
-    if not tzinfo:
-        tzinfo = None
-    else:
-        tzinfo = dt1.tzinfo
-    rnd_t = np.asarray([val.replace(tzinfo=tzinfo) for val in rnd_t])
+        raise ValueError('tzinfo for the input and output datetimes must match')
+    tt = Ticktock([dt1, dt2]).RDT
+    rnd_tn = np.random.uniform(tt[0], tt[1], size=N)
+    rnd_t = Ticktock(rnd_tn, dtype='RDT')
     if sorted:
         rnd_t.sort()
+    rnd_t = np.asarray([val.replace(tzinfo=dt1.tzinfo if tzinfo else None)
+                        for val in rnd_t.UTC])
     return rnd_t
 
 
