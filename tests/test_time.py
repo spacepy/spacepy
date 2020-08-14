@@ -1034,15 +1034,16 @@ class TimeClassTests(unittest.TestCase):
                                   41316.5 + 43201. / 86401])
         numpy.testing.assert_almost_equal(t1.MJD, expected)
 
-    @unittest.expectedFailure
     def test_MJDLeapsecond(self):
         """Fractional modified Julian Day on day with leapsecond"""
         t1 = t.Ticktock([
             '1979-12-31T12:00:00',
+            '1980-01-01T00:00:00',
             '1980-01-01T12:00:00',
         ])
         expected = numpy.array([
-            44238 + 43200. / 86491,
+            44238.5, # JD starts at noon, MJD always 0.5 offset.
+            44238.5 + 43201. / 86401,
             44239.5
         ])
         numpy.testing.assert_almost_equal(t1.MJD, expected)
