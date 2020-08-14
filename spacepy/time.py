@@ -1271,7 +1271,11 @@ class Ticktock(MutableSequence):
         elif self.data.attrs['dtype'].upper() == 'TAI':
             self.TAI = self.data
             TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
-            UTC = [datetime.timedelta(seconds=float(tait)) + TAI0 for tait in self.data]
+            UTC = [datetime.timedelta(
+                # Before 1582-10-15, UTC 10 days earlier than naive conversion
+                # since those dates are Julian not Gregorian.
+                seconds=float(tait - (864000 if tait < -11840601600.0 else 0)))
+                   + TAI0 for tait in self.data]
             # add leap seconds after UTC is created
             self.UTC = UTC
             for i in np.arange(nTAI):
@@ -1282,7 +1286,8 @@ class Ticktock(MutableSequence):
                 # one more to make the UTC seconds = 59 in that case, thus
                 # "flip" to next leap second count 1s earlier.
                 idx = np.searchsorted(TAIleaps, self.data[i], side='right') - 1
-                self.UTC[i] = UTC[i] - datetime.timedelta(seconds=secs[idx])
+                self.UTC[i] = UTC[i] - datetime.timedelta(seconds=secs[idx]
+                                                          if idx > 0 else 0)
                 if int(self.data[i]) == TAIleaps[idx]:
                     # TAI is in leap second
                     self.UTC[i] = self.UTC[i].replace(

@@ -979,6 +979,18 @@ class TimeClassTests(unittest.TestCase):
         #1582-10-15 was the day after 1582-10-4
         self.assertEqual(86400, t2.TAI - t1.TAI)
 
+    def test_UTCfromTAIGregorian(self):
+        """Test figuring UTC from TAI across calendar change"""
+        tai = [
+            -11840774400.0, -11840688000.0,
+            -11840601600.0, -11840515200.0,
+            ]
+        utc = [datetime.datetime(*dt) for dt in [
+            (1582, 10, 3), (1582, 10, 4),
+            (1582, 10, 15), (1582, 10, 16)]]
+        t1 = t.Ticktock(tai, dtype='TAI')
+        numpy.testing.assert_equal(utc, t1.UTC)
+
     def test_pickle(self):
         """TickTock objects should pickle"""
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
