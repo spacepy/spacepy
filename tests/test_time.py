@@ -1175,21 +1175,21 @@ class TimeClassTests(unittest.TestCase):
             1609459234.0, # 2009-01-01T00:00:00
             ]
         RDT = [
-            733407. + 86399. / 86400, # 2008-12-31T23:59:59
-            733407. + 86399.999999 / 86400, # 2008-12-31T23:59.999999
+            733407. + numpy.float64(86399.) / 86400, # 2008-12-31T23:59:59
+            # 2008-12-31T23:59.999999
+            733407. + numpy.float64(86399.999999) / 86400,
             733408.0, # 2009-01-01T00:00:00
             ]
         tt1 = t.Ticktock(TAI, 'TAI')
         numpy.testing.assert_equal(RDT, tt1.RDT)
         # RDT can't represent this time
         TAI[1] = 1609459232.999999
-        # RDT rounds this to next second, which pushes into next day,
-        # which is 2 seconds later. So don't test for now, but
-        # try to fix later when RDT is TAI-based.
-        del TAI[1]
-        del RDT[1]
+        # RDT is rounded into next day (even on input), so this is
+        # what is returned up to the precision available. Can
+        # remove this if precision improves.
+        TAI[1] = 1609459234
         tt1 = t.Ticktock(RDT, 'RDT')
-        numpy.testing.assert_equal(TAI, tt1.TAI)
+        numpy.testing.assert_almost_equal(TAI, tt1.TAI, decimal=5)
 
     def testRDTtofroUTC(self):
         """Convert to and from RDT"""

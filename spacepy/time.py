@@ -1239,10 +1239,10 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in UTC, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in CDF, ISO, RDT, UNX.
+               provided in CDF, ISO, UNX.
             3. Else calculates from current value of ``TAI``, which
                will be created if necessary. (``data`` is TAI, GPS,
-               JD, MJD).
+               JD, MJD, RDT).
 
         Updates the ``UTC`` attribute.
 
@@ -1262,8 +1262,6 @@ class Ticktock(MutableSequence):
         getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
 
         """
-        from matplotlib.dates import num2date
-
         nTAI = len(self.data)
 
         # if already UTC, we are done, no conversion
@@ -1286,18 +1284,6 @@ class Ticktock(MutableSequence):
                 UTC = [datetime.timedelta(seconds=unxt) + UNX0
                        for unxt in self.data]
 
-        elif self.data.attrs['dtype'].upper() == 'RDT':
-            self.RDT = self.data
-            UTC = num2date(self.data)
-            UTC = no_tzinfo(UTC)
-            # for i in np.arange(nTAI):
-            # UTC[i] = datetime.datetime(1,1,1) + \
-            # datetime.timedelta(days=np.floor(self.data[i])-1) +  \
-            # datetime.timedelta(microseconds=(self.data[i] - \
-            # self.data[i])*86400000.)
-            # roundoff the microseconds
-            # UTC[i] = UTC[i] - datetime.timedelta(microseconds=UTC[i].microsecond)
-
         elif self.data.attrs['dtype'].upper() == 'CDF':
             self.CDF = self.data
             UTC = [datetime.timedelta(days=cdft / 86400000.) +
@@ -1308,7 +1294,8 @@ class Ticktock(MutableSequence):
             # the following has round off errors
             # UTC[i] = datetime.timedelta(data[i]/86400000.-366) + datetime.datetime(1,1,1)
 
-        elif self.data.attrs['dtype'].upper() in ('TAI', 'GPS', 'JD', 'MJD'):
+        elif self.data.attrs['dtype'].upper() in (
+                'TAI', 'GPS', 'JD', 'MJD', 'RDT'):
             TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
             UTC = [datetime.timedelta(
                 # Before 1582-10-15, UTC 10 days earlier than naive conversion
@@ -1394,9 +1381,9 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in TAI, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in GPS, ISO, JD, or MJD.
+               provided in GPS, ISO, JD, MJD, or RDT.
             3. Else calculates from current value of ``UTC``, which
-               will be created if necessary.
+               will be created if necessary (``data`` is CDF, UNX).
 
         Updates the ``TAI`` attribute.
 
@@ -1429,14 +1416,24 @@ class Ticktock(MutableSequence):
             MJDofTAI0 = 36204.5 # Days-since-1958 is relative to noon
             self.TAI = spacepy.datamodel.dmarray(
                 _days1958totai(
-                    self.data - MJDofTAI0, leaps='rubber', midnight=False),
+                    np.require(self.data, dtype=np.float64)
+                    - MJDofTAI0, leaps='rubber', midnight=False),
                 attrs={'dtype': 'TAI'})
             return self.TAI
         if self.data.attrs['dtype'] == 'JD':
             JDofTAI0 = 2436205.0 # Days-since-1958 is relative to noon
             self.TAI = spacepy.datamodel.dmarray(
                 _days1958totai(
-                    self.data - JDofTAI0, leaps='rubber', midnight=False),
+                    np.require(self.data, dtype=np.float64)
+                    - JDofTAI0, leaps='rubber', midnight=False),
+                attrs={'dtype': 'TAI'})
+            return self.TAI
+        if self.data.attrs['dtype'] == 'RDT':
+            RDTofTAI0 = 714780. #RDT date of 1958-1-1T00
+            self.TAI = spacepy.datamodel.dmarray(
+                _days1958totai(
+                    np.require(self.data, dtype=np.float64)
+                    - RDTofTAI0, leaps='drop', midnight=True),
                 attrs={'dtype': 'TAI'})
             return self.TAI
         if self.data.attrs['dtype'] == 'ISO':
