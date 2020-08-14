@@ -1095,7 +1095,6 @@ class TimeClassTests(unittest.TestCase):
         # If get MJD on a non-JD basis, should be able to directly compare.
 #        numpy.testing.assert_equal(expected, t2.UTC)
 
-    @unittest.expectedFailure
     def testMJDTAIJulian(self):
         """Convert between MJD and TAI around calendar reform"""
         mjd = [-100840, -100841]
@@ -1104,6 +1103,25 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_equal(mjd, t1.MJD)
         # The following test fails because TAI to MJD goes through UTC
         # and the UTC-TAI conversion doesn't account for the calendar
+        t2 = t.Ticktock(mjd, dtype='MJD')
+        numpy.testing.assert_equal(tai, t2.TAI)
+
+    def testMJDTAIOther(self):
+        """Convert back and forth between MJD and TAI"""
+        mjd = [
+            36204.,  #1958-01-01T00
+            36205.,  #1958-01-02T00
+            36205.5, #1958-01-02T12
+            44244.0, #1980-01-06T00
+        ]
+        tai = [
+            0.,         # 1958-01-01T00
+            86400.,     # 1958-01-02T00
+            129600.,    # 1958-01-02T12
+            694656019., #1980-01-06T00
+        ]
+        t1 = t.Ticktock(tai, dtype='TAI')
+        numpy.testing.assert_equal(mjd, t1.MJD)
         t2 = t.Ticktock(mjd, dtype='MJD')
         numpy.testing.assert_equal(tai, t2.TAI)
 
