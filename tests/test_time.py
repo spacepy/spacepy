@@ -1058,7 +1058,6 @@ class TimeClassTests(unittest.TestCase):
             ])
         numpy.testing.assert_almost_equal(t.JD, expected)
 
-    @unittest.expectedFailure
     def test_JDLeapsecond(self):
         """Fractional Julian Day on day with leapsecond"""
         t1 = t.Ticktock([
@@ -1069,7 +1068,7 @@ class TimeClassTests(unittest.TestCase):
         ])
         expected = numpy.array([
             2444239.,
-            2444239. + 43201. / 86491,
+            2444239. + 43201. / 86401,
             2444240.,
             2444240.5,
         ])
@@ -1176,13 +1175,7 @@ class TimeClassTests(unittest.TestCase):
         numpy.testing.assert_almost_equal(t1.JD, expected)
         t2 = t.Ticktock([datetime.datetime(1582, 10, 4),
                          datetime.datetime(1582, 10, 15)])
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings(
-                'always', 'Calendar date before the switch from Julian.*',
-                UserWarning, '^spacepy\\.time')
-            ans = t2.JD
-        self.assertEqual(1, len(w))
-        self.assertEqual(UserWarning, w[0].category)
+        ans = t2.JD
         numpy.testing.assert_almost_equal(ans, [2299159.5, 2299160.5,])
 
     def test_UTCHasDtype(self):
