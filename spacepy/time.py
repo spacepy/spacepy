@@ -785,8 +785,6 @@ class Ticktock(MutableSequence):
         this function will update all other attributes. This function is
         called automatically in __add__, __init__, and __setitem__.
 
-        ``UTC`` is always updated (even if it was not previously set.)
-
         Parameters
         ==========
         attrib : str
@@ -827,7 +825,8 @@ class Ticktock(MutableSequence):
                 dt = self.data.attrs['dtype']
                 self.data = getattr(
                     cls(getattr(self, attrib), dtype=attrib), dt)
-        if self.data.attrs['dtype'] in ('TAI', 'GPS', 'JD', 'MJD', 'RDT'):
+        if self.data.attrs['dtype'] in (
+                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF'):
             self.TAI = self.getTAI()
             if 'UTC' in keylist:
                 self.UTC = self.getUTC()
@@ -914,7 +913,7 @@ class Ticktock(MutableSequence):
         converted into Julian date/times.
 
         Returns ``data`` if it was provided in CDF; otherwise always
-        recalculates from the current value of ``RDT``, which will be
+        recalculates from the current value of ``TAI``, which will be
         created if necessary.
 
         Updates the ``CDF`` attribute.
@@ -946,10 +945,22 @@ class Ticktock(MutableSequence):
             # This should be the case from the constructor
             self.CDF = self.data
             return self.CDF
-        # RDT has 0001-01-01 as day 1, but this is day 3666
-        # of CDF Epoch (since 0000-01-01 is day 0, and a leap year).
-        CDF = (self.RDT + 365) * 86400000.0
-        self.CDF = CDF
+        # ACTUAL TAI and TAI-UTC at the end of that TAI
+        leap_tai, taiutc = _changed_leaps()
+        # Points to largest leap-TAI less-than input TAI, thus also TAI-UTC
+        lidx = np.searchsorted(leap_tai, self.TAI, side='right') - 1
+        # Records in a leap second
+        inleap = self.TAI < leap_tai[lidx] + np.diff(taiutc)[lidx - 1]
+        naive_tai = np.choose(inleap, (
+            self.TAI - taiutc[lidx], # Just subtract off LS
+            np.floor(self.TAI) + (.999 - taiutc[lidx]) # Peg to end of sec
+            ))
+        # Anything before 1582-10-15 needs to skip 10 CDF days backward,
+        # since CDF has ten days that are not in TAI
+        naive_tai[self.TAI < -11839737600.0] -= 864000
+        CDFofTAI0 = 61788528000000.
+        cdf = naive_tai * 1e3 + CDFofTAI0
+        self.CDF = spacepy.datamodel.dmarray(cdf, attrs={'dtype': 'CDF'})
         return self.CDF
 
     # -----------------------------------------------
@@ -1246,10 +1257,10 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in UTC, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in CDF, ISO, UNX.
+               provided in ISO, UNX.
             3. Else calculates from current value of ``TAI``, which
                will be created if necessary. (``data`` is TAI, GPS,
-               JD, MJD, RDT).
+               JD, MJD, RDT, CDF)).
 
         Updates the ``UTC`` attribute.
 
@@ -1291,18 +1302,8 @@ class Ticktock(MutableSequence):
                 UTC = [datetime.timedelta(seconds=unxt) + UNX0
                        for unxt in self.data]
 
-        elif self.data.attrs['dtype'].upper() == 'CDF':
-            self.CDF = self.data
-            UTC = [datetime.timedelta(days=cdft / 86400000.) +
-                   datetime.datetime(1, 1, 1) - datetime.timedelta(days=366) for cdft in self.data]
-            # UTC[i] = datetime.timedelta(days=np.floor(self.data[i]/86400000.), \
-            # milliseconds=np.mod(self.data[i],86400000)) + \
-            # datetime.datetime(1,1,1) - datetime.timedelta(days=366)
-            # the following has round off errors
-            # UTC[i] = datetime.timedelta(data[i]/86400000.-366) + datetime.datetime(1,1,1)
-
         elif self.data.attrs['dtype'].upper() in (
-                'TAI', 'GPS', 'JD', 'MJD', 'RDT'):
+                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF'):
             TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
             UTC = [datetime.timedelta(
                 # Before 1582-10-15, UTC 10 days earlier than naive conversion
@@ -1388,9 +1389,9 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in TAI, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in GPS, ISO, JD, MJD, or RDT.
+               provided in CDF, GPS, ISO, JD, MJD, or RDT.
             3. Else calculates from current value of ``UTC``, which
-               will be created if necessary (``data`` is CDF, UNX).
+               will be created if necessary (``data`` is UNX).
 
         Updates the ``TAI`` attribute.
 
@@ -1442,6 +1443,21 @@ class Ticktock(MutableSequence):
                 - RDTofTAI0, leaps='drop', midnight=True)
             # Anything before 1582-10-5 has TAI ten days later than the
             # naive conversion, because RDT has ten days that are not in TAI.
+            tai[tai < -11840601600.0] += 864000
+            self.TAI = spacepy.datamodel.dmarray(tai, attrs={'dtype': 'TAI'})
+            return self.TAI
+        if self.data.attrs['dtype'] == 'CDF':
+            CDFofTAI0 = 61788528000000.0
+            # Naive TAI conversion
+            tai = (self.data - CDFofTAI0) / 1.e3
+            # This is the ACTUAL TAI and TAI-UTC at the end of that TAI
+            leap_tai, taiutc = _changed_leaps()
+            # Naive TAI and index that corresponds to TAI - UTC
+            naive_leap_tai = leap_tai - taiutc + 1
+            taiutcidx = np.searchsorted(naive_leap_tai, tai, side='right') - 1
+            tai += taiutc[taiutcidx]
+            # Anything before 1582-10-5 has TAI ten days later than the
+            # naive conversion, because CDF has ten days that are not in TAI.
             tai[tai < -11840601600.0] += 864000
             self.TAI = spacepy.datamodel.dmarray(tai, attrs={'dtype': 'TAI'})
             return self.TAI

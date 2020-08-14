@@ -800,6 +800,8 @@ class TimeClassTests(unittest.TestCase):
             datetime.datetime(1066, 1, 2),
             datetime.datetime(1850, 2, 3),
             datetime.datetime(1958, 3, 4),
+            datetime.datetime(2002, 1, 1),
+            datetime.datetime(2002, 1, 2),
             datetime.datetime(2005, 4, 5),
             datetime.datetime(2030, 5, 6),
         ]
@@ -807,6 +809,10 @@ class TimeClassTests(unittest.TestCase):
         expected = spacepy.pycdf.lib.v_datetime_to_epoch(intimes)
         actual = tt.CDF
         numpy.testing.assert_equal(expected, actual)
+        # Go the other way
+        tt = t.Ticktock(expected, dtype='CDF')
+        actual = tt.UTC
+        numpy.testing.assert_equal(intimes, actual)
 
     def test_setitem(self):
         """setitem should work"""
