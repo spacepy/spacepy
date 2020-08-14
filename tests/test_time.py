@@ -928,10 +928,16 @@ class TimeClassTests(unittest.TestCase):
 
     def test_isoformat_input(self):
         """Supports ISO input format"""
-        t1 = t.Ticktock(['2008-12-31T23:59:60', '2008-12-31T23:59:00'])
-        expected = [datetime.datetime(2008, 12, 31, 23, 59, 59, 999999),
-                    datetime.datetime(2008, 12, 31, 23, 59)]
-        numpy.testing.assert_equal(expected, t1.UTC)
+        iso = ['2008-12-31T23:59:60', '2008-12-31T23:59:00']
+        tai = [1609459233, 1609459173]
+        utc = [datetime.datetime(2008, 12, 31, 23, 59, 59, 999999),
+               datetime.datetime(2008, 12, 31, 23, 59)]
+        t1 = t.Ticktock(iso)
+        numpy.testing.assert_equal(utc, t1.UTC)
+        actual = t1.TAI
+        numpy.testing.assert_equal(tai, actual)
+        t1 = t.Ticktock(tai, dtype='TAI')
+        numpy.testing.assert_equal(iso, t1.ISO)
 
     def test_isoinput_early(self):
         """Input ISO format before 1900."""

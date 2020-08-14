@@ -1397,7 +1397,7 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in TAI, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in GPS, JD, or MJD.
+               provided in GPS, ISO, JD, or MJD.
             3. Else calculates from current value of ``UTC``, which
                will be created if necessary.
 
@@ -1442,17 +1442,29 @@ class Ticktock(MutableSequence):
                     self.data - JDofTAI0, leaps='rubber', midnight=False),
                 attrs={'dtype': 'TAI'})
             return self.TAI
+        if self.data.attrs['dtype'] == 'ISO':
+            _, UTC, offset = dtstr2iso(self.ISO)
+        else:
+            UTC = self.UTC
+            offset = None
 
         TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
 
         leapsec = self.getleapsecs()
-        TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in zip(self.UTC, leapsec)]
-        TAI = [tai.days * 86400 + tai.seconds + tai.microseconds / 1.e6 for tai in TAItup]
+        TAItup = [utc - TAI0 + datetime.timedelta(seconds=int(ls)) for utc, ls in zip(UTC, leapsec)]
+        if offset is not None:
+            TAI = [tai.days * 86400 + tai.seconds
+                   + (tai.microseconds + offset[i])/ 1.e6
+                   for i, tai in enumerate(TAItup)]
+        else:
+            TAI = [tai.days * 86400 + tai.seconds + tai.microseconds / 1.e6
+                   for tai in TAItup]
 
         TAI = spacepy.datamodel.dmarray(TAI, attrs={'dtype': 'TAI'})
         # 1582-10-5 through 1582-10-14 do not exist, so anything
         # before 1582-10-15 is 10 TAI days later than the naive conversion.
         TAI[TAI < -11840601600.0] += (86400 * 10)
+
         self.TAI = TAI
         return self.TAI
 
