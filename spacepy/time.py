@@ -826,7 +826,7 @@ class Ticktock(MutableSequence):
                 self.data = getattr(
                     cls(getattr(self, attrib), dtype=attrib), dt)
         if self.data.attrs['dtype'] in (
-                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF'):
+                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF', 'UNX', 'ISO'):
             self.TAI = self.getTAI()
             if 'UTC' in keylist:
                 self.UTC = self.getUTC()
@@ -1165,7 +1165,7 @@ class Ticktock(MutableSequence):
         seconds since 1970-1-1 (not counting leap seconds)
 
         Returns ``data`` if it was provided in UNX; otherwise always
-        recalculates from the current value of ``UTC``, which will be
+        recalculates from the current value of ``TAI``, which will be
         created if necessary.
 
         Updates the ``UNX`` attribute.
@@ -1190,12 +1190,23 @@ class Ticktock(MutableSequence):
             # This should be the case from the constructor
             self.UNX = self.data
             return self.UNX
+        # ACTUAL TAI and TAI-UTC at the end of that TAI
+        leap_tai, taiutc = _changed_leaps()
+        # Points to largest leap-TAI less-than input TAI, thus also TAI-UTC
+        lidx = np.searchsorted(leap_tai, self.TAI, side='right') - 1
+        # Records in a leap second
+        inleap = self.TAI < leap_tai[lidx] + np.diff(taiutc)[lidx - 1]
+        naive_tai = np.choose(inleap, (
+            self.TAI - taiutc[lidx], # Just subtract off LS
+            np.floor(self.TAI) + (.999 - taiutc[lidx]) # Peg to end of sec
+            ))
+        # Anything before 1582-10-15 needs to skip 10 days backward,
+        # since UNX has ten days that are not in TAI
+        naive_tai[self.TAI < -11839737600.0] -= 864000
+        UNXofTAI0 = -378691200.
+        unx = naive_tai + UNXofTAI0
 
-        UNX0 = datetime.datetime(1970, 1, 1)
-        d = [utc - UNX0 for utc in self.UTC]
-        UNX = [dd.days * 86400 + dd.seconds + dd.microseconds / 1.e6 for dd in d]
-
-        self.UNX = spacepy.datamodel.dmarray(UNX, attrs={'dtype': 'UNX'})
+        self.UNX = spacepy.datamodel.dmarray(unx, attrs={'dtype': 'UNX'})
         return self.UNX
 
     # -----------------------------------------------
@@ -1257,10 +1268,10 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in UTC, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in ISO, UNX.
+               provided in ISO.
             3. Else calculates from current value of ``TAI``, which
                will be created if necessary. (``data`` is TAI, GPS,
-               JD, MJD, RDT, CDF)).
+               JD, MJD, RDT, CDF, UNX)).
 
         Updates the ``UTC`` attribute.
 
@@ -1290,20 +1301,8 @@ class Ticktock(MutableSequence):
             self.ISO = self.data
             _, UTC, _ = dtstr2iso(self.data, fmt=self._isofmt)
 
-        elif self.data.attrs['dtype'].upper() == 'UNX':
-            self.UNX = self.data
-            UNX0 = datetime.datetime(1970, 1, 1)
-            if np.issubdtype(self.data.dtype, np.integer)\
-                     and not issubclass(np.int64, int):
-                # numpy integer will not be accepted by timedelta
-                UTC = [datetime.timedelta(seconds=unxt.item()) + UNX0
-                       for unxt in self.data]
-            else:
-                UTC = [datetime.timedelta(seconds=unxt) + UNX0
-                       for unxt in self.data]
-
         elif self.data.attrs['dtype'].upper() in (
-                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF'):
+                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF', 'UNX'):
             TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
             UTC = [datetime.timedelta(
                 # Before 1582-10-15, UTC 10 days earlier than naive conversion
@@ -1389,9 +1388,9 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in TAI, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in CDF, GPS, ISO, JD, MJD, or RDT.
+               provided in CDF, GPS, ISO, JD, MJD, RDT, or UNX.
             3. Else calculates from current value of ``UTC``, which
-               will be created if necessary (``data`` is UNX).
+               will be created if necessary.
 
         Updates the ``TAI`` attribute.
 
@@ -1461,6 +1460,22 @@ class Ticktock(MutableSequence):
             tai[tai < -11840601600.0] += 864000
             self.TAI = spacepy.datamodel.dmarray(tai, attrs={'dtype': 'TAI'})
             return self.TAI
+        if self.data.attrs['dtype'] == 'UNX':
+            UNXofTAI0 = -378691200.
+            # Naive TAI
+            tai = self.data - UNXofTAI0
+            # This is the ACTUAL TAI and TAI-UTC at the end of that TAI
+            leap_tai, taiutc = _changed_leaps()
+            # Naive TAI and index that corresponds to TAI - UTC
+            naive_leap_tai = leap_tai - taiutc + 1
+            taiutcidx = np.searchsorted(naive_leap_tai, tai, side='right') - 1
+            tai += taiutc[taiutcidx]
+            # Anything before 1582-10-5 has TAI ten days later than the
+            # naive conversion, because UNX has ten days that are not in TAI.
+            tai[tai < -11840601600.0] += 864000
+            self.TAI = spacepy.datamodel.dmarray(tai, attrs={'dtype': 'TAI'})
+            return self.TAI
+
         if self.data.attrs['dtype'] == 'ISO':
             _, UTC, offset = dtstr2iso(self.ISO)
         else:

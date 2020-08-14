@@ -1053,10 +1053,10 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00'])
         expected = t.Ticktock(["2002-01-01T01:00:00", "2002-01-02T00:00:00"], dtype='UTC')
         t1.insert(1, '2002-01-02')
-        self.assertTrue((t1 == expected).all())
+        numpy.testing.assert_array_equal(t1, expected)
         t1 = t.Ticktock(['2002-01-01T01:00:00'])
         t1.insert(1, '2002-01-02', dtype='ISO')
-        self.assertTrue((t1 == expected).all())
+        numpy.testing.assert_array_equal(t1, expected)
 
     def test_MJD(self):
         """conversions to MJD should work"""
