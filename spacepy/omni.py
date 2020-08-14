@@ -374,9 +374,8 @@ def omnirange(dbase='QDhourly'):
     if dbase not in infile:
         raise NotImplementedError('')
     with h5.File(infile[dbase], mode='r') as hfile:
-        start, end = hfile['RDT'][0], hfile['RDT'][-1]
-        start = spt.Ticktock(start, 'RDT').UTC[0]
-        end = spt.Ticktock(end, 'RDT').UTC[0]
+        tt = spt.Ticktock([hfile['UTC'][0], hfile['UTC'][-1]])
+    start, end = tt.UTC
     
     return start, end
 
