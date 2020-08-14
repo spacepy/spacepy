@@ -959,7 +959,14 @@ class TimeClassTests(unittest.TestCase):
         t0 = 1663236947
         range_ex = list(numpy.linspace(t0, t0 + 4000, 4))
         # make a TAI that is a leapsecond time
-        tt2 = t.Ticktock.now()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            tt2 = t.Ticktock.now()
+        self.assertEqual(1, len(w))
+        self.assertEqual(w[0].category, DeprecationWarning)
+        self.assertEqual(
+            'now() returns UTC time as of 0.2.2.',
+            str(w[0].message))
         tt2tai = tt2.TAI
         taileaps = tt2.TAIleaps
         range_ex.append(taileaps[39] - 1)
@@ -1247,14 +1254,29 @@ class TimeClassTests(unittest.TestCase):
 
     def test_now(self):
         """now() is at least deterministic"""
-        v1 = t.Ticktock.now()
-        time.sleep(0.1)
-        v2 = t.Ticktock.now()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            v1 = t.Ticktock.now()
+            time.sleep(0.1)
+            v2 = t.Ticktock.now()
+        self.assertEqual(2, len(w))
+        for i in (0, 1):
+            self.assertEqual(w[i].category, DeprecationWarning)
+            self.assertEqual(
+                'now() returns UTC time as of 0.2.2.',
+                str(w[i].message))
         self.assertTrue(v1 < v2)
 
     def test_today(self):
         """today() has 0 time"""
-        v1 = t.Ticktock.today()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            v1 = t.Ticktock.today()
+        self.assertEqual(1, len(w))
+        self.assertEqual(w[0].category, DeprecationWarning)
+        self.assertEqual(
+            'today() returns UTC day as of 0.2.2.',
+            str(w[0].message))
         self.assertEqual(v1.UTC[0].hour, 0)
         self.assertEqual(v1.UTC[0].minute, 0)
         self.assertEqual(v1.UTC[0].second, 0)
