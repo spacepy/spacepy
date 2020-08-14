@@ -945,20 +945,8 @@ class Ticktock(MutableSequence):
             # This should be the case from the constructor
             self.CDF = self.data
             return self.CDF
-        # ACTUAL TAI and TAI-UTC at the end of that TAI
-        leap_tai, taiutc = _changed_leaps()
-        # Points to largest leap-TAI less-than input TAI, thus also TAI-UTC
-        lidx = np.searchsorted(leap_tai, self.TAI, side='right') - 1
-        # Records in a leap second
-        inleap = self.TAI < leap_tai[lidx] + np.diff(taiutc)[lidx - 1]
-        naive_tai = np.choose(inleap, (
-            self.TAI - taiutc[lidx], # Just subtract off LS
-            np.floor(self.TAI) + (.999 - taiutc[lidx]) # Peg to end of sec
-            ))
-        # Anything before 1582-10-15 needs to skip 10 CDF days backward,
-        # since CDF has ten days that are not in TAI
-        naive_tai[self.TAI < -11839737600.0] -= 864000
         CDFofTAI0 = 61788528000000.
+        naive_tai = _tai_real_to_naive(self.TAI)
         cdf = naive_tai * 1e3 + CDFofTAI0
         self.CDF = spacepy.datamodel.dmarray(cdf, attrs={'dtype': 'CDF'})
         return self.CDF
@@ -1190,19 +1178,7 @@ class Ticktock(MutableSequence):
             # This should be the case from the constructor
             self.UNX = self.data
             return self.UNX
-        # ACTUAL TAI and TAI-UTC at the end of that TAI
-        leap_tai, taiutc = _changed_leaps()
-        # Points to largest leap-TAI less-than input TAI, thus also TAI-UTC
-        lidx = np.searchsorted(leap_tai, self.TAI, side='right') - 1
-        # Records in a leap second
-        inleap = self.TAI < leap_tai[lidx] + np.diff(taiutc)[lidx - 1]
-        naive_tai = np.choose(inleap, (
-            self.TAI - taiutc[lidx], # Just subtract off LS
-            np.floor(self.TAI) + (.999 - taiutc[lidx]) # Peg to end of sec
-            ))
-        # Anything before 1582-10-15 needs to skip 10 days backward,
-        # since UNX has ten days that are not in TAI
-        naive_tai[self.TAI < -11839737600.0] -= 864000
+        naive_tai = _tai_real_to_naive(self.TAI)
         UNXofTAI0 = -378691200.
         unx = naive_tai + UNXofTAI0
 
@@ -1449,30 +1425,14 @@ class Ticktock(MutableSequence):
             CDFofTAI0 = 61788528000000.0
             # Naive TAI conversion
             tai = (self.data - CDFofTAI0) / 1.e3
-            # This is the ACTUAL TAI and TAI-UTC at the end of that TAI
-            leap_tai, taiutc = _changed_leaps()
-            # Naive TAI and index that corresponds to TAI - UTC
-            naive_leap_tai = leap_tai - taiutc + 1
-            taiutcidx = np.searchsorted(naive_leap_tai, tai, side='right') - 1
-            tai += taiutc[taiutcidx]
-            # Anything before 1582-10-5 has TAI ten days later than the
-            # naive conversion, because CDF has ten days that are not in TAI.
-            tai[tai < -11840601600.0] += 864000
+            tai = _tai_naive_to_real(tai)
             self.TAI = spacepy.datamodel.dmarray(tai, attrs={'dtype': 'TAI'})
             return self.TAI
         if self.data.attrs['dtype'] == 'UNX':
             UNXofTAI0 = -378691200.
             # Naive TAI
             tai = self.data - UNXofTAI0
-            # This is the ACTUAL TAI and TAI-UTC at the end of that TAI
-            leap_tai, taiutc = _changed_leaps()
-            # Naive TAI and index that corresponds to TAI - UTC
-            naive_leap_tai = leap_tai - taiutc + 1
-            taiutcidx = np.searchsorted(naive_leap_tai, tai, side='right') - 1
-            tai += taiutc[taiutcidx]
-            # Anything before 1582-10-5 has TAI ten days later than the
-            # naive conversion, because UNX has ten days that are not in TAI.
-            tai[tai < -11840601600.0] += 864000
+            tai = _tai_naive_to_real(tai)
             self.TAI = spacepy.datamodel.dmarray(tai, attrs={'dtype': 'TAI'})
             return self.TAI
 
@@ -2351,3 +2311,65 @@ def _changed_leaps():
     leap_tai = np.concatenate(([-np.inf], leap_tai))
     taiutc = np.concatenate(([0], taiutc))
     return leap_tai, taiutc
+
+
+def _tai_naive_to_real(tai):
+    """Convert naive TAI to real TAI
+
+    Convert a TAI on a continuous timescale that skips over leapseconds
+    and is unaware of calendar conversion to actual TAI, which includes
+    leapseconds and is continuous across the Gregorian conversion (naive
+    has a gap, i.e. dates it can represent that don't exist.)
+
+    Parameters
+    ==========
+    tai : sequence of float
+        Naive TAI
+
+    Returns:
+    tai : sequence of float
+        TAI
+    """
+    # This is the ACTUAL TAI and TAI-UTC at the end of that TAI
+    leap_tai, taiutc = _changed_leaps()
+    # Naive TAI and index that corresponds to TAI - UTC
+    naive_leap_tai = leap_tai - taiutc + 1
+    taiutcidx = np.searchsorted(naive_leap_tai, tai, side='right') - 1
+    realtai = tai + taiutc[taiutcidx]
+    # Anything before 1582-10-5 has TAI ten days later than the
+    # naive conversion, because naive has ten days that are not in TAI.
+    realtai[realtai < -11840601600.0] += 864000
+    return realtai
+
+
+def _tai_real_to_naive(tai):
+    """Convert naive TAI to actual TAI
+
+    Convert actual TAI, which includes leapseconds and is continuous
+    across the Gregorian calendar conversion, to naive TAI, which skips
+    over leapseconds and has times in the calendar conversion that
+    do not actually exist.
+
+    Parameters
+    ==========
+    tai : sequence of float
+        TAI
+
+    Returns:
+    tai : sequence of float
+        Naive TAI
+    """
+    # ACTUAL TAI and TAI-UTC at the end of that TAI
+    leap_tai, taiutc = _changed_leaps()
+    # Points to largest leap-TAI less-than input TAI, thus also TAI-UTC
+    lidx = np.searchsorted(leap_tai, tai, side='right') - 1
+    # Records in a leap second
+    inleap = tai < leap_tai[lidx] + np.diff(taiutc)[lidx - 1]
+    naive_tai = np.choose(inleap, (
+        tai - taiutc[lidx], # Just subtract off LS
+        np.floor(tai) + (.999 - taiutc[lidx]) # Peg to end of sec
+        ))
+    # Anything before 1582-10-15 needs to skip 10 CDF days backward,
+    # since naive has ten days that are not in TAI
+    naive_tai[tai < -11839737600.0] -= 864000
+    return naive_tai
