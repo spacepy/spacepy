@@ -1519,6 +1519,7 @@ class Ticktock(MutableSequence):
             GPS0 = 694656019
             self.TAI = spacepy.datamodel.dmarray(
                 self.data + GPS0, attrs={'dtype': 'TAI'})
+            return self.TAI
 
         TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
 
