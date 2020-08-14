@@ -68,6 +68,12 @@ import weakref
 import numpy
 import numpy.ma
 import spacepy.datamodel
+import spacepy.time
+try:
+    import matplotlib.dates
+    HAVE_MATPLOTLIB = True
+except ImportError:
+    HAVE_MATPLOTLIB = False
 
 #Import const AFTER library loaded, so failed load doesn't leave half-imported
 #from . import const
@@ -869,11 +875,29 @@ class Library(object):
         Returns
         =======
         out : double
-            Floating point number representing days since 0001-01-01.
+            Floating point number representing days since matplotlib
+            epoch (usually 0001-01-01 as day 1, or 1970-01-01 as day 0).
+
+        See Also
+        ========
+        matplotlib.dates.date2num, matplotlib.dates.num2date
+
+        Notes
+        =====
+        This number is not portable between versions of matplotlib. The
+        returned value is for the installed version of matplotlib. If
+        matplotlib is not found, the returned value is for matplotlib 3.2
+        and earlier.
         """
         #date2num day 1 is 1/1/1 00UT
         #epoch 1/1/1 00UT is 31622400000.0 (millisecond)
-        return (epoch - 31622400000.0) / (24 * 60 * 60 * 1000.0) + 1.0
+        # So day 0 is 31536000000.0
+        baseepoch = 31536000000.0
+        if HAVE_MATPLOTLIB and hasattr(matplotlib.dates, 'get_epoch'):
+            # Different day 0
+            baseepoch = spacepy.time.Ticktock(matplotlib.dates.get_epoch())\
+                                    .CDF[0]
+        return (epoch - baseepoch) / (24 * 60 * 60 * 1000.0)
 
     def epoch16_to_epoch(self, epoch16):
         """
