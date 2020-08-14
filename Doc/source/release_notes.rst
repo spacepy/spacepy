@@ -105,6 +105,13 @@ Similarly, leap seconds are now included in the fractional day
 calculation of MJD, so MJD values around a leap second may be different
 than in previous versions of SpacePy.
 
+Most time systems are now converted to/from TAI rather than using
+datetime. This may cause small differences with previous versions of
+SpacePy, on order of a double precision. RDT and JD are particularly
+affected for dates in the modern era. Time conversions around
+leapseconds may also be different; in many cases they were undefined
+in previous versions.
+
 See :mod:`~spacepy.time` for full
 discussion of leap seconds and other conversion considerations.
 

@@ -49,6 +49,10 @@ time
  - Fix conversions to ISO before 1900 on Python 2.
  - Include leapseconds in JD/MJD calculation, so the length of a second on a
    day with leapseconds is slightly shorter but leap second times are not lost.
+ - Most time systems are now converted to/from TAI. This may cause small
+   differences with previous versions of SpacePy, on order of a double
+   precision. Time conversions around leapseconds may also be different;
+   in many cases they were undefined in previous versions.
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO
