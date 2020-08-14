@@ -280,20 +280,28 @@ class TimeFunctionTests(unittest.TestCase):
             (2005, 12, 31, 23, 59, 59, 999999),
             (2005, 12, 31, 23, 59, 59, 999999),
             ]
+        expectedoffset = [
+            0.,
+            0,
+            1,
+            123001,
+        ]
         expectedUTC = [datetime.datetime(*e) for e in expectedUTC]
-        actualiso, actualUTC = t.dtstr2iso(inputs)
+        actualiso, actualUTC, actualoffset = t.dtstr2iso(inputs)
         # Make sure not overwritten.
         self.assertEqual('2005-12-31T23:59:60', inputs[-2])
         numpy.testing.assert_equal(expectedUTC, actualUTC)
         numpy.testing.assert_equal(expectediso, actualiso)
+        numpy.testing.assert_equal(expectedoffset, actualoffset)
         self.assertEqual(
             ('2005-12-31T23:59:60.123000',
-             datetime.datetime(2005, 12, 31, 23, 59, 59, 999999)),
+             datetime.datetime(2005, 12, 31, 23, 59, 59, 999999),
+             123001),
             t.dtstr2iso('2005-12-31T23:59:60.123',
                         fmt='%Y-%m-%dT%H:%M:%S.%f'))
         # Make inputs numpy (more likely to be overwritten).
         inputs = numpy.array(inputs)
-        actualiso, actualUTC = t.dtstr2iso(inputs)
+        actualiso, actualUTC, actualoffset = t.dtstr2iso(inputs)
         # Make sure not overwritten.
         self.assertEqual('2005-12-31T23:59:60', inputs[-2])
 
@@ -309,9 +317,13 @@ class TimeFunctionTests(unittest.TestCase):
         expectediso = ['1890-01-01T00:00:00', '1858-11-18T00:00:00',
                        '1858-11-17T00:00:00', '1858-11-16T00:00:00',
                        '1066-10-14T00:00:00',]
-        actualiso, actualUTC = t.dtstr2iso(inputs)
+        expectedoffset = [0, 0,
+                          0, 0,
+                          0]
+        actualiso, actualUTC, actualoffset = t.dtstr2iso(inputs)
         numpy.testing.assert_equal(expectedUTC, actualUTC)
         numpy.testing.assert_equal(expectediso, actualiso)
+        numpy.testing.assert_equal(expectedoffset, actualoffset)
 
     def test_days1958(self):
         """Test fractional days since 1958"""
