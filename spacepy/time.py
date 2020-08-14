@@ -1488,10 +1488,13 @@ class Ticktock(MutableSequence):
         is always treated as an integer, truncated (not rounded) from the
         value at the most recent leap second (or fraction thereof).
 
-        Returns ``data`` if it was provided in TAI. Otherwise always
-        recalculates from ``data`` if it was provided in GPS, else
-        from the current value of ``UTC``, which will be created if
-        necessary.
+        Return value comes from (in priority order):
+
+            1. If ``data`` was provided in TAI, returns ``data``.
+            2. Else recalculates directly from ``data`` if it was
+               provided in GPS or MJD.
+            3. Else calculates from current value of ``UTC``, which
+               will be created if necessary.
 
         Updates the ``TAI`` attribute.
 
@@ -1519,6 +1522,13 @@ class Ticktock(MutableSequence):
             GPS0 = 694656019
             self.TAI = spacepy.datamodel.dmarray(
                 self.data + GPS0, attrs={'dtype': 'TAI'})
+            return self.TAI
+        if self.data.attrs['dtype'] == 'MJD':
+            MJDofTAI0 = 36204.5 # Days-since-1958 is relative to noon
+            self.TAI = spacepy.datamodel.dmarray(
+                _days1958totai(
+                    self.data - MJDofTAI0, leaps='rubber', midnight=False),
+                attrs={'dtype': 'TAI'})
             return self.TAI
 
         TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
@@ -2269,7 +2279,7 @@ def _days1958(tai, leaps='rubber', midnight=False):
 
 
 def _days1958totai(days, leaps='rubber', midnight=False):
-    """Calculate TAI days and fractional days since 1958-01-01T12:00
+    """Calculate TAI from days and fractional days since 1958-01-01T12:00
 
     Input is basically a Julian Date but baselined from the start of TAI.
     Since it is calculated from TAI, using this as day 0 maximizes the
