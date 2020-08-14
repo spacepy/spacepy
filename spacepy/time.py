@@ -677,6 +677,7 @@ class Ticktock(MutableSequence):
         """
         assert name in Ticktock._keylist, "data type " + str(name) + " not provided, only " + str(Ticktock._keylist)
         if name.upper() == 'TAI': self.TAI = self.getTAI()
+        if name.upper() == 'UTC': self.UTC = self.getUTC()
         if name.upper() == 'ISO': self.ISO = self.getISO()
         if name.upper() == 'JD': self.JD = self.getJD()
         if name.upper() == 'MJD': self.MJD = self.getMJD()
@@ -826,9 +827,15 @@ class Ticktock(MutableSequence):
                 dt = self.data.attrs['dtype']
                 self.data = getattr(
                     cls(getattr(self, attrib), dtype=attrib), dt)
-        self.UTC = self.getUTC()
+        if self.data.attrs['dtype'] in ('TAI', 'GPS', 'JD', 'MJD', 'RDT'):
+            self.TAI = self.getTAI()
+            if 'UTC' in keylist:
+                self.UTC = self.getUTC()
+        else:
+            self.UTC = self.getUTC()
+            if 'TAI' in keylist:
+                self.TAI = self.getTAI()
         for key in keylist:
-            if key.upper() == 'TAI': self.TAI = self.getTAI()
             if key.upper() == 'ISO': self.ISO = self.getISO()
             if key.upper() == 'JD': self.JD = self.getJD()
             if key.upper() == 'MJD': self.MJD = self.getMJD()
@@ -1222,8 +1229,8 @@ class Ticktock(MutableSequence):
         RDTTAI0 = 714780.0
         RDT = _days1958(self.TAI, leaps='drop', midnight=True) + RDTTAI0
         # RDT can represent 1582-10-5 through 1582-10-14, which do not exist.
-        # So everything before 1582-10-15 (RDT day 563126) is ten days earlier.
-        RDT[RDT < 563126.0] -= 10
+        # So everything before 1582-10-15 (RDT day 577736) is ten days earlier.
+        RDT[RDT < 577736.0] -= 10
 
         self.RDT = spacepy.datamodel.dmarray(RDT, attrs={'dtype': 'RDT'})
         return self.RDT
@@ -1430,11 +1437,13 @@ class Ticktock(MutableSequence):
             return self.TAI
         if self.data.attrs['dtype'] == 'RDT':
             RDTofTAI0 = 714780. #RDT date of 1958-1-1T00
-            self.TAI = spacepy.datamodel.dmarray(
-                _days1958totai(
-                    np.require(self.data, dtype=np.float64)
-                    - RDTofTAI0, leaps='drop', midnight=True),
-                attrs={'dtype': 'TAI'})
+            tai = _days1958totai(
+                np.require(self.data, dtype=np.float64)
+                - RDTofTAI0, leaps='drop', midnight=True)
+            # Anything before 1582-10-5 has TAI ten days later than the
+            # naive conversion, because RDT has ten days that are not in TAI.
+            tai[tai < -11840601600.0] += 864000
+            self.TAI = spacepy.datamodel.dmarray(tai, attrs={'dtype': 'TAI'})
             return self.TAI
         if self.data.attrs['dtype'] == 'ISO':
             _, UTC, offset = dtstr2iso(self.ISO)
