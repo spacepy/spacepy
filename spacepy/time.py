@@ -738,6 +738,15 @@ class Ticktock(MutableSequence):
 
         This will sort the Ticktock values in place based on the values
         in `data`. If you need a stable sort use kind='mergesort'
+
+        Other Parameters
+        ================
+        kind : str
+            Sort algorithm to use, default 'quicksort'.
+
+        See Also
+        ========
+        argsort, numpy.argsort
         """
         idx = self.argsort(kind=kind)
         self.data = self.data[idx]
@@ -755,6 +764,18 @@ class Ticktock(MutableSequence):
         out : list
             indices that would sort the Ticktock values
 
+        Other Parameters
+        ================
+        kind : str, optional
+            Sort algorithm to use, default 'quicksort'.
+
+            .. versionchanged:: 0.2.2
+                Default is now 'quicksort' to match numpy default;
+                previously was 'mergesort'.
+
+        See Also
+        ========
+        argsort, numpy.argsort
         """
         return np.argsort(self.TAI, kind=kind)
 
