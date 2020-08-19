@@ -203,6 +203,17 @@ class Ticktock(MutableSequence):
     The original input data will always be available as the ``data``
     attribute.
 
+    .. versionchanged:: 0.2.2
+       In earlier versions of SpacePy, most values were derived from the
+       ``datetime``-based ``UTC`` representation. This did not properly
+       handle leap seconds in many cases. Now most are derived from ``TAI``
+       (exceptions being ``DOY`` and ``eDOY``). In addition to differences
+       around actual leap seconds, this may result in small differences
+       between versions of SpacePy, with relative magnitude on the order of the
+       resolution of a 64-bit float (2e-16). For times in the modern era, this
+       is about 50 microseconds (us) for ``JD``, 15 us for ``CDF``, 1.5 us
+       for ``RDT``, 1 us for ``MJD``, and 360 *nanoseconds* for ``TAI``.
+
     The relationships between parameters and how they are calculated are
     listed in the ``get`` methods and illustrated below.
 

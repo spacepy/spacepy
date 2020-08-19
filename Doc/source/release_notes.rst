@@ -116,8 +116,8 @@ in previous versions.
 return times in UTC; in previous versions the value returned was local,
 but was treated as UTC for all conversions (and thus inaccurate.)
 
-See :mod:`~spacepy.time` for full
-discussion of leap seconds and other conversion considerations.
+See :mod:`~spacepy.time` for full discussion of leap seconds, time
+resolution, and other conversion considerations.
 
 0.2.1 (2019-10-02)
 ------------------
