@@ -176,7 +176,6 @@ except ImportError:
 
 import numpy
 from . import toolbox
-from . import time as spt
 
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -2000,9 +1999,9 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
     keys = [k for k in data if len(data[k]) == lent]
     d2 = data[keys]
     # what time are we starting at?
-    if isinstance(time, spt.Ticktock):
+    try:
         t_int = time.UTC
-    else:
+    except AttributeError:
         t_int = dmarray(time)
     if t_int.any() and ((st_time is None) and isinstance(t_int[0], datetime.datetime)):
         st_time = t_int[0].replace(hour=0, minute=0, second=0, microsecond=0)
