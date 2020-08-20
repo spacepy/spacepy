@@ -152,6 +152,7 @@ import warnings
 import dateutil.parser as dup
 import numpy as np
 
+import spacepy
 from spacepy import help
 import spacepy.datamodel
 
@@ -309,10 +310,6 @@ class Ticktock(MutableSequence):
 
     def __init__(self, data, dtype=None):
 
-        try:
-            _ = TAIleaps
-        except NameError:
-            _read_leaps()
         self._isofmt = self._isoformatstr['seconds']
 
         if isinstance(data, Ticktock):
@@ -1821,8 +1818,6 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
     require no special handling and policy is for UTC-UT1 not to
     exceed 0.9.
 
-    Requires _read_leaps to have been executed first.
-
     Parameters
     ==========
     dtstr : sequence of str
@@ -2125,12 +2120,9 @@ def _read_leaps():
     secs, year, mon, day, TAIleaps.
     Called on first initialization of Ticktock.
     """
-    # Has to be here because top-level SpacePy imports time,
-    # before DOT_FLN is defined.
-    from spacepy import DOT_FLN
     global secs, year, mon, day, TAIleaps
     # load current file
-    fname = os.path.join(DOT_FLN, 'data', 'tai-utc.dat')
+    fname = os.path.join(spacepy.DOT_FLN, 'data', 'tai-utc.dat')
     with open(fname) as fh:
         text = fh.readlines()
     # Some files have a "last checked" line at the top
@@ -2167,8 +2159,6 @@ def _days1958(tai, leaps='rubber', midnight=False):
     This is basically a Julian Date but baselined from the start of TAI.
     Since it is calculated from TAI, using this as day 0 maximizes the
     resolution of the resulting values.
-
-    Requires _read_leaps to have been executed first.
 
     Parameters
     ==========
@@ -2279,8 +2269,6 @@ def _days1958totai(days, leaps='rubber', midnight=False):
     Since it is calculated from TAI, using this as day 0 maximizes the
     resolution of the resulting values.
 
-    Requires _read_leaps to have been executed first.
-
     Parameters
     ==========
     days : sequence of float
@@ -2368,8 +2356,6 @@ def _changed_leaps():
     adds a record (where the TAI of the leap second time is -inf) and
     eliminated those with no actual change.
 
-    Requires _read_leaps to have been executed first.
-
     Returns
     =======
     leap_tai : sequence of float
@@ -2449,3 +2435,6 @@ def _tai_real_to_naive(tai):
     # since naive has ten days that are not in TAI
     naive_tai[tai < -11839737600.0] -= 864000
     return naive_tai
+
+
+_read_leaps()
