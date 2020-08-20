@@ -265,6 +265,7 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_dtstr2iso(self):
         """convert datetime string to ISO + UTC"""
+        t._read_leaps()
         inputs = [
             '2001-01-01T23:59:59',
             '2001-01-02',
@@ -310,6 +311,7 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_dtstr2isoearly(self):
         """convert datetime string to ISO + UTC before 1900"""
+        t._read_leaps()
         inputs = ['1890-01-1', '1858-11-18',
                   '1858-11-17', '1858-11-16',
                   '1066-10-14',]
@@ -327,6 +329,19 @@ class TimeFunctionTests(unittest.TestCase):
         numpy.testing.assert_equal(expectedUTC, actualUTC)
         numpy.testing.assert_equal(expectediso, actualiso)
         numpy.testing.assert_equal(expectedoffset, actualoffset)
+
+    def test_dtstr2isobadleap(self):
+        """Convert a string with bad leap second to UTC"""
+        t._read_leaps()
+        inputs = ['2008-12-31T23:59:60.123', '2009-12-31T23:59:60.100']
+        with self.assertRaises(ValueError) as cm:
+            t.dtstr2iso(inputs)
+        self.assertEqual('2009-12-31T23:59:60.100 is not a valid leapsecond.',
+                         str(cm.exception))
+        with self.assertRaises(ValueError) as cm:
+            t.dtstr2iso(inputs[-1])
+        self.assertEqual('2009-12-31T23:59:60.100 is not a valid leapsecond.',
+                         str(cm.exception))
 
     def test_days1958(self):
         """Test fractional days since 1958"""
@@ -1607,11 +1622,11 @@ class TimeClassTests(unittest.TestCase):
     def testDataPersistsISO(self):
         """Input is returned (transformed) for ISO input; data is untouched."""
         iniso = ['2010-1-1',
-                 '2011-12-31T23:59:60',
+                 '2012-06-30T23:59:60',
                  '2012-2-3T23:59:42.123']
         expected = ([
             '2010-01-01T00:00:00',
-            '2011-12-31T23:59:60',
+            '2012-06-30T23:59:60',
             '2012-02-03T23:59:42'])
         tt = t.Ticktock(iniso)
         numpy.testing.assert_equal(expected, tt.ISO)
