@@ -1869,7 +1869,7 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         # It must also not be preceded by a . (to avoid replacing
         # 60 milliseconds with 59 milliseconds).
         dtstr[i], count = re.subn(
-            r'^([^\.]{8,}59[^\d]?)60((?:\.\d+)?)$', '\g<1>59\g<2>', dtstr[i])
+            r'^([^\.]{8,}59[^\d]?)60((?:\.\d+)?)$', r'\g<1>59\g<2>', dtstr[i])
         # Doing this subtracted one second.
         if count:
             offset[i] = 1e6
