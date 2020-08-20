@@ -1821,8 +1821,7 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
     require no special handling and policy is for UTC-UT1 not to
     exceed 0.9.
 
-    This does not check that the provided time actually was in a leap
-    second.
+    Requires _read_leaps to have been executed first.
 
     Parameters
     ==========
@@ -1845,10 +1844,11 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         Format appropriate for :meth:`~datetime.datetime.strftime` for
         rendering the output time.
     """
-    # Will be editing this, so force it to own its data.
-    ndtstr = np.require(dtstr, dtype='S' if str is bytes else 'U',
-                        requirements='O')
-    dtstr = ndtstr.copy() if ndtstr is dtstr else ndtstr
+    indtstr = dtstr
+    # Will be editing this, so force it to own its data (but keep copy!)
+    dtstr = np.require(indtstr, dtype='S' if str is bytes else 'U',
+                       requirements='O')
+    dtstr = dtstr.copy() if dtstr is indtstr else dtstr
     # Replace leapsecond with a valid "59"
     # Indices of every place that might be leap second
     # Leap second is sec==60, must come at LEAST after YYMMDDHHMM, if
@@ -1897,6 +1897,26 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
         isostr = np.vectorize(
             lambda x: x.replace(year=1900).strftime(fmt.replace(
                 '%Y', str(x.year))), otypes=otypes)(UTC)
+    # Check that leap seconds are actually valid
+    if len(leapidx):
+        # Day that ends in leap second *entry* (may not be leap second)
+        # Unbelievably these are read as floats, and other places rely on that.
+        leapsecday = np.array([
+            datetime.date(int(y), int(m), int(d))- datetime.timedelta(days=1)
+            for y, m , d in zip(year, mon, day)])
+        # Find only those leap seconds that are really changes
+        idx = np.nonzero(np.diff(np.concatenate(([0], secs))))[0]
+        leapsecday = leapsecday[idx]
+        if dtstr.shape == ():
+            if UTC.date() not in leapsecday:
+                raise ValueError('{} is not a valid leapsecond.'.format(
+                    indtstr))
+        else:
+            utcday = np.frompyfunc(lambda x: x.date(), 1, 1)(UTC[leapidx])
+            bad = ~np.isin(utcday, leapsecday)
+            if bad.any():
+                raise ValueError('{} is not a valid leapsecond.'.format(
+                    indtstr[leapidx[bad][0]]))
     #Peg all leap seconds to the end of the previous second
     for idx in leapidx:
         i = tuple(idx) if dtstr.shape else ()
