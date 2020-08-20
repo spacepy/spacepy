@@ -13,6 +13,8 @@ flux_by_pa = spacepy.datamanager.rebin(
     flux, alpha, pa_bins, axis=1)
 spacepy.plot.simpleSpectrogram(times, pa_bins, flux_by_pa[..., 0],
                                cb=False, ylog=False)
+matplotlib.pyplot.xlim(0, 7200)
+matplotlib.pyplot.ylim(0, 180)
 matplotlib.pyplot.ylabel('Pitch angle (deg)')
 matplotlib.pyplot.xlabel('Time (sec)')
 matplotlib.pyplot.title('Flux at 1MeV')
