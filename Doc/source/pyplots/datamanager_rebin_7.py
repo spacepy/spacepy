@@ -13,6 +13,8 @@ flux_by_pa = spacepy.datamanager.rebin(
     flux, alpha, pa_bins, axis=1)
 spacepy.plot.simpleSpectrogram(times, energies, flux_by_pa[:, 2, :],
                                cb=False)
+matplotlib.pyplot.xlim(0, 7200)
+matplotlib.pyplot.ylim(1, 1e3)
 matplotlib.pyplot.ylabel('Energy (MeV)')
 matplotlib.pyplot.xlabel('Time (sec)')
 matplotlib.pyplot.title('Flux at 90 degrees')

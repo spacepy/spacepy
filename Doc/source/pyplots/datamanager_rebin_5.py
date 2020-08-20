@@ -9,6 +9,8 @@ flux = j(numpy.reshape(energies, (1, 1, -1)),
                      numpy.reshape(times, (-1, 1, 1)),
                      numpy.expand_dims(alpha, -1))
 spacepy.plot.simpleSpectrogram(times, energies, flux[:, 0, :], cb=False)
+matplotlib.pyplot.xlim(0, 7200)
+matplotlib.pyplot.ylim(1, 1e3)
 matplotlib.pyplot.ylabel('Energy (MeV)')
 matplotlib.pyplot.xlabel('Time (sec)')
 matplotlib.pyplot.title('Flux in detector 0')
