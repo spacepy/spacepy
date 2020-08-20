@@ -2110,7 +2110,7 @@ def _read_leaps():
     from spacepy import DOT_FLN
     global secs, year, mon, day, TAIleaps
     # load current file
-    fname = os.path.join(spacepy.DOT_FLN, 'data', 'tai-utc.dat')
+    fname = os.path.join(DOT_FLN, 'data', 'tai-utc.dat')
     with open(fname) as fh:
         text = fh.readlines()
     # Some files have a "last checked" line at the top
