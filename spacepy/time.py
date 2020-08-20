@@ -2380,7 +2380,8 @@ def _tai_naive_to_real(tai):
     tai : sequence of float
         Naive TAI
 
-    Returns:
+    Returns
+    =======
     tai : sequence of float
         TAI
     """
@@ -2409,7 +2410,8 @@ def _tai_real_to_naive(tai):
     tai : sequence of float
         TAI
 
-    Returns:
+    Returns
+    =======
     tai : sequence of float
         Naive TAI
     """
