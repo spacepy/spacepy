@@ -313,7 +313,7 @@ class Ticktock(MutableSequence):
             _ = TAIleaps
         except NameError:
             _read_leaps()
-        self._isofmt = Ticktock._isoformatstr['seconds']
+        self._isofmt = self._isoformatstr['seconds']
 
         if isinstance(data, Ticktock):
             dtype = data.data.attrs['dtype']
@@ -1473,7 +1473,7 @@ class Ticktock(MutableSequence):
             return self.TAI
 
         if self.data.attrs['dtype'] == 'ISO':
-            _, UTC, offset = dtstr2iso(self.ISO)
+            _, UTC, offset = dtstr2iso(self.ISO, self._isofmt)
         else:
             UTC = self.UTC
             offset = None
