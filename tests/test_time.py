@@ -963,6 +963,21 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(tai, dtype='TAI')
         numpy.testing.assert_equal(iso, t1.ISO)
 
+    def test_ISOtoTAIfractional(self):
+        """Get fractional TAI seconds from fractional ISO input"""
+        class ttmillisecond(t.Ticktock):
+
+            _isoformatstr = {
+                'seconds': '%Y-%m-%dT%H:%M:%S.%f',
+                'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
+
+        iso = ['2001-12-01T01:23:12.123',
+               '2016-12-31T23:59:60.100']
+        tai = [1385861024.123,
+               1861920036.100]
+        t1 = ttmillisecond(iso)
+        numpy.testing.assert_equal(tai, t1.TAI)
+
     def test_isoinput_early(self):
         """Input ISO format before 1900."""
         t1 = t.Ticktock(['1890-01-1', '1858-11-18', '1858-11-17',
