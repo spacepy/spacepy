@@ -175,7 +175,7 @@ except ImportError:
     import io as StringIO
 
 import numpy
-from . import toolbox
+# from . import toolbox # handled in functions that use it
 
 
 __contact__ = 'Steve Morley, smorley@lanl.gov'
@@ -569,6 +569,7 @@ class SpaceData(dict, MetaMixin):
         --------
         toolbox.dictree
         '''
+        from . import toolbox
         toolbox.dictree(self, **kwargs)
 
     def flatten(self):
@@ -1996,6 +1997,7 @@ def resample(data, time=[], winsize=0, overlap=0, st_time=None, outtimename='Epo
     #    - the output variables have their DEPEND_0 changed to Epoch (or outtimename)
     #    - each dimension of a 2d array is resampled individually 
     """
+    from . import toolbox
     # check for SpaceData or dmarray input before going to a bunch of work
     if not isinstance(data, (SpaceData, dmarray)):
         raise(TypeError('Input must be a SpaceData or dmarray object'))

@@ -265,7 +265,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_dtstr2iso(self):
         """convert datetime string to ISO + UTC"""
-        t._read_leaps()
         inputs = [
             '2001-01-01T23:59:59',
             '2001-01-02',
@@ -311,7 +310,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_dtstr2isoearly(self):
         """convert datetime string to ISO + UTC before 1900"""
-        t._read_leaps()
         inputs = ['1890-01-1', '1858-11-18',
                   '1858-11-17', '1858-11-16',
                   '1066-10-14',]
@@ -332,7 +330,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_dtstr2isobadleap(self):
         """Convert a string with bad leap second to UTC"""
-        t._read_leaps()
         inputs = ['2008-12-31T23:59:60.123', '2009-12-31T23:59:60.100']
         with self.assertRaises(ValueError) as cm:
             t.dtstr2iso(inputs)
@@ -345,7 +342,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_days1958(self):
         """Test fractional days since 1958"""
-        t._read_leaps()
         self.assertRaises(ValueError, t._days1958, [0.], leaps='foo')
         inputs = [
             -31514400.,# 1957-01-01 06:00:00
@@ -411,7 +407,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_days1958_scalar(self):
         """Fractional days since 1958, scalar input"""
-        t._read_leaps()
         self.assertEqual(
             18627. + 43200. / 86401,
             t._days1958(1609459233, leaps='rubber'))
@@ -427,7 +422,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_days1958_midnight(self):
         """Test fractional days since 1958, using midnight start time"""
-        t._read_leaps()
         inputs = [
             -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
@@ -501,7 +495,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_days1958toTAI(self):
         """Test fractional days since 1958 to TAI"""
-        t._read_leaps()
         self.assertRaises(ValueError, t._days1958totai, [0.], leaps='foo')
         expected = [
             -31514400.,# 1957-01-01 06:00:00
@@ -567,7 +560,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_days1958toTAI_scalar(self):
         """Fractional days since 1958 to TAI, scalar input"""
-        t._read_leaps()
         self.assertAlmostEqual(
             1609459233,
             t._days1958totai(18627. + 43200. / 86401, leaps='rubber'),
@@ -586,7 +578,6 @@ class TimeFunctionTests(unittest.TestCase):
 
     def test_days1958toTAI_midnight(self):
         """Test fractional days since 1958, using midnight start time"""
-        t._read_leaps()
         expected = [
             -31514400.,# 1957-01-01 06:00:00
             0.,        # 1958-01-01 00:00:00
@@ -1381,8 +1372,6 @@ class TimeClassTests(unittest.TestCase):
 
     def test_readleapsecs(self):
         """Test that the leap second file was properly read"""
-        # Tickle the system to force the globals to be read
-        t.Ticktock([datetime.datetime(1958, 1, 1)]).TAI
         numpy.testing.assert_equal(
             [1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 10],
             spacepy.time.secs[:14])
