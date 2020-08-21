@@ -954,6 +954,21 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(tai, dtype='TAI')
         numpy.testing.assert_equal(iso, t1.ISO)
 
+    def test_isoformat_doy(self):
+        """Support ISO input in day-of-year, and special format"""
+        iso = ['2008-010T12:00:00', '2008-123T10:00:12']
+        utc = [(2008, 1, 10, 12),
+               (2008, 5, 2, 10, 0, 12)]
+        utc = [datetime.datetime(*u) for u in utc]
+        t1 = t.Ticktock(iso, isoformat='%Y-%jT%H:%M:%S')
+        numpy.testing.assert_equal(utc, t1.UTC)
+        # Check the fallback constructor
+        isoymd = ['2008-01-10T12:00', '2008-5-2T10:00:12']
+        t1 = t.Ticktock(isoymd, isoformat='%Y-%jT%H:%M:%S')
+        numpy.testing.assert_equal(utc, t1.UTC)
+        # And that it's rendered as desired
+        numpy.testing.assert_equal(iso, t1.ISO)
+
     def test_ISOtoTAIfractional(self):
         """Get fractional TAI seconds from fractional ISO input"""
         iso = ['2001-12-01T01:23:12.123',

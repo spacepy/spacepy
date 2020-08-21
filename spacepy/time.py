@@ -248,6 +248,22 @@ class Ticktock(MutableSequence):
     CDF_TIME_TT2000. It similarly cannot represent leap seconds. Year
     0 is considered a leap year.
 
+    Other Parameters
+    ================
+    isoformat : str, optional
+
+        .. versionadded:: 0.2.2
+
+        Format string used for parsing and outputting ISO format. Input is
+        not forced to be in this format; it is tried first, and other
+        common formats tried if parsing fails. Can be changed on existing
+        ``Ticktock`` with :meth:`isoformat` method. Default
+        ``'%Y-%m-%dT%H:%M:%S'``.
+
+    See Also
+    ========
+    datetime.datetime.strptime, isoformat
+
     Examples
     ========
     >>> x = Ticktock([2452331.0142361112, 2452332.0142361112], 'JD')
@@ -308,9 +324,9 @@ class Ticktock(MutableSequence):
     _keylist_upper = [key.upper() for key in _keylist]
     _isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
 
-    def __init__(self, data, dtype=None):
+    def __init__(self, data, dtype=None, isoformat=None):
 
-        self._isofmt = self._isoformatstr['seconds']
+        self._isofmt = isoformat or self._isoformatstr['seconds']
 
         if isinstance(data, Ticktock):
             dtype = data.data.attrs['dtype']
