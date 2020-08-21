@@ -1908,7 +1908,8 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
                     indtstr))
         else:
             utcday = np.frompyfunc(lambda x: x.date(), 1, 1)(UTC[leapidx])
-            bad = ~np.isin(utcday, leapsecday)
+            closestday = np.searchsorted(leapsecday, utcday)
+            bad = utcday != leapsecday[closestday]
             if bad.any():
                 raise ValueError('{} is not a valid leapsecond.'.format(
                     indtstr[leapidx[bad][0]]))
