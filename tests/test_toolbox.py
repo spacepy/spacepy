@@ -165,6 +165,12 @@ class SimpleFunctionTests(unittest.TestCase):
         foo = xrange(23, 39)
         self.assertEqual([23, 39], tb.indsFromXrange(foo))
 
+    @unittest.expectedFailure
+    def test_indsFromXrange_zerolen(self):
+        """indsFromXrange claims useful when zero len range, seems not true"""
+        foo = xrange(20, 10)  # empty
+        self.assertEqual([23, 39], tb.indsFromXrange(foo))
+
     def test_interweave(self):
         """interweave should have known result"""
         a = numpy.arange(5)
