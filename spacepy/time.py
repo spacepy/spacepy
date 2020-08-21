@@ -364,7 +364,7 @@ class Ticktock(MutableSequence):
         except AttributeError:
             self.data.attrs['dtype'] = str(dtype_func)
         else:
-            if dtype.upper() == 'ISO': self.ISO = self.getISO()
+            # ISO is populated by update_items
             self.update_items('data')
             if dtype.upper() == 'TAI':
                 self.TAI = self.data
@@ -881,7 +881,7 @@ class Ticktock(MutableSequence):
                     del self.UTC # Force recalc of UTC in TAI calc
                 if 'ISO' in keylist:
                     del self.ISO # Also will recalc the ISO
-                del keylist[keylist.index('ISO')] # So no need to calc again
+                    del keylist[keylist.index('ISO')] # So no need to calc again
             self.TAI = self.getTAI()
             if 'UTC' in keylist and self.data.attrs['dtype'] != 'ISO':
                 self.UTC = self.getUTC()
