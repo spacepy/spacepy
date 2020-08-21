@@ -31,7 +31,6 @@ from scipy import inf
 from scipy.stats import poisson
 
 import spacepy.toolbox as tb
-import spacepy.time as st
 import spacepy.lib
 
 #Py3k compatibility renamings
@@ -113,6 +112,14 @@ class PickleAssembleTests(unittest.TestCase):
 
 
 class SimpleFunctionTests(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_humansort(self):
+        """humansort should give known answers"""
+        dat = ['r1.txt', 'r10.txt', 'r2.txt']
+        dat.sort()
+        assert dat == ['r1.txt', 'r10.txt', 'r2.txt']  # standard python sort
+        assert tb.human_sort(dat) == ['r1.txt', 'r2.txt', 'r10.txt']  # human sort
 
     def test_quaternionDeprecation(self):
         """Make sure deprecated quaternion functions work"""
