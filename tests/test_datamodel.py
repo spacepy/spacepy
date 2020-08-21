@@ -15,7 +15,6 @@ import os
 import os.path
 import tempfile
 import unittest
-
 try:
     import StringIO
 except ImportError:
