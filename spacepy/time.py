@@ -876,8 +876,12 @@ class Ticktock(MutableSequence):
                     cls(getattr(self, attrib), dtype=attrib), dt)
         if self.data.attrs['dtype'] in (
                 'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF', 'UNX', 'ISO'):
-            if 'UTC' in keylist and self.data.attrs['dtype'] == 'ISO':
-                del self.UTC # Force recalc of UTC in TAI calc
+            if self.data.attrs['dtype'] == 'ISO':
+                if 'UTC' in keylist:
+                    del self.UTC # Force recalc of UTC in TAI calc
+                if 'ISO' in keylist:
+                    del self.ISO # Also will recalc the ISO
+                del keylist[keylist.index('ISO')] # So no need to calc again
             self.TAI = self.getTAI()
             if 'UTC' in keylist and self.data.attrs['dtype'] != 'ISO':
                 self.UTC = self.getUTC()
@@ -1420,9 +1424,10 @@ class Ticktock(MutableSequence):
                will be created if necessary.
 
         Updates the ``TAI`` attribute; will also create the ``UTC``
-        attribute from ``data`` if input is in ``ISO`` (but will not
-        overwrite an existing ``UTC``). This is for efficiency, as
-        computation from ISO requires calculating UTC.
+        and ``ISO`` attributes from ``data`` if input is in ``ISO``
+        (but will not overwrite an existing ``ISO`` or ``UTC``). This is
+        for efficiency, as computation from ISO requires calculating UTC
+        and makes creating a formatted ISO string easy.
 
         Returns
         =======
@@ -1491,10 +1496,13 @@ class Ticktock(MutableSequence):
             return self.TAI
 
         if self.data.attrs['dtype'] == 'ISO':
-            _, UTC, offset = dtstr2iso(self.data, self._isofmt)
+            isoout, UTC, offset = dtstr2iso(self.data, self._isofmt)
             if 'UTC' not in dir(self):
                 self.UTC = spacepy.datamodel.dmarray(
                     UTC, attrs={'dtype': 'UTC'})
+            if 'ISO' not in dir(self):
+                self.ISO = spacepy.datamodel.dmarray(
+                    isoout, attrs={'dtype': 'ISO'})
         else:
             UTC = self.UTC
             offset = None
