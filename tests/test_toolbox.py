@@ -601,6 +601,19 @@ class SimpleFunctionTests(unittest.TestCase):
             self.assertEqual(tb.hypot(numpy.array([3.,4.])), 5.0)
             self.assertEqual(tb.hypot(numpy.array([3,4])), 5.0)
 
+    def test_hypot_array(self):
+        """hypot when called on an array falls to C"""
+        invals = [ numpy.asarray([3, 4]), numpy.arange(3,6), numpy.arange(3,10), numpy.asarray([-1,2,3]) ]
+        ans = [ 5, 7.0710678118654755, 16.73320053068151, 3.7416573867739413 ]
+        for i, tst in enumerate(invals):
+            self.assertAlmostEqual(ans[i], tb.hypot(*tst))
+        for i, tst in enumerate(invals):
+            self.assertAlmostEqual(ans[i], tb.hypot(tst))
+        self.assertEqual(5.0, tb.hypot(5.0))
+        if spacepy.lib.have_libspacepy:
+            self.assertEqual(tb.hypot(numpy.array([3.,4.])), 5.0)
+            self.assertEqual(tb.hypot(numpy.array([3,4])), 5.0)
+
     def testThreadJob(self):
         """Multithread the square of an array"""
         numpy.random.seed(0)

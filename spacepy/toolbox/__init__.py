@@ -174,9 +174,15 @@ def hypot(*args):
     >>> tot = 500
     >>> for num in tb.logspace(1, tot, 10):
     >>>     print num
-    >>>     num_list.append(timeit.timeit(stmt='tb.hypot(a)', setup='from spacepy import toolbox as tb; import numpy as np; a = [3]*{0}'.format(int(num)), number=10000))
-    >>>     num_np.append(timeit.timeit(stmt='tb.hypot(a)', setup='from spacepy import toolbox as tb; import numpy as np; a = np.asarray([3]*{0})'.format(int(num)), number=10000))
-    >>>     num_scalar.append(timeit.timeit(stmt='tb.hypot(*a)', setup='from spacepy import toolbox as tb; import numpy as np; a = [3]*{0}'.format(int(num)), number=10000))
+    >>>     num_list.append(timeit.timeit(stmt='tb.hypot(a)',
+                            setup='from spacepy import toolbox as tb;
+                            import numpy as np; a = [3]*{0}'.format(int(num)), number=10000))
+    >>>     num_np.append(timeit.timeit(stmt='tb.hypot(a)',
+                          setup='from spacepy import toolbox as tb;
+                          import numpy as np; a = np.asarray([3]*{0})'.format(int(num)), number=10000))
+    >>>     num_scalar.append(timeit.timeit(stmt='tb.hypot(*a)',
+                              setup='from spacepy import toolbox as tb;
+                              import numpy as np; a = [3]*{0}'.format(int(num)), number=10000))
     >>> from pylab import *
     >>> loglog(tb.logspace(1, tot, 10),  num_list, lw=2, label='list')
     >>> loglog(tb.logspace(1, tot, 10),  num_np, lw=2, label='numpy->ctypes')
@@ -189,8 +195,10 @@ def hypot(*args):
     .. image:: ../../source/images/hypot_no_extension_speeds_3cases.png
     """
     if lib.have_libspacepy:
-        if len(args) == 1 and hasattr(args, 'ndim'): # it is an array
-                ans = lib.hypot_tb(args[0], np.product(args[0].shape))
+        if len(args) == 1 and isinstance(args[0], np.ndarray):  # it is an array
+                # make sure everything is C-ready
+                ans = lib.hypot_tb(np.require(args[0], dtype=np.float64, requirements='C'),
+                                   np.product(args[0].shape))
                 return ans
     ans = 0.0
     for arg in args:
