@@ -11,6 +11,7 @@ from __future__ import division
 
 import copy
 import datetime
+import marshal
 import os
 import os.path
 import tempfile
@@ -315,7 +316,17 @@ class SpaceDataTests(unittest.TestCase):
         a = dm.SpaceData({'a': [1, 2, 3]})
         a.attrs['FILLVAL'] = 123
         p_str = pickle.dumps(a)
-        ret =  pickle.loads(p_str)
+        ret = pickle.loads(p_str)
+        assert a == ret
+        assert a.attrs == ret.attrs
+
+    @unittest.expectedFailure
+    def test_marshal(self):
+        """SpaceData objects don't marshal, note that here"""
+        a = dm.SpaceData({'a': [1, 2, 3]})
+        a.attrs['FILLVAL'] = 123
+        p_str = marshal.dumps(a)
+        ret = marshal.loads(p_str)
         assert a == ret
         assert a.attrs == ret.attrs
 
