@@ -196,10 +196,10 @@ def hypot(*args):
     """
     if lib.have_libspacepy:
         if len(args) == 1 and isinstance(args[0], np.ndarray):  # it is an array
-                # make sure everything is C-ready
-                ans = lib.hypot_tb(np.require(args[0], dtype=np.float64, requirements='C'),
-                                   np.product(args[0].shape))
-                return ans
+            # make sure everything is C-ready
+            ans = lib.hypot_tb(np.require(args[0], dtype=np.float64, requirements='C'),
+                               np.product(args[0].shape))
+            return ans
     ans = 0.0
     for arg in args:
         if hasattr(arg, '__iter__'):
