@@ -1464,8 +1464,8 @@ def add_arrows(lines, n=3, size=12, style='->', dorestrict=False,
     equal to one-half of the number of points in a line per line will be
     created, so not all lines will receive *n* arrows.
 
-    Example
-    =======
+    Examples
+    ========
     >>> import matplotlib.pyplot as plt
     >>> import numpy as np
     >>> x = np.arange(1, 10, .01)
