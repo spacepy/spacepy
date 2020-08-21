@@ -308,6 +308,30 @@ class TimeFunctionTests(unittest.TestCase):
         # Make sure not overwritten.
         self.assertEqual('2005-12-31T23:59:60', inputs[-2])
 
+    def test_dtstr2isomicrosecond(self):
+        """Test dtstr2iso with microseconds input"""
+        inputs = [
+            '2001-01-02T00:01:02.000600',
+            ]
+        expectediso = [
+            '2001-01-02T00:01:02',
+            ]
+        expectedUTC = [
+            (2001, 1, 2, 0, 1, 2, 600),
+            ]
+        expectedoffset = [
+            0.,
+        ]
+        expectedUTC = [datetime.datetime(*e) for e in expectedUTC]
+        actualiso, actualUTC, actualoffset = t.dtstr2iso(inputs)
+        numpy.testing.assert_equal(expectedUTC, actualUTC)
+        numpy.testing.assert_equal(expectediso, actualiso)
+        numpy.testing.assert_equal(expectedoffset, actualoffset)
+        actualiso, actualUTC, actualoffset = t.dtstr2iso(inputs[0])
+        numpy.testing.assert_equal(expectedUTC[0], actualUTC)
+        numpy.testing.assert_equal(expectediso[0], actualiso)
+        numpy.testing.assert_equal(expectedoffset[0], actualoffset)
+
     def test_dtstr2isoearly(self):
         """convert datetime string to ISO + UTC before 1900"""
         inputs = ['1890-01-1', '1858-11-18',

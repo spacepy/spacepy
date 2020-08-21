@@ -1871,7 +1871,9 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
     # Add offset to datetime value to get actual UTC,
     # in integer microseconds.
     offset = np.zeros(shape=dtstr.shape, dtype=np.uint32)
-    for idx in leapidx: # Should be short list, so loop it
+    # Actual leap second indices (not just suspected)
+    realleap = []
+    for j, idx in enumerate(leapidx): # Should be short list, so loop it
         # Get the index to scalar if necessary
         i = tuple(idx) if dtstr.shape else ()
         # The leap second must be preceded by at least 10 char (above),
@@ -1883,7 +1885,10 @@ def dtstr2iso(dtstr, fmt='%Y-%m-%dT%H:%M:%S'):
             r'^([^\.]{8,}59[^\d]?)60((?:\.\d+)?)$', r'\g<1>59\g<2>', dtstr[i])
         # Doing this subtracted one second.
         if count:
+            realleap.append(idx)
             offset[i] = 1e6
+    # Cut index of leap seconds down to real ones.
+    leapidx = np.array(realleap)
     # try a few special cases that are faster than dateutil.parser
     strfmts = ['%Y-%m-%dT%H:%M:%S',
                '%Y-%m-%dT%H:%M:%SZ',
