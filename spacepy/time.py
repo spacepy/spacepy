@@ -876,8 +876,10 @@ class Ticktock(MutableSequence):
                     cls(getattr(self, attrib), dtype=attrib), dt)
         if self.data.attrs['dtype'] in (
                 'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF', 'UNX', 'ISO'):
+            if 'UTC' in keylist and self.data.attrs['dtype'] == 'ISO':
+                del self.UTC # Force recalc of UTC in TAI calc
             self.TAI = self.getTAI()
-            if 'UTC' in keylist:
+            if 'UTC' in keylist and self.data.attrs['dtype'] != 'ISO':
                 self.UTC = self.getUTC()
         else:
             self.UTC = self.getUTC()
@@ -1417,7 +1419,10 @@ class Ticktock(MutableSequence):
             3. Else calculates from current value of ``UTC``, which
                will be created if necessary.
 
-        Updates the ``TAI`` attribute.
+        Updates the ``TAI`` attribute; will also create the ``UTC``
+        attribute from ``data`` if input is in ``ISO`` (but will not
+        overwrite an existing ``UTC``). This is for efficiency, as
+        computation from ISO requires calculating UTC.
 
         Returns
         =======
@@ -1487,6 +1492,9 @@ class Ticktock(MutableSequence):
 
         if self.data.attrs['dtype'] == 'ISO':
             _, UTC, offset = dtstr2iso(self.data, self._isofmt)
+            if 'UTC' not in dir(self):
+                self.UTC = spacepy.datamodel.dmarray(
+                    UTC, attrs={'dtype': 'UTC'})
         else:
             UTC = self.UTC
             offset = None
