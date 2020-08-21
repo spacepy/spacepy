@@ -4,6 +4,8 @@ Changes in Version 0.2.2 (2020-xx-xx)
 - Quaternion math functions moved to coordinates module
 coordinates
  - Include upstream fix for SPH->RLL coordinate transform
+datamodel
+ - Fix in SpaceData.toXXX() methods that would fail in some cases
 datamanager
  - New function "rebin", rebin an axis of an array by contents of another
 irbempy
