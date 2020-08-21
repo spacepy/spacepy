@@ -468,6 +468,7 @@ def savepickle(fln, dict, compress=None):
     >>> savepickle('test.pbin', d)
     """
     if compress == None:
+        # TODO, what is this line meant to do? Whay not just check fln for ending in gz?
         if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
             compress = True
         else:
@@ -1481,6 +1482,7 @@ def indsFromXrange(inxrange):
     if not isinstance(inxrange, xrange): return None
     valstr = inxrange.__str__()
     if ',' not in valstr:
+        # TODO, can't figure out in what case this code is run, every case is False then off to else.
         res = re.search(r'(\d+)', valstr)
         retval = [int(0), int(res.group(1))]
     else:
