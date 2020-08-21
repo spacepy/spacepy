@@ -14,8 +14,8 @@ Copyright 2010 Los Alamos National Security, LLC.
 #If you add functions here, be sure to:
 #1) add to the __all__ list
 #2) add to functions in Doc/source/toolbox.rst so it goes in the docs
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
 
 import calendar
 import datetime
@@ -30,7 +30,7 @@ try:
 except ImportError: # Python2
     import httplib as http
     http.client = http
-import itertools
+import numbers
 import os
 import os.path
 import re
@@ -46,7 +46,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import numbers
 import warnings
 import zipfile
 
@@ -3046,8 +3045,3 @@ def poisson_fit(data, initial=None, method='Powell'):
                    method=method,  # minimization method, see docs
                    )
     return ans
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
