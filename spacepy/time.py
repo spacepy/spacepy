@@ -1470,7 +1470,7 @@ class Ticktock(MutableSequence):
             return self.TAI
 
         if self.data.attrs['dtype'] == 'ISO':
-            _, UTC, offset = dtstr2iso(self.ISO, self._isofmt)
+            _, UTC, offset = dtstr2iso(self.data, self._isofmt)
         else:
             UTC = self.UTC
             offset = None
