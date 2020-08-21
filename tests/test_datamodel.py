@@ -311,7 +311,16 @@ class SpaceDataTests(unittest.TestCase):
         # Known failure, cannot delete property from instance.
 #        self.assertFalse('meta' in dir(a))
 
-        
+    def test_pickle(self):
+        """Make sure that SpaceData objects behave with pickle"""
+        a = dm.SpaceData({'a': [1, 2, 3]})
+        a.attrs['FILLVAL'] = 123
+        p_str = pickle.dumps(a)
+        ret =  pickle.loads(p_str)
+        assert a == ret
+        assert a.attrs == ret.attrs
+
+
 class dmarrayTests(unittest.TestCase):
     def setUp(self):
         super(dmarrayTests, self).setUp()
