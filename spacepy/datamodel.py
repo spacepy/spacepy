@@ -508,11 +508,11 @@ class SpaceData(dict, MetaMixin):
             del kwargs['attrs']
 
         super(SpaceData, self).__init__(*args, **kwargs)
-        self.toCDF = partial(toCDF, SDobject=self, *args, **kwargs)
+        self.toCDF = partial(toCDF, SDobject=self)
         self.toCDF.__doc__ = toCDF.__doc__
-        self.toHDF5 = partial(toHDF5, SDobject=self, *args, **kwargs)
+        self.toHDF5 = partial(toHDF5, SDobject=self)
         self.toHDF5.__doc__ = toHDF5.__doc__
-        self.toJSONheadedASCII = partial(toJSONheadedASCII, insd=self, *args, **kwargs)
+        self.toJSONheadedASCII = partial(toJSONheadedASCII, insd=self)
         self.toJSONheadedASCII.__doc__ = toJSONheadedASCII.__doc__
 
     #Need to remove the partials on copy, http://bugs.python.org/issue4380
