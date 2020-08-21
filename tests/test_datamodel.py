@@ -9,11 +9,13 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 from __future__ import division
 
+import copy
 import datetime
 import os
 import os.path
 import tempfile
 import unittest
+
 try:
     import StringIO
 except ImportError:
@@ -23,7 +25,6 @@ import warnings
 
 import spacepy.datamodel as dm
 import spacepy.time as spt
-from spacepy import pycdf
 import numpy as np
 
 try:
@@ -591,6 +592,21 @@ class converterTests(unittest.TestCase):
         newobj = dm.fromHDF5(self.testfile)
         self.assertEqual(a.attrs['foo'], newobj.attrs['foo'])
 
+    def test_toHDF5_method(self):
+        """Convert to HDF5, using the method, catching #404"""
+        a = dm.SpaceData({'dat': dm.dmarray([1, 2, 3])})
+        a.toHDF5(self.testfile, mode='a')
+        newobj = dm.fromHDF5(self.testfile)
+        np.testing.assert_array_equal([1, 2, 3], newobj['dat'])
+
+    def test_copy_toHDF(self):
+        """Removed code in #404 for an old python bug, issue4380, make sure it works"""
+        a = dm.SpaceData({'dat': dm.dmarray([1, 2, 3])})
+        a2 = copy.deepcopy(a)
+        a2.toHDF5(self.testfile, mode='a')
+        newobj = dm.fromHDF5(self.testfile)
+        np.testing.assert_array_equal([1, 2, 3], newobj['dat'])
+
     def test_HDF5roundtrip(self):
         """Data can go to hdf and back"""
         dm.toHDF5(self.testfile, self.SDobj)
@@ -704,7 +720,13 @@ class converterTestsCDF(unittest.TestCase):
         tst = dm.fromCDF(self.testfile)
         for k in self.SDobj:
             np.testing.assert_array_equal(self.SDobj[k], tst[k])
-                    
+
+    def test_toCDF_method(self):
+        """Convert to CDF, using the method, catching #404"""
+        a = dm.SpaceData({'dat': dm.dmarray([1, 2, 3])})
+        a.toCDF(self.testfile, mode='a')
+        newobj = dm.fromCDF(self.testfile)
+        np.testing.assert_array_equal([1, 2, 3], newobj['dat'])
 
 class JSONTests(unittest.TestCase):
     def setUp(self):
@@ -712,9 +734,14 @@ class JSONTests(unittest.TestCase):
         self.pth = os.path.dirname(os.path.abspath(__file__))
         self.filename = os.path.join(self.pth, 'data', '20130218_rbspa_MagEphem.txt')
         self.filename_bad = os.path.join(self.pth, 'data', '20130218_rbspa_MagEphem_bad.txt')
+        self.testdir = tempfile.mkdtemp()
+        self.testfile = os.path.join(self.testdir, 'test.cdf')
 
     def tearDown(self):
         super(JSONTests, self).tearDown()
+        if os.path.exists(self.testfile):
+            os.remove(self.testfile)
+        os.rmdir(self.testdir)
 
     def test_readJSONMetadata(self):
         """readJSONMetadata should read in the file"""
@@ -867,6 +894,13 @@ class JSONTests(unittest.TestCase):
         self.assertTrue(dat2['Var1'].attrs['DIMENSION']==[1])
         self.assertTrue(dat2['Var2'].attrs['DIMENSION']==[2])
         os.remove(t_file.name)
+
+    def test_toJSONheadedASCII_method_404(self):
+        """Convert to toJSONheadedASCII, using the method, catching #404"""
+        a = dm.SpaceData({'dat': dm.dmarray([1, 2, 3])})
+        a.toJSONheadedASCII(self.testfile, mode='a')
+        newobj = dm.readJSONheadedASCII(self.testfile)
+        np.testing.assert_array_equal([1, 2, 3], newobj['dat'])
 
     def test_toJSONmetadata_globals(self):
         """Test for handling of int, float, bool, list & dict in global attrs"""
