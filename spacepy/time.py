@@ -9,6 +9,9 @@ The handling of time, in particular the conversions between representations,
 can be more complicated than it seems on the surface. This can result in
 some surprising behavior, particularly when requiring second-level accuracy and
 converting between time systems outside of the period 1972 to present.
+It is strongly recommended to use TAI if transferring times between SpacePy
+and other libraries. TAI has a consistent, unambiguous definition and no
+discontinuities.
 
 Some time systems (e.g. the UTC representation via datetime) cannot represent
 times during a leapsecond. SpacePy represents all these times as the latest
@@ -50,6 +53,9 @@ SpacePy assumes dates including and after 1582-10-15 to be in the Gregorian
 calendar and dates including and before 1582-10-04 to be Julian. 10-05 through
 10-14 do not exist. This change is ignored for continuously-running non leap
 second aware timebases: CDF and RDT.
+
+See the ``Ticktock`` documentation and its various ``get`` functions for
+more details on the exact definitions of time systems used by SpacePy.
 
 Examples:
 =========
