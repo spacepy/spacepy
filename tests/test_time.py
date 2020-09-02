@@ -363,6 +363,21 @@ class TimeFunctionTests(unittest.TestCase):
             t.dtstr2iso(inputs[-1])
         self.assertEqual('2009-12-31T23:59:60.100 is not a valid leapsecond.',
                          str(cm.exception))
+        more_bad = [
+            # Potentially a valid leapsecond, but after the last known one,
+            # so not valid for now (and I'll be dead before it is valid.)
+            '2999-12-31T23:59:60',
+            '2999-12-31T23:59:60.5']
+        for b in more_bad:
+            with self.assertRaises(ValueError) as cm:
+                t.dtstr2iso(b)
+            self.assertEqual('{} is not a valid leapsecond.'.format(b),
+                             str(cm.exception))
+            # Do same thing in an array
+            with self.assertRaises(ValueError) as cm:
+                t.dtstr2iso([b])
+            self.assertEqual('{} is not a valid leapsecond.'.format(b),
+                             str(cm.exception))
 
     def test_days1958(self):
         """Test fractional days since 1958"""
