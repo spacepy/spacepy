@@ -256,9 +256,10 @@ class Ticktock(MutableSequence):
 
         Format string used for parsing and outputting ISO format. Input is
         not forced to be in this format; it is tried first, and other
-        common formats tried if parsing fails. Can be changed on existing
-        ``Ticktock`` with :meth:`isoformat` method. Default
-        ``'%Y-%m-%dT%H:%M:%S'``.
+        common formats tried if parsing fails. Because of this, if ISO input
+        is in a consistent format, specifying this can speed up the input
+        parsing. Can be changed on existing ``Ticktock`` with :meth:`isoformat`
+        method. Default ``'%Y-%m-%dT%H:%M:%S'``.
 
     See Also
     ========
