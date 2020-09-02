@@ -1346,6 +1346,21 @@ class TimeClassTests(unittest.TestCase):
         #        numpy.testing.assert_array_equal(t1, expected)
         self.assertTrue((t1 == expected).all())
 
+    def test_GPSinput(self):
+        """Regressions on GPS input, correct TAI/UTC conversions"""
+        gps = [1167264016.5, 1167264017.5, 1167264018., 1167264018.5]
+        tai = [1861920035.5, 1861920036.5, 1861920037., 1861920037.5]
+        utc = [(2016, 12, 31, 23, 59, 59, 500000),
+               (2016, 12, 31, 23, 59, 59, 999999),
+               (2017, 1, 1),
+               (2017, 1, 1, 0, 0, 0, 500000)]
+        utc = [datetime.datetime(*u) for u in utc]
+        t1 = t.Ticktock(gps, dtype='GPS')
+        numpy.testing.assert_array_equal(tai, t1.TAI)
+        # See if straight from TAI works...
+        numpy.testing.assert_array_equal(utc, t.Ticktock(tai, dtype='TAI').UTC)
+        numpy.testing.assert_array_equal(utc, t1.UTC)
+
     def test_UTCUNX(self):
         """testing get UTC from UNX"""
         t1 = t.Ticktock([1.00984680e+09, 1.00992960e+09], 'UNX')

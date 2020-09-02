@@ -1351,7 +1351,7 @@ class Ticktock(MutableSequence):
                 idx = np.searchsorted(TAIleaps, self.TAI[i], side='right') - 1
                 UTC[i] = UTC[i] - datetime.timedelta(seconds=secs[idx]
                                                           if idx > 0 else 0)
-                if int(self.data[i]) == TAIleaps[idx]:
+                if int(self.TAI[i]) == TAIleaps[idx]:
                     # TAI is in leap second
                     UTC[i] = UTC[i].replace(
                         second=59, microsecond=999999)
