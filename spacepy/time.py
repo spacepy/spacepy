@@ -200,8 +200,7 @@ class Ticktock(MutableSequence):
     CDF
         CDF Epoch type: float milliseconds since 0000-1-1 ignoring leapseconds
     APT
-        AstroPy :class:`~astropy.time.Time`. Ticktock objects using AstroPy
-        time as input may not pickle properly. Requires AstroPy 1.0.
+        AstroPy :class:`~astropy.time.Time`. Requires AstroPy 1.0.
         (New in version 0.2.2.)
 
     Possible output data types: All those listed above, plus:
