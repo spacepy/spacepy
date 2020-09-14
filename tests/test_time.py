@@ -1094,6 +1094,22 @@ class TimeClassTests(unittest.TestCase):
             [datetime.datetime(2010, 1, 1)],
             t1.UTC)
 
+    def test_astropy_pickle(self):
+        """Pickle with AstroPy time inputs"""
+        apt = astropy.time.Time([
+            '2010-01-01',
+            '2010-01-01T00:01:00'])
+        t1 = t.Ticktock(apt, dtype='APT')
+        pkl = pickle.dumps(t1)
+        t2 = pickle.loads(pkl)
+        self.assertEqual('APT', t2.data.attrs['dtype'])
+        numpy.testing.assert_array_equal(
+            [datetime.datetime(2010, 1, 1),
+             datetime.datetime(2010, 1, 1, 0, 1)],
+            t2.UTC)
+        numpy.testing.assert_array_equal(
+            [1640995234.0, 1640995294.0], t2.TAI)
+
     def test_astropy_output(self):
         """AstroPy time outputs"""
         t1 = t.Ticktock(['2010-01-01',
