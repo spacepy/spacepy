@@ -23,6 +23,11 @@ import time
 import sys
 import warnings
 
+try:
+    import astropy.time
+    HAVE_ASTROPY = True
+except: # Don't bring down whole test suite
+    HAVE_ASTROPY = False
 import numpy
 
 import spacepy
@@ -1069,6 +1074,40 @@ class TimeClassTests(unittest.TestCase):
         t1 = t.Ticktock(['2002-01-01T01:00:00', '2002-01-02'])
         expected = [0.04166667, 1.]
         numpy.testing.assert_almost_equal(expected, t1.eDOY)
+
+    def test_astropy_input(self):
+        """AstroPy time inputs"""
+        apt = astropy.time.Time([
+            '2010-01-01',
+            '2010-01-01T00:01:00'])
+        t1 = t.Ticktock(apt, dtype='APT')
+        self.assertEqual('APT', t1.data.attrs['dtype'])
+        numpy.testing.assert_array_equal(
+            [datetime.datetime(2010, 1, 1),
+             datetime.datetime(2010, 1, 1, 0, 1)],
+            t1.UTC)
+        numpy.testing.assert_array_equal(
+            [1640995234.0, 1640995294.0], t1.TAI)
+        apt = astropy.time.Time('2010-01-01')
+        t1 = t.Ticktock(apt, dtype='APT')
+        numpy.testing.assert_array_equal(
+            [datetime.datetime(2010, 1, 1)],
+            t1.UTC)
+
+    def test_astropy_output(self):
+        """AstroPy time outputs"""
+        t1 = t.Ticktock(['2010-01-01',
+                        '2010-01-01T06:00:00'])
+        # Convert to UTC scale (from TAI)
+        apt = t1.APT.utc
+        numpy.testing.assert_array_equal(
+            [2455197.5, 2455197.75],
+            apt.jd)
+        t1 = t.Ticktock('2010-01-01')
+        apt = t1.APT.utc
+        numpy.testing.assert_array_equal(
+            [2455197.5],
+            apt.jd)
 
     def test_str(self):
         """TickTock __str__ should give known results"""
