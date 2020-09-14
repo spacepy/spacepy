@@ -58,6 +58,7 @@ time
    in many cases they were undefined in previous versions.
  - now and today return UTC times, not local.
  - matplotlib no longer required, including RDT and randomDate.
+ - Add support for conversion to/from astropy.time.Time
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO

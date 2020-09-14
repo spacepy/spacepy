@@ -155,6 +155,11 @@ import os.path
 import re
 import warnings
 
+try:
+    import astropy.time
+    HAVE_ASTROPY = True
+except ImportError:
+    HAVE_ASTROPY = False
 import dateutil.parser as dup
 import numpy as np
 
@@ -173,7 +178,7 @@ class Ticktock(MutableSequence):
     Ticktock( data, dtype )
 
     Ticktock class holding various time coordinate systems
-    (TAI, UTC, ISO, JD, MJD, UNX, RDT, CDF, DOY, eDOY)
+    (TAI, UTC, ISO, JD, MJD, UNX, RDT, CDF, DOY, eDOY, APT)
 
     Possible input data types:
 
@@ -194,6 +199,10 @@ class Ticktock(MutableSequence):
         Rata Die days elapsed since 0001-1-1
     CDF
         CDF Epoch type: float milliseconds since 0000-1-1 ignoring leapseconds
+    APT
+        AstroPy :class:`~astropy.time.Time`. Ticktock objects using AstroPy
+        time as input may not pickle properly. Requires AstroPy 0.3.
+        (New in version 0.2.2.)
 
     Possible output data types: All those listed above, plus:
 
@@ -237,7 +246,7 @@ class Ticktock(MutableSequence):
     ==========
     data : array_like (int, datetime, float, string)
         time stamp
-    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`} or function
+    dtype : string {`CDF`, `ISO`, `UTC`, `TAI`, `UNX`, `JD`, `MJD`, `RDT`, `APT`} or function
         data type for data, if a function it must convert input time format to Python datetime
 
     Returns
@@ -288,6 +297,7 @@ class Ticktock(MutableSequence):
         ~Ticktock.append
         ~Ticktock.argsort
         ~Ticktock.convert
+        ~Ticktock.getAPT
         ~Ticktock.getCDF
         ~Ticktock.getDOY
         ~Ticktock.getGPS
@@ -308,6 +318,7 @@ class Ticktock(MutableSequence):
     .. automethod:: append
     .. automethod:: argsort
     .. automethod:: convert
+    .. automethod:: getAPT
     .. automethod:: getCDF
     .. automethod:: getDOY
     .. automethod:: getGPS
@@ -328,6 +339,8 @@ class Ticktock(MutableSequence):
 
     """
     _keylist = ['UTC', 'TAI', 'ISO', 'JD', 'MJD', 'UNX', 'RDT', 'CDF', 'GPS', 'DOY', 'eDOY', 'leaps']
+    if HAVE_ASTROPY:
+        _keylist.append('APT')
     _keylist_upper = [key.upper() for key in _keylist]
     _isoformatstr = {'seconds': '%Y-%m-%dT%H:%M:%S', 'microseconds': '%Y-%m-%dT%H:%M:%S.%f'}
 
@@ -353,6 +366,12 @@ class Ticktock(MutableSequence):
                     dtype = 'ISO'
                 elif isinstance(self.data[0], datetime.datetime):
                     dtype = 'UTC'
+                elif HAVE_ASTROPY and isinstance(self.data[0],
+                                                 astropy.time.Time):
+                    dtype = 'APT'
+                    # Recover original input (not dmarray), add axis if scalar
+                    self.data = astropy.time.Time([data]) if data.shape == ()\
+                                else data
                 elif self.data[0] > 1e13:
                     dtype = 'CDF'
                 elif dtype is None:
@@ -365,7 +384,9 @@ class Ticktock(MutableSequence):
                 dtype_func = np.vectorize(dtype)
                 self.data = dtype_func(self.data)
                 self.UTC = no_tzinfo(self.data)
-
+        # AstroPy time objects don't have attrs, but will accept one.
+        if not hasattr(self.data, 'attrs'):
+            self.data.attrs = {}
         try:
             self.data.attrs['dtype'] = dtype.upper()
         except AttributeError:
@@ -387,6 +408,8 @@ class Ticktock(MutableSequence):
                 self.CDF = self.data
             elif dtype.upper() == 'UTC':
                 self.UTC = no_tzinfo(self.data)
+            elif dtype.upper() == 'APT':
+                self.APT = self.data
 
             ## Brian and Steve were looking at this to see about making plot work directly on the object
             ## is also making iterate as an array of datetimes
@@ -722,6 +745,7 @@ class Ticktock(MutableSequence):
         if name.upper() == 'DOY': self.DOY = self.getDOY()
         if name.upper() == 'EDOY': self.eDOY = self.geteDOY()
         if name.upper() == 'GPS': self.GPS = self.getGPS()
+        if name.upper() == 'APT': self.APT = self.getAPT()
         # if name == 'isoformat': self.__isofmt = self.isoformat()
         if name == 'leaps': self.leaps = self.getleapsecs()
         return getattr(self, name)
@@ -882,7 +906,7 @@ class Ticktock(MutableSequence):
                 self.data = getattr(
                     cls(getattr(self, attrib), dtype=attrib), dt)
         if self.data.attrs['dtype'] in (
-                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF', 'UNX', 'ISO'):
+                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF', 'UNX', 'ISO', 'APT'):
             if self.data.attrs['dtype'] == 'ISO':
                 if 'UTC' in keylist:
                     del self.UTC # Force recalc of UTC in TAI calc
@@ -906,6 +930,7 @@ class Ticktock(MutableSequence):
             if key.upper() == 'DOY': self.DOY = self.getDOY()
             if key.upper() == 'EDOY': self.eDOY = self.geteDOY()
             if key.upper() == 'GPS': self.GPS = self.getGPS()
+            if key.upper() == 'APT': self.APT = self.getAPT()
             if key == 'leaps': self.leaps = self.getleapsecs()
 
         return
@@ -1002,6 +1027,7 @@ class Ticktock(MutableSequence):
         getTAI
         getDOY
         geteDOY
+        getAPT
         """
         if self.data.attrs['dtype'] == 'CDF':
             # This should be the case from the constructor
@@ -1047,6 +1073,7 @@ class Ticktock(MutableSequence):
         getTAI
         getDOY
         geteDOY
+        getAPT
         """
         DOY = [utc.toordinal() - datetime.date(utc.year, 1, 1).toordinal() + 1 for utc in self.UTC]
         self.DOY = spacepy.datamodel.dmarray(DOY, attrs={'dtype': 'DOY'}).astype(int)
@@ -1086,6 +1113,7 @@ class Ticktock(MutableSequence):
         getTAI
         getDOY
         geteDOY
+        getAPT
         """
 
         eDOY = [utc.toordinal() - datetime.date(utc.year, 1, 1).toordinal() for utc in self.UTC]
@@ -1141,6 +1169,7 @@ class Ticktock(MutableSequence):
         getTAI
         getDOY
         geteDOY
+        getAPT
         """
         if self.data.attrs['dtype'] == 'JD':
             # This should be the case from the constructor
@@ -1195,7 +1224,8 @@ class Ticktock(MutableSequence):
 
         See Also
         ========
-        getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, geteDOY
+        getUTC, getUNX, getRDT, getJD, getISO, getCDF, getTAI, getDOY, geteDOY,
+        getAPT
         """
         if self.data.attrs['dtype'] == 'MJD':
             # This should be the case from the constructor
@@ -1233,8 +1263,8 @@ class Ticktock(MutableSequence):
 
         See Also
         =========
-        getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-
+        getUTC, getISO, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY,
+        getAPT
         """
         if self.data.attrs['dtype'] == 'UNX':
             # This should be the case from the constructor
@@ -1277,8 +1307,8 @@ class Ticktock(MutableSequence):
 
         See Also
         =========
-        getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-
+        getUTC, getUNX, getISO, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY,
+        getAPT
         """
         if self.data.attrs['dtype'] == 'RDT':
             # This should be the case from the constructor
@@ -1326,8 +1356,8 @@ class Ticktock(MutableSequence):
 
         See Also
         =========
-        getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-
+        getISO, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY,
+        getAPT
         """
         nTAI = len(self.data)
 
@@ -1340,7 +1370,7 @@ class Ticktock(MutableSequence):
             _, UTC, _ = dtstr2iso(self.data, fmt=self._isofmt)
 
         elif self.data.attrs['dtype'].upper() in (
-                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF', 'UNX'):
+                'TAI', 'GPS', 'JD', 'MJD', 'RDT', 'CDF', 'UNX', 'APT'):
             TAI0 = datetime.datetime(1958, 1, 1, 0, 0, 0, 0)
             UTC = [datetime.timedelta(
                 # Before 1582-10-15, UTC 10 days earlier than naive conversion
@@ -1393,12 +1423,12 @@ class Ticktock(MutableSequence):
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.GPS
-        array([])
+        dmarray([6.96686413e+08])
 
         See Also
         =========
-        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
-
+        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY,
+        getAPT
         """
         if self.data.attrs['dtype'] == 'GPS':
             # This should be the case from the constructor
@@ -1408,6 +1438,52 @@ class Ticktock(MutableSequence):
         self.GPS = spacepy.datamodel.dmarray(
             self.TAI - GPS0, attrs={'dtype': 'GPS'})
         return self.GPS
+
+    # -----------------------------------------------
+    def getAPT(self):
+        """
+        a.APT or a.getAPT()
+
+        Return AstroPy time object.
+
+        Always recalculates from the current value of ``TAI``, which
+        will be created if necessary.
+
+        Updates the ``APT`` attribute.
+
+        Returns
+        ========
+            out : astropy.time.Time
+                AstroPy Time object
+
+        Notes
+        =====
+        .. versionadded:: 0.2.2
+
+        Requires AstroPy 0.3.
+
+        Examples
+        ========
+        >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
+        >>> a.APT
+        <Time object: scale='utc' format='gps' value=696686413.0>
+
+        See Also
+        =========
+        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY,
+        getGPS
+        """
+        if self.data.attrs['dtype'] == 'APT':
+            # This should be the case from the constructor
+            self.APT = self.data
+            return self.APT
+        if not HAVE_ASTROPY:
+            raise RuntimeError('Import of astropy.time failed.')
+        GPS0 = 694656019
+        self.APT = astropy.time.Time(
+            self.TAI - GPS0, scale='tai', format='gps')
+        self.APT.attrs = {'dtype': 'APT'}
+        return self.APT
 
     # -----------------------------------------------
     def getTAI(self):
@@ -1426,7 +1502,7 @@ class Ticktock(MutableSequence):
 
             1. If ``data`` was provided in TAI, returns ``data``.
             2. Else recalculates directly from ``data`` if it was
-               provided in CDF, GPS, ISO, JD, MJD, RDT, or UNX.
+               provided in APT, CDF, GPS, ISO, JD, MJD, RDT, or UNX.
             3. Else calculates from current value of ``UTC``, which
                will be created if necessary.
 
@@ -1449,8 +1525,8 @@ class Ticktock(MutableSequence):
 
         See Also
         ========
-        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY
-
+        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getISO, getDOY, geteDOY,
+        getAPT
         """
         if self.data.attrs['dtype'] == 'TAI':
             # This should be the case from the constructor
@@ -1501,7 +1577,14 @@ class Ticktock(MutableSequence):
             tai = _tai_naive_to_real(tai)
             self.TAI = spacepy.datamodel.dmarray(tai, attrs={'dtype': 'TAI'})
             return self.TAI
-
+        if self.data.attrs['dtype'] == 'APT':
+            # AstroPy time doesn't support TAI directly, have to go relative
+            # to GPS. But since it's a simple offset, just do the math here
+            # instead of via the GPS attribute.
+            GPS0 = 694656019
+            self.TAI = spacepy.datamodel.dmarray(
+                self.data.gps + GPS0, attrs={'dtype': 'TAI'})
+            return self.TAI
         if self.data.attrs['dtype'] == 'ISO':
             isoout, UTC, offset = dtstr2iso(self.data, self._isofmt)
             if 'UTC' not in dir(self):
@@ -1560,8 +1643,8 @@ class Ticktock(MutableSequence):
 
         See Also
         ========
-        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY
-
+        getUTC, getUNX, getRDT, getJD, getMJD, getCDF, getTAI, getDOY, geteDOY,
+        getAPT
         """
         if self.data.attrs['dtype'] == 'ISO': # Convert the string directly.
             self.ISO = spacepy.datamodel.dmarray(
