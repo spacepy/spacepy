@@ -996,6 +996,9 @@ if use_setuptools:
         #we need to ask for it ourselves
         'networkx>=1.0',
         'python_dateutil>=1.4',
+        # AstroPy is only required to convert to/from AstroPy, so either
+        # user has it or don't care.
+        #'astropy>=1.0',
     ]
 if 'bdist_wheel' in sys.argv:
     setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
