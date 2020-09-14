@@ -78,7 +78,14 @@ history. The oldest version supported according to this policy is in
      - 3.8.0 (2019/10/14)
      - 3.7.0 (2018/6/27)
      - 3.2.0 (2011/2/20) or 2.7.0 (2010/7/3)
-   * - `CDF <https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/CHANGES.txt>`_
+   * - `AstroPy <https://docs.astropy.org/en/stable/changelog.html#changelog>`_
+     - 4.0.1 (2020/3/27)
+     - **1.1.1** (2016/1/8)
+     - 2.0.4 (2018/2/6)
+     - 3.0 (2018/2/12)
+     - 3.2 (2019/6/14)
+     - 1.0 (2015/2/18)
+   * - `CDF <https://spdf.gsfc.nasa.gov/pub/software/cdf/dist/latest-release/unix/CHANGES.txt>`_
      - 3.8.0.1 (2020/7/7)
      - N/A
      - N/A

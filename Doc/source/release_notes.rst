@@ -26,6 +26,9 @@ adds IGRF13 coefficients. :mod:`~spacepy.coordinates` and
 coordinate systems as inputs to routines; if a routine does not
 support an input system, it will be automatically converted.
 
+:class:`~spacepy.time.Ticktock` supports conversions to and from
+:class:`astropy.time.Time`.
+
 The following classes, functions, and methods are new:
 
 .. autosummary::
@@ -57,14 +60,19 @@ Quaternion math functions have been moved to
 
 Dependency requirements
 ***********************
+Not all dependencies are required for all functionality; see
+:doc:`dependencies` for full details, including what functionality is
+lost if a dependency is not installed.
+
 numpy 1.10 is now required. (Many functions erroneously required it from 0.2.1, but this was not adequately documented.)
 
-scipy 0.11 is now required. (Again, this was erroneously required in 0.2.0 without appropriate documentation.)
+scipy 0.11 is now the minimum supported version of SciPy. (Again, this was erroneously required in 0.2.0 without appropriate documentation.)
 
 Several dependencies without an established minimum version were tested.
 
-As of 0.2.2, the minimum versions of dependencies are:
+As of 0.2.2, minimum supported versions of dependencies are:
   * CPython 2 2.7 or CPython 3 3.2
+  * AstroPy 1.0
   * CDF 2.7
   * dateutil 1.4 (earlier may work)
   * ffnet 0.7 (earlier may work)
@@ -73,8 +81,6 @@ As of 0.2.2, the minimum versions of dependencies are:
   * networkx 1.0 (earlier may work)
   * numpy 1.10
   * scipy 0.11
-
-See :doc:`dependencies` for full details.
 
 Major bugfixes
 **************

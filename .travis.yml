@@ -46,6 +46,7 @@ install:
  - pip install h5py
  - pip install networkx
  - pip install ffnet
+ - pip install "astropy>=1.0"
  - pip freeze #summarize what we have for debug purposes
  - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_1/linux/cdf37_1-dist-cdf.tar.gz; tar xzf cdf37_1-dist-cdf.tar.gz; cd cdf37_1-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME install; cd ..
 

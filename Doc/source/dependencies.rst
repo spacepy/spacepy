@@ -139,6 +139,13 @@ f2py) must be installed before SpacePy.
 
 :mod:`~spacepy.coordinates` requires :mod:`~spacepy.irbempy`.
 
+.. _dependencies_astropy:
+
+Astropy 1.0+
+------------
+:mod:`~spacepy.time` requires AstroPy if conversion to/from
+AstroPy :class:`~astropy.time.Time` is desired.
+
 Soft Dependency Summary
 =======================
 
@@ -159,9 +166,11 @@ unaffected by that dependency.
      - :ref:`matplotlib <dependencies_mpl>`
      - :ref:`networkx <dependencies_networkx>`
      - :ref:`SciPy <dependencies_scipy>`
+     - :ref:`AstroPy <dependencies_astropy>`
    * - :mod:`~spacepy.coordinates`
      -
      - :class:`~spacepy.coordinates.Coords` (except Windows binaries)
+     -
      -
      -
      -
@@ -179,6 +188,7 @@ unaffected by that dependency.
      -
      -
      -
+     -
    * - :mod:`~spacepy.empiricals`
      -
      -
@@ -188,9 +198,11 @@ unaffected by that dependency.
      -
      - * :func:`~spacepy.empiricals.vampolaPA`
        * :func:`~spacepy.empiricals.omniFromDirectionalFlux`
+     -
    * - :mod:`~spacepy.irbempy`
      -
      - :mod:`Entire module <spacepy.irbempy>` (except Windows binaries)
+     -
      -
      -
      -
@@ -204,11 +216,13 @@ unaffected by that dependency.
      -
      - :mod:`Entire module <spacepy.LANLstar>`
      -
+     -
    * - :mod:`~spacepy.omni`
      -
      -
      -
      - :mod:`Entire module <spacepy.omni>`
+     -
      -
      -
      -
@@ -220,6 +234,7 @@ unaffected by that dependency.
      - :mod:`Entire module <spacepy.plot>`
      -
      -
+     -
    * - :mod:`~spacepy.poppy`
      -
      -
@@ -229,6 +244,7 @@ unaffected by that dependency.
        * :meth:`~spacepy.poppy.PPro.plot`
        * :meth:`~spacepy.poppy.PPro.plot_mult`
        * :func:`~spacepy.poppy.plot_two_ppro`
+     -
      -
      -
    * - :mod:`~spacepy.pybats`
@@ -273,8 +289,10 @@ unaffected by that dependency.
        * :func:`~spacepy.pybats.trace2d.test_dipole`
      -
      -
+     -
    * - :mod:`~spacepy.pycdf`
      - :mod:`Entire module <spacepy.pycdf>`
+     -
      -
      -
      -
@@ -290,6 +308,7 @@ unaffected by that dependency.
        * :meth:`~spacepy.radbelt.RBmodel.plot_obs`
      -
      -
+     -
    * - :mod:`~spacepy.seapy`
      -
      -
@@ -298,6 +317,16 @@ unaffected by that dependency.
      - :mod:`Entire module <spacepy.seapy>`
      -
      - * :func:`~spacepy.seapy.sea_signif`
+     -
+   * - :mod:`~spacepy.time`
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     - AstroPy support in :class:`~spacepy.time.Ticktock`
    * - :mod:`~spacepy.toolbox`
      -
      -
@@ -312,4 +341,5 @@ unaffected by that dependency.
      - * :func:`~spacepy.toolbox.dist_to_list`
        * :func:`~spacepy.toolbox.intsolve`
        * :func:`~spacepy.toolbox.poisson_fit`
+     -
 
