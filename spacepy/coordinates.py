@@ -728,23 +728,13 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
                            np.identity(3), atol=0.2):
             raise ValueError('Input rotation matrix{} not orthogonal.'.format(
                 '' if len(matrix.shape) == 2 else ' at ' + str(i)))
-        try:
-            det = np.linalg.det(m)
-        except AttributeError: # det new in numpy 1.8.0
-            det = m[0, 0] * m[1, 1] * m[2, 2] \
-                  + m[0, 1] * m[1, 2] * m[2, 0] \
-                  + m[0, 2] * m[1, 0] * m[2, 1] \
-                  - m[0, 2] * m[1, 1] * m[2, 0] \
-                  - m[0, 1] * m[1, 0] * m[2, 2] \
-                  - m[0, 0] * m[1, 2] * m[2, 1]
+        det = np.linalg.det(m)
         if det < 0:
             raise ValueError('Input rotation matrix at {} not proper.'
                              .format(str(i)))
     inshape = matrix.shape
     # Flatten out most dimensions, easier to index
     matrix = np.reshape(matrix, (-1, 3, 3))
-    # This would be easier with numpy.stack, which adds an axis for us,
-    # only in numpy 1.10
     # Indexing in Bar-Itzhack is reversed relative to numpy
     k  = (
         matrix[..., 0, 0] - matrix[..., 1, 1] - matrix[..., 2, 2],
@@ -764,26 +754,12 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
         matrix[..., 1, 0] - matrix[..., 0, 1],
         matrix[..., 0, 0] + matrix[..., 1, 1] + matrix[..., 2, 2] #row 3
         )
-    # Glue elements into a matrix, last index is input sample
-    k = np.reshape(np.concatenate(k), (4, 4, -1))
-    # Make the individual 4x4 k arrays the final indices
-    k = np.rollaxis(k, 2)
+    # Stack together on a new axis after the input sample, then
+    # split that axis into the 4x4 k arrays
+    k = np.reshape(np.stack(k, axis=1), (-1, 4, 4))
     k = k / 3.
-    if hasattr(np.linalg, 'eig'): #new in numpy 1.8.0
-        evals, evects = np.linalg.eig(k)
-        evects = np.real(evects)
-    else: #fall back to scipy
-        import scipy.linalg
-        evals = []
-        evects = []
-        for i in range(k.shape[0]):
-            eigval, eigvect = scipy.linalg.eig(k[i, ...])
-            evals.append(eigval)
-            evects.append(eigvect)
-        evals = np.concatenate(evals).reshape((-1, 4))
-        evects = np.concatenate(evects).reshape((-1, 4, 4))
-        # Because K has been constructed symmetric, its eigenvalues must be real
-        evals = np.real(evals)
+    evals, evects = np.linalg.eig(k)
+    evects = np.real(evects)
     idx = np.argmax(evals, axis=-1)
     Qout = evects[np.mgrid[0:len(idx)], :, idx]
     if scalarPos.lower() == 'first':
@@ -864,8 +840,6 @@ def quaternionToMatrix(Qin, scalarPos='last', normalize=True):
     a, b, c, d = Qin[..., -1:], Qin[..., 0:1], Qin[..., 1:2], Qin[..., 2:3]
     # Output array, "flattened"
     # This can probably be written with a clever vector notation...
-    # This would be easier with numpy.stack, new in 1.10, allows
-    # specifying a new axis (just use stack with axis=-1 and no reshape)
     out = np.concatenate((
         a ** 2 + b ** 2 - c ** 2 - d ** 2,
         2 * (b * c - a * d),
