@@ -985,17 +985,17 @@ if not egginfo_only:
 if use_setuptools:
 #Sadly the format here is DIFFERENT than the distutils format
     setup_kwargs['install_requires'] = [
-        'numpy>=1.6',
-        'scipy>=0.10',
+        'numpy>=1.10,!=1.15.0',
+        'scipy>=0.11',
         'matplotlib>=1.5',
-        'h5py',
+        'h5py>=2.6',
         #Do not install ffnet on Windows since there's no binary
         #(people must hand-install)
-        'ffnet;platform_system!="Windows"',
+        'ffnet>=0.7;platform_system!="Windows"',
         #ffnet needs networkx but not marked as requires, so to get it via pip
         #we need to ask for it ourselves
-        'networkx',
-        'python_dateutil',
+        'networkx>=1.0',
+        'python_dateutil>=1.4',
     ]
 if 'bdist_wheel' in sys.argv:
     setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
