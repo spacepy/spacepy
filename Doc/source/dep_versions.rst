@@ -91,21 +91,21 @@ history. The oldest version supported according to this policy is in
      - 2.6.1 (2017/7/10)
      - 2.7.0 (2018/3/11)
      - 2.6.0 (2016/11/8)
-     - minimum not established
+     - tested from 1.4 (2008/2/27)
    * - `ffnet <https://github.com/mrkwjc/ffnet/releases>`_
      - 0.8.4 (2018/10/28)
      - N/A
      - N/A
      - 0.8.4 (2018/10/28)
      - **0.6.0** (2007/3/22)
-     - minimum not established (tested from 0.7.0)
+     - tested from 0.7 (2011/8/8)
    * - `h5py <https://github.com/h5py/h5py/releases>`_
      - 2.10.0 (2019/9/6)
      - **2.6.0** (2017/3/18)
      - 2.7.1 (2017/9/1)
      - 2.8.0 (2018/5/13)
      - 2.8.0 (2018/5/13)
-     - minimum not established
+     - tested from 2.6 (2017/3/18)
    * - `matplotlib <https://github.com/matplotlib/matplotlib/releases>`_
      - 3.1.2 (2019/12/4)
      - **1.5.1** (2016/1/10)
@@ -119,18 +119,18 @@ history. The oldest version supported according to this policy is in
      - **1.11** (2016/1/30)
      - 2.1 (2018/1/22)
      - 2.1 (2018/1/22)
-     - minimum not established
+     - tested from 1.0 (2010/1/7)
    * - `numpy <https://github.com/numpy/numpy/releases>`_
      - 1.18.1 (2020/1/6)
      - **1.11.0** (2016/3/27)
      - 1.13.1 (2017/7/6)
      - 1.14.0 (2018/1/6)
      - 1.16.0 (2019/1/13)
-     - 1.4.0 (2009/12/27)
+     - 1.10.0 (2015/10/5)
    * - `scipy <https://github.com/scipy/scipy/releases>`_
      - 1.4.1 (2019/12/18)
      - **0.17.0** (2016/1/23)
      - 0.19.1 (2017/6/23)
      - 1.2.0 (2018/12/17)
      - 1.1.0 (2018/5/5)
-     - 0.10.0 (2011/11/13)
+     - 0.11.0 (2012/9/24)
