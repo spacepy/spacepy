@@ -1350,7 +1350,12 @@ class Bats2d(IdlFile):
         The method kwarg sets the numerical method to use for the
         tracing.  Default is Runge-Kutta 4 (rk4).
         '''
-
+        startvals = [x, y]
+        dims = self['grid'].attrs['dims']
+        for v, d in zip(startvals, dims):
+            if v < self[d].min() or v > self[d].max():
+                raise ValueError('Start value {} out of range for variable {}.'
+                                 .format(v, d))
         stream = Stream(self, x, y, xvar, yvar, style=style, 
                         maxPoints=maxPoints, method=method, extract=extract)
 

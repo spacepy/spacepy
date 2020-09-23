@@ -222,6 +222,21 @@ class TestBats2d(unittest.TestCase):
 
         # Test adding streams via "add_stream_scatter":
         self.mhd.add_stream_scatter('ux','uz',target=ax,narrow=1)
+
+    def testGetStreamBad(self):
+        """Get a streamline with a start point outside the input grid"""
+        with self.assertRaises(ValueError) as cm:
+            # X range is -220 to 31 (Z==0 is in range)
+            self.mhd.get_stream(50, 0, 'ux', 'uz', method='rk4')
+        self.assertEqual(
+            'Start value 50 out of range for variable x.',
+            str(cm.exception))
+        with self.assertRaises(ValueError) as cm:
+            # Z range is -124 to 124 (X==0 is in range)
+            self.mhd.get_stream(0, 150, 'ux', 'uz', method='rk4')
+        self.assertEqual(
+            'Start value 150 out of range for variable z.',
+            str(cm.exception))
         
 class TestMagGrid(unittest.TestCase):
     '''
