@@ -58,6 +58,7 @@ range set the keyword argument interp to False.
 
 """
 import bisect, re, os
+import sys
 import numpy as np
 from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten, readJSONheadedASCII, dmfilled, fromHDF5
 from spacepy.toolbox import tOverlapHalf, indsFromXrange
@@ -396,7 +397,11 @@ except ImportError:
 #dotfln = os.environ['HOME']+'/.spacepy'
 omnifln = os.path.join(DOT_FLN,'data','omnidata{0}'.format(_ext))
 omni2fln = os.path.join(DOT_FLN,'data','omni2data{0}'.format(_ext))
-testfln = os.path.join('data','OMNItest{0}'.format(_ext))
+# Test data is stored relative to the test script
+testfln = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])),
+                       'data', 'OMNItest{0}'.format(_ext))
+if not os.path.isfile(testfln): # Hope it's relative to current!
+    testfln = os.path.join(os.path.abspath('data'), 'OMNItest{0}'.format(_ext))
 
 if _ext=='.h5':
     presentQD = h5py.is_hdf5(omnifln)
