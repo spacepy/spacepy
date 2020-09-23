@@ -1459,13 +1459,17 @@ class Ticktock(MutableSequence):
         =====
         .. versionadded:: 0.2.2
 
-        Requires AstroPy 1.0.
+        Requires AstroPy 1.0. The returned value will be on the ``tai``
+        scale in ``gps`` format (unless the :class:`Ticktock` was created
+        from a :class:`~astropy.time.Time` object, in which case it will
+        be the original input.) See the :mod:`astropy.time` docs for
+        conversion to other scales and formats.
 
         Examples
         ========
         >>> a = Ticktock('2002-02-02T12:00:00', 'ISO')
         >>> a.APT
-        <Time object: scale='utc' format='gps' value=696686413.0>
+        <Time object: scale='tai' format='gps' value=696686413.0>
 
         See Also
         =========
