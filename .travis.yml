@@ -31,13 +31,13 @@ matrix:
     env: NUMPY_VERSION=">=1.18.0" PIPLIST="scipy matplotlib networkx h5py ffnet astropy"
   - python: 3.7
     dist: bionic
-    env: NUMPY_VERSION=">=1.15.1,<1.16.0" PIPLIST="scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=1.0,<1.1" CFLAGS="-Wno-error=format-security"
+    env: NUMPY_VERSION=">=1.15.1,<1.16.0" PIPLIST="scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=2.0,<2.1" CFLAGS="-Wno-error=format-security"
   - python: 3.7
     dist: bionic
     env: NUMPY_VERSION=">=1.18.0" PIPLIST="scipy matplotlib networkx h5py ffnet astropy"
   - python: 3.8
     dist: bionic
-    env: NUMPY_VERSION=">=1.17.0,<1.18.0" PIPLIST="scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=1.0,<1.1" CFLAGS="-Wno-error=format-security"
+    env: NUMPY_VERSION=">=1.17.0,<1.18.0" PIPLIST="scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=2.0,<2.1" CFLAGS="-Wno-error=format-security"
   - python: 3.8
     dist: bionic
     env: NUMPY_VERSION=">=1.18.0" PIPLIST="scipy matplotlib networkx h5py ffnet astropy"
