@@ -12,7 +12,7 @@ sudo aptitude install libblas-dev liblapack-dev
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda
 # download/install CDF
-wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_1/linux/cdf37_1-dist-cdf.tar.gz; tar xzf cdf37_1-dist-cdf.tar.gz; pushd cdf37_1-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME/cdf install; popd
+wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; pushd cdf38_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME/cdf install; popd
 source ${HOME}/cdf/bin/definitions.B
 
 # For the most part, these versions are: what's the earliest we support,
