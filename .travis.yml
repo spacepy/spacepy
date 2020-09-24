@@ -52,7 +52,7 @@ install:
  # Make sure new packages don't override numpy version
  - pip install "numpy${NUMPY_VERSION}" ${PIPLIST}
  - pip freeze #summarize what we have for debug purposes
- - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf37_1/linux/cdf37_1-dist-cdf.tar.gz; tar xzf cdf37_1-dist-cdf.tar.gz; cd cdf37_1-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME install; cd ..
+ - wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; cd cdf38_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME install; cd ..
 
 script:
  - python setup.py install
