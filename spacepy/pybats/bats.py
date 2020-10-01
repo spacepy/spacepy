@@ -842,6 +842,8 @@ class Bats2d(IdlFile):
         '''
         from numpy import sqrt
 
+        if 'b' in self: return
+        
         self['b'] = sqrt(self['bx']**2.0 + self['by']**2.0 + self['bz']**2.0)
         self['b'].attrs = {'units':self['bx'].attrs['units']}
 
@@ -863,6 +865,42 @@ class Bats2d(IdlFile):
 
         self['j'] = sqrt(self['jx']**2.0 + self['jy']**2.0 + self['jz']**2.0)
         self['j'].attrs = {'units':self['jx'].attrs['units']}
+    
+    @calc_wrapper
+    def calc_uperp(self):
+        '''
+        Calculate the magnitude of the velocity perpendicular to the 
+        magnetic field: $\vec{U} \times \hat{b}$.  Result maintains units
+        of velocity.
+
+        Values are calculated for each fluid.
+        '''
+
+        from numpy import sqrt
+        
+        # Ensure b_hat is calculated:
+        self.calc_b()
+
+        # Get all fluid species variables.  Save in new list.
+        species = []
+        for k in self:
+            if (k[-2:]) == 'ux':
+                species.append(k[:-2])
+                
+        # Calculate Alfven speed in km/s.  Separate step to avoid
+        # changing dictionary while looping over keys.
+        for s in species:
+            # Build components:
+            ux = self[s+'uy']*self['bz_hat']-self[s+'uz']*self['by_hat']
+            uy = self[s+'uz']*self['bx_hat']-self[s+'ux']*self['bz_hat']
+            uz = self[s+'ux']*self['by_hat']-self[s+'uy']*self['bx_hat']
+
+            # Get magnitude:
+            self[s+'u_perp'] = sqrt(ux**2+uy**2+uz**2)
+
+    @calc_wrapper
+    def calc_vpar(self):
+        pass
     
     @calc_wrapper
     def calc_E(self):
