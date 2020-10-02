@@ -374,8 +374,17 @@ def omnirange(dbase='QDhourly'):
               'Test': testfln}
     if dbase not in infile:
         raise NotImplementedError('')
+    # Possible time variables in the HDF file and their ticktock dtype
+    timeinfo = [('UTC', 'UTC'), ('Epoch', 'ISO'), ('RDT', 'RDT')]
     with h5.File(infile[dbase], mode='r') as hfile:
-        tt = spt.Ticktock([hfile['UTC'][0], hfile['UTC'][-1]])
+        for varname, dtype in timeinfo:
+            if varname in hfile:
+                tt = spt.Ticktock([hfile[varname][0], hfile[varname][-1]],
+                                  dtype=dtype)
+                break
+        else:
+            raise ValueError('Cannot find time variable in {}'
+                             .format(infile[dbase]))
     start, end = tt.UTC
     
     return start, end
