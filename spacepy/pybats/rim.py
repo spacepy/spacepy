@@ -299,7 +299,7 @@ class Iono(PbData):
         self['s_Iup']   = units*R**2 * np.sum(integrand[loc_up])
         self['s_Idown'] = units*R**2 * np.sum(integrand[loc_do])
         
-    def add_cont(self, var, target=None, n=24, maxz=False, lines=True, 
+    def add_cont(self, var, target=None, n=50, maxz=False, lines=False, 
                  cmap=False, add_cbar=False, label=None, loc=111,
                  xticksize=12, yticksize=12, max_colat=40, **kwargs):
         '''
@@ -332,8 +332,9 @@ class Iono(PbData):
             (e.g. loc=212, etc.) Used if target is a Figure or None.
             Default 111 (single plot).
         n : int
-            Set number of levels.  Should be a multiple of 3 for best match
-            between filled and traced contours.  Default is 21.
+            Set number of levels.  Default is 50.  If unfilled lines are
+            added (see *lines* kwarg), multiples of three provide coherence
+            between filled and unfilled contours.
         lines : bool
             Add unfilled black solid/dashed contours to plot for additional
             contrast.  Default is **True**.
@@ -342,8 +343,11 @@ class Iono(PbData):
         max_colat : real
             Set the co-latitude range of the plot, in degrees.  Defaults to 40.
         cmap : str
-            Set the colormap.  Default is to autoselect using classic IE maps.
-            Can be 'bwr', 'wr', or any name of a matplotlib colar map.
+            Set the colormap.  Default is to use Matplotlib's "Reds" for data
+            that is strictly positive and "Seismic" for diverging data.
+            Alternatively, legacy Ridley Ionosphere Model color maps can be
+            loaded using "l_wr" (white red) or "l_bwr" (blue-white-red),
+            where the "l_" prefix indicates legacy and not Matplotlib color maps.
         add_cbar : bool
             Add colorbar to plot.  Default is **False** which will
             not add one to the plot.
@@ -391,11 +395,13 @@ class Iono(PbData):
             levs = linspace(0., maxz, n)
 
         # Get color map if not given:
-        if not cmap:
+        if 'l_' in cmap:
+            cmap=get_iono_cb(cmap[2:])
+        elif not cmap:
             if self[var].min() >= 0.0:
-                cmap=get_iono_cb('wr')
+                cmap='Reds'
             else:
-                cmap=get_iono_cb('bwr')
+                cmap='seismic'
 
         # Set the latitude based on hemisphere:
         theta = self[hemi+'theta']
