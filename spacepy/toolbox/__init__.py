@@ -1178,7 +1178,14 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         headers = r.info()
     modified = headers.get('Last-Modified', None)
     if modified is not None:
-        modified = datetime.datetime.strptime(modified, "%a, %d %b %Y %X GMT")
+        # strptime is affected by locale (including the month name) but the
+        # header is a constant format, so massage
+        modified = modified.split()[1:5] # Get rid of day of week and 'GMT'
+        modified[1] = str(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']\
+                          .index(modified[1]) + 1) # Make month numerical
+        modified = datetime.datetime.strptime(
+            ' '.join(modified), "%d %m %Y %H:%M:%S")
         modified = calendar.timegm(modified.timetuple())
     if cached:
         if outfile is None:
