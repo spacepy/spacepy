@@ -64,6 +64,22 @@ class TestParseFileTime(unittest.TestCase):
             self.assertEqual(parse_filename_time(f), (i, t, d))
 
 
+class TestCalcNdens(unittest.TestCase):
+    '''Test the pybats.bats _calc_ndens function'''
+    # Recognized species:
+    mass = {'hp':1.0, 'op':16.0, 'he':4.0, 
+            'sw':1.0, 'o':16.0, 'h':1.0, 'iono':1.0, '':1.0}
+
+    case1 = {'rho':np.array([42.]), 'oprho':np.array([32.]),
+             'hprho':np.array([2.]),'herho':np.array([8.])}
+
+    def testCalcNdens(self):
+        pbs._calc_ndens(self.case1)
+        self.assertEqual(self.case1['N'][0], 6.)
+        for s in ('hp', 'op', 'he'):
+            self.assertEqual(self.case1[s+'N'   ][0], 2.0)
+            self.assertEqual(self.case1[s+'Frac'][0], 100.0/3.0)
+    
 class TestParsers(unittest.TestCase):
     '''
     Test different text-parsing helper classes.
@@ -411,6 +427,13 @@ class TestRim(unittest.TestCase):
         self.assertTrue(isinstance(out[1], plt.Axes))
         self.assertTrue(isinstance(out[2], matplotlib.contour.QuadContourSet))
         self.assertTrue(isinstance(out[3], matplotlib.colorbar.Colorbar))
+
+        out = iono.add_cont('n_jr', cmap='l_bwr')
+
+        self.assertTrue(isinstance(out[0], plt.Figure))
+        self.assertTrue(isinstance(out[1], plt.Axes))
+        self.assertTrue(isinstance(out[2], matplotlib.contour.QuadContourSet))
+        self.assertFalse(out[3])  # No color bar.
 
 
 class TestBats2d(unittest.TestCase):
