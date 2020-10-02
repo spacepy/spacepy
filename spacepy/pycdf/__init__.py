@@ -2292,6 +2292,14 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         ValueError : if neither data nor sufficient typing information
                      is provided.
 
+        Warns
+        =====
+        DeprecationWarning
+            if no type is provided and data is datetime, warning that
+            the default will change in the future.
+
+            .. versionadded:: 0.2.2
+
         Notes
         =====
         Any given data may be representable by a range of CDF types; if
@@ -2316,6 +2324,9 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
         So for example, EPOCH_16 is preferred over EPOCH if ``data`` specifies
         below the millisecond level (rule 1), but otherwise EPOCH is preferred
         (rule 2).
+
+        In the future, CDF_TIME_TT2000 will be the preferred EPOCH type if
+        not specified.
 
         For floats, four-byte is preferred unless eight-byte is required:
 
@@ -2375,6 +2386,12 @@ class CDF(MutableMapping, spacepy.datamodel.MetaMixin):
                 type = guess_types[0]
                 if type == const.CDF_EPOCH16.value and self.backward:
                     type = const.CDF_EPOCH
+                if type in lib.timetypes and len(guess_types) > 1:
+                    warnings.warn(
+                        'No type specified for time input; assuming {}. This'
+                        ' will change to TT2000 in the future, on systems'
+                        ' which support it.'.format(lib.cdftypenames[type]),
+                        DeprecationWarning)
             if n_elements is None:
                 n_elements = guess_elements
         if dimVarys is None:
@@ -4656,10 +4673,14 @@ class Attr(MutableSequence):
                 vartype = self._cdf_file[i].type()
                 if vartype in types:
                     entry_type = vartype
-                else:
-                    entry_type = types[0]
-            elif entry_type is None:
+            if entry_type is None:
                 entry_type = types[0]
+                if entry_type in lib.timetypes and len(types) > 1:
+                    warnings.warn(
+                        'Assuming {} for time input. This will change to'
+                        ' TT2000 in the future, on systems which support it.'
+                        .format(lib.cdftypenames[entry_type]),
+                        DeprecationWarning)
             if not entry_type in lib.numpytypedict:
                 raise ValueError('Cannot find a matching numpy type.')
             typelist.append((dims, entry_type, elements))
