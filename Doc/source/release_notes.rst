@@ -49,7 +49,9 @@ Deprecations and removals
 explicitly setting backward compatible or not backward compatible
 (:meth:`~spacepy.pycdf.Library.set_backward`). The default is
 still to make backward-compatible CDFs, but this will change in
-0.3.0.
+0.3.0. Similarly it now warns if creating a time variable without
+specifying a time type; the default is still to use EPOCH or
+EPOCH16, but this will change to TIME_TT2000 in 0.3.0.
 
 Quaternion math functions have been moved to
 :mod:`~spacepy.coordinates`; using the functions in

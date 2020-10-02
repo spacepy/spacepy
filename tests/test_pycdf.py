@@ -627,6 +627,9 @@ class NoCDF(unittest.TestCase):
         warnings.filterwarnings(
             'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
             DeprecationWarning, r'^spacepy\.pycdf$')
+        warnings.filterwarnings(
+            'ignore', r'^No type specified for time input.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
         try:
             with cdf.CDF(os.path.join(td, 'one.cdf'), create=True) as cdffile:
                 cdffile.attrs['gattrone'] = 1
@@ -660,7 +663,7 @@ class NoCDF(unittest.TestCase):
                         [cdf1, cdf2], ['var1', 'var2', 'var4', 'Epoch'],
                         raw=True)
         finally:
-            del warnings.filters[0]
+            del warnings.filters[0:2]
             shutil.rmtree(td)
         self.assertEqual(
             ['gattrone', 'gattrthree', 'gattrtwo'],
@@ -825,7 +828,16 @@ class MakeCDF(unittest.TestCase):
             },
             attrs={'project': 'junk'}
             )
-        cdf.CDF.from_data(self.testfspec, sd)
+        warnings.filterwarnings(
+            'ignore', r'^spacepy\.pycdf\.lib\.set_backward not called.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
+        warnings.filterwarnings(
+            'ignore', r'^No type specified for time input.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
+        try:
+            cdf.CDF.from_data(self.testfspec, sd)
+        finally:
+            del warnings.filters[0:2]
         with cdf.CDF(self.testfspec) as cdffile:
             self.assertEqual(['project'], list(cdffile.attrs.keys()))
             self.assertEqual(['min'], list(cdffile['Epoch'].attrs.keys()))
@@ -2667,6 +2679,37 @@ class ChangeCDF(ChangeCDFBase):
         numpy.testing.assert_array_equal(
             [[1, 2, 3], [4, 5, 6]], self.cdf['newzVar'][...])
 
+    def testNewVarTime(self):
+        with warnings.catch_warnings(record=True) as w:
+            if sys.version_info[0:2] == (2, 7)\
+               and hasattr(cdf, '__warningregistry__'):
+                # filter 'always' is broken in Python 2.7
+                # https://stackoverflow.com/questions/56821539/
+                for k in cdf.__warningregistry__.keys():
+                    if k[0].startswith(
+                            'No type specified for time input') \
+                            and k[1] is DeprecationWarning:
+                        del cdf.__warningregistry__[k]
+                        break
+            warnings.simplefilter('always')
+            self.cdf['newzVar'] = [datetime.datetime(2010, 1, 1)]
+        self.assertEqual(1, len(w))
+        self.assertEqual(
+            w[0].category, DeprecationWarning)
+        self.assertEqual(
+            'No type specified for time input; assuming CDF_EPOCH.'
+            ' This will change to TT2000 in the future, on systems which'
+            ' support it.',
+            str(w[0].message))
+        # For future
+        #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
+        #           else cdf.const.CDF_EPOCH.value
+        # Most of the type-guessing testing is in NoCDF, but this is here
+        # because the warning of the default changing is associated with
+        # creating a zVar.
+        expected = cdf.const.CDF_EPOCH.value
+        self.assertEqual(expected, self.cdf['newzVar'].type())
+
     def testBadDataSize(self):
         """Attempt to assign data of the wrong size to a zVar"""
         try:
@@ -2709,7 +2752,13 @@ class ChangeCDF(ChangeCDFBase):
 
     def testNewVarDatetimeArray(self):
         """Create a variable with a datetime numpy array"""
-        self.cdf['newvar'] = numpy.array([datetime.datetime(2010, 1, 1)])
+        warnings.filterwarnings(
+            'ignore', r'^No type specified for time input.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
+        try:
+            self.cdf['newvar'] = numpy.array([datetime.datetime(2010, 1, 1)])
+        finally:
+            del warnings.filters[0]
         self.assertEqual(const.CDF_EPOCH.value, self.cdf['newvar'].type())
 
     def testNewVarNRV(self):
@@ -2870,7 +2919,13 @@ class ChangeCDF(ChangeCDFBase):
 
     def testAssignEpoch16Entry(self):
         """Assign to an Epoch16 entry"""
-        self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
+        warnings.filterwarnings(
+            'ignore', r'^Assuming CDF_.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
+        try:
+            self.cdf['ATC'].attrs['FILLVAL'] = datetime.datetime(2010,1,1)
+        finally:
+            del warnings.filters[0]
         self.assertEqual(datetime.datetime(2010,1,1),
                          self.cdf['ATC'].attrs['FILLVAL'])
 
@@ -3329,7 +3384,13 @@ class ChangeAttr(ChangeCDFBase):
         self.assertEqual('not much',
                          self.cdf.attrs['Project'][0])
 
-        self.cdf.attrs['Source_name'][0] = datetime.datetime(2009, 1, 1)
+        warnings.filterwarnings(
+            'ignore', r'^Assuming CDF_.*',
+            DeprecationWarning, r'^spacepy\.pycdf$')
+        try:
+            self.cdf.attrs['Source_name'][0] = datetime.datetime(2009, 1, 1)
+        finally:
+            del warnings.filters[0]
         self.assertEqual([datetime.datetime(2009, 1, 1)],
                          self.cdf.attrs['Source_name'][:])
 
@@ -3535,6 +3596,70 @@ class ChangeAttr(ChangeCDFBase):
         self.assertFalse(isinstance(self.cdf['ATC'].attrs, dict))
         self.assertEqual(self.cdf['ATC'].attrs['foobar'], 'var')
         self.assertFalse('CATDESC' in self.cdf['ATC'].attrs)
+
+    def testzAttrsAssignTimeType(self):
+        """Assign a time type to a zAttr"""
+        self.cdf['ATC'].attrs['testtime'] = datetime.datetime(2010, 1, 1)
+        expected = cdf.const.CDF_EPOCH16.value # Matches var
+        self.assertEqual(expected, self.cdf['ATC'].attrs.type('testtime'))
+        with warnings.catch_warnings(record=True) as w:
+            if sys.version_info[0:2] == (2, 7)\
+               and hasattr(cdf, '__warningregistry__'):
+                # filter 'always' is broken in Python 2.7
+                # https://stackoverflow.com/questions/56821539/
+                for k in cdf.__warningregistry__.keys():
+                    if k[0].startswith(
+                            'Assuming CDF_') \
+                            and k[1] is DeprecationWarning:
+                        del cdf.__warningregistry__[k]
+                        break
+            warnings.simplefilter('always')
+            self.cdf['SectorRateScalersCounts'].attrs['testtime'] \
+                = datetime.datetime(2010, 1, 1)
+        self.assertEqual(1, len(w))
+        self.assertEqual(
+            w[0].category, DeprecationWarning)
+        self.assertEqual(
+            'Assuming CDF_EPOCH for time input.'
+            ' This will change to TT2000 in the future, on systems which'
+            ' support it.',
+            str(w[0].message))
+        # For future
+        #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
+        #           else cdf.const.CDF_EPOCH.value
+        expected = cdf.const.CDF_EPOCH.value # Non-time variable
+        self.assertEqual(
+            expected,
+            self.cdf['SectorRateScalersCounts'].attrs.type('testtime'))
+
+    def testgAttrsAssignTimeType(self):
+        """Assign a time type to a gAttr"""
+        with warnings.catch_warnings(record=True) as w:
+            if sys.version_info[0:2] == (2, 7)\
+               and hasattr(cdf, '__warningregistry__'):
+                # filter 'always' is broken in Python 2.7
+                # https://stackoverflow.com/questions/56821539/
+                for k in cdf.__warningregistry__.keys():
+                    if k[0].startswith(
+                            'Assuming') \
+                            and k[1] is DeprecationWarning:
+                        del cdf.__warningregistry__[k]
+                        break
+            warnings.simplefilter('always')
+            self.cdf.attrs['testtime'] = datetime.datetime(2010, 1, 1)
+        self.assertEqual(1, len(w))
+        self.assertEqual(
+            w[0].category, DeprecationWarning)
+        self.assertEqual(
+            'Assuming CDF_EPOCH for time input.'
+            ' This will change to TT2000 in the future, on systems which'
+            ' support it.',
+            str(w[0].message))
+        # For future
+        #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
+        #           else cdf.const.CDF_EPOCH.value
+        expected = cdf.const.CDF_EPOCH.value
+        self.assertEqual(expected, self.cdf.attrs['testtime'].type(0))
 
     def testzAttrsDelete(self):
         """Try to delete attrs attribute of variable, CDF"""
