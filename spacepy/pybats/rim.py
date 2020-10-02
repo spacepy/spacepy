@@ -395,14 +395,15 @@ class Iono(PbData):
             levs = linspace(0., maxz, n)
 
         # Get color map if not given:
-        if 'l_' in cmap:
-            cmap=get_iono_cb(cmap[2:])
-        elif not cmap:
+        if not cmap:
             if self[var].min() >= 0.0:
                 cmap='Reds'
             else:
                 cmap='seismic'
-
+        # Search for legacy maps:
+        elif 'l_' in cmap:
+            cmap=get_iono_cb(cmap[2:])
+            
         # Set the latitude based on hemisphere:
         theta = self[hemi+'theta']
         if 's_' in hemi: theta = 180-self[hemi+'theta']
