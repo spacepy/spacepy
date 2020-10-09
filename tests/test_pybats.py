@@ -9,6 +9,7 @@ Copyright 2015 University of Michigan
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import dates
+import matplotlib.pyplot as plt
 
 import datetime as dt
 import glob
@@ -118,7 +119,6 @@ class TestPlotHelpers(unittest.TestCase):
     '''
     Test functions that assist in creating more complicated plots.
     '''
-    import matplotlib.pyplot as plt
     ax = plt.axes()
     
     def testAddPlanet(self):
@@ -362,6 +362,43 @@ class TestLogFile(unittest.TestCase):
             self.assertEqual(self.knownEntry2[n], log[n][-1])
         self.assertEqual(self.knownTime2, log['time'][-1])
 
+class TestBatsLog(unittest.TestCase):
+    '''Test BatsLog features that haven't already been tested in parent class'''
+    
+    def setUp(self):
+        self.pth = os.path.dirname(os.path.abspath(__file__))
+
+    def testPlot(self):
+        '''Test all plotting features associated with BatsLog class'''
+        # Open our data.
+        log = pbs.BatsLog(os.path.join(self.pth,'data','pybats_test',
+                                        'log_e20140410-000000.log'))
+
+        # Fake some observed data:
+        time = np.array([log['time'][0], log['time'][-1]])
+        log.obs_dst = {'time':time, 'dst':[-1,1]}
+        log.obs_sym = {'time':time, 'sym-h':[1,-1]}
+
+        # Create plot with default style:
+        fig, ax = log.add_dst_quicklook(plot_obs=True, plot_sym=True,
+                                        epoch=log['time'][5])
+        self.assertTrue(isinstance(fig, plt.Figure))
+        self.assertTrue(isinstance(ax,  plt.Axes))
+
+        # Create plot with custom style:
+        fig, ax = log.add_dst_quicklook(plot_obs=True, plot_sym=True,
+                                        epoch=log['time'][5], dstvar='dst_sm',
+                                        obs_kwargs={'ls':'--','c':'k'},
+                                        sym_kwargs={'ls':':','c':'orange'},
+                                        lw=5)
+        self.assertTrue(isinstance(fig, plt.Figure))
+        self.assertTrue(isinstance(ax,  plt.Axes))
+
+        # Test plotting with non-existant variable:
+        fig, ax = log.add_dst_quicklook(dstvar='invalid')
+        self.assertEqual(fig, None)
+        self.assertEqual(ax,  None)
+        
 class TestRim(unittest.TestCase):
 
     # Solutions for calc_I:
@@ -445,7 +482,8 @@ class TestBats2d(unittest.TestCase):
                  'wy':0.0, 'u':1285.6114501953125}
     knownMax2 = {'jx': 1.680669083725661e-05, 'jbz': 8.276679608343329e-08,
                  'wy': 0.0, 'u': 1285.6114501953125}
-
+    varnames = ['t', 'j', 'b', 'u', 'b_hat', 'u_perp', 'u_par', 'E', 'beta', 'jb', 'alfven']
+    
     def setUp(self):
         self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                            'y=0_mhd_1_e20140410-000050.out'))
