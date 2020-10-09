@@ -199,8 +199,8 @@ class BatsLog(LogFile):
     
     def add_dst_quicklook(self, target=None, loc=111, plot_obs=False,
                           epoch=None, add_legend=True, plot_sym=False,
-                          dstvar=None, obs_kwargs={'c':'k', 'ls':'--'},
-                          **kwargs):
+                          dstvar=None, lw=2.0, obs_kwargs={'ls':'-.'},
+                          sym_kwargs={'ls':'-'}, **kwargs):
         '''
         Create a quick-look plot of Dst (if variable present in file)
         and compare against observations.
@@ -250,11 +250,10 @@ class BatsLog(LogFile):
         if 'label' not in kwargs:
             kwargs['label'] = 'BATS-R-US $D_{ST}$ (Biot-Savart)'
 
-        if 'label' not in obs_kwargs:
-            obs_kwargs['label'] = 'Obs. Dst'
-            if plot_sym: obs_kwargs['label'] = 'Obs. SYM-H'
-            
-        ax.plot(self['time'], self[dstvar], **kwargs)
+        if 'label' not in obs_kwargs: obs_kwargs['label'] = 'Obs. Dst'
+        if 'label' not in sym_kwargs: sym_kwargs['label'] = 'Obs. SYM-H'
+
+        ax.plot(self['time'], self[dstvar], lw=lw, **kwargs)
         ax.hlines(0.0, self['time'][0], self['time'][-1], 
                   'k', ':', label='_nolegend_')
         applySmartTimeTicks(ax, self['time'])
@@ -270,7 +269,7 @@ class BatsLog(LogFile):
         if(plot_sym):
             # Attempt to fetch SYM-h observations, plot if success.
             if self.fetch_obs_sym():
-                ax.plot(self.obs_sym['time'], self.obs_sym['sym-h'], **obs_kwargs)
+                ax.plot(self.obs_sym['time'], self.obs_sym['sym-h'], **sym_kwargs)
                 applySmartTimeTicks(ax, self['time'])
 
         # Place vertical line at epoch:
