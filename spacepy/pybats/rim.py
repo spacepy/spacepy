@@ -241,7 +241,49 @@ class Iono(PbData):
         # Some extra grid info:
         self.dlon = self['n_psi'  ][0,3]-self['n_psi'  ][0,2]
         self.dlat = self['n_theta'][3,0]-self['n_theta'][2,0]
+
+    def calc_j(self):
+        '''
+        Calculate total horizontal current as related values.  Each will be
+        stored into *self* using the typical key-value approach.  Calculations
+        are done for both the northern and southern hemisphere with the 
+        appropriate prefixes ('n_' and 's_') applied to each key.
+
+        | key  | Description |
+        | j    | Total horizontal current, $sqrt(jx^2+jy^2+jz^2)$ |
+        | jphi | Azimuthal current, positive values are eastward. |
+
         
+        Parameters
+        ==========
+
+
+        Returns
+        =======
+        True
+
+
+        Examples
+        ========
+        >>> a = rim.Iono('spacepy/tests/data/pybats_test/it000321_104510_000.idl.gz')
+        >>> a.calc_j()
+        >>> print(a['n_jphi'])
+
+        '''
+
+        # Loop over hemispheres:
+        for h in ('n_', 's_'):
+            # Calculate total horizontal current
+            self[h+'j'] = np.sqrt(  self[h+'jx']**2
+                                  + self[h+'jy']**2
+                                  + self[h+'jz']**2 )
+
+            # Calculate total azimuthal current (i.e., electrojets):
+            self[h+'jphi'] = self[h+'jy'] * np.cos(np.pi/180. * self[h+'psi']) \
+                - self[h+'jx'] * np.sin(np.pi/180. * self[h+'psi'])
+            
+        return True
+    
     def calc_I(self):
         '''
         Integrate radial current to get the following values:
