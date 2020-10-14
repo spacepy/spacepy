@@ -1464,6 +1464,13 @@ def indsFromXrange(inxrange):
     inxrange : xrange
         input xrange object to parse
 
+    Returns
+    =======
+    list of int
+       List of start, stop indices in the xrange. The return value is not
+       defined if a stride is specified or if stop is before start (but
+       will work when stop equals start).
+
     Examples
     ========
     >>> import spacepy.toolbox as tb
@@ -1479,7 +1486,6 @@ def indsFromXrange(inxrange):
     if not isinstance(inxrange, xrange): return None
     valstr = inxrange.__str__()
     if ',' not in valstr:
-        # TODO, can't figure out in what case this code is run, every case is False then off to else.
         res = re.search(r'(\d+)', valstr)
         retval = [int(0), int(res.group(1))]
     else:
