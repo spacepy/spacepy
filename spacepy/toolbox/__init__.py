@@ -455,7 +455,7 @@ def savepickle(fln, dict, compress=None):
         container with stuff
     compress : bool
         write as a gzip-compressed file
-                     (.gz will be added to L{fln}).
+                     (.gz will be added to ``fln``).
                      If not specified, defaults to uncompressed, unless the
                      compressed file exists and the uncompressed does not.
 
@@ -468,12 +468,9 @@ def savepickle(fln, dict, compress=None):
     >>> d = {'grade':[1,2,3], 'name':['Mary', 'John', 'Chris']}
     >>> savepickle('test.pbin', d)
     """
-    if compress == None:
-        # TODO, what is this line meant to do? Whay not just check fln for ending in gz?
-        if not os.path.exists(fln) and os.path.exists(fln + '.gz'):
-            compress = True
-        else:
-            compress = False
+    if compress == None: # Guess at compression
+        # Assume compressed if compressed already exists (and no uncompressed)
+        compress = not os.path.exists(fln) and os.path.exists(fln + '.gz')
     if compress:
         import gzip
         with open(fln + '.gz', 'wb') as fh:
@@ -483,7 +480,6 @@ def savepickle(fln, dict, compress=None):
     else:
         with open(fln, 'wb') as fh:
             pickle.dump(dict, fh, 2) # 2 ... fast binary
-    return
 
 
 # -----------------------------------------------
