@@ -93,12 +93,19 @@ class PickleAssembleTests(unittest.TestCase):
     def testSaveLoadPickleCompress(self):
         """savePickle should write a pickle to disk and loadPickle should load it (compressed)"""
         tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1, compress=True)
-        files = glob.glob(os.path.join(self.tempdir, '*.pkl.gz'))
-        self.assertTrue(os.path.join(self.tempdir,'test_pickle_1.pkl.gz') in files)
+        files = os.listdir(self.tempdir)
+        self.assertTrue('test_pickle_1.pkl.gz' in files)
+        self.assertFalse('test_pickle_1.pkl' in files)
         DD = tb.loadpickle(os.path.join(self.tempdir,'test_pickle_1.pkl'))
         self.assertEqual(self.D1, DD)
         DD = tb.loadpickle(os.path.join(self.tempdir,'test_pickle_1.pkl.gz'))
         self.assertEqual(self.D1, DD)
+        # Save without specifying compression, make sure saves compressed
+        # (because compressed file already exists)
+        tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
+        files = os.listdir(self.tempdir)
+        self.assertTrue('test_pickle_1.pkl.gz' in files)
+        self.assertFalse('test_pickle_1.pkl' in files)
 
     def test_assemble(self):
         tb.savepickle(os.path.join(self.tempdir, 'test_pickle_1.pkl'), self.D1)
