@@ -60,6 +60,7 @@ Other functions
     getNamedPath
     human_sort
     hypot
+    indsFromXrange
     interpol
     intsolve
     medAbsDev

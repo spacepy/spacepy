@@ -178,12 +178,13 @@ class SimpleFunctionTests(unittest.TestCase):
         """indsFromXrange should have known result"""
         foo = xrange(23, 39)
         self.assertEqual([23, 39], tb.indsFromXrange(foo))
+        foo = xrange(5)
+        self.assertEqual([0, 5], tb.indsFromXrange(foo))
 
-    @unittest.expectedFailure
     def test_indsFromXrange_zerolen(self):
-        """indsFromXrange claims useful when zero len range, seems not true"""
-        foo = xrange(20, 10)  # empty
-        self.assertEqual([23, 39], tb.indsFromXrange(foo))
+        """indsFromXrange with zero length range"""
+        foo = xrange(20, 20)  # empty
+        self.assertEqual([20, 20], tb.indsFromXrange(foo))
 
     def test_interweave(self):
         """interweave should have known result"""
