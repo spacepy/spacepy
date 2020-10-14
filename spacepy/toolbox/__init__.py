@@ -595,7 +595,6 @@ def human_sort( l ):
     """
     convert = lambda text: int(text) if text.isdigit() else text
     alphanum_key = lambda key: [ convert(c) for c in re.split(r'([0-9]+)', key) ]
-    alphanum_key = None
     try:
         l.sort( key=alphanum_key )
     except TypeError:

@@ -121,13 +121,19 @@ class PickleAssembleTests(unittest.TestCase):
 
 class SimpleFunctionTests(unittest.TestCase):
 
-    @unittest.expectedFailure
     def test_humansort(self):
-        """humansort should give known answers"""
+        """human_sort should give known answers"""
+        dat = ['1.10', '1.2', '1.3', '1.20']
+        self.assertEqual(
+            ['1.2', '1.3', '1.10', '1.20'],
+            tb.human_sort(dat))
         dat = ['r1.txt', 'r10.txt', 'r2.txt']
-        dat.sort()
-        assert dat == ['r1.txt', 'r10.txt', 'r2.txt']  # standard python sort
-        assert tb.human_sort(dat) == ['r1.txt', 'r2.txt', 'r10.txt']  # human sort
+        dat.sort() # Standard Python sort
+        self.assertEqual(['r1.txt', 'r10.txt', 'r2.txt'], dat)
+        self.assertEqual(['r1.txt', 'r2.txt', 'r10.txt'],
+                         tb.human_sort(dat))
+        dat = [5, 1, 3, -1]
+        self.assertEqual([-1, 1, 3, 5], tb.human_sort(dat))
 
     def test_quaternionDeprecation(self):
         """Make sure deprecated quaternion functions work"""
