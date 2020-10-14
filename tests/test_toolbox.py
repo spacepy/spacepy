@@ -30,6 +30,7 @@ from numpy import array
 from scipy import inf
 from scipy.stats import poisson
 
+import spacepy
 import spacepy.toolbox as tb
 import spacepy.lib
 
@@ -610,7 +611,7 @@ class SimpleFunctionTests(unittest.TestCase):
             numpy.testing.assert_almost_equal(outputs[i], tb.bin_edges_to_center(val))
 
     def test_hypot(self):
-        """hypot should have known output"""
+        """hypot should have known output, call Python or C (as default)"""
         invals = [ [3, 4], list(range(3, 6)), list(range(3,10)), [-1,2,3] ]
         ans = [ 5, 7.0710678118654755, 16.73320053068151, 3.7416573867739413 ]
         for i, tst in enumerate(invals):
@@ -618,22 +619,33 @@ class SimpleFunctionTests(unittest.TestCase):
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(tst))
         self.assertEqual(5.0, tb.hypot(5.0))
-        if spacepy.lib.have_libspacepy:
-            self.assertEqual(tb.hypot(numpy.array([3.,4.])), 5.0)
-            self.assertEqual(tb.hypot(numpy.array([3,4])), 5.0)
-
-    def test_hypot_array(self):
-        """hypot when called on an array falls to C"""
-        invals = [ numpy.asarray([3, 4]), numpy.arange(3,6), numpy.arange(3,10), numpy.asarray([-1,2,3]) ]
-        ans = [ 5, 7.0710678118654755, 16.73320053068151, 3.7416573867739413 ]
+        # Same as first set of inputs but explicitly np arrays
+        invals = [numpy.asarray([3, 4]), numpy.array([3., 4.]),
+                  numpy.arange(3, 6), numpy.arange(3, 10),
+                  numpy.asarray([-1, 2, 3])]
+        ans = [5, 5.,
+               7.0710678118654755, 16.73320053068151,
+               3.7416573867739413]
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(*tst))
         for i, tst in enumerate(invals):
             self.assertAlmostEqual(ans[i], tb.hypot(tst))
-        self.assertEqual(5.0, tb.hypot(5.0))
-        if spacepy.lib.have_libspacepy:
-            self.assertEqual(tb.hypot(numpy.array([3.,4.])), 5.0)
-            self.assertEqual(tb.hypot(numpy.array([3,4])), 5.0)
+        # Few tests of array subclasses
+        invals = [spacepy.dmarray([3, 4]), spacepy.dmarray([3., 4.]),
+                  spacepy.dmarray([-1, 2, 3])]
+        ans = [5, 5.,
+               3.7416573867739413]
+        for i, tst in enumerate(invals):
+            self.assertAlmostEqual(ans[i], tb.hypot(*tst))
+
+    @unittest.skipUnless(spacepy.lib.have_libspacepy, 'libspacepy not found')
+    def test_hypot_python(self):
+        """Explicitly call Python version of hypot if had C before"""
+        try:
+            spacepy.lib.have_libspacepy = False
+            self.test_hypot() # Repeat tests without the C code
+        finally:
+            spacepy.lib.have_libspacepy = True
 
     def testThreadJob(self):
         """Multithread the square of an array"""
