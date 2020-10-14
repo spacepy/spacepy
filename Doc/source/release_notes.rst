@@ -190,7 +190,10 @@ Other dependencies have no established minimum. See
 
 Major bugfixes
 **************
-None of note (but many minor ones).
+:meth:`~spacepy.toolbox.human_sort` was fixed for non-numeric inputs
+(the normal case.) This had been broken since 0.1.6.
+
+Many minor bugfixes as well.
 
 Other changes
 *************
