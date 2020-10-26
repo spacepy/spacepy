@@ -1844,7 +1844,7 @@ def bootHisto(data, inter=90., n=1000, seed=None,
     histogram_kwargs['bins'] = bin_edges
     ci_low, ci_high = spacepy.poppy.boots_ci(
         data, n, inter,
-        lambda x: np.histogram(x, **histogram_kwargs)[0],
+        lambda x: np.histogram(x, **histogram_kwargs)[0], seed=seed,
         nretvals=len(bin_edges) - 1)
     if not plot and all([x is None for x in (target, figsize, loc)]):
         return bin_edges, ci_low, ci_high, sample

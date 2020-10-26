@@ -69,6 +69,7 @@ toolbox
  - New functions quaternionFromMatrix/quaternionToMatrix to convert between
    quaternions and 3D rotation matrices.
  - Fix human_sort; this had been broken since 0.1.6.
+ - Fix function bootHisto to pass through RNG seed if provided
 
 Changes in Version 0.2.1 (2019-10-02)
 =====================================

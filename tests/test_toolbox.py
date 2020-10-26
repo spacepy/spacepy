@@ -440,12 +440,13 @@ class SimpleFunctionTests(unittest.TestCase):
         numpy.testing.assert_equal(
             [  7,  45, 149, 283, 272, 162,  71,   9,   0,   2], sample)
         #This is a very coarse chunk-check to allow for variations in
-        #RNGs. Values from 100000 iterations
+        #RNGs; by using the same seed it should be deterministic on a
+        #given RNG. Values from 100000 iterations
         numpy.testing.assert_allclose(
-            [3.,  34., 131., 260., 249., 143.,  58.,   4.,   0.,   0.],
+            [3.,  35., 131., 260., 249., 143.,  58.,   4.,   0.,   0.],
             ci_low, atol=2, rtol=1e-2)
         numpy.testing.assert_allclose(
-            [12.,  56., 168., 306., 295., 181.,  84.,  14.,   0.,   5.],
+            [12.,  56., 168., 307., 295., 181.,  85.,  14.,   0.,   5.],
             ci_high, atol=2, rtol=1e-2)
 
     def test_logspace(self):
