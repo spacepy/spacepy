@@ -3719,9 +3719,12 @@ class GeoIndexFile(LogFile):
         if target==None: fig.tight_layout()
 
         if plot_obs:
+            # Check for label in obs. kwargs:
+            if 'label' not in obs_kwargs: obs_kwargs['label'] = 'Obs. '+val    
+
             if self.fetch_obs_ae():
                 ax.plot(self.obs_ae['time'], self.obs_ae[val.lower()],
-                        label='Obs.', **obs_kwargs)
+                        **obs_kwargs)
                 applySmartTimeTicks(ax, self['time'])
 
         if add_legend: ax.legend(loc='best')
