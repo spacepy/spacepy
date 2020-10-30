@@ -1697,16 +1697,35 @@ class ImfInput(PbData):
     Access data like so:
 
     >>> obj.keys()
-    ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'rho', 'temp']
+    ['bx', 'by', 'bz', 'vx', 'vy', 'vz', 'n', 't']
     >>> density=obj['rho']
 
     Adding new data entries is equally simple so long as you have the values
     and the name for the values::
 
     >>> import numpy as np
-    >>> v = np.sqrt(obj['vx']**2 + obj['vy']**2 + obj['vz']**2)
-    >>> obj['v']=v
+    >>> u = np.sqrt(obj['ux']**2 + obj['uy']**2 + obj['uz']**2)
+    >>> obj['u']=u
 
+    Concerning Variable Naming & Order
+    ----------------------------------
+    By default, IMF files contain the following variables in this order:
+
+    Year, month, day, hour, minute, second, millisecond, bx, by, bz,
+    vx, vy, vz, n, t
+
+    If the variable order changes, or if new state variables are included
+    (e.g., species-specific densities for multi-ion simulations), the 
+    #VAR entry must be included in the solar wind file.  While the SWMF 
+    documentation refers to density and temperature values as having names
+    'dens' or 'temp', **only 'n', 't', or MHD state variable names as defined
+    in the BATS-R-US equation file are accepted.**.  In multi-ion simulations,
+    'n' is the total number density; all other densities must sum to 'n'.
+
+    To illustrate, consider this example of converting a single fluid input
+    file to a multi-fluid input file where density is split evenly across
+    two ion species:
+    
     =========== ============================================================
     Kwarg       Description
     ----------- ------------------------------------------------------------
@@ -1721,7 +1740,7 @@ class ImfInput(PbData):
 
         # Initialize data object and required attributes.
         super(ImfInput, self).__init__(*args, **kwargs)
-        self.attrs['var']= ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 'temp']
+        self.attrs['var']= ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 't']
         self.attrs['std_var']=True
         self.attrs['coor']='GSM'
         self.attrs['satxyz']=[None, None, None]
@@ -1732,6 +1751,9 @@ class ImfInput(PbData):
         self.attrs['header']=[]
         self['time']=dmarray(zeros(npoints, dtype=object))
 
+        # Store standard variable set:
+        self.__stdvar__ = ['bx', 'by', 'bz', 'ux', 'uy', 'uz', 'rho', 't']
+        
         # Set Filename.
         if filename:
             self.attrs['file'] = filename
@@ -1754,10 +1776,14 @@ class ImfInput(PbData):
         else:
             raise ValueError('Could not find density variable in file.')
 
+        # Set attributes for each non-time variable.
+        self._set_attributes()
 
+        # Calculate frequently used variables:
         self.calc_pram()
-
-
+        self['v'] = -self['ux']
+        self['v'].attrs['label'] = r'V$_{SW}$'
+        
     def calc_pram(self):
         '''
         Calculate ram pressure from SW conditions.  Output units in nPa.
@@ -1766,8 +1792,8 @@ class ImfInput(PbData):
         '''
         n = self._denvar
 
-        self['pram']=dmarray(self['ux']**2.*self[n]*1.67621E-6,{'units':'nPa'})
-
+        self['pram']=dmarray(self['ux']**2.*self[n]*1.67621E-6,
+                             {'units':'$nPa$', 'label':r'P$_{dyn}$'})
 
     def calc_u(self):
         '''
@@ -1776,7 +1802,7 @@ class ImfInput(PbData):
         '''
 
         self['u'] = dmarray( np.sqrt(self['ux']**2+self['uy']**2+self['uz']**2),
-                             {'units':'km/s'} )
+                             {'units':'$km/s$', 'label':'|U|'} )
 
         return True
 
@@ -1786,7 +1812,7 @@ class ImfInput(PbData):
         '''
 
         self['b'] = dmarray( np.sqrt(self['bx']**2+self['by']**2+self['bz']**2),
-                             {'units':'nT'} )
+                             {'units':'nT', 'label':'|B|'} )
 
         return True
 
@@ -1802,7 +1828,7 @@ class ImfInput(PbData):
         const = 1E-12/np.sqrt(4.*np.pi*10**-7*1.67E-27*100**3)
 
         self['vAlf']=dmarray(const*self['b']/np.sqrt(self['rho']),
-                            {'units':'km/s'})
+                            {'units':'$km/s$', 'label':r'V$_{Alf}'})
 
         return True
 
@@ -1814,7 +1840,8 @@ class ImfInput(PbData):
 
         if 'vAlf' not in self: self.calc_alf()
         if 'u'    not in self: self.calc_u()
-        self['machA']=dmarray(self['u']/self['vAlf'], {'units':None})
+        self['machA']=dmarray(self['u']/self['vAlf'],
+                              {'units':None, 'label':'M$_{Alfven}$'})
 
         return True
 
@@ -1836,7 +1863,8 @@ class ImfInput(PbData):
             print('Not enough variables in IMF object:')
             print('\t%i listed, %i actual.\n' % (len(var),len(key)))
             return False
-        # Each variable corresponds to only one in the dict
+        
+        # Each variable corresponds to only one in the dict 
         # and occurs only once:
         for v in var:
             if v not in key:
@@ -1954,22 +1982,22 @@ class ImfInput(PbData):
                 out.write(b'#ZEROBX\nT\n\n')
             if self.attrs['reread']:
                 out.write(b'#REREAD')
-            if not self.attrs['std_var']:
+            if self.attrs['var'] != self.__stdvar__:
                 out.write('#VAR\n{}\n\n'.format(' '.join(var)).encode())
             if self.attrs['satxyz'].count(None)<3:
                 xyz = self.attrs['satxyz']
                 if (xyz[0]==None) and (None not in xyz[1:]):
-                    out.write('#POSITION\n{0[1]:-6.2f}\n{0[2]:-6.2f}\n\n'
+                    out.write('#POSITION\n{0[1]:-7.3f}\n{0[2]:-7.3f}\n\n'
                               .format(xyz).encode())
                 elif None not in xyz:
                     out.write('#SATELLITEXYZ\n{}\n'.format(
-                        ''.join("{:-6.2f}\n".format(n) for n in xyz)).encode())
+                        ''.join("{:-7.3f}\n".format(n) for n in xyz)).encode())
             if self.attrs['delay']:
                 out.write('#DELAY\n{:-9.2f}\n\n'.format(self.attrs['delay'])
                           .encode())
             if None not in self.attrs['plane']:
                 out.write('#PLANE\n{}\n'.format(
-                    ''.join('{:-6.2f}\n'.format(n)
+                    ''.join('{:-7.3f}\n'.format(n)
                             for n in self.attrs['plane'])).encode())
 
             # Write the data:
@@ -1984,6 +2012,43 @@ class ImfInput(PbData):
                     np.char.mod('%10.2f', self[key]) for key in var])
             np.savetxt(out, outarray, delimiter=' ', fmt='%s')
 
+    def _set_attributes(self):
+        '''
+        Set attributes, including units and axes labels.
+        Units should use LaTeX formatting.
+        Labels should be the variable name in human readable format
+        using LaTeX as necessary.
+
+        Plotting functions combine the label and units for y-axis labels
+        and the label for axes legend uses.
+        '''
+
+        # Vector quantities:
+        for x in 'xyz':
+            # Magnetic field:
+            self['b'+x].attrs['units'] = '$nT$'
+            self['b'+x].attrs['label'] = f'IMF B$_{x.upper()}$'
+
+            # Bulk velocity:
+            self['u'+x].attrs['units'] = '$km/s$'
+            self['u'+x].attrs['label'] = f'U$_{x.upper()}$'
+
+        # Densities & temperature:
+        for v in self.keys():
+            if v[0]=='b' or v[0]=='u': continue
+            if v == 't':
+                self[v].attrs['units'] = '$K$'
+                self[v].attrs['label'] = "T"
+            elif 'rho' in v.lower():
+                self[v].attrs['units'] = r'$cm^{-3}$'
+                self[v].attrs['label'] = r'$\rho_{'+v[:-3]+r'}$'
+            elif v=='n':
+                self[v].attrs['units'] = r'$cm^{-3}$'
+                self[v].attrs['label'] = r'$\rho$'
+            else:
+                self[v].attrs['units'] = ''
+                self[v].attrs['label'] = v
+                
     def add_pram_bz(self, target=None, loc=111, pcol='#CC3300', bcol='#3333CC',
                     xlim=None, plim=None, blim=None, epoch=None):
         '''
@@ -2060,8 +2125,8 @@ class ImfInput(PbData):
             a1.set_ylim([ymin, ymax])
 
         return fig, a1
-
-    def quicklook(self, timerange=None):
+        
+    def quicklook(self, plotvars=None, timerange=None, legloc='upper left'):
         '''
         Generate a quick-look plot of solar wind conditions driving the
         SWMF.  Default values show IMF, number density, and Earthward velocity.
@@ -2071,48 +2136,64 @@ class ImfInput(PbData):
         import matplotlib.pyplot as plt
         from spacepy.plot import applySmartTimeTicks
 
+
+        # Set default time range if not given.
         if not timerange:
             timerange = [self['time'][0], self['time'][-1]]
 
-        def adjust_plots(ax, ylab, xlab=False, Zero=True):
-            ax.grid(True)
-            applySmartTimeTicks(ax,timerange)
-            ax.set_ylabel(ylab)
-            labels =ax.get_yticklabels()
-            labels[-1].set_visible(False)
-            labels[0].set_visible(False)
-            if Zero:
-                ax.plot(timerange, [0,0], 'k--')
-            if xlab:
-                ax.set_xlabel('Universal Time from %s' %
-                              timerange[0].isoformat())
+        # Process plotvars:
+        if not plotvars:  # Not given?  Use default!
+            plotvars = ['bx','by','bz',self._denvar,'v']
+        nPlot = len(plotvars)
+
+        # Create and configure figure:
+        # Figure is larger if nPlot>3.
+        fig = plt.figure(figsize=(8,6+4*(nPlot>3)))
+        fig.subplots_adjust(hspace=0.025, top=0.95,right=0.95,
+                            bottom=0.05 + 0.03*(nPlot<=3))
+
+        # Create and configure axes:
+        axes = fig.subplots(nPlot, 1, sharex='all')
+
+        # Plot each variable:
+        for p, ax in zip(plotvars,axes):
+            ylim = [0,0] 
+            # If multiple values given, plot each:
+            if type(p) in (list, tuple):
+                units = []
+                for x in p:
+                    # Plot each variable:
+                    ax.plot(self['time'], self[x], lw=1.5,
+                            alpha=.78, label=self[x].attrs['label'])
+                    # Save data range:
+                    ylim = [min(ylim[0], self[x].min()),
+                            max(ylim[1], self[x].max())]
+                    # Push units to list of units:
+                    if self[x].attrs['units'] not in units:
+                        units.append(self[x].attrs['units'])
+                # Add legend and y-label:
+                ax.legend(loc=legloc,frameon=True)
+                ax.set_ylabel(', '.join(units))
+
             else:
-                ax.xaxis.set_ticklabels([])
+                # Plot, add label, save y limits:
+                ax.plot(self['time'], self[p], lw=1.5)
+                label=f"{self[p].attrs['label']} ({self[p].attrs['units']})"
+                ax.set_ylabel(label)
+                ylim = [self[p].min(), self[p].max()]
 
-        fig = plt.figure(figsize=(8,10))
-        fig.subplots_adjust(hspace=0.025, top=0.95, bottom=0.05, right=0.95)
+            # Grid and x-ticks/labels:
+            ax.grid(True)
+            applySmartTimeTicks(ax, timerange, dolabel=ax==axes[-1])
 
-        a1 = fig.add_subplot(511)
-        a1.plot(self['time'], self['bx'], lw=1.25, c='#003366')
-        adjust_plots(a1, 'IMF $B_{X}$ ($nT$)')
-        a1.set_title('Solar Wind Drivers (%s Coordinates)'
-                     % (self.attrs['coor']))
+            # Set horizontal line if data crosses zero marker:
+            if ylim[0]<0 and ylim[1]>0:
+                ax.hlines(0, timerange[0], timerange[-1], colors='k',
+                          linestyles='dashed')
+            
 
-        a2 = fig.add_subplot(512)
-        a2.plot(self['time'], self['by'], lw=1.25, c='#333399')
-        adjust_plots(a2, 'IMF $B_{Y}$ ($nT$)')
-
-        a3 = fig.add_subplot(513)
-        a3.plot(self['time'], self['bz'], lw=1.25, c='#0033CC')
-        adjust_plots(a3, 'IMF $B_{Z}$ ($nT$)')
-
-        a4 = fig.add_subplot(514)
-        a4.plot(self['time'], self[self._denvar], lw=1.25, c='red')
-        adjust_plots(a4, 'Density ($cm^{-3}$)', Zero=False)
-
-        a5 = fig.add_subplot(515)
-        a5.plot(self['time'], -1.0*self['ux'], lw=1.25, c='green')
-        adjust_plots(a5, '$|V_{X}|$ ($km/s$)', Zero=False, xlab=True)
+        # Set plot title on topmost axes:
+        axes[0].set_title(f'Solar Wind Drivers ({self.attrs["coor"]} Coordinates)')
 
         return fig
 
