@@ -164,6 +164,18 @@ class CTransClassTests(unittest.TestCase):
         gotgse = self.CTrans2014.convert(ugsm, 'GSM', 'GSE')
         numpy.testing.assert_almost_equal(ugse, gotgse, decimal=6)
 
+    def test_convert_ECI2000_GEO_2014_LGM(self):
+        """Test conversion to GEO (compare to LGM)"""
+        exp = dict()
+        exp['ECI2000_GEO'] = [[-0.86046014, -0.50951631, 0.00121589],
+                              [0.50951573, -0.86046100, -0.00076888],
+                              [0.00143798, -0.00004207, 0.99999897]]
+        self.CTrans2014.calcCoreTransforms()
+        self.CTrans2014.convert([2, 2, 2], 'ECI2000', 'GEO')
+        got = self.CTrans2014['Transform']
+        for tra in exp:
+            numpy.testing.assert_allclose(exp[tra], got[tra], atol=5e-5)
+
 '''
 Time Quantitites:
     fYear (UTC)       = 2014.659308
