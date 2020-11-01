@@ -57,10 +57,10 @@ class CTrans(dm.SpaceData):
                                                             'twopi, j2000_jd, j1900_jd, ' +
                                                             'j1990_jd, daysec, daycentury, ' +
                                                             'arcsec, AU, Re',
-                                                            verbose=False)
+                                                            )
         self._factory['eop'] = collections.namedtuple('EarthOrientationParameters',
                                                       'DUT1, xp, yp, ddPsi, ddEps',
-                                                      verbose=False)
+                                                      )
         self._setconstants()
         self.getEOP(useEOP=eop)
         self.__status = {'time': False,
@@ -87,6 +87,7 @@ class CTrans(dm.SpaceData):
         """Get/set Earth Orientation Parameters"""
         if not useEOP:
             # DUT1 in seconds
+            # xp, yp in arcseconds
             # ddPsi and ddEps in arcseconds
             self['EarthOrientationParameters'] = self._factory['eop'](DUT1=0,
                                                                       xp=0,
@@ -248,7 +249,7 @@ class CTrans(dm.SpaceData):
 
         # ECI Mean of Date to ECI True of Date, and inverse
         ecitod_ecimod = np.empty((3, 3))
-        dpsi_rad = self['dPsi']*scipy.constants.arcsec
+        dpsi_rad = self['dPsi']*self['constants'].arcsec
         sdps, cdps = np.sin(dpsi_rad), np.cos(dpsi_rad)
         sobl, cobl = np.sin(self['ObliquityEcliptic_rad']), np.cos(self['ObliquityEcliptic_rad'])
         sobt, cobt = np.sin(self['ObliquityTrue_rad']), np.cos(self['ObliquityTrue_rad'])
@@ -288,8 +289,58 @@ class CTrans(dm.SpaceData):
         self['Transform']['ECIMOD_GSE'] = ecimod_gse
         self['Transform']['GSE_ECIMOD'] = ecimod_gse.T
 
-        # TODO: add in transformations for TEME, PEF, and ECEF
-        # TODO: ECEF(GEO) is the key here... how bad is an approximate direct path?
+        # Pseudo Earth Fixed (PEF) to/from ECI TOD
+        # Use PEF as a pass-through to get to GEO
+        # See "Revisiting Spacetrack Report #3" [Vallado]
+
+        # First, get apparent sidereal time
+        # Uses GMST in degrees and Equation of Equinoxes in degrees (IAU82? Or general?)
+        gast_deg = self['GMST']*15.0 + self['EquatEquin']/3600.0
+        gast_rad = np.deg2rad(gast_deg)
+        csga = np.cos(gast_rad)
+        snga = np.sin(gast_rad)
+        ecitod_pef = np.zeros((3, 3))
+        ecitod_pef[0, 0] = csga
+        ecitod_pef[0, 1] = snga
+        ecitod_pef[1, 0] = -snga
+        ecitod_pef[1, 1] = csga
+        ecitod_pef[2, 2] = 1.0
+        pef_ecitod = ecitod_pef.T
+
+        # TEME (used by WGS84)
+        sn = np.sin(self['GMST_rad'])
+        cs = np.cos(self['GMST_rad'])
+        teme_pef = np.zeros((3, 3))
+        teme_pef[0, 0] = cs
+        teme_pef[0, 1] = sn
+        teme_pef[1, 0] = -sn
+        teme_pef[1, 1] = cs
+        teme_pef[2, 2] = 1.0
+        pef_teme = teme_pef.T
+
+        # GEO (Geocentric geographic) to/from PEF (Psuedo Earth Fixed)
+        xprad = self['EarthOrientationParameters'].xp*self['constants'].arcsec
+        yprad = self['EarthOrientationParameters'].yp*self['constants'].arcsec
+        sxp = np.sin(xprad)
+        cxp = np.cos(xprad)
+        syp = np.sin(yprad)
+        cyp = np.cos(yprad)
+        pef_geo = np.zeros((3, 3))
+        pef_geo[0, 0] = cxp
+        pef_geo[0, 1] = sxp*syp
+        pef_geo[0, 2] = sxp*cyp
+        pef_geo[1, 1] = cyp
+        pef_geo[1, 2] = -syp
+        pef_geo[2, 0] = -sxp
+        pef_geo[2, 1] = cxp*syp
+        pef_geo[2, 2] = cxp*cyp
+        geo_pef = pef_geo.T
+
+        # make/store ECIMOD<->GEO transforms
+        ecitod_geo = pef_geo.dot(ecitod_pef)
+        ecimod_geo = ecitod_geo.dot(self['Transform']['ECIMOD_ECITOD'])
+        self['Transform']['ECIMOD_GEO'] = ecimod_geo
+        self['Transform']['GEO_ECIMOD'] = ecimod_geo.T
 
         self.__status['transformCore'] = True
 
