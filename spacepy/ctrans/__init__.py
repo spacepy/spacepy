@@ -418,6 +418,7 @@ class CTrans(dm.SpaceData):
                 # If we have A->MOD and MOD->B then we can just
                 # construct the conversion
                 tmatr = self['Transform'][trans2].dot(self['Transform'][trans1])
+                self['Transform'][transform] = tmatr
             except (KeyError, AssertionError):
                 self._raiseError(ValueError, 'transform')
         else:
