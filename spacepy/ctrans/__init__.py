@@ -14,6 +14,8 @@ from spacepy import igrf
 
 
 class CTrans(dm.SpaceData):
+    """
+    """
     def __init__(self, ctime, ephmodel=None, pnmodel=None, eop=False):
         """
         """
@@ -178,6 +180,11 @@ class CTrans(dm.SpaceData):
         self.__status['orbital'] = True
 
     def _calcNutation(self, nTerms=106):
+        """Calculate nutation-related quantities
+
+        Calculates nutation parameters, equation of equinoxes,
+        true obliquity of the ecliptic, and updates object values
+        """
         # Get dPSi and dEps in arcsec
         dPsi, dEps = self._nutation(nTerms=nTerms)  # default 106-term nutation series
         # Now apply EOP corrections
@@ -197,10 +204,12 @@ class CTrans(dm.SpaceData):
 
     @staticmethod
     def _normVec(vec):
+        """Normalize input vector"""
         tmpmag = np.linalg.norm(vec)
         vec /= tmpmag
 
     def _nutation(self, nTerms=106):
+        """Calculate nutation terms dPsi and dEps"""
         pnmodel = self.attrs['pnmodel'].upper()
         if not pnmodel == 'IAU82' or pnmodel == 'LGMDEFAULT':
             import warnings
@@ -405,6 +414,26 @@ class CTrans(dm.SpaceData):
         self['Transform']['ECIMOD_SM'] = gsm_sm.dot(self['Transform']['ECIMOD_GSM'])
         self['Transform']['SM_ECIMOD'] = self['Transform']['ECIMOD_SM'].T
 
+        # Set up transformation matrices for GEO <-> CDMAG
+        # CDMAG is centered dipole geomagnetic
+        #    Z: parallel to dipole axis.
+        #    Y: perpendicular to both Z and rotation axis
+        #    X: completes
+        zhat = np.array([0, 0, 1])  # GEO Z-axis in GEO
+        mag_y_vec = np.cross(zhat, dip)
+        self._normVec(mag_y_vec)
+        mag_x_vec = np.cross(mag_y_vec, dip)
+        self._normVec(mag_x_vec)
+        geo_cdmag = np.empty((3, 3))
+        geo_cdmag[0, ...] = mag_x_vec
+        geo_cdmag[1, ...] = mag_y_vec
+        geo_cdmag[2, ...] = dip
+        self['Transform']['GEO_CDMAG'] = geo_cdmag
+        self['Transform']['CDMAG_GEO'] = geo_cdmag.T
+        # Get conversion to MOD for completeness
+        self['Transform']['ECIMOD_CDMAG'] = geo_cdmag.dot(self['Transform']['ECIMOD_GEO'])
+        self['Transform']['CDMAG_ECIMOD'] = self['Transform']['ECIMOD_CDMAG'].T
+
     def convert(self, vec, sys_in, sys_out):
         """Convert an input vector between two coordinate systems
         """
@@ -420,7 +449,7 @@ class CTrans(dm.SpaceData):
                 tmatr = self['Transform'][trans2].dot(self['Transform'][trans1])
                 self['Transform'][transform] = tmatr
             except (KeyError, AssertionError):
-                self._raiseError(ValueError, 'transform')
+                self._raiseErr(ValueError, 'transform')
         else:
             tmatr = self['Transform'][transform]
         return tmatr.dot(vec)
