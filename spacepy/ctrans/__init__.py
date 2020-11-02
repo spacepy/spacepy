@@ -31,15 +31,12 @@ class CTrans(dm.SpaceData):
         else:
             self.attrs['pnmodel'] = 'IAU82'
 
-        if isinstance(ctime, (spt.Ticktock)):
-            try:
-                if len(ctime) == 1:
-                    ctime = ctime[0]
-                else:  # Input time is Ticktock, but has a length > 1
-                    self._raiseErr(ValueError, 'time_in')
-            except:
-                pass  # Nothing to do here, Ticktock is what we want
-        elif isinstance(ctime, (dt.datetime)):
+        if isinstance(ctime, spt.Ticktock):
+            #input time is ticktock
+            if len(ctime.data) != 1:
+                # Input time is Ticktock, but has a length > 1
+                self._raiseErr(ValueError, 3)
+        elif isinstance(ctime, dt.datetime):
             # Input time is datetime
             ctime = spt.Ticktock(ctime, dtype='UTC')
         else:
@@ -452,7 +449,13 @@ class CTrans(dm.SpaceData):
                 self._raiseErr(ValueError, 'transform')
         else:
             tmatr = self['Transform'][transform]
-        return tmatr.dot(vec)
+
+        trvec = np.atleast_2d(vec)
+        if trvec.shape[0] != 3:
+            trvec = trvec.T  # need to have N column vectors for a broadcast dot product
+        converted = tmatr.dot(trvec).T
+        # squeeze to fix return of 1D input vectors
+        return converted.squeeze()
 
     def gmst(self):
         """Calculate Greenwich Mean Sidereal Time
