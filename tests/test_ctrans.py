@@ -5,6 +5,7 @@ Test suite for ctrans module
 
 """
 
+import copy
 import datetime as dt
 import unittest
 import warnings
@@ -12,11 +13,75 @@ import warnings
 import numpy
 from scipy.constants import arcsec
 from spacepy import ctrans
+import spacepy.time
 
 __all__ = ['CTransClassTests']
 
 
 class CTransClassTests(unittest.TestCase):
+    def setUp(self):
+        self.t2k = dt.datetime(2000, 1, 1)
+        self.CTrans2000 = ctrans.CTrans(self.t2k)
+
+    def tearDown(self):
+        del self.CTrans2000
+
+    def test_initRaises(self):
+        """CTrans init raises error on bad input"""
+        self.assertRaises(TypeError, ctrans.CTrans, 'Incorrect input')
+
+    def test_initRaises_ephmodel(self):
+        """CTrans init raises not implemented error for setting ephmodel"""
+        self.assertRaises(NotImplementedError, ctrans.CTrans, self.t2k, ephmodel='BAD')
+
+    def test_initRaises_pnmodel(self):
+        """CTrans init raises not implemented error for setting ephmodel"""
+        self.assertRaises(NotImplementedError, ctrans.CTrans, self.t2k, pnmodel='BAD')
+
+    def test_calcCore_times(self):
+        """calcCoreTransforms should set up required times"""
+        self.CTrans2000.calcCoreTransforms()
+        self.assertTrue('TT_JD' in self.CTrans2000)
+        self.assertTrue('GMST' in self.CTrans2000)
+
+    def test_convert_badsys(self):
+        """Calling convert with undefined systems should raise an error"""
+        self.CTrans2000.calcCoreTransforms()
+        self.assertRaises(ValueError, self.CTrans2000.convert,
+                          [1, 1, 1], 'ECIMOD', 'UNDEFINED')
+
+    def test_time_as_ticktock(self):
+        """Construction with datetime and ticktock should give same answer"""
+        self.CTrans2000.calcTimes()
+        tick2k = spacepy.time.Ticktock(self.t2k)
+        tt_test = ctrans.CTrans(tick2k)
+        tt_test.calcTimes()
+        numpy.testing.assert_equal(tt_test['UTC_JD'], self.CTrans2000['UTC_JD'])
+
+    def test_time_length(self):
+        """CTrans should raise error with non-singular time (list of datetimes)"""
+        self.assertRaises(TypeError, ctrans.CTrans, [self.t2k]*2)
+
+    def test_time_length2(self):
+        """CTrans should raise error with non-singular time (spacepy.Ticktock)"""
+        self.assertRaises(ValueError, ctrans.CTrans, spacepy.time.Ticktock([self.t2k]*2))
+
+    def test_time_list_ISO(self):
+        """Test construction with ISO string"""
+        self.CTrans2000.calcTimes()
+        tt_test = ctrans.CTrans(['2000-01-01T00:00:00'])
+        tt_test.calcTimes()
+        numpy.testing.assert_equal(tt_test['UTC_JD'], self.CTrans2000['UTC_JD'])
+
+    def test_time_recalc(self):
+        """Multiple calls to calcTimes should preserve state"""
+        self.CTrans2000.calcTimes()
+        saved = copy.copy(self.CTrans2000['UTC'])
+        self.CTrans2000.calcTimes()
+        self.assertEqual(saved, self.CTrans2000['UTC'])
+
+
+class CTransRegressionTests(unittest.TestCase):
     def setUp(self):
         self.CTrans2000 = ctrans.CTrans(dt.datetime(2000, 1, 1))
         self.CTrans2014 = ctrans.CTrans(dt.datetime(2014, 8, 29, 15, 32, 13, 811285),
@@ -25,10 +90,6 @@ class CTransClassTests(unittest.TestCase):
     def tearDown(self):
         del self.CTrans2000
         del self.CTrans2014
-
-    def test_initRaises(self):
-        """CTrans init raises error on bad input"""
-        self.assertRaises(TypeError, ctrans.CTrans, 'Incorrect input')
 
     def test_times2014_LGM(self):
         """Test that time conversions agree with LGM"""
