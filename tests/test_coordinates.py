@@ -336,18 +336,10 @@ class QuaternionFunctionTests(unittest.TestCase):
         ortho_test = np.dot(matrix, matrix.transpose())
         np.testing.assert_array_almost_equal(
             ortho_test, np.identity(3))
-        try:
-            det = np.linalg.det(matrix)
-        except AttributeError: # det new in numpy 1.8.0
-            det = matrix[0, 0] * matrix[1, 1] * matrix[2, 2] \
-                  + matrix[0, 1] * matrix[1, 2] * matrix[2, 0] \
-                  + matrix[0, 2] * matrix[1, 0] * matrix[2, 1] \
-                  - matrix[0, 2] * matrix[1, 1] * matrix[2, 0] \
-                  - matrix[0, 1] * matrix[1, 0] * matrix[2, 2] \
-                  - matrix[0, 0] * matrix[1, 2] * matrix[2, 1]
+        det = np.linalg.det(matrix)
         self.assertTrue(det > 0) # Proper?
-        invect = np.array([[5, 3, 2], [1, 0, 0], [.2, 5, 20],
-                              [0, 2, 2]])
+        invect = np.array([[5, 3, 2], [1, 0, 0],
+                           [0.2, 5, 20], [0, 2, 2]])
         # Test matrix vs. quaternion rotation, single vector
         expected = spc.quaternionRotateVector(Qin, invect[1, :])
         actual = np.dot(matrix, invect[1, :])
