@@ -548,6 +548,7 @@ class build(_build):
         with open(fln, 'w') as f:
             f.write(filestr)
 
+        print('Building irbem library...')
         # compile (platform dependent)
         os.chdir('source')
         comppath = {
@@ -567,7 +568,8 @@ class build(_build):
         if fcompiler == 'gnu':
             if bit == 64:
                 compflags = '-m64 ' + compflags
-        if fcompiler == 'gnu95':
+        if fcompiler == 'gnu95' and not os.uname()[4].startswith('arm'):
+            # Raspberry Pi doesn't have this switch and assumes 32-bit
             compflags = '-m{0} '.format(bit) + compflags
         if fcompiler.startswith('intel'):
             if bit == 32:
