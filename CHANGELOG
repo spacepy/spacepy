@@ -13,6 +13,7 @@ irbempy
  - Rev620 adds IGRF13 coefficients
  - Add conversion so all systems supported by coordinates can be passed
    to IRBEMlib routines
+ - Fix compilation on Raspberry Pi
 plot
  - utils.EventClicker support for non-line plots (e.g. pcolor)
  - New method for adding arrows to lines in utils
