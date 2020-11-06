@@ -16,6 +16,7 @@ import os
 import os.path
 import tempfile
 import unittest
+
 try:
     import StringIO
 except ImportError:
@@ -93,6 +94,12 @@ class SpaceDataTests(unittest.TestCase):
         self.assertEqual(sorted(b.keys()),
                          sorted(['1<--pig<--fish<--a', '4<--cat', '1<--dog', '1<--pig<--fish<--b', '5']))
 
+    def test_flatten_function_TypeError(self):
+        """flatten, check the try:except: at the top"""
+        # interesting behavior on what is created
+        self.assertEqual(dm.flatten(np.arange(5)),
+                         {0: 0, 1: 1, 2: 2, 3: 3, 4: 4})
+
     def test_unflatten_function(self):
         """Unflatten should unflatten a flattened SpaceData"""
         a = dm.SpaceData()
@@ -110,6 +117,21 @@ class SpaceDataTests(unittest.TestCase):
         self.assertEqual(sorted(a['1'].keys()), sorted(c['1'].keys()))
         self.assertEqual(sorted(a['1']['pig'].keys()), sorted(c['1']['pig'].keys()))
         self.assertEqual(sorted(a['1']['pig']['fish'].keys()), sorted(c['1']['pig']['fish'].keys()))
+
+    def test_unflatten_function_TypeError(self):
+        """unflatten, check the try:except: at the top"""
+        # interesting behavior on what is created
+        self.assertEqual(dm.unflatten(np.arange(5)),
+                         {0: 0, 1: 1, 2: 2, 3: 3, 4: 4})
+
+    def test_unflatten_function_nonflat(self):
+        """unflatten will error for a nested input"""
+        a = dm.SpaceData()
+        a['1'] = dm.SpaceData(dog=5, pig=dm.SpaceData(fish=dm.SpaceData(a='carp', b='perch')))
+        a['4'] = dm.SpaceData(cat='kitty')
+        a['5'] = 4
+        with self.assertRaises(TypeError):
+            dm.unflatten(a)
 
     def test_flatten_method(self):
         """Flatten should flatted a nested dict"""
