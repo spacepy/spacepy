@@ -736,7 +736,16 @@ class FileTests(ISTPTestsBase):
 
     def testTimes(self):
         """Compare filename to Epoch times"""
-        self.cdf['Epoch'] = [datetime.datetime(1999, 1, 1, i) for i in range(3)]
+        warnings.filterwarnings(
+            'ignore',
+            message=r'^No type specified for time input; assuming .*$',
+            category=DeprecationWarning,
+            module='^spacepy.pycdf$')
+        try:
+            self.cdf['Epoch'] = [datetime.datetime(1999, 1, 1, i)
+                                 for i in range(3)]
+        finally:
+            del warnings.filters[0]
         self.cdf['Epoch'].append(datetime.datetime(1999, 1, 2, 0))
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(1, len(errs))
@@ -744,7 +753,16 @@ class FileTests(ISTPTestsBase):
         del self.cdf['Epoch'][-1]
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(0, len(errs))
-        self.cdf['Epoch'] = [datetime.datetime(1999, 1, 2, i) for i in range(3)]
+        warnings.filterwarnings(
+            'ignore',
+            message=r'^No type specified for time input; assuming .*$',
+            category=DeprecationWarning,
+            module='^spacepy.pycdf$')
+        try:
+            self.cdf['Epoch'] = [datetime.datetime(1999, 1, 2, i)
+                                 for i in range(3)]
+        finally:
+            del warnings.filters[0]
         errs = spacepy.pycdf.istp.FileChecks.times(self.cdf)
         self.assertEqual(1, len(errs))
         self.assertEqual('Epoch: date 19990102 doesn\'t match file '
