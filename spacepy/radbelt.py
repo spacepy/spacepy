@@ -17,7 +17,6 @@ from spacepy import help
 import numpy as np
 import spacepy.time as st
 import pdb
-import spacepy.toolbox as tb
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -331,7 +330,7 @@ class RBmodel(object):
                         # average observation
                         for j, iL in enumerate(lstar):
                             # identify idex of grid-point
-                            idx = np.where(tb.feq(iL,tmplstar))
+                            idx = np.where(np.isclose(iL,tmplstar))
                             # assign observation for grid-point
                             psd[j] = psd[j] + tmppsd[idx]
                             # add for number of observations
@@ -784,7 +783,7 @@ class RBmodel(object):
                     # print assimilated result
                     Hx = np.zeros_like(y)
                     for iL,Lstar in enumerate(Lobs):
-                        idx = np.where(tb.feq(self.Lgrid,Lstar))
+                        idx = np.where(np.isclose(self.Lgrid,Lstar))
                         Hx[iL] = self.PSDa[idx,i]
                     print(Hx)
                     print(HA)

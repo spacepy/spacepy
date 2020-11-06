@@ -601,6 +601,10 @@ def human_sort( l ):
         l.sort()
     return l
 
+@spacepy.deprecated(
+    '0.2.2', 'use numpy.isclose',
+    'use :func:`numpy.isclose`; the ``rtol`` keyword is equivalent to'
+    ' ``precision``.')
 def feq(x, y, precision=0.0000005):
     """
     compare two floating point values if they are equal
@@ -609,6 +613,7 @@ def feq(x, y, precision=0.0000005):
     See Also
     --------
     numpy.allclose
+    numpy.isclose
 
     Parameters
     ----------

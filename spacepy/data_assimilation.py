@@ -6,7 +6,6 @@ from numpy import shape, dot, eye, set_printoptions, diag, sum
 import numpy as np
 from numpy.linalg import svd
 import pdb
-from spacepy.toolbox import feq
 
 __contact__ = 'Josef Koller, jkoller@lanl.gov'
 
@@ -410,7 +409,7 @@ class ensemble(object):
         # create L vector where random noise will be added
         erridx = np.array([],dtype=int)
         for Lval in PSDdata['Lstar']:
-            Lidx = np.where( feq(Lval,Lgrid) )[0]
+            Lidx = np.where( np.isclose(Lval,Lgrid) )[0]
             erridx = np.append(erridx,np.array([int(Lidx)]))
 
         # calculate the rel. average uncertainty based on (obs -
@@ -475,7 +474,7 @@ class ensemble(object):
         #erridx = np.array([False]*len(Lgrid))
         erridx = np.array([],dtype=int)
         for Lval in Lobs:
-            Lidx = np.where( feq(Lval,Lgrid) )[0]
+            Lidx = np.where( np.isclose(Lval,Lgrid) )[0]
             erridx = np.append(erridx,np.array([int(Lidx)]))
 
         # compute residual
@@ -545,7 +544,7 @@ def average_window(PSDdata, Lgrid):
     # run through all unique grid-points and compute average observation
     for i, iL in enumerate(tmpLobs):
         # identify idex of each unique grid-point
-        idx = np.where(feq(iL,Lobs))
+        idx = np.where(np.isclose(iL,Lobs))
         # compute average observation for each unique grid-point
         tmpy[i] = np.average(y[idx])
 
@@ -748,7 +747,7 @@ def assimilate_JK(dd):
         # add model error
         relstd = np.zeros(nens)
         for yval, iobs in zip(y, range(len(y))):
-            idx = np.where( feq(L[iobs],Lgrid) )
+            idx = np.where( np.isclose(L[iobs],Lgrid) )
             relstd[:] = 0.5*( yval - HA[iobs,:] )
             A[idx,:] = np.random.normal( HA[iobs,:], np.abs(relstd))
             idx2 = np.where(A[idx,:] < minPSD); A[idx,idx2] = minPSD # add min flux here
@@ -815,7 +814,7 @@ def addmodelerror_old2(dd, A, y, L):
         NLs = int(round( (L2-L1)/dL ) + 1 )
         for Lpos in linspace(L1, L2, NLs):
             #print dL, L1, L2, NLs
-            index = where( feq(Lpos,Lgrid) ) # use float point comparison
+            index = where( np.isclose(Lpos,Lgrid) ) # use float point comparison
             stdev = 0.5*abs( yval - mean(A[index,:]) )
             #print Lpos
             center = reshape( A[index,:], (nens) )
@@ -848,7 +847,7 @@ def addmodelerror_old(dd, A, y, L):
         NLs = int(round( (L2-L1)/dL ) + 1 )
         for Lpos in np.linspace(L1, L2, NLs):
             #print dL, L1, L2, NLs
-            index = np.where( feq(Lpos,Lgrid) ) # use float point comparison
+            index = np.where( np.isclose(Lpos,Lgrid) ) # use float comparison
             stdev = 0.5*np.abs( yval - np.mean(A[index,:]) )
             #print Lpos
             center = np.reshape( A[index,:], (nens) )
