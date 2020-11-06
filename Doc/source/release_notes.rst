@@ -53,12 +53,15 @@ still to make backward-compatible CDFs, but this will change in
 specifying a time type; the default is still to use EPOCH or
 EPOCH16, but this will change to TIME_TT2000 in 0.3.0.
 
+:func:`~spacepy.pybats.rim.fix_format` is now deprecated, as
+:class:`~spacepy.pybats.rim.Iono` can now read these files directly.
+
 Quaternion math functions have been moved to
 :mod:`~spacepy.coordinates`; using the functions in
 :mod:`~spacepy.toolbox` is deprecated.
 
-:func:`~spacepy.pybats.rim.fix_format` is now deprecated, as
-:class:`~spacepy.pybats.rim.Iono` can now read these files directly.
+:func:`~spacepy.toolbox.feq` is deprecated; numpy 1.7 added the equivalent
+:func:`~numpy.isclose`.
 
 Dependency requirements
 ***********************
