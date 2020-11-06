@@ -444,11 +444,7 @@ def dmfilled(shape, fillval=0, dtype=None, order='C', attrs=None):
         
     """
     a = dmarray(numpy.empty(shape, dtype, order), attrs=attrs)
-    try:
-        a.fill(fillval)
-    except TypeError:
-        obj = numpy.core.numeric._maketup(dtype, fillval)
-        a.fill(obj)
+    a.fill(fillval)
     return a
 
 
