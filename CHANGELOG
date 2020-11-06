@@ -6,6 +6,7 @@ coordinates
  - Include upstream fix for SPH->RLL coordinate transform
 datamodel
  - Fix in SpaceData.toXXX() methods which would fail in some cases, now work as intended
+ - Documentation update and default untis change in createISTPattrs
 datamanager
  - New function "rebin", rebin an axis of an array by contents of another
 irbempy
