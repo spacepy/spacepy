@@ -38,17 +38,42 @@ class CTransClassTests(unittest.TestCase):
         """CTrans init raises not implemented error for setting ephmodel"""
         self.assertRaises(NotImplementedError, ctrans.CTrans, self.t2k, pnmodel='BAD')
 
+    def test_getEOP_raises(self):
+        """getEOP method raises an error for requesting non-zero EOP"""
+        # If EOP support is added, this test can be removed or
+        # changed to an expected failure
+        self.assertRaises(NotImplementedError, self.CTrans2000.getEOP, useEOP=True)
+
+    def test_getEOP_raises2(self):
+        """getEOP method raises an error for requesting non-zero EOP"""
+        # If EOP support is added, this test can be removed or
+        # changed to an expected failure
+        self.assertRaises(NotImplementedError, ctrans.CTrans, self.t2k, eop=True)
+
     def test_calcCore_times(self):
         """calcCoreTransforms should set up required times"""
         self.CTrans2000.calcCoreTransforms()
         self.assertTrue('TT_JD' in self.CTrans2000)
         self.assertTrue('GMST' in self.CTrans2000)
 
-    def test_convert_badsys(self):
+    def test_convert_badsys_in(self):
         """Calling convert with undefined systems should raise an error"""
         self.CTrans2000.calcCoreTransforms()
         self.assertRaises(ValueError, self.CTrans2000.convert,
                           [1, 1, 1], 'ECIMOD', 'UNDEFINED')
+
+    def test_convert_badsys_out(self):
+        """Calling convert with undefined systems should raise an error"""
+        self.CTrans2000.calcCoreTransforms()
+        self.assertRaises(ValueError, self.CTrans2000.convert,
+                          [1, 1, 1], 'UNDEFINED', 'ECIMOD')
+
+    def test_convert_badsys_force(self):
+        """Calling convert with undefined systems should raise an error"""
+        self.CTrans2000.calcCoreTransforms()
+        self.CTrans2000['Transform']['UNK_ECITOD'] = numpy.identity(3)
+        self.assertRaises(ValueError, self.CTrans2000.convert,
+                          [1, 1, 1], 'UNK', 'ECIMOD')
 
     def test_time_as_ticktock(self):
         """Construction with datetime and ticktock should give same answer"""
@@ -79,6 +104,43 @@ class CTransClassTests(unittest.TestCase):
         saved = copy.copy(self.CTrans2000['UTC'])
         self.CTrans2000.calcTimes()
         self.assertEqual(saved, self.CTrans2000['UTC'])
+
+    @unittest.expectedFailure
+    def test_GMST_versions_different(self):
+        """GMST versions should not be identical"""
+        # IAU82
+        self.CTrans2000.attrs['pnmodel'] = 'IAU82'
+        self.CTrans2000.gmst()
+        exp1 = self.CTrans2000['GMST']
+        # IAU00
+        self.CTrans2000.attrs['pnmodel'] = 'IAU00'
+        self.CTrans2000.gmst()
+        exp2 = self.CTrans2000['GMST']
+        # P03
+        self.CTrans2000.attrs['pnmodel'] = 'P03'
+        self.CTrans2000.gmst()
+        exp3 = self.CTrans2000['GMST']
+        numpy.testing.assert_approx_equal(exp1, exp2, significant=10)
+        numpy.testing.assert_approx_equal(exp1, exp3, significant=10)
+        numpy.testing.assert_approx_equal(exp2, exp3, significant=10)
+
+    def test_GMST_versions_similar(self):
+        """GMST versions should all be roughly similar (not a regression test)"""
+        # IAU82
+        self.CTrans2000.attrs['pnmodel'] = 'IAU82'
+        self.CTrans2000.gmst()
+        exp1 = self.CTrans2000['GMST']
+        # IAU00
+        self.CTrans2000.attrs['pnmodel'] = 'IAU00'
+        self.CTrans2000.gmst()
+        exp2 = self.CTrans2000['GMST']
+        # P03
+        self.CTrans2000.attrs['pnmodel'] = 'P03'
+        self.CTrans2000.gmst()
+        exp3 = self.CTrans2000['GMST']
+        numpy.testing.assert_approx_equal(exp1, exp2, significant=3)
+        numpy.testing.assert_approx_equal(exp1, exp3, significant=3)
+        numpy.testing.assert_approx_equal(exp2, exp3, significant=3)
 
 
 class CTransRegressionTests(unittest.TestCase):
@@ -119,6 +181,9 @@ class CTransRegressionTests(unittest.TestCase):
     def test_gmst2014_astropy(self):
         """Test that GMST agrees with astropy (includes DUT1)"""
         ct14 = self.CTrans2014
+        # getEOP method currently doesn't support EOP
+        # to set, we need to call the factory method as the generated values are set
+        # to be immutable
         ct14['EarthOrientationParameters'] = ct14._factory['eop'](DUT1=-0.32591566, xp=0,
                                                                   yp=0, ddPsi=0, ddEps=0)
         self.CTrans2014.calcTimes()
