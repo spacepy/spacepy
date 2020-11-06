@@ -1834,8 +1834,44 @@ def dmcopy(dobj):
     else:
         return copy.copy(dobj)
 
-def createISTPattrs(datatype, ndims=1, vartype=None, units=None, NRV=False):
+def createISTPattrs(datatype, ndims=1, vartype=None, units=' ', NRV=False):
     '''Return set of unpopulated attributes for ISTP compliant variable
+
+    Parameters
+    ----------
+    datatype : str
+        datatype of variable to reate metadata for (data|support_data|metadata)
+    ndims : int
+        number of dimensions, default=1
+    vartype : str
+        The type of the variable (float|char|int|epoch|tt2000), default=float
+    units : str
+        The units of the variable, default=' '
+    NRV : bool
+        Is the variable NRV (non-record varying), default=False
+
+    Returns
+    -------
+    attrs : dict
+        dictionary of attributes for the variable
+
+    Examples
+    --------
+    >>> import spacepy.datamodel as dm
+    >>> dm.createISTPattrs('data', ndims=2, vartype='float', units='MeV')
+    {'CATDESC': '',
+     'DISPLAY_TYPE': 'spectrogram',
+     'FIELDNAM': '',
+     'FILLVAL': -1e+31,
+     'FORMAT': 'F18.6',
+     'LABLAXIS': '',
+     'SI_CONVERSION': ' > ',
+     'UNITS': 'MeV',
+     'VALIDMIN': '',
+     'VALIDMAX': '',
+     'VAR_TYPE': 'data',
+     'DEPEND_0': 'Epoch',
+     'DEPEND_1': ''}
     '''
     fillvals = {'float': -1e31,
                 'char': '',
@@ -1857,10 +1893,9 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=None, NRV=False):
     else:
         fill = fillvals[vartype]
         form = formats[vartype]
-    if units:
-        unit = units
-    else:
-        unit = ''
+
+    unit = units
+
     if datatype == 'data':
         attrs = {'CATDESC': '',
             'DISPLAY_TYPE': disp[ndims],
@@ -1907,6 +1942,8 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=None, NRV=False):
             attrs['DEPEND_0'] = 'Epoch'
         else:
             del attrs['DEPEND_0']
+    else:
+        raise ValueError("Invalid datatype (data|support_data|metadata)")
 
     return attrs
 

@@ -16,6 +16,7 @@ import os
 import os.path
 import tempfile
 import unittest
+
 try:
     import StringIO
 except ImportError:
@@ -980,6 +981,73 @@ class JSONTests(unittest.TestCase):
         newdata = dm._dateToISO(data)
         restype = type(data[0])
         self.assertEqual(exptype, restype)
+
+
+class VariableTests(unittest.TestCase):
+    def test_createISTPattrs_data(self):
+        """createISTPattrs should give known results and error check for data"""
+        # catch bad datatype
+        with self.assertRaises(ValueError):
+            dm.createISTPattrs('badval')
+        # test with a datatype type and vartype
+        a = dm.createISTPattrs('data', vartype='float')
+        a_ans = {'CATDESC': '',
+                 'DISPLAY_TYPE': 'time_series',
+                 'FIELDNAM': '',
+                 'FILLVAL': -1e+31,
+                 'FORMAT': 'F18.6',
+                 'LABLAXIS': '',
+                 'SI_CONVERSION': ' > ',
+                 'UNITS': ' ',
+                 'VALIDMIN': '',
+                 'VALIDMAX': '',
+                 'VAR_TYPE': 'data',
+                 'DEPEND_0': 'Epoch'}
+        self.assertEqual(a, a_ans)
+
+    def test_createISTPattrs_support_data(self):
+        """createISTPattrs should give known results and error check for support_data"""
+        # test with a datatype type and vartype
+        a = dm.createISTPattrs('support_data', vartype='float')
+        a_ans = {'CATDESC': '',
+                 'FIELDNAM': '',
+                 'FORMAT': 'F18.6',
+                 'UNITS': ' ',
+                 'VAR_TYPE': 'support_data',
+                 'DEPEND_0': 'Epoch',
+                 'VALIDMIN': '',
+                 'VALIDMAX': '',
+                 'FILLVAL': -1e+31}
+        self.assertEqual(a, a_ans)
+        # same for an NRV variable
+        a = dm.createISTPattrs('support_data', vartype='float', NRV=True)
+        a_ans = {'CATDESC': '',
+                 'FIELDNAM': '',
+                 'FORMAT': 'F18.6',
+                 'UNITS': ' ',
+                 'VAR_TYPE': 'support_data'}
+        self.assertEqual(a, a_ans)
+
+    def test_createISTPattrs_metadata(self):
+        """createISTPattrs should give known results and error check for metadata"""
+        # test with a datatype type and vartype
+        a = dm.createISTPattrs('metadata', vartype='float')
+        a_ans = {'CATDESC': '',
+                 'FIELDNAM': '',
+                 'FORMAT': 'F18.6',
+                 'UNITS': ' ',
+                 'VAR_TYPE': 'metadata',
+                 'DEPEND_0': 'Epoch',
+                 'FILLVAL': -1e+31}
+        self.assertEqual(a, a_ans)
+        # same for an NRV variable
+        a = dm.createISTPattrs('metadata', vartype='float', NRV=True)
+        a_ans = {'CATDESC': '',
+                 'FIELDNAM': '',
+                 'FORMAT': 'F18.6',
+                 'UNITS': ' ',
+                 'VAR_TYPE': 'metadata'}
+        self.assertEqual(a, a_ans)
 
 
 if __name__ == "__main__":
