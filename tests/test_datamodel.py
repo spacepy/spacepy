@@ -552,6 +552,15 @@ class dmarrayTests(unittest.TestCase):
         np.testing.assert_equal(tst, ans)
         self.assertEqual(tst.dtype, ans.dtype)
 
+    def test_dmfilled_recarray(self):
+        """dmfilled should fill a recarray"""
+        dt = [('foo', 'f4'), ('bar', 'i2')]
+        tst = dm.dmfilled(4, fillval=3, dtype=dt)
+        a = np.empty((4, ), dt)
+        a.fill(3)
+        ans = dm.dmarray(a)
+        np.testing.assert_equal(tst, ans)
+
     def test_toRecArray_contents(self):
         '''a record array can be created from a SpaceData, keys and values equal'''
         sd = dm.SpaceData()
