@@ -1,6 +1,69 @@
 '''
 CTrans: Module for backend coordinate transformations in SpacePy
+
+Coordinate systems supported by this module can broadly be described
+by two categories. The first category is a broad set of Earth-centered
+coordinate systems that are specified by astronomical parameters.
+If we consider the International Celestial Reference Frame to be our
+starting point, then taking the origin as the center of the Earth
+instead of the solar barycenter gives us the International Terrestrial
+Reference Frame (ITRF). All coordinate systems described here are
+right-handed Cartesian systems.
+
+Systems and their relationships:
+- ECI2000: Earth-Centered Inertial, J2000 epoch
+    This system can be considered equivalent to the ITRF, to within 10s
+    of milliarcseconds. The z-axis is aligned with the mean celestial pole
+    at the J2000 epoch. The x-axis is aligned with the mean equinox at the
+    J2000 epoch. The y-axis completes and lies in the plane of the
+    celestial equator.
+- ECIMOD: Earth-Centered Inertial, Mean-of-Date
+    This system accounts for precession between the J2000 epoch and the
+    date of interest: The coordinate system is time-dependent. The system
+    is defined similarly to ECI2000, but uses the mean equinox and mean
+    equator of the date of interest.
+- ECITOD: Earth-Centered Inertial, True-of-Date
+    This system builds on ECIMOD and accounts for the nutation (the short-
+    period perturbations on the precession). This system is therefore
+    considered to use the true equator and true equinox of date.
+- GSE: Geocentric Solar Ecliptic
+    This system is not inertial. It is Earth-centered, with the x-axis
+    pointing towards the Sun. The y-axis lies in the mean ecliptic plane
+    of date, pointing in the anti-orbit direction. The z-axis is parallel
+    to the mean ecliptic pole.
+- GEO: Geocentric Geographic
+    This system is not inertial. It is Earth-Centered and Earth-Fixed (also
+    called ECEF), so that the coordinates of a point fixed on (or relative
+    to) the surface of the Earth do not change. The x-axis lies in the
+    Earth's equatorial plane (zero latitude) and intersects the Prime
+    Meridian (zero longitude; Greenwich, UK). The z-axis points to True
+    North (which is roughly aligned with the instantaneous rotation axis).
+
+The remaining coordinate systems are also reference to Earth's magnetic field.
+Different versions of these systems exist, but the most common (and those given
+here) use a centered dipole axis.
+- GSM: Geocentric Solar Magnetospheric
+    This system is similar to GSE, but is defined such that the centered dipole
+    lies in the x-z plane. As in all of these systems, z is positive northward.
+    The y-axis is thus perpendicular to both the Sun-Earth line and the
+    centered dipole axis (of date, defined using the first 3 coefficients of the
+    IGRF/DGRF). GSM is therefore a rotation about the x-axis from the GSE system.
+- SM: Solar Magnetic
+    The z-axis is aligned with the centered dipole axis of date (positive
+    northward), and the y-axis is perpendicular to both the Sun-Earth line and
+    the dipole axis. As with GSE and GSM, y is positive in the anti-orbit
+    direction. The x-axis therefore is not aligned with the Sun-Earth line and
+    SM is a rotation about the y-axis from the GSM system.
+- MAG: Geomagnetic
+    This is a geomagnetic analog of the GEO system. The z-axis is aligned with
+    the centered dipole axis of date. The y-axis is perpendicular to
+    to both the dipole axis and True North, i.e., y is the cross product of
+    the z-axis of the GEO system with the dipole axis. The x-axis completes.
 '''
+
+__contact__ = 'Steve Morley, smorley@lanl.gov'
+
+
 import datetime as dt
 import collections
 from math import fmod
@@ -14,11 +77,58 @@ from spacepy import igrf
 
 
 class CTrans(dm.SpaceData):
-    """
+    """Coordinate transformation class for a single instance in time
+
+    A general coordinate conversion routine, which takes a numpy array (Nx3)
+    of Cartesian vectors along with the names of the input and output
+    coordinate systems and returns an array of the converted coordinates.
+
+    Parameters
+    ==========
+    ctime : (spacepy.time.Ticktock, datetime, float, string)
+        Input time stamp. Must have one time only. Accepted input formats
+
+    Returns
+    =======
+    out : CTrans
+        instance with self.convert, etc.
+
+    Other Parameters
+    ================
+    ephmodel : str, optional
+        Select ephemerides model (e.g., for determining Sun direction).
+        Currently only 'LGMDEFAULT' is supported, for consistency with
+        LANLGeoMag implementation.
+    pnmodel : str, optional
+        Select precession/nutation model set. Options are: 'LGMDEFAULT',
+        'IAU82', 'IAU00'.
+    eop : bool, optional
+        Use Earth Orientation Parameters
+
+    See Also
+    ========
+    spacepy.coordinates.Coords
+
+    .. versionadded:: 0.2.3
+
+    .. autosummary::
+        calcTimes
+        calcOrbitParams
+        calcCoreTransforms
+        calcMagTransforms
+        convert
+        getEOP
+        gmst
+
+    .. automethod:: calcTimes
+    .. automethod:: calcOrbitParams
+    .. automethod:: calcCoreTransforms
+    .. automethod:: calcMagTransforms
+    .. automethod:: convert
+    .. automethod:: getEOP
+    .. automethod:: gmst
     """
     def __init__(self, ctime, ephmodel=None, pnmodel=None, eop=False):
-        """
-        """
         super(CTrans, self).__init__()
         if ephmodel is not None:
             self._raiseErr(NotImplementedError, 'ephmodel')
@@ -35,7 +145,7 @@ class CTrans(dm.SpaceData):
             #input time is ticktock
             if len(ctime.data) != 1:
                 # Input time is Ticktock, but has a length > 1
-                self._raiseErr(ValueError, 3)
+                self._raiseErr(ValueError, 'time_in')
         elif isinstance(ctime, dt.datetime):
             # Input time is datetime
             ctime = spt.Ticktock(ctime, dtype='UTC')
@@ -45,9 +155,9 @@ class CTrans(dm.SpaceData):
                     ctime = ctime[0]
                     ctime = spt.Ticktock(ctime)  # Guess dtype
                 else:
-                    self._raiseErr(TypeError, 3)
+                    self._raiseErr(TypeError, 'time_in')
             except TypeError:
-                self._raiseErr(TypeError, 3)
+                self._raiseErr(TypeError, 'time_in')
         self.attrs['time'] = ctime
 
         # Make key information immutable, but referenced by name
@@ -71,6 +181,11 @@ class CTrans(dm.SpaceData):
                          }
 
     def _setconstants(self):
+        """Set constants to be used in calculations
+
+        Constants set through this method are immutable to ensure
+        consistency in calculations.
+        """
         self['constants'] = self._factory['constants'](twopi=scipy.constants.pi*2,
                                                        j2000_jd=2451545.0,
                                                        j1990_jd=2447891.5,
@@ -83,7 +198,18 @@ class CTrans(dm.SpaceData):
                                                        )
 
     def getEOP(self, useEOP=False):
-        """Get/set Earth Orientation Parameters"""
+        """Get/set Earth Orientation Parameters
+
+        Parameters
+        ==========
+        useEOP : bool
+            If True, use Earth Orientation Parameters. Default False.
+
+        Notes
+        =====
+        Currently Earth Orientation Parameters are all set to zero.
+        Use is not yet supported.
+        """
         if not useEOP:
             # DUT1 in seconds
             # xp, yp in arcseconds
@@ -94,10 +220,23 @@ class CTrans(dm.SpaceData):
                                                                       ddPsi=0,
                                                                       ddEps=0)
         else:
+            # Note: These case still be set manually by directly calling the
+            # factory method.
             self._raiseErr(NotImplementedError, 'eop')
 
     def calcTimes(self, recalc=False, **kwargs):
-        """Calculate time in systems required to set up coordinate transforms"""
+        """Calculate time in systems required to set up coordinate transforms
+
+        Sets Julian Date and Julian centuries in UTC, TAI, UT1, and TT systems.
+        Does not check that the library is actually in any particular directory,
+        just returns a list of possible locations, in priority order.
+
+        Parameters
+        ==========
+        recalc : bool, optional
+            If True, recalculate the times for coordinate transformation. Default
+            is False.
+        """
         if self.__status['time'] and not recalc:
             return
         # Set up various time systems required and variable shortcuts
@@ -128,7 +267,18 @@ class CTrans(dm.SpaceData):
         self.__status['time'] = True
 
     def calcOrbitParams(self, recalc=False):
-        """Calculate Earth orbit parameters needed for coordinate transforms"""
+        """Calculate Earth orbit parameters needed for coordinate transforms
+
+        Calculates  Earth's orbital parameters required for defining coordinate
+        system transformations, such as orbital eccentricity, the obliquity of
+        the ecliptic, anomalies, and precession angles.
+
+        Parameters
+        ==========
+        recalc : bool, optional
+            If True, recalculate the orbital parameters for coordinate transformation.
+            Default is False.
+        """
         if not (self.__status['time'] or recalc):
             self.calcTimes(recalc=recalc)
         if self.__status['orbital'] and not recalc:
@@ -226,7 +376,20 @@ class CTrans(dm.SpaceData):
         """
         Calculate core coordinate transform matrices
 
-        Excludes coordinate systems requiring magnetic field information
+        These coordinate systems do not require information about
+        Earth's magnetic field.
+        The systems are:
+        Earth-Centered Inertial, J2000 (ECI2000)
+        Earth-Centered Inertial, Mean-of-date (ECIMOD)
+        Earth-Centered Inertial, True-of-date (ECITOD)
+        Geocentric Solar Ecliptic (GSE)
+        Geocentric Geographic (GEO)
+
+        Parameters
+        ==========
+        recalc : bool, optional
+            If True, recalculate the core (non-magnetic) coordinate transformations.
+            Default is False.
         """
         if not self.__status['orbital'] or recalc:
             self.calcOrbitParams(recalc=recalc)
@@ -351,7 +514,22 @@ class CTrans(dm.SpaceData):
         self.__status['transformCore'] = True
 
     def calcMagTransforms(self, recalc=False):
-        """Calculate geophysical coordinate systems"""
+        """Calculate geophysical coordinate systems
+
+        Calculate transforms for coordinate systems requiring magnetic field
+        information.
+
+        These are:
+        Solar Magnetic (SM)
+        Geocentric Solar Magnetospheric (GSM)
+        Geomagnetic, centered dipole (CDMAG)
+
+        Parameters
+        ==========
+        recalc : bool, optional
+            If True, recalculate the core (non-magnetic) coordinate transformations.
+            Default is False.
+        """
         if not self.__status['transformCore'] or recalc:
             self.calcCoreTransforms()
 
@@ -433,21 +611,33 @@ class CTrans(dm.SpaceData):
 
     def convert(self, vec, sys_in, sys_out):
         """Convert an input vector between two coordinate systems
+
+        Parameters
+        ==========
+        vec : array-like
+            Input 3-vector (can be an array of input 3-vectors) to convert
+        sys_in : str
+            String name for initial coordinate system. For supported systems,
+            see module level documentation.
+        sys_out : str
+            String name for target coordinate system. For supported systems,
+            see module level documentation.
         """
         transform = '{0}_{1}'.format(sys_in, sys_out)
         if transform not in self['Transform']:
             try:
+                # Construct requested transform via ECIMOD
                 trans1 = '{0}_{1}'.format(sys_in, 'ECIMOD')
                 trans2 = '{0}_{1}'.format('ECIMOD', sys_out)
                 assert trans1 in self['Transform']
                 assert trans1 in self['Transform']
-                # If we have A->MOD and MOD->B then we can just
-                # construct the conversion
                 tmatr = self['Transform'][trans2].dot(self['Transform'][trans1])
                 self['Transform'][transform] = tmatr
             except (KeyError, AssertionError):
+                # Can't construct the transform requested
                 self._raiseErr(ValueError, 'transform')
         else:
+            # Required transform stored already, just use it
             tmatr = self['Transform'][transform]
 
         trvec = np.atleast_2d(vec)
@@ -459,6 +649,11 @@ class CTrans(dm.SpaceData):
 
     def gmst(self):
         """Calculate Greenwich Mean Sidereal Time
+
+        Notes
+        =====
+        The formulation used to calculate GMST is selected using the
+        status of the 'pnmodel' variable in the CTrans object attributes.
         """
         if not (self.__status['time'] or self.__status['timeInProgress']):
             self.calcTimes(from_gmst=True)
@@ -496,7 +691,6 @@ class CTrans(dm.SpaceData):
             self['GMST_rad'] = (theta + angle*const.arcsec) % const.twopi
             self['GMST'] = np.rad2deg(self['GMST_rad'])/15
         elif pnmodel.upper() == 'P03':
-            raise NotImplementedError
             du = self['UT1_JD'] - const.j2000_jd
             theta = const.twopi*(0.7790572732640 + 0.00273781191135448*du + du % 1)
             t = self['TT_JC']
@@ -523,7 +717,6 @@ class CTrans(dm.SpaceData):
                                      or self.__status['transformCore'])
         if not validEntry:
             self._raiseErr(RuntimeError, 'sun')
-        # TODO: check units of everything in this section
         const = self['constants']
         eccen = self['Eccentricity']
         cos_epsilon = np.cos(self['ObliquityEcliptic_rad'])
@@ -552,6 +745,15 @@ class CTrans(dm.SpaceData):
             # TODO: normalize Sun vector (this is in ECIJ2000)
 
     def _raiseErr(self, errtype, code):
+        """Common error raising method
+
+        Parameters
+        ==========
+        errtype : Exception
+            Exception to raise
+        code : str
+            Error category. Defines error message.
+        """
         if code == 'ephmodel':
             err = 'No alternate models of ephemerides at this time'
         elif code == 'pnmodel':
@@ -574,14 +776,16 @@ class CTrans(dm.SpaceData):
         """
         Solve Kepler's equation for eccentric anomaly
 
-        mean_anom: float
+        Parameters
+        ==========
+        mean_anom : float
             Mean anomaly in radians
-        ecc: float
+        ecc : float
             Eccentricity of orbit
 
         Returns
-        -------
-        ecc_anom: float
+        =======
+        ecc_anom : float
             Eccentric anomaly in radians
         """
         ecc_anom = mean_anom + ecc * np.sin(mean_anom)
