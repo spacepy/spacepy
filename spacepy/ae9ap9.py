@@ -529,8 +529,9 @@ def _parseInfo(header):
         elif "Energy levels" in val:
             match = re.match(r'^Energy levels.*\((.*)\):(.*)$', val)
             ans['energy'] = (np.asarray(match.group(2).strip().split()).astype(float), match.group(1).strip())
-        elif "generated from specified elements" in val:
-            match = re.search(r'^generated from specified elements.*:\ (.*)$', val)
+        # Get the orbital element propagator
+        elif "Propagator" in val:
+            match = re.search(r'Propagator:\ (.*)$', val)
             ans['propagator'] = match.group(1).strip()
     return ans
 
