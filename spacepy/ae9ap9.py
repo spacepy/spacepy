@@ -39,6 +39,7 @@ import datetime as dt
 import gzip
 import os
 import re
+import warnings
 
 from dateutil import relativedelta
 import numpy as np
@@ -529,10 +530,18 @@ def _parseInfo(header):
         elif "Energy levels" in val:
             match = re.match(r'^Energy levels.*\((.*)\):(.*)$', val)
             ans['energy'] = (np.asarray(match.group(2).strip().split()).astype(float), match.group(1).strip())
-        # Get the orbital element propagator
-        elif "Propagator" in val:
+        # Get the orbital element propagator, two versions based on AE9 model changes
+        # new format data file
+        elif "Propagator" in val:  # New format
             match = re.search(r'Propagator:\ (.*)$', val)
             ans['propagator'] = match.group(1).strip()
+        elif "generated from specified elements" in val:  # In both old and new
+            match = re.search(r'^generated from specified elements.*:\ (.*)$', val)
+            if match:  # But old has propagator on this line; process and warn
+                warnings.warn(
+                    "Outdated AE9AP9 data file encountered, please update the model, support will be removed post0.2.2",
+                    DeprecationWarning)
+                ans['propagator'] = match.group(1).strip()
     return ans
 
 
