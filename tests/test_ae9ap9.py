@@ -8,7 +8,9 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 import glob
 import gzip
-import os, sys
+import os
+import sys
+
 try:
     import StringIO
 except ImportError:
@@ -33,7 +35,9 @@ class ae9ap9Tests(unittest.TestCase):
         self.datafiles = glob.glob(os.path.join(
             spacepy_testing.datadir,
             'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt'))
-        
+        self.orbitfile = os.path.join(
+            spacepy_testing.datadir, 'ephem_AE9test.dat')
+
     def tearDown(self):
         super(ae9ap9Tests, self).tearDown()
 
@@ -99,6 +103,20 @@ class ae9ap9Tests(unittest.TestCase):
         self.assertEqual((21, ), ans['Energy'].shape)
         self.assertEqual((21, 2), ans['Fluence'].shape)
         self.assertEqual((2, ), ans['Percentile'].shape)
-        
+
+    def test_parseInfo_orbit(self):
+        """Read in an orbit data file"""
+        with open(self.orbitfile, 'r') as fp:
+            dat = fp.readlines()
+        dat = [v.strip() for v in dat]
+        out = ae9ap9._parseInfo(dat)
+        ans = {'propagator': 'Kepler with J2',
+               'time_format': 'MJD',
+               'coord_system': ('GEI', 'Re'),
+               'delimiter': ','}
+        for k in out:
+            assert out[k] == ans[k]
+
+
 if __name__ == "__main__":
     unittest.main()
