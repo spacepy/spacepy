@@ -1843,8 +1843,8 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=' ', NRV=False):
         datatype of variable to create metadata for.
     ndims : int
         number of dimensions, default=1
-    vartype : str
-        The type of the variable (float|char|int|epoch|tt2000), default=float
+    vartype : {'float', 'char', 'int', 'epoch', 'tt2000'}
+        The type of the variable, default=float
     units : str
         The units of the variable, default=' '
     NRV : bool
