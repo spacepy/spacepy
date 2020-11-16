@@ -539,7 +539,7 @@ def _parseInfo(header):
             match = re.search(r'^generated from specified elements.*:\ (.*)$', val)
             if match:  # But old has propagator on this line; process and warn
                 warnings.warn(
-                    "Outdated AE9AP9 data file encountered, please update the model, support will be removed post0.2.2",
+                    "Support for orbit files from AE9AP9 model <1.5 is deprecated; please update to model 1.5 or later.",
                     DeprecationWarning)
                 ans['propagator'] = match.group(1).strip()
     return ans
