@@ -115,7 +115,7 @@ class ae9ap9Tests(unittest.TestCase):
                'coord_system': ('GEI', 'Re'),
                'delimiter': ','}
         for k in out:
-            assert out[k] == ans[k]
+            self.assertEqual(out[k], ans[k])
 
 
 if __name__ == "__main__":
