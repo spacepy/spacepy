@@ -30,8 +30,15 @@ assumes strings in CDFs are UTF-8. It will no longer raise errors on
 reading non-ASCII data from a CDF. See :ref:`pycdf_string_handling` in
 the pycdf documentation for details.
 
+:mod:`~spacepy.ae9ap9` now supports the new ephem model file format
+(>=1.50.001) via :func:`~spacepy.ae9ap9.parseHeader`. The old file
+format is deprecated.
+
 Deprecations and removals
 *************************
+As mentioned above, :mod:`~spacepy.ae9ap9` support for the old ephem
+model file format is deprecated.
+
 Colourmaps have been removed from :class:`~spacepy.plot`. The same
 colourmaps (``plasma`` and ``viridis``) have been available in
 matplotlib since at least 1.5. (Deprecated in 0.2.3.)

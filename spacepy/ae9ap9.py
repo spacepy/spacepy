@@ -572,6 +572,12 @@ def parseHeader(fname):
     given an AE9AP9 output test file parse the header and return the information in a
     dictionary
 
+        .. versionchanged:: 0.3.0
+
+        The underlying AE9AP9 model changed the ephem file format and this
+        reader was updated to match. Reading the old format will issue
+        DeprecationWarning.
+
     Parameters
     ==========
     fname : str
