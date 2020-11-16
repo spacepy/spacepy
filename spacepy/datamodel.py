@@ -1835,8 +1835,8 @@ def createISTPattrs(datatype, ndims=1, vartype=None, units=' ', NRV=False):
 
     Parameters
     ----------
-    datatype : str
-        datatype of variable to reate metadata for (data|support_data|metadata)
+    datatype : {'data', 'support_data', 'metadata'}
+        datatype of variable to create metadata for.
     ndims : int
         number of dimensions, default=1
     vartype : str
