@@ -2140,7 +2140,8 @@ class ImfInput(PbData):
         # Set default time range if not given.
         if not timerange:
             timerange = [self['time'][0], self['time'][-1]]
-
+        tloc = (self['time']>=timerange[0])&(self['time']<=timerange[1])
+        
         # Process plotvars:
         if not plotvars:  # Not given?  Use default!
             plotvars = ['bx','by','bz',self._denvar,'v']
@@ -2166,8 +2167,8 @@ class ImfInput(PbData):
                     ax.plot(self['time'], self[x], lw=1.5,
                             alpha=.78, label=self[x].attrs['label'])
                     # Save data range:
-                    ylim = [min(ylim[0], self[x].min()),
-                            max(ylim[1], self[x].max())]
+                    ylim = [min(ylim[0], self[x][tloc].min()),
+                            max(ylim[1], self[x][tloc].max())]
                     # Push units to list of units:
                     if self[x].attrs['units'] not in units:
                         units.append(self[x].attrs['units'])
@@ -2180,11 +2181,17 @@ class ImfInput(PbData):
                 ax.plot(self['time'], self[p], lw=1.5)
                 label=f"{self[p].attrs['label']} ({self[p].attrs['units']})"
                 ax.set_ylabel(label)
-                ylim = [self[p].min(), self[p].max()]
+                ylim = [self[p][tloc].min(), self[p][tloc].max()]
 
             # Grid and x-ticks/labels:
             ax.grid(True)
             applySmartTimeTicks(ax, timerange, dolabel=ax==axes[-1])
+
+            # Set ylimit w/ buffer:
+            ybuff = 0.03*(ylim[1]-ylim[0])
+            ylim[0] -= ybuff
+            ylim[1] += ybuff
+            ax.set_ylim(ylim)
 
             # Set horizontal line if data crosses zero marker:
             if ylim[0]<0 and ylim[1]>0:
