@@ -63,6 +63,7 @@ time
  - now and today return UTC times, not local.
  - matplotlib no longer required, including RDT and randomDate.
  - Add support for conversion to/from astropy.time.Time
+ - Warn about out-of-date leapseconds files (configurable option).
 toolbox
  - New function get_url to retrieve data from a URL
  - Change update to retrieve OMNI2 data from SPDF not ViRBO

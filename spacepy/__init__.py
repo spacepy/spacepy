@@ -317,6 +317,7 @@ def _read_config(rcfile):
                 'psddata_url': 'http://spacepy.lanl.gov/repository/psd_dat.sqlite',
                 'support_notice': str(True),
                 'apply_plot_styles': str(True),
+                'enable_old_data_warning': str(True),
                 }
     #Functions to cast a config value; if not specified, value is a string
     str2bool = lambda x: x.lower() in ('1', 'yes', 'true', 'on')
@@ -325,6 +326,7 @@ def _read_config(rcfile):
               'ncpus': int,
               'support_notice': str2bool,
               'apply_plot_styles': str2bool,
+              'enable_old_data_warning': str2bool,
               }
     #SafeConfigParser deprecated in 3.2. And this is hideous, but...
     if hasattr(ConfigParser, 'SafeConfigParser'):
