@@ -17,6 +17,9 @@ Windows, see :doc:`install_windows`.)
 For installing the NASA CDF library to support :mod:`~spacepy.pycdf`,
 see the platform-specific instructions linked below.
 
+The first time a user imports SpacePy, it automatically creates the
+:doc:`configuration directory <configuration>`.
+
 If you need further assistance, you can `open an issue
 <https://github.com/spacepy/spacepy/issues>`_.
 
