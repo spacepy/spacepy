@@ -9,6 +9,12 @@ change between SpacePy releases, so we do not recommend changing the
 configuration file without substantial reason.
 
 ``spacepy.rc`` lives in the per-user SpacePy directory, called ``.spacepy``.
+You can find this directory by::
+
+   >>> import spacepy
+   >>> spacepy.DOT_FLN
+   '/home/username/.spacepy'
+
 On Unix-like operating systems, it is in a user's home directory; on Windows, 
 in the user's Documents and Settings folder. If it doesn't exist, this directory
 (and ``spacepy.rc``) is automatically created when SpacePy is imported.
@@ -23,8 +29,7 @@ contains a single section, ``[spacepy]``.
 The spacepy directory
 =====================
 
-When first imported, spacepy will create a ``.spacepy`` directory in
-your ``$HOME`` folder. If you prefer a different location for this
+If you prefer a different location for the SpacePy
 directory, set the environment variable ``$SPACEPY`` to a location of
 your choice. For example, with a ``csh``, or ``tcsh`` you would::
 
@@ -37,6 +42,9 @@ for the ``bash`` shell you would:
 If you change the default location, make sure you add the environment
 variable ``$SPACEPY`` to your ``.cshrc, .tcshrc,`` or ``.bashrc``
 script.
+
+This directory contains the configuration file and also SpacePy-related
+data, which can be updated with :func:`~spacepy.toolbox.update`.
 
 Available configuration options
 ===============================
