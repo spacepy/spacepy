@@ -59,6 +59,8 @@ range set the keyword argument interp to False.
 """
 import bisect, re, os
 import sys
+import warnings
+
 import numpy as np
 from spacepy.datamodel import SpaceData, dmarray, dmcopy, unflatten, readJSONheadedASCII, dmfilled, fromHDF5
 from spacepy.toolbox import tOverlapHalf, indsFromXrange
@@ -409,5 +411,7 @@ if not os.path.isfile(testfln): # Hope it's relative to current!
 presentQD = h5py.is_hdf5(omnifln)
 presentO2 = h5py.is_hdf5(omni2fln)
 if not (presentQD and presentO2):
-    print("Qin-Denton/OMNI2 data not found in current format. This module has limited functionality.")
-    print("Run spacepy.toolbox.update(QDomni=True) to download data")
+    warnings.warn(
+        "Qin-Denton/OMNI2 data not found in current format."
+        " This module has limited functionality."
+        " Run spacepy.toolbox.update(QDomni=True) to download data.")
