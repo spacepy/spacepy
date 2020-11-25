@@ -140,6 +140,8 @@ Contact: smorley@lanl.gov,
 
 Copyright 2010 Los Alamos National Security, LLC.
 """
+from __future__ import absolute_import
+
 import bisect
 try:
     from collections.abc import Callable, MutableSequence
@@ -153,6 +155,7 @@ except ImportError:
     pass  # just use system zip. In python3 itertools.izip is just python zip
 import os.path
 import re
+import time
 import warnings
 
 try:
@@ -2256,6 +2259,7 @@ def _read_leaps():
     global secs, year, mon, day, TAIleaps
     # load current file
     fname = os.path.join(spacepy.DOT_FLN, 'data', 'tai-utc.dat')
+    mtime = datetime.datetime(*time.gmtime(os.path.getmtime(fname))[:6])
     with open(fname) as fh:
         text = fh.readlines()
     # Some files have a "last checked" line at the top
@@ -2276,6 +2280,17 @@ def _read_leaps():
         year[i] = int(line.split()[0])
         mon[i] = int(np.where(months == line.split()[1])[0][0] + 1)
         day[i] = int(line.split()[2])
+
+    # Check for out of date. The leap second bulletin comes every
+    # six months, and that contains information through the following
+    # leap second (end of June/Dec)
+    lastknown = max(
+        mtime, datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1])))
+    goodthrough = datetime.datetime(lastknown.year + int(lastknown.month > 6),
+                                    1 if lastknown.month > 6 else 7, 1)
+    if datetime.datetime.utcnow() > goodthrough:
+        warnings.warn('Leapseconds may be out of date.'
+                      ' Use spacepy.toolbox.update(leapsecs=True)')
 
     TAIleaps = np.zeros(len(secs))
     TAItup = [''] * len(secs)
