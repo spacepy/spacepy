@@ -384,7 +384,7 @@ if not os.path.exists(DOT_FLN):
     dataout = os.path.join(DOT_FLN, 'data')
     os.mkdir(DOT_FLN)
     os.mkdir(dataout)
-    shutil.copy(os.path.join(datadir, 'tai-utc.dat'), dataout)
+    shutil.copy2(os.path.join(datadir, 'tai-utc.dat'), dataout)
     print('Data and configuration installed to ' + DOT_FLN)
     _read_config(rcfile)
     print('Downloading OMNI database and leap seconds table is recommended:'
