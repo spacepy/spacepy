@@ -378,8 +378,6 @@ else:
         DOT_FLN = os.path.expanduser(os.path.join('~', '.spacepy'))
 rcfile = os.path.join(DOT_FLN, 'spacepy.rc')
 if not os.path.exists(DOT_FLN):
-    print("""SpacePy: Space Science Tools for Python
-  See __licence__ and __citation__ for licensing, and help() for HTML help.""")
     import shutil, sys
     datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            'data')
@@ -387,11 +385,7 @@ if not os.path.exists(DOT_FLN):
     os.mkdir(DOT_FLN)
     os.mkdir(dataout)
     shutil.copy2(os.path.join(datadir, 'tai-utc.dat'), dataout)
-    print('Data and configuration installed to ' + DOT_FLN)
     _read_config(rcfile)
-    print('Downloading OMNI database and leap seconds table is recommended:'
-          '\n\timport spacepy.toolbox; spacepy.toolbox.update()')
-    print('Thanks for using SpacePy!')
 else:
     _read_config(rcfile)
 
