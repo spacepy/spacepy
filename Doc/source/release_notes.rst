@@ -99,7 +99,8 @@ Other changes
 Data sources for leapsecond files and :mod:`~spacepy.omni` Qin-Denton
 files have been updated to provide current sources. If present,
 entries in the :doc:`configuration file <configuration>` will still be
-used instead.
+used instead. A (configurable) warning is issued for out-of-date leapsecond
+files.
 
 The representation of leap second intervals in time systems which
 cannot directly represent them has been changed. Formerly times such

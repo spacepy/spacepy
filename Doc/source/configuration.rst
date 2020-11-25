@@ -56,6 +56,13 @@ enable_deprecation_warning
   Python behavior. (See :py:mod:`warnings` module for details on custom warning
   filters.)
 
+enable_old_data_warning
+  SpacePy maintains certain databases from external sources, notably the
+  leapsecond database used by :py:mod:`~spacepy.time`. By default
+  :py:exc:`~exceptions.UserWarning` is issued if the leap second database
+  is out of date. Set this option to False to suppress this warning (and
+  warnings about out-of-date data which may be added in the future.)
+
 keepalive
   True to attempt to use HTTP keepalives when downloading data in
   :py:func:`~spacepy.toolbox.update` (default). This is faster when

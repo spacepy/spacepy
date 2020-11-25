@@ -2284,13 +2284,15 @@ def _read_leaps():
     # Check for out of date. The leap second bulletin comes every
     # six months, and that contains information through the following
     # leap second (end of June/Dec)
-    lastknown = max(
-        mtime, datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1])))
-    goodthrough = datetime.datetime(lastknown.year + int(lastknown.month > 6),
-                                    1 if lastknown.month > 6 else 7, 1)
-    if datetime.datetime.utcnow() > goodthrough:
-        warnings.warn('Leapseconds may be out of date.'
-                      ' Use spacepy.toolbox.update(leapsecs=True)')
+    if spacepy.config['enable_old_data_warning']:
+        lastknown = max(
+            mtime, datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1])))
+        goodthrough = datetime.datetime(
+            lastknown.year + int(lastknown.month > 6),
+            1 if lastknown.month > 6 else 7, 1)
+        if datetime.datetime.utcnow() > goodthrough:
+            warnings.warn('Leapseconds may be out of date.'
+                          ' Use spacepy.toolbox.update(leapsecs=True)')
 
     TAIleaps = np.zeros(len(secs))
     TAItup = [''] * len(secs)
