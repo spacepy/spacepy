@@ -911,7 +911,6 @@ class JSONTests(unittest.TestCase):
                                           [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5),
                                            datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
 
-
     def test_readJSONheadedASCII(self):
         """readJSONheadedASCII should read the test file"""
         dat = dm.readJSONheadedASCII(self.filename, convert=True)
