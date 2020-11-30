@@ -1336,12 +1336,23 @@ def readJSONMetadata(fname, **kwargs):
     if hasattr(fname, 'read'):
         lines = fname.read()
     else:
-        with open(fname, 'r') as f:
-            lines = f.read()
+        # also possible in an exploration sense utilizing UnicodeDecodeError
+        if fname.endswith('.gz'):
+            import gzip
+            gzh = gzip.GzipFile(filename=fname)
+            lines = gzh.read()
+            gzh.close()
+
+        else:
+            with open(fname, 'r') as f:
+                lines = f.read()
 
     # isolate header
     p_srch = re.compile(r"^#(.*)$", re.M)
-    hreg = re.findall(p_srch, lines)
+    try: # from gzip binary, gzip
+        hreg = re.findall(p_srch, lines.decode('latin-1'))
+    except AttributeError:
+        hreg = re.findall(p_srch, lines)
     header = "".join(hreg)
 
     # isolate JSON field
