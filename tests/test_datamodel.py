@@ -810,6 +810,24 @@ class JSONTests(unittest.TestCase):
             spacepy_testing.datadir, '20130218_rbspa_MagEphem_bad.txt')
         self.testdir = tempfile.mkdtemp()
         self.testfile = os.path.join(self.testdir, 'test.cdf')
+        self.keys = ['PerigeePosGeod', 'S_sc_to_pfn', 'S_pfs_to_Bmin', 'Pfs_gsm',
+                     'Pfn_ED_MLAT', 'ED_R', 'Dst', 'DateTime', 'DOY', 'ED_MLON',
+                     'IntModel', 'ApogeePosGeod', 'CD_MLON', 'S_sc_to_pfs',
+                     'GpsTime', 'JulianDate', 'M_ref', 'ED_MLT', 'Pfs_ED_MLAT',
+                     'Bfs_geo', 'Bm', 'Pfn_CD_MLON', 'CD_MLAT', 'Pfs_geo',
+                     'Rsm', 'Pmin_gsm', 'Rgei', 'Rgsm', 'Pfs_CD_MLAT', 'S_total',
+                     'Rgeod_Height', 'Date', 'Alpha', 'M_igrf', 'Pfs_CD_MLT',
+                     'ED_MLAT', 'CD_R', 'PerigeeTimes', 'UTC', 'Pfn_ED_MLT',
+                     'BoverBeq', 'Lsimple', 'Lstar', 'I', 'DipoleTiltAngle',
+                     'K', 'Bmin_gsm', 'S_Bmin_to_sc', 'Bfs_gsm', 'L',
+                     'ApogeeTimes', 'ExtModel', 'Kp', 'Pfs_geod_LatLon',
+                     'MlatFromBoverBeq', 'Pfn_gsm', 'Loss_Cone_Alpha_n', 'Bfn_geo',
+                     'Pfn_CD_MLAT', 'Rgeod_LatLon', 'Pfs_ED_MLT', 'Pfs_CD_MLON',
+                     'Bsc_gsm', 'Pfn_geod_Height', 'Lm_eq', 'Rgse',
+                     'Pfn_geod_LatLon', 'CD_MLT', 'FieldLineType', 'Pfn_CD_MLT',
+                     'Pfs_geod_Height', 'Rgeo', 'InvLat_eq', 'M_used',
+                     'Loss_Cone_Alpha_s', 'Bfn_gsm', 'Pfn_ED_MLON', 'Pfn_geo',
+                     'InvLat', 'Pfs_ED_MLON']
 
     def tearDown(self):
         super(JSONTests, self).tearDown()
@@ -820,32 +838,14 @@ class JSONTests(unittest.TestCase):
     def test_readJSONMetadata(self):
         """readJSONMetadata should read in the file"""
         dat = dm.readJSONMetadata(self.filename)
-        keys = ['PerigeePosGeod', 'S_sc_to_pfn', 'S_pfs_to_Bmin', 'Pfs_gsm',
-                'Pfn_ED_MLAT', 'ED_R', 'Dst', 'DateTime', 'DOY', 'ED_MLON',
-                'IntModel', 'ApogeePosGeod', 'CD_MLON', 'S_sc_to_pfs',
-                'GpsTime', 'JulianDate', 'M_ref', 'ED_MLT', 'Pfs_ED_MLAT',
-                'Bfs_geo', 'Bm', 'Pfn_CD_MLON', 'CD_MLAT', 'Pfs_geo',
-                'Rsm', 'Pmin_gsm', 'Rgei', 'Rgsm', 'Pfs_CD_MLAT', 'S_total',
-                'Rgeod_Height', 'Date', 'Alpha', 'M_igrf', 'Pfs_CD_MLT',
-                'ED_MLAT', 'CD_R', 'PerigeeTimes', 'UTC', 'Pfn_ED_MLT',
-                'BoverBeq', 'Lsimple', 'Lstar', 'I', 'DipoleTiltAngle',
-                'K', 'Bmin_gsm', 'S_Bmin_to_sc', 'Bfs_gsm', 'L',
-                'ApogeeTimes', 'ExtModel', 'Kp', 'Pfs_geod_LatLon',
-                'MlatFromBoverBeq', 'Pfn_gsm', 'Loss_Cone_Alpha_n', 'Bfn_geo',
-                'Pfn_CD_MLAT', 'Rgeod_LatLon', 'Pfs_ED_MLT', 'Pfs_CD_MLON',
-                'Bsc_gsm', 'Pfn_geod_Height', 'Lm_eq', 'Rgse',
-                'Pfn_geod_LatLon', 'CD_MLT', 'FieldLineType', 'Pfn_CD_MLT',
-                'Pfs_geod_Height', 'Rgeo', 'InvLat_eq', 'M_used',
-                'Loss_Cone_Alpha_s', 'Bfn_gsm', 'Pfn_ED_MLON', 'Pfn_geo',
-                'InvLat', 'Pfs_ED_MLON']
         if str is bytes:
-            keys = [unicode(k) for k in keys]
+            keys = [unicode(k) for k in self.keys]
         # make sure data has all the keys and no more or less
         for k in dat:
-            self.assertTrue(k in keys)
-            ind = keys.index(k)
-            del keys[ind]
-        self.assertEqual(len(keys), 0)
+            self.assertTrue(k in self.keys)
+            ind = self.keys.index(k)
+            del self.keys[ind]
+        self.assertEqual(len(self.keys), 0)
 
     def test_readJSONMetadata_badfile(self):
         """readJSONMetadata fails on bad files"""
@@ -854,32 +854,14 @@ class JSONTests(unittest.TestCase):
     def test_readJSONheadedASCII(self):
         """readJSONheadedASCII should read the test file"""
         dat = dm.readJSONheadedASCII(self.filename)
-        keys = ['PerigeePosGeod', 'S_sc_to_pfn', 'S_pfs_to_Bmin', 'Pfs_gsm',
-                'Pfn_ED_MLAT', 'ED_R', 'Dst', 'DateTime', 'DOY', 'ED_MLON',
-                'IntModel', 'ApogeePosGeod', 'CD_MLON', 'S_sc_to_pfs',
-                'GpsTime', 'JulianDate', 'M_ref', 'ED_MLT', 'Pfs_ED_MLAT',
-                'Bfs_geo', 'Bm', 'Pfn_CD_MLON', 'CD_MLAT', 'Pfs_geo',
-                'Rsm', 'Pmin_gsm', 'Rgei', 'Rgsm', 'Pfs_CD_MLAT', 'S_total',
-                'Rgeod_Height', 'Date', 'Alpha', 'M_igrf', 'Pfs_CD_MLT',
-                'ED_MLAT', 'CD_R', 'PerigeeTimes', 'UTC', 'Pfn_ED_MLT',
-                'BoverBeq', 'Lsimple', 'Lstar', 'I', 'DipoleTiltAngle',
-                'K', 'Bmin_gsm', 'S_Bmin_to_sc', 'Bfs_gsm', 'L',
-                'ApogeeTimes', 'ExtModel', 'Kp', 'Pfs_geod_LatLon',
-                'MlatFromBoverBeq', 'Pfn_gsm', 'Loss_Cone_Alpha_n', 'Bfn_geo',
-                'Pfn_CD_MLAT', 'Rgeod_LatLon', 'Pfs_ED_MLT', 'Pfs_CD_MLON',
-                'Bsc_gsm', 'Pfn_geod_Height', 'Lm_eq', 'Rgse',
-                'Pfn_geod_LatLon', 'CD_MLT', 'FieldLineType', 'Pfn_CD_MLT',
-                'Pfs_geod_Height', 'Rgeo', 'InvLat_eq', 'M_used',
-                'Loss_Cone_Alpha_s', 'Bfn_gsm', 'Pfn_ED_MLON', 'Pfn_geo',
-                'InvLat', 'Pfs_ED_MLON']
         if str is bytes:
-            keys = [unicode(k) for k in keys]
+            keys = [unicode(k) for k in self.keys]
         # make sure data has all the keys and no more or less
         for k in dat:
-            self.assertTrue(k in keys)
-            ind = keys.index(k)
-            del keys[ind]
-        self.assertEqual(len(keys), 0)
+            self.assertTrue(k in self.keys)
+            ind = self.keys.index(k)
+            del self.keys[ind]
+        self.assertEqual(len(self.keys), 0)
         dat = dm.readJSONheadedASCII(self.filename, convert=True)
         np.testing.assert_array_equal(dat['DateTime'], [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
 
