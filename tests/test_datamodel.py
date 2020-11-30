@@ -870,7 +870,6 @@ class JSONTests(unittest.TestCase):
                 # try triggered before the temp directory could be created, out of disk space?
                 self.fail("Test failed in awkward fashion")
 
-    @unittest.expectedFailure
     def test_readJSONMetadata_gzip(self):
         """readJSONMetadata should read in a gzip file"""
         # make a gzip file and then remove it when done
