@@ -830,6 +830,8 @@ class JSONTests(unittest.TestCase):
                      'Pfs_geod_Height', 'Rgeo', 'InvLat_eq', 'M_used',
                      'Loss_Cone_Alpha_s', 'Bfn_gsm', 'Pfn_ED_MLON', 'Pfn_geo',
                      'InvLat', 'Pfs_ED_MLON']
+        if str is bytes:  # py3 check (3: False, 2: True)
+            self.keys = [unicode(k) for k in self.keys]
 
     def tearDown(self):
         super(JSONTests, self).tearDown()
@@ -893,23 +895,26 @@ class JSONTests(unittest.TestCase):
         """readJSONMetadata fails on bad files"""
         self.assertRaises(ValueError, dm.readJSONMetadata, self.filename_bad)
 
-    def readJSONheadedASCII_checking(self, dat):
+    def readJSONheadedASCII_checking(self, dat, double=False):
         """testing of readJSONheadedASCII to be be reused"""
-        if str is bytes:  # py3 check (3: False, 2: True)
-            keys = [unicode(k) for k in self.keys]
         # make sure data has all the keys and no more or less
         for k in dat:
             self.assertTrue(k in self.keys)
             ind = self.keys.index(k)
             del self.keys[ind]
         self.assertEqual(len(self.keys), 0)
-        dat = dm.readJSONheadedASCII(self.filename, convert=True)
-        np.testing.assert_array_equal(dat['DateTime'],
-                                      [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
+        if not double:
+            np.testing.assert_array_equal(dat['DateTime'],
+                                          [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
+        else:
+            np.testing.assert_array_equal(dat['DateTime'],
+                                          [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5),
+                                           datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
+
 
     def test_readJSONheadedASCII(self):
         """readJSONheadedASCII should read the test file"""
-        dat = dm.readJSONheadedASCII(self.filename)
+        dat = dm.readJSONheadedASCII(self.filename, convert=True)
         self.readJSONheadedASCII_checking(dat)
 
     def test_readJSONheadedASCII_gzip(self):
@@ -921,8 +926,26 @@ class JSONTests(unittest.TestCase):
                 gzipname = os.path.join(tmpdirname, os.path.basename(self.filename) + '.gz')
                 with gzip.open(gzipname, 'wb') as f_out:
                     f_out.writelines(f_in)  # py2
-            dat = dm.readJSONheadedASCII(gzipname)
+            dat = dm.readJSONheadedASCII(gzipname, convert=True)
             self.readJSONheadedASCII_checking(dat)
+        finally:
+            try:
+                shutil.rmtree(tmpdirname)
+            except FileNotFoundError:
+                # try triggered before the temp directory could be created, out of disk space?
+                self.fail("Test failed in awkward fashion")
+
+    def test_readJSONheadedASCII_gzip_mixed(self):
+        """readJSONheadedASCII should read a list of files, some gzip form not"""
+        # make a gzip file and then remove it when done
+        try:
+            tmpdirname = tempfile.mkdtemp(suffix='_zip', prefix='readJSONheadedASCII_')
+            with open(self.filename, 'rb') as f_in:
+                gzipname = os.path.join(tmpdirname, os.path.basename(self.filename) + '.gz')
+                with gzip.open(gzipname, 'wb') as f_out:
+                    f_out.writelines(f_in)  # py2
+            dat = dm.readJSONheadedASCII([gzipname, self.filename], convert=True)
+            self.readJSONheadedASCII_checking(dat, double=True)
         finally:
             try:
                 shutil.rmtree(tmpdirname)
