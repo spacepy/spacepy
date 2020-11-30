@@ -39,6 +39,7 @@ coordinates
 datamodel
  - Fix in SpaceData.toXXX() methods which would fail in some cases, now work as intended
  - Documentation update and default units change in createISTPattrs
+ - readJSONheadedASCII, readJSONMetadata can now accept gzip'ed files
 datamanager
  - New function "rebin", rebin an axis of an array by contents of another
 irbempy
