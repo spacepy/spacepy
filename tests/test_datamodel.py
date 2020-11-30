@@ -838,6 +838,7 @@ class JSONTests(unittest.TestCase):
         os.rmdir(self.testdir)
 
     def readJSONMetadata_keycheck(self, dat):
+        """testing of readJSONMetadata to be be reused"""
         if str is bytes:
             keys = [unicode(k) for k in self.keys]
         # make sure data has all the keys and no more or less
@@ -892,10 +893,9 @@ class JSONTests(unittest.TestCase):
         """readJSONMetadata fails on bad files"""
         self.assertRaises(ValueError, dm.readJSONMetadata, self.filename_bad)
 
-    def test_readJSONheadedASCII(self):
-        """readJSONheadedASCII should read the test file"""
-        dat = dm.readJSONheadedASCII(self.filename)
-        if str is bytes:
+    def readJSONheadedASCII_checking(self, dat):
+        """testing of readJSONheadedASCII to be be reused"""
+        if str is bytes:  # py3 check (3: False, 2: True)
             keys = [unicode(k) for k in self.keys]
         # make sure data has all the keys and no more or less
         for k in dat:
@@ -904,7 +904,31 @@ class JSONTests(unittest.TestCase):
             del self.keys[ind]
         self.assertEqual(len(self.keys), 0)
         dat = dm.readJSONheadedASCII(self.filename, convert=True)
-        np.testing.assert_array_equal(dat['DateTime'], [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
+        np.testing.assert_array_equal(dat['DateTime'],
+                                      [datetime.datetime(2013, 2, 18, 0, 0), datetime.datetime(2013, 2, 18, 0, 5)])
+
+    def test_readJSONheadedASCII(self):
+        """readJSONheadedASCII should read the test file"""
+        dat = dm.readJSONheadedASCII(self.filename)
+        self.readJSONheadedASCII_checking(dat)
+
+    def test_readJSONheadedASCII_gzip(self):
+        """readJSONheadedASCII should read the test file"""
+        # make a gzip file and then remove it when done
+        try:
+            tmpdirname = tempfile.mkdtemp(suffix='_zip', prefix='readJSONheadedASCII_')
+            with open(self.filename, 'rb') as f_in:
+                gzipname = os.path.join(tmpdirname, os.path.basename(self.filename) + '.gz')
+                with gzip.open(gzipname, 'wb') as f_out:
+                    f_out.writelines(f_in)  # py2
+            dat = dm.readJSONheadedASCII(gzipname)
+            self.readJSONheadedASCII_checking(dat)
+        finally:
+            try:
+                shutil.rmtree(tmpdirname)
+            except FileNotFoundError:
+                # try triggered before the temp directory could be created, out of disk space?
+                self.fail("Test failed in awkward fashion")
 
     def test_idl2html(self):
         """_idl2html should have known output"""

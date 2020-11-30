@@ -1349,7 +1349,7 @@ def readJSONMetadata(fname, **kwargs):
 
     # isolate header
     p_srch = re.compile(r"^#(.*)$", re.M)
-    try: # from gzip binary, gzip
+    try:  # from gzip binary, gzip
         hreg = re.findall(p_srch, lines.decode('latin-1'))
     except AttributeError:
         hreg = re.findall(p_srch, lines)
@@ -1428,6 +1428,7 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
             del mdata[val] #remove undesired keys
     mdata_copy = dmcopy(mdata)
     def innerloop(fh, mdata, mdata_copy):
+        # also possible in an exploration sense utilizing UnicodeDecodeError
         line = fh.readline()
         if not str is bytes:
             line = line.decode('latin1')
@@ -1478,8 +1479,14 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
         return mdata
     for fn in fname:
         if not filelike:
-            with open(fn, 'rb') as fh: # fixes windows bug with seek()
-                mdata = innerloop(fh, mdata, mdata_copy)
+            if fn.endswith('.gz'):
+                import gzip
+                gzh = gzip.GzipFile(filename=fn)
+                mdata = innerloop(gzh, mdata, mdata_copy)
+                gzh.close()
+            else:
+                with open(fn, 'rb') as fh: # fixes windows bug with seek()
+                    mdata = innerloop(fh, mdata, mdata_copy)
         else:
             mdata = innerloop(fh, mdata, mdata_copy)
     #now add the attributres to the variables
