@@ -1798,7 +1798,7 @@ class Ticktock(MutableSequence):
 
         See Also
         ========
-        datetime.date.today()
+        datetime.date.today
 
         """
         warnings.warn('today() returns UTC day as of 0.2.2.',
