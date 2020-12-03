@@ -53,7 +53,7 @@ Copyright 2011-2016 Los Alamos National Security, LLC.
    set_target
    shared_ylabel
    solarRotationPlot
-   spectrogram
+   Spectrogram
    style
    timestamp
    add_arrows
@@ -77,6 +77,7 @@ try:
 except ImportError:
     from collections import Mapping
 import os
+import warnings
 import numpy as np
 import matplotlib as mpl
 from matplotlib.patches import Wedge
@@ -405,3 +406,16 @@ def levelPlot(data, var=None, time=None, levels=(3, 5), target=None, colors=None
         ax.legend(loc='upper left', ncol=ncols)
 
     return ax
+
+
+class spectrogram(Spectrogram):
+    """Deprecated variant of :class:`~spacepy.plot.Spectrogram`
+
+    .. deprecated: 0.2.2
+       Use :class:`~spacepy.plot.Spectrogram` instead.
+    """
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn('Use spacepy.plot.Spectrogram (capitalized).',
+                      DeprecationWarning)
+        super(spectrogram, self).__init__(*args, **kwargs)

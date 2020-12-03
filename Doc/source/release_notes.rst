@@ -63,6 +63,10 @@ Quaternion math functions have been moved to
 :func:`~spacepy.toolbox.feq` is deprecated; numpy 1.7 added the equivalent
 :func:`~numpy.isclose`.
 
+The :class:`~spacepy.plot.spectrogram` class is now capitalized
+(:class:`~spacepy.plot.Spectrogram`); the old, lower-case variant is
+kept for compatibility but will be removed.
+
 Dependency requirements
 ***********************
 Not all dependencies are required for all functionality; see
