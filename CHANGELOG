@@ -19,6 +19,8 @@ irbempy
 plot
  - utils.EventClicker support for non-line plots (e.g. pcolor)
  - New method for adding arrows to lines in utils
+ - spectrogram.spectrogram class renamed to Spectrogram to avoid collision
+   with its module.
 pycdf
  - VarCopy objects now carry information to help reproduce original
  - Newly-public method nelems to get number of elements in zVar

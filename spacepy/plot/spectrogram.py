@@ -26,11 +26,19 @@ Los Alamos National Laboratory
 
 Copyright 2011 Los Alamos National Security, LLC.
 
+.. rubric:: Class
 .. autosummary::
     :template: clean_class.rst
-    :toctree:
+    :toctree: autosummary
 
-    spectrogram
+    Spectrogram
+
+.. rubric:: Function
+.. autosummary::
+    :template: clean_function.rst
+    :toctree: autosummary
+
+    simpleSpectrogram
 """
 
 import bisect
@@ -52,9 +60,9 @@ from  . import utils as spu
 
 __contact__ = 'Brian Larsen, balarsen@lanl.gov'
 
-__all__ = ['spectrogram', 'simpleSpectrogram']
+__all__ = ['Spectrogram', 'simpleSpectrogram']
 
-class spectrogram(dm.SpaceData):
+class Spectrogram(dm.SpaceData):
     """
     This class rebins data to produce a 2D data map that can be plotted as a spectrogram
 
@@ -108,12 +116,12 @@ class spectrogram(dm.SpaceData):
     >>> sd['radius'] = dm.dmarray(2*np.sin(np.linspace(0,30,500))+4, attrs={'units':'km'})
     >>> sd['day_of_year'] = dm.dmarray(np.linspace(74,77,500))
     >>> sd['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd['radius'])
-    >>> spec = splot.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+    >>> spec = splot.Spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
     >>> ax = spec.plot()
 
     .. autosummary::
 
-        ~spectrogram.plot
+        ~Spectrogram.plot
 
     .. automethod:: plot
 
@@ -128,7 +136,7 @@ class spectrogram(dm.SpaceData):
     def __init__(self, data, **kwargs):
         """
         """
-        super(spectrogram, self).__init__()
+        super(Spectrogram, self).__init__()
         ## setup a default dictionary to step through to set values from kwargs
         self.specSettings = dm.SpaceData()
         self.specSettings['variables'] = ['Epoch', 'Energy', 'Flux']
@@ -233,7 +241,7 @@ class spectrogram(dm.SpaceData):
     def _computeSpec(self):
         """
         Method operates on the input data to bin up the spectrogram and adds it
-        to the spectrogram class data
+        to the Spectrogram class data
         """
         # this is here for in the future when we take a list a SpaceData objects
         sz = (self.specSettings['bins'][1].shape[0]-1, self.specSettings['bins'][0].shape[0]-1)
@@ -330,7 +338,7 @@ class spectrogram(dm.SpaceData):
 
     def add_data(self, data):
         """
-        Add another SpaceData with same keys, etc. to spectrogram instance
+        Add another SpaceData with same keys, etc. to Spectrogram instance
 
         Examples
         --------
@@ -344,13 +352,13 @@ class spectrogram(dm.SpaceData):
         >>> sd2 = dm.dmcopy(sd)
         >>> sd2['radius'] = dm.dmarray(2*np.cos(np.linspace(0,30,500))+4, attrs={'units':'km'})
         >>> sd2['1D_dataset'] = dm.dmarray(np.random.normal(10,3,500)*sd2['radius'])
-        >>> spec = splot.spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
+        >>> spec = splot.Spectrogram(sd, variables=['day_of_year', 'radius', '1D_dataset'])
         >>> spec.add_data(sd2)
         >>> ax = spec.plot()
         """
         if not self.specSettings['extended_out']:
-            raise(NotImplementedError('Cannot add data to a spectrogram unless "extended_out" was True on initial creation'))
-        b = spectrogram(data, **self.specSettings)
+            raise(NotImplementedError('Cannot add data to a Spectrogram unless "extended_out" was True on initial creation'))
+        b = Spectrogram(data, **self.specSettings)
         # if they are both masked keep them that way
         mask = self['spectrogram']['count'].mask & b['spectrogram']['count'].mask
         # turn off the mask by setting sum and count to zero where it masked for self an be sure b mask doesn't it self
@@ -388,7 +396,7 @@ class spectrogram(dm.SpaceData):
         axis : matplotlib axis object
             axis to plot the spectrogram to
         zlim : np.array
-            array like 2 element that overrides (interior) the spectrogram zlim (default spectrogram.specSettings['zlim'])
+            array like 2 element that overrides (interior) the spectrogram zlim (default Spectrogram.specSettings['zlim'])
         figsize : tuple (optional)
             tuple of size to pass to figure(), None does the default
         """
@@ -546,7 +554,7 @@ class spectrogram(dm.SpaceData):
             axis.get_figure().autofmt_ydate()
 
     def __str__(self):
-        return "<spectrogram object>"
+        return "<Spectrogram object>"
 
     __repr__ = __str__
 
@@ -662,13 +670,3 @@ def simpleSpectrogram(*args, **kwargs):
         if cbtitle is not None:
             cb_.set_label(cbtitle)
     return ax
-
-    
-
-    
-    
-
-
-
-
-    
