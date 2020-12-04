@@ -63,6 +63,10 @@ Quaternion math functions have been moved to
 :func:`~spacepy.toolbox.feq` is deprecated; numpy 1.7 added the equivalent
 :func:`~numpy.isclose`.
 
+:func:`~spacepy.ae9ap9.parseHeader` changes to the ephem model file format read, will throw :class:`DeprecationWarning`
+for old data files
+
+
 Dependency requirements
 ***********************
 Not all dependencies are required for all functionality; see

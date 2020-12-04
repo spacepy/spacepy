@@ -8,7 +8,9 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 import glob
 import gzip
-import os, sys
+import os
+import sys
+
 try:
     import StringIO
 except ImportError:
@@ -31,7 +33,8 @@ class ae9ap9Tests(unittest.TestCase):
         super(ae9ap9Tests, self).setUp()
         pth = os.path.dirname(os.path.abspath(__file__))
         self.datafiles = glob.glob(os.path.join(pth, 'data', 'Run1.AE9.CLoutput_mc_fluence_agg_pctile_??.txt'))
-        
+        self.datafiles.append(os.path.join(pth, 'data', 'ephem_AE9test.dat'))
+
     def tearDown(self):
         super(ae9ap9Tests, self).tearDown()
 
@@ -91,12 +94,26 @@ class ae9ap9Tests(unittest.TestCase):
         realstdout = sys.stdout
         output = StringIO.StringIO()
         sys.stdout = output
-        ans = ae9ap9.combinePercentiles(self.datafiles)
+        ans = ae9ap9.combinePercentiles(self.datafiles[:2])
         output.close()
         sys.stdout = realstdout
         self.assertEqual((21, ), ans['Energy'].shape)
         self.assertEqual((21, 2), ans['Fluence'].shape)
         self.assertEqual((2, ), ans['Percentile'].shape)
-        
+
+    def test_parseInfo_orbit(self):
+        """Read in an orbit data file"""
+        with open(self.datafiles[2], 'r') as fp:
+            dat = fp.readlines()
+        dat = [v.strip() for v in dat]
+        out = ae9ap9._parseInfo(dat)
+        ans = {'propagator': 'Kepler with J2',
+               'time_format': 'MJD',
+               'coord_system': ('GEI', 'Re'),
+               'delimiter': ','}
+        for k in out:
+            self.assertEqual(out[k], ans[k])
+
+
 if __name__ == "__main__":
     unittest.main()

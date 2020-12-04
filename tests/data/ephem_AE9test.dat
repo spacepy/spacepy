@@ -1,0 +1,13 @@
+# File: data/ephem_AE9test.dat
+#
+# Ephemeris generated from specified elements
+# Propagator: Kepler with J2
+#
+# Time format:              Modified Julian Date
+# Coordinate system:        GEI (Geocentric Equatorial Inertial) Cartesian in Earth radii
+# Data Delimiter:           comma
+#
+# datetime(mjd),posx(Re),posy(Re),posz(Re)
+57023.00000000,-1.16483360,6.51461378,0.00000000
+57023.00347222,-1.30705947,6.48757470,0.00000000
+57023.00694444,-1.44865984,6.45743096,0.00000000
