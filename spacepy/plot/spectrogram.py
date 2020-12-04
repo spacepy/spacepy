@@ -17,7 +17,7 @@ from the time domain to the frequency domain, and the subsequent plotting
 of some quantity (e.g., power spectral density) as a function of time and
 frequency. To approximate this functionality for, e.g., time-series magnetic field
 data you would first calculate a the power spectral density and then use
-:class:`spectrogram` to rebin the data for visualization.
+:class:`Spectrogram` to rebin the data for visualization.
 
 Authors: Brian Larsen and Steve Morley
 Institution: Los Alamos National Laboratory
