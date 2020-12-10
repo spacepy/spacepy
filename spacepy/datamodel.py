@@ -162,6 +162,7 @@ The file looks like:
 from __future__ import division
 import copy
 import datetime
+import gzip
 import itertools
 import json
 from functools import partial
@@ -1323,6 +1324,9 @@ def readJSONMetadata(fname, **kwargs):
     fname : str
         Filename to read metadata from
 
+        .. versionchanged:: 0.2.2
+                Filename can now be a .gz to indicate the file is gzipped
+
     Other Parameters
     ----------------
     verbose : bool (optional)
@@ -1338,11 +1342,8 @@ def readJSONMetadata(fname, **kwargs):
     else:
         # also possible in an exploration sense utilizing UnicodeDecodeError
         if fname.endswith('.gz'):
-            import gzip
-            gzh = gzip.GzipFile(filename=fname)
-            lines = gzh.read()
-            gzh.close()
-
+            with gzip.GzipFile(filename=fname) as gzh:
+                lines = gzh.read()
         else:
             with open(fname, 'r') as f:
                 lines = f.read()
@@ -1393,6 +1394,9 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
     ----------
     fname : str or list
         Filename(s) to read data from
+
+            .. versionchanged:: 0.2.2
+                Filename can now be a .gz to indicate the file is gzipped
 
     Other Parameters
     ----------------
@@ -1480,10 +1484,8 @@ def readJSONheadedASCII(fname, mdata=None, comment='#', convert=False, restrict=
     for fn in fname:
         if not filelike:
             if fn.endswith('.gz'):
-                import gzip
-                gzh = gzip.GzipFile(filename=fn)
-                mdata = innerloop(gzh, mdata, mdata_copy)
-                gzh.close()
+                with gzip.GzipFile(filename=fn) as gzh:
+                    mdata = innerloop(gzh, mdata, mdata_copy)
             else:
                 with open(fn, 'rb') as fh: # fixes windows bug with seek()
                     mdata = innerloop(fh, mdata, mdata_copy)
