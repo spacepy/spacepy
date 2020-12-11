@@ -841,8 +841,6 @@ class JSONTests(unittest.TestCase):
 
     def readJSONMetadata_keycheck(self, dat):
         """testing of readJSONMetadata to be be reused"""
-        if str is bytes:
-            keys = [unicode(k) for k in self.keys]
         # make sure data has all the keys and no more or less
         for k in dat:
             self.assertTrue(k in self.keys)
@@ -859,37 +857,30 @@ class JSONTests(unittest.TestCase):
     def test_readJSONMetadata_zip(self):
         """readJSONMetadata should read in a zip file"""
         # make a zip file and then remove it when done
+        tmpdirname = tempfile.mkdtemp(suffix='_zip', prefix='readJSONMetadata_')
         try:
-            tmpdirname = tempfile.mkdtemp(suffix='_zip', prefix='readJSONMetadata_')
             archive_name = os.path.join(tmpdirname, os.path.basename(self.filename))
             shutil.copy(self.filename, tmpdirname)
             shutil.make_archive(base_name=archive_name, format='zip', base_dir=tmpdirname)
             dat = dm.readJSONMetadata(archive_name + '.zip')
             self.readJSONMetadata_keycheck(dat)
         finally:
-            try:
-                shutil.rmtree(tmpdirname)
-            except FileNotFoundError:
-                # try triggered before the temp directory could be created, out of disk space?
-                self.fail("Test failed in awkward fashion")
+            shutil.rmtree(tmpdirname)
 
     def test_readJSONMetadata_gzip(self):
         """readJSONMetadata should read in a gzip file"""
         # make a gzip file and then remove it when done
+        tmpdirname = tempfile.mkdtemp(suffix='_gzip', prefix='readJSONMetadata_')
         try:
-            tmpdirname = tempfile.mkdtemp(suffix='_zip', prefix='readJSONMetadata_')
+            gzipname = os.path.join(tmpdirname, os.path.basename(self.filename) + '.gz')
             with open(self.filename, 'rb') as f_in:
-                gzipname = os.path.join(tmpdirname, os.path.basename(self.filename) + '.gz')
                 with gzip.open(gzipname, 'wb') as f_out:
-                    f_out.writelines(f_in)  # py2
+                    tmp = f_in.readlines()
+                    f_out.writelines(tmp)
             dat = dm.readJSONMetadata(gzipname)
             self.readJSONMetadata_keycheck(dat)
         finally:
-            try:
-                shutil.rmtree(tmpdirname)
-            except FileNotFoundError:
-                # try triggered before the temp directory could be created, out of disk space?
-                self.fail("Test failed in awkward fashion")
+            shutil.rmtree(tmpdirname)
 
     def test_readJSONMetadata_badfile(self):
         """readJSONMetadata fails on bad files"""
