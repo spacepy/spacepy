@@ -4,8 +4,11 @@ Windows Installation
 
 The SpacePy team currently provides binary "wheels" via PyPI so it can
 be installed on Windows without a compiler. Binaries are provided for
-Python 2.7, 3.6, and 3.7 in 64-bit and 32-bit variants for each. ``pip
-install spacepy`` should find and install these binaries.
+Python 2.7 and 3.6 through 3.9 in 64-bit and 32-bit variants for each.
+``pip install spacepy`` should find and install these binaries.
+
+32-bit Windows binaries will be discontinued with SpacePy 0.3, so
+installing 32-bit SpacePy will require :ref:`compiling <windows_compiling>`.
 
 Our recommended (but not required) Python distribution is `Anaconda
 <https://docs.anaconda.com/anaconda/>`_ running 64-bit
@@ -44,6 +47,8 @@ Some standalone binary installers (no ``pip`` support) are also
 available on the `ffnet site
 <http://ffnet.sourceforge.net/download.html>`_. These do not require a
 compiler but support only a limited set of Python versions.
+
+.. _windows_compiling:
 
 Compiling
 =========

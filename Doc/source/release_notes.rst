@@ -17,7 +17,9 @@ contains more detail.
 ------------------
 
 The 0.2 series will be the last with full support for :doc:`Python 2
-<py2k_eol>`; 0.2.3 will likely be the last release.
+<py2k_eol>`; 0.2.3 will likely be the last release. Binary installers
+for :doc:`32-bit Windows <install_windows>` will also end after the 0.2
+series.
 
 New features
 ************
