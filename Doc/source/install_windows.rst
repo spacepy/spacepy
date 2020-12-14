@@ -29,7 +29,7 @@ Fortran and ffnet
 `ffnet <http://ffnet.sourceforge.net/download.html>`_ is required for
 :mod:`~spacepy.LANLstar`. It can be installed either before or after
 SpacePy. Binary wheels are not provided, so a Fortran compiler is
-required
+required.
 
 With Anaconda, the compiler and ffnet can be installed with::
 
@@ -62,7 +62,7 @@ by ``m2w64-gcc-fortran``.
 
 If you have difficulties, it may be useful to reference the `build
 scripts
-<https://github.com/spacepy/spacepy/tree/master/developer/scripts>`
+<https://github.com/spacepy/spacepy/tree/master/developer/scripts>`_
 the SpacePy developers use.
 
 .. _windows_CDF:
