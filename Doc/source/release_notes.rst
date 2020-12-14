@@ -16,7 +16,8 @@ contains more detail.
 0.2.2 (2020-xx-xx)
 ------------------
 
-This will be the last release with full support for :doc:`Python 2 <py2k_eol>`.
+The 0.2 series will be the last with full support for :doc:`Python 2
+<py2k_eol>`; 0.2.3 will likely be the last release.
 
 New features
 ************
