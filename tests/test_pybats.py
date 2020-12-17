@@ -8,6 +8,7 @@ Copyright 2015 University of Michigan
 
 import matplotlib
 matplotlib.use('Agg')
+from matplotlib import dates
 
 import datetime as dt
 import glob
@@ -603,6 +604,14 @@ class RampyTests(unittest.TestCase):
         data.create_omniflux(check=False)
         testarr = np.array(data['omniH'][0].data)
         numpy.testing.assert_array_almost_equal(regrH, testarr)
+
+    def test_RamSat_orbit_formatter(self):
+        '''Test label variables are as expected'''
+        data = ram.RamSat(self.testfile)
+        tst_time = matplotlib.dates.date2num(dt.datetime(2012, 10, 29, 0, 2))
+        fmtstr = data._orbit_formatter(tst_time, None)
+        expected = '00:02 UT\n04:35 MLT\n-13.4$^{\circ}$ MLat\nR=5.05 $R_{E}$'
+        self.assertEqual(expected, fmtstr)
 
 if __name__=='__main__':
     unittest.main()

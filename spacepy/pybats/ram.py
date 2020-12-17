@@ -9,6 +9,7 @@ import numpy as np
 from scipy.io import netcdf
 
 from spacepy.datamodel import dmarray, SpaceData
+import spacepy.toolbox as tb
 import spacepy.plot.apionly
 from spacepy.plot import set_target, smartTimeTicks, applySmartTimeTicks
 from spacepy.pybats import PbData
@@ -661,11 +662,10 @@ class RamSat(SpaceData):
         y = self['SM_xyz'][index,1]
         z = self['SM_xyz'][index,2]
         R = np.sqrt(y**2 + x**2 + z**2)
-        Mlat  = 180.0*np.arcsin(z/R)/np.pi
-        theta = 180.0*np.sign(y)*np.arccos(x/np.sqrt(y**2+x**2))/np.pi
-        theta = np.mod(theta, 360.0)
-        locHr = np.floor(theta/15.0)
-        locMn = int(60.0 * (theta/15.0 - locHr))
+        Mlat  = np.rad2deg(np.arcsin(z/R))
+        fltMLT = tb.rad2mlt(np.arctan2(y, x)) % 24
+        locHr = np.floor(fltMLT).astype(int)
+        locMn = np.round((fltMLT - locHr)*60).astype(int)
 
         # Build format string.
         fmtstring = \
