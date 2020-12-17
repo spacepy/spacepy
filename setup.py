@@ -152,7 +152,8 @@ def default_f2py():
     """
     interpdir, interp = os.path.split(sys.executable)
     if interp[0:6] == 'python':
-        suffixes = [interp[6:], '-' + interp[6:]]
+        vers = "{0.major:01d}.{0.minor:01d}".format(sys.version_info)
+        suffixes = [interp[6:], '-' + interp[6:], vers, '-' + vers]
         if '.' in interp[6:]: #try slicing off suffix-of-suffix (e.g., exe)
             suffix = interp[6:-(interp[::-1].index('.') + 1)]
             suffixes.extend([suffix, '-' + suffix])
@@ -162,8 +163,8 @@ def default_f2py():
                 for d in os.environ['PATH'].split(os.pathsep):
                     if os.path.isfile(os.path.join(d, c)):
                         return c
-                    if os.path.isfile(os.path.join(interpdir, c)):
-                        return os.path.join(interpdir, c) #need full path
+                if os.path.isfile(os.path.join(interpdir, c)):
+                    return os.path.join(interpdir, c) #need full path
     if sys.platform == 'win32':
         return 'f2py.py'
     else:
