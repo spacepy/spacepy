@@ -152,11 +152,12 @@ def default_f2py():
     """
     interpdir, interp = os.path.split(sys.executable)
     if interp[0:6] == 'python':
-        vers = "{0.major:01d}.{0.minor:01d}".format(sys.version_info)
-        suffixes = [interp[6:], '-' + interp[6:], vers, '-' + vers]
+        suffixes = [interp[6:], '-' + interp[6:]]
         if '.' in interp[6:]: #try slicing off suffix-of-suffix (e.g., exe)
             suffix = interp[6:-(interp[::-1].index('.') + 1)]
             suffixes.extend([suffix, '-' + suffix])
+        vers = "{0.major:01d}.{0.minor:01d}".format(sys.version_info)
+        suffixes.extend([vers, '-'+vers])
         candidates = ['f2py' + s for s in suffixes]
         for candidate in candidates:
             for c in [candidate, candidate + '.py']:

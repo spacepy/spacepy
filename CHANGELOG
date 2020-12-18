@@ -1,12 +1,9 @@
-Changes in Version 0.2.3 (2020-xx-xx)
-=====================================
-- Fixed setup.py not finding f2py on some OSX installs
-
 Changes in Version 0.2.2 (2020-xx-xx)
 =====================================
 - Document end of support for Python 2
 - Quaternion math functions moved to coordinates module
 - Remove message on first import.
+- Fixed setup.py not finding f2py on some OSX installs
 coordinates
  - Include upstream fix for SPH->RLL coordinate transform
 datamodel
