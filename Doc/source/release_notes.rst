@@ -13,7 +13,7 @@ contains more detail.
 0.2 Series
 ==========
 
-0.2.2 (2020-xx-xx)
+0.2.2 (2020-12-29)
 ------------------
 
 The 0.2 series will be the last with full support for :doc:`Python 2

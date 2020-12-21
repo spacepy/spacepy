@@ -1,4 +1,4 @@
-Changes in Version 0.2.2 (2020-xx-xx)
+Changes in Version 0.2.2 (2020-12-29)
 =====================================
 - Document end of support for Python 2
 - Quaternion math functions moved to coordinates module

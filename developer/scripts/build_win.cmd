@@ -3,7 +3,11 @@
 @ECHO OFF
 SETLOCAL EnableDelayedExpansion
 
-FOR %%B in (32 64) DO (FOR %%P in (27 36 37) DO CALL :build %%B %%P)
+:: Get any system Python out of the way
+set PYTHONPATH=
+set PATH=
+
+FOR %%B in (32 64) DO (FOR %%P in (27 36 37 38 39) DO CALL :build %%B %%P)
 
 GOTO :EOF
 
