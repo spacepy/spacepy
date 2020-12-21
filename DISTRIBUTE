@@ -1,4 +1,4 @@
-Building spacepy for distribution (20191002)
+Building spacepy for distribution (20201226)
 ============================================
 Since this has to happen on multiple platforms, a single script doesn't work.
 
@@ -6,25 +6,70 @@ Prepare the release commit
 --------------------------
 
 Note: it's probably best to get the latest up on test PyPI first to
-make sure it works!
+make sure it works! Also best to go through this process for a release
+candidate to test PyPI https://www.python.org/dev/peps/pep-0440/#pre-releases.
 
-Edit the CHANGELOG to include the release date.
+Edit the CHANGELOG and release notes to include the release date.
 
+The following changes should result in either the final release version,
+or the appropriate release candidate (i.e. add "rc1" if building rc).
 Edit Doc/source/conf.py. Around line 128, remove (DRAFT) from the title.
     Change version around line 72 (two places!)
 Change version in setup.py, in setup_kwargs near bottom.
-Change __version__ around line 136 of __init__.py.
+Change __version__ around line 209 of __init__.py.
 
 Commit these changes. Submit PR. (Tagging is done on github now.)
+
+Miniconda setup
+---------------
+Download/install the latest miniconda into some appropriate place
+on the machine where you'll do the source build, e.g.:
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash ./Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda
+
+(See also developer/scripts/test_all.sh for some details).
+
+If CDF library isn't installed, download/install CDF, so that the pycdf
+library will import and the docs build:
+wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; pushd cdf38_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME/cdf install; popd
+source ${HOME}/cdf/bin/definitions.B
+
+Make a clean isolated environment just for SpacePy build:
+~/miniconda/bin/conda create -y -n spacepy_build python=3
+source ~/miniconda/bin/activate spacepy_build
+conda install numpy
+conda install scipy matplotlib networkx h5py astropy sphinx numpydoc
+pip install ffnet
+
+(Use "conda deactivate" when done, but not done yet...))
 
 Prepare the source build
 ------------------------
 
 On a Unix machine:
+Activate the conda environment, if necessary.
+
 check out the latest from git (hopefully the release commit!)
 
-Build and install so you're getting the latest inputs for the autodocs. Then:
-    python setup.py sdist --formats=gztar,zip
+Clear out old builds:
+    rm -rf build/ Doc/build/ Doc/source/autosummary/
+
+Be sure that LD_LIBRARY_PATH and similar aren't set so that the conda
+environment isn't pulling in anything from the host environment.
+
+Build and install so getting the latest inputs for the autodocs:
+    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py build
+    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py install
+(No --user because it's being installed in the conda env.)
+
+Build the docs:
+    cd Doc
+    PYTHONNOUSERSITE=1 PYTHONPATH= make html
+    PYTHONNOUSERSITE=1 PYTHONPATH= make latexpdf
+Newer sphinx uses latexmk (apt-get install latexmk) not pdflatex...
+
+Then:
+    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py sdist --formats=gztar,zip
 Tarball and zip are in the dist directory.
 
 Note: building the source distribution will build the docs, but no longer needs
@@ -43,13 +88,77 @@ Download latest (currently 3.7) 64-bit Miniconda from
 https://docs.conda.io/en/latest/miniconda.html and put it in the
 system-default download directory (%USERPROFILE%\Downloads)
 
-Run win_build_system_setup.cmd, build_win.cmd, and
-win_build_system_teardown.cmd. Windows binaries and wheels will be in
-the "dist" directory of the SpacePy distribution.
+Set up conda environments for the build by running
+"win_build_system_setup.cmd build". This will make conda environments
+and install the earliest supported version of numpy in each. Then run
+build_win.cmd to make Windows binaries and wheels, and
+win_build_system_teardown.cmd to remove those environment (and
+miniconda). Windows binaries and wheels will be in the "dist"
+directory of the SpacePy distribution.
 
-The wheels are compliant with metadata 2.0 but are labeled as 2.1, which makes for problems unless everybody has the very newest version of everything. For now, we should edit them.
+There may be a console error "This application has requested the
+Runtime to terminate it in an unusual way" with a popup "python.exe
+has stopped working." This doesn't seem to be a problem, just click
+"Close the program" in the popup.
+
+Making Linux and Mac binaries
+-----------------------------
+Skip this for now, will need investigation into Mac portability across
+OS versions, as well as Linux cross-distro compatibility. See
+https://www.python.org/dev/peps/pep-0513/.
+
+Assumes miniconda is in ~/miniconda.
+
+Unzip the source distribution made above into another directory. Copy
+over the developer/scripts/unix_wheels.sh script into that directory
+(top-level is fine, next to setup.py) Run:
+    bash ./unix_wheels.sh
+
+The binary wheels will be in the "dist" directory.
+
+Fixing wheel metadata version
+-----------------------------
+
+The wheels are compliant with metadata 2.0 but are labeled as 2.1, which makes for problems unless everybody has the very newest version of everything. For now, we should edit them. This should be done on ALL the wheels (so ideally collect together the wheels built on different systems into a single dist directory).
 
 for i in *.whl; do unzip $i "spacepy-*.dist-info/METADATA"; sed -i -e "s/Metadata-Version: 2.1/Metadata-Version: 2.0/" spacepy-*.dist-info/METADATA; zip $i "spacepy-*.dist-info/METADATA"; rm -rf spacepy-*.dist-info; done
+
+General notes on binaries:
+
+It looks like the wheels are compatible across Windows versions,
+i.e. a wheel built on Windows 10 seems to install okay in Windows 7,
+which is great.
+
+Using the oldest supported numpy for the build is used for ABI
+compatibility for the f2py-built extensions (irbem mostly). See
+https://github.com/numpy/numpy/issues/5888. It looks like there isn't
+a way to specify the ABI version in f2py so the only answer is to
+compile with an old-enough numpy. In particular there's a note "SciPy
+pins its build system to the oldest numpy it wishes to support".
+
+ABI is in numpy/core/setup_common.py and there's no history, so going
+through the git tags for each numpy release gives:
+
+1.4 through current master : 0x01000009
+
+It looks like ABI version is a complete break: if it changes, old
+modules will no longer work. However, the API version is backward
+compatible: any version with a particular API version can be used on
+anything with the same API version (even older numpy versions) or
+newer, provided ABI version is the same. There's a list in
+numpyconfig.h but it disagrees with the history given in
+setup_common.py; they are probably used for slightly different
+purposes. History going through commits of setup_common.py is:
+
+1.10.0, 1.11.0, 1.12.0: 0x0000000a
+1.13.0: 0x0000000b
+1.14.0, 1.15.0: 0x0000000c
+1.16.0, 1.17.0, 1.18.0, 1.19.0: 0x0000000d
+1.20.0: 0x0000000e
+
+The list in the latest setup_common.py is incomplete (it seems to
+imply that gaps are filled with the same value.)
+
 
 Docs
 ----
@@ -77,23 +186,32 @@ index-servers =
 username: <username>
 
 [testpypi]
-repository: https://test.pypi.org/legacy
+repository: https://test.pypi.org/legacy/
 username: <username>
 
 (end of .pypirc)
 
-Put all the builds (wheels, source dists, not the docs) into one directory and:
+Put all the builds (wheels, source dists, not the docs) into one
+directory. Use the spacepy_build conda environment and install twine:
 
-  twine upload -r testpypi spacepy-*.zip spacepy-*.whl
+  source ~/miniconda/bin/activate spacepy_build
+  conda install twine
 
-PyPI does not support Windows standalone installers.
+and then do the upload:
+
+  PYTHONNOUSERSITE=1 PYTHONPATH= twine upload -r testpypi spacepy-*.zip spacepy-*.whl
+
+PyPI does not support Windows standalone installers, and can only take
+one source distribution (zip or tar.gz, so we use zip.)
 
 Test installing with:
 
   pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ spacepy
 
 Do this on Windows without compilers installed, and in a clean Linux
-Anaconda env.
+Anaconda env. You can use the --pre flag to install the RC version; in
+that case, probably want to use --no-deps so don't get RC version of
+dependencies! (Or can specify the rc version, e.g. spacepy==0.2.2rc1).
 
 Release to PyPI
 ---------------
@@ -113,8 +231,8 @@ Release to github
 
 https://help.github.com/en/articles/creating-releases
 
-On the code tab, click on "n releases" (between branches and
-contributors). Click "Draft a new release." Make the tag
+On the code tab, click on "n releases" (on the right column, below
+"about"). Click "Draft a new release." Make the tag
 "release-x.y.z" and hopefully the target will be master if it's up to
 date. The most consistent with what we've done so far (which is not
 necessarily the best) is to use just "x.y.z" as the title with nothing
