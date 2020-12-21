@@ -2486,13 +2486,13 @@ def _days1958totai(days, leaps='rubber', midnight=False):
     # Seconds from the start of naive day.
     ssd = (days - dayint) * daylen # Mod does wrong thing if negative
     # Index TAIUTC for every input. Start of day w/LS is still previous value.
-    taiutcidx = ldidx - np.require(leap_sec_day, dtype=np.intc)
+    taiutcidx = ldidx - np.require(leap_sec_day, dtype=np.intp)
     # Keep small number adds together: ssd and leapseconds.
     taiout = daystart + (ssd + off + taiutc[taiutcidx])
     if leaps == 'drop':
         # Any times after leap-second skip need an extra second.
         taiutcidx += np.require(leap_sec_day & (taiout >= leap_tai[ldidx]),
-                                dtype=np.integer)
+                                dtype=np.intp)
         # Recalculate to keep small-number addition together
         taiout = daystart + (ssd + off + taiutc[taiutcidx])
     return taiout
