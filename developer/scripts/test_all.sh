@@ -47,11 +47,13 @@ do
     pip install ${NUMPY}
     # But don't let it grab a different version of numpy later
     pip install ${NUMPY} ${PIPLIST}
-    python setup.py install
+    rm -rf build
+    # Make sure not building against user's version of libraries
+    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py install
     pushd tests
     echo Python ${PYVER}
     echo ${NUMPY} ${PIPLIST}
-    python test_all.py
+    PYTHONNOUSERSITE=1 PYTHONPATH= python test_all.py
     popd
     conda deactivate
     ~/miniconda/bin/conda env remove --name ${ENVNAME}
