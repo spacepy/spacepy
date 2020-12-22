@@ -113,6 +113,8 @@ convenience functions for customizing plots.
 __contact__ = 'Dan Welling, dwelling@umich.edu'
 
 # Global imports (used ubiquitously throughout this module.
+import os.path
+
 from spacepy.datamodel import dmarray, SpaceData
 import spacepy.plot.apionly
 import spacepy.plot as spu
@@ -165,7 +167,7 @@ def parse_filename_time(filename):
     from datetime import timedelta
     import re
 
-    filename = filename.split('/')[-1]
+    filename = os.path.basename(filename)
     
     # Look for date/time:
     if '_e' in filename:

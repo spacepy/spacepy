@@ -51,6 +51,7 @@ pybats
  - ram.PressureFile fixed for Python 3.x failures
  - Corrected MLT labels in ram.RamSat plotting
  - rim.Iono objects now load poorly-formatted files; rim.fix_format deprecated
+ - Fix reading of files with absolute paths on Windows.
 time
  - Fix handling of leapseconds before 1961.
  - For types that cannot represent leapseconds (e.g. UTC datetime), time
