@@ -18,16 +18,21 @@ source ${HOME}/cdf/bin/definitions.B
 # For the most part, these versions are: what's the earliest we support,
 # coupled with what's the earliest and latest version of each dep
 # which works with that Python.
-TESTS=("2.7|numpy>=1.10.0,<1.11.0|scipy>=0.11.0,<0.12.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.0,<1.1 h5py>=2.6,<2.7 ffnet>=0.7.0,<0.8 astropy>=1.0,<1.1"
+TESTS=(
+       "2.7|numpy>=1.10.0,<1.11.0|scipy>=0.11.0,<0.12.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.0,<1.1 h5py>=2.6,<2.7 ffnet>=0.7.0,<0.8 astropy>=1.0,<1.1"
        "2.7|numpy>=1.16.0,<1.17.0|scipy matplotlib networkx h5py ffnet astropy"
-       "3.5|numpy>=1.10.0,<1.11.0|scipy>=0.17.0,<0.18.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=1.0,<1.1"
+       "3.5|numpy>=1.10.0,<1.11.0|scipy>=0.17.0,<0.18.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=1.0,<1.1"
        "3.5|numpy>=1.18.0,<1.19.0|scipy matplotlib networkx h5py ffnet astropy"
-       "3.6|numpy>=1.12.0,<1.13.0|scipy>=0.19.0,<0.20.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=1.0,<1.1"
-       "3.6|numpy>=1.18.0|scipy matplotlib networkx h5py ffnet astropy"
-       "3.7|numpy>=1.15.1,<1.16.0|scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=2.0,<2.1"
-       "3.7|numpy>=1.18.0|scipy matplotlib networkx h5py ffnet astropy"
-       "3.8|numpy>=1.17.0,<1.18.0|scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0<0.9 astropy>=2.0,<2.1"
-       "3.8|numpy>=1.18.0|scipy matplotlib networkx h5py ffnet astropy"
+       "3.6|numpy>=1.12.0,<1.13.0|scipy>=0.19.0,<0.20.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=1.0,<1.1"
+       "3.6|numpy>=1.19.0|scipy matplotlib networkx h5py ffnet astropy"
+       "3.7|numpy>=1.15.1,<1.16.0|scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=2.0,<2.1"
+       "3.7|numpy>=1.19.0|scipy matplotlib networkx h5py ffnet astropy"
+       "3.8|numpy>=1.17.0,<1.18.0|scipy>=1.0.0,<1.1.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=2.0,<2.1"
+       "3.8|numpy>=1.19.0|scipy matplotlib networkx h5py ffnet astropy"
+# numpy 1.17 works on 3.9, but doesn't build ffnet, whereas 1.18 does.
+# So assuming this is an f2py problem, go for 1.18 minimum.
+       "3.9|numpy>=1.18.0,<1.19.0|scipy>=1.5.0,<1.6.0 matplotlib>=1.5.0,<1.6.0 networkx>=1.3,<1.4 h5py>=2.6,<2.7 ffnet>=0.8.0,<0.9 astropy>=2.0,<2.1"
+       "3.9|numpy>=1.19.0|scipy matplotlib networkx h5py ffnet astropy"
       )
 for thisTest in "${TESTS[@]}"
 do
