@@ -8,11 +8,13 @@ The simplest way from zero to a working SpacePy setup is:
      environment. Python 3 is strongly recommended (64-bit is recommended).
   2. ``pip install --upgrade spacepy``
 
+This will install a binary build of SpacePy (if available, otherwise
+it will attempt to compile) and most dependencies.
+
 If you are familiar with installing Python packages, have particular
 preferences for managing an installation, or if the above doesn't
 work, refer to platform-specific instructions and the details
-below. (In particular, if you will use :mod:`~spacepy.LANLstar` on
-Windows, see :doc:`install_windows`.)
+below. (In particular, if you will use :mod:`~spacepy.LANLstar`).
 
 For installing the NASA CDF library to support :mod:`~spacepy.pycdf`,
 see the platform-specific instructions linked below.
