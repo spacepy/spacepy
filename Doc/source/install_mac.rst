@@ -29,13 +29,17 @@ can also be installed from conda::
    conda install numpy scipy matplotlib networkx h5py
    pip install ffnet
 
-
 Once this is set up, ``pip install spacepy`` should just work. If
 you're installing as a single user (not in a virtual environment) then
 add the ``--user`` flag.
 
 You will also need the :ref:`NASA CDF library <linux_CDF>` to use
 :mod:`~spacepy.pycdf`.
+
+A binary installer of SpacePy does not automatically install
+``ffnet``, which is required for :mod:`~spacepy.LANLstar`. Use::
+
+  pip install ffnet
 
 To install the latest code from the repository, rather than
 the latest stable release, use::

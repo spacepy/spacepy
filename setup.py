@@ -994,9 +994,7 @@ if use_setuptools:
         'scipy>=0.11',
         'matplotlib>=1.5',
         'h5py>=2.6',
-        #Do not install ffnet on Windows since there's no binary
-        #(people must hand-install)
-        'ffnet>=0.7;platform_system!="Windows"',
+        'ffnet>=0.7',
         #ffnet needs networkx but not marked as requires, so to get it via pip
         #we need to ask for it ourselves
         'networkx>=1.0',
@@ -1007,6 +1005,11 @@ if use_setuptools:
     ]
 if 'bdist_wheel' in sys.argv:
     setup_kwargs['cmdclass']['bdist_wheel'] = bdist_wheel
+    # Don't require ffnet on binary wheels, since ffnet has no binary
+    # (users must hand-install). If user installs from source with pip,
+    # this will get ffnet the first time, but it will cache the wheel
+    # it builds from source, so subsequent installs won't reinstall ffnet!
+    setup_kwargs['install_requires'].remove('ffnet>=0.7')
 
 # run setup from distutil
 with warnings.catch_warnings(record=True) as warnlist:
