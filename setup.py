@@ -952,8 +952,8 @@ setup_kwargs = {
     'url': 'https://github.com/spacepy/spacepy',
 #download_url will override pypi, so leave it out http://stackoverflow.com/questions/17627343/why-is-my-package-not-pulling-download-url
 #    'download_url': 'https://sourceforge.net/projects/spacepy/files/spacepy/',
-    'requires': ['numpy (>=1.6)', 'scipy (>=0.10)', 'matplotlib (>=1.5)', 'python_dateutil',
-                 'h5py', 'python (>=2.7, !=3.0)'],
+    'requires': ['numpy (>=1.10, !=1.15.0)', 'scipy (>=0.11)', 'matplotlib (>=1.5)', 'python_dateutil',
+                 'h5py (>=2.6)', 'ffnet (>=0.7)', 'python (>=2.7, !=3.0)'],
     'packages': packages,
     'package_data': {'spacepy': package_data},
     'classifiers': [
