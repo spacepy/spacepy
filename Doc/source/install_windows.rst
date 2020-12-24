@@ -107,6 +107,11 @@ This is a simple self-extracting installer that can be installed either before o
 Standalone installers
 =====================
 
+Standalone installers for Windows will be discontinued starting with
+SpacePy 0.3. Binary wheels will still be provided and can be
+downloaded from the same location and installed with ``pip``,
+e.g. ``pip install spacepy-0.2.2-cp38-cp38-win_amd64.whl``.
+
 Self-extracting and self-installing executables are also available for
 download direct from `our github
 <https://github.com/spacepy/spacepy/releases>`__. Be sure to choose the
