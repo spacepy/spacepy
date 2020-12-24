@@ -8,8 +8,9 @@ The simplest way from zero to a working SpacePy setup is:
      environment. Python 3 is strongly recommended (64-bit is recommended).
   2. ``pip install --upgrade spacepy``
 
-This will install a binary build of SpacePy (if available, otherwise
-it will attempt to compile) and most dependencies.
+This will install a binary build of SpacePy if available (currently
+only on Windows), otherwise it will attempt to compile. It will also
+install most dependencies.
 
 If you are familiar with installing Python packages, have particular
 preferences for managing an installation, or if the above doesn't
