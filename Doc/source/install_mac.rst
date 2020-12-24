@@ -36,8 +36,10 @@ add the ``--user`` flag.
 You will also need the :ref:`NASA CDF library <linux_CDF>` to use
 :mod:`~spacepy.pycdf`.
 
-A binary installer of SpacePy does not automatically install
-``ffnet``, which is required for :mod:`~spacepy.LANLstar`. Use::
+``ffnet`` is required for :mod:`~spacepy.LANLstar`. It is
+automatically installed when SpacePy is installed from source
+(currently the only supported means on Mac). It can also be explicitly
+installed via pip::
 
   pip install ffnet
 

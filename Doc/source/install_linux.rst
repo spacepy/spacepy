@@ -91,10 +91,12 @@ SpacePy uses these variables to find the library.
 ffnet
 =====
 
-
-ffnet is required for :mod:`~spacepy.LANLstar` but will not be
-automatically installed by binary installers of SpacePy. It can be
-installed from ``pip``; if the wrong Fortran compiler is found try::
+ffnet is required for :mod:`~spacepy.LANLstar`. Installing SpacePy
+from ``pip`` will automatically attempt to compile and install
+``ffnet`` on Linux (it is not automatically installed by binary
+installers, but SpacePy does not currently provide binaries for
+Linux.)  Otherwise ``ffnet`` can be installed from ``pip``. In either
+case, if the wrong Fortran compiler is found try::
 
   FC_VENDOR=gfortran pip install ffnet
 
