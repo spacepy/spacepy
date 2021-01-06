@@ -12,10 +12,12 @@ Copyright 2010 Los Alamos National Security, LLC.
 """
 from __future__ import division
 import datetime
+import warnings
+
 from functools import partial
 import numpy as np
-
 import scipy.integrate as integ
+
 from spacepy import help
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
@@ -120,8 +122,8 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     model_list = ['CA1992', 'M2002', 'RT1970']
 
     if model == 'CA1992':
-        if LT!='all':
-            print('No LT dependence currently supported for this model')
+        if LT != 'all':
+            warnings.warn(RuntimeWarning('No LT dependence currently supported for CA1992 model'))
     if model not in model_list:
         raise ValueError("Please specify a valid model:\n{0}".format(' or '.join(model_list)))
 
