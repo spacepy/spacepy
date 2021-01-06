@@ -2,7 +2,8 @@
 #!/usr/bin/env python2.6
 
 import unittest
-import datetime as dt
+import warnings
+
 import dateutil.parser as dup
 import numpy as np
 import spacepy.time as spt
@@ -36,7 +37,7 @@ class empFunctionTests(unittest.TestCase):
         real_ans = np.array([ 5.46199999,  5.27800001,  5.00200002,  5.00200002,  5.00200002,
                               5.00200002,  4.54200002,  4.54200002,  4.54200002,  4.54200002,
                               4.54200002])
-        ans = em.getPlasmaPause(self.ticks, 'CA1992', omnivals=self.omnivals)
+        ans = em.getPlasmaPause(self.ticks, 'CA1992', LT='all', omnivals=self.omnivals)
         np.testing.assert_almost_equal(real_ans, ans)
 
     def test_getPlasmaPause_regress3(self):
@@ -76,6 +77,16 @@ class empFunctionTests(unittest.TestCase):
         #check for fail on omnivals without correct inputs
         spam1 = lambda: em.getPlasmaPause(self.ticks, omnivals={'Kp': [2.7]*10})
         self.assertRaises(KeyError, spam1)
+
+    def test_getPlasmaPauseCA1992warn(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=RuntimeWarning)
+            em.getPlasmaPause(self.ticks, model='CA1992', LT=12)
+        self.assertEqual(1, len(w))
+        self.assertEqual(RuntimeWarning, w[0].category)
+        self.assertEqual(
+            'No LT dependence currently supported for CA1992 model',
+            str(w[0].message))
 
     def test_getLmax(self):
         """getLmax should give known results (regression)"""
