@@ -8,7 +8,7 @@ If we consider the International Celestial Reference Frame to be our
 starting point, then taking the origin as the center of the Earth
 instead of the solar barycenter gives us the International Terrestrial
 Reference Frame (ITRF). All coordinate systems described here are
-right-handed Cartesian systems.
+right-handed Cartesian systems, except geodetic.
 
 Systems and their relationships:
 - ECI2000: Earth-Centered Inertial, J2000 epoch
@@ -38,6 +38,13 @@ Systems and their relationships:
     Earth's equatorial plane (zero latitude) and intersects the Prime
     Meridian (zero longitude; Greenwich, UK). The z-axis points to True
     North (which is roughly aligned with the instantaneous rotation axis).
+- GDZ: Geodetic
+    This system is not inertial and is defined in terms of altitude above
+    a reference ellipsoid, the geodetic latitude, and geodetic longitude.
+    Geodetic longitude is identical to GEO longitude. Both the altitude
+    and latitude depend on the ellipsoid used. While geodetic latitude is
+    close to geographic latitude, they are not the same. The default here is
+    to use the WGS84 reference ellipsoid.
 
 The remaining coordinate systems are also reference to Earth's magnetic field.
 Different versions of these systems exist, but the most common (and those given
@@ -863,7 +870,8 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     """
     Convert geocentric geographic (cartesian GEO) to geodetic (spherical GDZ)
 
-    Uses Heikkinen's exact solution.
+    Uses Heikkinen's exact solution [#Heikkinen]_, see Zhu et al. [#Zhu] for
+    details.
 
     Parameters
     ----------
@@ -875,14 +883,18 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     out : numpy.ndarray
         Nx3 array of geodetic altitude, latitude, and longitude
 
+    Notes
+    -----
+    .. versionadded:: 0.2.3
+
     References
     ----------
-    Heikkinen, M., "Geschlossene formeln zur berechnung räumlicher geodätischer
-    koordinaten aus rechtwinkligen koordinaten", Z. Vermess., vol. 107, pp. 207-211,
-    1982.
-    J. Zhu, "Conversion of Earth-centered Earth-fixed coordinates to geodetic
-    coordinates," in IEEE Transactions on Aerospace and Electronic Systems, vol. 30,
-    no. 3, pp. 957-961, July 1994, doi: 10.1109/7.303772.
+    .. [#Heikkinen] Heikkinen, M., "Geschlossene formeln zur berechnung räumlicher geodätischer
+            koordinaten aus rechtwinkligen koordinaten", Z. Vermess., vol. 107, pp. 207-211,
+            1982.
+    .. [#Zhu] J. Zhu, "Conversion of Earth-centered Earth-fixed coordinates to geodetic
+            coordinates," in IEEE Transactions on Aerospace and Electronic Systems, vol. 30,
+            no. 3, pp. 957-961, July 1994, doi: 10.1109/7.303772.
     """
     posarr = np.atleast_2d(geovec)
     x_geo = posarr[:, 0]
@@ -960,7 +972,11 @@ def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
         Output units will be the same as input units.
     geoid : spacepy.ctrans.Ellipsoid
         Instance of a reference ellipsoid to use for geodetic conversion.
-        Default is WGS84.
+        Default is WGS84.a
+
+    Notes
+    -----
+    .. versionadded:: 0.2.3
     """
     posarr = np.atleast_2d(gdzvec)
     h = posarr[:, 0] if units == 'km' else posarr[:, 0]*geoid['A']  # convert to km

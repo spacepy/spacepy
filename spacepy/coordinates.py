@@ -3,11 +3,11 @@
 """
 Implementation of Coords class functions for coordinate transformations
 
-Authors: Josef Koller and Steven Morley
+Authors: Steven Morley and Josef Koller
 Institution: Los ALamos National Laboratory
 Contact: smorley@lanl.gov
 
-Copyright 2010 Los Alamos National Security, LLC.
+Copyright 2010-2016 Los Alamos National Security, LLC.
 """
 
 import numpy as np
@@ -21,20 +21,20 @@ __contact__ = 'Steven Morley, smorley@lanl.gov'
 # -----------------------------------------------
 class Coords(object):
     '''
-    a = Coords( data, dtype, carsph, [units, ticks] )
+    a = Coords( data, dtype, carsph, [units, ticks, use_irbem])
 
     A class holding spatial coordinates in Cartesian/spherical
     in units of Re and degrees
 
-    Coordinate transforms are based on the IRBEM library; `its manual
-    <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
+    By default, coordinate transforms are based on the IRBEM library; `its
+    manual <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
     may prove useful. For a good reference on heliospheric and magnetospheric
     coordinate systems, see Franz & Harper, "Heliospheric Coordinate Systems",
     Planet. Space Sci., 50, pp 217-233, 2002
     (https://doi.org/10.1016/S0032-0633(01)00119-2).
 
     Parameters
-    ==========
+    ----------
     data : list or ndarray, dim = (n,3)
         coordinate points [X,Y,Z] or [rad, lat, lon]
     dtype : string
@@ -56,18 +56,21 @@ class Coords(object):
         standard are  ['Re', 'Re', 'Re'] or ['Re', 'deg', 'deg'] depending on the carsph content
     ticks : Ticktock instance, optional
         used for coordinate transformations (see a.convert)
+    use_irbem : bool
+        Set to True to use IRBEM for coordinate transforms (default). Otherwise use
+        SpacePy's coordinate transform library.
 
     Returns
-    =======
+    -------
     out : Coords instance
         instance with a.data, a.carsph, etc.
 
     See Also
-    ========
+    --------
     spacepy.time.Ticktock
 
     Examples
-    ========
+    --------
     >>> from spacepy import coordinates as coord
     >>> cvals = coord.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
     >>> cvals.x  # returns all x coordinates
@@ -84,10 +87,18 @@ class Coords(object):
     .. automethod:: append
     .. automethod:: convert
     '''
-    def __init__(self, data, dtype, carsph, units=None, ticks=None):
+    def __init__(self, data, dtype, carsph, units=None, ticks=None, use_irbem=True):
 
         from . import irbempy as op
         from spacepy.irbempy import SYSAXES_TYPES as typedict
+
+        if use_irbem:
+            warnings.warn('Use of IRBEM to perform coordinate transformations is' +
+                          'no longer recommended.\n' +
+                          'The default library used for coordinate transforms will' +
+                          'change in a future release.\n' +
+                          'To ensure forward-compatibility, please set use_irbem=False',
+                          DeprecationWarning)
 
         if isinstance(data[0], (float, int)):
             self.data = np.array([data])
@@ -161,12 +172,12 @@ class Coords(object):
         Will be called when printing Coords instance a
 
         Returns
-        ========
+        -------
         out : string
             string represenation of the instance
 
         Examples
-        ========
+        --------
         >>> from spacepy.coordinates import Coords
         >>> y = Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
         >>> y
@@ -185,17 +196,17 @@ class Coords(object):
         Will be called when requesting items in this instance
 
         Parameters
-        ==========
+        ----------
         idx : int
             integer numbers as index
 
         Returns
-        =======
+        -------
         out : numpy array
             new values
 
         Examples
-        ========
+        --------
         >>> from spacepy.coordinates import Coords
         >>> y = Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
         >>> y[0]
@@ -214,14 +225,14 @@ class Coords(object):
         Will be called setting items in this instance
 
         Parameters
-        ==========
+        ----------
         idx : int
             integer numbers as index
         vals : numpy array or list
             new values
 
         Examples
-        ========
+        --------
         >>> from spacepy.coordinates import Coords
         >>> y = Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
         >>> y[1] = [9,9,9]
@@ -240,12 +251,12 @@ class Coords(object):
         Will be called when requesting the length, i.e. number of items
 
         Returns
-        ========
+        -------
         out : int
             length
 
         Examples
-        ========
+        --------
         >>> from spacepy.coordinates import Coords
         >>> y = Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
         >>> len(y)
@@ -263,19 +274,19 @@ class Coords(object):
         '''Create a new Coords instance with new coordinate types
 
         Parameters
-        ==========
+        ----------
         returntype : string
             coordinate system, possible are GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
         returncarsph : string
             coordinate type, possible 'car' for Cartesian and 'sph' for spherical
 
         Returns
-        =======
+        -------
         out : Coords object
             Coords object in the new coordinate system
 
         Examples
-        ========
+        --------
         >>> from spacepy.coordinates import Coords
         >>> y = Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
         >>> from spacepy.time import Ticktock
@@ -379,12 +390,12 @@ class Coords(object):
         '''Append another Coords instance to the current one
 
         Parameters
-        ==========
+        ----------
         other : Coords instance
             Coords instance to append
 
         Examples
-        ========
+        --------
         '''
         data = list(self.data)
         otherdata = other.convert(self.dtype, self.carsph)
@@ -398,17 +409,17 @@ def quaternionNormalize(Qin, scalarPos='last'):
     Given an input quaternion (or array of quaternions), return the unit quaternion
 
     Parameters
-    ==========
+    ----------
     vec : array_like
         input quaternion to normalize
 
     Returns
-    =======
+    -------
     out : array_like
         normalized quaternion
 
     Examples
-    ========
+    --------
     >>> import spacepy.coordinates
     >>> spacepy.coordinates.quaternionNormalize([0.707, 0, 0.707, 0.2])
     array([ 0.69337122,  0.        ,  0.69337122,  0.19614462])
@@ -439,19 +450,19 @@ def quaternionRotateVector(Qin, Vin, scalarPos='last', normalize=True):
     Given quaternions and vectors, return the vectors rotated by the quaternions
 
     Parameters
-    ==========
+    ----------
     Qin : array_like
         input quaternion to rotate by
     Vin : array-like
         input vector to rotate
 
     Returns
-    =======
+    -------
     out : array_like
         rotated vector
 
     Examples
-    ========
+    --------
     >>> import spacepy.coordinates
     >>> import numpy as np
     >>> vec = [1, 0, 0]
@@ -464,7 +475,7 @@ def quaternionRotateVector(Qin, Vin, scalarPos='last', normalize=True):
     array([ 0.,  0., -1.])
 
     See Also
-    ========
+    --------
     quaternionMultiply
     '''
     if scalarPos.lower()=='last':
@@ -510,19 +521,19 @@ def quaternionMultiply(Qin1, Qin2, scalarPos='last'):
     Given quaternions, return the product, i.e. Qin1*Qin2
 
     Parameters
-    ==========
+    ----------
     Qin1 : array_like
         input quaternion, first position
     Qin2 : array-like
         input quaternion, second position
 
     Returns
-    =======
+    -------
     out : array_like
         quaternion product
 
     Examples
-    ========
+    --------
     >>> import spacepy.coordinates
     >>> import numpy as np
     >>> vecX = [1, 0, 0] #shared X-axis
@@ -580,24 +591,24 @@ def quaternionConjugate(Qin, scalarPos='last'):
     Given an input quaternion (or array of quaternions), return the conjugate
 
     Parameters
-    ==========
+    ----------
     Qin : array_like
         input quaternion to conjugate
 
     Returns
-    =======
+    -------
     out : array_like
         conjugate quaternion
 
     Examples
-    ========
+    --------
     >>> import spacepy.coordinates
     >>> spacepy.coordinates.quaternionConjugate(
     ...     [0.707, 0, 0.707, 0.2], scalarPos='last')
     array([-0.707, -0.   , -0.707,  0.2  ])
 
     See Also
-    ========
+    --------
     quaternionMultiply
     '''
     if scalarPos.lower()=='last':
@@ -632,24 +643,24 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
     shape is otherwise unchanged, allowing multi-dimensional matrix input.
 
     Parameters
-    ==========
+    ----------
     matrix : array_like
         input rotation matrix or array of matrices
 
     Returns
-    =======
+    -------
     out : array_like
         Quaternions representing the same rotation as the input rotation
         matrices.
 
     Other Parameters
-    ================
+    ----------------
     scalarPos : str
         Location of the scalar component of the output quaternion, either
         'last' (default) or 'first'.
 
     Raises
-    ======
+    ------
     NotImplementedError
         for invalid values of ``scalarPos``
 
@@ -659,11 +670,11 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
         not orthogonal, or not a proper rotation.
 
     See Also
-    ========
+    --------
     quaternionToMatrix
 
     Notes
-    =====
+    -----
     .. versionadded:: 0.2.2
 
     No attempt is made to resolve the sign ambiguity; in particular,
@@ -689,7 +700,7 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
     and Thomas [#Sarabandi]_.
 
     References
-    ==========
+    ----------
     .. [#Shepperd] S.W. Shepperd, "Quaternion from rotation matrix," Journal of
             Guidance and Control, Vol. 1, No. 3, pp. 223-224, 1978,
             `doi:10.2514/3.55767b <https://doi.org/10.2514/3.55767b>`_
@@ -707,7 +718,7 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
             <https://doi.org/10.1007/978-3-319-93188-3_5>`_
 
     Examples
-    ========
+    --------
     >>> import spacepy.coordinates
     >>> spacepy.coordinates.quaternionFromMatrix(
     ...     [[ 0.,  0.,  1.],
@@ -777,17 +788,17 @@ def quaternionToMatrix(Qin, scalarPos='last', normalize=True):
     shape is otherwise unchanged, allowing multi-dimensional quaternion input.
 
     Parameters
-    ==========
+    ----------
     Qin : array_like
         input quaternion or array of quaternions, must be normalized.
 
     Returns
-    =======
+    -------
     out : array_like
         Rotation matrix
 
     Other Parameters
-    ================
+    ----------------
     scalarPos : str
         Location of the scalar component of the input quaternion, either
         'last' (default) or 'first'.
@@ -797,7 +808,7 @@ def quaternionToMatrix(Qin, scalarPos='last', normalize=True):
         raises error for non-normalized.
 
     Raises
-    ======
+    ------
     NotImplementedError
         for invalid values of ``scalarPos``.
 
@@ -807,17 +818,17 @@ def quaternionToMatrix(Qin, scalarPos='last', normalize=True):
         normalized and ``normalize`` is False.
 
     See Also
-    ========
+    --------
     quaternionFromMatrix
 
     Notes
-    =====
+    -----
     .. versionadded:: 0.2.2
 
     Implementation of the Euler–Rodrigues formula.
 
     Examples
-    ========
+    --------
     >>> import spacepy.coordinates
     >>> spacepy.coordinates.quaternionToMatrix([0.5, 0.5, 0.5, 0.5])
     array([[ 0.,  0.,  1.],
