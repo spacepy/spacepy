@@ -80,7 +80,7 @@ class Ellipsoid(dm.SpaceData):
     """Ellipsoid definition class for geodetic coordinates
 
     Other Parameters
-    ================
+    ----------------
     name : str
         Name for ellipsoid, stored in attrs of returned Ellipsoid instance.
         Default is 'WGS84'
@@ -92,7 +92,7 @@ class Ellipsoid(dm.SpaceData):
         of 298.257223563.
 
     Returns
-    =======
+    -------
     out : Ellipsoid
         Ellipsoid instance storing all relevant paramters for geodetic conversion
 
@@ -121,17 +121,17 @@ class CTrans(dm.SpaceData):
     coordinate systems and returns an array of the converted coordinates.
 
     Parameters
-    ==========
+    ----------
     ctime : (spacepy.time.Ticktock, datetime, float, string)
         Input time stamp. Must have one time only. Accepted input formats
 
     Returns
-    =======
+    -------
     out : CTrans
         instance with self.convert, etc.
 
     Other Parameters
-    ================
+    ----------------
     ephmodel : str, optional
         Select ephemerides model (e.g., for determining Sun direction).
         Currently only 'LGMDEFAULT' is supported, for consistency with
@@ -143,7 +143,7 @@ class CTrans(dm.SpaceData):
         Use Earth Orientation Parameters
 
     See Also
-    ========
+    --------
     spacepy.coordinates.Coords
 
     .. versionadded:: 0.2.3
@@ -238,12 +238,12 @@ class CTrans(dm.SpaceData):
         """Get/set Earth Orientation Parameters
 
         Parameters
-        ==========
+        ----------
         useEOP : bool
             If True, use Earth Orientation Parameters. Default False.
 
         Notes
-        =====
+        -----
         Currently Earth Orientation Parameters are all set to zero.
         Use is not yet supported.
         """
@@ -267,7 +267,7 @@ class CTrans(dm.SpaceData):
         Sets Julian Date and Julian centuries in UTC, TAI, UT1, and TT systems.
 
         Parameters
-        ==========
+        ----------
         recalc : bool, optional
             If True, recalculate the times for coordinate transformation. Default
             is False.
@@ -309,7 +309,7 @@ class CTrans(dm.SpaceData):
         the ecliptic, anomalies, and precession angles.
 
         Parameters
-        ==========
+        ----------
         recalc : bool, optional
             If True, recalculate the orbital parameters for coordinate transformation.
             Default is False.
@@ -421,7 +421,7 @@ class CTrans(dm.SpaceData):
         Geocentric Geographic (GEO)
 
         Parameters
-        ==========
+        ----------
         recalc : bool, optional
             If True, recalculate the core (non-magnetic) coordinate transformations.
             Default is False.
@@ -560,7 +560,7 @@ class CTrans(dm.SpaceData):
         Geomagnetic, centered dipole (CDMAG)
 
         Parameters
-        ==========
+        ----------
         recalc : bool, optional
             If True, recalculate the core (non-magnetic) coordinate transformations.
             Default is False.
@@ -648,7 +648,7 @@ class CTrans(dm.SpaceData):
         """Convert an input vector between two coordinate systems
 
         Parameters
-        ==========
+        ----------
         vec : array-like
             Input 3-vector (can be an array of input 3-vectors) to convert
         sys_in : str
@@ -706,7 +706,7 @@ class CTrans(dm.SpaceData):
         """Calculate Greenwich Mean Sidereal Time
 
         Notes
-        =====
+        -----
         The formulation used to calculate GMST is selected using the
         status of the 'pnmodel' variable in the CTrans object attributes.
         """
@@ -803,7 +803,7 @@ class CTrans(dm.SpaceData):
         """Common error raising method
 
         Parameters
-        ==========
+        ----------
         errtype : Exception
             Exception to raise
         code : str
@@ -832,14 +832,14 @@ class CTrans(dm.SpaceData):
         Solve Kepler's equation for eccentric anomaly
 
         Parameters
-        ==========
+        ----------
         mean_anom : float
             Mean anomaly in radians
         ecc : float
             Eccentricity of orbit
 
         Returns
-        =======
+        -------
         ecc_anom : float
             Eccentric anomaly in radians
         """
@@ -866,17 +866,17 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     Uses Heikkinen's exact solution.
 
     Parameters
-    ==========
+    ----------
     geovec : array-like
         Nx3 array (or array-like) of geocentric geographic [x, y, z] coordinates
 
     Returns
-    =======
+    -------
     out : numpy.ndarray
         Nx3 array of geodetic altitude, latitude, and longitude
 
     References
-    ==========
+    ----------
     Heikkinen, M., "Geschlossene formeln zur berechnung räumlicher geodätischer
     koordinaten aus rechtwinkligen koordinaten", Z. Vermess., vol. 107, pp. 207-211,
     1982.
@@ -944,17 +944,17 @@ def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
     Convert geodetic (GDZ) coordinates to geocentric geographic
 
     Parameters
-    ==========
+    ----------
     gdzvec : array-like
         Nx3 array of geodetic altitude, latitude, longitude (in specified units)
 
     Returns
-    =======
+    -------
     out : numpy.ndarray
         Nx3 array of geocentric geographic x, y, z coordinates
 
     Other Parameters
-    ================
+    ----------------
     units : str
         Units for input geodetic altitude. Options are 'km' or 'Re'. Default is 'km'.
         Output units will be the same as input units.
