@@ -76,6 +76,43 @@ from spacepy import time as spt
 from spacepy import igrf
 
 
+class Ellipsoid(dm.SpaceData):
+    """Ellipsoid definition class for geodetic coordinates
+
+    Other Parameters
+    ================
+    name : str
+        Name for ellipsoid, stored in attrs of returned Ellipsoid instance.
+        Default is 'WGS84'
+    A : float
+        Semi-major axis (equatorial radius) of ellipsoid in km.
+        Default is 6378.137km (WGS84_A)
+    iFlat : float
+        Inverse flattening of ellipsoid. Default is WGS84 value
+        of 298.257223563.
+
+    Returns
+    =======
+    out : Ellipsoid
+        Ellipsoid instance storing all relevant paramters for geodetic conversion
+
+    .. versionadded:: 0.2.3
+    """
+    def __init__(self, name='WGS84', A=6378.137, iFlat=298.257223563):
+        super(Ellipsoid, self).__init__(A=A, iFlat=iFlat, attrs={'name': name})
+        self['A2'] = self['A']**2  # [km^2]
+        self['Flat'] = 1/self['iFlat']
+        self['E2'] = 2*self['Flat'] - self['Flat']**2
+        self['E4'] = self['E2']*self['E2']
+        self['1mE2'] = 1 - self['E2']
+        self['B'] = self['A']*np.sqrt(self['1mE2'])
+        self['B2'] = self['B']**2  # [km^2]
+        self['A2mB2'] = self['A2'] - self['B2']  # [km^2]
+        self['EP2'] = self['A2mB2']/self['B2']  # 2nd eccentricity squared
+
+# World Geodetic System 1984 (WGS84) parameters
+WGS84 = Ellipsoid()
+
 class CTrans(dm.SpaceData):
     """Coordinate transformation class for a single instance in time
 
@@ -194,7 +231,7 @@ class CTrans(dm.SpaceData):
                                                        daycentury=36525.0,
                                                        arcsec=scipy.constants.arcsec,
                                                        AU=scipy.constants.au/1e3,  # 1AU in km
-                                                       Re=6378.137,  # WGS84_A radius in km
+                                                       Re=WGS84['A'],  # WGS84_A radius in km
                                                        )
 
     def getEOP(self, useEOP=False):
@@ -228,8 +265,6 @@ class CTrans(dm.SpaceData):
         """Calculate time in systems required to set up coordinate transforms
 
         Sets Julian Date and Julian centuries in UTC, TAI, UT1, and TT systems.
-        Does not check that the library is actually in any particular directory,
-        just returns a list of possible locations, in priority order.
 
         Parameters
         ==========
@@ -476,7 +511,7 @@ class CTrans(dm.SpaceData):
         ecitod_pef[2, 2] = 1.0
         pef_ecitod = ecitod_pef.T
 
-        # TEME (used by WGS84)
+        # TEME (used by GEO)
         sn = np.sin(self['GMST_rad'])
         cs = np.cos(self['GMST_rad'])
         teme_pef = np.zeros((3, 3))
@@ -623,29 +658,49 @@ class CTrans(dm.SpaceData):
             String name for target coordinate system. For supported systems,
             see module level documentation.
         """
-        transform = '{0}_{1}'.format(sys_in, sys_out)
-        if transform not in self['Transform']:
-            try:
-                # Construct requested transform via ECIMOD
-                trans1 = '{0}_{1}'.format(sys_in, 'ECIMOD')
-                trans2 = '{0}_{1}'.format('ECIMOD', sys_out)
-                assert trans1 in self['Transform']
-                assert trans1 in self['Transform']
-                tmatr = self['Transform'][trans2].dot(self['Transform'][trans1])
-                self['Transform'][transform] = tmatr
-            except (KeyError, AssertionError):
-                # Can't construct the transform requested
-                self._raiseErr(ValueError, 'transform')
-        else:
-            # Required transform stored already, just use it
-            tmatr = self['Transform'][transform]
-
         trvec = np.atleast_2d(vec)
         if trvec.shape[0] != 3:
             trvec = trvec.T  # need to have N column vectors for a broadcast dot product
-        converted = tmatr.dot(trvec).T
+
+        # Special case geodetic transforms
+        to_geodetic = False
+        from_geodetic = False
+        if sys_out == 'GDZ':
+            sys_out = 'GEO'
+            to_geodetic = True
+        if sys_in == 'GDZ':
+            trvec = gdz_to_geo(vec)
+            sys_in = 'GEO'
+            from_geodetic = True
+
+        if sys_in != sys_out:
+            transform = '{0}_{1}'.format(sys_in, sys_out)
+            if transform not in self['Transform']:
+                try:
+                    # Construct requested transform via ECIMOD
+                    trans1 = '{0}_{1}'.format(sys_in, 'ECIMOD')
+                    trans2 = '{0}_{1}'.format('ECIMOD', sys_out)
+                    assert trans1 in self['Transform']
+                    assert trans1 in self['Transform']
+                    tmatr = self['Transform'][trans2].dot(self['Transform'][trans1])
+                    self['Transform'][transform] = tmatr
+                except (KeyError, AssertionError):
+                    # Can't construct the transform requested
+                    self._raiseErr(ValueError, 'transform')
+            else:
+                # Required transform stored already, just use it
+                tmatr = self['Transform'][transform]
+
+            converted = tmatr.dot(trvec).T
+        else:
+            converted = trvec
         # squeeze to fix return of 1D input vectors
-        return converted.squeeze()
+        # squeeze returns either input array or a view, so this isn't wasteful
+        converted_squeezed = converted.squeeze()
+
+        if to_geodetic:
+            converted_squeezed = geo_to_gdz(converted_squeezed)
+        return converted_squeezed
 
     def gmst(self):
         """Calculate Greenwich Mean Sidereal Time
@@ -802,3 +857,113 @@ class CTrans(dm.SpaceData):
             import warnings
             warnings.warn('Estimation of eccentric anomaly failed to converge')
         return ecc_anom
+
+
+def geo_to_gdz(geovec, units='km', geoid=WGS84):
+    """
+    Convert geocentric geographic (cartesian GEO) to geodetic (spherical GDZ)
+
+    Uses Heikkinen's exact solution.
+
+    Parameters
+    ==========
+    geovec : array-like
+        Nx3 array (or array-like) of geocentric geographic [x, y, z] coordinates
+
+    Returns
+    =======
+    out : numpy.ndarray
+        Nx3 array of geodetic altitude, latitude, and longitude
+
+    References
+    ==========
+    Heikkinen, M., "Geschlossene formeln zur berechnung räumlicher geodätischer
+    koordinaten aus rechtwinkligen koordinaten", Z. Vermess., vol. 107, pp. 207-211,
+    1982.
+    J. Zhu, "Conversion of Earth-centered Earth-fixed coordinates to geodetic
+    coordinates," in IEEE Transactions on Aerospace and Electronic Systems, vol. 30,
+    no. 3, pp. 957-961, July 1994, doi: 10.1109/7.303772.
+    """
+    posarr = np.atleast_2d(geovec)
+    x_geo = posarr[:, 0]
+    y_geo = posarr[:, 1]
+    z_geo = posarr[:, 2]
+    if units == 'Re':
+        # Make sure positions are in km
+        rx = x_geo*geoid['A']
+    else:
+        rx = x_geo
+        ry = y_geo
+        rz = z_geo
+
+    rad2 = rx*rx + ry*ry
+    rad = np.sqrt(rad2)
+    z2 = rz*rz
+    # Heikkinen's method, as written in Zhu et al.
+    # Each equation not explicitly in Zhu is marked with a trailing comment
+    F = 54.0*geoid['B2']*z2
+    G = rad2 + geoid['1mE2']*z2 - geoid['E2']*geoid['A2mB2']
+    G2 = G*G  # Square G for convenience
+    c = (geoid['E4']*F*rad2)/(G*G*G)
+    s = np.cbrt(1 + c + np.sqrt(c*c + 2*c))
+    denom_p = s + 1/s + 1  # Shorthand for term in P's denominator
+    P = F/(3*denom_p*denom_p*G2)
+    Q = np.sqrt(1 + 2*geoid['E4']*P)
+    r0 = -(geoid['E2']*P*rad)/(1 + Q) + np.sqrt((0.5*geoid['A2'])*(1 + 1/Q) - (geoid['1mE2']*P*z2)/(Q*(1 + Q)) - 0.5*P*rad2)
+    brac_u = (rad - geoid['E2']*r0)  # Shorthand for term in U and V denominator
+    U   = np.sqrt(brac_u*brac_u + z2)
+    V   = np.sqrt(brac_u*brac_u + geoid['1mE2']*z2)
+    z0  = (geoid['B2']*rz)/(geoid['A']*V)
+
+    lati_gdz = np.rad2deg(np.arctan( (rz + geoid['EP2']*z0)/rad ))  # Geodetic latitude (phi in Zhu paper)
+    alti_gdz = U*( 1 - geoid['B2']/(geoid['A']*V))  # Geodetic altitude [km] (h in Zhu paper)
+    long_gdz = np.rad2deg(np.arctan2( ry, rx ))  # Geodetic longitude (same as GEO)
+
+    out = np.c_[alti_gdz, lati_gdz, long_gdz]
+    if units == 'km':
+        return out.squeeze()
+    else:
+        # Return in Re
+        return out.squeeze()/geoid['A']
+
+
+def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
+    """
+    Convert geodetic (GDZ) coordinates to geocentric geographic
+
+    Parameters
+    ==========
+    gdzvec : array-like
+        Nx3 array of geodetic altitude, latitude, longitude (in specified units)
+
+    Returns
+    =======
+    out : numpy.ndarray
+        Nx3 array of geocentric geographic x, y, z coordinates
+
+    Other Parameters
+    ================
+    units : str
+        Units for input geodetic altitude. Options are 'km' or 'Re'. Default is 'km'.
+        Output units will be the same as input units.
+    geoid : spacepy.ctrans.Ellipsoid
+        Instance of a reference ellipsoid to use for geodetic conversion.
+        Default is WGS84.
+    """
+    posarr = np.atleast_2d(gdzvec)
+    h = posarr[:, 0] if units == 'km' else posarr[:, 0]*geoid['A']  # convert to km
+    lam = np.deg2rad(posarr[:, 1])
+    phi = np.deg2rad(posarr[:, 2])
+    chi = np.sqrt(1 - geoid['E2']*np.sin(lam)*np.sin(lam))
+
+    # Convert to GEO [km]
+    x = (geoid['A']/chi + h)*np.cos(lam)*np.cos(phi)
+    y = (geoid['A']/chi + h)*np.cos(lam)*np.sin(phi)
+    z = (geoid['A']*(1 - geoid['E2'])/chi + h)*np.sin(lam)
+
+    out = np.c_[x, y, z]
+    if units == 'km':
+        return out.squeeze()
+    else:
+        # Return in Re
+        return out.squeeze()/geoid['A']
