@@ -15,7 +15,7 @@ from scipy.constants import arcsec
 from spacepy import ctrans
 import spacepy.time
 
-__all__ = ['CTransClassTests']
+__all__ = ['CTransClassTests', 'CTransRegressionTests', 'ModuleTests']
 
 
 class CTransClassTests(unittest.TestCase):
@@ -187,7 +187,7 @@ class CTransRegressionTests(unittest.TestCase):
         ct14['EarthOrientationParameters'] = ct14._factory['eop'](DUT1=-0.32591566, xp=0,
                                                                   yp=0, ddPsi=0, ddEps=0)
         self.CTrans2014.calcTimes()
-        numpy.testing.assert_almost_equal(14.05453852, self.CTrans2014['GMST'], decimal=7)
+        numpy.testing.assert_almost_equal(self.CTrans2014['GMST'], 14.05453852, decimal=7)
 
     def test_prec_orbit2014_LGM(self):
         """Test precession/orbital quantities agree with LGM"""
@@ -220,13 +220,13 @@ class CTransRegressionTests(unittest.TestCase):
         """ """
         dPsi = numpy.deg2rad(0.00197768)
         self.CTrans2014.calcOrbitParams()
-        numpy.testing.assert_allclose(dPsi, self.CTrans2014['dPsi']*arcsec, atol=1e-7)
+        numpy.testing.assert_allclose(self.CTrans2014['dPsi']*arcsec, dPsi, atol=1e-7)
 
     def test_dEps2014_LGM(self):
         """ """
         dEps = numpy.deg2rad(-0.00227433)
         self.CTrans2014.calcOrbitParams()
-        numpy.testing.assert_allclose(dEps, self.CTrans2014['dEps']*arcsec, atol=1e-7)
+        numpy.testing.assert_allclose(self.CTrans2014['dEps']*arcsec, dEps, atol=1e-7)
 
     def test_coreTransforms_MOD_J2000_2014_LGM(self):
         """ """
@@ -240,7 +240,7 @@ class CTransRegressionTests(unittest.TestCase):
         self.CTrans2014.calcCoreTransforms()
         got = self.CTrans2014['Transform']
         for tra in exp:
-            numpy.testing.assert_allclose(exp[tra], got[tra], atol=1e-7)
+            numpy.testing.assert_allclose(got[tra], exp[tra], atol=1e-7)
 
     def test_coreTransforms_TOD_2014_LGM(self):
         """ """
@@ -251,7 +251,7 @@ class CTransRegressionTests(unittest.TestCase):
         self.CTrans2014.calcCoreTransforms()
         got = self.CTrans2014['Transform']
         for tra in exp:
-            numpy.testing.assert_allclose(exp[tra], got[tra], atol=5e-5)
+            numpy.testing.assert_allclose(got[tra], exp[tra], atol=5e-5)
 
     def test_dipoleValues_LGM(self):
         """ """
@@ -269,7 +269,7 @@ class CTransRegressionTests(unittest.TestCase):
         """ """
         psi = 18.344635  # degrees
         self.CTrans2014.calcMagTransforms()
-        numpy.testing.assert_allclose(psi, self.CTrans2014['DipoleTilt'], atol=1e-5)
+        numpy.testing.assert_allclose(self.CTrans2014['DipoleTilt'], psi, atol=1e-5)
 
     def test_magTransforms_MOD_GSM_2014_LGM(self):
         """ """
@@ -280,7 +280,7 @@ class CTransRegressionTests(unittest.TestCase):
         self.CTrans2014.calcMagTransforms()
         got = self.CTrans2014['Transform']
         for tra in exp:
-            numpy.testing.assert_allclose(exp[tra], got[tra], atol=1e-7)
+            numpy.testing.assert_allclose(got[tra], exp[tra], atol=1e-7)
 
     def test_convert_viaMOD2014_LGM(self):
         """Test that convert constructs transformation via MOD correctly"""
@@ -288,7 +288,7 @@ class CTransRegressionTests(unittest.TestCase):
         ugse = numpy.array([-6.6, 4.05437055, -0.64193415])
         self.CTrans2014.calcMagTransforms()
         gotgse = self.CTrans2014.convert(ugsm, 'GSM', 'GSE')
-        numpy.testing.assert_almost_equal(ugse, gotgse, decimal=6)
+        numpy.testing.assert_almost_equal(gotgse, ugse, decimal=6)
 
     def test_convert_ECI2000_GEO_2014_LGM(self):
         """Test conversion to GEO (compare to LGM)"""
@@ -300,151 +300,106 @@ class CTransRegressionTests(unittest.TestCase):
         self.CTrans2014.convert([2, 2, 2], 'ECI2000', 'GEO')
         got = self.CTrans2014['Transform']
         for tra in exp:
-            numpy.testing.assert_allclose(exp[tra], got[tra], atol=5e-5)
+            numpy.testing.assert_allclose(got[tra], exp[tra], atol=5e-5)
 
-'''
-Time Quantitites:
-    fYear (UTC)       = 2014.659308
-    UTC               = 20140829  15.53716980138889 (  15ʰ 32ᵐ 13ˢ.81128500 )
-    TT = TAI+32.184s  = 20140829  15.55583202361111 (  15ʰ 33ᵐ 20ˢ.99528500 )
-    TDB               = 20140829  15.55583165196660 (  15ʰ 33ᵐ 20ˢ.99394708 )
-    DUT1 = UT1-UTC    = 0.0000000 seconds
-    DAT  = TAI-UTC    = 35.0000000 seconds
-    gmst (hours)      = 14.0546293 (  14ʰ 03ᵐ 16ˢ.665 )
-    gmst (degrees)    = 210.8194396 (  210° 49′ 09″.982 )
-    gast (hours)      = 14.0547503 (  14ʰ 03ᵐ 17ˢ.101 )
-    gast (degrees)    = 210.8212538 (  210° 49′ 16″.514 )
-Eccentricity and Obliquity:
-    eccentricity                      = 0.01670295
-    epsilon mean (obliq. of ecliptic) = 23.43738485 (  23° 26′ 14″.585 )
-    epsilon true (obliq. of ecliptic) = 23.43511052 (  23° 26′ 06″.398 )
-Precession Quantities:
-    Zeta              = 0.0939088 (  00° 05′ 38″.072 )
-    Zee               = 0.0939136 (  00° 05′ 38″.089 )
-    Theta             = 0.0816111 (  00° 04′ 53″.800 )
-Nutation Quantities:
-    dPsi (w.o. corrections)           = 0.00197768 (  00° 00′ 07″.120 )
-    dEps (w.o. corrections)           = -0.00227433 ( -00° 00′ 08″.188 )
-    ddPsi (EOP correction)            = 0.00000000 (  00° 00′ 00″.000 )
-    ddEps (EOP correction)            = 0.00000000 (  00° 00′ 00″.000 )
-    dPsi (w. corrections)             = 0.00197768 (  00° 00′ 07″.120 )
-    dEps (w. corrections)             = -0.00227433 ( -00° 00′ 08″.188 )
-    epsilon true (obliq. of ecliptic) = 23.43511052 (  23° 26′ 06″.398 )
-    Equation of the Equinox           = 0.00181425 (  00° 00′ 06″.531 )
-Low Accuracy Position of Sun:
-    lambda_sun      =      156.218789  (  156° 13′ 07″.641 )
-    earth_sun_dist  =    23683.928241 Re
-Sun vector and Ecliptic Pole in GEI2000:
-    Sun               = (-0.915092, 0.369976, 0.160389)
-    EcPole            = (0.000000, -0.397747, 0.917495)
-Geo-dipole tilt angle:
-    psi                      = 18.344635  (  18° 20′ 40″.684 )
-    sin_psi                  = 0.314732
-    cos_psi                  = 0.949181
-    tan_psi                  = 0.331583
-IGRF-derived quantities:
-    M_cd              = 29872.9290856547 nT
-    M_cd_McIlwain    = 31165.3000000000 nT
-    M_cd_2010         = 29950.1686985232 nT
-    CD_gcolat         = 9.707223 (deg.)  (  09° 42′ 26″.002 )
-    CD_glon           = -72.584807 (deg.)  ( -72° 35′ 05″.305 )
-    ED_x0             = -0.062767  Re  (-400.334621 km)
-    ED_y0             = 0.055013  Re  (350.879290 km)
-    ED_z0             = 0.034686  Re  (221.232022 km)
-Transformation Matrices:
+    def test_geodetic_func_1D(self):
+        """Test GEO to geodetic with 1D input (regression test against IRBEM)"""
+        pos_geo = [-6374.2283916, -869.65264893, -4263.36088969]
+        expected = [1346.134508626895, -33.6790290525164, -172.2309539745096]
+        got = ctrans.geo_to_gdz(pos_geo)
+        numpy.testing.assert_allclose(got, expected, rtol=1e-5)
 
-                        [     -0.86046014      -0.50951631       0.00121589 ]
-    Agei_to_wgs84     = [      0.50951573      -0.86046100      -0.00076888 ]
-                        [      0.00143798      -0.00004207       0.99999897 ]
+    def test_convert_GEO_GDZ_IRBEM(self):
+        """Test GEO to geodetic using CTrans convert (regression test against IRBEM)"""
+        tt = spacepy.time.Ticktock(2459218.5, 'JD')
+        pos_geo = [-6374.2283916, -869.65264893, -4263.36088969]
+        expected = [1346.134508626895, -33.6790290525164, -172.2309539745096]
+        ct = ctrans.CTrans(tt)
+        got = ct.convert(pos_geo, 'GEO', 'GDZ')
+        numpy.testing.assert_allclose(got, expected, rtol=1e-5)
 
-                        [     -0.91509195      -0.40324523       0.00000000 ]
-    Agse_to_mod       = [      0.36997560      -0.83959256      -0.39774663 ]
-                        [      0.16038943      -0.36397474       0.91749530 ]
+    def test_convert_ECITOD_GDZ_IRBEM(self):
+        """Test inertial to geodetic using CTrans convert (regression test against IRBEM)"""
+        tt = spacepy.time.Ticktock(2459218.5, 'JD')
+        pos_eci = [2367.83158, -5981.75882, -4263.24591]
+        expected = [1346.134508626895, -33.6790290525164, -172.2309539745096]
+        ct = ctrans.CTrans(tt)
+        ct.calcCoreTransforms()
+        got = ct.convert(pos_eci, 'ECITOD', 'GDZ')
+        numpy.testing.assert_allclose(got, expected, rtol=5e-5)
 
-                        [      1.00000000       0.00000000      -0.00000000 ]
-    Agse_to_gsm       = [     -0.00000000       0.90571563       0.42388582 ]
-                        [      0.00000000      -0.42388582       0.90571563 ]
+    def test_geodetic_func_2D(self):
+        """Test GEO to geodetic with 2D input (regression test against IRBEM)"""
+        pos_geo1 = [-6374.2283916, -869.65264893, -4263.36088969]
+        pos_geo = [pos_geo1, pos_geo1]
+        expected1 = [1346.134508626895, -33.6790290525164, -172.2309539745096]
+        expected = [expected1, expected1]
+        got = ctrans.geo_to_gdz(pos_geo)
+        numpy.testing.assert_allclose(got, expected, rtol=1e-5)
 
-                        [     -0.86046014       0.50951573       0.00143798 ]
-    Awgs84_to_gei     = [     -0.50951631      -0.86046100      -0.00004207 ]
-                        [      0.00121589      -0.00076888       0.99999897 ]
 
-                        [     -0.91509195      -0.36522551       0.17092994 ]
-    Agsm_to_mod       = [      0.36997560      -0.92903127      -0.00435396 ]
-                        [      0.16038943       0.05925564       0.98527357 ]
+class ModuleTests(unittest.TestCase):
+    def test_geodetic_roundtrip_1D(self):
+        """Test GEO->geodetic round trip with 1D input"""
+        pos_geo = [-6374.2283916, -869.65264893, -4263.36088969]
+        gdz = ctrans.geo_to_gdz(pos_geo)
+        got = ctrans.gdz_to_geo(gdz)
+        numpy.testing.assert_allclose(got, pos_geo, rtol=1e-9)
 
-                        [      0.94918058       0.00000000      -0.31473198 ]
-    Agsm_to_sm        = [      0.00000000       1.00000000       0.00000000 ]
-                        [      0.31473198       0.00000000       0.94918058 ]
+    def test_geo_gdz_longitude(self):
+        """Geodetic longitude should be same as geographic"""
+        geo = numpy.array([7000, 4500, 5500])
+        gdz = ctrans.geo_to_gdz(geo)
+        gdzlon = gdz[2]
+        geolon = numpy.rad2deg(numpy.arctan2(geo[1], geo[0]))
+        numpy.testing.assert_allclose(gdzlon, geolon, rtol=1e-9)
 
-                        [      1.00000000      -0.00000000       0.00000000 ]
-    Agsm_to_gse       = [      0.00000000       0.90571563      -0.42388582 ]
-                        [     -0.00000000       0.42388582       0.90571563 ]
+    def test_gdz_geo_longitude(self):
+        """Geographic longitude should be same as geodetic"""
+        gdz = numpy.array([100, 45, 64])
+        geo = ctrans.gdz_to_geo(gdz)
+        gdzlon = gdz[2]
+        geolon = numpy.rad2deg(numpy.arctan2(geo[1], geo[0]))
+        numpy.testing.assert_allclose(geolon, gdzlon, rtol=1e-7)
 
-                        [      0.94918058       0.00000000       0.31473198 ]
-    Asm_to_gsm        = [      0.00000000       1.00000000       0.00000000 ]
-                        [     -0.31473198       0.00000000       0.94918058 ]
+    def test_geo_gdz_equator(self):
+        """Geodetic conversion at equator gives expected result"""
+        geo = numpy.array([ctrans.WGS84['A'], 0, 0])
+        gdz = ctrans.geo_to_gdz(geo)
+        expected = [0, 0, 0]
+        numpy.testing.assert_allclose(gdz, expected, atol=1e-9, rtol=0)
 
-                        [      0.99999361      -0.00327811      -0.00142438 ]
-    Agei_to_mod       = [      0.00327811       0.99999463      -0.00000233 ]
-                        [      0.00142438      -0.00000233       0.99999899 ]
+    def test_geo_gdz_pole(self):
+        """Geodetic conversion at pole gives expected result"""
+        geo = numpy.array([0, 0, ctrans.WGS84['B']])
+        gdz = ctrans.geo_to_gdz(geo)
+        expected = [0, 90, 0]
+        numpy.testing.assert_allclose(gdz, expected, atol=1e-9, rtol=0)
 
-                        [      0.99999361       0.00327811       0.00142438 ]
-    Amod_to_gei       = [     -0.00327811       0.99999463      -0.00000233 ]
-                        [     -0.00142438      -0.00000233       0.99999899 ]
+    def test_geo_gdz_pole_S(self):
+        """Geodetic conversion at south pole gives expected result"""
+        sp = [0, 0, -ctrans.WGS84['B']]
+        np = [0, 0, ctrans.WGS84['B']]
+        geo = numpy.array([sp, np, sp])
+        gdz = ctrans.geo_to_gdz(geo)
+        exp_s = [0, -90, 0]
+        exp_n = [0, 90, 0]
+        expected = [exp_s, exp_n, exp_s]
+        numpy.testing.assert_allclose(gdz, expected, atol=1e-9, rtol=0)
 
-                        [      1.00000000      -0.00003167      -0.00001373 ]
-    Amod_to_tod       = [      0.00003167       1.00000000       0.00003969 ]
-                        [      0.00001373      -0.00000233       1.00000000 ]
+    def test_gdz_geo_equator(self):
+        """Geodetic/geo conversion at equator gives expected result"""
+        gdz = [0, 0, 0]
+        expected = numpy.array([ctrans.WGS84['A'], 0, 0])
+        got = ctrans.gdz_to_geo(gdz)
+        numpy.testing.assert_allclose(got, expected, atol=1e-9, rtol=0)
 
-                        [      1.00000000       0.00003167       0.00001373 ]
-    Atod_to_mod       = [     -0.00003167       1.00000000      -0.00003969 ]
-                        [     -0.00001373       0.00003969       1.00000000 ]
-
-                        [     -0.85876990      -0.51236146       0.00000000 ]
-    Atod_to_pef       = [      0.51236146      -0.85876990       0.00000000 ]
-                        [      0.00000000       0.00000000       1.00000000 ]
-
-                        [     -0.85876990       0.51236146       0.00000000 ]
-    Apef_to_tod       = [     -0.51236146      -0.85876990       0.00000000 ]
-                        [      0.00000000       0.00000000       1.00000000 ]
-
-                        [ -8.58786119e-01  -5.12334267e-01   0.00000000e+00 ]
-    Ateme_to_pef      = [  5.12334267e-01  -8.58786119e-01   0.00000000e+00 ]
-                        [  0.00000000e+00   0.00000000e+00   1.00000000e+00 ]
-
-                        [ -8.58786119e-01   5.12334267e-01   0.00000000e+00 ]
-    Apef_to_teme      = [ -5.12334267e-01  -8.58786119e-01   0.00000000e+00 ]
-                        [  0.00000000e+00   0.00000000e+00   1.00000000e+00 ]
-
-                        [  1.00000000e+00   0.00000000e+00  -0.00000000e+00 ]
-    Awgs84_to_pef     = [  0.00000000e+00   1.00000000e+00   0.00000000e+00 ]
-                        [  0.00000000e+00  -0.00000000e+00   1.00000000e+00 ]
-
-                        [  1.00000000e+00   0.00000000e+00   0.00000000e+00 ]
-    Apef_to_wgs84     = [  0.00000000e+00   1.00000000e+00  -0.00000000e+00 ]
-                        [ -0.00000000e+00   0.00000000e+00   1.00000000e+00 ]
-
-                        [     -0.91364483      -0.40651337      -0.00000985 ]
-    Agse2000_to_gei   = [      0.37297301      -0.83825275      -0.39777314 ]
-                        [      0.16169184      -0.36342704       0.91748381 ]
-
-                        [     -0.91364483       0.37297301       0.16169184 ]
-    Agei_to_gse2000   = [     -0.40651337      -0.83825275      -0.36342704 ]
-                        [     -0.00000985      -0.39777314       0.91748381 ]
-
-Date = 20140829
-UTC  = 15.537170
-Ugsm = -6.60000000 3.40000000 -2.30000000 Re
-Usm  = -5.54070829 3.40000000 -4.26034642 Re
-Umod = 4.40470133 -5.59053118 -3.12323028 Re
-
-Going to GSE from SM and GSM
-Ugse  = -6.60000000 4.05437055 -0.64193415 Re
-Ugse  = -6.60000000 4.05437055 -0.64193415 Re
-They are different by
-x:0.000000 y:0.000000 z:0.000000 mag:0.000000
-'''
+    def test_gdz_geo_pole(self):
+        """Geodetic/geo conversion at pole gives expected result"""
+        gdz = [0, 90, 0]
+        expected = numpy.array([0, 0, ctrans.WGS84['B']])
+        got = ctrans.gdz_to_geo(gdz)
+        numpy.testing.assert_allclose(got, expected, atol=1e-9, rtol=0)
 
 if __name__ == "__main__":
     unittest.main()
