@@ -914,8 +914,20 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     U   = np.sqrt(brac_u*brac_u + z2)
     V   = np.sqrt(brac_u*brac_u + geoid['1mE2']*z2)
     z0  = (geoid['B2']*rz)/(geoid['A']*V)
-
-    lati_gdz = np.rad2deg(np.arctan( (rz + geoid['EP2']*z0)/rad ))  # Geodetic latitude (phi in Zhu paper)
+    # Heikkinen's solution has a singularity at the pole, so let's trap that here
+    polemask = rad <= 1e-12
+    lati_gdz = np.empty_like(ry)
+    if polemask.any():
+        # Make sure we assign the correct pole
+        zmask = rz > 0
+        nhem = np.logical_and(polemask, zmask)
+        shem = np.logical_and(polemask, ~zmask)
+        lati_gdz[nhem] = 90
+        lati_gdz[shem] = -90
+    lati_gdz[~polemask] = np.rad2deg(np.arctan((rz[~polemask] +
+                                                geoid['EP2']*z0[~polemask])/
+                                                rad[~polemask]))
+                                                # Geodetic latitude (phi in Zhu paper)
     alti_gdz = U*( 1 - geoid['B2']/(geoid['A']*V))  # Geodetic altitude [km] (h in Zhu paper)
     long_gdz = np.rad2deg(np.arctan2( ry, rx ))  # Geodetic longitude (same as GEO)
 
