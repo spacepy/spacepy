@@ -75,12 +75,12 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
     """
     Plasmapause location model(s)
 
-    CA1992 -- Carpenter, D. L., and R. R. Anderson, An ISEE/whistler 
-    model of equatorial electron density in the magnetosphere, 
+    CA1992 -- Carpenter, D. L., and R. R. Anderson, An ISEE/whistler
+    model of equatorial electron density in the magnetosphere,
     J. Geophys. Res., 97, 1097, 1992.
-    M2002 -- Moldwin, M. B., L. Downward, H. K. Rassoul, R. Amin, 
-    and R. R. Anderson, A new model of the location of the plasmapause: 
-    CRRES results, J. Geophys. Res., 107(A11), 1339, 
+    M2002 -- Moldwin, M. B., L. Downward, H. K. Rassoul, R. Amin,
+    and R. R. Anderson, A new model of the location of the plasmapause:
+    CRRES results, J. Geophys. Res., 107(A11), 1339,
     doi:10.1029/2001JA009211, 2002.
     RT1970 -- Rycroft, M. J., and J. O. Thomas, The magnetospheric
     plasmapause and the electron density trough at the alouette i
@@ -99,6 +99,11 @@ def getPlasmaPause(ticks, model='M2002', LT='all', omnivals=None):
         requested local time sector, 'all' is valid option
     omnivals : spacepy.datamodel.SpaceData, dict
         dict-like containing UTC (datetimes) and Kp keys
+
+    Warns
+    =====
+    RuntimeWarning
+        If the CA1992 model is called with LT as it is not implemented 
 
     Returns
     =======
