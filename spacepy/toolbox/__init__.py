@@ -1067,6 +1067,10 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
 
     This is similar to the deprecated ``urlretrieve``.
 
+    .. versionchanged:: 0.5.0
+       In earlier versions of SpacePy invalid combinations of cached and outfile raised RuntimeError,
+       changed to ValueError.
+
     Parameters
     ----------
     url : str
@@ -1079,24 +1083,15 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
     cached : bool (optional)
         Compare modification time of the URL to the modification time
         of ``outfile``; do not retrieve (and return None) unless
-        the URL is newer than the file.
+        the URL is newer than the file. Is set outfile is required.
     keepalive : bool (optional)
         Attempt to keep the connection open to retrieve more URLs.
         The return becomes a tuple of (data, conn) to return the
         connection used so it can be used again. This mode does not
-        support proxies. (Default False)
+        support proxies. Required to be True if conn is provided. (Default False)
     conn : http.client.HTTPConnection (optional)
         An established http connection (HTTPS is also okay) to use with
         ``keepalive``. If not provided, will attempt to make a connection.
-
-    Raises
-    ------
-    ValueError
-        If conn is provided and keepalive is not True
-    RuntimeError
-        HTTP status >= 400 returned
-    RuntimeError
-        If cached is True and an outfile is not set.
 
     Returns
     -------
@@ -1170,7 +1165,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         if outfile is None:
             if not keepalive:
                 r.close()
-            raise RuntimeError('Must specify outfile if cached is True')
+            raise ValueError('Must specify outfile if cached is True')
         if os.path.exists(outfile) and modified is not None:
             #Timestamp is truncated to second, so do same for local
             local_mod = int(os.path.getmtime(outfile))
@@ -1232,11 +1227,6 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         Only update files if timestamp on server is newer than
         timestamp on local file (default). Set False to always
         download files.
-
-    Raises
-    ------
-    RuntimeError
-        OMNI2 zip file is not as expected
 
     Returns
     -------
@@ -1504,7 +1494,7 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
         1D series of points
     time : list (optional)
         series of timestamps, optional (format as numeric or datetime)
-        For non-overlapping windows set overlap to zero.
+        For non-overlapping windows set overlap to zero. Must be same length as data.
     winsize : integer or datetime.timedelta (optional)
         window size
     overlap : integer or datetime.timedelta (optional)
@@ -1514,15 +1504,6 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
         point can be specified
     op : callable (optional)
         the operator to be called, default numpy.mean
-
-    Raises
-    ------
-    ValueError
-        data and time have different lengths
-    TypeError
-        winsize or overlap are not datetime.timedelta
-    ValueError
-        The requested overlap is larger than requested window
 
     Returns
     -------
@@ -1885,7 +1866,7 @@ def logspace(min, max, num, **kwargs):
 
     Notes
     -----
-    This function works on both numbers and datetime objects. This function is not leap second aware.
+    This function works on both numbers and datetime objects. Not leapsecond aware.
 
     Examples
     --------
@@ -1932,7 +1913,7 @@ def linspace(min, max, num, **kwargs):
 
     Notes
     -----
-    This function works on both numbers and datetime objects. This function is not leap second aware.
+    This function works on both numbers and datetime objects. Not leapsecond aware.
 
     Examples
     --------
@@ -2211,7 +2192,7 @@ def query_yes_no(question, default="yes"):
     Raises
     ------
     ValueError
-        The default answer is invalid.
+        The default answer is not in (None|"yes"|"no")
 
     Returns
     -------
