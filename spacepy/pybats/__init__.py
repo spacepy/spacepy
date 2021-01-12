@@ -993,7 +993,7 @@ class IdlFile(PbData):
         # For binary files, store information about file:
         self._endchar, self._int, self._float = endchar, inttype, floattype
 
-        # Save file interpretation options tucked as private attributes:
+        # Save file interpretation options tucked as protected attributes:
         self._header, self._keep_case = header, keep_case
 
         # Read one entry of the file (defaults to first frame):
