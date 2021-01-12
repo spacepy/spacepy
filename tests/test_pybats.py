@@ -26,7 +26,7 @@ import spacepy.pybats.gitm as gitm
 
 __all__ = ['TestParseFileTime', 'TestIdlFile', 'TestRim', 'TestBats2d',
            'TestMagGrid', 'TestSatOrbit', 'TestVirtSat', 'TestImfInput',
-           'TestExtraction']
+           'TestExtraction', 'TestProbeIdlFile']
 
 class TestParseFileTime(unittest.TestCase):
     '''
@@ -52,7 +52,34 @@ class TestParseFileTime(unittest.TestCase):
         from spacepy.pybats import parse_filename_time
         for f, d, t, i in zip(self.files, self.dates, self.times, self.iters):
             self.assertEqual( parse_filename_time(f), (i,t,d) )
-        
+
+class TestProbeIdlFile(unittest.TestCase):
+    '''
+    Test the function :func:`spacepy.pybats._probe_idlfile` across many
+    different compatible files.
+    '''
+    pth = os.path.dirname(os.path.abspath(__file__))
+
+    filelist = [os.path.join(pth, 'data', 'pybats_test', 'y0_binary.out'),
+                os.path.join(pth, 'data', 'pybats_test', 'y0_ascii.out'),
+                os.path.join(pth, 'data', 'pybats_test', 'mag_grid_binary.out'),
+                os.path.join(pth, 'data', 'pybats_test', 'mag_grid_ascii.out')]
+    
+    knownResponses = [('bin', '<', np.dtype('int32'), np.dtype('float32')),
+                      ('asc', False, False, False),
+                      ('bin', '<', np.dtype('int32'), np.dtype('float64')),
+                      ('asc', False, False, False)]
+
+    def testProbe(self):
+        # Loop over various IdlFile files:
+        for f, known in zip(self.filelist, self.knownResponses):
+            # Probe to get format, binary information:
+            response = pb._probe_idlfile(f)
+            # Test for correct responses:
+            for r, k in zip(response, known):
+                self.assertEqual(r, k)
+
+
 class TestIdlFile(unittest.TestCase):
     '''
     Test the class :class:`spacepy.pybats.IdlFile` for different output
@@ -98,19 +125,6 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdXmin, mhd['x'].min())
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
-
-    def testReadAsciiAsBin(self):
-        """Read an ASCII file as a binary"""
-        try:
-            data = pb.IdlFile(os.path.join(
-                spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out'),
-                              format='bin', header=None, keep_case=True)
-        except EOFError as e:
-            msg = str(e)
-        else:
-            self.fail('Should have raised EOFError')
-        self.assertEqual(msg, 'File is shorter than expected data')
-
 
 class TestRim(unittest.TestCase):
 
@@ -254,11 +268,9 @@ class TestMagGrid(unittest.TestCase):
     def testOpen(self):
         # Open both binary and ascii versions of same data.
         # Ensure expected values are loaded.
-        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
-                                          'pybats_test', 'mag_grid_ascii.out'),
-                              format='ascii')
-        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
-                                          'pybats_test', 'mag_grid_binary.out'))
+
+        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -282,11 +294,8 @@ class TestMagGrid(unittest.TestCase):
     def testCalc(self):
         # Open both binary and ascii versions of same data.
         # Ensure calculations give expected values.
-        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
-                                          'pybats_test', 'mag_grid_ascii.out'),
-                              format='ascii')
-        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
-                                          'pybats_test', 'mag_grid_binary.out'))
+        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
 
         # Calculation of H-component:
         m1.calc_h()

@@ -653,15 +653,15 @@ class Stream(Extraction):
 
 class Bats2d(IdlFile):
     '''
-    A child class of :class:`~pybats.IdlFile` taylored to BATS-R-US output.
+    A child class of :class:`~pybats.IdlFile` tailored to BATS-R-US output.
     '''
     # Init by calling IdlFile init and then building qotree, etc.
-    def __init__(self, filename, format='binary'):
+    def __init__(self, filename, *args, **kwargs):
 
         from spacepy.pybats import parse_filename_time
         
         # Read file.
-        IdlFile.__init__(self, filename, format=format, keep_case=False)
+        IdlFile.__init__(self, filename, keep_case=False, *args, **kwargs)
 
         self._qtree=None
 
