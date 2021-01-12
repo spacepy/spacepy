@@ -110,7 +110,7 @@ convenience functions for customizing plots.
 
 '''
 
-__contact__ = 'Dan Welling, dwelling@umich.edu'
+__contact__ = 'Dan Welling, daniel.welling@uta.edu'
 
 # Global imports (used ubiquitously throughout this module.
 import os.path
@@ -347,7 +347,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
         add_planet(ax, ang=ang, add_night=add_night, zorder=zorder+5)
 
     ax.add_artist(body)
-        
+
 
 def _read_idl_ascii(pbdat, header='units', keep_case=True):
     '''
@@ -365,12 +365,12 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
     in the object's attribute list under 'header'.
 
     Parameters
-    ==========
+    ----------
     pbdat : PbData object
         The object into which the data will be loaded.
 
     Other Parameters
-    ================
+    ----------------
     header : string or **None**
         A string indicating how the header line will be handled; see above.
     keep_case : boolean
@@ -378,7 +378,7 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
         set to False, variable names will be set to all lower case.
     
     Returns
-    =======
+    -------
     True : Boolean
         Returns True on success.
 
@@ -584,6 +584,81 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
 
     return A
 
+      
+def _probe_idlfile(filename):
+    '''
+    For an SWMF IDL-formatted output file, probe the header to determine if the
+    file is ASCII or binary formatted.  If binary, attempt to determine the 
+    byte ordering (i.e., endianess) and size of floating point values.
+
+    Parameters
+    ----------
+    filename : str
+        String path of file to probe.
+
+    Other Parameters
+    ----------------
+    None
+
+    Returns
+    -------
+    fmt : str
+        Format of file, either "asc" or "bin" for ASCII or binary, respectively.
+
+    endian : str
+        Binary byte ordering, either '<' or '>' for little or big endianess,
+        respectively (None for ASCII).
+
+    inttype : numpy.dtype
+        A numpy data type representing the size of the file's integers with
+        the appropriate byte ordering.  Returns None for ASCII files.
+
+    floattype : numpy.dtype
+        A numpy data type representing the size of the file's floating point
+        values with the appropriate byte ordering.  Returns None for ASCII 
+        files.
+
+    '''
+
+    # Set default guesses:
+    endian    = '<'
+    inttype   = np.dtype(np.int32)
+    floattype = np.dtype(np.float32)
+
+    with open(filename, 'rb') as f:
+        # On the first try, we may fail because of wrong-endianess.
+        # If that is the case, swap that endian and try again.
+        inttype.newbyteorder(endian)
+
+        try:
+            # Try to parse with little endian byte ordering:
+            headline=readarray(f,str,np.int32)
+        except (ValueError,EOFError):
+            # On fail, rewind and try with big endian byte ordering:
+            endian='>'
+            inttype.newbyteorder(endian)
+            f.seek(0)
+            # Attempt to read and parse the header line again:
+            # If we fail here, almost certainly an ascii file.
+            try:
+                headline=readarray(f,str,)
+                headline=headline.decode('utf-8')
+            except (ValueError,EOFError):
+                return 'asc', False, False, False
+
+        # detect double-precision file.
+        pos=f.tell()
+
+        RecLen=np.fromfile(f,dtype=inttype,count=1)
+        f.seek(pos)
+
+        # Set data types
+        if RecLen > 20:
+            floattype=np.dtype(np.float64)
+        floattype.newbyteorder(endian)
+
+    return 'bin', endian, inttype, floattype
+
 def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
@@ -600,12 +675,12 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
     in the object's attribute list under 'header'.
 
     Parameters
-    ==========
+    ----------
     pbdat : PbData object
         The object into which the data will be loaded.
 
     Other Parameters
-    ================
+    ----------------
     header : string or **None**
         A string indicating how the header line will be handled; see above.
     keep_case : boolean
@@ -613,7 +688,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
         set to False, variable names will be set to all lower case.
 
     Returns
-    =======
+    -------
     True : Boolean
         Returns True on success.
 
@@ -888,37 +963,59 @@ class IdlFile(PbData):
     entry, or RecLen), it will proceed using big endian ordering.  If this
     doesn't work, the error will manifest itself through the "struct" package
     as an "unpack requires a string of argument length 'X'".
+
+    Parameters
+    ----------
+    filename : string
+        A *.out or *.outs SWMF output file name.
+
+    Other Parameters
+    ----------------
+    header : str or **None**
+        Determine how to interpret the additional header information.
+        Defaults to 'units'.
+
+    keep_case : boolean
+        If set to True, the case of variable names will be preserved.  If
+        set to False, variable names will be set to all lower case.
     '''
 
-    def __init__(self, filename,format=None,header='units',
+    def __init__(self, filename, iframe=0, header='units',
                  keep_case=True, *args,**kwargs):
         super(IdlFile, self).__init__(*args, **kwargs)  # Init as PbData.
+
+        # Gather information about the file: format, endianess (if necessary),
+        # number of picts/frames, etc.:
+        fmt, endchar, inttype, floattype = _probe_idlfile(filename)
         self.attrs['file']   = filename   # Save file name.
-        self.attrs['format'] = format     # Save file format.
-        self.read(header, keep_case)   # Read file.
+        self.attrs['format'] = fmt        # Save file format.
+
+        # For binary files, store information about file:
+        self._endchar, self._int, self._float = endchar, inttype, floattype
+
+        # Save file interpretation options tucked as private attributes:
+        self._header, self._keep_case = header, keep_case
+
+        # Read one entry of the file (defaults to first frame):
+        self.read(iframe=iframe)      # Read file.
 
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
-    
-    def read(self, header, keep_case):
+
+    def read(self, iframe=0):
         '''
         This method reads an IDL-formatted BATS-R-US output file and places
         the data into the object.  The file read is self.filename which is
         set when the object is instantiation.
         '''
 
-        if self.attrs['format'] is None:
-            try:
-                _read_idl_bin(self, header=header, keep_case=keep_case)
-            except (ValueError, EOFError, MemoryError):
-                _read_idl_ascii(self, header=header, keep_case=keep_case)
-        elif self.attrs['format'][:3] == 'bin':
-            _read_idl_bin(self, header=header, keep_case=keep_case)
-        elif self.attrs['format'][:3] == 'asc':
-            _read_idl_ascii(self, header=header, keep_case=keep_case)
+        if self.attrs['format'] == 'asc':
+            _read_idl_ascii(self, header=self._header, keep_case=self._keep_case)
+        elif self.attrs['format'] == 'bin':
+            _read_idl_bin(self, header=self._header, keep_case=self._keep_case)
         else:
-            raise ValueError('Unrecognized file format: {}'.format(
-                self.attrs['format']))
+             raise ValueError('Unrecognized file format: {}'.format(
+                self._format))
         
 class LogFile(PbData):
     ''' An object to read and handle SWMF-type logfiles.
