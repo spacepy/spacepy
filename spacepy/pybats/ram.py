@@ -1519,7 +1519,7 @@ class BoundaryFluxFile(object):
         cbar.set_label('$cm^{-2}s^{-1}ster^{-1}keV^{-1}$')
         ax.set_xlim([0, 24])
         ax.set_ylim([0, self.nE-1])
-        if self.time:
+        if hasattr(self, 'time'):
             ax.set_title(self.time.isoformat())
         ax.set_xlabel('Local Time Sector')
         if hasattr(self, 'E'):
@@ -1529,7 +1529,12 @@ class BoundaryFluxFile(object):
                 newlabs.append('%6.2f' % self.E[int(val)])
             ax.set_yticklabels(newlabs)
         else:
-            ax.set_ylabel('Energy Bin')
+            ecentr, ebound, ewidth = gen_egrid(self.nE)
+            ax.set_ylabel('Energy (keV)')
+            newlabs = []
+            for val in ax.get_yticks()[:-1]:
+                newlabs.append('%6.2f' % ecentr[int(val)])
+            ax.set_yticklabels(newlabs)
 
         return fig, ax
 
