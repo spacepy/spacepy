@@ -648,7 +648,6 @@ def _probe_idlfile(filename):
 
         # detect double-precision file.
         pos=f.tell()
-
         RecLen=np.fromfile(f,dtype=inttype,count=1)
         f.seek(pos)
 
@@ -662,7 +661,9 @@ def _probe_idlfile(filename):
 def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
-    object.  This should only be called by :class:`IdlFile`.
+    object.  This should only be called by :class:`IdlFile`, which will
+    include information on endianess and size of integers & floating point
+    values.
 
     The input object must have the name of the file to be opened and read 
     stored in its attributes list and named 'file'.
@@ -694,48 +695,22 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
 
     '''
 
+    # Some convenience variables:
+    endchar, inttype, floattype = pbdat._endchar, pbdat._int, pbdat._float
+    
     # Open, read, and parse the file into numpy arrays.
     # Note that Fortran writes integer buffers around records, so
     # we must parse those as well.
     with open(pbdat.attrs['file'], 'rb') as infile:
-        # On the first try, we may fail because of wrong-endianess.
-        # If that is the case, swap that endian and try again.
-        endian='little'
-
-        inttype=np.dtype(np.int32)
-        EndChar='<'
-        inttype.newbyteorder(EndChar)
-
-        try:
-            headline=readarray(infile,str,np.int32)
-        except (ValueError,EOFError):
-            endian='big'
-            EndChar='>'
-            inttype.newbyteorder(EndChar)
-            infile.seek(0)
-            headline=readarray(infile,str,)
+        # Read header information.
+        headline=readarray(infile,str,inttype)
         headline=headline.decode('utf-8')
         
-        pbdat.attrs['endian']=endian
-
-        # detect double-precision file.
-        pos=infile.tell()
-
-        RecLen=np.fromfile(infile,dtype=inttype,count=1)
-        infile.seek(pos)
-
-        # Set data types
-        if RecLen > 20:
-            floattype=np.dtype(np.float64)
-        else:
-            floattype=np.dtype(np.float32)
-        floattype.newbyteorder(EndChar)
-
         # Parse rest of header
         header_fields_dtype=np.dtype([
             ('it',np.int32),('t',floattype),('ndim',np.int32),
             ('npar',np.int32),('nvar',np.int32)])
-        header_fields_dtype.newbyteorder(EndChar)
+        header_fields_dtype.newbyteorder(endchar)
 
         (pbdat.attrs['iter'], pbdat.attrs['runtime'],
          pbdat.attrs['ndim'], pbdat.attrs['nparam'], pbdat.attrs['nvar']) = \
