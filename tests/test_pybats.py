@@ -482,18 +482,15 @@ class TestBats2d(unittest.TestCase):
                  'wy':0.0, 'u':1285.6114501953125}
     knownMax2 = {'jx': 1.680669083725661e-05, 'jbz': 8.276679608343329e-08,
                  'wy': 0.0, 'u': 1285.6114501953125}
-    varnames = ['t', 'j', 'b', 'u', 'b_hat', 'u_perp', 'u_par', 'E', 'beta', 'jb', 'alfven']
-    
+    calcnames = ['t', 'j', 'b', 'u', 'b_hat', 'u_perp', 'u_par',
+                 'E', 'beta', 'jb', 'alfven']
+
     def setUp(self):
-        self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
-                                           'y=0_mhd_1_e20140410-000050.out'))
+        self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir,
+                                           'pybats_test', 'y0_binary.out'))
         self.outs = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                             'y=0_mhd_1_e20140410-000000-000_' +
                                             '20140410-000200-000.outs'))
-
-    def testCalc(self):
-        # Test all calculations:
-        self.mhd.calc_all()
 
     def testSwitchFrame(self):
         '''Test switching frames and associated calculations'''
