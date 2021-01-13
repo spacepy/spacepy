@@ -142,6 +142,17 @@ class CTransClassTests(unittest.TestCase):
         numpy.testing.assert_approx_equal(exp1, exp3, significant=3)
         numpy.testing.assert_approx_equal(exp2, exp3, significant=3)
 
+    def test_convert_2D_same_as_1D(self):
+        """2D input should give same answer as 1D input repeated"""
+        self.CTrans2000.calcCoreTransforms()
+        pos = [1.1, 2.2, 3.3]
+        pos_1d = numpy.array(pos)
+        pos_2d = numpy.array([pos, pos])
+        got_1d = self.CTrans2000.convert(pos_1d, 'GSE', 'GEO')
+        got_2d = self.CTrans2000.convert(pos_2d, 'GSE', 'GEO')
+        numpy.testing.assert_allclose(got_1d, got_2d[0])
+        numpy.testing.assert_allclose(got_1d, got_2d[1])
+
 
 class CTransRegressionTests(unittest.TestCase):
     def setUp(self):
