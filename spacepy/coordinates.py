@@ -21,7 +21,7 @@ clarifies the different systems.
     * **GSM** Geocentric Solar Magnetospheric
     * **GSE** Geocentric Solar Ecliptic
     * **SM** Solar Magnetic
-    * **MAG** Geomagnetic Coordinate System
+    * **MAG** Geomagnetic Coordinate System (aka CDMAG)
 
     Earth-fixed Systems
     -------------------
@@ -34,6 +34,26 @@ where altitude is relative to a reference ellipsoid. Similarly, distance
 units are assumed to be Earth radii (Re) in all systems except GDZ, where
 altitude is given in km. Conversions to GDZ will output altitude in km
 regardless of the input distance units.
+
+Notes on differences between representations
+--------------------------------------------
+IRBEM's coordinate transformations are low-accuracy and were written for
+a library with a driving philosophy of speed and robustness as priorities.
+The coordinate transformations are therefore approximate. Further, most of
+the geophysical systems (e.g., GSE, SM) are derived from an inertial
+system. It is standard practice to use ECIMOD as this system. However,
+IRBEM does not currently make ECIMOD available as one of its inertial
+systems. IRBEM's default inertial system (called GEI) is consistent with
+an approximation of ECITOD. Hence there will be small differences between
+IRBEM's transformations and those using SpacePy's CTrans backend.
+Further sources of difference include: IRBEM uses a low-order approximation
+to the sidereal time and other parameters; the calculation of the Earth-Sun
+vector differs between the representations; the definitions of an Earth
+radius differ (SpacePy = 6378.137km; IRBEM = 6371.2 km). SpacePy's in-built
+representation is higher accuracy and is comprehensively tested, including
+tests for consistency with other high accuracy packages such as LANLGeoMag
+and AstroPy. However, for use cases where the required precision is of order
+1 percent the output can be considered equivalent.
 
 Authors: Steven Morley and Josef Koller
 Institution: Los ALamos National Laboratory
@@ -58,15 +78,15 @@ __contact__ = 'Steven Morley, smorley@lanl.gov'
 # -----------------------------------------------
 
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
-    'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
-    'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
-    'GEI': {'sph': None, 'car': 5}, 'ECIMOD': {'sph': None, 'car': 12},
-    'MAG': {'sph': None, 'car': 6}, 'SPH': {'sph': 7, 'car': None},
-    'RLL': {'sph': 8, 'car': None}, 'TOD': {'sph': None, 'car': 12},
-    'ECITOD': {'sph': None, 'car': 12}, 'J2000': {'sph': None, 'car': 13},
-    'ECI2000': {'sph': None, 'car': 13}}
+                 'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
+                 'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
+                 'GEI': {'sph': None, 'car': 5}, 'CDMAG': {'sph': None, 'car': 6},
+                 'MAG': {'sph': None, 'car': 6}, 'SPH': {'sph': 7, 'car': None},
+                 'RLL': {'sph': 8, 'car': None}, 'TOD': {'sph': None, 'car': 12},
+                 'ECITOD': {'sph': None, 'car': 12}, 'J2000': {'sph': None, 'car': 13},
+                 'ECI2000': {'sph': None, 'car': 13}, 'ECIMOD': {'sph': None, 'car': 14}}
 
-SYS_EQUIV = {'GEI': 'ECITOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000'}
+SYS_EQUIV = {'GEI': 'ECITOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000', 'MAG': 'CDMAG'}
 
 
 class Coords(object):
