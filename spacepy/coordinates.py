@@ -14,7 +14,7 @@ clarifies the different systems.
     * **ECI2000** Earth-centered Inertial, J2000 epoch
     * **ECIMOD** Earth-centered Inertial, mean-of-date
     * **ECITOD** Earth-centered Inertial, true-of-date
-    * **GEI** Geocentric Equatorial Inertial. Approximation of ECIMOD.
+    * **GEI** Geocentric Equatorial Inertial (IRBEM approximation of TOD)
 
     Magnetospheric Systems
     ----------------------
@@ -60,13 +60,13 @@ __contact__ = 'Steven Morley, smorley@lanl.gov'
 SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
     'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
     'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
-    'GEI': {'sph': None, 'car': 5}, 'ECIMOD': {'sph': None, 'car': 5},
+    'GEI': {'sph': None, 'car': 5}, 'ECIMOD': {'sph': None, 'car': 12},
     'MAG': {'sph': None, 'car': 6}, 'SPH': {'sph': 7, 'car': None},
     'RLL': {'sph': 8, 'car': None}, 'TOD': {'sph': None, 'car': 12},
     'ECITOD': {'sph': None, 'car': 12}, 'J2000': {'sph': None, 'car': 13},
     'ECI2000': {'sph': None, 'car': 13}}
 
-SYS_EQUIV = {'GEI': 'ECIMOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000'}
+SYS_EQUIV = {'GEI': 'ECITOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000'}
 
 
 class Coords(object):
@@ -155,7 +155,7 @@ class Coords(object):
                           DeprecationWarning)
         self.use_irbem = use_irbem
         # setup units
-        self.Re = 6371.0 if use_irbem else ctrans.WGS84['A']  # kilometers
+        self.Re = 6371.2 if use_irbem else ctrans.WGS84['A']  # kilometers
 
         # Make sure that inputs are all formed correctly
         self.data = np.atleast_2d(data).astype(np.float_)
@@ -168,6 +168,10 @@ class Coords(object):
         assert dtype in list(SYSAXES_TYPES.keys()), 'This dtype='+dtype+' is not supported. Only '+str(list(SYSAXES_TYPES.keys()))
         assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
         onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
+
+        if dtype == 'GDZ' and carsph == 'car':
+            raise ValueError("Geodetic coordinates are referenced to an ellipsoid "
+                             + "and can not be properly represented as Cartesian")
 
         # add ticks
         if ticks:
@@ -342,6 +346,11 @@ class Coords(object):
         # Check whether the name is an equivalent IRBEM name
         returnname = SYS_EQUIV[returntype] if returntype in SYS_EQUIV else returntype
         is_dtype_returntype = (self.dtype == returntype) or (self.dtype == returnname)
+
+        if returntype == 'GDZ' and returncarsph == 'car':
+            raise ValueError("Geodetic coordinates are referenced to an ellipsoid "
+                             + "and can not be properly represented as Cartesian")
+
         # Then check whether a full coordinate transformation is required
         if is_dtype_returntype:
             if self.carsph == returncarsph:
@@ -382,10 +391,12 @@ class Coords(object):
 
         if self.use_irbem:
             from . import irbempy as op
+            # irbempy.coord_trans needs the passed Coords object to have the "from" dtype
             NewCoords = Coords(data, self.dtype, carsph, units, self.ticks, use_irbem=self.use_irbem)
         else:
+            # SpacePy conversion takes input/output type separately, so set to desired output
             NewCoords = Coords(data, returntype if self.use_irbem else returnname,
-                               carsph, units, self.ticks, use_irbem=self.use_irbem)
+                               returncarsph, units, self.ticks, use_irbem=self.use_irbem)
 
         # now convert to other coordinate system
         if not is_dtype_returntype:
@@ -393,7 +404,7 @@ class Coords(object):
             if self.use_irbem:
                 if returnname == 'GDZ' and self.units[0] == 'km':
                     data /= self.Re  # IRBEM geodetic calculation requires Re
-                NewCoords.data = op.coord_trans(self, returntype, returncarsph)
+                NewCoords.data = op.coord_trans(NewCoords, returntype, returncarsph)
                 NewCoords.dtype = returntype
             else:
                 if returnname == 'GDZ' and self.units[0] == 'Re':
@@ -402,14 +413,17 @@ class Coords(object):
                                                                         returnname))
                 if returncarsph == 'sph' and returnname not in ['GDZ']:
                     NewCoords.data = car2sph(NewCoords.data)
+            if self.dtype == 'GDZ':  # GDZ is defined in km and evertyhing else is strictly Re
+                NewCoords.units[0] = 'Re'  # Converting back from GDZ set units to Re
             NewCoords.carsph = returncarsph
             NewCoords.sysaxes = SYSAXES_TYPES[NewCoords.dtype][NewCoords.carsph]
 
-        # fix corresponding attributes
-        if returntype == 'GDZ':
-            units[0] == 'km'
+        # Correct corresponding attributes and units
         if returncarsph == 'sph':
-            NewCoords.units = [units[0], 'deg','deg']
+            if returnname == 'GDZ':
+                NewCoords.units = ['km', 'deg', 'deg']
+            else:
+                NewCoords.units = [units[0], 'deg','deg']
             for k in ('x', 'y', 'z'):
                 if hasattr(NewCoords, k):
                     delattr(NewCoords, k)
