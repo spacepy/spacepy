@@ -360,7 +360,33 @@ class coordsTestIrbem(unittest.TestCase):
         self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
         inertial = self.cvals.convert('GEI', 'car')
         np.testing.assert_allclose(inertial.z, self.cvals.z)
-        
+
+    def test_GSE_to_SMsph_vs_spacepy(self):
+        """Compare outputs on GSE Cartesian to SM spherical conversion"""
+        tt = Ticktock([2459218.5]*2, 'JD')
+        irb = spc.Coords(self.cvals.data, 'GSE', 'car', ticks=tt, use_irbem=True)
+        non_irb = spc.Coords(self.cvals.data, 'GSE', 'car', ticks=tt, use_irbem=False)
+        irb_got = irb.convert('SM', 'sph')
+        nonirb_got = non_irb.convert('SM', 'sph')
+        # Test is approx. as IRBEM systems are relative to TOD not MOD
+        np.testing.assert_allclose(irb_got.data, nonirb_got.data, rtol=5e-3)
+        self.assertEqual(irb_got.dtype, nonirb_got.dtype)
+        self.assertEqual(irb_got.carsph, nonirb_got.carsph)
+        self.assertEqual(irb_got.units, nonirb_got.units)
+
+    def test_SM_to_MAG_vs_spacepy(self):
+        """Compare outputs on GSE Cartesian to SM spherical conversion"""
+        tt = Ticktock([2459218.5]*2, 'JD')
+        irb = spc.Coords(self.cvals.data, 'SM', 'car', ticks=tt, use_irbem=True)
+        non_irb = spc.Coords(self.cvals.data, 'SM', 'car', ticks=tt, use_irbem=False)
+        irb_got = irb.convert('CDMAG', 'car')
+        nonirb_got = non_irb.convert('CDMAG', 'car')
+        # Test is approx. as IRBEM systems are relative to TOD not MOD
+        np.testing.assert_allclose(irb_got.data, nonirb_got.data, rtol=1e-3)
+        self.assertEqual(irb_got.dtype, nonirb_got.dtype)
+        self.assertEqual(irb_got.carsph, nonirb_got.carsph)
+        self.assertEqual(irb_got.units, nonirb_got.units)
+
 
 class QuaternionFunctionTests(unittest.TestCase):
     """Test of quaternion-related functions"""

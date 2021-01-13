@@ -1,6 +1,13 @@
 '''
 CTrans: Module for backend coordinate transformations in SpacePy
 
+This module is primarily intended to provide a backend for the standard
+`spacepy.coordinates.Coords` class. The `CTrans` class calculates all
+of the necessary information to convert between different coordinate
+systems _at a single time_. By using `spacepy.coordinates.Coords` the
+handling of multiple times is built in, and the calling syntax is
+backwards compatible with the legacy IRBEM-backed coordinate transforms.
+
 Coordinate systems supported by this module can broadly be described
 by two categories. The first category is a broad set of Earth-centered
 coordinate systems that are specified by astronomical parameters.
@@ -61,7 +68,7 @@ here) use a centered dipole axis.
     the dipole axis. As with GSE and GSM, y is positive in the anti-orbit
     direction. The x-axis therefore is not aligned with the Sun-Earth line and
     SM is a rotation about the y-axis from the GSM system.
-- MAG: Geomagnetic
+- CDMAG: Geomagnetic
     This is a geomagnetic analog of the GEO system. The z-axis is aligned with
     the centered dipole axis of date. The y-axis is perpendicular to
     to both the dipole axis and True North, i.e., y is the cross product of
@@ -120,7 +127,7 @@ class Ellipsoid(dm.SpaceData):
 # World Geodetic System 1984 (WGS84) parameters
 WGS84 = Ellipsoid()
 
-magsys = ['GSM', 'SM', 'MAG']
+magsys = ['GSM', 'SM', 'CDMAG']
 
 
 class CTrans(dm.SpaceData):
