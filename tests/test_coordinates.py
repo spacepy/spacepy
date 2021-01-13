@@ -176,6 +176,32 @@ class coordsTest(unittest.TestCase):
         np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
         np.testing.assert_approx_equal(expected.long, got.long, significant=6)
         np.testing.assert_approx_equal(expected.radi, got.radi, significant=6)
+        self.assertEqual(got.units[0], 'km')
+        self.assertEqual(expected.units[0], 'km')
+
+    def test_GDZ_to_other_returns_in_Re(self):
+        """Docs say everything is Re except GDZ, so make sure"""
+        tt = Ticktock(2459218.5, 'JD')
+        test_alt = 100  # km
+        pos = np.array([test_alt, 0, 90])  # km, deg, deg
+        cc_km = spc.Coords(pos, 'GDZ', 'sph', ticks=tt, units=['km', 'km', 'km'],
+                           use_irbem=False)
+        got = cc_km.convert('GEO', 'sph')
+        expected_rad = ctrans.WGS84['A'] + test_alt
+        # same valued output in Re regardless of units of input
+        np.testing.assert_approx_equal(expected_rad, got.radi, significant=6)
+        self.assertEqual(got.units[0], 'Re')
+
+    def test_GDZ_cartesian_raises_convert(self):
+        """Geodetic coordinates shouldn't be expressed in Cartesian"""
+        self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
+        self.assertRaises(ValueError, self.cvals.convert, 'GDZ', 'car')
+
+    def test_GDZ_cartesian_raises_creation(self):
+        """Geodetic coordinates shouldn't be expressed in Cartesian"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        self.assertRaises(ValueError, spc.Coords, pos, 'GDZ', 'car', ticks=tt, use_irbem=False)
 
 
 class coordsTestIrbem(unittest.TestCase):
@@ -302,6 +328,7 @@ class coordsTestIrbem(unittest.TestCase):
         expected = [[-2.118751061419987, -1.8297009536234092, 2.4825253744601286]]
         got = test_cc.convert('GSE', 'car')
         np.testing.assert_allclose(got.data, expected)
+        self.assertEqual(got.dtype, 'GSE')
 
     def test_GDZ_in_kilometers(self):
         """Explicitly set units should be respected"""
@@ -309,12 +336,31 @@ class coordsTestIrbem(unittest.TestCase):
         pos = np.array([2367.83158, -5981.75882, -4263.24591])
         cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
         got = cc_km.convert('GDZ', 'sph')
-        cc_Re = spc.Coords(pos/6371.2, 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'])
+        cc_Re = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'])
         expected = cc_Re.convert('GDZ', 'sph')
         np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
         np.testing.assert_approx_equal(expected.long, got.long, significant=6)
         np.testing.assert_approx_equal(expected.radi, got.radi, significant=4)
+        self.assertEqual(got.units[0], 'km')
+        self.assertEqual(expected.units[0], 'km')
 
+    def test_GDZ_cartesian_raises_convert(self):
+        """Geodetic coordinates shouldn't be expressed in Cartesian"""
+        self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
+        self.assertRaises(ValueError, self.cvals.convert, 'GDZ', 'car')
+
+    def test_GDZ_cartesian_raises_creation(self):
+        """Geodetic coordinates shouldn't be expressed in Cartesian"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        self.assertRaises(ValueError, spc.Coords, pos, 'GDZ', 'car', ticks=tt)
+
+    def test_GEI_is_TOD(self):
+        """IRBEM inertial isn't labelled, show it's TOD, i.e. GEO Z is TOD Z"""
+        self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
+        inertial = self.cvals.convert('GEI', 'car')
+        np.testing.assert_allclose(inertial.z, self.cvals.z)
+        
 
 class QuaternionFunctionTests(unittest.TestCase):
     """Test of quaternion-related functions"""
