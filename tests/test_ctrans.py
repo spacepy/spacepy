@@ -105,6 +105,18 @@ class CTransClassTests(unittest.TestCase):
         self.CTrans2000.calcTimes()
         self.assertEqual(saved, self.CTrans2000['UTC'])
 
+    def test_orbit_recalc(self):
+        """Multiple calls to calcOrbitParams should preserve state"""
+        self.CTrans2000.calcOrbitParams()
+        saved = copy.copy(self.CTrans2000['constants'])
+        self.CTrans2000.calcOrbitParams()
+        self.assertEqual(saved, self.CTrans2000['constants'])
+
+    def test_MagTransforms_calls_Core(self):
+        """calcMagTransforms should call calcCoreTransforms if they aren't set"""
+        self.CTrans2000.calcMagTransforms()
+        self.assertIn('DipoleTilt_rad', self.CTrans2000)
+
     @unittest.expectedFailure
     def test_GMST_versions_different(self):
         """GMST versions should not be identical"""
