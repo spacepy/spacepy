@@ -1,12 +1,11 @@
-
 import spacepy_testing
-import unittest
-import spacepy.coordinates as spc
 import glob
 import os
-import datetime
+import unittest
 from numpy import array
 import numpy as np
+from spacepy import ctrans
+import spacepy.coordinates as spc
 from spacepy.time import Ticktock
 try:
     import spacepy.irbempy as ib
@@ -19,19 +18,14 @@ except ImportError:
     HAVE_ASTROPY = False
 import spacepy.toolbox as tb
 
-__all__ = ['coordsTest']
+__all__ = ['coordsTest', 'coordsTestIrbem', 'QuaternionFunctionTests']
 
 
 class coordsTest(unittest.TestCase):
     def setUp(self):
-        #super(tFunctionTests, self).setUp()
-        try:
-            self.cvals = spc.Coords([[1,2,4],[1,2,2]], 'GEO', 'car')
-        except ImportError:
-            pass #tests will fail, but won't bring down the entire suite
+        self.cvals = spc.Coords([[1, 2, 4], [1, 2, 2]], 'GEO', 'car', use_irbem=False)
 
     def tearDown(self):
-        #super(tFunctionTests, self).tearDown()
         pass
 
     def test_coords(self):
@@ -42,19 +36,184 @@ class coordsTest(unittest.TestCase):
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
         newcoord = self.cvals.convert('GSM', 'sph')
 
+    def test_array_input_1D(self):
+        """Coords should build correctly and convert with array input"""
+        cvals = spc.Coords(np.array([1, 2, 4]), 'GEO', 'car', use_irbem=False)
+        out = cvals.convert('GEO', 'sph')
+
+    def test_array_input_2D(self):
+        """Coords should build correctly and convert with array input"""
+        cvals = spc.Coords(np.array([[1, 2, 4], [1, 2, 2]]), 'GEO', 'car', use_irbem=False)
+        out = cvals.convert('GEO', 'sph')
+
+    def test_bad_position_fails_1D(self):
+        """Positions nnot supplied as valid 3-vectors should fail"""
+        self.assertRaises(ValueError, spc.Coords, [[1, 2],[1, 2]], 'GEO', 'car', use_irbem=False)
+
+    def test_bad_position_fails_2D(self):
+        """Positions nnot supplied as valid 3-vectors should fail"""
+        self.assertRaises(ValueError, spc.Coords, np.array([1, 2]), 'GEO', 'car', use_irbem=False)
+
+    def test_bad_position_fails_scalar(self):
+        """Positions nnot supplied as valid 3-vectors should fail"""
+        self.assertRaises(ValueError, spc.Coords, 1, 'GEO', 'car', use_irbem=False)
+
     def test_append(self):
-        c2 = spc.Coords([[6,7,8],[9,10,11]], 'GEO', 'car')
+        """Test append functionality"""
+        c2 = spc.Coords([[6, 7, 8], [9, 10, 11]], 'GEO', 'car', use_irbem=False)
         actual = self.cvals.append(c2)
-        expected = [[1,2,4],[1,2,2],[6,7,8],[9,10,11]]
+        expected = [[1, 2, 4], [1, 2, 2], [6, 7, 8], [9, 10, 11]]
         np.testing.assert_equal(expected, actual.data.tolist())
 
     def test_slice(self):
-        expected = spc.Coords([1,2,4], 'GEO', 'car')
+        """Test slice functionality"""
+        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=False)
         np.testing.assert_equal(expected.data, self.cvals[0].data)
 
     def test_slice_with_ticks(self):
+        """Test slice functionality with ticks attribute"""
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
-        expected = spc.Coords([1,2,4], 'GEO', 'car')
+        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=False)
+        np.testing.assert_equal(expected.data, self.cvals[0].data)
+
+    def test_roundtrip_GEO_ECIMOD(self):
+        """Roundtrip should yield input as answer"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords(self.cvals.data, 'GEO', 'car', use_irbem=False)
+        stage1 = self.cvals.convert('ECIMOD', 'car')
+        got = stage1.convert('GEO', 'car')
+        np.testing.assert_allclose(got.data, expected.data)
+        np.testing.assert_equal(got.dtype, 'GEO')
+
+    def test_IRBEMname1(self):
+        """CTrans-based conversion should respect IRBEM-style names on input"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords(self.cvals.data, 'GEO', 'car', use_irbem=False)
+        stage1 = self.cvals.convert('GEI', 'car')
+        got = stage1.convert('GEO', 'car')
+        np.testing.assert_allclose(got.data, expected.data)
+        np.testing.assert_equal(got.dtype, 'GEO')
+
+    def test_IRBEMname2(self):
+        """CTrans-based conversion should respect IRBEM-style names on input"""
+        cvals = spc.Coords(self.cvals.data, 'GEI', 'car', use_irbem=False)
+        cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        stage1 = cvals.convert('GEO', 'car')
+        got = stage1.convert('GEI', 'car')
+        np.testing.assert_allclose(got.data, self.cvals.data)
+        np.testing.assert_equal(got.dtype, spc.SYS_EQUIV['GEI'])
+
+    def test_Coords_same_as_CTrans_1D(self):
+        """Make sure 1D position array gives correct answer"""
+        tt = Ticktock('2002-02-02T12:00:00', 'ISO')
+        pos = [1, 2, 3]
+        ctobj = ctrans.CTrans(tt)
+        ctobj.calcCoreTransforms()
+        expected = np.atleast_2d(ctobj.convert(pos, 'GEO', 'GSE'))
+        ccobj = spc.Coords(pos, 'GEO', 'car', ticks=tt, use_irbem=False)
+        got = ccobj.convert('GSE', 'car')
+        np.testing.assert_allclose(got.data, expected)
+
+    def test_Coords_same_as_CTrans_2D(self):
+        """Make sure 2D position array gives correct answer"""
+        tval = '2002-02-02T12:00:00'
+        tt = Ticktock([tval]*3, 'ISO')
+        pos = np.array([[1, 2, 3], [1, 2, 3], [1, 2, 3]])
+        ctobj = ctrans.CTrans(tt[0])
+        ctobj.calcCoreTransforms()
+        expected = ctobj.convert(pos, 'GEO', 'ECI2000')
+        ccobj = spc.Coords(pos, 'GEO', 'car', ticks=tt, use_irbem=False)
+        got = ccobj.convert('ECI2000', 'car')
+        np.testing.assert_allclose(got.data, expected)
+
+    def test_spherical_return_GEO(self):
+        """GEO should return correct spherical when requested (no conversion)"""
+        tt = Ticktock(['2002-02-02T12:00:00'], 'ISO')
+        pos = [3, 0, 3]
+        expected = [4.242640687119285, 45, 0]
+        ccobj = spc.Coords(pos, 'GEO', 'car', ticks=tt, use_irbem=False)
+        got = ccobj.convert('GEO', 'sph')
+        np.testing.assert_allclose(got.data, np.atleast_2d(expected))
+
+    def test_spherical_return_GEO_from_ECIMOD(self):
+        """GEO should return correct spherical when requested (converted)"""
+        tt = Ticktock(2459213.5, 'JD')
+        pos = [-0.46409501,  2.96391738,  2.99996826]
+        expected = [4.242640687119285, 45, 0]
+        ccobj = spc.Coords(pos, 'ECIMOD', 'car', ticks=tt, use_irbem=False)
+        got = ccobj.convert('GEO', 'sph')
+        np.testing.assert_allclose(got.data, np.atleast_2d(expected), rtol=0, atol=1e-7)
+
+    def test_spherical_input_from_GEO(self):
+        """Coords should return correct answer when given spherical (converted)"""
+        tt = Ticktock(2459213.5, 'JD')
+        pos = [4.242640687119285, 45, 0]
+        expected = [-0.46409501,  2.96391738,  2.99996826]
+        ccobj = spc.Coords(pos, 'GEO', 'sph', ticks=tt, use_irbem=False)
+        got = ccobj.convert('ECIMOD', 'car')
+        np.testing.assert_allclose(got.data, np.atleast_2d(expected), rtol=0, atol=1e-7)
+
+    def test_geodetic_from_GEO_spherical(self):
+        """Coords should return correct geodetic (converted)"""
+        tt = Ticktock(2459213.5, 'JD')
+        pos = [4.242640687119285, 45, 0]  # [3, 0, 3] Cartesian
+        expected = np.array([20692.69835948, 45.04527886, 0])
+        ccobj = spc.Coords(pos, 'GEO', 'sph', ticks=tt, use_irbem=False)
+        got = ccobj.convert('GDZ', 'sph')
+        np.testing.assert_allclose(got.data, np.atleast_2d(expected), rtol=0, atol=1e-7)
+
+    def test_GDZ_in_kilometers(self):
+        """Explicitly set units should be respected"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'],
+                           use_irbem=False)
+        got = cc_km.convert('GDZ', 'sph')
+        cc_Re = spc.Coords(pos/ctrans.WGS84['A'], 'GEI', 'car', ticks=tt,
+                           units=['Re', 'Re', 'Re'], use_irbem=False)
+        expected = cc_Re.convert('GDZ', 'sph')
+        # same valued output in km regardless of units of input
+        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
+        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
+        np.testing.assert_approx_equal(expected.radi, got.radi, significant=6)
+
+
+class coordsTestIrbem(unittest.TestCase):
+    def setUp(self):
+        #super(tFunctionTests, self).setUp()
+        try:
+            self.cvals = spc.Coords([[1, 2, 4],[1, 2, 2]], 'GEO', 'car', use_irbem=True)
+        except ImportError:
+            pass #tests will fail, but won't bring down the entire suite
+
+    def tearDown(self):
+        #super(tFunctionTests, self).tearDown()
+        pass
+
+    def test_coords(self):
+        """Coords should create and do simple conversions"""
+        np.testing.assert_equal([1, 1], self.cvals.x)
+        np.testing.assert_equal([2, 2], self.cvals.y)
+        np.testing.assert_equal([4, 2], self.cvals.z)
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
+        newcoord = self.cvals.convert('GSM', 'sph')
+
+    def test_append(self):
+        """Test append functionality"""
+        c2 = spc.Coords([[6, 7, 8], [9, 10, 11]], 'GEO', 'car', use_irbem=True)
+        actual = self.cvals.append(c2)
+        expected = [[1, 2, 4], [1, 2, 2], [6, 7, 8], [9, 10, 11]]
+        np.testing.assert_equal(expected, actual.data.tolist())
+
+    def test_slice(self):
+        """Test slice functionality"""
+        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=True)
+        np.testing.assert_equal(expected.data, self.cvals[0].data)
+
+    def test_slice_with_ticks(self):
+        """Test slice functionality with ticks attribute"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=True)
         np.testing.assert_equal(expected.data, self.cvals[0].data)
 
     @unittest.skipUnless(HAVE_ASTROPY, 'requires Astropy')
@@ -128,10 +287,38 @@ class coordsTest(unittest.TestCase):
         # Check that the time was loaded correctly
         np.testing.assert_allclose((sc.obstime - coords.ticks.APT).to('s').value, 0)
 
+    def test_roundtrip_GEO_GEI(self):
+        """Roundtrip should yield input as answer"""
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
+        expected = spc.Coords(self.cvals.data, 'GEO', 'car', use_irbem=True)
+        stage1 = self.cvals.convert('GEI', 'car')
+        got = stage1.convert('GEO', 'car')
+        np.testing.assert_allclose(got.data, expected.data)
+        np.testing.assert_equal(got.dtype, 'GEO')
+
+    def test_GEO_GSE(self):
+        """Regression test for IRBEM call"""
+        test_cc = spc.Coords([1, 2, 3], 'GEO', 'car', ticks=Ticktock([2459213.5], 'JD'))
+        expected = [[-2.118751061419987, -1.8297009536234092, 2.4825253744601286]]
+        got = test_cc.convert('GSE', 'car')
+        np.testing.assert_allclose(got.data, expected)
+
+    def test_GDZ_in_kilometers(self):
+        """Explicitly set units should be respected"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
+        got = cc_km.convert('GDZ', 'sph')
+        cc_Re = spc.Coords(pos/6371.2, 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'])
+        expected = cc_Re.convert('GDZ', 'sph')
+        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
+        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
+        np.testing.assert_approx_equal(expected.radi, got.radi, significant=4)
+
 
 class QuaternionFunctionTests(unittest.TestCase):
     """Test of quaternion-related functions"""
-    
+
     def test_quaternionNormalize(self):
         """quaternionNormalize should have known results"""
         tst = spc.quaternionNormalize([0.707, 0, 0.707, 0.2])
@@ -466,7 +653,7 @@ class QuaternionFunctionTests(unittest.TestCase):
         expected = spc.quaternionToMatrix(spc.quaternionNormalize([1, 2, 3, 4]))
         np.testing.assert_array_almost_equal(
             actual, expected)
-    
+
 
 if __name__ == "__main__":
     ## suite = unittest.TestLoader().loadTestsFromTestCase(coordsTest)
