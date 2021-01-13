@@ -18,7 +18,15 @@ except ImportError:
     HAVE_ASTROPY = False
 import spacepy.toolbox as tb
 
-__all__ = ['coordsTest', 'coordsTestIrbem', 'QuaternionFunctionTests']
+__all__ = ['coordsTest', 'coordsTestIrbem', 'QuaternionFunctionTests', 'moduleTest']
+
+
+class moduleTest(unittest.TestCase):
+    def test_car2sph_poles(self):
+        """Conversion to spherical should be correct at pole"""
+        poles = np.array([[0, 0, 4], [0, 0, -4]])
+        got = spc.car2sph(poles)
+        np.testing.assert_array_almost_equal(got, [[4, 90, 0], [4, -90, 0]])
 
 
 class coordsTest(unittest.TestCase):
@@ -75,6 +83,10 @@ class coordsTest(unittest.TestCase):
         self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')
         expected = spc.Coords([1, 2, 4], 'GEO', 'car', use_irbem=False)
         np.testing.assert_equal(expected.data, self.cvals[0].data)
+
+    def test_len(self):
+        """len of Coords should return number of 3-vectors"""
+        self.assertEqual(len(self.cvals), 2)
 
     def test_roundtrip_GEO_ECIMOD(self):
         """Roundtrip should yield input as answer"""
@@ -329,6 +341,17 @@ class coordsTestIrbem(unittest.TestCase):
         got = test_cc.convert('GSE', 'car')
         np.testing.assert_allclose(got.data, expected)
         self.assertEqual(got.dtype, 'GSE')
+
+    def test_GEO_is_SPH(self):
+        """GEO in spherical is SPH"""
+        test_gsp = spc.Coords([4, 45, 90], 'GEO', 'sph', ticks=Ticktock([2459213.5], 'JD'))
+        test_ssp = spc.Coords([4, 45, 90], 'SPH', 'sph', ticks=Ticktock([2459213.5], 'JD'))
+        got_gsp = test_ssp.convert('GEO', 'sph')
+        got_car1 = test_gsp.convert('GEO', 'car')
+        np.testing.assert_allclose(got_gsp.data, test_ssp.data)
+        got_car2 = test_gsp.convert('SPH', 'car')
+        got_car3 = test_ssp.convert('SPH', 'car')
+        np.testing.assert_allclose(got_car2.data, got_car3.data)
 
     def test_GDZ_in_kilometers(self):
         """Explicitly set units should be respected"""
