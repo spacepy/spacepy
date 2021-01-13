@@ -3,6 +3,38 @@
 """
 Implementation of Coords class functions for coordinate transformations
 
+The coordinate systems supported by this module cover the most commonly
+used geophysical and magnetospheric systems. The naming conventions can
+follow the names used by the popular IRBEM library, but for inertial
+systems we use a more consistent, fine-grained naming convention that
+clarifies the different systems.
+
+    Earth-centered Inertial Systems
+    -------------------------------
+    * **ECI2000** Earth-centered Inertial, J2000 epoch
+    * **ECIMOD** Earth-centered Inertial, mean-of-date
+    * **ECITOD** Earth-centered Inertial, true-of-date
+    * **GEI** Geocentric Equatorial Inertial. Approximation of ECIMOD.
+
+    Magnetospheric Systems
+    ----------------------
+    * **GSM** Geocentric Solar Magnetospheric
+    * **GSE** Geocentric Solar Ecliptic
+    * **SM** Solar Magnetic
+    * **MAG** Geomagnetic Coordinate System
+
+    Earth-fixed Systems
+    -------------------
+    * **GEO** Geocentric geographic, aka Earth-centered Earth-fixed
+    * **GDZ** Geodetic coordinates
+
+By convention _all_ systems are treated as natively Cartesian except
+geodetic (GDZ), which is defined in [altitude, latitude, longitude]
+where altitude is relative to a reference ellipsoid. Similarly, distance
+units are assumed to be Earth radii (Re) in all systems except GDZ, where
+altitude is given in km. Conversions to GDZ will output altitude in km
+regardless of the input distance units.
+
 Authors: Steven Morley and Josef Koller
 Institution: Los ALamos National Laboratory
 Contact: smorley@lanl.gov
@@ -10,22 +42,40 @@ Contact: smorley@lanl.gov
 Copyright 2010-2016 Los Alamos National Security, LLC.
 """
 
+import numbers
+import warnings
 import numpy as np
 from spacepy import help
 import spacepy
 import spacepy.time
+from spacepy import ctrans
 
 __contact__ = 'Steven Morley, smorley@lanl.gov'
+
 
 # -----------------------------------------------
 # space coordinate class
 # -----------------------------------------------
+
+SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
+    'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
+    'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
+    'GEI': {'sph': None, 'car': 5}, 'ECIMOD': {'sph': None, 'car': 5},
+    'MAG': {'sph': None, 'car': 6}, 'SPH': {'sph': 7, 'car': None},
+    'RLL': {'sph': 8, 'car': None}, 'TOD': {'sph': None, 'car': 12},
+    'ECITOD': {'sph': None, 'car': 12}, 'J2000': {'sph': None, 'car': 13},
+    'ECI2000': {'sph': None, 'car': 13}}
+
+SYS_EQUIV = {'GEI': 'ECIMOD', 'TOD': 'ECITOD', 'J2000': 'ECI2000'}
+
+
 class Coords(object):
     '''
     a = Coords( data, dtype, carsph, [units, ticks, use_irbem])
 
-    A class holding spatial coordinates in Cartesian/spherical
-    in units of Re and degrees
+    A class holding spatial coordinates and enabling transformation between
+    coordinate systems. Coordinates can be stored as Cartesian or spherical
+    and units are assumed to be Re (distance) and degrees (angle)
 
     .. note:: Although other units may be specified and will be carried
          through, most functions throughout SpacePy assume distances
@@ -33,7 +83,10 @@ class Coords(object):
 
     By default, coordinate transforms are based on the IRBEM library; `its
     manual <http://svn.code.sf.net/p/irbem/code/trunk/manual/user_guide.html>`_
-    may prove useful. For a good reference on heliospheric and magnetospheric
+    may prove useful. SpacePy also provides a framework for accurate coordinate
+    transformations. This can be used by setting the `use_irbem` flag to False.
+    In a future release of SpacePy this will become the default method.
+    For a good reference on heliospheric and magnetospheric
     coordinate systems, see Franz & Harper, "Heliospheric Coordinate Systems",
     Planet. Space Sci., 50, pp 217-233, 2002
     (https://doi.org/10.1016/S0032-0633(01)00119-2).
@@ -43,18 +96,9 @@ class Coords(object):
     data : list or ndarray, dim = (n,3)
         coordinate points [X,Y,Z] or [rad, lat, lon]
     dtype : string
-        coordinate system; possible values are:
-
-        * **GDZ** (Geodetic; WGS84),
-        * **GEO** (Geographic Coordinate System),
-        * **GSM** (Geocentric Solar Magnetospheric),
-        * **GSE** (Geocentric Solar Ecliptic),
-        * **SM** (Solar Magnetic),
-        * **GEI** (Geocentric Equatorial Inertial; True-of-Date),
-        * **MAG** (Geomagnetic Coordinate System),
-        * **SPH** (Spherical Coordinate System),
-        * **RLL** (Radius, Latitude, Longitude; Geodetic)
-
+        coordinate system; supported systems are defined in
+        module-level documentation. Common systems include
+        GEO, GSE, GSM, SM, MAG, ECIMOD
     carsph : string
         Cartesian or spherical, 'car' or 'sph'
     units : list of strings, optional
@@ -101,27 +145,27 @@ class Coords(object):
     Re = 6371200.0  # meters
 
     def __init__(self, data, dtype, carsph, units=None, ticks=None, use_irbem=True):
-
-        from . import irbempy as op
-        from spacepy.irbempy import SYSAXES_TYPES as typedict
-
         if use_irbem:
-            warnings.warn('Use of IRBEM to perform coordinate transformations is' +
+            from . import irbempy as op
+            warnings.warn('Use of IRBEM to perform coordinate transformations is ' +
                           'no longer recommended.\n' +
-                          'The default library used for coordinate transforms will' +
+                          'The default library used for coordinate transforms will ' +
                           'change in a future release.\n' +
                           'To ensure forward-compatibility, please set use_irbem=False',
                           DeprecationWarning)
+        self.use_irbem = use_irbem
+        # setup units
+        self.Re = 6371.0 if use_irbem else ctrans.WGS84['A']  # kilometers
 
-        if isinstance(data[0], (float, int)):
-            self.data = np.array([data])
-        else:
-            self.data = np.array(data)
+        # Make sure that inputs are all formed correctly
+        self.data = np.atleast_2d(data).astype(np.float_)
+        if len(self.data.shape) != 2 or self.data.shape[-1] != 3:
+            raise ValueError('Input position vectors must be Nx3')
 
         dtype = dtype.upper()
         carsph = carsph.lower()
 
-        assert dtype in list(typedict.keys()), 'This dtype='+dtype+' is not supported. Only '+str(list(typedict.keys()))
+        assert dtype in list(SYSAXES_TYPES.keys()), 'This dtype='+dtype+' is not supported. Only '+str(list(SYSAXES_TYPES.keys()))
         assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
         onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
 
@@ -130,27 +174,13 @@ class Coords(object):
             assert len(ticks) == len(self.data), 'Ticktock dimensions seem off'
         self.ticks = ticks
 
-        # GEO,sph and SPH,sph are the same
-        if dtype == 'GEO' and carsph == 'sph':
-            dtype = 'SPH'
-        self.sysaxes = typedict[dtype][carsph]
+        # GEO and SPH are cartesian/spherical versions of GEO, so use GEO for everything
+        if dtype == 'SPH':
+            dtype = 'GEO'
+        # Make sure we're using the SpacePy name if we're using the SpacePy backend
+        self.dtype = SYS_EQUIV[dtype] if (not use_irbem and dtype in SYS_EQUIV) else dtype
+        self.sysaxes = SYSAXES_TYPES[dtype][carsph]
 
-        #if self.sysaxes >= 10 and self.sysaxes < 20: #need sph2car
-        #    try:
-        #        self.data = op.sph2car(self.data)
-        #        self.sysaxes -= 10
-        #    except:
-        #        print onerawarn
-        #        self.sysaxes = None
-        #if self.sysaxes >= 20: #need car2sph
-        #    try:
-        #        self.data = op.car2sph(self.data)
-        #        self.sysaxes -= 20
-        #    except:
-        #        print onerawarn
-        #        self.sysaxes = None
-
-        self.dtype = dtype
         self.carsph = carsph
         # setup units
         if units is None and carsph == 'car':
@@ -227,7 +257,7 @@ class Coords(object):
         arr = np.array(self.data)
         t_select = self.ticks[idx] if self.ticks else self.ticks
 
-        return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, t_select)
+        return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, t_select, use_irbem=False)
 
     # -----------------------------------------------
     def __setitem__(self, idx, vals):
@@ -288,7 +318,8 @@ class Coords(object):
         Parameters
         ----------
         returntype : string
-            coordinate system, possible are GDZ, GEO, GSM, GSE, SM, GEI, MAG, SPH, RLL
+            coordinate system, see module level documentation for
+            supported systems
         returncarsph : string
             coordinate type, possible 'car' for Cartesian and 'sph' for spherical
 
@@ -308,28 +339,26 @@ class Coords(object):
         Coords( [[ 0.81134097  2.6493305   3.6500375 ]
          [ 0.92060408  2.30678864  1.68262126]] ), dtype=SM,car, units=['Re', 'Re', 'Re']
         '''
-        from . import irbempy as op
-        from spacepy.irbempy import SYSAXES_TYPES as typedict
+        # Check whether the name is an equivalent IRBEM name
+        returnname = SYS_EQUIV[returntype] if returntype in SYS_EQUIV else returntype
+        is_dtype_returntype = (self.dtype == returntype) or (self.dtype == returnname)
+        # Then check whether a full coordinate transformation is required
+        if is_dtype_returntype:
+            if self.carsph == returncarsph:
+                # no change necessary
+                return self
 
-        #check return type/system is supported
-        #if not (typedict[returntype][returncarsph]):
-        #    raise NotImplementedError('System {0} is not supported in {1} coordinates'.format(returntype, returncarsph))
-
-        # no change necessary
-        if (self.dtype == returntype) and (self.carsph == returncarsph):
-            return self
-
-        # only car2sph or sph2car is needed
-        if (self.dtype == returntype) and (self.carsph != returncarsph):
-            if returncarsph == 'car':
-                carsph = 'car'
-                units = [self.units[0]]*3
-                data = op.sph2car(self.data)
-            else:
-                carsph = 'sph'
-                units =  [self.units[0], 'deg','deg']
-                data = op.car2sph(self.data)
-            return Coords(data, self.dtype, carsph, units, self.ticks)
+            if self.carsph != returncarsph:
+                # only car2sph or sph2car is needed
+                if returncarsph == 'car':
+                    carsph = 'car'
+                    units = [self.units[0]]*3
+                    data = sph2car(self.data)
+                else:
+                    carsph = 'sph'
+                    units =  [self.units[0], 'deg','deg']
+                    data = car2sph(self.data)
+                return Coords(data, self.dtype, carsph, units, self.ticks, use_irbem=self.use_irbem)
 
         # check the length of ticks and do the more complex conversions
         if self.ticks:
@@ -340,27 +369,45 @@ class Coords(object):
             if self.carsph == 'sph':
                 carsph = 'car'
                 units = [self.units[0]]*3
-                data = op.sph2car(self.data)
+                data = sph2car(self.data)
             else:
                 carsph = 'sph'
                 units =  [self.units[0], 'deg','deg']
-                data = op.car2sph(self.data)
+                data = car2sph(self.data)
         else:
             data = self.data
             units = self.units
             carsph = self.carsph
 
-        NewCoords = Coords(data, self.dtype, carsph, units, self.ticks)
+
+        if self.use_irbem:
+            from . import irbempy as op
+            NewCoords = Coords(data, self.dtype, carsph, units, self.ticks, use_irbem=self.use_irbem)
+        else:
+            NewCoords = Coords(data, returntype if self.use_irbem else returnname,
+                               carsph, units, self.ticks, use_irbem=self.use_irbem)
 
         # now convert to other coordinate system
-        if (self.dtype != returntype) :
-            assert NewCoords.ticks, "Time information required; add a.ticks attribute"
-            NewCoords.data = op.coord_trans( NewCoords, returntype, returncarsph)
-            NewCoords.dtype = returntype
+        if not is_dtype_returntype:
+            assert self.ticks, "Time information required; add a .ticks attribute"
+            if self.use_irbem:
+                if returnname == 'GDZ' and self.units[0] == 'km':
+                    data /= self.Re  # IRBEM geodetic calculation requires Re
+                NewCoords.data = op.coord_trans(self, returntype, returncarsph)
+                NewCoords.dtype = returntype
+            else:
+                if returnname == 'GDZ' and self.units[0] == 'Re':
+                    data *= self.Re  # geodetic is defined in [km, deg, deg]
+                NewCoords.data = np.atleast_2d(ctrans.convert_multitime(data, self.ticks, self.dtype,
+                                                                        returnname))
+                if returncarsph == 'sph' and returnname not in ['GDZ']:
+                    NewCoords.data = car2sph(NewCoords.data)
             NewCoords.carsph = returncarsph
-            NewCoords.sysaxes = op.get_sysaxes(returntype, returncarsph)
+            NewCoords.sysaxes = SYSAXES_TYPES[NewCoords.dtype][NewCoords.carsph]
 
         # fix corresponding attributes
+        if returntype == 'GDZ':
+            units[0] == 'km'
         if returncarsph == 'sph':
             NewCoords.units = [units[0], 'deg','deg']
             for k in ('x', 'y', 'z'):
@@ -412,7 +459,7 @@ class Coords(object):
         data = list(self.data)
         otherdata = other.convert(self.dtype, self.carsph)
         data.extend(list(otherdata.data))
-        newobj = Coords(data, dtype=self.dtype, carsph=self.carsph)
+        newobj = Coords(data, dtype=self.dtype, carsph=self.carsph, use_irbem=self.use_irbem)
         return newobj
 
     # -----------------------------------------------
@@ -481,6 +528,98 @@ class Coords(object):
         return cls(data, 'GEO', 'car', ticks=ticks)
 
 
+def car2sph(car_in):
+    """
+    Coordinate transformation from Cartesian to spherical
+
+    Parameters
+    ----------
+        - car_in (list or ndarray) : coordinate points in (n,3) shape with n coordinate points in
+            units of [Re, Re, Re] = [x,y,z]
+
+    Returns
+    -------
+        - results (ndarray) : values after conversion to spherical coordinates in
+            radius, latitude, longitude in units of [Re, deg, deg]
+
+    Examples
+    --------
+    >>> sph2car([1,45,0])
+    array([ 0.70710678,  0.        ,  0.70710678])
+
+    See Also
+    --------
+    sph2car
+    """
+    if isinstance(car_in[0], numbers.Number):
+        car = np.array([car_in])
+    else:
+        car = np.asanyarray(car_in)
+
+    res = np.zeros(np.shape(car))
+    for i in np.arange(len(car)):
+        x, y, z = car[i, 0], car[i, 1], car[i, 2]
+        r = np.sqrt(x*x+y*y+z*z)
+        sq = np.sqrt(x*x+y*y)
+        if (x == 0) & (y == 0): # on the poles
+            longi = 0.
+            if z < 0:
+                lati = -90.
+            else:
+                lati = 90.0
+        else:
+            longi = np.arctan2(y, x)*180./np.pi
+            lati = 90. - np.arctan2(sq, z)*180./np.pi
+        res[i, :] = [r, lati, longi]
+
+    if isinstance(car_in[0], numbers.Number):
+        return res[0]
+    else:
+        return res
+
+
+def sph2car(sph_in):
+    """
+    Coordinate transformation from spherical to Cartesian
+
+    Parameters
+    ----------
+        - sph_in (list or ndarray) : coordinate points in (n,3) shape with n coordinate points in
+            units of [Re, deg, deg] = [r, latitude, longitude]
+
+    Returns
+    -------
+        - results (ndarray) : values after conversion to cartesian coordinates x,y,z
+
+    Examples
+    --------
+    >>> sph2car([1,45,45])
+    array([ 0.5       ,  0.5       ,  0.70710678])
+
+    See Also
+    --------
+    car2sph
+    """
+    if isinstance(sph_in[0], numbers.Number):
+        sph = np.array([sph_in])
+    else:
+        sph = np.asanyarray(sph_in)
+
+    res = np.zeros(np.shape(sph))
+    for i in np.arange(len(sph)):
+        r, lati, longi = sph[i, 0], sph[i, 1], sph[i, 2]
+        colat = np.pi/2. - lati*np.pi/180.
+        x = r*np.sin(colat)*np.cos(longi*np.pi/180.)
+        y = r*np.sin(colat)*np.sin(longi*np.pi/180.)
+        z = r*np.cos(colat)
+        res[i,:] = [x, y, z]
+
+    if isinstance(sph_in[0], numbers.Number):
+        return res[0]
+    else:
+        return res
+
+
 def quaternionNormalize(Qin, scalarPos='last'):
     '''
     Given an input quaternion (or array of quaternions), return the unit quaternion
@@ -500,7 +639,6 @@ def quaternionNormalize(Qin, scalarPos='last'):
     >>> import spacepy.coordinates
     >>> spacepy.coordinates.quaternionNormalize([0.707, 0, 0.707, 0.2])
     array([ 0.69337122,  0.        ,  0.69337122,  0.19614462])
-
     '''
     w = {'first': 0, 'last': 3}.get(scalarPos.lower())
     if w is None:

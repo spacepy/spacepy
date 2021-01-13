@@ -24,7 +24,7 @@ import warnings
 
 import numpy as np
 
-from spacepy import help, config
+import spacepy
 import spacepy.coordinates as spc
 import spacepy.datamodel as dm
 from . import irbempylib as oplib
@@ -37,13 +37,6 @@ if 'TS07_DATA_PATH' not in os.environ:
     spdatapath = pkg_resources.resource_filename('spacepy', dataTS07D)
     os.environ['TS07_DATA_PATH'] = spdatapath #set environment variable here
 
-
-SYSAXES_TYPES = {'GDZ': {'sph': 0, 'car': None},
-    'GEO': {'sph': None, 'car': 1}, 'GSM': {'sph': None, 'car': 2},
-    'GSE': {'sph': None, 'car': 3}, 'SM': {'sph': None, 'car': 4},
-    'GEI': {'sph': None, 'car': 5}, 'MAG': {'sph': None, 'car': 6},
-    'SPH': {'sph': 7, 'car': None}, 'RLL': {'sph': 8, 'car': None},
-    'TOD': {'sph': None, 'car': 12}, 'J2000': {'sph': None, 'car': 13}}
 
 # -----------------------------------------------
 def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
@@ -73,9 +66,9 @@ def updateTS07Coeffs(path=None, force=False, verbose=False, **kwargs):
     else:
         import urllib.request as u
 
-    if 'user_agent' in config and config['user_agent']:
+    if 'user_agent' in spacepy.config and spacepy.config['user_agent']:
         class AppURLopener(u.FancyURLopener):
-            version = config['user_agent']
+            version = spacepy.config['user_agent']
         u._urlopener = AppURLopener()
 
     if not path:
@@ -1014,15 +1007,15 @@ def coord_trans(loci, returntype, returncarsph ):
     sph2car, car2sph
 
     """
-    sysaxesin = get_sysaxes( loci.dtype, loci.carsph )
-    sysaxesout = get_sysaxes( returntype, returncarsph )
+    sysaxesin = spc.SYSAXES_TYPES[loci.dtype][loci.carsph]
+    sysaxesout = spc.SYSAXES_TYPES[returntype][returncarsph]
 
     # swap carsph if sysaxesout is None
     if (sysaxesout is None) and (returncarsph == 'sph'):
-        sysaxesout = get_sysaxes( returntype, 'car' )
+        sysaxesout = spc.SYSAXES_TYPES[returntype]['car']
         aflag = True
     elif (sysaxesout is None) and (returncarsph == 'car'):
-        sysaxesout = get_sysaxes( returntype, 'sph' )
+        sysaxesout = spc.SYSAXES_TYPES[returntype]['sph']
         aflag = True
     else:
         aflag = False
@@ -1040,13 +1033,16 @@ def coord_trans(loci, returntype, returncarsph ):
     # add  sph to car or v/v convertion if initial sysaxesout was None
     if  aflag == True:
         if returncarsph == 'sph':
-            xout = car2sph(xout)
+            xout = spc.car2sph(xout)
         else: # 'car' needs to be returned
-            xout = sph2car(xout)
+            xout = spc.sph2car(xout)
 
     return xout
 
 # -----------------------------------------------
+@spacepy.deprecated(
+    '0.2.3', 'moved to spacepy.coordinates',
+    'use :func:`spacepy.coordinates.car2sph`')
 def car2sph(CARin):
     """
     coordinate transformation from cartesian to spherical
@@ -1070,34 +1066,12 @@ def car2sph(CARin):
     ========
     sph2car
     """
-
-    if isinstance(CARin[0], numbers.Number):
-        CAR = np.array([CARin])
-    else:
-        CAR = np.asanyarray(CARin)
-
-    res = np.zeros(np.shape(CAR))
-    for i in np.arange(len(CAR)):
-        x, y, z = CAR[i,0], CAR[i,1], CAR[i,2]
-        r = np.sqrt(x*x+y*y+z*z)
-        sq = np.sqrt(x*x+y*y)
-        if (x == 0) & (y == 0): # on the poles
-            longi = 0.
-            if z < 0:
-                lati = -90.
-            else:
-                lati = 90.0
-        else:
-            longi = np.arctan2(y,x)*180./np.pi
-            lati = 90. - np.arctan2(sq, z)*180./np.pi
-        res[i,:] = [r, lati, longi]
-
-    if isinstance(CARin[0], numbers.Number):
-        return res[0]
-    else:
-        return res
+    return spc.car2sph(CARin)
 
 # -----------------------------------------------
+@spacepy.deprecated(
+    '0.2.3', 'moved to spacepy.coordinates',
+    'use :func:`spacepy.coordinates.sph2car`')
 def sph2car(SPHin):
     """
     coordinate transformation from spherical to cartesian
@@ -1143,6 +1117,10 @@ def sph2car(SPHin):
         return res
 
 # -----------------------------------------------
+@spacepy.deprecated(
+    '0.2.3', 'get_sysaxes marked for removal',
+    'use `spacepy.coordinates.SYSAXES_TYPES`'
+)
 def get_sysaxes(dtype, carsph):
     """
     will return the sysaxes according to the irbem library
@@ -1175,7 +1153,7 @@ def get_sysaxes(dtype, carsph):
         #'SPH': {'sph': 7, 'car': 17}, 'RLL': {'sph': 8, 'car': 18}}
 
 
-    sysaxes = SYSAXES_TYPES[dtype][carsph]
+    sysaxes = spc.SYSAXES_TYPES[dtype][carsph]
 
     return sysaxes
 
@@ -1204,9 +1182,9 @@ def get_dtype(sysaxes):
 
     """
 
-    for key in SYSAXES_TYPES:
-        for subkey in SYSAXES_TYPES[key]:
-            if SYSAXES_TYPES[key][subkey] == sysaxes:
+    for key in spc.SYSAXES_TYPES:
+        for subkey in spc.SYSAXES_TYPES[key]:
+            if spc.SYSAXES_TYPES[key][subkey] == sysaxes:
                 dtype = key
                 carsph = subkey
 
@@ -1643,8 +1621,6 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
 
     """
 
-    from spacepy import config as config_dict
-
     def get_ov(fullov, stind, enind):
         '''Chop up omni data for multiprocessing'''
         out = dm.SpaceData()
@@ -1679,7 +1655,7 @@ def get_Lstar(ticks, loci, alpha=90, extMag='T01STORM', options=[1,0,0,0,0], omn
     if isinstance(alpha, numbers.Number):
         alpha = [alpha]
 
-    ncpus = config_dict['ncpus']
+    ncpus = spacepy.config['ncpus']
     ncalc = len(ticks)
     nalpha = len(alpha)
 
@@ -1825,7 +1801,7 @@ def prep_irbem(ticks=None, loci=None, alpha=[], extMag='T01STORM', options=[1,0,
     if loci.sysaxes is None:
         # System type not supported by IRBEM
         # Convert car -> sph or vice versa as required
-        newcarsph = [key for (key, val) in SYSAXES_TYPES[loci.dtype].items()
+        newcarsph = [key for (key, val) in spc.SYSAXES_TYPES[loci.dtype].items()
                      if val is not None][0]
         posi = loci.convert(loci.dtype, newcarsph)
     else:

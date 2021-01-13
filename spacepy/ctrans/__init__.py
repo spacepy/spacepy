@@ -120,6 +120,9 @@ class Ellipsoid(dm.SpaceData):
 # World Geodetic System 1984 (WGS84) parameters
 WGS84 = Ellipsoid()
 
+magsys = ['GSM', 'SM', 'MAG']
+
+
 class CTrans(dm.SpaceData):
     """Coordinate transformation class for a single instance in time
 
@@ -657,7 +660,8 @@ class CTrans(dm.SpaceData):
         Parameters
         ----------
         vec : array-like
-            Input 3-vector (can be an array of input 3-vectors) to convert
+            Input 3-vector (can be an array of input 3-vectors) to convert.
+            E.g., for 2D input the array must be like [[x1, y1, z1], [x2, y2, z2]]
         sys_in : str
             String name for initial coordinate system. For supported systems,
             see module level documentation.
@@ -665,9 +669,8 @@ class CTrans(dm.SpaceData):
             String name for target coordinate system. For supported systems,
             see module level documentation.
         """
-        trvec = np.atleast_2d(vec)
-        if trvec.shape[0] != 3:
-            trvec = trvec.T  # need to have N column vectors for a broadcast dot product
+        # Needs 3xN vectors for a broadcast dot product
+        trvec = np.atleast_2d(vec).T
 
         # Special case geodetic transforms
         to_geodetic = False
@@ -995,3 +998,21 @@ def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
     else:
         # Return in Re
         return out.squeeze()/geoid['A']
+
+
+def convert_multitime(coords, ticks, sys_in, sys_out):
+    # Calculate a CTrans for each unique time
+    ctdict = dict()
+    tais = ticks.TAI
+    for idx, tt in enumerate(tais):
+        if tt not in ctdict:
+            ctdict[tt] = CTrans(ticks[idx])
+            ctdict[tt].calcCoreTransforms()
+            if sys_in in magsys or sys_out in magsys:
+                ctdict[tt].calcMagTransforms()
+    # Unless speed becomes an issue, let's just loop over each value
+    loopover = np.atleast_2d(coords)
+    newcoords = np.empty_like(loopover)
+    for idx, cc in enumerate(loopover):
+        newcoords[idx] = ctdict[tais[idx]].convert(cc, sys_in, sys_out)
+    return newcoords.squeeze()
