@@ -154,8 +154,8 @@ class CTrans(dm.SpaceData):
         Currently only 'LGMDEFAULT' is supported, for consistency with
         LANLGeoMag implementation.
     pnmodel : str, optional
-        Select precession/nutation model set. Options are: 'LGMDEFAULT',
-        'IAU82', 'IAU00'.
+        Select precession/nutation model set. Options are: 'IAU82' (default),
+        and 'IAU00'.
     eop : bool, optional
         Use Earth Orientation Parameters
 
@@ -189,7 +189,7 @@ class CTrans(dm.SpaceData):
         else:
             self.attrs['ephmodel'] = 'LGMDEFAULT'
         if pnmodel is not None:
-            if pnmodel not in ['LGMDEFAULT', 'IAU82', 'IAU00']:
+            if pnmodel not in ['IAU82', 'IAU00']:
                 self._raiseErr(NotImplementedError, 'pnmodel')
             self.attrs['pnmodel'] = pnmodel
         else:
@@ -410,7 +410,7 @@ class CTrans(dm.SpaceData):
     def _nutation(self, nTerms=106):
         """Calculate nutation terms dPsi and dEps"""
         pnmodel = self.attrs['pnmodel'].upper()
-        if not pnmodel == 'IAU82' or pnmodel == 'LGMDEFAULT':
+        if not pnmodel == 'IAU82':
             import warnings
             warnings.warn('Only the IAU1980 nutation model is currently implemented. '
                           + 'This will be used with the selected precession model.')
@@ -738,11 +738,7 @@ class CTrans(dm.SpaceData):
         coeffB = 8640184.812866
         coeffC = 0.093104
         coeffD = 6.2e-6
-        if pnmodel.upper() == 'LGMDEFAULT':
-            self['GMST'] = fmod((67310.54841 + (876600*3600 + coeffB)*UT1_P1 +
-                                coeffC*UT1_P2 - coeffD*UT1_P3)/3600, 24)
-            self['GMST_rad'] = np.deg2rad(self['GMST']*15)
-        elif pnmodel.upper() == 'IAU82':
+        if pnmodel.upper() == 'IAU82':
             # total fractional part of UT1 Julian day
             fts = const.daysec * (self['UT1_JD'] % 1 + const.j2000_jd % 1)
             gmst_rad = ((const.twopi/const.daysec) * ((-19089.45159 +
@@ -762,18 +758,6 @@ class CTrans(dm.SpaceData):
                         * t) * t) * t) * t)
             self['GMST_rad'] = (theta + angle*const.arcsec) % const.twopi
             self['GMST'] = np.rad2deg(self['GMST_rad'])/15
-        elif pnmodel.upper() == 'P03':
-            du = self['UT1_JD'] - const.j2000_jd
-            theta = const.twopi*(0.7790572732640 + 0.00273781191135448*du + du % 1)
-            t = self['TT_JC']
-            # angle = 0.014506 + 4612.156534* + 1.3915817*t*t - 0.00000044*t*t*t \
-            #         - 0.000029956*t**4 - 0.0000000368*t**5
-            # self['GMST'] = (86400*theta) + angle/15)/3600.0 %24
-            self['GMST'] = (UT1_P1 + 24110.5493771
-                            + 8640184.79447825*UT1_P1 + 307.4771013*(t-UT1_P1)
-                            + 0.0927721*t*t - 0.0000002926*t*t*t - 0.00000199708*t**4
-                            - 0.000000002454*t**5)/3600.0 % 24
-            self['GMST_rad'] = np.deg2rad(self['GMST']*15)
         else:
             raise Exception
 
