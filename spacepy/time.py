@@ -2249,6 +2249,36 @@ def valid_YYYYMMDD(inval):
         return False
 
 
+def _leapsgood(now, filetime, lastleap):
+    """Determines if leap seconds are up-to-date
+
+    Parameters
+    ----------
+    now : datetime.datetime
+        Current time (UTC assumed)
+    filetime : datetime.datetime
+        Timestamp (mtime) of the leapsecond file
+    lastleap : datetime.datetime
+        Last leapsecond in the file (really the moment after the leap)
+
+    Returns
+    -------
+    bool
+        True if leap second file is up-to-date, False if might not be.
+    """
+    # There cannot be a leap second until AFTER the ls after the
+    # bulletin (e.g. once past 1 Jan, know the next possible is next 1 Jan)
+    goodto_mtime = datetime.datetime(
+        filetime.year + 1, 7 if filetime.month > 6 else 1, 1)
+    # The next possible leapsecond is 6mo after the previous known leap,
+    # which is (technically just before) 1 Jan or 1 July
+    goodto_ls = datetime.datetime(
+        lastleap.year + int(lastleap.month > 6),
+        1 if lastleap.month > 6 else 7, 1)
+    goodto = max(goodto_ls, goodto_mtime)
+    return now < goodto
+
+
 def _read_leaps():
     """Read leapseconds in from spacepy tai-utc file
 
@@ -2284,13 +2314,10 @@ def _read_leaps():
     # Check for out of date. The leap second bulletin comes every
     # six months, and that contains information through the following
     # leap second (end of June/Dec)
-    if spacepy.config['enable_old_data_warning']:
-        lastknown = max(
-            mtime, datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1])))
-        goodthrough = datetime.datetime(
-            lastknown.year + int(lastknown.month > 6),
-            1 if lastknown.month > 6 else 7, 1)
-        if datetime.datetime.utcnow() > goodthrough:
+    if spacepy.config['enable_old_data_warning'] \
+       and not _leapsgood(
+           datetime.datetime.utcnow(), mtime,
+           datetime.datetime(int(year[-1]), int(mon[-1]), int(day[-1]))):
             warnings.warn('Leapseconds may be out of date.'
                           ' Use spacepy.toolbox.update(leapsecs=True)')
 

@@ -18,9 +18,11 @@ contains more detail.
 
 Major bugfixes
 **************
-
 The passing of keyword arguments from :func:`~spacepy.toolbox.bootHisto`
 to :func:`numpy.histogram` and :func:`matplotlib.pyplot.bar` has been fixed.
+
+The check for out-of-date leapseconds in :mod:`~spacepy.time` has been
+fixed (previously warned even when the file was up to date.)
 
 0.2.2 (2020-12-29)
 ------------------
