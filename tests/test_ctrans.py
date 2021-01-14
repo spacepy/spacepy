@@ -120,39 +120,27 @@ class CTransClassTests(unittest.TestCase):
     @unittest.expectedFailure
     def test_GMST_versions_different(self):
         """GMST versions should not be identical"""
+        ct2k_82 = ctrans.CTrans(self.t2k, pnmodel='IAU82')
+        ct2k_00 = ctrans.CTrans(self.t2k, pnmodel='IAU00')
         # IAU82
-        self.CTrans2000.attrs['pnmodel'] = 'IAU82'
-        self.CTrans2000.gmst()
-        exp1 = self.CTrans2000['GMST']
+        ct2k_82.gmst()
+        exp1 = ct2k_82['GMST']
         # IAU00
-        self.CTrans2000.attrs['pnmodel'] = 'IAU00'
-        self.CTrans2000.gmst()
-        exp2 = self.CTrans2000['GMST']
-        # P03
-        self.CTrans2000.attrs['pnmodel'] = 'P03'
-        self.CTrans2000.gmst()
-        exp3 = self.CTrans2000['GMST']
+        ct2k_00.gmst()
+        exp2 = ct2k_00['GMST']
         numpy.testing.assert_approx_equal(exp1, exp2, significant=10)
-        numpy.testing.assert_approx_equal(exp1, exp3, significant=10)
-        numpy.testing.assert_approx_equal(exp2, exp3, significant=10)
 
     def test_GMST_versions_similar(self):
         """GMST versions should all be roughly similar (not a regression test)"""
+        ct2k_82 = ctrans.CTrans(self.t2k, pnmodel='IAU82')
+        ct2k_00 = ctrans.CTrans(self.t2k, pnmodel='IAU00')
         # IAU82
-        self.CTrans2000.attrs['pnmodel'] = 'IAU82'
-        self.CTrans2000.gmst()
-        exp1 = self.CTrans2000['GMST']
+        ct2k_82.gmst()
+        exp1 = ct2k_82['GMST']
         # IAU00
-        self.CTrans2000.attrs['pnmodel'] = 'IAU00'
-        self.CTrans2000.gmst()
-        exp2 = self.CTrans2000['GMST']
-        # P03
-        self.CTrans2000.attrs['pnmodel'] = 'P03'
-        self.CTrans2000.gmst()
-        exp3 = self.CTrans2000['GMST']
+        ct2k_00.gmst()
+        exp2 = ct2k_00['GMST']
         numpy.testing.assert_approx_equal(exp1, exp2, significant=3)
-        numpy.testing.assert_approx_equal(exp1, exp3, significant=3)
-        numpy.testing.assert_approx_equal(exp2, exp3, significant=3)
 
     def test_convert_2D_same_as_1D(self):
         """2D input should give same answer as 1D input repeated"""
@@ -192,14 +180,6 @@ class CTransRegressionTests(unittest.TestCase):
         """Test that GMST agrees with LGM"""
         self.CTrans2014.calcTimes()
         numpy.testing.assert_almost_equal(14.0546293, self.CTrans2014['GMST'], decimal=7)
-
-    def test_gmst2014_LMG_IAU(self):
-        """Test that LGM GMST formulation agrees with alternate IAU form"""
-        ctlgm = ctrans.CTrans(dt.datetime(2014, 8, 29, 15, 32, 13, 811285),
-                              pnmodel='LGMDEFAULT')
-        ctlgm.calcTimes()
-        self.CTrans2014.calcTimes()
-        numpy.testing.assert_almost_equal(ctlgm['GMST'], self.CTrans2014['GMST'], decimal=7)
 
     def test_gmst2014_astropy(self):
         """Test that GMST agrees with astropy (includes DUT1)"""

@@ -6,8 +6,11 @@ testing	the	irbempy	module
 Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
+import glob
+import os
 import unittest
 import spacepy_testing
+import warnings
 import spacepy
 import spacepy.omni
 import spacepy.time
@@ -16,8 +19,6 @@ try:
     import spacepy.irbempy as ib
 except ImportError: #if IRBEM fails, test suite should not break entirely...
     pass
-import glob
-import os
 import numpy as np
 import numpy.testing
 from numpy import array
@@ -256,12 +257,22 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
     def test_sph2car(self):
         loc = [1,45,45]
         expected = array([ 0.5,  0.5,  0.70710678])
-        numpy.testing.assert_almost_equal(expected, ib.sph2car(loc))
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            tst = ib.sph2car(loc)
+        self.assertEqual(1, len(w))
+        self.assertEqual(DeprecationWarning, w[0].category)
+        numpy.testing.assert_almost_equal(expected, tst)
 
     def test_car2sph(self):
         loc = [ 0.5,  0.5,  0.70710678]
         expected = [1,45,45]
-        numpy.testing.assert_almost_equal(expected, ib.car2sph(loc))
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always', category=DeprecationWarning)
+            tst = ib.car2sph(loc)
+        self.assertEqual(1, len(w))
+        self.assertEqual(DeprecationWarning, w[0].category)
+        numpy.testing.assert_almost_equal(expected, tst)
 
     def test_coord_trans(self):
         self.loci.ticks = self.ticks
