@@ -81,7 +81,7 @@ class empFunctionTests(unittest.TestCase):
     def test_getPlasmaPauseCA1992warn(self):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always', category=RuntimeWarning)
-            em.getPlasmaPause(self.ticks, model='CA1992', LT=12)
+            em.getPlasmaPause(self.ticks, model='CA1992', LT=12, omnivals=self.omnivals)
         self.assertEqual(1, len(w))
         self.assertEqual(RuntimeWarning, w[0].category)
         self.assertEqual(
