@@ -696,6 +696,8 @@ class TimeFunctionTests(unittest.TestCase):
 
 class TimeClassTests(unittest.TestCase):
 
+    longMessage = True
+
     def test_TAIinit(self):
         """test that Ticktock can be made from TAI input"""
         t0 = 1663236947
@@ -1511,6 +1513,25 @@ class TimeClassTests(unittest.TestCase):
         actual = [(int(y), int(m), int(d))
                   for y, m, d in zip(t.year, t.mon, t.day)][:14]
         numpy.testing.assert_equal(expected, actual)
+
+    def test_leapsgood(self):
+        """Test the check for out-of-date leapseconds"""
+        # Each case is current time, file mtime, lastleap, leapsgood (or not)
+        # Last leap must be july or january
+        cases = [[(2021, 1, 5), (2020, 12, 26), (2017, 1, 1), True],
+                 [(2021, 7, 5), (2020, 12, 26), (2017, 1, 1), False],
+                 [(2021, 7, 5), (2020, 12, 26), (2020, 7, 1), False],
+                 [(2021, 7, 5), (2020, 12, 26), (2021, 7, 1), True],
+                 [(2020, 12, 26), (2020, 12, 24), (2017, 1, 1), True],
+                 [(2018, 6, 2), (2018, 5, 12), (2017, 1, 1), True],
+                 [(2018, 6, 2), (2017, 5, 12), (2017, 1, 1), False],
+                 [(2017, 6, 2), (2017, 5, 12), (2017, 1, 1), True],
+                 ]
+        for caseno, caseinfo in enumerate(cases):
+            currtime, filetime, lastleap, isgood = caseinfo
+            self.assertEqual(isgood, t._leapsgood(
+                datetime.datetime(*currtime), datetime.datetime(*filetime),
+                datetime.datetime(*lastleap)), 'Case {}'.format(caseno))
 
     def test_diffAcrossLeaps(self):
         """Do TAI differences across the first leapsecond"""
