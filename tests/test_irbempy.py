@@ -8,6 +8,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 
 import glob
 import os
+import sys
 import unittest
 import spacepy_testing
 import warnings
@@ -258,6 +259,16 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         loc = [1,45,45]
         expected = array([ 0.5,  0.5,  0.70710678])
         with warnings.catch_warnings(record=True) as w:
+            if sys.version_info[0:2] == (2, 7)\
+               and hasattr(ib, '__warningregistry__'):
+                # filter 'always' is broken in Python 2.7
+                # https://stackoverflow.com/questions/56821539/
+                for k in ib.__warningregistry__.keys():
+                    if k[0].startswith(
+                            'moved to spacepy.coordinates') \
+                            and k[1] is DeprecationWarning:
+                        del ib.__warningregistry__[k]
+                        break
             warnings.simplefilter('always', category=DeprecationWarning)
             tst = ib.sph2car(loc)
         self.assertEqual(1, len(w))
