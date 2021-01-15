@@ -153,6 +153,26 @@ class CTransClassTests(unittest.TestCase):
         numpy.testing.assert_allclose(got_1d, got_2d[0])
         numpy.testing.assert_allclose(got_1d, got_2d[1])
 
+    def test_convert_GEO_RLL(self):
+        """ """
+        self.CTrans2000.calcCoreTransforms()
+        got_eq = self.CTrans2000.convert([ctrans.WGS84['A'], 0, 0], 'GEO', 'RLL')
+        exp_eq = [ctrans.WGS84['A'], 0, 0]
+        got_po = self.CTrans2000.convert([0, 0, -ctrans.WGS84['A'] + 101], 'GEO', 'RLL')
+        exp_po = [ctrans.WGS84['A'] - 101, -90, 0]
+        numpy.testing.assert_allclose(exp_eq, got_eq)
+        numpy.testing.assert_allclose(exp_po, got_po)
+
+    def test_convert_RLL_GEO(self):
+        """ """
+        self.CTrans2000.calcCoreTransforms()
+        got_eq = self.CTrans2000.convert([ctrans.WGS84['A'], 0, 0], 'RLL', 'GEO')
+        exp_eq = [ctrans.WGS84['A'], 0, 0]
+        got_po = self.CTrans2000.convert([ctrans.WGS84['A'] - 101, -90, 0], 'RLL', 'GEO')
+        exp_po = [0, 0, -ctrans.WGS84['A'] + 101]
+        numpy.testing.assert_allclose(exp_eq, got_eq, rtol=0, atol=1e-9)
+        numpy.testing.assert_allclose(exp_po, got_po, rtol=0, atol=1e-9)
+
 
 class CTransRegressionTests(unittest.TestCase):
     def setUp(self):
@@ -349,6 +369,14 @@ class ModuleTests(unittest.TestCase):
         got = ctrans.gdz_to_geo(gdz)
         numpy.testing.assert_allclose(got, pos_geo, rtol=1e-9)
 
+    def test_geodetic_1D_Re_and_km(self):
+        """Test GEO->geodetic round trip with 1D Re input"""
+        pos_geo = numpy.array([-6374.2283916, -869.65264893, -4263.36088969])
+        gdz_re = ctrans.geo_to_gdz(pos_geo/ctrans.WGS84['A'], units='Re')
+        gdz_km = ctrans.geo_to_gdz(pos_geo, units='km')
+        numpy.testing.assert_allclose(gdz_re[1:], gdz_km[1:], rtol=1e-9)
+        numpy.testing.assert_almost_equal(gdz_re[0]*ctrans.WGS84['A'], gdz_km[0], decimal=7)
+
     def test_geo_gdz_longitude(self):
         """Geodetic longitude should be same as geographic"""
         geo = numpy.array([7000, 4500, 5500])
@@ -381,11 +409,13 @@ class ModuleTests(unittest.TestCase):
 
     def test_geo_gdz_pole_S(self):
         """Geodetic conversion at south pole gives expected result"""
-        sp = [0, 0, -ctrans.WGS84['B']]
+        alt = 100
+        # x, y, z - so altitude is all in z
+        sp = [0, 0, -(ctrans.WGS84['B'] + alt)]
         np = [0, 0, ctrans.WGS84['B']]
         geo = numpy.array([sp, np, sp])
         gdz = ctrans.geo_to_gdz(geo)
-        exp_s = [0, -90, 0]
+        exp_s = [alt, -90, 0]
         exp_n = [0, 90, 0]
         expected = [exp_s, exp_n, exp_s]
         numpy.testing.assert_allclose(gdz, expected, atol=1e-9, rtol=0)
@@ -403,6 +433,31 @@ class ModuleTests(unittest.TestCase):
         expected = numpy.array([0, 0, ctrans.WGS84['B']])
         got = ctrans.gdz_to_geo(gdz)
         numpy.testing.assert_allclose(got, expected, atol=1e-9, rtol=0)
+
+    def test_geo_rll_equator(self):
+        """geo/RLL conversion at equator gives expected result"""
+        geo = [7500, 0, 0]
+        expected = numpy.array([7500, 0, 0])
+        got = ctrans.geo_to_rll(geo)
+        numpy.testing.assert_allclose(got, expected, atol=1e-9, rtol=0)
+
+    def test_rll_geo_equator(self):
+        """RLL/geo conversion at equator gives expected result"""
+        alt = 100
+        rll = [alt + ctrans.WGS84['A'], 0, 0]
+        expected = numpy.array([alt + ctrans.WGS84['A'], 0, 0])
+        got = ctrans.rll_to_geo(rll)
+        numpy.testing.assert_allclose(got, expected, atol=1e-9, rtol=0)
+
+    def test_rll_geo_roundtrip_pole(self):
+        """RLL/geo roundtrip at poles gives inital result"""
+        alt = 100
+        # test cases have negative in sqrt term on geo_to_gdz conversion
+        rll = [[alt + ctrans.WGS84['A'], 90, 0], [alt + ctrans.WGS84['B'], -90, 0]]
+        stage1 = ctrans.rll_to_geo(rll)
+        got = ctrans.geo_to_rll(stage1)
+        numpy.testing.assert_allclose(got, rll, atol=1e-9, rtol=0)
+
 
 if __name__ == "__main__":
     unittest.main()
