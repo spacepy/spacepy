@@ -33,7 +33,9 @@ geodetic (GDZ), which is defined in [altitude, latitude, longitude]
 where altitude is relative to a reference ellipsoid. Similarly, distance
 units are assumed to be Earth radii (Re) in all systems except GDZ, where
 altitude is given in km. Conversions to GDZ will output altitude in km
-regardless of the input distance units.
+regardless of the input distance units and conversions from GDZ will
+output in Re regardless of input units. In all other cases, the distance
+units will be preserved.
 
 Notes on differences between representations
 --------------------------------------------
@@ -189,7 +191,7 @@ class Coords(object):
         assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
         onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
 
-        if dtype == 'GDZ' and carsph == 'car':
+        if dtype in ['GDZ', 'RLL'] and carsph == 'car':
             raise ValueError("Geodetic coordinates are referenced to an ellipsoid "
                              + "and can not be properly represented as Cartesian")
 
@@ -367,7 +369,7 @@ class Coords(object):
         returnname = SYS_EQUIV[returntype] if returntype in SYS_EQUIV else returntype
         is_dtype_returntype = (self.dtype == returntype) or (self.dtype == returnname)
 
-        if returntype == 'GDZ' and returncarsph == 'car':
+        if returntype in ['GDZ', 'RLL'] and returncarsph == 'car':
             raise ValueError("Geodetic coordinates are referenced to an ellipsoid "
                              + "and can not be properly represented as Cartesian")
 
@@ -412,7 +414,10 @@ class Coords(object):
         if self.use_irbem:
             from . import irbempy as op
             # irbempy.coord_trans needs the passed Coords object to have the "from" dtype
-            NewCoords = Coords(data, self.dtype, carsph, units, self.ticks, use_irbem=self.use_irbem)
+            with warnings.catch_warnings():
+                # No need to warn on conversion
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                NewCoords = Coords(data, self.dtype, carsph, units, self.ticks, use_irbem=self.use_irbem)
         else:
             # SpacePy conversion takes input/output type separately, so set to desired output
             NewCoords = Coords(data, returntype if self.use_irbem else returnname,
@@ -422,19 +427,26 @@ class Coords(object):
         if not is_dtype_returntype:
             assert self.ticks, "Time information required; add a .ticks attribute"
             if self.use_irbem:
-                if returnname == 'GDZ' and self.units[0] == 'km':
-                    data /= self.Re  # IRBEM geodetic calculation requires Re
+                if returnname in ['GDZ', 'RLL'] and units[0] == 'km':
+                    NewCoords.data /= self.Re  # IRBEM geodetic calculation requires Re input
                 NewCoords.data = op.coord_trans(NewCoords, returntype, returncarsph)
                 NewCoords.dtype = returntype
+                if returnname == 'RLL' and units[0] == 'km':
+                    NewCoords.data[:, 0] *= self.Re  # Preserve units
             else:
-                if returnname == 'GDZ' and self.units[0] == 'Re':
+                if returnname in ['GDZ', 'RLL'] and self.units[0] == 'Re':
                     data *= self.Re  # geodetic is defined in [km, deg, deg]
                 NewCoords.data = np.atleast_2d(ctrans.convert_multitime(data, self.ticks, self.dtype,
                                                                         returnname))
-                if returncarsph == 'sph' and returnname not in ['GDZ']:
+                if returnname == 'RLL' and units[0] == 'Re':
+                    # RLL is defined in Re, deg, deg, but all geodetic calcs are in km
+                    NewCoords.data[:, 0] = NewCoords.data[:, 0]/self.Re
+                if self.dtype == 'RLL' and units[0] == 'Re':
+                    NewCoords.data /= self.Re
+                if returncarsph == 'sph' and returnname not in ['GDZ', 'RLL']:
                     NewCoords.data = car2sph(NewCoords.data)
-            if self.dtype == 'GDZ':  # GDZ is defined in km and evertyhing else is strictly Re
-                NewCoords.units[0] = 'Re'  # Converting back from GDZ set units to Re
+            if self.dtype == 'GDZ':  # GDZ is defined in km and everything else is strictly Re
+                units[0] = 'Re'  # Converting back from GDZ set units to Re
             NewCoords.carsph = returncarsph
             NewCoords.sysaxes = SYSAXES_TYPES[NewCoords.dtype][NewCoords.carsph]
 
