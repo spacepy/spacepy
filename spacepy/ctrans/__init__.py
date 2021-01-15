@@ -1122,8 +1122,12 @@ def convert_multitime(coords, ticks, sys_in, sys_out):
             if sys_in in magsys or sys_out in magsys:
                 ctdict[tt].calcMagTransforms()
     # Unless speed becomes an issue, let's just loop over each value
+    # except the spacial case of only 1 unique time
     loopover = np.atleast_2d(coords)
-    newcoords = np.empty_like(loopover)
-    for idx, cc in enumerate(loopover):
-        newcoords[idx] = ctdict[tais[idx]].convert(cc, sys_in, sys_out)
+    if len(ctdict) == 1:
+        newcoords = ctdict[0].convert(loopover, sys_in, sys_out)
+    else:
+        newcoords = np.empty_like(loopover)
+        for idx, cc in enumerate(loopover):
+            newcoords[idx] = ctdict[tais[idx]].convert(cc, sys_in, sys_out)
     return newcoords.squeeze()
