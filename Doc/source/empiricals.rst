@@ -14,6 +14,7 @@ empiricals - module with heliospheric empirical modules
     getDststar
     getExpectedSWTemp
     getLmax
+    getMagnetopause
     getMPstandoff
     getPlasmaPause
     getSolarProtonSpectra
