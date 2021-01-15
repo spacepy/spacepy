@@ -504,12 +504,12 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
     Fortran program.
 
     Parameters
-    ==========
+    ----------
     f : Binary file object
         The file from which to read the array of values.
 
     Other Parameters
-    ================
+    ----------------
     dtype : data type
         The data type used for data conversion.
     inttype : Numpy integer type
@@ -517,7 +517,7 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
         entry.   Defaults to numpy.int32
     
     Returns
-    =======
+    -------
     numpy.array : Numpy array
         Return the data read from file as a 1-dimensional array.
 
@@ -584,7 +584,66 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
 
     return A
 
-      
+def _scan_idl_header(f, endchar, floattype, inttype):
+    '''
+    Given a binary IDL-formmatted file opened as a file object, *f*, 
+    and whose file pointer is positioned at the start of the header, 
+    gather some header information and return to caller.
+
+    Parameters
+    ----------
+    f : Binary file object
+        The file from which to read the array of values.
+    endchar : str
+        Endian character:'<' or '>'
+    floattype : numpy float type
+        The data type used for data conversion with the correct endianess.
+    inttype : Numpy integer type
+        Set the precision for the integers that store the size of each
+        entry with the correct endianess.
+    
+    Returns
+    -------
+    '''
+
+    # Get starting location in file:
+    rec_start = f.tell()
+
+    # Create a dictionary to store the info from the file:
+    info = {'start':rec_start}
+
+    # Read initial header:
+    headline=readarray(f,str,inttype)
+    headline=headline.decode('utf-8')
+        
+    # Construct size of header entries:
+    header_fields_dtype=np.dtype([
+        ('it',np.int32),('t',floattype),('ndim',np.int32),
+        ('npar',np.int32),('nvar',np.int32)])
+    header_fields_dtype.newbyteorder(endchar)
+
+    # From header, get iteration, runtime (seconds), number of dimensions,
+    # number of parameters, and number of variables in that order.
+    # Stash relevant values into the "info" dict:
+    vals = readarray(infile, dtype=header_fields_dtype, inttype=inttype)[0]
+    for v, x in zip(['iter','runtime','nparams','nvars'], vals):
+        info[v] = x
+
+    # Get gridsize:
+    grid=dmarray(readarray(infile,inttype,inttype))
+    npoints = abs(grid.prod())
+
+    # Set the size of floating points in bytes:
+    nbytes = floattype.itemsize
+
+    # Skip the rest of the header:
+    headsize = nbytes*info['npar']
+
+    # Calculate the end point of the data frame (start + header + data size):
+    rec_size = #calc here - rec_start
+
+    return info
+
 def _probe_idlfile(filename):
     '''
     For an SWMF IDL-formatted output file, probe the header to determine if the
@@ -772,7 +831,7 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
         # in these files.  It looks as if there are more grid units
         # than grid vectors (e.g. 'R R R' implies X, Y, and Z data
         # in file but only X and Y are present.)  Let's try to work
-        # around this rather egregious error.
+        # around this curiousity:
         nSkip = len(units)+npar-len(names)
         if nSkip<0: nSkip = 0
         
