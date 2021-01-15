@@ -196,7 +196,7 @@ class coordsTest(unittest.TestCase):
         tt = Ticktock(2459218.5, 'JD')
         test_alt = 100  # km
         pos = np.array([test_alt, 0, 90])  # km, deg, deg
-        cc_km = spc.Coords(pos, 'GDZ', 'sph', ticks=tt, units=['km', 'km', 'km'],
+        cc_km = spc.Coords(pos, 'GDZ', 'sph', ticks=tt, units=['km', 'deg', 'deg'],
                            use_irbem=False)
         got = cc_km.convert('GEO', 'sph')
         expected_rad = ctrans.WGS84['A'] + test_alt
@@ -214,6 +214,61 @@ class coordsTest(unittest.TestCase):
         tt = Ticktock(2459218.5, 'JD')
         pos = np.array([2367.83158, -5981.75882, -4263.24591])
         self.assertRaises(ValueError, spc.Coords, pos, 'GDZ', 'car', ticks=tt, use_irbem=False)
+
+    def test_RLL_kilometer_input(self):
+        """Explicitly set units should be respected"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'], use_irbem=False)
+        got = cc_km.convert('RLL', 'sph')
+        cc_Re = spc.Coords(pos/ctrans.WGS84['A'], 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'], use_irbem=False)
+        expected = cc_Re.convert('RLL', 'sph')
+        # units should be respected
+        np.testing.assert_approx_equal(expected.radi, got.radi/ctrans.WGS84['A'], significant=6)
+        # latitude and longitude should be identical regardles of units of input
+        # geodetic lat/lon are altitude dependent, so this will fail if units
+        # aren't handled correctly
+        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
+        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
+        self.assertEqual(got.units[0], 'km')
+        self.assertEqual(expected.units[0], 'Re')
+
+    def test_RLL_cartesian_raises_convert(self):
+        """Geodetic coordinates shouldn't be expressed in Cartesian"""
+        self.cvals.ticks = Ticktock([2459218.5]*2, 'JD')
+        self.assertRaises(ValueError, self.cvals.convert, 'RLL', 'car')
+
+    def test_RLL_cartesian_raises_creation(self):
+        """Geodetic coordinates shouldn't be expressed in Cartesian"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        self.assertRaises(ValueError, spc.Coords, pos, 'RLL', 'car', ticks=tt, use_irbem=False)
+
+    def test_units_respected(self):
+        """Units should be preserved on all conversions except to/from GDZ"""
+        cc_gdz_r = spc.Coords([3, 45, 45], 'GDZ', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=False,
+                              units=['Re', 'deg', 'deg'])
+        cc_sph_r = spc.Coords([3, 45, 45], 'GEO', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=False,
+                              units=['Re', 'deg', 'deg'])
+        cc_gdz_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GDZ', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=False,
+                              units=['km', 'deg', 'deg'])
+        cc_sph_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GEO', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=False,
+                              units=['km', 'deg', 'deg'])
+        # Conversion from GDZ goes to Re
+        got_gdz_r = cc_gdz_r.convert('GSE', 'car')
+        got_gdz_k = cc_gdz_k.convert('GSE', 'car')
+        self.assertEqual(got_gdz_r.units[0], 'Re')
+        self.assertEqual(got_gdz_k.units[0], 'Re')
+        # Conversion from other (GSE) preserves units
+        got_sph_r = cc_sph_r.convert('GSE', 'car')
+        got_sph_k = cc_sph_k.convert('GSE', 'car')
+        self.assertEqual(got_sph_r.units[0], 'Re')
+        self.assertEqual(got_sph_k.units[0], 'km')
+        # Conversion from other (RLL) preserves units
+        got_sph_r = cc_sph_r.convert('RLL', 'sph')
+        got_sph_k = cc_sph_k.convert('RLL', 'sph')
+        self.assertEqual(got_sph_r.units[0], 'Re')
+        self.assertEqual(got_sph_k.units[0], 'km')
 
 
 class coordsTestIrbem(unittest.TestCase):
@@ -356,16 +411,33 @@ class coordsTestIrbem(unittest.TestCase):
     def test_GDZ_in_kilometers(self):
         """Explicitly set units should be respected"""
         tt = Ticktock(2459218.5, 'JD')
-        pos = np.array([2367.83158, -5981.75882, -4263.24591])
-        cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
+        pos_km = np.array([2367.83158, -5981.75882, -4263.24591])
+        pos_re = pos_km/6371.2
+        cc_km = spc.Coords(pos_km, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
         got = cc_km.convert('GDZ', 'sph')
-        cc_Re = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'])
+        cc_Re = spc.Coords(pos_re, 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'])
         expected = cc_Re.convert('GDZ', 'sph')
+        np.testing.assert_approx_equal(expected.radi, got.radi, significant=6)
         np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
         np.testing.assert_approx_equal(expected.long, got.long, significant=6)
-        np.testing.assert_approx_equal(expected.radi, got.radi, significant=4)
         self.assertEqual(got.units[0], 'km')
         self.assertEqual(expected.units[0], 'km')
+
+    def test_RLL_kilometer_input(self):
+        """Explicitly set units should be respected"""
+        tt = Ticktock(2459218.5, 'JD')
+        pos = np.array([2367.83158, -5981.75882, -4263.24591])
+        cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'])
+        got = cc_km.convert('RLL', 'sph')
+        cc_Re = spc.Coords(pos/6371.2, 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'])
+        expected = cc_Re.convert('RLL', 'sph')
+        # Given km, RLL returns in km
+        np.testing.assert_approx_equal(expected.radi, got.radi/6371.2, significant=6)
+        # Latitude should be identical regardless of unit input
+        np.testing.assert_approx_equal(expected.lati, got.lati, significant=6)
+        np.testing.assert_approx_equal(expected.long, got.long, significant=6)
+        self.assertEqual(got.units[0], 'km')
+        self.assertEqual(expected.units[0], 'Re')
 
     def test_GDZ_cartesian_raises_convert(self):
         """Geodetic coordinates shouldn't be expressed in Cartesian"""
@@ -409,6 +481,32 @@ class coordsTestIrbem(unittest.TestCase):
         self.assertEqual(irb_got.dtype, nonirb_got.dtype)
         self.assertEqual(irb_got.carsph, nonirb_got.carsph)
         self.assertEqual(irb_got.units, nonirb_got.units)
+
+    def test_units_respected(self):
+        """Units should be preserved on all conversions except to/from GDZ"""
+        cc_gdz_r = spc.Coords([3, 45, 45], 'GDZ', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=True,
+                              units=['Re', 'deg', 'deg'])
+        cc_sph_r = spc.Coords([3, 45, 45], 'GEO', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=True,
+                              units=['Re', 'deg', 'deg'])
+        cc_gdz_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GDZ', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=True,
+                              units=['km', 'deg', 'deg'])
+        cc_sph_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GEO', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=True,
+                              units=['km', 'deg', 'deg'])
+        # Conversion from GDZ goes to Re
+        got_gdz_r = cc_gdz_r.convert('GSE', 'car')
+        got_gdz_k = cc_gdz_k.convert('GSE', 'car')
+        self.assertEqual(got_gdz_r.units[0], 'Re')
+        self.assertEqual(got_gdz_k.units[0], 'Re')
+        # Conversion from other (GSE) preserves units
+        got_sph_r = cc_sph_r.convert('GSE', 'car')
+        got_sph_k = cc_sph_k.convert('GSE', 'car')
+        self.assertEqual(got_sph_r.units[0], 'Re')
+        self.assertEqual(got_sph_k.units[0], 'km')
+        # Conversion from other (RLL) preserves units
+        got_sph_r = cc_sph_r.convert('RLL', 'sph')
+        got_sph_k = cc_sph_k.convert('RLL', 'sph')
+        self.assertEqual(got_sph_r.units[0], 'Re')
+        self.assertEqual(got_sph_k.units[0], 'km')
 
 
 class QuaternionFunctionTests(unittest.TestCase):
