@@ -681,14 +681,19 @@ class CTrans(dm.SpaceData):
 
         # Special case geodetic transforms
         to_geodetic = False
-        from_geodetic = False
+        to_rll = False
         if sys_out == 'GDZ':
             sys_out = 'GEO'
             to_geodetic = True
+        elif sys_out == 'RLL':
+            sys_out = 'GEO'
+            to_rll = True
         if sys_in == 'GDZ':
             trvec = gdz_to_geo(vec)
             sys_in = 'GEO'
-            from_geodetic = True
+        elif sys_in == 'RLL':
+            trvec = rll_to_geo(vec)
+            sys_in = 'GEO'
 
         if sys_in != sys_out:
             transform = '{0}_{1}'.format(sys_in, sys_out)
@@ -717,6 +722,8 @@ class CTrans(dm.SpaceData):
 
         if to_geodetic:
             converted_squeezed = geo_to_gdz(converted_squeezed)
+        elif to_rll:
+            converted_squeezed = geo_to_rll(converted_squeezed)
         return converted_squeezed
 
     def gmst(self):
@@ -897,6 +904,8 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     if units == 'Re':
         # Make sure positions are in km
         rx = x_geo*geoid['A']
+        ry = y_geo*geoid['A']
+        rz = z_geo*geoid['A']
     else:
         rx = x_geo
         ry = y_geo
@@ -915,7 +924,12 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     denom_p = s + 1/s + 1  # Shorthand for term in P's denominator
     P = F/(3*denom_p*denom_p*G2)
     Q = np.sqrt(1 + 2*geoid['E4']*P)
-    r0 = -(geoid['E2']*P*rad)/(1 + Q) + np.sqrt((0.5*geoid['A2'])*(1 + 1/Q) - (geoid['1mE2']*P*z2)/(Q*(1 + Q)) - 0.5*P*rad2)
+    # The second term in r0 can evaluate as negative...
+    sqrt_for_r0 = np.abs((0.5*geoid['A2'])*(1 + 1/Q) - (geoid['1mE2']*P*z2)/(Q*(1 + Q)) - 0.5*P*rad2)
+    #negs = sqrt_for_r0 < 0
+    #sqrt_for_r0[negs] = 0
+    # Back to Heikinnen's method per Zhu
+    r0 = -(geoid['E2']*P*rad)/(1 + Q) + np.sqrt(sqrt_for_r0)
     brac_u = (rad - geoid['E2']*r0)  # Shorthand for term in U and V denominator
     U   = np.sqrt(brac_u*brac_u + z2)
     V   = np.sqrt(brac_u*brac_u + geoid['1mE2']*z2)
@@ -938,11 +952,46 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     long_gdz = np.rad2deg(np.arctan2( ry, rx ))  # Geodetic longitude (same as GEO)
 
     out = np.c_[alti_gdz, lati_gdz, long_gdz]
-    if units == 'km':
-        return out.squeeze()
-    else:
+    if units == 'Re':
         # Return in Re
-        return out.squeeze()/geoid['A']
+        out[:, 0] /= geoid['A']
+    return out.squeeze()
+
+
+def geo_to_rll(geovec, units='km', geoid=WGS84):
+    """
+    Convert geocentric geographic (cartesian GEO) to RLL (geodetic, but radius instead of altitude)
+
+    Uses Heikkinen's exact solution [#Heikkinen]_, see Zhu et al. [#Zhu] for
+    details.
+
+    Parameters
+    ----------
+    geovec : array-like
+        Nx3 array (or array-like) of geocentric geographic [x, y, z] coordinates
+
+    Returns
+    -------
+    out : numpy.ndarray
+        Nx3 array of geodetic altitude, latitude, and longitude
+
+    Notes
+    -----
+    .. versionadded:: 0.2.3
+
+    References
+    ----------
+    .. [#Heikkinen] Heikkinen, M., "Geschlossene formeln zur berechnung räumlicher geodätischer
+            koordinaten aus rechtwinkligen koordinaten", Z. Vermess., vol. 107, pp. 207-211,
+            1982.
+    .. [#Zhu] J. Zhu, "Conversion of Earth-centered Earth-fixed coordinates to geodetic
+            coordinates," in IEEE Transactions on Aerospace and Electronic Systems, vol. 30,
+            no. 3, pp. 957-961, July 1994, doi: 10.1109/7.303772.
+    """
+    rllvec = np.atleast_2d(geo_to_gdz(geovec, units=units, geoid=geoid))
+    rllvec[:, 0] = np.linalg.norm(geovec)
+
+    return rllvec.squeeze()
 
 
 def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
@@ -966,7 +1015,7 @@ def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
         Output units will be the same as input units.
     geoid : spacepy.ctrans.Ellipsoid
         Instance of a reference ellipsoid to use for geodetic conversion.
-        Default is WGS84.a
+        Default is WGS84.
 
     Notes
     -----
@@ -989,6 +1038,77 @@ def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
     else:
         # Return in Re
         return out.squeeze()/geoid['A']
+
+
+def geo_to_rll(geovec, units='km', geoid=WGS84):
+    """Calculate RLL from geocentric geographic (GEO) coordinates
+
+    Parameters
+    ----------
+    gdzvec : array-like
+        Nx3 array of geographic radius, latitude, longitude (in specified units)
+
+    Returns
+    -------
+    rllvec : numpy.ndarray
+        Nx3 array of [distance from Earth's center, geodetic latitude, geodetic longitude]
+
+    Other Parameters
+    ----------------
+    units : str
+        Units for input geodetic altitude. Options are 'km' or 'Re'. Default is 'km'.
+        Output units will be the same as input units.
+    geoid : spacepy.ctrans.Ellipsoid
+        Instance of a reference ellipsoid to use for geodetic conversion.
+        Default is WGS84.
+
+    Notes
+    -----
+    .. versionadded:: 0.2.3
+    """
+    rllvec = np.atleast_2d(geo_to_gdz(geovec, units=units, geoid=geoid))
+    # Reolace altitude with norm of Cartesian position
+    rllvec[:, 0] = np.linalg.norm(geovec, axis=-1)
+
+    return rllvec.squeeze()
+
+
+def rll_to_geo(rllvec, units='km', geoid=WGS84):
+    """Calculate geocentric geographic (GEO) from RLL coordinates
+
+    Parameters
+    ----------
+    rllvec : array-like
+        Nx3 array of geocentric radius, geodetic latitude, geodetic longitude
+        (in specified units)
+
+    Returns
+    -------
+    geoarr : numpy.ndarray
+        Nx3 array of [altitude, geodetic latitude, geodetic longitude]
+
+    Other Parameters
+    ----------------
+    units : str
+        Units for input geocentric radii. Options are 'km' or 'Re'. Default is 'km'.
+        Output units will be the same as input units.
+    geoid : spacepy.ctrans.Ellipsoid
+        Instance of a reference ellipsoid to use for geodetic conversion.
+        Default is WGS84.
+
+    Notes
+    -----
+    .. versionadded:: 0.2.3
+    """
+    posarr = np.atleast_2d(rllvec).astype(np.float_)
+    surf = np.zeros_like(posarr)
+    surf[:, 1:] = posarr[:, 1:]
+    geoid_at_pos = np.atleast_2d(gdz_to_geo(surf, units=units, geoid=geoid))
+    gdz = posarr.copy()
+    gdz[:, 0] -= np.linalg.norm(geoid_at_pos, axis=-1)  # remove geoid height from geocentric radius at each location
+    geoarr = gdz_to_geo(gdz, units=units, geoid=geoid)
+
+    return geoarr
 
 
 def convert_multitime(coords, ticks, sys_in, sys_out):
