@@ -22,6 +22,8 @@ coordinates - module for coordinate transforms
    :template: clean_function.rst
    :toctree: autosummary
 
+    car2sph
+    sph2car
     quaternionRotateVector
     quaternionNormalize
     quaternionMultiply
