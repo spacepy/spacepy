@@ -259,20 +259,12 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         loc = [1,45,45]
         expected = array([ 0.5,  0.5,  0.70710678])
         with warnings.catch_warnings(record=True) as w:
-            if sys.version_info[0:2] == (2, 7)\
-               and hasattr(ib, '__warningregistry__'):
-                # filter 'always' is broken in Python 2.7
-                # https://stackoverflow.com/questions/56821539/
-                for k in ib.__warningregistry__.keys():
-                    if k[0].startswith(
-                            'moved to spacepy.coordinates') \
-                            and k[1] is DeprecationWarning:
-                        del ib.__warningregistry__[k]
-                        break
             warnings.simplefilter('always', category=DeprecationWarning)
             tst = ib.sph2car(loc)
-        self.assertEqual(1, len(w))
-        self.assertEqual(DeprecationWarning, w[0].category)
+        if sys.version_info[0:2] != (2, 7):
+            # Trapping warning doesn't work correctly in 2.7
+            self.assertEqual(1, len(w))
+            self.assertEqual(DeprecationWarning, w[0].category)
         numpy.testing.assert_almost_equal(expected, tst)
 
     def test_car2sph(self):
@@ -281,8 +273,10 @@ class IRBEMTestsWithoutOMNI(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always', category=DeprecationWarning)
             tst = ib.car2sph(loc)
-        self.assertEqual(1, len(w))
-        self.assertEqual(DeprecationWarning, w[0].category)
+        if sys.version_info[0:2] != (2, 7):
+            # Trapping warning doesn't work correctly in 2.7
+            self.assertEqual(1, len(w))
+            self.assertEqual(DeprecationWarning, w[0].category)
         numpy.testing.assert_almost_equal(expected, tst)
 
     def test_coord_trans(self):
