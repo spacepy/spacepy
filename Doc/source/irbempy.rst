@@ -24,6 +24,7 @@ Copyright 2010 Los Alamos National Security, LLC.
     get_Lm
     get_Lstar
     find_Bmirror
+    find_footpoint
     find_magequator
     car2sph
     sph2car
