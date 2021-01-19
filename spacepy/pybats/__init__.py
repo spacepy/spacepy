@@ -584,6 +584,37 @@ def readarray(f, dtype=np.float32, inttype=np.int32):
 
     return A
 
+def _skip_entry(f, inttype):
+    '''
+    Given a binary IDL-formmatted file opened as a file object, *f*, 
+    and whose file pointer is positioned at the start of an entry, 
+    skip to the end of the entry and return the total number of bytes skipped.
+
+    Fortran90+ binary files wrap entries with integers that state the number
+    of bytes of the entry.  This function reads the number of bytes before
+    the data entry, skips over the entry, and reads the trailing byte wrapper
+    before returning.
+
+    f : Binary file object
+        The file from which to read the array of values.
+    inttype : Numpy integer type
+        Set the precision for the integers that store the size of each
+        entry with the correct endianess.
+    '''
+    # Read preceding entry size, in bytes:
+    rec_len = np.fromfile(f,dtype=inttype,count=1)[0]
+
+    # Fast-forward over the entry:
+    f.seek(rec_len, 1)
+
+    # Read the trailing entry size, check for match:
+    rec_len_end = np.fromfile(f,dtype=inttype,count=1)[0]
+    if rec_len_end != rec_len: 
+        raise IOError('Record length mismatch.')
+
+    # Return total number of bytes skipped:
+    return rec_len+2*inttype.itemsize
+
 def _scan_idl_header(f, endchar, floattype, inttype):
     '''
     Given a binary IDL-formmatted file opened as a file object, *f*, 
@@ -625,22 +656,31 @@ def _scan_idl_header(f, endchar, floattype, inttype):
     # From header, get iteration, runtime (seconds), number of dimensions,
     # number of parameters, and number of variables in that order.
     # Stash relevant values into the "info" dict:
-    vals = readarray(infile, dtype=header_fields_dtype, inttype=inttype)[0]
-    for v, x in zip(['iter','runtime','nparams','nvars'], vals):
+    vals = readarray(f, dtype=header_fields_dtype, inttype=inttype)[0]
+    for v, x in zip(['iter','runtime','ndim','nparams','nvars'], vals):
         info[v] = x
 
     # Get gridsize:
-    grid=dmarray(readarray(infile,inttype,inttype))
+    grid=dmarray(readarray(f,inttype,inttype))
     npoints = abs(grid.prod())
 
     # Set the size of floating points in bytes:
     nbytes = floattype.itemsize
 
     # Skip the rest of the header:
-    headsize = nbytes*info['npar']
+    if info['nparams']>0: 
+        _skip_entry(f, inttype)  # Skip parameters.
+    _skip_entry(f, inttype)      # Skip variable names.
+    #parsize = nbytes*info['npar']
+    #infile.seek(headsize,whence=1)
+    # Get header size in bytes:
+    head_size = f.tell() - rec_start
 
-    # Calculate the end point of the data frame (start + header + data size):
-    rec_size = #calc here - rec_start
+    # Calculate the end point of the data frame
+    # end point = start + header + wrapper bytes + data size):
+    info['end'] = info['start'] + head_size +  \
+        2*inttype.itemsize*(1+info['nvars']) + \
+        nbytes*(info['nvars']+info['ndim'])*npoints
 
     return info
 
