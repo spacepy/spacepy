@@ -615,7 +615,7 @@ def _skip_entry(f, inttype):
     # Return total number of bytes skipped:
     return rec_len+2*inttype.itemsize
 
-def _scan_idl_header(f, endchar, floattype, inttype):
+def _scan_idl_header(f, endchar, inttype, floattype):
     '''
     Given a binary IDL-formmatted file opened as a file object, *f*, 
     and whose file pointer is positioned at the start of the header, 
@@ -627,11 +627,11 @@ def _scan_idl_header(f, endchar, floattype, inttype):
         The file from which to read the array of values.
     endchar : str
         Endian character:'<' or '>'
-    floattype : numpy float type
-        The data type used for data conversion with the correct endianess.
     inttype : Numpy integer type
         Set the precision for the integers that store the size of each
         entry with the correct endianess.
+    floattype : numpy float type
+        The data type used for data conversion with the correct endianess.
     
     Returns
     -------
@@ -659,6 +659,9 @@ def _scan_idl_header(f, endchar, floattype, inttype):
     vals = readarray(f, dtype=header_fields_dtype, inttype=inttype)[0]
     for v, x in zip(['iter','runtime','ndim','nparams','nvars'], vals):
         info[v] = x
+
+    # Dimensionality may be negative to indicate non-uniform grid:
+    info['ndim'] = abs(info['ndim'])
 
     # Get gridsize:
     grid=dmarray(readarray(f,inttype,inttype))
