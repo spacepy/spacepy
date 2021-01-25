@@ -8,7 +8,6 @@ Test suite for ctrans module
 import copy
 import datetime as dt
 import unittest
-import warnings
 
 import numpy
 from scipy.constants import arcsec
