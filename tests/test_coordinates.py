@@ -10,7 +10,7 @@ from spacepy.time import Ticktock
 try:
     import spacepy.irbempy as ib
 except ImportError:
-    pass #tests will fail, but won't bring down the entire suite
+    pass  # tests will fail, but won't bring down the entire suite
 try:
     import astropy.coordinates
     HAVE_ASTROPY = True
@@ -38,10 +38,10 @@ class coordsTest(unittest.TestCase):
 
     def test_coords(self):
         """Coords should create and do simple conversions"""
-        np.testing.assert_equal([1,1], self.cvals.x)
-        np.testing.assert_equal([2,2], self.cvals.y)
-        np.testing.assert_equal([4,2], self.cvals.z)
-        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
+        np.testing.assert_equal([1, 1], self.cvals.x)
+        np.testing.assert_equal([2, 2], self.cvals.y)
+        np.testing.assert_equal([4, 2], self.cvals.z)
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')  # add ticktock
         newcoord = self.cvals.convert('GSM', 'sph')
 
     def test_array_input_1D(self):
@@ -56,7 +56,7 @@ class coordsTest(unittest.TestCase):
 
     def test_bad_position_fails_1D(self):
         """Positions nnot supplied as valid 3-vectors should fail"""
-        self.assertRaises(ValueError, spc.Coords, [[1, 2],[1, 2]], 'GEO', 'car', use_irbem=False)
+        self.assertRaises(ValueError, spc.Coords, [[1, 2], [1, 2]], 'GEO', 'car', use_irbem=False)
 
     def test_bad_position_fails_2D(self):
         """Positions nnot supplied as valid 3-vectors should fail"""
@@ -150,7 +150,7 @@ class coordsTest(unittest.TestCase):
     def test_spherical_return_GEO_from_ECIMOD(self):
         """GEO should return correct spherical when requested (converted)"""
         tt = Ticktock(2459213.5, 'JD')
-        pos = [-0.46409501,  2.96391738,  2.99996826]
+        pos = [-0.46409501, 2.96391738, 2.99996826]
         expected = [4.242640687119285, 45, 0]
         ccobj = spc.Coords(pos, 'ECIMOD', 'car', ticks=tt, use_irbem=False)
         got = ccobj.convert('GEO', 'sph')
@@ -160,7 +160,7 @@ class coordsTest(unittest.TestCase):
         """Coords should return correct answer when given spherical (converted)"""
         tt = Ticktock(2459213.5, 'JD')
         pos = [4.242640687119285, 45, 0]
-        expected = [-0.46409501,  2.96391738,  2.99996826]
+        expected = [-0.46409501, 2.96391738, 2.99996826]
         ccobj = spc.Coords(pos, 'GEO', 'sph', ticks=tt, use_irbem=False)
         got = ccobj.convert('ECIMOD', 'car')
         np.testing.assert_allclose(got.data, np.atleast_2d(expected), rtol=0, atol=1e-7)
@@ -221,7 +221,8 @@ class coordsTest(unittest.TestCase):
         pos = np.array([2367.83158, -5981.75882, -4263.24591])
         cc_km = spc.Coords(pos, 'GEI', 'car', ticks=tt, units=['km', 'km', 'km'], use_irbem=False)
         got = cc_km.convert('RLL', 'sph')
-        cc_Re = spc.Coords(pos/ctrans.WGS84['A'], 'GEI', 'car', ticks=tt, units=['Re', 'Re', 'Re'], use_irbem=False)
+        cc_Re = spc.Coords(pos/ctrans.WGS84['A'], 'GEI', 'car',
+                           ticks=tt, units=['Re', 'Re', 'Re'], use_irbem=False)
         expected = cc_Re.convert('RLL', 'sph')
         # units should be respected
         np.testing.assert_approx_equal(expected.radi, got.radi/ctrans.WGS84['A'], significant=6)
@@ -246,13 +247,17 @@ class coordsTest(unittest.TestCase):
 
     def test_units_respected(self):
         """Units should be preserved on all conversions except to/from GDZ"""
-        cc_gdz_r = spc.Coords([3, 45, 45], 'GDZ', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=False,
+        cc_gdz_r = spc.Coords([3, 45, 45], 'GDZ', 'sph',
+                              ticks=Ticktock('2008-01-01'), use_irbem=False,
                               units=['Re', 'deg', 'deg'])
-        cc_sph_r = spc.Coords([3, 45, 45], 'GEO', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=False,
+        cc_sph_r = spc.Coords([3, 45, 45], 'GEO', 'sph',
+                              ticks=Ticktock('2008-01-01'), use_irbem=False,
                               units=['Re', 'deg', 'deg'])
-        cc_gdz_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GDZ', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=False,
+        cc_gdz_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GDZ', 'sph',
+                              ticks=Ticktock('2008-01-01'), use_irbem=False,
                               units=['km', 'deg', 'deg'])
-        cc_sph_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GEO', 'sph', ticks=Ticktock('2008-01-01'), use_irbem=False,
+        cc_sph_k = spc.Coords([3*ctrans.WGS84['A'], 45, 45], 'GEO', 'sph',
+                              ticks=Ticktock('2008-01-01'), use_irbem=False,
                               units=['km', 'deg', 'deg'])
         # Conversion from GDZ goes to Re
         got_gdz_r = cc_gdz_r.convert('GSE', 'car')
@@ -273,14 +278,12 @@ class coordsTest(unittest.TestCase):
 
 class coordsTestIrbem(unittest.TestCase):
     def setUp(self):
-        #super(tFunctionTests, self).setUp()
         try:
-            self.cvals = spc.Coords([[1, 2, 4],[1, 2, 2]], 'GEO', 'car', use_irbem=True)
+            self.cvals = spc.Coords([[1, 2, 4], [1, 2, 2]], 'GEO', 'car', use_irbem=True)
         except ImportError:
-            pass #tests will fail, but won't bring down the entire suite
+            pass  # tests will fail, but won't bring down the entire suite
 
     def tearDown(self):
-        #super(tFunctionTests, self).tearDown()
         pass
 
     def test_coords(self):
@@ -288,7 +291,7 @@ class coordsTestIrbem(unittest.TestCase):
         np.testing.assert_equal([1, 1], self.cvals.x)
         np.testing.assert_equal([2, 2], self.cvals.y)
         np.testing.assert_equal([4, 2], self.cvals.z)
-        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO') # add ticktock
+        self.cvals.ticks = Ticktock(['2002-02-02T12:00:00', '2002-02-02T12:00:00'], 'ISO')  # add ticktock
         newcoord = self.cvals.convert('GSM', 'sph')
 
     def test_append(self):
@@ -515,7 +518,7 @@ class QuaternionFunctionTests(unittest.TestCase):
     def test_quaternionNormalize(self):
         """quaternionNormalize should have known results"""
         tst = spc.quaternionNormalize([0.707, 0, 0.707, 0.2])
-        ans = [ 0.69337122,  0.        ,  0.69337122,  0.19614462]
+        ans = [0.69337122, 0., 0.69337122, 0.19614462]
         np.testing.assert_array_almost_equal(ans, tst)
 
     def test_quaternionNormalize_2(self):
@@ -553,24 +556,23 @@ class QuaternionFunctionTests(unittest.TestCase):
 
     def test_quaternionConjugate_last(self):
         tst = spc.quaternionConjugate([0.707, 0, 0.707, 0.2], scalarPos='last')
-        ans = [ -0.707,  -0.        ,  -0.707,  0.2]
+        ans = [-0.707, -0., -0.707, 0.2]
         np.testing.assert_array_almost_equal(ans, tst)
 
     def test_quaternionConjugate_first(self):
         tst = spc.quaternionConjugate([0.2, 0.707, 0, 0.707], scalarPos='first')
-        ans = [ 0.2,  -0.707,  -0.        ,  -0.707]
+        ans = [0.2, -0.707, -0., -0.707]
         np.testing.assert_array_almost_equal(ans, tst)
 
     def test_quaternionRotateVector(self):
         """Simple vector rotations"""
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
+        cos45 = 0.5 ** 0.5  # 1/sqrt(2), or cos/sin of 45 degrees
         # No rotation, 90 degrees around each of X, Y, and Z
-        Qin = np.array([
-            [0, 0, 0, 1],
-            [cos45, 0, 0, cos45],
-            [0, cos45, 0, cos45],
-            [0, 0, cos45, cos45],
-            ])
+        Qin = np.array([[0, 0, 0, 1],
+                        [cos45, 0, 0, cos45],
+                        [0, cos45, 0, cos45],
+                        [0, 0, cos45, cos45],
+                        ])
         invect = np.array([
             [1, 0, 0],
             [0, 0, 1],
@@ -589,19 +591,17 @@ class QuaternionFunctionTests(unittest.TestCase):
     def test_quaternionFromMatrix_simple(self):
         """Test several simple rotations"""
         # Identity, and rotations by 90 degrees around X, Y, and Z axis
-        inputs = np.array([
-            [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-            [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
-            [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
-            [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
-            ])
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
-        expected = np.array([
-            [0, 0, 0, 1],
-            [cos45, 0, 0, cos45],
-            [0, cos45, 0, cos45],
-            [0, 0, cos45, cos45],
-            ])
+        inputs = np.array([[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                           [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
+                           [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
+                           [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
+                           ])
+        cos45 = 0.5 ** 0.5  # 1/sqrt(2), or cos/sin of 45 degrees
+        expected = np.array([[0, 0, 0, 1],
+                             [cos45, 0, 0, cos45],
+                             [0, cos45, 0, cos45],
+                             [0, 0, cos45, cos45],
+                             ])
         # Test single rotation at a time
         for i in range(expected.shape[0]):
             np.testing.assert_array_almost_equal(
@@ -611,12 +611,11 @@ class QuaternionFunctionTests(unittest.TestCase):
         actual = spc.quaternionFromMatrix(inputs)
         np.testing.assert_array_almost_equal(actual, expected)
         # Put scalar on other side
-        expected = np.array([
-            [1, 0, 0, 0],
-            [cos45, cos45, 0, 0],
-            [cos45, 0, cos45, 0],
-            [cos45, 0, 0, cos45],
-            ])
+        expected = np.array([[1, 0, 0, 0],
+                             [cos45, cos45, 0, 0],
+                             [cos45, 0, cos45, 0],
+                             [cos45, 0, 0, cos45],
+                             ])
         actual = spc.quaternionFromMatrix(inputs, scalarPos='first')
         np.testing.assert_array_almost_equal(actual, expected)
 
@@ -625,42 +624,40 @@ class QuaternionFunctionTests(unittest.TestCase):
         # This is identical to simple tests, but with a different shape
         # Identity, and rotations by 90 degrees around X, Y, and Z axis
         inputs = np.array([
-            [[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-             [[1, 0, 0], [0, 0, -1], [0, 1, 0]]],
-            [[[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
-             [[0, -1, 0], [1, 0, 0], [0, 0, 1]]],
-            ])
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
+                          [[[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                           [[1, 0, 0], [0, 0, -1], [0, 1, 0]]],
+                          [[[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
+                           [[0, -1, 0], [1, 0, 0], [0, 0, 1]]],
+                          ])
+        cos45 = 0.5 ** 0.5  # 1/sqrt(2), or cos/sin of 45 degrees
         expected = np.array([
-            [[0, 0, 0, 1],
-             [cos45, 0, 0, cos45]],
-            [[0, cos45, 0, cos45],
-             [0, 0, cos45, cos45]],
-            ])
+                            [[0, 0, 0, 1],
+                             [cos45, 0, 0, cos45]],
+                            [[0, cos45, 0, cos45],
+                             [0, 0, cos45, cos45]],
+                            ])
         actual = spc.quaternionFromMatrix(inputs)
         np.testing.assert_array_almost_equal(actual, expected)
         # Put scalar on other side
         expected = np.array([
-            [[1, 0, 0, 0],
-             [cos45, cos45, 0, 0]],
-            [[cos45, 0, cos45, 0],
-             [cos45, 0, 0, cos45]],
-            ])
+                            [[1, 0, 0, 0],
+                             [cos45, cos45, 0, 0]],
+                            [[cos45, 0, cos45, 0],
+                             [cos45, 0, 0, cos45]],
+                            ])
         actual = spc.quaternionFromMatrix(inputs, scalarPos='first')
         np.testing.assert_array_almost_equal(actual, expected)
 
     def test_quaternionFromMatrix_perturbed(self):
         """Add error to a rotation matrix"""
         # Rotation by 90 degrees around X axis
-        matrix = np.array(
-            [[1., 0, 0], [0, 0, -1], [0, 1, 0]],
-        )
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
+        matrix = np.array([[1., 0, 0], [0, 0, -1], [0, 1, 0]])
+        cos45 = 0.5 ** 0.5  # 1/sqrt(2), or cos/sin of 45 degrees
         # Equivalent quaternion
         expected = np.array([cos45, 0, 0, cos45],)
         # Add error, make sure still comes up with something reasonable
         np.random.seed(0x0d15ea5e)
-        err = np.random.rand(3, 3) / 50 - 0.01 #-0.01 to 0.01
+        err = np.random.rand(3, 3) / 50 - 0.01  # -0.01 to 0.01
         matrix += err
         actual = spc.quaternionFromMatrix(matrix)
         np.testing.assert_array_almost_equal(actual, expected, decimal=3)
@@ -762,25 +759,25 @@ class QuaternionFunctionTests(unittest.TestCase):
     def test_quaternionToMatrix_simple(self):
         """Test several simple rotations"""
         # Rotations by 90 degrees around X, Y, and Z axis
-        cos45 = 0.5 ** 0.5 # 1/sqrt(2), or cos/sin of 45 degrees
+        cos45 = 0.5 ** 0.5  # 1/sqrt(2), or cos/sin of 45 degrees
         inputs = np.array([
-            [cos45, 0, 0, cos45],
-            [0, cos45, 0, cos45],
-            [0, 0, cos45, cos45],
-            ])
+                          [cos45, 0, 0, cos45],
+                          [0, cos45, 0, cos45],
+                          [0, 0, cos45, cos45],
+                          ])
         expected = np.array([
-            [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
-            [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
-            [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
-            ])
+                            [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
+                            [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
+                            [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
+                            ])
         actual = spc.quaternionToMatrix(inputs)
         np.testing.assert_array_almost_equal(actual, expected)
         # Put scalar on other side
         inputs = np.array([
-            [cos45, cos45, 0, 0],
-            [cos45, 0, cos45, 0],
-            [cos45, 0, 0, cos45],
-            ])
+                          [cos45, cos45, 0, 0],
+                          [cos45, 0, cos45, 0],
+                          [cos45, 0, 0, cos45],
+                          ])
         actual = spc.quaternionToMatrix(inputs, scalarPos='first')
         np.testing.assert_array_almost_equal(actual, expected)
 
@@ -794,7 +791,7 @@ class QuaternionFunctionTests(unittest.TestCase):
         np.testing.assert_array_almost_equal(
             ortho_test, np.identity(3))
         det = np.linalg.det(matrix)
-        self.assertTrue(det > 0) # Proper?
+        self.assertTrue(det > 0)  # Proper?
         invect = np.array([[5, 3, 2], [1, 0, 0],
                            [0.2, 5, 20], [0, 2, 2]])
         # Test matrix vs. quaternion rotation, single vector
@@ -819,7 +816,7 @@ class QuaternionFunctionTests(unittest.TestCase):
         matrix = spc.quaternionToMatrix(Qin)
         Qrt = spc.quaternionFromMatrix(matrix)
         if np.sign(Qrt[-1]) != np.sign(Qin[-1]):
-            Qrt *= -1 #Handle the sign ambiguity
+            Qrt *= -1  # Handle the sign ambiguity
         np.testing.assert_array_almost_equal(
             Qrt, Qin)
 
@@ -849,7 +846,7 @@ class QuaternionFunctionTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    ## suite = unittest.TestLoader().loadTestsFromTestCase(coordsTest)
-    ## unittest.TextTestRunner(verbosity=2).run(suite)
+    # suite = unittest.TestLoader().loadTestsFromTestCase(coordsTest)
+    # unittest.TextTestRunner(verbosity=2).run(suite)
 
     unittest.main()

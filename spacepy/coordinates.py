@@ -187,9 +187,13 @@ class Coords(object):
         dtype = dtype.upper()
         carsph = carsph.lower()
 
-        assert dtype in list(SYSAXES_TYPES.keys()), 'This dtype='+dtype+' is not supported. Only '+str(list(SYSAXES_TYPES.keys()))
-        assert carsph in ['car','sph'], 'This carsph='+str(carsph)+' is not supported. Only "car" or "sph"'
-        onerawarn = """Coordinate conversion to an ONERA-compatible system is required for any ONERA calls."""
+        if dtype not in list(SYSAXES_TYPES.keys()):
+            raise ValueError('This dtype=' + dtype + ' is not supported. Only ' +
+                             str(list(SYSAXES_TYPES.keys()))
+                             )
+        if carsph not in ['car', 'sph']:
+            raise ValueError('This carsph=' + str(carsph) +
+                             ' is not supported. Only "car" or "sph"')
 
         if dtype in ['GDZ', 'RLL'] and carsph == 'car':
             raise ValueError("Geodetic coordinates are referenced to an ellipsoid "
@@ -227,8 +231,6 @@ class Coords(object):
             self.radi = spacepy.datamodel.dmcopy(self.data[:, 0])
             self.lati = spacepy.datamodel.dmcopy(self.data[:, 1])
             self.long = spacepy.datamodel.dmcopy(self.data[:, 2])
-        ## setup list for onera compatibility
-        #self.sysaxes = op.get_sysaxes(dtype, carsph)
         self.shape = np.shape(self.data)
         return None
 
@@ -283,7 +285,8 @@ class Coords(object):
         arr = np.array(self.data)
         t_select = self.ticks[idx] if self.ticks else self.ticks
 
-        return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units, t_select, use_irbem=False)
+        return Coords(arr[idx].tolist(), self.dtype, self.carsph, self.units,
+                      t_select, use_irbem=False)
 
     # -----------------------------------------------
     def __setitem__(self, idx, vals):
@@ -387,29 +390,29 @@ class Coords(object):
                     data = sph2car(self.data)
                 else:
                     carsph = 'sph'
-                    units =  [self.units[0], 'deg','deg']
+                    units = [self.units[0], 'deg', 'deg']
                     data = car2sph(self.data)
-                return Coords(data, self.dtype, carsph, units, self.ticks, use_irbem=self.use_irbem)
+                return Coords(data, self.dtype, carsph, units, self.ticks,
+                              use_irbem=self.use_irbem)
 
         # check the length of ticks and do the more complex conversions
-        if self.ticks:
-            assert len(self.ticks) == len(self), 'Ticktock dimension does not match Coords dimensions'
+        if self.ticks and (len(self.ticks) != len(self)):
+            raise ValueError('Ticktock dimension does not match Coords dimensions')
 
         # check if car2sph is needed first for oneralib compatibility
-        if (self.sysaxes is None) : # a car2sph or sph2car is needed
+        if (self.sysaxes is None):  # a car2sph or sph2car is needed
             if self.carsph == 'sph':
                 carsph = 'car'
                 units = [self.units[0]]*3
                 data = sph2car(self.data)
             else:
                 carsph = 'sph'
-                units =  [self.units[0], 'deg','deg']
+                units = [self.units[0], 'deg', 'deg']
                 data = car2sph(self.data)
         else:
             data = self.data
             units = self.units
             carsph = self.carsph
-
 
         if self.use_irbem:
             from . import irbempy as op
@@ -417,7 +420,8 @@ class Coords(object):
             with warnings.catch_warnings():
                 # No need to warn on conversion
                 warnings.filterwarnings('ignore', category=DeprecationWarning)
-                NewCoords = Coords(data, self.dtype, carsph, units, self.ticks, use_irbem=self.use_irbem)
+                NewCoords = Coords(data, self.dtype, carsph, units, self.ticks,
+                                   use_irbem=self.use_irbem)
         else:
             # SpacePy conversion takes input/output type separately, so set to desired output
             NewCoords = Coords(data, returntype if self.use_irbem else returnname,
@@ -436,8 +440,8 @@ class Coords(object):
             else:
                 if returnname in ['GDZ', 'RLL'] and self.units[0] == 'Re':
                     data *= self.Re  # geodetic is defined in [km, deg, deg]
-                NewCoords.data = np.atleast_2d(ctrans.convert_multitime(data, self.ticks, self.dtype,
-                                                                        returnname))
+                NewCoords.data = np.atleast_2d(ctrans.convert_multitime(data, self.ticks,
+                                                                        self.dtype, returnname))
                 if returnname == 'RLL' and units[0] == 'Re':
                     # RLL is defined in Re, deg, deg, but all geodetic calcs are in km
                     NewCoords.data[:, 0] = NewCoords.data[:, 0]/self.Re
@@ -455,21 +459,21 @@ class Coords(object):
             if returnname == 'GDZ':
                 NewCoords.units = ['km', 'deg', 'deg']
             else:
-                NewCoords.units = [units[0], 'deg','deg']
+                NewCoords.units = [units[0], 'deg', 'deg']
             for k in ('x', 'y', 'z'):
                 if hasattr(NewCoords, k):
                     delattr(NewCoords, k)
-            NewCoords.radi = NewCoords.data[:,0]
-            NewCoords.lati = NewCoords.data[:,1]
-            NewCoords.long = NewCoords.data[:,2]
-        else: # 'car'
-            NewCoords.units =  [units[0]]*3
+            NewCoords.radi = NewCoords.data[:, 0]
+            NewCoords.lati = NewCoords.data[:, 1]
+            NewCoords.long = NewCoords.data[:, 2]
+        else:  # 'car'
+            NewCoords.units = [units[0]]*3
             for k in ('radi', 'lati', 'long'):
                 if hasattr(NewCoords, k):
                     delattr(NewCoords, k)
-            NewCoords.x = NewCoords.data[:,0]
-            NewCoords.y = NewCoords.data[:,1]
-            NewCoords.z = NewCoords.data[:,2]
+            NewCoords.x = NewCoords.data[:, 0]
+            NewCoords.y = NewCoords.data[:, 1]
+            NewCoords.z = NewCoords.data[:, 2]
 
         return NewCoords
 
@@ -479,7 +483,7 @@ class Coords(object):
         Is called when pickling
         See Also http://docs.python.org/library/pickle.html
         '''
-        odict = self.__dict__.copy() # copy the dict since we change it
+        odict = self.__dict__.copy()  # copy the dict since we change it
         return odict
 
     def __setstate__(self, dict):
@@ -607,7 +611,7 @@ def car2sph(car_in):
         x, y, z = car[i, 0], car[i, 1], car[i, 2]
         r = np.sqrt(x*x+y*y+z*z)
         sq = np.sqrt(x*x+y*y)
-        if (x == 0) & (y == 0): # on the poles
+        if (x == 0) & (y == 0):  # on the poles
             longi = 0.
             if z < 0:
                 lati = -90.
@@ -658,7 +662,7 @@ def sph2car(sph_in):
         x = r*np.sin(colat)*np.cos(longi*np.pi/180.)
         y = r*np.sin(colat)*np.sin(longi*np.pi/180.)
         z = r*np.cos(colat)
-        res[i,:] = [x, y, z]
+        res[i, :] = [x, y, z]
 
     if isinstance(sph_in[0], numbers.Number):
         return res[0]
@@ -688,7 +692,8 @@ def quaternionNormalize(Qin, scalarPos='last'):
     '''
     w = {'first': 0, 'last': 3}.get(scalarPos.lower())
     if w is None:
-        raise NotImplementedError('quaternionNormalize: scalarPos must be set to "First" or "Last"')
+        errmsg = 'quaternionNormalize: scalarPos must be set to "First" or "Last"'
+        raise NotImplementedError(errmsg)
 
     Quse = np.asanyarray(Qin).astype(float)
     squeeze = Quse.ndim < 2
@@ -739,17 +744,19 @@ def quaternionRotateVector(Qin, Vin, scalarPos='last', normalize=True):
     --------
     quaternionMultiply
     '''
-    if scalarPos.lower()=='last':
+    if scalarPos.lower() == 'last':
         i, j, k = 0, 1, 2
         w = 3
-    elif scalarPos.lower()=='first':
+    elif scalarPos.lower() == 'first':
         i, j, k = 1, 2, 3
         w = 0
     else:
-        raise NotImplementedError('quaternionRotateVector: scalarPos must be set to "First" or "Last"')
+        errmsg = 'quaternionRotateVector: scalarPos must be set to "First" or "Last"'
+        raise NotImplementedError(errmsg)
 
     Quse = np.asanyarray(Qin).astype(float)
-    if normalize: Quse = quaternionNormalize(Quse, scalarPos=scalarPos)
+    if normalize:
+        Quse = quaternionNormalize(Quse, scalarPos=scalarPos)
     Vuse = np.asanyarray(Vin).astype(float)
     try:
         Quse.shape[1]
@@ -760,9 +767,12 @@ def quaternionRotateVector(Qin, Vin, scalarPos='last', normalize=True):
     except IndexError:
         Vuse = np.asanyarray([Vuse])
     try:
-        assert Vuse.shape[0]==Quse.shape[0]
+        assert Vuse.shape[0] == Quse.shape[0]
     except AssertionError:
-        raise ValueError('quaternionRotateVector: Input vector array must have same length as input quaternion array')
+        errmsg = ' '.join(['quaternionRotateVector:',
+                           'Input vector array must have same length',
+                           'as input quaternion array'])
+        raise ValueError(errmsg)
 
     outarr = np.empty((Quse.shape[0], 3))
     for idx, row in enumerate(Quse):
@@ -771,9 +781,15 @@ def quaternionRotateVector(Qin, Vin, scalarPos='last', normalize=True):
         iw, jw, kw = row[i]*row[w], row[j]*row[w], row[k]*row[w]
         ij, ik, jk = row[i]*row[j], row[i]*row[k], row[j]*row[k]
 
-        outarr[idx, 0] = ww*Vrow[0] + 2*jw*Vrow[2] - 2*kw*Vrow[1] + ii*Vrow[0] + 2*ij*Vrow[1] + 2*ik*Vrow[2] - kk*Vrow[0] - jj*Vrow[0]
-        outarr[idx, 1] = 2*ij*Vrow[0] + jj*Vrow[1] + 2*jk*Vrow[2] + 2*kw*Vrow[0] - kk*Vrow[1] + ww*Vrow[1] - 2*iw*Vrow[2] - ii*Vrow[1]
-        outarr[idx, 2] = 2*ik*Vrow[0] + 2*jk*Vrow[1] + kk*Vrow[2] - 2.0*jw*Vrow[0] - jj*Vrow[2] + 2.0*iw*Vrow[1] - ii*Vrow[2] + ww*Vrow[2]
+        outarr[idx, 0] = ww*Vrow[0] + 2*jw*Vrow[2] - 2*kw*Vrow[1] + \
+                         ii*Vrow[0] + 2*ij*Vrow[1] + 2*ik*Vrow[2] - \
+                         kk*Vrow[0] - jj*Vrow[0]
+        outarr[idx, 1] = 2*ij*Vrow[0] + jj*Vrow[1] + 2*jk*Vrow[2] + \
+                         2*kw*Vrow[0] - kk*Vrow[1] + ww*Vrow[1] - \
+                         2*iw*Vrow[2] - ii*Vrow[1]
+        outarr[idx, 2] = 2*ik*Vrow[0] + 2*jk*Vrow[1] + kk*Vrow[2] - \
+                         2.0*jw*Vrow[0] - jj*Vrow[2] + 2.0*iw*Vrow[1] - \
+                         ii*Vrow[2] + ww*Vrow[2]
     return outarr.squeeze()
 
 
@@ -810,10 +826,10 @@ def quaternionMultiply(Qin1, Qin2, scalarPos='last'):
     >>> spacepy.coordinates.quaternionRotateVector(quat_gse_to_gsm, vecZ)
     array([  1.06802834e-08,  -4.95669027e-01,   8.68511494e-01])
     '''
-    if scalarPos.lower()=='last':
+    if scalarPos.lower() == 'last':
         i, j, k = 0, 1, 2
         w = 3
-    elif scalarPos.lower()=='first':
+    elif scalarPos.lower() == 'first':
         i, j, k = 1, 2, 3
         w = 0
     else:
@@ -830,7 +846,7 @@ def quaternionMultiply(Qin1, Qin2, scalarPos='last'):
     except IndexError:
         Quse2 = np.asanyarray([Quse2])
     try:
-        assert Quse2.shape==Quse1.shape
+        assert Quse2.shape == Quse1.shape
     except AssertionError:
         raise ValueError('quaternionMultiply: Input quaternion arrays must have same length')
 
@@ -838,11 +854,11 @@ def quaternionMultiply(Qin1, Qin2, scalarPos='last'):
     for idx, row in enumerate(Quse1):
         row1 = row
         row2 = Quse2[idx]
-        #vector components
+        # vector components
         outarr[idx, i] = row1[w]*row2[i] + row1[i]*row2[w] + row1[j]*row2[k] - row1[k]*row2[j]
         outarr[idx, j] = row1[w]*row2[j] - row1[i]*row2[k] + row1[j]*row2[w] + row1[k]*row2[i]
         outarr[idx, k] = row1[w]*row2[k] + row1[i]*row2[j] - row1[j]*row2[i] + row1[k]*row2[w]
-        #real part
+        # real part
         outarr[idx, w] = row1[w]*row2[w] - row1[i]*row2[i] - row1[j]*row2[j] - row1[k]*row2[k]
     return outarr.squeeze()
 
@@ -872,14 +888,15 @@ def quaternionConjugate(Qin, scalarPos='last'):
     --------
     quaternionMultiply
     '''
-    if scalarPos.lower()=='last':
+    if scalarPos.lower() == 'last':
         i, j, k = 0, 1, 2
         w = 3
-    elif scalarPos.lower()=='first':
+    elif scalarPos.lower() == 'first':
         i, j, k = 1, 2, 3
         w = 0
     else:
-        raise NotImplementedError('quaternionConjugate: scalarPos must be set to "First" or "Last"')
+        errmsg = 'quaternionConjugate: scalarPos must be set to "First" or "Last"'
+        raise NotImplementedError(errmsg)
 
     Quse = np.asanyarray(Qin).astype(float)
     try:
@@ -1008,24 +1025,23 @@ def quaternionFromMatrix(matrix, scalarPos='last'):
     # Flatten out most dimensions, easier to index
     matrix = np.reshape(matrix, (-1, 3, 3))
     # Indexing in Bar-Itzhack is reversed relative to numpy
-    k  = (
-        matrix[..., 0, 0] - matrix[..., 1, 1] - matrix[..., 2, 2],
-        matrix[..., 0, 1] + matrix[..., 1, 0],
-        matrix[..., 0, 2] + matrix[..., 2, 0],
-        matrix[..., 2, 1] - matrix[..., 1, 2], # row 0
-        matrix[..., 0, 1] + matrix[..., 1, 0],
-        matrix[..., 1, 1] - matrix[..., 0, 0] - matrix[..., 2, 2],
-        matrix[..., 1, 2] + matrix[..., 2, 1],
-        matrix[..., 0, 2] - matrix[..., 2, 0], # row 1
-        matrix[..., 0, 2] + matrix[..., 2, 0],
-        matrix[..., 1, 2] + matrix[..., 2, 1],
-        matrix[..., 2, 2] - matrix[..., 0, 0] - matrix[..., 1, 1],
-        matrix[..., 1, 0] - matrix[..., 0, 1], #row 2
-        matrix[..., 2, 1] - matrix[..., 1, 2],
-        matrix[..., 0, 2] - matrix[..., 2, 0],
-        matrix[..., 1, 0] - matrix[..., 0, 1],
-        matrix[..., 0, 0] + matrix[..., 1, 1] + matrix[..., 2, 2] #row 3
-        )
+    k = (matrix[..., 0, 0] - matrix[..., 1, 1] - matrix[..., 2, 2],
+         matrix[..., 0, 1] + matrix[..., 1, 0],
+         matrix[..., 0, 2] + matrix[..., 2, 0],
+         matrix[..., 2, 1] - matrix[..., 1, 2],  # row 0
+         matrix[..., 0, 1] + matrix[..., 1, 0],
+         matrix[..., 1, 1] - matrix[..., 0, 0] - matrix[..., 2, 2],
+         matrix[..., 1, 2] + matrix[..., 2, 1],
+         matrix[..., 0, 2] - matrix[..., 2, 0],  # row 1
+         matrix[..., 0, 2] + matrix[..., 2, 0],
+         matrix[..., 1, 2] + matrix[..., 2, 1],
+         matrix[..., 2, 2] - matrix[..., 0, 0] - matrix[..., 1, 1],
+         matrix[..., 1, 0] - matrix[..., 0, 1],  # row 2
+         matrix[..., 2, 1] - matrix[..., 1, 2],
+         matrix[..., 0, 2] - matrix[..., 2, 0],
+         matrix[..., 1, 0] - matrix[..., 0, 1],
+         matrix[..., 0, 0] + matrix[..., 1, 1] + matrix[..., 2, 2]  # row 3
+         )
     # Stack together on a new axis after the input sample, then
     # split that axis into the 4x4 k arrays
     k = np.reshape(np.stack(k, axis=1), (-1, 4, 4))
@@ -1112,17 +1128,16 @@ def quaternionToMatrix(Qin, scalarPos='last', normalize=True):
     a, b, c, d = Qin[..., -1:], Qin[..., 0:1], Qin[..., 1:2], Qin[..., 2:3]
     # Output array, "flattened"
     # This can probably be written with a clever vector notation...
-    out = np.concatenate((
-        a ** 2 + b ** 2 - c ** 2 - d ** 2,
-        2 * (b * c - a * d),
-        2 * (b * d + a * c),
-        2 * (b * c + a * d),
-        a ** 2 + c ** 2 - b ** 2 - d ** 2,
-        2 * (c * d - a * b),
-        2 * (b * d - a * c),
-        2 * (c * d + a * b),
-        a ** 2 + d ** 2 - b ** 2 - c ** 2,
-        ), axis=-1)
+    out = np.concatenate((a ** 2 + b ** 2 - c ** 2 - d ** 2,
+                          2 * (b * c - a * d),
+                          2 * (b * d + a * c),
+                          2 * (b * c + a * d),
+                          a ** 2 + c ** 2 - b ** 2 - d ** 2,
+                          2 * (c * d - a * b),
+                          2 * (b * d - a * c),
+                          2 * (c * d + a * b),
+                          a ** 2 + d ** 2 - b ** 2 - c ** 2,
+                          ), axis=-1)
     # And last two dims are 3x3 array for matrix
     out = np.reshape(out, out.shape[:-1] + (3, 3))
     return out
