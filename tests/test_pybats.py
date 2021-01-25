@@ -42,11 +42,15 @@ class TestParseFileTime(unittest.TestCase):
              'z=0_mhd_2_t00050000_n00249620.out',
              os.path.join(spacepy_testing.datadir,
                           'pybats_test', 'mag_grid_ascii.out'),
-    ]
+             'y=0_mhd_1_t20140410000000_n00001500.out',
+             'z=0_mhd_2_e20140410-000000-000_20140410-000300-000.outs',
+             'z=0_mhd_2_n00001500_00001889.outs'
+             ]
+    iters = [None, None, 31073, 249620, None, 1500, None, [1500, 1889]]
+    times = [None, None, 870, 18000, None, None, None, None]
     dates = [dt(2013,9,24,23,26,0), dt(2013,9,24,22, 5,0),
-             None, None, None]
-    times = [None, None, 870, 18000, None]
-    iters = [None, None, 31073, 249620, None]
+             None, None, None, dt(2014, 4, 10, 0, 0),
+             [dt(2014,4,10,0,0,0), dt(2014,4,10,0,3,0)], None]
 
     def testParse(self):
         from spacepy.pybats import parse_filename_time

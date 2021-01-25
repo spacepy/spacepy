@@ -55,6 +55,7 @@ pycdf
    default will change to CDF_TIME_TT2000.
  - Fix epoch_to_num with newer versions of matplotlib.
 pybats
+ - Updated parse_filename_time to handle ranges of times and updated file name formats.
  - Updated gitm.GitmBin reader to fix failures in Python 3.x.
  - Fix for incorrect Kyoto Kp plots.
  - Fixed open/closed tolerance kwarg not working in add_b_magsphere.
