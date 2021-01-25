@@ -129,6 +129,10 @@ def parse_filename_time(filename):
     returned to the caller in that order.  If any cannot be found in the 
     file name, "None" is returned in its place.
 
+    For *.outs files, ranges of times and iterations can be given in the 
+    file names.  If this is the case, a list of values will be returned 
+    for that entry (see third example below).
+
     Information on the format of time strings contained within SWMF output
     file names can be found in the `SWMF User Manual 
     <http://herot.engin.umich.edu/~gtoth/SWMF/doc/HTML/SWMF/node225.html>`_.
@@ -145,11 +149,11 @@ def parse_filename_time(filename):
 
     Returns
     =======
-    i_iter : integer or None
+    i_iter : integer, list of integers, or None
         The iteration at which the file was written, if found.
-    runtime : float or None
+    runtime : float, list of floats, or None
         The run time (in seconds) at which the file was written, if found.
-    time : datetime.datetime or None
+    time : datetime.datetime, list of datetimes, or None
         Either a datetime object or *None*, depending on the success of the
         file name parsing.
 
@@ -161,6 +165,8 @@ def parse_filename_time(filename):
     >>> parse_filename_time('mag_grid_e20130924-232600.out')
     (None, None, datetime.datetime(2013, 9, 24, 23, 26))
 
+    >>> parse_filename_time('z=0_mhd_2_e20140410-000000-000_20140410-000300-000.outs')
+    (None, None, [datetime.datetime(2014, 4, 10, 0, 0), datetime.datetime(2014, 4, 10, 0, 3)])
     '''
 
     from dateutil.parser import parse
@@ -171,22 +177,36 @@ def parse_filename_time(filename):
     
     # Look for date/time:
     if '_e' in filename:
-        t_string = re.search('_e(\d{8}\-\d{6})', filename).groups()[-1]
-        time = parse(t_string)
-        #time += timedelta()
+        subname = re.search('_e((\d{8}\-\d{6}(\-\d{3})?\_?)+)', filename).groups()[0]
+        t_string = re.findall('(\d{8}\-\d{6})', subname)
+        time = [parse(x) for x in t_string]
+        if len(time)==1: time=time[0] # Reduce to scalar if necessary.
     else:
         time = None
 
-    # Look for run time:
+    # Look for run time (can be time from start OR datetime):
     if '_t' in filename:
-        raw     = re.search('_t(\d+)', filename).groups()[-1]
-        runtime = 3600*float(raw[:-4]) + 60*float(raw[-4:-2]) + float(raw[-2:])
+        subname = re.search('_t((\d+\_?)+)', filename).groups()[0]
+        # Need to check if we're "old style" timestamps which is time (s) from
+        # start of simultion or new style which are date/time strings.  Look
+        # at number of digits to tell difference.
+        groups = re.findall('\d+', subname)
+        if len(groups[0])==14:
+            time = [parse(x) for x in groups]
+            if len(time)==1 : time=time[0]
+            runtime = None
+        else:
+            runtime = [3600*float(x[:-4])+60*float(x[-4:-2])+float(x[-2:]) 
+                       for x in groups]
+            if len(runtime)==1: runtime=runtime[0]
     else:
         runtime = None
 
     # Look for file iteration:
     if '_n' in filename:
-        i_iter = int(re.search('_n(\d+)', filename).groups()[-1])
+        subname = re.search('_n((\d+\_?)+)', filename).groups()[0]
+        i_iter = [int(x) for x in re.findall('\d+', subname)]
+        if len(i_iter)==1: i_iter=i_iter[0]  # Reduce to scalar if necessary.
     else:
         i_iter = None
 
