@@ -124,6 +124,7 @@ class Ellipsoid(dm.SpaceData):
         self['A2mB2'] = self['A2'] - self['B2']  # [km^2]
         self['EP2'] = self['A2mB2']/self['B2']  # 2nd eccentricity squared
 
+
 # World Geodetic System 1984 (WGS84) parameters
 WGS84 = Ellipsoid()
 
@@ -196,7 +197,7 @@ class CTrans(dm.SpaceData):
             self.attrs['pnmodel'] = 'IAU82'
 
         if isinstance(ctime, spt.Ticktock):
-            #input time is ticktock
+            # input time is ticktock
             if len(ctime.data) != 1:
                 # Input time is Ticktock, but has a length > 1
                 self._raiseErr(ValueError, 'time_in')
@@ -526,7 +527,6 @@ class CTrans(dm.SpaceData):
         ecitod_pef[1, 0] = -snga
         ecitod_pef[1, 1] = csga
         ecitod_pef[2, 2] = 1.0
-        pef_ecitod = ecitod_pef.T
 
         # TEME (used by GEO)
         sn = np.sin(self['GMST_rad'])
@@ -537,7 +537,6 @@ class CTrans(dm.SpaceData):
         teme_pef[1, 0] = -sn
         teme_pef[1, 1] = cs
         teme_pef[2, 2] = 1.0
-        pef_teme = teme_pef.T
 
         # GEO (Geocentric geographic) to/from PEF (Psuedo Earth Fixed)
         xprad = self['EarthOrientationParameters'].xp*self['constants'].arcsec
@@ -555,7 +554,6 @@ class CTrans(dm.SpaceData):
         pef_geo[2, 0] = -sxp
         pef_geo[2, 1] = cxp*syp
         pef_geo[2, 2] = cxp*cyp
-        geo_pef = pef_geo.T
 
         # make/store ECIMOD<->GEO transforms
         ecitod_geo = pef_geo.dot(ecitod_pef)
@@ -740,8 +738,6 @@ class CTrans(dm.SpaceData):
         const = self['constants']
         # Greenwich Mean Sidereal Time
         UT1_P1 = self['UT1_JC']
-        UT1_P2 = UT1_P1*UT1_P1  # UT1 squared
-        UT1_P3 = UT1_P2*UT1_P1  # UT1 cubed
         coeffB = 8640184.812866
         coeffC = 0.093104
         coeffD = 6.2e-6
@@ -925,15 +921,15 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
     P = F/(3*denom_p*denom_p*G2)
     Q = np.sqrt(1 + 2*geoid['E4']*P)
     # The second term in r0 can evaluate as negative...
-    sqrt_for_r0 = np.abs((0.5*geoid['A2'])*(1 + 1/Q) - (geoid['1mE2']*P*z2)/(Q*(1 + Q)) - 0.5*P*rad2)
-    #negs = sqrt_for_r0 < 0
-    #sqrt_for_r0[negs] = 0
+    sqrt_for_r0 = np.abs((0.5*geoid['A2'])*(1 + 1/Q) -
+                         (geoid['1mE2']*P*z2)/(Q*(1 + Q)) -
+                         0.5*P*rad2)
     # Back to Heikinnen's method per Zhu
     r0 = -(geoid['E2']*P*rad)/(1 + Q) + np.sqrt(sqrt_for_r0)
     brac_u = (rad - geoid['E2']*r0)  # Shorthand for term in U and V denominator
-    U   = np.sqrt(brac_u*brac_u + z2)
-    V   = np.sqrt(brac_u*brac_u + geoid['1mE2']*z2)
-    z0  = (geoid['B2']*rz)/(geoid['A']*V)
+    U = np.sqrt(brac_u*brac_u + z2)
+    V = np.sqrt(brac_u*brac_u + geoid['1mE2']*z2)
+    z0 = (geoid['B2']*rz)/(geoid['A']*V)
     # Heikkinen's solution has a singularity at the pole, so let's trap that here
     polemask = rad <= 1e-12
     lati_gdz = np.empty_like(ry)
@@ -945,53 +941,17 @@ def geo_to_gdz(geovec, units='km', geoid=WGS84):
         lati_gdz[nhem] = 90
         lati_gdz[shem] = -90
     lati_gdz[~polemask] = np.rad2deg(np.arctan((rz[~polemask] +
-                                                geoid['EP2']*z0[~polemask])/
+                                                geoid['EP2']*z0[~polemask]) /
                                                 rad[~polemask]))
                                                 # Geodetic latitude (phi in Zhu paper)
-    alti_gdz = U*( 1 - geoid['B2']/(geoid['A']*V))  # Geodetic altitude [km] (h in Zhu paper)
-    long_gdz = np.rad2deg(np.arctan2( ry, rx ))  # Geodetic longitude (same as GEO)
+    alti_gdz = U*(1 - geoid['B2']/(geoid['A']*V))  # Geodetic altitude [km] (h in Zhu paper)
+    long_gdz = np.rad2deg(np.arctan2(ry, rx))  # Geodetic longitude (same as GEO)
 
     out = np.c_[alti_gdz, lati_gdz, long_gdz]
     if units == 'Re':
         # Return in Re
         out[:, 0] /= geoid['A']
     return out.squeeze()
-
-
-def geo_to_rll(geovec, units='km', geoid=WGS84):
-    """
-    Convert geocentric geographic (cartesian GEO) to RLL (geodetic, but radius instead of altitude)
-
-    Uses Heikkinen's exact solution [#Heikkinen]_, see Zhu et al. [#Zhu] for
-    details.
-
-    Parameters
-    ----------
-    geovec : array-like
-        Nx3 array (or array-like) of geocentric geographic [x, y, z] coordinates
-
-    Returns
-    -------
-    out : numpy.ndarray
-        Nx3 array of geodetic altitude, latitude, and longitude
-
-    Notes
-    -----
-    .. versionadded:: 0.2.3
-
-    References
-    ----------
-    .. [#Heikkinen] Heikkinen, M., "Geschlossene formeln zur berechnung räumlicher geodätischer
-            koordinaten aus rechtwinkligen koordinaten", Z. Vermess., vol. 107, pp. 207-211,
-            1982.
-    .. [#Zhu] J. Zhu, "Conversion of Earth-centered Earth-fixed coordinates to geodetic
-            coordinates," in IEEE Transactions on Aerospace and Electronic Systems, vol. 30,
-            no. 3, pp. 957-961, July 1994, doi: 10.1109/7.303772.
-    """
-    rllvec = np.atleast_2d(geo_to_gdz(geovec, units=units, geoid=geoid))
-    rllvec[:, 0] = np.linalg.norm(geovec)
-
-    return rllvec.squeeze()
 
 
 def gdz_to_geo(gdzvec, units='km', geoid=WGS84):
@@ -1045,7 +1005,7 @@ def geo_to_rll(geovec, units='km', geoid=WGS84):
 
     Parameters
     ----------
-    gdzvec : array-like
+    geovec : array-like
         Nx3 array of geographic radius, latitude, longitude (in specified units)
 
     Returns
@@ -1105,7 +1065,8 @@ def rll_to_geo(rllvec, units='km', geoid=WGS84):
     surf[:, 1:] = posarr[:, 1:]
     geoid_at_pos = np.atleast_2d(gdz_to_geo(surf, units=units, geoid=geoid))
     gdz = posarr.copy()
-    gdz[:, 0] -= np.linalg.norm(geoid_at_pos, axis=-1)  # remove geoid height from geocentric radius at each location
+    # remove geoid height from geocentric radius at each location
+    gdz[:, 0] -= np.linalg.norm(geoid_at_pos, axis=-1)
     geoarr = gdz_to_geo(gdz, units=units, geoid=geoid)
 
     return geoarr
@@ -1125,7 +1086,7 @@ def convert_multitime(coords, ticks, sys_in, sys_out):
     # except the spacial case of only 1 unique time
     loopover = np.atleast_2d(coords)
     if len(ctdict) == 1:
-        newcoords = ctdict[0].convert(loopover, sys_in, sys_out)
+        newcoords = ctdict[tais[0]].convert(loopover, sys_in, sys_out)
     else:
         newcoords = np.empty_like(loopover)
         for idx, cc in enumerate(loopover):

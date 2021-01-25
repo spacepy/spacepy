@@ -79,15 +79,15 @@ class IgrfClassTests(unittest.TestCase):
 
     def test_dipMoment_CCMC(self):
         """Another external validation, this time against CCMC Vitmo ModelWeb"""
-        self.IGRF.initialize(dt.datetime(1999,1,1))
-        #CCMC calculator only gives value to 1 decimal
+        self.IGRF.initialize(dt.datetime(1999, 1, 1))
+        # CCMC calculator only gives value to 1 decimal
         numpy.testing.assert_almost_equal(self.IGRF.moment['cd'], 30138.7, decimal=1)
-        self.IGRF.initialize(dt.datetime(1988,1,1))
+        self.IGRF.initialize(dt.datetime(1988, 1, 1))
         numpy.testing.assert_almost_equal(self.IGRF.moment['cd'], 30364.8, decimal=1)
 
     def test_SVmoment_noDisco(self):
         """Test for no discontinuities across interpolate/extrapolate bound
-        
+
         In increments of 10 minutes the dipole axis shouldn't change appreciably
         """
         epochs = [dt.datetime(2019, 12, 31, 23, 50), dt.datetime(2020, 1, 1),
