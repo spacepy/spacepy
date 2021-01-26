@@ -1,0 +1,15 @@
+# Minimal workflow to get in the GitHub system so can implement CI later
+
+name: CI
+
+on:
+  pull_request:
+    branches: [ $default-branch ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
