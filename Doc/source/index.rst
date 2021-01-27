@@ -98,6 +98,7 @@ For those developing SpacePy, plus tips for all Python developers.
     tips
     dep_versions
     doc_standard
+    ci
 
 .. _module_reference:
 
