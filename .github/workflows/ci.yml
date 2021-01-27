@@ -8,6 +8,9 @@ name: CI
 env:
 # Update this version to force-expire the pip cache
   pip-cache-version: 1
+# Update this version to force-expire the CDF library cache
+# (but see also the CDF library version on the cache config)
+  cdf-cache-version: 1
 
 on:
   schedule:
@@ -117,6 +120,12 @@ jobs:
         restore-keys: |
           pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-${{ matrix.python-version }}-
           pip-v${{ env.pip-cache-version}}-${{ steps.get-week.outputs.week }}-${{ matrix.os }}-
+    - name: Cache cdf
+      uses: actions/cache@v2
+      with:
+        path: ~/cdf
+        # Force-expire the CDF cache weekly
+        key: cdf-v${{ env.cdf-cache-version}}-3.8.0.1-${{ steps.get-week.outputs.week }}-${{ matrix.os }}
     - name: Install dependencies
       env:
         NUMPY_VERSION: ${{ matrix.numpy-version }}
@@ -133,7 +142,7 @@ jobs:
         # Make sure new packages don't override numpy version
         pip install "numpy${NUMPY_VERSION}" ${PIPLIST}
         pip freeze
-        wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; cd cdf38_0-dist; make OS=linux ENV=gnu all; make INSTALLDIR=$HOME install; cd ..
+        if [ ! -d ${HOME}/cdf ]; then wget https://spdf.sci.gsfc.nasa.gov/pub/software/cdf/dist/cdf38_0/linux/cdf38_0-dist-cdf.tar.gz; tar xzf cdf38_0-dist-cdf.tar.gz; cd cdf38_0-dist; make OS=linux ENV=gnu SHARED=yes CURSES=no FORTRAN=no all; make INSTALLDIR=$HOME/cdf/ install.lib install.definitions; rm -f ${HOME}/cdf/lib/libcdf.a; cd ..; fi
 # Per https://github.com/actions/checkout/issues/15, this gets the MERGE
 # commit of the PR, not just the tip of the PR.
     - name: checkout
@@ -142,4 +151,4 @@ jobs:
       working-directory: ${{ github.workspace }}
       run: |
         python setup.py install
-        cd tests; . ${HOME}/bin/definitions.B; xvfb-run python test_all.py -v
+        cd tests; . ${HOME}/cdf/bin/definitions.B; xvfb-run python test_all.py -v
