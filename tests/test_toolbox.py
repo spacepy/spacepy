@@ -461,6 +461,25 @@ class SimpleFunctionTests(unittest.TestCase):
             [12.,  56., 168., 307., 295., 181.,  85.,  14.,   0.,   5.],
             ci_high, atol=2, rtol=1e-2)
 
+    def testBootHistoBins(self):
+        """Bootstrap histogram known output for known input, specify bins"""
+        numpy.random.seed(28420)
+        data = numpy.random.randn(1000)
+        bin_edges, ci_low, ci_high, sample = spacepy.toolbox.bootHisto(
+            data, n=1000, seed=28420, bins=numpy.arange(-5., 6.))
+        numpy.testing.assert_array_equal(
+            [-5., -4, -3, -2, -1, 0, 1, 2, 3, 4, 5],
+            bin_edges)
+        numpy.testing.assert_equal(
+            [  0,   2,  18, 143, 358, 328, 131,  18,   1,   1], sample)
+        #Chunk-check as above
+        numpy.testing.assert_allclose(
+            [ 0.,  0., 11.,  125.,  333.,  304.,  114., 11.,  0.,  0.],
+            ci_low, atol=2, rtol=1e-2)
+        numpy.testing.assert_allclose(
+            [ 0.,  5., 25.,  161.,  383.,  353.,  149., 25.,  3.,  3.],
+            ci_high, atol=2, rtol=1e-2)
+
     def test_logspace(self):
         """logspace should return know answer for known input"""
         try:

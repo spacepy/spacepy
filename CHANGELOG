@@ -1,5 +1,7 @@
 Changes in Version 0.2.3 (2021-xx-xx)
 =====================================
+toolbox
+ - Fix bootHisto passing of kwargs to histogram and bar.
 
 Changes in Version 0.2.2 (2020-12-29)
 =====================================
