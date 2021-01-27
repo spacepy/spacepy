@@ -13,6 +13,15 @@ contains more detail.
 0.2 Series
 ==========
 
+0.2.3 (2021-xx-xx)
+------------------
+
+Major bugfixes
+**************
+
+The passing of keyword arguments from :func:`~spacepy.toolbox.bootHisto`
+to :func:`numpy.histogram` and :func:`matplotlib.pyplot.bar` has been fixed.
+
 0.2.2 (2020-12-29)
 ------------------
 

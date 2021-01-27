@@ -1777,6 +1777,10 @@ def bootHisto(data, inter=90., n=1000, seed=None,
     All other keyword arguments are passed to :func:`numpy.histogram`
     or :func:`matplotlib.pyplot.bar`.
 
+    .. versionchanged:: 0.2.3
+       This argument pass-through did not work in earlier versions of
+       SpacePy.
+
     Parameters
     ==========
 
@@ -1814,6 +1818,8 @@ def bootHisto(data, inter=90., n=1000, seed=None,
 
     Notes
     =====
+    .. versionadded:: 0.2.1
+
     The confidence intervals are calculated for each bin individually and thus
     the resulting low/high histograms may not have actually occurred in the
     calculation from the surrogates. If using a probability density histogram,
@@ -1841,9 +1847,9 @@ def bootHisto(data, inter=90., n=1000, seed=None,
     import spacepy.poppy
     histogram_allowed_kwargs = (
         'bins', 'range', 'normed', 'weights', 'density')
-    histogram_kwargs = {k: v for k, v in kwargs
+    histogram_kwargs = {k: v for k, v in kwargs.items()
                         if k in histogram_allowed_kwargs}
-    bar_kwargs = {k: v for k, v in kwargs
+    bar_kwargs = {k: v for k, v in kwargs.items()
                   if k not in histogram_allowed_kwargs}
     sample, bin_edges = np.histogram(data, **histogram_kwargs)
     histogram_kwargs['bins'] = bin_edges
