@@ -101,22 +101,22 @@ def unique_columns(inval, axis=0):
     axis=0 is unique rows, axis=1 is unique columns
 
     Parameters
-    ==========
+    ----------
     inval :  array-like
         array to find unique columns or rows of
 
     Optional Parameters
-    ===================
+    -------------------
     axis : int
         The axis to find unique over, default: 0
 
     Returns
-    =======
+    -------
     out : array
         N-dimensional array of the unique values along the axis
 
     Examples
-    ========
+    --------
     """
     # this is a nice trick taking advantage of structed arrays where each row or column
     #   is the value, so returl unique works
@@ -135,17 +135,17 @@ def hypot(*args):
     compute the N-dimensional hypot of an iterable or many arguments
 
     Parameters
-    ==========
+    ----------
     args : many numbers or array-like
         array like or many inputs to compute from
 
     Returns
-    =======
+    -------
     out : float
         N-dimensional hypot of a number
 
     Notes
-    =====
+    -----
     This function has a complicated speed function.
      - if a numpy array of floats is input this is passed off to C
      - if iterables are passed in they are made into numpy arrays and comptaton is done local
@@ -157,7 +157,7 @@ def hypot(*args):
      - >20 elements premake them into a numpy array of doubles
 
     Examples
-    ========
+    --------
     >>> from spacepy import toolbox as tb
     >>> print tb.hypot([3,4])
     5.0
@@ -215,7 +215,7 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     Finds the overlapping elements in two lists of datetime objects
 
     Parameters
-    ==========
+    ----------
     ts1 : datetime
         first set of datetime object
     ts2 : datetime
@@ -224,12 +224,12 @@ def tOverlap(ts1, ts2, *args, **kwargs):
         additional arguments passed to tOverlapHalf
 
     Returns
-    =======
+    -------
     out : list
         indices of ts1 within interval of ts2, & vice versa
 
     Examples
-    ========
+    --------
     Given two series of datetime objects, event_dates and omni['Time']:
 
     >>> import spacepy.toolbox as tb
@@ -245,7 +245,7 @@ def tOverlap(ts1, ts2, *args, **kwargs):
     ... , datetime.datetime(2000, 9, 30, 0, 0)]
 
     See Also
-    ========
+    --------
     tOverlapHalf
     tCommon
     """
@@ -266,7 +266,7 @@ def tOverlapHalf(ts1, ts2, presort=False):
     returned by tOverlap.
 
     Parameters
-    ==========
+    ----------
     ts1 : list
         first set of datetime object
     ts2 : list
@@ -278,14 +278,14 @@ def tOverlapHalf(ts1, ts2, presort=False):
                    the list if one sort can be done for many calls to tOverlap
 
     Returns
-    =======
+    -------
     out : list
         indices of ts2 within interval of ts1
 
         **note:** Returns empty list if no overlap found
 
     See Also
-    ========
+    --------
     tOverlap
     tCommon
     """
@@ -304,24 +304,24 @@ def tCommon(ts1, ts2, mask_only=True):
     Finds the elements in a list of datetime objects present in another
 
     Parameters
-    ==========
+    ----------
     ts1 : list or array-like
         first set of datetime objects
     ts2 : list or array-like
         second set of datetime objects
 
     Returns
-    =======
+    -------
     out : tuple
         Two element tuple of truth tables (of 1 present in 2, & vice versa)
 
     See Also
-    ========
+    --------
     tOverlapHalf
     tOverlap
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> import numpy as np
     >>> import datetime as dt
@@ -387,21 +387,21 @@ def loadpickle(fln):
     load a pickle and return content as dictionary
 
     Parameters
-    ==========
+    ----------
     fln : string
         filename
 
     Returns
-    =======
+    -------
     out : dict
         dictionary with content from file
 
     See Also
-    ========
+    --------
     savepickle
 
     Examples
-    ========
+    --------
     **note**: If fln is not found, but the same filename with '.gz'
            is found, will attempt to open the .gz as a gzipped file.
 
@@ -460,11 +460,11 @@ def savepickle(fln, dict, compress=None):
                      compressed file exists and the uncompressed does not.
 
     See Also
-    ========
+    --------
     loadpickle
 
     Examples
-    ========
+    --------
     >>> d = {'grade':[1,2,3], 'name':['Mary', 'John', 'Chris']}
     >>> savepickle('test.pbin', d)
     """
@@ -498,12 +498,12 @@ def assemble(fln_pattern, outfln, sortkey='ticks', verbose=True):
         filename to save combined files to
 
     Returns
-    =======
+    -------
     out : dict
         dictionary with combined values
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> a, b, c = {'ticks':[1,2,3]}, {'ticks':[4,5,6]}, {'ticks':[7,8,9]}
     >>> tb.savepickle('input_files_2001.pkl', a)
@@ -662,6 +662,11 @@ def dictree(in_dict, verbose=False, spaces=None, levels=True, attrs=False, **kwa
     attrs : boolean (optional)
         display information for attributes
 
+    Raises
+    ------
+    TypeError
+        Input does not have keys or attrs, cannot build tree.
+
     Examples
     --------
     >>> import spacepy.toolbox as tb
@@ -755,7 +760,7 @@ def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True,
     """Crawl files in a directory-by-year structure
 
     Parameters
-    ==========
+    ----------
     base_url : str
         Base of the data. This URL should point to a directory containing
         yearly directories (YYYY).
@@ -778,7 +783,7 @@ def _crawl_yearly(base_url, pattern, datadir, name=None, cached=True,
         years prior to this which have already been downloaded.
 
     Returns
-    =======
+    -------
     list
         All the filenames that were mirrored, in order; or None if there
         were no updates. If there are any updates, all filenames are
@@ -852,7 +857,7 @@ def _get_qindenton_daily(qd_daily_url=None, cached=True, startyear=None):
     """Download the Qin-Denton OMNI-like daily files
     
     Parameters
-    ==========
+    ----------
     qd_daily_url : str (optional)
         Base of the Qin-Denton data, in hourly JSON-headed ASCII. This URL
         should point to the directory containing the yearly directories.
@@ -866,7 +871,7 @@ def _get_qindenton_daily(qd_daily_url=None, cached=True, startyear=None):
         rather than all years. This will delete older files!
 
     Returns
-    =======
+    -------
     SpaceData
         The data extracted from the Q-D dataset, fully processed for saving
         as SpacePy HDF5 OMNI data.
@@ -885,12 +890,17 @@ def _assemble_qindenton_daily(qd_daily_dir):
     """Assemble Qin-Denton daily files into OMNI structure
 
     Parameters
-    ==========
+    ----------
     qd_daily_dir : str
         Directory with Qin-Denton daily files.
 
+    Raises
+    ------
+    ValueError
+        Qin-Denton file ill formed with different lengths by variable
+
     Returns
-    =======
+    -------
     SpaceData
         The data extracted from the Q-D dataset, fully processed for saving
         as SpacePy HDF5 OMNI data.
@@ -961,14 +971,14 @@ def _get_cdaweb_omni2(omni2url=None):
     """Download the OMNI2 data from SPDF
 
     Parameters
-    ==========
+    ----------
     omni2url : str (optional)
         Base of the OMNI2 data at SPDF, in hourly CDF form. This URL
         should point to the directory containing the yearly directories.
         Default from ``omni2_url`` in config file.
 
     Returns
-    =======
+    -------
     SpaceData
         The data extracted from the OMNI2 dataset, with variables renamed
         to match the old ViRBO combined OMNI2 CDF. Returns ``None``
@@ -1102,8 +1112,12 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
 
     This is similar to the deprecated ``urlretrieve``.
 
+    .. versionchanged:: 0.2.3
+       In earlier versions of SpacePy invalid combinations of cached and outfile raised RuntimeError,
+       changed to ValueError.
+
     Parameters
-    ==========
+    ----------
     url : str
         The URL to open
     outfile : str (optional)
@@ -1114,27 +1128,27 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
     cached : bool (optional)
         Compare modification time of the URL to the modification time
         of ``outfile``; do not retrieve (and return None) unless
-        the URL is newer than the file.
+        the URL is newer than the file. Is set outfile is required.
     keepalive : bool (optional)
         Attempt to keep the connection open to retrieve more URLs.
         The return becomes a tuple of (data, conn) to return the
         connection used so it can be used again. This mode does not
-        support proxies. (Default False)
+        support proxies. Required to be True if conn is provided. (Default False)
     conn : http.client.HTTPConnection (optional)
         An established http connection (HTTPS is also okay) to use with
         ``keepalive``. If not provided, will attempt to make a connection.
 
     Returns
-    =======
+    -------
     bytes
         The HTTP data from the server.
 
     See Also
-    ========
+    --------
     progressbar
 
     Notes
-    =====
+    -----
     This function honors proxy settings as described in
     :func:`urllib.request.getproxies`. Cryptic error messages (such as
     ``Network is unreachable``) may indicate that proxy settings
@@ -1196,7 +1210,7 @@ def get_url(url, outfile=None, reporthook=None, cached=False,
         if outfile is None:
             if not keepalive:
                 r.close()
-            raise RuntimeError('Must specify outfile if cached is True')
+            raise ValueError('Must specify outfile if cached is True')
         if os.path.exists(outfile) and modified is not None:
             #Timestamp is truncated to second, so do same for local
             local_mod = int(os.path.getmtime(outfile))
@@ -1243,7 +1257,7 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
     debugging errors. See also the ``keepalive`` configuration option.
 
     Parameters
-    ==========
+    ----------
     all : boolean (optional)
         if True, update OMNI2, Qin-Denton and leapsecs
     omni : boolean (optional)
@@ -1260,16 +1274,16 @@ def update(all=True, QDomni=False, omni=False, omni2=False, leapsecs=False,
         download files.
 
     Returns
-    =======
+    -------
     out : string
         data directory where things are saved
 
     See Also
-    ========
+    --------
     get_url
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.update(omni=True)
     """
@@ -1464,19 +1478,19 @@ def indsFromXrange(inxrange):
     '''return the start and end indices implied by an xrange, useful when xrange is zero-length
 
     Parameters
-    ==========
+    ----------
     inxrange : xrange
         input xrange object to parse
 
     Returns
-    =======
+    -------
     list of int
        List of start, stop indices in the xrange. The return value is not
        defined if a stride is specified or if stop is before start (but
        will work when stop equals start).
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> foo = xrange(23, 39)
     >>> foo[0]
@@ -1502,7 +1516,7 @@ def progressbar(count, blocksize, totalsize, text='Download Progress'):
     print a progress bar with urllib.urlretrieve reporthook functionality
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> import urllib
     >>> urllib.urlretrieve(config['psddata_url'], PSDdata_fname, reporthook=tb.progressbar)
@@ -1520,12 +1534,12 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
     Windowing mean function, window overlap is user defined
 
     Parameters
-    ==========
+    ----------
     data : array_like
         1D series of points
     time : list (optional)
         series of timestamps, optional (format as numeric or datetime)
-        For non-overlapping windows set overlap to zero.
+        For non-overlapping windows set overlap to zero. Must be same length as data.
     winsize : integer or datetime.timedelta (optional)
         window size
     overlap : integer or datetime.timedelta (optional)
@@ -1537,12 +1551,12 @@ def windowMean(data, time=[], winsize=0, overlap=0, st_time=None, op=np.mean):
         the operator to be called, default numpy.mean
 
     Returns
-    =======
+    -------
     out : tuple
         the windowed mean of the data, and an associated reference time vector
 
     Examples
-    ========
+    --------
     For non-overlapping windows set overlap to zero.
     e.g. (time-based averaging)
     Given a data set of 100 points at hourly resolution (with the time tick in
@@ -1674,22 +1688,22 @@ def medAbsDev(series, scale=False):
     pp. 1273-1283, 1993.
 
     Parameters
-    ==========
+    ----------
     series : array_like
         the input data series
 
     Other Parameters
-    ================
+    ----------------
     scale : bool
         if True (default: False), scale to standard deviation of a normal distribution
 
     Returns
-    =======
+    -------
     out : float
         the median absolute deviation
 
     Examples
-    ========
+    --------
     Find the median absolute deviation of a data set. Here we use the log-
     normal distribution fitted to the population of sawtooth intervals, see
     Morley and Henderson, Comment, Geophysical Research Letters, 2009.
@@ -1727,19 +1741,19 @@ def binHisto(data, verbose=False):
         Wilks, D. S. (2006), Statistical Methods in the Atmospheric Sciences, 2nd ed.
 
     Parameters
-    ==========
+    ----------
     data : array_like
         list/array of data values
     verbose : boolean (optional)
         print out some more information
 
     Returns
-    =======
+    -------
     out : tuple
         calculated width of bins using F-D rule, number of bins (nearest integer) to use for histogram
 
     Examples
-    ========
+    --------
     >>> import numpy, spacepy
     >>> import matplotlib.pyplot as plt
     >>> numpy.random.seed(8675301)
@@ -1750,7 +1764,7 @@ def binHisto(data, verbose=False):
     >>> p = plt.hist(data, bins=nbins, histtype='step', density=True)
 
     See Also
-    ========
+    --------
     matplotlib.pyplot.hist
     """
     pul = np.percentile(data, (25, 75)) #get confidence interval
@@ -1778,7 +1792,7 @@ def bootHisto(data, inter=90., n=1000, seed=None,
     or :func:`matplotlib.pyplot.bar`.
 
     Parameters
-    ==========
+    ----------
 
     data : array_like
         list/array of data values
@@ -1802,7 +1816,7 @@ def bootHisto(data, inter=90., n=1000, seed=None,
         Passed to :func:`spacepy.plot.utils.set_target`.
 
     Returns
-    =======
+    -------
     out : tuple
       tuple of bin_edges, low, high, sample[, bars]. Where
       ``bin_edges`` is the edges of the bins used; ``low`` is the
@@ -1813,14 +1827,14 @@ def bootHisto(data, inter=90., n=1000, seed=None,
       container object returned from matplotlib.
 
     Notes
-    =====
+    -----
     The confidence intervals are calculated for each bin individually and thus
     the resulting low/high histograms may not have actually occurred in the
     calculation from the surrogates. If using a probability density histogram,
     this can have "interesting" implications for interpretation.
 
     Examples
-    ========
+    --------
     .. plot::
         :include-source:
 
@@ -1832,7 +1846,7 @@ def bootHisto(data, inter=90., n=1000, seed=None,
         ...     data, plot=True)
 
     See Also
-    ========
+    --------
     binHisto
     plot.utils.set_target
     numpy.histogram
@@ -1871,7 +1885,7 @@ def logspace(min, max, num, **kwargs):
     not log10(min) and log10(max)
 
     Parameters
-    ==========
+    ----------
     min : float
         minimum value
     max : float
@@ -1880,27 +1894,27 @@ def logspace(min, max, num, **kwargs):
         number of log spaced bins
 
     Other Parameters
-    ================
+    ----------------
     kwargs : dict
         additional keywords passed into matplotlib.dates.num2date
 
     Returns
-    =======
+    -------
     out : array
         log-spaced bins from min to max in a numpy array
 
     Notes
-    =====
-    This function works on both numbers and datetime objects
+    -----
+    This function works on both numbers and datetime objects. Not leapsecond aware.
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.logspace(1, 100, 5)
     array([   1.        ,    3.16227766,   10.        ,   31.6227766 ,  100.        ])
 
     See Also
-    ========
+    --------
     geomspace
     linspace
     """
@@ -1918,7 +1932,7 @@ def linspace(min, max, num, **kwargs):
     and is faster
 
     Parameters
-    ==========
+    ----------
     min : float, datetime
         minimum value
     max : float, datetime
@@ -1927,27 +1941,27 @@ def linspace(min, max, num, **kwargs):
         number of linear spaced bins
 
     Other Parameters
-    ================
+    ----------------
     kwargs : dict
         additional keywords passed into matplotlib.dates.num2date
 
     Returns
-    =======
+    -------
     out : array
         linear-spaced bins from min to max in a numpy array
 
     Notes
-    =====
-    This function works on both numbers and datetime objects
+    -----
+    This function works on both numbers and datetime objects. Not leapsecond aware.
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.linspace(1, 10, 4)
     array([  1.,   4.,   7.,  10.])
 
     See Also
-    ========
+    --------
     geomspace
     logspace
     """
@@ -1968,7 +1982,7 @@ def geomspace(start, ratio=None, stop=False, num=50):
     Returns geometrically spaced numbers.
 
     Parameters
-    ==========
+    ----------
     start : float
         The starting value of the sequence.
     ratio : float (optional)
@@ -1979,17 +1993,17 @@ def geomspace(start, ratio=None, stop=False, num=50):
         Number of samples to generate. Default is 50.
 
     Returns
-    =======
+    -------
     seq : array
         geometrically spaced sequence
 
     See Also
-    ========
+    --------
     linspace
     logspace
 
     Examples
-    ========
+    --------
     To get a geometric progression between 0.01 and 3 in 10 steps
 
     >>> import spacepy.toolbox as tb
@@ -2035,7 +2049,7 @@ def arraybin(array, bins):
     division between bins, return the indices grouped by bin.
 
     Parameters
-    ==========
+    ----------
     array : array_like
         the input sequence to slice, must be sorted in ascending order
     bins : array_like
@@ -2044,12 +2058,12 @@ def arraybin(array, bins):
             to the higher bin
 
     Returns
-    =======
+    -------
     out : list
         indices for each bin (list of lists)
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.arraybin(range(10), [4.2])
     [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
@@ -2066,25 +2080,25 @@ def mlt2rad(mlt, midnight = False):
     referenced from noon by default
 
     Parameters
-    ==========
+    ----------
     mlt : numpy array
         array of mlt values
     midnight : boolean (optional)
         reference to midnight instead of noon
 
     Returns
-    =======
+    -------
     out : numpy array
         array of radians
 
     Examples
-    ========
+    --------
     >>> from numpy import array
     >>> mlt2rad(array([3,6,9,14,22]))
     array([-2.35619449, -1.57079633, -0.78539816,  0.52359878,  2.61799388])
 
     See Also
-    ========
+    --------
     rad2mlt
     """
     if midnight:
@@ -2107,24 +2121,24 @@ def rad2mlt(rad, midnight=False):
     referenced from noon by default
 
     Parameters
-    ==========
+    ----------
     rad : numpy array
         array of radian values
     midnight : boolean (optional)
         reference to midnight instead of noon
 
     Returns
-    =======
+    -------
     out : numpy array
         array of mlt values
 
     Examples
-    ========
+    --------
     >>> rad2mlt(array([0,pi, pi/2.]))
     array([ 12.,  24.,  18.])
 
     See Also
-    ========
+    --------
     mlt2rad
     """
     if midnight:
@@ -2139,17 +2153,17 @@ def pmm(*args):
     print min and max of input arrays
 
     Parameters
-    ==========
+    ----------
     a : array-like
         arbitrary number of input arrays (or lists)
 
     Returns
-    =======
+    -------
     out : list
         list of min, max for each array
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> from numpy import arange
     >>> tb.pmm(arange(10), arange(10)+3)
@@ -2177,12 +2191,12 @@ def getNamedPath(name):
     Return the full path of a parent directory with name as the leaf
 
     Parameters
-    ==========
+    ----------
     name : string
         the name of the parent directory to locate
 
     Examples
-    ========
+    --------
     Run from a directory
     /mnt/projects/dream/bin/Ephem
     with 'dream' as the name, this function
@@ -2209,18 +2223,23 @@ def query_yes_no(question, default="yes"):
     The "answer" return value is one of "yes" or "no".
 
     Parameters
-    ==========
+    ----------
     question : string
         the question to ask
     default : string (optional)
 
+    Raises
+    ------
+    ValueError
+        The default answer is not in (None|"yes"|"no")
+
     Returns
-    =======
+    -------
     out : string
         answer ('yes' or 'no')
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.query_yes_no('Ready to go?')
     Ready to go? [Y/n] y
@@ -2235,7 +2254,7 @@ def query_yes_no(question, default="yes"):
     elif default == "no":
         prompt = " [y/N] "
     else:
-        raise ValueError("invalid default answer: '%s'" % default)
+        raise ValueError("invalid default answer: {}".format(default))
     while 1:
         sys.stdout.write(question + prompt)
         if sys.version_info[0]==2:
@@ -2255,7 +2274,7 @@ def interpol(newx, x, y, wrap=None, **kwargs):
     1-D linear interpolation with interpolation of hours/longitude
 
     Parameters
-    ==========
+    ----------
     newx : array_like
         x values where we want the interpolated values
     x : array_like
@@ -2270,12 +2289,12 @@ def interpol(newx, x, y, wrap=None, **kwargs):
         masked arrays
 
     Returns
-    =======
+    -------
     out : numpy.masked_array
         interpolated data values for new abscissa values
 
     Examples
-    ========
+    --------
     For a simple interpolation
 
     >>> import spacepy.toolbox as tb
@@ -2387,7 +2406,7 @@ def normalize(vec, low=0.0, high=1.0):
     Given an input vector normalize the vector to a given range
 
     Parameters
-    ==========
+    ----------
     vec : array_like
         input vector to normalize
     low : float
@@ -2396,12 +2415,12 @@ def normalize(vec, low=0.0, high=1.0):
         maximum value to scale to, default 1.0
 
     Returns
-    =======
+    -------
     out : array_like
         normalized vector
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.normalize([1,2,3])
     [0.0, 0.5, 1.0]
@@ -2418,7 +2437,7 @@ def intsolve(func, value, start=None, stop=None, maxit=1000):
     integration.
 
     Parameters
-    ==========
+    ----------
     func : callable
         function to integrate, must take single parameter
     value : float
@@ -2431,7 +2450,7 @@ def intsolve(func, value, start=None, stop=None, maxit=1000):
         maximum number of iterations
 
     Returns
-    =======
+    -------
     out : float
         x such that the integral of L{func} from L{start} to x is L{value}
 
@@ -2490,7 +2509,7 @@ def dist_to_list(func, length, min=None, max=None):
     distribution.
 
     Parameters
-    ==========
+    ----------
     func : callable
         function to call for each possible value, returning
             probability density at that value (does not need to be
@@ -2503,7 +2522,7 @@ def dist_to_list(func, length, min=None, max=None):
         maximum value to possibly include
 
     Examples
-    ========
+    --------
     >>> import matplotlib
     >>> import numpy
     >>> import spacepy.toolbox as tb
@@ -2540,19 +2559,19 @@ def bin_center_to_edges(centers):
     these bins symmetric about their center value.
 
     Parameters
-    ==========
+    ----------
     centers : list
         list of center values for bins
 
     Returns
-    =======
+    -------
     out : list
         list of edges for bins
 
     **note:** returned list will be one element longer than centers
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.bin_center_to_edges([1,2,3])
     [0.5, 1.5, 2.5, 3.5]
@@ -2572,19 +2591,19 @@ def bin_edges_to_center(edges):
     Center of bin n is arithmetic mean of the edges of the adjacent bins.
 
     Parameters
-    ==========
+    ----------
     edges : list
         list of edge values for bins
 
     Returns
-    =======
+    -------
     out : numpy.ndarray
         array of centers for bins
 
     **note:** returned array will be one element shorter than edges
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.bin_center_to_edges([1,2,3])
     [0.5, 1.5, 2.5, 3.5]
@@ -2609,7 +2628,7 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
          result, or see L{thread_map}
 
     Examples
-    ========
+    --------
     squaring 100 million numbers:
 
     >>> import numpy
@@ -2636,7 +2655,7 @@ def thread_job(job_size, thread_count, target, *args, **kwargs):
         these numbers are different.
 
     Parameters
-    ==========
+    ----------
     job_size : int
         Total size of the job. Often this is an array size.
     thread_count : int
@@ -2704,7 +2723,7 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     This is made largely obsolete in python3 by from concurrent import futures 
     
     Examples
-    ========
+    --------
     find totals of several arrays
 
     >>> import numpy
@@ -2724,7 +2743,7 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
     #99
    
     Parameters
-    ==========
+    ----------
     target : callable
         Python callable to run on each element of iterable.
             For each call, an element of iterable is appended to
@@ -2743,7 +2762,7 @@ def thread_map(target, iterable, thread_count=None, *args, **kwargs):
         keyword arguments to pass to L{target}.
 
     Returns
-    =======
+    -------
     out : list
         return values of L{target} for each item from L{iterable}
     """
@@ -2766,19 +2785,19 @@ def eventTimer(Event, Time1):
     nice for debugging and seeing that the code is progressing
 
     Parameters
-    ==========
+    ----------
     Event : str
         Name of the event, string is printed out by function
     Time1 : time.time
         the time to difference in the function
 
     Returns
-    =======
+    -------
     Time2 : time.time
         the new time for the next call to EventTimer
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> import time
     >>> t1 = time.time()
@@ -2797,24 +2816,24 @@ def isview(array1, array2=None):
     of if the first array owns its data and the the second if they point at the same memory location
 
     Parameters
-    ==========
+    ----------
     array1 : numpy.ndarray
         array to query if it owns its data
 
     Other Parameters
-    ================
+    ----------------
     array2 : object (optional)
         array to query if array1 is a view of this object at the specified memory location
 
     Returns
-    =======
+    -------
     out : bool or tuple
         If one array is specified bool is returned, True is the array owns its data.  If two arrays
         are specified a tuple where the second element is a bool of if the array point at the same
         memory location
 
     Examples
-    ========
+    --------
     import numpy
     import spacepy.toolbox as tb
     a = numpy.arange(100)
@@ -2850,7 +2869,7 @@ def interweave(a, b):
     Discussed here: http://stackoverflow.com/questions/5347065/interweaving-two-numpy-arrays
 
     Parameters
-    ==========
+    ----------
     a : array-like
         first array
 
@@ -2858,7 +2877,7 @@ def interweave(a, b):
         second array
 
     Returns
-    =======
+    -------
     out : numpy.ndarray
         interweaved array
     """
@@ -2892,7 +2911,7 @@ def do_with_timeout(timeout, target, *args, **kwargs):
         is not recommended.
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> import time
     >>> def time_me_out():
@@ -2900,7 +2919,7 @@ def do_with_timeout(timeout, target, *args, **kwargs):
     >>> tb.do_with_timeout(0.5, time_me_out) #raises TimeoutError
 
     Parameters
-    ==========
+    ----------
     timeout : float
         Timeout, in seconds.
     target : callable
@@ -2912,11 +2931,12 @@ def do_with_timeout(timeout, target, *args, **kwargs):
         keyword arguments to pass to ``target``.
 
     Raises
-    ======
-    TimeoutError : If ``target`` does not return in ``timeout`` seconds.
+    ------
+    TimeoutError
+        If ``target`` does not return in ``timeout`` seconds.
 
     Returns
-    =======
+    -------
     out :
         return value of ``target``
     """
@@ -2966,12 +2986,12 @@ def timeout_check_call(timeout, *args, **kwargs):
     will remain running (this has implications for, say, spawing shells.)
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> tb.timeout_check_call(1, 'sleep 30', shell=True) #raises TimeoutError
 
     Parameters
-    ==========
+    ----------
     timeout : float
         Timeout, in seconds. Fractions are acceptable but the resolution is of
         order 100ms.
@@ -2981,12 +3001,14 @@ def timeout_check_call(timeout, *args, **kwargs):
         keyword arguments to pass to :class:`subprocess.Popen`
 
     Raises
-    ======
-    TimeoutError : If subprocess does not return in ``timeout`` seconds.
-    CalledProcessError : if command has non-zero exit status
+    ------
+    TimeoutError
+        If subprocess does not return in ``timeout`` seconds.
+    CalledProcessError
+        If command has non-zero exit status
 
     Returns
-    =======
+    -------
     out : int
         0 on successful completion
     """
@@ -3013,7 +3035,7 @@ def poisson_fit(data, initial=None, method='Powell'):
     Fit a Poisson distribution to data using the method and initial guess provided.
 
     Parameters
-    ==========
+    ----------
     data : array-like
         Data to fit a Poisson distribution to.
     initial : int or None
@@ -3022,7 +3044,7 @@ def poisson_fit(data, initial=None, method='Powell'):
         method passed to scipy.optimize.minimize, default='Powell'
 
     Examples
-    ========
+    --------
     >>> import spacepy.toolbox as tb
     >>> from scipy.stats import poisson
     >>> import matplotlib.pyplot as plt
@@ -3036,7 +3058,7 @@ def poisson_fit(data, initial=None, method='Powell'):
     >>> plt.plot(xvals, poisson.pmf(xvals, np.round(res.x)))
 
     Returns
-    =======
+    -------
     result : scipy.optimize.optimize.OptimizeResult
         Resulting fit results from scipy.optimize, answer is result.x,
         user should likely round.
