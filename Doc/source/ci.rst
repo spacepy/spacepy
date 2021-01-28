@@ -43,10 +43,11 @@ protection rule <https://docs.github.com/en/github/
 administering-a-repository/managing-a-branch-protection-rule>`_
 (``Settings`` from the tab at the top of a repository, ``Branches`` from
 the left menu.) The relevant choices is "Require status checks to pass
-before merging." Both the workflow (``test``) and individual jobs within
-it (``test (2.7, ubuntu-18.04`` etc.) may be in the list; only the overall
-workflow should be checked. This will require *all* jobs in the workflow
-to succeed. "Require branches to be up to date" should *not* be selected;
+before merging." Every variant of the unit testing job (``test (2.7,
+ubuntu-18.04...`` etc.) will be in the list of checks; leave these alone and
+select only the ``All tests`` job. The name of this won't change and it
+will always depend on *all* the jobs in the workflow.
+"Require branches to be up to date" should *not* be selected;
 this encourages merging rather than our preferred rebase, and the tests
 will run against a (temporary) merge regardless.
 

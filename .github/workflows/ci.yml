@@ -152,3 +152,14 @@ jobs:
       run: |
         python setup.py install
         cd tests; . ${HOME}/cdf/bin/definitions.B; xvfb-run python test_all.py -v
+
+# See https://github.community/t/status-check-for-a-matrix-jobs/127354/7
+  all-tests:
+    name: All tests
+    if: ${{ always() }}
+    runs-on: ubuntu-18.04
+    needs: test
+    steps:
+      - name: Check test matrix status
+        if: ${{ needs.test.result != 'success' }}
+        run: exit 1
