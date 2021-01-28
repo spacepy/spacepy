@@ -64,6 +64,13 @@ Note that a PR will not trigger the CI `if there is a merge conflict
 <https://github.community/t/run-actions-on-pull-requests-with-merge-conflicts/
 17104>`_.
 
+Usage
+=====
+
+SpacePy administrators can view the usage minutes, storage (for caches),
+etc. on our `billing page <https://github.com/organizations/spacepy/settings/
+billing>`_.
+
 --------------------------
 
 :Release: |version|
