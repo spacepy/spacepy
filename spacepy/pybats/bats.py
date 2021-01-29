@@ -666,9 +666,9 @@ class Bats2d(IdlFile):
         self._qtree=None
 
         # Extract time from file name:
-        i_iter, runtime, time = parse_filename_time(self.attrs['file'])
-        if 'time' not in self.attrs: self.attrs['time'] = time
-        if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
+        #i_iter, runtime, time = parse_filename_time(self.attrs['file'])
+        #if 'time' not in self.attrs: self.attrs['time'] = time
+        #if 'iter' not in self.attrs: self.attrs['iter'] = i_iter
 
         # Behavior of output files changed Jan. 2017:
         # Check for 'r' instead of 'rbody' in attrs.

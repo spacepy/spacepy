@@ -159,6 +159,7 @@ def parse_filename_time(filename):
 
     Examples
     ========
+    >>> from spacepy.pybats import parse_filename_time
     >>> parse_filename_time('z=0_mhd_2_t00050000_n00249620.out')
     (249620, 50000.0, None)
 
@@ -635,11 +636,14 @@ def _skip_entry(f, inttype):
     # Return total number of bytes skipped:
     return rec_len+2*inttype.itemsize
 
-def _scan_idl_header(f, endchar, inttype, floattype):
+def _scan_bin_header(f, endchar, inttype, floattype):
     '''
     Given a binary IDL-formmatted file opened as a file object, *f*, 
     and whose file pointer is positioned at the start of the header, 
     gather some header information and return to caller.
+
+    The file object's pointer will be set to the end of the whole entry
+    (header plus data will be skipped.)
 
     Parameters
     ----------
@@ -655,6 +659,11 @@ def _scan_idl_header(f, endchar, inttype, floattype):
     
     Returns
     -------
+    info : dict
+        A dictionary with the *start* and *end* bytes of the record, time
+        information including the *iter*ation, *ndim* number of dimensions,
+        *npar* number of parameters, *nvar* number of variables, and
+        simulation *runtime* in seconds.
     '''
 
     # Get starting location in file:
@@ -677,7 +686,7 @@ def _scan_idl_header(f, endchar, inttype, floattype):
     # number of parameters, and number of variables in that order.
     # Stash relevant values into the "info" dict:
     vals = readarray(f, dtype=header_fields_dtype, inttype=inttype)[0]
-    for v, x in zip(['iter','runtime','ndim','nparams','nvars'], vals):
+    for v, x in zip(['iter','runtime','ndim','nparam','nvar'], vals):
         info[v] = x
 
     # Dimensionality may be negative to indicate non-uniform grid:
@@ -691,7 +700,7 @@ def _scan_idl_header(f, endchar, inttype, floattype):
     nbytes = floattype.itemsize
 
     # Skip the rest of the header:
-    if info['nparams']>0: 
+    if info['nparam']>0: 
         _skip_entry(f, inttype)  # Skip parameters.
     _skip_entry(f, inttype)      # Skip variable names.
     #parsize = nbytes*info['npar']
@@ -702,8 +711,11 @@ def _scan_idl_header(f, endchar, inttype, floattype):
     # Calculate the end point of the data frame
     # end point = start + header + wrapper bytes + data size):
     info['end'] = info['start'] + head_size +  \
-        2*inttype.itemsize*(1+info['nvars']) + \
-        nbytes*(info['nvars']+info['ndim'])*npoints
+        2*inttype.itemsize*(1+info['nvar']) + \
+        nbytes*(info['nvar']+info['ndim'])*npoints
+
+    # Jump to end of current data frame:
+    f.seek(info['end'], 0)
 
     return info
 
@@ -1039,6 +1051,9 @@ class PbData(SpaceData):
 class IdlFile(PbData):
  
     '''
+    Introduction
+    ------------
+
     An object class that reads/parses an IDL-formatted output file from the 
     SWMF and places it into a :class:`spacepy.pybats.PbData` object.
 
@@ -1054,7 +1069,21 @@ class IdlFile(PbData):
     the most efficient way to proceed.  Look for a PyBats sub module that suits
     your specific needs, or use this base object to write your own.
 
-    A note on byte-swapping: PyBats assumes little endian byte ordering because
+    Multi-Frame Files
+    -----------------
+
+    Typically, Idl-formatted data has a single *frame*, or a single snapshot
+    worth of data (a `*.out` file).  However, it is possible to (externally) 
+    combine many of these files together such that a time series of data frames
+    are contained within a single file (`*.outs` files). This class can read
+    these files, but only one data frame can be made available at a time.  This
+    prevents very large memory requirements.
+
+
+    Notes
+    -----
+    
+    PyBats assumes little endian byte ordering because
     this is what most machines use.  However, there is an autodetect feature
     such that, if PyBats doesn't make sense of the first read (a record length
     entry, or RecLen), it will proceed using big endian ordering.  If this
@@ -1087,14 +1116,83 @@ class IdlFile(PbData):
         self.attrs['file']   = filename   # Save file name.
         self.attrs['format'] = fmt        # Save file format.
 
+        # Gather information about time range of file from name:
+        t_info = list(parse_filename_time(filename))
+        for i in range(len(t_info)):
+            if type(t_info[i]) != list: t_info[i]=[t_info[i]]
+        self.attrs['iter_range']    = t_info[0]
+        self.attrs['runtime_range'] = t_info[1]
+        self.attrs['time_range']    = t_info[2]
+        
         # For binary files, store information about file:
         self._endchar, self._int, self._float = endchar, inttype, floattype
 
         # Save file interpretation options tucked as protected attributes:
         self._header, self._keep_case = header, keep_case
 
+        # Collect information about the number of epoch frames in the file:
+        if fmt=='bin':
+            self._scan_bin_frames()
+        else:
+            self._scan_asc_frames()
+
         # Read one entry of the file (defaults to first frame):
         self.read(iframe=iframe)      # Read file.
+
+    def _scan_bin_frames(self):
+        '''
+        Open the binary-formatted file associated with *self* and scan all
+        headers to count the number of epoch frames and details of each.
+        Results are stored within *self*.
+        '''
+
+        from datetime import timedelta as tdelt
+
+        # Create some variables to store information:
+        nframe = 0 # Number of epoch frames in file.
+        iters, runtimes = [], [] # Lists of time information.
+        offset = [] # Byte offset from beginning of file of each frame.
+
+        with open(self.attrs['file'], 'rb') as f:
+            file_size = f.seek(0,2) # Get number of bytes in file.
+            f.seek(0) # Rewind to file start.
+
+            # Loop over all data frames and collect information:
+            while f.tell() < file_size:
+                info = _scan_bin_header(f, self._endchar, self._int, self._float)
+                # Stash information into lists:
+                offset.append(info['end'])
+                iters.append(info['iter'])
+                runtimes.append(info['runtime'])
+                nframe+=1
+
+        # Store everything as file-level attrs; convert to numpy arrays.
+        self.attrs['nframe'] = nframe
+        self.attrs['iters'] = np.array(iters)
+        self.attrs['runtimes'] = np.array(runtimes)
+        
+        # Use times info to build datetimes and update file-level attributes.
+        if self.attrs['time_range'] != [None]:
+            self.attrs['times'] = np.array(
+                [self.attrs['time_range'][0]+tdelt(seconds=x) for x in runtimes])
+        else:
+            self.attrs['times'] = np.array(nframe*[None])
+
+        if self.attrs['iter_range'] == [None]:
+            self.attrs['iter_range'] = [iters[0], iters[-1]]
+        if self.attrs['runtime_range'] == [None]:
+            self.attrs['runtime_range'] = [runtimes[0], runtimes[-1]]
+        
+    def _scan_asc_frames(self):
+        '''
+        Open the ascii-formatted file associated with *self* and scan all
+        headers to count the number of epoch frames and details of each.
+        Results are stored within *self*.
+
+        This is a placeholder only until ascii-formatted .outs files are
+        fully supported.
+        '''
+        pass
 
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])

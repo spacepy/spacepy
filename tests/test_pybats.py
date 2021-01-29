@@ -83,9 +83,9 @@ class TestProbeIdlFile(unittest.TestCase):
             for r, k in zip(response, known):
                 self.assertEqual(r, k)
 
-class TestScanIdlHeader(unittest.TestCase):
+class TestScanBinHeader(unittest.TestCase):
     '''
-    Test to ensure _scan_idl_header is properly working.
+    Test to ensure _scan_bin_header is properly working.
     '''
     pth = os.path.dirname(os.path.abspath(__file__))
 
@@ -94,8 +94,8 @@ class TestScanIdlHeader(unittest.TestCase):
                     os.path.join(pth, 'data', 'pybats_test', 'mag_grid_binary.out')]
     
     # Responses from single-frame files:
-    knownSingle = [{'iter':68, 'runtime':10., 'ndim':2, 'nvars':15, 'end':175288},
-                   {'iter':0,  'runtime':10., 'ndim':2, 'nvars':15, 'end':2416}]
+    knownSingle = [{'iter':68, 'runtime':10., 'ndim':2, 'nvar':15, 'end':175288},
+                   {'iter':0,  'runtime':10., 'ndim':2, 'nvar':15, 'end':2416}]
 
     def testOneFrame(self):
         '''Test files that only have one epoch frame.'''
@@ -105,7 +105,7 @@ class TestScanIdlHeader(unittest.TestCase):
         for f, known in zip(self.files_single, self.knownSingle):
             props = pb._probe_idlfile(f)
             with open(f, 'rb') as data:
-                info = pb._scan_idl_header(data, *props[1:])
+                info = pb._scan_bin_header(data, *props[1:])
                 for key in known:
                     self.assertEqual(info[key], known[key])
 
