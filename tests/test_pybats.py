@@ -141,8 +141,7 @@ class TestIdlFile(unittest.TestCase):
     def testAscii(self):
         # Open file:
         mhd = pb.IdlFile(os.path.join(
-            spacepy_testing.datadir, 'pybats_test', 'y0_ascii.out'),
-                         format='ascii')
+            spacepy_testing.datadir, 'pybats_test', 'y0_ascii.out'))
 
         # Test units are loaded correctly:
         for v in mhd:
@@ -237,7 +236,7 @@ class TestBats2d(unittest.TestCase):
     def testMultispecies(self):
         # Open file:
         mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
-                                      'cut_multispecies.out'), format='ascii')
+                                      'cut_multispecies.out'))
         mspec_varnames='x Rho Ux Uy Uz Bx By Bz P OpRho OpUx OpUy OpUz OpP jx jy jz g rbody cuty cutz'.split()
         mspec_units='km Mp/cc km/s km/s km/s nT nT nT nPa Mp/cc km/s km/s km/s nPa uA/m2 uA/m2 uA/m2'.split()
         knownMultispecUnits = dict(zip(mspec_varnames,
