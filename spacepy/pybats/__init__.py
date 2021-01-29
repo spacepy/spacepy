@@ -370,7 +370,7 @@ def add_body(ax, rad=2.5, facecolor='lightgrey', show_planet=True,
     ax.add_artist(body)
 
 
-def _read_idl_ascii(pbdat, header='units', keep_case=True):
+def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     '''
     Load a SWMF IDL ascii output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`.
@@ -394,6 +394,9 @@ def _read_idl_ascii(pbdat, header='units', keep_case=True):
     ----------------
     header : string or **None**
         A string indicating how the header line will be handled; see above.
+    start_loc : int
+        Starting location within file of data to read in number of characters.
+        Used when reading *.outs files with more than one data frame.
     keep_case : boolean
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
@@ -792,7 +795,8 @@ def _probe_idlfile(filename):
 
     return 'bin', endian, inttype, floattype
 
-def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
+def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
+                  headeronly=False):
     '''
     Load a SWMF IDL binary output file and load into a pre-existing PbData
     object.  This should only be called by :class:`IdlFile`, which will
@@ -818,6 +822,10 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
     ----------------
     header : string or **None**
         A string indicating how the header line will be handled; see above.
+    start_loc : int
+        Location to start reading inside the file as number of bytes.  This is
+        used to set the starting position of a given data frame for *.outs
+        files.  Default is zero (read at beginning of file).
     keep_case : boolean
         If set to True, the case of variable names will be preserved.  If
         set to False, variable names will be set to all lower case.
@@ -831,11 +839,15 @@ def _read_idl_bin(pbdat, header='units', keep_case=True, headeronly=False):
 
     # Some convenience variables:
     endchar, inttype, floattype = pbdat._endchar, pbdat._int, pbdat._float
+
     
     # Open, read, and parse the file into numpy arrays.
     # Note that Fortran writes integer buffers around records, so
     # we must parse those as well.
     with open(pbdat.attrs['file'], 'rb') as infile:
+        # Jump to start_loc:
+        infile.seek(start_loc, 0)
+        
         # Read header information.
         headline=readarray(infile,str,inttype)
         headline=headline.decode('utf-8')
@@ -1161,7 +1173,7 @@ class IdlFile(PbData):
             while f.tell() < file_size:
                 info = _scan_bin_header(f, self._endchar, self._int, self._float)
                 # Stash information into lists:
-                offset.append(info['end'])
+                offset.append(info['start'])
                 iters.append(info['iter'])
                 runtimes.append(info['runtime'])
                 nframe+=1
@@ -1174,14 +1186,19 @@ class IdlFile(PbData):
         # Use times info to build datetimes and update file-level attributes.
         if self.attrs['time_range'] != [None]:
             self.attrs['times'] = np.array(
-                [self.attrs['time_range'][0]+tdelt(seconds=x) for x in runtimes])
+                [self.attrs['time_range'][0]+tdelt(seconds=int(x)) for x in runtimes])
         else:
             self.attrs['times'] = np.array(nframe*[None])
 
+        # Ensure all ranges are two-element arrays and update using
+        # information we gathered from the header.
         if self.attrs['iter_range'] == [None]:
             self.attrs['iter_range'] = [iters[0], iters[-1]]
         if self.attrs['runtime_range'] == [None]:
             self.attrs['runtime_range'] = [runtimes[0], runtimes[-1]]
+
+        # Stash the offset of frames as a private attribute:
+        self._offsets = np.array(offset)
         
     def _scan_asc_frames(self):
         '''
@@ -1192,8 +1209,26 @@ class IdlFile(PbData):
         This is a placeholder only until ascii-formatted .outs files are
         fully supported.
         '''
-        pass
 
+        # Only use top-level frame as of now.
+        self._offsets = np.array([0])
+        self.attrs['nframe']   = 1
+        self.attrs['iters']    = [0,0]
+        self.attrs['runtimes'] = [0,0]
+        self.attrs['times']    = [0,0]
+
+    def switch_frame(self, iframe):
+        '''
+        For files that have more than one data frame (i.e., `*.outs` files),
+        load data from the *iframe*-th frame into the object replacing what is
+        currently loaded.
+        '''
+
+        self.read(iframe)
+        # re-do calculations!
+        #for c in self.__calcs__:
+        #    c()
+        
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])
 
@@ -1204,10 +1239,15 @@ class IdlFile(PbData):
         set when the object is instantiation.
         '''
 
+        # Get location of frame that we wish to read:
+        loc = self._offsets[iframe]
+        
         if self.attrs['format'] == 'asc':
-            _read_idl_ascii(self, header=self._header, keep_case=self._keep_case)
+            _read_idl_ascii(self, header=self._header, start_loc=loc,
+                            keep_case=self._keep_case)
         elif self.attrs['format'] == 'bin':
-            _read_idl_bin(self, header=self._header, keep_case=self._keep_case)
+            _read_idl_bin(self, header=self._header, start_loc=loc,
+                          keep_case=self._keep_case)
         else:
              raise ValueError('Unrecognized file format: {}'.format(
                 self._format))
