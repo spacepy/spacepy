@@ -54,15 +54,21 @@ class spectrogramTests(unittest.TestCase):
 
     def test_deprecation(self):
         """Deprecation warning on old name"""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True) as cm:
             warnings.simplefilter('always', category=DeprecationWarning)
             a = spacepy.plot.spectrogram(
                 self.data, variables=self.kwargs['variables'])
-        self.assertEqual(1, len(w))
-        self.assertEqual(w[0].category, DeprecationWarning)
-        self.assertEqual(
-            'Use spacepy.plot.Spectrogram (capitalized).',
-            str(w[0].message))        
+        n_match = 0
+        for w in cm:
+            if w.category is DeprecationWarning\
+               and str(w.message) \
+               == 'Use spacepy.plot.Spectrogram (capitalized).':
+                n_match += 1 # We're expecting this warning
+            else:
+                # Anything else, show as normal
+                warnings.showwarning(
+                    w.message, w.category, w.filename, w.lineno)
+        self.assertEqual(1, n_match) # Did we get the one we wanted?
 
     def test_defaults(self):
         """run it and check that defaults were set correctly"""
