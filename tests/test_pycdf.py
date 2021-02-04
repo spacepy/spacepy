@@ -2680,7 +2680,7 @@ class ChangeCDF(ChangeCDFBase):
             [[1, 2, 3], [4, 5, 6]], self.cdf['newzVar'][...])
 
     def testNewVarTime(self):
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True) as cm:
             if sys.version_info[0:2] == (2, 7)\
                and hasattr(cdf, '__warningregistry__'):
                 # filter 'always' is broken in Python 2.7
@@ -2693,14 +2693,18 @@ class ChangeCDF(ChangeCDFBase):
                         break
             warnings.simplefilter('always')
             self.cdf['newzVar'] = [datetime.datetime(2010, 1, 1)]
-        self.assertEqual(1, len(w))
-        self.assertEqual(
-            w[0].category, DeprecationWarning)
-        self.assertEqual(
-            'No type specified for time input; assuming CDF_EPOCH.'
-            ' This will change to TT2000 in the future, on systems which'
-            ' support it.',
-            str(w[0].message))
+        n_match = 0
+        for w in cm:
+            if w.category is DeprecationWarning\
+               and str(w.message) \
+               == 'No type specified for time input; assuming CDF_EPOCH.'\
+               ' This will change to TT2000 in the future, on systems which'\
+               ' support it.':
+                n_match += 1
+            else:
+                warnings.showwarning(
+                    w.message, w.category, w.filename, w.lineno)
+        self.assertEqual(1, n_match)
         # For future
         #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
         #           else cdf.const.CDF_EPOCH.value
@@ -3559,15 +3563,18 @@ class ChangeAttr(ChangeCDFBase):
                    'b': 'hello',
                    }
         attrlist = self.cdf['ATC'].attrs
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True) as cm:
             attrlist.from_dict(indict)
-            self.assertEqual(1, len(w))
-            for curr_warn in w:
-                self.assertTrue(isinstance(curr_warn.message,
-                                           DeprecationWarning))
-                self.assertEqual(
-                    'from_dict is deprecated and will be removed. Use clone.',
-                    str(curr_warn.message))
+        n_match = 0
+        for w in cm:
+            if w.category is DeprecationWarning\
+               and str(w.message) \
+               == 'from_dict is deprecated and will be removed. Use clone.':
+                n_match += 1
+            else:
+                warnings.showwarning(
+                    w.message, w.category, w.filename, w.lineno)
+        self.assertEqual(1, n_match)
         self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
         numpy.testing.assert_array_equal(indict['CATDESC'],
                                          attrlist['CATDESC'])
@@ -3602,7 +3609,7 @@ class ChangeAttr(ChangeCDFBase):
         self.cdf['ATC'].attrs['testtime'] = datetime.datetime(2010, 1, 1)
         expected = cdf.const.CDF_EPOCH16.value # Matches var
         self.assertEqual(expected, self.cdf['ATC'].attrs.type('testtime'))
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True) as cm:
             if sys.version_info[0:2] == (2, 7)\
                and hasattr(cdf, '__warningregistry__'):
                 # filter 'always' is broken in Python 2.7
@@ -3616,14 +3623,18 @@ class ChangeAttr(ChangeCDFBase):
             warnings.simplefilter('always')
             self.cdf['SectorRateScalersCounts'].attrs['testtime'] \
                 = datetime.datetime(2010, 1, 1)
-        self.assertEqual(1, len(w))
-        self.assertEqual(
-            w[0].category, DeprecationWarning)
-        self.assertEqual(
-            'Assuming CDF_EPOCH for time input.'
-            ' This will change to TT2000 in the future, on systems which'
-            ' support it.',
-            str(w[0].message))
+        n_match = 0
+        for w in cm:
+            if w.category is DeprecationWarning\
+               and str(w.message) \
+               == 'Assuming CDF_EPOCH for time input.'\
+               ' This will change to TT2000 in the future, on systems which'\
+               ' support it.':
+                n_match += 1
+            else:
+                warnings.showwarning(
+                    w.message, w.category, w.filename, w.lineno)
+        self.assertEqual(1, n_match)
         # For future
         #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
         #           else cdf.const.CDF_EPOCH.value
@@ -3634,7 +3645,7 @@ class ChangeAttr(ChangeCDFBase):
 
     def testgAttrsAssignTimeType(self):
         """Assign a time type to a gAttr"""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True) as cm:
             if sys.version_info[0:2] == (2, 7)\
                and hasattr(cdf, '__warningregistry__'):
                 # filter 'always' is broken in Python 2.7
@@ -3647,14 +3658,18 @@ class ChangeAttr(ChangeCDFBase):
                         break
             warnings.simplefilter('always')
             self.cdf.attrs['testtime'] = datetime.datetime(2010, 1, 1)
-        self.assertEqual(1, len(w))
-        self.assertEqual(
-            w[0].category, DeprecationWarning)
-        self.assertEqual(
-            'Assuming CDF_EPOCH for time input.'
-            ' This will change to TT2000 in the future, on systems which'
-            ' support it.',
-            str(w[0].message))
+        n_match = 0
+        for w in cm:
+            if w.category is DeprecationWarning\
+               and str(w.message) \
+               == 'Assuming CDF_EPOCH for time input.'\
+               ' This will change to TT2000 in the future, on systems which'\
+               ' support it.':
+                n_match += 1
+            else:
+                warnings.showwarning(
+                    w.message, w.category, w.filename, w.lineno)
+        self.assertEqual(1, n_match)
         # For future
         #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
         #           else cdf.const.CDF_EPOCH.value
