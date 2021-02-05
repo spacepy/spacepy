@@ -30,6 +30,7 @@ from numpy import array
 from scipy import inf
 from scipy.stats import poisson
 
+import spacepy_testing
 import spacepy
 import spacepy.toolbox as tb
 import spacepy.lib
@@ -204,7 +205,7 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_getNamedPath(self):
         """getNamedPath should have known result"""
-        curloc = os.path.dirname(os.path.abspath(__file__))
+        curloc = spacepy_testing.testsdir
         tmpdir = os.path.join(curloc, 'tmp', 'test1', 'test2')
         os.makedirs(tmpdir)
         ans = ['tests', 'tmp', 'test1']
@@ -819,9 +820,7 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_assemble_qindenton_daily(self):
         """Assemble OMNI data structure from Qin-Denton daily files"""
-        dailydir = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            'data', 'qindenton_daily')
+        dailydir = os.path.join(spacepy_testing.datadir, 'qindenton_daily')
         omnidata = tb._assemble_qindenton_daily(dailydir)
         self.assertEqual(
             ['ByIMF', 'Bz1', 'Bz2', 'Bz3', 'Bz4', 'Bz5', 'Bz6', 'BzIMF',

@@ -18,6 +18,7 @@ import unittest
 import numpy as np
 import numpy.testing
 
+import spacepy_testing
 import spacepy.pybats      as pb
 import spacepy.pybats.bats as pbs
 import spacepy.pybats.ram  as ram
@@ -39,8 +40,8 @@ class TestParseFileTime(unittest.TestCase):
              'y=0_mhd_1_e20130924-220500-054.out',
              'y=0_mhd_2_t00001430_n00031073.out',
              'z=0_mhd_2_t00050000_n00249620.out',
-             os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          'data', 'pybats_test', 'mag_grid_ascii.out'),
+             os.path.join(spacepy_testing.datadir,
+                          'pybats_test', 'mag_grid_ascii.out'),
     ]
     dates = [dt(2013,9,24,23,26,0), dt(2013,9,24,22, 5,0),
              None, None, None]
@@ -64,12 +65,11 @@ class TestIdlFile(unittest.TestCase):
     knownMhdXmax = 31.0
     knownMhdXmin = -220.0
     knownMhdZlim = 124.0
-    def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
 
     def testBinary(self):
         # Open file:
-        mhd = pb.IdlFile(os.path.join(self.pth, 'data', 'pybats_test', 'y0_binary.out'))
+        mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir,
+                                      'pybats_test', 'y0_binary.out'))
 
         # Test units are loaded correctly:
         for v in mhd:
@@ -84,7 +84,8 @@ class TestIdlFile(unittest.TestCase):
             
     def testAscii(self):
         # Open file:
-        mhd = pb.IdlFile(os.path.join(self.pth, 'data', 'pybats_test', 'y0_ascii.out'),
+        mhd = pb.IdlFile(os.path.join(
+            spacepy_testing.datadir, 'pybats_test', 'y0_ascii.out'),
                          format='ascii')
 
         # Test units are loaded correctly:
@@ -101,7 +102,8 @@ class TestIdlFile(unittest.TestCase):
     def testReadAsciiAsBin(self):
         """Read an ASCII file as a binary"""
         try:
-            data = pb.IdlFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'),
+            data = pb.IdlFile(os.path.join(
+                spacepy_testing.datadir, 'pybats_test', 'mag_grid_ascii.out'),
                               format='bin', header=None, keep_case=True)
         except EOFError as e:
             msg = str(e)
@@ -120,14 +122,11 @@ class TestRim(unittest.TestCase):
               's_Iup'  :0.2517603660687805,
               's_Idown':-0.2517603668899454}
     
-    def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
-
     def testReadZip(self):
         from spacepy.pybats import rim
 
         # Open file:
-        iono=rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
+        iono=rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                    'it000321_104510_000.idl.gz'))
         
 
@@ -139,7 +138,7 @@ class TestRim(unittest.TestCase):
 
         try:
             # Unzip file and create a copy of it:
-            name_in = os.path.join(self.pth, 'data', 'pybats_test',
+            name_in = os.path.join(spacepy_testing.datadir, 'pybats_test',
                                    'it000321_104510_000.idl.gz')
             name_out= name_in[:-3]
             with gzip.open(name_in, 'rb') as f_in, open(name_out, 'wb') as f_out:
@@ -154,14 +153,14 @@ class TestRim(unittest.TestCase):
     def testReadWrapped(self):
         '''Test reading files where entries are wrapped over multiple lines.'''
         from spacepy.pybats import rim
-        iono = rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
+        iono = rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'it_wrapped.idl.gz'))
                 
     def testIonoCalc(self):
         '''Test calculations made by rim.Iono objects.'''
         from spacepy.pybats import rim
 
-        iono = rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
+        iono = rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'it000321_104510_000.idl.gz'))
         iono.calc_I()
         for key in self.knownI:
@@ -172,7 +171,7 @@ class TestRim(unittest.TestCase):
         import matplotlib as mpl
         import matplotlib.pyplot as plt
         
-        iono = rim.Iono(os.path.join(self.pth, 'data', 'pybats_test',
+        iono = rim.Iono(os.path.join(spacepy_testing.datadir, 'pybats_test',
                                      'it000321_104510_000.idl.gz'))
         out = iono.add_cont('n_jr', add_cbar=True)
 
@@ -186,8 +185,7 @@ class TestBats2d(unittest.TestCase):
     Test functionality of Bats2d objects.
     '''
     def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
-        self.mhd = pbs.Bats2d(os.path.join(self.pth, 'data', 'pybats_test', 'y0_binary.out'))
+        self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test', 'y0_binary.out'))
     
     def testCalc(self):
         # Test all calculations:
@@ -195,7 +193,8 @@ class TestBats2d(unittest.TestCase):
         
     def testMultispecies(self):
         # Open file:
-        mhd = pbs.Bats2d(os.path.join(self.pth, 'data', 'pybats_test', 'cut_multispecies.out'), format='ascii')
+        mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                      'cut_multispecies.out'), format='ascii')
         mspec_varnames='x Rho Ux Uy Uz Bx By Bz P OpRho OpUx OpUy OpUz OpP jx jy jz g rbody cuty cutz'.split()
         mspec_units='km Mp/cc km/s km/s km/s nT nT nT nPa Mp/cc km/s km/s km/s nPa uA/m2 uA/m2 uA/m2'.split()
         knownMultispecUnits = dict(zip(mspec_varnames,
@@ -252,15 +251,14 @@ class TestMagGrid(unittest.TestCase):
     knownDbhMax = 8.07703468843
     knownPedMax = 2.783385368
 
-    def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
-
     def testOpen(self):
         # Open both binary and ascii versions of same data.
         # Ensure expected values are loaded.
-        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'),
+        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test', 'mag_grid_ascii.out'),
                               format='ascii')
-        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
+        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -271,8 +269,10 @@ class TestMagGrid(unittest.TestCase):
         # Open both binary and ascii versions of same data
         # without specifying the type.
         # Ensure expected values are loaded.
-        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'))
-        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
+        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test', 'mag_grid_ascii.out'))
+        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test', 'mag_grid_binary.out'))
 
         self.assertAlmostEqual(self.knownDbnMax, m1['dBn'].max())
         self.assertAlmostEqual(self.knownPedMax, m1['dBnPed'].max())
@@ -282,9 +282,11 @@ class TestMagGrid(unittest.TestCase):
     def testCalc(self):
         # Open both binary and ascii versions of same data.
         # Ensure calculations give expected values.
-        m1 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_ascii.out'),
+        m1 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test', 'mag_grid_ascii.out'),
                               format='ascii')
-        m2 = pbs.MagGridFile(os.path.join(self.pth, 'data', 'pybats_test', 'mag_grid_binary.out'))
+        m2 = pbs.MagGridFile(os.path.join(spacepy_testing.datadir,
+                                          'pybats_test', 'mag_grid_binary.out'))
 
         # Calculation of H-component:
         m1.calc_h()
@@ -297,7 +299,6 @@ class TestSatOrbit(unittest.TestCase):
     Test reading and writing of satellite orbit files.
     '''
     def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
         # Create 5 minutes of fake data:
         self.start = dt.datetime(2000,1,1)
         self.time = np.array([self.start+dt.timedelta(minutes=i)
@@ -349,7 +350,8 @@ class TestSatOrbit(unittest.TestCase):
         from spacepy.pybats import SatOrbit
         from numpy.testing import assert_array_equal as assert_array
 
-        sat = SatOrbit(os.path.join(self.pth, 'data', 'pybats_test', 'testsat.dat'))
+        sat = SatOrbit(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                    'testsat.dat'))
 
         # Check header:
         self.assertEqual(sorted(sat.attrs['head']),
@@ -371,12 +373,10 @@ class TestVirtSat(unittest.TestCase):
     knownSatOmax = 1.72270E-04
     knownSatHmax = 1.72235
 
-    def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
-
     def testOpen(self):
         # Open file, ensure values are read properly.
-        sat = pbs.VirtSat(os.path.join(self.pth, 'data', 'pybats_test', 'sat_multispecies.sat'))
+        sat = pbs.VirtSat(os.path.join(spacepy_testing.datadir,
+                                       'pybats_test', 'sat_multispecies.sat'))
         self.assertEqual(self.knownSatXmax, sat['x'].max())
         self.assertEqual(self.knownSatPmax, sat['p'].max())
         self.assertEqual(self.knownSatHmax, sat['rhoh'].max())
@@ -384,7 +384,8 @@ class TestVirtSat(unittest.TestCase):
 
     def testCalc(self):
         # Test various unit calculations
-        sat = pbs.VirtSat(os.path.join(self.pth, 'data', 'pybats_test', 'sat_multispecies.sat'))
+        sat = pbs.VirtSat(os.path.join(spacepy_testing.datadir,
+                                       'pybats_test', 'sat_multispecies.sat'))
 
         # Test calculation of species number density:
         sat.calc_ndens()
@@ -396,10 +397,11 @@ class TestImfInput(unittest.TestCase):
     Test reading, writing, and plotting from ImfInput files.
     '''
     def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
         # Files to open:
-        self.file_single = os.path.join(self.pth, 'data', 'pybats_test', 'imf_single.dat')
-        self.file_multi  = os.path.join(self.pth, 'data', 'pybats_test', 'imf_multi.dat')
+        self.file_single = os.path.join(spacepy_testing.datadir,
+                                        'pybats_test', 'imf_single.dat')
+        self.file_multi  = os.path.join(spacepy_testing.datadir,
+                                        'pybats_test', 'imf_multi.dat')
         self.sing = pb.ImfInput(self.file_single)
         self.mult = pb.ImfInput(self.file_multi)
 
@@ -513,8 +515,8 @@ class TestExtraction(unittest.TestCase):
     Test Extraction class by opening a file with known solution.
     '''
     def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
-        self.mhd = pbs.Bats2d(os.path.join(self.pth, 'data', 'pybats_test', 'z0_sine.out'))
+        self.mhd = pbs.Bats2d(os.path.join(spacepy_testing.datadir,
+                                           'pybats_test', 'z0_sine.out'))
     
     def testExtract(self):
         analytic = lambda x: 1.+.5*np.cos(x*np.pi/10.)
@@ -534,16 +536,14 @@ class TestGitm(unittest.TestCase):
     shape = (18,18)
     lat1  = 1.48352986
     
-    def setUp(self):
-        self.pth = os.path.dirname(os.path.abspath(__file__))
-
     def testBinary(self):
         '''
         This tests the ability to open a file and correctly read the attributes and 
         variables as well as properly reshape the arrays and remove unused dimensions.
         '''
         # Open 2D file:
-        f = gitm.GitmBin(os.path.join(self.pth, 'data', 'pybats_test', 'gitm_2D.bin'))
+        f = gitm.GitmBin(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                      'gitm_2D.bin'))
         # Check some critical attributes/values:
         self.assertEqual(self.nVars, f.attrs['nVars'])
         self.assertEqual(self.nLat,  f.attrs['nLat'])
@@ -559,8 +559,8 @@ class RampyTests(unittest.TestCase):
     '''
     def setUp(self):
         super(RampyTests, self).setUp()
-        self.pth = os.path.dirname(os.path.abspath(__file__))
-        self.testfile = os.path.join(self.pth, 'data', 'pybats_test', 'ramsat_test.nc')
+        self.testfile = os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                     'ramsat_test.nc')
 
     def tearDown(self):
         super(RampyTests, self).tearDown()

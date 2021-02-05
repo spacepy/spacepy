@@ -24,6 +24,7 @@ except ImportError:
 import sys
 import warnings
 
+import spacepy_testing
 import spacepy.datamodel as dm
 import spacepy.time as spt
 import numpy as np
@@ -781,9 +782,10 @@ class converterTestsCDF(unittest.TestCase):
 class JSONTests(unittest.TestCase):
     def setUp(self):
         super(JSONTests, self).setUp()
-        self.pth = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(self.pth, 'data', '20130218_rbspa_MagEphem.txt')
-        self.filename_bad = os.path.join(self.pth, 'data', '20130218_rbspa_MagEphem_bad.txt')
+        self.filename = os.path.join(
+            spacepy_testing.datadir, '20130218_rbspa_MagEphem.txt')
+        self.filename_bad = os.path.join(
+            spacepy_testing.datadir, '20130218_rbspa_MagEphem_bad.txt')
         self.testdir = tempfile.mkdtemp()
         self.testfile = os.path.join(self.testdir, 'test.cdf')
 

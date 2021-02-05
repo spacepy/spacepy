@@ -13,6 +13,7 @@ import warnings
 
 import numpy
 import numpy.testing
+import spacepy_testing
 import spacepy
 import spacepy.pycdf
 import spacepy.pycdf.const
@@ -857,8 +858,8 @@ class VarBundleChecksBase(unittest.TestCase):
             self.tempdir, 'source_descriptor_datatype_19990101_v00.cdf'),
                                      create=True)
         spacepy.pycdf.lib.set_backward(True)
-        pth = os.path.dirname(os.path.abspath(__file__))
-        self.incdf = spacepy.pycdf.CDF(os.path.join(pth, self.testfile))
+        self.incdf = spacepy.pycdf.CDF(os.path.join(
+            spacepy_testing.testsdir, self.testfile))
 
     def tearDown(self):
         """Close CDFs; delete output"""
