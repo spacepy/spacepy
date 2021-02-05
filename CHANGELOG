@@ -1,5 +1,7 @@
 Changes in Version 0.2.3 (2021-xx-xx)
 =====================================
+tests
+ - Add spacepy_testing module to provide helper functions for testing.
 time
  - Fix warning for out-of-date leapseconds.
 toolbox
