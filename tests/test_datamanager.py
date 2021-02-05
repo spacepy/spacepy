@@ -21,6 +21,7 @@ import warnings
 import numpy.random
 import numpy.testing
 
+import spacepy_testing
 import spacepy.datamanager
 
 
@@ -31,10 +32,8 @@ __all__ = ["RePathTests", "DataManagerFunctionTests",
 class DataManagerClassTests(unittest.TestCase):
     def test_files_matching(self):
         """Files matching a format"""
-        pth = os.path.dirname(os.path.abspath(__file__))
-        dirlist = [os.path.join(pth, 'data', 'datamanager_test', '1'),
-                   os.path.join(pth, 'data', 'datamanager_test', '2'),
-                   ]
+        pth = os.path.join(spacepy_testing.datadir, 'datamanager_test')
+        dirlist = [os.path.join(pth, '1'), os.path.join(pth, '2')]
         cases = [
             {'files1': ['rbspa_ect-hope-sci-L2_20150409_v4.0.0.cdf',
                         'rbspa_ect-hope-sci-L2_20150410_v4.0.0.cdf'],

@@ -31,6 +31,7 @@ import warnings
 import matplotlib.dates
 import numpy
 import numpy.testing
+import spacepy_testing
 from spacepy import datamodel
 import spacepy.pycdf as cdf
 import spacepy.pycdf.const as const
@@ -690,8 +691,8 @@ class MakeCDF(unittest.TestCase):
     def setUp(self):
         self.testdir = tempfile.mkdtemp()
         self.testfspec = os.path.join(self.testdir, 'foo.cdf')
-        pth = os.path.dirname(os.path.abspath(__file__))
-        self.testmaster = os.path.join(pth, 'po_l1_cam_testc.cdf')
+        self.testmaster = os.path.join(spacepy_testing.testsdir,
+                                       'po_l1_cam_testc.cdf')
 
     def tearDown(self):
         shutil.rmtree(self.testdir)
@@ -1138,16 +1139,14 @@ class CDFTestsBase(unittest.TestCase):
 
 class CDFTests(CDFTestsBase):
     """Tests that involve an existing CDF, read or write"""
-    pth = os.path.dirname(os.path.abspath(__file__))
-    testmaster = os.path.join(pth, 'po_l1_cam_test.cdf')
+    testmaster = os.path.join(spacepy_testing.testsdir, 'po_l1_cam_test.cdf')
     testbase = 'test.cdf'
     expected_digest = '94515e62d38a31ad02f6d435274cbfe7'
 
 
 class ColCDFTests(CDFTestsBase):
     """Tests that involve an existing column-major CDF, read or write"""
-    pth = os.path.dirname(os.path.abspath(__file__))
-    testmaster = os.path.join(pth, 'po_l1_cam_testc.cdf')
+    testmaster = os.path.join(spacepy_testing.testsdir, 'po_l1_cam_testc.cdf')
     testbase = 'testc.cdf'
     expected_digest = '7728439e20bece4c0962a125373345bf'
 
