@@ -1197,14 +1197,18 @@ class VarBundleChecks(VarBundleChecksBase):
         counts = self.incdf['SectorRateScalersCounts'][...]
         counts[counts < 0] = numpy.nan
         #suppress bad value warnings
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'Mean of empty slice', RuntimeWarning)
             expected = numpy.nanmean(counts, axis=2)
         expected[numpy.isnan(expected)] = -1e31
         numpy.testing.assert_allclose(
             expected, self.outcdf['SectorRateScalersCounts'][...])
         sigma = self.incdf['SectorRateScalersCountsSigma'][...]
         sigma[sigma < 0] = numpy.nan
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'invalid value encountered in divide', RuntimeWarning)
             expected = numpy.sqrt(numpy.nansum(sigma ** 2, axis=2)) \
                         / (~numpy.isnan(sigma)).sum(axis=2)
         expected[numpy.isnan(expected)] = -1e31
