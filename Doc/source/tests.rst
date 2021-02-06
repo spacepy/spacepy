@@ -19,9 +19,22 @@ same directory.)
 .. contents::
    :local:
 
+Classes
+-------
+
+|
+
+.. autosummary::
+    :template: clean_class.rst
+    :toctree: autosummary
+
+    assertWarns
+    assertDoesntWarn
 
 Data
 ----
+
+|
 
 .. autosummary::
    :toctree: autosummary
