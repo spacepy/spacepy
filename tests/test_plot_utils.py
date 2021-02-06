@@ -21,6 +21,7 @@ import matplotlib.dates
 import matplotlib.pyplot as plt
 import numpy
 import numpy.testing
+import spacepy_testing
 import spacepy.plot.utils
 import spacepy.time as st
 import spacepy.toolbox as tb

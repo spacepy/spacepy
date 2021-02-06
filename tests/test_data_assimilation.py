@@ -10,6 +10,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 import unittest
 
 import numpy
+import spacepy_testing
 import spacepy.toolbox as tb
 import spacepy.data_assimilation as da
 

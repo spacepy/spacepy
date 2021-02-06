@@ -14,6 +14,7 @@ import warnings
 import numpy
 import numpy.testing
 
+import spacepy_testing
 import spacepy.lib
 
 

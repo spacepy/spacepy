@@ -11,6 +11,7 @@ import os.path
 import sys
 import unittest
 
+import spacepy_testing
 import spacepy
 import spacepy.LANLstar as sl
 import numpy

@@ -13,6 +13,7 @@ import warnings
 import numpy as np
 import numpy.testing as ntest
 
+import spacepy_testing
 try:
     import seapy
 except ImportError:

@@ -49,7 +49,7 @@ do
     pip install ${NUMPY} ${PIPLIST}
     rm -rf build
     # Make sure not building against user's version of libraries
-    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py install
+    PYTHONNOUSERSITE=1 PYTHONPATH= python setup.py build
     pushd tests
     echo Python ${PYVER}
     echo ${NUMPY} ${PIPLIST}

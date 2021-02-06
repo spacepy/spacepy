@@ -17,8 +17,8 @@ import shutil
 import tempfile
 import unittest
 
-from spacepy import ae9ap9
 import spacepy_testing
+from spacepy import ae9ap9
 
 __all__ = ['ae9ap9Tests', ]
 

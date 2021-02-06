@@ -19,6 +19,7 @@ import unittest
 import numpy
 import numpy.random
 import scipy.special
+import spacepy_testing
 try:
     import poppy
 except ImportError:

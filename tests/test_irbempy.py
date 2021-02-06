@@ -7,6 +7,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 
 import unittest
+import spacepy_testing
 import spacepy
 import spacepy.omni
 import spacepy.time
