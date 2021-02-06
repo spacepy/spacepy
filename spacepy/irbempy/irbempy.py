@@ -27,14 +27,7 @@ import numpy as np
 from spacepy import help, config
 import spacepy.coordinates as spc
 import spacepy.datamodel as dm
-try:
-    from . import irbempylib as oplib
-except ImportError:
-    if 'sphinx' in sys.argv[0]:
-        warnings.warn('Could not import irbempylib. '
-                      'You appear to be building docs, so ignoring this error.')
-    else:
-        raise
+from . import irbempylib as oplib
 import spacepy.toolbox as tb
 
 #check whether TS07_DATA_PATH is set, if not then set to spacepy's installed data directory

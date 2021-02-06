@@ -13,14 +13,7 @@ import warnings
 import numpy
 from .. import lib
 
-try:
-    assert(lib.have_libspacepy)
-except:
-    if 'sphinx' in sys.argv[0]:
-        warnings.warn('libspacepy not found. '
-                      'You appear to be building docs, so ignoring this error.')
-    else:
-        raise
+assert(lib.have_libspacepy)
 
 
 def _trace2d_common(func, fieldx, fieldy, xstart, ystart, gridx, gridy,
