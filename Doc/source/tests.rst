@@ -42,14 +42,6 @@ Data
    datadir
    testsdir
 
-.. attribute:: datadir
-
-   Directory containing the unit test data.
-
-.. attribute:: testsdir
-
-   Directory containing the unit test scripts.
-
 --------------------------
 
 :Release: |version|
