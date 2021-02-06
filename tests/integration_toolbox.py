@@ -19,6 +19,7 @@ import tempfile
 import threading
 import unittest
 
+import spacepy_testing
 import spacepy.toolbox
 
 

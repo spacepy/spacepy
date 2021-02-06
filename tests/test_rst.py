@@ -8,6 +8,7 @@ Copyright 2010-2012 Los Alamos National Security, LLC.
 """
 import unittest
 
+import spacepy_testing
 import spacepy.rst as rst
 
 __all__ = ['RSTTests', ]

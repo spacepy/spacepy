@@ -8,6 +8,7 @@ Copyright 2019 SpacePy contributors
 import unittest
 
 import numpy.testing
+import spacepy_testing
 import spacepy
 import spacepy.omni
 import spacepy.time

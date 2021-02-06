@@ -12,6 +12,7 @@ import unittest
 from numpy import array
 import numpy.testing
 
+import spacepy_testing
 import spacepy
 import spacepy.omni as om
 

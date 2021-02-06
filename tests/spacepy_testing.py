@@ -8,6 +8,7 @@ This module is importable from test scripts that are in this directory.
 import os.path
 import re
 import sys
+import sysconfig
 import warnings
 
 
@@ -16,6 +17,28 @@ testsdir = os.path.dirname(os.path.abspath(__file__))
 
 datadir = os.path.join(testsdir, 'data')
 """Directory containing unit test data"""
+
+
+def add_build_to_path():
+    """Adds the python build directory to the search path.
+
+    Locates the build directory in the same repository as this test module
+    and adds the (version-specific) library directories to the Python
+    module search path, so the unit tests can be run against the built
+    instead of installed version.
+
+    This is run on import of this module.
+    """
+    # Prioritize version-specific path; py2 tends to be version-specific
+    # and py3 tends to use just "lib". But only use first-matching.
+    for pth in ('lib.{0}-{1}.{2}'.format(sysconfig.get_platform(),
+                                         *sys.version_info[:2]),
+                'lib'):
+        buildpath = os.path.abspath(os.path.join(testsdir, '..', 'build', pth))
+        if os.path.isdir(buildpath):
+            if not buildpath in sys.path:
+                sys.path.insert(0, buildpath)
+            break
 
 
 class assertWarns(warnings.catch_warnings):
@@ -173,3 +196,6 @@ class assertDoesntWarn(assertWarns):
               + assertWarns.__doc__[assertWarns.__doc__.index('\n'):]
     requireWarning = False
     pass
+
+
+add_build_to_path()
