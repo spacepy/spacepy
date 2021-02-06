@@ -11,17 +11,26 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
+import os.path
+import sys
+import sysconfig
 
 #This is a hack to take the sphinx script's path out and just use standard
 #paths.
 sys.path.append(sys.path.pop(0))
 # Put in the unit test directory path, so spacepy_testing can be documented.
 sys.path.append(os.path.abspath(os.path.join('..', '..', 'tests')))
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
+# Add build directory to the path, preferring version-specific.
+buildbase = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '..', '..', 'build'))
+for pth in ('lib.{0}-{1}.{2}'.format(sysconfig.get_platform(),
+                                     *sys.version_info[:2]),
+            'lib'):
+    buildpath = os.path.join(buildbase, pth)
+    if os.path.isdir(buildpath):
+        if not buildpath in sys.path:
+            sys.path.insert(0, buildpath)
 
 # -- General configuration -----------------------------------------------------
 
