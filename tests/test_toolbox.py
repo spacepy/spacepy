@@ -529,8 +529,10 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_pmm_object(self):
         """Test pmm handling of object arrays"""
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', 'pmm: Unable to exclude non-finite',
+                RuntimeWarning, 'spacepy.toolbox$')
             data = [array([5,9,23,24,6]).astype(object),
                     [datetime.datetime(2000, 3, 1, 0, 1), datetime.datetime(2000, 2, 28), datetime.datetime(2000, 3, 1)],
                     numpy.array(['foo', 'bar', 'baz'], dtype=object),
@@ -982,7 +984,7 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_windowMean_outputTimes(self):
         '''windowMean should return a known set of output times for a given set of input times and windows'''
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
             warnings.simplefilter('always')
             wsize = datetime.timedelta(hours=1)
             olap = datetime.timedelta(0)
@@ -1009,7 +1011,7 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_windowMean1(self):
         """windowMean should give known results 1(regression)"""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
             warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
@@ -1032,7 +1034,7 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_windowMean2(self):
         """windowMean should give known results 2(regression)"""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
             warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
@@ -1054,7 +1056,7 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_windowMean3(self):
         """windowMean should give known results 3(regression)"""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
             warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
@@ -1082,7 +1084,7 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_windowMean4(self):
         """windowMean should give known results 4(regression)"""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
             warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
@@ -1098,8 +1100,9 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_windowMean5(self):
         """windowMean should give known results 5(regression)"""
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore', r'windowmean\:', UserWarning, 'spacepy.toolbox$')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
             data = [10, 20]*50
@@ -1118,11 +1121,10 @@ class TBTimeFunctionTests(unittest.TestCase):
             od_ans, ot_ans = tb.windowMean(data, winsize=1.0, overlap=0)
             numpy.testing.assert_almost_equal(ot_ans, outtime)
             numpy.testing.assert_almost_equal(od_ans, outdata)
-            self.assertEqual(8, len(w))
 
     def test_windowMean_op(self):
         """windowMean should give known results (regression)"""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
             warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(hours=12)
@@ -1144,7 +1146,7 @@ class TBTimeFunctionTests(unittest.TestCase):
 
     def test_windowMean_op2(self):
         """windowMean should give expected sums with len as passed function"""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings():
             warnings.simplefilter('always')
             wsize = datetime.timedelta(days=1)
             olap = datetime.timedelta(0)
