@@ -403,9 +403,13 @@ import h5py
 omnifln = os.path.join(DOT_FLN,'data','omnidata.h5')
 omni2fln = os.path.join(DOT_FLN,'data','omni2data.h5')
 # Test data is stored relative to the test script
-testfln = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])),
-                       'data', 'OMNItest.h5')
-if not os.path.isfile(testfln): # Hope it's relative to current!
+try:
+    import spacepy_testing
+    testfln = os.path.join(spacepy_testing.datadir, 'OMNItest.h5')
+except ImportError:
+    testfln = None
+if testfln is None or not os.path.isfile(testfln):
+    # Hope it's relative to current!
     testfln = os.path.join(os.path.abspath('data'), 'OMNItest.h5')
 
 presentQD = h5py.is_hdf5(omnifln)
