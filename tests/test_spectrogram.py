@@ -13,6 +13,7 @@ import numpy as np
 import datetime
 import matplotlib.dates as mdates
 
+import spacepy_testing
 import spacepy.datamodel as dm
 import spacepy.toolbox as tb
 
@@ -54,21 +55,12 @@ class spectrogramTests(unittest.TestCase):
 
     def test_deprecation(self):
         """Deprecation warning on old name"""
-        with warnings.catch_warnings(record=True) as cm:
-            warnings.simplefilter('always', category=DeprecationWarning)
+        with spacepy_testing.assertWarns(
+                self, 'always',
+                r'Use spacepy\.plot\.Spectrogram \(capitalized\)\.',
+                DeprecationWarning, r'spacepy.plot$'):
             a = spacepy.plot.spectrogram(
                 self.data, variables=self.kwargs['variables'])
-        n_match = 0
-        for w in cm:
-            if w.category is DeprecationWarning\
-               and str(w.message) \
-               == 'Use spacepy.plot.Spectrogram (capitalized).':
-                n_match += 1 # We're expecting this warning
-            else:
-                # Anything else, show as normal
-                warnings.showwarning(
-                    w.message, w.category, w.filename, w.lineno)
-        self.assertEqual(1, n_match) # Did we get the one we wanted?
 
     def test_defaults(self):
         """run it and check that defaults were set correctly"""
