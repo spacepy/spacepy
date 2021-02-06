@@ -1078,16 +1078,11 @@ class VarBundleChecks(VarBundleChecksBase):
         bundle = spacepy.pycdf.istp.VarBundle(
             self.incdf['SectorRateScalersCounts'])
         bundle.slice(1, [2, 3, 5])
-        with warnings.catch_warnings(record=True) as cm:
+        with spacepy_testing.assertDoesntWarn(
+                self, 'always',
+                'Using a non-tuple sequence for multidimensional indexing',
+                FutureWarning, r'spacepy\.pycdf\.istp$'):
             bundle.output(self.outcdf)
-        for w in cm:
-            if w.category is FutureWarning\
-               and str(w.message).startswith(
-                   'Using a non-tuple sequence for multidimensional indexing'):
-                self.fail('Raised FutureWarning for non-tuple sequence index.')
-            else:
-                warnings.showwarning(
-                    w.message, w.category, w.filename, w.lineno)
         numpy.testing.assert_array_equal(
             self.outcdf['SectorRateScalersCounts'][...],
             self.incdf['SectorRateScalersCounts'][...][:, [2, 3, 5], ...])

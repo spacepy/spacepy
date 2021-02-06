@@ -6,6 +6,7 @@ import warnings
 
 import dateutil.parser as dup
 import numpy as np
+import spacepy_testing
 import spacepy.time as spt
 import spacepy.toolbox as tb
 import spacepy.empiricals as em
@@ -79,14 +80,11 @@ class empFunctionTests(unittest.TestCase):
         self.assertRaises(KeyError, spam1)
 
     def test_getPlasmaPauseCA1992warn(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always', category=RuntimeWarning)
+        with spacepy_testing.assertWarns(
+                self, 'always',
+                r'No LT dependence currently supported for CA1992 model',
+                RuntimeWarning, r'spacepy\.empiricals$'):
             em.getPlasmaPause(self.ticks, model='CA1992', LT=12, omnivals=self.omnivals)
-        self.assertEqual(1, len(w))
-        self.assertEqual(RuntimeWarning, w[0].category)
-        self.assertEqual(
-            'No LT dependence currently supported for CA1992 model',
-            str(w[0].message))
 
     def test_getLmax(self):
         """getLmax should give known results (regression)"""

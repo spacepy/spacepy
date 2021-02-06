@@ -610,9 +610,11 @@ class NoCDF(unittest.TestCase):
 
     def testMinMaxFloat(self):
         """Get min/max values for a float"""
-        with warnings.catch_warnings(record=True) as w:
+        with spacepy_testing.assertDoesntWarn(
+                self, 'always',
+                r'Conversion of the second argument of issubdtype',
+                FutureWarning, r'spacepy'):
             minval, maxval = cdf.lib.get_minmax(const.CDF_FLOAT)
-        self.assertEqual(0, len(w)) #make sure no deprecation warning
         self.assertAlmostEqual(-3.4028234663853e+38, minval, places=-30)
         self.assertAlmostEqual(3.4028234663853e+38, maxval, places=-30)
 
@@ -1067,26 +1069,13 @@ class MakeCDF(unittest.TestCase):
         # set_backward has not been called.
         cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
         self.assertFalse(cdf.lib._explicit_backward)
-        with warnings.catch_warnings(record=True) as w:
-            if sys.version_info[0:2] == (2, 7)\
-               and hasattr(cdf, '__warningregistry__'):
-                # filter 'always' is broken in Python 2.7
-                # https://stackoverflow.com/questions/56821539/
-                for k in cdf.__warningregistry__.keys():
-                    if k[0].startswith(
-                            'spacepy.pycdf.lib.set_backward not called') \
-                            and k[1] is DeprecationWarning:
-                        del cdf.__warningregistry__[k]
-                        break
-            warnings.simplefilter('always')
+        with spacepy_testing.assertWarns(
+                self, 'always',
+                r'spacepy\.pycdf\.lib\.set_backward not called\; making'
+                r' backward-compatible CDF\. This default will change in the'
+                r' future\.$',
+                DeprecationWarning, r'spacepy\.pycdf$'):
             cdf.CDF(self.testfspec, create=True).close()
-        self.assertEqual(1, len(w))
-        self.assertEqual(
-            w[0].category, DeprecationWarning)
-        self.assertEqual(
-            'spacepy.pycdf.lib.set_backward not called; making'
-            ' backward-compatible CDF. This default will change in the future.',
-            str(w[0].message))
         with cdf.CDF(self.testfspec) as f:
             ver, rel, inc = f.version()
         self.assertEqual(2, ver) # Still the default
@@ -1098,10 +1087,10 @@ class MakeCDF(unittest.TestCase):
         cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
         self.assertFalse(cdf.lib._explicit_backward)
         cdf.lib.set_backward(True)
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
+        with spacepy_testing.assertDoesntWarn(
+                self, 'always', category=DeprecationWarning,
+                module=r'spacepy\.pycdf$'):
             cdf.CDF(self.testfspec, create=True).close()
-        self.assertEqual(0, len(w))
         with cdf.CDF(self.testfspec) as f:
             ver, rel, inc = f.version()
         self.assertEqual(2, ver)
@@ -1111,10 +1100,10 @@ class MakeCDF(unittest.TestCase):
         cdf.lib = cdf.Library(libpath=cdf.lib, library=cdf._library)
         self.assertFalse(cdf.lib._explicit_backward)
         cdf.lib.set_backward(False)
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always', category=DeprecationWarning)
+        with spacepy_testing.assertDoesntWarn(
+                self, 'always', category=DeprecationWarning,
+                module=r'spacepy\.pycdf$'):
             cdf.CDF(self.testfspec, create=True).close()
-        self.assertEqual(0, len(w))
         with cdf.CDF(self.testfspec) as f:
             ver, rel, inc = f.version()
         self.assertEqual(3, ver)
@@ -2679,31 +2668,13 @@ class ChangeCDF(ChangeCDFBase):
             [[1, 2, 3], [4, 5, 6]], self.cdf['newzVar'][...])
 
     def testNewVarTime(self):
-        with warnings.catch_warnings(record=True) as cm:
-            if sys.version_info[0:2] == (2, 7)\
-               and hasattr(cdf, '__warningregistry__'):
-                # filter 'always' is broken in Python 2.7
-                # https://stackoverflow.com/questions/56821539/
-                for k in cdf.__warningregistry__.keys():
-                    if k[0].startswith(
-                            'No type specified for time input') \
-                            and k[1] is DeprecationWarning:
-                        del cdf.__warningregistry__[k]
-                        break
-            warnings.simplefilter('always')
+        with spacepy_testing.assertWarns(
+                self, 'always',
+                r'No type specified for time input\; assuming CDF_EPOCH\.'
+                r' This will change to TT2000 in the future, on systems which'
+                r' support it\.$',
+                DeprecationWarning, r'spacepy\.pycdf$'):
             self.cdf['newzVar'] = [datetime.datetime(2010, 1, 1)]
-        n_match = 0
-        for w in cm:
-            if w.category is DeprecationWarning\
-               and str(w.message) \
-               == 'No type specified for time input; assuming CDF_EPOCH.'\
-               ' This will change to TT2000 in the future, on systems which'\
-               ' support it.':
-                n_match += 1
-            else:
-                warnings.showwarning(
-                    w.message, w.category, w.filename, w.lineno)
-        self.assertEqual(1, n_match)
         # For future
         #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
         #           else cdf.const.CDF_EPOCH.value
@@ -2823,15 +2794,10 @@ class ChangeCDF(ChangeCDFBase):
         'about every portion of the anatomy.'
         if not str is bytes:
             msg = msg.encode('ascii')
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings('always', 'ATTR_NAME_TRUNC.*',
-                                    cdf.CDFWarning, '^spacepy\\.pycdf')
+        with spacepy_testing.assertWarns(self, 'always', r'ATTR_NAME_TRUNC',
+                                         cdf.CDFWarning, r'spacepy\.pycdf$'):
             self.cdf._call(cdf.const.CREATE_, cdf.const.ATTR_, msg,
                            cdf.const.GLOBAL_SCOPE, ctypes.byref(attrnum))
-        self.assertEqual(len(w), 1)
-        self.assertTrue(isinstance(w[0].message, cdf.CDFWarning))
-        self.assertEqual('ATTR_NAME_TRUNC: Attribute name truncated.',
-                         str(w[0].message))
 
     def testAssignEmptyList(self):
         """Assign an empty list to a variable"""
@@ -3562,18 +3528,11 @@ class ChangeAttr(ChangeCDFBase):
                    'b': 'hello',
                    }
         attrlist = self.cdf['ATC'].attrs
-        with warnings.catch_warnings(record=True) as cm:
+        with spacepy_testing.assertWarns(
+                self, 'always',
+                r'from_dict is deprecated and will be removed\. Use clone\.$',
+                DeprecationWarning, r'spacepy\.pycdf$'):
             attrlist.from_dict(indict)
-        n_match = 0
-        for w in cm:
-            if w.category is DeprecationWarning\
-               and str(w.message) \
-               == 'from_dict is deprecated and will be removed. Use clone.':
-                n_match += 1
-            else:
-                warnings.showwarning(
-                    w.message, w.category, w.filename, w.lineno)
-        self.assertEqual(1, n_match)
         self.assertEqual(['CATDESC', 'b'], sorted(attrlist.keys()))
         numpy.testing.assert_array_equal(indict['CATDESC'],
                                          attrlist['CATDESC'])
@@ -3608,32 +3567,14 @@ class ChangeAttr(ChangeCDFBase):
         self.cdf['ATC'].attrs['testtime'] = datetime.datetime(2010, 1, 1)
         expected = cdf.const.CDF_EPOCH16.value # Matches var
         self.assertEqual(expected, self.cdf['ATC'].attrs.type('testtime'))
-        with warnings.catch_warnings(record=True) as cm:
-            if sys.version_info[0:2] == (2, 7)\
-               and hasattr(cdf, '__warningregistry__'):
-                # filter 'always' is broken in Python 2.7
-                # https://stackoverflow.com/questions/56821539/
-                for k in cdf.__warningregistry__.keys():
-                    if k[0].startswith(
-                            'Assuming CDF_') \
-                            and k[1] is DeprecationWarning:
-                        del cdf.__warningregistry__[k]
-                        break
-            warnings.simplefilter('always')
+        with spacepy_testing.assertWarns(
+                self, 'always',
+                r'Assuming CDF_EPOCH for time input\.'
+                r' This will change to TT2000 in the future, on systems which'
+                r' support it\.$',
+                DeprecationWarning, r'spacepy\.pycdf$'):
             self.cdf['SectorRateScalersCounts'].attrs['testtime'] \
                 = datetime.datetime(2010, 1, 1)
-        n_match = 0
-        for w in cm:
-            if w.category is DeprecationWarning\
-               and str(w.message) \
-               == 'Assuming CDF_EPOCH for time input.'\
-               ' This will change to TT2000 in the future, on systems which'\
-               ' support it.':
-                n_match += 1
-            else:
-                warnings.showwarning(
-                    w.message, w.category, w.filename, w.lineno)
-        self.assertEqual(1, n_match)
         # For future
         #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
         #           else cdf.const.CDF_EPOCH.value
@@ -3644,31 +3585,13 @@ class ChangeAttr(ChangeCDFBase):
 
     def testgAttrsAssignTimeType(self):
         """Assign a time type to a gAttr"""
-        with warnings.catch_warnings(record=True) as cm:
-            if sys.version_info[0:2] == (2, 7)\
-               and hasattr(cdf, '__warningregistry__'):
-                # filter 'always' is broken in Python 2.7
-                # https://stackoverflow.com/questions/56821539/
-                for k in cdf.__warningregistry__.keys():
-                    if k[0].startswith(
-                            'Assuming') \
-                            and k[1] is DeprecationWarning:
-                        del cdf.__warningregistry__[k]
-                        break
-            warnings.simplefilter('always')
+        with spacepy_testing.assertWarns(
+                self, 'always',
+                r'Assuming CDF_EPOCH for time input\.'
+                r' This will change to TT2000 in the future, on systems which'
+                r' support it\.$',
+                DeprecationWarning, r'spacepy\.pycdf$'):
             self.cdf.attrs['testtime'] = datetime.datetime(2010, 1, 1)
-        n_match = 0
-        for w in cm:
-            if w.category is DeprecationWarning\
-               and str(w.message) \
-               == 'Assuming CDF_EPOCH for time input.'\
-               ' This will change to TT2000 in the future, on systems which'\
-               ' support it.':
-                n_match += 1
-            else:
-                warnings.showwarning(
-                    w.message, w.category, w.filename, w.lineno)
-        self.assertEqual(1, n_match)
         # For future
         #expected = cdf.const.CDF_TIME_TT2000.value if cdf.lib.supports_int8 \
         #           else cdf.const.CDF_EPOCH.value

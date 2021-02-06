@@ -138,48 +138,32 @@ class SimpleFunctionTests(unittest.TestCase):
 
     def test_quaternionDeprecation(self):
         """Make sure deprecated quaternion functions work"""
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always', category=DeprecationWarning)
+        with spacepy_testing.assertWarns(
+                self, 'always', r'moved to spacepy\.coordinates',
+                DeprecationWarning, r'spacepy'):
             tst = tb.quaternionNormalize([0.707, 0, 0.707, 0.2])
-        self.assertEqual(1, len(w))
-        self.assertEqual(DeprecationWarning, w[0].category)
-        self.assertEqual(
-            'moved to spacepy.coordinates',
-            str(w[0].message))
         numpy.testing.assert_array_almost_equal(
             [0.693,  0.,  0.693,  0.196], tst, decimal=2)
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always', category=DeprecationWarning)
+        with spacepy_testing.assertWarns(
+                self, 'always', r'moved to spacepy\.coordinates',
+                DeprecationWarning, r'spacepy'):
             tst = tb.quaternionRotateVector([0.7071, 0, 0, 0.7071],
                                             [0, 1, 0])
-        self.assertEqual(1, len(w))
-        self.assertEqual(DeprecationWarning, w[0].category)
-        self.assertEqual(
-            'moved to spacepy.coordinates',
-            str(w[0].message))
         numpy.testing.assert_array_almost_equal(
             [0, 0, 1], tst, decimal=5)
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always', category=DeprecationWarning)
+        with spacepy_testing.assertWarns(
+                self, 'always', r'moved to spacepy\.coordinates',
+                DeprecationWarning, r'spacepy'):
             tst = tb.quaternionMultiply([1., 0, 0, 0],
                                         [0., 0, 0, 1], scalarPos='first')
-        self.assertEqual(1, len(w))
-        self.assertEqual(DeprecationWarning, w[0].category)
-        self.assertEqual(
-            'moved to spacepy.coordinates',
-            str(w[0].message))
         numpy.testing.assert_array_equal([0, 0, 0, 1], tst)
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always', category=DeprecationWarning)
+        with spacepy_testing.assertWarns(
+                self, 'always', r'moved to spacepy\.coordinates',
+                DeprecationWarning, r'spacepy'):
             tst = tb.quaternionConjugate([.707, 0, .707, 0.2])
-        self.assertEqual(1, len(w))
-        self.assertEqual(DeprecationWarning, w[0].category)
-        self.assertEqual(
-            'moved to spacepy.coordinates',
-            str(w[0].message))
         numpy.testing.assert_array_equal([-.707, 0, -.707, 0.2], tst)
 
     def test_indsFromXrange(self):
@@ -374,31 +358,28 @@ class SimpleFunctionTests(unittest.TestCase):
         """feq should return true when they are equal"""
         val1 = 1.1234
         val2 = 1.1235
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always', category=DeprecationWarning)
+        with spacepy_testing.assertWarns(self, 'always', r'use numpy\.isclose',
+                                         DeprecationWarning, r'spacepy'):
             self.assertTrue(tb.feq(val1, val2, 0.0001))
+        with spacepy_testing.assertWarns(self, 'always', r'use numpy\.isclose',
+                                         DeprecationWarning, r'spacepy'):
             numpy.testing.assert_array_equal(
                 [False, True, False, False],
                 tb.feq([1., 2., 3., 4.],
                        [1.25, 2.05, 2.2, 500.1],
                        0.1)
             )
-        self.assertEqual(2, len(w))
-        for this_w in w:
-            self.assertEqual(DeprecationWarning, this_w.category)
-            self.assertEqual(DeprecationWarning, this_w.category)
-            self.assertEqual('use numpy.isclose', str(this_w.message))
 
     def testfeq_notequal(self):
         """feq should return false when they are not equal"""
         val1 = 1.1234
         val2 = 1.1235
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always', category=DeprecationWarning)
+        with spacepy_testing.assertWarns(self, 'always', r'use numpy\.isclose',
+                                         DeprecationWarning, r'spacepy'):
+            self.assertTrue(tb.feq(val1, val2, 0.0001))
+        with spacepy_testing.assertWarns(self, 'always', r'use numpy\.isclose',
+                                         DeprecationWarning, r'spacepy'):
             self.assertFalse(tb.feq(val1, val2, 0.000005))
-        self.assertEqual(1, len(w))
-        self.assertEqual(DeprecationWarning, w[0].category)
-        self.assertEqual('use numpy.isclose', str(w[0].message))
 
     def test_medAbsDev(self):
         """medAbsDev should return a known range for given random input"""
