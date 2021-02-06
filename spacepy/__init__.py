@@ -169,6 +169,9 @@ def deprecated(version, message, docstring=None):
     The function will work but will not have proper argument names listed
     in e.g. ``help``.
 
+    This warning will show as coming from SpacePy, not the deprecated
+    function.
+
     Examples
     ========
         >>> import spacepy

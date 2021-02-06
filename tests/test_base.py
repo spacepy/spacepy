@@ -39,7 +39,7 @@ class SpacepyFuncTests(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             #make sure to catch expected warnings
             warnings.filterwarnings('always', 'pithy message',
-                                    DeprecationWarning, '^spacepy')
+                                    DeprecationWarning, 'spacepy$')
             self.assertEqual(2, testfunc(1))
         self.assertEqual(1, len(w))
         self.assertEqual(DeprecationWarning, w[0].category)
@@ -57,7 +57,7 @@ class SpacepyFuncTests(unittest.TestCase):
             testfunc.__doc__)
         with warnings.catch_warnings(record=True) as w:
             warnings.filterwarnings('always', 'pithy message',
-                                    DeprecationWarning, '^spacepy')
+                                    DeprecationWarning, 'spacepy$')
             self.assertEqual(2, testfunc(1))
         self.assertEqual(1, len(w))
         self.assertEqual(DeprecationWarning, w[0].category)
@@ -103,7 +103,7 @@ class SpacepyFuncTests(unittest.TestCase):
             testfunc.__doc__)
         with warnings.catch_warnings(record=True) as w:
             warnings.filterwarnings('always', 'pithy message',
-                                    DeprecationWarning, '^spacepy')
+                                    DeprecationWarning, 'spacepy$')
             self.assertEqual(2, testfunc(1))
         self.assertEqual(1, len(w))
         self.assertEqual(DeprecationWarning, w[0].category)
