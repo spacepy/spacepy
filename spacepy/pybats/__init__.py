@@ -485,11 +485,6 @@ def _read_idl_ascii(pbdat, header='units', start_loc=0, keep_case=True):
     for name, para in zip(names[(nvar+ndim):], para):
         pbdat.attrs[name]=para
         
-    # Create string representation of time.
-    pbdat.attrs['strtime']='%4.4ih%2.2im%06.3fs'%\
-        (np.floor(time/3600.), np.floor(time%3600. / 60.0),
-         time%60.0)
-        
     # Create containers for the rest of the data:
     for v, u in zip(names, units[nSkip:]):
         pbdat[v] = dmarray(np.zeros(npts), {'units':u})
@@ -927,11 +922,6 @@ def _read_idl_bin(pbdat, header='units', start_loc=0, keep_case=True,
         for name, para in zip(names[(nvar+ndim):], para):
             pbdat.attrs[name]=para
                 
-                
-        # Create string representation of time.
-        pbdat.attrs['strtime'] = '{0:04d}h{1:02d}m{2:06.3f}s'.format(
-            int(time//3600), int(time%3600//60), time%60)
-
         # Get the grid points...
         prod = [1] + pbdat['grid'].cumprod().tolist()
 
@@ -1151,6 +1141,15 @@ class IdlFile(PbData):
         # Read one entry of the file (defaults to first frame):
         self.read(iframe=iframe)      # Read file.
 
+        # Update information about the currently loaded frame.
+        self.attrs['iframe'] = iframe
+        self.attrs['time']   = self.attrs['times'][iframe]
+
+        # Create string representation of run time:
+        time = self.attrs['runtime'] # Convenience variable.
+        self.attrs['strtime']= "{:04.0f}h{:02.0f}m{:06.3f}s".format(
+            np.floor(time//3600), np.floor(time%3600//60.0), time%60.0)
+        
     def _scan_bin_frames(self):
         '''
         Open the binary-formatted file associated with *self* and scan all
@@ -1216,7 +1215,7 @@ class IdlFile(PbData):
         self.attrs['iters']    = [0,0]
         self.attrs['runtimes'] = [0,0]
         self.attrs['times']    = [0,0]
-
+        
     def switch_frame(self, iframe):
         '''
         For files that have more than one data frame (i.e., `*.outs` files),
@@ -1224,10 +1223,23 @@ class IdlFile(PbData):
         currently loaded.
         '''
 
+        # Ensure that given frame exists within object:
+        if iframe<0 or iframe>=self.attrs['nframe']:
+            raise IndexError("iframe {} is outside range of [0,{})".format(
+                iframe, self.attrs['nframe']))
+        
         self.read(iframe)
-        # re-do calculations!
-        #for c in self.__calcs__:
-        #    c()
+
+        # Update information about the current frame:
+        self.attrs['iframe'] = iframe
+        self.attrs['iter']   = self.attrs['iters'][iframe]
+        self.attrs['runtime']= self.attrs['runtimes'][iframe]
+        self.attrs['time']   = self.attrs['times'][iframe]
+
+        # Update string time:
+        time = self.attrs['runtime'] # Convenience variable.
+        self.attrs['strtime']= "{:04.0f}h{:02.0f}m{:06.3f}s".format(
+            np.floor(time//3600), np.floor(time%3600//60.0),time%60.0)
         
     def __repr__(self):
         return 'SWMF IDL-Binary file "%s"' % (self.attrs['file'])

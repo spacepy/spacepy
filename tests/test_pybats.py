@@ -115,12 +115,22 @@ class TestIdlFile(unittest.TestCase):
     file types and formats (ascii and binary).
     '''
 
+    # Known values for single-frame *.out files:
     varnames = 'x z rho ux uy uz bx by bz p b1x b1y b1z e jx jy jz'
     units='R R Mp/cc km/s km/s km/s nT nT nT nPa nT nT nT J/m3 uA/m2 uA/m2 uA/m2'
     knownMhdUnits = dict(zip(varnames.split(), units.split()))
     knownMhdXmax = 31.0
     knownMhdXmin = -220.0
     knownMhdZlim = 124.0
+
+    # Known values for multi-frame *.outs files:
+    # Time/iteration range covered by files:
+    knownIterRng1  = [2500, 2512]
+    knownIterRng2  = [2500, 2512]
+    knownRtimeRng1 = [0.0, 120.0]
+    knownRtimeRng2 = [0.0, 120.0]
+    knownTimeRng1  = [dt.datetime(2014, 4, 10, 0, 0), dt.datetime(2014, 4, 10, 0, 2)]
+    knownTimeRng2  = [dt.datetime(2014, 4, 10, 0, 0), dt.datetime(2014, 4, 10, 0, 2)]
 
     def testBinary(self):
         # Open file:
@@ -154,6 +164,20 @@ class TestIdlFile(unittest.TestCase):
         self.assertEqual(self.knownMhdZlim, mhd['z'].max())
         self.assertEqual(self.knownMhdZlim*-1, mhd['z'].min())
 
+    def testReadOuts(self):
+        # Start with y=0 slice MHD outs file:
+        mhd = pb.IdlFile(os.path.join(spacepy_testing.datadir, 'pybats_test',
+                                      'y=0_mhd_1_e20140410-000000-000_20140410-000200-000.outs'))
+
+        for i in range(len(self.knownIterRng1)):
+            self.assertEqual(self.knownIterRng1[i],  mhd.attrs['iter_range'][i])
+            self.assertEqual(self.knownRtimeRng1[i], mhd.attrs['runtime_range'][i])
+            self.assertEqual(self.knownTimeRng1[i],  mhd.attrs['time_range'][i])
+
+    def testSwitchFrame(self):
+        '''Test our ability to open on arbitrary frame and change frame'''
+        pass
+    
 class TestRim(unittest.TestCase):
 
     # Solutions for calc_I:
