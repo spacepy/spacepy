@@ -3464,6 +3464,27 @@ class Var(MutableSequence, spacepy.datamodel.MetaMixin):
         self._call(const.GET_, const.zVAR_RECVARY_, ctypes.byref(vary))
         return vary.value != const.NOVARY.value
 
+    def sparse_records(self, new_sr=None):
+        """
+        Gets or sets this variable sparse records mode.
+
+        Other Parameters
+        ================
+        new_sr : int
+            If specified, should be a sparse record mode from
+            :mod:`~spacepy.pycdf.const`.
+
+        Returns
+        =======
+        out : int
+            Sparse record mode for this variable.
+        """
+        if new_sr != None:
+            self._call(const.PUT_, const.zVAR_SPARSERECORDS_, new_sr)
+        sr = ctypes.c_long(0)
+        self._call(const.GET_, const.zVAR_SPARSERECORDS_, ctypes.byref(sr))
+        return sr
+
     def dv(self, new_dv=None):
         """
         Gets or sets dimension variance of each dimension of variable.
@@ -3984,7 +4005,7 @@ class _Hyperslice(object):
                 else: #Single degenerate value
                     if idx < 0:
                         idx += self.dimsizes[i]
-                    if idx != 0 and (idx >= self.dimsizes[i] or idx < 0):
+                    if idx != 0 and ((idx >= self.dimsizes[i] and i > 0) or idx < 0):
                         raise IndexError('list index out of range')
                     self.starts[i] = idx
                     self.degen[i] = True
